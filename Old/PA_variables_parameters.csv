@@ -65,3 +65,11 @@ Corr In-House–External,0.1,,
 Corr Alpha-Extension–External,0.1,,
 Buffer multiple,3,,Cash buffer multiple for risk mitigation
 Total fund capital (mm),4000,,Total fund size in millions
+,,,
+rows,variable,,
+df_template,variable,,
+file_path,variable,,
+LABEL_MAP,variable,,
+select_csv_file,function,,
+load_parameters,function,,
+get_num,function,,
