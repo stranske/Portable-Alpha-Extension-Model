@@ -1,0 +1,64 @@
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+diff --git a/Codex patches/codex.patch b/archive/Codex patches/codex.patch
+similarity index 100%
+rename from Codex patches/codex.patch
+rename to archive/Codex patches/codex.patch
+diff --git a/Old/PA_variables_parameters.csv b/archive/Old/PA_variables_parameters.csv
+similarity index 100%
+rename from Old/PA_variables_parameters.csv
+rename to archive/Old/PA_variables_parameters.csv
+diff --git a/Old/PortAlphaRefactorInst.ipynb b/archive/Old/PortAlphaRefactorInst.ipynb
+similarity index 100%
+rename from Old/PortAlphaRefactorInst.ipynb
+rename to archive/Old/PortAlphaRefactorInst.ipynb
+diff --git a/Old/Portable_Alpha.ipynb b/archive/Old/Portable_Alpha.ipynb
+similarity index 100%
+rename from Old/Portable_Alpha.ipynb
+rename to archive/Old/Portable_Alpha.ipynb
+diff --git a/Old/Portable_Alpha_Cleaning.ipynb b/archive/Old/Portable_Alpha_Cleaning.ipynb
+similarity index 100%
+rename from Old/Portable_Alpha_Cleaning.ipynb
+rename to archive/Old/Portable_Alpha_Cleaning.ipynb
+diff --git a/Old/Portable_Alpha_Modes.ipynb b/archive/Old/Portable_Alpha_Modes.ipynb
+similarity index 100%
+rename from Old/Portable_Alpha_Modes.ipynb
+rename to archive/Old/Portable_Alpha_Modes.ipynb
+diff --git a/Old/Portable_Alpha_Updated.ipynb b/archive/Old/Portable_Alpha_Updated.ipynb
+similarity index 100%
+rename from Old/Portable_Alpha_Updated.ipynb
+rename to archive/Old/Portable_Alpha_Updated.ipynb
+diff --git a/Old/Portable_Alpha_Visualizations.ipynb b/archive/Old/Portable_Alpha_Visualizations.ipynb
+similarity index 100%
+rename from Old/Portable_Alpha_Visualizations.ipynb
+rename to archive/Old/Portable_Alpha_Visualizations.ipynb
+diff --git a/Old/Portable_Alpha_Visualizations.ipynb.zip b/archive/Old/Portable_Alpha_Visualizations.ipynb.zip
+similarity index 100%
+rename from Old/Portable_Alpha_Visualizations.ipynb.zip
+rename to archive/Old/Portable_Alpha_Visualizations.ipynb.zip
+diff --git a/Old/Portable_Alpha_Visualizations.py b/archive/Old/Portable_Alpha_Visualizations.py
+similarity index 100%
+rename from Old/Portable_Alpha_Visualizations.py
+rename to archive/Old/Portable_Alpha_Visualizations.py
+diff --git a/Old/Variable_Map_PA.csv b/archive/Old/Variable_Map_PA.csv
+similarity index 100%
+rename from Old/Variable_Map_PA.csv
+rename to archive/Old/Variable_Map_PA.csv
+diff --git a/Old/parameter_template_capital_mode.xlsx b/archive/Old/parameter_template_capital_mode.xlsx
+similarity index 100%
+rename from Old/parameter_template_capital_mode.xlsx
+rename to archive/Old/parameter_template_capital_mode.xlsx
+diff --git a/Old/parameter_template_capital_mode_financing.xlsx b/archive/Old/parameter_template_capital_mode_financing.xlsx
+similarity index 100%
+rename from Old/parameter_template_capital_mode_financing.xlsx
+rename to archive/Old/parameter_template_capital_mode_financing.xlsx
+diff --git a/Old/parameters.xlsx b/archive/Old/parameters.xlsx
+similarity index 100%
+rename from Old/parameters.xlsx
+rename to archive/Old/parameters.xlsx
+diff --git a/Old/parameters_template.xlsx b/archive/Old/parameters_template.xlsx
+similarity index 100%
+rename from Old/parameters_template.xlsx
+rename to archive/Old/parameters_template.xlsx
+ 
+EOF
+)
