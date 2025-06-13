@@ -1,6 +1,6 @@
 ﻿"🚨 IMPORTANT: Complete or adjust values, then SAVE THIS SHEET AS CSV before running. 🚨",,,
 Parameter,Value,,Notes
-Analysis mode,returns,,"Choose one of: capital, returns, alpha_shares, vol_mult"
+Analysis mode,capital,,"Choose one of: capital, returns, alpha_shares, vol_mult"
 Number of simulations,1000,,How many Monte Carlo trials to run (e.g. 1000)
 Number of months,12,,How many months to run the simulation (e.g. 12)
 Max external combined (%),30,,Used in capital mode: maximum percentage for (External PA + Active Ext)
