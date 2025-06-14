@@ -3,6 +3,17 @@
 Portable Alpha + Active Extension Model Specification
 Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
 
+## Setup
+
+Run the setup script to create a Python virtual environment and install dependencies:
+
+```bash
+./setup.sh
+```
+
+Execute this once before running any notebooks or other scripts.
+
+
 1. Purpose and High-Level Overview
 Goal:
 Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. $1 b) across three “sleeves” (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House α, Extension α, and External PA α, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).
