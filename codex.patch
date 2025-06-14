@@ -1,91 +1,63 @@
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/README.md b/README.md
-index cd75d88fba17b3212ce5925ed79cc10b0bbf5f83..b7d218e0b3491ef0be1367372278b5141d969ea2 100644
---- a/README.md
-+++ b/README.md
-@@ -1,40 +1,43 @@
- # Portable Alpha-Extension Model
- 
- Portable Alpha + Active Extension Model Specification
- Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
- 
- ## Setup
- 
- Run the setup script to create a Python virtual environment and install dependencies:
- 
- ```bash
- ./setup.sh
- ```
- 
- Execute this once before running any notebooks or other scripts.
- 
-+> **Warning**
-+> Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
-+
- 
- 1. Purpose and High-Level Overview
- Goal:
- Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. $1 b) across three “sleeves” (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House α, Extension α, and External PA α, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).
- 
- Key innovations vs. a simpler portable-alpha model:
- 
- Separate “reference period” used to compute index volatility σₙ, which in turn determines the cash/margin needed to synthetically hold 1:1 index exposure.
- Three explicit buckets whose dollar-amounts sum to $ 1 b, avoiding any double-counting of β + α exposures.
- Active Extension bucket that can be “150/50” or “170/70” long/short, specified by an “Active share (%)” input. By default, we assume 150/50 (i.e. Active share = 50 %) unless the user overrides.
- Everything ultimately flows into a set of formulas—one per bucket—that map monthly draws of [ (r_{\beta},,r_{H},,r_{E},,r_{M}) \quad\text{and}\quad f_t ] into portfolio returns.
- 
- 2. Core Assumptions and Variables
- Index (β) returns
- 
- We load a historical time series of monthly total returns on the S&P 500 TR (or whichever index) from a CSV.
- We partition that series into:
- A reference window (e.g. 2010 – 2014) used to compute “reference volatility” σₙ.
- An analysis window (e.g. 2015 – 2020) used to compute the actual mean (μₙ) and volatility (σₙ) that drive our Monte Carlo draws.
- Three α-streams (simulated jointly with β)
- 
- In-House α (
- ):
- Mean = μ_H/12
- Vol = σ_H / √12
-diff --git a/parameters.csv b/parameters.csv
-index fb387aedafea79b32f14776dbbb45a144cb3b2bc..a681afb65b302693872233bb415d24c78c532697 100644
---- a/parameters.csv
-+++ b/parameters.csv
-@@ -1,32 +1,32 @@
- ﻿"🚨 IMPORTANT: Complete or adjust values, then SAVE THIS SHEET AS CSV before running. 🚨",,,
- Parameter,Value,,Notes
- Analysis mode,capital,,"Choose one of: capital, returns, alpha_shares, vol_mult"
--Number of simulations,1000,,How many Monte Carlo trials to run (e.g. 1000)
-+Number of simulations,100,,How many Monte Carlo trials to run (e.g. 1000)
- Number of months,12,,How many months to run the simulation (e.g. 12)
- Max external combined (%),30,,Used in capital mode: maximum percentage for (External PA + Active Ext)
--External step size (%),0.5,,Used in capital mode: increment for external percentage
-+External step size (%),5,,Used in capital mode: increment for external percentage
- External PA capital (mm),600,,Used in returns/alpha_shares/vol_mult modes: fixed allocation in millions
- Active Extension capital (mm),400,,Used in returns/alpha_shares/vol_mult modes
- Internal PA capital (mm),1500,,"Used in returns/alpha_shares/vol_mult modes, (auto-computed, leave blank for capital mode)"
- In-House return min (%),2,,Returns mode: minimum In-House return
- In-House return max (%),6,,Returns mode: maximum In-House return
- In-House return step (%),2,,Returns mode: increment for In-House return
- In-House vol min (%),1,,Returns mode: minimum In-House volatility
- In-House vol max (%),3,,Returns mode: maximum In-House volatility
- In-House vol step (%),1,,Returns mode: increment for In-House volatility
- Alpha-Extension return min (%),1,,Returns mode: minimum Alpha-Extension return
- Alpha-Extension return max (%),5,,Returns mode: maximum Alpha-Extension return
- Alpha-Extension return step (%),2,,Returns mode: increment for Alpha-Extension return
- Alpha-Extension vol min (%),2,,Returns mode: minimum Alpha-Extension volatility
- Alpha-Extension vol max (%),6,,Returns mode: maximum Alpha-Extension volatility
- Alpha-Extension vol step (%),2,,Returns mode: increment for Alpha-Extension volatility
- External return min (%),2,,Returns mode: minimum External PA return
- External return max (%),5,,Returns mode: maximum External PA return
- External return step (%),1,,Returns mode: increment for External PA return
- External vol min (%),2,,Returns mode: minimum External PA volatility
- External vol max (%),6,,Returns mode: maximum External PA volatility
- External vol step (%),2,,Returns mode: increment for External PA volatility
- External PA α fraction min (%),25,,Alpha_shares mode: minimum External PA alpha fraction
- External PA α fraction max (%),75,,Alpha_shares mode: maximum External PA alpha fraction
- External PA α fraction step (%),5,,Alpha_shares mode: increment for External PA alpha fraction
- Active share min (%),20,,Alpha_shares mode: minimum active share for Active Ext
+diff --git a/Portable_Alpha_Vectors.ipynb b/Portable_Alpha_Vectors.ipynb
+index 3a9f2c6b2a5d0dd33a487a1cb58d619cae94d56e..d037ae1790958454b2f8e1294dc50ece20752ebb 100644
+--- a/Portable_Alpha_Vectors.ipynb
++++ b/Portable_Alpha_Vectors.ipynb
+@@ -6573,54 +6573,50 @@
+     "\n",
+     "        for g, (ext_pct, act_pct) in enumerate(grid_pairs):\n",
+     "                E_pct = ext_pct - act_pct\n",
+     "                A_pct = act_pct\n",
+     "                Z_frac = 1.0 - ext_pct\n",
+     "                E_mm = E_pct * total_fund_capital\n",
+     "                A_mm = A_pct * total_fund_capital\n",
+     "                Z_mm = Z_frac * total_fund_capital\n",
+     "\n",
+     "                # slice once; broadcasting \u2192 (n_sim, 12)\n",
+     "                f_int_vec  = f_internal[g]\n",
+     "                f_ext_vec  = f_ext_pa[g]\n",
+     "                f_act_vec  = f_act_ext[g]\n",
+     "\n",
+     "                f_int_matrix    = np.broadcast_to(f_int_vec,  (N_SIMULATIONS, N_MONTHS))\n",
+     "                f_ext_pa_matrix = np.broadcast_to(f_ext_vec,    (N_SIMULATIONS, N_MONTHS))\n",
+     "                f_act_ext_matrix= np.broadcast_to(f_act_vec,   (N_SIMULATIONS, N_MONTHS))\n",
+     "\n",
+     "                sims = mc_paths  # reuse the pre\u2011computed universe\n",
+     "                r_beta = sims[:, :, 0]   # (n_sim, n_months)\n",
+     "                r_H    = sims[:, :, 1]\n",
+     "                r_E    = sims[:, :, 2]\n",
+     "                r_M    = sims[:, :, 3] \n",
+     "\n",
+     "                # -------- Vectorised over all simulations --------\n",
+-    "                total_cap = params['total_fund_capital']\n",
+-    "                Z_frac = params['internal_pa_capital']  / total_cap   # internal PA sleeve (Z)\n",
+-    "                E_pct  = params['external_pa_capital']  / total_cap   # external PA bucket (X)\n",
+-    "                A_pct  = params['active_ext_capital']   / total_cap   # active \u03b1-extension (Y)    \n",
+     "                R_base   = (r_beta - f_int_matrix)   * Z_frac + r_H * Z_frac\n",
+     "                R_extpa  = (r_beta - f_ext_pa_matrix)* E_pct  + r_M * E_pct\n",
+     "                R_actext = (r_beta - f_act_ext_matrix)* A_pct + r_E * A_pct\n",
+     "\n",
+     "                results = {\n",
+     "                    \"Base\":       np.prod(1 + R_base  , axis=1) - 1,\n",
+     "                    \"ExternalPA\": np.prod(1 + R_extpa , axis=1) - 1,\n",
+     "                    \"ActiveExt\":  np.prod(1 + R_actext, axis=1) - 1,\n",
+     "                }\n",
+     "\n",
+     "                dates_sim = pd.date_range(\n",
+     "                    start=idx_series.index[-1] + pd.DateOffset(months=1),\n",
+     "                    periods=N_MONTHS, freq=\"ME\"\n",
+     "                )\n",
+     "\n",
+     "                # Keep first simulation\u2019s path for raw-return sheets\n",
+     "                raw_returns = {\n",
+     "                    \"Base\":       pd.DataFrame({\"Base\":       R_base[0]},   index=dates_sim),\n",
+     "                    \"ExternalPA\": pd.DataFrame({\"ExternalPA\": R_extpa[0]},  index=dates_sim),\n",
+     "                    \"ActiveExt\":  pd.DataFrame({\"ActiveExt\":  R_actext[0]}, index=dates_sim),\n",
+     "                }\n",
+     "\n",
+     "                df_yearly = pd.DataFrame(results)\n",
+     "                summary_rows = []\n",
+     "                for cfg, arr in df_yearly.items():\n",
  
 EOF
 )
