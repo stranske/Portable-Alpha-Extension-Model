@@ -1,974 +1,2086 @@
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000000000000000000000000000000000000..c237142ae7d3e7f804a594c4e603efe8453cfb61
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1 @@
-+*.ipynb.zip
-diff --git a/Old/Portable_Alpha_Visualizations.ipynb.zip b/Old/Portable_Alpha_Visualizations.ipynb.zip
-deleted file mode 100644
-index 09d43c0ab7ffcfea2de282ac5fd9bc641bcfdca7..0000000000000000000000000000000000000000
-GIT binary patch
-literal 0
-HcmV?d00001
-
-literal 56430
-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
-zT%0D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
-
+diff --git a/Portable_Alpha_Vectors.ipynb b/Portable_Alpha_Vectors.ipynb
+index 3160134514567d30ce5d499bf089e959504f3fc3..3a9f2c6b2a5d0dd33a487a1cb58d619cae94d56e 100644
+--- a/Portable_Alpha_Vectors.ipynb
++++ b/Portable_Alpha_Vectors.ipynb
+@@ -1,360 +1,360 @@
+ {
+  "cells": [
+   {
+    "cell_type": "markdown",
+    "id": "094e50b2-1387-44d0-b1ca-c10c0db9289e",
+    "metadata": {},
+    "source": [
+-    "**_🚨 IMPORTANT: BEFORE RUNNING THE PROGRAM, SAVE THIS SHEET AS A CSV FILE! 🚨_**\n",
++    "**_\ud83d\udea8 IMPORTANT: BEFORE RUNNING THE PROGRAM, SAVE THIS SHEET AS A CSV FILE! \ud83d\udea8_**\n",
+     "\n",
+     "import pandas as pd\n",
+     "\n",
+     "rows = [\n",
+     "    (\"Parameter\", \"Value\", \"Notes\"),  # Header row\n",
+     "    (\"Analysis mode\", \"\", \"Choose one: capital, returns, alpha_shares, vol_mult\"),\n",
+     "    # Capital mode\n",
+     "    (\"Max external combined (%)\", \"\", \"capital mode: max % for (External PA + Active Ext)\"),\n",
+     "    (\"External step size (%)\", \"\", \"capital mode: increment for external %\"),\n",
+     "    # Fixed capital (for returns / alpha_shares / vol_mult)\n",
+     "    (\"External PA capital (mm)\", \"\", \"returns/alpha_shares/vol_mult modes: allocation in mm\"),\n",
+     "    (\"Active Extension capital (mm)\", \"\", \"\"),\n",
+     "    (\"Internal PA capital (mm)\", \"\", \"\"),\n",
+     "    # Returns mode ranges (min/max/step)\n",
+     "    (\"In-House return min (%)\", \"\", \"returns mode\"),\n",
+     "    (\"In-House return max (%)\", \"\", \"\"),\n",
+     "    (\"In-House return step (%)\", \"\", \"\"),\n",
+     "    (\"In-House vol min (%)\", \"\", \"returns mode\"),\n",
+     "    (\"In-House vol max (%)\", \"\", \"\"),\n",
+     "    (\"In-House vol step (%)\", \"\", \"\"),\n",
+     "    (\"Alpha-Extension return min (%)\", \"\", \"returns mode\"),\n",
+     "    (\"Alpha-Extension return max (%)\", \"\", \"\"),\n",
+     "    (\"Alpha-Extension return step (%)\", \"\", \"\"),\n",
+     "    (\"Alpha-Extension vol min (%)\", \"\", \"returns mode\"),\n",
+     "    (\"Alpha-Extension vol max (%)\", \"\", \"\"),\n",
+     "    (\"Alpha-Extension vol step (%)\", \"\", \"\"),\n",
+     "    (\"External return min (%)\", \"\", \"returns mode\"),\n",
+     "    (\"External return max (%)\", \"\", \"\"),\n",
+     "    (\"External return step (%)\", \"\", \"\"),\n",
+     "    (\"External vol min (%)\", \"\", \"returns mode\"),\n",
+     "    (\"External vol max (%)\", \"\", \"\"),\n",
+     "    (\"External vol step (%)\", \"\", \"\"),\n",
+     "    # Alpha_Shares mode ranges\n",
+-    "    (\"External PA α fraction min (%)\", \"\", \"alpha_shares mode\"),\n",
+-    "    (\"External PA α fraction max (%)\", \"\", \"\"),\n",
+-    "    (\"External PA α fraction step (%)\", \"\", \"\"),\n",
++    "    (\"External PA \u03b1 fraction min (%)\", \"\", \"alpha_shares mode\"),\n",
++    "    (\"External PA \u03b1 fraction max (%)\", \"\", \"\"),\n",
++    "    (\"External PA \u03b1 fraction step (%)\", \"\", \"\"),\n",
+     "    (\"Active share min (%)\", \"\", \"alpha_shares mode\"),\n",
+     "    (\"Active share max (%)\", \"\", \"\"),\n",
+     "    (\"Active share step (%)\", \"\", \"\"),\n",
+     "    # Vol_Mult mode ranges\n",
+     "    (\"SD multiple min\", \"\", \"vol_mult mode\"),\n",
+     "    (\"SD multiple max\", \"\", \"\"),\n",
+     "    (\"SD multiple step\", \"\", \"\"),\n",
+     "    # Financing & overrides\n",
+     "    (\"Annual financing mean (%)\", \"\", \"global financing\"),\n",
+     "    (\"Annual financing vol (%)\", \"\", \"\"),\n",
+     "    (\"Monthly spike probability\", \"\", \"\"),\n",
+-    "    (\"Spike size (σ × multiplier)\", \"\", \"\"),\n",
++    "    (\"Spike size (\u03c3 \u00d7 multiplier)\", \"\", \"\"),\n",
+     "    (\"Internal financing mean (%)\", \"\", \"internal override\"),\n",
+     "    (\"Internal financing vol (%)\", \"\", \"\"),\n",
+     "    (\"Internal monthly spike probability\", \"\", \"\"),\n",
+-    "    (\"Internal spike size (σ × multiplier)\", \"\", \"\"),\n",
++    "    (\"Internal spike size (\u03c3 \u00d7 multiplier)\", \"\", \"\"),\n",
+     "    (\"External PA financing mean (%)\", \"\", \"ext PA override\"),\n",
+     "    (\"External PA financing vol (%)\", \"\", \"\"),\n",
+     "    (\"External PA monthly spike probability\", \"\", \"\"),\n",
+-    "    (\"External PA spike size (σ × multiplier)\", \"\", \"\"),\n",
++    "    (\"External PA spike size (\u03c3 \u00d7 multiplier)\", \"\", \"\"),\n",
+     "    (\"Active Extension financing mean (%)\", \"\", \"active ext override\"),\n",
+     "    (\"Active Extension financing vol (%)\", \"\", \"\"),\n",
+     "    (\"Active Extension monthly spike probability\", \"\", \"\"),\n",
+-    "    (\"Active Extension spike size (σ × multiplier)\", \"\", \"\"),\n",
++    "    (\"Active Extension spike size (\u03c3 \u00d7 multiplier)\", \"\", \"\"),\n",
+     "    # Alpha stream fallbacks\n",
+     "    (\"In-House annual return (%)\", \"\", \"fallback if no range\"),\n",
+     "    (\"In-House annual vol (%)\", \"\", \"\"),\n",
+     "    (\"Alpha-Extension annual return (%)\", \"\", \"\"),\n",
+     "    (\"Alpha-Extension annual vol (%)\", \"\", \"\"),\n",
+     "    (\"External annual return (%)\", \"\", \"\"),\n",
+     "    (\"External annual vol (%)\", \"\", \"\"),\n",
+     "    # Correlations\n",
+-    "    (\"Corr index–In-House\", \"\", \"\"),\n",
+-    "    (\"Corr index–Alpha-Extension\", \"\", \"\"),\n",
+-    "    (\"Corr index–External\", \"\", \"\"),\n",
+-    "    (\"Corr In-House–Alpha-Extension\", \"\", \"\"),\n",
+-    "    (\"Corr In-House–External\", \"\", \"\"),\n",
+-    "    (\"Corr Alpha-Extension–External\", \"\", \"\"),\n",
++    "    (\"Corr index\u2013In-House\", \"\", \"\"),\n",
++    "    (\"Corr index\u2013Alpha-Extension\", \"\", \"\"),\n",
++    "    (\"Corr index\u2013External\", \"\", \"\"),\n",
++    "    (\"Corr In-House\u2013Alpha-Extension\", \"\", \"\"),\n",
++    "    (\"Corr In-House\u2013External\", \"\", \"\"),\n",
++    "    (\"Corr Alpha-Extension\u2013External\", \"\", \"\"),\n",
+     "    # Buffer multiple & total capital\n",
+-    "    (\"Buffer multiple\", \"\", \"cash‐buffer multiple\"),\n",
++    "    (\"Buffer multiple\", \"\", \"cash\u2010buffer multiple\"),\n",
+     "    (\"Total fund capital (mm)\", \"\", \"total fund size in mm\")\n",
+     "]\n",
+     "\n",
+     "# Build DataFrame and save\n",
+     "df_template = pd.DataFrame(rows, columns=[\"Parameter\", \"Value\", \"Notes\"])\n",
+     "file_path = \"/mnt/data/parameters_template.xlsx\"\n",
+     "df_template.to_excel(file_path, index=False)\n",
+     "print(f\"Created template: {file_path}\")\n"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": 1,
+    "id": "50896230-6c8e-4547-ad48-efab630dbba4",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "# portable_alpha_model.py\n",
+     "\n",
+     "import sys\n",
+     "import csv\n",
+     "import numpy as np\n",
+     "import pandas as pd\n",
+     "from pathlib import Path\n",
+     "import tkinter as tk\n",
+     "from tkinter import filedialog\n",
+     "import openpyxl\n",
+     "import os\n",
+     "from __future__ import annotations\n",
+     "from typing import Optional, Union, Any\n",
+     "from numpy.typing import NDArray\n",
+     "\n",
+     "# =============================================================================\n",
+-    "# 1. MAPPING: User-friendly labels → Internal variable names\n",
++    "# 1. MAPPING: User-friendly labels \u2192 Internal variable names\n",
+     "# =============================================================================\n",
+     "\n",
+     "LABEL_MAP = {\n",
+     "    \"Analysis mode\": \"analysis_mode\",\n",
+     "    \"Number of simulations\": \"N_SIMULATIONS\",\n",
+     "    \"Number of months\": \"N_MONTHS\",\n",
+     "    # Capital mode inputs\n",
+     "    \"Max external combined (%)\":            \"max_external_combined_percent\",\n",
+     "    \"External step size (%)\":               \"external_step_size_percent\",\n",
+     "    # Fixed-capital (for non-capital modes)\n",
+     "    \"External PA capital (mm)\":             \"external_pa_capital\",\n",
+     "    \"Active Extension capital (mm)\":        \"active_ext_capital\",\n",
+     "    \"Internal PA capital (mm)\":             \"internal_pa_capital\",\n",
+     "    # Returns mode ranges\n",
+     "    \"In-House return min (%)\":              \"mu_H_min\",\n",
+     "    \"In-House return max (%)\":              \"mu_H_max\",\n",
+     "    \"In-House return step (%)\":             \"mu_H_step\",\n",
+     "    \"In-House vol min (%)\":                 \"sigma_H_min\",\n",
+     "    \"In-House vol max (%)\":                 \"sigma_H_max\",\n",
+     "    \"In-House vol step (%)\":                \"sigma_H_step\",\n",
+     "    \"Alpha-Extension return min (%)\":       \"mu_E_min\",\n",
+     "    \"Alpha-Extension return max (%)\":       \"mu_E_max\",\n",
+     "    \"Alpha-Extension return step (%)\":      \"mu_E_step\",\n",
+     "    \"Alpha-Extension vol min (%)\":          \"sigma_E_min\",\n",
+     "    \"Alpha-Extension vol max (%)\":          \"sigma_E_max\",\n",
+     "    \"Alpha-Extension vol step (%)\":         \"sigma_E_step\",\n",
+     "    \"External return min (%)\":              \"mu_M_min\",\n",
+     "    \"External return max (%)\":              \"mu_M_max\",\n",
+     "    \"External return step (%)\":             \"mu_M_step\",\n",
+     "    \"External vol min (%)\":                 \"sigma_M_min\",\n",
+     "    \"External vol max (%)\":                 \"sigma_M_max\",\n",
+     "    \"External vol step (%)\":                \"sigma_M_step\",\n",
+     "    # Alpha_Shares mode ranges\n",
+-    "    \"External PA α fraction min (%)\":       \"external_pa_alpha_frac_min\",\n",
+-    "    \"External PA α fraction max (%)\":       \"external_pa_alpha_frac_max\",\n",
+-    "    \"External PA α fraction step (%)\":      \"external_pa_alpha_frac_step\",\n",
++    "    \"External PA \u03b1 fraction min (%)\":       \"external_pa_alpha_frac_min\",\n",
++    "    \"External PA \u03b1 fraction max (%)\":       \"external_pa_alpha_frac_max\",\n",
++    "    \"External PA \u03b1 fraction step (%)\":      \"external_pa_alpha_frac_step\",\n",
+     "    \"Active share min (%)\":                 \"active_share_min\",\n",
+     "    \"Active share max (%)\":                 \"active_share_max\",\n",
+     "    \"Active share step (%)\":                \"active_share_step\",\n",
+     "    # Vol_Mult mode range\n",
+     "    \"SD multiple min\":                      \"sd_of_vol_mult_min\",\n",
+     "    \"SD multiple max\":                      \"sd_of_vol_mult_max\",\n",
+     "    \"SD multiple step\":                     \"sd_of_vol_mult_step\",\n",
+     "    # Financing & bucket overrides\n",
+     "    \"Annual financing mean (%)\":            \"financing_mean_annual\",\n",
+     "    \"Annual financing vol (%)\":             \"financing_vol_annual\",\n",
+     "    \"Monthly spike probability\":            \"spike_prob\",\n",
+-    "    \"Spike size (σ × multiplier)\":          \"spike_factor\",\n",
++    "    \"Spike size (\u03c3 \u00d7 multiplier)\":          \"spike_factor\",\n",
+     "    \"Internal financing mean (%)\":          \"internal_financing_mean_annual\",\n",
+     "    \"Internal financing vol (%)\":           \"internal_financing_vol_annual\",\n",
+     "    \"Internal monthly spike probability\":   \"internal_spike_prob\",\n",
+-    "    \"Internal spike size (σ × multiplier)\": \"internal_spike_factor\",\n",
++    "    \"Internal spike size (\u03c3 \u00d7 multiplier)\": \"internal_spike_factor\",\n",
+     "    \"External PA financing mean (%)\":       \"ext_pa_financing_mean_annual\",\n",
+     "    \"External PA financing vol (%)\":        \"ext_pa_financing_vol_annual\",\n",
+     "    \"External PA monthly spike probability\":\"ext_pa_spike_prob\",\n",
+-    "    \"External PA spike size (σ × multiplier)\": \"ext_pa_spike_factor\",\n",
++    "    \"External PA spike size (\u03c3 \u00d7 multiplier)\": \"ext_pa_spike_factor\",\n",
+     "    \"Active Extension financing mean (%)\":  \"act_ext_financing_mean_annual\",\n",
+     "    \"Active Extension financing vol (%)\":   \"act_ext_financing_vol_annual\",\n",
+     "    \"Active Extension monthly spike probability\":\"act_ext_spike_prob\",\n",
+-    "    \"Active Extension spike size (σ × multiplier)\":\"act_ext_spike_factor\",\n",
++    "    \"Active Extension spike size (\u03c3 \u00d7 multiplier)\":\"act_ext_spike_factor\",\n",
+     "    # Fallback alpha stream defaults\n",
+     "    \"In-House annual return (%)\":           \"mu_H\",\n",
+     "    \"In-House annual vol (%)\":              \"sigma_H\",\n",
+     "    \"Alpha-Extension annual return (%)\":    \"mu_E\",\n",
+     "    \"Alpha-Extension annual vol (%)\":       \"sigma_E\",\n",
+     "    \"External annual return (%)\":           \"mu_M\",\n",
+     "    \"External annual vol (%)\":              \"sigma_M\",\n",
+     "    # Correlations\n",
+-    "    \"Corr index–In-House\":                  \"rho_idx_H\",\n",
+-    "    \"Corr index–Alpha-Extension\":           \"rho_idx_E\",\n",
+-    "    \"Corr index–External\":                  \"rho_idx_M\",\n",
+-    "    \"Corr In-House–Alpha-Extension\":        \"rho_H_E\",\n",
+-    "    \"Corr In-House–External\":               \"rho_H_M\",\n",
+-    "    \"Corr Alpha-Extension–External\":         \"rho_E_M\",\n",
++    "    \"Corr index\u2013In-House\":                  \"rho_idx_H\",\n",
++    "    \"Corr index\u2013Alpha-Extension\":           \"rho_idx_E\",\n",
++    "    \"Corr index\u2013External\":                  \"rho_idx_M\",\n",
++    "    \"Corr In-House\u2013Alpha-Extension\":        \"rho_H_E\",\n",
++    "    \"Corr In-House\u2013External\":               \"rho_H_M\",\n",
++    "    \"Corr Alpha-Extension\u2013External\":         \"rho_E_M\",\n",
+     "    # Other risk controls\n",
+     "    \"Buffer multiple\":                      \"buffer_multiple\",\n",
+     "    \"Total fund capital (mm)\":              \"total_fund_capital\",\n",
+     "}"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": 2,
+    "id": "731d577f-67c3-4a7b-be79-0ed9b21bfc25",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "\n",
+     "# =============================================================================\n",
+-    "# 2. FILE‐PICKER FOR CSV SELECTION\n",
++    "# 2. FILE\u2010PICKER FOR CSV SELECTION\n",
+     "# =============================================================================\n",
+     "\n",
+     "def select_csv_file():\n",
+     "    \"\"\"\n",
+-    "    Pop up a file‐picker dialog so the user can choose a CSV file.\n",
++    "    Pop up a file\u2010picker dialog so the user can choose a CSV file.\n",
+     "    Returns a pathlib.Path to the selected file.\n",
+     "    Raises FileNotFoundError if the user cancels.\n",
+     "    \"\"\"\n",
+     "    root = tk.Tk()\n",
+     "    root.withdraw()\n",
+     "    file_path = filedialog.askopenfilename(\n",
+     "        title=\"Select CSV File\",\n",
+     "        filetypes=[(\"CSV files\", \"*.csv\"), (\"All files\", \"*.*\")]\n",
+     "    )\n",
+     "    root.destroy()\n",
+     "    if not file_path:\n",
+     "        raise FileNotFoundError(\"No file selected.\")\n",
+     "    return Path(file_path)\n",
+     "\n",
+     "# =============================================================================\n",
+     "# 3. LOAD PARAMETERS USING MAPPING\n",
+     "# =============================================================================\n",
+     "\n",
+     "def load_parameters(csv_filepath, label_map):\n",
+     "    \"\"\"\n",
+     "    Read a CSV that may have leading instruction rows, then a header row \"Parameter,Value\".\n",
+-    "    Skip all rows until the header, then parse friendly labels → internal names via label_map.\n",
++    "    Skip all rows until the header, then parse friendly labels \u2192 internal names via label_map.\n",
+     "    Returns a dict {internal_var_name: parsed_value}.\n",
+     "    \"\"\"\n",
+     "    params = {}\n",
+     "    lines = Path(csv_filepath).read_text(encoding=\"utf-8\").splitlines()\n",
+     "    header_idx = None\n",
+     "    for i, line in enumerate(lines):\n",
+     "        if line.strip().startswith(\"Parameter,\"):\n",
+     "            header_idx = i\n",
+     "            break\n",
+     "\n",
+     "    if header_idx is None:\n",
+     "        raise ValueError(f\"No header row starting with 'Parameter,' found in {csv_filepath}\")\n",
+     "\n",
+     "    header_and_data = lines[header_idx:]\n",
+     "    reader = csv.DictReader(header_and_data)\n",
+     "\n",
+     "    for row in reader:\n",
+     "        friendly_key = row.get(\"Parameter\", \"\").strip()\n",
+     "        if not friendly_key or friendly_key not in label_map:\n",
+     "            continue\n",
+     "\n",
+     "        internal_key = label_map[friendly_key]\n",
+     "        raw_val = row.get(\"Value\", \"\").strip()\n",
+     "\n",
+     "        # If semicolon is present, parse as a list (legacy fallback)\n",
+     "        if \";\" in raw_val:\n",
+     "            parts = [p.strip() for p in raw_val.split(\";\") if p.strip() != \"\"]\n",
+     "            parsed_list = []\n",
+     "            for p in parts:\n",
+     "                try:\n",
+     "                    if \".\" in p:\n",
+     "                        parsed_list.append(float(p))\n",
+     "                    else:\n",
+     "                        parsed_list.append(int(p))\n",
+     "                except ValueError:\n",
+     "                    parsed_list.append(p)\n",
+     "            params[internal_key] = parsed_list\n",
+     "        else:\n",
+-    "            # Try int → float → string\n",
++    "            # Try int \u2192 float \u2192 string\n",
+     "            try:\n",
+     "                params[internal_key] = int(raw_val)\n",
+     "            except ValueError:\n",
+     "                try:\n",
+     "                    params[internal_key] = float(raw_val)\n",
+     "                except ValueError:\n",
+     "                    # Could be blank string; store as-is\n",
+     "                    params[internal_key] = raw_val\n",
+     "\n",
+     "    return params\n",
+     "\n",
+     "# =============================================================================\n",
+-    "# 4. UTILITY: “SAFE GET” FOR NUMERIC PARAMETERS\n",
++    "# 4. UTILITY: \u201cSAFE GET\u201d FOR NUMERIC PARAMETERS\n",
+     "# =============================================================================\n",
+     "\n",
+     "def get_num(raw_params, key, default):\n",
+     "    \"\"\"\n",
+     "    Return raw_params[key] if it's already int or float; otherwise default.\n",
+     "    \"\"\"\n",
+     "    v = raw_params.get(key, None)\n",
+     "    if isinstance(v, (int, float)):\n",
+     "        return v\n",
+     "    return default\n"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": 3,
+    "id": "dd64974a-d6b5-4c8c-9d63-b7f43ff074d3",
+    "metadata": {},
+    "outputs": [],
+    "source": [
+     "\n",
+     "# =============================================================================\n",
+     "# 5. HELPER FUNCTIONS TO BUILD RANGES OR FALLBACK TO MIDPOINT\n",
+     "# =============================================================================\n",
+     "\n",
+     "def build_range(key_base, default_midpoint):\n",
+     "    \"\"\"\n",
+     "    If raw_params contains key_base_min & key_base_max (and optionally key_base_step),\n",
+-    "    return a list of decimals from min→max (in steps).\n",
++    "    return a list of decimals from min\u2192max (in steps).\n",
+     "    Otherwise, if key_base_list exists (legacy semicolon list), return that.\n",
+     "    Else, return [default_midpoint].\n",
+     "\n",
+-    "    We divide by 100 because these are “percent” inputs.\n",
++    "    We divide by 100 because these are \u201cpercent\u201d inputs.\n",
+     "    \"\"\"\n",
+     "    k_min  = get_num(raw_params, f\"{key_base}_min\", None)\n",
+     "    k_max  = get_num(raw_params, f\"{key_base}_max\", None)\n",
+     "    k_step = get_num(raw_params, f\"{key_base}_step\", None)\n",
+     "\n",
+     "    if (k_min is not None) and (k_max is not None):\n",
+     "        step = k_step if (k_step is not None) else (k_max - k_min)\n",
+     "        if step <= 0:\n",
+     "            raise RuntimeError(f\"Step for '{key_base}' must be positive.\")\n",
+     "        start = k_min / 100.0\n",
+     "        stop  = k_max / 100.0\n",
+     "        stepd = step / 100.0\n",
+     "        arr = np.arange(start, stop + 1e-9, stepd)\n",
+     "        return list(arr)\n",
+     "\n",
+-    "    # Legacy semicolon‐list fallback\n",
++    "    # Legacy semicolon\u2010list fallback\n",
+     "    flat_list = raw_params.get(f\"{key_base}_list\", None)\n",
+     "    if isinstance(flat_list, list):\n",
+     "        return flat_list\n",
+     "\n",
+     "    return [default_midpoint]\n",
+     "\n",
+     "\n",
+     "def build_range_int(key_base, default_midpoint):\n",
+     "    \"\"\"\n",
+     "    Like build_range but for integer inputs (e.g. SD multiple).\n",
+     "    If key_base_min & key_base_max exist, return list(range(min, max+1, step)).\n",
+     "    Else if key_base_list exists, return it. Else [default_midpoint].\n",
+     "    \"\"\"\n",
+     "    k_min  = get_num(raw_params, f\"{key_base}_min\", None)\n",
+     "    k_max  = get_num(raw_params, f\"{key_base}_max\", None)\n",
+     "    k_step = get_num(raw_params, f\"{key_base}_step\", None)\n",
+     "\n",
+     "    if (k_min is not None) and (k_max is not None):\n",
+     "        step = k_step if (k_step is not None) else (k_max - k_min)\n",
+     "        if step <= 0:\n",
+     "            raise RuntimeError(f\"Step for '{key_base}' must be positive.\")\n",
+     "        return list(range(k_min, k_max + 1, step))\n",
+     "\n",
+     "    flat_list = raw_params.get(f\"{key_base}_list\", None)\n",
+     "    if isinstance(flat_list, list):\n",
+@@ -402,168 +402,168 @@
+     "\n",
+     "# =============================================================================\n",
+     "# 7. SIMULATION + UTILITY FUNCTIONS\n",
+     "# =============================================================================\n",
+     "\n",
+     "def simulate_financing(\n",
+     "    T: int,\n",
+     "    financing_mean: float,\n",
+     "    financing_sigma: float,\n",
+     "    spike_prob: float,\n",
+     "    spike_factor: float,\n",
+     "    *,\n",
+     "    seed: Optional[int] = None,\n",
+     "    n_scenarios: int = 1,\n",
+     "    rng: Optional[np.random.Generator] = None,\n",
+     ") -> NDArray[Any]:\n",
+     "    \n",
+     "    if T <= 0:\n",
+     "        raise ValueError(\"T must be positive\")\n",
+     "    if n_scenarios <= 0:\n",
+     "        raise ValueError(\"n_scenarios must be positive\")\n",
+     "\n",
+     "    rng = np.random.default_rng(seed) if rng is None else rng\n",
+     "    base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))\n",
+     "    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)\n",
+-    "    out = np.clip(base + jumps, 0.0, None)  # ensure non‑negative spreads\n",
++    "    out = np.clip(base + jumps, 0.0, None)  # ensure non\u2011negative spreads\n",
+     "    return out[0] if n_scenarios == 1 else out\n",
+     "\n",
+     "def prepare_mc_universe(\n",
+     "    *,\n",
+     "    N_SIMULATIONS: int,\n",
+     "    N_MONTHS: int,\n",
+     "    mu_idx: float,\n",
+     "    mu_H: float,\n",
+     "    mu_E: float,\n",
+     "    mu_M: float,\n",
+     "    cov_mat: NDArray[Any],\n",
+     "    seed: Optional[int] = None,\n",
+     "    rng: Optional[np.random.Generator] = None,\n",
+     ") -> NDArray[Any]:\n",
+     "    if N_SIMULATIONS <= 0 or N_MONTHS <= 0:\n",
+     "        raise ValueError(\"N_SIMULATIONS and N_MONTHS must be positive\")\n",
+     "    if cov_mat.shape != (4, 4):\n",
+-    "        raise ValueError(\"cov_mat must be 4×4 and ordered as [idx, H, E, M]\")\n",
++    "        raise ValueError(\"cov_mat must be 4\u00d74 and ordered as [idx, H, E, M]\")\n",
+     "\n",
+     "    rng = np.random.default_rng(seed) if rng is None else rng\n",
+     "\n",
+-    "    # 1️⃣  i.i.d. normals\n",
++    "    # 1\ufe0f\u20e3  i.i.d. normals\n",
+     "    z = rng.standard_normal(size=(N_SIMULATIONS, N_MONTHS, 4))\n",
+     "\n",
+-    "    # 2️⃣  Cholesky decomp converts to correlated shocks (annual → monthly)\n",
++    "    # 2\ufe0f\u20e3  Cholesky decomp converts to correlated shocks (annual \u2192 monthly)\n",
+     "    try:\n",
+     "        L = np.linalg.cholesky(cov_mat / 12.0)\n",
+     "    except np.linalg.LinAlgError:\n",
+     "        # add tiny diagonal bump to force PSD\n",
+     "        eps = 1e-12\n",
+     "        L = np.linalg.cholesky(cov_mat / 12.0 + np.eye(4)*eps)\n",
+     "\n",
+-    "    # 3️⃣  Shift by monthly means\n",
++    "    # 3\ufe0f\u20e3  Shift by monthly means\n",
+     "    mu = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0  # (4,)\n",
+     "\n",
+     "    return z @ L.T + mu  # shape: (path, month, factor)\n",
+     "\n",
+     "def build_cov_matrix(rho_idx_H, rho_idx_E, rho_idx_M,\n",
+     "                     rho_H_E, rho_H_M, rho_E_M,\n",
+     "                     idx_sigma, sigma_H, sigma_E, sigma_M):\n",
+     "    \"\"\"\n",
+-    "    Build the 4×4 covariance matrix for (Index, H, E, M).\n",
++    "    Build the 4\u00d74 covariance matrix for (Index, H, E, M).\n",
+     "    \"\"\"\n",
+     "    sds = np.array([idx_sigma, sigma_H, sigma_E, sigma_M])\n",
+     "    rho = np.array([\n",
+     "        [1.0,       rho_idx_H, rho_idx_E, rho_idx_M],\n",
+     "        [rho_idx_H, 1.0,       rho_H_E,   rho_H_M],\n",
+     "        [rho_idx_E, rho_H_E,   1.0,       rho_E_M],\n",
+     "        [rho_idx_M, rho_H_M,   rho_E_M,   1.0    ]\n",
+     "    ])\n",
+     "    return np.outer(sds, sds) * rho\n",
+     "    \n",
+     "# --------------------------------------------------------------------\n",
+     "# Helper: draw_joint_returns\n",
+     "# --------------------------------------------------------------------\n",
+     "def draw_joint_returns(*, n_months: int, n_sim: int, params: dict,\n",
+     "                       rng: np.random.Generator | None = None\n",
+     "                       ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:\n",
+     "    \"\"\"\n",
+     "    Vectorised draw of (index beta, internal alpha H, external alpha E,\n",
+     "    market alpha M) monthly returns for an entire Monte-Carlo universe.\n",
+     "\n",
+     "    Returns\n",
+     "    -------\n",
+     "    r_beta, r_H, r_E, r_M : 2-D ndarrays  [shape = (n_sim, n_months)]\n",
+     "    \"\"\"\n",
+     "    if rng is None:\n",
+     "        rng = np.random.default_rng()\n",
+     "\n",
+     "    # ---- pull scalar inputs -------------------------------------------------\n",
+-    "    μ_idx   = params[\"mu_idx_month\"]          # already /12\n",
+-    "    μ_H     = params[\"default_mu_H\"]          # already /12\n",
+-    "    μ_E     = params[\"default_mu_E\"]          # already /12\n",
+-    "    μ_M     = params[\"default_mu_M\"]          # already /12\n",
+-    "\n",
+-    "    σ_idx   = params[\"idx_sigma_month\"]       # already /12\n",
+-    "    σ_H     = params[\"default_sigma_H\"]       # already /12\n",
+-    "    σ_E     = params[\"default_sigma_E\"]       # already /12\n",
+-    "    σ_M     = params[\"default_sigma_M\"]       # already /12\n",
+-    "\n",
+-    "    ρ_idx_H = params[\"rho_idx_H\"]\n",
+-    "    ρ_idx_E = params[\"rho_idx_E\"]\n",
+-    "    ρ_idx_M = params[\"rho_idx_M\"]\n",
+-    "    ρ_H_E   = params[\"rho_H_E\"]\n",
+-    "    ρ_H_M   = params[\"rho_H_M\"]\n",
+-    "    ρ_E_M   = params[\"rho_E_M\"]\n",
++    "    \u03bc_idx   = params[\"mu_idx_month\"]          # already /12\n",
++    "    \u03bc_H     = params[\"default_mu_H\"]          # already /12\n",
++    "    \u03bc_E     = params[\"default_mu_E\"]          # already /12\n",
++    "    \u03bc_M     = params[\"default_mu_M\"]          # already /12\n",
++    "\n",
++    "    \u03c3_idx   = params[\"idx_sigma_month\"]       # already /12\n",
++    "    \u03c3_H     = params[\"default_sigma_H\"]       # already /12\n",
++    "    \u03c3_E     = params[\"default_sigma_E\"]       # already /12\n",
++    "    \u03c3_M     = params[\"default_sigma_M\"]       # already /12\n",
++    "\n",
++    "    \u03c1_idx_H = params[\"rho_idx_H\"]\n",
++    "    \u03c1_idx_E = params[\"rho_idx_E\"]\n",
++    "    \u03c1_idx_M = params[\"rho_idx_M\"]\n",
++    "    \u03c1_H_E   = params[\"rho_H_E\"]\n",
++    "    \u03c1_H_M   = params[\"rho_H_M\"]\n",
++    "    \u03c1_E_M   = params[\"rho_E_M\"]\n",
+     "\n",
+     "    # ---- covariance matrix --------------------------------------------------\n",
+-    "    Σ = np.array([\n",
+-    "        [σ_idx**2,        ρ_idx_H*σ_idx*σ_H, ρ_idx_E*σ_idx*σ_E, ρ_idx_M*σ_idx*σ_M],\n",
+-    "        [ρ_idx_H*σ_idx*σ_H, σ_H**2,          ρ_H_E*σ_H*σ_E,     ρ_H_M*σ_H*σ_M],\n",
+-    "        [ρ_idx_E*σ_idx*σ_E, ρ_H_E*σ_H*σ_E,   σ_E**2,            ρ_E_M*σ_E*σ_M],\n",
+-    "        [ρ_idx_M*σ_idx*σ_M, ρ_H_M*σ_H*σ_M,   ρ_E_M*σ_E*σ_M,     σ_M**2]\n",
++    "    \u03a3 = np.array([\n",
++    "        [\u03c3_idx**2,        \u03c1_idx_H*\u03c3_idx*\u03c3_H, \u03c1_idx_E*\u03c3_idx*\u03c3_E, \u03c1_idx_M*\u03c3_idx*\u03c3_M],\n",
++    "        [\u03c1_idx_H*\u03c3_idx*\u03c3_H, \u03c3_H**2,          \u03c1_H_E*\u03c3_H*\u03c3_E,     \u03c1_H_M*\u03c3_H*\u03c3_M],\n",
++    "        [\u03c1_idx_E*\u03c3_idx*\u03c3_E, \u03c1_H_E*\u03c3_H*\u03c3_E,   \u03c3_E**2,            \u03c1_E_M*\u03c3_E*\u03c3_M],\n",
++    "        [\u03c1_idx_M*\u03c3_idx*\u03c3_M, \u03c1_H_M*\u03c3_H*\u03c3_M,   \u03c1_E_M*\u03c3_E*\u03c3_M,     \u03c3_M**2]\n",
+     "    ])\n",
+     "\n",
+-    "    μ = np.array([μ_idx, μ_H, μ_E, μ_M])\n",
++    "    \u03bc = np.array([\u03bc_idx, \u03bc_H, \u03bc_E, \u03bc_M])\n",
+     "\n",
+-    "    # ---- draw (n_sim × n_months) -------------------------------------------\n",
+-    "    sims = rng.multivariate_normal(mean=μ, cov=Σ, size=(n_sim, n_months))\n",
++    "    # ---- draw (n_sim \u00d7 n_months) -------------------------------------------\n",
++    "    sims = rng.multivariate_normal(mean=\u03bc, cov=\u03a3, size=(n_sim, n_months))\n",
+     "\n",
+     "    # slice out columns\n",
+     "    r_beta = sims[:, :, 0]\n",
+     "    r_H    = sims[:, :, 1]\n",
+     "    r_E    = sims[:, :, 2]\n",
+     "    r_M    = sims[:, :, 3]\n",
+     "\n",
+     "    return r_beta, r_H, r_E, r_M\n",
+     "\n",
+     "# --------------------------------------------------------------------\n",
+     "# Helper: draw_financing_series\n",
+     "# --------------------------------------------------------------------\n",
+     "def draw_financing_series(*, n_months: int, n_sim: int, params: dict,\n",
+     "                          rng: np.random.Generator | None = None\n",
+     "                          ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:\n",
+     "    \"\"\"\n",
+-    "    Return three (n_sim × n_months) matrices of monthly financing spreads\n",
+-    "    for:  (a) internal PA sleeve, (b) passive α-extension, (c) active α-ext.\n",
++    "    Return three (n_sim \u00d7 n_months) matrices of monthly financing spreads\n",
++    "    for:  (a) internal PA sleeve, (b) passive \u03b1-extension, (c) active \u03b1-ext.\n",
+     "\n",
+     "    All means/vols are expected **per-month** in `params`.\n",
+     "    \"\"\"\n",
+     "    if rng is None:\n",
+     "        rng = np.random.default_rng()\n",
+     "\n",
+     "    # ----- unpack monthly means / sigmas / spike settings -------------------\n",
+     "    def _sim(mean_key, sigma_key, p_key, k_key):\n",
+     "        mean  = params[mean_key]\n",
+     "        sigma = params[sigma_key]\n",
+     "        p     = params[p_key]\n",
+     "        k     = params[k_key]\n",
+     "        vec = simulate_financing(\n",
+     "            n_months, mean, sigma,\n",
+     "            p, k,\n",
+     "            n_scenarios=1,\n",
+     "            rng=rng\n",
+     "        )[0]                               # length = n_months\n",
+     "        return np.broadcast_to(vec, (n_sim, n_months))\n",
+     "\n",
+     "    f_int_mat  = _sim(\"internal_financing_mean_month\",\n",
+     "                      \"internal_financing_sigma_month\",\n",
+     "                      \"internal_spike_prob\",\n",
+     "                      \"internal_spike_factor\")\n",
+     "\n",
+@@ -610,51 +610,51 @@
+     "    print(f\"Exported results to {filename}\")\n"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": 5,
+    "id": "9cf4f1dc-f8cc-4df1-9294-db2f40b1a76b",
+    "metadata": {},
+    "outputs": [
+     {
+      "name": "stderr",
+      "output_type": "stream",
+      "text": [
+       "2025-06-13 22:03:48.681 python[71908:5312414] The class 'NSOpenPanel' overrides the method identifier.  This method is implemented by class 'NSWindow'\n"
+      ]
+     },
+     {
+      "name": "stdout",
+      "output_type": "stream",
+      "text": [
+       "Parameters CSV selected: /Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable Alpha-Extension Model/parameters.csv\n",
+       "Please select the INDEX CSV (monthly total returns).\n",
+       "Index CSV selected: /Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable Alpha-Extension Model/sp500tr_fred_divyield.csv\n",
+       "Loaded 663 months from the raw index CSV.\n",
+       "Using idx_series from 1970-01-01 to 2025-03-01 (n=663)\n",
+-      "Analysis-window: μ_idx = 0.0096, σ_idx = 0.0458\n",
++      "Analysis-window: \u03bc_idx = 0.0096, \u03c3_idx = 0.0458\n",
+       "Exported results to Outputs.xlsx\n",
+       "\n",
+       "=== Summary Table (Capital Mode) ===\n",
+       "\n",
+       "    Config Ext % Act %  Internal PA (mm) Annual Return (%) Annual Volatility (%) 95%-VaR (%) Tracking Error (%) Breach Probability (%)\n",
+       "      Base  0.0%  0.0%            4000.0              2.7%                  0.9%        1.4%               nan%                   0.0%\n",
+       "ExternalPA  0.0%  0.0%            4000.0              0.7%                  0.2%        0.4%               nan%                   0.0%\n",
+       " ActiveExt  0.0%  0.0%            4000.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base  0.5%  0.0%            3980.0              2.6%                  0.9%        1.3%               nan%                   0.0%\n",
+       "ExternalPA  0.5%  0.0%            3980.0              0.7%                  0.2%        0.4%               nan%                   0.0%\n",
+       " ActiveExt  0.5%  0.0%            3980.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base  0.5%  0.5%            3980.0              2.7%                  0.9%        1.4%               nan%                   0.0%\n",
+       "ExternalPA  0.5%  0.5%            3980.0              0.7%                  0.2%        0.4%               nan%                   0.0%\n",
+       " ActiveExt  0.5%  0.5%            3980.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base  1.0%  0.0%            3960.0              2.6%                  0.9%        1.3%               nan%                   0.0%\n",
+       "ExternalPA  1.0%  0.0%            3960.0              0.7%                  0.2%        0.5%               nan%                   0.0%\n",
+       " ActiveExt  1.0%  0.0%            3960.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base  1.0%  0.5%            3960.0              2.7%                  0.9%        1.3%               nan%                   0.0%\n",
+       "ExternalPA  1.0%  0.5%            3960.0              0.7%                  0.2%        0.4%               nan%                   0.0%\n",
+       " ActiveExt  1.0%  0.5%            3960.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base  1.0%  1.0%            3960.0              2.7%                  0.9%        1.3%               nan%                   0.0%\n",
+       "ExternalPA  1.0%  1.0%            3960.0              0.7%                  0.2%        0.4%               nan%                   0.0%\n",
+       " ActiveExt  1.0%  1.0%            3960.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base  1.5%  0.0%            3940.0              2.7%                  0.9%        1.4%               nan%                   0.0%\n",
+       "ExternalPA  1.5%  0.0%            3940.0              0.7%                  0.2%        0.5%               nan%                   0.0%\n",
+@@ -6310,51 +6310,51 @@
+       " ActiveExt 30.0% 29.5%            2800.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "      Base 30.0% 30.0%            2800.0              2.6%                  0.9%        1.3%               nan%                   0.0%\n",
+       "ExternalPA 30.0% 30.0%            2800.0              0.7%                  0.2%        0.4%               nan%                   0.0%\n",
+       " ActiveExt 30.0% 30.0%            2800.0              0.3%                  0.1%        0.2%               nan%                   0.0%\n",
+       "\n"
+      ]
+     }
+    ],
+    "source": [
+     "\n",
+     "# =============================================================================\n",
+     "# 8. MAIN EXECUTION\n",
+     "# =============================================================================\n",
+     "\n",
+     "if __name__ == \"__main__\":\n",
+     "    # 8.1) Prompt user to select the parameters CSV\n",
+     "    try:\n",
+     "        params_csv_path = select_csv_file()\n",
+     "        print(f\"Parameters CSV selected: {params_csv_path}\")\n",
+     "    except FileNotFoundError:\n",
+     "        raise RuntimeError(\"No parameter CSV selected; exiting.\")\n",
+     "\n",
+     "    # 8.2) Load raw parameters\n",
+     "    raw_params = load_parameters(params_csv_path, LABEL_MAP)\n",
+     "\n",
+-    "    # 8.3) “Safe get” for numeric scalars and defaults\n",
++    "    # 8.3) \u201cSafe get\u201d for numeric scalars and defaults\n",
+     "    total_fund_capital = get_num(raw_params, \"total_fund_capital\", 1000)\n",
+     "\n",
+     "    financing_mean_annual = get_num(raw_params, \"financing_mean_annual\", 0.005)\n",
+     "    financing_vol_annual  = get_num(raw_params, \"financing_vol_annual\", 0.001)\n",
+     "    spike_prob            = get_num(raw_params, \"spike_prob\", 0.02)\n",
+     "    spike_factor          = get_num(raw_params, \"spike_factor\", 2.25)\n",
+     "\n",
+     "    internal_financing_mean_annual = get_num(raw_params, \"internal_financing_mean_annual\", financing_mean_annual)\n",
+     "    internal_financing_vol_annual  = get_num(raw_params, \"internal_financing_vol_annual\",  financing_vol_annual)\n",
+     "    internal_spike_prob            = get_num(raw_params, \"internal_spike_prob\",            spike_prob)\n",
+     "    internal_spike_factor          = get_num(raw_params, \"internal_spike_factor\",          spike_factor)\n",
+     "\n",
+     "    ext_pa_financing_mean_annual = get_num(raw_params, \"ext_pa_financing_mean_annual\", financing_mean_annual)\n",
+     "    ext_pa_financing_vol_annual  = get_num(raw_params, \"ext_pa_financing_vol_annual\",  financing_vol_annual)\n",
+     "    ext_pa_spike_prob            = get_num(raw_params, \"ext_pa_spike_prob\",            spike_prob)\n",
+     "    ext_pa_spike_factor          = get_num(raw_params, \"ext_pa_spike_factor\",          spike_factor)\n",
+     "\n",
+     "    act_ext_financing_mean_annual = get_num(raw_params, \"act_ext_financing_mean_annual\", financing_mean_annual)\n",
+     "    act_ext_financing_vol_annual  = get_num(raw_params, \"act_ext_financing_vol_annual\",  financing_vol_annual)\n",
+     "    act_ext_spike_prob            = get_num(raw_params, \"act_ext_spike_prob\",            spike_prob)\n",
+     "    act_ext_spike_factor          = get_num(raw_params, \"act_ext_spike_factor\",          spike_factor)\n",
+     "\n",
+     "    mu_H    = get_num(raw_params, \"mu_H\",    0.04)\n",
+     "    sigma_H = get_num(raw_params, \"sigma_H\", 0.01)\n",
+     "    mu_E    = get_num(raw_params, \"mu_E\",    0.05)\n",
+@@ -6366,82 +6366,82 @@
+     "    rho_idx_E = get_num(raw_params, \"rho_idx_E\", 0.00)\n",
+     "    rho_idx_M = get_num(raw_params, \"rho_idx_M\", 0.00)\n",
+     "    rho_H_E   = get_num(raw_params, \"rho_H_E\",   0.10)\n",
+     "    rho_H_M   = get_num(raw_params, \"rho_H_M\",   0.10)\n",
+     "    rho_E_M   = get_num(raw_params, \"rho_E_M\",   0.00)\n",
+     "\n",
+     "\n",
+     "    buffer_multiple = get_num(raw_params, \"buffer_multiple\", 3.0)\n",
+     "\n",
+     "    default_mu_H    = mu_H / 12\n",
+     "    default_sigma_H = sigma_H / 12\n",
+     "    default_mu_E    = mu_E / 12\n",
+     "    default_sigma_E = sigma_E / 12\n",
+     "    default_mu_M    = mu_M / 12\n",
+     "    default_sigma_M = sigma_M / 12\n",
+     "\n",
+     "    default_ext_alpha_frac = get_num(raw_params, \"external_pa_alpha_frac\", 50) / 100.0\n",
+     "    default_act_share      = get_num(raw_params, \"active_share\",            50) / 100.0\n",
+     "\n",
+     "    default_sd_mult = get_num(raw_params, \"sd_of_vol_mult\", 3)\n",
+     "\n",
+     "    financing_mean  = financing_mean_annual / 12\n",
+     "    financing_sigma = financing_vol_annual / 12\n",
+     "\n",
+     "    internal_pa_capital = get_num(raw_params, \"internal_pa_capital\", 0)   # Z-sleeve\n",
+-    "    external_pa_capital = get_num(raw_params, \"external_pa_capital\", 0)   # passive α-ext\n",
+-    "    active_ext_capital  = get_num(raw_params, \"active_ext_capital\", 0)    # active α-ext\n",
++    "    external_pa_capital = get_num(raw_params, \"external_pa_capital\", 0)   # passive \u03b1-ext\n",
++    "    active_ext_capital  = get_num(raw_params, \"active_ext_capital\", 0)    # active \u03b1-ext\n",
+     "    \n",
+     "    Z_frac = internal_pa_capital / total_fund_capital\n",
+     "    E_pct  = external_pa_capital / total_fund_capital\n",
+     "    A_pct  = active_ext_capital  / total_fund_capital\n",
+     "\n",
+     "    # 8.4) Determine analysis_mode\n",
+     "    analysis_mode = str(raw_params.get(\"analysis_mode\", \"\")).strip().lower()\n",
+     "    valid_modes = {\"capital\", \"returns\", \"alpha_shares\", \"vol_mult\"}\n",
+     "    if analysis_mode not in valid_modes:\n",
+     "        raise RuntimeError(f\"Analysis mode must be one of {valid_modes}, but got '{analysis_mode}'\")\n",
+     "\n",
+     "    # 8.5) Prompt user to select the INDEX CSV\n",
+     "    print(\"Please select the INDEX CSV (monthly total returns).\")\n",
+     "    try:\n",
+     "        INDEX_CSV_PATH = select_csv_file()\n",
+     "        print(f\"Index CSV selected: {INDEX_CSV_PATH}\")\n",
+     "    except FileNotFoundError:\n",
+     "        raise RuntimeError(\"Index CSV was not selected; exiting.\")\n",
+     "\n",
+     "    # 8.6) Load idx_series and compute reference stats\n",
+     "    try:\n",
+     "        idx_series = load_index_returns(INDEX_CSV_PATH)\n",
+     "        print(f\"Loaded {len(idx_series)} months from the raw index CSV.\")\n",
+     "    except Exception as e:\n",
+     "        raise RuntimeError(f\"Failed to load index returns: {e}\")\n",
+     "\n",
+     "    mu_idx   = idx_series.mean()\n",
+     "    idx_sigma = idx_series.std(ddof=1)\n",
+     "    print(f\"Using idx_series from {idx_series.index.min().date()} to {idx_series.index.max().date()} (n={len(idx_series)})\")\n",
+-    "    print(f\"Analysis-window: μ_idx = {mu_idx:.4f}, σ_idx = {idx_sigma:.4f}\")\n",
++    "    print(f\"Analysis-window: \u03bc_idx = {mu_idx:.4f}, \u03c3_idx = {idx_sigma:.4f}\")\n",
+     "\n",
+     "    # 8.7) Convert bucket financing overrides to monthly decimals\n",
+     "    internal_financing_mean  = internal_financing_mean_annual / 12\n",
+     "    internal_financing_sigma = internal_financing_vol_annual  / 12\n",
+     "\n",
+     "    ext_pa_financing_mean  = ext_pa_financing_mean_annual / 12\n",
+     "    ext_pa_financing_sigma = ext_pa_financing_vol_annual  / 12\n",
+     "\n",
+     "    act_ext_financing_mean  = act_ext_financing_mean_annual / 12\n",
+     "    act_ext_financing_sigma = act_ext_financing_vol_annual  / 12\n",
+     "\n",
+     "    # -------------------------------------------------------------\n",
+     "    # Unified params-dict for BOTH helper functions\n",
+     "    # -------------------------------------------------------------\n",
+     "    params = {\n",
+     "        # ----- joint-return means & sigmas (monthly) -----\n",
+     "        \"mu_idx_month\":         mu_idx,\n",
+     "        \"default_mu_H\":         default_mu_H,\n",
+     "        \"default_mu_E\":         default_mu_E,\n",
+     "        \"default_mu_M\":         default_mu_M,\n",
+     "    \n",
+     "        \"idx_sigma_month\":      idx_sigma,\n",
+     "        \"default_sigma_H\":      default_sigma_H,\n",
+     "        \"default_sigma_E\":      default_sigma_E,\n",
+     "        \"default_sigma_M\":      default_sigma_M,\n",
+@@ -6454,362 +6454,361 @@
+     "        \"rho_H_M\":   rho_H_M,\n",
+     "        \"rho_E_M\":   rho_E_M,\n",
+     "    \n",
+     "        # ----- financing (monthly) & spike settings -----\n",
+     "        \"internal_financing_mean_month\":  internal_financing_mean,\n",
+     "        \"internal_financing_sigma_month\": internal_financing_sigma,\n",
+     "        \"internal_spike_prob\":            internal_spike_prob,\n",
+     "        \"internal_spike_factor\":          internal_spike_factor,\n",
+     "    \n",
+     "        \"ext_pa_financing_mean_month\":    ext_pa_financing_mean,\n",
+     "        \"ext_pa_financing_sigma_month\":   ext_pa_financing_sigma,\n",
+     "        \"ext_pa_spike_prob\":              ext_pa_spike_prob,\n",
+     "        \"ext_pa_spike_factor\":            ext_pa_spike_factor,\n",
+     "    \n",
+     "        \"act_ext_financing_mean_month\":   act_ext_financing_mean,\n",
+     "        \"act_ext_financing_sigma_month\":  act_ext_financing_sigma,\n",
+     "        \"act_ext_spike_prob\":             act_ext_spike_prob,\n",
+     "        \"act_ext_spike_factor\":           act_ext_spike_factor,\n",
+     "        \"total_fund_capital\":      total_fund_capital,\n",
+     "        \"internal_pa_capital\":    internal_pa_capital,\n",
+     "        \"external_pa_capital\":    external_pa_capital,\n",
+     "        \"active_ext_capital\":     active_ext_capital,\n",
+     "    }\n",
+     "\n",
+     "    # -------------------------------------------------------------------\n",
+-    "    # NEW ▸ Build a single Monte‑Carlo universe & RNG (used by every branch)\n",
++    "    # NEW \u25b8 Build a single Monte\u2011Carlo universe & RNG (used by every branch)\n",
+     "    # -------------------------------------------------------------------\n",
+     "    seed_val = int(get_num(raw_params, \"RANDOM_SEED\", 42))\n",
+     "    rng = np.random.default_rng(seed_val)  # Or read a seed from raw_params\n",
+     "    cov_mat_global = build_cov_matrix(\n",
+     "        rho_idx_H, rho_idx_E, rho_idx_M,\n",
+     "        rho_H_E,   rho_H_M,   rho_E_M,\n",
+     "        idx_sigma, default_sigma_H, default_sigma_E, default_sigma_M,\n",
+     "    )\n",
+     "\n",
+     "    N_SIMULATIONS = get_num(raw_params, \"N_SIMULATIONS\", 20000)\n",
+     "    N_MONTHS      = get_num(raw_params, \"N_MONTHS\",      12)\n",
+     "\n",
+     "    # ------------------------------------------------------------\n",
+     "    # Global financing vectors (length = N_MONTHS) reused by all modes\n",
+     "    # ------------------------------------------------------------\n",
+     "    f_internal_vec = simulate_financing(\n",
+     "        N_MONTHS, internal_financing_mean, internal_financing_sigma,\n",
+     "        internal_spike_prob, internal_spike_factor,\n",
+     "        rng=rng, n_scenarios=1\n",
+     "    )[0]\n",
+     "    f_ext_pa_vec = simulate_financing(\n",
+     "        N_MONTHS, ext_pa_financing_mean, ext_pa_financing_sigma,\n",
+     "        ext_pa_spike_prob, ext_pa_spike_factor,\n",
+     "        rng=rng, n_scenarios=1\n",
+     "    )[0]\n",
+     "    f_act_ext_vec = simulate_financing(\n",
+     "        N_MONTHS, act_ext_financing_mean, act_ext_financing_sigma,\n",
+     "        act_ext_spike_prob, act_ext_spike_factor,\n",
+     "        rng=rng, n_scenarios=1\n",
+     "    )[0]\n",
+     "\n",
+     "    # --------------------------------------------------------\n",
+     "    # 1) Joint-return universe  (shared by every scenario)\n",
+     "    # --------------------------------------------------------\n",
+     "    r_beta, r_H, r_E, r_M = draw_joint_returns(\n",
+     "        n_months=N_MONTHS,\n",
+     "        n_sim=N_SIMULATIONS,\n",
+-    "        params=params,            # ← now defined\n",
++    "        params=params,            # \u2190 now defined\n",
+     "    )\n",
+     "    mc_paths = np.stack([r_beta, r_H, r_E, r_M], axis=2)  # (sim, month, 4)\n",
+     "\n",
+     "    # ---------------------------------------------------------------------------\n",
+     "    # 2.  Financing draws (also shared; later sliced per grid point)\n",
+     "    # ---------------------------------------------------------------------------\n",
+     "    f_int_matrix, f_ext_pa_matrix, f_act_ext_matrix = draw_financing_series(\n",
+     "        n_months=N_MONTHS,\n",
+     "        n_sim=N_SIMULATIONS,\n",
+     "        params=params,\n",
+     "    )\n",
+     "\n",
+     "    # -------------------------------------------------------------------\n",
+     "    # 8.8) Branch on analysis_mode\n",
+     "    # -------------------------------------------------------------------\n",
+     "\n",
+     "    if analysis_mode == \"capital\":\n",
+     "        # --------------------------------------\n",
+-    "        # 8.8.a) Capital mode: Sweep ext_pct→act_pct\n",
++    "        # 8.8.a) Capital mode: Sweep ext_pct\u2192act_pct\n",
+     "        # --------------------------------------\n",
+     "        max_ext_pct = get_num(raw_params, \"max_external_combined_percent\", 50) / 100.0\n",
+     "        ext_step_pct = get_num(raw_params, \"external_step_size_percent\", 1) / 100.0\n",
+     "\n",
+-    "        # Other “sweepable” params collapse to midpoint\n",
++    "        # Other \u201csweepable\u201d params collapse to midpoint\n",
+     "        mu_H_list    = [default_mu_H]\n",
+     "        sigma_H_list = [default_sigma_H]\n",
+     "        mu_E_list    = [default_mu_E]\n",
+     "        sigma_E_list = [default_sigma_E]\n",
+     "        mu_M_list    = [default_mu_M]\n",
+     "        sigma_M_list = [default_sigma_M]\n",
+     "\n",
+     "        ext_alpha_list = [default_ext_alpha_frac]\n",
+     "        act_share_list = [default_act_share]\n",
+     "        sd_list        = [default_sd_mult]\n",
+     "\n",
+     "        all_summaries = []\n",
+     "        all_raw_returns = {}\n",
+     "\n",
+     "        ext_range = np.arange(0.0, max_ext_pct + 1e-9, ext_step_pct)\n",
+     "\n",
+-    "        # Build (ext_pct, act_pct) grid once and pre‑draw financing spreads\n",
++    "        # Build (ext_pct, act_pct) grid once and pre\u2011draw financing spreads\n",
+     "        grid_pairs = [(e, a) for e in ext_range\n",
+     "                             for a in np.arange(0.0, e + 1e-9, ext_step_pct)]\n",
+     "\n",
+     "        G = len(grid_pairs)  # scenarios\n",
+     "\n",
+     "        f_internal  = simulate_financing(12, internal_financing_mean,  internal_financing_sigma,\n",
+     "                                         internal_spike_prob, internal_spike_factor,\n",
+     "                                         n_scenarios=G, rng=rng)\n",
+     "        f_ext_pa    = simulate_financing(12, ext_pa_financing_mean,     ext_pa_financing_sigma,\n",
+     "                                         ext_pa_spike_prob, ext_pa_spike_factor,\n",
+     "                                         n_scenarios=G, rng=rng)\n",
+     "        f_act_ext   = simulate_financing(12, act_ext_financing_mean,    act_ext_financing_sigma,\n",
+     "                                         act_ext_spike_prob, act_ext_spike_factor,\n",
+     "                                         n_scenarios=G, rng=rng)\n",
+     "\n",
+     "        for g, (ext_pct, act_pct) in enumerate(grid_pairs):\n",
+     "                E_pct = ext_pct - act_pct\n",
+     "                A_pct = act_pct\n",
+     "                Z_frac = 1.0 - ext_pct\n",
+     "                E_mm = E_pct * total_fund_capital\n",
+     "                A_mm = A_pct * total_fund_capital\n",
+     "                Z_mm = Z_frac * total_fund_capital\n",
+     "\n",
+-    "                # slice once; broadcasting → (n_sim, 12)\n",
++    "                # slice once; broadcasting \u2192 (n_sim, 12)\n",
+     "                f_int_vec  = f_internal[g]\n",
+     "                f_ext_vec  = f_ext_pa[g]\n",
+     "                f_act_vec  = f_act_ext[g]\n",
+     "\n",
+     "                f_int_matrix    = np.broadcast_to(f_int_vec,  (N_SIMULATIONS, N_MONTHS))\n",
+     "                f_ext_pa_matrix = np.broadcast_to(f_ext_vec,    (N_SIMULATIONS, N_MONTHS))\n",
+     "                f_act_ext_matrix= np.broadcast_to(f_act_vec,   (N_SIMULATIONS, N_MONTHS))\n",
+     "\n",
+-    "                sims = mc_paths  # reuse the pre‑computed universe\n",
++    "                sims = mc_paths  # reuse the pre\u2011computed universe\n",
+     "                r_beta = sims[:, :, 0]   # (n_sim, n_months)\n",
+     "                r_H    = sims[:, :, 1]\n",
+     "                r_E    = sims[:, :, 2]\n",
+     "                r_M    = sims[:, :, 3] \n",
+     "\n",
+     "                # -------- Vectorised over all simulations --------\n",
+     "                total_cap = params['total_fund_capital']\n",
+     "                Z_frac = params['internal_pa_capital']  / total_cap   # internal PA sleeve (Z)\n",
+     "                E_pct  = params['external_pa_capital']  / total_cap   # external PA bucket (X)\n",
+-    "                A_pct  = params['active_ext_capital']   / total_cap   # active α-extension (Y)    \n",
++    "                A_pct  = params['active_ext_capital']   / total_cap   # active \u03b1-extension (Y)    \n",
+     "                R_base   = (r_beta - f_int_matrix)   * Z_frac + r_H * Z_frac\n",
+     "                R_extpa  = (r_beta - f_ext_pa_matrix)* E_pct  + r_M * E_pct\n",
+     "                R_actext = (r_beta - f_act_ext_matrix)* A_pct + r_E * A_pct\n",
+     "\n",
+     "                results = {\n",
+     "                    \"Base\":       np.prod(1 + R_base  , axis=1) - 1,\n",
+     "                    \"ExternalPA\": np.prod(1 + R_extpa , axis=1) - 1,\n",
+     "                    \"ActiveExt\":  np.prod(1 + R_actext, axis=1) - 1,\n",
+     "                }\n",
+     "\n",
+     "                dates_sim = pd.date_range(\n",
+     "                    start=idx_series.index[-1] + pd.DateOffset(months=1),\n",
+     "                    periods=N_MONTHS, freq=\"ME\"\n",
+     "                )\n",
+     "\n",
+-    "                # Keep first simulation’s path for raw-return sheets\n",
++    "                # Keep first simulation\u2019s path for raw-return sheets\n",
+     "                raw_returns = {\n",
+     "                    \"Base\":       pd.DataFrame({\"Base\":       R_base[0]},   index=dates_sim),\n",
+     "                    \"ExternalPA\": pd.DataFrame({\"ExternalPA\": R_extpa[0]},  index=dates_sim),\n",
+     "                    \"ActiveExt\":  pd.DataFrame({\"ActiveExt\":  R_actext[0]}, index=dates_sim),\n",
+     "                }\n",
+     "\n",
+     "                df_yearly = pd.DataFrame(results)\n",
+     "                summary_rows = []\n",
+     "                for cfg, arr in df_yearly.items():\n",
+     "                    ann_ret = np.mean(arr)\n",
+     "                    ann_vol = np.std(arr, ddof=1)\n",
+     "                    var_95  = np.percentile(arr, 5)\n",
+     "                    te      = np.nan\n",
+     "\n",
+     "                    mr_series = raw_returns[cfg].iloc[:, 0]\n",
+     "                    threshold = -buffer_multiple * idx_sigma\n",
+     "                    breach_pct = np.mean(mr_series < threshold) * 100\n",
+     "\n",
+     "                    summary_rows.append({\n",
+     "                        \"Config\": cfg,\n",
+     "                        \"Ext %\":  f\"{ext_pct*100:.1f}%\",\n",
+     "                        \"Act %\":  f\"{act_pct*100:.1f}%\",\n",
+     "                        \"Internal PA (mm)\": Z_mm,\n",
+     "                        \"Annual Return\":      ann_ret,\n",
+     "                        \"Annual Vol\":         ann_vol,\n",
+     "                        \"VaR 95\":             var_95,\n",
+     "                        \"TE (est.)\":          te,\n",
+     "                        \"Breach %\":           breach_pct\n",
+     "                    })\n",
+     "\n",
+     "                summary_df = pd.DataFrame(summary_rows)\n",
+     "                all_summaries.append(summary_df)\n",
+     "\n",
+     "                for key, df_r in raw_returns.items():\n",
+     "                    sheet_key = f\"{key}_E{ext_pct*100:.0f}_A{act_pct*100:.0f}\"\n",
+     "                    all_raw_returns[sheet_key] = df_r\n",
+     "\n",
+     "        final_summary = pd.concat(all_summaries, ignore_index=True)\n",
+     "\n",
+     "        inputs_dict = {\n",
+     "            \"Analysis mode\":               \"capital\",\n",
+     "            \"Total fund capital (mm)\":     total_fund_capital,\n",
+     "            \"Max external combined (%)\":   get_num(raw_params, \"max_external_combined_percent\", \"\"),\n",
+     "            \"External step size (%)\":      get_num(raw_params, \"external_step_size_percent\", \"\"),\n",
+     "            \"Annual financing mean (%)\":   financing_mean_annual,\n",
+     "            \"Annual financing vol (%)\":    financing_vol_annual,\n",
+     "            \"Monthly spike probability\":   spike_prob,\n",
+-    "            \"Spike size (σ × multiplier)\": spike_factor,\n",
++    "            \"Spike size (\u03c3 \u00d7 multiplier)\": spike_factor,\n",
+     "            \"Buffer multiple\":             buffer_multiple\n",
+     "        }\n",
+     "\n",
+     "        export_to_excel(inputs_dict, final_summary, all_raw_returns)\n",
+     "\n",
+     "        display_df = final_summary.copy()\n",
+     "        display_df = display_df.rename(columns={\n",
+     "            \"Annual Return\": \"Annual Return (%)\",\n",
+     "            \"Annual Vol\":    \"Annual Volatility (%)\",\n",
+     "            \"VaR 95\":        \"95%-VaR (%)\",\n",
+     "            \"TE (est.)\":     \"Tracking Error (%)\",\n",
+     "            \"Breach %\":      \"Breach Probability (%)\"\n",
+     "        })\n",
+     "        pct_cols = [\n",
+     "            \"Annual Return (%)\", \"Annual Volatility (%)\", \"95%-VaR (%)\",\n",
+     "            \"Tracking Error (%)\", \"Breach Probability (%)\"\n",
+     "        ]\n",
+     "        for col in pct_cols:\n",
+     "            display_df[col] = display_df[col].map(\"{:.1f}%\".format)\n",
+     "\n",
+-    "        pd.set_option(\"display.max_rows\", None)\n",
+     "        print(\"\\n=== Summary Table (Capital Mode) ===\\n\")\n",
+-    "        print(display_df.to_string(index=False))\n",
++    "        print(display_df.head().to_string(index=False))\n",
+     "        print()\n",
+     "\n",
+     "    elif analysis_mode == \"returns\":\n",
+     "        # ---------------------------------------------------------------------------------------\n",
+-    "        # 8.8.b) Returns mode: Sweep over μ_H, σ_H, μ_E, σ_E, μ_M, σ_M. Other params fixed at midpoint.\n",
++    "        # 8.8.b) Returns mode: Sweep over \u03bc_H, \u03c3_H, \u03bc_E, \u03c3_E, \u03bc_M, \u03c3_M. Other params fixed at midpoint.\n",
+     "        # ---------------------------------------------------------------------------------------\n",
+     "\n",
+     "        E_mm = get_num(raw_params, \"external_pa_capital\", None)\n",
+     "        A_mm = get_num(raw_params, \"active_ext_capital\",  None)\n",
+     "        Z_mm = get_num(raw_params, \"internal_pa_capital\", None)\n",
+     "        if any(v is None for v in [E_mm, A_mm, Z_mm]):\n",
+     "            raise RuntimeError(\n",
+     "                \"In 'returns' mode, please supply: External PA capital (mm), \"\n",
+     "                \"Active Extension capital (mm), Internal PA capital (mm).\"\n",
+     "            )\n",
+     "\n",
+     "        mu_H_list    = build_range(\"mu_H\",    default_midpoint=default_mu_H)\n",
+     "        sigma_H_list = build_range(\"sigma_H\", default_midpoint=default_sigma_H)\n",
+     "        mu_E_list    = build_range(\"mu_E\",    default_midpoint=default_mu_E)\n",
+     "        sigma_E_list = build_range(\"sigma_E\", default_midpoint=default_sigma_E)\n",
+     "        mu_M_list    = build_range(\"mu_M\",    default_midpoint=default_mu_M)\n",
+     "        sigma_M_list = build_range(\"sigma_M\", default_midpoint=default_sigma_M)\n",
+     "\n",
+     "        ext_alpha_list = [default_ext_alpha_frac]\n",
+     "        act_share_list = [default_act_share]\n",
+     "        sd_list        = [default_sd_mult]\n",
+     "\n",
+     "        all_summaries = []\n",
+     "        all_raw_returns = {}\n",
+     "\n",
+     "        for muH in mu_H_list:\n",
+     "            for sH in sigma_H_list:\n",
+     "                for muE in mu_E_list:\n",
+     "                    for sE in sigma_E_list:\n",
+     "                        for muM_ in mu_M_list:\n",
+     "                            for sM in sigma_M_list:\n",
+     "                                cov_mat = build_cov_matrix(\n",
+     "                                    rho_idx_H, rho_idx_E, rho_idx_M,\n",
+     "                                    rho_H_E,   rho_H_M,   rho_E_M,\n",
+     "                                    idx_sigma, sH, sE, sM,\n",
+     "                                )\n",
+     "\n",
+     "                                sims = prepare_mc_universe(\n",
+     "                                    N_SIMULATIONS=N_SIMULATIONS,\n",
+     "                                    N_MONTHS=N_MONTHS,\n",
+     "                                    mu_idx=mu_idx, mu_H=muH, mu_E=muE, mu_M=muM_,\n",
+     "                                    cov_mat=cov_mat,\n",
+     "                                    rng=rng,\n",
+     "                                )\n",
+     "\n",
+-    "                                # broadcast financing vectors (12,) → (n_sim, 12)\n",
++    "                                # broadcast financing vectors (12,) \u2192 (n_sim, 12)\n",
+     "                                f_int_matrix    = np.broadcast_to(f_internal_vec,  (N_SIMULATIONS, N_MONTHS))\n",
+     "                                f_ext_pa_matrix = np.broadcast_to(f_ext_pa_vec,    (N_SIMULATIONS, N_MONTHS))\n",
+     "                                f_act_ext_matrix= np.broadcast_to(f_act_ext_vec,   (N_SIMULATIONS, N_MONTHS))\n",
+     "\n",
+     "                                r_beta = sims[:, :, 0]   # (n_sim, n_months)\n",
+     "                                r_H    = sims[:, :, 1]\n",
+     "                                r_E    = sims[:, :, 2]\n",
+     "                                r_M    = sims[:, :, 3]\n",
+     "                \n",
+     "                                R_base   = (r_beta - f_int_matrix)   * Z_frac + r_H * Z_frac\n",
+     "                                R_extpa  = (r_beta - f_ext_pa_matrix)* E_pct  + r_M * E_pct\n",
+     "                                R_actext = (r_beta - f_act_ext_matrix)* A_pct + r_E * A_pct\n",
+     "                \n",
+     "                                results = {\n",
+     "                                    \"Base\":       np.prod(1 + R_base  , axis=1) - 1,\n",
+     "                                    \"ExternalPA\": np.prod(1 + R_extpa , axis=1) - 1,\n",
+     "                                    \"ActiveExt\":  np.prod(1 + R_actext, axis=1) - 1,\n",
+     "                                }\n",
+     "                \n",
+     "                                dates_sim = pd.date_range(\n",
+     "                                    start=idx_series.index[-1] + pd.DateOffset(months=1),\n",
+     "                                    periods=N_MONTHS, freq=\"ME\"\n",
+     "                                )\n",
+     "                \n",
+-    "                                # Keep first simulation’s path for raw-return sheets\n",
++    "                                # Keep first simulation\u2019s path for raw-return sheets\n",
+     "                                raw_returns = {\n",
+     "                                    \"Base\":       pd.DataFrame({\"Base\":       R_base[0]},   index=dates_sim),\n",
+     "                                    \"ExternalPA\": pd.DataFrame({\"ExternalPA\": R_extpa[0]},  index=dates_sim),\n",
+     "                                    \"ActiveExt\":  pd.DataFrame({\"ActiveExt\":  R_actext[0]}, index=dates_sim),\n",
+     "                                }\n",
+     "\n",
+     "                                df_yearly = pd.DataFrame(results)\n",
+     "                                summary_rows = []\n",
+     "                                for cfg, arr in df_yearly.items():\n",
+     "                                    ann_ret = np.mean(arr)\n",
+     "                                    ann_vol = np.std(arr, ddof=1)\n",
+     "                                    var_95  = np.percentile(arr, 5)\n",
+     "                                    te      = np.nan\n",
+     "\n",
+     "                                    mr_series = raw_returns[cfg].iloc[:, 0]\n",
+     "                                    threshold = -buffer_multiple * idx_sigma\n",
+     "                                    breach_pct = np.mean(mr_series < threshold) * 100\n",
+     "\n",
+     "                                    summary_rows.append({\n",
+     "                                        \"Config\": cfg,\n",
+-    "                                        \"μ_H (%)\":    f\"{muH*100:.1f}%\",\n",
+-    "                                        \"σ_H (%)\":    f\"{sH*100:.1f}%\",\n",
+-    "                                        \"μ_E (%)\":    f\"{muE*100:.1f}%\",\n",
+-    "                                        \"σ_E (%)\":    f\"{sE*100:.1f}%\",\n",
+-    "                                        \"μ_M (%)\":    f\"{muM_*100:.1f}%\",\n",
+-    "                                        \"σ_M (%)\":    f\"{sM*100:.1f}%\",\n",
++    "                                        \"\u03bc_H (%)\":    f\"{muH*100:.1f}%\",\n",
++    "                                        \"\u03c3_H (%)\":    f\"{sH*100:.1f}%\",\n",
++    "                                        \"\u03bc_E (%)\":    f\"{muE*100:.1f}%\",\n",
++    "                                        \"\u03c3_E (%)\":    f\"{sE*100:.1f}%\",\n",
++    "                                        \"\u03bc_M (%)\":    f\"{muM_*100:.1f}%\",\n",
++    "                                        \"\u03c3_M (%)\":    f\"{sM*100:.1f}%\",\n",
+     "                                        \"Internal PA (mm)\": Z_mm,\n",
+     "                                        \"External PA (mm)\": E_mm,\n",
+     "                                        \"Active Ext (mm)\":  A_mm,\n",
+     "                                        \"Annual Return\":      ann_ret,\n",
+     "                                        \"Annual Vol\":         ann_vol,\n",
+     "                                        \"VaR 95\":             var_95,\n",
+     "                                        \"TE (est.)\":          te,\n",
+     "                                        \"Breach %\":           breach_pct\n",
+     "                                    })\n",
+     "\n",
+     "                                summary_df = pd.DataFrame(summary_rows)\n",
+     "                                all_summaries.append(summary_df)\n",
+     "\n",
+     "                                for key, df_r in raw_returns.items():\n",
+     "                                    sheet_key = (\n",
+     "                                        f\"{key}_H{muH*100:.0f}\"\n",
+     "                                        f\"_sH{sH*100:.0f}\"\n",
+     "                                        f\"_E{muE*100:.0f}\"\n",
+     "                                        f\"_sE{sE*100:.0f}\"\n",
+     "                                        f\"_M{muM_*100:.0f}\"\n",
+     "                                        f\"_sM{sM*100:.0f}\"\n",
+     "                                    )\n",
+     "                                    all_raw_returns[sheet_key] = df_r\n",
+     "\n",
+     "        final_summary = pd.concat(all_summaries, ignore_index=True)\n",
+@@ -6835,251 +6834,249 @@
+     "            \"External vol max (%)\":             get_num(raw_params, \"sigma_M_max\", \"\"),\n",
+     "            \"External vol step (%)\":            get_num(raw_params, \"sigma_M_step\",\"\"),\n",
+     "            \"External PA capital (mm)\":         E_mm,\n",
+     "            \"Active Extension capital (mm)\":    A_mm,\n",
+     "            \"Internal PA capital (mm)\":         Z_mm,\n",
+     "            \"Buffer multiple\":                  buffer_multiple\n",
+     "        }\n",
+     "\n",
+     "        export_to_excel(inputs_dict, final_summary, all_raw_returns)\n",
+     "\n",
+     "        display_df = final_summary.copy()\n",
+     "        display_df = display_df.rename(columns={\n",
+     "            \"Annual Return\": \"Annual Return (%)\",\n",
+     "            \"Annual Vol\":    \"Annual Volatility (%)\",\n",
+     "            \"VaR 95\":        \"95%-VaR (%)\",\n",
+     "            \"TE (est.)\":     \"Tracking Error (%)\",\n",
+     "            \"Breach %\":      \"Breach Probability (%)\"\n",
+     "        })\n",
+     "        pct_cols = [\n",
+     "            \"Annual Return (%)\", \"Annual Volatility (%)\", \"95%-VaR (%)\",\n",
+     "            \"Tracking Error (%)\", \"Breach Probability (%)\"\n",
+     "        ]\n",
+     "        for col in pct_cols:\n",
+     "            display_df[col] = display_df[col].map(\"{:.1f}%\".format)\n",
+     "\n",
+-    "        pd.set_option(\"display.max_rows\", None)\n",
+     "        print(\"\\n=== Summary Table (Returns Mode) ===\\n\")\n",
+-    "        print(display_df.to_string(index=False))\n",
++    "        print(display_df.head().to_string(index=False))\n",
+     "        print()\n",
+     "\n",
+     "    elif analysis_mode == \"alpha_shares\":\n",
+     "        # ---------------------------------------------------------------------------------------\n",
+     "        # 8.8.c) Alpha_Shares mode: Sweep over external_pa_alpha_frac, active_share. Others fixed.\n",
+     "        # ---------------------------------------------------------------------------------------\n",
+     "\n",
+     "        E_mm = get_num(raw_params, \"external_pa_capital\", None)\n",
+     "        A_mm = get_num(raw_params, \"active_ext_capital\",  None)\n",
+     "        Z_mm = get_num(raw_params, \"internal_pa_capital\", None)\n",
+     "        if any(v is None for v in [E_mm, A_mm, Z_mm]):\n",
+     "            raise RuntimeError(\n",
+     "                \"In 'alpha_shares' mode, supply: External PA capital (mm), \"\n",
+     "                \"Active Extension capital (mm), Internal PA capital (mm).\"\n",
+     "            )\n",
+     "\n",
+     "        external_pa_alpha_frac_list = build_range(\"external_pa_alpha_frac\", default_midpoint=default_ext_alpha_frac)\n",
+     "        active_share_list           = build_range(\"active_share\",            default_midpoint=default_act_share)\n",
+     "\n",
+     "        mu_H_list    = [default_mu_H]\n",
+     "        sigma_H_list = [default_sigma_H]\n",
+     "        mu_E_list    = [default_mu_E]\n",
+     "        sigma_E_list = [default_sigma_E]\n",
+     "        mu_M_list    = [default_mu_M]\n",
+     "        sigma_M_list = [default_sigma_M]\n",
+     "        sd_list      = [default_sd_mult]\n",
+     "\n",
+     "        all_summaries = []\n",
+     "        all_raw_returns = {}\n",
+     "\n",
+     "        for ext_alpha in external_pa_alpha_frac_list:\n",
+     "            for act_share in active_share_list:\n",
+     "                \n",
+-    "                # Re‑use global Monte‑Carlo cube and broadcast financing vectors\n",
++    "                # Re\u2011use global Monte\u2011Carlo cube and broadcast financing vectors\n",
+     "                sims = mc_paths  # shape (N_SIMULATIONS, 12, 4)\n",
+     "                r_beta = sims[:, :, 0]   # (n_sim, n_months)\n",
+     "                r_H    = sims[:, :, 1]\n",
+     "                r_E    = sims[:, :, 2]\n",
+     "                r_M    = sims[:, :, 3]\n",
+     "\n",
+     "                f_int_matrix    = np.broadcast_to(f_internal_vec,  (N_SIMULATIONS, N_MONTHS))\n",
+     "                f_ext_pa_matrix = np.broadcast_to(f_ext_pa_vec,    (N_SIMULATIONS, N_MONTHS))\n",
+     "                f_act_ext_matrix= np.broadcast_to(f_act_ext_vec,   (N_SIMULATIONS, N_MONTHS))\n",
+     "\n",
+     "                R_extpa  = (r_beta - f_ext_pa_matrix[sim_i]) * ext_alpha + r_M * ext_alpha\n",
+     "                R_actext = (r_beta - f_act_ext_matrix[sim_i]) * act_share + r_E * act_share\n",
+     "                \n",
+     "\n",
+     "                R_base   = (r_beta - f_int_matrix)   * Z_frac + r_H * Z_frac\n",
+     "                R_extpa  = (r_beta - f_ext_pa_matrix)* E_pct  + r_M * E_pct\n",
+     "                R_actext = (r_beta - f_act_ext_matrix)* A_pct + r_E * A_pct\n",
+     "\n",
+     "                results = {\n",
+     "                    \"Base\":       np.prod(1 + R_base  , axis=1) - 1,\n",
+     "                    \"ExternalPA\": np.prod(1 + R_extpa , axis=1) - 1,\n",
+     "                    \"ActiveExt\":  np.prod(1 + R_actext, axis=1) - 1,\n",
+     "                }\n",
+     "\n",
+     "                dates_sim = pd.date_range(\n",
+     "                    start=idx_series.index[-1] + pd.DateOffset(months=1),\n",
+     "                    periods=N_MONTHS, freq=\"ME\"\n",
+     "                )\n",
+     "\n",
+-    "                # Keep first simulation’s path for raw-return sheets\n",
++    "                # Keep first simulation\u2019s path for raw-return sheets\n",
+     "                raw_returns = {\n",
+     "                    \"Base\":       pd.DataFrame({\"Base\":       R_base[0]},   index=dates_sim),\n",
+     "                    \"ExternalPA\": pd.DataFrame({\"ExternalPA\": R_extpa[0]},  index=dates_sim),\n",
+     "                    \"ActiveExt\":  pd.DataFrame({\"ActiveExt\":  R_actext[0]}, index=dates_sim),\n",
+     "                }\n",
+     "\n",
+     "                df_yearly = pd.DataFrame(results)\n",
+     "                summary_rows = []\n",
+     "                for cfg, arr in df_yearly.items():\n",
+     "                    ann_ret = np.mean(arr)\n",
+     "                    ann_vol = np.std(arr, ddof=1)\n",
+     "                    var_95  = np.percentile(arr, 5)\n",
+     "                    te      = np.nan\n",
+     "\n",
+     "                    mr_series = raw_returns[cfg].iloc[:, 0]\n",
+     "                    threshold = -buffer_multiple * idx_sigma\n",
+     "                    breach_pct = np.mean(mr_series < threshold) * 100\n",
+     "\n",
+     "                    summary_rows.append({\n",
+     "                        \"Config\":            cfg,\n",
+-    "                        \"External PA α (%)\": f\"{ext_alpha*100:.1f}%\",\n",
++    "                        \"External PA \u03b1 (%)\": f\"{ext_alpha*100:.1f}%\",\n",
+     "                        \"Active share (%)\":  f\"{act_share*100:.1f}%\",\n",
+     "                        \"Internal PA (mm)\":   Z_mm,\n",
+     "                        \"External PA (mm)\":   E_mm,\n",
+     "                        \"Active Ext (mm)\":    A_mm,\n",
+     "                        \"Annual Return\":      ann_ret,\n",
+     "                        \"Annual Vol\":         ann_vol,\n",
+     "                        \"VaR 95\":             var_95,\n",
+     "                        \"TE (est.)\":          te,\n",
+     "                        \"Breach %\":           breach_pct\n",
+     "                    })\n",
+     "\n",
+     "                summary_df = pd.DataFrame(summary_rows)\n",
+     "                all_summaries.append(summary_df)\n",
+     "\n",
+     "                for key, df_r in raw_returns.items():\n",
+-    "                    sheet_key = f\"{key}_α{ext_alpha*100:.0f}_act{act_share*100:.0f}\"\n",
++    "                    sheet_key = f\"{key}_\u03b1{ext_alpha*100:.0f}_act{act_share*100:.0f}\"\n",
+     "                    all_raw_returns[sheet_key] = df_r\n",
+     "\n",
+     "        final_summary = pd.concat(all_summaries, ignore_index=True)\n",
+     "\n",
+     "        inputs_dict = {\n",
+     "            \"Analysis mode\":                  \"alpha_shares\",\n",
+-    "            \"External PA α fraction min (%)\": get_num(raw_params, \"external_pa_alpha_frac_min\", \"\"),\n",
+-    "            \"External PA α fraction max (%)\": get_num(raw_params, \"external_pa_alpha_frac_max\", \"\"),\n",
+-    "            \"External PA α fraction step (%)\":get_num(raw_params, \"external_pa_alpha_frac_step\", \"\"),\n",
++    "            \"External PA \u03b1 fraction min (%)\": get_num(raw_params, \"external_pa_alpha_frac_min\", \"\"),\n",
++    "            \"External PA \u03b1 fraction max (%)\": get_num(raw_params, \"external_pa_alpha_frac_max\", \"\"),\n",
++    "            \"External PA \u03b1 fraction step (%)\":get_num(raw_params, \"external_pa_alpha_frac_step\", \"\"),\n",
+     "            \"Active share min (%)\":          get_num(raw_params, \"active_share_min\", \"\"),\n",
+     "            \"Active share max (%)\":          get_num(raw_params, \"active_share_max\", \"\"),\n",
+     "            \"Active share step (%)\":         get_num(raw_params, \"active_share_step\", \"\"),\n",
+     "            \"External PA capital (mm)\":      E_mm,\n",
+     "            \"Active Extension capital (mm)\": A_mm,\n",
+     "            \"Internal PA capital (mm)\":      Z_mm,\n",
+     "            \"Buffer multiple\":               buffer_multiple\n",
+     "        }\n",
+     "\n",
+     "        export_to_excel(inputs_dict, final_summary, all_raw_returns)\n",
+     "\n",
+     "        display_df = final_summary.copy()\n",
+     "        display_df = display_df.rename(columns={\n",
+     "            \"Annual Return\": \"Annual Return (%)\",\n",
+     "            \"Annual Vol\":    \"Annual Volatility (%)\",\n",
+     "            \"VaR 95\":        \"95%-VaR (%)\",\n",
+     "            \"TE (est.)\":     \"Tracking Error (%)\",\n",
+     "            \"Breach %\":      \"Breach Probability (%)\"\n",
+     "        })\n",
+     "        pct_cols = [\n",
+     "            \"Annual Return (%)\", \"Annual Volatility (%)\", \"95%-VaR (%)\",\n",
+     "            \"Tracking Error (%)\", \"Breach Probability (%)\"\n",
+     "        ]\n",
+     "        for col in pct_cols:\n",
+     "            display_df[col] = display_df[col].map(\"{:.1f}%\".format)\n",
+     "\n",
+-    "        pd.set_option(\"display.max_rows\", None)\n",
+     "        print(\"\\n=== Summary Table (Alpha_Shares Mode) ===\\n\")\n",
+-    "        print(display_df.to_string(index=False))\n",
++    "        print(display_df.head().to_string(index=False))\n",
+     "        print()\n",
+     "\n",
+     "    elif analysis_mode == \"vol_mult\":\n",
+     "        # ---------------------------------------------------------------------------------------\n",
+     "        # 8.8.d) Vol_Mult mode: Sweep SD multiple; other params fixed at midpoint.\n",
+     "        # ---------------------------------------------------------------------------------------\n",
+     "\n",
+     "        E_mm = get_num(raw_params, \"external_pa_capital\", None)\n",
+     "        A_mm = get_num(raw_params, \"active_ext_capital\",  None)\n",
+     "        Z_mm = get_num(raw_params, \"internal_pa_capital\", None)\n",
+     "        if any(v is None for v in [E_mm, A_mm, Z_mm]):\n",
+     "            raise RuntimeError(\n",
+     "                \"In 'vol_mult' mode, supply: External PA capital (mm), \"\n",
+     "                \"Active Extension capital (mm), Internal PA capital (mm).\"\n",
+     "            )\n",
+     "\n",
+     "        sd_list = build_range_int(\"sd_of_vol_mult\", default_midpoint=default_sd_mult)\n",
+     "\n",
+     "        mu_H_list    = [default_mu_H]\n",
+     "        sigma_H_list = [default_sigma_H]\n",
+     "        mu_E_list    = [default_mu_E]\n",
+     "        sigma_E_list = [default_sigma_E]\n",
+     "        mu_M_list    = [default_mu_M]\n",
+     "        sigma_M_list = [default_sigma_M]\n",
+     "        ext_alpha_list = [default_ext_alpha_frac]\n",
+     "        act_share_list = [default_act_share]\n",
+     "\n",
+     "        all_summaries = []\n",
+     "        all_raw_returns = {}\n",
+     "\n",
+     "        for sd_mult in sd_list:\n",
+-    "            # Use global Monte‑Carlo cube and broadcast financing vectors\n",
++    "            # Use global Monte\u2011Carlo cube and broadcast financing vectors\n",
+     "            sims = mc_paths  # shape (N_SIMULATIONS, 12, 4)\n",
+     "\n",
+     "            f_int_matrix    = np.broadcast_to(f_internal_vec,  (N_SIMULATIONS, N_MONTHS))\n",
+     "            f_ext_pa_matrix = np.broadcast_to(f_ext_pa_vec,    (N_SIMULATIONS, N_MONTHS))\n",
+     "            f_act_ext_matrix= np.broadcast_to(f_act_ext_vec,   (N_SIMULATIONS, N_MONTHS))\n",
+     "\n",
+     "            r_beta = sims[:, :, 0]   # (n_sim, n_months)\n",
+     "            r_H    = sims[:, :, 1]\n",
+     "            r_E    = sims[:, :, 2]\n",
+     "            r_M    = sims[:, :, 3]\n",
+     "\n",
+     "            R_base   = (r_beta - f_int_matrix)   * Z_frac + r_H * Z_frac\n",
+     "            R_extpa  = (r_beta - f_ext_pa_matrix)* E_pct  + r_M * E_pct\n",
+     "            R_actext = (r_beta - f_act_ext_matrix)* A_pct + r_E * A_pct\n",
+     "\n",
+     "            results = {\n",
+     "                \"Base\":       np.prod(1 + R_base  , axis=1) - 1,\n",
+     "                \"ExternalPA\": np.prod(1 + R_extpa , axis=1) - 1,\n",
+     "                \"ActiveExt\":  np.prod(1 + R_actext, axis=1) - 1,\n",
+     "            }\n",
+     "\n",
+     "            dates_sim = pd.date_range(\n",
+     "                start=idx_series.index[-1] + pd.DateOffset(months=1),\n",
+     "                periods=N_MONTHS, freq=\"ME\"\n",
+     "            )\n",
+     "\n",
+-    "            # Keep first simulation’s path for raw-return sheets\n",
++    "            # Keep first simulation\u2019s path for raw-return sheets\n",
+     "            raw_returns = {\n",
+     "                \"Base\":       pd.DataFrame({\"Base\":       R_base[0]},   index=dates_sim),\n",
+     "                \"ExternalPA\": pd.DataFrame({\"ExternalPA\": R_extpa[0]},  index=dates_sim),\n",
+     "                \"ActiveExt\":  pd.DataFrame({\"ActiveExt\":  R_actext[0]}, index=dates_sim),\n",
+     "            }\n",
+     "\n",
+     "            df_yearly = pd.DataFrame(results)\n",
+     "            summary_rows = []\n",
+     "            for cfg, arr in df_yearly.items():\n",
+     "                ann_ret = np.mean(arr)\n",
+     "                ann_vol = np.std(arr, ddof=1)\n",
+     "                var_95  = np.percentile(arr, 5)\n",
+     "                te      = np.nan\n",
+     "\n",
+     "                mr_series = raw_returns[cfg].iloc[:, 0]\n",
+     "                threshold = - (sd_mult * idx_sigma)\n",
+     "                breach_pct = np.mean(mr_series < threshold) * 100\n",
+     "\n",
+     "                summary_rows.append({\n",
+     "                    \"Config\":        cfg,\n",
+     "                    \"SD mult\":       sd_mult,\n",
+     "                    \"Internal PA (mm)\": Z_mm,\n",
+     "                    \"External PA (mm)\": E_mm,\n",
+     "                    \"Active Ext (mm)\":  A_mm,\n",
+     "                    \"Annual Return\":      ann_ret,\n",
+@@ -7104,166 +7101,165 @@
+     "            \"SD multiple max\":      get_num(raw_params, \"sd_of_vol_mult_max\", \"\"),\n",
+     "            \"SD multiple step\":     get_num(raw_params, \"sd_of_vol_mult_step\", \"\"),\n",
+     "            \"External PA capital (mm)\":     E_mm,\n",
+     "            \"Active Extension capital (mm)\":A_mm,\n",
+     "            \"Internal PA capital (mm)\":     Z_mm,\n",
+     "            \"Buffer multiple\":     buffer_multiple\n",
+     "        }\n",
+     "\n",
+     "        export_to_excel(inputs_dict, final_summary, all_raw_returns)\n",
+     "\n",
+     "        display_df = final_summary.copy()\n",
+     "        display_df = display_df.rename(columns={\n",
+     "            \"Annual Return\": \"Annual Return (%)\",\n",
+     "            \"Annual Vol\":    \"Annual Volatility (%)\",\n",
+     "            \"VaR 95\":        \"95%-VaR (%)\",\n",
+     "            \"TE (est.)\":     \"Tracking Error (%)\",\n",
+     "            \"Breach %\":      \"Breach Probability (%)\"\n",
+     "        })\n",
+     "        pct_cols = [\n",
+     "            \"Annual Return (%)\", \"Annual Volatility (%)\", \"95%-VaR (%)\",\n",
+     "            \"Tracking Error (%)\", \"Breach Probability (%)\"\n",
+     "        ]\n",
+     "        for col in pct_cols:\n",
+     "            display_df[col] = display_df[col].map(\"{:.1f}%\".format)\n",
+     "\n",
+-    "        pd.set_option(\"display.max_rows\", None)\n",
+     "        print(\"\\n=== Summary Table (Vol_Mult Mode) ===\\n\")\n",
+-    "        print(display_df.to_string(index=False))\n",
++    "        print(display_df.head().to_string(index=False))\n",
+     "        print()\n",
+     "\n",
+     "    else:\n",
+     "        raise RuntimeError(f\"Unexpected analysis mode: '{analysis_mode}'\")"
+    ]
+   },
+   {
+    "cell_type": "code",
+    "execution_count": null,
+    "id": "bb81508f-1ca5-4604-918f-869890401c9e",
+    "metadata": {},
+    "outputs": [],
+    "source": []
+   },
+   {
+    "cell_type": "code",
+    "execution_count": null,
+    "id": "ff0ff261-33e0-4623-86c6-7c24c1c78c51",
+    "metadata": {
+     "jp-MarkdownHeadingCollapsed": true
+    },
+    "outputs": [],
+    "source": [
+     "export_to_excel(\n",
+     "    inputs_dict,\n",
+     "    final_summary,\n",
+     "    all_raw_returns,\n",
+     "    filename=\"/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable\\ Alpha-Extension\\ Model/Outputs.xlsx\"\n",
+     ")\n",
+     "\n",
+     "print(\"Wrote Outputs.xlsx\")"
+    ]
+   },
+   {
+    "cell_type": "markdown",
+    "id": "1e3414b6-e952-4ed6-8097-7dc7ea975528",
+    "metadata": {},
+    "source": [
+     "# Portable Alpha + Active Extension Model Specification\n",
+     "\n",
+-    "Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.\n",
++    "Below is a comprehensive description of the updated portable\u2010alpha + active\u2010extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 1. Purpose and High-Level Overview\n",
+     "\n",
+     "**Goal:**  \n",
+-    "Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. \\$1 b) across three “sleeves” (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House α, Extension α, and External PA α, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).\n",
++    "Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. \\$1 b) across three \u201csleeves\u201d (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House \u03b1, Extension \u03b1, and External PA \u03b1, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).\n",
+     "\n",
+     "Key innovations vs. a simpler portable-alpha model:  \n",
+-    "1. **Separate “reference period”** used to compute index volatility σₙ, which in turn determines the cash/margin needed to synthetically hold 1:1 index exposure.  \n",
+-    "2. **Three explicit buckets** whose dollar-amounts sum to \\$ 1 b, avoiding any double-counting of β + α exposures.  \n",
+-    "3. **Active Extension bucket** that can be “150/50” or “170/70” long/short, specified by an “Active share (%)” input. By default, we assume 150/50 (i.e. Active share = 50 %) unless the user overrides.\n",
++    "1. **Separate \u201creference period\u201d** used to compute index volatility \u03c3\u2099, which in turn determines the cash/margin needed to synthetically hold 1:1 index exposure.  \n",
++    "2. **Three explicit buckets** whose dollar-amounts sum to \\$ 1 b, avoiding any double-counting of \u03b2 + \u03b1 exposures.  \n",
++    "3. **Active Extension bucket** that can be \u201c150/50\u201d or \u201c170/70\u201d long/short, specified by an \u201cActive share (%)\u201d input. By default, we assume 150/50 (i.e. Active share = 50 %) unless the user overrides.\n",
+     "\n",
+-    "Everything ultimately flows into a set of formulas—one per bucket—that map monthly draws of\n",
++    "Everything ultimately flows into a set of formulas\u2014one per bucket\u2014that map monthly draws of\n",
+     "\\[\n",
+     "(r_{\\beta},\\,r_{H},\\,r_{E},\\,r_{M}) \n",
+     "\\quad\\text{and}\\quad\n",
+     "f_t\n",
+     "\\]\n",
+     "into portfolio returns.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 2. Core Assumptions and Variables\n",
+     "\n",
+-    "1. **Index (β) returns**  \n",
++    "1. **Index (\u03b2) returns**  \n",
+     "   - We load a historical time series of monthly total returns on the S&P 500 TR (or whichever index) from a CSV.  \n",
+     "   - We partition that series into:  \n",
+-    "     1. A **reference window** (e.g. 2010 – 2014) used to compute “reference volatility” σₙ.  \n",
+-    "     2. An **analysis window** (e.g. 2015 – 2020) used to compute the actual mean (μₙ) and volatility (σₙ) that drive our Monte Carlo draws.\n",
+-    "\n",
+-    "2. **Three α-streams** (simulated jointly with β)  \n",
+-    "   - **In-House α** \\($r_H$\\):  \n",
+-    "     - Mean = μ_H/12  \n",
+-    "     - Vol = σ_H / √12  \n",
+-    "     - Correlation ρ_{β,H} with β.  \n",
+-    "   - **Extension α** \\($r_E$\\):  \n",
+-    "     - Mean = μ_E/12  \n",
+-    "     - Vol = σ_E / √12  \n",
+-    "     - Correlation ρ_{β,E} with β.  \n",
+-    "   - **External PA α** \\($r_M$\\):  \n",
+-    "     - Mean = μ_M/12  \n",
+-    "     - Vol = σ_M / √12  \n",
+-    "     - Correlation ρ_{β,M} with β.\n",
++    "     1. A **reference window** (e.g. 2010 \u2013 2014) used to compute \u201creference volatility\u201d \u03c3\u2099.  \n",
++    "     2. An **analysis window** (e.g. 2015 \u2013 2020) used to compute the actual mean (\u03bc\u2099) and volatility (\u03c3\u2099) that drive our Monte Carlo draws.\n",
++    "\n",
++    "2. **Three \u03b1-streams** (simulated jointly with \u03b2)  \n",
++    "   - **In-House \u03b1** \\($r_H$\\):  \n",
++    "     - Mean = \u03bc_H/12  \n",
++    "     - Vol = \u03c3_H / \u221a12  \n",
++    "     - Correlation \u03c1_{\u03b2,H} with \u03b2.  \n",
++    "   - **Extension \u03b1** \\($r_E$\\):  \n",
++    "     - Mean = \u03bc_E/12  \n",
++    "     - Vol = \u03c3_E / \u221a12  \n",
++    "     - Correlation \u03c1_{\u03b2,E} with \u03b2.  \n",
++    "   - **External PA \u03b1** \\($r_M$\\):  \n",
++    "     - Mean = \u03bc_M/12  \n",
++    "     - Vol = \u03c3_M / \u221a12  \n",
++    "     - Correlation \u03c1_{\u03b2,M} with \u03b2.\n",
+     "\n",
+     "3. **Financing spread** \\($f_t$\\)  \n",
+-    "   - A month-by-month random draw around a drift (financing_mean/12) with vol (financing_vol/12) and occasional jumps of size (spike_factor × (financing_vol/12)), happening with probability spike_prob.  \n",
+-    "   - In each month, any bucket that holds \\((r_{\\beta} − f_t)\\) is charged that financing cost.\n",
++    "   - A month-by-month random draw around a drift (financing_mean/12) with vol (financing_vol/12) and occasional jumps of size (spike_factor \u00d7 (financing_vol/12)), happening with probability spike_prob.  \n",
++    "   - In each month, any bucket that holds \\((r_{\\beta} \u2212 f_t)\\) is charged that financing cost.\n",
+     "\n",
+     "4. **Total fund capital** (in millions, default = 1000)  \n",
+-    "   - We allocate exactly \\$ 1 b across three buckets (plus any residual “cash-leftover” after margin).\n",
++    "   - We allocate exactly \\$ 1 b across three buckets (plus any residual \u201ccash-leftover\u201d after margin).\n",
+     "\n",
+     "5. **Standard-deviation multiple** (sd_of_vol_mult, default = 3)  \n",
+-    "   - “To hold \\$ 1 b of index exposure, you must keep aside cash = σₙ × (sd_of_vol_mult) × \\$ 1 b.”  \n",
+-    "   - That cash is the **internal beta-backing** or “margin cash,” needed for futures/swaps.\n",
++    "   - \u201cTo hold \\$ 1 b of index exposure, you must keep aside cash = \u03c3\u2099 \u00d7 (sd_of_vol_mult) \u00d7 \\$ 1 b.\u201d  \n",
++    "   - That cash is the **internal beta-backing** or \u201cmargin cash,\u201d needed for futures/swaps.\n",
+     "\n",
+     "6. **Three capital buckets** (all in \\$ mm, must sum to 1000)  \n",
+     "   1. **External PA capital** \\($X$\\)  \n",
+-    "      - Manager takes \\$ X m; buys \\$ X m of index (β) and \\((external_pa_alpha_frac × X m)\\) of α.  \n",
+-    "      - Default α fraction = 50 % (\\(\\theta_{\\mathrm{ExtPA}}=0.50\\)).  \n",
++    "      - Manager takes \\$ X m; buys \\$ X m of index (\u03b2) and \\((external_pa_alpha_frac \u00d7 X m)\\) of \u03b1.  \n",
++    "      - Default \u03b1 fraction = 50 % (\\(\\theta_{\\mathrm{ExtPA}}=0.50\\)).  \n",
+     "   2. **Active Extension capital** \\($Y$\\)  \n",
+     "      - Manager runs a long/short portfolio with **Active share** \\(S\\).  \n",
+-    "      - By default, “150/50” means \\(S=0.50\\) (i.e. 150 % long, 50 % short → net 100 %).  \n",
++    "      - By default, \u201c150/50\u201d means \\(S=0.50\\) (i.e. 150 % long, 50 % short \u2192 net 100 %).  \n",
+     "   3. **Internal PA capital** \\($Z$\\)  \n",
+-    "      - Runs in-house α; the remainder of internal cash (beyond margin) is used here.\n",
++    "      - Runs in-house \u03b1; the remainder of internal cash (beyond margin) is used here.\n",
+     "\n",
+     "7. **Internal beta backing** \\($W$\\) (computed, not user-entered)  \n",
+     "   \\[\n",
+     "     W = \\sigma_{\\text{ref}} \\times (\\mathrm{sd\\_of\\_vol\\_mult}) \\times 1000 \\quad (\\text{\\$ mm}).\n",
+     "   \\]\n",
+     "   - That cash sits in reserve to back a \\$ 1 b index position via futures/swaps.  \n",
+-    "   - Because the external PA and active-extension managers each hold index exposure “inside” their \\$ X m or \\$ Y m, **you do not hold margin for that portion**. You only hold \\(W\\) for the total \\$ 1 b.\n",
++    "   - Because the external PA and active-extension managers each hold index exposure \u201cinside\u201d their \\$ X m or \\$ Y m, **you do not hold margin for that portion**. You only hold \\(W\\) for the total \\$ 1 b.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 3. Capital-Allocation Equations\n",
+     "\n",
+     "1. **Check**:  \n",
+     "   \\[\n",
+     "     X + Y + Z \\;=\\; 1000 \\quad(\\text{\\$ mm}),\n",
+     "   \\]  \n",
+     "   where  \n",
+     "   - \\(X = \\text{external\\_pa\\_capital},\\)  \n",
+     "   - \\(Y = \\text{active\\_ext\\_capital},\\)  \n",
+     "   - \\(Z = \\text{internal\\_pa\\_capital}.\\)\n",
+     "\n",
+     "2. **Margin (internal beta backing)**:  \n",
+     "   \\[\n",
+     "     W = \\sigma_{\\text{ref}} \\times (\\mathrm{sd\\_of\\_vol\\_mult}) \\times 1000 \\quad (\\text{\\$ mm}).\n",
+     "   \\]\n",
+     "\n",
+     "3. **Internal cash leftover (runs In-House PA)**:  \n",
+     "   \\[\n",
+     "     \\text{internal\\_cash\\_leftover} \n",
+     "     = 1000 - W - Z \\quad (\\text{\\$ mm}).\n",
+     "   \\]\n",
+     "\n",
+@@ -7293,357 +7289,357 @@
+     "- Pairwise correlations \\(\\rho_{\\beta,H},\\,\\rho_{\\beta,E},\\,\\rho_{\\beta,M},\\,\\rho_{H,E},\\,\\dots\\).  \n",
+     "\n",
+     "Additionally, each month we draw a financing cost:\n",
+     "\\[\n",
+     "f_t = \\frac{\\text{financing_mean}}{12} + \\varepsilon_t,\\quad\n",
+     "\\varepsilon_t \\sim \\mathcal{N}\\bigl(0,\\;(\\tfrac{\\text{financing_vol}}{12})^2\\bigr),\n",
+     "\\]\n",
+     "with probability \\(\\text{spike_prob}\\) of a jump \\(=\\text{spike_factor} \\times \\frac{\\text{financing_vol}}{12}\\).\n",
+     "\n",
+     "---\n",
+     "\n",
+     "### 4.1. Base (All In-House) Strategy\n",
+     "\n",
+     "\\[\n",
+     "R_{\\text{Base},t}\n",
+     "= \\; (r_{\\beta,t} - f_t)\\,\\times\\,w_{\\beta_H}\n",
+     "\\;+\\; r_{H,t}\\,\\times\\,w_{\\alpha_H}.\n",
+     "\\]\n",
+     "By default, \\(w_{\\beta_H} = 0.50\\) and \\(w_{\\alpha_H} = 0.50\\).\n",
+     "\n",
+     "---\n",
+     "\n",
+     "### 4.2. External PA Strategy\n",
+     "\n",
+     "- Capital allocated: \\(X = \\text{external_pa_capital}\\).  \n",
+-    "- Manager buys \\$ X m of index (β) and allocates \\(\\theta_{\\mathrm{ExtPA}} = \\text{external_pa_alpha_frac}\\) of that \\$ X m to α.  \n",
++    "- Manager buys \\$ X m of index (\u03b2) and allocates \\(\\theta_{\\mathrm{ExtPA}} = \\text{external_pa_alpha_frac}\\) of that \\$ X m to \u03b1.  \n",
+     "\n",
+     "Return formula:\n",
+     "\\[\n",
+     "R_{\\text{ExtPA},t}\n",
+     "= \\underbrace{\\frac{X}{1000}}_{w_{\\beta}^{\\text{ExtPA}}}\\,(r_{\\beta,t} - f_t)\n",
+     "\\;+\\;\\underbrace{\\tfrac{X}{1000} \\,\\times\\,\\theta_{\\mathrm{ExtPA}}}_{w_{\\alpha}^{\\text{ExtPA}}}\\;(r_{M,t}).\n",
+     "\\]\n",
+     "- If \\(\\theta_{\\mathrm{ExtPA}} = 0.50\\), then half of \\$ X m is alpha, half is index.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "### 4.3. Active Extension Strategy\n",
+     "\n",
+     "- Capital allocated: \\(Y = \\text{active_ext_capital}\\).  \n",
+     "- Manager runs a long/short portfolio with **Active share** \\(S = \\frac{\\text{active_share_percent}}{100}\\).  \n",
+-    "  - E.g. 150/50 → \\(S = 0.50\\).  \n",
+-    "  - 170/70 → \\(S = 0.70\\).\n",
++    "  - E.g. 150/50 \u2192 \\(S = 0.50\\).  \n",
++    "  - 170/70 \u2192 \\(S = 0.70\\).\n",
+     "\n",
+     "Return formula:\n",
+     "\\[\n",
+     "R_{\\text{ActExt},t}\n",
+     "= \\underbrace{\\frac{Y}{1000}}_{w_{\\beta}^{\\text{ActExt}}}\\,(r_{\\beta,t} - f_t)\n",
+     "\\;+\\;\\underbrace{\\frac{Y}{1000}\\,\\times\\,S}_{w_{\\alpha}^{\\text{ActExt}}}\\;(r_{E,t}).\n",
+     "\\]\n",
+-    "- The manager’s long/short is embedded in \\(r_{E,t}\\).  \n",
++    "- The manager\u2019s long/short is embedded in \\(r_{E,t}\\).  \n",
+     "\n",
+     "---\n",
+     "\n",
+     "### 4.4. Internal Margin & Internal PA\n",
+     "\n",
+     "Because both external PA and active-extension managers hold their own index exposure, on your books you only need to hold margin for a single \\$ 1 b of index. That is:\n",
+     "\\[\n",
+     "W = \\sigma_{\\text{ref}} \\times (\\mathrm{sd\\_of\\_vol\\_mult}) \\times 1000 \\quad (\\text{\\$ mm}).\n",
+     "\\]\n",
+     "Then you also decide to run \\(Z = \\text{internal_pa_capital}\\) in-house PA:\n",
+     "\n",
+     "- **Internal Beta (margin):**  \n",
+     "  \\[\n",
+     "  R_{\\text{IntBet},t}\n",
+     "  = \\Bigl(\\tfrac{W}{1000}\\Bigr)\\,(r_{\\beta,t} - f_t).\n",
+     "  \\]\n",
+     "- **Internal PA alpha:**  \n",
+     "  \\[\n",
+     "  R_{\\text{IntPA},t}\n",
+     "  = \\Bigl(\\tfrac{Z}{1000}\\Bigr)\\,(r_{H,t}).\n",
+     "  \\]\n",
+     "- **Internal cash leftover:**  \n",
+     "  \\[\n",
+     "  \\text{internal\\_cash\\_leftover} = 1000 - W - Z \\quad (\\text{if positive, earns 0}).\n",
+     "  \\]\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 5. Putting It All Together in Simulation\n",
+     "\n",
+     "1. **Read user inputs** (via `load_parameters()`):\n",
+     "   - Dates: `start_date`, `end_date`, `ref_start_date`, `ref_end_date`\n",
+     "   - Vol/risk: `sd_of_vol_mult`\n",
+-    "   - Returns: `financing_mean`, `financing_vol`, `μ_H`, `σ_H`, `μ_E`, `σ_E`, `μ_M`, `σ_M`\n",
+-    "   - Correlations: `ρ_{β,H}`, `ρ_{β,E}`, `ρ_{β,M}`, `ρ_{H,E}`, `ρ_{H,M}`, `ρ_{E,M}`\n",
++    "   - Returns: `financing_mean`, `financing_vol`, `\u03bc_H`, `\u03c3_H`, `\u03bc_E`, `\u03c3_E`, `\u03bc_M`, `\u03c3_M`\n",
++    "   - Correlations: `\u03c1_{\u03b2,H}`, `\u03c1_{\u03b2,E}`, `\u03c1_{\u03b2,M}`, `\u03c1_{H,E}`, `\u03c1_{H,M}`, `\u03c1_{E,M}`\n",
+     "   - Capital buckets: `external_pa_capital`, `external_pa_alpha_frac`, `active_ext_capital`, `active_share_percent`, `internal_pa_capital`\n",
+     "   - Total fund capital (mm): default = 1000\n",
+     "\n",
+-    "2. **Load index CSV** → `idx_full` (monthly total returns).\n",
++    "2. **Load index CSV** \u2192 `idx_full` (monthly total returns).\n",
+     "\n",
+     "3. **Filter**  \n",
+-    "   - **`idx_series`** = `idx_full[ start_date : end_date ]` → used for μ_β and σ_β.  \n",
+-    "   - **`idx_ref`** = `idx_full[ ref_start_date : ref_end_date ]` → used for σ_ref.\n",
++    "   - **`idx_series`** = `idx_full[ start_date : end_date ]` \u2192 used for \u03bc_\u03b2 and \u03c3_\u03b2.  \n",
++    "   - **`idx_ref`** = `idx_full[ ref_start_date : ref_end_date ]` \u2192 used for \u03c3_ref.\n",
+     "\n",
+     "4. **Compute**  \n",
+     "   \\[\n",
+     "     \\mu_{\\beta} = \\mathrm{mean}(idx\\_series), \n",
+     "     \\quad\n",
+     "     \\sigma_{\\beta} = \\mathrm{std}(idx\\_series),\n",
+     "     \\quad\n",
+     "     \\sigma_{\\text{ref}} = \\mathrm{std}(idx\\_ref).\n",
+     "   \\]\n",
+     "\n",
+     "5. **Margin-backing**  \n",
+     "   \\[\n",
+     "     W = \\sigma_{\\text{ref}} \\times \\mathrm{sd\\_of\\_vol\\_mult} \\times 1000.\n",
+     "   \\]\n",
+     "   If \\(W + Z > 1000\\), error. Else compute\n",
+     "   \\[\n",
+     "     \\text{internal\\_cash\\_leftover} = 1000 - W - Z.\n",
+     "   \\]\n",
+     "\n",
+     "6. **Build covariance matrix** \\(\\Sigma\\) for \\((r_{\\beta}, r_H, r_E, r_M)\\) using  \n",
+     "   \\(\\sigma_{\\beta} = \\sigma_{\\text{ref}},\\; \\sigma_H = \\frac{\\sigma_H^{(\\text{annual})}}{\\sqrt{12}},\\; \\sigma_E = \\frac{\\sigma_E^{(\\text{annual})}}{\\sqrt{12}},\\; \\sigma_M = \\frac{\\sigma_M^{(\\text{annual})}}{\\sqrt{12}},\\)  \n",
+     "   and correlations.\n",
+     "\n",
+     "7. **Monte Carlo draws**:  \n",
+     "   For each of \\(N_{\\text{SIMULATIONS}}\\) trials, simulate a \\(T=N_{\\text{MONTHS}}\\)-month path of \\(\\,(r_{\\beta,t},\\,r_{H,t},\\,r_{E,t},\\,r_{M,t})\\) and financing \\(f_t\\).\n",
+     "\n",
+     "8. **Compute monthly returns** for each bucket:\n",
+     "   - **Base**:  \n",
+     "     \\[\n",
+     "       R_{\\text{Base},t} \n",
+     "       = (r_{\\beta,t} - f_t)\\,w_{\\beta_H} \\;+\\; r_{H,t}\\,w_{\\alpha_H}.\n",
+     "     \\]\n",
+     "   - **External PA**:  \n",
+     "     \\[\n",
+     "       R_{\\text{ExtPA},t} \n",
+     "       = \\bigl(\\tfrac{X}{1000}\\bigr)(r_{\\beta,t} - f_t) \n",
+     "       \\;+\\; \\bigl(\\tfrac{X}{1000}\\,\\theta_{\\mathrm{ExtPA}}\\bigr)(r_{M,t}).\n",
+     "     \\]\n",
+     "   - **Active Extension**:  \n",
+     "     \\[\n",
+     "       R_{\\text{ActExt},t} \n",
+     "       = \\bigl(\\tfrac{Y}{1000}\\bigr)(r_{\\beta,t} - f_t) \n",
+     "       \\;+\\; \\bigl(\\tfrac{Y}{1000}\\,S\\bigr)(r_{E,t}).\n",
+     "     \\]\n",
+     "   - **Internal Beta**:  \n",
+     "     \\[\n",
+     "       R_{\\text{IntBet},t} \n",
+     "       = \\bigl(\\tfrac{W}{1000}\\bigr)(r_{\\beta,t} - f_t).\n",
+     "     \\]\n",
+-    "   - **Internal PA α**:  \n",
++    "   - **Internal PA \u03b1**:  \n",
+     "     \\[\n",
+     "       R_{\\text{IntPA},t} \n",
+     "       = \\bigl(\\tfrac{Z}{1000}\\bigr)(r_{H,t}).\n",
+     "     \\]\n",
+     "\n",
+-    "   Note: We only report three portfolios—“Base,” “ExternalPA,” and “ActiveExt.” Each one compounds its own monthly returns for a 12-month horizon:\n",
++    "   Note: We only report three portfolios\u2014\u201cBase,\u201d \u201cExternalPA,\u201d and \u201cActiveExt.\u201d Each one compounds its own monthly returns for a 12-month horizon:\n",
+     "   \\[\n",
+     "     R_{\\text{bucket}}^{\\text{(year)}} \n",
+     "     = \\prod_{t=1}^{12} (1 + R_{\\text{bucket},t}) - 1.\n",
+     "   \\]\n",
+     "\n",
+-    "9. **Compute performance metrics** for each portfolio’s annual returns:\n",
++    "9. **Compute performance metrics** for each portfolio\u2019s annual returns:\n",
+     "   - **Ann Return** = sample mean.  \n",
+     "   - **Ann Vol** = sample standard deviation.  \n",
+     "   - **VaR 95%** = 5th percentile.  \n",
+-    "   - **Tracking Error** = std of (bucket_return − index_return).  \n",
++    "   - **Tracking Error** = std of (bucket_return \u2212 index_return).  \n",
+     "   - **Breach Probability** = % of months (in the first sim path) where \\((r_{\\text{bucket},t} < -\\,\\mathrm{buffer\\_multiple}\\times\\sigma_{\\beta})\\).\n",
+     "\n",
+     "10. **Export**  \n",
+-    "    - **Inputs sheet:** all parameters (dates, vol caps, bucket sizes, α fractions, active share, σ_ref, W, internal cash leftover, etc.).  \n",
+-    "    - **Summary sheet:** metrics for “Base,” “ExternalPA,” and “ActiveExt.”  \n",
++    "    - **Inputs sheet:** all parameters (dates, vol caps, bucket sizes, \u03b1 fractions, active share, \u03c3_ref, W, internal cash leftover, etc.).  \n",
++    "    - **Summary sheet:** metrics for \u201cBase,\u201d \u201cExternalPA,\u201d and \u201cActiveExt.\u201d  \n",
+     "    - **Raw returns sheets:** monthly paths for each bucket (first simulation) so users can inspect breach months.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 6. Input Parameters Summary\n",
+     "\n",
+-    "Below is a consolidated list of every input variable that must appear in the “friendly” CSV:\n",
++    "Below is a consolidated list of every input variable that must appear in the \u201cfriendly\u201d CSV:\n",
+     "\n",
+     "1. **Date ranges**  \n",
+-    "   - `Start date` → `start_date` (analysis window begin).  \n",
+-    "   - `End date` → `end_date` (analysis window end).  \n",
+-    "   - `Reference start date` → `ref_start_date` (for σ_ref).  \n",
+-    "   - `Reference end date` → `ref_end_date` (for σ_ref).  \n",
++    "   - `Start date` \u2192 `start_date` (analysis window begin).  \n",
++    "   - `End date` \u2192 `end_date` (analysis window end).  \n",
++    "   - `Reference start date` \u2192 `ref_start_date` (for \u03c3_ref).  \n",
++    "   - `Reference end date` \u2192 `ref_end_date` (for \u03c3_ref).  \n",
+     "\n",
+     "2. **Financing parameters**  \n",
+-    "   - `Annual financing mean (%)` → `financing_mean_annual` (default = 0.50 %).  \n",
+-    "   - `Annual financing vol (%)` → `financing_vol_annual` (default = 0.10 %).  \n",
+-    "   - `Monthly spike probability` → `spike_prob` (default = 2 %).  \n",
+-    "   - `Spike size (σ × multiplier)` → `spike_factor` (default = 2.25).  \n",
++    "   - `Annual financing mean (%)` \u2192 `financing_mean_annual` (default = 0.50 %).  \n",
++    "   - `Annual financing vol (%)` \u2192 `financing_vol_annual` (default = 0.10 %).  \n",
++    "   - `Monthly spike probability` \u2192 `spike_prob` (default = 2 %).  \n",
++    "   - `Spike size (\u03c3 \u00d7 multiplier)` \u2192 `spike_factor` (default = 2.25).  \n",
+     "\n",
+     "3. **In-House PA parameters**  \n",
+-    "   - `In-House annual return (%)` → `mu_H` (default = 4.00 %).  \n",
+-    "   - `In-House annual vol (%)` → `sigma_H` (default = 1.00 %).  \n",
+-    "   - `In-House β` → `w_beta_H` (default = 0.50).  \n",
+-    "   - `In-House α` → `w_alpha_H` (default = 0.50).  \n",
+-    "\n",
+-    "4. **Extension α parameters**  \n",
+-    "   - `Alpha-Extension annual return (%)` → `mu_E` (default = 5.00 %).  \n",
+-    "   - `Alpha-Extension annual vol (%)` → `sigma_E` (default = 2.00 %).  \n",
+-    "   - `Active Extension capital (mm)` → `active_ext_capital` (default = 0).  \n",
+-    "   - `Active share (%)` → `active_share_percent` (default = 50 % ⇒ a 150/50 program).  \n",
+-    "\n",
+-    "5. **External PA α parameters**  \n",
+-    "   - `External annual return (%)` → `mu_M` (default = 3.00 %).  \n",
+-    "   - `External annual vol (%)` → `sigma_M` (default = 2.00 %).  \n",
+-    "   - `External PA capital (mm)` → `external_pa_capital` (default = 0).  \n",
+-    "   - `External PA α fraction (%)` → `external_pa_alpha_frac` (default = 50 %).  \n",
++    "   - `In-House annual return (%)` \u2192 `mu_H` (default = 4.00 %).  \n",
++    "   - `In-House annual vol (%)` \u2192 `sigma_H` (default = 1.00 %).  \n",
++    "   - `In-House \u03b2` \u2192 `w_beta_H` (default = 0.50).  \n",
++    "   - `In-House \u03b1` \u2192 `w_alpha_H` (default = 0.50).  \n",
++    "\n",
++    "4. **Extension \u03b1 parameters**  \n",
++    "   - `Alpha-Extension annual return (%)` \u2192 `mu_E` (default = 5.00 %).  \n",
++    "   - `Alpha-Extension annual vol (%)` \u2192 `sigma_E` (default = 2.00 %).  \n",
++    "   - `Active Extension capital (mm)` \u2192 `active_ext_capital` (default = 0).  \n",
++    "   - `Active share (%)` \u2192 `active_share_percent` (default = 50 % \u21d2 a 150/50 program).  \n",
++    "\n",
++    "5. **External PA \u03b1 parameters**  \n",
++    "   - `External annual return (%)` \u2192 `mu_M` (default = 3.00 %).  \n",
++    "   - `External annual vol (%)` \u2192 `sigma_M` (default = 2.00 %).  \n",
++    "   - `External PA capital (mm)` \u2192 `external_pa_capital` (default = 0).  \n",
++    "   - `External PA \u03b1 fraction (%)` \u2192 `external_pa_alpha_frac` (default = 50 %).  \n",
+     "\n",
+     "6. **Correlations**  \n",
+-    "   - `Corr index–In-House` → `rho_idx_H` (default = 0.05).  \n",
+-    "   - `Corr index–Alpha-Extension` → `rho_idx_E` (default = 0.00).  \n",
+-    "   - `Corr index–External` → `rho_idx_M` (default = 0.00).  \n",
+-    "   - `Corr In-House–Alpha-Extension` → `rho_H_E` (default = 0.10).  \n",
+-    "   - `Corr In-House–External` → `rho_H_M` (default = 0.10).  \n",
+-    "   - `Corr Alpha-Extension–External` → `rho_E_M` (default = 0.00).  \n",
++    "   - `Corr index\u2013In-House` \u2192 `rho_idx_H` (default = 0.05).  \n",
++    "   - `Corr index\u2013Alpha-Extension` \u2192 `rho_idx_E` (default = 0.00).  \n",
++    "   - `Corr index\u2013External` \u2192 `rho_idx_M` (default = 0.00).  \n",
++    "   - `Corr In-House\u2013Alpha-Extension` \u2192 `rho_H_E` (default = 0.10).  \n",
++    "   - `Corr In-House\u2013External` \u2192 `rho_H_M` (default = 0.10).  \n",
++    "   - `Corr Alpha-Extension\u2013External` \u2192 `rho_E_M` (default = 0.00).  \n",
+     "\n",
+     "7. **Capital & risk backing**  \n",
+-    "   - `Total fund capital (mm)` → `total_fund_capital` (default = 1000).  \n",
+-    "   - `Standard deviation multiple` → `sd_of_vol_mult` (default = 3).  \n",
+-    "   - `Internal PA capital (mm)` → `internal_pa_capital` (default = 0).  \n",
+-    "   - `Buffer multiple` → `buffer_multiple` (default = 3).  \n",
++    "   - `Total fund capital (mm)` \u2192 `total_fund_capital` (default = 1000).  \n",
++    "   - `Standard deviation multiple` \u2192 `sd_of_vol_mult` (default = 3).  \n",
++    "   - `Internal PA capital (mm)` \u2192 `internal_pa_capital` (default = 0).  \n",
++    "   - `Buffer multiple` \u2192 `buffer_multiple` (default = 3).  \n",
+     "\n",
+     "8. **Legacy/Optional**  \n",
+-    "   - `X grid (mm)` → `X_grid_list` (list of X values).  \n",
+-    "   - `External manager α fractions` → `EM_thetas_list`.\n",
++    "   - `X grid (mm)` \u2192 `X_grid_list` (list of X values).  \n",
++    "   - `External manager \u03b1 fractions` \u2192 `EM_thetas_list`.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 7. Output Considerations\n",
+     "\n",
+     "1. **Inputs sheet (Excel):**  \n",
+     "   List every single parameter, including:  \n",
+     "   - Date windows (analysis and reference),  \n",
+     "   - Financing parameters,  \n",
+-    "   - α-stream parameters,  \n",
++    "   - \u03b1-stream parameters,  \n",
+     "   - Correlations,  \n",
+     "   - Capital buckets (X, Y, Z),  \n",
+     "   - SD multiple, margin backing \\(W\\), internal cash leftover,  \n",
+     "   - Active share, etc.\n",
+     "\n",
+     "2. **Summary sheet (Excel):**  \n",
+-    "   For each portfolio (“Base,” “ExternalPA,” “ActiveExt”), show:  \n",
++    "   For each portfolio (\u201cBase,\u201d \u201cExternalPA,\u201d \u201cActiveExt\u201d), show:  \n",
+     "   - Annual Return (%),  \n",
+     "   - Annual Volatility (%),  \n",
+-    "   - 95 % VaR (%),  \n",
++    "   - 95 %\u200aVaR (%),  \n",
+     "   - Tracking Error (%),  \n",
+     "   - Breach Probability (%).\n",
+     "\n",
+     "3. **Raw returns sheets (Excel):**  \n",
+-    "   Monthly paths for each bucket (first simulation), so users can inspect “breach” months where \\(R_{t} < -(\\text{buffer_multiple} × σ_{\\beta})\\).\n",
++    "   Monthly paths for each bucket (first simulation), so users can inspect \u201cbreach\u201d months where \\(R_{t} < -(\\text{buffer_multiple} \u00d7 \u03c3_{\\beta})\\).\n",
+     "\n",
+     "4. **Console output:**  \n",
+-    "   A “human‐friendly” summary, e.g.:  \n",
+-    "   > For “ExternalPA (X = 300, 50 % α)”:  \n",
+-    "   > • Expected annual return: 10.2 %  \n",
+-    "   > • Annual volatility: 12.3 %  \n",
+-    "   > • 95 % VaR: −3.4 %  \n",
+-    "   > • Tracking error: 8.7 %  \n",
+-    "   > • Breach probability: 2.0 %.\n",
++    "   A \u201chuman\u2010friendly\u201d summary, e.g.:  \n",
++    "   > For \u201cExternalPA (X = 300, 50 % \u03b1)\u201d:  \n",
++    "   > \u2022 Expected annual return: 10.2 %  \n",
++    "   > \u2022 Annual volatility: 12.3 %  \n",
++    "   > \u2022 95 % VaR: \u22123.4 %  \n",
++    "   > \u2022 Tracking error: 8.7 %  \n",
++    "   > \u2022 Breach probability: 2.0 %.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 8. Intuition Behind Key Pieces\n",
+     "\n",
+     "1. **Why a separate reference period?**  \n",
+-    "   - If you measure index volatility over the same window you analyze (e.g. 2015–2020), you capture “current regime” vol. Often, managers prefer a longer/different window (e.g. 2010–2014) to gauge typical funding volatility. That reference σₙ, times a multiple (e.g. 3×), tells you how much cash to set aside to back \\$ 1 b of index exposure.\n",
++    "   - If you measure index volatility over the same window you analyze (e.g. 2015\u20132020), you capture \u201ccurrent regime\u201d vol. Often, managers prefer a longer/different window (e.g. 2010\u20132014) to gauge typical funding volatility. That reference \u03c3\u2099, times a multiple (e.g. 3\u00d7), tells you how much cash to set aside to back \\$ 1 b of index exposure.\n",
+     "\n",
+     "2. **Why Active share as a percentage?**  \n",
+-    "   - A “150/50” program has 150 % long and 50 % short = net 100 %. Its “active share” is reported as 50 %.  \n",
+-    "   - If you want “170/70,” then active share = 70 %.  \n",
+-    "   - The code converts “Active share (%)” to decimal \\(S\\). For a 150/50 program, the default is 50 % (\\(S = 0.50\\)).\n",
++    "   - A \u201c150/50\u201d program has 150 % long and 50 % short = net 100 %. Its \u201cactive share\u201d is reported as 50 %.  \n",
++    "   - If you want \u201c170/70,\u201d then active share = 70 %.  \n",
++    "   - The code converts \u201cActive share (%)\u201d to decimal \\(S\\). For a 150/50 program, the default is 50 % (\\(S = 0.50\\)).\n",
+     "\n",
+-    "3. **Why each bucket’s formula ensures no double-counting**  \n",
++    "3. **Why each bucket\u2019s formula ensures no double-counting**  \n",
+     "   - Whenever you give \\$ X m to External PA, that manager holds the index exposure on your behalf. You do not hold margin for that portion. Similarly, the Active Extension manager holds their own index.  \n",
+     "   - On your books, you only need to hold margin for a single \\$ 1 b index. That is \\(W\\).  \n",
+-    "   - Once you hand \\$ X m to external PA and \\$ Y m to active ext, **both managers** hold \\((X + Y)\\) of index on your behalf. So your margin \\(W\\) backs the *entire* \\$ 1 b, not just the “leftover” portion.\n",
++    "   - Once you hand \\$ X m to external PA and \\$ Y m to active ext, **both managers** hold \\((X + Y)\\) of index on your behalf. So your margin \\(W\\) backs the *entire* \\$ 1 b, not just the \u201cleftover\u201d portion.\n",
+     "\n",
+     "---\n",
+     "\n",
+     "## 9. Step-by-Step Implementation Checklist\n",
+     "\n",
+-    "1. **Read and parse user parameters** (dates, vols, α fractions, active share, capital buckets, etc.).  \n",
+-    "2. **Load index CSV** → `idx_full`.  \n",
+-    "3. **Filter** → `idx_ref` for σ_ref; `idx_series` for μ_β and σ_β.  \n",
++    "1. **Read and parse user parameters** (dates, vols, \u03b1 fractions, active share, capital buckets, etc.).  \n",
++    "2. **Load index CSV** \u2192 `idx_full`.  \n",
++    "3. **Filter** \u2192 `idx_ref` for \u03c3_ref; `idx_series` for \u03bc_\u03b2 and \u03c3_\u03b2.  \n",
+     "4. **Compute**:  \n",
+     "   \\[\n",
+-    "     μ_β = \\mathrm{mean}(idx\\_series), \n",
++    "     \u03bc_\u03b2 = \\mathrm{mean}(idx\\_series), \n",
+     "     \\quad\n",
+-    "     σ_β = \\mathrm{std}(idx\\_series), \n",
++    "     \u03c3_\u03b2 = \\mathrm{std}(idx\\_series), \n",
+     "     \\quad\n",
+-    "     σ_{\\text{ref}} = \\mathrm{std}(idx\\_ref).\n",
++    "     \u03c3_{\\text{ref}} = \\mathrm{std}(idx\\_ref).\n",
+     "   \\]\n",
+     "5. **Margin-backing**:  \n",
+     "   \\[\n",
+-    "     W = σ_{\\text{ref}} × (\\mathrm{sd\\_of\\_vol\\_mult}) × 1000.\n",
++    "     W = \u03c3_{\\text{ref}} \u00d7 (\\mathrm{sd\\_of\\_vol\\_mult}) \u00d7 1000.\n",
+     "   \\]\n",
+-    "   Check \\(W + Z ≤ 1000\\). Compute leftover internal cash = \\(1000 - W - Z\\).\n",
++    "   Check \\(W + Z \u2264 1000\\). Compute leftover internal cash = \\(1000 - W - Z\\).\n",
+     "\n",
+-    "6. **Build covariance matrix** using \\((σ_{\\text{ref}},\\,σ_H/√{12},\\,σ_E/√{12},\\,σ_M/√{12})\\) plus correlations.\n",
++    "6. **Build covariance matrix** using \\((\u03c3_{\\text{ref}},\\,\u03c3_H/\u221a{12},\\,\u03c3_E/\u221a{12},\\,\u03c3_M/\u221a{12})\\) plus correlations.\n",
+     "\n",
+     "7. **Monte Carlo draws**:  \n",
+     "   For each of \\(N_{\\mathrm{SIM}}\\) trials, simulate a path of length \\(T = N_{\\mathrm{MONTHS}}\\) for \\((r_{\\beta,t},\\,r_{H,t},\\,r_{E,t},\\,r_{M,t})\\) and financing \\(f_t\\).\n",
+     "\n",
+     "8. **Compute monthly returns**:\n",
+     "   - **Base**:  \n",
+     "     \\[\n",
+     "       R_{\\text{Base},t} = (r_{\\beta,t} - f_t)\\,w_{\\beta_H} + r_{H,t}\\,w_{\\alpha_H}.\n",
+     "     \\]\n",
+     "   - **External PA**:  \n",
+     "     \\[\n",
+     "       R_{\\text{ExtPA},t}\n",
+     "       = \\Bigl(\\tfrac{X}{1000}\\Bigr)(r_{\\beta,t} - f_t)\n",
+     "       \\;+\\;\\Bigl(\\tfrac{X}{1000}\\,\\theta_{\\mathrm{ExtPA}}\\Bigr)(r_{M,t}).\n",
+     "     \\]\n",
+     "   - **Active Extension**:  \n",
+     "     \\[\n",
+     "       R_{\\text{ActExt},t}\n",
+     "       = \\Bigl(\\tfrac{Y}{1000}\\Bigr)(r_{\\beta,t} - f_t)\n",
+     "       \\;+\\;\\Bigl(\\tfrac{Y}{1000}\\,S\\Bigr)(r_{E,t}).\n",
+     "     \\]\n",
+     "   - **Internal Beta**:  \n",
+     "     \\[\n",
+     "       R_{\\text{IntBet},t} \n",
+     "       = \\Bigl(\\tfrac{W}{1000}\\Bigr)(r_{\\beta,t} - f_t).\n",
+     "     \\]\n",
+-    "   - **Internal PA α**:  \n",
++    "   - **Internal PA \u03b1**:  \n",
+     "     \\[\n",
+     "       R_{\\text{IntPA},t} \n",
+     "       = \\Bigl(\\tfrac{Z}{1000}\\Bigr)(r_{H,t}).\n",
+     "     \\]\n",
+     "\n",
+-    "9. **Aggregate monthly → annual returns** for “Base,” “ExternalPA,” “ActiveExt.”  \n",
++    "9. **Aggregate monthly \u2192 annual returns** for \u201cBase,\u201d \u201cExternalPA,\u201d \u201cActiveExt.\u201d  \n",
+     "10. **Compute metrics**:  \n",
+     "    - Ann Return, Ann Vol, VaR 95, Tracking Error, Breach Probability.  \n",
+     "11. **Export** Inputs, Summary, Raw returns to Excel + print narrative.\n",
+     "\n",
+     "---"
+    ]
+   }
+  ],
+  "metadata": {
+   "kernelspec": {
+    "display_name": "Python (base)",
+    "language": "python",
+    "name": "base"
+   },
+   "language_info": {
+    "codemirror_mode": {
+     "name": "ipython",
+     "version": 3
+    },
+    "file_extension": ".py",
+    "mimetype": "text/x-python",
+    "name": "python",
+    "nbconvert_exporter": "python",
+    "pygments_lexer": "ipython3",
+    "version": "3.12.2"
+   }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 5
+-}
++}
+\ No newline at end of file
  
 EOF
 )
