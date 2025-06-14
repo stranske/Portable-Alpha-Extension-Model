@@ -8,24 +8,24 @@ External step size (%),0.5,,Used in capital mode: increment for external percent
 External PA capital (mm),600,,Used in returns/alpha_shares/vol_mult modes: fixed allocation in millions
 Active Extension capital (mm),400,,Used in returns/alpha_shares/vol_mult modes
 Internal PA capital (mm),1500,,"Used in returns/alpha_shares/vol_mult modes, (auto-computed, leave blank for capital mode)"
-In-House return min (%),0,,Returns mode: minimum In-House return
-In-House return max (%),8,,Returns mode: maximum In-House return
-In-House return step (%),0.5,,Returns mode: increment for In-House return
+In-House return min (%),2,,Returns mode: minimum In-House return
+In-House return max (%),6,,Returns mode: maximum In-House return
+In-House return step (%),2,,Returns mode: increment for In-House return
 In-House vol min (%),1,,Returns mode: minimum In-House volatility
-In-House vol max (%),5,,Returns mode: maximum In-House volatility
-In-House vol step (%),0.25,,Returns mode: increment for In-House volatility
-Alpha-Extension return min (%),-2,,Returns mode: minimum Alpha-Extension return
-Alpha-Extension return max (%),6,,Returns mode: maximum Alpha-Extension return
-Alpha-Extension return step (%),0.5,,Returns mode: increment for Alpha-Extension return
+In-House vol max (%),3,,Returns mode: maximum In-House volatility
+In-House vol step (%),1,,Returns mode: increment for In-House volatility
+Alpha-Extension return min (%),1,,Returns mode: minimum Alpha-Extension return
+Alpha-Extension return max (%),5,,Returns mode: maximum Alpha-Extension return
+Alpha-Extension return step (%),2,,Returns mode: increment for Alpha-Extension return
 Alpha-Extension vol min (%),2,,Returns mode: minimum Alpha-Extension volatility
-Alpha-Extension vol max (%),8,,Returns mode: maximum Alpha-Extension volatility
-Alpha-Extension vol step (%),0.5,,Returns mode: increment for Alpha-Extension volatility
-External return min (%),1,,Returns mode: minimum External PA return
-External return max (%),7,,Returns mode: maximum External PA return
-External return step (%),0.5,,Returns mode: increment for External PA return
+Alpha-Extension vol max (%),6,,Returns mode: maximum Alpha-Extension volatility
+Alpha-Extension vol step (%),2,,Returns mode: increment for Alpha-Extension volatility
+External return min (%),2,,Returns mode: minimum External PA return
+External return max (%),5,,Returns mode: maximum External PA return
+External return step (%),1,,Returns mode: increment for External PA return
 External vol min (%),2,,Returns mode: minimum External PA volatility
-External vol max (%),8,,Returns mode: maximum External PA volatility
-External vol step (%),0.5,,Returns mode: increment for External PA volatility
+External vol max (%),6,,Returns mode: maximum External PA volatility
+External vol step (%),2,,Returns mode: increment for External PA volatility
 External PA α fraction min (%),25,,Alpha_shares mode: minimum External PA alpha fraction
 External PA α fraction max (%),75,,Alpha_shares mode: maximum External PA alpha fraction
 External PA α fraction step (%),5,,Alpha_shares mode: increment for External PA alpha fraction
