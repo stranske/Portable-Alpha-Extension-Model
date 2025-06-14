@@ -13,6 +13,9 @@ Run the setup script to create a Python virtual environment and install dependen
 
 Execute this once before running any notebooks or other scripts.
 
+> **Warning**
+> Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
+
 
 1. Purpose and High-Level Overview
 Goal:

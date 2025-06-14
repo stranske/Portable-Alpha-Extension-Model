@@ -1,10 +1,10 @@
 ﻿"🚨 IMPORTANT: Complete or adjust values, then SAVE THIS SHEET AS CSV before running. 🚨",,,
 Parameter,Value,,Notes
 Analysis mode,capital,,"Choose one of: capital, returns, alpha_shares, vol_mult"
-Number of simulations,1000,,How many Monte Carlo trials to run (e.g. 1000)
+Number of simulations,100,,How many Monte Carlo trials to run (e.g. 1000)
 Number of months,12,,How many months to run the simulation (e.g. 12)
 Max external combined (%),30,,Used in capital mode: maximum percentage for (External PA + Active Ext)
-External step size (%),0.5,,Used in capital mode: increment for external percentage
+External step size (%),5,,Used in capital mode: increment for external percentage
 External PA capital (mm),600,,Used in returns/alpha_shares/vol_mult modes: fixed allocation in millions
 Active Extension capital (mm),400,,Used in returns/alpha_shares/vol_mult modes
 Internal PA capital (mm),1500,,"Used in returns/alpha_shares/vol_mult modes, (auto-computed, leave blank for capital mode)"

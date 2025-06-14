@@ -1,25 +1,28 @@
  (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/README.md b/README.md
-index c60285aa5ca738e244c141d9b73c67633b444c38..cd75d88fba17b3212ce5925ed79cc10b0bbf5f83 100644
+index cd75d88fba17b3212ce5925ed79cc10b0bbf5f83..b7d218e0b3491ef0be1367372278b5141d969ea2 100644
 --- a/README.md
 +++ b/README.md
-@@ -1,30 +1,41 @@
+@@ -1,40 +1,43 @@
  # Portable Alpha-Extension Model
  
  Portable Alpha + Active Extension Model Specification
  Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
  
-+## Setup
+ ## Setup
+ 
+ Run the setup script to create a Python virtual environment and install dependencies:
+ 
+ ```bash
+ ./setup.sh
+ ```
+ 
+ Execute this once before running any notebooks or other scripts.
+ 
++> **Warning**
++> Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
 +
-+Run the setup script to create a Python virtual environment and install dependencies:
-+
-+```bash
-+./setup.sh
-+```
-+
-+Execute this once before running any notebooks or other scripts.
-+
-+
+ 
  1. Purpose and High-Level Overview
  Goal:
  Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. $1 b) across three “sleeves” (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House α, Extension α, and External PA α, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).
@@ -44,28 +47,45 @@ index c60285aa5ca738e244c141d9b73c67633b444c38..cd75d88fba17b3212ce5925ed79cc10b
  ):
  Mean = μ_H/12
  Vol = σ_H / √12
- Correlation ρ_{β,H} with β.
-diff --git a/requirements.txt b/requirements.txt
-new file mode 100644
-index 0000000000000000000000000000000000000000..197e60ec5b51b07e038339df179c87e25cfcf214
---- /dev/null
-+++ b/requirements.txt
-@@ -0,0 +1,4 @@
-+numpy
-+pandas
-+openpyxl
-+jupyter
-diff --git a/setup.sh b/setup.sh
-new file mode 100755
-index 0000000000000000000000000000000000000000..0f1d6e4ef9d05823e323368d81845cf8ab895252
---- /dev/null
-+++ b/setup.sh
-@@ -0,0 +1,5 @@
-+#!/bin/bash
-+set -e
-+python3 -m venv .venv
-+source .venv/bin/activate
-+pip install -r requirements.txt
+diff --git a/parameters.csv b/parameters.csv
+index fb387aedafea79b32f14776dbbb45a144cb3b2bc..a681afb65b302693872233bb415d24c78c532697 100644
+--- a/parameters.csv
++++ b/parameters.csv
+@@ -1,32 +1,32 @@
+ ﻿"🚨 IMPORTANT: Complete or adjust values, then SAVE THIS SHEET AS CSV before running. 🚨",,,
+ Parameter,Value,,Notes
+ Analysis mode,capital,,"Choose one of: capital, returns, alpha_shares, vol_mult"
+-Number of simulations,1000,,How many Monte Carlo trials to run (e.g. 1000)
++Number of simulations,100,,How many Monte Carlo trials to run (e.g. 1000)
+ Number of months,12,,How many months to run the simulation (e.g. 12)
+ Max external combined (%),30,,Used in capital mode: maximum percentage for (External PA + Active Ext)
+-External step size (%),0.5,,Used in capital mode: increment for external percentage
++External step size (%),5,,Used in capital mode: increment for external percentage
+ External PA capital (mm),600,,Used in returns/alpha_shares/vol_mult modes: fixed allocation in millions
+ Active Extension capital (mm),400,,Used in returns/alpha_shares/vol_mult modes
+ Internal PA capital (mm),1500,,"Used in returns/alpha_shares/vol_mult modes, (auto-computed, leave blank for capital mode)"
+ In-House return min (%),2,,Returns mode: minimum In-House return
+ In-House return max (%),6,,Returns mode: maximum In-House return
+ In-House return step (%),2,,Returns mode: increment for In-House return
+ In-House vol min (%),1,,Returns mode: minimum In-House volatility
+ In-House vol max (%),3,,Returns mode: maximum In-House volatility
+ In-House vol step (%),1,,Returns mode: increment for In-House volatility
+ Alpha-Extension return min (%),1,,Returns mode: minimum Alpha-Extension return
+ Alpha-Extension return max (%),5,,Returns mode: maximum Alpha-Extension return
+ Alpha-Extension return step (%),2,,Returns mode: increment for Alpha-Extension return
+ Alpha-Extension vol min (%),2,,Returns mode: minimum Alpha-Extension volatility
+ Alpha-Extension vol max (%),6,,Returns mode: maximum Alpha-Extension volatility
+ Alpha-Extension vol step (%),2,,Returns mode: increment for Alpha-Extension volatility
+ External return min (%),2,,Returns mode: minimum External PA return
+ External return max (%),5,,Returns mode: maximum External PA return
+ External return step (%),1,,Returns mode: increment for External PA return
+ External vol min (%),2,,Returns mode: minimum External PA volatility
+ External vol max (%),6,,Returns mode: maximum External PA volatility
+ External vol step (%),2,,Returns mode: increment for External PA volatility
+ External PA α fraction min (%),25,,Alpha_shares mode: minimum External PA alpha fraction
+ External PA α fraction max (%),75,,Alpha_shares mode: maximum External PA alpha fraction
+ External PA α fraction step (%),5,,Alpha_shares mode: increment for External PA alpha fraction
+ Active share min (%),20,,Alpha_shares mode: minimum active share for Active Ext
  
 EOF
 )
