@@ -6,11 +6,11 @@ from . import (
     load_parameters,
     get_num,
     load_index_returns,
-    build_cov_matrix,
     draw_joint_returns,
     draw_financing_series,
     export_to_excel,
 )
+from .covariance import build_cov_matrix
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",

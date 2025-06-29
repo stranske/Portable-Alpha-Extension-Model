@@ -11,14 +11,15 @@ from .io import (
 from .simulations import (
     simulate_financing,
     prepare_mc_universe,
-    build_cov_matrix,
     draw_joint_returns,
     draw_financing_series,
     simulate_alpha_streams,
 )
+from .covariance import build_cov_matrix
 from .random import spawn_rngs
 from .reporting import export_to_excel
 from .metrics import tracking_error, value_at_risk
+from .config import ModelConfig, load_config
 from .agents import (
     Agent,
     AgentParams,
@@ -54,5 +55,7 @@ __all__ = [
     "ActiveExtensionAgent",
     "InternalBetaAgent",
     "InternalPAAgent",
+    "ModelConfig",
+    "load_config",
     "build_agents",
 ]

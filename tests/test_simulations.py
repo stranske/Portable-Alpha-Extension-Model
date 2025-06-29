@@ -1,5 +1,6 @@
 import numpy as np
-from pa_core.simulations import build_cov_matrix, simulate_financing
+from pa_core.covariance import build_cov_matrix
+from pa_core.simulations import simulate_financing
 
 def test_build_cov_matrix_shape():
     cov = build_cov_matrix(0.1, 0.2, 0.3, 0.1, 0.1, 0.1, 0.2, 0.1, 0.1, 0.1)
