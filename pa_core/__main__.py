@@ -1,12 +1,8 @@
 from __future__ import annotations
 import argparse
-from pathlib import Path
-
-import numpy as np
 import pandas as pd
 
 from . import (
-    select_csv_file,
     load_parameters,
     get_num,
     load_index_returns,
@@ -48,8 +44,8 @@ def main() -> None:
 
     raw_params = load_parameters(args.params, LABEL_MAP)
     idx_series = load_index_returns(args.index)
-    mu_idx = idx_series.mean()
-    idx_sigma = idx_series.std(ddof=1)
+    mu_idx = float(idx_series.mean())
+    idx_sigma = float(idx_series.std(ddof=1))
 
     mu_H = get_num(raw_params, "mu_H", 0.04)
     sigma_H = get_num(raw_params, "sigma_H", 0.01)
@@ -58,7 +54,7 @@ def main() -> None:
     mu_M = get_num(raw_params, "mu_M", 0.03)
     sigma_M = get_num(raw_params, "sigma_M", 0.02)
 
-    cov = build_cov_matrix(
+    _ = build_cov_matrix(
         get_num(raw_params, "rho_idx_H", 0.05),
         get_num(raw_params, "rho_idx_E", 0.0),
         get_num(raw_params, "rho_idx_M", 0.0),
