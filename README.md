@@ -13,6 +13,14 @@ Run the setup script to create a Python virtual environment and install dependen
 
 Execute this once before running any notebooks or other scripts.
 
+After setting up the environment you can run the command line interface:
+
+```bash
+python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
+```
+
+This writes results to `Outputs.xlsx` in the current directory.
+
 > **Warning**
 > Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
 
