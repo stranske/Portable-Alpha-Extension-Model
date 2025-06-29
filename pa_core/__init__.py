@@ -16,6 +16,7 @@ from .simulations import (
     draw_financing_series,
     simulate_alpha_streams,
 )
+from .random import spawn_rngs
 from .reporting import export_to_excel
 from .metrics import tracking_error, value_at_risk
 from .agents import (
@@ -42,6 +43,7 @@ __all__ = [
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
+    "spawn_rngs",
     "export_to_excel",
     "tracking_error",
     "value_at_risk",
