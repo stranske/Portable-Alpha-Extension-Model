@@ -1,16 +1,12 @@
 from __future__ import annotations
 from typing import Iterable, List
 
-from . import (
-    Agent,
-    AgentParams,
-    BaseAgent,
-    ExternalPAAgent,
-    ActiveExtensionAgent,
-    InternalBetaAgent,
-    InternalPAAgent,
-)
-
+from .types import Agent, AgentParams
+from .base import BaseAgent
+from .external_pa import ExternalPAAgent
+from .active_ext import ActiveExtensionAgent
+from .internal_beta import InternalBetaAgent
+from .internal_pa import InternalPAAgent
 
 _AGENT_MAP = {
     "Base": BaseAgent,
@@ -30,4 +26,3 @@ def build_all(params_list: Iterable[AgentParams]) -> List[Agent]:
             raise KeyError(f"Unknown agent name: {p.name}")
         agents.append(cls(p))
     return agents
-
