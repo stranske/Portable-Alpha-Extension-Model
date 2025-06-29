@@ -18,6 +18,16 @@ from .simulations import (
 )
 from .reporting import export_to_excel
 from .metrics import tracking_error, value_at_risk
+from .agents import (
+    Agent,
+    AgentParams,
+    BaseAgent,
+    ExternalPAAgent,
+    ActiveExtensionAgent,
+    InternalBetaAgent,
+    InternalPAAgent,
+)
+from .agents.registry import build_all as build_agents
 
 __all__ = [
     "select_csv_file",
@@ -35,4 +45,12 @@ __all__ = [
     "export_to_excel",
     "tracking_error",
     "value_at_risk",
+    "Agent",
+    "AgentParams",
+    "BaseAgent",
+    "ExternalPAAgent",
+    "ActiveExtensionAgent",
+    "InternalBetaAgent",
+    "InternalPAAgent",
+    "build_agents",
 ]
