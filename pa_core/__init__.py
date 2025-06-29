@@ -17,6 +17,7 @@ from .simulations import (
     simulate_alpha_streams,
 )
 from .reporting import export_to_excel
+from .metrics import tracking_error, value_at_risk
 
 __all__ = [
     "select_csv_file",
@@ -32,4 +33,6 @@ __all__ = [
     "draw_financing_series",
     "simulate_alpha_streams",
     "export_to_excel",
+    "tracking_error",
+    "value_at_risk",
 ]

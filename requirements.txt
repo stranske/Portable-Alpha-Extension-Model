@@ -2,3 +2,7 @@ numpy
 pandas
 openpyxl
 jupyter
+pytest
+hypothesis
+ruff
+pyright
