@@ -1,2 +1,6 @@
 .ipynb_checkpoints/
+.hypothesis/
+__pycache__/
+pa_core/**/__pycache__/
+tests/__pycache__/
 .ipynb_checkpoints/
