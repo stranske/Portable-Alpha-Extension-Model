@@ -103,10 +103,10 @@ def build_range_int(raw_params, key_base, default_midpoint):
     k_max = get_num(raw_params, f"{key_base}_max", None)
     k_step = get_num(raw_params, f"{key_base}_step", None)
     if (k_min is not None) and (k_max is not None):
-        step = k_step if (k_step is not None) else (k_max - k_min)
+        step = int(k_step if (k_step is not None) else (k_max - k_min))
         if step <= 0:
             raise RuntimeError(f"Step for '{key_base}' must be positive.")
-        return list(range(k_min, k_max + 1, step))
+        return list(range(int(k_min), int(k_max) + 1, step))
     flat_list = raw_params.get(f"{key_base}_list", None)
     if isinstance(flat_list, list):
         return flat_list

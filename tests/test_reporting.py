@@ -1,7 +1,6 @@
 import pandas as pd
 import openpyxl
 from pathlib import Path
-import tempfile
 from pa_core.reporting import export_to_excel
 
 
