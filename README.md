@@ -16,7 +16,11 @@ Execute this once before running any notebooks or other scripts.
 After setting up the environment you can run the command line interface:
 
 ```bash
+# CSV parameters
 python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
+
+# or YAML configuration
+python -m pa_core --config params.yaml --index sp500tr_fred_divyield.csv
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.

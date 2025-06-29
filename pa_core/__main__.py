@@ -1,5 +1,6 @@
 from __future__ import annotations
 import argparse
+from typing import Sequence, Optional
 import pandas as pd
 
 from . import (
@@ -9,6 +10,7 @@ from . import (
     draw_joint_returns,
     draw_financing_series,
     export_to_excel,
+    load_config,
 )
 from .covariance import build_cov_matrix
 
@@ -35,14 +37,20 @@ LABEL_MAP = {
 }
 
 
-def main() -> None:
+def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
-    parser.add_argument("--params", required=True, help="Parameters CSV")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--params", help="Parameters CSV")
+    group.add_argument("--config", help="YAML config file")
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    raw_params = load_parameters(args.params, LABEL_MAP)
+    if args.config:
+        cfg = load_config(args.config)
+        raw_params = cfg.dict()
+    else:
+        raw_params = load_parameters(args.params, LABEL_MAP)
     idx_series = load_index_returns(args.index)
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
