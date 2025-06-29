@@ -7,7 +7,6 @@ from numpy.typing import NDArray
 __all__ = [
     "simulate_financing",
     "prepare_mc_universe",
-    "build_cov_matrix",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -63,27 +62,6 @@ def prepare_mc_universe(
     return z @ L.T + mu
 
 
-def build_cov_matrix(
-    rho_idx_H: float,
-    rho_idx_E: float,
-    rho_idx_M: float,
-    rho_H_E: float,
-    rho_H_M: float,
-    rho_E_M: float,
-    idx_sigma: float,
-    sigma_H: float,
-    sigma_E: float,
-    sigma_M: float,
-) -> NDArray[Any]:
-    """Build the 4×4 covariance matrix for (Index, H, E, M)."""
-    sds = np.array([idx_sigma, sigma_H, sigma_E, sigma_M])
-    rho = np.array([
-        [1.0, rho_idx_H, rho_idx_E, rho_idx_M],
-        [rho_idx_H, 1.0, rho_H_E, rho_H_M],
-        [rho_idx_E, rho_H_E, 1.0, rho_E_M],
-        [rho_idx_M, rho_H_M, rho_E_M, 1.0],
-    ])
-    return np.outer(sds, sds) * rho
 
 
 def draw_joint_returns(
