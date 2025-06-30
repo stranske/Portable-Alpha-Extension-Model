@@ -146,6 +146,3 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
 
 from .cli import main
-
-if __name__ == "__main__":
-    main()
