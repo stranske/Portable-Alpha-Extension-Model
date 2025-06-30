@@ -19,7 +19,14 @@ from .covariance import build_cov_matrix
 from .random import spawn_rngs
 from .backend import set_backend, get_backend
 from .reporting import export_to_excel, print_summary
-from .metrics import tracking_error, value_at_risk
+from .metrics import (
+    tracking_error,
+    value_at_risk,
+    compound,
+    annualised_return,
+    annualised_vol,
+    summary_table,
+)
 from .config import ModelConfig, load_config
 from .agents import (
     Agent,
@@ -52,6 +59,10 @@ __all__ = [
     "print_summary",
     "tracking_error",
     "value_at_risk",
+    "compound",
+    "annualised_return",
+    "annualised_vol",
+    "summary_table",
     "Agent",
     "AgentParams",
     "BaseAgent",

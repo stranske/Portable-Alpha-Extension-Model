@@ -12,9 +12,13 @@ from . import (
     draw_financing_series,
     export_to_excel,
     load_config,
+    summary_table,
 )
 from .covariance import build_cov_matrix
 from .backend import set_backend
+from .agents import AgentParams
+from .agents.registry import build_all
+from .simulations import simulate_agents
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",
@@ -137,12 +141,36 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         rng=rng,
     )
 
-    base_returns = r_beta - f_int
-    summary = pd.DataFrame({
-        "Base": [base_returns.mean() * 12],
-    })
+    # Build agents based on simple capital weights
+    total_cap = float(raw_params.get("total_fund_capital", 1000.0))
+    ext_cap = float(raw_params.get("external_pa_capital", 0.0))
+    act_cap = float(raw_params.get("active_ext_capital", 0.0))
+
+    agents = build_all(
+        [
+            AgentParams("Base", total_cap, 0.5, 0.5, {}),
+            AgentParams(
+                "ExternalPA",
+                ext_cap,
+                ext_cap / total_cap,
+                0.0,
+                {"theta_extpa": 0.5},
+            ),
+            AgentParams(
+                "ActiveExt",
+                act_cap,
+                act_cap / total_cap,
+                0.0,
+                {"active_share": 0.5},
+            ),
+        ]
+    )
+
+    returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
+
+    summary = summary_table(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
-    raw_returns_dict = {"Base": pd.DataFrame(base_returns)}
+    raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
 
 from .cli import main
