@@ -13,6 +13,7 @@ from . import (
     load_config,
 )
 from .covariance import build_cov_matrix
+from .backend import set_backend
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",
@@ -44,7 +45,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     group.add_argument("--config", help="YAML config file")
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
+    parser.add_argument(
+        "--backend",
+        choices=["numpy", "cupy"],
+        default="numpy",
+        help="Computation backend",
+    )
     args = parser.parse_args(argv)
+
+    set_backend(args.backend)
 
     if args.config:
         cfg = load_config(args.config)

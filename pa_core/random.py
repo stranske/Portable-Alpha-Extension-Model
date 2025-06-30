@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import numpy as np
+from .backend import xp as np
 from numpy.random import Generator, SeedSequence
 
 __all__ = ["spawn_rngs"]

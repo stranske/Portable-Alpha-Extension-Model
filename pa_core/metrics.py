@@ -1,5 +1,5 @@
 from __future__ import annotations
-import numpy as np
+from .backend import xp as np
 
 __all__ = ["tracking_error", "value_at_risk"]
 

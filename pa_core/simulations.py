@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Any, Iterable
 
-import numpy as np
+from .backend import xp as np
 from numpy.typing import NDArray
 
 from .agents import (
