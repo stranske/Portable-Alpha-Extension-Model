@@ -5,7 +5,6 @@ import pandas as pd
 
 from . import (
     load_parameters,
-    get_num,
     load_index_returns,
     draw_joint_returns,
     draw_financing_series,
