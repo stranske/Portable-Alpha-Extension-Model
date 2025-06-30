@@ -15,7 +15,7 @@ from .sim import (
     draw_financing_series,
     simulate_alpha_streams,
 )
-from .covariance import build_cov_matrix
+from .sim.covariance import build_cov_matrix
 from .random import spawn_rngs
 from .backend import set_backend, get_backend
 from .reporting import export_to_excel, print_summary

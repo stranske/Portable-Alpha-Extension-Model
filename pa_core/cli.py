@@ -11,7 +11,7 @@ from . import (
     export_to_excel,
     load_config,
 )
-from .covariance import build_cov_matrix
+from .sim.covariance import build_cov_matrix
 from .backend import set_backend
 from .random import spawn_rngs
 
