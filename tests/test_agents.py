@@ -65,3 +65,46 @@ def test_registry_build_all():
     assert len(agents) == 2
     assert isinstance(agents[0], BaseAgent)
     assert isinstance(agents[1], ExternalPAAgent)
+
+
+def test_agent_math_identity():
+    r_beta = np.array([[0.01, -0.02]])
+    r_H = np.array([[0.03, 0.04]])
+    r_E = np.array([[0.05, -0.01]])
+    r_M = np.array([[0.02, 0.01]])
+    f = np.array([[0.001, 0.002]])
+
+    base_p = AgentParams("Base", 100.0, 0.6, 0.4, {})
+    base = BaseAgent(base_p)
+    expected_base = base_p.beta_share * (r_beta - f) + base_p.alpha_share * r_H
+    np.testing.assert_allclose(
+        base.monthly_returns(r_beta, r_H, f), expected_base
+    )
+
+    theta = 0.5
+    ext_p = AgentParams("ExternalPA", 100.0, 0.1, 0.0, {"theta_extpa": theta})
+    ext = ExternalPAAgent(ext_p)
+    expected_ext = ext_p.beta_share * (r_beta - f) + (
+        ext_p.beta_share * theta
+    ) * r_M
+    np.testing.assert_allclose(ext.monthly_returns(r_beta, r_M, f), expected_ext)
+
+    share = 0.7
+    act_p = AgentParams("ActiveExt", 100.0, 0.1, 0.0, {"active_share": share})
+    act = ActiveExtensionAgent(act_p)
+    expected_act = act_p.beta_share * (r_beta - f) + (
+        act_p.beta_share * share
+    ) * r_E
+    np.testing.assert_allclose(act.monthly_returns(r_beta, r_E, f), expected_act)
+
+    beta_p = AgentParams("InternalBeta", 50.0, 1.0, 0.0, {})
+    beta_agent = InternalBetaAgent(beta_p)
+    expected_beta = beta_p.beta_share * (r_beta - f)
+    np.testing.assert_allclose(
+        beta_agent.monthly_returns(r_beta, r_H, f), expected_beta
+    )
+
+    pa_p = AgentParams("InternalPA", 75.0, 0.0, 0.2, {})
+    pa_agent = InternalPAAgent(pa_p)
+    expected_pa = pa_p.alpha_share * r_H
+    np.testing.assert_allclose(pa_agent.monthly_returns(r_beta, r_H, f), expected_pa)
