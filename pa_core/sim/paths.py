@@ -61,14 +61,14 @@ def prepare_mc_universe(
     if rng is None:
         rng = np.random.default_rng(seed)
     assert rng is not None
-    z = rng.standard_normal(size=(N_SIMULATIONS, N_MONTHS, 4))
+    mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
+    cov = cov_mat / 12.0
     try:
-        L = np.linalg.cholesky(cov_mat / 12.0)
+        sims = rng.multivariate_normal(mean=mean, cov=cov, size=(N_SIMULATIONS, N_MONTHS))
     except np.linalg.LinAlgError:
         eps = 1e-12
-        L = np.linalg.cholesky(cov_mat / 12.0 + np.eye(4) * eps)
-    mu = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
-    return z @ L.T + mu
+        sims = rng.multivariate_normal(mean=mean, cov=cov + np.eye(4) * eps, size=(N_SIMULATIONS, N_MONTHS))
+    return sims
 
 
 def draw_joint_returns(
