@@ -2,7 +2,6 @@ from __future__ import annotations
 import argparse
 from typing import Sequence, Optional
 import pandas as pd
-import numpy as np
 
 from . import (
     load_parameters,
@@ -38,6 +37,7 @@ LABEL_MAP = {
     "Total fund capital (mm)": "total_fund_capital",
 }
 
+
 def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -51,17 +51,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         default="numpy",
         help="Computation backend",
     )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=None,
-        help="Random seed for reproducible simulations",
-    )
     args = parser.parse_args(argv)
 
     set_backend(args.backend)
-
-    rng = np.random.default_rng(args.seed)
 
     if args.config:
         cfg = load_config(args.config)
@@ -128,13 +120,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
-        rng=rng,
     )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
-        rng=rng,
     )
 
     base_returns = r_beta - f_int
@@ -145,7 +135,4 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     raw_returns_dict = {"Base": pd.DataFrame(base_returns)}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
 
-from .cli import main
 
-if __name__ == "__main__":
-    main()
