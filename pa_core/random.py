@@ -6,8 +6,11 @@ from numpy.random import Generator, SeedSequence
 __all__ = ["spawn_rngs"]
 
 
-def spawn_rngs(seed: int, n: int) -> list[Generator]:
-    """Return ``n`` independent generators derived from ``seed``."""
+def spawn_rngs(seed: int | None, n: int) -> list[Generator]:
+    """Return ``n`` independent generators derived from ``seed``.
+
+    Passing ``None`` uses unpredictable entropy from the OS.
+    """
     if n <= 0:
         raise ValueError("n must be positive")
     ss = SeedSequence(seed)
