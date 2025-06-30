@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from .backend import xp as np
+import numpy as npt
 from numpy.typing import NDArray
 
 __all__ = ["build_cov_matrix"]
@@ -17,7 +18,7 @@ def build_cov_matrix(
     sigma_H: float,
     sigma_E: float,
     sigma_M: float,
-) -> NDArray[np.float64]:
+) -> NDArray[npt.float64]:
     """Return 4×4 covariance matrix for (Index, H, E, M).
 
     Volatilities are clipped at zero to avoid negative variances and the

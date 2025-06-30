@@ -1,6 +1,6 @@
 """Core portable alpha utilities."""
 
-from .io import (
+from .data import (
     select_csv_file,
     load_parameters,
     get_num,

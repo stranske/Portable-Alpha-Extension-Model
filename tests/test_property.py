@@ -1,7 +1,15 @@
 from hypothesis import given, strategies as st
+from hypothesis.extra import numpy as nps
 import numpy as np
 from pa_core.simulations import simulate_financing
-from pa_core.agents import (AgentParams, BaseAgent, ExternalPAAgent, ActiveExtensionAgent, InternalBetaAgent, InternalPAAgent)
+from pa_core.agents import (
+    AgentParams,
+    BaseAgent,
+    ExternalPAAgent,
+    ActiveExtensionAgent,
+    InternalBetaAgent,
+    InternalPAAgent,
+)
 
 @given(
     T=st.integers(min_value=1, max_value=24),
@@ -12,8 +20,6 @@ def test_simulate_financing_shapes(T, n_scenarios):
     expected_shape = (T,) if n_scenarios == 1 else (n_scenarios, T)
     assert out.shape == expected_shape
     assert np.all(np.isfinite(out))
-from hypothesis.extra import numpy as nps
-
 @st.composite
 def _env(draw):
     n_sim = draw(st.integers(min_value=1, max_value=5))

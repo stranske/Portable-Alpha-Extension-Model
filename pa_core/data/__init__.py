@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 from tkinter import filedialog, Tk
-from .backend import xp as np
+from ..backend import xp as np
 import pandas as pd
 
 __all__ = [
