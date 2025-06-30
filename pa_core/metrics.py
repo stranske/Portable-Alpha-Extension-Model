@@ -10,6 +10,7 @@ __all__ = [
     "compound",
     "annualised_return",
     "annualised_vol",
+    "breach_probability",
     "summary_table",
 ]
 
@@ -53,12 +54,27 @@ def annualised_vol(returns: NDArray[npt.float64], periods_per_year: int = 12) ->
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
+def breach_probability(
+    returns: NDArray[npt.float64], threshold: float, *, path: int = 0
+) -> float:
+    """Return the fraction of months below ``threshold`` in a selected path."""
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.ndim == 1:
+        series = arr
+    else:
+        if not (0 <= path < arr.shape[0]):
+            raise IndexError("path index out of range")
+        series = arr[path]
+    return float(np.mean(series < threshold))
+
+
 def summary_table(
     returns_map: dict[str, NDArray[npt.float64]],
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,
     benchmark: str | None = None,
+    breach_threshold: float | None = None,
 ) -> pd.DataFrame:
     """Return a summary DataFrame of key metrics for each agent."""
 
@@ -73,13 +89,19 @@ def summary_table(
             if bench_arr is not None and name != benchmark
             else None
         )
-        rows.append({
-            "Agent": name,
-            "AnnReturn": ann_ret,
-            "AnnVol": ann_vol,
-            "VaR": var,
-            "TE": te,
-        })
+        breach = (
+            breach_probability(arr, breach_threshold) if breach_threshold is not None else None
+        )
+        rows.append(
+            {
+                "Agent": name,
+                "AnnReturn": ann_ret,
+                "AnnVol": ann_vol,
+                "VaR": var,
+                "TE": te,
+                "BreachProb": breach,
+            }
+        )
 
     df = pd.DataFrame(rows)
     return df
