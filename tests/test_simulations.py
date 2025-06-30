@@ -5,9 +5,7 @@ from pa_core.agents import (
     AgentParams,
     BaseAgent,
     ExternalPAAgent,
-    ActiveExtensionAgent,
     InternalBetaAgent,
-    InternalPAAgent,
 )
 
 def test_build_cov_matrix_shape():

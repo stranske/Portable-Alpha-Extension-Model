@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 """Legacy wrapper module for simulation utilities."""
+from __future__ import annotations
 
 from typing import Iterable, Any
 from numpy.typing import NDArray

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Optional, Any
-import numpy as npt
+import numpy.typing as npt
+from numpy.random import Generator
 
 from ..backend import xp as np
 from numpy.typing import NDArray
@@ -24,14 +25,16 @@ def simulate_financing(
     *,
     seed: Optional[int] = None,
     n_scenarios: int = 1,
-    rng: Optional[npt.random.Generator] = None,
-) -> NDArray[Any]:
+    rng: Optional[Generator] = None,
+) -> npt.NDArray[Any]:
     """Vectorised financing spread simulation with optional spikes."""
     if T <= 0:
         raise ValueError("T must be positive")
     if n_scenarios <= 0:
         raise ValueError("n_scenarios must be positive")
-    rng = np.random.default_rng(seed) if rng is None else rng
+    if rng is None:
+        rng = np.random.default_rng(seed)
+    assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
     jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
     out = np.clip(base + jumps, 0.0, None)
@@ -46,16 +49,18 @@ def prepare_mc_universe(
     mu_H: float,
     mu_E: float,
     mu_M: float,
-    cov_mat: NDArray[Any],
+    cov_mat: npt.NDArray[Any],
     seed: Optional[int] = None,
-    rng: Optional[npt.random.Generator] = None,
-) -> NDArray[Any]:
+    rng: Optional[Generator] = None,
+) -> npt.NDArray[Any]:
     """Return stacked draws of (index, H, E, M) returns."""
     if N_SIMULATIONS <= 0 or N_MONTHS <= 0:
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
     if cov_mat.shape != (4, 4):
         raise ValueError("cov_mat must be 4×4 and ordered as [idx, H, E, M]")
-    rng = np.random.default_rng(seed) if rng is None else rng
+    if rng is None:
+        rng = np.random.default_rng(seed)
+    assert rng is not None
     z = rng.standard_normal(size=(N_SIMULATIONS, N_MONTHS, 4))
     try:
         L = np.linalg.cholesky(cov_mat / 12.0)
@@ -71,11 +76,13 @@ def draw_joint_returns(
     n_months: int,
     n_sim: int,
     params: dict,
-    rng: Optional[npt.random.Generator] = None,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    rng: Optional[Generator] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
     if rng is None:
         rng = np.random.default_rng()
+    assert rng is not None
+    assert rng is not None
     μ_idx = params["mu_idx_month"]
     μ_H = params["default_mu_H"]
     μ_E = params["default_mu_E"]
@@ -112,13 +119,13 @@ def draw_financing_series(
     n_months: int,
     n_sim: int,
     params: dict,
-    rng: Optional[npt.random.Generator] = None,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    rng: Optional[Generator] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Return three matrices of monthly financing spreads."""
     if rng is None:
         rng = np.random.default_rng()
 
-    def _sim(mean_key: str, sigma_key: str, p_key: str, k_key: str) -> NDArray[Any]:
+    def _sim(mean_key: str, sigma_key: str, p_key: str, k_key: str) -> npt.NDArray[Any]:
         mean = params[mean_key]
         sigma = params[sigma_key]
         p = params[p_key]
@@ -147,7 +154,14 @@ def draw_financing_series(
     return f_int_mat, f_ext_pa_mat, f_act_ext_mat
 
 
-def simulate_alpha_streams(T: int, cov: NDArray[Any], mu_idx: float, mu_H: float, mu_E: float, mu_M: float) -> NDArray[Any]:
+def simulate_alpha_streams(
+    T: int,
+    cov: npt.NDArray[Any],
+    mu_idx: float,
+    mu_H: float,
+    mu_E: float,
+    mu_M: float,
+) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
     return np.random.multivariate_normal(means, cov, size=T)
