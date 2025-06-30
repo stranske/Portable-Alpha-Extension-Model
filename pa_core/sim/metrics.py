@@ -10,6 +10,7 @@ __all__ = [
     "compound",
     "annualised_return",
     "annualised_vol",
+    "breach_probability",
     "summary_table",
 ]
 
@@ -53,11 +54,20 @@ def annualised_vol(returns: NDArray[npt.float64], periods_per_year: int = 12) ->
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
+def breach_probability(returns: NDArray[npt.float64], threshold: float) -> float:
+    """Return the fraction of observations below ``threshold``."""
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns is empty")
+    return float(np.mean(arr < threshold))
+
+
 def summary_table(
     returns_map: dict[str, NDArray[npt.float64]],
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,
+    breach_threshold: float | None = None,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
     """Return a summary DataFrame of key metrics for each agent."""
@@ -68,6 +78,11 @@ def summary_table(
         ann_ret = annualised_return(arr, periods_per_year)
         ann_vol = annualised_vol(arr, periods_per_year)
         var = value_at_risk(arr, confidence=var_conf)
+        breach = (
+            breach_probability(arr, breach_threshold)
+            if breach_threshold is not None
+            else None
+        )
         te = (
             tracking_error(arr, bench_arr)
             if bench_arr is not None and name != benchmark
@@ -78,6 +93,7 @@ def summary_table(
             "AnnReturn": ann_ret,
             "AnnVol": ann_vol,
             "VaR": var,
+            "BreachProb": breach,
             "TE": te,
         })
 
