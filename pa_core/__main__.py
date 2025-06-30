@@ -173,4 +173,3 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
 
-from .cli import main
