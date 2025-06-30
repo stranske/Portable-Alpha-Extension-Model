@@ -1,5 +1,5 @@
 import numpy as np
-from pa_core.metrics import (
+from pa_core.sim.metrics import (
     tracking_error,
     value_at_risk,
     compound,

@@ -12,6 +12,8 @@ from . import (
     draw_financing_series,
     export_to_excel,
     load_config,
+)
+from .sim.metrics import (
     summary_table,
 )
 from .covariance import build_cov_matrix

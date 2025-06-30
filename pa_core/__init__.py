@@ -19,7 +19,7 @@ from .covariance import build_cov_matrix
 from .random import spawn_rngs
 from .backend import set_backend, get_backend
 from .reporting import export_to_excel, print_summary
-from .metrics import (
+from .sim.metrics import (
     tracking_error,
     value_at_risk,
     compound,
