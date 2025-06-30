@@ -2,6 +2,7 @@ from __future__ import annotations
 import argparse
 from typing import Sequence, Optional
 import pandas as pd
+import numpy as np
 
 from . import (
     load_parameters,
@@ -51,9 +52,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         default="numpy",
         help="Computation backend",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Random seed for reproducible simulations",
+    )
     args = parser.parse_args(argv)
 
     set_backend(args.backend)
+
+    rng = np.random.default_rng(args.seed)
 
     if args.config:
         cfg = load_config(args.config)
@@ -120,11 +129,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
+        rng=rng,
     )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
+        rng=rng,
     )
 
     base_returns = r_beta - f_int
