@@ -2,7 +2,6 @@ from __future__ import annotations
 import argparse
 from typing import Sequence, Optional
 import pandas as pd
-import numpy as np
 
 from . import (
     load_parameters,
@@ -17,6 +16,7 @@ from .sim.metrics import (
 )
 from .covariance import build_cov_matrix
 from .backend import set_backend
+from .random import spawn_rngs
 from .agents import AgentParams
 from .agents.registry import build_all
 from .simulations import simulate_agents
@@ -66,7 +66,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     set_backend(args.backend)
 
-    rng = np.random.default_rng(args.seed)
+    rng_returns, rng_fin = spawn_rngs(args.seed, 2)
 
     if args.config:
         cfg = load_config(args.config)
@@ -134,13 +134,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
-        rng=rng,
+        rng=rng_returns,
     )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
-        rng=rng,
+        rng=rng_fin,
     )
 
     # Build agents based on simple capital weights

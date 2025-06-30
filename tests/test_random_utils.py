@@ -13,3 +13,8 @@ def test_spawn_rngs_independent():
     r1, r2 = spawn_rngs(42, 2)
     assert not np.allclose(r1.normal(size=3), r2.normal(size=3))
 
+
+def test_spawn_rngs_none_seed():
+    rngs = spawn_rngs(None, 3)
+    assert len(rngs) == 3
+
