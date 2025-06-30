@@ -8,7 +8,7 @@ from .io import (
     build_range_int,
     load_index_returns,
 )
-from .simulations import (
+from .sim import (
     simulate_financing,
     prepare_mc_universe,
     draw_joint_returns,
