@@ -71,27 +71,28 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     if args.config:
         cfg = load_config(args.config)
-        raw_params = cfg.dict()
     else:
         raw_params = load_parameters(args.params, LABEL_MAP)
+        cfg = load_config(raw_params)
+    raw_params = cfg.dict()
     idx_series = load_index_returns(args.index)
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
 
-    mu_H = get_num(raw_params, "mu_H", 0.04)
-    sigma_H = get_num(raw_params, "sigma_H", 0.01)
-    mu_E = get_num(raw_params, "mu_E", 0.05)
-    sigma_E = get_num(raw_params, "sigma_E", 0.02)
-    mu_M = get_num(raw_params, "mu_M", 0.03)
-    sigma_M = get_num(raw_params, "sigma_M", 0.02)
+    mu_H = cfg.mu_H
+    sigma_H = cfg.sigma_H
+    mu_E = cfg.mu_E
+    sigma_E = cfg.sigma_E
+    mu_M = cfg.mu_M
+    sigma_M = cfg.sigma_M
 
     _ = build_cov_matrix(
-        get_num(raw_params, "rho_idx_H", 0.05),
-        get_num(raw_params, "rho_idx_E", 0.0),
-        get_num(raw_params, "rho_idx_M", 0.0),
-        get_num(raw_params, "rho_H_E", 0.10),
-        get_num(raw_params, "rho_H_M", 0.10),
-        get_num(raw_params, "rho_E_M", 0.0),
+        cfg.rho_idx_H,
+        cfg.rho_idx_E,
+        cfg.rho_idx_M,
+        cfg.rho_H_E,
+        cfg.rho_H_M,
+        cfg.rho_E_M,
         idx_sigma,
         sigma_H,
         sigma_E,
@@ -107,28 +108,28 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "default_sigma_H": sigma_H / 12,
         "default_sigma_E": sigma_E / 12,
         "default_sigma_M": sigma_M / 12,
-        "rho_idx_H": get_num(raw_params, "rho_idx_H", 0.05),
-        "rho_idx_E": get_num(raw_params, "rho_idx_E", 0.0),
-        "rho_idx_M": get_num(raw_params, "rho_idx_M", 0.0),
-        "rho_H_E": get_num(raw_params, "rho_H_E", 0.10),
-        "rho_H_M": get_num(raw_params, "rho_H_M", 0.10),
-        "rho_E_M": get_num(raw_params, "rho_E_M", 0.0),
-        "internal_financing_mean_month": 0.0,
-        "internal_financing_sigma_month": 0.0,
-        "internal_spike_prob": 0.0,
-        "internal_spike_factor": 0.0,
-        "ext_pa_financing_mean_month": 0.0,
-        "ext_pa_financing_sigma_month": 0.0,
-        "ext_pa_spike_prob": 0.0,
-        "ext_pa_spike_factor": 0.0,
-        "act_ext_financing_mean_month": 0.0,
-        "act_ext_financing_sigma_month": 0.0,
-        "act_ext_spike_prob": 0.0,
-        "act_ext_spike_factor": 0.0,
+        "rho_idx_H": cfg.rho_idx_H,
+        "rho_idx_E": cfg.rho_idx_E,
+        "rho_idx_M": cfg.rho_idx_M,
+        "rho_H_E": cfg.rho_H_E,
+        "rho_H_M": cfg.rho_H_M,
+        "rho_E_M": cfg.rho_E_M,
+        "internal_financing_mean_month": cfg.internal_financing_mean_month,
+        "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
+        "internal_spike_prob": cfg.internal_spike_prob,
+        "internal_spike_factor": cfg.internal_spike_factor,
+        "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
+        "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
+        "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
+        "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
+        "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
+        "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
+        "act_ext_spike_prob": cfg.act_ext_spike_prob,
+        "act_ext_spike_factor": cfg.act_ext_spike_factor,
     }
 
-    N_SIMULATIONS = int(get_num(raw_params, "N_SIMULATIONS", 1000))
-    N_MONTHS = int(get_num(raw_params, "N_MONTHS", 12))
+    N_SIMULATIONS = cfg.N_SIMULATIONS
+    N_MONTHS = cfg.N_MONTHS
 
     r_beta, r_H, r_E, r_M = draw_joint_returns(
         n_months=N_MONTHS,
@@ -144,9 +145,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     # Build agents based on simple capital weights
-    total_cap = float(raw_params.get("total_fund_capital", 1000.0))
-    ext_cap = float(raw_params.get("external_pa_capital", 0.0))
-    act_cap = float(raw_params.get("active_ext_capital", 0.0))
+    total_cap = cfg.total_fund_capital
+    ext_cap = cfg.external_pa_capital
+    act_cap = cfg.active_ext_capital
 
     agents = build_all(
         [

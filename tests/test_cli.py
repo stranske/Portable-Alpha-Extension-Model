@@ -20,3 +20,20 @@ def test_main_with_yaml(tmp_path):
     assert out_file.exists()
 
 
+def test_main_with_csv(tmp_path):
+    csv_path = tmp_path / "params.csv"
+    csv_content = "Parameter,Value\nNumber of simulations,2\nNumber of months,1\n"
+    csv_path.write_text(csv_content)
+    idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+    main([
+        "--params",
+        str(csv_path),
+        "--index",
+        str(idx_csv),
+        "--output",
+        str(out_file),
+    ])
+    assert out_file.exists()
+
+
