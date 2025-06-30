@@ -1,6 +1,6 @@
 from pathlib import Path
 import yaml
-from pa_core.__main__ import main
+from pa_core.cli import main
 
 
 def test_main_with_yaml(tmp_path):
