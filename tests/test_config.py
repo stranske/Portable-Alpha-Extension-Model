@@ -25,6 +25,14 @@ def test_load_yaml(tmp_path):
     assert cfg.total_fund_capital == 1000.0
 
 
+def test_load_dict():
+    data = {"N_SIMULATIONS": 5, "N_MONTHS": 3, "mu_H": 0.05}
+    cfg = load_config(data)
+    assert cfg.N_SIMULATIONS == 5
+    assert cfg.N_MONTHS == 3
+    assert cfg.mu_H == 0.05
+
+
 def test_invalid_capital(tmp_path):
     data = {
         "N_SIMULATIONS": 1,

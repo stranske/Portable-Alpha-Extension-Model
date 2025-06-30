@@ -27,6 +27,32 @@ class ModelConfig(BaseModel):
 
     mu_H: float = 0.04
     sigma_H: float = 0.01
+    mu_E: float = 0.05
+    sigma_E: float = 0.02
+    mu_M: float = 0.03
+    sigma_M: float = 0.02
+
+    rho_idx_H: float = 0.05
+    rho_idx_E: float = 0.0
+    rho_idx_M: float = 0.0
+    rho_H_E: float = 0.10
+    rho_H_M: float = 0.10
+    rho_E_M: float = 0.0
+
+    internal_financing_mean_month: float = 0.0
+    internal_financing_sigma_month: float = 0.0
+    internal_spike_prob: float = 0.0
+    internal_spike_factor: float = 0.0
+
+    ext_pa_financing_mean_month: float = 0.0
+    ext_pa_financing_sigma_month: float = 0.0
+    ext_pa_spike_prob: float = 0.0
+    ext_pa_spike_factor: float = 0.0
+
+    act_ext_financing_mean_month: float = 0.0
+    act_ext_financing_sigma_month: float = 0.0
+    act_ext_spike_prob: float = 0.0
+    act_ext_spike_factor: float = 0.0
 
     class Config:
         allow_population_by_field_name = True
