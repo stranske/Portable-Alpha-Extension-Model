@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Optional, Any, Iterable
+import numpy as npt
 
 from .backend import xp as np
 from numpy.typing import NDArray
@@ -32,7 +33,7 @@ def simulate_financing(
     *,
     seed: Optional[int] = None,
     n_scenarios: int = 1,
-    rng: Optional[np.random.Generator] = None,
+    rng: Optional[npt.random.Generator] = None,
 ) -> NDArray[Any]:
     if T <= 0:
         raise ValueError("T must be positive")
@@ -55,7 +56,7 @@ def prepare_mc_universe(
     mu_M: float,
     cov_mat: NDArray[Any],
     seed: Optional[int] = None,
-    rng: Optional[np.random.Generator] = None,
+    rng: Optional[npt.random.Generator] = None,
 ) -> NDArray[Any]:
     if N_SIMULATIONS <= 0 or N_MONTHS <= 0:
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
@@ -79,7 +80,7 @@ def draw_joint_returns(
     n_months: int,
     n_sim: int,
     params: dict,
-    rng: Optional[np.random.Generator] = None,
+    rng: Optional[npt.random.Generator] = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Vectorised draw of (index, H, E, M) returns."""
     if rng is None:
@@ -118,7 +119,7 @@ def draw_financing_series(
     n_months: int,
     n_sim: int,
     params: dict,
-    rng: Optional[np.random.Generator] = None,
+    rng: Optional[npt.random.Generator] = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Return three matrices of monthly financing spreads."""
     if rng is None:
