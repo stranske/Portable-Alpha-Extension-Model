@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .backend import xp as np
+from ..backend import xp as np
 import numpy as npt
 from numpy.typing import NDArray
 

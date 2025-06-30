@@ -1,5 +1,5 @@
 import numpy as np
-from pa_core.covariance import build_cov_matrix
+from pa_core.sim.covariance import build_cov_matrix
 from pa_core.simulations import simulate_financing, simulate_agents
 from pa_core.agents import (
     AgentParams,

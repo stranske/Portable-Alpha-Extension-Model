@@ -14,7 +14,7 @@ from . import (
 from .sim.metrics import (
     summary_table,
 )
-from .covariance import build_cov_matrix
+from .sim.covariance import build_cov_matrix
 from .backend import set_backend
 from .random import spawn_rngs
 from .agents import AgentParams
