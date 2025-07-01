@@ -25,6 +25,11 @@ class ModelConfig(BaseModel):
     internal_pa_capital: float = 0.0
     total_fund_capital: float = 1000.0
 
+    w_beta_H: float = 0.5
+    w_alpha_H: float = 0.5
+    theta_extpa: float = 0.5
+    active_share: float = 0.5
+
     mu_H: float = 0.04
     sigma_H: float = 0.01
     mu_E: float = 0.05

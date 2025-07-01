@@ -150,20 +150,26 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     agents = build_all(
         [
-            AgentParams("Base", total_cap, 0.5, 0.5, {}),
+            AgentParams(
+                "Base",
+                total_cap,
+                cfg.w_beta_H,
+                cfg.w_alpha_H,
+                {},
+            ),
             AgentParams(
                 "ExternalPA",
                 ext_cap,
                 ext_cap / total_cap,
                 0.0,
-                {"theta_extpa": 0.5},
+                {"theta_extpa": cfg.theta_extpa},
             ),
             AgentParams(
                 "ActiveExt",
                 act_cap,
                 act_cap / total_cap,
                 0.0,
-                {"active_share": 0.5},
+                {"active_share": cfg.active_share},
             ),
         ]
     )
