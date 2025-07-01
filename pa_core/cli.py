@@ -14,7 +14,7 @@ from . import (
 )
 from .sim.covariance import build_cov_matrix
 from .backend import set_backend
-from .random import spawn_rngs
+from .random import spawn_rngs, spawn_agent_rngs
 from .agents.registry import build_from_config
 from .simulations import simulate_agents
 from .sim.metrics import summary_table
@@ -70,7 +70,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     set_backend(args.backend)
 
-    rng_returns, rng_fin = spawn_rngs(args.seed, 2)
+    rng_returns = spawn_rngs(args.seed, 1)[0]
+    fin_rngs = spawn_agent_rngs(
+        args.seed,
+        ["internal", "external_pa", "active_ext"],
+    )
 
     if args.config:
         cfg = load_config(args.config)
@@ -144,7 +148,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
-        rng=rng_fin,
+        rngs=fin_rngs,
     )
 
     # Build agents based on the configuration
