@@ -129,13 +129,30 @@ def draw_financing_series(
     ``rng`` will be used for all sleeves.
     """
     if rngs is not None:
-        r_int = rngs.get("internal") or np.random.default_rng()
-        r_ext = rngs.get("external_pa") or np.random.default_rng()
-        r_act = rngs.get("active_ext") or np.random.default_rng()
+        tmp_int = rngs.get("internal")
+        if isinstance(tmp_int, Generator):
+            r_int: Generator = tmp_int
+        else:
+            r_int = np.random.default_rng()
+
+        tmp_ext = rngs.get("external_pa")
+        if isinstance(tmp_ext, Generator):
+            r_ext: Generator = tmp_ext
+        else:
+            r_ext = np.random.default_rng()
+
+        tmp_act = rngs.get("active_ext")
+        if isinstance(tmp_act, Generator):
+            r_act: Generator = tmp_act
+        else:
+            r_act = np.random.default_rng()
     else:
         if rng is None:
             rng = np.random.default_rng()
-        r_int = r_ext = r_act = rng
+        assert isinstance(rng, Generator)
+        r_int = rng
+        r_ext = rng
+        r_act = rng
 
     def _sim(
         mean_key: str,
