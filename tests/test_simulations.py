@@ -1,6 +1,8 @@
 import numpy as np
 from pa_core.sim.covariance import build_cov_matrix
 from pa_core.simulations import simulate_financing, simulate_agents
+from pa_core.sim.paths import draw_financing_series
+from pa_core.random import spawn_agent_rngs
 from pa_core.agents import (
     AgentParams,
     BaseAgent,
@@ -50,3 +52,26 @@ def test_simulate_agents_vectorised():
     assert set(results) == {"Base", "ExternalPA", "InternalBeta"}
     for arr in results.values():
         assert arr.shape == (n_sim, n_months)
+
+
+def test_draw_financing_series_rngs():
+    params = {
+        "internal_financing_mean_month": 0.0,
+        "internal_financing_sigma_month": 0.01,
+        "internal_spike_prob": 0.0,
+        "internal_spike_factor": 0.0,
+        "ext_pa_financing_mean_month": 0.0,
+        "ext_pa_financing_sigma_month": 0.01,
+        "ext_pa_spike_prob": 0.0,
+        "ext_pa_spike_factor": 0.0,
+        "act_ext_financing_mean_month": 0.0,
+        "act_ext_financing_sigma_month": 0.01,
+        "act_ext_spike_prob": 0.0,
+        "act_ext_spike_factor": 0.0,
+    }
+    rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
+    out1 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs)
+    rngs2 = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
+    out2 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs2)
+    for a, b in zip(out1, out2):
+        assert np.allclose(a, b)

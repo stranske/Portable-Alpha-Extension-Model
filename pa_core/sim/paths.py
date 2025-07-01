@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Optional, Any, Mapping
 import numpy.typing as npt
 from numpy.random import Generator
 
@@ -120,17 +120,60 @@ def draw_financing_series(
     n_sim: int,
     params: dict,
     rng: Optional[Generator] = None,
+    rngs: Optional[Mapping[str, Generator]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
-    """Return three matrices of monthly financing spreads."""
-    if rng is None:
-        rng = np.random.default_rng()
+    """Return three matrices of monthly financing spreads.
 
-    def _sim(mean_key: str, sigma_key: str, p_key: str, k_key: str) -> npt.NDArray[Any]:
+    ``rngs`` may provide dedicated generators for each sleeve under the keys
+    ``"internal"``, ``"external_pa"``, and ``"active_ext"``. If not supplied,
+    ``rng`` will be used for all sleeves.
+    """
+    if rngs is not None:
+        tmp_int = rngs.get("internal")
+        if isinstance(tmp_int, Generator):
+            r_int: Generator = tmp_int
+        else:
+            r_int = np.random.default_rng()
+
+        tmp_ext = rngs.get("external_pa")
+        if isinstance(tmp_ext, Generator):
+            r_ext: Generator = tmp_ext
+        else:
+            r_ext = np.random.default_rng()
+
+        tmp_act = rngs.get("active_ext")
+        if isinstance(tmp_act, Generator):
+            r_act: Generator = tmp_act
+        else:
+            r_act = np.random.default_rng()
+    else:
+        if rng is None:
+            rng = np.random.default_rng()
+        assert isinstance(rng, Generator)
+        r_int = rng
+        r_ext = rng
+        r_act = rng
+
+    def _sim(
+        mean_key: str,
+        sigma_key: str,
+        p_key: str,
+        k_key: str,
+        rng_local: Generator,
+    ) -> npt.NDArray[Any]:
         mean = params[mean_key]
         sigma = params[sigma_key]
         p = params[p_key]
         k = params[k_key]
-        vec = simulate_financing(n_months, mean, sigma, p, k, n_scenarios=1, rng=rng)[0]
+        vec = simulate_financing(
+            n_months,
+            mean,
+            sigma,
+            p,
+            k,
+            n_scenarios=1,
+            rng=rng_local,
+        )[0]
         return np.broadcast_to(vec, (n_sim, n_months))
 
     f_int_mat = _sim(
@@ -138,18 +181,21 @@ def draw_financing_series(
         "internal_financing_sigma_month",
         "internal_spike_prob",
         "internal_spike_factor",
+        r_int,
     )
     f_ext_pa_mat = _sim(
         "ext_pa_financing_mean_month",
         "ext_pa_financing_sigma_month",
         "ext_pa_spike_prob",
         "ext_pa_spike_factor",
+        r_ext,
     )
     f_act_ext_mat = _sim(
         "act_ext_financing_mean_month",
         "act_ext_financing_sigma_month",
         "act_ext_spike_prob",
         "act_ext_spike_factor",
+        r_act,
     )
     return f_int_mat, f_ext_pa_mat, f_act_ext_mat
 
