@@ -1,5 +1,10 @@
 from __future__ import annotations
+
+from typing import cast
+
 import pandas as pd
+import openpyxl
+from openpyxl.utils import get_column_letter
 
 __all__ = ["export_to_excel"]
 
@@ -52,4 +57,26 @@ def export_to_excel(
                 safe_name = sheet_name if len(sheet_name) <= 31 else sheet_name[:31]
                 df.to_excel(writer, sheet_name=safe_name, index=True)
 
+    wb = openpyxl.load_workbook(filename)
+    for ws in wb.worksheets:
+        ws.freeze_panes = "A2"
+        for column_cells in ws.columns:
+            max_len = max(
+                len(str(cell.value)) if cell.value is not None else 0
+                for cell in column_cells
+            )
+            col_idx = cast(int, column_cells[0].column)
+            ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
+
+    if "Summary" in wb.sheetnames:
+        ws = wb["Summary"]
+        metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
+        header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+        for idx, col_name in enumerate(header, 1):
+            if col_name in metrics:
+                col_letter = get_column_letter(idx)
+                for cell in ws[col_letter][1:]:
+                    cell.number_format = "0.00%"
+
+    wb.save(filename)
     print(f"Exported results to {filename}")
