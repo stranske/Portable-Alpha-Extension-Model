@@ -21,6 +21,18 @@ class Agent:
         self.p = p
         self.extra = p.extra_args or {}
 
+    def _validate_inputs(
+        self,
+        r_beta: Array,
+        alpha_stream: Array,
+        financing: Array,
+    ) -> None:
+        """Validate that all arrays are 2D and share the same shape."""
+        if r_beta.ndim != 2 or alpha_stream.ndim != 2 or financing.ndim != 2:
+            raise ValueError("inputs must be 2D (n_sim, n_months)")
+        if r_beta.shape != alpha_stream.shape or r_beta.shape != financing.shape:
+            raise ValueError("shape mismatch")
+
     def monthly_returns(
         self,
         r_beta: Array,

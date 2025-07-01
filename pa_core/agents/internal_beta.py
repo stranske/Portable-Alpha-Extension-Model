@@ -9,6 +9,5 @@ class InternalBetaAgent(Agent):
         financing: Array,
     ) -> Array:
         """Return margin sleeve returns with input validation."""
-        if r_beta.shape != financing.shape or r_beta.shape != alpha_stream.shape:
-            raise ValueError("shape mismatch")
+        self._validate_inputs(r_beta, alpha_stream, financing)
         return self.p.beta_share * (r_beta - financing)

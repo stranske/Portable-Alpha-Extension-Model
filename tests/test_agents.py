@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from pa_core.agents import (
     AgentParams,
     BaseAgent,
@@ -147,3 +148,15 @@ def test_dimension_mismatch_errors():
         pass
     else:
         raise AssertionError("Expected ValueError for shape mismatch")
+
+
+def test_dimension_invalid_ndim():
+    base = BaseAgent(AgentParams("Base", 1.0, 0.5, 0.5, {}))
+
+    bad3d = np.zeros((2, 2, 2))
+    with pytest.raises(ValueError):
+        base.monthly_returns(bad3d, bad3d, bad3d)
+
+    bad1d = np.zeros(5)
+    with pytest.raises(ValueError):
+        base.monthly_returns(bad1d, bad1d, bad1d)
