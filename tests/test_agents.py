@@ -7,7 +7,8 @@ from pa_core.agents import (
     InternalBetaAgent,
     InternalPAAgent,
 )
-from pa_core.agents.registry import build_all
+from pa_core.agents.registry import build_all, build_from_config
+from pa_core.config import ModelConfig
 
 
 def _mock_inputs(shape=(5, 12)):
@@ -108,3 +109,11 @@ def test_agent_math_identity():
     pa_agent = InternalPAAgent(pa_p)
     expected_pa = pa_p.alpha_share * r_H
     np.testing.assert_allclose(pa_agent.monthly_returns(r_beta, r_H, f), expected_pa)
+
+
+def test_build_from_config_basic():
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    agents = build_from_config(cfg)
+    names = {type(a).__name__ for a in agents}
+    assert "BaseAgent" in names
+    assert len(agents) >= 1

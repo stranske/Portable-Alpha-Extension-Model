@@ -37,7 +37,7 @@ from .agents import (
     InternalBetaAgent,
     InternalPAAgent,
 )
-from .agents.registry import build_all as build_agents
+from .agents.registry import build_all as build_agents, build_from_config
 
 __all__ = [
     "select_csv_file",
@@ -73,4 +73,5 @@ __all__ = [
     "ModelConfig",
     "load_config",
     "build_agents",
+    "build_from_config",
 ]
