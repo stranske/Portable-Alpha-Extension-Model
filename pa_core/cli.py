@@ -9,6 +9,7 @@ from . import (
     draw_joint_returns,
     draw_financing_series,
     export_to_excel,
+    print_summary,
     load_config,
 )
 from .sim.covariance import build_cov_matrix
@@ -149,6 +150,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     summary = summary_table(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
+    print_summary(summary)
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
 
 
