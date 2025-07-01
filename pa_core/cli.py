@@ -14,8 +14,7 @@ from . import (
 from .sim.covariance import build_cov_matrix
 from .backend import set_backend
 from .random import spawn_rngs
-from .agents import AgentParams
-from .agents.registry import build_all
+from .agents.registry import build_from_config
 from .simulations import simulate_agents
 from .sim.metrics import summary_table
 
@@ -142,36 +141,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         rng=rng_fin,
     )
 
-    # Build agents using a simple capital allocation
-    total_cap = cfg.total_fund_capital
-    ext_cap = cfg.external_pa_capital
-    act_cap = cfg.active_ext_capital
-
-    agents = build_all(
-        [
-            AgentParams(
-                "Base",
-                total_cap,
-                cfg.w_beta_H,
-                cfg.w_alpha_H,
-                {},
-            ),
-            AgentParams(
-                "ExternalPA",
-                ext_cap,
-                ext_cap / total_cap,
-                0.0,
-                {"theta_extpa": cfg.theta_extpa},
-            ),
-            AgentParams(
-                "ActiveExt",
-                act_cap,
-                act_cap / total_cap,
-                0.0,
-                {"active_share": cfg.active_share},
-            ),
-        ]
-    )
+    # Build agents based on the configuration
+    agents = build_from_config(cfg)
 
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
