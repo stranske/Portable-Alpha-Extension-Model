@@ -117,3 +117,33 @@ def test_build_from_config_basic():
     names = {type(a).__name__ for a in agents}
     assert "BaseAgent" in names
     assert len(agents) >= 1
+
+
+def test_dimension_mismatch_errors():
+    r_beta = np.zeros((2, 2))
+    r_H = np.zeros((2, 3))  # mismatched shape
+    f = np.zeros((2, 2))
+
+    base = BaseAgent(AgentParams("Base", 1.0, 0.5, 0.5, {}))
+    try:
+        base.monthly_returns(r_beta, r_H, f)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for shape mismatch")
+
+    beta = InternalBetaAgent(AgentParams("InternalBeta", 1.0, 1.0, 0.0, {}))
+    try:
+        beta.monthly_returns(r_beta, r_H, f)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for shape mismatch")
+
+    pa = InternalPAAgent(AgentParams("InternalPA", 1.0, 0.0, 0.1, {}))
+    try:
+        pa.monthly_returns(r_beta, r_H, f)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for shape mismatch")
