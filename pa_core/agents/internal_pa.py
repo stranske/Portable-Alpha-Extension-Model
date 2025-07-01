@@ -9,9 +9,5 @@ class InternalPAAgent(Agent):
         financing: Array,
     ) -> Array:
         """Return pure in-house alpha with input validation."""
-        if (
-            r_beta.shape != alpha_stream.shape
-            or r_beta.shape != financing.shape
-        ):
-            raise ValueError("shape mismatch")
+        self._validate_inputs(r_beta, alpha_stream, financing)
         return self.p.alpha_share * alpha_stream
