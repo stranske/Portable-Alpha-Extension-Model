@@ -55,6 +55,19 @@ def test_breach_probability_basic():
     assert prob == 1 / 3
 
 
+def test_breach_probability_path():
+    arr = np.array(
+        [
+            [0.0, -0.05, 0.01],
+            [0.1, -0.02, -0.03],
+        ]
+    )
+    thr = -0.01
+    assert breach_probability(arr, thr, path=0) == 1 / 3
+    assert breach_probability(arr, thr, path=1) == 2 / 3
+
+
+
 def test_summary_table_breach():
     arr = np.array([[0.0, -0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)

@@ -54,12 +54,18 @@ def annualised_vol(returns: NDArray[npt.float64], periods_per_year: int = 12) ->
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
-def breach_probability(returns: NDArray[npt.float64], threshold: float) -> float:
-    """Return the fraction of observations below ``threshold``."""
+def breach_probability(
+    returns: NDArray[npt.float64], threshold: float, *, path: int = 0
+) -> float:
+    """Return the fraction of months below ``threshold`` in a selected path."""
     arr = np.asarray(returns, dtype=np.float64)
-    if arr.size == 0:
-        raise ValueError("returns is empty")
-    return float(np.mean(arr < threshold))
+    if arr.ndim == 1:
+        series = arr
+    else:
+        if not (0 <= path < arr.shape[0]):
+            raise IndexError("path index out of range")
+        series = arr[path]
+    return float(np.mean(series < threshold))
 
 
 def summary_table(
