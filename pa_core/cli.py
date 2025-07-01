@@ -50,6 +50,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
+        "--pivot",
+        action="store_true",
+        help="Write all raw returns in a single long-format sheet",
+    )
+    parser.add_argument(
         "--backend",
         choices=["numpy", "cupy"],
         default="numpy",
@@ -151,6 +156,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     print_summary(summary)
-    export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
+    export_to_excel(
+        inputs_dict,
+        summary,
+        raw_returns_dict,
+        filename=args.output,
+        pivot=args.pivot,
+    )
 
 
