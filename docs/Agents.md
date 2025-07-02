@@ -194,3 +194,35 @@ Kick back any tweaks; happy to iterate.
 *(Caveat: Some internal package names may differ slightly from the current repo tree—rename to taste.  File/line references in the spec come from the public README and notebook as of 29 Jun 2025.)*
 
 ::contentReference[oaicite:1]{index=1}
+
+# Agents – How to run, tune and interpret them ⚙️📊
+
+> *“Everything should be made as simple as possible – but no simpler.”*  
+> *(Einstein, suspiciously paraphrased by every quant ever)*
+
+---
+
+## TL;DR – Quick‑start 🏃‍♂️💨
+
+```bash
+# 1 Install once
+pip install -r requirements.txt          # pandas, numpy, rich, plotly, etc.
+
+# 2 Run a single agent with defaults (100 sims × 12 months)
+python main.py --agent Base
+
+# 3 Full sweep, custom params, save to Outputs.xlsx
+python main.py \
+  --agent Base ExternalPA ActiveExt InternalPA InternalBeta \
+  --n_sims 500 --n_months 36 \
+  --external_pa_capital 800 \
+  --save_xlsx Outputs.xlsx
+
+Consider adding an Agents.md
+# agents/my_new_agent.py
+from agents.base import BaseAgent
+
+class MyNewAgent(BaseAgent):
+    def simulate_path(self, n_months: int, rng: np.random.Generator):
+        # 1 Generate monthly returns
+        # 2 Return np.ndarray shape (n_months,)
