@@ -380,6 +380,12 @@ print(theme.TEMPLATE.layout.colorway)
 theme.CATEGORY_BY_AGENT["OverlayOptionsAgent"] = "External Portable Alpha"
 ```
 
+To tweak the traffic-light thresholds at runtime (e.g. in a notebook), call:
+
+```python
+theme.reload_thresholds("custom_thresholds.yaml")
+```
+
 Editing the YAML file or the mapping dictionary lets Ops adjust visuals without
 changing any plotting code.
 
