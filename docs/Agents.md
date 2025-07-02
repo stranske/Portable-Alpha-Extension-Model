@@ -322,6 +322,21 @@ Smoke‑test each figure: assert isinstance(fig, go.Figure) and JSON serialisabl
 Snapshot regression: plotly.io.to_image(fig) hash against stored PNG bytes.
 
 ---
+### 12.6  Data flow and export
+1. `simulations.py` writes summary tables to pandas DataFrames.
+2. `reporting/excel.py` saves those tables to `Outputs.xlsx`.
+3. `scripts/visualise.py` or the dashboard load the same data and call `viz.*`.
+4. Figures are returned as `go.Figure` and either displayed or exported via Plotly.
+
+### 12.7  Styling conventions
+Charts must use the template in `viz.theme.TEMPLATE`.
+Fonts default to `"Roboto"` and colours follow the WCAG 2.1 contrast rules.
+Avoid direct calls to `fig.update_layout` outside the theme module.
+
+### 12.8  Extending the dashboard
+New visual elements go under `viz/` and should be registered in `dashboard/app.py` via a lazy import.
+Keep functions pure and document expected DataFrame columns.
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
@@ -330,13 +345,4 @@ Snapshot regression: plotly.io.to_image(fig) hash against stored PNG bytes.
 --png / --pdf / --pptx     Static exports (can be combined)
 --dashboard                Launch Streamlit dashboard after run
 
----
-
-### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
-
-// NEW  
-```text
---png / --pdf / --pptx     Static exports (can be combined)
---dashboard                Launch Streamlit dashboard after run
-
-
+```
