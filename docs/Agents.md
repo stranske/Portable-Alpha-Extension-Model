@@ -42,7 +42,21 @@ pa_core/
 │
 ├─ cli.py # python -m pa_core --params …
 └─ config.py # dataclass wrappers around YAML/CSV
-
+// NEW – visualisation & dashboard layer
+├─ viz/                       # Pure‑function charts (Plotly)
+│   ├─ __init__.py
+│   ├─ theme.py               # colour‑blind‑safe template
+│   ├─ risk_return.py         # bubble chart
+│   ├─ fan.py                 # 95 % confidence ribbon fan
+│   ├─ path_dist.py           # histogram + CDF
+│   ├─ corr_heatmap.py        # monthly‑return corr
+│   └─ sharpe_ladder.py       # sorted bar of Sharpe
+│
+├─ dashboard/                 # Streamlit front‑end
+│   └─ app.py
+│
+├─ scripts/
+│   └─ visualise.py           # CLI wrapper → PNG/PDF/PPTX
 
 ---
 
@@ -94,6 +108,16 @@ Return an (n_sim, n_months) array of raw monthly sleeve returns.
 | `InternalBetaAgent`    | –           | **all** β      | Margin sleeve (W)       |
 | `InternalPAAgent`      | In‑house H  | 0              | Z                       |
 
+// NEW – Category legend for downstream charts
+# Category map (used by viz.theme)
+CATEGORY_BY_AGENT = {
+    "InternalPAAgent":      "Internal Portable Alpha",
+    "InternalBetaAgent":    "Internal Portable Alpha",
+    "ExternalPAAgent":      "External Portable Alpha",
+    "ActiveExtensionAgent": "External Portable Alpha",
+    "BaseAgent":            "Benchmark / Passive",
+}
+
 (This covers everything in the README spec. Adding a new agent = subclass + registry entry.)
 
 4  Simulation Engine (sim/)
@@ -119,6 +143,17 @@ Alternate YAML file accepted (--params foo.yaml) to remove the Excel‑style hea
 
 Validation via pydantic‑v2 to catch nonsense (e.g. W + Z > total_capital).
 
+// NEW –‑export & dashboard flags
+@dataclass
+class RunFlags:
+    save_xlsx: str | None = "Outputs.xlsx"
+    png: bool = False
+    pdf: bool = False
+    pptx: bool = False
+    launch_dashboard: bool = False   # streamlit run after sim
+
+
+
 6  Vectorisation Checklist
 | Item                  | Status               | To‑do                                                                    |
 | --------------------- | -------------------- | ------------------------------------------------------------------------ |
@@ -127,11 +162,19 @@ Validation via pydantic‑v2 to catch nonsense (e.g. W + Z > total_capital).
 | **Financing spikes**  | ⚠️ loop              | Use `rng.uniform(size) < p` mask                                         |
 | **Per‑agent returns** | ⚠️ loop over months  | Compute in closed‑form array ops                                         |
 | **Metrics**           | partial              | Standardise in `metrics.py`                                              |
+// NEW
+| Chart functions vectorised | 🚫 none | Implement in viz/ pure‑numpy layers |
+
 
 7  Reporting
-Excel: Refactor current Outputs.xlsx writer into reporting/excel.py using openpyxl. Agent list drives worksheet creation, so adding a sleeve auto‑adds a tab.
+// NEW
 
-Console: Rich‑formatted summary (colour‑blind friendly) – budgets 3 lines per sleeve.
+Excel – reporting/excel.py now calls viz.risk_return.make() etc. and embeds the PNG exports as worksheet objects (use xlsxwriter.Workbook.insert_image).
+
+Static exports – scripts/visualise.py accepts --png --pdf --pptx; each flag triggers fig.write_image() or python‑pptx helper.
+
+Dashboard – dashboard/app.py launches automatically when --launch_dashboard flag is set or via streamlit run dashboard/app.py.
+
 
 8  Testing & CI
 Unit tests in tests/ (pytest):
@@ -193,27 +236,25 @@ Kick back any tweaks; happy to iterate.
 *(Caveat: Some internal package names may differ slightly from the current repo tree—rename to taste.  File/line references in the spec come from the public README and notebook as of 29 Jun 2025.)*
 
 
-# Agents – How to run, tune and interpret them ⚙️📊
+# Agents – How to run, tune & read them ⚙️📊
 
-> *“Everything should be made as simple as possible – but no simpler.”*  
-> *(Einstein, suspiciously paraphrased by every quant ever)*
+> *“Forecasts may be wrong, but traffic‑lights should never be vague.”*
 
 ---
 
-## TL;DR – Quick‑start 🏃‍♂️💨
+## 1. Quick‑start for PMs & Ops 🏃‍♂️💨
 
 ```bash
-# 1 Install once
-pip install -r requirements.txt          # pandas, numpy, rich, plotly, etc.
+# Install (one‑time)
+pip install -r requirements.txt         # pandas, numpy, plotly, streamlit, xlsxwriter, kaleido …
 
-# 2 Run the CLI with defaults (100 sims × 12 months)
-python -m pa_core --params parameters.csv \
-  --index sp500tr_fred_divyield.csv
+# Run a 500‑path, 15‑year simulation of all agents and save outputs
+python main.py \
+  --agent ExternalPA ActiveExt InternalPA InternalBeta Base \
+  --n_sims 500 --n_months $((15*12)) \
+  --save_xlsx Outputs.xlsx \
+  --seed 42
 
-# 3 Full sweep, custom params, save to Outputs.xlsx
-python -m pa_core --config params.yaml \
-  --index sp500tr_fred_divyield.csv \
-  --output Outputs.xlsx
 
 ```
 
@@ -227,3 +268,75 @@ class MyNewAgent(BaseAgent):
         # 2 Return np.ndarray shape (n_sim, n_months)
 
 ```
+## 12  Visual‑Analytics Subsystem
+
+**Goal** – Serve PMs & Ops an interactive narrative focussed on funding‑shortfall risk, draw‑down control, and TE trade‑offs.
+
+### 12.1  Core chart contracts (`viz/`)
+
+| Function            | Input (pandas)                                | Output | Notes |
+|---------------------|-----------------------------------------------|--------|-------|
+| `risk_return.make`  | `df_summary` columns = AnnReturn, AnnVol, TrackingErr, Agent, CVaR, MaxDD, ShortfallProb | `go.Figure` | Adds grey “sweet‑spot” rectangle & traffic‑light colours |
+| `fan.make`          | `df_paths` shape = (n_sim, n_months)          | `go.Figure` | Plots median + 95 % ribbon vs. liability glide‑path |
+| `path_dist.make`    | same `df_paths`                               | `go.Figure` | Histogram and CDF slider |
+| `corr_heatmap.make` | dict of agent → df_paths                      | `go.Figure` | Monthly return ρ |
+| `sharpe_ladder.make`| `df_summary`                                  | `go.Figure` | Sorted bar; hover shows ExcessReturn |
+
+*All functions must be **pure** (no I/O) and honour the colour‑blind‑safe palette defined in `viz.theme.TEMPLATE`.*
+
+### 12.2  Streamlit app (`dashboard/app.py`)
+
+* **Sidebar** – sliders: sims, horizon; multiselect: agents; numeric: risk‑free rate.  
+* **Tabs** – Headline (risk‑return), Funding fan, Path dist, Diagnostics.  
+* **Download** – `st.download_button` returns the latest PNGs and `Outputs.xlsx`.
+
+### 12.3  CLI wrapper (`scripts/visualise.py`)
+
+*Synopsis*  
+```bash
+python scripts/visualise.py \
+  --plot risk_return --xlsx Outputs.xlsx \
+  --agent InternalPAAgent \
+  --png --pdf
+Behaviour: loads Excel once → routes to viz.* → saves images under plots/.
+
+Add if __name__ == "__main__": guard so Codex can insert into package.
+
+12.4  Traffic‑light thresholds (central file)
+config_thresholds.yaml
+shortfall_green: 0.05   # ≤ 5 %
+shortfall_amber: 0.10   # 5‑10 %
+drawdown_limit: 0.05    # 5 % rolling 12 m
+te_cap: 0.03            # 3 %
+excess_return_target: 0.05  # ≥ 5 %
+excess_return_floor: 0.03    # 3‑5 % amber
+sharpe_green: 0.5
+sharpe_amber: 0.4
+confidence: 0.95
+
+viz.theme reads this file so Ops can tweak without touching Python.
+
+12.5  Unit tests (tests/test_viz.py)
+Smoke‑test each figure: assert isinstance(fig, go.Figure) and JSON serialisable.
+
+Snapshot regression: plotly.io.to_image(fig) hash against stored PNG bytes.
+
+---
+
+### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
+
+// NEW  
+```text
+--png / --pdf / --pptx     Static exports (can be combined)
+--dashboard                Launch Streamlit dashboard after run
+
+---
+
+### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
+
+// NEW  
+```text
+--png / --pdf / --pptx     Static exports (can be combined)
+--dashboard                Launch Streamlit dashboard after run
+
+
