@@ -34,3 +34,17 @@ CATEGORY_BY_AGENT = {
     "ActiveExtensionAgent": "External Portable Alpha",
     "BaseAgent": "Benchmark / Passive",
 }
+
+
+def reload_thresholds(path: str | Path = _CONFIG_PATH) -> None:
+    """Reload traffic-light thresholds from a YAML file.
+
+    Parameters
+    ----------
+    path:
+        Location of the YAML config. Defaults to ``config_thresholds.yaml`` next
+        to ``pa_core``.
+    """
+    global THRESHOLDS
+    with open(path, "r", encoding="utf-8") as fh:
+        THRESHOLDS = yaml.safe_load(fh) or {}
