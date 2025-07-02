@@ -337,6 +337,33 @@ Avoid direct calls to `fig.update_layout` outside the theme module.
 New visual elements go under `viz/` and should be registered in `dashboard/app.py` via a lazy import.
 Keep functions pure and document expected DataFrame columns.
 
+### 12.9  Using `viz` in notebooks
+Load the simulation outputs and display interactive charts directly in Jupyter:
+
+```python
+import pandas as pd
+from pa_core.viz import risk_return, fan
+
+df_summary = pd.read_excel("Outputs.xlsx", sheet_name="summary")
+df_paths = pd.read_parquet("paths.parquet")
+
+risk_return.make(df_summary).show()
+fan.make(df_paths).show()
+```
+
+Each helper returns a `plotly.graph_objects.Figure` that renders inline via
+`.show()`.
+
+### 12.10  Batch export helper
+Automate production graphics by looping over the CLI wrapper:
+
+```bash
+for chart in risk_return fan sharpe_ladder; do
+    python scripts/visualise.py --plot "$chart" --xlsx Outputs.xlsx --png
+done
+```
+This stores themed images under `plots/` ready for board packs.
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
