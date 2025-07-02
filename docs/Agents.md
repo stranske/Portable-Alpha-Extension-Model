@@ -94,9 +94,7 @@ Return an (n_sim, n_months) array of raw monthly sleeve returns.
 | `InternalBetaAgent`    | –           | **all** β      | Margin sleeve (W)       |
 | `InternalPAAgent`      | In‑house H  | 0              | Z                       |
 
-(This covers everything in the README spec 
-github.com
-. Adding a new agent = subclass + registry entry.)
+(This covers everything in the README spec. Adding a new agent = subclass + registry entry.)
 
 4  Simulation Engine (sim/)
 1. Draw paths
@@ -194,7 +192,6 @@ Kick back any tweaks; happy to iterate.
 
 *(Caveat: Some internal package names may differ slightly from the current repo tree—rename to taste.  File/line references in the spec come from the public README and notebook as of 29 Jun 2025.)*
 
-::contentReference[oaicite:1]{index=1}
 
 # Agents – How to run, tune and interpret them ⚙️📊
 
@@ -217,6 +214,8 @@ python -m pa_core --params parameters.csv \
 python -m pa_core --config params.yaml \
   --index sp500tr_fred_divyield.csv \
   --output Outputs.xlsx
+
+```
 
 ```python
 # pa_core/agents/my_new_agent.py
