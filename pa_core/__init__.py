@@ -19,6 +19,7 @@ from .sim.covariance import build_cov_matrix
 from .random import spawn_rngs, spawn_agent_rngs
 from .backend import set_backend, get_backend
 from .reporting import export_to_excel, print_summary
+from . import viz
 from .sim.metrics import (
     tracking_error,
     value_at_risk,
@@ -75,4 +76,5 @@ __all__ = [
     "load_config",
     "build_agents",
     "build_from_config",
+    "viz",
 ]
