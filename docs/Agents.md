@@ -365,6 +365,25 @@ done
 This stores themed images under `plots/` ready for board packs.
 
 
+### 12.11  Customising the theme
+`viz.theme` centralises the Plotly template and colour mapping used across all
+charts. Colours come from a colour‑blind‑safe palette and thresholds are loaded
+from `config_thresholds.yaml`.
+
+```python
+from pa_core.viz import theme
+
+# Inspect or tweak the palette
+print(theme.TEMPLATE.layout.colorway)
+
+# Map new agent classes to existing categories for consistent colours
+theme.CATEGORY_BY_AGENT["OverlayOptionsAgent"] = "External Portable Alpha"
+```
+
+Editing the YAML file or the mapping dictionary lets Ops adjust visuals without
+changing any plotting code.
+
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
