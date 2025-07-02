@@ -75,6 +75,7 @@ class Agent:
         financing: Array,
     ) -> Array:
         raise NotImplementedError
+```
 
 Concrete subclasses override monthly_returns. Each subclass must:
 
@@ -208,21 +209,22 @@ Kick back any tweaks; happy to iterate.
 # 1 Install once
 pip install -r requirements.txt          # pandas, numpy, rich, plotly, etc.
 
-# 2 Run a single agent with defaults (100 sims × 12 months)
-python main.py --agent Base
+# 2 Run the CLI with defaults (100 sims × 12 months)
+python -m pa_core --params parameters.csv \
+  --index sp500tr_fred_divyield.csv
 
 # 3 Full sweep, custom params, save to Outputs.xlsx
-python main.py \
-  --agent Base ExternalPA ActiveExt InternalPA InternalBeta \
-  --n_sims 500 --n_months 36 \
-  --external_pa_capital 800 \
-  --save_xlsx Outputs.xlsx
+python -m pa_core --config params.yaml \
+  --index sp500tr_fred_divyield.csv \
+  --output Outputs.xlsx
 
-Consider adding an Agents.md
-# agents/my_new_agent.py
-from agents.base import BaseAgent
+```python
+# pa_core/agents/my_new_agent.py
+from pa_core.agents.base import BaseAgent
 
 class MyNewAgent(BaseAgent):
-    def simulate_path(self, n_months: int, rng: np.random.Generator):
-        # 1 Generate monthly returns
-        # 2 Return np.ndarray shape (n_months,)
+    def monthly_returns(self, r_beta, alpha_stream, financing):
+        # 1 Generate monthly returns
+        # 2 Return np.ndarray shape (n_sim, n_months)
+
+```
