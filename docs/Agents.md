@@ -389,6 +389,40 @@ theme.reload_thresholds("custom_thresholds.yaml")
 Editing the YAML file or the mapping dictionary lets Ops adjust visuals without
 changing any plotting code.
 
+### 12.12  Annotation & hover tips
+Use Plotly's built‑in helpers to keep charts self‑explanatory:
+
+* `fig.add_vline` and `fig.add_hline` mark key thresholds such as the TE cap.
+* Hover templates should mention the agent name and relevant metrics.
+
+Example snippet to show CVaR on hover:
+
+```python
+hover = (
+    "%{text}<br>TE=%{x:.2%}<br>ER=%{y:.2%}<br>CVaR=%{customdata:.2%}"  # noqa: W605
+)
+fig.add_trace(
+    go.Scatter(
+        x=df["AnnVol"],
+        y=df["AnnReturn"],
+        customdata=df["CVaR"],
+        text=df["Agent"],
+        hovertemplate=hover,
+    )
+)
+```
+
+### 12.13  Interactive HTML export
+For ad‑hoc sharing, each figure can be saved as a standalone HTML file:
+
+```python
+fig.write_html("risk_return.html", include_plotlyjs="cdn")
+```
+
+Bundle these files under `plots/` so they drop straight into an intranet page or
+email attachment.  The Streamlit dashboard links to the latest HTML exports for
+offline viewing.
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
