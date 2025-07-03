@@ -1,4 +1,3 @@
-from __future__ import annotations
 """Command-line interface for running simulations.
 
 Additional options allow exporting visualisations and launching the
@@ -10,6 +9,7 @@ CLI flags:
     --gif                  Animated export of monthly paths
     --dashboard            Launch Streamlit dashboard after run
 """
+from __future__ import annotations
 
 import argparse
 from typing import Sequence, Optional
