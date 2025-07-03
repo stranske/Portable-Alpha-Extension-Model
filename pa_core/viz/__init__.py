@@ -19,6 +19,7 @@ from . import scenario_slider
 from . import data_table
 from . import scenario_viewer
 from . import grid_heatmap
+from . import panel
 
 __all__ = [
     "theme",
@@ -40,4 +41,5 @@ __all__ = [
     "data_table",
     "scenario_viewer",
     "grid_heatmap",
+    "panel",
 ]
