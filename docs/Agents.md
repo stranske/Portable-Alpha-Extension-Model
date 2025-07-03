@@ -591,6 +591,9 @@ fig.show()
 
 ### 12.30  Multi-agent overlay
 `viz.overlay.make` plots the median cumulative return of several agents on a single chart for quick comparisons.
+Colours follow `viz.theme.CATEGORY_BY_AGENT` so the same agent categories share a consistent hue across all charts.
+The palette is drawn from `viz.theme.TEMPLATE`; if that template lacks a
+`colorway`, Plotly's default colours are used as a fallback.
 
 ```python
 from pa_core.viz import overlay
