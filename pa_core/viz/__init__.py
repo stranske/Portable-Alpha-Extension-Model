@@ -20,6 +20,7 @@ from . import data_table
 from . import scenario_viewer
 from . import grid_heatmap
 from . import panel
+from . import violin
 
 __all__ = [
     "theme",
@@ -42,4 +43,5 @@ __all__ = [
     "scenario_viewer",
     "grid_heatmap",
     "panel",
+    "violin",
 ]

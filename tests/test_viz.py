@@ -21,6 +21,7 @@ from pa_core.viz import (
     scenario_viewer,
     grid_heatmap,
     panel,
+    violin,
 )
 
 
@@ -157,6 +158,13 @@ def test_panel_make():
         "ShortfallProb": [0.02, 0.03],
     })
     fig = panel.make(df)
+    assert isinstance(fig, go.Figure)
+    fig.to_json()
+
+
+def test_violin_make():
+    arr = np.random.normal(size=(10, 5))
+    fig = violin.make(arr, by_month=True)
     assert isinstance(fig, go.Figure)
     fig.to_json()
 

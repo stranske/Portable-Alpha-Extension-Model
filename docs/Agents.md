@@ -670,6 +670,16 @@ fig = grid_heatmap.make(grid)
 fig.show()
 ```
 
+### 12.41  Violin distribution of returns
+`viz.violin.make` plots the distribution of monthly returns either aggregated
+across all months or one violin per month when `by_month=True`.
+
+```python
+from pa_core.viz import violin
+fig = violin.make(df_paths, by_month=True)
+fig.show()
+```
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
