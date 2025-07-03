@@ -50,6 +50,8 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         opacity=0.3,
         line_width=0,
     )
+    fig.add_vline(x=thr.get("te_cap", 0.03), line_dash="dash")
+    fig.add_hline(y=thr.get("excess_return_target", 0.05), line_dash="dash")
     fig.update_layout(
         shapes=[rect],
         xaxis_title="Tracking Error",
