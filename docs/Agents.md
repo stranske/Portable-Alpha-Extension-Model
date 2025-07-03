@@ -423,6 +423,26 @@ Bundle these files under `plots/` so they drop straight into an intranet page or
 email attachment.  The Streamlit dashboard links to the latest HTML exports for
 offline viewing.
 
+### 12.14  Composite layouts
+Use Plotly's `make_subplots` to assemble multiple themed figures into a single
+dashboard view.
+
+```python
+from plotly.subplots import make_subplots
+
+def make_panel(df_summary, df_paths):
+    fig = make_subplots(rows=1, cols=2)
+    fig.add_trace(risk_return.make(df_summary).data[0], row=1, col=1)
+    fig.add_trace(sharpe_ladder.make(df_summary).data[0], row=1, col=2)
+    fig.update_layout(template=theme.TEMPLATE)
+    return fig
+```
+
+### 12.15  Caching heavy calculations
+The Streamlit app may reuse the same large path matrices across widgets. Use
+`@st.cache_data` with an explicit TTL to prevent repeated computations while
+keeping memory use in check.
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
