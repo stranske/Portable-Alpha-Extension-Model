@@ -584,6 +584,32 @@ fig.show()
 ```
 
 
+
+### 12.30  Multi-agent overlay
+`viz.overlay.make` plots the median cumulative return of several agents on a single chart for quick comparisons.
+
+```python
+from pa_core.viz import overlay
+fig = overlay.make({"Base": df_paths_base, "AE": df_paths_ae})
+fig.show()
+```
+
+### 12.31  Risk-contribution waterfall
+Use `viz.waterfall.make` to visualise how each sleeve contributes to total tracking error or expected return.
+
+```python
+from pa_core.viz import waterfall
+contrib = {"InternalPAAgent": 0.08, "ExternalPAAgent": 0.02}
+fig = waterfall.make(contrib)
+fig.show()
+```
+
+### 12.32  Scenario slider animation
+`viz.scenario_slider.make` builds a figure with a slider to step through precomputed Plotly frames. Combine with `viz.animation.make` to present stress tests interactively.
+
+### 12.33  Export bundle helper
+Call `viz.export_bundle.save(figs, "plots/summary")` to output PNG, HTML and JSON files for each figure in one go.  This is handy for archiving runs or sharing via email.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  

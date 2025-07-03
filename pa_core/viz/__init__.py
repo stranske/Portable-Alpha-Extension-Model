@@ -12,6 +12,10 @@ from . import pptx_export
 from . import html_export
 from . import category_pie
 from . import animation
+from . import overlay
+from . import waterfall
+from . import export_bundle
+from . import scenario_slider
 
 __all__ = [
     "theme",
@@ -26,4 +30,8 @@ __all__ = [
     "html_export",
     "category_pie",
     "animation",
+    "overlay",
+    "waterfall",
+    "export_bundle",
+    "scenario_slider",
 ]
