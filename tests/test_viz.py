@@ -30,6 +30,8 @@ from pa_core.viz import (
     risk_return_bubble,
     rolling_var,
     breach_calendar,
+    moments_panel,
+    parallel_coords,
 )
 
 
@@ -234,5 +236,13 @@ def test_extra_viz_helpers():
     sm_fig = scatter_matrix.make(df[["AnnReturn", "AnnVol", "TrackingErr"]])
     assert isinstance(sm_fig, go.Figure)
     sm_fig.to_json()
+
+    moments_fig = moments_panel.make(arr)
+    assert isinstance(moments_fig, go.Figure)
+    moments_fig.to_json()
+
+    pc_fig = parallel_coords.make(df[["AnnReturn", "AnnVol", "TrackingErr"]])
+    assert isinstance(pc_fig, go.Figure)
+    pc_fig.to_json()
 
 

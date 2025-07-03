@@ -764,6 +764,28 @@ compatible with the Streamlit dashboard.
 `viz.export_bundle.save` produces an HTML bundle containing the figures and the
 table so PMs can explore results offline.
 
+### 12.51  Rolling-moments panel
+`viz.moments_panel.make` charts rolling skewness and kurtosis so heavy tails are
+easy to spot. Pass the same `df_paths` matrix used by other helpers and adjust
+the `window` argument to change the lookback period.
+
+```python
+from pa_core.viz import moments_panel
+fig = moments_panel.make(df_paths, window=12)
+fig.show()
+```
+
+### 12.52  Parallel-coordinates view
+Compare multiple metrics simultaneously with `viz.parallel_coords.make(df)`. The
+input DataFrame's columns become the parallel axes, allowing quick detection of
+outliers across dimensions.
+
+```python
+from pa_core.viz import parallel_coords
+fig = parallel_coords.make(df_summary[["AnnReturn", "AnnVol", "TrackingErr"]])
+fig.show()
+```
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  

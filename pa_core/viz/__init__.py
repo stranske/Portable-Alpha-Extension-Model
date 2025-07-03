@@ -29,6 +29,8 @@ from . import scatter_matrix
 from . import risk_return_bubble
 from . import rolling_var
 from . import breach_calendar
+from . import moments_panel
+from . import parallel_coords
 
 __all__ = [
     "theme",
@@ -60,4 +62,6 @@ __all__ = [
     "risk_return_bubble",
     "rolling_var",
     "breach_calendar",
+    "moments_panel",
+    "parallel_coords",
 ]
