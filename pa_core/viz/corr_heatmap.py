@@ -14,8 +14,9 @@ def make(paths_map: dict[str, pd.DataFrame | np.ndarray]) -> go.Figure:
     monthly = [arr.reshape(-1, arr.shape[-1]) for arr in arrays]
     returns = np.concatenate(monthly, axis=0)
     corr = np.corrcoef(returns.T)
+    idx = list(range(corr.shape[0]))
     fig = go.Figure(
-        data=go.Heatmap(z=corr, x=range(corr.shape[0]), y=range(corr.shape[0])),
+        data=go.Heatmap(z=corr, x=idx, y=idx),
         layout_template=theme.TEMPLATE,
     )
     fig.update_layout(xaxis_title="Month", yaxis_title="Month")

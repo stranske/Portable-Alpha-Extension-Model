@@ -163,7 +163,7 @@ class RunFlags:
 | **Per‑agent returns** | ⚠️ loop over months  | Compute in closed‑form array ops                                         |
 | **Metrics**           | partial              | Standardise in `metrics.py`                                              |
 // NEW
-| Chart functions vectorised | 🚫 none | Implement in viz/ pure‑numpy layers |
+| Chart functions vectorised | ✅ viz package | Pure Plotly helpers under `viz/` |
 
 
 7  Reporting
@@ -417,6 +417,9 @@ For ad‑hoc sharing, each figure can be saved as a standalone HTML file:
 
 ```python
 fig.write_html("risk_return.html", include_plotlyjs="cdn")
+# or use the helper
+from pa_core.viz import html_export
+html_export.save(fig, "risk_return.html")
 ```
 
 Bundle these files under `plots/` so they drop straight into an intranet page or
@@ -536,6 +539,8 @@ fig.show()
 // NEW  
 ```text
 --png / --pdf / --pptx     Static exports (can be combined)
+--html                    Save interactive HTML
+--gif                     Animated export of monthly paths
 --dashboard                Launch Streamlit dashboard after run
 
 ```

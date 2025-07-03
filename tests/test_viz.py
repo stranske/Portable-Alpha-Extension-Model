@@ -10,6 +10,8 @@ from pa_core.viz import (
     rolling_panel,
     surface,
     pptx_export,
+    html_export,
+    corr_heatmap,
     category_pie,
 )
 
@@ -76,3 +78,23 @@ def test_category_pie():
     })
     assert isinstance(fig, go.Figure)
     fig.to_json()
+
+
+def test_html_and_corr(tmp_path):
+    fig = risk_return.make(
+        pd.DataFrame({
+            "AnnReturn": [0.05],
+            "AnnVol": [0.02],
+            "TrackingErr": [0.01],
+            "Agent": ["Base"],
+            "ShortfallProb": [0.02],
+        })
+    )
+    out_html = tmp_path / "fig.html"
+    html_export.save(fig, out_html)
+    assert out_html.exists()
+
+    arr = np.random.normal(size=(5, 3))
+    fig2 = corr_heatmap.make({"A": arr, "B": arr})
+    assert isinstance(fig2, go.Figure)
+    fig2.to_json()

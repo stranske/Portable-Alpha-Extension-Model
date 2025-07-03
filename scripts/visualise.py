@@ -13,6 +13,7 @@ from pa_core.viz import (
     rolling_panel,
     surface,
     pptx_export,
+    html_export,
 )
 
 
@@ -35,6 +36,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--png", action="store_true")
     parser.add_argument("--pdf", action="store_true")
     parser.add_argument("--pptx", action="store_true")
+    parser.add_argument("--gif", action="store_true")
+    parser.add_argument("--html", action="store_true")
     args = parser.parse_args(argv)
 
     df_summary = pd.read_excel(args.xlsx, sheet_name="Summary")
@@ -63,6 +66,10 @@ def main(argv: list[str] | None = None) -> None:
         fig.write_image(f"{stem}.pdf")
     if args.pptx:
         pptx_export.save([fig], f"{stem}.pptx")
+    if args.gif:
+        fig.write_image(f"{stem}.gif")
+    if args.html:
+        html_export.save(fig, f"{stem}.html")
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry
