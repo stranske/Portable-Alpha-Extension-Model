@@ -13,6 +13,7 @@ from pa_core.viz import (
     html_export,
     corr_heatmap,
     category_pie,
+    animation,
 )
 
 
@@ -98,3 +99,10 @@ def test_html_and_corr(tmp_path):
     fig2 = corr_heatmap.make({"A": arr, "B": arr})
     assert isinstance(fig2, go.Figure)
     fig2.to_json()
+
+
+def test_animation():
+    arr = np.random.normal(size=(10, 6))
+    fig = animation.make(arr)
+    assert isinstance(fig, go.Figure)
+    fig.to_json()
