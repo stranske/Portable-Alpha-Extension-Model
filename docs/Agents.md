@@ -483,6 +483,11 @@ path)` writes each Plotly figure to a slide using python‑pptx.  Combined with
 the batch helper, this produces a fully branded deck without manual screenshot
 hassle.
 
+```python
+figs = [risk_return.make(df_summary), fan.make(df_paths)]
+pptx_export.save(figs, "board_pack.pptx")
+```
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
