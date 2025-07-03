@@ -21,6 +21,10 @@ from . import scenario_viewer
 from . import grid_heatmap
 from . import panel
 from . import violin
+from . import rolling_corr_heatmap
+from . import exposure_timeline
+from . import gauge
+from . import radar
 
 __all__ = [
     "theme",
@@ -44,4 +48,8 @@ __all__ = [
     "grid_heatmap",
     "panel",
     "violin",
+    "rolling_corr_heatmap",
+    "exposure_timeline",
+    "gauge",
+    "radar",
 ]

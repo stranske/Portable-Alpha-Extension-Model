@@ -682,8 +682,10 @@ fig.show()
 
 ### 12.42  Rolling correlation heatmap
 `viz.rolling_corr_heatmap.make` visualises how correlations evolve over time
-with a sliding window. Pass a `(n_sim, n_months)` DataFrame and set the window
-size in months.
+with a sliding window.  Provide a `(n_sim, n_months)` array of monthly returns
+and choose the window length in months.  The helper computes the correlation
+between each month and its predecessors up to the chosen lag so users can spot
+periods of heightened autocorrelation.
 
 ```python
 from pa_core.viz import rolling_corr_heatmap
@@ -693,7 +695,9 @@ fig.show()
 
 ### 12.43  Exposure timeline
 `viz.exposure_timeline.make` plots each agent's capital allocation as a stacked
-area chart so PMs can verify exposure drift across the horizon.
+area chart so PMs can verify exposure drift across the horizon.  The input is a
+DataFrame indexed by month with one column per agent.  Values should represent
+capital in the sleeve's base currency.
 
 ```python
 from pa_core.viz import exposure_timeline
@@ -703,8 +707,9 @@ fig.show()
 
 ### 12.44  Risk-target gauge
 Display tracking error or CVaR relative to thresholds using
-`viz.gauge.make(df_summary)`. The dial turns amber or red when metrics breach
-limits defined in `config_thresholds.yaml`.
+`viz.gauge.make(df_summary)`.  Pass a summary table with the metric of interest
+(``TrackingErr`` or ``CVaR``).  The dial turns amber or red when the value
+breaches the levels in ``config_thresholds.yaml``.
 
 ```python
 from pa_core.viz import gauge
@@ -714,8 +719,9 @@ fig.show()
 
 ### 12.45  Parameter-sensitivity radar
 Compare multiple scenarios on a single radar chart with
-`viz.radar.make(df_metrics)`. Each axis represents a risk metric and each trace
-is one scenario.
+`viz.radar.make(df_metrics)`.  Provide a DataFrame whose rows are scenarios and
+whose columns are metrics such as TE and ER.  Each trace plots the metrics in a
+closed loop so sensitivities leap out visually.
 
 ```python
 from pa_core.viz import radar
