@@ -729,6 +729,37 @@ fig = radar.make(df_metrics)
 fig.show()
 ```
 
+### 12.46  Scatter-matrix diagnostic
+`viz.scatter_matrix.make` draws a grid of pairwise scatter plots across a set of
+metrics so relationships between them become obvious.  Pass a DataFrame where
+columns are metrics such as TE, ER and CVaR.  The helper shades points by agent
+category using `viz.theme.CATEGORY_BY_AGENT`.
+
+```python
+from pa_core.viz import scatter_matrix
+fig = scatter_matrix.make(df_summary[["TrackingErr", "AnnReturn", "CVaR"]])
+fig.show()
+```
+
+### 12.47  Weighted risk‑return bubbles
+When the capital invested in each agent differs materially, use
+`viz.risk_return_bubble.make` to scale each point by investment weight.
+Inputs match `risk_return.make` with an additional `Capital` column.
+
+### 12.48  Rolling VaR timeline
+`viz.rolling_var.make(df_paths, window=12)` plots the rolling Value at Risk or
+CVaR over the chosen horizon so breaches stand out visually.
+
+### 12.49  Breach-calendar heatmap
+Highlight months where tracking error or shortfall exceeded thresholds with
+`viz.breach_calendar.make(df_summary)`.  The output is a Plotly heatmap
+compatible with the Streamlit dashboard.
+
+### 12.50  Scenario comparison table
+`viz.data_table.make(df)` already powers sortable tables.  Combining it with
+`viz.export_bundle.save` produces an HTML bundle containing the figures and the
+table so PMs can explore results offline.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
