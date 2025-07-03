@@ -5,6 +5,7 @@ from typing import Mapping
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 
 from . import theme
 
@@ -18,7 +19,10 @@ def make(paths_map: Mapping[str, pd.DataFrame | np.ndarray]) -> go.Figure:
     fig = go.Figure(layout_template=theme.TEMPLATE)
 
     # Build deterministic colour mapping by category
-    palette = list(theme.TEMPLATE.layout.colorway)
+    tmpl = theme.TEMPLATE
+    if isinstance(tmpl, str):
+        tmpl = pio.get_template(tmpl)
+    palette = getattr(getattr(tmpl.layout, "colorway", None), "copy", lambda: [])() or pio.templates["plotly"].layout.colorway
     cat_to_color: dict[str, str] = {}
 
     for name, data in paths_map.items():
