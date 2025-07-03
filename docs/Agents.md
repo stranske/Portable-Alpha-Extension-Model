@@ -513,6 +513,23 @@ with open("ladder.json", "w") as fh:
     fh.write(fig.to_json())
 ```
 
+### 12.24  Capital-allocation donut
+`viz.category_pie.make` summarises the capital invested in each agent
+category as a donut chart. Pass a mapping of agent name to capital and the
+function groups by `viz.theme.CATEGORY_BY_AGENT` to keep colours consistent.
+
+```python
+from pa_core.viz import category_pie
+
+cap = {
+    "BaseAgent": 500,
+    "ExternalPAAgent": 300,
+    "InternalPAAgent": 200,
+}
+fig = category_pie.make(cap)
+fig.show()
+```
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
