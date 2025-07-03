@@ -462,6 +462,27 @@ Provide descriptive titles (`fig.update_layout(title_text="..."`) and add
 alt-text for exported images.  Stick to the WCAG contrast ratios defined in
 `viz.theme` and avoid relying solely on hue to convey meaning.
 
+### 12.19  Rolling-metrics panel
+Plot rolling drawdown, tracking error and Sharpe ratios in a single subplot
+grid.  A helper `rolling_panel.make(df_paths, df_summary)` computes the
+metrics using a 12‑month window and returns a themed figure with three stacked
+time series.  This complements the existing static metrics table and highlights
+stability over time.
+
+### 12.20  Parameter‑sweep surface
+Long‑running optimisation jobs may produce a grid of results, e.g. varying
+Active‑Extension leverage and external PA fraction.  Function
+`surface.make(df_grid, x="AE_leverage", y="ExtPA_frac", z="Sharpe")` renders a
+3‑D surface so PMs can visually pick the risk/return sweet‑spot.  The axis
+labels are pulled from the DataFrame columns and the theme colours are reused
+for consistency.
+
+### 12.21  PowerPoint export
+To assemble board‑pack slides directly from Python, `viz.pptx_export.save(figs,
+path)` writes each Plotly figure to a slide using python‑pptx.  Combined with
+the batch helper, this produces a fully branded deck without manual screenshot
+hassle.
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
