@@ -680,6 +680,49 @@ fig = violin.make(df_paths, by_month=True)
 fig.show()
 ```
 
+### 12.42  Rolling correlation heatmap
+`viz.rolling_corr_heatmap.make` visualises how correlations evolve over time
+with a sliding window. Pass a `(n_sim, n_months)` DataFrame and set the window
+size in months.
+
+```python
+from pa_core.viz import rolling_corr_heatmap
+fig = rolling_corr_heatmap.make(df_paths, window=12)
+fig.show()
+```
+
+### 12.43  Exposure timeline
+`viz.exposure_timeline.make` plots each agent's capital allocation as a stacked
+area chart so PMs can verify exposure drift across the horizon.
+
+```python
+from pa_core.viz import exposure_timeline
+fig = exposure_timeline.make(capital_by_month)
+fig.show()
+```
+
+### 12.44  Risk-target gauge
+Display tracking error or CVaR relative to thresholds using
+`viz.gauge.make(df_summary)`. The dial turns amber or red when metrics breach
+limits defined in `config_thresholds.yaml`.
+
+```python
+from pa_core.viz import gauge
+fig = gauge.make(df_summary)
+fig.show()
+```
+
+### 12.45  Parameter-sensitivity radar
+Compare multiple scenarios on a single radar chart with
+`viz.radar.make(df_metrics)`. Each axis represents a risk metric and each trace
+is one scenario.
+
+```python
+from pa_core.viz import radar
+fig = radar.make(df_metrics)
+fig.show()
+```
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
