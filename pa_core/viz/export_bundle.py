@@ -20,4 +20,5 @@ def save(figs: Iterable[go.Figure], prefix: str | Path) -> None:
             pass
         html_export.save(fig, stem.with_suffix(".html"))
         with open(stem.with_suffix(".json"), "w", encoding="utf-8") as fh:
-            fh.write(fig.to_json())
+            json_data = fig.to_json()
+            fh.write(json_data if isinstance(json_data, str) else "")

@@ -12,7 +12,9 @@ def make(frames: Sequence[go.Frame]) -> go.Figure:
     if not frames:
         return go.Figure()
     fig = go.Figure(frames=list(frames), layout_template=theme.TEMPLATE)
-    fig.add_trace(frames[0].data[0])
+    data0 = getattr(frames[0], "data", None)
+    if data0 and len(data0) > 0:
+        fig.add_trace(data0[0])
     fig.update_layout(
         updatemenus=[
             dict(
