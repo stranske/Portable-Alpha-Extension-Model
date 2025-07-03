@@ -20,6 +20,7 @@ from pa_core.viz import (
     data_table,
     scenario_viewer,
     grid_heatmap,
+    panel,
 )
 
 
@@ -145,5 +146,18 @@ def test_data_table_and_scenario_viewer_and_heatmap():
     heatmap_fig = grid_heatmap.make(grid)
     assert isinstance(heatmap_fig, go.Figure)
     heatmap_fig.to_json()
+
+
+def test_panel_make():
+    df = pd.DataFrame({
+        "AnnReturn": [0.05, 0.04],
+        "AnnVol": [0.02, 0.03],
+        "TrackingErr": [0.01, 0.015],
+        "Agent": ["A", "B"],
+        "ShortfallProb": [0.02, 0.03],
+    })
+    fig = panel.make(df)
+    assert isinstance(fig, go.Figure)
+    fig.to_json()
 
 

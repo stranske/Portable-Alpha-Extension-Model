@@ -286,6 +286,7 @@ class MyNewAgent(BaseAgent):
 | `grid_heatmap.make` | same parameter grid                           | `go.Figure` | 2‑D heatmap of the sweep |
 | `category_pie.make` | agent → capital mapping                       | `go.Figure` | Donut by category |
 | `animation.make`    | `df_paths`                                    | `go.Figure` | Animated cumulative return |
+| `panel.make`        | `df_summary`                                  | `go.Figure` | Risk‑return & Sharpe ladder panel |
 
 *All functions must be **pure** (no I/O) and honour the colour‑blind‑safe palette defined in `viz.theme.TEMPLATE`.*
 
@@ -445,6 +446,8 @@ def make_panel(df_summary, df_paths):
     fig.update_layout(template=theme.TEMPLATE)
     return fig
 ```
+The library exposes this helper as `viz.panel.make` for reuse in the CLI and
+dashboard.
 
 ### 12.15  Caching heavy calculations
 The Streamlit app may reuse the same large path matrices across widgets. Use
