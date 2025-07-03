@@ -16,6 +16,8 @@ from . import overlay
 from . import waterfall
 from . import export_bundle
 from . import scenario_slider
+from . import data_table
+from . import scenario_viewer
 
 __all__ = [
     "theme",
@@ -34,4 +36,6 @@ __all__ = [
     "waterfall",
     "export_bundle",
     "scenario_slider",
+    "data_table",
+    "scenario_viewer",
 ]
