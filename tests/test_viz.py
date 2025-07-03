@@ -19,6 +19,7 @@ from pa_core.viz import (
     export_bundle,
     data_table,
     scenario_viewer,
+    grid_heatmap,
 )
 
 
@@ -127,7 +128,7 @@ def test_overlay_and_waterfall_and_bundle(tmp_path):
     assert (tmp_path / "bundle_1.html").exists()
 
 
-def test_data_table_and_scenario_viewer():
+def test_data_table_and_scenario_viewer_and_heatmap():
     df = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
     table_obj = data_table.make(df)
     assert table_obj is not None
@@ -135,3 +136,14 @@ def test_data_table_and_scenario_viewer():
     fig = scenario_viewer.make({"A": arr})
     assert isinstance(fig, go.Figure)
     fig.to_json()
+
+    grid = pd.DataFrame({
+        "AE_leverage": [1, 2],
+        "ExtPA_frac": [0.2, 0.4],
+        "Sharpe": [0.5, 0.6],
+    })
+    heatmap_fig = grid_heatmap.make(grid)
+    assert isinstance(heatmap_fig, go.Figure)
+    heatmap_fig.to_json()
+
+

@@ -18,6 +18,7 @@ from . import export_bundle
 from . import scenario_slider
 from . import data_table
 from . import scenario_viewer
+from . import grid_heatmap
 
 __all__ = [
     "theme",
@@ -38,4 +39,5 @@ __all__ = [
     "scenario_slider",
     "data_table",
     "scenario_viewer",
+    "grid_heatmap",
 ]
