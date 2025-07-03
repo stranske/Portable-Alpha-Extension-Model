@@ -608,7 +608,41 @@ fig.show()
 `viz.scenario_slider.make` builds a figure with a slider to step through precomputed Plotly frames. Combine with `viz.animation.make` to present stress tests interactively.
 
 ### 12.33  Export bundle helper
-Call `viz.export_bundle.save(figs, "plots/summary")` to output PNG, HTML and JSON files for each figure in one go.  This is handy for archiving runs or sharing via email.
+
+Call `viz.export_bundle.save(figs, "plots/summary")` to output PNG, HTML and JSON
+files for each figure in one go.  This is handy for archiving runs or sharing via
+email.
+
+### 12.34  Chart gallery notebook
+A Jupyter notebook `viz_gallery.ipynb` will demonstrate each function with
+sample data. PMs can tweak parameters live to see how colours and thresholds
+respond. The gallery acts as living documentation for Ops and quants
+experimenting with new sleeves.
+
+### 12.35  Data tables and grids
+A helper `viz.data_table.make(df)` will render a sortable
+`dash_table.DataTable` using the same colour rules as the charts. Tables
+summarise path metrics and can be downloaded as CSV via a built-in button.
+
+### 12.36  Combined scenario viewer
+`viz.scenario_viewer.make` ties together the slider animation and overlay chart
+into a single figure with tabs. This lets users flip between cumulative paths
+and funding-level trajectories without losing context.
+
+### 12.37  PDF export convenience
+The CLI's `--pdf` flag will call `fig.write_image("name.pdf")` for every figure
+in the export bundle. Use this when board packs require static attachments
+rather than interactive HTML.
+
+### 12.38  Scheduled snapshot archiver
+An optional cron job can call `export_bundle.save` nightly so the dashboard
+always links to the latest set of figures. Archived images are stamped with the
+run timestamp to aid traceability.
+
+### 12.39  Future ideas
+Potential extensions include violin plots of monthly returns, live WebSocket
+hooks for streaming results, and integration with Bokeh for alternate themes.
+Feel free to propose additional visualisations as needs evolve.
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
