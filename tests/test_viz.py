@@ -14,6 +14,9 @@ from pa_core.viz import (
     corr_heatmap,
     category_pie,
     animation,
+    overlay,
+    waterfall,
+    export_bundle,
 )
 
 
@@ -106,3 +109,17 @@ def test_animation():
     fig = animation.make(arr)
     assert isinstance(fig, go.Figure)
     fig.to_json()
+
+
+def test_overlay_and_waterfall_and_bundle(tmp_path):
+    arr = np.random.normal(size=(5, 4))
+    over_fig = overlay.make({"A": arr, "B": arr})
+    assert isinstance(over_fig, go.Figure)
+    over_fig.to_json()
+
+    wf_fig = waterfall.make({"A": 0.1, "B": -0.05})
+    assert isinstance(wf_fig, go.Figure)
+    wf_fig.to_json()
+
+    export_bundle.save([over_fig, wf_fig], tmp_path / "bundle")
+    assert (tmp_path / "bundle_1.html").exists()
