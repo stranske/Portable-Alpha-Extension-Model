@@ -17,6 +17,8 @@ from pa_core.viz import (
     overlay,
     waterfall,
     export_bundle,
+    data_table,
+    scenario_viewer,
 )
 
 
@@ -123,3 +125,13 @@ def test_overlay_and_waterfall_and_bundle(tmp_path):
 
     export_bundle.save([over_fig, wf_fig], tmp_path / "bundle")
     assert (tmp_path / "bundle_1.html").exists()
+
+
+def test_data_table_and_scenario_viewer():
+    df = pd.DataFrame({"A": [1, 2], "B": [3, 4]})
+    table_obj = data_table.make(df)
+    assert table_obj is not None
+    arr = np.random.normal(size=(3, 6))
+    fig = scenario_viewer.make({"A": arr})
+    assert isinstance(fig, go.Figure)
+    fig.to_json()
