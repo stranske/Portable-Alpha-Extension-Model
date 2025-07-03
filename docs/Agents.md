@@ -548,6 +548,41 @@ python scripts/visualise.py --plot fan --xlsx Outputs.xlsx --gif
 ```
 The resulting GIF in `plots/` can be embedded in presentations or emails.
 
+### 12.26  Path-distribution & CDF
+`viz.path_dist.make` draws a histogram of end-point returns with an optional CDF toggle.
+
+```python
+from pa_core.viz import path_dist
+fig = path_dist.make(df_paths)
+fig.show()
+```
+
+### 12.27  Correlation heatmap
+`viz.corr_heatmap.make` visualises monthly-return correlations across agents.
+
+```python
+from pa_core.viz import corr_heatmap
+fig = corr_heatmap.make({"PA": df_paths_pa, "AE": df_paths_ae})
+fig.show()
+```
+
+### 12.28  Sharpe-ratio ladder
+`viz.sharpe_ladder.make` ranks agents by Sharpe ratio in a single bar chart.
+
+```python
+from pa_core.viz import sharpe_ladder
+fig = sharpe_ladder.make(df_summary)
+fig.show()
+```
+
+### 12.29  Risk–return scatter
+`viz.risk_return.make` plots tracking error on the x-axis and excess return on the y-axis. Points are coloured by shortfall probability and the sweet-spot box is derived from `config_thresholds.yaml`.
+
+```python
+fig = risk_return.make(df_summary)
+fig.show()
+```
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
