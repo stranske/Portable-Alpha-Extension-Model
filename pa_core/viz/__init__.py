@@ -25,6 +25,10 @@ from . import rolling_corr_heatmap
 from . import exposure_timeline
 from . import gauge
 from . import radar
+from . import scatter_matrix
+from . import risk_return_bubble
+from . import rolling_var
+from . import breach_calendar
 
 __all__ = [
     "theme",
@@ -52,4 +56,8 @@ __all__ = [
     "exposure_timeline",
     "gauge",
     "radar",
+    "scatter_matrix",
+    "risk_return_bubble",
+    "rolling_var",
+    "breach_calendar",
 ]

@@ -287,6 +287,10 @@ class MyNewAgent(BaseAgent):
 | `category_pie.make` | agent → capital mapping                       | `go.Figure` | Donut by category |
 | `animation.make`    | `df_paths`                                    | `go.Figure` | Animated cumulative return |
 | `panel.make`        | `df_summary`                                  | `go.Figure` | Risk‑return & Sharpe ladder panel |
+| `scatter_matrix.make` | any DataFrame                                | `go.Figure` | Pairwise scatter plot matrix |
+| `risk_return_bubble.make` | `df_summary` with `Capital`               | `go.Figure` | Bubble-scaled risk‑return |
+| `rolling_var.make`  | `df_paths`                                    | `go.Figure` | Rolling VaR line |
+| `breach_calendar.make` | summary by month                           | `go.Figure` | Heatmap of TE & shortfall breaches |
 
 *All functions must be **pure** (no I/O) and honour the colour‑blind‑safe palette defined in `viz.theme.TEMPLATE`.*
 
