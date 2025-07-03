@@ -4,7 +4,16 @@ import argparse
 from pathlib import Path
 import pandas as pd
 
-from pa_core.viz import risk_return, fan, path_dist, corr_heatmap, sharpe_ladder
+from pa_core.viz import (
+    risk_return,
+    fan,
+    path_dist,
+    corr_heatmap,
+    sharpe_ladder,
+    rolling_panel,
+    surface,
+    pptx_export,
+)
 
 
 PLOTS = {
@@ -13,6 +22,8 @@ PLOTS = {
     "path_dist": path_dist.make,
     "corr_heatmap": corr_heatmap.make,
     "sharpe_ladder": sharpe_ladder.make,
+    "rolling_panel": rolling_panel.make,
+    "surface": surface.make,
 }
 
 
@@ -51,13 +62,7 @@ def main(argv: list[str] | None = None) -> None:
     if args.pdf:
         fig.write_image(f"{stem}.pdf")
     if args.pptx:
-        from pptx import Presentation
-        img_path = stem.with_suffix(".png")
-        fig.write_image(img_path)
-        pres = Presentation()
-        slide = pres.slides.add_slide(pres.slide_layouts[5])
-        slide.shapes.add_picture(str(img_path), 0, 0)
-        pres.save(f"{stem}.pptx")
+        pptx_export.save([fig], f"{stem}.pptx")
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry
