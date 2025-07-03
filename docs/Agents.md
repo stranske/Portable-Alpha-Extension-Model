@@ -283,6 +283,7 @@ class MyNewAgent(BaseAgent):
 | `sharpe_ladder.make`| `df_summary`                                  | `go.Figure` | Sorted bar; hover shows ExcessReturn |
 | `rolling_panel.make`| `df_paths`                                    | `go.Figure` | 3× rolling drawdown, TE and Sharpe |
 | `surface.make`      | parameter grid                                | `go.Figure` | 3‑D risk/return surface |
+| `grid_heatmap.make` | same parameter grid                           | `go.Figure` | 2‑D heatmap of the sweep |
 | `category_pie.make` | agent → capital mapping                       | `go.Figure` | Donut by category |
 | `animation.make`    | `df_paths`                                    | `go.Figure` | Animated cumulative return |
 
@@ -606,6 +607,14 @@ fig.show()
 
 ### 12.32  Scenario slider animation
 `viz.scenario_slider.make` builds a figure with a slider to step through precomputed Plotly frames. Combine with `viz.animation.make` to present stress tests interactively.
+```python
+frames = [
+    go.Frame(data=[go.Scatter(y=arr[i].cumsum())], name=str(i))
+    for i in range(5)
+]
+fig = scenario_slider.make(frames)
+fig.show()
+```
 
 ### 12.33  Export bundle helper
 
@@ -643,6 +652,16 @@ run timestamp to aid traceability.
 Potential extensions include violin plots of monthly returns, live WebSocket
 hooks for streaming results, and integration with Bokeh for alternate themes.
 Feel free to propose additional visualisations as needs evolve.
+
+### 12.40  Parameter-grid heatmap
+`viz.grid_heatmap.make` complements the 3‑D surface with a top-down view of the
+same data. This is useful when the sweep only spans a handful of values.
+
+```python
+grid = pd.read_csv("sweep.csv")
+fig = grid_heatmap.make(grid)
+fig.show()
+```
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
