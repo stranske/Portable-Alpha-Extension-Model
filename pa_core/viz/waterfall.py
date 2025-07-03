@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, Sequence
+from typing import Mapping
 
 import pandas as pd
 import plotly.graph_objects as go
