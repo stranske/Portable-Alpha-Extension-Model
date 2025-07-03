@@ -9,6 +9,7 @@ from . import sharpe_ladder
 from . import rolling_panel
 from . import surface
 from . import pptx_export
+from . import category_pie
 
 __all__ = [
     "theme",
@@ -20,4 +21,5 @@ __all__ = [
     "rolling_panel",
     "surface",
     "pptx_export",
+    "category_pie",
 ]
