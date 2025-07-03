@@ -1,4 +1,16 @@
+"""Command-line interface for running simulations.
+
+Additional options allow exporting visualisations and launching the
+Streamlit dashboard after a run.
+
+CLI flags:
+    --png / --pdf / --pptx  Static exports (can be combined)
+    --html                 Save interactive HTML
+    --gif                  Animated export of monthly paths
+    --dashboard            Launch Streamlit dashboard after run
+"""
 from __future__ import annotations
+
 import argparse
 from typing import Sequence, Optional
 import pandas as pd
