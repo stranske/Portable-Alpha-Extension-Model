@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from typing import cast
+import io
 
 import pandas as pd
 import openpyxl
 from openpyxl.utils import get_column_letter
+from openpyxl.drawing.image import Image as XLImage
+
+from ..viz import risk_return
 
 __all__ = ["export_to_excel"]
 
@@ -77,6 +81,13 @@ def export_to_excel(
                 col_letter = get_column_letter(idx)
                 for cell in ws[col_letter][1:]:
                     cell.number_format = "0.00%"
+
+        try:
+            img_bytes = risk_return.make(summary_df).to_image(format="png")
+            img = XLImage(io.BytesIO(img_bytes))
+            ws.add_image(img, "H2")
+        except Exception:
+            pass
 
     wb.save(filename)
     print(f"Exported results to {filename}")

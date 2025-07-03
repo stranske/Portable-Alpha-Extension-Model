@@ -169,11 +169,11 @@ class RunFlags:
 7  Reporting
 // NEW
 
-Excel – reporting/excel.py now calls viz.risk_return.make() etc. and embeds the PNG exports as worksheet objects (use xlsxwriter.Workbook.insert_image).
+Excel – `reporting/excel.py` now calls `viz.risk_return.make()` and embeds the PNG directly in the ``Summary`` sheet using ``openpyxl``.
 
 Static exports – scripts/visualise.py accepts --png --pdf --pptx; each flag triggers fig.write_image() or python‑pptx helper.
 
-Dashboard – dashboard/app.py launches automatically when --launch_dashboard flag is set or via streamlit run dashboard/app.py.
+Dashboard – `dashboard/app.py` caches loaded data with ``@st.cache_data`` and offers an optional auto‑refresh checkbox. Launch with ``--launch_dashboard`` or run ``streamlit run dashboard/app.py``.
 
 
 8  Testing & CI
@@ -451,8 +451,8 @@ dashboard.
 
 ### 12.15  Caching heavy calculations
 The Streamlit app may reuse the same large path matrices across widgets. Use
-`@st.cache_data` with an explicit TTL to prevent repeated computations while
-keeping memory use in check.
+``@st.cache_data(ttl=600)`` so data refreshes every ten minutes without
+recomputing on each interaction.
 
 ### 12.16  Animation & video export
 For marketing or board presentations, animated graphics can illustrate how risk
@@ -464,9 +464,10 @@ under `plots/`.
 
 ### 12.17  Real-time dashboard refresh
 When simulations run continuously, Streamlit widgets can poll for new output
-files on an interval.  Use `st.experimental_rerun()` inside a timer thread to
-reload figures without manual refresh.  Keep the data layer read-only so users
-cannot accidentally rerun heavy calculations.
+files on an interval.  The dashboard includes an **Auto-refresh** checkbox that
+sleep-waits for the chosen interval then calls ``st.experimental_rerun()``.
+Keep the data layer read-only so users cannot accidentally rerun heavy
+calculations.
 
 ### 12.18  Accessibility considerations
 All charts must remain readable for colour-blind users and screen readers.

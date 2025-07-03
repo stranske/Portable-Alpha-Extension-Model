@@ -1,12 +1,14 @@
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+import time
 
 from pa_core.viz import risk_return, fan, path_dist
 
 _DEF_XLSX = "Outputs.xlsx"
 
 
+@st.cache_data(ttl=600)
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name="Summary")
     p = Path(xlsx).with_suffix(".parquet")
@@ -27,6 +29,8 @@ def main() -> None:
         "Agents", summary["Config"].unique().tolist(), summary["Config"].unique().tolist()
     )
     st.sidebar.number_input("Risk-free rate", value=0.0)
+    auto = st.sidebar.checkbox("Auto-refresh")
+    interval = st.sidebar.number_input("Refresh every (s)", 5, 300, 60)
 
     tab1, tab2, tab3, tab4 = st.tabs(
         ["Headline", "Funding fan", "Path dist", "Diagnostics"]
@@ -46,6 +50,10 @@ def main() -> None:
     st.download_button("Download PNG", png, file_name="risk_return.png", mime="image/png")
     with open(xlsx, "rb") as fh:
         st.download_button("Download XLSX", fh, file_name=Path(xlsx).name)
+
+    if auto:
+        time.sleep(interval)
+        st.experimental_rerun()
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
