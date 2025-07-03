@@ -21,12 +21,11 @@ def make(paths_map: Mapping[str, pd.DataFrame | np.ndarray]) -> go.Figure:
     # Build deterministic colour mapping by category
     tmpl = theme.TEMPLATE
     if isinstance(tmpl, str):
-        tmpl = pio.get_template(tmpl)
-    layout = getattr(tmpl, "layout", {})
-    palette = (
-        list(getattr(layout, "colorway", []) or getattr(layout, "get", lambda _k, _d=None: _d)("colorway", []))
-        or list(pio.templates["plotly"].layout.colorway)
-    )
+        tmpl = pio.templates[tmpl]
+    palette = getattr(tmpl.layout, "colorway", None)
+    if palette is None:
+        palette = pio.templates["plotly"].layout.colorway
+    palette = list(palette)
     cat_to_color: dict[str, str] = {}
 
     for name, data in paths_map.items():
