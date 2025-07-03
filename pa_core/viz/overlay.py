@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Any, Mapping, cast
 
 import numpy as np
 import pandas as pd
@@ -22,9 +22,13 @@ def make(paths_map: Mapping[str, pd.DataFrame | np.ndarray]) -> go.Figure:
     tmpl = theme.TEMPLATE
     if isinstance(tmpl, str):
         tmpl = pio.templates[tmpl]
-    palette = getattr(tmpl.layout, "colorway", None)
+
+    palette = None
+    layout = cast(Any, getattr(tmpl, "layout", None))
+    if layout is not None and not isinstance(layout, tuple):
+        palette = getattr(layout, "colorway", None)  # type: ignore[attr-defined]
     if palette is None:
-        palette = pio.templates["plotly"].layout.colorway
+        palette = cast(Any, pio.templates["plotly"].layout).colorway
     palette = list(palette)
     cat_to_color: dict[str, str] = {}
 
