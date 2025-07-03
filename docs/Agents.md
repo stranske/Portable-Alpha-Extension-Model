@@ -276,9 +276,9 @@ class MyNewAgent(BaseAgent):
 
 | Function            | Input (pandas)                                | Output | Notes |
 |---------------------|-----------------------------------------------|--------|-------|
-| `risk_return.make`  | `df_summary` columns = AnnReturn, AnnVol, TrackingErr, Agent, CVaR, MaxDD, ShortfallProb | `go.Figure` | Adds grey “sweet‑spot” rectangle & traffic‑light colours |
-| `fan.make`          | `df_paths` shape = (n_sim, n_months)          | `go.Figure` | Plots median + 95 % ribbon vs. liability glide‑path |
-| `path_dist.make`    | same `df_paths`                               | `go.Figure` | Histogram and CDF slider |
+| `risk_return.make`  | `df_summary` columns = AnnReturn, AnnVol, TrackingErr, Agent, CVaR, MaxDD, ShortfallProb | `go.Figure` | Adds grey “sweet‑spot”, TE/ER lines & traffic‑light colours |
+| `fan.make`          | `df_paths` shape = (n_sim, n_months)          | `go.Figure` | Median + confidence ribbon, optional liability overlay |
+| `path_dist.make`    | same `df_paths`                               | `go.Figure` | Histogram with toggleable CDF view |
 | `corr_heatmap.make` | dict of agent → df_paths                      | `go.Figure` | Monthly return ρ |
 | `sharpe_ladder.make`| `df_summary`                                  | `go.Figure` | Sorted bar; hover shows ExcessReturn |
 
@@ -486,6 +486,31 @@ hassle.
 ```python
 figs = [risk_return.make(df_summary), fan.make(df_paths)]
 pptx_export.save(figs, "board_pack.pptx")
+```
+
+### 12.22  Category-based colouring
+`viz.theme.CATEGORY_BY_AGENT` maps each agent class to a descriptive
+category.  The chart helpers use this mapping so that colours remain
+consistent across plots.  Update the dictionary before plotting to apply a
+bespoke palette or to register new agents.
+
+```python
+from pa_core.viz import theme, risk_return
+
+theme.CATEGORY_BY_AGENT["OverlayOptionsAgent"] = "External Portable Alpha"
+fig = risk_return.make(df_summary)
+fig.show()
+```
+
+### 12.23  Archiving figures
+Every visualisation returns a `go.Figure`.  Use Plotly's built‑in serializers
+to save static SVG or the full JSON specification alongside model outputs.
+
+```python
+fig = sharpe_ladder.make(df_summary)
+fig.write_image("ladder.svg")
+with open("ladder.json", "w") as fh:
+    fh.write(fig.to_json())
 ```
 
 
