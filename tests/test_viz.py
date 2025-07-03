@@ -2,7 +2,15 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 
-from pa_core.viz import risk_return, fan, path_dist, sharpe_ladder
+from pa_core.viz import (
+    risk_return,
+    fan,
+    path_dist,
+    sharpe_ladder,
+    rolling_panel,
+    surface,
+    pptx_export,
+)
 
 
 def test_risk_return_make():
@@ -37,3 +45,23 @@ def test_sharpe_ladder():
     fig = sharpe_ladder.make(df)
     assert isinstance(fig, go.Figure)
     fig.to_json()
+
+
+def test_rolling_panel_and_surface_and_pptx(tmp_path):
+    arr = np.random.normal(size=(20, 24))
+    panel_fig = rolling_panel.make(arr)
+    assert isinstance(panel_fig, go.Figure)
+    panel_fig.to_json()
+
+    grid = pd.DataFrame({
+        "AE_leverage": [1, 1, 2, 2],
+        "ExtPA_frac": [0.2, 0.4, 0.2, 0.4],
+        "Sharpe": [0.4, 0.5, 0.55, 0.6],
+    })
+    surf_fig = surface.make(grid)
+    assert isinstance(surf_fig, go.Figure)
+    surf_fig.to_json()
+
+    out = tmp_path / "out.pptx"
+    pptx_export.save([panel_fig, surf_fig], out)
+    assert out.exists()
