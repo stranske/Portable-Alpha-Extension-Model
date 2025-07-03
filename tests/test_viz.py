@@ -22,6 +22,10 @@ from pa_core.viz import (
     grid_heatmap,
     panel,
     violin,
+    rolling_corr_heatmap,
+    exposure_timeline,
+    gauge,
+    radar,
 )
 
 
@@ -167,5 +171,33 @@ def test_violin_make():
     fig = violin.make(arr, by_month=True)
     assert isinstance(fig, go.Figure)
     fig.to_json()
+
+
+def test_new_viz_helpers():
+    arr = np.random.normal(size=(10, 12))
+    heat_fig = rolling_corr_heatmap.make(arr, window=3)
+    assert isinstance(heat_fig, go.Figure)
+    heat_fig.to_json()
+
+    df_cap = pd.DataFrame({
+        "A": [100, 120, 110],
+        "B": [50, 60, 55],
+    }, index=[0, 1, 2])
+    exp_fig = exposure_timeline.make(df_cap)
+    assert isinstance(exp_fig, go.Figure)
+    exp_fig.to_json()
+
+    summary = pd.DataFrame({"TrackingErr": [0.02]})
+    gauge_fig = gauge.make(summary)
+    assert isinstance(gauge_fig, go.Figure)
+    gauge_fig.to_json()
+
+    metrics = pd.DataFrame({
+        "TE": [0.02, 0.03],
+        "ER": [0.05, 0.06],
+    }, index=["Scenario1", "Scenario2"])
+    radar_fig = radar.make(metrics)
+    assert isinstance(radar_fig, go.Figure)
+    radar_fig.to_json()
 
 
