@@ -26,6 +26,10 @@ from pa_core.viz import (
     exposure_timeline,
     gauge,
     radar,
+    scatter_matrix,
+    risk_return_bubble,
+    rolling_var,
+    breach_calendar,
 )
 
 
@@ -199,5 +203,36 @@ def test_new_viz_helpers():
     radar_fig = radar.make(metrics)
     assert isinstance(radar_fig, go.Figure)
     radar_fig.to_json()
+
+
+def test_extra_viz_helpers():
+    df = pd.DataFrame({
+        "AnnReturn": [0.05, 0.04],
+        "AnnVol": [0.02, 0.03],
+        "TrackingErr": [0.01, 0.015],
+        "Capital": [100, 200],
+        "ShortfallProb": [0.02, 0.03],
+    })
+    bubble_fig = risk_return_bubble.make(df)
+    assert isinstance(bubble_fig, go.Figure)
+    bubble_fig.to_json()
+
+    arr = np.random.normal(size=(10, 12))
+    var_fig = rolling_var.make(arr, window=3)
+    assert isinstance(var_fig, go.Figure)
+    var_fig.to_json()
+
+    summary = pd.DataFrame({
+        "Month": [0, 1, 2],
+        "TrackingErr": [0.02, 0.04, 0.01],
+        "ShortfallProb": [0.01, 0.15, 0.02],
+    })
+    breach_fig = breach_calendar.make(summary)
+    assert isinstance(breach_fig, go.Figure)
+    breach_fig.to_json()
+
+    sm_fig = scatter_matrix.make(df[["AnnReturn", "AnnVol", "TrackingErr"]])
+    assert isinstance(sm_fig, go.Figure)
+    sm_fig.to_json()
 
 
