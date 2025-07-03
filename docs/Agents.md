@@ -443,6 +443,25 @@ The Streamlit app may reuse the same large path matrices across widgets. Use
 `@st.cache_data` with an explicit TTL to prevent repeated computations while
 keeping memory use in check.
 
+### 12.16  Animation & video export
+For marketing or board presentations, animated graphics can illustrate how risk
+metrics evolve over time. Plotly supports `plotly.io.write_image` with a GIF or
+MP4 writer installed (e.g. `kaleido`).  The CLI wrapper exposes an `--gif`
+flag that iterates over months and saves the resulting animation under
+`plots/`.
+
+### 12.17  Real-time dashboard refresh
+When simulations run continuously, Streamlit widgets can poll for new output
+files on an interval.  Use `st.experimental_rerun()` inside a timer thread to
+reload figures without manual refresh.  Keep the data layer read-only so users
+cannot accidentally rerun heavy calculations.
+
+### 12.18  Accessibility considerations
+All charts must remain readable for colour-blind users and screen readers.
+Provide descriptive titles (`fig.update_layout(title_text="..."`) and add
+alt-text for exported images.  Stick to the WCAG contrast ratios defined in
+`viz.theme` and avoid relying solely on hue to convey meaning.
+
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
