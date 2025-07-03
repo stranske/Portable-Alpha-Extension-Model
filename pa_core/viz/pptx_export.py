@@ -6,6 +6,7 @@ import io
 
 import plotly.graph_objects as go
 from pptx import Presentation
+from pptx.util import Inches
 
 
 def save(figs: Iterable[go.Figure], path: str | Path) -> None:
@@ -15,8 +16,8 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
         slide = pres.slides.add_slide(pres.slide_layouts[5])
         try:
             img_bytes = fig.to_image(format="png")
-            slide.shapes.add_picture(io.BytesIO(img_bytes), 0, 0)
+            slide.shapes.add_picture(io.BytesIO(img_bytes), Inches(0), Inches(0))
         except Exception:
             # Fallback: ignore export errors
             pass
-    pres.save(path)
+    pres.save(str(path))
