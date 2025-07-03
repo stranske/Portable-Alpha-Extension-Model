@@ -4,3 +4,5 @@ __pycache__/
 pa_core/**/__pycache__/
 tests/__pycache__/
 .ipynb_checkpoints/
+
+*.egg-info/

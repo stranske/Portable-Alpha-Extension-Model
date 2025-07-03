@@ -22,7 +22,11 @@ def make(paths_map: Mapping[str, pd.DataFrame | np.ndarray]) -> go.Figure:
     tmpl = theme.TEMPLATE
     if isinstance(tmpl, str):
         tmpl = pio.get_template(tmpl)
-    palette = getattr(getattr(tmpl.layout, "colorway", None), "copy", lambda: [])() or pio.templates["plotly"].layout.colorway
+    layout = getattr(tmpl, "layout", {})
+    palette = (
+        list(getattr(layout, "colorway", []) or getattr(layout, "get", lambda _k, _d=None: _d)("colorway", []))
+        or list(pio.templates["plotly"].layout.colorway)
+    )
     cat_to_color: dict[str, str] = {}
 
     for name, data in paths_map.items():
