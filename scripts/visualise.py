@@ -14,6 +14,7 @@ from pa_core.viz import (
     surface,
     pptx_export,
     html_export,
+    animation,
 )
 
 
@@ -67,7 +68,10 @@ def main(argv: list[str] | None = None) -> None:
     if args.pptx:
         pptx_export.save([fig], f"{stem}.pptx")
     if args.gif:
-        fig.write_image(f"{stem}.gif")
+        if df_paths is None:
+            raise FileNotFoundError(parquet_path)
+        anim = animation.make(df_paths)
+        anim.write_image(f"{stem}.gif")
     if args.html:
         html_export.save(fig, f"{stem}.html")
 

@@ -281,6 +281,10 @@ class MyNewAgent(BaseAgent):
 | `path_dist.make`    | same `df_paths`                               | `go.Figure` | Histogram with toggleable CDF view |
 | `corr_heatmap.make` | dict of agent → df_paths                      | `go.Figure` | Monthly return ρ |
 | `sharpe_ladder.make`| `df_summary`                                  | `go.Figure` | Sorted bar; hover shows ExcessReturn |
+| `rolling_panel.make`| `df_paths`                                    | `go.Figure` | 3× rolling drawdown, TE and Sharpe |
+| `surface.make`      | parameter grid                                | `go.Figure` | 3‑D risk/return surface |
+| `category_pie.make` | agent → capital mapping                       | `go.Figure` | Donut by category |
+| `animation.make`    | `df_paths`                                    | `go.Figure` | Animated cumulative return |
 
 *All functions must be **pure** (no I/O) and honour the colour‑blind‑safe palette defined in `viz.theme.TEMPLATE`.*
 
@@ -449,9 +453,10 @@ keeping memory use in check.
 ### 12.16  Animation & video export
 For marketing or board presentations, animated graphics can illustrate how risk
 metrics evolve over time. Plotly supports `plotly.io.write_image` with a GIF or
-MP4 writer installed (e.g. `kaleido`).  The CLI wrapper exposes an `--gif`
-flag that iterates over months and saves the resulting animation under
-`plots/`.
+MP4 writer installed (e.g. `kaleido`).  Call `viz.animation.make(df_paths)` to
+build an animated figure of the median cumulative return. The CLI wrapper
+exposes an `--gif` flag that uses this helper and saves the resulting file
+under `plots/`.
 
 ### 12.17  Real-time dashboard refresh
 When simulations run continuously, Streamlit widgets can poll for new output
@@ -532,6 +537,16 @@ cap = {
 fig = category_pie.make(cap)
 fig.show()
 ```
+
+### 12.25  Animated funding path
+`viz.animation.make` builds a Plotly figure with frames showing how the median
+cumulative return evolves month by month. Use the CLI flag `--gif` to export the
+animation:
+
+```bash
+python scripts/visualise.py --plot fan --xlsx Outputs.xlsx --gif
+```
+The resulting GIF in `plots/` can be embedded in presentations or emails.
 
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*

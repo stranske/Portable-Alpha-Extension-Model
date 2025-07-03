@@ -11,6 +11,7 @@ from . import surface
 from . import pptx_export
 from . import html_export
 from . import category_pie
+from . import animation
 
 __all__ = [
     "theme",
@@ -24,4 +25,5 @@ __all__ = [
     "pptx_export",
     "html_export",
     "category_pie",
+    "animation",
 ]
