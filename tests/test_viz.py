@@ -35,6 +35,11 @@ from pa_core.viz import (
     capital_treemap,
     corr_network,
     beta_heatmap,
+    beta_scatter,
+    overlay_weighted,
+    factor_bar,
+    factor_matrix,
+    multi_fan,
 )
 
 
@@ -263,5 +268,36 @@ def test_newly_added_viz_helpers():
     beta_fig = beta_heatmap.make(beta_df)
     assert isinstance(beta_fig, go.Figure)
     beta_fig.to_json()
+
+
+def test_additional_new_viz_helpers():
+    df = pd.DataFrame({
+        "TrackingErr": [0.02, 0.03],
+        "Beta": [1.1, 0.9],
+        "Capital": [100, 200],
+        "ShortfallProb": [0.01, 0.2],
+        "Agent": ["A", "B"],
+    })
+    bs_fig = beta_scatter.make(df)
+    assert isinstance(bs_fig, go.Figure)
+    bs_fig.to_json()
+
+    arr = np.random.normal(size=(4, 6))
+    ow_fig = overlay_weighted.make({"A": (arr, 1.0)})
+    assert isinstance(ow_fig, go.Figure)
+    ow_fig.to_json()
+
+    exp_df = pd.DataFrame({"Val": [0.1, 0.2], "Mom": [0.3, -0.1]}, index=["A", "B"])
+    fb_fig = factor_bar.make(exp_df)
+    assert isinstance(fb_fig, go.Figure)
+    fb_fig.to_json()
+
+    fm_fig = factor_matrix.make(exp_df.T)
+    assert isinstance(fm_fig, go.Figure)
+    fm_fig.to_json()
+
+    mf_fig = multi_fan.make(arr, horizons=[3, 5])
+    assert isinstance(mf_fig, go.Figure)
+    mf_fig.to_json()
 
 
