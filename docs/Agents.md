@@ -786,6 +786,41 @@ fig = parallel_coords.make(df_summary[["AnnReturn", "AnnVol", "TrackingErr"]])
 fig.show()
 ```
 
+### 12.53  Capital treemap
+`viz.capital_treemap.make` visualises the hierarchical distribution of capital
+across agent categories using a Plotly treemap.  Pass a mapping of agent names
+to capital amounts; the helper aggregates by
+`viz.theme.CATEGORY_BY_AGENT` when no category mapping is provided.
+
+```python
+from pa_core.viz import capital_treemap
+cap = {"BaseAgent": 500, "ExternalPAAgent": 300, "InternalPAAgent": 200}
+fig = capital_treemap.make(cap)
+fig.show()
+```
+
+### 12.54  Correlation network
+`viz.corr_network.make` draws a network graph where edges connect agents with
+monthly-return correlations above a chosen threshold.  This highlights clusters
+of closely related behaviour.
+
+```python
+from pa_core.viz import corr_network
+fig = corr_network.make({"A": df_a, "B": df_b}, threshold=0.3)
+fig.show()
+```
+
+### 12.55  Beta-exposure heatmap
+Visualise how beta exposure drifts over time with `viz.beta_heatmap.make`.
+Provide a DataFrame indexed by month and columns per agent representing the
+beta value for that period.
+
+```python
+from pa_core.viz import beta_heatmap
+fig = beta_heatmap.make(beta_by_month)
+fig.show()
+```
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
