@@ -21,7 +21,8 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
                 figs[0].write_image(path, format="pdf")
             except Exception:
                 with open(path, "wb") as fh:
-                    fh.write(figs[0].to_json().encode())
+                    json_data = figs[0].to_json() or ""
+                    fh.write(json_data.encode())
         return
 
     merger = PdfMerger()
@@ -33,7 +34,8 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
             merger.append(buf)
         except Exception:
             # fallback to JSON page
-            tmp = io.BytesIO(fig.to_json().encode())
+            json_data = fig.to_json() or ""
+            tmp = io.BytesIO(json_data.encode())
             merger.append(tmp)
     with open(path, "wb") as fh:
         merger.write(fh)
