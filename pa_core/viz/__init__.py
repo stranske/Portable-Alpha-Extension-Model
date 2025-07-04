@@ -37,6 +37,29 @@ from . import factor_bar
 from . import factor_matrix
 from . import multi_fan
 from . import quantile_fan
+from . import funnel
+from . import geo_exposure
+from . import surface_animation
+from . import surface_slice
+from . import beta_te_scatter
+from . import boxplot
+from . import crossfilter
+from . import dashboard_templates
+from . import delta_heatmap
+from . import factor_timeline
+from . import grid_panel
+from . import hover_sync
+from . import metric_selector
+from . import milestone_timeline
+from . import mosaic
+from . import pdf_report
+from . import quantile_band
+from . import rank_table
+from . import scenario_play
+from . import seasonality_heatmap
+from . import spark_matrix
+from . import triple_scatter
+from . import weighted_stack
 from . import sunburst
 from . import rolling_var
 from . import breach_calendar
@@ -100,4 +123,27 @@ __all__ = [
     "bookmark",
     "widgets",
     "pdf_export",
+    "funnel",
+    "geo_exposure",
+    "surface_animation",
+    "surface_slice",
+    "beta_te_scatter",
+    "boxplot",
+    "crossfilter",
+    "dashboard_templates",
+    "delta_heatmap",
+    "factor_timeline",
+    "grid_panel",
+    "hover_sync",
+    "metric_selector",
+    "milestone_timeline",
+    "mosaic",
+    "pdf_report",
+    "quantile_band",
+    "rank_table",
+    "scenario_play",
+    "seasonality_heatmap",
+    "spark_matrix",
+    "triple_scatter",
+    "weighted_stack",
 ]
