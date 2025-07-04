@@ -32,6 +32,9 @@ from pa_core.viz import (
     breach_calendar,
     moments_panel,
     parallel_coords,
+    capital_treemap,
+    corr_network,
+    beta_heatmap,
 )
 
 
@@ -244,5 +247,21 @@ def test_extra_viz_helpers():
     pc_fig = parallel_coords.make(df[["AnnReturn", "AnnVol", "TrackingErr"]])
     assert isinstance(pc_fig, go.Figure)
     pc_fig.to_json()
+
+
+def test_newly_added_viz_helpers():
+    cap_fig = capital_treemap.make({"A": 100, "B": 200})
+    assert isinstance(cap_fig, go.Figure)
+    cap_fig.to_json()
+
+    arr = np.random.normal(size=(5, 4))
+    net_fig = corr_network.make({"A": arr, "B": arr}, threshold=0.1)
+    assert isinstance(net_fig, go.Figure)
+    net_fig.to_json()
+
+    beta_df = pd.DataFrame({"A": [1, 2], "B": [0.5, 0.6]}, index=[0, 1])
+    beta_fig = beta_heatmap.make(beta_df)
+    assert isinstance(beta_fig, go.Figure)
+    beta_fig.to_json()
 
 
