@@ -821,6 +821,38 @@ fig = beta_heatmap.make(beta_by_month)
 fig.show()
 ```
 
+### 12.56  Factor-exposure bar chart
+Display each sleeve's exposure to common factors (e.g. Value, Momentum) with
+`viz.factor_bar.make`.  Pass a DataFrame whose columns are factor names and
+whose rows are agent labels.  Bars are grouped by
+`viz.theme.CATEGORY_BY_AGENT` so colours stay consistent.
+
+```python
+from pa_core.viz import factor_bar
+fig = factor_bar.make(exposures_df)
+fig.show()
+```
+
+### 12.57  Multi-horizon VaR fan
+`viz.multi_fan.make(df_paths, horizons=[12, 24, 36])` overlays several
+confidence ribbons so PMs can compare 1‑, 2‑ and 3‑year shortfall risks in one
+figure.
+
+### 12.58  TE vs. Beta scatter
+Visualise the relationship between tracking error and beta exposure using
+`viz.beta_scatter.make(df_summary)`.  Points are coloured by shortfall
+probability and sized by capital to emphasise material sleeves.
+
+### 12.59  Weighted overlay
+`viz.overlay_weighted.make` extends the basic overlay by weighting each path by
+the invested capital.  This highlights which sleeve dominates the cumulative
+return profile.
+
+### 12.60  Factor-sensitivity matrix
+`viz.factor_matrix.make(df)` plots a heatmap of factor sensitivities across
+agents. Rows represent factors and columns correspond to agent names.  Colours
+follow the `viz.theme` palette so risk contributions are easy to compare.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
