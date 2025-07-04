@@ -1012,6 +1012,39 @@ than a simple histogram.
 that lets users swap which metric (e.g. CVaR, Sharpe) appears on the
 risk‑return scatter’s y‑axis without regenerating all figures.
 
+### 12.89  Boxplot distribution
+`viz.boxplot.make(df_paths)` draws a boxplot of monthly returns for each agent
+so distribution asymmetry jumps out. Pass a `(n_sim, n_months)` array or a
+mapping of agent → array. The helper colours each trace using
+`viz.theme.CATEGORY_BY_AGENT`.
+
+```python
+from pa_core.viz import boxplot
+fig = boxplot.make({"Base": df_base, "AE": df_ae})
+fig.show()
+```
+
+### 12.90  Delta heatmap
+Compare two parameter grids with `viz.delta_heatmap.make(df_a, df_b)`. Values in
+`df_b` minus those in `df_a` are plotted as a diverging-colour heatmap so the
+impact of tweaking leverage or capital shares is immediately clear.
+
+### 12.91  Rolling quantile band
+`viz.quantile_band.make(df_paths, quantiles=(0.1, 0.9), window=12)` overlays a
+rolling high/low quantile ribbon on top of the median path. This highlights how
+tail risk tightens or widens over time.
+
+### 12.92  TE–Beta–Return 3‑D scatter
+For multi-factor diagnostics use
+`viz.triple_scatter.make(df_summary)` which plots tracking error, beta and
+excess return on three axes. Marker size scales with the `Capital` column and
+hover text lists CVaR.
+
+### 12.93  Factor-exposure timeline
+`viz.factor_timeline.make(df)` visualises each agent’s factor exposures month by
+month as stacked lines. The DataFrame should have a MultiIndex `(Month, Agent)`
+and factor columns. Use this to check style drift over the simulation horizon.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
