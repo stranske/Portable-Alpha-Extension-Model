@@ -987,6 +987,31 @@ windows.
 `choropleth` or `scatter_geo`. Pass `Region` and `Exposure` columns to highlight
 concentration risk across geographies.
 
+### 12.84  Seasonality heatmap
+`viz.seasonality_heatmap.make(df_paths)` arranges monthly returns by year and
+month in a heatmap so seasonal patterns jump out.  The DataFrame index should be
+a `(Year, Month)` MultiIndex or equivalent columns.
+
+### 12.85  Beta–TE scatter
+`viz.beta_te_scatter.make(df_summary)` plots beta exposure on the x‑axis against
+tracking error on the y‑axis. Points inherit colours from
+`viz.theme.CATEGORY_BY_AGENT` and scale by the `Capital` column.
+
+### 12.86  Funding milestone timeline
+Use `viz.milestone_timeline.make(events, fig)` to annotate key funding events on
+top of the cumulative-return fan.  Each event is a `(month, label)` tuple and
+the helper places a marker plus text box using the standard theme colours.
+
+### 12.87  Outcome mosaic
+`viz.mosaic.make(df_paths)` compresses final-return probabilities into a square
+grid of coloured tiles.  This highlights skew and tail weight more intuitively
+than a simple histogram.
+
+### 12.88  Interactive metric selector
+`viz.metric_selector.make(df_summary, metrics)` returns a small Streamlit widget
+that lets users swap which metric (e.g. CVaR, Sharpe) appears on the
+risk‑return scatter’s y‑axis without regenerating all figures.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
