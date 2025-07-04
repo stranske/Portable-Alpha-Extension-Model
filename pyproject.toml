@@ -1,6 +1,7 @@
 [tool.ruff]
 line-length = 88
 extend-ignore = ["E501"]
+extend-exclude = ["archive/*"]
 
 [tool.setuptools.packages.find]
 where = ["."]

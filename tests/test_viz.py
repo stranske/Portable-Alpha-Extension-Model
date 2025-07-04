@@ -42,6 +42,11 @@ from pa_core.viz import (
     factor_matrix,
     multi_fan,
     quantile_fan,
+    horizon_slicer,
+    inset,
+    data_quality,
+    bookmark,
+    pdf_export,
 )
 
 
@@ -317,5 +322,29 @@ def test_te_cvar_scatter_and_quantile_fan():
     fig2 = quantile_fan.make(arr, quantiles=(0.1, 0.9))
     assert isinstance(fig2, go.Figure)
     fig2.to_json()
+
+
+def test_horizon_inset_and_quality(tmp_path):
+    arr = np.random.normal(size=(5, 10))
+    fig = horizon_slicer.make(arr)
+    assert isinstance(fig, go.Figure)
+    fig.to_json()
+
+    inset_fig = inset.make(fig, (0, 3, 0.9, 1.1))
+    assert isinstance(inset_fig, go.Figure)
+    inset_fig.to_json()
+
+    err_df = pd.DataFrame([[1, 0], [0, 2]], index=["2024-01", "2024-02"], columns=["A", "B"])
+    qual_fig = data_quality.make(err_df)
+    assert isinstance(qual_fig, go.Figure)
+    qual_fig.to_json()
+
+    bm = bookmark.save(fig)
+    fig2 = bookmark.load(bm)
+    assert isinstance(fig2, go.Figure)
+
+    out = tmp_path / "out.pdf"
+    pdf_export.save(fig2, out)
+    assert out.exists()
 
 
