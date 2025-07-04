@@ -37,6 +37,7 @@ from . import factor_bar
 from . import factor_matrix
 from . import multi_fan
 from . import quantile_fan
+from . import sunburst
 from . import rolling_var
 from . import breach_calendar
 from . import moments_panel
@@ -87,6 +88,7 @@ __all__ = [
     "factor_matrix",
     "multi_fan",
     "quantile_fan",
+    "sunburst",
     "rolling_var",
     "breach_calendar",
     "moments_panel",

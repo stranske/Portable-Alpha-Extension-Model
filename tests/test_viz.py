@@ -42,6 +42,7 @@ from pa_core.viz import (
     factor_matrix,
     multi_fan,
     quantile_fan,
+    sunburst,
     horizon_slicer,
     inset,
     data_quality,
@@ -346,5 +347,16 @@ def test_horizon_inset_and_quality(tmp_path):
     out = tmp_path / "out.pdf"
     pdf_export.save(fig2, out)
     assert out.exists()
+
+
+def test_sunburst_make():
+    df = pd.DataFrame({
+        "Agent": ["A", "A", "B"],
+        "Sub": ["S1", "S2", "S1"],
+        "Return": [0.05, 0.02, -0.01],
+    })
+    fig = sunburst.make(df)
+    assert isinstance(fig, go.Figure)
+    fig.to_json()
 
 
