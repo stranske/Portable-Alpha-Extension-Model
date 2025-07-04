@@ -48,6 +48,28 @@ from pa_core.viz import (
     data_quality,
     bookmark,
     pdf_export,
+    beta_te_scatter,
+    boxplot,
+    crossfilter,
+    dashboard_templates,
+    delta_heatmap,
+    factor_timeline,
+    funnel,
+    geo_exposure,
+    grid_panel,
+    hover_sync,
+    milestone_timeline,
+    mosaic,
+    pdf_report,
+    quantile_band,
+    rank_table,
+    scenario_play,
+    seasonality_heatmap,
+    spark_matrix,
+    surface_animation,
+    surface_slice,
+    triple_scatter,
+    weighted_stack,
 )
 
 
@@ -358,5 +380,84 @@ def test_sunburst_make():
     fig = sunburst.make(df)
     assert isinstance(fig, go.Figure)
     fig.to_json()
+
+
+def test_additional_visualisations(tmp_path):
+    df = pd.DataFrame({
+        "TrackingErr": [0.02],
+        "Beta": [1.0],
+        "AnnReturn": [0.05],
+        "Capital": [100],
+        "AnnVol": [0.02],
+        "Agent": ["A"],
+    })
+    assert isinstance(beta_te_scatter.make(df), go.Figure)
+
+    arr = np.random.normal(size=(5, 4))
+    assert isinstance(boxplot.make(arr), go.Figure)
+
+    fig1 = risk_return.make(df.assign(ShortfallProb=[0.01]))
+    fig2 = sharpe_ladder.make(df)
+    cross = crossfilter.make([fig1, fig2], df)
+    assert isinstance(cross, go.Figure)
+
+    gp = grid_panel.make([fig1, fig2])
+    hover_sync.apply([gp])
+    assert isinstance(gp, go.Figure)
+
+    tpl = dashboard_templates.get("default")
+    assert isinstance(tpl, dict)
+
+    grid_a = pd.DataFrame({
+        "AE_leverage": [1, 2],
+        "ExtPA_frac": [0.2, 0.4],
+        "Sharpe": [0.4, 0.5],
+    })
+    grid_b = pd.DataFrame({
+        "AE_leverage": [1, 2],
+        "ExtPA_frac": [0.2, 0.4],
+        "Sharpe": [0.45, 0.55],
+    })
+    assert isinstance(delta_heatmap.make(grid_a, grid_b), go.Figure)
+
+    expo = pd.DataFrame({"Region": ["United States"], "Exposure": [1.0]})
+    assert isinstance(geo_exposure.make(expo), go.Figure)
+
+    assert isinstance(funnel.make(arr), go.Figure)
+
+    assert isinstance(factor_timeline.make(pd.DataFrame({"F1": [0.1, 0.2]}, index=[0, 1])), go.Figure)
+
+    base_fig = fan.make(arr)
+    events = [(1, "A"), (2, "B")]
+    assert isinstance(milestone_timeline.make(events, base_fig), go.Figure)
+
+    assert isinstance(mosaic.make(arr), go.Figure)
+
+    out = tmp_path / "report.pdf"
+    pdf_report.save([base_fig], out)
+    assert out.exists()
+
+    assert isinstance(quantile_band.make(arr), go.Figure)
+
+    table = rank_table.make(df)
+    assert isinstance(table, pd.DataFrame)
+
+    assert isinstance(scenario_play.make(arr), go.Figure)
+
+    idx = pd.MultiIndex.from_product([[2020, 2021], [0, 1, 2, 3]], names=["Year", "Month"])
+    df_season = pd.DataFrame({"R": arr[:2].reshape(-1)}, index=idx)
+    assert isinstance(seasonality_heatmap.make(df_season), go.Figure)
+
+    df_series = pd.DataFrame({"A": [1, 2, 3]})
+    assert isinstance(spark_matrix.make(df_series), go.Figure)
+
+    assert isinstance(surface_animation.make(grid_a), go.Figure)
+    assert isinstance(surface_slice.make(grid_a), go.Figure)
+
+    assert isinstance(triple_scatter.make(df), go.Figure)
+
+    stack_df = pd.DataFrame({"A": [1, 2], "B": [2, 3]})
+    assert isinstance(weighted_stack.make(stack_df), go.Figure)
+
 
 
