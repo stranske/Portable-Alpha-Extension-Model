@@ -879,25 +879,47 @@ tests where 80 % or 99 % intervals are desired.
 `viz.sunburst.make(df_returns)` visualises the contribution of each sleeve and sub-strategy to the overall portfolio return using a nested sunburst chart. This helps PMs trace where performance came from at a glance.
 
 ### 12.64  Horizon slicer
-`viz.horizon_slicer.make(df_paths)` adds a Plotly range slider so users can focus on a subset of months while preserving the themed styling.
+`viz.horizon_slicer.make(df_paths)` adds a Plotly range slider so users can
+focus on a subset of months while preserving the themed styling. Use this when
+analysing long simulations in Jupyter:
+
+```python
+from pa_core.viz import horizon_slicer
+fig = horizon_slicer.make(df_paths)
+fig.show()
+```
 
 ### 12.65  Inset focus view
-`viz.inset.make(fig, region)` embeds a zoomed-in inset within an existing figure to highlight volatility spikes or crash periods.
+`viz.inset.make(fig, region)` embeds a zoomed-in inset within an existing figure
+to highlight volatility spikes or crash periods. Pass a rectangle `(x0, x1, y0,
+y1)` to define the zoom box.
 
 ### 12.66  Data-quality heatmap
-`viz.data_quality.make(df_errors)` displays missing data or anomaly counts over time, colouring cells by severity so data issues are obvious before plotting performance.
+`viz.data_quality.make(df_errors)` displays missing data or anomaly counts over
+time, colouring cells by severity so data issues are obvious before plotting
+performance. The DataFrame index should hold the observation date and columns
+represent different fields.
 
 ### 12.67  Live update connector
-`viz.live.connect(url, fig)` listens to a WebSocket feed and streams updates to an existing figure. The Streamlit dashboard registers a callback to redraw charts without refreshing the whole page.
+`viz.live.connect(url, fig)` listens to a WebSocket feed and streams updates to
+an existing figure. The Streamlit dashboard registers a callback to redraw
+charts without refreshing the whole page. The helper is async and expects the
+`websockets` package.
 
 ### 12.68  Bookmarkable figures
-`viz.bookmark.save(fig)` returns a JSON blob capturing layout and traces. Load it with `viz.bookmark.load(blob)` to recreate the figure exactly – handy for emailing reproducible views.
+`viz.bookmark.save(fig)` returns a JSON blob capturing layout and traces. Load it
+with `viz.bookmark.load(blob)` to recreate the figure exactly – handy for
+emailing reproducible views or embedding JSON snapshots in the repo.
 
 ### 12.69  Notebook widget helpers
-`viz.widgets.explore(df_summary)` wraps key chart functions in `ipywidgets` controls so quants can tweak parameters interactively inside Jupyter.
+`viz.widgets.explore(df_summary)` wraps key chart functions in `ipywidgets`
+controls so quants can tweak parameters interactively inside Jupyter. Sliders
+let users apply simple transformations without rewriting the plotting code.
 
 ### 12.70  Interactive PDF export
-`viz.pdf_export.save(fig, "chart.pdf")` embeds Plotly HTML in a self-contained PDF so stakeholders can pan and zoom offline.
+`viz.pdf_export.save(fig, "chart.pdf")` embeds Plotly HTML in a self-contained
+PDF so stakeholders can pan and zoom offline. The CLI `--pdf` flag delegates to
+this helper when saving board-pack graphics.
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 

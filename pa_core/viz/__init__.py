@@ -41,6 +41,13 @@ from . import rolling_var
 from . import breach_calendar
 from . import moments_panel
 from . import parallel_coords
+from . import horizon_slicer
+from . import inset
+from . import data_quality
+from . import live
+from . import bookmark
+from . import widgets
+from . import pdf_export
 
 __all__ = [
     "theme",
@@ -84,4 +91,11 @@ __all__ = [
     "breach_calendar",
     "moments_panel",
     "parallel_coords",
+    "horizon_slicer",
+    "inset",
+    "data_quality",
+    "live",
+    "bookmark",
+    "widgets",
+    "pdf_export",
 ]
