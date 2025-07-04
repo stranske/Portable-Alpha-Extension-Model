@@ -12,6 +12,11 @@ setup(
         "openpyxl",
         "pydantic",
         "rich",
+        "plotly>=5.19",
+        "kaleido",
+        "streamlit>=1.35",
+        "python-pptx",
+        "xlsxwriter",
     ],
     python_requires=">=3.7",
 )

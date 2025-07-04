@@ -875,6 +875,30 @@ confidence bounds are required. The helper behaves like `viz.fan.make` but
 lets callers set arbitrary lower and upper quantiles. This is handy for stress
 tests where 80 % or 99 % intervals are desired.
 
+### 12.63  Return-attribution sunburst
+`viz.sunburst.make(df_returns)` visualises the contribution of each sleeve and sub-strategy to the overall portfolio return using a nested sunburst chart. This helps PMs trace where performance came from at a glance.
+
+### 12.64  Horizon slicer
+`viz.horizon_slicer.make(df_paths)` adds a Plotly range slider so users can focus on a subset of months while preserving the themed styling.
+
+### 12.65  Inset focus view
+`viz.inset.make(fig, region)` embeds a zoomed-in inset within an existing figure to highlight volatility spikes or crash periods.
+
+### 12.66  Data-quality heatmap
+`viz.data_quality.make(df_errors)` displays missing data or anomaly counts over time, colouring cells by severity so data issues are obvious before plotting performance.
+
+### 12.67  Live update connector
+`viz.live.connect(url, fig)` listens to a WebSocket feed and streams updates to an existing figure. The Streamlit dashboard registers a callback to redraw charts without refreshing the whole page.
+
+### 12.68  Bookmarkable figures
+`viz.bookmark.save(fig)` returns a JSON blob capturing layout and traces. Load it with `viz.bookmark.load(blob)` to recreate the figure exactly – handy for emailing reproducible views.
+
+### 12.69  Notebook widget helpers
+`viz.widgets.explore(df_summary)` wraps key chart functions in `ipywidgets` controls so quants can tweak parameters interactively inside Jupyter.
+
+### 12.70  Interactive PDF export
+`viz.pdf_export.save(fig, "chart.pdf")` embeds Plotly HTML in a self-contained PDF so stakeholders can pan and zoom offline.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
