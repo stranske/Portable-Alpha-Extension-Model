@@ -863,6 +863,18 @@ agents. The input DataFrame should have factors as the index and agent names as
 columns. Values are visualised using ``go.Heatmap`` with the theme palette so
 risk contributions are easy to compare and export alongside the numeric table.
 
+### 12.61  TE vs. CVaR scatter
+`viz.te_cvar_scatter.make(df_summary)` compares tracking error on the x-axis
+with CVaR on the y-axis. Marker colour follows the shortfall-probability rules
+and size scales with the ``Capital`` column when present. Hover text lists the
+agent name and values so outliers pop out immediately.
+
+### 12.62  Custom quantile fan
+Use `viz.quantile_fan.make(df_paths, quantiles=(0.1, 0.9))` when different
+confidence bounds are required. The helper behaves like `viz.fan.make` but
+lets callers set arbitrary lower and upper quantiles. This is handy for stress
+tests where 80 % or 99 % intervals are desired.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
