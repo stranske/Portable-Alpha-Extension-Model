@@ -14,6 +14,7 @@ def make(df: pd.DataFrame) -> go.Figure:
         palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
     cat_colors: dict[str, str] = {}
     for idx, (agent, row) in enumerate(df.iterrows()):
+        agent = str(agent)
         cat = theme.CATEGORY_BY_AGENT.get(agent, agent)
         if cat not in cat_colors:
             cat_colors[cat] = palette[len(cat_colors) % len(palette)]
