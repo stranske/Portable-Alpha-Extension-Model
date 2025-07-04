@@ -19,6 +19,9 @@ from . import scenario_slider
 from . import data_table
 from . import scenario_viewer
 from . import grid_heatmap
+from . import capital_treemap
+from . import corr_network
+from . import beta_heatmap
 from . import panel
 from . import violin
 from . import rolling_corr_heatmap
@@ -52,6 +55,9 @@ __all__ = [
     "data_table",
     "scenario_viewer",
     "grid_heatmap",
+    "capital_treemap",
+    "corr_network",
+    "beta_heatmap",
     "panel",
     "violin",
     "rolling_corr_heatmap",
