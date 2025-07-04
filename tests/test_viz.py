@@ -36,10 +36,12 @@ from pa_core.viz import (
     corr_network,
     beta_heatmap,
     beta_scatter,
+    te_cvar_scatter,
     overlay_weighted,
     factor_bar,
     factor_matrix,
     multi_fan,
+    quantile_fan,
 )
 
 
@@ -299,5 +301,21 @@ def test_additional_new_viz_helpers():
     mf_fig = multi_fan.make(arr, horizons=[3, 5])
     assert isinstance(mf_fig, go.Figure)
     mf_fig.to_json()
+
+
+def test_te_cvar_scatter_and_quantile_fan():
+    df = pd.DataFrame({
+        "TrackingErr": [0.02, 0.03],
+        "CVaR": [0.05, 0.04],
+        "Agent": ["A", "B"],
+    })
+    fig1 = te_cvar_scatter.make(df)
+    assert isinstance(fig1, go.Figure)
+    fig1.to_json()
+
+    arr = np.random.normal(size=(5, 6))
+    fig2 = quantile_fan.make(arr, quantiles=(0.1, 0.9))
+    assert isinstance(fig2, go.Figure)
+    fig2.to_json()
 
 
