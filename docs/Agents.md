@@ -921,6 +921,31 @@ let users apply simple transformations without rewriting the plotting code.
 PDF so stakeholders can pan and zoom offline. The CLI `--pdf` flag delegates to
 this helper when saving board-pack graphics.
 
+### 12.71  Multi-page PDF report
+`viz.pdf_report.save(figs, "report.pdf")` combines multiple figures into a
+single document with one chart per page.  Use this when exporting an entire
+scenario sweep so that board packs bundle neatly into a single file.
+
+### 12.72  Real-time crossfiltering
+`viz.crossfilter.make(figs, df)` links several charts together so selections in
+one plot update the others. The helper wires up Plotly ``restyle`` callbacks and
+returns a composite figure ready for the dashboard.
+
+### 12.73  Hover-sync helper
+`viz.hover_sync.apply(figs)` keeps hover labels aligned across multiple charts
+showing different metrics.  Moving the cursor on one figure highlights the
+corresponding month or scenario on every other figure in the list.
+
+### 12.74  Surface slice explorer
+`viz.surface_slice.make(grid, axis="AE_leverage")` lets PMs scroll through 3‑D
+risk surfaces by fixing one parameter at a time.  A slider chooses the slice and
+the resulting 2‑D heatmap updates live.
+
+### 12.75  Dashboard layout templates
+`viz.dashboard_templates.get(name)` returns a preconfigured Streamlit layout with
+standard tabs and download buttons. Teams can extend these templates rather than
+recreating common boilerplate for every new dashboard.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
