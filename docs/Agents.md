@@ -946,6 +946,47 @@ the resulting 2‑D heatmap updates live.
 standard tabs and download buttons. Teams can extend these templates rather than
 recreating common boilerplate for every new dashboard.
 
+### 12.76  Monte-Carlo funnel
+`viz.funnel.make(df_paths)` visualises how the distribution of cumulative
+returns widens over time. The helper plots the median alongside configurable
+quantile bands so the "funnel" of outcomes is immediately clear.
+
+### 12.77  Surface animation
+`viz.surface_animation.make(df_grid)` turns a parameter sweep into an animated
+Plotly surface. Each frame represents a different value of the varying
+parameter, letting PMs watch the risk/return landscape shift dynamically.
+
+### 12.78  Grid panel
+Arrange multiple figures on one canvas with `viz.grid_panel.make(figures,
+cols=2)`. The helper wraps Plotly's `make_subplots` and applies the standard
+theme so layout and fonts remain consistent.
+
+### 12.79  Ranking table
+`viz.rank_table.make(df_summary, metric="AnnReturn")` outputs a
+`dash_table.DataTable` sorted by the chosen metric. Conditional formatting uses
+the traffic-light thresholds from `config_thresholds.yaml` so winners and
+laggards pop visually.
+
+### 12.80  Scenario timeline player
+`viz.scenario_play.make(df_paths)` adds play/pause buttons to step through
+cumulative returns month by month. This manual control helps presenters walk an
+audience through key events without scrubbing a video file.
+
+### 12.81  Sparkline matrix
+When analysing dozens of scenarios, `viz.spark_matrix.make(df_series)` renders a
+grid of tiny sparkline charts. Each cell shows a mini cumulative-return curve so
+patterns are immediately obvious.
+
+### 12.82  Weighted stacked bars
+`viz.weighted_stack.make(df)` draws stacked bars whose width encodes horizon
+length. Use this view to compare capital deployment across overlapping time
+windows.
+
+### 12.83  Geographical exposure map
+`viz.geo_exposure.make(df)` visualises exposures by region using Plotly's
+`choropleth` or `scatter_geo`. Pass `Region` and `Exposure` columns to highlight
+concentration risk across geographies.
+
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
 // NEW  
