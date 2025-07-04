@@ -30,6 +30,11 @@ from . import gauge
 from . import radar
 from . import scatter_matrix
 from . import risk_return_bubble
+from . import beta_scatter
+from . import overlay_weighted
+from . import factor_bar
+from . import factor_matrix
+from . import multi_fan
 from . import rolling_var
 from . import breach_calendar
 from . import moments_panel
@@ -49,6 +54,7 @@ __all__ = [
     "category_pie",
     "animation",
     "overlay",
+    "overlay_weighted",
     "waterfall",
     "export_bundle",
     "scenario_slider",
@@ -66,6 +72,10 @@ __all__ = [
     "radar",
     "scatter_matrix",
     "risk_return_bubble",
+    "beta_scatter",
+    "factor_bar",
+    "factor_matrix",
+    "multi_fan",
     "rolling_var",
     "breach_calendar",
     "moments_panel",

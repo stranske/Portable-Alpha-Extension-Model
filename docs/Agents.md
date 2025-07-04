@@ -823,9 +823,12 @@ fig.show()
 
 ### 12.56  Factor-exposure bar chart
 Display each sleeve's exposure to common factors (e.g. Value, Momentum) with
-`viz.factor_bar.make`.  Pass a DataFrame whose columns are factor names and
-whose rows are agent labels.  Bars are grouped by
-`viz.theme.CATEGORY_BY_AGENT` so colours stay consistent.
+`viz.factor_bar.make`. Pass a DataFrame whose **rows** are agent names and
+**columns** are factor labels. Colours are assigned via
+`viz.theme.CATEGORY_BY_AGENT` so that exposures line up visually with the other
+charts. Set ``barmode="group"`` by default so each factor is easy to compare
+across agents.  The helper returns a standard ``go.Figure`` which callers can
+further customise (e.g. switch to ``stack`` mode) if required.
 
 ```python
 from pa_core.viz import factor_bar
@@ -835,23 +838,30 @@ fig.show()
 
 ### 12.57  Multi-horizon VaR fan
 `viz.multi_fan.make(df_paths, horizons=[12, 24, 36])` overlays several
-confidence ribbons so PMs can compare 1‑, 2‑ and 3‑year shortfall risks in one
-figure.
+confidence ribbons so PMs can compare 1‑, 2‑ and 3‑year shortfall risks in a
+single plot. Each horizon is drawn in a different colour with the median path on
+top of a shaded region representing the configured confidence level. Pass a
+sequence of month counts to ``horizons`` to change which ribbons are included.
 
 ### 12.58  TE vs. Beta scatter
 Visualise the relationship between tracking error and beta exposure using
-`viz.beta_scatter.make(df_summary)`.  Points are coloured by shortfall
-probability and sized by capital to emphasise material sleeves.
+`viz.beta_scatter.make(df_summary)`. Points are coloured by shortfall
+probability (green/amber/red) and sized by the ``Capital`` column so more
+material sleeves stand out. Hover text shows the agent name and numeric values
+for quick inspection.
 
 ### 12.59  Weighted overlay
 `viz.overlay_weighted.make` extends the basic overlay by weighting each path by
-the invested capital.  This highlights which sleeve dominates the cumulative
-return profile.
+the invested capital. Pass a mapping ``{"Agent": (paths, capital)}``. Line width
+scales with capital and a dashed trace shows the capital-weighted median across
+all agents. This highlights which sleeve dominates the cumulative return
+profile.
 
 ### 12.60  Factor-sensitivity matrix
 `viz.factor_matrix.make(df)` plots a heatmap of factor sensitivities across
-agents. Rows represent factors and columns correspond to agent names.  Colours
-follow the `viz.theme` palette so risk contributions are easy to compare.
+agents. The input DataFrame should have factors as the index and agent names as
+columns. Values are visualised using ``go.Heatmap`` with the theme palette so
+risk contributions are easy to compare and export alongside the numeric table.
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
