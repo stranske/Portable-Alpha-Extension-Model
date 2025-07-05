@@ -391,6 +391,9 @@ from pa_core.viz import theme
 # Inspect or tweak the palette
 print(theme.TEMPLATE.layout.colorway)
 
+# Background colours are also loaded from ``config_theme.yaml``
+print(theme.TEMPLATE.layout.paper_bgcolor)
+
 # Map new agent classes to existing categories for consistent colours
 theme.CATEGORY_BY_AGENT["OverlayOptionsAgent"] = "External Portable Alpha"
 ```
@@ -405,7 +408,8 @@ theme.reload_theme("my_theme.yaml")
 ```
 
 Editing the YAML file or the mapping dictionary lets Ops adjust visuals without
-changing any plotting code.
+changing any plotting code. ``config_theme.yaml`` now supports ``paper_bgcolor``
+and ``plot_bgcolor`` keys so the GUI background matches corporate colours.
 
 ### 12.12  Annotation & hover tips
 Use Plotly's built‑in helpers to keep charts self‑explanatory:
