@@ -225,9 +225,10 @@ Registry – Factory that turns AgentParams into concrete agent objects.
 ## Next steps & open questions
 
 1. **Parameter defaults** – confirm your latest assumptions (e.g. did rho_E_M drift to 0.05?).  
-2. **Financing spikes per sleeve** – current notebook applies identical spike logic across all sleeves; do you want differentiated parameters for Internal vs. External financing?  
-3. **Random‑seed strategy** – single global RNG or per‑agent sub‑streams (could aid reproducibility when sleeves are added/removed).  
+2. **Financing spikes per sleeve** – current notebook applies identical spike logic across all sleeves; do you want differentiated parameters for Internal vs. External financing?
+3. **Random‑seed strategy** – single global RNG or per‑agent sub‑streams (could aid reproducibility when sleeves are added/removed).
 4. **Outputs.xlsx layout** – retain current sheet order or collapse into one pivot‑table‑ready sheet?
+5. **Dashboard theme** – finalise colour palette and fonts for `viz.theme` so the GUI matches corporate branding.
 
 Kick back any tweaks; happy to iterate.
 
@@ -297,8 +298,11 @@ class MyNewAgent(BaseAgent):
 ### 12.2  Streamlit app (`dashboard/app.py`)
 
 * **Sidebar** – sliders: sims, horizon; multiselect: agents; numeric: risk‑free rate.  
-* **Tabs** – Headline (risk‑return), Funding fan, Path dist, Diagnostics.  
+* **Tabs** – Headline (risk‑return), Funding fan, Path dist, Diagnostics.
 * **Download** – `st.download_button` returns the latest PNGs and `Outputs.xlsx`.
+* **New tabs** – Edit the `PLOTS` mapping in `dashboard/app.py` to register
+  additional `viz` functions. Each key becomes a tab label and the value is the
+  dotted path to the `make` function that builds a `go.Figure`.
 
 ### 12.3  CLI wrapper (`scripts/visualise.py`)
 
