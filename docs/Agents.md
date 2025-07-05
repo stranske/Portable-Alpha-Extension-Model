@@ -297,7 +297,7 @@ class MyNewAgent(BaseAgent):
 
 ### 12.2  Streamlit app (`dashboard/app.py`)
 
-* **Sidebar** – sliders: sims, horizon; multiselect: agents; numeric: risk‑free rate.  
+* **Sidebar** – sliders: sims, horizon; multiselect: agents; numeric: risk‑free rate. Theme YAML path allows on-the-fly rebranding.
 * **Tabs** – Headline (risk‑return), Funding fan, Path dist, Diagnostics.
 * **Download** – `st.download_button` returns the latest PNGs and `Outputs.xlsx`.
 * **New tabs** – Edit the `PLOTS` mapping in `dashboard/app.py` to register
