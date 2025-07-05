@@ -460,4 +460,14 @@ def test_additional_visualisations(tmp_path):
     assert isinstance(weighted_stack.make(stack_df), go.Figure)
 
 
+def test_theme_reload(tmp_path):
+    cfg = tmp_path / "theme.yaml"
+    cfg.write_text("colorway: ['#111111', '#222222']\nfont: DejaVu Sans")
+    from pa_core.viz import theme
+
+    theme.reload_theme(cfg)
+    assert theme.TEMPLATE.layout.font.family == "DejaVu Sans"
+    assert list(theme.TEMPLATE.layout.colorway)[:2] == ["#111111", "#222222"]
+
+
 
