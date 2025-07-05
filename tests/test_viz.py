@@ -462,12 +462,19 @@ def test_additional_visualisations(tmp_path):
 
 def test_theme_reload(tmp_path):
     cfg = tmp_path / "theme.yaml"
-    cfg.write_text("colorway: ['#111111', '#222222']\nfont: DejaVu Sans")
+    cfg.write_text(
+        "colorway: ['#111111', '#222222']\n"
+        "font: DejaVu Sans\n"
+        "paper_bgcolor: '#eeeeee'\n"
+        "plot_bgcolor: '#dddddd'\n"
+    )
     from pa_core.viz import theme
 
     theme.reload_theme(cfg)
     assert theme.TEMPLATE.layout.font.family == "DejaVu Sans"
     assert list(theme.TEMPLATE.layout.colorway)[:2] == ["#111111", "#222222"]
+    assert theme.TEMPLATE.layout.paper_bgcolor == "#eeeeee"
+    assert theme.TEMPLATE.layout.plot_bgcolor == "#dddddd"
 
 
 

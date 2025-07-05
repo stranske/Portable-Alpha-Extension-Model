@@ -14,7 +14,7 @@ if _THRESH_PATH.exists():
 else:
     THRESHOLDS = {}
 
-def _load_theme(path: Path) -> tuple[list[str], str]:
+def _load_theme(path: Path) -> tuple[list[str], str, str, str]:
     if path.exists():
         with open(path, "r", encoding="utf-8") as fh:
             cfg = yaml.safe_load(fh) or {}
@@ -27,6 +27,8 @@ def _load_theme(path: Path) -> tuple[list[str], str]:
             "#984ea3",
         ]
         font = cfg.get("font", "Roboto")
+        paper_bg = cfg.get("paper_bgcolor", "#ffffff")
+        plot_bg = cfg.get("plot_bgcolor", "#ffffff")
     else:
         colors = [
             "#377eb8",
@@ -37,12 +39,19 @@ def _load_theme(path: Path) -> tuple[list[str], str]:
             "#984ea3",
         ]
         font = "Roboto"
-    return colors, font
+        paper_bg = "#ffffff"
+        plot_bg = "#ffffff"
+    return colors, font, paper_bg, plot_bg
 
 
-_COLORWAY, _FONT = _load_theme(_THEME_PATH)
+_COLORWAY, _FONT, _PAPER_BG, _PLOT_BG = _load_theme(_THEME_PATH)
 TEMPLATE = go.layout.Template(
-    layout=dict(colorway=_COLORWAY, font=dict(family=_FONT))
+    layout=dict(
+        colorway=_COLORWAY,
+        font=dict(family=_FONT),
+        paper_bgcolor=_PAPER_BG,
+        plot_bgcolor=_PLOT_BG,
+    )
 )
 
 # Map agent class -> category name used for consistent colours
@@ -71,8 +80,13 @@ def reload_thresholds(path: str | Path = _THRESH_PATH) -> None:
 
 def reload_theme(path: str | Path = _THEME_PATH) -> None:
     """Reload colour palette and font from a YAML file."""
-    global _COLORWAY, _FONT, TEMPLATE
-    _COLORWAY, _FONT = _load_theme(Path(path))
+    global _COLORWAY, _FONT, _PAPER_BG, _PLOT_BG, TEMPLATE
+    _COLORWAY, _FONT, _PAPER_BG, _PLOT_BG = _load_theme(Path(path))
     TEMPLATE = go.layout.Template(
-        layout=dict(colorway=_COLORWAY, font=dict(family=_FONT))
+        layout=dict(
+            colorway=_COLORWAY,
+            font=dict(family=_FONT),
+            paper_bgcolor=_PAPER_BG,
+            plot_bgcolor=_PLOT_BG,
+        )
     )
