@@ -634,10 +634,11 @@ files for each figure in one go.  This is handy for archiving runs or sharing vi
 email.
 
 ### 12.34  Chart gallery notebook
-A Jupyter notebook `viz_gallery.ipynb` will demonstrate each function with
-sample data. PMs can tweak parameters live to see how colours and thresholds
-respond. The gallery acts as living documentation for Ops and quants
-experimenting with new sleeves.
+A Jupyter notebook `viz_gallery.ipynb` under the project root now demonstrates
+each function with sample data. PMs can tweak parameters live to see how
+colours and thresholds respond.  Launch it after running `pip install -e .` to
+explore the charts interactively.  The gallery acts as living documentation for
+Ops and quants experimenting with new sleeves.
 
 ### 12.35  Data tables and grids
 A helper `viz.data_table.make(df)` will render a sortable
