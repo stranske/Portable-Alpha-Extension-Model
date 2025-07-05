@@ -1,8 +1,11 @@
 import importlib
-import pandas as pd
-import streamlit as st
 from pathlib import Path
 import time
+
+import pandas as pd
+import streamlit as st
+
+from pa_core.viz import theme
 
 PLOTS: dict[str, str] = {
     "Headline": "pa_core.viz.risk_return.make",
@@ -11,6 +14,14 @@ PLOTS: dict[str, str] = {
 }
 
 _DEF_XLSX = "Outputs.xlsx"
+_DEF_THEME = "config_theme.yaml"
+
+
+def apply_theme(path: str) -> None:
+    """Reload the dashboard colour palette."""
+    p = Path(path)
+    if p.exists():
+        theme.reload_theme(str(p))
 
 
 def _get_plot_fn(path: str):
@@ -30,6 +41,8 @@ def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
 def main() -> None:
     st.title("Portable Alpha Dashboard")
     xlsx = st.sidebar.text_input("Results file", _DEF_XLSX)
+    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    apply_theme(theme_path)
     if not Path(xlsx).exists():
         st.warning(f"File {xlsx} not found")
         st.stop()
