@@ -381,7 +381,8 @@ This stores themed images under `plots/` ready for board packs.
 
 ### 12.11  Customising the theme
 `viz.theme` centralises the Plotly template and colour mapping used across all
-charts. Colours come from a colour‑blind‑safe palette and thresholds are loaded
+charts. Colours and fonts now load from `config_theme.yaml` so Ops can align the
+dashboard with corporate branding. Traffic‑light thresholds are still loaded
 from `config_thresholds.yaml`.
 
 ```python
@@ -398,6 +399,9 @@ To tweak the traffic-light thresholds at runtime (e.g. in a notebook), call:
 
 ```python
 theme.reload_thresholds("custom_thresholds.yaml")
+
+# Reload colours or fonts on the fly
+theme.reload_theme("my_theme.yaml")
 ```
 
 Editing the YAML file or the mapping dictionary lets Ops adjust visuals without
