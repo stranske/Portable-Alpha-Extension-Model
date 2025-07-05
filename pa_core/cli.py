@@ -78,6 +78,24 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         default=None,
         help="Random seed for reproducible simulations",
     )
+    parser.add_argument("--png", action="store_true", help="Export PNG chart")
+    parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
+    parser.add_argument(
+        "--pptx",
+        action="store_true",
+        help="Export PPTX file with charts",
+    )
+    parser.add_argument("--html", action="store_true", help="Export HTML chart")
+    parser.add_argument(
+        "--gif",
+        action="store_true",
+        help="Export GIF animation of monthly paths",
+    )
+    parser.add_argument(
+        "--dashboard",
+        action="store_true",
+        help="Launch Streamlit dashboard after run",
+    )
     args = parser.parse_args(argv)
 
     set_backend(args.backend)
@@ -179,5 +197,43 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         filename=args.output,
         pivot=args.pivot,
     )
+
+    if any([args.png, args.pdf, args.pptx, args.html, args.gif, args.dashboard]):
+        from pathlib import Path
+        from . import viz
+        plots = Path("plots")
+        plots.mkdir(exist_ok=True)
+        if "ShortfallProb" in summary.columns:
+            fig = viz.risk_return.make(summary)
+        else:
+            fig = viz.sharpe_ladder.make(summary)
+        stem = plots / "summary"
+        if args.png:
+            try:
+                fig.write_image(stem.with_suffix(".png"))
+            except Exception:
+                pass
+        if args.pdf:
+            try:
+                viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))
+            except Exception:
+                pass
+        if args.pptx:
+            try:
+                viz.pptx_export.save([fig], str(stem.with_suffix(".pptx")))
+            except Exception:
+                pass
+        if args.html:
+            viz.html_export.save(fig, str(stem.with_suffix(".html")))
+        if args.gif:
+            arr = next(iter(raw_returns_dict.values())).to_numpy()
+            anim = viz.animation.make(arr)
+            try:
+                anim.write_image(str(plots / "paths.gif"))
+            except Exception:
+                pass
+        if args.dashboard:
+            import subprocess
+            subprocess.run(["streamlit", "run", "dashboard/app.py"], check=False)
 
 
