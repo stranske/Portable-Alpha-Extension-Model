@@ -39,6 +39,11 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--pptx", action="store_true")
     parser.add_argument("--gif", action="store_true")
     parser.add_argument("--html", action="store_true")
+    parser.add_argument(
+        "--alt-text",
+        dest="alt_text",
+        help="Alt text for HTML/PPTX exports",
+    )
     args = parser.parse_args(argv)
 
     df_summary = pd.read_excel(args.xlsx, sheet_name="Summary")
@@ -66,14 +71,14 @@ def main(argv: list[str] | None = None) -> None:
     if args.pdf:
         fig.write_image(f"{stem}.pdf")
     if args.pptx:
-        pptx_export.save([fig], f"{stem}.pptx")
+        pptx_export.save([fig], f"{stem}.pptx", alt_texts=[args.alt_text] if args.alt_text else None)
     if args.gif:
         if df_paths is None:
             raise FileNotFoundError(parquet_path)
         anim = animation.make(df_paths)
         anim.write_image(f"{stem}.gif")
     if args.html:
-        html_export.save(fig, f"{stem}.html")
+        html_export.save(fig, f"{stem}.html", alt_text=args.alt_text)
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry

@@ -311,7 +311,7 @@ class MyNewAgent(BaseAgent):
 python scripts/visualise.py \
   --plot risk_return --xlsx Outputs.xlsx \
   --agent InternalPAAgent \
-  --png --pdf
+  --png --pdf --alt-text "Risk-return chart"
 Behaviour: loads Excel once → routes to viz.* → saves images under plots/.
 
 Add if __name__ == "__main__": guard so Codex can insert into package.
@@ -489,7 +489,8 @@ calculations.
 All charts must remain readable for colour-blind users and screen readers.
 Provide descriptive titles (`fig.update_layout(title_text="..."`) and add
 alt-text for exported images.  The ``viz.html_export.save`` and
-``viz.pptx_export.save`` helpers accept an ``alt_text`` argument so
+``viz.pptx_export.save`` helpers accept an ``alt_text`` argument, and the
+CLI wrapper exposes ``--alt-text`` for convenience so
 screen readers can describe the figures. Stick to the WCAG contrast ratios
 defined in ``viz.theme`` and avoid relying solely on hue to convey meaning.
 
@@ -1067,6 +1068,7 @@ and factor columns. Use this to check style drift over the simulation horizon.
 --png / --pdf / --pptx     Static exports (can be combined)
 --html                    Save interactive HTML
 --gif                     Animated export of monthly paths
+--alt-text TEXT           Alt text for HTML/PPTX exports
 --dashboard                Launch Streamlit dashboard after run
 
 ```
