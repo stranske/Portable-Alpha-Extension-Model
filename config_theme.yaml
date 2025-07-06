@@ -1,10 +1,11 @@
 colorway:
-  - "#004b8d"
-  - "#b5d334"
-  - "#f39200"
-  - "#7a2f8f"
-  - "#0092d8"
-  - "#c8222f"
-font: "Open Sans"
-paper_bgcolor: "#ffffff"
-plot_bgcolor: "#ffffff"
+  # Finalised corporate palette
+  - "#003366"  # Navy
+  - "#0070c0"  # Blue
+  - "#00b050"  # Green
+  - "#ff9900"  # Orange
+  - "#7030a0"  # Purple
+  - "#ff0000"  # Red
+font: "Source Sans Pro"
+paper_bgcolor: "#f7f7f7"
+plot_bgcolor: "#f7f7f7"
