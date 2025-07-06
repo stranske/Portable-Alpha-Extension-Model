@@ -224,10 +224,10 @@ Registry – Factory that turns AgentParams into concrete agent objects.
 
 ## Next steps & open questions
 
-1. **Parameter defaults** – confirm your latest assumptions (e.g. did rho_E_M drift to 0.05?).  
-2. **Financing spikes per sleeve** – current notebook applies identical spike logic across all sleeves; do you want differentiated parameters for Internal vs. External financing?
-3. **Random‑seed strategy** – single global RNG or per‑agent sub‑streams (could aid reproducibility when sleeves are added/removed).
-4. **Outputs.xlsx layout** – retain current sheet order or collapse into one pivot‑table‑ready sheet?
+1. **Parameter defaults** – defaults are now locked in `config.py` (e.g. `rho_E_M = 0.0`).
+2. **Financing spikes per sleeve** – differentiated via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob` fields.
+3. **Random‑seed strategy** – `spawn_agent_rngs` creates deterministic per‑agent generators when a seed is supplied.
+4. **Outputs.xlsx layout** – existing sheet order retained; pass `--pivot` for a long-format sheet.
 5. **Dashboard theme** – ✅ corporate palette and fonts locked in `config_theme.yaml`.
 
 Kick back any tweaks; happy to iterate.
