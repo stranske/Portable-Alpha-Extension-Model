@@ -150,7 +150,10 @@ class RunFlags:
     png: bool = False
     pdf: bool = False
     pptx: bool = False
-    launch_dashboard: bool = False   # streamlit run after sim
+    html: bool = False
+    gif: bool = False
+    dashboard: bool = False   # streamlit run after sim
+    alt_text: str | None = None
 
 
 
@@ -173,7 +176,7 @@ Excel – `reporting/excel.py` now calls `viz.risk_return.make()` and embeds t
 
 Static exports – scripts/visualise.py accepts --png --pdf --pptx; each flag triggers fig.write_image() or python‑pptx helper.
 
-Dashboard – `dashboard/app.py` caches loaded data with ``@st.cache_data`` and offers an optional auto‑refresh checkbox. Launch with ``--launch_dashboard`` or run ``streamlit run dashboard/app.py``.
+Dashboard – `dashboard/app.py` caches loaded data with ``@st.cache_data`` and offers an optional auto‑refresh checkbox. Launch with ``--dashboard`` or run ``streamlit run dashboard/app.py``.
 
 
 8  Testing & CI
