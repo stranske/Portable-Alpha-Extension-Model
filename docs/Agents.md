@@ -488,8 +488,10 @@ calculations.
 ### 12.18  Accessibility considerations
 All charts must remain readable for colour-blind users and screen readers.
 Provide descriptive titles (`fig.update_layout(title_text="..."`) and add
-alt-text for exported images.  Stick to the WCAG contrast ratios defined in
-`viz.theme` and avoid relying solely on hue to convey meaning.
+alt-text for exported images.  The ``viz.html_export.save`` and
+``viz.pptx_export.save`` helpers accept an ``alt_text`` argument so
+screen readers can describe the figures. Stick to the WCAG contrast ratios
+defined in ``viz.theme`` and avoid relying solely on hue to convey meaning.
 
 ### 12.19  Rolling-metrics panel
 Plot rolling drawdown, tracking error and Sharpe ratios in a single subplot
