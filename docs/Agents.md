@@ -228,7 +228,7 @@ Registry – Factory that turns AgentParams into concrete agent objects.
 2. **Financing spikes per sleeve** – current notebook applies identical spike logic across all sleeves; do you want differentiated parameters for Internal vs. External financing?
 3. **Random‑seed strategy** – single global RNG or per‑agent sub‑streams (could aid reproducibility when sleeves are added/removed).
 4. **Outputs.xlsx layout** – retain current sheet order or collapse into one pivot‑table‑ready sheet?
-5. **Dashboard theme** – finalise colour palette and fonts for `viz.theme` so the GUI matches corporate branding.
+5. **Dashboard theme** – ✅ corporate palette and fonts locked in `config_theme.yaml`.
 
 Kick back any tweaks; happy to iterate.
 
@@ -381,9 +381,11 @@ This stores themed images under `plots/` ready for board packs.
 
 ### 12.11  Customising the theme
 `viz.theme` centralises the Plotly template and colour mapping used across all
-charts. Colours and fonts now load from `config_theme.yaml` so Ops can align the
-dashboard with corporate branding. Traffic‑light thresholds are still loaded
-from `config_thresholds.yaml`.
+charts. Colours and fonts now load from `config_theme.yaml` so the dashboard
+matches corporate branding. The default palette uses navy, blue, green, orange,
+purple and red (`#003366`, `#0070c0`, `#00b050`, `#ff9900`, `#7030a0`,
+`#ff0000`) with the "Source Sans Pro" font on a light grey background. Traffic
+light thresholds are still loaded from `config_thresholds.yaml`.
 
 ```python
 from pa_core.viz import theme
