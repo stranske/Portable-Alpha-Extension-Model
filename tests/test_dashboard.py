@@ -3,8 +3,8 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 sys.path.append(str(root))
-from dashboard.app import apply_theme
-from pa_core.viz import theme
+from dashboard.app import apply_theme  # noqa: E402
+from pa_core.viz import theme  # noqa: E402
 
 
 def test_apply_theme(tmp_path):

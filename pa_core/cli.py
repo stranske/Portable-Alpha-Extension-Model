@@ -7,6 +7,7 @@ CLI flags:
     --png / --pdf / --pptx  Static exports (can be combined)
     --html                 Save interactive HTML
     --gif                  Animated export of monthly paths
+    --alt-text TEXT        Alt text for HTML/PPTX exports
     --dashboard            Launch Streamlit dashboard after run
 """
 from __future__ import annotations
@@ -90,6 +91,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "--gif",
         action="store_true",
         help="Export GIF animation of monthly paths",
+    )
+    parser.add_argument(
+        "--alt-text",
+        dest="alt_text",
+        help="Alt text for HTML/PPTX exports",
     )
     parser.add_argument(
         "--dashboard",
@@ -220,11 +226,19 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 pass
         if args.pptx:
             try:
-                viz.pptx_export.save([fig], str(stem.with_suffix(".pptx")))
+                viz.pptx_export.save(
+                    [fig],
+                    str(stem.with_suffix(".pptx")),
+                    alt_texts=[args.alt_text] if args.alt_text else None,
+                )
             except Exception:
                 pass
         if args.html:
-            viz.html_export.save(fig, str(stem.with_suffix(".html")))
+            viz.html_export.save(
+                fig,
+                str(stem.with_suffix(".html")),
+                alt_text=args.alt_text,
+            )
         if args.gif:
             arr = next(iter(raw_returns_dict.values())).to_numpy()
             anim = viz.animation.make(arr)
@@ -235,5 +249,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         if args.dashboard:
             import subprocess
             subprocess.run(["streamlit", "run", "dashboard/app.py"], check=False)
+
+
+if __name__ == "__main__":  # pragma: no cover - CLI entry point
+    main()
 
 
