@@ -123,8 +123,17 @@ def test_rolling_panel_and_surface_and_pptx(tmp_path):
     surf_fig.to_json()
 
     out = tmp_path / "out.pptx"
-    pptx_export.save([panel_fig, surf_fig], out)
+    pptx_export.save([panel_fig, surf_fig], out, alt_texts=["panel", "surface"])
     assert out.exists()
+    from pptx import Presentation
+
+    pres = Presentation(out)
+    shapes = pres.slides[0].shapes
+    assert len(shapes) > 0, "No shapes found on the first slide"
+    elements = shapes[0]._element.xpath('./p:nvPicPr/p:cNvPr')
+    if elements:
+        el = elements[0]
+        assert el.get("descr") == "panel"
 
 
 def test_category_pie():
@@ -174,8 +183,11 @@ def test_overlay_and_waterfall_and_bundle(tmp_path):
     assert isinstance(wf_fig, go.Figure)
     wf_fig.to_json()
 
-    export_bundle.save([over_fig, wf_fig], tmp_path / "bundle")
-    assert (tmp_path / "bundle_1.html").exists()
+    export_bundle.save(
+        [over_fig, wf_fig], tmp_path / "bundle", alt_texts=["overlay", "waterfall"]
+    )
+    html = (tmp_path / "bundle_1.html").read_text()
+    assert "aria-label=\"overlay\"" in html
 
 
 def test_data_table_and_scenario_viewer_and_heatmap():
