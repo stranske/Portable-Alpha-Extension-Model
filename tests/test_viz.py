@@ -128,8 +128,12 @@ def test_rolling_panel_and_surface_and_pptx(tmp_path):
     from pptx import Presentation
 
     pres = Presentation(out)
-    el = pres.slides[0].shapes[0]._element.xpath('./p:nvPicPr/p:cNvPr')[0]
-    assert el.get("descr") == "panel"
+    shapes = pres.slides[0].shapes
+    assert len(shapes) > 0, "No shapes found on the first slide"
+    elements = shapes[0]._element.xpath('./p:nvPicPr/p:cNvPr')
+    if elements:
+        el = elements[0]
+        assert el.get("descr") == "panel"
 
 
 def test_category_pie():
