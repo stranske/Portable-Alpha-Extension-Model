@@ -129,7 +129,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     else:
         raw_params = load_parameters(args.params, LABEL_MAP)
         cfg = load_config(raw_params)
-    raw_params = cfg.dict()
+    raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
