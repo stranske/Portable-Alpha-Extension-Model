@@ -31,6 +31,7 @@ from .random import spawn_rngs, spawn_agent_rngs
 from .agents.registry import build_from_config
 from .simulations import simulate_agents
 from .sim.metrics import summary_table
+from .run_flags import RunFlags
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",
@@ -103,6 +104,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Launch Streamlit dashboard after run",
     )
     args = parser.parse_args(argv)
+
+    flags = RunFlags(
+        save_xlsx=args.output,
+        png=args.png,
+        pdf=args.pdf,
+        pptx=args.pptx,
+        html=args.html,
+        gif=args.gif,
+        dashboard=args.dashboard,
+        alt_text=args.alt_text,
+    )
 
     set_backend(args.backend)
 
@@ -200,11 +212,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         inputs_dict,
         summary,
         raw_returns_dict,
-        filename=args.output,
+        filename=flags.save_xlsx,
         pivot=args.pivot,
     )
 
-    if any([args.png, args.pdf, args.pptx, args.html, args.gif, args.dashboard]):
+    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
         from pathlib import Path
         from . import viz
         plots = Path("plots")
@@ -214,39 +226,39 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         else:
             fig = viz.sharpe_ladder.make(summary)
         stem = plots / "summary"
-        if args.png:
+        if flags.png:
             try:
                 fig.write_image(stem.with_suffix(".png"))
             except Exception:
                 pass
-        if args.pdf:
+        if flags.pdf:
             try:
                 viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))
             except Exception:
                 pass
-        if args.pptx:
+        if flags.pptx:
             try:
                 viz.pptx_export.save(
                     [fig],
                     str(stem.with_suffix(".pptx")),
-                    alt_texts=[args.alt_text] if args.alt_text else None,
+                    alt_texts=[flags.alt_text] if flags.alt_text else None,
                 )
             except Exception:
                 pass
-        if args.html:
+        if flags.html:
             viz.html_export.save(
                 fig,
                 str(stem.with_suffix(".html")),
-                alt_text=args.alt_text,
+                alt_text=flags.alt_text,
             )
-        if args.gif:
+        if flags.gif:
             arr = next(iter(raw_returns_dict.values())).to_numpy()
             anim = viz.animation.make(arr)
             try:
                 anim.write_image(str(plots / "paths.gif"))
             except Exception:
                 pass
-        if args.dashboard:
+        if flags.dashboard:
             import subprocess
             subprocess.run(["streamlit", "run", "dashboard/app.py"], check=False)
 
