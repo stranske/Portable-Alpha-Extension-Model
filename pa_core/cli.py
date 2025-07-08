@@ -212,7 +212,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         inputs_dict,
         summary,
         raw_returns_dict,
-        filename=flags.save_xlsx,
+        filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
 
