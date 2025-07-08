@@ -232,6 +232,7 @@ Registry – Factory that turns AgentParams into concrete agent objects.
 3. **Random‑seed strategy** – `spawn_agent_rngs` creates deterministic per‑agent generators when a seed is supplied.
 4. **Outputs.xlsx layout** – existing sheet order retained; pass `--pivot` for a long-format sheet.
 5. **Dashboard theme** – ✅ corporate palette and fonts locked in `config_theme.yaml`.
+6. **GUI alt text support** – `viz.html_export.save` and `viz.pptx_export.save` accept an `alt_text` parameter. The CLI exposes `--alt-text` so exported charts remain accessible.
 
 Kick back any tweaks; happy to iterate.
 
