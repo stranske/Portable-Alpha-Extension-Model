@@ -29,6 +29,7 @@ from .sim.metrics import (
     summary_table,
 )
 from .config import ModelConfig, load_config
+from .run_flags import RunFlags
 from .agents import (
     Agent,
     AgentParams,
@@ -74,6 +75,7 @@ __all__ = [
     "InternalPAAgent",
     "ModelConfig",
     "load_config",
+    "RunFlags",
     "build_agents",
     "build_from_config",
     "viz",
