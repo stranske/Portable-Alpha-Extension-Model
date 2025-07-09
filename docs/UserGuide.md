@@ -11,7 +11,10 @@ This program simulates a portable‑alpha plus active‑extension strategy. Each
 ```bash
 python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
-The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). Monthly return paths are stored in `Outputs.parquet` for the dashboard.
+The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default).
+If you include the `--pivot` flag the raw return paths are also saved in an
+`AllReturns` sheet. Convert this sheet to a `Outputs.parquet` file with a short
+`pandas` snippet whenever you want the dashboard to show path‑based charts.
 
 ## 2. Tutorial 1 – Set Up and Run a Simulation
 
@@ -70,7 +73,31 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
-## 6. Dashboard Views
+## 6. Tutorial 5 – Generate Custom Visualisations
+
+Use `scripts/visualise.py` to build plots outside the dashboard. The script
+reads the Excel output along with an optional `.parquet` file containing
+the raw paths and can export any Plotly figure to PNG, PDF, PPTX, HTML or GIF:
+
+```bash
+python scripts/visualise.py \
+  --plot fan \
+  --xlsx Outputs.xlsx \
+  --png
+```
+
+If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
+
+```python
+import pandas as pd
+df = pd.read_excel("Outputs.xlsx", sheet_name="AllReturns")
+df.to_parquet("Outputs.parquet")
+```
+
+Place both files in the same folder and rerun the script to access path based
+charts such as the funding fan or return histogram.
+
+## 7. Dashboard Views
 
 The dashboard contains four tabs, each aimed at a different angle on portfolio behaviour.
 
