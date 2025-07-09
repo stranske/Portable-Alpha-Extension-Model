@@ -2,7 +2,6 @@
 
 This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if it is removed.
 
-
 ## 1. Getting Started
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
@@ -97,7 +96,34 @@ df.to_parquet("Outputs.parquet")
 Place both files in the same folder and rerun the script to access path based
 charts such as the funding fan or return histogram.
 
-## 7. Dashboard Views
+## 7. Tutorial 6 – Implement a New Agent
+
+1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
+2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`.
+3. Allocate capital to the new agent in your CSV or YAML configuration file.
+4. Run the CLI again and the sleeve will automatically appear in the outputs.
+
+```python
+# pa_core/agents/my_agent.py
+from pa_core.agents.base import BaseAgent
+
+class MyAgent(BaseAgent):
+    def monthly_returns(self, r_beta, alpha_stream, financing):
+        # compute returns for each simulation and month
+        return r_beta + alpha_stream - financing
+```
+
+## 8. Tutorial 7 – Customise Visual Style
+
+Colours, fonts and traffic-light thresholds load from `config_theme.yaml` and `config_thresholds.yaml`. Edit these files before running the CLI or dashboard to adjust palettes or risk limits. After editing, reload the dashboard or call `pa_core.viz.theme.reload_theme()` from Python.
+
+```yaml
+# config_thresholds.yaml
+shortfall_green: 0.05
+shortfall_amber: 0.10
+```
+
+## 9. Dashboard Views
 
 The dashboard contains four tabs, each aimed at a different angle on portfolio behaviour.
 
@@ -118,4 +144,3 @@ Plots a histogram of final returns with an optional CDF overlay. Switch views to
 Lists the raw summary table for reference and allows quick export.
 
 These visual tools complement the Excel output by making it easy to spot how reallocating capital or adjusting assumptions shifts the risk/return profile of the three sleeves.
-
