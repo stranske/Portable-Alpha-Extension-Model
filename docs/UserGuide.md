@@ -70,7 +70,7 @@ The headline tab shows a risk‑return scatter while other tabs visualise cumula
 
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
-## 6. Tutorial 4 – Exporting Charts
+## 6. Introductory Tutorial 4 – Exporting Charts
 
 The CLI can create static images or PPTX packs as part of a run. Combine the following flags as needed:
 
@@ -80,7 +80,7 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
-## 7. Tutorial 5 – Generate Custom Visualisations
+## 7. Introductory Tutorial 5 – Generate Custom Visualisations
 
 Use `scripts/visualise.py` to build plots outside the dashboard. The script
 reads the Excel output along with an optional `.parquet` file containing
@@ -104,7 +104,7 @@ df.to_parquet("Outputs.parquet")
 Place both files in the same folder and rerun the script to access path based
 charts such as the funding fan or return histogram.
 
-## 8. Tutorial 6 – Implement a New Agent
+## 8. Introductory Tutorial 6 – Implement a New Agent
 
 1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
 2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`.
@@ -121,7 +121,7 @@ class MyAgent(BaseAgent):
         return r_beta + alpha_stream - financing
 ```
 
-## 9. Tutorial 7 – Customise Visual Style
+## 9. Introductory Tutorial 7 – Customise Visual Style
 
 Colours, fonts and traffic-light thresholds load from `config_theme.yaml` and `config_thresholds.yaml`. Edit these files before running the CLI or dashboard to adjust palettes or risk limits. After editing, reload the dashboard or call `pa_core.viz.theme.reload_theme()` from Python.
 
