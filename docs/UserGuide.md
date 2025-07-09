@@ -23,7 +23,7 @@ After producing an output file you can start an interactive dashboard to visuali
 
 ### Option 1 – from the CLI
 
-Add `--launch_dashboard` to the `pa_core` command. Once the simulation finishes, Streamlit opens in your browser.
+Add `--dashboard` to the `pa_core` command. Once the simulation finishes, Streamlit opens in your browser.
 
 ### Option 2 – manual launch
 
