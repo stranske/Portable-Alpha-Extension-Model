@@ -14,9 +14,9 @@ This program simulates a portable‑alpha plus active‑extension strategy. Each
 The model allocates capital across three sleeves—internal, external portable‑alpha
 and active‑extension—and simulates monthly returns for each. Key outputs include
 annualised return, volatility, Value at Risk, tracking error and the required
-**ShortfallProb** metric. The following tutorials walk through running a
-simulation, interpreting these results and visualising them in both static and
-interactive formats.
+**ShortfallProb** metric. The tutorials below walk through running a simulation,
+interpreting these metrics and visualising them so you can test the model’s main
+ideas in practice.
 
 ## 2. Getting Started
 
@@ -47,9 +47,22 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 
 ## 4. Introductory Tutorial 2 – Interpret the Excel Output
 
-Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**, **TE** and a **ShortfallProb** column derived from the breach probability metric. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. Use these values to test whether the simulated portfolio meets your risk‑return objectives.
-Use these values to check the risk/return trade-off, funding shortfall probability and tracking error.
-`ShortfallProb` is required by the program and will be added automatically if your configuration omits it. Check this column against the thresholds in `config_thresholds.yaml`—the risk-return scatter uses the same file so colours match the dashboard.
+Each run prints a Rich table of headline metrics and generates many alternate
+histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**,
+**TE**, **BreachProb** and a **ShortfallProb** column derived from that breach
+probability. Review the `Inputs` sheet to confirm parameters and the `Summary`
+sheet to compare sleeves. Use these metrics to test key ideas:
+
+* **Risk/return** – compare `AnnReturn` to `AnnVol` and check whether the
+  simulated Sharpe ratios align with your targets.
+* **Funding shortfall** – verify `ShortfallProb` against the thresholds in
+  `config_thresholds.yaml`.
+* **Tracking error** – examine the `TE` column to ensure each sleeve stays within
+  permitted deviation from the benchmark.
+
+`ShortfallProb` is required by the program and will be added automatically if
+your configuration omits it. The dashboard uses the same threshold file so
+colours remain consistent.
 
 ## 5. Introductory Tutorial 3 – Visualise with the Dashboard
 
@@ -93,14 +106,17 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 ## 7. Introductory Tutorial 5 – Generate Custom Visualisations
 
 Use `scripts/visualise.py` to build plots outside the dashboard. The script
-reads the Excel output along with an optional `.parquet` file containing
-the raw paths and can export any Plotly figure to PNG, PDF, PPTX, HTML or GIF:
+reads the Excel output along with an optional `.parquet` file of raw paths and
+can export any Plotly figure. Pass one of the following names to `--plot`:
+`risk_return`, `fan`, `path_dist`, `corr_heatmap`, `sharpe_ladder`,
+`rolling_panel` or `surface`.  Combine with `--png`, `--pdf`, `--pptx`,
+`--html`, `--gif` and an optional `--alt-text` description to save images:
 
 ```bash
 python scripts/visualise.py \
-  --plot fan \
+  --plot risk_return \
   --xlsx Outputs.xlsx \
-  --png
+  --png --alt-text "Risk-return chart"
 ```
 
 If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
