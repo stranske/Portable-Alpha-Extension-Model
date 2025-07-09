@@ -60,7 +60,7 @@ streamlit run dashboard/app.py
 ```
 
 Provide the path to `Outputs.xlsx` in the sidebar. If the companion `Outputs.parquet` file is present, additional charts such as the funding fan become available.
-The headline tab shows a risk‑return scatter while other tabs visualise cumulative funding (`Funding fan`) and return distributions (`Path dist`).
+The headline tab shows a risk‑return scatter while other tabs visualise cumulative funding (`Funding fan`) and return distributions (`Path dist`). Two download buttons let you save the headline PNG chart and the Excel file directly from the browser. Tick **Auto‑refresh** to reload the data periodically while a long simulation runs.
 
 ### Sidebar Controls
 
@@ -69,8 +69,6 @@ The headline tab shows a risk‑return scatter while other tabs visualise cumula
 - **Agents** – choose which sleeves to display.
 - **Risk‑free rate** – for any excess return calculations.
 - **Auto‑refresh** – polls the file every few seconds so the dashboard updates while simulations run.
-
-Two download buttons allow you to save the headline PNG chart and the Excel file.
 
 ## 6. Introductory Tutorial 4 – Exporting Charts
 
