@@ -1,0 +1,35 @@
+Parameter,Value,Notes
+Number of simulations,1000,Number of Monte Carlo trials
+Number of months,12,Months in each simulation
+External PA capital (mm),100,"Capital for external PA sleeve"
+Active Extension capital (mm),50,"Capital for active extension sleeve"
+Internal PA capital (mm),150,"Capital for internal portable alpha"
+Total fund capital (mm),300,"Total fund size in millions"
+In-House beta share,0.5,Weight on beta in internal sleeve
+In-House alpha share,0.5,Weight on alpha in internal sleeve
+External PA alpha fraction,0.5,Alpha fraction for external manager
+Active share (%),50,"Active share percentage for extension sleeve"
+In-House annual return (%),4,"Expected annual return of in-house alpha"
+In-House annual vol (%),1,"Annual volatility of in-house alpha"
+Alpha-Extension annual return (%),5,"Expected annual return of extension alpha"
+Alpha-Extension annual vol (%),2,"Annual volatility of extension alpha"
+External annual return (%),3,"Expected annual return of external PA"
+External annual vol (%),2,"Annual volatility of external PA"
+Corr index–In-House,0.05,"Correlation of index vs in-house"
+Corr index–Alpha-Extension,0.0,"Correlation of index vs extension"
+Corr index–External,0.0,"Correlation of index vs external PA"
+Corr In-House–Alpha-Extension,0.1,"Correlation of in-house vs extension"
+Corr In-House–External,0.1,"Correlation of in-house vs external PA"
+Corr Alpha-Extension–External,0.0,"Correlation of extension vs external PA"
+Internal financing mean (monthly %),0.0,"Mean financing cost for internal sleeve"
+Internal financing vol (monthly %),0.0,"Volatility of financing for internal sleeve"
+Internal monthly spike prob,0.0,"Spike probability for internal financing"
+Internal spike multiplier,0.0,"Size multiplier for internal financing spikes"
+External PA financing mean (monthly %),0.0,"Mean financing cost for external PA"
+External PA financing vol (monthly %),0.0,"Volatility of financing for external PA"
+External PA monthly spike prob,0.0,"Spike probability for external PA financing"
+External PA spike multiplier,0.0,"Size multiplier for external PA spikes"
+Active Ext financing mean (monthly %),0.0,"Mean financing cost for active extension"
+Active Ext financing vol (monthly %),0.0,"Volatility of financing for active extension"
+Active Ext monthly spike prob,0.0,"Spike probability for active extension financing"
+Active Ext spike multiplier,0.0,"Size multiplier for active extension spikes"

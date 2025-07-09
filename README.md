@@ -28,6 +28,11 @@ python -m pa_core --config params.yaml --index sp500tr_fred_divyield.csv --pivot
 
 This writes results to `Outputs.xlsx` in the current directory.
 
+Sample configuration templates live in the `config/` directory.
+Both `parameters_template.csv` and `params_template.yml` list all
+supported fields and include the mandatory `ShortfallProb` metric.
+Copy one of these files to start your own runs.
+
 > **Warning**
 > Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
 

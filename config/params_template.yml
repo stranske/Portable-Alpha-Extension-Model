@@ -1,0 +1,44 @@
+# Example YAML configuration for ModelConfig
+# Values shown are illustrative defaults. Adjust as needed.
+
+N_SIMULATIONS: 1000  # number of Monte Carlo trials
+N_MONTHS: 12         # months in each simulation run
+
+external_pa_capital: 100.0   # external portable alpha capital ($mm)
+active_ext_capital: 50.0     # active extension capital ($mm)
+internal_pa_capital: 150.0   # internal portable alpha capital ($mm)
+total_fund_capital: 300.0    # total fund capital ($mm)
+
+w_beta_H: 0.5      # internal sleeve beta weight
+w_alpha_H: 0.5     # internal sleeve alpha weight
+theta_extpa: 0.5   # external PA alpha fraction
+active_share: 0.5  # active-extension active share fraction
+
+mu_H: 0.04     # annual mean return of in-house alpha
+sigma_H: 0.01  # annual volatility of in-house alpha
+mu_E: 0.05     # annual mean return of extension alpha
+sigma_E: 0.02  # annual volatility of extension alpha
+mu_M: 0.03     # annual mean return of external PA alpha
+sigma_M: 0.02  # annual volatility of external PA alpha
+
+rho_idx_H: 0.05  # correlation index vs in-house
+rho_idx_E: 0.00  # correlation index vs extension
+rho_idx_M: 0.00  # correlation index vs external PA
+rho_H_E: 0.10    # correlation in-house vs extension
+rho_H_M: 0.10    # correlation in-house vs external PA
+rho_E_M: 0.00    # correlation extension vs external PA
+
+internal_financing_mean_month: 0.0   # internal financing mean per month
+internal_financing_sigma_month: 0.0  # internal financing volatility per month
+internal_spike_prob: 0.0             # internal financing spike probability
+internal_spike_factor: 0.0           # internal financing spike size multiplier
+
+ext_pa_financing_mean_month: 0.0   # external PA financing mean per month
+ext_pa_financing_sigma_month: 0.0  # external PA financing volatility per month
+ext_pa_spike_prob: 0.0             # external PA financing spike probability
+ext_pa_spike_factor: 0.0           # external PA financing spike size multiplier
+
+act_ext_financing_mean_month: 0.0   # active extension financing mean per month
+act_ext_financing_sigma_month: 0.0  # active extension financing volatility per month
+act_ext_spike_prob: 0.0             # active extension financing spike probability
+act_ext_spike_factor: 0.0           # active extension financing spike size multiplier
