@@ -233,6 +233,7 @@ Registry – Factory that turns AgentParams into concrete agent objects.
 4. **Outputs.xlsx layout** – existing sheet order retained; pass `--pivot` for a long-format sheet.
 5. **Dashboard theme** – ✅ corporate palette and fonts locked in `config_theme.yaml`.
 6. **GUI alt text support** – `viz.html_export.save` and `viz.pptx_export.save` accept an `alt_text` parameter. The CLI exposes `--alt-text` so exported charts remain accessible.
+7. **ShortfallProb metric** – `risk_metrics` must include this column. The parameter templates and config validation enforce it, while Excel and the risk‑return chart add `ShortfallProb` if missing.
 
 Kick back any tweaks; happy to iterate.
 
