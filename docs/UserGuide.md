@@ -1,23 +1,21 @@
 # Portable Alpha-Extension Model User Guide
 
-This guide walks through the basics of running the Monte Carlo model, then introduces how to interpret and visualise the output.
+This program simulates a portable-alpha plus active-extension strategy. Each run distributes capital across internal, external portable-alpha and active-extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. The sections below show how to configure a run, interpret the results and visualise key metrics.
+
 
 ## 1. Getting Started
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
-2. Launch the command‑line interface with either a CSV `--params` file or a YAML `--config` file. For example:
+2. Launch the CLI with a CSV `--params` file or YAML `--config` file (templates live in `config/`). Supply your index returns via `--index`.
 
 ```bash
 python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
+The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). Monthly return paths are stored in `Outputs.parquet` for the dashboard.
 
-The run writes an Excel workbook (`Outputs.xlsx` by default) and also saves the monthly return paths in `Outputs.parquet` for use in the dashboard.
+## 2. Tutorial 1 – Configure and Run a Simulation
 
-## 2. Tutorial 1 – Run a Simulation
-
-Invoke the CLI with your chosen configuration and index data. Use `--output` to
-change the Excel filename and `--pivot` to append a long‑format sheet of raw
-returns.
+Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns.
 
 ```bash
 python -m pa_core \
@@ -31,7 +29,7 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 
 ## 3. Tutorial 2 – Interpret the Excel Output
 
-Each run generates many alternate histories of index and alpha returns. The Excel file summarises Annual Return, Annual Volatility, Value at Risk, Tracking Error and **ShortfallProb** for each sleeve. Review the "Inputs" sheet to confirm parameters and the "Summary" sheet to compare sleeves.
+Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises Annual Return, Annual Volatility, Value at Risk, Tracking Error and **ShortfallProb** for each sleeve. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves.
 
 ## 4. Tutorial 3 – Interactive Dashboard
 
