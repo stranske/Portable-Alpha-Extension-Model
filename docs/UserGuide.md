@@ -2,7 +2,16 @@
 
 This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if it is removed.
 
-## 1. Getting Started
+## 1. Overview
+
+The model allocates capital across three sleeves—internal, external portable‑alpha
+and active‑extension—and simulates monthly returns for each. Key outputs include
+annualised return, volatility, Value at Risk, tracking error and the required
+**ShortfallProb** metric. The following tutorials walk through running a
+simulation, interpreting these results and visualising them in both static and
+interactive formats.
+
+## 2. Getting Started
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
 2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
@@ -15,7 +24,7 @@ If you include the `--pivot` flag the raw return paths are also saved in an
 `AllReturns` sheet. Convert this sheet to a `Outputs.parquet` file with a short
 `pandas` snippet whenever you want the dashboard to show path‑based charts.
 
-## 2. Tutorial 1 – Set Up and Run a Simulation
+## 3. Tutorial 1 – Set Up and Run a Simulation
 
 Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns.
 
@@ -29,12 +38,12 @@ python -m pa_core \
 
 Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 
-## 3. Tutorial 2 – Interpret the Excel Output
+## 4. Tutorial 2 – Interpret the Excel Output
 
 Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises Annual Return, Annual Volatility, Value at Risk, Tracking Error and **ShortfallProb** for each sleeve. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves.
 `ShortfallProb` is required by the program and will be added automatically if your configuration omits it.
 
-## 4. Tutorial 3 – Interactive Dashboard
+## 5. Tutorial 3 – Interactive Dashboard
 
 After producing an output file you can start an interactive dashboard to visualise the results.
 
@@ -62,7 +71,7 @@ Provide the path to `Outputs.xlsx` in the sidebar. If the companion `Outputs.par
 
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
-## 5. Tutorial 4 – Exporting Charts
+## 6. Tutorial 4 – Exporting Charts
 
 The CLI can create static images or PPTX packs as part of a run. Combine the following flags as needed:
 
@@ -72,7 +81,7 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
-## 6. Tutorial 5 – Generate Custom Visualisations
+## 7. Tutorial 5 – Generate Custom Visualisations
 
 Use `scripts/visualise.py` to build plots outside the dashboard. The script
 reads the Excel output along with an optional `.parquet` file containing
@@ -96,7 +105,7 @@ df.to_parquet("Outputs.parquet")
 Place both files in the same folder and rerun the script to access path based
 charts such as the funding fan or return histogram.
 
-## 7. Tutorial 6 – Implement a New Agent
+## 8. Tutorial 6 – Implement a New Agent
 
 1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
 2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`.
@@ -113,7 +122,7 @@ class MyAgent(BaseAgent):
         return r_beta + alpha_stream - financing
 ```
 
-## 8. Tutorial 7 – Customise Visual Style
+## 9. Tutorial 7 – Customise Visual Style
 
 Colours, fonts and traffic-light thresholds load from `config_theme.yaml` and `config_thresholds.yaml`. Edit these files before running the CLI or dashboard to adjust palettes or risk limits. After editing, reload the dashboard or call `pa_core.viz.theme.reload_theme()` from Python.
 
@@ -123,7 +132,7 @@ shortfall_green: 0.05
 shortfall_amber: 0.10
 ```
 
-## 9. Dashboard Views
+## 10. Dashboard Views
 
 The dashboard contains four tabs, each aimed at a different angle on portfolio behaviour.
 
