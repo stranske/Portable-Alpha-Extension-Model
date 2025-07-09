@@ -17,39 +17,37 @@ interactive formats.
 2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
 
 ```bash
-python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
+python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
-The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default).
-If you include the `--pivot` flag the raw return paths are also saved in an
-`AllReturns` sheet. Convert this sheet to a `Outputs.parquet` file with a short
-`pandas` snippet whenever you want the dashboard to show path‑based charts.
+The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
+`AllReturns` sheet. Convert this sheet to a `Outputs.parquet` file with a short `pandas` snippet whenever you want the dashboard to show path‑based charts.
 
-## 3. Tutorial 1 – Set Up and Run a Simulation
+## 3. Introductory Tutorial 1 – Set Up and Run a Simulation
 
 Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns.
 
 ```bash
-python -m pa_core \
+python -m pa_core.cli \
   --config my_params.yml \
   --index sp500tr_fred_divyield.csv \
   --output Results.xlsx \
   --pivot
 ```
 
-Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
+Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run produces a console table showing `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve and writes the same data to `Outputs.xlsx`.
 
-## 4. Tutorial 2 – Interpret the Excel Output
+## 4. Introductory Tutorial 2 – Interpret the Excel Output
 
-Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises Annual Return, Annual Volatility, Value at Risk, Tracking Error and **ShortfallProb** for each sleeve. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves.
+Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**, **TE** and a **ShortfallProb** column derived from the breach probability metric. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves.
 `ShortfallProb` is required by the program and will be added automatically if your configuration omits it.
 
-## 5. Tutorial 3 – Interactive Dashboard
+## 5. Introductory Tutorial 3 – Interactive Dashboard
 
 After producing an output file you can start an interactive dashboard to visualise the results.
 
 ### Option 1 – from the CLI
 
-Add `--dashboard` to the `pa_core` command. Once the simulation finishes, Streamlit opens in your browser.
+Add `--dashboard` to the `pa_core.cli` command. Once the simulation finishes, Streamlit opens in your browser.
 
 ### Option 2 – manual launch
 
@@ -60,6 +58,7 @@ streamlit run dashboard/app.py
 ```
 
 Provide the path to `Outputs.xlsx` in the sidebar. If the companion `Outputs.parquet` file is present, additional charts such as the funding fan become available.
+The headline tab shows a risk‑return scatter while other tabs visualise cumulative funding (`Funding fan`) and return distributions (`Path dist`).
 
 ### Sidebar Controls
 
