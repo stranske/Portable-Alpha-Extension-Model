@@ -1151,7 +1151,7 @@ and factor columns. Use this to check style drift over the simulation horizon.
      df["ShortfallProb"] = df.get("ShortfallProb", 0.0)
      ```
 
-5 · **Regression test** (`tests/test_outputs.py`)  
+5 · **Regression test** (`tests/test_outputs.py`)
    ```python
    import pandas as pd, pathlib
    def test_shortfall_present():
@@ -1159,3 +1159,8 @@ and factor columns. Use this to check style drift over the simulation horizon.
        assert fn.exists(), "Outputs.xlsx missing"
        cols = pd.read_excel(fn, sheet_name="Summary").columns
        assert "ShortfallProb" in cols
+
+6 · **Ongoing maintenance**
+   * Keep refining both `parameters_template.csv` and `params_template.yml`
+     until they contain every value needed to run the entire simulation suite
+     without manual edits.
