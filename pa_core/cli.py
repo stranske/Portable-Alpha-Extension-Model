@@ -69,6 +69,7 @@ LABEL_MAP = {
     "Active Ext monthly spike prob": "act_ext_spike_prob",
     "Active Ext spike multiplier": "act_ext_spike_factor",
     "Total fund capital (mm)": "total_fund_capital",
+    "risk_metrics": "risk_metrics",
 }
 
 

@@ -15,6 +15,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         Must contain AnnReturn, AnnVol, TrackingErr, Agent, ShortfallProb.
     """
     df = df_summary.copy()
+    df["ShortfallProb"] = df.get("ShortfallProb", 0.0)
     color = []
     thr = theme.THRESHOLDS
     for prob in df["ShortfallProb"].fillna(0.0):

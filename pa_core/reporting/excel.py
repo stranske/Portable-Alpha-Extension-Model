@@ -45,6 +45,8 @@ def export_to_excel(
             "Value": list(inputs_dict.values()),
         })
         df_inputs.to_excel(writer, sheet_name="Inputs", index=False)
+        summary_df = summary_df.copy()
+        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", 0.0)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         if pivot:
@@ -90,4 +92,3 @@ def export_to_excel(
             pass
 
     wb.save(filename)
-    print(f"Exported results to {filename}")

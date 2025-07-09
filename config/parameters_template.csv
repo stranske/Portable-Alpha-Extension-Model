@@ -33,3 +33,4 @@ Active Ext financing mean (monthly %),0.0,"Mean financing cost for active extens
 Active Ext financing vol (monthly %),0.0,"Volatility of financing for active extension"
 Active Ext monthly spike prob,0.0,"Spike probability for active extension financing"
 Active Ext spike multiplier,0.0,"Size multiplier for active extension spikes"
+risk_metrics,Return;Risk;ShortfallProb,Metrics to compute

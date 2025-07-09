@@ -42,3 +42,8 @@ act_ext_financing_mean_month: 0.0   # active extension financing mean per month
 act_ext_financing_sigma_month: 0.0  # active extension financing volatility per month
 act_ext_spike_prob: 0.0             # active extension financing spike probability
 act_ext_spike_factor: 0.0           # active extension financing spike size multiplier
+
+risk_metrics:
+  - Return
+  - Risk
+  - ShortfallProb

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 import yaml
 from pydantic import (
@@ -11,7 +11,11 @@ from pydantic import (
     model_validator,
 )
 
-__all__ = ["ModelConfig", "load_config"]
+class ConfigError(ValueError):
+    """Invalid configuration."""
+
+
+__all__ = ["ModelConfig", "load_config", "ConfigError"]
 
 
 class ModelConfig(BaseModel):
@@ -59,6 +63,12 @@ class ModelConfig(BaseModel):
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 0.0
 
+    risk_metrics: List[str] = Field(default_factory=lambda: [
+        "Return",
+        "Risk",
+        "ShortfallProb",
+    ])
+
     class Config:
         allow_population_by_field_name = True
         frozen = True
@@ -74,6 +84,8 @@ class ModelConfig(BaseModel):
             raise ValueError(
                 "Capital allocation exceeds total_fund_capital"
             )
+        if "ShortfallProb" not in self.risk_metrics:
+            raise ConfigError("risk_metrics must include ShortfallProb")
         return self
 
 
@@ -84,6 +96,9 @@ def load_config(path: str | Path | dict[str, Any]) -> ModelConfig:
     else:
         data = yaml.safe_load(Path(path).read_text())
     try:
-        return ModelConfig(**data)
+        cfg = ModelConfig(**data)
     except ValidationError as e:  # pragma: no cover - explicit failure
         raise ValueError(str(e)) from e
+    if "ShortfallProb" not in cfg.risk_metrics:
+        raise ConfigError("risk_metrics must include ShortfallProb")
+    return cfg

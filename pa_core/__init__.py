@@ -28,7 +28,7 @@ from .sim.metrics import (
     annualised_vol,
     summary_table,
 )
-from .config import ModelConfig, load_config
+from .config import ModelConfig, load_config, ConfigError
 from .run_flags import RunFlags
 from .agents import (
     Agent,
@@ -75,6 +75,7 @@ __all__ = [
     "InternalPAAgent",
     "ModelConfig",
     "load_config",
+    "ConfigError",
     "RunFlags",
     "build_agents",
     "build_from_config",
