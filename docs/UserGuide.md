@@ -1,19 +1,19 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable-alpha plus active-extension strategy. Each run distributes capital across internal, external portable-alpha and active-extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. The sections below show how to configure a run, interpret the results and visualise key metrics.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if it is removed.
 
 
 ## 1. Getting Started
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
-2. Launch the CLI with a CSV `--params` file or YAML `--config` file (templates live in `config/`). Supply your index returns via `--index`.
+2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
 
 ```bash
 python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). Monthly return paths are stored in `Outputs.parquet` for the dashboard.
 
-## 2. Tutorial 1 – Configure and Run a Simulation
+## 2. Tutorial 1 – Set Up and Run a Simulation
 
 Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns.
 
@@ -30,6 +30,7 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 ## 3. Tutorial 2 – Interpret the Excel Output
 
 Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises Annual Return, Annual Volatility, Value at Risk, Tracking Error and **ShortfallProb** for each sleeve. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves.
+`ShortfallProb` is required by the program and will be added automatically if your configuration omits it.
 
 ## 4. Tutorial 3 – Interactive Dashboard
 
@@ -47,7 +48,7 @@ Run the app directly:
 streamlit run dashboard/app.py
 ```
 
-Provide the path to `Outputs.xlsx` in the sidebar. If the companion Parquet file is present, additional charts become available.
+Provide the path to `Outputs.xlsx` in the sidebar. If the companion `Outputs.parquet` file is present, additional charts such as the funding fan become available.
 
 ### Sidebar Controls
 
@@ -67,7 +68,7 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 --png  --pdf  --pptx  --html  --gif  --alt-text "Description"
 ```
 
-`--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  Alt text ensures exported charts remain accessible.
+`--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
 ## 6. Dashboard Views
 
