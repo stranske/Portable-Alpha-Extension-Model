@@ -1125,11 +1125,11 @@ and factor columns. Use this to check style drift over the simulation horizon.
 <!-----------------  🔧  CONFIG / METRIC UPGRADE  ---------------->
 ### :construction_worker: Task — ensure ShortfallProb is always produced
 
-1 · **parameters template**  
-   * open `config/parameters_template.csv`  
-   * append a line (or update if it exists)  
+1 · **parameters template**
+   * open `config/parameters_template.csv`
+   * append a line (or update if it exists)
      ```
-     risk_metrics,Return,Risk,ShortfallProb
+     risk_metrics,Return;Risk;ShortfallProb,Metrics to compute
      ```
    * propagate the same change to any YAML sample (`params_template.yml`).
 
