@@ -1,5 +1,10 @@
-from pa_core.config import ModelConfig, load_config
+from pathlib import Path
+
 import yaml
+
+from pa_core import load_parameters
+from pa_core.cli import LABEL_MAP
+from pa_core.config import ModelConfig, load_config
 
 
 def test_load_yaml(tmp_path):
@@ -50,3 +55,18 @@ def test_invalid_capital(tmp_path):
         pass
     else:
         raise AssertionError("Expected validation failure")
+
+
+def test_template_yaml_loads():
+    root = Path(__file__).resolve().parents[1]
+    cfg_path = root / "config" / "params_template.yml"
+    cfg = load_config(cfg_path)
+    assert isinstance(cfg, ModelConfig)
+
+
+def test_template_csv_loads(tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    csv_path = root / "config" / "parameters_template.csv"
+    raw = load_parameters(csv_path, LABEL_MAP)
+    cfg = load_config(raw)
+    assert isinstance(cfg, ModelConfig)

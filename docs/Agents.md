@@ -143,6 +143,47 @@ Alternate YAML file accepted (--params foo.yaml) to remove the Excel‑style hea
 
 Validation via pydantic‑v2 to catch nonsense (e.g. W + Z > total_capital).
 
+Example values are provided in `config/params_template.yml` with the same
+fields mirrored for spreadsheet users in `config/parameters_template.csv`.
+Each key corresponds to an attribute on the `ModelConfig` dataclass.
+
+| Key | Description |
+| --- | ----------- |
+| `N_SIMULATIONS` | Number of Monte Carlo trials |
+| `N_MONTHS` | Months per simulation run |
+| `external_pa_capital` | Capital allocated to external PA sleeve ($ mm) |
+| `active_ext_capital` | Capital allocated to active extension sleeve ($ mm) |
+| `internal_pa_capital` | Capital allocated to internal portable alpha ($ mm) |
+| `total_fund_capital` | Total fund size ($ mm) |
+| `w_beta_H` | Beta weight in the internal sleeve |
+| `w_alpha_H` | Alpha weight in the internal sleeve |
+| `theta_extpa` | Fraction of external PA capital used for alpha |
+| `active_share` | Active‑extension active share fraction |
+| `mu_H` | Annual mean return of in‑house alpha |
+| `sigma_H` | Annual volatility of in‑house alpha |
+| `mu_E` | Annual mean return of extension alpha |
+| `sigma_E` | Annual volatility of extension alpha |
+| `mu_M` | Annual mean return of external PA alpha |
+| `sigma_M` | Annual volatility of external PA alpha |
+| `rho_idx_H` | Correlation of index vs in‑house alpha |
+| `rho_idx_E` | Correlation of index vs extension alpha |
+| `rho_idx_M` | Correlation of index vs external PA alpha |
+| `rho_H_E` | Correlation of in‑house vs extension alpha |
+| `rho_H_M` | Correlation of in‑house vs external PA alpha |
+| `rho_E_M` | Correlation of extension vs external PA alpha |
+| `internal_financing_mean_month` | Mean monthly financing cost for internal sleeve |
+| `internal_financing_sigma_month` | Volatility of internal financing cost |
+| `internal_spike_prob` | Probability of a financing spike internally |
+| `internal_spike_factor` | Size multiplier for internal financing spikes |
+| `ext_pa_financing_mean_month` | Mean monthly financing cost for external PA |
+| `ext_pa_financing_sigma_month` | Volatility of external PA financing cost |
+| `ext_pa_spike_prob` | Probability of a financing spike in external PA |
+| `ext_pa_spike_factor` | Size multiplier for external PA financing spikes |
+| `act_ext_financing_mean_month` | Mean monthly financing cost for active extension |
+| `act_ext_financing_sigma_month` | Volatility of active extension financing cost |
+| `act_ext_spike_prob` | Probability of a financing spike for active extension |
+| `act_ext_spike_factor` | Size multiplier for active extension financing spikes |
+
 // NEW –‑export & dashboard flags
 @dataclass
 class RunFlags:
