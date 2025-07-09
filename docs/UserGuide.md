@@ -2,6 +2,13 @@
 
 This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if it is removed.
 
+### Key concepts
+
+* **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
+* **Funding shortfall risk** – monitor the required `ShortfallProb` metric.
+* **Tracking error** – check how far each sleeve deviates from the benchmark.
+* **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
+
 ## 1. Overview
 
 The model allocates capital across three sleeves—internal, external portable‑alpha
@@ -24,9 +31,9 @@ python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
 `AllReturns` sheet. Convert this sheet to a `Outputs.parquet` file with a short `pandas` snippet whenever you want the dashboard to show path‑based charts.
 
-## 3. Introductory Tutorial 1 – Set Up and Run a Simulation
+## 3. Introductory Tutorial 1 – Build and Run a Simulation
 
-Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns.
+Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns. This initial run helps confirm that the configuration loads correctly and that the summary metrics – including **ShortfallProb** – appear as expected.
 
 ```bash
 python -m pa_core.cli \
@@ -40,12 +47,12 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 
 ## 4. Introductory Tutorial 2 – Interpret the Excel Output
 
-Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**, **TE** and a **ShortfallProb** column derived from the breach probability metric. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves.
-`ShortfallProb` is required by the program and will be added automatically if your configuration omits it.
+Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**, **TE** and a **ShortfallProb** column derived from the breach probability metric. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. Use these values to test whether the simulated portfolio meets your risk‑return objectives.
+`ShortfallProb` is required by the program and will be added automatically if your configuration omits it. Check this column against the thresholds in `config_thresholds.yaml` to see if funding shortfall risk stays within limits.
 
-## 5. Introductory Tutorial 3 – Interactive Dashboard
+## 5. Introductory Tutorial 3 – Visualise with the Dashboard
 
-After producing an output file you can start an interactive dashboard to visualise the results.
+After producing an output file you can start an interactive dashboard to visualise the results. Use the interactive plots to test how each sleeve contributes to tracking error and expected return.
 
 ### Option 1 – from the CLI
 
@@ -60,7 +67,7 @@ streamlit run dashboard/app.py
 ```
 
 Provide the path to `Outputs.xlsx` in the sidebar. If the companion `Outputs.parquet` file is present, additional charts such as the funding fan become available.
-The headline tab shows a risk‑return scatter while other tabs visualise cumulative funding (`Funding fan`) and return distributions (`Path dist`).
+The headline tab shows a risk‑return scatter while other tabs visualise cumulative funding (`Funding fan`) and return distributions (`Path dist`). Adjust parameters and reload the file to test how the risk‑return profile shifts.
 
 ### Sidebar Controls
 
@@ -72,7 +79,7 @@ The headline tab shows a risk‑return scatter while other tabs visualise cumula
 
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
-## 6. Introductory Tutorial 4 – Exporting Charts
+## 6. Introductory Tutorial 4 – Export Charts
 
 The CLI can create static images or PPTX packs as part of a run. Combine the following flags as needed:
 
@@ -154,3 +161,7 @@ Plots a histogram of final returns with an optional CDF overlay. Switch views to
 Lists the raw summary table for reference and allows quick export.
 
 These visual tools complement the Excel output by making it easy to spot how reallocating capital or adjusting assumptions shifts the risk/return profile of the three sleeves.
+
+## 11. Testing Ideas with the Model
+
+After completing the tutorials you can stress‑test your assumptions by running multiple scenarios. Vary the capital weights, change the alpha streams or tweak the financing parameters in your configuration file. Re‑run the CLI and compare the resulting **ShortfallProb** and **TrackingErr** columns. The dashboard and export scripts make it straightforward to visualise how each change moves the portfolio relative to your targets.
