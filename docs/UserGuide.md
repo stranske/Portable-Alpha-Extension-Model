@@ -1,23 +1,39 @@
 # Portable Alpha-Extension Model User Guide
 
-This guide walks through the basics of running the Monte Carlo model and explains how to explore results with the provided Streamlit dashboard.
+This guide walks through the basics of running the Monte Carlo model, then introduces how to interpret and visualise the output.
 
 ## 1. Getting Started
 
-1. Run `./setup.sh` once to create a virtual environment and install dependencies.
-2. Execute the command‑line interface with either a CSV or YAML parameter file. For example:
+1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
+2. Launch the command‑line interface with either a CSV `--params` file or a YAML `--config` file. For example:
 
 ```bash
 python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
 
-The simulation writes results to `Outputs.xlsx` and also saves the monthly return paths in `Outputs.parquet` for use in the dashboard.
+The run writes an Excel workbook (`Outputs.xlsx` by default) and also saves the monthly return paths in `Outputs.parquet` for use in the dashboard.
 
-## 2. Understanding Monte Carlo Output
+## 2. Tutorial 1 – Run a Simulation
 
-Each run generates many alternate histories of index and alpha returns. The Excel file summarises annual return, volatility, Value at Risk, tracking error and breach probability for each sleeve. Review the "Inputs" sheet to confirm parameters and the "Summary" sheet to compare sleeves.
+Invoke the CLI with your chosen configuration and index data. Use `--output` to
+change the Excel filename and `--pivot` to append a long‑format sheet of raw
+returns.
 
-## 3. Launching the Streamlit Dashboard
+```bash
+python -m pa_core \
+  --config my_params.yml \
+  --index sp500tr_fred_divyield.csv \
+  --output Results.xlsx \
+  --pivot
+```
+
+Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
+
+## 3. Tutorial 2 – Interpret the Excel Output
+
+Each run generates many alternate histories of index and alpha returns. The Excel file summarises Annual Return, Annual Volatility, Value at Risk, Tracking Error and **ShortfallProb** for each sleeve. Review the "Inputs" sheet to confirm parameters and the "Summary" sheet to compare sleeves.
+
+## 4. Tutorial 3 – Interactive Dashboard
 
 After producing an output file you can start an interactive dashboard to visualise the results.
 
@@ -45,7 +61,17 @@ Provide the path to `Outputs.xlsx` in the sidebar. If the companion Parquet file
 
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
-## 4. Visualisations
+## 5. Tutorial 4 – Exporting Charts
+
+The CLI can create static images or PPTX packs as part of a run. Combine the following flags as needed:
+
+```text
+--png  --pdf  --pptx  --html  --gif  --alt-text "Description"
+```
+
+`--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  Alt text ensures exported charts remain accessible.
+
+## 6. Dashboard Views
 
 The dashboard contains four tabs, each aimed at a different angle on portfolio behaviour.
 
