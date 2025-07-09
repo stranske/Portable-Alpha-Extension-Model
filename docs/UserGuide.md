@@ -48,7 +48,8 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 ## 4. Introductory Tutorial 2 – Interpret the Excel Output
 
 Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**, **TE** and a **ShortfallProb** column derived from the breach probability metric. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. Use these values to test whether the simulated portfolio meets your risk‑return objectives.
-`ShortfallProb` is required by the program and will be added automatically if your configuration omits it. Check this column against the thresholds in `config_thresholds.yaml` to see if funding shortfall risk stays within limits. The `Summary` sheet also embeds a risk‑return scatter plot so the headline metrics are visible at a glance.
+Use these values to check the risk/return trade-off, funding shortfall probability and tracking error.
+`ShortfallProb` is required by the program and will be added automatically if your configuration omits it. Check this column against the thresholds in `config_thresholds.yaml`—the risk-return scatter uses the same file so colours match the dashboard.
 
 ## 5. Introductory Tutorial 3 – Visualise with the Dashboard
 
