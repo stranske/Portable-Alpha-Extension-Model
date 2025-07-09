@@ -29,7 +29,7 @@ interactive formats.
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
-`AllReturns` sheet. Convert this sheet to a `Outputs.parquet` file with a short `pandas` snippet whenever you want the dashboard to show path‑based charts.
+`AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 
 ## 3. Introductory Tutorial 1 – Build and Run a Simulation
 
@@ -48,7 +48,7 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 ## 4. Introductory Tutorial 2 – Interpret the Excel Output
 
 Each run prints a Rich table of headline metrics and generates many alternate histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**, **TE** and a **ShortfallProb** column derived from the breach probability metric. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. Use these values to test whether the simulated portfolio meets your risk‑return objectives.
-`ShortfallProb` is required by the program and will be added automatically if your configuration omits it. Check this column against the thresholds in `config_thresholds.yaml` to see if funding shortfall risk stays within limits.
+`ShortfallProb` is required by the program and will be added automatically if your configuration omits it. Check this column against the thresholds in `config_thresholds.yaml` to see if funding shortfall risk stays within limits. The `Summary` sheet also embeds a risk‑return scatter plot so the headline metrics are visible at a glance.
 
 ## 5. Introductory Tutorial 3 – Visualise with the Dashboard
 
@@ -162,6 +162,6 @@ Lists the raw summary table for reference and allows quick export.
 
 These visual tools complement the Excel output by making it easy to spot how reallocating capital or adjusting assumptions shifts the risk/return profile of the three sleeves.
 
-## 11. Testing Ideas with the Model
+## 11. Introductory Tutorial 8 – Stress‑Test Your Assumptions
 
-After completing the tutorials you can stress‑test your assumptions by running multiple scenarios. Vary the capital weights, change the alpha streams or tweak the financing parameters in your configuration file. Re‑run the CLI and compare the resulting **ShortfallProb** and **TrackingErr** columns. The dashboard and export scripts make it straightforward to visualise how each change moves the portfolio relative to your targets.
+After completing the tutorials you can stress‑test your assumptions by running multiple scenarios. Vary the capital weights, change the alpha streams or tweak the financing parameters in your configuration file. Re‑run the CLI and compare the resulting **ShortfallProb** and **TrackingErr** columns. Use the dashboard and export scripts to visualise how each scenario moves the portfolio relative to your targets.
