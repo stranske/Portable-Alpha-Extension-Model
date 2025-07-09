@@ -120,7 +120,7 @@ def load_index_returns(csv_path):
         raise FileNotFoundError(f"Index CSV not found at {csv_path}")
     df = pd.read_csv(csv_path, parse_dates=["Date"])
     if "Date" not in df.columns:
-        raise ValueError("'Date' column is missing from {csv_path}")
+        raise ValueError(f"'Date' column is missing from {csv_path}")
     if "Monthly_TR" in df.columns:
         col = "Monthly_TR"
     elif "Return" in df.columns:
