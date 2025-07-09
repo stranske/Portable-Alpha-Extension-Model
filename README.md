@@ -33,6 +33,12 @@ Both `parameters_template.csv` and `params_template.yml` list all
 supported fields and include the mandatory `ShortfallProb` metric.
 Copy one of these files to start your own runs.
 
+### Config validation
+
+The helper `pa_core.config.load_config` validates that your
+`risk_metrics` list includes all required entries. Missing metrics
+such as `ShortfallProb` trigger a `ConfigError` during loading.
+
 > **Warning**
 > Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
 
