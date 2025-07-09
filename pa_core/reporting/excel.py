@@ -92,4 +92,3 @@ def export_to_excel(
             pass
 
     wb.save(filename)
-    print(f"Exported results to {filename}")
