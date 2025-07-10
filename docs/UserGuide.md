@@ -1,11 +1,11 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. Use ``python -m pa_core.cli`` to access all command-line features including dashboard launch and static exports. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if it is removed.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. Use ``python -m pa_core.cli`` to access all command-line features including dashboard launch and static exports. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
 
 ### Key concepts
 
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
-* **Funding shortfall risk** – monitor the required `ShortfallProb` metric.
+* **Funding shortfall risk** – monitor the required `ShortfallProb` metric (this column is added automatically if missing).
 * **Tracking error** – check how far each sleeve deviates from the benchmark.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
 
@@ -26,6 +26,7 @@ shortfall probability and tracking error in a repeatable workflow.
 2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
 3. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
 4. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
+5. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
