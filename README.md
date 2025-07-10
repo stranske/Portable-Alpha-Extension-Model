@@ -13,17 +13,19 @@ Run the setup script to create a Python virtual environment and install dependen
 
 Execute this once before running any notebooks or other scripts.
 
-After setting up the environment you can run the command line interface:
+After setting up the environment you can run the command line interface. The
+main entry point is ``pa_core.cli`` which exposes additional export and dashboard
+options:
 
 ```bash
 # CSV parameters
-python -m pa_core --params parameters.csv --index sp500tr_fred_divyield.csv
+python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 
 # or YAML configuration
-python -m pa_core --config params.yaml --index sp500tr_fred_divyield.csv
+python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv
 
 # optional pivot-style output
-python -m pa_core --config params.yaml --index sp500tr_fred_divyield.csv --pivot
+python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv --pivot
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.
