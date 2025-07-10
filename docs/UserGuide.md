@@ -1,6 +1,6 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. Use ``python -m pa_core.cli`` to access all command-line features including dashboard launch and static exports. The sections below show how to configure a run, interpret the results and visualise key metrics.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. Use ``python -m pa_core.cli`` to access all command-line features including dashboard launch and static exports. The model is primarily used to test risk/return trade‑offs, funding shortfall probability and tracking error across multiple scenarios. The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
 
 ### Key concepts
 
@@ -27,6 +27,7 @@ shortfall probability and tracking error in a repeatable workflow.
 3. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
 4. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
 5. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
+6. Run `python -m pa_core.cli --help` at any time to view all command-line options.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
@@ -38,7 +39,7 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 
 ### 1. Build and Run a Simulation
 
-Edit one of the templates in `config/` or create your own CSV of parameters. Then run the CLI to generate results. Use `--output` to change the Excel filename and `--pivot` to append raw returns. This initial run helps confirm that the configuration loads correctly and that the summary metrics – including **ShortfallProb** – appear as expected.
+Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
 
 ```bash
 python -m pa_core.cli \
@@ -52,11 +53,7 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 
 ### 2. Interpret the Excel Output
 
-Each run prints a Rich table of headline metrics and generates many alternate
-histories of returns. The Excel file summarises **AnnReturn**, **AnnVol**, **VaR**,
-**TE**, **BreachProb** and a **ShortfallProb** column derived from that breach
-probability. Review the `Inputs` sheet to confirm parameters and the `Summary`
-sheet to compare sleeves. Use these metrics to test key ideas:
+After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
 
 * **Risk/return** – compare `AnnReturn` to `AnnVol` and check whether the
   simulated Sharpe ratios align with your targets.
@@ -71,7 +68,7 @@ colours remain consistent.
 
 ### 3. Visualise with the Dashboard
 
-After producing an output file you can start an interactive dashboard to visualise the results. Use the interactive plots to test how each sleeve contributes to tracking error and expected return.
+After producing an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps interpret risk/return trade‑offs, funding shortfall and tracking error across sleeves.
 
 ### Option 1 – from the CLI
 
