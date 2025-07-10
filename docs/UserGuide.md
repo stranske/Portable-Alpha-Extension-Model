@@ -36,8 +36,11 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
+The tutorials below walk through the full workflow: running a baseline
+simulation, interpreting the output and visualising the key risk/return
+ideas.  Follow them in order the first time you use the program.
 
-### 1. Build and Run a Simulation
+### Tutorial 1 – Run a Baseline Simulation
 
 Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
 
@@ -51,7 +54,7 @@ python -m pa_core.cli \
 
 Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run produces a console table showing `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve and writes the same data to `Outputs.xlsx`.
 
-### 2. Interpret the Excel Output
+### Tutorial 2 – Interpret the Excel Output
 
 After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
 
@@ -66,7 +69,7 @@ After running the model you will see a Rich table of headline metrics and an Exc
 your configuration omits it. The dashboard uses the same threshold file so
 colours remain consistent.
 
-### 3. Visualise with the Dashboard
+### Tutorial 3 – Visualise with the Dashboard
 
 After producing an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps interpret risk/return trade‑offs, funding shortfall and tracking error across sleeves.
 
@@ -95,7 +98,7 @@ The headline tab shows a risk‑return scatter while other tabs visualise cumula
 
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
-### 4. Export Charts
+### Tutorial 4 – Export Charts
 
 The CLI can create static images or PPTX packs as part of a run. Combine the following flags as needed:
 
@@ -105,7 +108,7 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
-### 5. Generate Custom Visualisations
+### Tutorial 5 – Generate Custom Visualisations
 
 Use `scripts/visualise.py` to build plots outside the dashboard. The script
 reads the Excel output along with an optional `.parquet` file of raw paths and
@@ -132,7 +135,7 @@ df.to_parquet("Outputs.parquet")
 Place both files in the same folder and rerun the script to access path based
 charts such as the funding fan or return histogram.
 
-### 6. Implement a New Agent
+### Tutorial 6 – Implement a New Agent
 
 1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
 2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`.
@@ -149,7 +152,7 @@ class MyAgent(BaseAgent):
         return r_beta + alpha_stream - financing
 ```
 
-### 7. Customise Visual Style
+### Tutorial 7 – Customise Visual Style
 
 Colours, fonts and traffic-light thresholds load from `config_theme.yaml` and `config_thresholds.yaml`. Edit these files before running the CLI or dashboard to adjust palettes or risk limits. After editing, reload the dashboard or call `pa_core.viz.theme.reload_theme()` from Python.
 
@@ -181,11 +184,11 @@ Lists the raw summary table for reference and allows quick export.
 
 These visual tools complement the Excel output by making it easy to spot how reallocating capital or adjusting assumptions shifts the risk/return profile of the three sleeves.
 
-### 8. Stress-Test Your Assumptions
+### Tutorial 8 – Stress-Test Your Assumptions
 
 After completing the tutorials you can stress‑test your assumptions by running multiple scenarios. Vary the capital weights, change the alpha streams or tweak the financing parameters in your configuration file. Re‑run the CLI and compare the resulting **ShortfallProb** and **TrackingErr** columns. Use the dashboard and export scripts to visualise how each scenario moves the portfolio relative to your targets.
 
-### 9. Save Everything with Export Bundles
+### Tutorial 9 – Save Everything with Export Bundles
 
 Use the `viz.export_bundle.save` helper to output PNG, HTML and JSON files for multiple figures at once. Pass a list of figures and a file stem:
 
@@ -197,7 +200,7 @@ export_bundle.save(figs, "plots/summary")
 
 The helper writes the files under `plots/` so you can archive an entire run with one call. Combine this with the CLI export flags when you need a full set of images.
 
-### 10. Explore the Chart Gallery
+### Tutorial 10 – Explore the Chart Gallery
 
 A Jupyter notebook `viz_gallery.ipynb` at the project root demonstrates every chart function with sample data. Launch it after installing the package in editable mode:
 
