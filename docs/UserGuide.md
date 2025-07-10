@@ -16,7 +16,9 @@ and active‑extension—and simulates monthly returns for each. Key outputs inc
 annualised return, volatility, Value at Risk, tracking error and the required
 **ShortfallProb** metric. The tutorials below walk through running a simulation,
 interpreting these metrics and visualising them so you can test the model’s main
-ideas in practice.
+ideas in practice. Each tutorial highlights how to implement a run, review the
+headline metrics and visualise the results so you can evaluate risk/return,
+shortfall probability and tracking error in a repeatable workflow.
 
 ## 2. Getting Started
 
