@@ -185,3 +185,26 @@ These visual tools complement the Excel output by making it easy to spot how rea
 ## 11. Introductory Tutorial 8 – Stress‑Test Your Assumptions
 
 After completing the tutorials you can stress‑test your assumptions by running multiple scenarios. Vary the capital weights, change the alpha streams or tweak the financing parameters in your configuration file. Re‑run the CLI and compare the resulting **ShortfallProb** and **TrackingErr** columns. Use the dashboard and export scripts to visualise how each scenario moves the portfolio relative to your targets.
+
+## 12. Introductory Tutorial 9 – Save Everything with Export Bundles
+
+Use the `viz.export_bundle.save` helper to output PNG, HTML and JSON files for multiple figures at once. Pass a list of figures and a file stem:
+
+```python
+from pa_core.viz import export_bundle, risk_return, fan
+figs = [risk_return.make(df_summary), fan.make(df_paths)]
+export_bundle.save(figs, "plots/summary")
+```
+
+The helper writes the files under `plots/` so you can archive an entire run with one call. Combine this with the CLI export flags when you need a full set of images.
+
+## 13. Introductory Tutorial 10 – Explore the Chart Gallery
+
+A Jupyter notebook `viz_gallery.ipynb` at the project root demonstrates every chart function with sample data. Launch it after installing the package in editable mode:
+
+```bash
+pip install -e .
+jupyter notebook viz_gallery.ipynb
+```
+
+Adjust the parameters in the notebook to see how colours and thresholds react. The gallery is a quick way to experiment with new scenarios and visual styles without extra code.
