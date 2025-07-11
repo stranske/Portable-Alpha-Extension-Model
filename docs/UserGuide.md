@@ -5,7 +5,7 @@ This program simulates a portable‑alpha plus active‑extension strategy. Each
 ### Key concepts
 
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
-* **Funding shortfall risk** – monitor the required `ShortfallProb` metric (this column is added automatically if missing).
+* **Funding shortfall risk** – monitor the required `ShortfallProb` metric (include it under `risk_metrics` or configuration fails).
 * **Tracking error** – check how far each sleeve deviates from the benchmark.
 * **Visualisation** – explore results via the dashboard or scripts.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
@@ -88,8 +88,8 @@ results:
    in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays
    within your tracking‑error budget.
 
-`ShortfallProb` is required by the program and will be added automatically if
-your configuration omits it. The dashboard uses the same threshold file so
+`ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the
+CLI raises a validation error. The dashboard uses the same threshold file so
 colours remain consistent.
 
 ### Tutorial 3 – Visualise the Results (Dashboard and Scripts)
