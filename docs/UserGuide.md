@@ -35,20 +35,20 @@ python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
-## 3. Introductory Tutorials
+## 3. Introductory Tutorial Series
 
-The tutorials below form a complete loop: first implement a scenario,
-then interpret the outputs and finally visualise the risk/return
-trade‑offs. Work through them sequentially the first time you use the
-program. This quick start teaches you how to evaluate the model’s three
-main ideas—**risk/return trade‑offs**, **funding shortfall probability**
-and **tracking error**—in a repeatable workflow.
+The following tutorials provide a hands‑on introduction to the model.
+Work through them in order to learn how to implement a run, interpret
+the key metrics and visualise the results.  This quick start teaches you
+how to evaluate the model’s three main purposes—**risk/return trade‑offs**,
+**funding shortfall probability** and **tracking error**—in a repeatable
+workflow.
 
 ### Tutorial roadmap
 
 1. **Implement a Scenario** – run the simulation from a parameter file and produce `Outputs.xlsx`.
 2. **Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
-3. **Visualise the Results** – launch the dashboard or notebook to plot the risk‑return scatter, funding fan and return distribution.
+3. **Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
    These first three tutorials form a quick‑start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
 5. **Generate Custom Visualisations** – use `scripts/visualise.py` on saved outputs.
@@ -81,8 +81,9 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 ### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
 After running the model you will see a Rich table of headline metrics and an
-Excel workbook of detailed results. Work through these steps to interpret the
-results:
+Excel workbook of detailed results. These numbers capture the risk/return
+profile, funding shortfall probability and tracking error for each sleeve.
+Work through the following steps to interpret the results:
 
 1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
    parameters and locate the `Summary` sheet.
@@ -98,7 +99,9 @@ colours remain consistent.
 ### Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
 After producing an output file you can start an interactive dashboard to explore
-the portfolio behaviour visually. Follow these steps:
+the portfolio behaviour visually. The dashboard helps you interpret
+risk/return trade‑offs, funding shortfall probability and tracking error at a
+glance. Follow these steps:
 
 1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
    `streamlit run dashboard/app.py` manually.
