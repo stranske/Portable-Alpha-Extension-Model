@@ -37,7 +37,7 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program.
+The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program. They form a step-by-step introduction to evaluating the model's three main ideas: risk/return trade-offs, funding shortfall probability and tracking error.
 
 ### Tutorial roadmap
 
@@ -57,7 +57,10 @@ Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting t
 
 ### Tutorial 1 – Implement the Model
 
-Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
+1. **Prepare a configuration** – copy one of the templates in `config/` and edit the values for your scenario.
+2. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
+3. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve.
+4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table and the mandatory **ShortfallProb** column.
 
 ```bash
 python -m pa_core.cli \
@@ -67,18 +70,22 @@ python -m pa_core.cli \
   --pivot
 ```
 
-Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run produces a console table showing `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve and writes the same data to `Outputs.xlsx`.
+Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run verifies that the program is installed correctly and prints a console table of `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve while writing the same data to `Outputs.xlsx`.
 
 ### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
-After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
+After running the model you will see a Rich table of headline metrics and an
+Excel workbook of detailed results. Work through these steps to interpret the
+results:
 
-* **Risk/return** – compare `AnnReturn` to `AnnVol` and check whether the
-  simulated Sharpe ratios align with your targets.
-* **Funding shortfall** – verify `ShortfallProb` against the thresholds in
-  `config_thresholds.yaml`.
-* **Tracking error** – examine the `TE` column to ensure each sleeve stays within
-  permitted deviation from the benchmark.
+1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
+   parameters and locate the `Summary` sheet.
+2. **Review the headline metrics** – `AnnReturn`, `AnnVol`, `VaR`, `TE` and
+   `BreachProb` appear for each sleeve along with the mandatory
+   **ShortfallProb** column.
+3. **Compare to thresholds** – verify `ShortfallProb` against the limits defined
+   in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays
+   within your tracking‑error budget.
 
 `ShortfallProb` is required by the program and will be added automatically if
 your configuration omits it. The dashboard uses the same threshold file so
@@ -86,22 +93,18 @@ colours remain consistent.
 
 ### Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
-After producing an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps interpret risk/return trade‑offs, funding shortfall and tracking error across sleeves.
+After producing an output file you can start an interactive dashboard to explore
+the portfolio behaviour visually. Follow these steps:
 
-### Option 1 – from the CLI
-
-Add `--dashboard` to the `pa_core.cli` command. Once the simulation finishes, Streamlit opens in your browser.
-
-### Option 2 – manual launch
-
-Run the app directly:
-
-```bash
-streamlit run dashboard/app.py
-```
-
-Provide the path to `Outputs.xlsx` in the sidebar. If the companion `Outputs.parquet` file is present, additional charts such as the funding fan become available.
-The headline tab shows a risk‑return scatter while other tabs visualise cumulative funding (`Funding fan`) and return distributions (`Path dist`). Adjust parameters and reload the file to test how the risk‑return profile shifts.
+1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
+   `streamlit run dashboard/app.py` manually.
+2. **Load your results** – enter the path to `Outputs.xlsx` in the sidebar. If a
+   matching `Outputs.parquet` file exists the dashboard enables additional
+   charts.
+3. **Explore the tabs** – the headline view shows a risk‑return scatter while
+   other tabs display cumulative funding (`Funding fan`) and final return
+   distributions (`Path dist`). Adjust parameters and reload the file to see how
+   the risk/return profile shifts.
 
 ### Sidebar Controls
 
