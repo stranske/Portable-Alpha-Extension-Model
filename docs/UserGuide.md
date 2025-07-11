@@ -37,13 +37,14 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The tutorials below provide a step-by-step introduction. You'll implement a baseline run, interpret the key metrics and visualise the results so you can test risk/return, shortfall probability and tracking error. Follow them in order the first time you use the program.
+The tutorials below provide a step-by-step introduction. They mirror the workflow you will use in practice: implement a baseline run, interpret the headline metrics and visualise the results. Each tutorial highlights how to test the key ideas—risk/return trade‑offs, funding shortfall probability and tracking error—using the model. Follow them in order the first time you use the program.
 
 ### Tutorial roadmap
 
 1. **Implement the Model** – run a simulation from a parameter file and confirm the generated Excel workbook.
 2. **Interpret the Metrics** – review the console table and workbook to understand risk/return, shortfall probability and tracking error.
 3. **Visualise the Results** – launch the dashboard or notebook to explore interactive charts.
+   These first three tutorials form a quick-start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
 5. **Generate Custom Visualisations** – use `scripts/visualise.py` on saved outputs.
 6. **Implement a New Agent** – subclass `BaseAgent` and register it.
@@ -52,7 +53,7 @@ The tutorials below provide a step-by-step introduction. You'll implement a base
 9. **Save Everything with Export Bundles** – archive figures via `viz.export_bundle`.
 10. **Explore the Chart Gallery** – open `viz_gallery.ipynb` for a hands-on tour of every plotting helper.
 
-### Tutorial 1 – Implement the Model
+### Tutorial 1 – Implement the Model (Baseline Run)
 
 Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
 
@@ -66,7 +67,7 @@ python -m pa_core.cli \
 
 Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run produces a console table showing `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve and writes the same data to `Outputs.xlsx`.
 
-### Tutorial 2 – Interpret the Metrics
+### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
 After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
 
@@ -81,7 +82,7 @@ After running the model you will see a Rich table of headline metrics and an Exc
 your configuration omits it. The dashboard uses the same threshold file so
 colours remain consistent.
 
-### Tutorial 3 – Visualise the Results
+### Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
 After producing an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps interpret risk/return trade‑offs, funding shortfall and tracking error across sleeves.
 
