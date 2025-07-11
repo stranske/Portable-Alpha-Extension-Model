@@ -1,6 +1,6 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook along with optional charts. Use ``python -m pa_core.cli`` to access all command-line features including dashboard launch and static exports. The model is primarily used to test risk/return trade‑offs, funding shortfall probability and tracking error across multiple scenarios. The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures. Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports—and to evaluate risk/return trade‑offs, funding shortfall probability and tracking error across multiple scenarios. The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
 
 ### Key concepts
 
@@ -60,7 +60,7 @@ Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting t
 1. **Prepare a configuration** – copy one of the templates in `config/` and edit the values for your scenario.
 2. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
 3. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve.
-4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table and the mandatory **ShortfallProb** column.
+4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table and the mandatory **ShortfallProb** column. The `Summary` sheet also contains an embedded risk‑return chart so you can see how each sleeve stacks up at a glance.
 
 
 ```bash
