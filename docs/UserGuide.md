@@ -44,6 +44,7 @@ The following tutorials show how to implement a run, interpret the core metrics 
 1. **Implement the Model** – run a simulation from a parameter file and confirm the generated Excel workbook.
 2. **Interpret the Metrics** – review the console table and workbook to understand risk/return, shortfall probability and tracking error.
 3. **Visualise the Results** – launch the dashboard or notebook to explore interactive charts.
+   These first three tutorials form a quick-start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
 5. **Generate Custom Visualisations** – use `scripts/visualise.py` on saved outputs.
 6. **Implement a New Agent** – subclass `BaseAgent` and register it.
@@ -68,7 +69,7 @@ python -m pa_core.cli \
 
 Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run produces a console table showing `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve and writes the same data to `Outputs.xlsx`.
 
-### Tutorial 2 – Interpret the Metrics
+### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
 After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
 
@@ -83,7 +84,7 @@ After running the model you will see a Rich table of headline metrics and an Exc
 your configuration omits it. The dashboard uses the same threshold file so
 colours remain consistent.
 
-### Tutorial 3 – Visualise the Results
+### Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
 After producing an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps interpret risk/return trade‑offs, funding shortfall and tracking error across sleeves.
 
