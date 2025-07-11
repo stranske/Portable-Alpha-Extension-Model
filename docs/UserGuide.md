@@ -37,7 +37,12 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program. They form a step‑by‑step introduction to evaluating the model’s three main ideas: **risk/return trade‑offs**, **funding shortfall probability** and **tracking error**.
+The tutorials below form a complete loop: first implement a scenario,
+then interpret the outputs and finally visualise the risk/return
+trade‑offs. Work through them sequentially the first time you use the
+program. This quick start teaches you how to evaluate the model’s three
+main ideas—**risk/return trade‑offs**, **funding shortfall probability**
+and **tracking error**—in a repeatable workflow.
 
 ### Tutorial roadmap
 
