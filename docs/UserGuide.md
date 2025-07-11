@@ -7,6 +7,7 @@ This program simulates a portable‑alpha plus active‑extension strategy. Each
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
 * **Funding shortfall risk** – monitor the required `ShortfallProb` metric (this column is added automatically if missing).
 * **Tracking error** – check how far each sleeve deviates from the benchmark.
+* **Visualisation** – explore results via the dashboard or scripts.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
 
 ## 1. Overview
@@ -36,11 +37,9 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The tutorials below walk through the full workflow: running a baseline
-simulation, interpreting the output and visualising the key risk/return
-ideas.  Follow them in order the first time you use the program.
+The tutorials below provide a step-by-step introduction. You'll implement a baseline run, interpret the key metrics and visualise the results so you can test risk/return, shortfall probability and tracking error. Follow them in order the first time you use the program.
 
-### Tutorial 1 – Run a Baseline Simulation
+### Tutorial 1 – Implement the Model
 
 Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
 
@@ -54,7 +53,7 @@ python -m pa_core.cli \
 
 Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run produces a console table showing `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve and writes the same data to `Outputs.xlsx`.
 
-### Tutorial 2 – Interpret the Excel Output
+### Tutorial 2 – Interpret the Metrics
 
 After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
 
@@ -69,7 +68,7 @@ After running the model you will see a Rich table of headline metrics and an Exc
 your configuration omits it. The dashboard uses the same threshold file so
 colours remain consistent.
 
-### Tutorial 3 – Visualise with the Dashboard
+### Tutorial 3 – Visualise the Results
 
 After producing an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps interpret risk/return trade‑offs, funding shortfall and tracking error across sleeves.
 
