@@ -59,8 +59,8 @@ Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting t
 
 1. **Prepare a configuration** – copy one of the templates in `config/` and edit the values for your scenario.
 2. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
-3. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve.
-4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table and the mandatory **ShortfallProb** column. The `Summary` sheet also contains an embedded risk‑return chart so you can see how each sleeve stacks up at a glance.
+3. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `BreachProb` and `TE` for each sleeve.
+4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table. A **ShortfallProb** column is always added so you can compare funding‑shortfall risk, and the `Summary` sheet contains an embedded risk‑return chart showing how each sleeve stacks up at a glance.
 
 
 ```bash
@@ -71,7 +71,7 @@ python -m pa_core.cli \
   --pivot
 ```
 
-Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run verifies that the program is installed correctly and prints a console table of `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve while writing the same data to `Outputs.xlsx`.
+Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run verifies that the program is installed correctly and prints a console table of `AnnReturn`, `AnnVol`, `VaR`, `BreachProb` and `TE` for each sleeve while writing the same data to `Outputs.xlsx`.
 
 ### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
@@ -81,9 +81,7 @@ results:
 
 1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
    parameters and locate the `Summary` sheet.
-2. **Review the headline metrics** – `AnnReturn`, `AnnVol`, `VaR`, `TE` and
-   `BreachProb` appear for each sleeve along with the mandatory
-   **ShortfallProb** column.
+2. **Review the headline metrics** – `AnnReturn`, `AnnVol`, `VaR`, `BreachProb` and `TE` appear for each sleeve. The workbook also includes the mandatory **ShortfallProb** column even if it was not requested in your configuration.
 3. **Compare to thresholds** – verify `ShortfallProb` against the limits defined
    in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays
    within your tracking‑error budget.
