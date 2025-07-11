@@ -62,6 +62,7 @@ Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting t
 3. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb` for each sleeve.
 4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table and the mandatory **ShortfallProb** column.
 
+
 ```bash
 python -m pa_core.cli \
   --config my_params.yml \
