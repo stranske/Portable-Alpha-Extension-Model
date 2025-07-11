@@ -37,7 +37,7 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The tutorials below provide a step-by-step introduction. You'll implement a baseline run, interpret the key metrics and visualise the results so you can test risk/return, shortfall probability and tracking error. Follow them in order the first time you use the program.
+The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program.
 
 ### Tutorial roadmap
 
@@ -51,6 +51,8 @@ The tutorials below provide a step-by-step introduction. You'll implement a base
 8. **Stress-Test Your Assumptions** – run multiple scenarios and compare metrics.
 9. **Save Everything with Export Bundles** – archive figures via `viz.export_bundle`.
 10. **Explore the Chart Gallery** – open `viz_gallery.ipynb` for a hands-on tour of every plotting helper.
+
+Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
 
 ### Tutorial 1 – Implement the Model
 
