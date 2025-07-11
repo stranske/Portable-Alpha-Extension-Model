@@ -37,7 +37,7 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The tutorials below provide a step-by-step introduction. They mirror the workflow you will use in practice: implement a baseline run, interpret the headline metrics and visualise the results. Each tutorial highlights how to test the key ideas—risk/return trade‑offs, funding shortfall probability and tracking error—using the model. Follow them in order the first time you use the program.
+The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program.
 
 ### Tutorial roadmap
 
@@ -53,7 +53,9 @@ The tutorials below provide a step-by-step introduction. They mirror the workflo
 9. **Save Everything with Export Bundles** – archive figures via `viz.export_bundle`.
 10. **Explore the Chart Gallery** – open `viz_gallery.ipynb` for a hands-on tour of every plotting helper.
 
-### Tutorial 1 – Implement the Model (Baseline Run)
+Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
+
+### Tutorial 1 – Implement the Model
 
 Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
 
