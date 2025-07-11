@@ -39,6 +39,19 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 
 The tutorials below provide a step-by-step introduction. You'll implement a baseline run, interpret the key metrics and visualise the results so you can test risk/return, shortfall probability and tracking error. Follow them in order the first time you use the program.
 
+### Tutorial roadmap
+
+1. **Implement the Model** – run a simulation from a parameter file and confirm the generated Excel workbook.
+2. **Interpret the Metrics** – review the console table and workbook to understand risk/return, shortfall probability and tracking error.
+3. **Visualise the Results** – launch the dashboard or notebook to explore interactive charts.
+4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
+5. **Generate Custom Visualisations** – use `scripts/visualise.py` on saved outputs.
+6. **Implement a New Agent** – subclass `BaseAgent` and register it.
+7. **Customise Visual Style** – adjust YAML theme files and reload.
+8. **Stress-Test Your Assumptions** – run multiple scenarios and compare metrics.
+9. **Save Everything with Export Bundles** – archive figures via `viz.export_bundle`.
+10. **Explore the Chart Gallery** – open `viz_gallery.ipynb` for a hands-on tour of every plotting helper.
+
 ### Tutorial 1 – Implement the Model
 
 Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
