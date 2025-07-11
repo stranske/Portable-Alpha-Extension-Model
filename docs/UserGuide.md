@@ -57,7 +57,12 @@ Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting t
 
 ### Tutorial 1 – Implement the Model
 
-Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial shows how to implement the model and confirm that the summary metrics—including **ShortfallProb**—appear as expected.
+Start by editing one of the templates in `config/` or create your own CSV of parameters. Run the CLI to generate an Excel workbook for a single scenario. Use `--output` to change the filename and `--pivot` to append raw returns. This first tutorial walks through implementing the model and verifying the output:
+
+1. Create or edit a parameter file.
+2. Run the CLI with the parameter file and an index return CSV.
+3. Confirm that `Outputs.xlsx` appears and includes a `Summary` sheet.
+4. Check that the sheet lists `ShortfallProb` alongside `AnnReturn`, `AnnVol`, `VaR`, `TE` and `BreachProb`.
 
 ```bash
 python -m pa_core.cli \
@@ -71,14 +76,11 @@ Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. T
 
 ### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
-After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. These metrics form the basis for interpreting the simulation:
+After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. The workbook summarises **AnnReturn**, **AnnVol**, **VaR**, **TE**, **BreachProb** and a **ShortfallProb** column derived from that breach probability. Review the `Inputs` sheet to confirm parameters and the `Summary` sheet to compare sleeves. Use these metrics to interpret the simulation:
 
-* **Risk/return** – compare `AnnReturn` to `AnnVol` and check whether the
-  simulated Sharpe ratios align with your targets.
-* **Funding shortfall** – verify `ShortfallProb` against the thresholds in
-  `config_thresholds.yaml`.
-* **Tracking error** – examine the `TE` column to ensure each sleeve stays within
-  permitted deviation from the benchmark.
+1. Compare **AnnReturn** and **AnnVol** for each sleeve to gauge the risk/return balance.
+2. Check **ShortfallProb** against the thresholds defined in `config_thresholds.yaml`.
+3. Use **TrackingErr** to ensure each sleeve stays within permitted deviation from the benchmark.
 
 `ShortfallProb` is required by the program and will be added automatically if
 your configuration omits it. The dashboard uses the same threshold file so
