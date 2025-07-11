@@ -37,14 +37,14 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 `AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorials
 
-The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program. They form a step-by-step introduction to evaluating the model's three main ideas: risk/return trade-offs, funding shortfall probability and tracking error.
+The following tutorials show how to implement a run, interpret the core metrics that measure risk/return, funding shortfall and tracking error, and visualise the results. Work through them in order the first time you use the program. They form a step‑by‑step introduction to evaluating the model’s three main ideas: **risk/return trade‑offs**, **funding shortfall probability** and **tracking error**.
 
 ### Tutorial roadmap
 
-1. **Implement the Model** – run a simulation from a parameter file and confirm the generated Excel workbook.
-2. **Interpret the Metrics** – review the console table and workbook to understand risk/return, shortfall probability and tracking error.
-3. **Visualise the Results** – launch the dashboard or notebook to explore interactive charts.
-   These first three tutorials form a quick-start sequence for testing the core ideas.
+1. **Implement a Scenario** – run the simulation from a parameter file and produce `Outputs.xlsx`.
+2. **Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
+3. **Visualise the Results** – launch the dashboard or notebook to plot the risk‑return scatter, funding fan and return distribution.
+   These first three tutorials form a quick‑start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
 5. **Generate Custom Visualisations** – use `scripts/visualise.py` on saved outputs.
 6. **Implement a New Agent** – subclass `BaseAgent` and register it.
