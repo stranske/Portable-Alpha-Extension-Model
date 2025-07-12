@@ -1,0 +1,11 @@
+Parameter,Value,Notes
+Analysis mode,alpha_shares,Alpha share sweep
+Number of simulations,500,Monte Carlo trials
+Number of months,12,Simulation horizon
+External PA alpha min (%),25,Minimum external alpha share
+External PA alpha max (%),75,Maximum external alpha share
+External PA alpha step (%),5,Step size
+Active share min (%),20,Minimum active share
+Active share max (%),100,Maximum active share
+Active share step (%),5,Step size
+risk_metrics,Return;Risk;ShortfallProb,Required metrics

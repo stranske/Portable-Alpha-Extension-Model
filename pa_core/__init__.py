@@ -24,6 +24,8 @@ from .data import (
 )
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting import export_to_excel, print_summary
+from .reporting.sweep_excel import export_sweep_results
+from .sweep import run_parameter_sweep
 from .run_flags import RunFlags
 from .sim import (
     draw_financing_series,
@@ -60,7 +62,9 @@ __all__ = [
     "set_backend",
     "get_backend",
     "export_to_excel",
+    "export_sweep_results",
     "print_summary",
+    "run_parameter_sweep",
     "tracking_error",
     "value_at_risk",
     "compound",

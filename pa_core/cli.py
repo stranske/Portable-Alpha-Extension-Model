@@ -35,6 +35,8 @@ from .agents.registry import build_from_config
 from .backend import set_backend
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
+from .sweep import run_parameter_sweep
+from .reporting.sweep_excel import export_sweep_results
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
@@ -183,6 +185,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
+        "--mode",
+        choices=["capital", "returns", "alpha_shares", "vol_mult"],
+        default="returns",
+        help="Parameter sweep analysis mode",
+    )
+    parser.add_argument(
         "--pivot",
         action="store_true",
         help="Write all raw returns in a single long-format sheet",
@@ -248,8 +256,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     else:
         raw_params = load_parameters(args.params, LABEL_MAP)
         cfg = load_config(raw_params)
+
+    cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
+
+    if cfg.analysis_mode != "returns":
+        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+        export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
+        return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
 
