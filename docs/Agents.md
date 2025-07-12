@@ -1,12 +1,61 @@
 # Agents Architecture Guide  
 *Portable‑Alpha + Active‑Extension Model*
 
-> “Make everything as simple as possible, but no simpler.” – A. Einstein  
+> "Make everything as simple as possible, but no simpler." – A. Einstein  
 > (…who probably never had to vectorize Monte‑Carlo code, but would have sympathised.)
 
 ---
 
-## 1  Why “Agents”?
+## ⚠️ DEVELOPMENT STATUS & PRIORITIES
+
+**Last Updated:** July 12, 2025  
+**Current Status:** Core implementation complete, critical bugs fixed  
+
+### ✅ COMPLETED (Do NOT modify these)
+- **ActiveExtensionAgent bug fix** - `active_share` percentage conversion is **WORKING CORRECTLY**
+  - Current implementation: `float(self.extra.get("active_share", 50.0)) / 100.0`
+  - ✅ Tests passing, handles percentage inputs properly
+  - ❌ **DO NOT CHANGE** - Previous attempt broke test_agent_math_identity
+- **Basic agent infrastructure** - All agents implemented and tested
+- **CLI and dashboard** - Core functionality working
+- **Configuration system** - ModelConfig validation working
+- **Development workflow** - Git sync, formatting, testing tools ready
+
+### 🎯 HIGH PRIORITY (Focus here)
+1. **Parameter Sweep Engine** - Implement 4 analysis modes (capital/returns/alpha_shares/vol_mult)
+   - Location: `pa_core/cli.py` - add sweep functionality  
+   - Requirement: Enable users to run multiple parameter variations automatically
+   - See: `CODEX_IMPLEMENTATION_SPEC.md` for detailed requirements
+
+2. **New Agent Types** - Implement additional strategy agents
+   - Create new agent classes in `pa_core/agents/`
+   - Follow existing patterns (BaseAgent subclass)
+   - Add to registry.py for auto-discovery
+
+3. **Performance Optimizations** - Improve Monte Carlo simulation speed
+   - Location: `pa_core/simulations.py`, `pa_core/sim/`
+   - Focus: Vectorization, memory efficiency, parallel processing
+
+### 🔧 MEDIUM PRIORITY  
+1. **Enhanced Visualizations** - New chart types and interactions
+2. **Advanced Configuration** - More parameter validation and templates
+3. **Documentation** - API docs and advanced tutorials
+
+### ❌ AVOID (Being handled separately)
+- **Code formatting/linting** - Handled by human assistant
+- **Bug fixes in existing agents** - Core agents are working correctly
+- **Test improvements** - Being handled in parallel workflow
+- **Documentation polishing** - Non-core task
+
+### 🤝 COORDINATION NOTES
+- Check `make check-updates` before starting work
+- Use feature branches: `feature/parameter-sweep-engine`
+- Run tests before pushing: `python -m pytest tests/`
+- Focus on NEW functionality, not refactoring working code
+
+---
+
+## 1  Why "Agents"?
 
 The existing notebook (`Portable_Alpha_Vectors.ipynb`) bundles business logic, UI, simulation, and reporting into one monolith.  Splitting each capital sleeve into an **agent**:
 
@@ -1105,11 +1154,6 @@ For multi-factor diagnostics use
 `viz.triple_scatter.make(df_summary)` which plots tracking error, beta and
 excess return on three axes. Marker size scales with the `Capital` column and
 hover text lists CVaR.
-
-### 12.93  Factor-exposure timeline
-`viz.factor_timeline.make(df)` visualises each agent’s factor exposures month by
-month as stacked lines. The DataFrame should have a MultiIndex `(Month, Agent)`
-and factor columns. Use this to check style drift over the simulation horizon.
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 

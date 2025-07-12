@@ -1,12 +1,14 @@
 # Updated Implementation Requirements for Codex
 
-## CRITICAL BUG FIXES COMPLETED ✅
+## 🚨 IMPORTANT: CORE BUGS ALREADY FIXED
 
-### ActiveExtension Agent Fix Applied:
-- **File**: `pa_core/agents/active_ext.py`
-- **Issue**: `active_share` parameter treated as decimal instead of percentage
-- **Fix**: Convert percentage to decimal: `float(self.extra.get("active_share", 50.0)) / 100.0`
-- **Result**: Extreme returns (4,535,105%) now resolved to reasonable values (~0.22%)
+**DO NOT MODIFY THESE FILES** - They are working correctly:
+- ✅ `pa_core/agents/active_ext.py` - Active share conversion fixed and tested
+- ✅ `pa_core/cli.py` - Basic CLI functionality working  
+- ✅ `dashboard/app.py` - Core dashboard features working
+- ✅ All agent classes - Math and validation working correctly
+
+**Focus on NEW functionality only.**
 
 ## MISSING FUNCTIONALITY TO IMPLEMENT
 
