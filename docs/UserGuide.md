@@ -2,13 +2,13 @@
 
 This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths.  The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures.  Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it.  All tutorials assume you invoke the program via ``python -m pa_core.cli``.
 
-The model is designed to test the three core ideas a user typically cares about:
+The model is designed to help you explore three core ideas:
 
 * **Risk/return trade‑offs** – how annualised return compares with volatility.
 * **Funding shortfall probability** – the chance the portfolio falls below a required level.
 * **Tracking error** – deviation from the benchmark.
 
-The introductory tutorials show how to implement a run, interpret these metrics and visualise them so you can evaluate the model in a repeatable workflow.
+The introductory tutorials demonstrate how to implement a run, interpret these metrics and visualise them so you can test each idea in a repeatable workflow.
 
 ### Key concepts
 
@@ -69,7 +69,7 @@ workflow.
 
 Introductory Tutorials 1‑3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
 
-### Introductory Tutorial 1 – Implement the Model
+### Introductory Tutorial 1 – Implement a Scenario
 
 This tutorial walks through producing a set of results that you can later analyse for risk/return, shortfall probability and tracking error.
 
