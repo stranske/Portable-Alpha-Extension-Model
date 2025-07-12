@@ -49,9 +49,9 @@ workflow.
 
 ### Tutorial roadmap
 
-1. **Implement a Scenario** – run the simulation from a parameter file and produce `Outputs.xlsx`.
-2. **Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
-3. **Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
+1. **Introductory Tutorial 1 – Implement a Scenario** – run the simulation from a parameter file and produce `Outputs.xlsx`.
+2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
+3. **Introductory Tutorial 3 – Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
    These first three tutorials form a quick‑start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
 5. **Generate Custom Visualisations** – use `scripts/visualise.py` on saved outputs.
@@ -61,9 +61,11 @@ workflow.
 9. **Save Everything with Export Bundles** – archive figures via `viz.export_bundle`.
 10. **Explore the Chart Gallery** – open `viz_gallery.ipynb` for a hands-on tour of every plotting helper.
 
-Tutorials 1-3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
+Introductory Tutorials 1‑3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
 
-### Tutorial 1 – Implement the Model
+### Introductory Tutorial 1 – Implement the Model
+
+This tutorial walks through producing a set of results that you can later analyse for risk/return, shortfall probability and tracking error.
 
 1. **Prepare a configuration** – copy one of the templates in `config/` and edit the values for your scenario.
 2. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
@@ -81,11 +83,9 @@ python -m pa_core.cli \
 
 Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run verifies that the program is installed correctly and prints a console table of `AnnReturn`, `AnnVol`, `VaR`, `BreachProb` and `TE` for each sleeve while writing the same data to `Outputs.xlsx`.
 
-### Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
+### Introductory Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
-After running the model you will see a Rich table of headline metrics and an
-Excel workbook of detailed results. These numbers capture the risk/return
-profile, funding shortfall probability and tracking error for each sleeve.
+This tutorial explains how to read the results produced in Tutorial 1. After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. These numbers capture the risk/return profile, funding shortfall probability and tracking error for each sleeve.
 Work through the following steps to interpret the results:
 
 1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
@@ -99,12 +99,9 @@ Work through the following steps to interpret the results:
 CLI raises a validation error. The dashboard uses the same threshold file so
 colours remain consistent.
 
-### Tutorial 3 – Visualise the Results (Dashboard and Scripts)
+### Introductory Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
-After producing an output file you can start an interactive dashboard to explore
-the portfolio behaviour visually. The dashboard helps you interpret
-risk/return trade‑offs, funding shortfall probability and tracking error at a
-glance. Follow these steps:
+This tutorial shows how to visualise the metrics produced in Tutorials 1 and 2. After generating an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps you interpret risk/return trade‑offs, funding shortfall probability and tracking error at a glance. Follow these steps:
 
 1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
    `streamlit run dashboard/app.py` manually.
