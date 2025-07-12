@@ -1,6 +1,8 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths.  The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures.  Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it.  All tutorials assume you invoke the program via ``python -m pa_core.cli``.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distri- **Auto‑refresh** – polls the file every few seconds so the dashboard updates while simulations run.
+
+## 6. Introductory Tutorial 4 – Exporting Chartsital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths.  The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures.  Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it.  All tutorials assume you invoke the program via ``python -m pa_core.cli``.
 
 The model is designed to help you explore three core ideas:
 
@@ -122,8 +124,7 @@ This tutorial shows how to visualise the metrics produced in Tutorials 1 and 2
    charts.
 3. **Explore the tabs** – the headline view shows a risk‑return scatter while
    other tabs display cumulative funding (`Funding fan`) and final return
-   distributions (`Path dist`). Adjust parameters and reload the file to see how
-   the risk/return profile shifts.
+   distributions (`Path dist`). Two download buttons let you save the headline PNG chart and the Excel file directly from the browser. Tick **Auto‑refresh** to reload the data periodically while a long simulation runs.
 
 ### Sidebar Controls
 
@@ -133,9 +134,13 @@ This tutorial shows how to visualise the metrics produced in Tutorials 1 and 2
 - **Risk‑free rate** – for any excess return calculations.
 - **Auto‑refresh** – polls the file every few seconds so the dashboard updates while simulations run.
 
+<<<<<<< HEAD
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
 ### Tutorial 4 – Export Charts
+=======
+## 6. Introductory Tutorial 4 – Exporting Charts
+>>>>>>> origin/codex/update-user-guide-for-consistency-and-tutorials
 
 The CLI can create static images or PPTX packs as part of a run. Combine the following flags as needed:
 
