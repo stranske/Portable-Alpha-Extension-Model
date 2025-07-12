@@ -43,7 +43,7 @@ shortfall probability and tracking error in a repeatable workflow.
 4. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
 5. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 6. Run `python -m pa_core.cli --help` at any time to view all command-line options.
-7. Include `--dashboard` to open an interactive Streamlit view after the run completes.
+7. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
