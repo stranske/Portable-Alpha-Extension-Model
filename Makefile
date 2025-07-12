@@ -121,3 +121,20 @@ check-updates:
 	else \
 		echo "✅ Up to date with remote."; \
 	fi
+
+# Automated debugging workflow for Codex PRs
+debug-codex:
+	@echo "🔍 Running automated Codex PR debugging..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current)
+
+debug-codex-fix:
+	@echo "🔧 Running automated Codex PR debugging with auto-commit..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --commit
+
+debug-codex-report:
+	@echo "📄 Generating Codex PR debugging report..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --report=debug_report.md
+
+# Quick CI/CD validation workflow
+validate-pr: debug-codex dev-check
+	@echo "✅ PR validation complete!"

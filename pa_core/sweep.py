@@ -157,7 +157,7 @@ def run_parameter_sweep(
             n_months=mod_cfg.N_MONTHS,
             n_sim=mod_cfg.N_SIMULATIONS,
             params=params,
-            rngs=fin_rngs,
+            rngs={"financing": fin_rngs[0]} if fin_rngs else None,
         )
 
         agents = build_from_config(mod_cfg)

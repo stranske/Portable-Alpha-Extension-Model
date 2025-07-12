@@ -259,10 +259,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     if cfg.analysis_mode != "returns":
         fin_rngs_list = list(fin_rngs.values())
+        # Ensure idx_series is a pandas Series
+        if isinstance(idx_series, pd.DataFrame):
+            series_data = idx_series.squeeze()
+            if isinstance(series_data, pd.Series):
+                idx_series = series_data
+            else:
+                raise ValueError("idx_series DataFrame must have only one column")
+        elif not isinstance(idx_series, pd.Series):
+            raise ValueError("idx_series must be a pandas Series")
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)
-        export_sweep_results(
-            results, filename=flags.save_xlsx or "Outputs.xlsx"
-        )
+        export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
         return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
