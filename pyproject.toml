@@ -3,6 +3,44 @@ line-length = 88
 extend-ignore = ["E501"]
 extend-exclude = ["archive/*"]
 
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | build
+  | dist
+  | archive
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["pa_core", "dashboard"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "--cov=pa_core --cov-report=html --cov-report=term-missing"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pa_core*", "archive*"]

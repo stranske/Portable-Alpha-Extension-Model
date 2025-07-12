@@ -16,6 +16,9 @@ help:
 	@echo "  demo       - Run CLI demo with sample data"
 	@echo "  dashboard  - Start Streamlit dashboard"
 	@echo "  docs       - Generate documentation"
+	@echo "  sync       - Sync with remote main branch"
+	@echo "  check-updates - Check for remote updates from Codex"
+	@echo "  dev-check  - Run all development checks (format+lint+test)"
 	@echo ""
 
 # Environment setup
@@ -40,7 +43,13 @@ test-cov:
 	python -m pytest tests/ --cov=pa_core --cov-report=html --cov-report=term
 
 lint:
-	python -m ruff check pa_core
+	@if [ ! -d "dev-env" ]; then \
+		echo "🔧 Setting up development environment..."; \
+		python3 -m venv dev-env; \
+		dev-env/bin/pip install black isort flake8 mypy; \
+	fi
+	@echo "🔍 Linting code..."
+	dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88
 
 lint-fix:
 	python -m ruff check pa_core --fix
@@ -76,5 +85,39 @@ security:
 
 # Format code
 format:
-	python -m black pa_core/ tests/
-	python -m isort pa_core/ tests/
+	@if [ ! -d "dev-env" ]; then \
+		echo "🔧 Setting up development environment..."; \
+		python3 -m venv dev-env; \
+		dev-env/bin/pip install black isort flake8 mypy; \
+	fi
+	@echo "🎨 Formatting code..."
+	dev-env/bin/black pa_core/ tests/ dashboard/
+	dev-env/bin/isort pa_core/ tests/ dashboard/
+
+# Git workflow commands
+sync:
+	@echo "🔄 Syncing with remote main..."
+	git fetch origin
+	git checkout main
+	git pull origin main
+	@echo "✅ Synced with remote main"
+
+sync-rebase:
+	@echo "🔄 Rebasing current branch on main..."
+	git fetch origin
+	git rebase origin/main
+	@echo "✅ Rebased on latest main"
+
+dev-check: format lint typecheck test
+	@echo "✅ All development checks passed!"
+
+# Check for changes from Codex
+check-updates:
+	@echo "📡 Checking for remote updates..."
+	git fetch origin
+	@if [ "$$(git rev-list HEAD..origin/main --count)" -gt 0 ]; then \
+		echo "🚨 Remote updates available! Run 'make sync' to update."; \
+		git log --oneline HEAD..origin/main; \
+	else \
+		echo "✅ Up to date with remote."; \
+	fi

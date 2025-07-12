@@ -7,7 +7,9 @@ tests/__pycache__/
 
 *.egg-info/
 
-# Virtual environment
+# Virtual environments
+dev-env/
+venv/
 .venv/
 
 *.xlsx
