@@ -6,6 +6,7 @@ from typing import Any, List
 import yaml
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     ValidationError,
     model_validator,
@@ -21,6 +22,8 @@ __all__ = ["ModelConfig", "load_config", "ConfigError"]
 
 class ModelConfig(BaseModel):
     """Validated simulation parameters."""
+
+    model_config = ConfigDict(populate_by_name=True, frozen=True)
 
     N_SIMULATIONS: int = Field(gt=0, alias="N_SIMULATIONS")
     N_MONTHS: int = Field(gt=0, alias="N_MONTHS")
@@ -71,10 +74,6 @@ class ModelConfig(BaseModel):
             "ShortfallProb",
         ]
     )
-
-    class Config:
-        allow_population_by_field_name = True
-        frozen = True
 
     @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
