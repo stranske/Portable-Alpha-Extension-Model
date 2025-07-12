@@ -15,6 +15,9 @@ from __future__ import annotations
 import argparse
 from typing import Sequence, Optional
 import pandas as pd
+import numpy as np
+from numpy.typing import NDArray
+import numpy.typing as npt
 
 from . import (
     load_parameters,
@@ -24,6 +27,7 @@ from . import (
     export_to_excel,
     print_summary,
     load_config,
+    RunFlags,
 )
 from .sim.covariance import build_cov_matrix
 from .backend import set_backend
@@ -31,7 +35,7 @@ from .random import spawn_rngs, spawn_agent_rngs
 from .agents.registry import build_from_config
 from .simulations import simulate_agents
 from .sim.metrics import summary_table
-from .run_flags import RunFlags
+from .reporting.console import print_summary
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",
@@ -71,6 +75,97 @@ LABEL_MAP = {
     "Total fund capital (mm)": "total_fund_capital",
     "risk_metrics": "risk_metrics",
 }
+
+
+def shortfall_probability(
+    returns, 
+    threshold: float = -0.05,  # Default 5% loss threshold
+    compound_final: bool = True
+) -> float:
+    """Calculate probability of shortfall below threshold.
+    
+    Args:
+        returns: Array of monthly returns
+        threshold: Shortfall threshold (negative for losses)
+        compound_final: If True, use final compounded return; if False, use any month
+    
+    Returns:
+        Probability of shortfall (0.0 to 1.0)
+    """
+    from .sim.metrics import compound
+    arr = np.asarray(returns, dtype=np.float64)
+    
+    if compound_final:
+        # Check final compounded return across all simulation paths
+        comp = compound(arr)
+        final_returns = comp[:, -1] if arr.ndim > 1 else comp[-1]
+        return float(np.mean(final_returns < threshold))
+    else:
+        # Check any month falling below threshold
+        return float(np.mean(arr < threshold))
+
+
+def create_enhanced_summary(
+    returns_map: dict,
+    config,
+    *,
+    benchmark: str | None = None,
+) -> pd.DataFrame:
+    """Create enhanced summary table with ShortfallProb and better defaults."""
+    
+    # Start with basic summary
+    summary = summary_table(
+        returns_map, 
+        benchmark=benchmark, 
+        breach_threshold=-0.02  # Default 2% monthly loss threshold
+    )
+    
+    # Add ShortfallProb calculation if requested
+    if hasattr(config, 'risk_metrics') and 'ShortfallProb' in config.risk_metrics:
+        shortfall_probs = []
+        for name, arr in returns_map.items():
+            shortfall_prob = shortfall_probability(arr, threshold=-0.05)  # 5% annual loss
+            shortfall_probs.append(shortfall_prob)
+        
+        summary['ShortfallProb'] = shortfall_probs
+    
+    return summary
+
+
+def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
+    """Print enhanced summary with explanations."""
+    from rich.console import Console
+    from rich.table import Table
+    from rich.panel import Panel
+    from rich.text import Text
+    
+    console = Console()
+    
+    # Print explanatory header
+    explanation = Text()
+    explanation.append("Portfolio Analysis Results\n", style="bold blue")
+    explanation.append("Metrics Explanation:\n", style="bold")
+    explanation.append("• AnnReturn: Annualized return (%)\n")
+    explanation.append("• AnnVol: Annualized volatility (%)\n") 
+    explanation.append("• VaR: Value at Risk (95% confidence)\n")
+    explanation.append("• BreachProb: Probability of monthly loss > 2%\n")
+    if 'ShortfallProb' in summary.columns:
+        explanation.append("• ShortfallProb: Probability of annual loss > 5%\n")
+    explanation.append("• TE: Tracking Error vs benchmark\n")
+    
+    console.print(Panel(explanation, title="Understanding Your Results"))
+    
+    # Print the table
+    print_summary(summary)
+    
+    # Print additional guidance
+    guidance = Text()
+    guidance.append("\n💡 Interpretation Tips:\n", style="bold green")
+    guidance.append("• Lower ShortfallProb is better (< 5% is typically good)\n")
+    guidance.append("• Higher AnnReturn with lower AnnVol indicates better risk-adjusted returns\n") 
+    guidance.append("• TE shows how much each strategy deviates from the benchmark\n")
+    
+    console.print(guidance)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
@@ -221,10 +316,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
-    summary = summary_table(returns, benchmark="Base")
+    # Enhanced summary with better defaults and ShortfallProb
+    summary = create_enhanced_summary(returns, cfg, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    print_summary(summary)
+    print_enhanced_summary(summary, cfg)
     export_to_excel(
         inputs_dict,
         summary,
@@ -277,7 +373,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 pass
         if flags.dashboard:
             import subprocess
-            subprocess.run(["streamlit", "run", "dashboard/app.py"], check=False)
+            import sys
+            import os
+            # Use the same Python interpreter with -m streamlit to ensure we use the venv
+            subprocess.run([sys.executable, "-m", "streamlit", "run", "dashboard/app.py"], 
+                         check=False, cwd=os.getcwd())
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry point

@@ -65,3 +65,4 @@ Corr In-House–External,0.1,,
 Corr Alpha-Extension–External,0.1,,
 Buffer multiple,3,,Cash buffer multiple for risk mitigation
 Total fund capital (mm),4000,,Total fund size in millions
+risk_metrics,"Return;Risk;ShortfallProb",,Mandatory metrics to calculate (semicolon-separated)
