@@ -11,3 +11,28 @@ tests/__pycache__/
 .venv/
 
 *.xlsx
+
+# Development files
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Documentation build
+docs/_build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+.env
+.env.local

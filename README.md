@@ -1,7 +1,74 @@
 # Portable Alpha-Extension Model
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/stranske/Portable-Alpha-Extension-Model)
+
 Portable Alpha + Active Extension Model Specification
 Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
+
+## Quick Start
+
+### 🚀 GitHub Codespaces (Recommended)
+
+Click the "Open in GitHub Codespaces" badge above for an instant, fully-configured development environment. The environment will automatically:
+
+- Set up Python virtual environment
+- Install all dependencies
+- Configure VS Code with optimal settings
+- Enable debugging and testing
+- Start with port forwarding for the dashboard
+
+Once the Codespace loads, run:
+```bash
+./dev.sh demo      # Quick demo
+./dev.sh dashboard # Start interactive dashboard (opens on port 8501)
+```
+
+### Development Setup
+
+For the fastest setup, use the development helper script:
+
+```bash
+# Initial setup (creates venv, installs dependencies)
+./dev.sh setup
+
+# Run tests
+./dev.sh test
+
+# Run full CI pipeline (lint + typecheck + test)
+./dev.sh ci
+
+# Run demo with sample data
+./dev.sh demo
+
+# Start interactive dashboard
+./dev.sh dashboard
+```
+
+### Alternative Setup Methods
+
+**Using Make:**
+```bash
+make setup     # Setup environment
+make test      # Run tests
+make ci        # Full CI pipeline
+make demo      # Run demo
+make dashboard # Start dashboard
+```
+
+**Manual Setup:**
+```bash
+./setup.sh     # Original setup script
+```
+
+### VS Code Integration
+
+This project includes comprehensive VS Code configuration:
+
+- **Tasks**: Use `Ctrl+Shift+P` → "Tasks: Run Task" for common operations
+- **Debugging**: Pre-configured launch configurations for CLI, dashboard, and tests
+- **Testing**: Integrated pytest discovery and execution
+- **Linting**: Automatic ruff linting on save
+- **Extensions**: Recommended extensions will be suggested on first open
 
 ## Setup
 
@@ -44,8 +111,47 @@ such as `ShortfallProb` trigger a `ConfigError` during loading.
 > **Warning**
 > Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
 
+## Development
 
-1. Purpose and High-Level Overview
+### Testing
+
+```bash
+# Run all tests
+./dev.sh test
+
+# Run with coverage
+make test-cov
+
+# Run specific test file
+python -m pytest tests/test_agents.py -v
+```
+
+### Code Quality
+
+```bash
+# Linting
+./dev.sh lint
+
+# Type checking
+./dev.sh typecheck
+
+# Format code
+make format
+
+# Security check
+make security
+```
+
+### Documentation
+
+Generate documentation:
+```bash
+make docs
+```
+
+View at `docs/_build/html/index.html`
+
+## 1. Purpose and High-Level Overview
 Goal:
 Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. $1 b) across three “sleeves” (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House α, Extension α, and External PA α, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).
 

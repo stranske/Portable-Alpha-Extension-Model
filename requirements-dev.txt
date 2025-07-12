@@ -1,0 +1,36 @@
+# Core dependencies
+numpy
+pandas
+openpyxl
+jupyter
+pytest
+hypothesis
+ruff
+pyright
+pydantic
+rich
+plotly>=5.19
+kaleido            # Plotly static export driver
+streamlit>=1.35
+python-pptx        # PPTX helper for board packs
+xlsxwriter         # already implied in reporting/
+
+# Development dependencies
+black              # Code formatting
+pre-commit         # Git hooks
+pytest-cov         # Test coverage
+pytest-xdist       # Parallel testing
+bandit             # Security linting
+mypy               # Additional type checking
+flake8             # Additional linting
+isort              # Import sorting
+
+# Documentation
+sphinx             # Documentation generation
+sphinx-rtd-theme   # ReadTheDocs theme
+nbsphinx           # Jupyter notebook support in Sphinx
+
+# Jupyter enhancements
+ipywidgets          # Interactive widgets
+jupyterlab         # Enhanced Jupyter interface
+jupyter-contrib-nbextensions  # Useful extensions
