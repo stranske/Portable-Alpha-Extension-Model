@@ -88,10 +88,10 @@ def test_agent_math_identity():
     expected_ext = ext_p.beta_share * (r_beta - f) + (ext_p.beta_share * theta) * r_M
     np.testing.assert_allclose(ext.monthly_returns(r_beta, r_M, f), expected_ext)
 
-    share = 0.7
-    act_p = AgentParams("ActiveExt", 100.0, 0.1, 0.0, {"active_share": share})
+    share_percentage = 70.0  # 70% as percentage value (converted to 0.7 decimal)
+    act_p = AgentParams("ActiveExt", 100.0, 0.1, 0.0, {"active_share": share_percentage})
     act = ActiveExtensionAgent(act_p)
-    expected_act = act_p.beta_share * (r_beta - f) + (act_p.beta_share * share) * r_E
+    expected_act = act_p.beta_share * (r_beta - f) + (act_p.beta_share * (share_percentage / 100.0)) * r_E
     np.testing.assert_allclose(act.monthly_returns(r_beta, r_E, f), expected_act)
 
     beta_p = AgentParams("InternalBeta", 50.0, 1.0, 0.0, {})
