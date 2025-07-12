@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from pathlib import Path
-import yaml
+
 import plotly.graph_objects as go
+import yaml
 
 # Load thresholds for traffic-light styling
 _THRESH_PATH = Path(__file__).resolve().parents[1] / "config_thresholds.yaml"
@@ -13,6 +14,7 @@ if _THRESH_PATH.exists():
         THRESHOLDS: dict[str, float] = yaml.safe_load(fh) or {}
 else:
     THRESHOLDS = {}
+
 
 def _load_theme(path: Path) -> tuple[list[str], str, str, str]:
     if path.exists():

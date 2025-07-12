@@ -1,5 +1,7 @@
 import numpy as np
-from pa_core.random import spawn_rngs, spawn_agent_rngs
+
+from pa_core.random import spawn_agent_rngs, spawn_rngs
+
 
 def test_spawn_rngs_reproducible():
     r1, r2 = spawn_rngs(123, 2)
@@ -8,6 +10,7 @@ def test_spawn_rngs_reproducible():
     r1b, r2b = spawn_rngs(123, 2)
     assert np.allclose(a1, r1b.normal(size=5))
     assert np.allclose(a2, r2b.normal(size=5))
+
 
 def test_spawn_rngs_independent():
     r1, r2 = spawn_rngs(42, 2)
@@ -36,4 +39,3 @@ def test_spawn_agent_rngs_error():
         pass
     else:
         raise AssertionError("Expected ValueError for empty list")
-

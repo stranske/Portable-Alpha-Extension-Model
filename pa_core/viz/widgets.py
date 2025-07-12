@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import pandas as pd
 import ipywidgets as widgets
+import pandas as pd
 from IPython.display import display
 
 from . import risk_return

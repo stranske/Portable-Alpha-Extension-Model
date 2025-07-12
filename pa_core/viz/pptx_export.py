@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import io
 from pathlib import Path
 from typing import Iterable, Sequence
-import io
 
 import plotly.graph_objects as go
 from pptx import Presentation
@@ -38,8 +38,8 @@ def save(
             if not alt:
                 alt = str(fig.layout.title.text) if fig.layout.title.text else ""
             if alt:
-                el = pic._element.xpath('./p:nvPicPr/p:cNvPr')[0]
-                el.set('descr', alt)
+                el = pic._element.xpath("./p:nvPicPr/p:cNvPr")[0]
+                el.set("descr", alt)
         except Exception:
             # Fallback: ignore export errors
             pass

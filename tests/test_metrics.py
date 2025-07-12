@@ -1,12 +1,13 @@
 import numpy as np
+
 from pa_core.sim.metrics import (
-    tracking_error,
-    value_at_risk,
-    compound,
     annualised_return,
     annualised_vol,
     breach_probability,
+    compound,
     summary_table,
+    tracking_error,
+    value_at_risk,
 )
 
 
@@ -67,9 +68,7 @@ def test_breach_probability_path():
     assert breach_probability(arr, thr, path=1) == 2 / 3
 
 
-
 def test_summary_table_breach():
     arr = np.array([[0.0, -0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)
     assert "BreachProb" in stats.columns
-

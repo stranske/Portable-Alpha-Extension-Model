@@ -29,6 +29,13 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
         table.add_column(col)
     n_rows = len(next(iter(data.values()))) if data else 0
     for i in range(n_rows):
-        row = [f"{data[c][i]:.4f}" if isinstance(data[c][i], (float, int)) else str(data[c][i]) for c in columns]
+        row = [
+            (
+                f"{data[c][i]:.4f}"
+                if isinstance(data[c][i], (float, int))
+                else str(data[c][i])
+            )
+            for c in columns
+        ]
         table.add_row(*row)
     console.print(table)

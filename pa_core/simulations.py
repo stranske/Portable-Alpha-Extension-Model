@@ -1,24 +1,26 @@
 """Legacy wrapper module for simulation utilities."""
+
 from __future__ import annotations
 
-from typing import Iterable, Any
+from typing import Any, Iterable
+
 from numpy.typing import NDArray
 
-from .backend import xp as np
 from .agents import (
+    ActiveExtensionAgent,
     Agent,
     BaseAgent,
     ExternalPAAgent,
-    ActiveExtensionAgent,
     InternalBetaAgent,
     InternalPAAgent,
 )
+from .backend import xp as np
 from .sim import (
-    simulate_financing,
-    prepare_mc_universe,
-    draw_joint_returns,
     draw_financing_series,
+    draw_joint_returns,
+    prepare_mc_universe,
     simulate_alpha_streams,
+    simulate_financing,
 )
 
 __all__ = [

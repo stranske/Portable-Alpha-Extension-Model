@@ -1,14 +1,14 @@
 from __future__ import annotations
+
 from typing import Iterable, List
 
 from ..config import ModelConfig
-
-from .types import Agent, AgentParams
+from .active_ext import ActiveExtensionAgent
 from .base import BaseAgent
 from .external_pa import ExternalPAAgent
-from .active_ext import ActiveExtensionAgent
 from .internal_beta import InternalBetaAgent
 from .internal_pa import InternalPAAgent
+from .types import Agent, AgentParams
 
 _AGENT_MAP = {
     "Base": BaseAgent,

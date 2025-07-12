@@ -11,6 +11,7 @@ from pydantic import (
     model_validator,
 )
 
+
 class ConfigError(ValueError):
     """Invalid configuration."""
 
@@ -63,11 +64,13 @@ class ModelConfig(BaseModel):
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 0.0
 
-    risk_metrics: List[str] = Field(default_factory=lambda: [
-        "Return",
-        "Risk",
-        "ShortfallProb",
-    ])
+    risk_metrics: List[str] = Field(
+        default_factory=lambda: [
+            "Return",
+            "Risk",
+            "ShortfallProb",
+        ]
+    )
 
     class Config:
         allow_population_by_field_name = True
@@ -81,9 +84,7 @@ class ModelConfig(BaseModel):
             + self.internal_pa_capital
         )
         if cap_sum > self.total_fund_capital:
-            raise ValueError(
-                "Capital allocation exceeds total_fund_capital"
-            )
+            raise ValueError("Capital allocation exceeds total_fund_capital")
         if "ShortfallProb" not in self.risk_metrics:
             raise ConfigError("risk_metrics must include ShortfallProb")
         return self

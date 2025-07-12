@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 from .types import Agent, Array
+
 
 class InternalPAAgent(Agent):
     def monthly_returns(

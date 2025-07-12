@@ -7,7 +7,9 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(df_paths: pd.DataFrame | np.ndarray, liability: pd.Series | np.ndarray | None = None) -> go.Figure:
+def make(
+    df_paths: pd.DataFrame | np.ndarray, liability: pd.Series | np.ndarray | None = None
+) -> go.Figure:
     """Return funding fan chart with median, confidence ribbon and optional liability path."""
     arr = np.asarray(df_paths)
     median = np.median(arr, axis=0)
@@ -17,8 +19,21 @@ def make(df_paths: pd.DataFrame | np.ndarray, liability: pd.Series | np.ndarray 
 
     months = np.arange(arr.shape[1])
     fig = go.Figure(layout_template=theme.TEMPLATE)
-    fig.add_trace(go.Scatter(x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False))
-    fig.add_trace(go.Scatter(x=months, y=lower, mode="lines", fill="tonexty", line=dict(width=0), name=f"{int(conf*100)}% CI"))
+    fig.add_trace(
+        go.Scatter(
+            x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False
+        )
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=months,
+            y=lower,
+            mode="lines",
+            fill="tonexty",
+            line=dict(width=0),
+            name=f"{int(conf*100)}% CI",
+        )
+    )
     fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name="Median"))
     if liability is not None:
         liab = np.asarray(liability).ravel()

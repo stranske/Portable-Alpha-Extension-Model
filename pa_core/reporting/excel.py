@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import cast
 import io
+from typing import cast
 
-import pandas as pd
 import openpyxl
-from openpyxl.utils import get_column_letter
+import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.utils import get_column_letter
 
 from ..viz import risk_return
 
@@ -40,10 +40,12 @@ def export_to_excel(
     """
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
-        df_inputs = pd.DataFrame({
-            "Parameter": list(inputs_dict.keys()),
-            "Value": list(inputs_dict.values()),
-        })
+        df_inputs = pd.DataFrame(
+            {
+                "Parameter": list(inputs_dict.keys()),
+                "Value": list(inputs_dict.values()),
+            }
+        )
         df_inputs.to_excel(writer, sheet_name="Inputs", index=False)
         summary_df = summary_df.copy()
         summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", 0.0)

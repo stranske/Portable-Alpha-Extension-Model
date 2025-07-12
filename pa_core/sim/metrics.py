@@ -1,8 +1,10 @@
 from __future__ import annotations
-from ..backend import xp as np
+
 import numpy as npt
-from numpy.typing import NDArray
 import pandas as pd
+from numpy.typing import NDArray
+
+from ..backend import xp as np
 
 __all__ = [
     "tracking_error",
@@ -15,7 +17,9 @@ __all__ = [
 ]
 
 
-def tracking_error(strategy: NDArray[npt.float64], benchmark: NDArray[npt.float64]) -> float:
+def tracking_error(
+    strategy: NDArray[npt.float64], benchmark: NDArray[npt.float64]
+) -> float:
     """Return the standard deviation of active returns."""
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
@@ -94,14 +98,16 @@ def summary_table(
             if bench_arr is not None and name != benchmark
             else None
         )
-        rows.append({
-            "Agent": name,
-            "AnnReturn": ann_ret,
-            "AnnVol": ann_vol,
-            "VaR": var,
-            "BreachProb": breach,
-            "TE": te,
-        })
+        rows.append(
+            {
+                "Agent": name,
+                "AnnReturn": ann_ret,
+                "AnnVol": ann_vol,
+                "VaR": var,
+                "BreachProb": breach,
+                "TE": te,
+            }
+        )
 
     df = pd.DataFrame(rows)
     return df

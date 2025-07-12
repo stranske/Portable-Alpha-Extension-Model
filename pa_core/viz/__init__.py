@@ -1,77 +1,79 @@
 """Plotly visualization helpers."""
 
-from . import theme
-from . import risk_return
-from . import fan
-from . import path_dist
-from . import corr_heatmap
-from . import sharpe_ladder
-from . import rolling_panel
-from . import surface
-from . import pptx_export
-from . import html_export
-from . import category_pie
-from . import animation
-from . import overlay
-from . import waterfall
-from . import export_bundle
-from . import scenario_slider
-from . import data_table
-from . import scenario_viewer
-from . import grid_heatmap
-from . import capital_treemap
-from . import corr_network
-from . import beta_heatmap
-from . import panel
-from . import violin
-from . import rolling_corr_heatmap
-from . import exposure_timeline
-from . import gauge
-from . import radar
-from . import scatter_matrix
-from . import risk_return_bubble
-from . import beta_scatter
-from . import te_cvar_scatter
-from . import overlay_weighted
-from . import factor_bar
-from . import factor_matrix
-from . import multi_fan
-from . import quantile_fan
-from . import funnel
-from . import geo_exposure
-from . import surface_animation
-from . import surface_slice
-from . import beta_te_scatter
-from . import boxplot
-from . import crossfilter
-from . import dashboard_templates
-from . import delta_heatmap
-from . import factor_timeline
-from . import grid_panel
-from . import hover_sync
-from . import metric_selector
-from . import milestone_timeline
-from . import mosaic
-from . import pdf_report
-from . import quantile_band
-from . import rank_table
-from . import scenario_play
-from . import seasonality_heatmap
-from . import spark_matrix
-from . import triple_scatter
-from . import weighted_stack
-from . import sunburst
-from . import rolling_var
-from . import breach_calendar
-from . import moments_panel
-from . import parallel_coords
-from . import horizon_slicer
-from . import inset
-from . import data_quality
-from . import live
-from . import bookmark
-from . import widgets
-from . import pdf_export
+from . import (
+    animation,
+    beta_heatmap,
+    beta_scatter,
+    beta_te_scatter,
+    bookmark,
+    boxplot,
+    breach_calendar,
+    capital_treemap,
+    category_pie,
+    corr_heatmap,
+    corr_network,
+    crossfilter,
+    dashboard_templates,
+    data_quality,
+    data_table,
+    delta_heatmap,
+    export_bundle,
+    exposure_timeline,
+    factor_bar,
+    factor_matrix,
+    factor_timeline,
+    fan,
+    funnel,
+    gauge,
+    geo_exposure,
+    grid_heatmap,
+    grid_panel,
+    horizon_slicer,
+    hover_sync,
+    html_export,
+    inset,
+    live,
+    metric_selector,
+    milestone_timeline,
+    moments_panel,
+    mosaic,
+    multi_fan,
+    overlay,
+    overlay_weighted,
+    panel,
+    parallel_coords,
+    path_dist,
+    pdf_export,
+    pdf_report,
+    pptx_export,
+    quantile_band,
+    quantile_fan,
+    radar,
+    rank_table,
+    risk_return,
+    risk_return_bubble,
+    rolling_corr_heatmap,
+    rolling_panel,
+    rolling_var,
+    scatter_matrix,
+    scenario_play,
+    scenario_slider,
+    scenario_viewer,
+    seasonality_heatmap,
+    sharpe_ladder,
+    spark_matrix,
+    sunburst,
+    surface,
+    surface_animation,
+    surface_slice,
+    te_cvar_scatter,
+    theme,
+    triple_scatter,
+    violin,
+    waterfall,
+    weighted_stack,
+    widgets,
+)
 
 __all__ = [
     "theme",

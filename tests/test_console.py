@@ -1,5 +1,6 @@
-from pa_core.reporting import print_summary
 import pandas as pd
+
+from pa_core.reporting import print_summary
 
 
 def test_print_summary(capsys):

@@ -1,23 +1,25 @@
 from __future__ import annotations
+
 import argparse
-from typing import Sequence, Optional
+from typing import Optional, Sequence
+
 import pandas as pd
 
 from . import (
-    load_parameters,
-    load_index_returns,
-    draw_joint_returns,
     draw_financing_series,
+    draw_joint_returns,
     export_to_excel,
     load_config,
+    load_index_returns,
+    load_parameters,
 )
+from .agents.registry import build_from_config
+from .backend import set_backend
+from .random import spawn_agent_rngs, spawn_rngs
+from .sim.covariance import build_cov_matrix
 from .sim.metrics import (
     summary_table,
 )
-from .sim.covariance import build_cov_matrix
-from .backend import set_backend
-from .random import spawn_rngs, spawn_agent_rngs
-from .agents.registry import build_from_config
 from .simulations import simulate_agents
 
 LABEL_MAP = {
@@ -57,6 +59,7 @@ LABEL_MAP = {
     "Active Ext spike multiplier": "act_ext_spike_factor",
     "Total fund capital (mm)": "total_fund_capital",
 }
+
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
@@ -171,4 +174,3 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
-

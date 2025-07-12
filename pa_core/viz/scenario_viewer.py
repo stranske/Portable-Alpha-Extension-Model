@@ -7,7 +7,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from . import theme, overlay, scenario_slider
+from . import overlay, scenario_slider, theme
 
 
 def make(paths_map: Mapping[str, pd.DataFrame | np.ndarray]) -> go.Figure:

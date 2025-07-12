@@ -14,11 +14,7 @@ def make(
     z: str = "Sharpe",
 ) -> go.Figure:
     """Return 3-D surface plot of a parameter sweep."""
-    table = (
-        df_grid.pivot(index=y, columns=x, values=z)
-        .sort_index()
-        .sort_index(axis=1)
-    )
+    table = df_grid.pivot(index=y, columns=x, values=z).sort_index().sort_index(axis=1)
     fig = go.Figure(
         data=go.Surface(z=table.values, x=table.columns, y=table.index),
         layout_template=theme.TEMPLATE,

@@ -32,20 +32,21 @@ def _rolling_sharpe(paths: np.ndarray, window: int) -> np.ndarray:
     return sharpe.mean(axis=0).to_numpy() * np.sqrt(12)
 
 
-def make(df_paths: pd.DataFrame | np.ndarray,
-         window: int = 12) -> go.Figure:
+def make(df_paths: pd.DataFrame | np.ndarray, window: int = 12) -> go.Figure:
     """Return rolling metrics panel with drawdown, TE and Sharpe."""
     arr = np.asarray(df_paths)
     dd = _rolling_drawdown(arr, window)
     te = _rolling_te(arr, window)
     sr = _rolling_sharpe(arr, window)
     months = np.arange(arr.shape[1])
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True,
-                        subplot_titles=("Drawdown", "Tracking Error", "Sharpe"))
+    fig = make_subplots(
+        rows=3,
+        cols=1,
+        shared_xaxes=True,
+        subplot_titles=("Drawdown", "Tracking Error", "Sharpe"),
+    )
     fig.add_trace(go.Scatter(x=months, y=dd, name="Drawdown"), row=1, col=1)
     fig.add_trace(go.Scatter(x=months, y=te, name="TE"), row=2, col=1)
     fig.add_trace(go.Scatter(x=months, y=sr, name="Sharpe"), row=3, col=1)
-    fig.update_layout(template=theme.TEMPLATE,
-                      xaxis_title="Month",
-                      height=600)
+    fig.update_layout(template=theme.TEMPLATE, xaxis_title="Month", height=600)
     return fig

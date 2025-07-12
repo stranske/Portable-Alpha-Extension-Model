@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Callable
 import json
+from typing import Callable
 
 import plotly.graph_objects as go
 
@@ -12,7 +12,9 @@ except Exception:  # pragma: no cover - optional dep
     websockets = None
 
 
-async def connect(url: str, fig: go.Figure, on_update: Callable[[go.Figure], None] | None = None) -> None:
+async def connect(
+    url: str, fig: go.Figure, on_update: Callable[[go.Figure], None] | None = None
+) -> None:
     """Connect to ``url`` and stream JSON updates into ``fig``.
 
     Parameters

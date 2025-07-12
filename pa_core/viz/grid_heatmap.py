@@ -14,11 +14,7 @@ def make(
     z: str = "Sharpe",
 ) -> go.Figure:
     """Return 2-D heatmap from a parameter grid."""
-    table = (
-        df_grid.pivot(index=y, columns=x, values=z)
-        .sort_index()
-        .sort_index(axis=1)
-    )
+    table = df_grid.pivot(index=y, columns=x, values=z).sort_index().sort_index(axis=1)
     fig = go.Figure(
         data=go.Heatmap(z=table.values, x=table.columns, y=table.index),
         layout_template=theme.TEMPLATE,

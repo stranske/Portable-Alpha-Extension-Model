@@ -1,8 +1,10 @@
 import csv
 from pathlib import Path
-from tkinter import filedialog, Tk
-from ..backend import xp as np
+from tkinter import Tk, filedialog
+
 import pandas as pd
+
+from ..backend import xp as np
 
 __all__ = [
     "select_csv_file",
@@ -12,6 +14,7 @@ __all__ = [
     "build_range_int",
     "load_index_returns",
 ]
+
 
 def select_csv_file():
     """Pop up a file picker to choose a CSV file and return its path."""
@@ -37,7 +40,9 @@ def load_parameters(csv_filepath, label_map):
             header_idx = i
             break
     if header_idx is None:
-        raise ValueError(f"No header row starting with 'Parameter,' found in {csv_filepath}")
+        raise ValueError(
+            f"No header row starting with 'Parameter,' found in {csv_filepath}"
+        )
     header_and_data = lines[header_idx:]
     reader = csv.DictReader(header_and_data)
     for row in reader:
@@ -126,7 +131,9 @@ def load_index_returns(csv_path):
     elif "Return" in df.columns:
         col = "Return"
     else:
-        raise ValueError(f"CSV must contain 'Monthly_TR' or 'Return'; found: {df.columns.tolist()}")
+        raise ValueError(
+            f"CSV must contain 'Monthly_TR' or 'Return'; found: {df.columns.tolist()}"
+        )
     df = df.sort_values("Date").reset_index(drop=True)
     df.set_index("Date", inplace=True)
     series = df[col].dropna().copy()

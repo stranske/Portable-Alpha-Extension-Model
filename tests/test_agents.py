@@ -1,10 +1,11 @@
 import numpy as np
 import pytest
+
 from pa_core.agents import (
+    ActiveExtensionAgent,
     AgentParams,
     BaseAgent,
     ExternalPAAgent,
-    ActiveExtensionAgent,
     InternalBetaAgent,
     InternalPAAgent,
 )
@@ -79,24 +80,18 @@ def test_agent_math_identity():
     base_p = AgentParams("Base", 100.0, 0.6, 0.4, {})
     base = BaseAgent(base_p)
     expected_base = base_p.beta_share * (r_beta - f) + base_p.alpha_share * r_H
-    np.testing.assert_allclose(
-        base.monthly_returns(r_beta, r_H, f), expected_base
-    )
+    np.testing.assert_allclose(base.monthly_returns(r_beta, r_H, f), expected_base)
 
     theta = 0.5
     ext_p = AgentParams("ExternalPA", 100.0, 0.1, 0.0, {"theta_extpa": theta})
     ext = ExternalPAAgent(ext_p)
-    expected_ext = ext_p.beta_share * (r_beta - f) + (
-        ext_p.beta_share * theta
-    ) * r_M
+    expected_ext = ext_p.beta_share * (r_beta - f) + (ext_p.beta_share * theta) * r_M
     np.testing.assert_allclose(ext.monthly_returns(r_beta, r_M, f), expected_ext)
 
     share = 0.7
     act_p = AgentParams("ActiveExt", 100.0, 0.1, 0.0, {"active_share": share})
     act = ActiveExtensionAgent(act_p)
-    expected_act = act_p.beta_share * (r_beta - f) + (
-        act_p.beta_share * share
-    ) * r_E
+    expected_act = act_p.beta_share * (r_beta - f) + (act_p.beta_share * share) * r_E
     np.testing.assert_allclose(act.monthly_returns(r_beta, r_E, f), expected_act)
 
     beta_p = AgentParams("InternalBeta", 50.0, 1.0, 0.0, {})

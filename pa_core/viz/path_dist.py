@@ -31,12 +31,18 @@ def make(df_paths: pd.DataFrame | np.ndarray) -> go.Figure:
                     dict(
                         label="Histogram",
                         method="update",
-                        args=[{"visible": [True, False]}, {"yaxis": {"title": "Frequency"}}],
+                        args=[
+                            {"visible": [True, False]},
+                            {"yaxis": {"title": "Frequency"}},
+                        ],
                     ),
                     dict(
                         label="CDF",
                         method="update",
-                        args=[{"visible": [False, True]}, {"yaxis": {"title": "Cumulative Probability"}}],
+                        args=[
+                            {"visible": [False, True]},
+                            {"yaxis": {"title": "Cumulative Probability"}},
+                        ],
                     ),
                 ],
                 direction="left",

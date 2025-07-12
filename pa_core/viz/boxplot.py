@@ -9,7 +9,9 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(paths: Mapping[str, pd.DataFrame | np.ndarray] | pd.DataFrame | np.ndarray) -> go.Figure:
+def make(
+    paths: Mapping[str, pd.DataFrame | np.ndarray] | pd.DataFrame | np.ndarray,
+) -> go.Figure:
     """Return boxplot of monthly returns.
 
     Parameters

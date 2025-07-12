@@ -19,7 +19,7 @@ def make(df_returns: pd.DataFrame) -> go.Figure:
                 ag_ret = float(ag_df["Return"].sum())
                 rows.append((str(agent), str(cat), ag_ret))
                 for _, row in ag_df.iterrows():
-                    rows.append((str(row["Sub"]), str(agent), float(row["Return"])) )
+                    rows.append((str(row["Sub"]), str(agent), float(row["Return"])))
     else:
         raise ValueError("DataFrame must contain Agent, Sub and Return columns")
 

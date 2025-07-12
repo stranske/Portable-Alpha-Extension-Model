@@ -11,7 +11,9 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
     df = df_summary.copy()
     color = []
     thr = theme.THRESHOLDS
-    probs = df["ShortfallProb"] if "ShortfallProb" in df else pd.Series(0.0, index=df.index)
+    probs = (
+        df["ShortfallProb"] if "ShortfallProb" in df else pd.Series(0.0, index=df.index)
+    )
     for prob in probs.fillna(0.0):
         if prob <= thr.get("shortfall_green", 0.05):
             color.append("green")
@@ -26,7 +28,9 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
             x=df["AnnVol"],
             y=df["AnnReturn"],
             mode="markers",
-            marker=dict(size=20 * size / float(size.max()), color=color, sizemode="diameter"),
+            marker=dict(
+                size=20 * size / float(size.max()), color=color, sizemode="diameter"
+            ),
             text=df.get("Agent", ""),
             hovertemplate="%{text}<br>Vol=%{x:.2%}<br>Return=%{y:.2%}<extra></extra>",
         )

@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from . import theme, risk_return, sharpe_ladder
+from . import risk_return, sharpe_ladder, theme
 
 
 def make(df_summary: pd.DataFrame, df_paths: pd.DataFrame | None = None) -> go.Figure:
@@ -18,4 +18,3 @@ def make(df_summary: pd.DataFrame, df_paths: pd.DataFrame | None = None) -> go.F
         fig.add_trace(trace, row=1, col=2)
     fig.update_layout(template=theme.TEMPLATE)
     return fig
-

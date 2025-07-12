@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import io
 from pathlib import Path
 from typing import Iterable
-import io
 
 import plotly.graph_objects as go
 
@@ -10,6 +10,7 @@ try:
     from PyPDF2 import PdfMerger  # type: ignore
 except Exception:  # pragma: no cover - optional dep
     PdfMerger = None
+
 
 def save(figs: Iterable[go.Figure], path: str | Path) -> None:
     """Save multiple figures into a single PDF file."""

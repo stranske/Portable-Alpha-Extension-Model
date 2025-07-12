@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Any, Dict
+
 import numpy as npt
 from numpy.typing import NDArray
 
 Array = NDArray[npt.float64]
+
 
 @dataclass
 class AgentParams:
@@ -13,6 +16,7 @@ class AgentParams:
     beta_share: float
     alpha_share: float
     extra_args: Dict[str, Any] | None = None
+
 
 class Agent:
     """Abstract sleeve. Child classes implement ``monthly_returns``."""

@@ -26,7 +26,11 @@ def make(
         upper = np.percentile(sub, 100 * conf, axis=0)
         months = np.arange(h)
         color = colors[idx % len(colors)]
-        fig.add_trace(go.Scatter(x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False))
+        fig.add_trace(
+            go.Scatter(
+                x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False
+            )
+        )
         fig.add_trace(
             go.Scatter(
                 x=months,
@@ -38,6 +42,14 @@ def make(
                 name=f"{h}m CI",
             )
         )
-        fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name=f"{h}m Median", line=dict(color=color)))
+        fig.add_trace(
+            go.Scatter(
+                x=months,
+                y=median,
+                mode="lines",
+                name=f"{h}m Median",
+                line=dict(color=color),
+            )
+        )
     fig.update_layout(xaxis_title="Month", yaxis_title="Return")
     return fig

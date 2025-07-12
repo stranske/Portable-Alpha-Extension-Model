@@ -14,7 +14,12 @@ def make(df_metrics: pd.DataFrame) -> go.Figure:
         values = row.tolist()
         values += values[:1]
         fig.add_trace(
-            go.Scatterpolar(r=values, theta=categories + [categories[0]], fill="toself", name=str(idx))
+            go.Scatterpolar(
+                r=values,
+                theta=categories + [categories[0]],
+                fill="toself",
+                name=str(idx),
+            )
         )
     fig.update_layout(polar=dict(radialaxis=dict(visible=True)))
     return fig

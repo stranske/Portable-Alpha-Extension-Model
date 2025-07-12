@@ -15,14 +15,21 @@ def make(df_paths: pd.DataFrame | np.ndarray, *, interval: int = 500) -> go.Figu
     months = np.arange(arr.shape[1])
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(go.Scatter(x=[0], y=[median[0]], mode="lines"))
-    frames = [go.Frame(data=[go.Scatter(x=months[: i + 1], y=median[: i + 1])]) for i in range(len(months))]
+    frames = [
+        go.Frame(data=[go.Scatter(x=months[: i + 1], y=median[: i + 1])])
+        for i in range(len(months))
+    ]
     fig.frames = frames
     fig.update_layout(
         updatemenus=[
             {
                 "type": "buttons",
                 "buttons": [
-                    {"label": "Play", "method": "animate", "args": [None, {"frame": {"duration": interval}}]}
+                    {
+                        "label": "Play",
+                        "method": "animate",
+                        "args": [None, {"frame": {"duration": interval}}],
+                    }
                 ],
             }
         ]

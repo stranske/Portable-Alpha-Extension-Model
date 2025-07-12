@@ -7,7 +7,9 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(df_paths: pd.DataFrame | np.ndarray, *, window: int = 12, alpha: float = 0.95) -> go.Figure:
+def make(
+    df_paths: pd.DataFrame | np.ndarray, *, window: int = 12, alpha: float = 0.95
+) -> go.Figure:
     """Return rolling VaR line chart over the horizon."""
     arr = np.asarray(df_paths)
     n_months = arr.shape[1]

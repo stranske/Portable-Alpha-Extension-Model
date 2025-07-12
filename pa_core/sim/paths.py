@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Optional, Any, Mapping
+from typing import Any, Mapping, Optional
+
 import numpy.typing as npt
 from numpy.random import Generator
+from numpy.typing import NDArray
 
 from ..backend import xp as np
-from numpy.typing import NDArray
 
 __all__ = [
     "simulate_financing",
@@ -36,7 +37,9 @@ def simulate_financing(
         rng = np.random.default_rng(seed)
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
-    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
+    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (
+        spike_factor * financing_sigma
+    )
     out = np.clip(base + jumps, 0.0, None)
     return out[0] if n_scenarios == 1 else out
 
@@ -64,10 +67,14 @@ def prepare_mc_universe(
     mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
     cov = cov_mat / 12.0
     try:
-        sims = rng.multivariate_normal(mean=mean, cov=cov, size=(N_SIMULATIONS, N_MONTHS))
+        sims = rng.multivariate_normal(
+            mean=mean, cov=cov, size=(N_SIMULATIONS, N_MONTHS)
+        )
     except np.linalg.LinAlgError:
         eps = 1e-12
-        sims = rng.multivariate_normal(mean=mean, cov=cov + np.eye(4) * eps, size=(N_SIMULATIONS, N_MONTHS))
+        sims = rng.multivariate_normal(
+            mean=mean, cov=cov + np.eye(4) * eps, size=(N_SIMULATIONS, N_MONTHS)
+        )
     return sims
 
 
@@ -99,7 +106,12 @@ def draw_joint_returns(
     ρ_E_M = params["rho_E_M"]
     Σ = np.array(
         [
-            [σ_idx**2, ρ_idx_H * σ_idx * σ_H, ρ_idx_E * σ_idx * σ_E, ρ_idx_M * σ_idx * σ_M],
+            [
+                σ_idx**2,
+                ρ_idx_H * σ_idx * σ_H,
+                ρ_idx_E * σ_idx * σ_E,
+                ρ_idx_M * σ_idx * σ_M,
+            ],
             [ρ_idx_H * σ_idx * σ_H, σ_H**2, ρ_H_E * σ_H * σ_E, ρ_H_M * σ_H * σ_M],
             [ρ_idx_E * σ_idx * σ_E, ρ_H_E * σ_H * σ_E, σ_E**2, ρ_E_M * σ_E * σ_M],
             [ρ_idx_M * σ_idx * σ_M, ρ_H_M * σ_H * σ_M, ρ_E_M * σ_E * σ_M, σ_M**2],

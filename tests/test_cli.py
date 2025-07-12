@@ -1,5 +1,7 @@
 from pathlib import Path
+
 import yaml
+
 from pa_core.cli import main
 
 
@@ -9,14 +11,16 @@ def test_main_with_yaml(tmp_path):
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
     out_file = tmp_path / "out.xlsx"
-    main([
-        "--config",
-        str(cfg_path),
-        "--index",
-        str(idx_csv),
-        "--output",
-        str(out_file),
-    ])
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+        ]
+    )
     assert out_file.exists()
 
 
@@ -26,14 +30,16 @@ def test_main_with_csv(tmp_path):
     csv_path.write_text(csv_content)
     idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
     out_file = tmp_path / "out.xlsx"
-    main([
-        "--params",
-        str(csv_path),
-        "--index",
-        str(idx_csv),
-        "--output",
-        str(out_file),
-    ])
+    main(
+        [
+            "--params",
+            str(csv_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+        ]
+    )
     assert out_file.exists()
 
 
@@ -44,14 +50,14 @@ def test_main_with_png(tmp_path, monkeypatch):
     idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
     out_file = tmp_path / "out.xlsx"
     monkeypatch.chdir(tmp_path)
-    main([
-        "--params",
-        str(csv_path),
-        "--index",
-        str(idx_csv),
-        "--output",
-        str(out_file),
-        "--png",
-    ])
-
-
+    main(
+        [
+            "--params",
+            str(csv_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--png",
+        ]
+    )

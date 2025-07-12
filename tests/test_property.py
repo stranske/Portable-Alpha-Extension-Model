@@ -1,15 +1,18 @@
-from hypothesis import given, strategies as st
-from hypothesis.extra import numpy as nps
 import numpy as np
-from pa_core.simulations import simulate_financing
+from hypothesis import given
+from hypothesis import strategies as st
+from hypothesis.extra import numpy as nps
+
 from pa_core.agents import (
+    ActiveExtensionAgent,
     AgentParams,
     BaseAgent,
     ExternalPAAgent,
-    ActiveExtensionAgent,
     InternalBetaAgent,
     InternalPAAgent,
 )
+from pa_core.simulations import simulate_financing
+
 
 @given(
     T=st.integers(min_value=1, max_value=24),
@@ -20,6 +23,8 @@ def test_simulate_financing_shapes(T, n_scenarios):
     expected_shape = (T,) if n_scenarios == 1 else (n_scenarios, T)
     assert out.shape == expected_shape
     assert np.all(np.isfinite(out))
+
+
 @st.composite
 def _env(draw):
     n_sim = draw(st.integers(min_value=1, max_value=5))
@@ -36,6 +41,7 @@ def _env(draw):
     f_act = draw(nps.arrays(np.float64, shape, elements=pos))
     return shape, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
 
+
 @st.composite
 def _params(draw, name):
     capital = draw(st.floats(min_value=1, max_value=1000))
@@ -48,6 +54,7 @@ def _params(draw, name):
         extra["active_share"] = draw(st.floats(0, 1))
     return AgentParams(name, capital, beta_share, alpha_share, extra)
 
+
 @given(_env(), _params("Base"))
 def test_base_agent_property(env, params):
     shape, r_beta, r_H, *_rest = env
@@ -55,6 +62,7 @@ def test_base_agent_property(env, params):
     out = agent.monthly_returns(r_beta, r_H, _rest[0])
     assert out.shape == shape
     assert np.all(np.isfinite(out))
+
 
 @given(_env(), _params("ExternalPA"))
 def test_external_pa_agent_property(env, params):
@@ -64,6 +72,7 @@ def test_external_pa_agent_property(env, params):
     assert out.shape == shape
     assert np.all(np.isfinite(out))
 
+
 @given(_env(), _params("ActiveExt"))
 def test_active_ext_agent_property(env, params):
     shape, r_beta, _r_H, r_E, _r_M, _f_int, _f_ext, f_act = env
@@ -72,6 +81,7 @@ def test_active_ext_agent_property(env, params):
     assert out.shape == shape
     assert np.all(np.isfinite(out))
 
+
 @given(_env(), _params("InternalBeta"))
 def test_internal_beta_agent_property(env, params):
     shape, r_beta, r_H, *_rest = env
@@ -79,6 +89,7 @@ def test_internal_beta_agent_property(env, params):
     out = agent.monthly_returns(r_beta, r_H, _rest[2])
     assert out.shape == shape
     assert np.all(np.isfinite(out))
+
 
 @given(_env(), _params("InternalPA"))
 def test_internal_pa_agent_property(env, params):

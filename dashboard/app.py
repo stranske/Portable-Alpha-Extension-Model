@@ -1,6 +1,6 @@
 import importlib
-from pathlib import Path
 import time
+from pathlib import Path
 
 import pandas as pd
 import streamlit as st
@@ -49,22 +49,20 @@ def main() -> None:
     summary, paths = load_data(xlsx)
 
     months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
-    
+
     # Handle missing Config column gracefully
     if "Config" in summary.columns:
         config_options = summary["Config"].unique().tolist()
-        agents = st.sidebar.multiselect(
-            "Agents", config_options, config_options
-        )
+        agents = st.sidebar.multiselect("Agents", config_options, config_options)
     else:
         # If no Config column, use the index (agent names) instead
         if summary.index.name:
             agent_options = summary.index.tolist()
         else:
-            agent_options = summary.index.tolist() if len(summary.index) > 0 else ["All"]
-        agents = st.sidebar.multiselect(
-            "Agents", agent_options, agent_options
-        )
+            agent_options = (
+                summary.index.tolist() if len(summary.index) > 0 else ["All"]
+            )
+        agents = st.sidebar.multiselect("Agents", agent_options, agent_options)
     st.sidebar.number_input("Risk-free rate", value=0.0)
     auto = st.sidebar.checkbox("Auto-refresh")
     interval = st.sidebar.number_input("Refresh every (s)", 5, 300, 60)
@@ -85,7 +83,9 @@ def main() -> None:
         st.dataframe(summary)
 
     png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(format="png")
-    st.download_button("Download PNG", png, file_name="risk_return.png", mime="image/png")
+    st.download_button(
+        "Download PNG", png, file_name="risk_return.png", mime="image/png"
+    )
     with open(xlsx, "rb") as fh:
         st.download_button("Download XLSX", fh, file_name=Path(xlsx).name)
 

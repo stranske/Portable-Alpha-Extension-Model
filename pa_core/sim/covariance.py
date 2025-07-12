@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from ..backend import xp as np
 import numpy as npt
 from numpy.typing import NDArray
+
+from ..backend import xp as np
 
 __all__ = ["build_cov_matrix"]
 
