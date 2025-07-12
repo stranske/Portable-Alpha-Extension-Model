@@ -1,8 +1,14 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures. Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports. The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths.  The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures.  Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports.  The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it.  All tutorials assume you invoke the program via ``python -m pa_core.cli``.
 
-The model is designed to test **risk/return trade‑offs**, **funding shortfall probability** and **tracking error** under different capital allocations. The tutorials walk through implementing a scenario, interpreting these metrics and visualising the results so you can evaluate each idea in a repeatable workflow.
+The model is designed to test the three core ideas a user typically cares about:
+
+* **Risk/return trade‑offs** – how annualised return compares with volatility.
+* **Funding shortfall probability** – the chance the portfolio falls below a required level.
+* **Tracking error** – deviation from the benchmark.
+
+The introductory tutorials show how to implement a run, interpret these metrics and visualise them so you can evaluate the model in a repeatable workflow.
 
 ### Key concepts
 
