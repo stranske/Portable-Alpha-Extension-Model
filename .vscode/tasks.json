@@ -18,7 +18,11 @@
             "label": "Run Tests",
             "type": "shell",
             "command": ".venv/bin/python",
-            "args": ["-m", "pytest", "-v"],
+            "args": [
+                "-m",
+                "pytest",
+                "-v"
+            ],
             "group": "test",
             "presentation": {
                 "echo": true,
@@ -32,7 +36,12 @@
             "label": "Run Linting (Ruff)",
             "type": "shell",
             "command": ".venv/bin/python",
-            "args": ["-m", "ruff", "check", "pa_core"],
+            "args": [
+                "-m",
+                "ruff",
+                "check",
+                "pa_core"
+            ],
             "group": "test",
             "presentation": {
                 "echo": true,
@@ -46,7 +55,10 @@
             "label": "Run Type Check (Pyright)",
             "type": "shell",
             "command": ".venv/bin/python",
-            "args": ["-m", "pyright"],
+            "args": [
+                "-m",
+                "pyright"
+            ],
             "group": "test",
             "presentation": {
                 "echo": true,
@@ -61,9 +73,12 @@
             "type": "shell",
             "command": ".venv/bin/python",
             "args": [
-                "-m", "pa_core.cli",
-                "--params", "parameters.csv",
-                "--index", "sp500tr_fred_divyield.csv"
+                "-m",
+                "pa_core.cli",
+                "--params",
+                "parameters.csv",
+                "--index",
+                "sp500tr_fred_divyield.csv"
             ],
             "group": "build",
             "presentation": {
@@ -78,7 +93,12 @@
             "label": "Start Dashboard",
             "type": "shell",
             "command": ".venv/bin/python",
-            "args": ["-m", "streamlit", "run", "dashboard/app.py"],
+            "args": [
+                "-m",
+                "streamlit",
+                "run",
+                "dashboard/app.py"
+            ],
             "group": "build",
             "isBackground": true,
             "presentation": {

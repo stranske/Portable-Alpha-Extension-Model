@@ -23,7 +23,9 @@
         "**/.venv/**": true,
         "**/node_modules/**": true
     },
-    "editor.rulers": [88],
+    "editor.rulers": [
+        88
+    ],
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit",

@@ -1,7 +1,6 @@
 {
     "name": "Portable Alpha Extension Model",
     "image": "mcr.microsoft.com/devcontainers/python:3.11",
-    
     // Features to install
     "features": {
         "ghcr.io/devcontainers/features/git:1": {},
@@ -10,7 +9,6 @@
             "version": "18"
         }
     },
-
     // VS Code extensions to install automatically
     "customizations": {
         "vscode": {
@@ -34,39 +32,33 @@
             }
         }
     },
-
     // Port forwarding for Streamlit dashboard
-    "forwardPorts": [8501],
+    "forwardPorts": [
+        8501
+    ],
     "portsAttributes": {
         "8501": {
             "label": "Streamlit Dashboard",
             "onAutoForward": "notify"
         }
     },
-
     // Commands to run after container creation
     "postCreateCommand": "bash .devcontainer/setup.sh",
-
     // Commands to run when container starts (faster than postCreateCommand)
     "postStartCommand": "echo 'Codespace ready! Run ./dev.sh demo to get started.'",
-
     // Mount the workspace with proper permissions
     "mounts": [
         "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached"
     ],
-
     // Environment variables
     "containerEnv": {
         "PYTHONPATH": "/workspaces/${localWorkspaceFolderBasename}",
         "JUPYTER_ENABLE_LAB": "yes"
     },
-
     // User settings
     "remoteUser": "vscode",
-    
     // Lifecycle scripts
     "updateContentCommand": "pip install --upgrade pip && pip install -r requirements-dev.txt",
-    
     // Keep container running
     "shutdownAction": "stopContainer"
 }

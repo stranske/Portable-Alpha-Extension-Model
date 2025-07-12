@@ -1,0 +1,58 @@
+name: Update Codespace Dependencies
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+jobs:
+  update-devcontainer:
+    name: Update Dev Container Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Check for Python image updates
+        id: check-updates
+        run: |
+          # Get current image from devcontainer.json
+          current_image=$(grep -o '"image": "[^"]*"' .devcontainer/devcontainer.json | cut -d'"' -f4)
+          echo "Current image: $current_image"
+          
+          # Check if there's a newer version available
+          # This is a simplified check - you might want to use a more sophisticated method
+          echo "current-image=$current_image" >> $GITHUB_OUTPUT
+      
+      - name: Test devcontainer configuration
+        run: |
+          # Validate devcontainer.json syntax
+          python -m json.tool .devcontainer/devcontainer.json > /dev/null
+          echo "✅ devcontainer.json is valid"
+          
+          # Test setup script syntax
+          bash -n .devcontainer/setup.sh
+          echo "✅ Setup script syntax is valid"
+      
+      - name: Create PR if updates available
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update devcontainer dependencies"
+          title: "Update Codespace Dependencies"
+          body: |
+            Automated update of Codespace dependencies.
+            
+            This PR includes:
+            - Python image updates (if available)
+            - Validation of devcontainer configuration
+            
+            Please review and test in a new Codespace before merging.
+          branch: update-codespace-deps
+          delete-branch: true
+          labels: |
+            dependencies
+            codespace
+            automated

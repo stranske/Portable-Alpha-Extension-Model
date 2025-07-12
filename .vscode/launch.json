@@ -18,8 +18,10 @@
             "request": "launch",
             "module": "pa_core.cli",
             "args": [
-                "--params", "parameters.csv",
-                "--index", "sp500tr_fred_divyield.csv"
+                "--params",
+                "parameters.csv",
+                "--index",
+                "sp500tr_fred_divyield.csv"
             ],
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
