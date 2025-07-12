@@ -17,9 +17,7 @@ import argparse
 from typing import Optional, Sequence
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
-from numpy.typing import NDArray
 
 from . import (
     RunFlags,
@@ -29,17 +27,16 @@ from . import (
     load_config,
     load_index_returns,
     load_parameters,
-    print_summary,
 )
 from .agents.registry import build_from_config
 from .backend import set_backend
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
-from .sweep import run_parameter_sweep
 from .reporting.sweep_excel import export_sweep_results
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
+from .sweep import run_parameter_sweep
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",
@@ -143,7 +140,6 @@ def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
-    from rich.table import Table
     from rich.text import Text
 
     console = Console()
@@ -262,8 +258,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     idx_series = load_index_returns(args.index)
 
     if cfg.analysis_mode != "returns":
-        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
-        export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
+        fin_rngs_list = list(fin_rngs.values())
+        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)
+        export_sweep_results(
+            results, filename=flags.save_xlsx or "Outputs.xlsx"
+        )
         return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
@@ -402,7 +401,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
             # Use the same Python interpreter with -m streamlit to ensure we use the venv
             subprocess.run(
-                [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
+                [
+                    sys.executable,
+                    "-m",
+                    "streamlit",
+                    "run",
+                    "dashboard/app.py",
+                ],
                 check=False,
                 cwd=os.getcwd(),
             )

@@ -25,7 +25,6 @@ from .data import (
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting import export_to_excel, print_summary
 from .reporting.sweep_excel import export_sweep_results
-from .sweep import run_parameter_sweep
 from .run_flags import RunFlags
 from .sim import (
     draw_financing_series,
@@ -43,6 +42,7 @@ from .sim.metrics import (
     tracking_error,
     value_at_risk,
 )
+from .sweep import run_parameter_sweep
 
 __all__ = [
     "select_csv_file",
