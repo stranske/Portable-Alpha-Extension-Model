@@ -10,6 +10,12 @@ The model is designed to help you explore three core ideas:
 
 The introductory tutorials demonstrate how to implement a run, interpret these metrics and visualise them so you can test each idea in a repeatable workflow.
 
+### Quick start
+
+1. **Implement a scenario** – run the model with a CSV or YAML config.
+2. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
+3. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
+
 ### Key concepts
 
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
