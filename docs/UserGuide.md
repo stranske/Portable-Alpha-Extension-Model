@@ -1,6 +1,8 @@
 # Portable Alpha-Extension Model User Guide
 
-This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures. Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports—and to evaluate risk/return trade‑offs, funding shortfall probability and tracking error across multiple scenarios. The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
+This program simulates a portable‑alpha plus active‑extension strategy. Each run distributes capital across internal, external portable‑alpha and active‑extension sleeves and draws joint return paths. The command line prints a summary and writes an Excel workbook with an embedded risk‑return chart along with optional additional figures. Use ``python -m pa_core.cli`` to access all command‑line features—including dashboard launch and static exports. The parameter templates in `config/` already include the mandatory `ShortfallProb` risk metric so the CLI will fail fast if you remove it. All tutorials assume you invoke the program via ``python -m pa_core.cli``.
+
+The model is designed to test **risk/return trade‑offs**, **funding shortfall probability** and **tracking error** under different capital allocations. The tutorials walk through implementing a scenario, interpreting these metrics and visualising the results so you can evaluate each idea in a repeatable workflow.
 
 ### Key concepts
 
@@ -29,6 +31,7 @@ shortfall probability and tracking error in a repeatable workflow.
 4. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
 5. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 6. Run `python -m pa_core.cli --help` at any time to view all command-line options.
+7. Include `--dashboard` to open an interactive Streamlit view after the run completes.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
