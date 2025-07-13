@@ -7,7 +7,7 @@ from typing import Callable
 import plotly.graph_objects as go
 
 try:
-    import websockets  # type: ignore
+    import websockets
 except Exception:  # pragma: no cover - optional dep
     websockets = None
 
@@ -29,7 +29,7 @@ async def connect(
     if websockets is None:
         raise RuntimeError("websockets package not installed")
 
-    async with websockets.connect(url) as ws:  # type: ignore[attr-defined]
+    async with websockets.connect(url) as ws:
         async for msg in ws:
             payload = json.loads(msg)
             data = go.Figure(data=payload.get("data"), layout=payload.get("layout"))

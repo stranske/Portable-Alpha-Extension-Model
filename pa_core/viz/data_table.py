@@ -13,7 +13,7 @@ def make(df: pd.DataFrame):
     Otherwise fall back to a ``plotly.graph_objects.Figure`` table.
     """
     try:
-        from dash import dash_table  # type: ignore
+        from dash import dash_table
     except Exception:
         fig = go.Figure(
             data=[

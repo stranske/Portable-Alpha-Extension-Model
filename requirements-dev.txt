@@ -22,6 +22,7 @@ pytest-cov         # Test coverage
 pytest-xdist       # Parallel testing
 bandit             # Security linting
 mypy               # Additional type checking
+types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
 isort              # Import sorting
 

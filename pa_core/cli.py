@@ -14,7 +14,7 @@ CLI flags:
 from __future__ import annotations
 
 import argparse
-from typing import Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -79,7 +79,7 @@ LABEL_MAP = {
 
 
 def shortfall_probability(
-    returns,
+    returns: Union[np.ndarray, List[float]],
     threshold: float = -0.05,  # Default 5% loss threshold
     compound_final: bool = True,
 ) -> float:
@@ -108,10 +108,10 @@ def shortfall_probability(
 
 
 def create_enhanced_summary(
-    returns_map: dict,
-    config,
+    returns_map: Dict[str, Any],
+    config: Any,
     *,
-    benchmark: str | None = None,
+    benchmark: Optional[str] = None,
 ) -> pd.DataFrame:
     """Create enhanced summary table with ShortfallProb and better defaults."""
 
@@ -136,7 +136,7 @@ def create_enhanced_summary(
     return summary
 
 
-def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
+def print_enhanced_summary(summary: pd.DataFrame, config: Any) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
@@ -347,9 +347,43 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
 
     if cfg.analysis_mode != "returns":
-        fin_rngs_list = list(fin_rngs.values())
         # Ensure idx_series is a pandas Series
         if isinstance(idx_series, pd.DataFrame):
             series_data = idx_series.squeeze()
@@ -359,7 +393,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 raise ValueError("idx_series DataFrame must have only one column")
         elif not isinstance(idx_series, pd.Series):
             raise ValueError("idx_series must be a pandas Series")
-        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)
+        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
         return
     mu_idx = float(idx_series.mean())

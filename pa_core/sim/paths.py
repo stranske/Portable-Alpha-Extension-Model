@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import numpy.typing as npt
 from numpy.random import Generator
@@ -82,7 +82,7 @@ def draw_joint_returns(
     *,
     n_months: int,
     n_sim: int,
-    params: dict,
+    params: Dict[str, Any],
     rng: Optional[Generator] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
@@ -130,7 +130,7 @@ def draw_financing_series(
     *,
     n_months: int,
     n_sim: int,
-    params: dict,
+    params: Dict[str, Any],
     rng: Optional[Generator] = None,
     rngs: Optional[Mapping[str, Generator]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
