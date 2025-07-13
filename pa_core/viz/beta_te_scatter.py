@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 import plotly.graph_objects as go
 
 from . import beta_scatter
 
 
-def make(df_summary: pd.DataFrame, **kwargs) -> go.Figure:
+def make(df_summary: pd.DataFrame, **kwargs: Any) -> go.Figure:
     """Alias for :func:`beta_scatter.make`.
 
     Parameters

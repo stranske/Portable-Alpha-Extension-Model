@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Tuple, Union
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -8,7 +10,9 @@ from . import theme
 
 
 def make(
-    df_paths: pd.DataFrame | np.ndarray, quantiles=(0.1, 0.9), window: int = 12
+    df_paths: Union[pd.DataFrame, np.ndarray],
+    quantiles: Tuple[float, float] = (0.1, 0.9),
+    window: int = 12,
 ) -> go.Figure:
     """Return rolling quantile band over the median path."""
     arr = np.asarray(df_paths)

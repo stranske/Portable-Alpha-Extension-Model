@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Tuple, Union
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -7,7 +9,10 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(df_paths: pd.DataFrame | np.ndarray, quantiles=(0.05, 0.95)) -> go.Figure:
+def make(
+    df_paths: Union[pd.DataFrame, np.ndarray],
+    quantiles: Tuple[float, float] = (0.05, 0.95),
+) -> go.Figure:
     """Visualise widening distribution of cumulative returns."""
     arr = np.asarray(df_paths)
     cum = np.cumprod(1 + arr, axis=1)
