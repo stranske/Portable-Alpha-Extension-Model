@@ -17,9 +17,7 @@ import argparse
 from typing import Optional, Sequence
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
-from numpy.typing import NDArray
 
 from . import (
     RunFlags,
@@ -29,7 +27,6 @@ from . import (
     load_config,
     load_index_returns,
     load_parameters,
-    print_summary,
 )
 from .agents.registry import build_from_config
 from .backend import set_backend
@@ -143,7 +140,6 @@ def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
-    from rich.table import Table
     from rich.text import Text
 
     console = Console()
@@ -256,11 +252,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     else:
         raw_params = load_parameters(args.params, LABEL_MAP)
         cfg = load_config(raw_params)
-    
+
     cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
-    
+
     # Ensure idx_series is a pandas Series for type safety
     if isinstance(idx_series, pd.DataFrame):
         idx_series = idx_series.squeeze()
@@ -409,7 +405,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import subprocess
             import sys
 
-            # Use the same Python interpreter with -m streamlit to ensure we use the venv
+            # Use the same Python interpreter with -m streamlit to ensure venv
             subprocess.run(
                 [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
                 check=False,

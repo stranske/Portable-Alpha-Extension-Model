@@ -222,4 +222,6 @@ def simulate_alpha_streams(
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
-    return np.random.multivariate_normal(means, cov, size=T)  # type: ignore[no-any-return]
+    return np.random.multivariate_normal(
+        means, cov, size=T
+    )  # type: ignore[no-any-return]

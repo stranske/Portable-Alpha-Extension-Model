@@ -14,7 +14,9 @@ def _rolling_drawdown(paths: np.ndarray, window: int) -> np.ndarray:
     median = np.median(cum, axis=0)
     roll_max = pd.Series(median).cummax()
     dd = 1 - median / roll_max
-    return pd.Series(dd).rolling(window, min_periods=1).max().to_numpy()  # type: ignore[no-any-return]
+    return (
+        pd.Series(dd).rolling(window, min_periods=1).max().to_numpy()
+    )  # type: ignore[no-any-return]
 
 
 def _rolling_te(paths: np.ndarray, window: int) -> np.ndarray:
