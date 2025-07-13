@@ -35,4 +35,4 @@ def build_cov_matrix(
         ]
     )
     cov = np.outer(sds, sds) * rho
-    return 0.5 * (cov + cov.T)
+    return 0.5 * (cov + cov.T)  # type: ignore[no-any-return]

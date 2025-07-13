@@ -382,6 +382,20 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
 
     if cfg.analysis_mode != "returns":
         # Ensure idx_series is a pandas Series
