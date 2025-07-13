@@ -30,6 +30,7 @@ from . import (
 )
 from .agents.registry import build_from_config
 from .backend import set_backend
+from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
 from .reporting.sweep_excel import export_sweep_results
@@ -79,7 +80,7 @@ LABEL_MAP = {
 
 
 def shortfall_probability(
-    returns,
+    returns: np.ndarray,
     threshold: float = -0.05,  # Default 5% loss threshold
     compound_final: bool = True,
 ) -> float:
@@ -108,8 +109,8 @@ def shortfall_probability(
 
 
 def create_enhanced_summary(
-    returns_map: dict,
-    config,
+    returns_map: dict[str, np.ndarray],
+    config: ModelConfig,
     *,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
@@ -136,7 +137,7 @@ def create_enhanced_summary(
     return summary
 
 
-def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
+def print_enhanced_summary(summary: pd.DataFrame, config: ModelConfig) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
