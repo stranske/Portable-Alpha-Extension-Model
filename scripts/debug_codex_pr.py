@@ -8,6 +8,7 @@ import subprocess
 import sys
 import json
 import os
+import requests
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
@@ -30,6 +31,119 @@ class CodexPRDebugger:
             return result.returncode == 0, result.stdout + result.stderr
         except Exception as e:
             return False, str(e)
+    
+    def check_github_ci_cd_status(self) -> List[Dict]:
+        """Check actual GitHub CI/CD pipeline status and errors."""
+        issues = []
+        
+        try:
+            # Get GitHub token from environment (if available)
+            github_token = os.environ.get('GITHUB_TOKEN') or os.environ.get('GH_TOKEN')
+            
+            # Try to get PR status using GitHub CLI first
+            success, gh_output = self.run_command(
+                f"gh pr status --json statusCheckRollup 2>/dev/null || echo 'gh-cli-unavailable'"
+            )
+            
+            if "gh-cli-unavailable" not in gh_output:
+                try:
+                    status_data = json.loads(gh_output)
+                    if 'currentBranch' in status_data and 'statusCheckRollup' in status_data['currentBranch']:
+                        for check in status_data['currentBranch']['statusCheckRollup']:
+                            if check['state'] in ['FAILURE', 'ERROR']:
+                                issues.append({
+                                    'type': 'ci_cd_failure',
+                                    'description': f"CI/CD Check Failed: {check['context']} - {check.get('description', 'No description')}",
+                                    'severity': 'critical',
+                                    'github_url': check.get('targetUrl', ''),
+                                    'context': check['context']
+                                })
+                            elif check['state'] == 'PENDING':
+                                issues.append({
+                                    'type': 'ci_cd_pending',
+                                    'description': f"CI/CD Check Running: {check['context']}",
+                                    'severity': 'info',
+                                    'github_url': check.get('targetUrl', ''),
+                                    'context': check['context']
+                                })
+                except json.JSONDecodeError:
+                    pass
+            
+            # Alternative: Try to get repo info and infer CI/CD status
+            success, git_output = self.run_command("git remote get-url origin")
+            if success and "github.com" in git_output:
+                # Extract repo info
+                repo_url = git_output.strip()
+                if repo_url.endswith('.git'):
+                    repo_url = repo_url[:-4]
+                
+                # Try to get recent workflow runs (requires GitHub API)
+                issues.append({
+                    'type': 'ci_cd_info',
+                    'description': f"GitHub repository detected: {repo_url}",
+                    'severity': 'info',
+                    'github_url': f"{repo_url}/actions"
+                })
+        
+        except Exception as e:
+            issues.append({
+                'type': 'ci_cd_check_error',
+                'description': f"Failed to check CI/CD status: {str(e)}",
+                'severity': 'warning'
+            })
+        
+        return issues
+    
+    def analyze_github_actions_logs(self, check_context: str) -> Dict:
+        """Analyze specific GitHub Actions log for common error patterns."""
+        patterns = {
+            'Type Checking': [
+                r'error: .*Cannot assign.*',
+                r'error: .*Incompatible.*',
+                r'error: .*has no attribute.*',
+            ],
+            'Tests': [
+                r'FAILED.*::(.*)',
+                r'ImportError:.*',
+                r'TypeError:.*',
+            ],
+            'Code Quality': [
+                r'E\d+.*line too long.*',
+                r'F\d+.*imported but unused.*',
+                r'W\d+.*',
+            ]
+        }
+        
+        analysis = {
+            'context': check_context,
+            'error_patterns': patterns.get(check_context, []),
+            'suggested_fixes': []
+        }
+        
+        # Map common CI/CD failures to local debugging commands
+        if check_context == 'Type Checking':
+            analysis['local_debug_cmd'] = "dev-env/bin/python -m mypy pa_core/ --strict"
+            analysis['suggested_fixes'] = [
+                "Check type annotations in recently modified files",
+                "Ensure imports match actual function signatures",
+                "Verify DataFrame/Series type conversions"
+            ]
+        elif 'Tests' in check_context:
+            analysis['local_debug_cmd'] = "dev-env/bin/python -m pytest tests/ -v --tb=short"
+            analysis['suggested_fixes'] = [
+                "Run tests locally to reproduce failures",
+                "Check for missing imports or dependencies",
+                "Verify test data and fixtures"
+            ]
+        elif check_context == 'Code Quality':
+            analysis['local_debug_cmd'] = "dev-env/bin/ruff format --check pa_core/ tests/ dashboard/"
+            analysis['suggested_fixes'] = [
+                "Run code formatting: dev-env/bin/ruff format pa_core/ tests/ dashboard/",
+                "Check line length and import ordering",
+                "Remove unused imports"
+            ]
+        
+        return analysis
     
     def check_imports_and_types(self) -> List[Dict]:
         """Check for import and type issues."""
@@ -340,7 +454,18 @@ class CodexPRDebugger:
     
     def run_iterative_check(self, max_iterations: int = 3) -> Dict:
         """Run debugging with iteration until all CI/CD issues are resolved."""
-        print("� Starting iterative Codex PR debugging...")
+        print("🔍 Starting iterative Codex PR debugging...")
+        
+        # First, check actual GitHub CI/CD status
+        print("🔗 Checking GitHub CI/CD pipeline status...")
+        github_issues = self.check_github_ci_cd_status()
+        if github_issues:
+            print(f"📊 Found {len(github_issues)} GitHub CI/CD status items:")
+            for issue in github_issues:
+                emoji = "❌" if issue['severity'] in ['critical', 'high'] else "⚠️" if issue['severity'] == 'warning' else "ℹ️"
+                print(f"  {emoji} {issue['description']}")
+                if 'github_url' in issue and issue['github_url']:
+                    print(f"    🔗 {issue['github_url']}")
         
         iteration = 0
         all_fixes_applied = []
@@ -349,13 +474,14 @@ class CodexPRDebugger:
             iteration += 1
             print(f"\n🔄 Iteration {iteration}/{max_iterations}")
             
-            # Comprehensive issue detection
+            # Comprehensive issue detection (including GitHub CI/CD status)
             all_issues = []
+            all_issues.extend(github_issues)  # Include GitHub CI/CD status
             all_issues.extend(self.check_dependencies())
             all_issues.extend(self.check_imports_and_types())
             all_issues.extend(self.check_code_style())
             all_issues.extend(self.check_tests())
-            all_issues.extend(self.check_ci_cd_compliance())  # NEW: CI/CD specific checks
+            all_issues.extend(self.check_ci_cd_compliance())  # Local CI/CD checks
             
             if not all_issues:
                 print("✅ No issues found!")
@@ -400,6 +526,25 @@ class CodexPRDebugger:
         report.append(f"Iterations: {results['iterations']}")
         report.append("")
         
+        # Add GitHub CI/CD status section
+        github_issues = [issue for issue in results.get('all_issues', []) if issue.get('type', '').startswith('ci_cd_')]
+        if github_issues:
+            report.append("## 🔗 GitHub CI/CD Pipeline Status")
+            for issue in github_issues:
+                if issue['severity'] == 'critical':
+                    emoji = "❌"
+                elif issue['severity'] == 'warning':
+                    emoji = "⚠️"
+                elif issue['severity'] == 'info':
+                    emoji = "ℹ️"
+                else:
+                    emoji = "📋"
+                
+                report.append(f"- {emoji} **{issue.get('context', issue['type'])}**: {issue['description']}")
+                if 'github_url' in issue and issue['github_url']:
+                    report.append(f"  🔗 [View Details]({issue['github_url']})")
+            report.append("")
+        
         if results['total_fixes_applied']:
             report.append("## ✅ Fixes Applied")
             for fix in results['total_fixes_applied']:
@@ -411,22 +556,32 @@ class CodexPRDebugger:
             for issue in results['final_issues']:
                 severity_emoji = "🔥" if issue['severity'] == 'high' else "⚠️"
                 report.append(f"- **{issue['type']}** ({severity_emoji}{issue['severity']}): {issue['description']}")
+                
+                # Add specific debugging guidance for CI/CD failures
+                if issue['type'] in ['ci_cd_failure', 'ci_type_error', 'ci_test_failure']:
+                    analysis = self.analyze_github_actions_logs(issue.get('context', issue['type']))
+                    if 'local_debug_cmd' in analysis:
+                        report.append(f"  🔧 Local Debug: `{analysis['local_debug_cmd']}`")
+                    for fix in analysis.get('suggested_fixes', []):
+                        report.append(f"  💡 {fix}")
             report.append("")
             
             report.append("## 📋 Manual Intervention Required")
             report.append("The following issues need manual review:")
             for issue in results['final_issues']:
-                if issue['severity'] == 'high':
+                if issue['severity'] in ['high', 'critical']:
                     report.append(f"1. **{issue['type']}**: {issue['description']}")
             report.append("")
         
-        # Status summary
+        # Enhanced status summary with GitHub integration
         if results['ci_cd_ready']:
             report.append("## 🎉 CI/CD Status: READY")
-            report.append("All automated checks pass. Branch is ready for CI/CD pipeline.")
+            report.append("✅ All automated checks pass. Branch is ready for CI/CD pipeline.")
+            report.append("🚀 GitHub Actions should succeed on next push.")
         else:
             report.append("## ❌ CI/CD Status: ISSUES REMAIN")
             report.append(f"Found {len(results['final_issues'])} issues that prevent CI/CD success.")
+            report.append("❌ GitHub Actions will likely fail until these are resolved.")
             report.append("Manual fixes required before CI/CD will pass.")
         
         report.append("")
@@ -434,11 +589,13 @@ class CodexPRDebugger:
         if results['ci_cd_ready']:
             report.append("1. Commit any remaining changes")
             report.append("2. Push to trigger CI/CD pipeline")
-            report.append("3. Monitor pipeline for successful completion")
+            report.append("3. Monitor GitHub Actions for successful completion")
+            report.append("4. Check PR status checks at: https://github.com/[owner]/[repo]/pull/[number]")
         else:
             report.append("1. Review and fix remaining high-severity issues")
             report.append("2. Re-run debugging: `make debug-codex`")
-            report.append("3. Repeat until CI/CD ready")
+            report.append("3. Monitor GitHub Actions for real-time feedback")
+            report.append("4. Repeat until CI/CD ready")
         
         return "\n".join(report)
 
