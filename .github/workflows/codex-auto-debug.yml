@@ -26,6 +26,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         
+    - name: Set up Git identity
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        
     - name: Run automated debugging
       id: debug
       run: |
@@ -36,7 +41,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: debug-report-${{ github.head_ref }}
+        name: debug-report-${{ github.run_id }}
         path: debug_report.md
         
     - name: Comment debug results on PR
