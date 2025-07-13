@@ -396,6 +396,41 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
 
     if cfg.analysis_mode != "returns":
         # Ensure idx_series is a pandas Series
@@ -407,7 +442,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 raise ValueError("idx_series DataFrame must have only one column")
         elif not isinstance(idx_series, pd.Series):
             raise ValueError("idx_series must be a pandas Series")
-        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+        results = fin_rngs_list = list(fin_rngs.values())
+        run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)
         export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
         return
     mu_idx = float(idx_series.mean())
