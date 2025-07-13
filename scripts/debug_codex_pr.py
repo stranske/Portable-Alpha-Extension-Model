@@ -276,15 +276,16 @@ class CodexPRDebugger:
         if cli_file.exists():
             content = cli_file.read_text()
             
-            # Look for the pattern where fin_rngs dict is passed to sweep function
-            if "run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)" in content:
-                # Fix by converting dict to list
+            # Look for the pattern where fin_rngs is incorrectly converted to list
+            # The correct fix is to keep fin_rngs as dict and capture return value
+            if "fin_rngs_list = list(fin_rngs.values())" in content:
+                # Fix by removing the list conversion and properly capturing results
                 new_content = content.replace(
-                    "run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)",
-                    "fin_rngs_list = list(fin_rngs.values())\n        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)"
+                    "results = fin_rngs_list = list(fin_rngs.values())\n        run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)",
+                    "results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)"
                 ).replace(
-                    "results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)",
-                    "run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)"
+                    "fin_rngs_list = list(fin_rngs.values())\n        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)",
+                    "results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)"
                 )
                 
                 if new_content != content:
@@ -391,14 +392,15 @@ class CodexPRDebugger:
     
     def _fix_type_errors(self) -> None:
         """Fix common type errors that break CI/CD."""
-        # Fix DataFrame/Series type issues
+        # Fix DataFrame/Series type issues (but only if not already present)
         cli_file = self.repo_root / "pa_core" / "cli.py"
         if cli_file.exists():
             content = cli_file.read_text()
             
-            # Pattern 1: Ensure idx_series is Series
-            if "idx_series = load_index_returns" in content:
+            # Only add type checking if it's not already present
+            if "idx_series = load_index_returns" in content and "# Ensure idx_series is a pandas Series for type safety" not in content:
                 type_fix = '''idx_series = load_index_returns(args.index)
+    
     # Ensure idx_series is a pandas Series for type safety
     if isinstance(idx_series, pd.DataFrame):
         idx_series = idx_series.squeeze()

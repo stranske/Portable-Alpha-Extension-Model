@@ -14,10 +14,12 @@ CLI flags:
 from __future__ import annotations
 
 import argparse
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Optional, Sequence
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
+from numpy.typing import NDArray
 
 from . import (
     RunFlags,
@@ -27,6 +29,7 @@ from . import (
     load_config,
     load_index_returns,
     load_parameters,
+    print_summary,
 )
 from .agents.registry import build_from_config
 from .backend import set_backend
@@ -79,7 +82,7 @@ LABEL_MAP = {
 
 
 def shortfall_probability(
-    returns: Union[np.ndarray, List[float]],
+    returns,
     threshold: float = -0.05,  # Default 5% loss threshold
     compound_final: bool = True,
 ) -> float:
@@ -108,10 +111,10 @@ def shortfall_probability(
 
 
 def create_enhanced_summary(
-    returns_map: Dict[str, Any],
-    config: Any,
+    returns_map: dict,
+    config,
     *,
-    benchmark: Optional[str] = None,
+    benchmark: str | None = None,
 ) -> pd.DataFrame:
     """Create enhanced summary table with ShortfallProb and better defaults."""
 
@@ -136,10 +139,11 @@ def create_enhanced_summary(
     return summary
 
 
-def print_enhanced_summary(summary: pd.DataFrame, config: Any) -> None:
+def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
+    from rich.table import Table
     from rich.text import Text
 
     console = Console()
@@ -252,451 +256,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     else:
         raw_params = load_parameters(args.params, LABEL_MAP)
         cfg = load_config(raw_params)
-
+    
     cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
+    
     # Ensure idx_series is a pandas Series for type safety
     if isinstance(idx_series, pd.DataFrame):
         idx_series = idx_series.squeeze()
@@ -706,18 +270,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         raise ValueError("Index data must be a pandas Series")
 
     if cfg.analysis_mode != "returns":
-        # Ensure idx_series is a pandas Series
-        if isinstance(idx_series, pd.DataFrame):
-            series_data = idx_series.squeeze()
-            if isinstance(series_data, pd.Series):
-                idx_series = series_data
-            else:
-                raise ValueError("idx_series DataFrame must have only one column")
-        elif not isinstance(idx_series, pd.Series):
-            raise ValueError("idx_series must be a pandas Series")
-        results = fin_rngs_list = list(fin_rngs.values())
-        run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs_list)
-        export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
+        # Parameter sweep mode
+        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+        export_sweep_results(results, filename=args.output)
         return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
@@ -854,15 +409,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import subprocess
             import sys
 
-            # Use same Python interpreter with -m streamlit for venv compatibility
+            # Use the same Python interpreter with -m streamlit to ensure we use the venv
             subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "streamlit",
-                    "run",
-                    "dashboard/app.py",
-                ],
+                [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
                 check=False,
                 cwd=os.getcwd(),
             )
