@@ -147,4 +147,7 @@ def load_index_returns(csv_path: Union[str, Path]) -> pd.Series:
     df.set_index("Date", inplace=True)
     series = df[col].dropna().copy()
     series.index = pd.to_datetime(series.index)
+    # Ensure we return a Series
+    if not isinstance(series, pd.Series):
+        raise ValueError("Failed to extract Series from DataFrame")
     return series
