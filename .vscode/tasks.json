@@ -115,7 +115,8 @@
             "command": "python",
             "args": [
                 "scripts/debug_codex_pr.py",
-                "--branch=${workspaceFolderBasename}"
+                "--branch=${workspaceFolderBasename}",
+                "--max-iterations=5"
             ],
             "group": "build",
             "presentation": {
@@ -136,6 +137,7 @@
             "args": [
                 "scripts/debug_codex_pr.py",
                 "--branch=${workspaceFolderBasename}",
+                "--max-iterations=5",
                 "--commit"
             ],
             "group": "build",

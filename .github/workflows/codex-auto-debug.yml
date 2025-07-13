@@ -29,11 +29,11 @@ jobs:
     - name: Run automated debugging
       id: debug
       run: |
-        python scripts/debug_codex_pr.py --branch=${{ github.head_ref }} --report=debug_report.md
+        python scripts/debug_codex_pr.py --branch=${{ github.head_ref }} --report=debug_report.md --max-iterations=5 --commit
         echo "debug_exit_code=$?" >> $GITHUB_OUTPUT
         
     - name: Upload debug report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: debug-report-${{ github.head_ref }}

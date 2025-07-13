@@ -218,77 +218,234 @@ class CodexPRDebugger:
                 init_file.write_text(new_content)
                 self.fixes_applied.append(f"Fixed empty {init_file.relative_to(self.repo_root)}")
     
-    def run_full_check(self) -> Dict:
-        """Run comprehensive debugging check."""
-        print("🚀 Starting automated Codex PR debugging...")
+    def check_ci_cd_compliance(self) -> List[Dict]:
+        """Check exact CI/CD pipeline compliance."""
+        issues = []
         
-        # Collect all issues
-        all_issues = []
-        all_issues.extend(self.check_dependencies())
-        all_issues.extend(self.check_imports_and_types())
-        all_issues.extend(self.check_code_style())
-        all_issues.extend(self.check_tests())
+        # 1. Check Ruff formatting (exact CI/CD command)
+        success, output = self.run_command("dev-env/bin/ruff format --check pa_core/ tests/ dashboard/")
+        if not success:
+            issues.append({
+                'type': 'ruff_formatting',
+                'description': f'Ruff formatting issues:\n{output}',
+                'severity': 'high'
+            })
         
-        # Apply automatic fixes
-        self.auto_fix_common_issues()
-        self.auto_fix_formatting()
+        # 2. Check exact mypy as CI/CD runs it
+        success, output = self.run_command("dev-env/bin/python -m mypy pa_core/ --strict")
+        if not success and "error:" in output.lower():
+            for line in output.split('\n'):
+                if 'error:' in line and line.strip():
+                    issues.append({
+                        'type': 'ci_type_error',
+                        'description': line.strip(),
+                        'severity': 'high'
+                    })
         
-        # Re-check after fixes
-        print("🔄 Re-checking after automatic fixes...")
-        remaining_issues = []
-        remaining_issues.extend(self.check_imports_and_types())
-        remaining_issues.extend(self.check_tests())
+        # 3. Check pytest exactly like CI/CD
+        success, output = self.run_command("dev-env/bin/python -m pytest tests/ -v --tb=short")
+        if not success:
+            issues.append({
+                'type': 'ci_test_failure',
+                'description': f'CI/CD test failures:\n{output}',
+                'severity': 'high'
+            })
+        
+        # 4. Validate devcontainer.json (CI/CD requirement)
+        success, output = self.run_command("python -m json.tool .devcontainer/devcontainer.json")
+        if not success:
+            issues.append({
+                'type': 'devcontainer_json',
+                'description': f'Invalid devcontainer.json:\n{output}',
+                'severity': 'medium'
+            })
+        
+        return issues
+    
+    def auto_fix_ci_cd_issues(self) -> None:
+        """Apply fixes specifically for CI/CD compliance."""
+        # Fix Ruff formatting issues
+        success, output = self.run_command("dev-env/bin/ruff format pa_core/ tests/ dashboard/")
+        if success:
+            self.fixes_applied.append("Applied Ruff formatting fixes")
+        
+        # Fix type errors with common patterns
+        self._fix_type_errors()
+        
+        # Fix devcontainer.json if needed
+        self._fix_devcontainer_json()
+    
+    def _fix_type_errors(self) -> None:
+        """Fix common type errors that break CI/CD."""
+        # Fix DataFrame/Series type issues
+        cli_file = self.repo_root / "pa_core" / "cli.py"
+        if cli_file.exists():
+            content = cli_file.read_text()
+            
+            # Pattern 1: Ensure idx_series is Series
+            if "idx_series = load_index_returns" in content:
+                type_fix = '''idx_series = load_index_returns(args.index)
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")'''
+                
+                content = content.replace(
+                    "idx_series = load_index_returns(args.index)",
+                    type_fix
+                )
+                cli_file.write_text(content)
+                self.fixes_applied.append("Fixed DataFrame/Series type issue in cli.py")
+        
+        # Fix mapping vs list issues in sweep.py
+        sweep_file = self.repo_root / "pa_core" / "sweep.py"
+        if sweep_file.exists():
+            content = sweep_file.read_text()
+            
+            # Fix function signature to match actual usage
+            old_sig = "fin_rngs: List[np.random.Generator]"
+            new_sig = "fin_rngs: Dict[str, np.random.Generator]"
+            if old_sig in content:
+                content = content.replace(old_sig, new_sig)
+                sweep_file.write_text(content)
+                self.fixes_applied.append("Fixed fin_rngs type signature in sweep.py")
+    
+    def _fix_devcontainer_json(self) -> None:
+        """Fix devcontainer.json formatting issues."""
+        devcontainer_file = self.repo_root / ".devcontainer" / "devcontainer.json"
+        if devcontainer_file.exists():
+            try:
+                import json
+                content = devcontainer_file.read_text()
+                # Try to parse and reformat with proper JSON
+                data = json.loads(content)
+                formatted = json.dumps(data, indent=2, ensure_ascii=False)
+                devcontainer_file.write_text(formatted)
+                self.fixes_applied.append("Fixed devcontainer.json formatting")
+            except json.JSONDecodeError:
+                # Fix common JSON issues
+                content = devcontainer_file.read_text()
+                # Replace single quotes with double quotes
+                content = content.replace("'", '"')
+                try:
+                    data = json.loads(content)
+                    formatted = json.dumps(data, indent=2, ensure_ascii=False)
+                    devcontainer_file.write_text(formatted)
+                    self.fixes_applied.append("Fixed devcontainer.json quote issues")
+                except:
+                    pass
+    
+    def run_iterative_check(self, max_iterations: int = 3) -> Dict:
+        """Run debugging with iteration until all CI/CD issues are resolved."""
+        print("� Starting iterative Codex PR debugging...")
+        
+        iteration = 0
+        all_fixes_applied = []
+        
+        while iteration < max_iterations:
+            iteration += 1
+            print(f"\n🔄 Iteration {iteration}/{max_iterations}")
+            
+            # Comprehensive issue detection
+            all_issues = []
+            all_issues.extend(self.check_dependencies())
+            all_issues.extend(self.check_imports_and_types())
+            all_issues.extend(self.check_code_style())
+            all_issues.extend(self.check_tests())
+            all_issues.extend(self.check_ci_cd_compliance())  # NEW: CI/CD specific checks
+            
+            if not all_issues:
+                print("✅ No issues found!")
+                break
+            
+            print(f"🔧 Found {len(all_issues)} issues, applying fixes...")
+            
+            # Reset fixes for this iteration
+            self.fixes_applied = []
+            
+            # Apply comprehensive fixes
+            self.auto_fix_common_issues()
+            self.auto_fix_formatting()
+            self.auto_fix_ci_cd_issues()  # NEW: CI/CD specific fixes
+            
+            # Collect fixes
+            if self.fixes_applied:
+                all_fixes_applied.extend(self.fixes_applied)
+                print(f"🔧 Applied {len(self.fixes_applied)} fixes")
+            else:
+                print("⚠️ No automatic fixes available for remaining issues")
+                break
+        
+        # Final validation
+        print("\n🔄 Final CI/CD compliance check...")
+        final_issues = self.check_ci_cd_compliance()
         
         return {
-            'initial_issues': all_issues,
-            'fixes_applied': self.fixes_applied,
-            'remaining_issues': remaining_issues,
-            'success': len(remaining_issues) == 0
+            'iterations': iteration,
+            'total_fixes_applied': all_fixes_applied,
+            'final_issues': final_issues,
+            'success': len(final_issues) == 0,
+            'ci_cd_ready': len(final_issues) == 0
         }
     
-    def generate_report(self, results: Dict) -> str:
-        """Generate a comprehensive debugging report."""
+    def generate_enhanced_report(self, results: Dict) -> str:
+        """Generate enhanced report for iterative debugging results."""
         report = []
-        report.append("# 🔍 Codex PR Debugging Report")
-        report.append(f"Branch: {self.branch_name or 'current'}")
+        
+        report.append("# 🔍 Enhanced Codex PR Debugging Report")
+        report.append(f"Branch: {self.branch_name}")
+        report.append(f"Iterations: {results['iterations']}")
         report.append("")
         
-        if results['initial_issues']:
-            report.append("## ❌ Initial Issues Found")
-            for issue in results['initial_issues']:
-                report.append(f"- **{issue['type']}** ({issue['severity']}): {issue['description']}")
-            report.append("")
-        
-        if results['fixes_applied']:
-            report.append("## ✅ Automatic Fixes Applied")
-            for fix in results['fixes_applied']:
+        if results['total_fixes_applied']:
+            report.append("## ✅ Fixes Applied")
+            for fix in results['total_fixes_applied']:
                 report.append(f"- {fix}")
             report.append("")
         
-        if results['remaining_issues']:
-            report.append("## ⚠️ Remaining Issues (Manual Intervention Required)")
-            for issue in results['remaining_issues']:
-                report.append(f"- **{issue['type']}** ({issue['severity']}): {issue['description']}")
+        if results['final_issues']:
+            report.append("## ❌ Remaining CI/CD Issues")
+            for issue in results['final_issues']:
+                severity_emoji = "🔥" if issue['severity'] == 'high' else "⚠️"
+                report.append(f"- **{issue['type']}** ({severity_emoji}{issue['severity']}): {issue['description']}")
             report.append("")
-        else:
-            report.append("## 🎉 All Issues Resolved!")
-            report.append("The branch is ready for CI/CD validation.")
+            
+            report.append("## 📋 Manual Intervention Required")
+            report.append("The following issues need manual review:")
+            for issue in results['final_issues']:
+                if issue['severity'] == 'high':
+                    report.append(f"1. **{issue['type']}**: {issue['description']}")
             report.append("")
         
-        report.append("## 📋 Next Steps")
-        if results['remaining_issues']:
-            report.append("1. Review remaining issues above")
-            report.append("2. Apply manual fixes as needed")
-            report.append("3. Re-run this debugger")
-            report.append("4. Commit and push when clean")
+        # Status summary
+        if results['ci_cd_ready']:
+            report.append("## 🎉 CI/CD Status: READY")
+            report.append("All automated checks pass. Branch is ready for CI/CD pipeline.")
         else:
-            report.append("1. Commit automatic fixes")
+            report.append("## ❌ CI/CD Status: ISSUES REMAIN")
+            report.append(f"Found {len(results['final_issues'])} issues that prevent CI/CD success.")
+            report.append("Manual fixes required before CI/CD will pass.")
+        
+        report.append("")
+        report.append("## 📋 Next Steps")
+        if results['ci_cd_ready']:
+            report.append("1. Commit any remaining changes")
             report.append("2. Push to trigger CI/CD pipeline")
-            report.append("3. Monitor pipeline results")
+            report.append("3. Monitor pipeline for successful completion")
+        else:
+            report.append("1. Review and fix remaining high-severity issues")
+            report.append("2. Re-run debugging: `make debug-codex`")
+            report.append("3. Repeat until CI/CD ready")
         
         return "\n".join(report)
 
-
+    # Keep the original method for backward compatibility
+    def generate_report(self, results: Dict) -> str:
+        """Generate a comprehensive debugging report (legacy method)."""
+        return self.generate_enhanced_report(results)
 def main():
     """Main entry point for the debugging workflow."""
     import argparse
@@ -297,14 +454,17 @@ def main():
     parser.add_argument("--branch", help="Branch name being debugged")
     parser.add_argument("--report", help="Output file for debugging report")
     parser.add_argument("--commit", action="store_true", help="Auto-commit fixes")
+    parser.add_argument("--max-iterations", type=int, default=3, help="Maximum debugging iterations")
     
     args = parser.parse_args()
     
     debugger = CodexPRDebugger(args.branch)
-    results = debugger.run_full_check()
+    
+    # Use iterative debugging for comprehensive CI/CD compliance
+    results = debugger.run_iterative_check(max_iterations=args.max_iterations)
     
     # Generate and display report
-    report = debugger.generate_report(results)
+    report = debugger.generate_enhanced_report(results)
     print("\n" + report)
     
     # Save report if requested
@@ -313,14 +473,19 @@ def main():
         print(f"\n📄 Report saved to {args.report}")
     
     # Auto-commit if requested and fixes were applied
-    if args.commit and results['fixes_applied']:
-        commit_msg = f"Auto-fix: {', '.join(results['fixes_applied'])}"
+    if args.commit and results['total_fixes_applied']:
+        commit_msg = f"Auto-fix: CI/CD compliance fixes ({len(results['total_fixes_applied'])} changes)"
         subprocess.run(["git", "add", "."])
         subprocess.run(["git", "commit", "-m", commit_msg])
         print(f"\n✅ Committed fixes: {commit_msg}")
     
-    # Exit with error code if issues remain
-    sys.exit(0 if results['success'] else 1)
+    # Exit with proper CI/CD status
+    if results['ci_cd_ready']:
+        print("\n🎉 Branch is CI/CD ready!")
+        sys.exit(0)
+    else:
+        print(f"\n❌ {len(results['final_issues'])} CI/CD issues remain")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

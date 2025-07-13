@@ -95,7 +95,7 @@ def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
     rng_returns: np.random.Generator,
-    fin_rngs: List[np.random.Generator],
+    fin_rngs: Dict[str, np.random.Generator],
 ) -> List[Dict[str, Any]]:
     """Run the parameter sweep and collect results."""
     results: List[Dict[str, Any]] = []
