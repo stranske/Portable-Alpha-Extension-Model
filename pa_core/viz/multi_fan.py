@@ -38,7 +38,7 @@ def make(
                 mode="lines",
                 fill="tonexty",
                 line=dict(width=0),
-                fillcolor=f"rgba(0,0,255,{0.2 + 0.1*idx})",
+                fillcolor=f"rgba(0,0,255,{0.2 + 0.1 * idx})",
                 name=f"{h}m CI",
             )
         )

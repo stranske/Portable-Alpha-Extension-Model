@@ -9,6 +9,7 @@ from . import theme
 
 def make(df: pd.DataFrame) -> go.Figure:
     """Return scatter-matrix plot coloured by agent category."""
-    fig = px.scatter_matrix(df, color_discrete_sequence=theme.TEMPLATE.layout.colorway)  # type: ignore[attr-defined]
+    colorway = theme.TEMPLATE.layout.colorway  # type: ignore[attr-defined]
+    fig = px.scatter_matrix(df, color_discrete_sequence=colorway)
     fig.update_layout(template=theme.TEMPLATE)
     return fig

@@ -82,7 +82,7 @@ class CodexPRDebugger:
             })
         
         # Check line length and other style issues
-        success, output = self.run_command("dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88")
+        success, output = self.run_command("dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88 --ignore=E203,W503")
         if not success:
             issues.append({
                 'type': 'style_violations',

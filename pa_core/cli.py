@@ -406,7 +406,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import subprocess
             import sys
 
-            # Use the same Python interpreter with -m streamlit to ensure we use the venv
+            # Use same Python interpreter with -m streamlit for venv compatibility
             subprocess.run(
                 [
                     sys.executable,

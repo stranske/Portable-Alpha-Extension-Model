@@ -49,7 +49,7 @@ lint:
 		dev-env/bin/pip install black isort flake8 mypy; \
 	fi
 	@echo "🔍 Linting code..."
-	dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88
+	dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88 --ignore=E203,W503
 
 lint-fix:
 	python -m ruff check pa_core --fix
