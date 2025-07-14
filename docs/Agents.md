@@ -20,19 +20,23 @@
 - **CLI and dashboard** - Core functionality working
 - **Configuration system** - ModelConfig validation working
 - **Development workflow** - Git sync, formatting, testing tools ready
+- **Parameter Sweep Engine** - ✅ **COMPLETE** - All 4 analysis modes implemented
+  - **Capital Mode**: Varies external/active allocation percentages
+  - **Returns Mode**: Varies return/volatility assumptions across agents
+  - **Alpha Shares Mode**: Varies alpha/beta share splits
+  - **Vol Mult Mode**: Varies volatility multipliers for stress testing
+  - **Visualization Integration**: ✅ Reuses existing `viz/risk_return.py` - no new visualizations needed
+  - **Excel Export**: ✅ Automatic risk-return charts embedded in sweep results
+  - **CLI Integration**: ✅ Use `--mode=capital|returns|alpha_shares|vol_mult`
+  - ❌ **DO NOT MODIFY** - Implementation is complete and CI/CD validated
 
 ### 🎯 HIGH PRIORITY (Focus here)
-1. **Parameter Sweep Engine** - Implement 4 analysis modes (capital/returns/alpha_shares/vol_mult)
-   - Location: `pa_core/cli.py` - add sweep functionality  
-   - Requirement: Enable users to run multiple parameter variations automatically
-   - See: `CODEX_IMPLEMENTATION_SPEC.md` for detailed requirements
-
-2. **New Agent Types** - Implement additional strategy agents
+1. **New Agent Types** - Implement additional strategy agents
    - Create new agent classes in `pa_core/agents/`
    - Follow existing patterns (BaseAgent subclass)
    - Add to registry.py for auto-discovery
 
-3. **Performance Optimizations** - Improve Monte Carlo simulation speed
+2. **Performance Optimizations** - Improve Monte Carlo simulation speed
    - Location: `pa_core/simulations.py`, `pa_core/sim/`
    - Focus: Vectorization, memory efficiency, parallel processing
 
@@ -391,6 +395,40 @@ class MyNewAgent(BaseAgent):
 | `breach_calendar.make` | summary by month                           | `go.Figure` | Heatmap of TE & shortfall breaches |
 
 *All functions must be **pure** (no I/O) and honour the colour‑blind‑safe palette defined in `viz.theme.TEMPLATE`.*
+
+### 12.1.1 Parameter Sweep Visualization Integration
+
+**✅ ARCHITECTURAL DECISION: Single Visualization Suite for All Analysis Modes**
+
+The parameter sweep engine (4 modes: capital/returns/alpha_shares/vol_mult) **reuses the existing visualization architecture** without requiring new chart types:
+
+**Integration Pattern:**
+- **All Sweep Modes** → Generate standard `df_summary` DataFrames
+- **Excel Export** → Uses `viz.risk_return.make()` to embed charts automatically  
+- **3D Analysis** → Uses existing `viz.surface.make()` and `viz.surface_animation.make()`
+- **Dashboard** → All existing tabs work with sweep results (no modifications needed)
+
+**Visualization Compatibility Matrix:**
+| Analysis Mode | `risk_return` | `surface` | `fan` | `sharpe_ladder` | `rolling_panel` | 
+|---------------|---------------|-----------|-------|-----------------|-----------------|
+| Capital       | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+| Returns       | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+| Alpha Shares  | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+| Vol Mult      | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+
+**Key Benefits:**
+- ✅ **No visualization duplication** - Single codebase serves all modes
+- ✅ **Consistent user experience** - Same charts across all analysis types  
+- ✅ **Maintainable architecture** - Changes to visualizations apply to all modes
+- ✅ **Future-proof design** - New analysis modes automatically work with existing charts
+
+**Implementation:**
+```python
+# All modes produce standard summary DataFrames that work with all viz functions
+results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+# Excel export automatically includes risk-return chart
+export_sweep_results(results, filename="Sweep.xlsx")  # Uses viz.risk_return.make()
+```
 
 ### 12.2  Streamlit app (`dashboard/app.py`)
 

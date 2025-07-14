@@ -2,21 +2,21 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+
 import pandas as pd
 
 from pa_core.viz import (
-    risk_return,
-    fan,
-    path_dist,
-    corr_heatmap,
-    sharpe_ladder,
-    rolling_panel,
-    surface,
-    pptx_export,
-    html_export,
     animation,
+    corr_heatmap,
+    fan,
+    html_export,
+    path_dist,
+    pptx_export,
+    risk_return,
+    rolling_panel,
+    sharpe_ladder,
+    surface,
 )
-
 
 PLOTS = {
     "risk_return": risk_return.make,
