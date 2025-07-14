@@ -18,7 +18,7 @@ def export_sweep_results(
 ) -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
     all_summary: pd.DataFrame | None = None
-    
+
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         summary_frames = []
         for res in results:
@@ -28,7 +28,7 @@ def export_sweep_results(
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)
-        
+
         if summary_frames:
             all_summary = pd.concat(summary_frames, ignore_index=True)
             all_summary.to_excel(writer, sheet_name="Summary", index=False)
