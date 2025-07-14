@@ -3,10 +3,10 @@ from __future__ import annotations
 import io
 from typing import Any, Dict, Iterable
 
-import openpyxl  # type: ignore[import-untyped]
-import pandas as pd  # type: ignore[import-untyped]
-from openpyxl.drawing.image import Image as XLImage  # type: ignore[import-untyped]
-from openpyxl.utils import get_column_letter  # type: ignore[import-untyped]
+import openpyxl
+import pandas as pd
+from openpyxl.drawing.image import Image as XLImage
+from openpyxl.utils import get_column_letter
 
 from ..viz import risk_return
 
