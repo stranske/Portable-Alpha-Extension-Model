@@ -8,7 +8,7 @@ on:
   workflow_dispatch:  # Allow manual triggering
 
 env:
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.12'
 
 jobs:
   lint-and-format:
@@ -96,17 +96,14 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
       
       - name: Install dependencies
@@ -124,7 +121,6 @@ jobs:
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
-        if: matrix.python-version == '3.11'
         with:
           file: ./coverage.xml
           flags: unittests
@@ -135,7 +131,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ matrix.python-version }}
+          name: test-results
           path: |
             htmlcov/
             coverage.xml

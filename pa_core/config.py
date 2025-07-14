@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Dict, List, Union
 
 import yaml
 from pydantic import (
@@ -126,7 +126,7 @@ class ModelConfig(BaseModel):
         return self
 
 
-def load_config(path: str | Path | dict[str, Any]) -> ModelConfig:
+def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
     """Return ``ModelConfig`` parsed from YAML/CSV dictionary."""
     if isinstance(path, dict):
         data = path
