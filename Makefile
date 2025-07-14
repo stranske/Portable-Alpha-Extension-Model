@@ -49,7 +49,7 @@ lint:
 		dev-env/bin/pip install black isort flake8 mypy; \
 	fi
 	@echo "🔍 Linting code..."
-	dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88
+	dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88 --ignore=E203,W503
 
 lint-fix:
 	python -m ruff check pa_core --fix
@@ -121,3 +121,20 @@ check-updates:
 	else \
 		echo "✅ Up to date with remote."; \
 	fi
+
+# Methodical debugging workflow for Codex PRs
+debug-codex:
+	@echo "🎯 Running methodical Codex PR debugging..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3
+
+debug-codex-fix:
+	@echo "🔧 Running methodical Codex PR debugging with auto-commit..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --commit
+
+debug-codex-report:
+	@echo "📄 Generating methodical Codex PR debugging report..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --report=debug_report.md
+
+# Quick CI/CD validation workflow
+validate-pr: debug-codex dev-check
+	@echo "✅ PR validation complete!"

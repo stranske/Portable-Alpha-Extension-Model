@@ -14,7 +14,7 @@ def explore(df_summary: pd.DataFrame) -> None:
         scaled = df_summary.copy()
         scaled["AnnReturn"] *= scale
         fig = risk_return.make(scaled)
-        display(fig)
+        display(fig)  # type: ignore[no-untyped-call]
 
     slider = widgets.FloatSlider(value=1.0, min=0.5, max=1.5, step=0.1)
     widgets.interact(_update, scale=slider)

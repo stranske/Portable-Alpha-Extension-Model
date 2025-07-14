@@ -1,0 +1,8 @@
+Parameter,Value,Notes
+Analysis mode,capital,Capital allocation sweep
+Number of simulations,1000,Monte Carlo trials
+Number of months,12,Simulation horizon
+Total fund capital (mm),1000,Total fund size
+Max external combined (%),30,Max external PA + active ext percentage
+External step size (%),5,Increment step
+risk_metrics,Return;Risk;ShortfallProb,Required metrics

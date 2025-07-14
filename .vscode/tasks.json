@@ -108,6 +108,68 @@
                 "panel": "shared"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Debug Codex PR (Methodical)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "scripts/debug_codex_pr.py",
+                "--branch=${workspaceFolderBasename}",
+                "--max-iterations=3"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Run methodical debugging for Codex pull requests"
+        },
+        {
+            "label": "Debug Codex PR with Auto-fix (Methodical)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "scripts/debug_codex_pr.py",
+                "--branch=${workspaceFolderBasename}",
+                "--max-iterations=3",
+                "--commit"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Run methodical debugging with auto-commit fixes"
+        },
+        {
+            "label": "Validate PR for CI/CD",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "validate-pr"
+            ],
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "Run complete PR validation workflow"
         }
     ]
 }

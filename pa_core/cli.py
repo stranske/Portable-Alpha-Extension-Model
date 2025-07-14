@@ -17,9 +17,7 @@ import argparse
 from typing import Optional, Sequence
 
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
-from numpy.typing import NDArray
 
 from . import (
     RunFlags,
@@ -29,15 +27,17 @@ from . import (
     load_config,
     load_index_returns,
     load_parameters,
-    print_summary,
 )
 from .agents.registry import build_from_config
 from .backend import set_backend
+from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
+from .reporting.sweep_excel import export_sweep_results
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
+from .sweep import run_parameter_sweep
 
 LABEL_MAP = {
     "Analysis mode": "analysis_mode",
@@ -80,7 +80,7 @@ LABEL_MAP = {
 
 
 def shortfall_probability(
-    returns,
+    returns: np.ndarray,
     threshold: float = -0.05,  # Default 5% loss threshold
     compound_final: bool = True,
 ) -> float:
@@ -109,8 +109,8 @@ def shortfall_probability(
 
 
 def create_enhanced_summary(
-    returns_map: dict,
-    config,
+    returns_map: dict[str, np.ndarray],
+    config: ModelConfig,
     *,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
@@ -137,11 +137,10 @@ def create_enhanced_summary(
     return summary
 
 
-def print_enhanced_summary(summary: pd.DataFrame, config) -> None:
+def print_enhanced_summary(summary: pd.DataFrame, config: ModelConfig) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
-    from rich.table import Table
     from rich.text import Text
 
     console = Console()
@@ -182,6 +181,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     group.add_argument("--config", help="YAML config file")
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
+    parser.add_argument(
+        "--mode",
+        choices=["capital", "returns", "alpha_shares", "vol_mult"],
+        default="returns",
+        help="Parameter sweep analysis mode",
+    )
     parser.add_argument(
         "--pivot",
         action="store_true",
@@ -248,8 +253,24 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     else:
         raw_params = load_parameters(args.params, LABEL_MAP)
         cfg = load_config(raw_params)
+
+    cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
+
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+
+    if cfg.analysis_mode != "returns":
+        # Parameter sweep mode
+        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+        export_sweep_results(results, filename=args.output)
+        return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
 
@@ -385,7 +406,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import subprocess
             import sys
 
-            # Use the same Python interpreter with -m streamlit to ensure we use the venv
+            # Use the same Python interpreter with -m streamlit to ensure venv
             subprocess.run(
                 [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
                 check=False,

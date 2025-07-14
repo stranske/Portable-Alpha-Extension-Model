@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional
 
 import numpy.typing as npt
 from numpy.random import Generator
@@ -41,7 +41,7 @@ def simulate_financing(
         spike_factor * financing_sigma
     )
     out = np.clip(base + jumps, 0.0, None)
-    return out[0] if n_scenarios == 1 else out
+    return out[0] if n_scenarios == 1 else out  # type: ignore[no-any-return]
 
 
 def prepare_mc_universe(
@@ -82,7 +82,7 @@ def draw_joint_returns(
     *,
     n_months: int,
     n_sim: int,
-    params: dict,
+    params: Dict[str, Any],
     rng: Optional[Generator] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
@@ -130,7 +130,7 @@ def draw_financing_series(
     *,
     n_months: int,
     n_sim: int,
-    params: dict,
+    params: Dict[str, Any],
     rng: Optional[Generator] = None,
     rngs: Optional[Mapping[str, Generator]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
@@ -186,7 +186,7 @@ def draw_financing_series(
             n_scenarios=1,
             rng=rng_local,
         )[0]
-        return np.broadcast_to(vec, (n_sim, n_months))
+        return np.broadcast_to(vec, (n_sim, n_months))  # type: ignore[no-any-return]
 
     f_int_mat = _sim(
         "internal_financing_mean_month",
@@ -222,4 +222,6 @@ def simulate_alpha_streams(
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
-    return np.random.multivariate_normal(means, cov, size=T)
+    return np.random.multivariate_normal(  # type: ignore[no-any-return]
+        means, cov, size=T
+    )

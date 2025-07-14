@@ -39,7 +39,7 @@ def value_at_risk(returns: NDArray[npt.float64], confidence: float = 0.95) -> fl
 def compound(returns: NDArray[npt.float64]) -> NDArray[npt.float64]:
     """Return cumulative compounded returns along axis 1."""
     arr = np.asarray(returns, dtype=np.float64)
-    return np.cumprod(1.0 + arr, axis=1) - 1.0
+    return np.cumprod(1.0 + arr, axis=1) - 1.0  # type: ignore[no-any-return]
 
 
 def annualised_return(

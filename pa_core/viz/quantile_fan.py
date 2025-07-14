@@ -33,7 +33,7 @@ def make(
             mode="lines",
             fill="tonexty",
             line=dict(width=0),
-            name=f"{int(q_low*100)}–{int(q_high*100)}% CI",
+            name=f"{int(q_low * 100)}–{int(q_high * 100)}% CI",
         )
     )
     fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name="Median"))

@@ -75,6 +75,17 @@ workflow.
 9. **Save Everything with Export Bundles** – archive figures via `viz.export_bundle`.
 10. **Explore the Chart Gallery** – open `viz_gallery.ipynb` for a hands-on tour of every plotting helper.
 
+### Parameter Sweep Engine
+
+Use `--mode` to run automated sweeps across common parameters:
+
+* `capital` – vary external and active-extension allocations
+* `returns` – explore different return and volatility assumptions
+* `alpha_shares` – optimise alpha/beta share splits
+* `vol_mult` – stress test by scaling all volatilities
+
+Each mode writes an Excel workbook summarising every combination. Start with the CSV templates in `config/` for ready-to-run examples.
+
 Introductory Tutorials 1‑3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
 
 ### Introductory Tutorial 1 – Implement a Scenario

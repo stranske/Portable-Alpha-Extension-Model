@@ -1,0 +1,17 @@
+Parameter,Value,Notes
+Analysis mode,returns,Return assumption sweep
+Number of simulations,500,Monte Carlo trials
+Number of months,12,Simulation horizon
+In-House return min (%),2,Minimum in-house alpha return
+In-House return max (%),6,Maximum in-house alpha return
+In-House return step (%),2,Step size
+In-House vol min (%),1,Minimum in-house vol
+In-House vol max (%),3,Maximum in-house vol
+In-House vol step (%),1,Step size
+Alpha-Ext return min (%),1,Minimum extension return
+Alpha-Ext return max (%),5,Maximum extension return
+Alpha-Ext return step (%),2,Step size
+Alpha-Ext vol min (%),2,Minimum extension vol
+Alpha-Ext vol max (%),4,Maximum extension vol
+Alpha-Ext vol step (%),1,Step size
+risk_metrics,Return;Risk;ShortfallProb,Required metrics

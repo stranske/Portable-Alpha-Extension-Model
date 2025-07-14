@@ -1,6 +1,7 @@
 import csv
 from pathlib import Path
 from tkinter import Tk, filedialog
+from typing import Any, Dict, List, Union
 
 import pandas as pd
 
@@ -16,7 +17,7 @@ __all__ = [
 ]
 
 
-def select_csv_file():
+def select_csv_file() -> Path:
     """Pop up a file picker to choose a CSV file and return its path."""
     root = Tk()
     root.withdraw()
@@ -30,7 +31,9 @@ def select_csv_file():
     return Path(file_path)
 
 
-def load_parameters(csv_filepath, label_map):
+def load_parameters(
+    csv_filepath: Union[str, Path], label_map: Dict[str, str]
+) -> Dict[str, Any]:
     """Parse a parameters CSV using a label mapping."""
     params = {}
     lines = Path(csv_filepath).read_text(encoding="utf-8").splitlines()
@@ -53,7 +56,7 @@ def load_parameters(csv_filepath, label_map):
         raw_val = row.get("Value", "").strip()
         if ";" in raw_val:
             parts = [p.strip() for p in raw_val.split(";") if p.strip() != ""]
-            parsed_list = []
+            parsed_list: List[Union[int, float, str]] = []
             for p in parts:
                 try:
                     if "." in p:
@@ -65,16 +68,18 @@ def load_parameters(csv_filepath, label_map):
             params[internal_key] = parsed_list
         else:
             try:
-                params[internal_key] = int(raw_val)
+                params[internal_key] = int(raw_val)  # type: ignore[assignment]
             except ValueError:
                 try:
-                    params[internal_key] = float(raw_val)
+                    params[internal_key] = float(raw_val)  # type: ignore[assignment]
                 except ValueError:
-                    params[internal_key] = raw_val
+                    params[internal_key] = raw_val  # type: ignore[assignment]
     return params
 
 
-def get_num(raw_params, key, default):
+def get_num(
+    raw_params: Dict[str, Any], key: str, default: Union[int, float, None]
+) -> Union[int, float, None]:
     """Return raw_params[key] if numeric else default."""
     v = raw_params.get(key, None)
     if isinstance(v, (int, float)):
@@ -82,7 +87,9 @@ def get_num(raw_params, key, default):
     return default
 
 
-def build_range(raw_params, key_base, default_midpoint):
+def build_range(
+    raw_params: Dict[str, Any], key_base: str, default_midpoint: float
+) -> List[float]:
     """Return a list of decimals for a percent range or fallback."""
     k_min = get_num(raw_params, f"{key_base}_min", None)
     k_max = get_num(raw_params, f"{key_base}_max", None)
@@ -102,7 +109,9 @@ def build_range(raw_params, key_base, default_midpoint):
     return [default_midpoint]
 
 
-def build_range_int(raw_params, key_base, default_midpoint):
+def build_range_int(
+    raw_params: Dict[str, Any], key_base: str, default_midpoint: int
+) -> List[int]:
     """Integer version of ``build_range``."""
     k_min = get_num(raw_params, f"{key_base}_min", None)
     k_max = get_num(raw_params, f"{key_base}_max", None)
@@ -118,7 +127,7 @@ def build_range_int(raw_params, key_base, default_midpoint):
     return [default_midpoint]
 
 
-def load_index_returns(csv_path):
+def load_index_returns(csv_path: Union[str, Path]) -> pd.Series:
     """Load a CSV of monthly index returns into a Series."""
     csv_path = Path(csv_path)
     if not csv_path.exists() or not csv_path.is_file():
@@ -138,4 +147,7 @@ def load_index_returns(csv_path):
     df.set_index("Date", inplace=True)
     series = df[col].dropna().copy()
     series.index = pd.to_datetime(series.index)
+    # Ensure we return a Series
+    if not isinstance(series, pd.Series):
+        raise ValueError("Failed to extract Series from DataFrame")
     return series

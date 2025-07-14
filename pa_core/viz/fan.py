@@ -8,9 +8,10 @@ from . import theme
 
 
 def make(
-    df_paths: pd.DataFrame | np.ndarray, liability: pd.Series | np.ndarray | None = None
+    df_paths: pd.DataFrame | np.ndarray,
+    liability: pd.Series | np.ndarray | None = None,
 ) -> go.Figure:
-    """Return funding fan chart with median, confidence ribbon and optional liability path."""
+    """Return funding fan chart with median, confidence ribbon, optional liability."""
     arr = np.asarray(df_paths)
     median = np.median(arr, axis=0)
     conf = theme.THRESHOLDS.get("confidence", 0.95)
@@ -31,7 +32,7 @@ def make(
             mode="lines",
             fill="tonexty",
             line=dict(width=0),
-            name=f"{int(conf*100)}% CI",
+            name=f"{int(conf * 100)}% CI",
         )
     )
     fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name="Median"))

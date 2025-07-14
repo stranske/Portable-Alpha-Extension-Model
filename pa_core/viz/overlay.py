@@ -26,7 +26,7 @@ def make(paths_map: Mapping[str, pd.DataFrame | np.ndarray]) -> go.Figure:
     palette = None
     layout = cast(Any, getattr(tmpl, "layout", None))
     if layout is not None and not isinstance(layout, tuple):
-        palette = getattr(layout, "colorway", None)  # type: ignore[attr-defined]
+        palette = getattr(layout, "colorway", None)
     if palette is None:
         palette = cast(Any, pio.templates["plotly"].layout).colorway
     palette = list(palette)

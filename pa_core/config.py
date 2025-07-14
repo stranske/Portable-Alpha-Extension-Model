@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, List
+from typing import Any, Dict, List, Union
 
 import yaml
 from pydantic import (
@@ -67,6 +67,36 @@ class ModelConfig(BaseModel):
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 0.0
 
+    # Parameter sweep options
+    analysis_mode: str = "returns"
+
+    max_external_combined_pct: float = 30.0
+    external_step_size_pct: float = 5.0
+
+    in_house_return_min_pct: float = 2.0
+    in_house_return_max_pct: float = 6.0
+    in_house_return_step_pct: float = 2.0
+    in_house_vol_min_pct: float = 1.0
+    in_house_vol_max_pct: float = 3.0
+    in_house_vol_step_pct: float = 1.0
+    alpha_ext_return_min_pct: float = 1.0
+    alpha_ext_return_max_pct: float = 5.0
+    alpha_ext_return_step_pct: float = 2.0
+    alpha_ext_vol_min_pct: float = 2.0
+    alpha_ext_vol_max_pct: float = 4.0
+    alpha_ext_vol_step_pct: float = 1.0
+
+    external_pa_alpha_min_pct: float = 25.0
+    external_pa_alpha_max_pct: float = 75.0
+    external_pa_alpha_step_pct: float = 5.0
+    active_share_min_pct: float = 20.0
+    active_share_max_pct: float = 100.0
+    active_share_step_pct: float = 5.0
+
+    sd_multiple_min: float = 2.0
+    sd_multiple_max: float = 4.0
+    sd_multiple_step: float = 0.25
+
     risk_metrics: List[str] = Field(
         default_factory=lambda: [
             "Return",
@@ -88,8 +118,15 @@ class ModelConfig(BaseModel):
             raise ConfigError("risk_metrics must include ShortfallProb")
         return self
 
+    @model_validator(mode="after")
+    def check_analysis_mode(self) -> "ModelConfig":
+        valid_modes = ["capital", "returns", "alpha_shares", "vol_mult"]
+        if self.analysis_mode not in valid_modes:
+            raise ValueError(f"analysis_mode must be one of: {valid_modes}")
+        return self
 
-def load_config(path: str | Path | dict[str, Any]) -> ModelConfig:
+
+def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
     """Return ``ModelConfig`` parsed from YAML/CSV dictionary."""
     if isinstance(path, dict):
         data = path

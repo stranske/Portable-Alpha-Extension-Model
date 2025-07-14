@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import io
-from typing import cast
+from typing import Any, Dict, cast
 
 import openpyxl
 import pandas as pd
@@ -14,9 +14,9 @@ __all__ = ["export_to_excel"]
 
 
 def export_to_excel(
-    inputs_dict,
-    summary_df,
-    raw_returns_dict,
+    inputs_dict: Dict[str, Any],
+    summary_df: pd.DataFrame,
+    raw_returns_dict: Dict[str, Any],
     filename: str = "Outputs.xlsx",
     *,
     pivot: bool = False,
