@@ -110,13 +110,13 @@
             "problemMatcher": []
         },
         {
-            "label": "Debug Codex PR",
+            "label": "Debug Codex PR (Methodical)",
             "type": "shell",
             "command": "python",
             "args": [
                 "scripts/debug_codex_pr.py",
                 "--branch=${workspaceFolderBasename}",
-                "--max-iterations=5"
+                "--max-iterations=3"
             ],
             "group": "build",
             "presentation": {
@@ -128,16 +128,16 @@
                 "clear": false
             },
             "problemMatcher": [],
-            "detail": "Run automated debugging for Codex pull requests"
+            "detail": "Run methodical debugging for Codex pull requests"
         },
         {
-            "label": "Debug Codex PR with Auto-fix",
+            "label": "Debug Codex PR with Auto-fix (Methodical)",
             "type": "shell",
             "command": "python",
             "args": [
                 "scripts/debug_codex_pr.py",
                 "--branch=${workspaceFolderBasename}",
-                "--max-iterations=5",
+                "--max-iterations=3",
                 "--commit"
             ],
             "group": "build",
@@ -150,7 +150,7 @@
                 "clear": false
             },
             "problemMatcher": [],
-            "detail": "Run automated debugging with auto-commit fixes"
+            "detail": "Run methodical debugging with auto-commit fixes"
         },
         {
             "label": "Validate PR for CI/CD",

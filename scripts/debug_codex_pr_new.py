@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 """
-Enhanced debugging workflow for Codex Pull Requests.
-Detects actual GitHub CI/CD failures and applies targeted fixes.
+Methodical debugging workflow for Codex Pull Requests.
+Focuses on specific CI/CD errors rather than shotgun debugging.
 """
 
 import subprocess
 import sys
-import json
-import os
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
 
 class CodexPRDebugger:
-    """Enhanced debugging workflow focusing on actual GitHub CI/CD failures."""
+    """Methodical debugging workflow focusing on actual CI/CD failures."""
     
     def __init__(self, branch_name: Optional[str] = None):
         self.branch_name = branch_name
@@ -30,42 +28,8 @@ class CodexPRDebugger:
         except Exception as e:
             return False, str(e)
     
-    def check_github_ci_status(self) -> Dict[str, str]:
-        """Check actual GitHub CI/CD status using GitHub CLI."""
-        print("🔗 Checking GitHub CI/CD pipeline status...")
-        
-        # Try to get PR status using GitHub CLI
-        success, output = self.run_command("gh pr status --json statusCheckRollup")
-        
-        if success:
-            try:
-                data = json.loads(output)
-                status = {}
-                if 'currentBranch' in data and 'statusCheckRollup' in data['currentBranch']:
-                    for check in data['currentBranch']['statusCheckRollup']:
-                        context = check.get('context', check.get('name', 'Unknown'))
-                        state = check.get('state', 'UNKNOWN')
-                        status[context] = state
-                        
-                        if state == 'FAILURE':
-                            print(f"  ❌ {context}: FAILED")
-                        elif state == 'SUCCESS':
-                            print(f"  ✅ {context}: PASSED") 
-                        elif state == 'PENDING':
-                            print(f"  🔄 {context}: RUNNING")
-                        else:
-                            print(f"  ❓ {context}: {state}")
-                
-                return status
-            except json.JSONDecodeError:
-                print("  ⚠️ Could not parse GitHub status")
-                
-        return {}
-    
     def get_specific_ci_errors(self) -> Dict[str, List[str]]:
         """Get specific errors from CI/CD tools that are actually failing."""
-        print("🔍 Running local CI/CD validation checks...")
-        
         errors = {
             'mypy': [],
             'flake8': [],
@@ -74,7 +38,7 @@ class CodexPRDebugger:
         }
         
         # Check mypy (Type Checking) - exact CI/CD command
-        print("  🔍 Checking mypy (Type Checking)...")
+        print("🔍 Checking mypy (Type Checking)...")
         success, output = self.run_command("python -m mypy pa_core/ --strict")
         if not success:
             for line in output.split('\n'):
@@ -82,7 +46,7 @@ class CodexPRDebugger:
                     errors['mypy'].append(line.strip())
         
         # Check flake8 (Code Quality) - exact CI/CD command  
-        print("  🔍 Checking flake8 (Code Quality)...")
+        print("🔍 Checking flake8 (Code Quality)...")
         success, output = self.run_command(
             "flake8 pa_core/ tests/ dashboard/ --max-line-length=88 --ignore=E203,W503"
         )
@@ -92,17 +56,15 @@ class CodexPRDebugger:
                     errors['flake8'].append(line.strip())
         
         # Check pytest (Tests) - exact CI/CD command
-        print("  🔍 Checking pytest (Tests)...")
+        print("🔍 Checking pytest (Tests)...")
         success, output = self.run_command("python -m pytest tests/ -v --tb=short")
         if not success:
-            # Capture full test output for detailed analysis
-            errors['pytest'].append(f"Test output:\n{output}")
             for line in output.split('\n'):
                 if 'FAILED' in line or 'ERROR' in line:
                     errors['pytest'].append(line.strip())
         
         # Check ruff formatting - exact CI/CD command
-        print("  🔍 Checking ruff formatting...")
+        print("🔍 Checking ruff formatting...")
         success, output = self.run_command("ruff format --check pa_core/ tests/ dashboard/")
         if not success:
             for line in output.split('\n'):
@@ -111,54 +73,6 @@ class CodexPRDebugger:
         
         # Filter out empty error lists
         return {k: v for k, v in errors.items() if v}
-    
-    def fix_test_failures(self, errors: List[str]) -> bool:
-        """Fix specific test failures based on error patterns."""
-        print("🔧 Analyzing test failures...")
-        
-        fixed_any = False
-        test_output = ""
-        
-        # Get the full test output from the first error entry
-        for error in errors:
-            if "Test output:" in error:
-                test_output = error
-                break
-        
-        print(f"📝 Test failure analysis:")
-        if test_output:
-            # Look for specific failure patterns
-            if "test_agent_math_identity" in test_output:
-                print("  🎯 Found test_agent_math_identity failure")
-                
-                # Check if it's a formatting issue in the test file
-                test_file = self.repo_root / "tests" / "test_agents.py"
-                if test_file.exists():
-                    content = test_file.read_text()
-                    
-                    # Look for long lines that need formatting
-                    lines = content.split('\n')
-                    needs_formatting = any(len(line) > 88 for line in lines if line.strip())
-                    
-                    if needs_formatting:
-                        print("  🔧 Applying formatting fixes to test file...")
-                        # Apply formatting
-                        success, _ = self.run_command("ruff format tests/test_agents.py")
-                        if success:
-                            self.fixes_applied.append("Fixed formatting in test_agents.py")
-                            fixed_any = True
-            
-            # Check for import errors
-            if "ImportError" in test_output or "ModuleNotFoundError" in test_output:
-                print("  🎯 Found import error in tests")
-                print("  ⚠️ Manual review needed for import dependencies")
-            
-            # Check for type errors in tests
-            if "TypeError" in test_output:
-                print("  🎯 Found type error in tests")
-                print("  ⚠️ Manual review needed for type compatibility")
-        
-        return fixed_any
     
     def fix_mypy_errors(self, errors: List[str]) -> bool:
         """Fix specific mypy type annotation errors."""
@@ -182,6 +96,8 @@ class CodexPRDebugger:
                 print("    ⚠️  Return type annotation issue - may need manual fix")
         
         return fixed_any
+    
+    def fix_flake8_errors(self, errors: List[str]) -> bool:
         """Fix specific flake8 style errors."""
         print("🔧 Fixing flake8 style errors...")
         

@@ -122,18 +122,18 @@ check-updates:
 		echo "✅ Up to date with remote."; \
 	fi
 
-# Automated debugging workflow for Codex PRs
+# Methodical debugging workflow for Codex PRs
 debug-codex:
-	@echo "🔍 Running iterative Codex PR debugging..."
-	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=5
+	@echo "🎯 Running methodical Codex PR debugging..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3
 
 debug-codex-fix:
-	@echo "🔧 Running iterative Codex PR debugging with auto-commit..."
-	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=5 --commit
+	@echo "🔧 Running methodical Codex PR debugging with auto-commit..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --commit
 
 debug-codex-report:
-	@echo "📄 Generating comprehensive Codex PR debugging report..."
-	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=5 --report=debug_report.md
+	@echo "📄 Generating methodical Codex PR debugging report..."
+	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --report=debug_report.md
 
 # Quick CI/CD validation workflow
 validate-pr: debug-codex dev-check

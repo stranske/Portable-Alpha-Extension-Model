@@ -1,35 +1,49 @@
-# 🤖 Automated Codex PR Debugging Workflow
+# 🎯 Methodical Codex PR Debugging Workflow
 
-This document describes the automated debugging workflow designed to streamline the integration of Codex-generated code into the Portable Alpha Extension Model project.
+This document describes the **methodical debugging workflow** designed to fix specific CI/CD failures rather than using shotgun debugging approaches.
 
 ## 🎯 Problem Solved
 
-When Codex implements new features, several common integration issues occur:
-- **Type mismatches** (dict vs list, wrong parameter types)
-- **Import issues** (unused imports, missing dependencies)
-- **Code style violations** (formatting, line length, import ordering) 
-- **Test failures** (due to integration issues)
-- **Configuration errors** (empty files, missing docstrings)
+The original debugging workflow used a "shotgun approach" - trying to fix everything at once. The new approach:
 
-Previously, these required manual debugging by the human assistant. Now they're **automatically detected and fixed**.
+- **Focuses on specific CI/CD errors** that are actually failing
+- **Runs exact CI/CD commands locally** to reproduce issues  
+- **Applies targeted fixes** only for identified problems
+- **Iterates methodically** until all issues are resolved
+- **Avoids over-engineering** and unnecessary changes
 
-## 🛠️ Automation Components
+## 🛠️ New Methodical Components
 
-### 1. Python Debugging Script (`scripts/debug_codex_pr.py`)
+### 1. Targeted Error Detection (`scripts/debug_codex_pr.py`)
 
-**Core Features:**
-- **Dependency checks** - Verify all imports work
-- **Type checking** - Run mypy to catch type errors
-- **Style validation** - Check formatting, imports, line length
-- **Test execution** - Ensure all tests pass
-- **Auto-fix common issues** - Apply standard fixes automatically
+**Specific CI/CD Tools:**
+- **mypy** - Type checking with `--strict` mode
+- **flake8** - Code quality with exact CI/CD flags  
+- **pytest** - Test execution with verbose output
+- **ruff** - Code formatting validation
 
-**Common Auto-fixes:**
-- Convert `dict` to `list` for function parameters
-- Remove unused imports (`numpy.typing`, duplicate imports)
-- Fix code formatting with black/isort
-- Add docstrings to empty `__init__.py` files
-- Break long lines appropriately
+**No More Shotgun Fixes:**
+- ❌ No more broad "fix everything" approaches
+- ❌ No more assumptions about what might be wrong
+- ✅ Only fix what CI/CD actually reports as failing
+
+### 2. Precise Error Fixing
+
+```python
+# OLD: Shotgun approach
+def auto_fix_everything():
+    fix_all_imports()
+    fix_all_formatting()  
+    fix_all_types()
+    fix_all_common_issues()
+    # ... and many more
+
+# NEW: Methodical approach  
+def fix_specific_errors(tool, errors):
+    for error in errors:
+        if "specific pattern" in error:
+            apply_targeted_fix(error)
+```
 
 ### 2. Makefile Integration
 
