@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable
-
 import io
+from typing import Any, Dict, Iterable
 
 import openpyxl
 import pandas as pd

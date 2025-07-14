@@ -1,7 +1,9 @@
 [tool.ruff]
 line-length = 88
-extend-ignore = ["E501"]
 extend-exclude = ["archive/*"]
+
+[tool.ruff.lint]
+extend-ignore = ["E501"]
 
 [tool.black]
 line-length = 88
