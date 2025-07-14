@@ -4,12 +4,11 @@ Enhanced debugging workflow for Codex Pull Requests.
 Detects actual GitHub CI/CD failures and applies targeted fixes.
 """
 
+import json
 import subprocess
 import sys
-import json
-import os
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class CodexPRDebugger:
@@ -125,7 +124,7 @@ class CodexPRDebugger:
                 test_output = error
                 break
         
-        print(f"📝 Test failure analysis:")
+        print("📝 Test failure analysis:")
         if test_output:
             # Look for specific failure patterns
             if "test_agent_math_identity" in test_output:
