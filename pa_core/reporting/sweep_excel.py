@@ -3,10 +3,10 @@ from __future__ import annotations
 import io
 from typing import Any, Dict, Iterable
 
-import openpyxl
-import pandas as pd
-from openpyxl.drawing.image import Image as XLImage
-from openpyxl.utils import get_column_letter
+import openpyxl  # type: ignore[import-untyped]
+import pandas as pd  # type: ignore[import-untyped]
+from openpyxl.drawing.image import Image as XLImage  # type: ignore[import-untyped]
+from openpyxl.utils import get_column_letter  # type: ignore[import-untyped]
 
 from ..viz import risk_return
 
@@ -17,6 +17,8 @@ def export_sweep_results(
     results: Iterable[Dict[str, Any]], filename: str = "Sweep.xlsx"
 ) -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
+    all_summary: pd.DataFrame | None = None
+    
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         summary_frames = []
         for res in results:
@@ -26,7 +28,7 @@ def export_sweep_results(
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)
-        all_summary: pd.DataFrame | None = None
+        
         if summary_frames:
             all_summary = pd.concat(summary_frames, ignore_index=True)
             all_summary.to_excel(writer, sheet_name="Summary", index=False)
@@ -40,7 +42,8 @@ def export_sweep_results(
                 for cell in column_cells
             )
             col_idx = column_cells[0].column
-            ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
+            if col_idx is not None:  # Type guard for mypy/pyright
+                ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
 
     if "Summary" in wb.sheetnames and all_summary is not None:
         ws = wb["Summary"]
