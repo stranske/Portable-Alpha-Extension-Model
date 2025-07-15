@@ -11,6 +11,7 @@ This model simulates a **three-sleeve portable alpha strategy**:
 ### 1. Simulation Settings
 - **Number of simulations**: Monte Carlo trials (1000+ recommended for stable results)
 - **Number of months**: Time horizon for each simulation (12 = 1 year)
+- **Analysis mode**: Choose `returns`, `capital`, `alpha_shares` or `vol_mult` to specify a sweep or single-scenario run.
 
 ### 2. Capital Allocation (in millions)
 Think of this as your asset allocation decision:
@@ -66,12 +67,18 @@ Critical for understanding diversification benefits:
 
 ### 9. Financing Costs (Monthly %)
 Models the cost of leverage/shorting in portable alpha:
-- **Mean**: Average monthly financing cost (e.g., 0.1% = ~1.2% annual)
-- **Vol**: Variability in financing costs
-- **Spike prob**: Probability of financing stress events
-- **Spike multiplier**: How much costs increase during stress
-
-**Market Realism**: Include financing costs for realistic P&L simulation
+- **Internal financing mean (monthly %)**: Baseline borrowing cost for the internal sleeve
+- **Internal financing vol (monthly %)**: Volatility of internal financing
+- **Internal monthly spike prob**: Probability of a financing spike internally
+- **Internal spike multiplier**: Size multiplier applied when a spike occurs
+- **External PA financing mean (monthly %)**: Baseline cost for external PA
+- **External PA financing vol (monthly %)**: Volatility of external PA financing
+- **External PA monthly spike prob**: Probability of a spike in external PA
+- **External PA spike multiplier**: Size multiplier for external PA spikes
+- **Active Ext financing mean (monthly %)**: Baseline cost for active extension
+- **Active Ext financing vol (monthly %)**: Volatility of active extension financing
+- **Active Ext monthly spike prob**: Probability of a spike for active extension
+- **Active Ext spike multiplier**: Size multiplier for active extension spikes
 
 ## Quick Start Configuration for First-Time Users
 
