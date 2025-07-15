@@ -47,11 +47,12 @@ shortfall probability and tracking error in a repeatable workflow.
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
 2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
-3. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
-4. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
-5. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
-6. Run `python -m pa_core.cli --help` at any time to view all command-line options.
-7. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
+3. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
+4. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
+5. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
+6. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
+7. Run `python -m pa_core.cli --help` at any time to view all command-line options.
+8. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
