@@ -1,256 +1,61 @@
-# Tutorial Enhancement Guide
+# Agents Architecture Guide  
 *Portable‑Alpha + Active‑Extension Model*
 
 > "Make everything as simple as possible, but no simpler." – A. Einstein  
+> (…who probably never had to vectorize Monte‑Carlo code, but would have sympathised.)
 
 ---
 
-## � **TESTING DOCUMENTATION & REFERENCES**
+## ⚠️ DEVELOPMENT STATUS & PRIORITIES
 
-### **Complete Testing Results**
-- **`TUTORIAL_5_TESTING_RESULTS.md`**: Comprehensive visualization testing with dependency analysis and user experience findings
-- **`STREAMLIT_TUTORIAL_INTEGRATION_PLAN.md`**: Detailed Streamlit integration plan for enhanced tutorial accessibility
+**Last Updated:** July 12, 2025  
+**Current Status:** Core implementation complete, critical bugs fixed  
 
-### **Implementation Status**
-- ✅ **All 10 tutorials tested** with complete documentation of functionality and issues
-- ✅ **Parameter sweep engine** operational (3 of 4 modes working)
-- ✅ **Visualization system** complete with export bundle functionality
-- 🔶 **Tutorial enhancement implementation** ready following priority order below
+### ✅ COMPLETED (Do NOT modify these)
+- **ActiveExtensionAgent bug fix** - `active_share` percentage conversion is **WORKING CORRECTLY**
+  - Current implementation: `float(self.extra.get("active_share", 50.0)) / 100.0`
+  - ✅ Tests passing, handles percentage inputs properly
+  - ❌ **DO NOT CHANGE** - Previous attempt broke test_agent_math_identity
+- **Basic agent infrastructure** - All agents implemented and tested
+- **CLI and dashboard** - Core functionality working
+- **Configuration system** - ModelConfig validation working
+- **Development workflow** - Git sync, formatting, testing tools ready
 
----
+### 🎯 HIGH PRIORITY (Focus here)
+1. **Parameter Sweep Engine** - Implement 4 analysis modes (capital/returns/alpha_shares/vol_mult)
+   - Location: `pa_core/cli.py` - add sweep functionality  
+   - Requirement: Enable users to run multiple parameter variations automatically
+   - See: `CODEX_IMPLEMENTATION_SPEC.md` for detailed requirements
 
-## �📚 TUTORIAL ENHANCEMENT PRIORITIES
+2. **New Agent Types** - Implement additional strategy agents
+   - Create new agent classes in `pa_core/agents/`
+   - Follow existing patterns (BaseAgent subclass)
+   - Add to registry.py for auto-discovery
 
-**Last Updated:** July 15, 2025  
-**Status:** All 10 tutorials tested, comprehensive enhancement plans complete
+3. **Performance Optimizations** - Improve Monte Carlo simulation speed
+   - Location: `pa_core/simulations.py`, `pa_core/sim/`
+   - Focus: Vectorization, memory efficiency, parallel processing
 
-### 🎯 HIGH PRIORITY TUTORIAL ENHANCEMENTS
+### 🔧 MEDIUM PRIORITY  
+1. **Enhanced Visualizations** - New chart types and interactions
+2. **Advanced Configuration** - More parameter validation and templates
+3. **Documentation** - API docs and advanced tutorials
 
-**Ready for Implementation**: Parameter sweep engine working for 3 of 4 modes enables comprehensive tutorial upgrades from basic single-scenario demonstrations to professional multi-scenario analysis workflows.
+### ❌ AVOID (Being handled separately)
+- **Code formatting/linting** - Handled by human assistant
+- **Bug fixes in existing agents** - Core agents are working correctly
+- **Test improvements** - Being handled in parallel workflow
+- **Documentation polishing** - Non-core task
 
-#### 🎓 **Tutorial 1: Multi-Mode Parameter Sweep Demonstration (HIGH PRIORITY)**
-**Current**: Basic single-scenario introduction  
-**Critical Issues**: None - foundational tutorial works correctly  
-**Enhancement**: 5-part comprehensive tutorial showcasing parameter sweep capabilities
-
-**Implementation Plan**:
-- ✅ **Part 1**: Basic Operation - Use `config/params_template.yml` for single scenario foundation
-- ✅ **Part 2**: Capital Allocation Optimization - Use `config/capital_mode_template.csv` with `--mode capital` (38KB Excel output, working)
-- ✅ **Part 3**: Alpha Capture Efficiency - Use `config/alpha_shares_mode_template.csv` with `--mode alpha_shares` (183KB Excel, 187 combinations, working)  
-- ✅ **Part 4**: Volatility Stress Testing - Use `config/vol_mult_mode_template.csv` with `--mode vol_mult` (13KB Excel output, working)
-- ⚠️ **Part 5**: Return Sensitivity Analysis - CLI bug prevents returns mode sweep (easy fix: modify `pa_core/cli.py` line ~268)
-
-#### 🎓 **Tutorial 2: Advanced Threshold Analysis (MEDIUM PRIORITY)**
-**Current**: Basic metric interpretation  
-**Critical Issues**: 
-- ❌ **HIGH**: 3 of 4 agents exceed TE budget (10% vs 3% cap) - needs interpretation guidance
-- ⚠️ **MEDIUM**: Missing context on normal vs concerning results, no actionable steps when thresholds breached
-
-**Enhancement**: Advanced multi-scenario analysis using parameter sweep outputs
-- Bulk scenario threshold analysis (50-200 scenarios at once)
-- Multi-sheet Excel interpretation techniques for large-scale parameter exploration
-- Systematic workflows to identify threshold-compliant parameter combinations
-
-#### 🎓 **Tutorial 3: Multi-Scenario Dashboard Workflows (MEDIUM PRIORITY)**
-**Current**: Basic dashboard and visualization tutorial  
-**Critical Issues**:
-- ❌ **HIGH**: Streamlit not pre-installed - blocks tutorial completely for new users
-- ❌ **HIGH**: Chrome dependency for PNG/PDF exports - image generation fails
-- ⚠️ **MEDIUM**: AllReturns sheet context missing, dashboard navigation guidance insufficient
-
-**Enhancement**: Multi-scenario visualization workflows using parameter sweeps
-- Multi-scenario dashboard loading (parameter sweep Excel files: 38KB-183KB outputs)
-- Bulk visualization workflows (compare 50-200 scenarios simultaneously)
-- Parameter sensitivity and threshold compliance visualization techniques
-
-#### 🎓 **Tutorial 4: Professional Bulk Export Workflows (MEDIUM PRIORITY)**
-**Current**: Basic chart export tutorial  
-**Critical Issues**:
-- ✅ **WORKING**: HTML, PDF, PPTX exports work correctly with alt-text support
-- ⚠️ **MEDIUM**: PNG export dependency issues, limited format guidance
-
-**Enhancement**: Professional bulk export workflows using parameter sweeps
-- Generate presentation decks from 50-200 scenarios automatically
-- Multi-scenario chart workflows and client-ready reporting automation
-- Integrate with parameter sweep results for systematic documentation
-
-#### 🎓 **Tutorial 5: Automated Bulk Visualization Workflows (MEDIUM PRIORITY)**
-**Current**: Basic script-based visualizations  
-**Critical Issues** (documented in `TUTORIAL_5_TESTING_RESULTS.md`):
-- ✅ **HTML exports**: Interactive charts work for risk_return, corr_heatmap, sharpe_ladder, rolling_panel, surface
-- ❌ **HIGH**: Chrome/Kaleido dependency for static exports - PNG/PDF/PPTX fail silently without Chrome installed
-- ❌ **MEDIUM**: Parquet file requirement for fan/path_dist plots - basic simulations don't generate required `Outputs.parquet`
-- ⚠️ **MEDIUM**: GIF export logging and feedback - failures only appear in logs, users don't see warnings
-- ⚠️ **MEDIUM**: Plot type descriptions missing - tutorial lists plot names without use case guidance
-
-**Enhancement**: Automated bulk visualization workflows using parameter sweeps
-- Bulk chart generation over parameter sweep results (50-200 plots)
-- Multi-scenario gallery creation and integrated client reporting workflows
-- Professional visualization pipelines for systematic analysis
-- **Implementation Priority**: Fix dependency issues first, then enhance with parameter sweep integration
-
-#### 🎓 **Tutorial 6: Dynamic Agent Configuration (LOW PRIORITY)**
-**Current**: Custom agent creation  
-**Critical Issues**:
-- ❌ **HIGH**: ModelConfig schema rigid; cannot allocate capital to custom agents via config
-- ⚠️ **MEDIUM**: Tutorial lacks example code template, no guidance to extend ModelConfig/build_from_config
-
-**Enhancement**: Enable dynamic agent configuration and streamlined custom agent integration
-- Bulk performance sweeps for custom agents across capital allocation ranges
-- Integration of custom agent metrics into sweep results and visualizations
-- Streamlined registration and testing workflows for new agent types
-
-#### 🎓 **Tutorial 7: Advanced Theme Integration (LOW PRIORITY)**
-**Current**: Theme and threshold customization  
-**Critical Issues**: None - reload functions validated and working  
-**Minor Gaps**: Tutorial text lacks example code snippets, no integration with parameter sweep reports demonstrated
-
-**Enhancement**: Best-practice snippets and custom theme integration with parameter sweeps
-- Scenario-specific styling per sweep scenario
-- Threshold-driven color mapping for sweep visualizations
-- Automated theme application for batch exports and professional reporting
-
-#### 🎓 **Tutorial 8: Automated Stress Testing (MEDIUM PRIORITY)**
-**Current**: Manual scenario stress-testing  
-**Critical Issues**:
-- ❌ **HIGH**: CLI overwrites default output without `--output` guidance
-- ⚠️ **MEDIUM**: Manual Python/Excel comparison burdens users, dashboard lacks multi-scenario comparison
-
-**Enhancement**: Automate stress tests using parameter sweep engine and built-in comparison tools
-- Automated scenario sweeps across capital, alpha, and financing parameters
-- Built-in diff reports and dashboard multi-scenario mode for side-by-side visualizations
-- Replace manual stress testing with systematic parameter sweep workflows
-
-#### 🎓 **Tutorial 9: Enhanced Export Bundle Integration (LOW PRIORITY)**
-**Current**: Basic `export_bundle.save` helper  
-**Critical Issues**:
-- ✅ **WORKING**: PNG, HTML, JSON outputs generated successfully with alt-text support
-- ⚠️ **MEDIUM**: Static export failures now log warnings but need better user feedback
-- ⚠️ **MEDIUM**: Limited format support (no PDF, PPTX, GIF by default), fixed sequential naming
-
-**Enhancement**: Extend export bundle for more formats, error logging, custom naming, CLI/sweep integration
-- Bulk export of all chart variants across sweep results
-- Plugin-based additional formats and scenario-labeled file stems for traceable output archives
-- Integration with parameter sweep workflows for automated documentation
-
-#### 🎓 **Tutorial 10: Interactive Gallery Enhancement (LOW PRIORITY)**
-**Current**: `viz_gallery.ipynb` demonstrations  
-**Critical Issues**:
-- ⚠️ **MEDIUM**: No built-in data sources (manual dataframe creation required)
-- ⚠️ **MEDIUM**: Lacks file export examples, minimal markdown guidance, no batch gallery examples
-
-**Enhancement**: Enhanced notebook with real simulation data imports, export demos, narrative guidance
-- In-notebook batch export workflows using `export_bundle` or `visualise.py`
-- Markdown commentary for each chart type and theme/threshold reload examples
-- Integration with parameter sweep results for comprehensive gallery demonstrations
-
-#### 📊 **Implementation Priority Order**
-
-**PHASE 1: Core Tutorial Enhancements**
-1. **HIGH**: Tutorial 1 enhancement (Parts 1-4 ready immediately, Part 5 needs CLI bug fix)
-2. **MEDIUM**: Tutorial 2 enhancement using sweep outputs (threshold analysis workflows)
-3. **MEDIUM**: Tutorial 3 enhancement after dependency fixes (multi-scenario dashboard workflows)
-4. **MEDIUM**: Tutorial 4 enhancement using sweep outputs (bulk export and reporting workflows)
-5. **MEDIUM**: Tutorial 5 enhancement using sweep outputs (automated visualization workflows)
-6. **MEDIUM**: Tutorial 8 enhancement (replace manual stress testing with automated sweeps)
-7. **LOW**: Tutorial 6 enhancement (custom agent configuration and integration)
-8. **LOW**: Tutorial 7 enhancement (advanced theme integration with sweeps)
-9. **LOW**: Tutorial 9 enhancement (export bundle extensions and CLI integration)
-10. **LOW**: Tutorial 10 enhancement (interactive gallery and comprehensive documentation)
-
-**PHASE 2: Advanced User Experience** *(Start only after Phase 1 complete)*
-11. **FUTURE**: **Streamlit Tutorial Integration** - Implement comprehensive plan from `STREAMLIT_TUTORIAL_INTEGRATION_PLAN.md`
-    - Guided tutorial mode within Streamlit app (eliminates CLI barriers)
-    - Interactive parameter configuration and validation
-    - Real-time tutorial progress tracking and state management
-    - Integrated visualization generation and export workflows
-    - **Prerequisites**: All core tutorial enhancements complete, dependency issues resolved
-
-### 🔧 **Critical Bug Fixes Required**
-- **Returns Mode CLI Bug**: Modify `pa_core/cli.py` line ~268 to include returns mode in sweep logic
-- **Streamlit Installation**: Add Streamlit to default installation instructions
-- **Chrome/Kaleido Dependencies**: Document static export requirements and provide installation guidance
-
-### 💡 **Key Enhancement Themes**
-1. **Parameter Sweep Integration**: Transform all tutorials from single-scenario to comprehensive multi-scenario analysis
-2. **Professional Reporting**: Enable bulk export, automated documentation, and client-ready presentations
-3. **Advanced Analytics**: Systematic threshold analysis, sensitivity testing, and optimization workflows
-4. **User Experience**: Reduce manual steps, provide clear guidance, improve error feedback
-5. **Scalability**: Support analysis of 50-200 scenarios simultaneously across all tutorial workflows
-6. **Future: Streamlit Integration**: Comprehensive tutorial integration within Streamlit app (detailed plan in `STREAMLIT_TUTORIAL_INTEGRATION_PLAN.md`) - *implement after core enhancements complete*
+### 🤝 COORDINATION NOTES
+- Check `make check-updates` before starting work
+- Use feature branches: `feature/parameter-sweep-engine`
+- Run tests before pushing: `python -m pytest tests/`
+- Focus on NEW functionality, not refactoring working code
 
 ---
 
-## 🎯 **DEVELOPMENT COORDINATION**
-
-### ✅ **Completed Work (Do Not Modify)**
-- **Parameter Sweep Engine**: ✅ All 4 analysis modes implemented and tested
-- **Core Agent Infrastructure**: ✅ All agents implemented and validated
-- **CLI and Dashboard**: ✅ Core functionality working correctly
-- **Visualization Architecture**: ✅ Complete chart library with theme system
-- **Configuration System**: ✅ ModelConfig validation and template system
-
-### ⚠️ **Work In Progress**
-- **Tutorial Enhancement Implementation**: Following priority order above
-- **Documentation Updates**: Integrating parameter sweep capabilities into user guides
-- **Dependency Management**: Streamlining installation and setup processes
-
-### 🤝 **Coordination Guidelines**
-- Use feature branches for tutorial enhancements: `feature/tutorial-N-enhancement`
-- Test all parameter sweep modes before implementing tutorial changes
-- Maintain backward compatibility with existing single-scenario workflows
-- Document new multi-scenario capabilities thoroughly
-- Run full test suite before merging tutorial enhancement work
-
----
-
-## 📚 **TUTORIAL-SPECIFIC IMPLEMENTATION DETAILS**
-
-The following sections have been removed as they contain completed architectural work:
-- Agent interface specifications (implemented and working)
-- Package layout details (structure finalized)
-- Simulation engine specifications (vectorization complete)
-- Configuration system details (ModelConfig implemented)
-- Visualization architecture (complete chart library available)
-
-**Focus**: All development effort should concentrate on the tutorial enhancement plans outlined above, leveraging the completed parameter sweep engine to transform basic single-scenario tutorials into comprehensive multi-scenario analysis workflows.
-
----
-
-## 📋 **QUICK REFERENCE FOR TUTORIAL ENHANCEMENT WORK**
-
-### 🚀 **Getting Started with Tutorial Enhancement**
-
-**Step 1**: Choose a tutorial from the priority list above  
-**Step 2**: Create feature branch: `git checkout -b feature/tutorial-N-enhancement`  
-**Step 3**: Test relevant parameter sweep modes before implementation  
-**Step 4**: Implement enhancements following the detailed plans above  
-**Step 5**: Document new multi-scenario capabilities  
-**Step 6**: Run full test suite and submit PR  
-
-### 🔧 **Critical Files for Tutorial Enhancement**
-- **Tutorial Source**: `docs/UserGuide.md` (tutorials 1-10)
-- **Parameter Templates**: `config/` directory (sweep mode templates)
-- **Test Results**: Tutorial testing documentation files
-- **CLI Interface**: `pa_core/cli.py` (returns mode bug fix needed)
-- **Dashboard**: `dashboard/app.py` (Streamlit integration)
-- **Visualization**: `scripts/visualise.py` (bulk export workflows)
-
-### 📊 **Parameter Sweep Integration Points**
-- **Tutorial 1**: Multi-mode demonstration using all 4 sweep modes
-- **Tutorials 2-5, 8**: Advanced workflows using sweep outputs (50-200 scenarios)
-- **Tutorials 6-7, 9-10**: Integration enhancements and advanced features
-
-### 🎯 **Success Metrics for Tutorial Enhancement**
-- ✅ **Functionality**: All parameter sweep modes working in tutorial context
-- ✅ **Documentation**: Clear step-by-step instructions for multi-scenario analysis
-- ✅ **User Experience**: Reduced manual steps, improved error feedback
-- ✅ **Scalability**: Support for 50-200 scenario analysis workflows
-- ✅ **Professional Output**: Client-ready reporting and visualization capabilities
-
----
-
-*This guide focuses exclusively on tutorial enhancement implementation. All architectural work has been completed and should not be modified. Direct all development effort toward transforming the existing 10 tutorials into comprehensive parameter sweep demonstrations.*
+## 1  Why "Agents"?
 
 The existing notebook (`Portable_Alpha_Vectors.ipynb`) bundles business logic, UI, simulation, and reporting into one monolith.  Splitting each capital sleeve into an **agent**:
 
@@ -586,40 +391,6 @@ class MyNewAgent(BaseAgent):
 | `breach_calendar.make` | summary by month                           | `go.Figure` | Heatmap of TE & shortfall breaches |
 
 *All functions must be **pure** (no I/O) and honour the colour‑blind‑safe palette defined in `viz.theme.TEMPLATE`.*
-
-### 12.1.1 Parameter Sweep Visualization Integration
-
-**✅ ARCHITECTURAL DECISION: Single Visualization Suite for All Analysis Modes**
-
-The parameter sweep engine (4 modes: capital/returns/alpha_shares/vol_mult) **reuses the existing visualization architecture** without requiring new chart types:
-
-**Integration Pattern:**
-- **All Sweep Modes** → Generate standard `df_summary` DataFrames
-- **Excel Export** → Uses `viz.risk_return.make()` to embed charts automatically  
-- **3D Analysis** → Uses existing `viz.surface.make()` and `viz.surface_animation.make()`
-- **Dashboard** → All existing tabs work with sweep results (no modifications needed)
-
-**Visualization Compatibility Matrix:**
-| Analysis Mode | `risk_return` | `surface` | `fan` | `sharpe_ladder` | `rolling_panel` | 
-|---------------|---------------|-----------|-------|-----------------|-----------------|
-| Capital       | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
-| Returns       | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
-| Alpha Shares  | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
-| Vol Mult      | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
-
-**Key Benefits:**
-- ✅ **No visualization duplication** - Single codebase serves all modes
-- ✅ **Consistent user experience** - Same charts across all analysis types  
-- ✅ **Maintainable architecture** - Changes to visualizations apply to all modes
-- ✅ **Future-proof design** - New analysis modes automatically work with existing charts
-
-**Implementation:**
-```python
-# All modes produce standard summary DataFrames that work with all viz functions
-results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
-# Excel export automatically includes risk-return chart
-export_sweep_results(results, filename="Sweep.xlsx")  # Uses viz.risk_return.make()
-```
 
 ### 12.2  Streamlit app (`dashboard/app.py`)
 
@@ -1281,7 +1052,7 @@ showing different metrics.  Moving the cursor on one figure highlights the
 corresponding month or scenario on every other figure in the list.
 
 ### 12.74  Surface slice explorer
-`viz.surface_slice.make(df_grid, axis="AE_leverage")` lets PMs scroll through 3‑D
+`viz.surface_slice.make(grid, axis="AE_leverage")` lets PMs scroll through 3‑D
 risk surfaces by fixing one parameter at a time.  A slider chooses the slice and
 the resulting 2‑D heatmap updates live.
 
