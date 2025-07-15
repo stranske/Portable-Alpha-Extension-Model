@@ -50,6 +50,9 @@ shortfall probability and tracking error in a repeatable workflow.
 3. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
 4. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
 5. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
+   Older output files that predate this requirement will still load—both the Excel
+   exporter and dashboard insert a `ShortfallProb` column with `0.0` so legacy
+   results remain compatible.
 6. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
 7. Run `python -m pa_core.cli --help` at any time to view all command-line options.
 8. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
@@ -87,6 +90,9 @@ workflow.
 Use `--mode` to run automated sweeps across common parameters.  The CLI writes a
 spreadsheet summarising each combination and embeds a risk‑return chart using
 `viz.risk_return.make()` so results align with the single‑run workflow.
+All sweep results feed into the same visualisation functions as single runs—
+helpers like `risk_return`, `surface` and `fan` therefore work across every
+analysis mode without modification.
 
 #### Capital mode
 - **Purpose:** Test different allocation mixes between the external PA and
