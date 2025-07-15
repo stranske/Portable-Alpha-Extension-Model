@@ -356,3 +356,15 @@ jupyter notebook viz_gallery.ipynb
 ```
 
 Adjust the parameters in the notebook to see how colours and thresholds react. The gallery is a quick way to experiment with new scenarios and visual styles without extra code.
+
+### Tutorial 11 – Run Parameter Sweeps
+
+The model now supports automated sweeps across key parameters. Supply a CSV or YAML file with lists of values and set `--mode` to iterate through each combination. The CLI writes a workbook summarising every run and embeds a risk‑return scatter so you can compare scenarios quickly.
+
+Example command:
+
+```bash
+python -m pa_core.cli --mode returns --config sweep_returns.yml --output Sweep.xlsx
+```
+
+Each sheet in `Sweep.xlsx` corresponds to one parameter set while the `summary` sheet aggregates the metrics. Use helpers like `viz.surface.make()` or `viz.grid_heatmap.make()` on the summary table to visualise the landscape.
