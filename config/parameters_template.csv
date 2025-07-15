@@ -1,4 +1,5 @@
 Parameter,Value,Notes
+Analysis mode,returns,"Choose one of: capital, returns, alpha_shares, vol_mult"
 Number of simulations,1000,Number of Monte Carlo trials
 Number of months,12,Months in each simulation
 External PA capital (mm),100,"Capital for external PA sleeve"
