@@ -8,6 +8,7 @@ additional figures. Use ``python -m pa_core.cli`` to access all command‑line
 features—including dashboard launch and static exports. The parameter templates
 in `config/` already include the mandatory `ShortfallProb` risk metric so the
 CLI will fail fast if you remove it. All tutorials assume you invoke the program
+All parameter files include an `analysis_mode` field selecting `returns`, `capital`, `alpha_shares` or `vol_mult`. The CLI validates this value.
 via ``python -m pa_core.cli``.
 
 The model is designed to help you explore three core ideas:
