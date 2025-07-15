@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 import argparse
 from pathlib import Path
 
-import pandas as pd
+import pandas as pd  # type: ignore
 
+logging.basicConfig(level=logging.INFO)
 from pa_core.viz import (
     animation,
     corr_heatmap,
@@ -67,16 +69,25 @@ def main(argv: list[str] | None = None) -> None:
     base.mkdir(exist_ok=True)
     stem = base / args.plot
     if args.png:
-        fig.write_image(f"{stem}.png")
+        try:
+            fig.write_image(f"{stem}.png")
+        except Exception as e:
+            logging.warning("PNG export failed: %s", e)
     if args.pdf:
-        fig.write_image(f"{stem}.pdf")
+        try:
+            fig.write_image(f"{stem}.pdf")
+        except Exception as e:
+            logging.warning("PDF export failed: %s", e)
     if args.pptx:
         pptx_export.save([fig], f"{stem}.pptx", alt_texts=[args.alt_text] if args.alt_text else None)
     if args.gif:
         if df_paths is None:
             raise FileNotFoundError(parquet_path)
         anim = animation.make(df_paths)
-        anim.write_image(f"{stem}.gif")
+        try:
+            anim.write_gif(f"{stem}.gif")
+        except Exception as e:
+            logging.warning("GIF export failed: %s", e)
     if args.html:
         html_export.save(fig, f"{stem}.html", alt_text=args.alt_text)
 
