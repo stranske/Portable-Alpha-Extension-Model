@@ -51,6 +51,8 @@ Set these based on your capital market assumptions:
 
 **Calibration Tip**: Use historical performance or market research for realistic assumptions
 
+Unrealistic combinations (for example extremely high expected return with very low volatility) can produce nonsensical outputs. Start with the templates in `config/` and adjust gradually.
+
 ### 7. Risk Parameters (Annual %)
 - **In-House annual vol**: Volatility of internal alpha generation (typically 1-3%)
 - **Alpha-Extension annual vol**: Volatility of active extension returns (typically 2-5%)

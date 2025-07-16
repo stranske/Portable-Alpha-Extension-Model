@@ -208,9 +208,10 @@ Introductory Tutorials 1‑3 cover the main workflow of implementing a scenario,
 This tutorial walks through producing a set of results that you can later analyse for risk/return, shortfall probability and tracking error.
 
 1. **Prepare a configuration** – copy one of the templates in `config/` and edit the values for your scenario. **Set `analysis_mode` to `returns`, `capital`, `alpha_shares` or `vol_mult` before running.**
-2. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--mode` if not specified in the file, `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
-3. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE` for each sleeve.
-4. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table. A **ShortfallProb** column is always added so you can compare funding‑shortfall risk, and the `Summary` sheet contains an embedded risk‑return chart showing how each sleeve stacks up at a glance.
+2. **Consult the parameter guide** – `PARAMETER_GUIDE.md` explains each field and lists sensible ranges. Using extreme values can lead to unrealistic results.
+3. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--mode` if not specified in the file, `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
+4. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE` for each sleeve.
+5. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table. A **ShortfallProb** column is always added so you can compare funding‑shortfall risk, and the `Summary` sheet contains an embedded risk‑return chart showing how each sleeve stacks up at a glance.
 
 
 ```bash
