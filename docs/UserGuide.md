@@ -25,6 +25,20 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
 2. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
 3. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
+Example quick run:
+
+```bash
+# Install dependencies once
+pip install -r requirements.txt
+
+# Run a 500-path, 15-year simulation of all agents
+python main.py \
+  --agent ExternalPA ActiveExt InternalPA InternalBeta Base \
+  --n_sims 500 --n_months $((15*12)) \
+  --save_xlsx Outputs.xlsx \
+  --seed 42
+```
+
 ### Key concepts
 
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
