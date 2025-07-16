@@ -400,3 +400,16 @@ pptx_export.save(figs, "my_pack.pptx")
 ```
 
 Use `--alt-text` with the CLI if you want descriptive captions embedded for accessibility.
+
+### Tutorial 13 – Weighted Risk‑Return Bubble
+
+When sleeve capital varies it can help to scale each point by investment weight.
+`viz.risk_return_bubble.make` behaves like `risk_return.make` but expects a
+`Capital` column and draws each marker sized by that value. Use this view to
+highlight which agents dominate the portfolio.
+
+```python
+from pa_core.viz import risk_return_bubble
+fig = risk_return_bubble.make(df_summary)
+fig.show()
+```
