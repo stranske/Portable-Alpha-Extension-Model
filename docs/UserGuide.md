@@ -62,24 +62,26 @@ shortfall probability and tracking error in a repeatable workflow.
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
 2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
-3. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
-4. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
-5. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
+3. **Review defaults** – core correlations and volatilities are locked in `pa_core/config.py`. Override them in your parameter file only when testing different assumptions.
+4. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
+5. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
+6. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
    Older output files that predate this requirement will still load—both the Excel
    exporter and dashboard insert a `ShortfallProb` column with `0.0` so legacy
    results remain compatible.
-6. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
-7. When a seed is supplied the program uses `spawn_agent_rngs` to create
+7. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
+8. When a seed is supplied the program uses `spawn_agent_rngs` to create
    deterministic random-number generators per sleeve so results are fully
    repeatable.
-8. Run `python -m pa_core.cli --help` at any time to view all command-line options.
-9. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
+9. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
+10. Run `python -m pa_core.cli --help` at any time to view all command-line options.
+11. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
-`AllReturns` sheet. Convert this sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
+`AllReturns` sheet. The existing sheet order is retained for compatibility. Convert the extra sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
 ## 3. Introductory Tutorial Series
 
 The following tutorials provide a hands‑on introduction to the model.
