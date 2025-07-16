@@ -276,8 +276,9 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 Use `scripts/visualise.py` to build plots outside the dashboard. The script
 reads the Excel output along with an optional `.parquet` file of raw paths and
 can export any Plotly figure. Pass one of the following names to `--plot`:
-`risk_return`, `fan`, `path_dist`, `corr_heatmap`, `sharpe_ladder`,
-`rolling_panel` or `surface`.  Combine with `--png`, `--pdf`, `--pptx`,
+`risk_return`, `risk_return_bubble`, `fan`, `path_dist`, `corr_heatmap`,
+`sharpe_ladder`, `rolling_panel`, `rolling_var`, `breach_calendar` or
+`surface`.  Combine with `--png`, `--pdf`, `--pptx`,
 `--html`, `--gif` and an optional `--alt-text` description to save images:
 
 ```bash
@@ -414,5 +415,18 @@ highlight which agents dominate the portfolio.
 ```python
 from pa_core.viz import risk_return_bubble
 fig = risk_return_bubble.make(df_summary)
+fig.show()
+```
+
+### Tutorial 14 – Rolling VaR Timeline
+
+Visualise how tail risk evolves over time with
+`viz.rolling_var.make(df_paths, window=12)`. The helper computes the
+rolling Value at Risk (or CVaR) over the chosen horizon and plots it as a
+line chart.
+
+```python
+from pa_core.viz import rolling_var
+fig = rolling_var.make(df_paths, window=12)
 fig.show()
 ```
