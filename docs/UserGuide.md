@@ -281,15 +281,26 @@ reads the Excel output along with an optional `.parquet` file of raw paths and
 can export any Plotly figure. Pass one of the following names to `--plot`:
 `risk_return`, `risk_return_bubble`, `fan`, `path_dist`, `corr_heatmap`,
 `sharpe_ladder`, `rolling_panel`, `rolling_var`, `breach_calendar`, `overlay`,
-`overlay_weighted`, `category_pie`, `gauge`, `waterfall`, `surface` or
-`grid_heatmap`.  Combine with `--png`, `--pdf`, `--pptx`,
-`--html`, `--gif` and an optional `--alt-text` description to save images:
+`overlay_weighted`, `category_pie`, `gauge`, `waterfall`, `surface`,
+`grid_heatmap`, `scenario_slider`, `scenario_viewer`, `surface_animation`,
+`surface_slice`, `crossfilter`, `hover_sync` or `grid_panel`.
+Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
+`--alt-text` description to save images:
 
 ```bash
 python scripts/visualise.py \
   --plot overlay \
   --xlsx Outputs.xlsx \
   --png --alt-text "Overlay of median paths"
+```
+
+To animate precomputed frames, try the `scenario_slider` plot:
+
+```bash
+python scripts/visualise.py \
+  --plot scenario_slider \
+  --xlsx Outputs.xlsx \
+  --gif --alt-text "Scenario slider"
 ```
 
 If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
@@ -381,8 +392,9 @@ jupyter notebook viz_gallery.ipynb
 
 Adjust the parameters in the notebook to see how colours and thresholds react. The gallery is a quick way to experiment with new scenarios and visual styles without extra code.
 Recent additions include advanced plots such as `overlay`, `category_pie`,
-`gauge`, `waterfall` and `moments_panel`. Browse the notebook to see example
-usage of each helper.
+`gauge`, `waterfall`, `moments_panel`, `scenario_slider` and `scenario_viewer`.
+Browse the notebook to see example usage of each helper along with interactive
+widgets like `crossfilter` and `hover_sync`.
 
 ### Tutorial 11 – Run Parameter Sweeps
 
