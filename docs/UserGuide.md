@@ -283,7 +283,10 @@ can export any Plotly figure. Pass one of the following names to `--plot`:
 `sharpe_ladder`, `rolling_panel`, `rolling_var`, `breach_calendar`, `overlay`,
 `overlay_weighted`, `category_pie`, `gauge`, `waterfall`, `surface`,
 `grid_heatmap`, `scenario_slider`, `scenario_viewer`, `surface_animation`,
-`surface_slice`, `crossfilter`, `hover_sync` or `grid_panel`.
+`surface_slice`, `crossfilter`, `hover_sync`, `grid_panel`, `scenario_play`,
+`spark_matrix`, `weighted_stack`, `geo_exposure`, `seasonality_heatmap`,
+`beta_te_scatter`, `milestone_timeline`, `mosaic`, `metric_selector`,
+`boxplot`, `delta_heatmap`, `quantile_band`, `triple_scatter`.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
 `--alt-text` description to save images:
 
@@ -392,9 +395,12 @@ jupyter notebook viz_gallery.ipynb
 
 Adjust the parameters in the notebook to see how colours and thresholds react. The gallery is a quick way to experiment with new scenarios and visual styles without extra code.
 Recent additions include advanced plots such as `overlay`, `category_pie`,
-`gauge`, `waterfall`, `moments_panel`, `scenario_slider` and `scenario_viewer`.
-Browse the notebook to see example usage of each helper along with interactive
-widgets like `crossfilter` and `hover_sync`.
+`gauge`, `waterfall`, `moments_panel`, `scenario_slider`, `scenario_viewer`,
+`scenario_play`, `spark_matrix`, `weighted_stack`, `geo_exposure`,
+`seasonality_heatmap`, `beta_te_scatter`, `milestone_timeline`, `mosaic`,
+`metric_selector`, `boxplot`, `delta_heatmap`, `quantile_band` and
+`triple_scatter`. Browse the notebook to see example usage of each helper along
+with interactive widgets like `crossfilter` and `hover_sync`.
 
 ### Tutorial 11 – Run Parameter Sweeps
 
