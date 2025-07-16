@@ -368,3 +368,21 @@ python -m pa_core.cli --mode returns --config sweep_returns.yml --output Sweep.x
 ```
 
 Each sheet in `Sweep.xlsx` corresponds to one parameter set while the `summary` sheet aggregates the metrics. Use helpers like `viz.surface.make()` or `viz.grid_heatmap.make()` on the summary table to visualise the landscape.
+
+### Tutorial 12 – Export a PowerPoint Report
+
+Need presentation-ready slides? Include the `--pptx` flag when running the CLI and a `board_pack.pptx` file will be created with the headline charts.
+
+```bash
+python -m pa_core.cli --config my_params.yml --index sp500tr_fred_divyield.csv --pptx
+```
+
+To customise which figures appear, call the helper in Python:
+
+```python
+from pa_core.viz import pptx_export, risk_return, category_pie
+figs = [risk_return.make(df_summary), category_pie.make(capital_map)]
+pptx_export.save(figs, "my_pack.pptx")
+```
+
+Use `--alt-text` with the CLI if you want descriptive captions embedded for accessibility.
