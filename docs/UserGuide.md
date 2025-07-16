@@ -69,8 +69,11 @@ shortfall probability and tracking error in a repeatable workflow.
    exporter and dashboard insert a `ShortfallProb` column with `0.0` so legacy
    results remain compatible.
 6. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
-7. Run `python -m pa_core.cli --help` at any time to view all command-line options.
-8. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
+7. When a seed is supplied the program uses `spawn_agent_rngs` to create
+   deterministic random-number generators per sleeve so results are fully
+   repeatable.
+8. Run `python -m pa_core.cli --help` at any time to view all command-line options.
+9. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv

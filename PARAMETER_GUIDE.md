@@ -12,6 +12,8 @@ This model simulates a **three-sleeve portable alpha strategy**:
 - **Number of simulations**: Monte Carlo trials (1000+ recommended for stable results)
 - **Number of months**: Time horizon for each simulation (12 = 1 year)
 - **Analysis mode**: Choose `returns`, `capital`, `alpha_shares` or `vol_mult` to specify a sweep or single-scenario run.
+- **Random seed**: Add `--seed` when running the CLI to get reproducible draws. The program uses `spawn_agent_rngs` to create deterministic generators per sleeve.
+- **Default parameters**: Base correlations and volatilities default to values in `pa_core/config.py` (e.g. `rho_E_M = 0.0`). Override them in your parameter file as needed.
 
 ### 2. Capital Allocation (in millions)
 Think of this as your asset allocation decision:
