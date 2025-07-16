@@ -280,15 +280,16 @@ Use `scripts/visualise.py` to build plots outside the dashboard. The script
 reads the Excel output along with an optional `.parquet` file of raw paths and
 can export any Plotly figure. Pass one of the following names to `--plot`:
 `risk_return`, `risk_return_bubble`, `fan`, `path_dist`, `corr_heatmap`,
-`sharpe_ladder`, `rolling_panel`, `rolling_var`, `breach_calendar` or
-`surface`.  Combine with `--png`, `--pdf`, `--pptx`,
+`sharpe_ladder`, `rolling_panel`, `rolling_var`, `breach_calendar`, `overlay`,
+`overlay_weighted`, `category_pie`, `gauge`, `waterfall`, `surface` or
+`grid_heatmap`.  Combine with `--png`, `--pdf`, `--pptx`,
 `--html`, `--gif` and an optional `--alt-text` description to save images:
 
 ```bash
 python scripts/visualise.py \
-  --plot risk_return \
+  --plot overlay \
   --xlsx Outputs.xlsx \
-  --png --alt-text "Risk-return chart"
+  --png --alt-text "Overlay of median paths"
 ```
 
 If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
@@ -322,6 +323,8 @@ class MyAgent(BaseAgent):
 ### Tutorial 7 – Customise Visual Style
 
 Colours, fonts and traffic-light thresholds load from `config_theme.yaml` and `config_thresholds.yaml`. Edit these files before running the CLI or dashboard to adjust palettes or risk limits. After editing, reload the dashboard or call `pa_core.viz.theme.reload_theme()` from Python.
+The theme file now accepts `paper_bgcolor` and `plot_bgcolor` keys so you can
+match the dashboard background to corporate colours.
 
 ```yaml
 # config_thresholds.yaml
@@ -377,6 +380,9 @@ jupyter notebook viz_gallery.ipynb
 ```
 
 Adjust the parameters in the notebook to see how colours and thresholds react. The gallery is a quick way to experiment with new scenarios and visual styles without extra code.
+Recent additions include advanced plots such as `overlay`, `category_pie`,
+`gauge`, `waterfall` and `moments_panel`. Browse the notebook to see example
+usage of each helper.
 
 ### Tutorial 11 – Run Parameter Sweeps
 
