@@ -1,50 +1,44 @@
 # 🔍 Streamlined Codex Debugging Report
 
-**Timestamp**: 2025-07-17 05:22:06
+**Timestamp**: 2025-07-17 06:45:11
 **Repository**: Portable-Alpha-Extension-Model
 
 ## ❌ Issues Found
-- Latest Codex workflow failed
+- GitHub CLI not authenticated
+- Cannot access repository info
 
 ## 📋 Debugging Steps
-**05:22:04** ⚠️ GitHub Integration Check
+**06:45:11** ⚠️ GitHub Integration Check
 
-**05:22:05** ✅ GitHub PR Status
-  - PR #193: 🧪 Test: GitHub Actions Permissions Fix
+**06:45:11** ❌ GitHub Auth
+  - Run: gh auth login
 
-**05:22:05** ⚠️ GitHub Integration Check
+**06:45:11** ⚠️ Branch Status Check
 
-**05:22:05** ⚠️ Branch Status Check
+**06:45:11** ⚠️ Current Branch
+  - Branch: codex/update-existing-tutorials-in-agents.md
 
-**05:22:05** ⚠️ Current Branch
-  - Branch: codex/test-permissions-fix
-
-**05:22:05** ✅ Branch Type
+**06:45:11** ✅ Branch Type
   - Codex branch - workflow will trigger
 
-**05:22:05** ✅ Branch Sync
+**06:45:11** ✅ Branch Sync
   - Branch is in sync
 
-**05:22:05** ⚠️ Workflow Permissions Check
+**06:45:11** ⚠️ Workflow Permissions Check
 
-**05:22:05** ✅ Workflow Permissions
+**06:45:11** ✅ Workflow Permissions
   - All required permissions present
 
-**05:22:05** ⚠️ Quick Permissions Test
+**06:45:11** ⚠️ Quick Permissions Test
 
-**05:22:05** ✅ Repository Access
-  - Repository: stranske/Portable-Alpha-Extension-Model
+**06:45:11** ❌ Repository Access
+  - Check repository permissions
 
-**05:22:05** ✅ Actions Access
-  - Can access workflow runs
+**06:45:11** ⚠️ Recent Workflow Runs
 
-**05:22:05** ⚠️ Recent Workflow Runs
-
-**05:22:06** ❌ Latest Codex Run
-  - Run ID: 16336422304
-
-**05:22:06** ⚠️ Failed Steps
-  - Steps: Auto-commit fixes if any
+**06:45:11** ⚠️ Workflow Runs
+  - Could not fetch workflow runs
 
 ## 🛠️ Quick Fixes
-- Check workflow logs: `gh run view --log-failed`
+- Run: `gh auth login`
+- Check GitHub token permissions

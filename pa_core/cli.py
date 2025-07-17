@@ -266,7 +266,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
-    if cfg.analysis_mode != "returns":
+    if cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]:
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)

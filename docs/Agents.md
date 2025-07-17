@@ -542,9 +542,10 @@ Kick back any tweaks; happy to iterate.
 pip install -r requirements.txt         # pandas, numpy, plotly, streamlit, xlsxwriter, kaleido …
 
 # Run a 500‑path, 15‑year simulation of all agents and save outputs
-python main.py \
-  --agent ExternalPA ActiveExt InternalPA InternalBeta Base \
-  --n_sims 500 --n_months $((15*12)) \
+python -m pa_core.cli \
+  --params parameters.csv \
+  --index sp500tr_fred_divyield.csv \
+  --mode returns \
   --save_xlsx Outputs.xlsx \
   --seed 42
 
