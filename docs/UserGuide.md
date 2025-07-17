@@ -386,7 +386,11 @@ colours remain consistent.
 This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 parts) and Tutorial 2. The dashboard works with results from any mode—single scenarios, capital sweeps, returns analysis, alpha optimization or volatility stress tests. After generating an output file you can start an interactive dashboard to explore the portfolio behaviour visually. Follow these steps:
 
 1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
-   `streamlit run dashboard/app.py` manually.
+   `streamlit run dashboard/app.py` manually. If you installed the package
+   manually make sure `streamlit` is available:
+   ```bash
+   pip install streamlit
+   ```
 2. **Load your results** – enter the path to `Outputs.xlsx` in the sidebar. If a
    matching `Outputs.parquet` file exists the dashboard enables additional
    charts.
@@ -413,6 +417,13 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 ```
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
+
+> **Dependency Note**
+> PNG/PDF/PPTX exports require a local Chrome or Chromium installation in addition to the
+> `kaleido` Python package. Install Chrome with:
+> ```bash
+> sudo apt-get install -y chromium-browser
+> ```
 
 ### Tutorial 5 – Generate Custom Visualisations
 
