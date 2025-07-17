@@ -1,0 +1,27 @@
+# Tutorial 2 - Aggressive Growth Scenario
+# Higher alpha allocations and risk parameters
+
+N_SIMULATIONS: 1000
+N_MONTHS: 12
+
+external_pa_capital: 150.0   # increased external PA allocation
+active_ext_capital: 100.0    # increased active extension
+internal_pa_capital: 100.0   # reduced internal PA
+total_fund_capital: 350.0    # larger total fund
+
+w_beta_H: 0.3      # lower beta weight (more aggressive)
+w_alpha_H: 0.7     # higher alpha weight (more aggressive)
+theta_extpa: 0.8   # external PA focused on alpha
+active_share: 0.8  # high active share
+
+alpha_ret_E: 0.08    # higher expected alpha returns
+alpha_vol_E: 0.15    # higher alpha volatility
+alpha_ret_H: 0.06    # higher internal alpha
+alpha_vol_H: 0.12    # higher internal volatility
+
+beta_vol_E: 0.10     # higher beta volatility
+beta_vol_H: 0.08     # higher internal beta vol
+
+corr_EB: 0.2         # low correlation
+corr_EH: 0.1         # low correlation  
+corr_BH: 0.3         # moderate correlation

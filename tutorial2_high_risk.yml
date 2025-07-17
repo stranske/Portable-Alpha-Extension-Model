@@ -1,0 +1,27 @@
+# Tutorial 2 - High Risk Scenario
+# Testing stress scenarios for metric comparison
+
+N_SIMULATIONS: 1000
+N_MONTHS: 12
+
+external_pa_capital: 200.0   # high external allocation
+active_ext_capital: 150.0    # high active extension
+internal_pa_capital: 50.0    # minimal internal
+total_fund_capital: 400.0    # larger fund
+
+w_beta_H: 0.2      # very low beta (high risk)
+w_alpha_H: 0.8     # very high alpha (high risk)
+theta_extpa: 0.9   # external PA almost pure alpha
+active_share: 0.9  # very high active share
+
+alpha_ret_E: 0.10    # high alpha expectations
+alpha_vol_E: 0.20    # high volatility
+alpha_ret_H: 0.08    # high internal alpha
+alpha_vol_H: 0.15    # high internal volatility
+
+beta_vol_E: 0.12     # high beta volatility
+beta_vol_H: 0.10     # high internal beta vol
+
+corr_EB: 0.1         # low correlations (high diversification)
+corr_EH: 0.1         
+corr_BH: 0.2
