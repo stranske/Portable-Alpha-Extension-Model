@@ -80,13 +80,36 @@ jobs:
         name: detailed-debug-report-${{ github.run_id }}
         path: detailed_debug_report.md
         
-    - name: 💬 Comment Results on PR
+    - name: 🔍 Check Fork Status
       if: github.event_name == 'pull_request'
+      run: |
+        if [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+          echo "⚠️ NOTICE: This PR is from an external fork"
+          echo "🔒 Some actions will be skipped due to security restrictions:"
+          echo "   - PR commenting (to prevent token access issues)"
+          echo "   - Auto-commit fixes (cannot push to fork)"
+          echo "📊 Debug reports are still generated and available as artifacts"
+        else
+          echo "✅ PR is from the same repository - all actions available"
+        fi
+        
+    - name: 💬 Comment Results on PR
+      if: >
+        github.event_name == 'pull_request' && 
+        (github.event.pull_request.head.repo.full_name == github.repository || 
+         github.repository_owner == github.actor)
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
+          
+          // Check if we can post comments (not from external fork)
+          const isFromFork = context.payload.pull_request.head.repo.full_name !== context.payload.repository.full_name;
+          if (isFromFork) {
+            console.log('PR is from external fork - skipping comment to avoid permission issues');
+            return;
+          }
           
           // Read streamlined report
           let streamlinedReport = '';
@@ -148,10 +171,18 @@ jobs:
       if: >
         (steps.streamlined_debug.outputs.streamlined_exit_code == '0' || 
          steps.detailed_debug.outputs.detailed_exit_code == '0') &&
-        github.event_name != 'workflow_dispatch'
+        github.event_name != 'workflow_dispatch' &&
+        (github.event_name != 'pull_request' || 
+         github.event.pull_request.head.repo.full_name == github.repository)
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        
+        # Check if this is a fork PR (additional safety check)
+        if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
+          echo "⚠️ Skipping auto-commit for fork PR to avoid permission issues"
+          exit 0
+        fi
         
         # Check if there are changes to commit
         if [ -n "$(git status --porcelain)" ]; then
