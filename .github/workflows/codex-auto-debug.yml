@@ -55,8 +55,27 @@ jobs:
       id: streamlined_debug
       run: |
         echo "Running streamlined debugging workflow..."
-        python scripts/streamlined_debug.py
-        echo "streamlined_exit_code=$?" >> $GITHUB_OUTPUT
+        echo "Current directory: $(pwd)"
+        echo "Python version: $(python --version)"
+        echo "Files in scripts/: $(ls -la scripts/)"
+        
+        if [ -f "scripts/streamlined_debug.py" ]; then
+          echo "✅ streamlined_debug.py found"
+          python scripts/streamlined_debug.py
+          exit_code=$?
+          echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
+          if [ $exit_code -eq 0 ]; then
+            echo "✅ Streamlined debug completed successfully"
+            exit 0
+          else
+            echo "⚠️ Streamlined debug found issues (exit code: $exit_code)"
+            exit $exit_code
+          fi
+        else
+          echo "❌ streamlined_debug.py not found"
+          echo "streamlined_exit_code=1" >> $GITHUB_OUTPUT
+          exit 1
+        fi
         
     - name: 📊 Upload Streamlined Debug Report
       uses: actions/upload-artifact@v4
