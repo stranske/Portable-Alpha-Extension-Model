@@ -81,18 +81,24 @@ Run the setup script to create a Python virtual environment and install dependen
 Execute this once before running any notebooks or other scripts.
 
 After setting up the environment you can run the command line interface. The
-main entry point is ``pa_core.cli`` which exposes additional export and dashboard
-options:
+main entry point is ``pa_core.cli`` which exposes analysis modes, export
+options and an optional dashboard:
 
 ```bash
 # CSV parameters
-python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
+python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv \
+  --mode returns
 
 # or YAML configuration
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv
+python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv \
+  --mode returns
 
 # optional pivot-style output
 python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv --pivot
+
+# launch dashboard and export images
+python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv \
+  --dashboard --png --alt-text "Risk-return chart"
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.
@@ -100,7 +106,9 @@ This writes results to `Outputs.xlsx` in the current directory.
 Sample configuration templates live in the `config/` directory.
 Both `parameters_template.csv` and `params_template.yml` list all
 supported fields and include the mandatory `ShortfallProb` metric.
-Copy one of these files to start your own runs.
+They also specify an `analysis_mode` value of `returns`, `capital`,
+`alpha_shares` or `vol_mult`. The CLI refuses to run if this field is
+missing. Copy one of these files to start your own runs.
 
 ### Config validation
 
