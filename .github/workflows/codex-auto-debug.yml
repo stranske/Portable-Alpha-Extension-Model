@@ -116,5 +116,6 @@ jobs:
             exit 1
           fi
         else
-          echo "No changes to commit"
+          echo "✅ No changes to commit - repository is already in good state"
+          exit 0
         fi

@@ -1,0 +1,27 @@
+# Tutorial 2 - Conservative Scenario  
+# Lower risk, higher beta allocation
+
+N_SIMULATIONS: 1000
+N_MONTHS: 12
+
+external_pa_capital: 50.0    # reduced external PA
+active_ext_capital: 25.0     # minimal active extension
+internal_pa_capital: 200.0   # focus on internal management
+total_fund_capital: 275.0    # smaller total fund
+
+w_beta_H: 0.8      # high beta weight (conservative)
+w_alpha_H: 0.2     # low alpha weight (conservative)
+theta_extpa: 0.3   # external PA more beta-focused
+active_share: 0.2  # low active share
+
+alpha_ret_E: 0.04    # conservative alpha returns
+alpha_vol_E: 0.08    # lower alpha volatility
+alpha_ret_H: 0.03    # conservative internal alpha
+alpha_vol_H: 0.06    # lower internal volatility
+
+beta_vol_E: 0.06     # lower beta volatility
+beta_vol_H: 0.05     # lower internal beta vol
+
+corr_EB: 0.5         # higher correlation
+corr_EH: 0.4         # higher correlation
+corr_BH: 0.6         # high correlation
