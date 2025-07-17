@@ -93,7 +93,12 @@ workflow.
 
 ### Tutorial roadmap
 
-1. **Introductory Tutorial 1 – Implement a Scenario** – run the simulation from a parameter file and produce `Outputs.xlsx`.
+1. **Introductory Tutorial 1 – Master the Program (5 Parts)**
+   - **Part 1**: Basic Program Operation - single scenario fundamentals
+   - **Part 2**: Capital Mode - allocation percentage sweeps
+   - **Part 3**: Returns Mode - return/volatility sensitivity analysis
+   - **Part 4**: Alpha Shares Mode - alpha/beta split optimization
+   - **Part 5**: Vol Mult Mode - volatility stress testing
 2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
 3. **Introductory Tutorial 3 – Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
    These first three tutorials form a quick‑start sequence for testing the core ideas.
@@ -203,31 +208,166 @@ python -m pa_core.cli --mode capital --config sweep_capital.yml --output Sweep.x
 
 Introductory Tutorials 1‑3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
 
-### Introductory Tutorial 1 – Implement a Scenario
+### Introductory Tutorial 1 – Master the Program (5 Parts)
 
-This tutorial walks through producing a set of results that you can later analyse for risk/return, shortfall probability and tracking error.
+This comprehensive tutorial introduces you to both basic operation and the powerful parameter sweep capabilities. Work through all five parts in order to build complete understanding.
 
-1. **Prepare a configuration** – copy one of the templates in `config/` and edit the values for your scenario. **Set `analysis_mode` to `returns`, `capital`, `alpha_shares` or `vol_mult` before running.**
-2. **Consult the parameter guide** – `PARAMETER_GUIDE.md` explains each field and lists sensible ranges. Using extreme values can lead to unrealistic results.
-3. **Run the CLI** – invoke `python -m pa_core.cli` with `--config` (or `--params`) and `--index` to supply index returns. Add `--mode` if not specified in the file, `--output` to set the Excel name and `--pivot` if you want raw return paths saved.
-4. **Check the console** – after the run finishes, a table lists `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE` for each sleeve.
-5. **Review the workbook** – open the generated `Outputs.xlsx` to confirm the summary table. A **ShortfallProb** column is always added so you can compare funding‑shortfall risk, and the `Summary` sheet contains an embedded risk‑return chart showing how each sleeve stacks up at a glance.
+#### Part 1: Basic Program Operation
 
+**Objective**: Run your first simulation and understand the fundamental output structure.
 
-```bash
-  python -m pa_core.cli \
-    --config my_params.yml \
-    --index sp500tr_fred_divyield.csv \
-    --mode returns \
-    --output Results.xlsx \
-    --pivot
-```
+As a new user, start with the simplest possible command to establish baseline understanding:
 
-Set `--seed` for reproducible draws or `--backend cupy` if a GPU is available. This first run verifies that the program is installed correctly and prints a console table of `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE` for each sleeve while writing the same data to `Outputs.xlsx`.
+1. **Copy the basic template**:
+   ```bash
+   cp config/params_template.yml my_first_scenario.yml
+   ```
+
+2. **Run your first simulation** (single scenario, no sweep):
+   ```bash
+   python -m pa_core.cli \
+     --config my_first_scenario.yml \
+     --index sp500tr_fred_divyield.csv \
+     --output MyFirstResults.xlsx
+   ```
+
+3. **Understand the console output**: You'll see a Rich table showing:
+   - `AnnReturn`: Annualized return percentage for each sleeve
+   - `AnnVol`: Annualized volatility (risk measure)
+   - `VaR`: Value at Risk at 5% level
+   - `BreachProb`: Probability of funding shortfall
+   - `TE`: Tracking Error relative to benchmark
+
+4. **Examine the Excel file**: Open `MyFirstResults.xlsx` to see:
+   - **Summary Sheet**: Key metrics for all sleeves
+   - **Inputs Sheet**: Confirms your configuration parameters
+   - **Risk-Return Chart**: Visual representation embedded in Excel
+
+**Success Check**: You should see results for 3-4 sleeves (Internal PA, External PA, Active Extension, etc.) with realistic financial metrics.
+
+#### Part 2: Capital Mode - Allocation Sweeps
+
+**Objective**: Understand how parameter sweeps work by varying capital allocations.
+
+The `--mode=capital` parameter runs multiple scenarios automatically, varying external and active extension capital allocations:
+
+1. **Examine the capital template**:
+   ```bash
+   head config/capital_mode_template.csv
+   ```
+   You'll see columns for different capital allocation scenarios.
+
+2. **Run a capital allocation sweep**:
+   ```bash
+   python -m pa_core.cli \
+     --config config/capital_mode_template.csv \
+     --index sp500tr_fred_divyield.csv \
+     --mode capital \
+     --output CapitalSweep.xlsx
+   ```
+
+3. **Compare the results**: Notice that `CapitalSweep.xlsx` now contains:
+   - Multiple sheets (one per allocation scenario)
+   - Summary sheet with all combinations
+   - Risk-return chart showing the efficient frontier
+
+**Key Insight**: Capital mode helps you find optimal allocation percentages by testing multiple combinations automatically.
+
+#### Part 3: Returns Mode - Sensitivity Analysis
+
+**Objective**: Explore how different return and volatility assumptions affect outcomes.
+
+Use `--mode=returns` to test various return/volatility scenarios:
+
+1. **Examine the returns template**:
+   ```bash
+   head config/returns_mode_template.csv
+   ```
+   This template varies expected returns and volatilities for different agents.
+
+2. **Run returns sensitivity analysis**:
+   ```bash
+   python -m pa_core.cli \
+     --config config/returns_mode_template.csv \
+     --index sp500tr_fred_divyield.csv \
+     --mode returns \
+     --output ReturnsSweep.xlsx
+   ```
+
+3. **Interpret the results**: The sweep shows how sensitive your strategy is to return assumptions. Higher expected returns generally increase both returns and risks.
+
+**Key Insight**: Returns mode helps stress-test your assumptions about future market performance.
+
+#### Part 4: Alpha Shares Mode - Optimization
+
+**Objective**: Understand alpha vs. beta share allocation and its impact on tracking error.
+
+Use `--mode=alpha_shares` to optimize the split between alpha-generating and beta-matching components:
+
+1. **Examine the alpha shares template**:
+   ```bash
+   head config/alpha_shares_mode_template.csv
+   ```
+   This varies the percentage allocated to alpha generation vs. beta matching.
+
+2. **Run alpha/beta optimization**:
+   ```bash
+   python -m pa_core.cli \
+     --config config/alpha_shares_mode_template.csv \
+     --index sp500tr_fred_divyield.csv \
+     --mode alpha_shares \
+     --output AlphaSweep.xlsx
+   ```
+
+3. **Analyze tracking error trade-offs**: Higher alpha allocation may increase returns but also tracking error.
+
+**Key Insight**: Alpha shares mode helps balance return enhancement with tracking error constraints.
+
+#### Part 5: Vol Mult Mode - Stress Testing
+
+**Objective**: Perform comprehensive stress testing by scaling volatilities.
+
+Use `--mode=vol_mult` to test how your strategy performs under different volatility regimes:
+
+1. **Examine the volatility multiplier template**:
+   ```bash
+   head config/vol_mult_mode_template.csv
+   ```
+   This scales all volatilities by different multipliers (e.g., 0.5x, 1.0x, 1.5x, 2.0x).
+
+2. **Run volatility stress test**:
+   ```bash
+   python -m pa_core.cli \
+     --config config/vol_mult_mode_template.csv \
+     --index sp500tr_fred_divyield.csv \
+     --mode vol_mult \
+     --output VolStressTest.xlsx
+   ```
+
+3. **Evaluate resilience**: See how your strategy performs in low, normal, and high volatility environments.
+
+**Key Insight**: Vol mult mode reveals how robust your strategy is to changing market volatility.
+
+#### Tutorial 1 Summary
+
+You've now mastered:
+- ✅ Basic single-scenario operation (Part 1)
+- ✅ Capital allocation optimization (Part 2)
+- ✅ Return assumption sensitivity (Part 3)
+- ✅ Alpha/beta split optimization (Part 4)
+- ✅ Volatility stress testing (Part 5)
+
+**Next Steps**: Proceed to Tutorial 2 to learn detailed metric interpretation, or Tutorial 3 to explore the interactive dashboard. All visualization features work with results from any of these five approaches.
+
+**Troubleshooting**:
+- If commands fail, ensure you're in the correct directory and virtual environment is activated
+- Check that CSV templates exist in the `config/` folder
+- Verify `sp500tr_fred_divyield.csv` is present in the root directory
+- Use `python -m pa_core.cli --help` to see all available options
 
 ### Introductory Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
-This tutorial explains how to read the results produced in Tutorial 1. After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results. These numbers capture the risk/return profile, funding shortfall probability and tracking error for each sleeve.
+This tutorial explains how to read the results produced in Tutorial 1 **(any of the 5 parts)**. Whether you ran a single scenario (Part 1) or parameter sweeps (Parts 2–5), the core metrics remain the same. After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results capturing risk/return profile, funding shortfall probability and tracking error for each sleeve.
 Work through the following steps to interpret the results:
 
 1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
@@ -243,7 +383,7 @@ colours remain consistent.
 
 ### Introductory Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
-This tutorial shows how to visualise the metrics produced in Tutorials 1 and 2. After generating an output file you can start an interactive dashboard to explore the portfolio behaviour visually. The dashboard helps you interpret risk/return trade‑offs, funding shortfall probability and tracking error at a glance. Follow these steps:
+This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 parts) and Tutorial 2. The dashboard works with results from any mode—single scenarios, capital sweeps, returns analysis, alpha optimization or volatility stress tests. After generating an output file you can start an interactive dashboard to explore the portfolio behaviour visually. Follow these steps:
 
 1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
    `streamlit run dashboard/app.py` manually.
