@@ -286,7 +286,14 @@ can export any Plotly figure. Pass one of the following names to `--plot`:
 `surface_slice`, `crossfilter`, `hover_sync`, `grid_panel`, `scenario_play`,
 `spark_matrix`, `weighted_stack`, `geo_exposure`, `seasonality_heatmap`,
 `beta_te_scatter`, `milestone_timeline`, `mosaic`, `metric_selector`,
-`boxplot`, `delta_heatmap`, `quantile_band`, `triple_scatter`.
+`boxplot`, `delta_heatmap`, `quantile_band`, `triple_scatter`,
+`radar`, `scatter_matrix`, `parallel_coords`, `data_table`,
+`capital_treemap`, `corr_network`, `beta_heatmap`, `factor_bar`,
+`multi_fan`, `beta_scatter`, `factor_matrix`, `te_cvar_scatter`,
+`quantile_fan`, `sunburst`, `horizon_slicer`, `inset`, `data_quality`,
+`live`, `bookmark`, `widgets`, `pdf_export`, `pdf_report`, `funnel`,
+`rank_table`, `exposure_timeline`, `rolling_corr_heatmap`,
+`moments_panel`, `factor_timeline`.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
 `--alt-text` description to save images:
 
