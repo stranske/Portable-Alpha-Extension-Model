@@ -1,29 +1,39 @@
-name: Codex PR Auto-Debug
+name: Streamlined Codex Auto-Debug
 
 on:
   pull_request:
     branches: [ main ]
-    # Only run on PRs from Codex branches
     types: [opened, synchronize]
+  push:
+    branches: [ 'codex/**' ]
+  workflow_dispatch:
+    inputs:
+      debug_mode:
+        description: 'Enable verbose debugging'
+        required: false
+        default: 'false'
 
 # Explicit permissions for GitHub Actions
 permissions:
-  contents: write          # Needed to push commits
-  pull-requests: write     # Needed to comment on PRs
-  issues: write           # Needed for PR comments (PRs are issues)
-  actions: read           # Needed to access workflow artifacts
+  contents: write          # Push commits and access repository
+  pull-requests: write     # Comment on PRs
+  issues: write           # PR comments (PRs are issues)
+  actions: read           # Access workflow artifacts
+  checks: write           # Update check status
 
 jobs:
-  auto-debug:
+  streamlined-debug:
     runs-on: ubuntu-latest
-    if: startsWith(github.head_ref, 'codex/')
+    # Run on Codex branches or when manually triggered
+    if: >
+      startsWith(github.head_ref, 'codex/') || 
+      startsWith(github.ref_name, 'codex/') || 
+      github.event_name == 'workflow_dispatch'
     
     steps:
     - uses: actions/checkout@v4
       with:
-        # Use PAT if available for enhanced permissions, fallback to GITHUB_TOKEN
         token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
-        # Ensure we can push commits back to the branch
         fetch-depth: 0
         
     - name: Set up Python
@@ -41,40 +51,85 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         
-    - name: Run automated debugging
-      id: debug
+    - name: 🚀 Run Streamlined Debug
+      id: streamlined_debug
       run: |
-        python scripts/debug_codex_pr.py --branch=${{ github.head_ref }} --report=debug_report.md --max-iterations=5 --commit
-        echo "debug_exit_code=$?" >> $GITHUB_OUTPUT
+        echo "Running streamlined debugging workflow..."
+        python scripts/streamlined_debug.py
+        echo "streamlined_exit_code=$?" >> $GITHUB_OUTPUT
         
-    - name: Upload debug report
+    - name: 📊 Upload Streamlined Debug Report
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: debug-report-${{ github.run_id }}
-        path: debug_report.md
+        name: streamlined-debug-report-${{ github.run_id }}
+        path: streamlined_debug_report.md
         
-    - name: Comment debug results on PR
-      if: always()
+    - name: 🔍 Run Detailed Debug (if streamlined found issues)
+      id: detailed_debug
+      if: steps.streamlined_debug.outputs.streamlined_exit_code != '0'
+      run: |
+        echo "Streamlined debug found issues. Running detailed analysis..."
+        python scripts/debug_codex_pr.py --branch=${{ github.head_ref || github.ref_name }} --report=detailed_debug_report.md --max-iterations=3 --commit
+        echo "detailed_exit_code=$?" >> $GITHUB_OUTPUT
+        
+    - name: 📊 Upload Detailed Debug Report
+      uses: actions/upload-artifact@v4
+      if: steps.detailed_debug.outcome != 'skipped'
+      with:
+        name: detailed-debug-report-${{ github.run_id }}
+        path: detailed_debug_report.md
+        
+    - name: 💬 Comment Results on PR
+      if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
-          let report = '';
+          
+          // Read streamlined report
+          let streamlinedReport = '';
           try {
-            report = fs.readFileSync('debug_report.md', 'utf8');
+            streamlinedReport = fs.readFileSync('streamlined_debug_report.md', 'utf8');
           } catch (error) {
-            report = '❌ Debug report generation failed';
-            console.log('Debug report read error:', error);
+            streamlinedReport = '❌ Streamlined debug report generation failed';
+            console.log('Streamlined report read error:', error);
           }
           
-          const comment = `## 🤖 Automated Codex PR Debugging Results
+          // Read detailed report if it exists
+          let detailedReport = '';
+          try {
+            detailedReport = fs.readFileSync('detailed_debug_report.md', 'utf8');
+          } catch (error) {
+            // Detailed report may not exist if streamlined debug passed
+            console.log('No detailed report (this is normal if streamlined debug passed)');
+          }
           
-          ${report}
+          // Determine overall status
+          const streamlinedPassed = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}' === '0';
+          const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
           
+          let statusEmoji = streamlinedPassed ? '🎉' : '⚠️';
+          let statusText = streamlinedPassed ? 'All Checks Passed' : 'Issues Found';
+          
+          let comment = `## ${statusEmoji} Automated Codex Debugging Results - ${statusText}
+          
+          ### 🚀 Streamlined Debug Results
+          ${streamlinedReport}
+          `;
+          
+          if (detailedRan && detailedReport) {
+            comment += `
+          ### 🔍 Detailed Debug Results
+          ${detailedReport}
+          `;
+          }
+          
+          comment += `
           ---
-          *This comment was generated automatically by the Codex PR debugging workflow.*`;
+          *Debug workflow: Streamlined → ${streamlinedPassed ? 'Passed ✅' : 'Failed ❌'}${detailedRan ? ' → Detailed Analysis 🔍' : ''}*
+          `;
           
           try {
             await github.rest.issues.createComment({
@@ -89,8 +144,11 @@ jobs:
             core.setFailed(`Failed to post PR comment: ${error.message}`);
           }
           
-    - name: Auto-commit fixes if any
-      if: steps.debug.outputs.debug_exit_code == '0'
+    - name: 🤖 Auto-commit fixes if any
+      if: >
+        (steps.streamlined_debug.outputs.streamlined_exit_code == '0' || 
+         steps.detailed_debug.outputs.detailed_exit_code == '0') &&
+        github.event_name != 'workflow_dispatch'
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -106,16 +164,32 @@ jobs:
           - Cleaned up import statements
           - Fixed common integration patterns
           
-          Generated by automated debugging workflow"
+          Generated by streamlined debugging workflow"
           
           # Push with error handling
           if git push; then
-            echo "Successfully pushed auto-fixes"
+            echo "✅ Successfully pushed auto-fixes"
           else
-            echo "Failed to push auto-fixes - may need different permissions"
+            echo "❌ Failed to push auto-fixes - may need different permissions"
             exit 1
           fi
         else
           echo "✅ No changes to commit - repository is already in good state"
+        fi
+        
+    - name: 📋 Set final status
+      if: always()
+      run: |
+        streamlined_code="${{ steps.streamlined_debug.outputs.streamlined_exit_code }}"
+        detailed_code="${{ steps.detailed_debug.outputs.detailed_exit_code }}"
+        
+        if [ "$streamlined_code" = "0" ]; then
+          echo "✅ Streamlined debug passed - all good!"
           exit 0
+        elif [ "$detailed_code" = "0" ]; then
+          echo "✅ Detailed debug resolved issues - all good!"
+          exit 0
+        else
+          echo "⚠️ Issues remain that need manual attention"
+          exit 1
         fi
