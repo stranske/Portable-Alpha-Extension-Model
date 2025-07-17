@@ -30,6 +30,9 @@ jobs:
       startsWith(github.ref_name, 'codex/') || 
       github.event_name == 'workflow_dispatch'
     
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     steps:
     - uses: actions/checkout@v4
       with:
@@ -51,33 +54,24 @@ jobs:
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         
+    - name: Authenticate with GitHub CLI
+      run: |
+        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
     - name: 🚀 Run Streamlined Debug
       id: streamlined_debug
       run: |
-        echo "🔍 Running Codex debugging workflow..."
-        
-        # Set success output immediately
-        echo "streamlined_exit_code=0" >> $GITHUB_OUTPUT
-        
-        # Basic environment info
-        echo "✅ Environment check:"
-        echo "  - Python: $(python --version 2>&1 || echo 'Python not found')"
-        echo "  - Branch: $(git branch --show-current 2>&1 || echo 'Git not available')"
-        echo "  - Directory: $(pwd)"
-        
-        # Try to run debug script with full error handling
-        echo "📊 Attempting streamlined debug..."
-        if [ -f "scripts/streamlined_debug.py" ]; then
-          echo "✅ Debug script found, running..."
-          (
-            timeout 30 python scripts/streamlined_debug.py 2>&1 || echo "Debug script completed (exit code: $?)"
-          ) | head -50  # Limit output to prevent issues
-          echo "📋 Debug script execution completed"
+        echo "Running streamlined debugging workflow..."
+        python scripts/streamlined_debug.py
+        exit_code=$?
+        echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
+        if [ $exit_code -eq 0 ]; then
+          echo "✅ Streamlined debug completed successfully"
         else
-          echo "⚠️ Debug script not found at scripts/streamlined_debug.py"
+          echo "⚠️ Streamlined debug found issues (exit code: $exit_code)"
         fi
-        
-        echo "✅ Workflow step completed successfully"
         
     - name: 📊 Upload Streamlined Debug Report
       uses: actions/upload-artifact@v4
