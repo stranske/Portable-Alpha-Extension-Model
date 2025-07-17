@@ -72,13 +72,19 @@ This project includes comprehensive VS Code configuration:
 
 ## Setup
 
-Run the setup script to create a Python virtual environment and install dependencies:
+Run the setup script to create a Python virtual environment and install dependencies
+(including **Streamlit** for the dashboard and **Kaleido** for static exports):
 
 ```bash
 ./setup.sh
 ```
 
 Execute this once before running any notebooks or other scripts.
+
+> **Note**
+> Static PNG/PDF/PPTX exports rely on a local Chrome or Chromium installation.
+> On Debian/Ubuntu run `sudo apt-get install -y chromium-browser` before using
+> `--png`, `--pdf` or `--pptx`.
 
 After setting up the environment you can run the command line interface. The
 main entry point is ``pa_core.cli`` which exposes analysis modes, export
