@@ -6,8 +6,6 @@ Starts with GitHub Actions CI/CD analysis and exits early if issues are addresse
 
 import subprocess
 import sys
-import json
-import requests
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
@@ -379,7 +377,7 @@ def main():
     
     args = parser.parse_args()
     
-    debugger = CodexPRDebugger(args.branch)
+    debugger = GitHubActionsPRDebugger(args.branch)
     
     # Run methodical debugging
     results = debugger.run_methodical_debugging(max_iterations=args.max_iterations)

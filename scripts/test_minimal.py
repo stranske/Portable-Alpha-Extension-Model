@@ -4,7 +4,6 @@ Minimal test script to check basic functionality in GitHub Actions
 """
 import sys
 import subprocess
-import json
 
 def main():
     print("🧪 Minimal test starting...")
