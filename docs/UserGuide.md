@@ -495,6 +495,11 @@ Common plot types and when to use them:
 - `rolling_panel` – drawdown, TE and Sharpe metrics over time.
 - `surface` – 3‑D risk/return surface from parameter sweeps.
 - `category_pie` – donut summarising capital allocation by agent.
+- `overlay` – line chart comparing cumulative paths across agents.
+- `waterfall` – bar series illustrating capital contributions step by step.
+- `gauge` – single-value dial highlighting risk or return versus a target.
+- `moments_panel` – dashboard view of rolling mean, volatility and skew.
+- `rolling_corr_heatmap` – time-series heatmap showing correlation drift.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
 `--alt-text` description to save images:
 
@@ -626,6 +631,16 @@ export_bundle.save(figs, "plots/summary")
 ```
 
 The helper writes the files under `plots/` so you can archive an entire run with one call. Combine this with the CLI export flags when you need a full set of images.
+
+When working with parameter sweeps, loop over each scenario to save figures with meaningful names:
+
+```python
+for label, df in sweep_dfs.items():
+    figs = [risk_return.make(df), fan.make(paths[label])]
+    export_bundle.save(figs, f"plots/{label}")
+```
+
+This produces a folder of charts for every scenario in the sweep so you can compare results side by side.
 
 ### Tutorial 10 – Explore the Chart Gallery
 
