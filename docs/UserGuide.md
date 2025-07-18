@@ -475,6 +475,17 @@ can export any Plotly figure. Pass one of the following names to `--plot`:
 `live`, `bookmark`, `widgets`, `pdf_export`, `pdf_report`, `funnel`,
 `rank_table`, `exposure_timeline`, `rolling_corr_heatmap`,
 `moments_panel`, `factor_timeline`.
+
+Common plot types and when to use them:
+
+- `risk_return` – scatter of annualised return vs volatility with TE/ER guides.
+- `fan` – cumulative-return fan with median and confidence bands.
+- `path_dist` – histogram or CDF of final returns to check skew.
+- `corr_heatmap` – monthly-return correlation matrix.
+- `sharpe_ladder` – bar ranking agents by Sharpe ratio.
+- `rolling_panel` – drawdown, TE and Sharpe metrics over time.
+- `surface` – 3‑D risk/return surface from parameter sweeps.
+- `category_pie` – donut summarising capital allocation by agent.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
 `--alt-text` description to save images:
 
