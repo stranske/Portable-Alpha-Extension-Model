@@ -421,11 +421,12 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
 3. **Explore the tabs** – the headline view shows a risk‑return scatter while
    other tabs display cumulative funding (`Funding fan`) and final return
    distributions (`Path dist`). When a sweep file is loaded use the **Scenario**
-   dropdown to compare up to 200 combinations. Threshold lines from
-   `config_thresholds.yaml` highlight compliant cases. Two download buttons let
-   you save the headline PNG chart and the Excel file directly from the browser.
-   Tick **Auto‑refresh** to reload the data periodically while a long simulation
-   runs.
+  dropdown to compare up to 200 combinations. Threshold lines from
+  `config_thresholds.yaml` highlight compliant cases. Two download buttons let
+  you save the headline PNG chart and the Excel file directly from the browser.
+  Tick **Auto‑refresh** to reload the data periodically while a long simulation
+  runs. **PNG downloads require a local Chrome/Chromium installation and the**
+  **`kaleido`** **package**, otherwise the export button will fail silently.
 
 ### Sidebar Controls
 
