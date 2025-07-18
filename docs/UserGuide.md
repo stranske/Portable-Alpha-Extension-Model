@@ -380,14 +380,22 @@ Work through the following steps to interpret the results:
 4. **Analyse parameter sweep results** – when running a sweep the `Summary`
    sheet lists every scenario. Sort the table by `TE` and
    `ShortfallProb` to identify combinations that meet the default
-   **3% tracking‑error cap**. Create a quick pivot table to highlight
-   parameter sets where all sleeves fall below the threshold.
+   **3% tracking‑error cap**. A quick pivot table helps flag scenario
+   combinations where **all** sleeves stay below the threshold. With
+   50–200 scenarios this view quickly reveals which parameters cause
+   breaches.
 
-5. **Take action when limits are breached** – scenarios with `TE` above the
-   budget or high `ShortfallProb` usually need lower leverage or a different
-   capital allocation. Iterate on the parameter sweep by adjusting the
-   input template and rerunning until the majority of cases comply with your
-   risk limits.
+5. **Interpret the risk levels** – values below **1% TE** generally fall
+   within a conservative comfort zone, **1–3%** indicates moderate risk
+   and **above 3%** breaches the default budget. Use conditional
+   formatting to colour scenarios amber or red when they cross these
+   lines.
+
+6. **Take action when limits are breached** – scenarios with `TE` above the
+   budget or high `ShortfallProb` usually need lower leverage or a
+   different capital allocation. Iterate on the parameter sweep by
+   adjusting the input template and rerunning until the majority of cases
+   comply with your risk limits.
 
 `ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the
 CLI raises a validation error. The dashboard uses the same threshold file so
