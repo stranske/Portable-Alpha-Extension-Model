@@ -84,6 +84,24 @@ python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
 `AllReturns` sheet. The existing sheet order is retained for compatibility. Convert the extra sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
+
+### Configuration template quick reference
+
+Use these starter files under `config/` to run either a single scenario or a full
+parameter sweep. Replace the index file with your own returns series and set
+`--output` to avoid overwriting previous runs.
+
+| Scenario type               | Template file                          | Example command |
+|-----------------------------|---------------------------------------|-----------------|
+| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
+| Single scenario (CSV)       | `config/parameters_template.csv`       | `python -m pa_core.cli --params parameters_template.csv --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
+| Capital allocation sweep    | `config/capital_mode_template.csv`     | `python -m pa_core.cli --params config/capital_mode_template.csv --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
+| Returns sensitivity sweep   | `config/returns_mode_template.csv`     | `python -m pa_core.cli --params config/returns_mode_template.csv --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
+| Alpha shares optimisation   | `config/alpha_shares_mode_template.csv`| `python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
+| Volatility stress test      | `config/vol_mult_mode_template.csv`    | `python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
+
+All four sweep modes now run correctly when the appropriate template and `--mode`
+are supplied.
 ## 3. Introductory Tutorial Series
 
 The following tutorials provide a hands‑on introduction to the model.

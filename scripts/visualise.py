@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pandas as pd  # type: ignore
 
-logging.basicConfig(level=logging.INFO)
 from pa_core.viz import (
     animation,
     corr_heatmap,
@@ -19,6 +18,8 @@ from pa_core.viz import (
     sharpe_ladder,
     surface,
 )
+
+logging.basicConfig(level=logging.INFO)
 
 PLOTS = {
     "risk_return": risk_return.make,
