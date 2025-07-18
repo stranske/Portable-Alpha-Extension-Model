@@ -569,7 +569,16 @@ These visual tools complement the Excel output by making it easy to spot how rea
 
 ### Tutorial 8 – Stress-Test Your Assumptions
 
-After completing the tutorials you can stress‑test your assumptions by running multiple scenarios. Vary the capital weights, change the alpha streams or tweak the financing parameters in your configuration file. Re‑run the CLI and compare the resulting **ShortfallProb** and **TrackingErr** columns. Use the dashboard and export scripts to visualise how each scenario moves the portfolio relative to your targets.
+After completing the tutorials you can stress‑test your assumptions by **automating parameter sweeps**. Supply one of the sweep templates and choose a mode such as `returns` or `capital` to run dozens of scenarios in a single command. Always set `--output` so the results are saved to a unique workbook instead of overwriting `Outputs.xlsx`:
+
+```bash
+python -m pa_core.cli \
+  --mode returns \
+  --config config/returns_mode_template.csv \
+  --output StressTest.xlsx
+```
+
+Open the `Summary` sheet to filter by `TE` and `ShortfallProb`, or load the file in the dashboard where the **Scenario** selector lets you compare paths and metrics side by side.
 
 ### Tutorial 9 – Save Everything with Export Bundles
 
