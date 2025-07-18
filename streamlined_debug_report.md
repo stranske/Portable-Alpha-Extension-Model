@@ -1,44 +1,50 @@
 # 🔍 Streamlined Codex Debugging Report
 
-**Timestamp**: 2025-07-18 05:18:49
+**Timestamp**: 2025-07-18 05:32:59
 **Repository**: Portable-Alpha-Extension-Model
 
-## ✅ All Checks Passed
-No issues detected in streamlined debugging.
+## ❌ Issues Found
+- Latest Codex workflow failed
 
 ## 📋 Debugging Steps
-**05:18:46** ⚠️ GitHub Integration Check
+**05:32:53** ⚠️ GitHub Integration Check
 
-**05:18:48** ✅ GitHub PR Status
-  - PR #204: Update tutorial 6 with dynamic agent configuration
+**05:32:57** ✅ GitHub PR Status
+  - PR #205: Improve docs: setup dependencies and dashboard usage
 
-**05:18:48** ⚠️ GitHub Integration Check
+**05:32:57** ⚠️ GitHub Integration Check
 
-**05:18:48** ⚠️ Branch Status Check
+**05:32:57** ⚠️ Branch Status Check
 
-**05:18:48** ⚠️ Current Branch
+**05:32:57** ⚠️ Current Branch
   - Branch: codex/update-tutorials-in-agents.md
 
-**05:18:48** ✅ Branch Type
+**05:32:57** ✅ Branch Type
   - Codex branch - workflow will trigger
 
-**05:18:48** ✅ Branch Sync
+**05:32:57** ✅ Branch Sync
   - Branch is in sync
 
-**05:18:48** ⚠️ Workflow Permissions Check
+**05:32:57** ⚠️ Workflow Permissions Check
 
-**05:18:48** ✅ Workflow Permissions
+**05:32:57** ✅ Workflow Permissions
   - All required permissions present
 
-**05:18:48** ⚠️ Quick Permissions Test
+**05:32:57** ⚠️ Quick Permissions Test
 
-**05:18:48** ✅ Repository Access
+**05:32:57** ✅ Repository Access
   - Repository: stranske/Portable-Alpha-Extension-Model
 
-**05:18:49** ✅ Actions Access
+**05:32:57** ✅ Actions Access
   - Can access workflow runs
 
-**05:18:49** ⚠️ Recent Workflow Runs
+**05:32:57** ⚠️ Recent Workflow Runs
 
-**05:18:49** ✅ Latest Codex Run
-  - Status: 
+**05:32:58** ❌ Latest Codex Run
+  - Run ID: 16363006566
+
+**05:32:59** ⚠️ Failed Steps
+  - Steps: 🤖 Auto-commit fixes if any
+
+## 🛠️ Quick Fixes
+- Check workflow logs: `gh run view --log-failed`
