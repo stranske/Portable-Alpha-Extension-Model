@@ -377,6 +377,18 @@ Work through the following steps to interpret the results:
    in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays
    within your tracking‑error budget.
 
+4. **Analyse parameter sweep results** – when running a sweep the `Summary`
+   sheet lists every scenario. Sort the table by `TE` and
+   `ShortfallProb` to identify combinations that meet the default
+   **3% tracking‑error cap**. Create a quick pivot table to highlight
+   parameter sets where all sleeves fall below the threshold.
+
+5. **Take action when limits are breached** – scenarios with `TE` above the
+   budget or high `ShortfallProb` usually need lower leverage or a different
+   capital allocation. Iterate on the parameter sweep by adjusting the
+   input template and rerunning until the majority of cases comply with your
+   risk limits.
+
 `ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the
 CLI raises a validation error. The dashboard uses the same threshold file so
 colours remain consistent.
