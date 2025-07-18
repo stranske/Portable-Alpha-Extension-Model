@@ -373,6 +373,9 @@ Work through the following steps to interpret the results:
 1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
    parameters and locate the `Summary` sheet.
 2. **Review the headline metrics** – `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE` appear for each sleeve. The workbook also includes the mandatory **ShortfallProb** column even if it was not requested in your configuration.
+   The sample configuration intentionally uses high leverage so you may notice
+   **TE** values near **8–10%**, well above the default **3%** budget. Treat this
+   as a red flag and use it to practise threshold analysis.
 3. **Compare to thresholds** – verify `ShortfallProb` against the limits defined
    in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays
    within your tracking‑error budget.
@@ -380,10 +383,10 @@ Work through the following steps to interpret the results:
 4. **Analyse parameter sweep results** – when running a sweep the `Summary`
    sheet lists every scenario. Sort the table by `TE` and
    `ShortfallProb` to identify combinations that meet the default
-   **3% tracking‑error cap**. A quick pivot table helps flag scenario
-   combinations where **all** sleeves stay below the threshold. With
-   50–200 scenarios this view quickly reveals which parameters cause
-   breaches.
+   **3% tracking‑error cap**. Add a pivot table or filter by `TE < 0.03` and
+   `ShortfallProb` to highlight combinations where **all** sleeves stay below
+   the threshold. With 50–200 scenarios this method quickly reveals which
+   parameters cause breaches across multiple sheets.
 
 5. **Interpret the risk levels** – values below **1% TE** generally fall
    within a conservative comfort zone, **1–3%** indicates moderate risk
