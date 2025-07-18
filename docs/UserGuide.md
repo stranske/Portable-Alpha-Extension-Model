@@ -61,21 +61,23 @@ shortfall probability and tracking error in a repeatable workflow.
 ## 2. Getting Started
 
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
-2. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
-3. **Review defaults** – core correlations and volatilities are locked in `pa_core/config.py`. Override them in your parameter file only when testing different assumptions.
-4. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
-5. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
-6. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
+2. The script installs **Streamlit** for the dashboard and **Kaleido** for static exports so no extra packages are required.
+3. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
+4. **Review defaults** – core correlations and volatilities are locked in `pa_core/config.py`. Override them in your parameter file only when testing different assumptions.
+5. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
+6. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
+7. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
    Older output files that predate this requirement will still load—both the Excel
    exporter and dashboard insert a `ShortfallProb` column with `0.0` so legacy
    results remain compatible.
-7. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
-8. When a seed is supplied the program uses `spawn_agent_rngs` to create
+8. Add `--seed` for reproducible draws or `--backend cupy` if a GPU is available.
+9. When a seed is supplied the program uses `spawn_agent_rngs` to create
    deterministic random-number generators per sleeve so results are fully
    repeatable.
-9. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
-10. Run `python -m pa_core.cli --help` at any time to view all command-line options.
-11. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
+10. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
+11. Run `python -m pa_core.cli --help` at any time to view all command-line options.
+12. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
+13. Install Chrome or Chromium if you plan to use `--png`, `--pdf` or `--pptx`; these exports rely on the browser together with Kaleido.
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
@@ -418,15 +420,19 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
    matching `Outputs.parquet` file exists the dashboard enables additional
    charts. Parameter sweep files (typically 38–183 KB) automatically expose a
    **Scenario** selector so you can browse dozens of combinations.
-3. **Explore the tabs** – the headline view shows a risk‑return scatter while
+3. **Add path data for advanced charts** – include the `--pivot` flag when
+   running the CLI so an `AllReturns` sheet is saved. Convert that sheet to
+   `Outputs.parquet` using pandas to unlock the funding fan and distribution
+   views.
+4. **Explore the tabs** – the headline view shows a risk‑return scatter while
    other tabs display cumulative funding (`Funding fan`) and final return
    distributions (`Path dist`). When a sweep file is loaded use the **Scenario**
   dropdown to compare up to 200 combinations. Threshold lines from
   `config_thresholds.yaml` highlight compliant cases. Two download buttons let
   you save the headline PNG chart and the Excel file directly from the browser.
   Tick **Auto‑refresh** to reload the data periodically while a long simulation
-  runs. **PNG downloads require a local Chrome/Chromium installation and the**
-  **`kaleido`** **package**, otherwise the export button will fail silently.
+   runs. **PNG downloads require a local Chrome/Chromium installation and the**
+   **`kaleido`** **package**, otherwise the export button will fail silently.
 
 ### Sidebar Controls
 
@@ -460,7 +466,9 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 Use `scripts/visualise.py` to build plots outside the dashboard. The script
 reads the Excel output along with an optional `.parquet` file of raw paths and
-can export any Plotly figure. Pass one of the following names to `--plot`:
+can export any Plotly figure. Some plots such as `fan` and `path_dist` require
+the Parquet file, so convert the `AllReturns` sheet if you plan to use them.
+Pass one of the following names to `--plot`:
 `risk_return`, `risk_return_bubble`, `fan`, `path_dist`, `corr_heatmap`,
 `sharpe_ladder`, `rolling_panel`, `rolling_var`, `breach_calendar`, `overlay`,
 `overlay_weighted`, `category_pie`, `gauge`, `waterfall`, `surface`,
@@ -505,6 +513,8 @@ python scripts/visualise.py \
   --xlsx Outputs.xlsx \
   --gif --alt-text "Scenario slider"
 ```
+GIF exports rely on Chrome and Kaleido. If these are missing the script logs a
+warning and no file is created.
 
 If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
 
