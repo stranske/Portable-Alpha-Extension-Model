@@ -514,7 +514,8 @@ python scripts/visualise.py \
   --gif --alt-text "Scenario slider"
 ```
 GIF exports rely on Chrome and Kaleido. If these are missing the script logs a
-warning and no file is created.
+warning and no file is created. Check the console output for these warnings if
+no GIF appears.
 
 If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
 
@@ -561,6 +562,23 @@ match the dashboard background to corporate colours.
 shortfall_green: 0.05
 shortfall_amber: 0.10
 ```
+
+### Example workflow
+
+To apply a custom theme when analysing a parameter sweep, load your YAML file
+before generating figures:
+
+```python
+from pa_core.viz import theme, risk_return
+import pandas as pd
+
+theme.load_theme("my_theme.yaml")
+df_summary = pd.read_excel("Sweep.xlsx", sheet_name="Summary")
+fig = risk_return.make(df_summary)
+fig.write_image("plots/sweep.png")
+```
+Reload different theme files inside a loop to style each scenario in a
+parameter sweep automatically.
 
 ## Dashboard Views
 
