@@ -521,8 +521,14 @@ charts such as the funding fan or return histogram.
 
 1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
 2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`.
-3. Allocate capital to the new agent in your CSV or YAML configuration file.
-4. Run the CLI again and the sleeve will automatically appear in the outputs.
+3. **Extend the configuration** – add a field to `ModelConfig` so capital can be allocated via YAML/CSV:
+   ```python
+   class ModelConfig(BaseModel):
+       my_agent_capital: float = 0.0
+   ```
+   Update `build_from_config` in `pa_core/agents/registry.py` to create an `AgentParams` entry when `my_agent_capital` is positive.
+4. Include `my_agent_capital` in your configuration template and set the amount you want to allocate.
+5. Run the CLI again and the sleeve will automatically appear in the outputs.
 
 ```python
 # pa_core/agents/my_agent.py
