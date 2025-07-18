@@ -405,10 +405,16 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
    ```
 2. **Load your results** – enter the path to `Outputs.xlsx` in the sidebar. If a
    matching `Outputs.parquet` file exists the dashboard enables additional
-   charts.
+   charts. Parameter sweep files (typically 38–183 KB) automatically expose a
+   **Scenario** selector so you can browse dozens of combinations.
 3. **Explore the tabs** – the headline view shows a risk‑return scatter while
    other tabs display cumulative funding (`Funding fan`) and final return
-   distributions (`Path dist`). Two download buttons let you save the headline PNG chart and the Excel file directly from the browser. Tick **Auto‑refresh** to reload the data periodically while a long simulation runs.
+   distributions (`Path dist`). When a sweep file is loaded use the **Scenario**
+   dropdown to compare up to 200 combinations. Threshold lines from
+   `config_thresholds.yaml` highlight compliant cases. Two download buttons let
+   you save the headline PNG chart and the Excel file directly from the browser.
+   Tick **Auto‑refresh** to reload the data periodically while a long simulation
+   runs.
 
 ### Sidebar Controls
 
@@ -417,6 +423,7 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
 - **Agents** – choose which sleeves to display.
 - **Risk‑free rate** – for any excess return calculations.
 - **Auto‑refresh** – polls the file every few seconds so the dashboard updates while simulations run.
+- **Scenario** – appears when a parameter sweep file is loaded; pick a combination to display in the charts.
 
 Two download buttons allow you to save the headline PNG chart and the Excel file.
 
