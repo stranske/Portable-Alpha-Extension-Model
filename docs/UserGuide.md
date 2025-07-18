@@ -635,8 +635,9 @@ python -m pa_core.cli \
   --config config/returns_mode_template.csv \
   --output StressTest.xlsx
 ```
+The CLI names each sheet after its parameter set so the tabs match the rows in the `Summary` table. Use helpers like `viz.surface.make()` or `viz.grid_heatmap.make()` to visualise the landscape and spot parameter combinations that exceed the thresholds defined in `config_thresholds.yaml`.
 
-Open the `Summary` sheet to filter by `TE` and `ShortfallProb`, or load the file in the dashboard where the **Scenario** selector lets you compare paths and metrics side by side.
+Open the `Summary` sheet to filter by `TE` and `ShortfallProb`, or load the file in the dashboard where the **Scenario** selector lets you compare paths and metrics side by side.  The dashboard supports up to 200 scenarios so you can inspect stress-test results interactively.
 
 ### Tutorial 9 – Save Everything with Export Bundles
 
