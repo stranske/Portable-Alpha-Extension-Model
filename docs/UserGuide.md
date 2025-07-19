@@ -488,6 +488,17 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
+When running a parameter sweep you can include the same export flags to produce a presentation deck for every scenario automatically.  The CLI names the PPTX after your `--output` file so a single command generates both the Excel workbook and a slide pack:
+
+```bash
+python -m pa_core.cli \
+  --params config/capital_mode_template.csv \
+  --mode capital \
+  --pptx --output CapitalSweep.xlsx
+```
+
+This writes `CapitalSweep.pptx` alongside the Excel results with one slide per scenario.
+
 > **Dependency Note**
 > PNG/PDF/PPTX exports require a local Chrome or Chromium installation in addition to the
 > `kaleido` Python package. Install Chrome with:
