@@ -387,43 +387,58 @@ You've now mastered:
 
 ### Introductory Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
-This tutorial explains how to read the results produced in Tutorial 1 **(any of the 5 parts)**. Whether you ran a single scenario (Part 1) or parameter sweeps (Parts 2–5), the core metrics remain the same. After running the model you will see a Rich table of headline metrics and an Excel workbook of detailed results capturing risk/return profile, funding shortfall probability and tracking error for each sleeve.
-Work through the following steps to interpret the results:
+This tutorial explains how to read the results produced in Tutorial 1 **(any of the five parts)**. Whether you run a single scenario or a multi‑scenario sweep, the core metrics remain the same. Each run generates a Rich table and an Excel workbook capturing the risk/return profile, funding shortfall probability and tracking error for every sleeve.
 
-1. **Open `Outputs.xlsx`** – check the `Inputs` sheet to confirm your scenario
-   parameters and locate the `Summary` sheet.
-2. **Review the headline metrics** – `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE` appear for each sleeve. The workbook also includes the mandatory **ShortfallProb** column even if it was not requested in your configuration.
-   The sample configuration intentionally uses high leverage so you may notice
-   **TE** values near **8–10%**, well above the default **3%** budget. Treat this
-   as a red flag and use it to practise threshold analysis.
-3. **Compare to thresholds** – verify `ShortfallProb` against the limits defined
-   in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays
-   within your tracking‑error budget.
+#### Part A – Single‑Scenario Metrics
 
-4. **Analyse parameter sweep results** – when running a sweep the `Summary`
-   sheet lists every scenario. Sort the table by `TE` and
-   `ShortfallProb` to identify combinations that meet the default
-   **3% tracking‑error cap**. Add a pivot table or filter by `TE < 0.03` and
-   `ShortfallProb` to highlight combinations where **all** sleeves stay below
-   the threshold. With 50–200 scenarios this method quickly reveals which
-   parameters cause breaches across multiple sheets.
+Start by copying `config/params_template.yml` to your working folder and
+inspect the baseline output metrics:
 
-5. **Interpret the risk levels** – values below **1% TE** generally fall
-   within a conservative comfort zone, **1–3%** indicates moderate risk
-   and **above 3%** breaches the default budget. Use conditional
-   formatting to colour scenarios amber or red when they cross these
-   lines.
+```bash
+python -m pa_core.cli \
+  --config params_template.yml \
+  --index sp500tr_fred_divyield.csv \
+  --output Tutorial2_Baseline.xlsx
+```
 
-6. **Take action when limits are breached** – scenarios with `TE` above the
-   budget or high `ShortfallProb` usually need lower leverage or a
-   different capital allocation. Iterate on the parameter sweep by
-   adjusting the input template and rerunning until the majority of cases
-   comply with your risk limits.
+Open `Tutorial2_Baseline.xlsx` and review `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE`. The sample template intentionally exceeds the **3%** tracking‑error budget so you can practise threshold analysis.
 
-`ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the
-CLI raises a validation error. The dashboard uses the same threshold file so
-colours remain consistent.
+#### Part B – Capital Allocation Sweep
 
+Use the parameter sweep engine to explore multiple funding levels automatically:
+
+```bash
+python -m pa_core.cli \
+  --params config/capital_mode_template.csv \
+  --mode capital \
+  --index sp500tr_fred_divyield.csv \
+  --output Tutorial2_CapitalSweep.xlsx
+```
+
+The workbook now contains one sheet per allocation scenario plus a
+consolidated **Summary** table. Supply an explicit `--output` file name so
+earlier runs remain accessible, then sort the table by `TE` or
+`ShortfallProb` to find compliant cases.
+
+#### Part C – Advanced Sweeps
+
+Analyse alpha share optimisation and volatility stress testing with unique
+output names so previous results are preserved:
+
+```bash
+python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
+python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
+```
+
+These sweeps can generate dozens of scenarios (up to 200 depending on the template). Apply the same threshold checks as in Part B and compare results across sheets.
+
+#### Part D – Multi‑Scenario Analysis Tips
+
+1. **Compare to thresholds** – verify `ShortfallProb` against the limits defined in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays within budget.
+2. **Filter combinations** – in the **Summary** sheet, filter by `TE < 0.03` and low `ShortfallProb` values to highlight promising parameter sets.
+3. **Iterate quickly** – adjust the template, rerun the CLI and repeat the analysis until most scenarios comply with your risk limits.
+
+`ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the CLI raises a validation error. The dashboard uses the same threshold file so colours remain consistent. Refer back to the *Configuration template quick reference* for the full list of templates.
 ### Introductory Tutorial 3 – Visualise the Results (Dashboard and Scripts)
 
 This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 parts) and Tutorial 2. The dashboard works with results from any mode—single scenarios, capital sweeps, returns analysis, alpha optimization or volatility stress tests. After generating an output file you can start an interactive dashboard to explore the portfolio behaviour visually. Follow these steps:
