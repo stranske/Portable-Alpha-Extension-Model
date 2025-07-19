@@ -13,9 +13,16 @@
 The Portable Alpha Extension Model includes a powerful parameter sweep engine that can analyze hundreds of scenarios simultaneously. This tutorial demonstrates how to leverage this capability for comprehensive analysis across four dimensions:
 
 1. **Capital Allocation Optimization** (`--mode capital`)
-2. **Alpha Capture Efficiency** (`--mode alpha_shares`) 
+2. **Alpha Capture Efficiency** (`--mode alpha_shares`)
 3. **Volatility Stress Testing** (`--mode vol_mult`)
 4. **Return Sensitivity Analysis** (`--mode returns`)
+
+> **Important**: Every parameter file includes a mandatory
+> `analysis_mode` field that tells the CLI which sweep logic to
+> apply. The starter templates under `config/` already set this value:
+> `params_template.yml` defaults to `returns` for a single scenario,
+> while each CSV template specifies the matching sweep mode. The CLI
+> will exit with a validation error if `analysis_mode` is missing.
 
 **Professional Impact**: Move from single-point estimates to robust scenario analysis that provides confidence intervals, stress test results, and optimization insights.
 
