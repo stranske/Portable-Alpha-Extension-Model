@@ -549,6 +549,17 @@ Common plot types and when to use them:
 - `gauge` – single-value dial highlighting risk or return versus a target.
 - `moments_panel` – dashboard view of rolling mean, volatility and skew.
 - `rolling_corr_heatmap` – time-series heatmap showing correlation drift.
+- `weighted_stack` – stacked bars with width scaled by horizon length.
+- `geo_exposure` – choropleth or scatter map highlighting exposures by region.
+- `seasonality_heatmap` – monthly returns by year to reveal seasonal patterns.
+- `beta_te_scatter` – scatter of beta exposure versus tracking error.
+- `milestone_timeline` – annotate funding events on the cumulative-return fan.
+- `mosaic` – coloured tile grid of final-return probabilities.
+- `metric_selector` – widget to swap the risk-return chart’s y-axis metric.
+- `boxplot` – boxplot of monthly returns for each agent.
+- `delta_heatmap` – diverging-colour grid showing differences between two sweeps.
+- `quantile_band` – rolling quantile ribbon around the median path.
+- `triple_scatter` – 3‐D scatter of tracking error, beta and excess return.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
 `--alt-text` description to save images:
 
