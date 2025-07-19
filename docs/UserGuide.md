@@ -582,6 +582,25 @@ df.to_parquet("Outputs.parquet")
 Place both files in the same folder and rerun the script to access path based
 charts such as the funding fan or return histogram.
 
+#### Bulk charts from sweep files
+
+Parameter sweeps often produce workbooks with dozens or even hundreds of
+scenarios.  You can loop over the summary table to generate a gallery of charts
+automatically.  The example below saves one risk‑return figure per scenario:
+
+```python
+import pandas as pd
+from pa_core.viz import risk_return, export_bundle
+
+df_summary = pd.read_excel("Sweep.xlsx", sheet_name="Summary")
+for label, df in df_summary.groupby("Scenario"):
+    fig = risk_return.make(df)
+    export_bundle.save([fig], f"plots/{label}")
+```
+
+This workflow is ideal for client‑ready reporting where each parameter
+combination requires its own set of images.
+
 ### Tutorial 6 – Implement a New Agent
 
 1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
