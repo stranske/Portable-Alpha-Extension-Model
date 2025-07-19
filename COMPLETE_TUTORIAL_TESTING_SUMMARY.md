@@ -16,7 +16,7 @@
 - **Status**: ✅ **WORKING** - Core functionality excellent
 - **Enhancement Opportunity**: 🚀 **HIGH** - Ready for 5-part restructure using parameter sweeps
 - **Key Success**: Parameter sweep functionality fully implemented and working
-- **Implementation Ready**: Parts 1-4 immediately, Part 5 after CLI bug fix
+- **Implementation Ready**: All five parts now working, including returns mode
 
 ### **🟡 Tutorial 2: Metrics Interpretation** 
 - **Status**: ⚠️ **WORKING but needs guidance** - Functionality complete, UX gaps
@@ -64,14 +64,14 @@ python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alph
 # Volatility stress testing - 13KB Excel output
 python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv
 
-# Returns sensitivity (has CLI bug but engine works)
+# Returns sensitivity - return assumption sweep
 python -m pa_core.cli --params config/returns_mode_template.csv --mode returns --index sp500tr_fred_divyield.csv
 ```
 
 ### **✅ Implementation Infrastructure:**
 - **pa_core/sweep.py**: 184-line parameter sweep engine (commits 10f750b, 8b4ffe6)
 - **config/*_mode_template.csv**: 4 working CSV templates for each analysis mode
-- **pa_core/cli.py**: --mode parameter integration (3/4 modes working)
+- **pa_core/cli.py**: --mode parameter integration (all 4 modes working)
 - **Excel Export**: Multi-sheet outputs with embedded risk-return charts
 
 ---
@@ -85,7 +85,7 @@ python -m pa_core.cli --params config/returns_mode_template.csv --mode returns -
 2. **Part 2**: Capital Optimization (38KB parameter sweep demonstration)  
 3. **Part 3**: Alpha Efficiency Analysis (183KB multi-scenario analysis)
 4. **Part 4**: Volatility Stress Testing (13KB systematic volatility analysis)
-5. **Part 5**: Return Sensitivity Analysis (after CLI bug fix)
+5. **Part 5**: Return Sensitivity Analysis (returns sweep working)
 
 #### **Tutorial 2 Enhancement** (Multi-Scenario Focus):
 - **Bulk threshold analysis**: Analyze 50-200 scenarios for compliance patterns

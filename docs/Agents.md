@@ -38,7 +38,7 @@
 - ✅ **Part 2**: Capital Allocation Optimization - Use `config/capital_mode_template.csv` with `--mode capital` (38KB Excel output, working)
 - ✅ **Part 3**: Alpha Capture Efficiency - Use `config/alpha_shares_mode_template.csv` with `--mode alpha_shares` (183KB Excel, 187 combinations, working)  
 - ✅ **Part 4**: Volatility Stress Testing - Use `config/vol_mult_mode_template.csv` with `--mode vol_mult` (13KB Excel output, working)
-- ⚠️ **Part 5**: Return Sensitivity Analysis - CLI bug prevents returns mode sweep (easy fix: modify `pa_core/cli.py` line ~268)
+ - ✅ **Part 5**: Return Sensitivity Analysis - Use `config/returns_mode_template.csv` with `--mode returns` (bug fixed)
 
 #### 🎓 **Tutorial 2: Advanced Threshold Analysis (MEDIUM PRIORITY)**
 **Current**: Basic metric interpretation  
@@ -147,7 +147,7 @@
 #### 📊 **Implementation Priority Order**
 
 **PHASE 1: Core Tutorial Enhancements**
-1. **HIGH**: Tutorial 1 enhancement (Parts 1-4 ready immediately, Part 5 needs CLI bug fix)
+1. **HIGH**: Tutorial 1 enhancement (all five parts working including returns mode)
 2. **MEDIUM**: Tutorial 2 enhancement using sweep outputs (threshold analysis workflows)
 3. **MEDIUM**: Tutorial 3 enhancement after dependency fixes (multi-scenario dashboard workflows)
 4. **MEDIUM**: Tutorial 4 enhancement using sweep outputs (bulk export and reporting workflows)
@@ -167,7 +167,7 @@
     - **Prerequisites**: All core tutorial enhancements complete, dependency issues resolved
 
 ### 🔧 **Critical Bug Fixes Required**
-- **Returns Mode CLI Bug**: Modify `pa_core/cli.py` line ~268 to include returns mode in sweep logic
+- **Returns Mode CLI Bug**: **Fixed** – returns sweep now works via `--mode returns`
 - **Streamlit Installation**: Add Streamlit to default installation instructions
 - **Chrome/Kaleido Dependencies**: Document static export requirements and provide installation guidance
 
@@ -232,7 +232,7 @@ The following sections have been removed as they contain completed architectural
 - **Tutorial Source**: `docs/UserGuide.md` (tutorials 1-10)
 - **Parameter Templates**: `config/` directory (sweep mode templates)
 - **Test Results**: Tutorial testing documentation files
-- **CLI Interface**: `pa_core/cli.py` (returns mode bug fix needed)
+- **CLI Interface**: `pa_core/cli.py` (returns mode sweep fixed)
 - **Dashboard**: `dashboard/app.py` (Streamlit integration)
 - **Visualization**: `scripts/visualise.py` (bulk export workflows)
 
