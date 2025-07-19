@@ -34,7 +34,7 @@
 
 ### **Phase 2: Critical Dependencies** (Blocks Tutorial 3)
 1. **Environment Setup**: Install streamlit and Chrome or add clear setup instructions
-2. **Returns Mode CLI Bug**: Fix logic in cli.py line ~268 to enable returns mode parameter sweeps  
+2. **Returns Mode CLI Bug**: **Fixed** – returns sweep now works via `--mode returns`
 3. **Installation Guide**: Create comprehensive environment setup documentation
 
 ### **Phase 3: Validation** (Final Step)

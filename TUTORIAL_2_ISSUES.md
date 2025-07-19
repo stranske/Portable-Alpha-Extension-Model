@@ -6,10 +6,10 @@
 
 ### ✅ **CORRECTED STATUS**: Parameter Sweep Functionality IS WORKING
 
-**Major Correction**: Parameter sweep functionality has been implemented by Codex and is working for most modes:
+**Major Correction**: Parameter sweep functionality has been implemented by Codex and works across all modes:
 - ✅ `capital` mode: Working perfectly (tested successfully)
-- ✅ `alpha_shares` mode: Working perfectly (tested successfully)  
-- ⚠️ `returns` mode: Minor CLI logic bug (runs single scenario instead of sweep)
+- ✅ `alpha_shares` mode: Working perfectly (tested successfully)
+- ✅ `returns` mode: Working after CLI bug fix
 - 🔄 `vol_mult` mode: Implemented but not yet tested
 
 ### ❌ **PREVIOUS ISSUES IDENTIFIED (Still Valid for Tutorial Structure):**
@@ -68,7 +68,7 @@ Volatility stress test     | .csv      | --params + --mode vol_mult | vol_mult_m
 - ✅ `capital_mode_template.csv` works perfectly for parameter sweeps
 - ✅ `alpha_shares_mode_template.csv` works perfectly for parameter sweeps
 - ✅ `vol_mult_mode_template.csv` implemented and ready for testing
-- ⚠️ `returns_mode_template.csv` has CLI logic bug preventing sweep mode
+- ✅ `returns_mode_template.csv` works after CLI bug fix
 - ✅ `params_template.yml` works for single scenarios
 - ✅ `parameters_template.csv` works for single scenarios
 
