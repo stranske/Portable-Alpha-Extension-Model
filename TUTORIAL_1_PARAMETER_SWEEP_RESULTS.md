@@ -64,7 +64,7 @@
 2. **Capital Optimization** (Part 2): Systematic exploration of allocation strategies  
 3. **Alpha Efficiency** (Part 3): Optimization of alpha capture across different share allocations
 4. **Stress Testing** (Part 4): Volatility regime analysis for portfolio resilience
-5. **Returns Analysis** (Part 5): Available once CLI bug is fixed
+5. **Returns Analysis** (Part 5): Works via `--mode returns` using `returns_mode_template.csv`
 
 ### **File Outputs for User Analysis:**
 - `Tutorial1_Basic.xlsx` - Single scenario baseline

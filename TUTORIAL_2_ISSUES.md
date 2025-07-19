@@ -31,7 +31,7 @@
 ### **Parameter Sweep Tests (NEWLY DISCOVERED AS WORKING):**
 - ✅ `--params config/capital_mode_template.csv --mode capital` → Multi-scenario capital allocation sweep
 - ✅ `--params config/alpha_shares_mode_template.csv --mode alpha_shares` → Multi-scenario alpha optimization
-- ⚠️ `--params config/returns_mode_template.csv --mode returns` → CLI bug prevents sweep mode
+- ✅ `--params config/returns_mode_template.csv --mode returns` → Returns sensitivity sweep working
 - 🔄 `--params config/vol_mult_mode_template.csv --mode vol_mult` → Available but not tested
 
 ### **Enhanced Tutorial 2 Capabilities:**
@@ -75,7 +75,7 @@ Volatility stress test     | .csv      | --params + --mode vol_mult | vol_mult_m
 ## 🎯 **NEXT STEPS (UPDATED):**
 1. **Immediate**: Implement enhanced Tutorial 2 with working parameter sweep demonstrations
 2. **Create**: Tutorial examples using capital and alpha_shares modes (confirmed working)
-3. **Fix**: Minor CLI bug for returns mode (should be trivial fix)
+3. **Returns sensitivity**: Demonstrate working returns mode sweeps
 4. **Test**: vol_mult mode to confirm it works like the others
 5. **Document**: Comprehensive file usage guidance with working examples
 
