@@ -310,9 +310,14 @@ Use `--mode=returns` to test various return/volatility scenarios:
    python -m pa_core.cli \
      --config config/returns_mode_template.csv \
      --index sp500tr_fred_divyield.csv \
-     --mode returns \
-     --output ReturnsSweep.xlsx
+    --mode returns \
+    --output ReturnsSweep.xlsx
    ```
+
+   > **Note**
+   > Earlier releases had a bug that prevented `--mode returns` from
+   > completing successfully. Update to the latest version of the
+   > package before running this sensitivity analysis.
 
 3. **Interpret the results**: The sweep shows how sensitive your strategy is to return assumptions. Higher expected returns generally increase both returns and risks.
 

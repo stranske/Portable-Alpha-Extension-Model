@@ -174,9 +174,13 @@ python -m pa_core --mode vol_mult --params config/vol_mult_mode_template.csv --o
 **🎯 Business Question**: "How sensitive are our results to assumptions about internal beta returns and external alpha returns?"
 
 ```bash
-# Returns mode - comprehensive return sensitivity analysis  
+# Returns mode - comprehensive return sensitivity analysis
 python -m pa_core --mode returns --params config/returns_mode_template.csv --output tutorial_1_returns_sweep.xlsx
 ```
+
+> **Note**: A CLI bug in early versions caused this mode to fail. Make
+> sure you are running the latest release so the returns sweep
+> completes correctly.
 
 **📈 Sensitivity Analysis Workflow**:
 
