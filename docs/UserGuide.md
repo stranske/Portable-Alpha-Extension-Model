@@ -726,21 +726,31 @@ This produces a folder of charts for every scenario in the sweep so you can comp
 
 ### Tutorial 10 – Explore the Chart Gallery
 
-A Jupyter notebook `viz_gallery.ipynb` at the project root demonstrates every chart function with sample data. Launch it after installing the package in editable mode:
+A Jupyter notebook `viz_gallery.ipynb` at the project root demonstrates every chart function. Launch it after installing the package in editable mode:
 
 ```bash
 pip install -e .
 jupyter notebook viz_gallery.ipynb
 ```
 
-Adjust the parameters in the notebook to see how colours and thresholds react. The gallery is a quick way to experiment with new scenarios and visual styles without extra code.
-Recent additions include advanced plots such as `overlay`, `category_pie`,
-`gauge`, `waterfall`, `moments_panel`, `scenario_slider`, `scenario_viewer`,
-`scenario_play`, `spark_matrix`, `weighted_stack`, `geo_exposure`,
-`seasonality_heatmap`, `beta_te_scatter`, `milestone_timeline`, `mosaic`,
-`metric_selector`, `boxplot`, `delta_heatmap`, `quantile_band` and
-`triple_scatter`. Browse the notebook to see example usage of each helper along
-with interactive widgets like `crossfilter` and `hover_sync`.
+Generate a small results file first so the notebook has real data to display:
+
+```bash
+python -m pa_core.cli --config params_template.yml \
+  --index sp500tr_fred_divyield.csv --output GalleryDemo.xlsx
+```
+
+Open `viz_gallery.ipynb`, load `GalleryDemo.xlsx` (and `GalleryDemo.parquet` if
+you exported path data) and experiment with the cells.  The notebook shows how
+to save figures using `export_bundle.save` or `scripts/visualise.py` so you can
+batch export a gallery of charts. Adjust the parameters to see how colours and
+thresholds react. Recent additions include advanced plots such as
+`overlay`, `category_pie`, `gauge`, `waterfall`, `moments_panel`,
+`scenario_slider`, `scenario_viewer`, `scenario_play`, `spark_matrix`,
+`weighted_stack`, `geo_exposure`, `seasonality_heatmap`, `beta_te_scatter`,
+`milestone_timeline`, `mosaic`, `metric_selector`, `boxplot`, `delta_heatmap`,
+`quantile_band` and `triple_scatter`. Browse the notebook for examples and try
+widgets like `crossfilter` and `hover_sync`.
 
 ### Tutorial 11 – Run Parameter Sweeps
 
