@@ -103,6 +103,17 @@ parameter sweep. Replace the index file with your own returns series and set
 
 All four sweep modes now run correctly when the appropriate template and `--mode`
 are supplied.
+
+### Template details
+
+| Template file | Purpose | Key parameters |
+|---------------|---------|----------------|
+| `params_template.yml` | Single-scenario YAML baseline | `analysis_mode`, capital amounts, risk metrics |
+| `parameters_template.csv` | Spreadsheet version of the baseline | same fields as the YAML file |
+| `capital_mode_template.csv` | Sweep external and active extension capital allocations | `external_pa_capital`, `active_ext_capital` ranges |
+| `returns_mode_template.csv` | Return and volatility sensitivity analysis | expected return and volatility ranges |
+| `alpha_shares_mode_template.csv` | Optimise alpha vs beta share splits | `external_pa_alpha_fraction`, `active_share` ranges |
+| `vol_mult_mode_template.csv` | Stress test with higher vol multipliers | `vol_mult` values |
 ## 3. Introductory Tutorial Series
 
 The following tutorials provide a hands‑on introduction to the model.
