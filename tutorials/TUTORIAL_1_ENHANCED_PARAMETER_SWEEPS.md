@@ -54,6 +54,14 @@ The Portable Alpha Extension Model includes a powerful parameter sweep engine th
 # Basic single scenario - foundation for everything that follows
 python -m pa_core --params config/params_template.yml --output tutorial_1_baseline.xlsx
 ```
+> **Optional**: Add `--pivot` to include an `AllReturns` sheet for path-based charts. Convert it to Parquet for later tutorials:
+> ```bash
+> python -m pa_core --params config/params_template.yml --output tutorial_1_baseline.xlsx --pivot
+> python - <<PY
+> import pandas as pd
+> pd.read_excel("tutorial_1_baseline.xlsx", sheet_name="AllReturns").to_parquet("tutorial_1_baseline.parquet")
+> PY
+> ```
 
 **📊 Key Outputs to Examine**:
 - `Output` sheet: Final portfolio metrics 
