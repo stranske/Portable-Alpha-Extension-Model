@@ -15,6 +15,18 @@ import pandas as pd
 df = pd.read_excel("Outputs.xlsx", sheet_name="AllReturns")
 df.to_parquet("Outputs.parquet")
 ```
+This Parquet file unlocks path-based plots such as `fan` and `path_dist`.
+### Available Plot Types
+| Plot Name | When to Use It |
+|-----------|----------------|
+| `risk_return` | Compare annualised return vs volatility across scenarios. |
+| `fan` | Funding fan showing median path and confidence ribbon. Requires `Outputs.parquet`. |
+| `path_dist` | Histogram of monthly returns sourced from `Outputs.parquet`. |
+| `corr_heatmap` | Highlight monthly return correlations between agents. |
+| `sharpe_ladder` | Rank scenarios by Sharpe ratio. |
+| `rolling_panel` | Rolling drawdown, tracking error and Sharpe metrics. |
+| `surface` | 3‑D risk/return surface for sweep summaries. |
+
 
 ### 1. Create a Gallery of Charts
 
@@ -41,8 +53,7 @@ python scripts/visualise.py \
   --parquet Sweep.parquet \
   --png --gif
 ```
-
-The command produces `plots/fan.png` and `plots/fan.gif`. GIF creation logs a warning if Chrome or Kaleido is missing.
+The command produces `plots/fan.png` and `plots/fan.gif`. GIF creation logs a warning if Chrome or Kaleido is missing. PNG/PDF/PPTX exports behave the same way -- check the console logs if no file appears.
 
 ### 3. Recommended Workflow
 
