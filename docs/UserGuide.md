@@ -63,7 +63,7 @@ shortfall probability and tracking error in a repeatable workflow.
 1. Run `./setup.sh` once to create a virtual environment and install all dependencies.
 2. The script installs **Streamlit** for the dashboard and **Kaleido** for static exports so no extra packages are required.
 3. Copy `config/parameters_template.csv` or `config/params_template.yml` and edit the values to suit your scenario. Launch the CLI with `--params` or `--config` and supply your index returns via `--index`.
-4. **Review defaults** – core correlations and volatilities are locked in `pa_core/config.py`. Override them in your parameter file only when testing different assumptions.
+4. **Review defaults** – core correlations and volatilities are locked in `pa_core/config.py` (e.g. `rho_E_M` defaults to `0.0`). Override them in your parameter file only when testing different assumptions.
 5. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
 6. The index CSV must contain a `Date` column and either `Monthly_TR` or `Return` for monthly total returns.
 7. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
