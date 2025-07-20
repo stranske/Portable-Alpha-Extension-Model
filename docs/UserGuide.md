@@ -442,6 +442,8 @@ These sweeps can generate dozens of scenarios (up to 200 depending on the templa
 1. **Compare to thresholds** – verify `ShortfallProb` against the limits defined in `config_thresholds.yaml` and examine `TE` to ensure each sleeve stays within budget.
 2. **Filter combinations** – in the **Summary** sheet, filter by `TE < 0.03` and low `ShortfallProb` values to highlight promising parameter sets.
 3. **Iterate quickly** – adjust the template, rerun the CLI and repeat the analysis until most scenarios comply with your risk limits.
+4. **Interpret severity** – as a rule of thumb, `TE` below **3%** and `ShortfallProb` under **5%** are considered healthy. Values above roughly **5% TE** or **10% shortfall** usually require re‑tuning the parameters or reducing risk exposure.
+5. **Action plan for breaches** – when a scenario exceeds your limits, modify the capital mix or return assumptions and rerun the sweep. Iterate until the majority of scenarios fall in the green or amber zones.
 
 `ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the CLI raises a validation error. The dashboard uses the same threshold file so colours remain consistent. Refer back to the *Configuration template quick reference* for the full list of templates.
 ### Introductory Tutorial 3 – Visualise the Results (Dashboard and Scripts)
