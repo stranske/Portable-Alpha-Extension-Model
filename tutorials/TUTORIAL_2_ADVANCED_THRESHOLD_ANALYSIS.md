@@ -62,7 +62,10 @@ python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alph
 python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
 ```
 
-Each file may contain dozens of scenarios. Apply the same threshold checks as in Part B.
+Each file may contain dozens or even hundreds of scenarios (50–200 depending on
+the template size). Open the **Summary** sheet or load the workbook in the
+dashboard to browse them via the **Scenario** dropdown. Apply the same
+threshold checks as in Part B.
 
 ## 📚 **PART D – Multi‑Scenario Interpretation**
 
