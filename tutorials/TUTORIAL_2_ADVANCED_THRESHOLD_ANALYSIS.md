@@ -17,6 +17,10 @@ pip install streamlit kaleido
 
 > **Tip**: Use a local Chrome/Chromium browser for PNG/PDF exports.
 
+> **Mandatory Metric**: Ensure your parameter file lists `ShortfallProb`
+> under `risk_metrics`. The CLI stops with an error otherwise, but the
+> exporter inserts a default `0.0` column so older files still work.
+
 ---
 
 ## 📚 **PART A – Single Scenario Review**
