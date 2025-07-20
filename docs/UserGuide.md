@@ -30,6 +30,7 @@ Example quick run:
 ```bash
 # Install dependencies once
 pip install -r requirements.txt
+pip install streamlit>=1.35  # required for the dashboard
 
 # Run a 500-path, 15-year simulation of all agents
 python main.py \
@@ -77,7 +78,7 @@ shortfall probability and tracking error in a repeatable workflow.
 10. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
 11. Run `python -m pa_core.cli --help` at any time to view all command-line options.
 12. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
-13. Install Chrome or Chromium if you plan to use `--png`, `--pdf` or `--pptx`; these exports rely on the browser together with Kaleido.
+13. Install Chrome or Chromium if you plan to use `--png`, `--pdf` or `--pptx`; these exports rely on the browser together with the **kaleido** Python package (`pip install kaleido`).
 
 ```bash
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
