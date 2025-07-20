@@ -577,6 +577,19 @@ python -m pa_core.cli \
 
 This writes `CapitalSweep.pptx` alongside the Excel results with one slide per scenario.
 
+You can combine multiple export flags to create a full set of images at the same time:
+
+```bash
+python -m pa_core.cli \
+  --params config/alpha_shares_mode_template.csv \
+  --mode alpha_shares \
+  --png --pdf --pptx --output AlphaSweep.xlsx
+```
+
+The files are written under a `plots/` directory with names such as `summary.png`,
+`summary.pdf` and `summary.pptx`. When run on a parameter sweep the PPTX contains one
+slide per scenario so you can distribute a ready‑made presentation.
+
 > **Dependency Note**
 > PNG/PDF/PPTX exports require a local Chrome or Chromium installation in addition to the
 > `kaleido` Python package. Install Chrome with:
