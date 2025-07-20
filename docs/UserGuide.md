@@ -35,7 +35,7 @@ pip install streamlit>=1.35  # required for the dashboard
 
 # Run a quick single-scenario simulation (returns mode by default)
 python -m pa_core.cli \
-  --params config/params_template.yml \
+  --config config/params_template.yml \
   --index sp500tr_fred_divyield.csv \
   --output QuickStart.xlsx
 ```
