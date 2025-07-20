@@ -17,13 +17,16 @@ sudo apt-get install -y chromium-browser  # required for PNG/PDF downloads
 
 ### 1. Generate a Parameter Sweep
 
-Run a sweep so you have a multi-scenario Excel file to explore. Any mode works. Example using capital mode:
+Run a sweep so you have a multi-scenario Excel file to explore. Any mode works.
+Include the `--pivot` flag so an `AllReturns` sheet is written for advanced charts.
+Example using capital mode:
 
 ```bash
 python -m pa_core.cli \
   --params config/capital_mode_template.csv \
   --mode capital \
   --output DashboardSweep.xlsx \
+  --pivot \
   --dashboard
 ```
 
@@ -32,7 +35,7 @@ The `--dashboard` flag launches the Streamlit app automatically after the run co
 ### 2. Load Results
 
 1. In the sidebar, enter the path to `DashboardSweep.xlsx`.
-2. If you saved an `AllReturns` sheet during the run, convert it to Parquet and place `DashboardSweep.parquet` in the same folder. The dashboard enables additional charts when this file is present.
+2. If you saved an `AllReturns` sheet during the run, convert it to Parquet and place `DashboardSweep.parquet` in the same folder. This file unlocks the **Funding fan** and **Path dist** tabs, which rely on the full return paths.
 3. Use the **Scenario** dropdown to browse each parameter combination. Files in the 38‑183 KB range load quickly and may contain up to 200 scenarios.
 
 ### 3. Navigate the Dashboard
@@ -41,6 +44,8 @@ The `--dashboard` flag launches the Streamlit app automatically after the run co
 - **Funding fan** – median path with confidence bands (requires Parquet data).
 - **Path dist** – histogram of final returns with optional CDF view.
 - **Diagnostics** – table of raw metrics for the selected scenario.
+
+Start on **Risk-return** to see the full scenario landscape.  Use the **Scenario** dropdown to focus on individual combinations and then flip to **Funding fan** or **Path dist** to inspect the return paths.  The **Diagnostics** tab lists every metric so you can confirm threshold compliance.
 
 Tick **Auto-refresh** to reload the results periodically while a long sweep runs. Two download buttons save the headline PNG chart and the Excel file. PNG and PDF exports require Chrome/Chromium plus Kaleido; without them the buttons fail silently.
 
