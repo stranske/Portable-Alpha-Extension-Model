@@ -77,7 +77,15 @@ shortfall probability and tracking error in a repeatable workflow.
    repeatable.
 10. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
 11. Run `python -m pa_core.cli --help` at any time to view all command-line options.
-12. Include `--dashboard` to open an interactive Streamlit view after the run completes. The dashboard now offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
+12. Include `--dashboard` to open an interactive Streamlit view after the run completes. Example:
+    ```bash
+    python -m pa_core.cli \
+      --config config/params_template.yml \
+      --index sp500tr_fred_divyield.csv \
+      --output QuickStart.xlsx \
+      --dashboard
+    ```
+    The dashboard offers an **Auto‑refresh** checkbox so you can reload results periodically while long simulations run.
 13. Install Chrome or Chromium if you plan to use `--png`, `--pdf` or `--pptx`; these exports rely on the browser together with the **kaleido** Python package (`pip install kaleido`).
 
 ```bash
@@ -521,8 +529,15 @@ These sweeps can generate dozens of scenarios (up to 200 depending on the templa
 This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 parts) and Tutorial 2. The dashboard works with results from any mode—single scenarios, capital sweeps, returns analysis, alpha optimization or volatility stress tests. After generating an output file you can start an interactive dashboard to explore the portfolio behaviour visually. Follow these steps:
 
 1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
-   `streamlit run dashboard/app.py` manually. If you installed the package
-   manually make sure `streamlit` is available:
+   `streamlit run dashboard/app.py` manually. A quick command is:
+   ```bash
+   python -m pa_core.cli \
+     --config config/params_template.yml \
+     --index sp500tr_fred_divyield.csv \
+     --output DashboardDemo.xlsx \
+     --dashboard
+   ```
+   If you installed the package manually make sure `streamlit` is available:
    ```bash
    pip install streamlit kaleido
    ```
