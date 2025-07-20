@@ -72,6 +72,17 @@ Each file may contain dozens of scenarios. Apply the same threshold checks as in
 4. **Iterate quickly** – adjust parameters and rerun sweeps until most scenarios fall in the green zone.
 5. **Document findings** – record which parameter sets meet all limits and note any persistent issues.
 
+## 📈 **Interpreting Breaches and Next Actions**
+
+When `TE` or `ShortfallProb` exceeds the limits defined in `config_thresholds.yaml` treat the result as a warning sign rather than a hard failure. Use the sweep outputs to diagnose which parameters drive the breach.
+
+**Common adjustments**:
+* Lower the `active_share` or external capital to reduce tracking error.
+* Increase diversification across agents to lower shortfall risk.
+* Re‑run the relevant sweep with narrower parameter ranges to zero in on compliant combinations.
+
+Document the scenario labels that remain in violation so you can revisit them after adjusting the assumptions or thresholds.
+
 ---
 
 **Next Tutorial**: Learn to visualise these results interactively in Tutorial 3.
