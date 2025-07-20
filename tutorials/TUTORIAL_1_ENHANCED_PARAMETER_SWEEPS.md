@@ -37,6 +37,11 @@ The Portable Alpha Extension Model includes a powerful parameter sweep engine th
 > while each CSV template specifies the matching sweep mode. The CLI
 > will exit with a validation error if `analysis_mode` is missing.
 
+> **Mandatory Metric**: `risk_metrics` must include `ShortfallProb`.
+> The CLI aborts if this metric is missing. Legacy files are still
+> supported because the Excel exporter and dashboard insert a
+> `ShortfallProb` column with `0.0` when absent.
+
 **Professional Impact**: Move from single-point estimates to robust scenario analysis that provides confidence intervals, stress test results, and optimization insights.
 
 ---
