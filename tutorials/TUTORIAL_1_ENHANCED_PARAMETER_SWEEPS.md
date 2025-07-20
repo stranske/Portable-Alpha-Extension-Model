@@ -4,7 +4,20 @@
 
 **⏱️ Duration**: 45-60 minutes  
 **📋 Prerequisites**: Basic familiarity with Portable Alpha concepts  
-**🛠️ Tools**: Parameter sweep engine (all 4 modes), Excel output analysis  
+**🛠️ Tools**: Parameter sweep engine (all 4 modes), Excel output analysis
+
+### Setup
+
+Install the package along with Streamlit and Kaleido so the dashboard and static
+exports work:
+
+```bash
+pip install -r requirements.txt
+pip install streamlit kaleido
+```
+
+> **PNG/PDF/PPTX exports require a local Chrome or Chromium installation**.
+> On Debian/Ubuntu run `sudo apt-get install -y chromium-browser`.
 
 ---
 
@@ -49,6 +62,11 @@ python -m pa_core --params config/params_template.yml --output tutorial_1_baseli
 3. How much capital is allocated to external alpha vs internal beta?
 
 **⏱️ Expected Time**: 10 minutes
+
+> **Tip**: Add `--dashboard` to automatically open the Streamlit dashboard
+> after the run. Include `--png`, `--pdf`, `--pptx`, `--html` or `--gif`
+> to export charts during the simulation. Combine these with
+> `--alt-text "Description"` for accessible captions.
 
 ---
 
