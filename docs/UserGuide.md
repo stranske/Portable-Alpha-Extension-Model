@@ -32,12 +32,11 @@ Example quick run:
 pip install -r requirements.txt
 pip install streamlit>=1.35  # required for the dashboard
 
-# Run a 500-path, 15-year simulation of all agents
-python main.py \
-  --agent ExternalPA ActiveExt InternalPA InternalBeta Base \
-  --n_sims 500 --n_months $((15*12)) \
-  --save_xlsx Outputs.xlsx \
-  --seed 42
+# Run a quick single-scenario simulation (returns mode by default)
+python -m pa_core.cli \
+  --params config/params_template.yml \
+  --index sp500tr_fred_divyield.csv \
+  --output QuickStart.xlsx
 ```
 
 ### Key concepts
