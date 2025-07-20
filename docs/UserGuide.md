@@ -716,6 +716,20 @@ The CLI names each sheet after its parameter set so the tabs match the rows in t
 
 Open the `Summary` sheet to filter by `TE` and `ShortfallProb`, or load the file in the dashboard where the **Scenario** selector lets you compare paths and metrics side by side.  The dashboard supports up to 200 scenarios so you can inspect stress-test results interactively.
 
+To compare two stress-test runs directly, load the `Summary` sheet from each workbook and generate a diverging-colour grid with `viz.delta_heatmap.make()`:
+
+```python
+import pandas as pd
+from pa_core.viz import delta_heatmap
+
+base = pd.read_excel("StressTest_base.xlsx", sheet_name="Summary")
+alt = pd.read_excel("StressTest_alt.xlsx", sheet_name="Summary")
+fig = delta_heatmap.make(base, alt, value="Sharpe")
+fig.write_image("plots/delta_heatmap.png")
+```
+
+The heatmap highlights where the alternative parameter set improves or worsens key metrics relative to the baseline.
+
 ### Tutorial 9 – Save Everything with Export Bundles
 
 Use the `viz.export_bundle.save` helper to output PNG, HTML and JSON files for multiple figures at once. Pass a list of figures and a file stem:
