@@ -66,6 +66,8 @@ python scripts/visualise.py \
 
 This produces static images under `plots/`. Use the dashboard for interactive exploration and the script for automated exports.
 
+**Next Tutorial**: Professional Bulk Export Workflows – learn to generate presentation-ready charts from parameter sweeps.
+
 ---
 
 *Tutorial 3 Enhanced: Multi-Scenario Dashboard Workflows*

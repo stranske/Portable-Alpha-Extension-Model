@@ -42,9 +42,9 @@
 
 #### 🎓 **Tutorial 2: Advanced Threshold Analysis (MEDIUM PRIORITY)**
 **Current**: Basic metric interpretation  
-**Critical Issues**: 
-- ❌ **HIGH**: 3 of 4 agents exceed TE budget (10% vs 3% cap) - needs interpretation guidance
-- ⚠️ **MEDIUM**: Missing context on normal vs concerning results, no actionable steps when thresholds breached
+**Critical Issues**:
+- ✅ **INTERPRETATION GUIDANCE ADDED**: Baseline scenario breaches the 3% TE cap to teach threshold checks
+- ✅ **ACTIONABLE CONTEXT PROVIDED**: Tutorial now explains TE < 3% and ShortfallProb < 5% as healthy ranges with steps when limits are exceeded
 
 **Enhancement**: Advanced multi-scenario analysis using parameter sweep outputs
 - Bulk scenario threshold analysis (50-200 scenarios at once)
@@ -54,9 +54,9 @@
 #### 🎓 **Tutorial 3: Multi-Scenario Dashboard Workflows (MEDIUM PRIORITY)**
 **Current**: Basic dashboard and visualization tutorial  
 **Critical Issues**:
-- ❌ **HIGH**: Streamlit not pre-installed - blocks tutorial completely for new users
-- ❌ **HIGH**: Chrome dependency for PNG/PDF exports - image generation fails
-- ⚠️ **MEDIUM**: AllReturns sheet context missing, dashboard navigation guidance insufficient
+- ✅ **Streamlit instructions provided** – dashboard setup steps now include `pip install streamlit`
+- ✅ **Chrome/Kaleido requirement documented** – PNG/PDF export guidance added
+- ✅ **AllReturns context explained** – tutorial covers Parquet conversion and navigation tips
 
 **Enhancement**: Multi-scenario visualization workflows using parameter sweeps
 - Multi-scenario dashboard loading (parameter sweep Excel files: 38KB-183KB outputs)
