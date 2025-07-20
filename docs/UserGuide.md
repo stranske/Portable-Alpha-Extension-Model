@@ -463,17 +463,19 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
    **Scenario** selector so you can browse dozens of combinations.
 3. **Add path data for advanced charts** – include the `--pivot` flag when
    running the CLI so an `AllReturns` sheet is saved. Convert that sheet to
-   `Outputs.parquet` using pandas to unlock the funding fan and distribution
-   views.
+   `Outputs.parquet` using pandas and place it in the same folder as the Excel
+   file. The Parquet file must share the same base name as the workbook (for
+   example `Outputs.parquet`) so the dashboard loads it automatically.
 4. **Explore the tabs** – the headline view shows a risk‑return scatter while
-   other tabs display cumulative funding (`Funding fan`) and final return
-   distributions (`Path dist`). When a sweep file is loaded use the **Scenario**
-  dropdown to compare up to 200 combinations. Threshold lines from
-  `config_thresholds.yaml` highlight compliant cases. Two download buttons let
-  you save the headline PNG chart and the Excel file directly from the browser.
-  Tick **Auto‑refresh** to reload the data periodically while a long simulation
-   runs. **PNG downloads require a local Chrome/Chromium installation and the**
-   **`kaleido`** **package**, otherwise the export button will fail silently.
+   other tabs display cumulative funding (`Funding fan`), final return
+   distributions (`Path dist`) and a raw **Diagnostics** table. When a sweep file
+   is loaded use the **Scenario** dropdown to compare up to 200 combinations.
+   Threshold lines from `config_thresholds.yaml` highlight compliant cases. Two
+   download buttons let you save the headline PNG chart and the Excel file
+   directly from the browser. Tick **Auto‑refresh** to reload the data
+   periodically while a long simulation runs. **PNG downloads require a local
+   Chrome/Chromium installation and the `kaleido` package**, otherwise the
+   export button will fail silently.
 
 ### Sidebar Controls
 
