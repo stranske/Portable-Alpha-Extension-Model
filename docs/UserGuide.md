@@ -709,6 +709,7 @@ combination requires its own set of images.
    ```
    Update `build_from_config` in `pa_core/agents/registry.py` to create an `AgentParams` entry when `my_agent_capital` is positive.
 4. Include `my_agent_capital` in your configuration template and set the amount you want to allocate.
+
 5. Run the CLI again and the sleeve will automatically appear in the outputs.
 
 ```python
@@ -720,6 +721,32 @@ class MyAgent(BaseAgent):
         # compute returns for each simulation and month
         return r_beta + alpha_stream - financing
 ```
+
+6. **Run a parameter sweep** – create a CSV file `custom_agent_sweep.csv`
+   with a `my_agent_capital` column listing the allocations you wish to
+   test. Execute the CLI in capital mode to iterate over each row:
+
+```bash
+python -m pa_core.cli \
+  --mode capital \
+  --params custom_agent_sweep.csv \
+  --output MyAgentSweep.xlsx
+```
+
+7. **Visualise the results** – load `MyAgentSweep.xlsx` in the dashboard
+   or build charts manually:
+
+```python
+import pandas as pd
+from pa_core.viz import risk_return
+
+df = pd.read_excel("MyAgentSweep.xlsx", sheet_name="Summary")
+fig = risk_return.make(df)
+fig.write_image("plots/my_agent_sweep.png")
+```
+
+Use these outputs to compare performance across the range of capital
+allocations and identify optimal settings for your custom agent.
 
 ### Tutorial 7 – Customise Visual Style
 
