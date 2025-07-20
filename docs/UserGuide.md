@@ -269,6 +269,16 @@ As a new user, start with the simplest possible command to establish baseline un
    - `BreachProb`: Probability of funding shortfall
    - `TE`: Tracking Error relative to benchmark
 
+   Example output:
+
+   ```text
+   ┏━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━┓
+   ┃ Agent        ┃ AnnReturn┃ AnnVol   ┃ ShortfallProb┃ TE ┃
+   ┣━━━━━━━━━━━━━━╋━━━━━━━━━━╋━━━━━━━━━━╋━━━━━━━━━━━━╋━━━━━━┫
+   ┃ Base         ┃    0.02  ┃   0.01  ┃          0.00┃ -- ┃
+   ┗━━━━━━━━━━━━━━┻━━━━━━━━━━┻━━━━━━━━━━┻━━━━━━━━━━━━┻━━━━━━┛
+   ```
+
 4. **Examine the Excel file**: Open `MyFirstResults.xlsx` to see:
    - **Summary Sheet**: Key metrics for all sleeves
    - **Inputs Sheet**: Confirms your configuration parameters
@@ -294,7 +304,16 @@ The `--mode=capital` parameter runs multiple scenarios automatically, varying ex
      --config config/capital_mode_template.csv \
      --index sp500tr_fred_divyield.csv \
      --mode capital \
-     --output CapitalSweep.xlsx
+    --output CapitalSweep.xlsx
+    ```
+
+   Example output:
+
+   ```text
+   Running 10 scenarios...
+   [1/10] External=80 Active=20
+   [10/10] External=120 Active=80
+   Results saved to CapitalSweep.xlsx
    ```
 
 3. **Compare the results**: Notice that `CapitalSweep.xlsx` now contains:
@@ -318,11 +337,20 @@ Use `--mode=returns` to test various return/volatility scenarios:
 
 2. **Run returns sensitivity analysis**:
    ```bash
-   python -m pa_core.cli \
-     --config config/returns_mode_template.csv \
-     --index sp500tr_fred_divyield.csv \
-    --mode returns \
-    --output ReturnsSweep.xlsx
+    python -m pa_core.cli \
+      --config config/returns_mode_template.csv \
+      --index sp500tr_fred_divyield.csv \
+     --mode returns \
+     --output ReturnsSweep.xlsx
+    ```
+
+   Example output:
+
+   ```text
+   Running returns sensitivity sweep (20 scenarios)
+   [1/20] mu_H=0.04 vol_H=0.01
+   [20/20] mu_H=0.06 vol_H=0.02
+   Results saved to ReturnsSweep.xlsx
    ```
 
    > **Note**
@@ -348,11 +376,20 @@ Use `--mode=alpha_shares` to optimize the split between alpha-generating and bet
 
 2. **Run alpha/beta optimization**:
    ```bash
-   python -m pa_core.cli \
-     --config config/alpha_shares_mode_template.csv \
-     --index sp500tr_fred_divyield.csv \
-     --mode alpha_shares \
-     --output AlphaSweep.xlsx
+    python -m pa_core.cli \
+      --config config/alpha_shares_mode_template.csv \
+      --index sp500tr_fred_divyield.csv \
+      --mode alpha_shares \
+      --output AlphaSweep.xlsx
+    ```
+
+   Example output:
+
+   ```text
+   Running alpha shares sweep (50 scenarios)
+   [1/50] ext_alpha=40% active_share=50%
+   [50/50] ext_alpha=60% active_share=70%
+   Results saved to AlphaSweep.xlsx
    ```
 
 3. **Analyze tracking error trade-offs**: Higher alpha allocation may increase returns but also tracking error.
@@ -373,11 +410,20 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 2. **Run volatility stress test**:
    ```bash
-   python -m pa_core.cli \
-     --config config/vol_mult_mode_template.csv \
-     --index sp500tr_fred_divyield.csv \
-     --mode vol_mult \
-     --output VolStressTest.xlsx
+    python -m pa_core.cli \
+      --config config/vol_mult_mode_template.csv \
+      --index sp500tr_fred_divyield.csv \
+      --mode vol_mult \
+      --output VolStressTest.xlsx
+    ```
+
+   Example output:
+
+   ```text
+   Running volatility stress test (9 scenarios)
+   [1/9] vol_mult=1.5
+   [9/9] vol_mult=3.0
+   Results saved to VolStressTest.xlsx
    ```
 
 3. **Evaluate resilience**: See how your strategy performs in low, normal, and high volatility environments.
