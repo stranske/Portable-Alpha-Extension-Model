@@ -893,6 +893,11 @@ thresholds react. Recent additions include advanced plots such as
 `quantile_band` and `triple_scatter`. Browse the notebook for examples and try
 widgets like `crossfilter` and `hover_sync`.
 
+Parameter sweep workbooks such as `CapitalSweep.xlsx` can also be loaded into
+the notebook.  Use the `Summary` sheet or individual scenario tabs to compare
+multiple combinations side by side and save a gallery of charts for the full
+sweep.
+
 ### Tutorial 11 – Run Parameter Sweeps
 
 The model now supports automated sweeps across key parameters. Supply a CSV or YAML file with lists of values and set `--mode` to iterate through each combination. The CLI writes a workbook summarising every run and embeds a risk‑return scatter so you can compare scenarios quickly.
