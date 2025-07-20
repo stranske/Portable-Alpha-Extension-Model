@@ -419,6 +419,11 @@ python -m pa_core.cli \
 ```
 
 Open `Tutorial2_Baseline.xlsx` and review `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE`. The sample template intentionally exceeds the **3%** tracking‑error budget so you can practise threshold analysis.
+The baseline configuration sets tracking error close to **10%** for most agents
+so **three out of four** sleeves breach the limit. This deliberate setup shows
+how the colour‑coded thresholds highlight problems in the **Summary** sheet.
+Use it as a reference point before adjusting parameters to bring TE back under
+the 3% cap.
 
 #### Part B – Capital Allocation Sweep
 
@@ -456,7 +461,13 @@ These sweeps can generate dozens of scenarios (up to 200 depending on the templa
 3. **Multi-sheet comparisons** – create a pivot table of `AnnReturn`, `TE` and `ShortfallProb` by scenario name. This helps spot parameter ranges that satisfy all thresholds simultaneously.
 4. **Iterate quickly** – adjust the template, rerun the CLI and repeat the analysis until most scenarios comply with your risk limits.
 5. **Interpret severity** – as a rule of thumb, `TE` below **3%** and `ShortfallProb` under **5%** are considered healthy. Values above roughly **5% TE** or **10% shortfall** usually require re‑tuning the parameters or reducing risk exposure.
-6. **Action plan for breaches** – when a scenario exceeds your limits, modify the capital mix or return assumptions and rerun the sweep. Iterate until the majority of scenarios fall in the green or amber zones.
+6. **Action plan for breaches** – filter the Summary sheet for `TE > 0.03` or
+   `ShortfallProb > 0.05`. Adjust capital allocations or return assumptions for
+   those scenarios and run another sweep. Repeat until the majority of results
+   fall in the green or amber zones.
+7. **Document results** – record which parameter combinations pass all
+   thresholds and escalate persistent breaches to your risk committee for
+   further review.
 
 `ShortfallProb` is a mandatory metric. If you omit it from `risk_metrics` the CLI raises a validation error. The dashboard uses the same threshold file so colours remain consistent. Refer back to the *Configuration template quick reference* for the full list of templates.
 ### Introductory Tutorial 3 – Visualise the Results (Dashboard and Scripts)
