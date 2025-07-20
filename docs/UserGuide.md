@@ -466,7 +466,7 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
    `streamlit run dashboard/app.py` manually. If you installed the package
    manually make sure `streamlit` is available:
    ```bash
-   pip install streamlit
+   pip install streamlit kaleido
    ```
 2. **Load your results** – enter the path to `Outputs.xlsx` in the sidebar. If a
    matching `Outputs.parquet` file exists the dashboard enables additional
