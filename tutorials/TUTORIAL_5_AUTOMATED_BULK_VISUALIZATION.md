@@ -16,6 +16,13 @@ df = pd.read_excel("Outputs.xlsx", sheet_name="AllReturns")
 df.to_parquet("Outputs.parquet")
 ```
 This Parquet file unlocks path-based plots such as `fan` and `path_dist`.
+
+Install **Kaleido** and a local Chrome or Chromium browser so PNG, PDF and PPTX exports work:
+
+```bash
+pip install kaleido
+sudo apt-get install -y chromium-browser
+```
 ### Available Plot Types
 | Plot Name | When to Use It |
 |-----------|----------------|
