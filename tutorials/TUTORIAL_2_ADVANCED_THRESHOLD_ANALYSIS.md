@@ -6,6 +6,12 @@
 **📋 Prerequisites**: Completion of Tutorial 1
 **🛠️ Tools**: Parameter sweep engine, `config_thresholds.yaml`, Excel filters
 
+Whether you worked through just Part&nbsp;1 of Tutorial&nbsp;1 or
+ran the full five‑part parameter sweep series, the
+metrics discussed here apply to all those results.  The
+threshold concepts remain the same regardless of which
+analysis mode produced your Excel file.
+
 ### Setup
 
 Ensure all dependencies are installed so the CLI and dashboard work:
