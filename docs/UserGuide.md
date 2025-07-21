@@ -662,6 +662,32 @@ Common plot types and when to use them:
 - `delta_heatmap` – diverging-colour grid showing differences between two sweeps.
 - `quantile_band` – rolling quantile ribbon around the median path.
 - `triple_scatter` – 3‐D scatter of tracking error, beta and excess return.
+- `radar` – radar chart comparing multiple metrics across scenarios.
+- `scatter_matrix` – grid of pairwise scatter plots to inspect correlations.
+- `parallel_coords` – parallel‑coordinates view of metrics for many scenarios.
+- `data_table` – sortable table with a built‑in CSV download button.
+- `capital_treemap` – hierarchical view of capital allocation by agent.
+- `corr_network` – network graph linking agents with high correlations.
+- `beta_heatmap` – heatmap tracking beta exposures over time.
+- `factor_bar` – grouped bar chart of factor exposures by agent.
+- `multi_fan` – overlapping confidence bands for multiple horizons.
+- `beta_scatter` – scatter of beta versus tracking error sized by capital.
+- `factor_matrix` – heatmap summarising factor sensitivities.
+- `te_cvar_scatter` – scatter comparing tracking error to CVaR.
+- `quantile_fan` – fan chart using custom quantile levels.
+- `sunburst` – return-attribution sunburst across sleeves and sub-strategies.
+- `horizon_slicer` – slider widget to focus on a subset of months.
+- `inset` – zoomed-in inset highlighting a volatile region of a chart.
+- `data_quality` – heatmap of missing data or anomalies by date.
+- `live` – connect a figure to a WebSocket feed for real-time updates.
+- `bookmark` – save and reload figure state as a JSON blob.
+- `widgets` – `ipywidgets` wrappers for interactive parameter tweaks.
+- `pdf_export` – save interactive HTML inside a PDF file.
+- `pdf_report` – multi-page PDF combining several figures.
+- `funnel` – visualise how cumulative-return dispersion widens over time.
+- `rank_table` – sortable table ranking scenarios by a chosen metric.
+- `exposure_timeline` – stacked area chart of capital deployment over time.
+- `factor_timeline` – line chart of factor exposures month by month.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
 `--alt-text` description to save images:
 
