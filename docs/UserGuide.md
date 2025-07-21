@@ -149,9 +149,9 @@ workflow.
 1. **Introductory Tutorial 1 – Master the Program (5 Parts)**
    - **Part 1**: Basic Program Operation - single scenario fundamentals
    - **Part 2**: Capital Mode - allocation percentage sweeps
-   - **Part 3**: Returns Mode - return/volatility sensitivity analysis
-   - **Part 4**: Alpha Shares Mode - alpha/beta split optimization
-   - **Part 5**: Vol Mult Mode - volatility stress testing
+   - **Part 3**: Alpha Shares Mode - alpha/beta split optimization
+   - **Part 4**: Vol Mult Mode - volatility stress testing
+   - **Part 5**: Returns Mode - return/volatility sensitivity analysis
 2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
 3. **Introductory Tutorial 3 – Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
    These first three tutorials form a quick‑start sequence for testing the core ideas.
@@ -345,46 +345,8 @@ The `--mode=capital` parameter runs multiple scenarios automatically, varying ex
 
 **Key Insight**: Capital mode helps you find optimal allocation percentages by testing multiple combinations automatically.
 
-#### Part 3: Returns Mode - Sensitivity Analysis
 
-**Objective**: Explore how different return and volatility assumptions affect outcomes.
-
-Use `--mode=returns` to test various return/volatility scenarios:
-
-1. **Examine the returns template**:
-   ```bash
-   head config/returns_mode_template.csv
-   ```
-   This template varies expected returns and volatilities for different agents.
-
-2. **Run returns sensitivity analysis**:
-   ```bash
-    python -m pa_core.cli \
-      --config config/returns_mode_template.csv \
-      --index sp500tr_fred_divyield.csv \
-     --mode returns \
-     --output ReturnsSweep.xlsx
-    ```
-
-   Example output:
-
-   ```text
-   Running returns sensitivity sweep (20 scenarios)
-   [1/20] mu_H=0.04 vol_H=0.01
-   [20/20] mu_H=0.06 vol_H=0.02
-   Results saved to ReturnsSweep.xlsx
-   ```
-
-   > **Note**
-   > Earlier releases had a bug that prevented `--mode returns` from
-   > completing successfully. Update to the latest version of the
-   > package before running this sensitivity analysis.
-
-3. **Interpret the results**: The sweep shows how sensitive your strategy is to return assumptions. Higher expected returns generally increase both returns and risks.
-
-**Key Insight**: Returns mode helps stress-test your assumptions about future market performance.
-
-#### Part 4: Alpha Shares Mode - Optimization
+#### Part 3: Alpha Shares Mode - Optimization
 
 **Objective**: Understand alpha vs. beta share allocation and its impact on tracking error.
 
@@ -418,7 +380,7 @@ Use `--mode=alpha_shares` to optimize the split between alpha-generating and bet
 
 **Key Insight**: Alpha shares mode helps balance return enhancement with tracking error constraints.
 
-#### Part 5: Vol Mult Mode - Stress Testing
+#### Part 4: Vol Mult Mode - Stress Testing
 
 **Objective**: Perform comprehensive stress testing by scaling volatilities.
 
@@ -452,14 +414,53 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 **Key Insight**: Vol mult mode reveals how robust your strategy is to changing market volatility.
 
+#### Part 5: Returns Mode - Sensitivity Analysis
+
+**Objective**: Explore how different return and volatility assumptions affect outcomes.
+
+Use `--mode=returns` to test various return/volatility scenarios:
+
+1. **Examine the returns template**:
+   ```bash
+   head config/returns_mode_template.csv
+   ```
+   This template varies expected returns and volatilities for different agents.
+
+2. **Run returns sensitivity analysis**:
+   ```bash
+    python -m pa_core.cli \
+      --config config/returns_mode_template.csv \
+      --index sp500tr_fred_divyield.csv \
+      --mode returns \
+      --output ReturnsSweep.xlsx
+   ```
+
+   Example output:
+
+   ```text
+   Running returns sensitivity sweep (20 scenarios)
+   [1/20] mu_H=0.04 vol_H=0.01
+   [20/20] mu_H=0.06 vol_H=0.02
+   Results saved to ReturnsSweep.xlsx
+   ```
+
+   > **Note**
+   > Earlier releases had a bug that prevented `--mode returns` from
+   > completing successfully. Update to the latest version of the
+   > package before running this sensitivity analysis.
+
+3. **Interpret the results**: The sweep shows how sensitive your strategy is to return assumptions. Higher expected returns generally increase both returns and risks.
+
+**Key Insight**: Returns mode helps stress-test your assumptions about future market performance.
+
 #### Tutorial 1 Summary
 
 You've now mastered:
 - ✅ Basic single-scenario operation (Part 1)
 - ✅ Capital allocation optimization (Part 2)
-- ✅ Return assumption sensitivity (Part 3)
-- ✅ Alpha/beta split optimization (Part 4)
-- ✅ Volatility stress testing (Part 5)
+- ✅ Alpha/beta split optimization (Part 3)
+- ✅ Volatility stress testing (Part 4)
+- ✅ Return assumption sensitivity (Part 5)
 
 **Next Steps**: Proceed to Tutorial 2 to learn detailed metric interpretation, or Tutorial 3 to explore the interactive dashboard. All visualization features work with results from any of these five approaches.
 
