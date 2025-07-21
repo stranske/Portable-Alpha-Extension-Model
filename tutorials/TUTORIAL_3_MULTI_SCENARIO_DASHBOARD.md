@@ -6,6 +6,10 @@
 **📋 Prerequisites**: Completion of Tutorial 2, working parameter sweep outputs
 **🛠️ Tools**: Streamlit dashboard, parameter sweep engine, Chrome/Kaleido for exports
 
+You can load results from any part of Tutorial&nbsp;1.
+Single scenarios and all sweep modes produce workbooks that
+the dashboard reads in the same way.
+
 ### Setup
 
 Install the extra packages if they are not already available:
