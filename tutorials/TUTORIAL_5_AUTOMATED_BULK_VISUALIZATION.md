@@ -25,7 +25,14 @@ This Parquet file unlocks path-based plots such as `fan` and `path_dist`.
 | `corr_heatmap` | Highlight monthly return correlations between agents. |
 | `sharpe_ladder` | Rank scenarios by Sharpe ratio. |
 | `rolling_panel` | Rolling drawdown, tracking error and Sharpe metrics. |
-| `surface` | 3‑D risk/return surface for sweep summaries. |
+| `surface` | 3‑D risk/return surface from parameter sweeps. |
+| `category_pie` | Donut summarising capital allocation by agent. |
+| `overlay` | Line chart comparing cumulative paths across agents. |
+| `waterfall` | Step-by-step bar chart of capital contributions. |
+| `gauge` | Dial showing risk or return relative to a target. |
+| `moments_panel` | Rolling mean, volatility and skew dashboard. |
+| `rolling_corr_heatmap` | Heatmap revealing correlation drift over time. |
+| `weighted_stack` | Stacked bars scaled by horizon length. |
 
 
 ### 1. Create a Gallery of Charts
