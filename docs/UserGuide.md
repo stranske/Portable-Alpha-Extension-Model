@@ -40,6 +40,19 @@ python -m pa_core.cli \
   --output QuickStart.xlsx
 ```
 
+To run a multi-scenario sweep, supply one of the CSV templates and specify a
+mode:
+
+```bash
+python -m pa_core.cli \
+  --params config/capital_mode_template.csv \
+  --mode capital \
+  --index sp500tr_fred_divyield.csv \
+  --output CapitalSweep.xlsx
+```
+The resulting workbook aggregates every scenario on a **Summary** sheet for
+easy filtering and dashboard visualisation.
+
 ### Key concepts
 
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
