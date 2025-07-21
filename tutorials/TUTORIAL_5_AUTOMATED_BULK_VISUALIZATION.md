@@ -58,9 +58,9 @@ python scripts/visualise.py \
   --plot fan \
   --xlsx Sweep.xlsx \
   --parquet Sweep.parquet \
-  --png --gif
+  --png --gif --alt-text "Funding fan"
 ```
-The command produces `plots/fan.png` and `plots/fan.gif`. GIF creation logs a warning if Chrome or Kaleido is missing. PNG/PDF/PPTX exports behave the same way -- check the console logs if no file appears.
+The command produces `plots/fan.png` and `plots/fan.gif`. GIF creation logs a warning if Chrome or Kaleido is missing. PNG/PDF/PPTX exports behave the same way -- check the console logs if no file appears. Use `--alt-text` to provide an accessible description for HTML or PPTX files.
 
 ### 3. Recommended Workflow
 
