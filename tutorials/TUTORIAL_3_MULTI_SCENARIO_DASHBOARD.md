@@ -19,6 +19,24 @@ pip install streamlit kaleido
 sudo apt-get install -y chromium-browser  # required for PNG/PDF downloads
 ```
 
+### Visualization compatibility
+
+The dashboard relies on a single visualization library that works across **all**
+analysis modes. Each sweep writes a standard `Summary` sheet so the same set of
+charts load regardless of whether you run capital, returns, alpha shares or
+volatility sweeps.
+
+| Analysis Mode | `risk_return` | `surface` | `fan` | `sharpe_ladder` | `rolling_panel` |
+|---------------|---------------|-----------|-------|-----------------|-----------------|
+| Capital       | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+| Returns       | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+| Alpha Shares  | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+| Vol Mult      | ✅ Auto       | ✅ Yes    | ✅ Yes| ✅ Yes          | ✅ Yes          |
+
+`risk_return` is embedded automatically in the Excel export so you always have a
+baseline scatter plot. The other charts appear in the dashboard once a summary
+table is loaded.
+
 ### 1. Generate a Parameter Sweep
 
 Run a sweep so you have a multi-scenario Excel file to explore. Any mode works.
