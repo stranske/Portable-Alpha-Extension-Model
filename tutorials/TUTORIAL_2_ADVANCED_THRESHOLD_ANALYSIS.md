@@ -27,6 +27,19 @@ pip install streamlit kaleido
 > under `risk_metrics`. The CLI stops with an error otherwise, but the
 > exporter inserts a default `0.0` column so older files still work.
 
+### File selection matrix
+
+Use the correct template and CLI flags for each scenario type:
+
+| Purpose                    | File type | CLI flags                      | Example file                     |
+|----------------------------|-----------|--------------------------------|---------------------------------|
+| Single scenario (YAML)     | `.yml`    | `--config`                     | `params_template.yml`           |
+| Single scenario (CSV)      | `.csv`    | `--params`                     | `parameters_template.csv`       |
+| Capital allocation sweep   | `.csv`    | `--params` + `--mode capital`   | `capital_mode_template.csv`     |
+| Alpha shares optimisation  | `.csv`    | `--params` + `--mode alpha_shares` | `alpha_shares_mode_template.csv` |
+| Returns sensitivity        | `.csv`    | `--params` + `--mode returns`   | `returns_mode_template.csv`     |
+| Volatility stress test     | `.csv`    | `--params` + `--mode vol_mult`  | `vol_mult_mode_template.csv`    |
+
 ---
 
 ## 📚 **PART A – Single Scenario Review**
