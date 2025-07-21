@@ -14,6 +14,9 @@ Ensure Kaleido and a local Chrome or Chromium browser are installed so static ex
 pip install kaleido
 sudo apt-get install -y chromium-browser
 ```
+If these dependencies are missing the CLI logs a warning and no image is
+created, so check the console if a file does not appear. Use the
+`--alt-text` flag to embed accessible descriptions in HTML and PPTX exports.
 
 ### 1. Export During a Simulation
 
