@@ -596,6 +596,16 @@ The CLI can create static images or PPTX packs as part of a run. Combine the fol
 
 `--html` saves an interactive Plotly page, while `--gif` exports an animation of monthly paths.  The optional `--alt-text` flag attaches descriptive text to HTML and PPTX exports so charts remain accessible.  You can also run `scripts/visualise.py` after a simulation to generate additional charts from the saved output files.
 
+Use the format that best suits your audience:
+
+- **HTML** – interactive analysis and sharing with colleagues
+- **PNG** – quick static images for documentation
+- **PDF** – immutable reports for compliance
+- **PPTX** – presentation-ready slides
+- **GIF** – short path animations
+
+Always include meaningful `--alt-text` so exported figures remain accessible.
+
 When running a parameter sweep you can include the same export flags to produce a presentation deck for every scenario automatically.  The CLI names the PPTX after your `--output` file so a single command generates both the Excel workbook and a slide pack:
 
 ```bash
@@ -614,6 +624,20 @@ python -m pa_core.cli \
   --params config/alpha_shares_mode_template.csv \
   --mode alpha_shares \
   --png --pdf --pptx --output AlphaSweep.xlsx
+```
+
+For even larger sweeps you can loop over the summary table and call
+`export_bundle.save` for each scenario to create a gallery of charts or a deck of
+slides:
+
+```python
+import pandas as pd
+from pa_core.viz import risk_return, export_bundle
+
+df_summary = pd.read_excel("AlphaSweep.xlsx", sheet_name="Summary")
+for label, df in df_summary.groupby("Scenario"):
+    fig = risk_return.make(df)
+    export_bundle.save([fig], f"plots/{label}")
 ```
 
 The files are written under a `plots/` directory with names such as `summary.png`,
