@@ -24,6 +24,12 @@ export_bundle.save(figs, "plots/summary")
 ```
 
 The helper writes PNG, HTML and JSON files by default. Use `--alt-text` with the CLI for accessible captions.
+If Chrome or Kaleido are missing the PNG step logs a warning and only the HTML
+and JSON files appear. Check the console output if an image is missing.
+
+For additional formats call the matching helpers or enable the CLI flags:
+`--pdf`, `--pptx` and `--gif` generate extra files for each figure when
+supported.
 
 ### Step 2 – Loop over scenarios
 
@@ -34,6 +40,7 @@ for label, df in sweep_dfs.items():
     figs = [risk_return.make(df), fan.make(paths[label])]
     export_bundle.save(figs, f"plots/{label}")
 ```
+Pass `alt_texts` to label each image and adjust the prefix to control file naming. Each call writes `prefix_1.png`, `prefix_1.html` and so on.
 
 Combine this approach with the CLI export flags to archive an entire run automatically.
 
