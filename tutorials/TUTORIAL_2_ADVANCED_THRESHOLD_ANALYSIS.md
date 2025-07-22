@@ -57,6 +57,9 @@ Use the correct template and CLI flags for each scenario type:
    ```
 3. Open `Tutorial2_Baseline.xlsx` and inspect `ShortfallProb` and `TE`.
    The sample data intentionally breaches the **3%** tracking-error budget.
+   Shortfall probability below **5%** is typically considered healthy, so use
+   the baseline results to practise bringing both metrics back within these
+   limits.
 
 ## 📚 **PART B – Capital Allocation Sweep**
 
@@ -74,7 +77,8 @@ python -m pa_core.cli \
 The `--dashboard` flag launches the Streamlit interface automatically so you can
 review scenarios side by side without running a separate command.
 
-Sort the **Summary** sheet by `TE` or `ShortfallProb` to find compliant scenarios.
+Sort the **Summary** sheet by `TE` or `ShortfallProb` and filter for
+`TE < 0.03` and `ShortfallProb < 0.05` to find healthy scenarios.
 
 ## 📚 **PART C – Advanced Sweeps**
 
@@ -95,8 +99,9 @@ threshold checks as in Part B.
 
 ## 📚 **PART D – Multi‑Scenario Interpretation**
 
-1. **Compare to thresholds** – use `config_thresholds.yaml` to highlight breaches.
-2. **Filter combinations** – in the **Summary** sheet, filter for `TE < 0.03` and low `ShortfallProb`.
+1. **Compare to thresholds** – use `config_thresholds.yaml` to highlight breaches. Values
+   below **3% TE** and **5% ShortfallProb** are generally considered healthy.
+2. **Filter combinations** – in the **Summary** sheet, filter for `TE < 0.03` and `ShortfallProb < 0.05`.
 3. **Pivot analysis** – create a pivot table of `AnnReturn`, `TE` and `ShortfallProb` by scenario name.
 4. **Iterate quickly** – adjust parameters and rerun sweeps until most scenarios fall in the green zone.
 5. **Document findings** – record which parameter sets meet all limits and note any persistent issues.
