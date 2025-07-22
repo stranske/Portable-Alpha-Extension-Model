@@ -8,12 +8,22 @@
 
 ### Setup
 
-Ensure `Outputs.xlsx` and the matching `Outputs.parquet` are in the same folder. Convert the `AllReturns` sheet after running the CLI if needed:
+Start by running your parameter sweep **with the `--pivot` flag** so an `AllReturns` sheet is written. This sheet contains the full path data required for advanced plots.
+
+```bash
+python -m pa_core.cli \
+  --params config/capital_mode_template.csv \
+  --mode capital \
+  --output Sweep.xlsx \
+  --pivot
+```
+
+After the run, convert the sheet to Parquet:
 
 ```python
 import pandas as pd
-df = pd.read_excel("Outputs.xlsx", sheet_name="AllReturns")
-df.to_parquet("Outputs.parquet")
+df = pd.read_excel("Sweep.xlsx", sheet_name="AllReturns")
+df.to_parquet("Sweep.parquet")
 ```
 This Parquet file unlocks path-based plots such as `fan` and `path_dist`.
 

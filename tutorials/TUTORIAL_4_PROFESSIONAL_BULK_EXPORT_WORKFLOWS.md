@@ -22,6 +22,16 @@ Parameter sweeps often generate **50–200 scenarios** depending on the template
 The export flags handle these automatically, creating one image or slide per
 scenario so large batches require no extra scripting.
 
+### Export flag quick reference
+
+| Flag | Output format | Best for |
+|------|---------------|----------|
+| `--png` | Static images | quick documentation or emails |
+| `--pdf` | PDF pages | immutable compliance reports |
+| `--pptx` | PowerPoint deck | board presentations |
+| `--html` | Interactive page | exploring results offline |
+| `--gif` | Animated path | dynamic slides or demos |
+
 ### 1. Export During a Simulation
 
 Pass one or more export flags when running the CLI. The example below generates a PPTX deck for every scenario in a capital sweep:
