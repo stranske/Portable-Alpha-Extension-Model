@@ -727,8 +727,9 @@ Common plot types and when to use them:
 - `rank_table` – sortable table ranking scenarios by a chosen metric.
 - `exposure_timeline` – stacked area chart of capital deployment over time.
 - `factor_timeline` – line chart of factor exposures month by month.
+Run `python scripts/visualise.py --help` to list all available plot names and options.
 Combine with `--png`, `--pdf`, `--pptx`, `--html`, `--gif` and an optional
-`--alt-text` description to save images:
+ `--alt-text` description to save images:
 
 ```bash
 python scripts/visualise.py \
