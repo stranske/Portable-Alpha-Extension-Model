@@ -66,8 +66,31 @@ theme.reload_thresholds("config_thresholds.yaml")
 df = pd.read_excel("Sweep.xlsx", sheet_name="Summary")
 for label, df_scenario in df.groupby("Scenario"):
     fig = risk_return.make(df_scenario)
-    export_bundle.save([fig], f"plots/{label}", alt_texts=[f"{label} risk-return"])
+export_bundle.save([fig], f"plots/{label}", alt_texts=[f"{label} risk-return"])
 ```
+
+### Step 4 – Scenario‑Specific Styling
+
+Use different theme or threshold files for each scenario to highlight
+important cases:
+
+```python
+import pandas as pd
+from pathlib import Path
+from pa_core.viz import risk_return, export_bundle, theme
+
+df = pd.read_excel("Sweep.xlsx", sheet_name="Summary")
+for label, df_scenario in df.groupby("Scenario"):
+    theme_file = Path("themes") / f"{label}.yaml"
+    if theme_file.exists():
+        theme.reload_theme(theme_file)
+    theme.reload_thresholds("config_thresholds.yaml")
+    fig = risk_return.make(df_scenario)
+    export_bundle.save([fig], f"plots/{label}")
+```
+
+This approach lets you colour‑code specific scenarios or apply custom
+threshold levels without editing the plotting code.
 
 ---
 
