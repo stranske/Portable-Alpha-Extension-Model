@@ -40,11 +40,16 @@ each scenario. Example loop inside the notebook:
 
 ```python
 import pandas as pd
-from pa_core.viz import risk_return, export_bundle
+from pa_core.viz import risk_return, export_bundle, theme
+
+# Optionally apply a custom theme and threshold file
+theme.reload_theme("my_theme.yaml")
+theme.reload_thresholds("config_thresholds.yaml")
 
 df = pd.read_excel("GalleryDemo.xlsx", sheet_name="Summary")
-fig = risk_return.make(df)
-export_bundle.save([fig], "plots/gallery_demo", alt_texts=["Risk-return chart"])
+for label, df_scenario in df.groupby("Scenario"):
+    fig = risk_return.make(df_scenario)
+    export_bundle.save([fig], f"plots/{label}", alt_texts=[f"{label} risk-return"])
 ```
 
 Add a markdown cell describing the scenario and chart before each code block so
