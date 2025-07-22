@@ -30,20 +30,22 @@ sudo apt-get install -y chromium-browser
 ### Available Plot Types
 | Plot Name | When to Use It |
 |-----------|----------------|
-| `risk_return` | Compare annualised return vs volatility across scenarios. |
-| `fan` | Funding fan showing median path and confidence ribbon. Requires `Outputs.parquet`. |
-| `path_dist` | Histogram of monthly returns sourced from `Outputs.parquet`. |
-| `corr_heatmap` | Highlight monthly return correlations between agents. |
-| `sharpe_ladder` | Rank scenarios by Sharpe ratio. |
-| `rolling_panel` | Rolling drawdown, tracking error and Sharpe metrics. |
-| `surface` | 3‑D risk/return surface from parameter sweeps. |
-| `category_pie` | Donut summarising capital allocation by agent. |
-| `overlay` | Line chart comparing cumulative paths across agents. |
-| `waterfall` | Step-by-step bar chart of capital contributions. |
-| `gauge` | Dial showing risk or return relative to a target. |
-| `moments_panel` | Rolling mean, volatility and skew dashboard. |
-| `rolling_corr_heatmap` | Heatmap revealing correlation drift over time. |
-| `weighted_stack` | Stacked bars scaled by horizon length. |
+| `risk_return` | Annualised return vs volatility scatter for all scenarios – a starting point for every sweep. |
+| `fan` | Funding fan chart with median path and confidence bands (requires `Outputs.parquet`) to visualise drawdowns. |
+| `path_dist` | Histogram or CDF of final returns sourced from `Outputs.parquet` to inspect tail risk. |
+| `corr_heatmap` | Monthly-return correlation matrix highlighting diversification benefits between agents. |
+| `sharpe_ladder` | Bar ranking scenarios by Sharpe ratio to compare risk-adjusted performance. |
+| `rolling_panel` | Rolling drawdown, tracking error and Sharpe metrics to monitor performance stability over time. |
+| `surface` | 3‑D risk/return surface from parameter sweeps to visualise parameter sensitivity. |
+| `category_pie` | Donut summarising capital allocation by agent for quick composition checks. |
+| `overlay` | Line chart comparing cumulative returns across agents or scenarios. |
+| `waterfall` | Step-by-step bar chart showing contributions to portfolio returns. |
+| `gauge` | Dial summarising a single metric relative to a target threshold. |
+| `moments_panel` | Rolling mean, volatility and skew dashboard revealing distribution changes. |
+| `rolling_corr_heatmap` | Time-series heatmap of correlations to detect regime shifts. |
+| `weighted_stack` | Stacked bars scaled by horizon length to illustrate period contributions. |
+
+Run `python scripts/visualise.py --help` to see the full list of more than forty plot names and options.
 
 
 ### 1. Create a Gallery of Charts
