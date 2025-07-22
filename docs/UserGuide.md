@@ -804,6 +804,16 @@ fig.write_image("plots/my_agent_sweep.png")
 Use these outputs to compare performance across the range of capital
 allocations and identify optimal settings for your custom agent.
 
+8. **Add custom metrics** – extend the summary table with additional
+   calculations before plotting. For example:
+
+```python
+df = pd.read_excel("MyAgentSweep.xlsx", sheet_name="Summary")
+df["ReturnOverRisk"] = df["AnnReturn"] / df["AnnVol"]
+fig = risk_return.make(df)
+fig.write_image("plots/my_agent_custom.png")
+```
+
 ### Tutorial 7 – Customise Visual Style
 
 Colours, fonts and traffic-light thresholds load from `config_theme.yaml` and `config_thresholds.yaml`. Edit these files before running the CLI or dashboard to adjust palettes or risk limits. After editing, reload the dashboard or call `pa_core.viz.theme.reload_theme()` from Python.
