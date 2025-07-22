@@ -626,6 +626,7 @@ slide per scenario so you can distribute a ready‑made presentation.
 > ```bash
 > sudo apt-get install -y chromium-browser
 > ```
+> Static export attempts log a warning if Chrome is missing, and the PNG/PDF/PPTX files are not created. Check the console output for these warnings if no image appears.
 
 ### Tutorial 5 – Generate Custom Visualisations
 
