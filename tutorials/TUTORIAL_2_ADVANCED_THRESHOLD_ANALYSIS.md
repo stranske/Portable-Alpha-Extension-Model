@@ -67,8 +67,12 @@ python -m pa_core.cli \
   --params config/capital_mode_template.csv \
   --mode capital \
   --index sp500tr_fred_divyield.csv \
-  --output Tutorial2_CapitalSweep.xlsx
+  --output Tutorial2_CapitalSweep.xlsx \
+  --dashboard
 ```
+
+The `--dashboard` flag launches the Streamlit interface automatically so you can
+review scenarios side by side without running a separate command.
 
 Sort the **Summary** sheet by `TE` or `ShortfallProb` to find compliant scenarios.
 
@@ -78,8 +82,11 @@ Run additional sweeps and keep the results separate:
 
 ```bash
 python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
-python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
+python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx \
+  --dashboard
 ```
+
+Launching the dashboard after each run helps you compare sweeps interactively without reopening the files manually.
 
 Each file may contain dozens or even hundreds of scenarios (50–200 depending on
 the template size). Open the **Summary** sheet or load the workbook in the
