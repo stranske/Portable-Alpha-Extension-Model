@@ -82,4 +82,5 @@ The command produces `plots/fan.png` and `plots/fan.gif`. GIF creation logs a wa
 
 ---
 
+**Next Tutorial**: Dynamic Agent Configuration – add and test your own sleeve classes.
 *Tutorial 5 Enhanced: Automated Bulk Visualization Workflows*
