@@ -46,6 +46,26 @@ Pass `alt_texts` to label each image and adjust the prefix to control file namin
 
 Combine this approach with the CLI export flags to archive an entire run automatically.
 
+### Step 3 – Extend with custom formats
+
+Use the dedicated helpers to generate additional file types and keep each
+scenario in its own folder for easy auditing:
+
+```python
+from pathlib import Path
+from pa_core.viz import pdf_export, pptx_export
+
+for label, df in sweep_dfs.items():
+    figs = [risk_return.make(df), fan.make(paths[label])]
+    stem = Path(f"archive/{label}/chart")
+    export_bundle.save(figs, stem)
+    pdf_export.save(figs[0], stem.with_suffix(".pdf"))
+    pptx_export.save(figs, stem.with_suffix(".pptx"))
+```
+
+This plugin-style approach preserves scenario labels in the file names and adds
+PDF or PPTX versions alongside the standard PNG/HTML/JSON files.
+
 ---
 
 **Next Tutorial**: Interactive Gallery Enhancement – explore every chart type in the Jupyter notebook.
