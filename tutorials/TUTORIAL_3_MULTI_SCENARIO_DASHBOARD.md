@@ -18,6 +18,10 @@ Install the extra packages if they are not already available:
 pip install streamlit kaleido
 sudo apt-get install -y chromium-browser  # required for PNG/PDF downloads
 ```
+Make sure your parameter file lists `ShortfallProb` under `risk_metrics`. The
+CLI aborts if this mandatory metric is missing, but legacy workbooks are
+back-filled with a default `0.0` so the dashboard still loads them. Always use
+`--output` when running a sweep so previous results are not overwritten.
 
 ### Visualization compatibility
 
