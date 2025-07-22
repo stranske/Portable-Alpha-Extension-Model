@@ -18,6 +18,10 @@ If these dependencies are missing the CLI logs a warning and no image is
 created, so check the console if a file does not appear. Use the
 `--alt-text` flag to embed accessible descriptions in HTML and PPTX exports.
 
+Parameter sweeps often generate **50–200 scenarios** depending on the template.
+The export flags handle these automatically, creating one image or slide per
+scenario so large batches require no extra scripting.
+
 ### 1. Export During a Simulation
 
 Pass one or more export flags when running the CLI. The example below generates a PPTX deck for every scenario in a capital sweep:

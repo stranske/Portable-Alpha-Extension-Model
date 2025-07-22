@@ -17,6 +17,10 @@ df.to_parquet("Outputs.parquet")
 ```
 This Parquet file unlocks path-based plots such as `fan` and `path_dist`.
 
+Sweeps typically contain **50–200 scenarios**, so these scripts are designed to
+loop over large summary tables automatically. Each scenario can generate one or
+more figures without manual intervention.
+
 Install **Kaleido** and a local Chrome or Chromium browser so PNG, PDF and PPTX exports work:
 
 ```bash
