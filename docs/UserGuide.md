@@ -844,6 +844,27 @@ fig.write_image("plots/sweep.png")
 Reload different theme files inside a loop to style each scenario in a
 parameter sweep automatically.
 
+### Scenario-specific styling
+
+You can apply a different theme to each scenario in a parameter sweep to create
+branded reports for multiple clients. Store the YAML theme files in a folder and
+reload them during iteration:
+
+```python
+from pa_core.viz import theme, risk_return, export_bundle
+import pandas as pd
+
+df_summary = pd.read_excel("Sweep.xlsx", sheet_name="Summary")
+
+for scenario, df in df_summary.groupby("Scenario"):
+    theme.load_theme(f"themes/{scenario}.yaml")
+    fig = risk_return.make(df)
+    export_bundle.save([fig], f"plots/{scenario}")
+```
+
+The threshold colours come from `config_thresholds.yaml`, so you can adjust that
+file alongside each theme to highlight compliance for different risk limits.
+
 ## Dashboard Views
 
 The dashboard contains four tabs, each aimed at a different angle on portfolio behaviour.
