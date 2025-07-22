@@ -6,6 +6,15 @@
 **📋 Prerequisites**: Completion of Tutorial 6
 **🛠️ Tools**: `config_theme.yaml`, `config_thresholds.yaml`, `pa_core.viz.theme`
 
+### Setup
+
+Install Streamlit and Kaleido plus a local Chrome or Chromium browser so the dashboard and static exports work:
+
+```bash
+pip install streamlit kaleido
+sudo apt-get install -y chromium-browser
+```
+
 ### Step 1 – Edit the theme files
 
 Adjust colours and fonts in `config_theme.yaml` and set threshold levels in `config_thresholds.yaml`:

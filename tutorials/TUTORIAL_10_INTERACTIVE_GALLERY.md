@@ -6,6 +6,15 @@
 **📋 Prerequisites**: Completion of Tutorial 9
 **🛠️ Tools**: `viz_gallery.ipynb`, `export_bundle.save`, `scripts/visualise.py`
 
+### Setup
+
+Install Streamlit and Kaleido plus a local Chrome or Chromium browser so the dashboard and static exports work:
+
+```bash
+pip install streamlit kaleido
+sudo apt-get install -y chromium-browser
+```
+
 ### Step 1 – Launch the notebook
 
 ```bash

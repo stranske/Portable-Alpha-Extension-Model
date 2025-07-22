@@ -6,6 +6,15 @@
 **📋 Prerequisites**: Completion of Tutorial 5
 **🛠️ Tools**: `pa_core.agents`, `pa_core.config`, parameter sweep engine
 
+### Setup
+
+Install Streamlit and Kaleido plus a local Chrome or Chromium browser so the dashboard and static exports work:
+
+```bash
+pip install streamlit kaleido
+sudo apt-get install -y chromium-browser
+```
+
 ### Step 1 – Create a new agent
 
 ```python
