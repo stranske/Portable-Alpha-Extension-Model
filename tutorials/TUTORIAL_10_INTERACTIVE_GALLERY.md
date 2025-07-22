@@ -22,7 +22,7 @@ python -m pa_core.cli --config params_template.yml \
 
 ### Step 2 – Experiment with plots
 
-Load `GalleryDemo.xlsx` (and `GalleryDemo.parquet` if available) and run the cells to create figures. The notebook demonstrates advanced plots such as `overlay`, `category_pie`, `gauge`, `moments_panel`, `scenario_slider`, `weighted_stack`, `geo_exposure`, `seasonality_heatmap`, `beta_te_scatter`, `mosaic`, `metric_selector`, `boxplot`, `delta_heatmap`, `quantile_band` and `triple_scatter`.
+Load `GalleryDemo.xlsx` (and `GalleryDemo.parquet` if available) and run the cells to create figures. The notebook demonstrates advanced plots such as `overlay`, `category_pie`, `gauge`, `moments_panel`, `scenario_slider`, `spark_matrix`, `weighted_stack`, `geo_exposure`, `seasonality_heatmap`, `beta_te_scatter`, `milestone_timeline`, `mosaic`, `metric_selector`, `boxplot`, `delta_heatmap`, `quantile_band` and `triple_scatter`.
 
 ### Step 3 – Save a gallery
 
