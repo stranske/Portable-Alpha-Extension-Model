@@ -21,10 +21,10 @@ Sweeps typically contain **50–200 scenarios**, so these scripts are designed t
 loop over large summary tables automatically. Each scenario can generate one or
 more figures without manual intervention.
 
-Install **Kaleido** and a local Chrome or Chromium browser so PNG, PDF and PPTX exports work:
+Install **Streamlit**, **Kaleido** and a local Chrome or Chromium browser so PNG, PDF and PPTX exports work:
 
 ```bash
-pip install kaleido
+pip install streamlit kaleido
 sudo apt-get install -y chromium-browser
 ```
 ### Available Plot Types

@@ -8,10 +8,10 @@
 
 ### Setup
 
-Ensure Kaleido and a local Chrome or Chromium browser are installed so static exports work:
+Ensure Streamlit, Kaleido and a local Chrome or Chromium browser are installed so static exports work:
 
 ```bash
-pip install kaleido
+pip install streamlit kaleido
 sudo apt-get install -y chromium-browser
 ```
 If these dependencies are missing the CLI logs a warning and no image is

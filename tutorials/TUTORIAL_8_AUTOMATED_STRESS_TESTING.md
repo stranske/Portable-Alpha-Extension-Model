@@ -6,6 +6,15 @@
 **📋 Prerequisites**: Completion of Tutorial 7
 **🛠️ Tools**: Parameter sweep engine, dashboard, `viz.delta_heatmap`
 
+### Setup
+
+Install Streamlit and Kaleido plus a local Chrome or Chromium browser so the dashboard and static exports work:
+
+```bash
+pip install streamlit kaleido
+sudo apt-get install -y chromium-browser
+```
+
 ### Step 1 – Run a stress‑test sweep
 
 Choose a sweep template such as `returns_mode_template.csv` and always pass `--output` so previous results are preserved:
