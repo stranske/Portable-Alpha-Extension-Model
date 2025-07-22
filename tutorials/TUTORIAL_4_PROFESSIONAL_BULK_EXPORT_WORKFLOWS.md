@@ -79,4 +79,5 @@ python scripts/visualise.py \
 
 ---
 
+**Next Tutorial**: Automated Bulk Visualization Workflows – use `scripts/visualise.py` to generate galleries of charts.
 *Tutorial 4 Enhanced: Professional Bulk Export Workflows*
