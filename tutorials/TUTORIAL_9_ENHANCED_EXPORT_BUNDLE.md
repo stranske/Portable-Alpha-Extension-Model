@@ -14,6 +14,8 @@ Install Streamlit and Kaleido plus a local Chrome or Chromium browser so the das
 pip install streamlit kaleido
 sudo apt-get install -y chromium-browser
 ```
+When generating results for this tutorial, always pass a unique `--output` name
+to the CLI so each sweep saves to a new workbook.
 
 ### Step 1 – Save multiple figures at once
 
