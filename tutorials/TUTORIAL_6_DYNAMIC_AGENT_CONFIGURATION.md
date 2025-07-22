@@ -58,6 +58,25 @@ fig.write_image("plots/my_agent_sweep.png")
 
 Use these outputs to compare performance across the range of capital allocations and identify optimal settings.
 
+### Step 5 – Add custom metrics
+
+Extend the summary table with additional calculations to analyse the new agent
+across the sweep results. For example, compute a simple return‑over‑risk ratio
+and regenerate the chart:
+
+```python
+import pandas as pd
+from pa_core.viz import risk_return
+
+df_summary = pd.read_excel("MyAgentSweep.xlsx", sheet_name="Summary")
+df_summary["ReturnOverRisk"] = df_summary["AnnReturn"] / df_summary["AnnVol"]
+fig = risk_return.make(df_summary)
+fig.write_image("plots/my_agent_custom.png")
+```
+
+Update your visualisation scripts to use any custom columns when comparing
+scenarios.
+
 ---
 
 **Next Tutorial**: Advanced Theme Integration – learn how to customise the colour scheme and thresholds for your charts.
