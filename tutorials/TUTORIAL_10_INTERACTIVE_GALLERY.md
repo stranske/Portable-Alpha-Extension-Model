@@ -35,7 +35,21 @@ Load `GalleryDemo.xlsx` (and `GalleryDemo.parquet` if available) and run the cel
 
 ### Step 3 – Save a gallery
 
-Use `export_bundle.save` or `scripts/visualise.py` to batch export charts for each scenario.
+Use `export_bundle.save` or `scripts/visualise.py` to batch export charts for
+each scenario. Example loop inside the notebook:
+
+```python
+import pandas as pd
+from pa_core.viz import risk_return, export_bundle
+
+df = pd.read_excel("GalleryDemo.xlsx", sheet_name="Summary")
+fig = risk_return.make(df)
+export_bundle.save([fig], "plots/gallery_demo", alt_texts=["Risk-return chart"])
+```
+
+Add a markdown cell describing the scenario and chart before each code block so
+the notebook doubles as documentation. `export_bundle.save` writes PNG, HTML and
+JSON files by default and logs a warning if Chrome or Kaleido are missing.
 
 ---
 

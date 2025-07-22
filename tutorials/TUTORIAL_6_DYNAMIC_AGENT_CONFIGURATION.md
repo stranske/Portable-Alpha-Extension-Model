@@ -30,15 +30,31 @@ Register the class in `pa_core/agents/registry.py` by adding it to `_AGENT_MAP`.
 
 ### Step 2 – Extend the configuration
 
-Add a capital field to `ModelConfig` and handle it in `build_from_config`:
+Add a capital field to `ModelConfig` and modify `build_from_config` so the agent is created automatically:
 
 ```python
 class ModelConfig(BaseModel):
     my_agent_capital: float = 0.0
+
+def build_from_config(cfg: ModelConfig) -> list[Agent]:
+    params = [
+        AgentParams("Base", cfg.total_fund_capital, cfg.w_beta_H, cfg.w_alpha_H, {})
+    ]
+    if cfg.my_agent_capital > 0:
+        params.append(
+            AgentParams(
+                "MyAgent",
+                cfg.my_agent_capital,
+                cfg.my_agent_capital / cfg.total_fund_capital,
+                0.0,
+                {},
+            )
+        )
+    # existing sleeves here ...
+    return build_all(params)
 ```
 
-When `my_agent_capital` is positive, create an `AgentParams` entry for `MyAgent`.
-Include the new field in your YAML or CSV template so the CLI knows how much to allocate.
+Include `my_agent_capital` in your YAML or CSV template so the CLI knows how much to allocate. When the value is positive the new agent automatically appears in the outputs.
 
 ### Step 3 – Run a parameter sweep
 
