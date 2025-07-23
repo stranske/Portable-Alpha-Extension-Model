@@ -1,44 +1,44 @@
 # 🔍 Streamlined Codex Debugging Report
 
-**Timestamp**: 2025-07-18 06:17:52
+**Timestamp**: 2025-07-17 07:16:15
 **Repository**: Portable-Alpha-Extension-Model
 
 ## ✅ All Checks Passed
 No issues detected in streamlined debugging.
 
 ## 📋 Debugging Steps
-**06:17:48** ⚠️ GitHub Integration Check
+**07:16:12** ⚠️ GitHub Integration Check
 
-**06:17:51** ✅ GitHub PR Status
-  - PR #207: Improve visualization and export bundle tutorials
+**07:16:14** ⚠️ GitHub PR Status
+  - No active PR on current branch
 
-**06:17:51** ⚠️ GitHub Integration Check
+**07:16:14** ⚠️ GitHub Integration Check
 
-**06:17:51** ⚠️ Branch Status Check
+**07:16:14** ⚠️ Branch Status Check
 
-**06:17:51** ⚠️ Current Branch
-  - Branch: codex/update-tutorials-in-agents.md
+**07:16:14** ⚠️ Current Branch
+  - Branch: 
 
-**06:17:51** ✅ Branch Type
-  - Codex branch - workflow will trigger
+**07:16:14** ⚠️ Branch Type
+  - Not a Codex branch - workflow won't trigger
 
-**06:17:51** ✅ Branch Sync
+**07:16:14** ✅ Branch Sync
   - Branch is in sync
 
-**06:17:51** ⚠️ Workflow Permissions Check
+**07:16:14** ⚠️ Workflow Permissions Check
 
-**06:17:51** ✅ Workflow Permissions
+**07:16:14** ✅ Workflow Permissions
   - All required permissions present
 
-**06:17:51** ⚠️ Quick Permissions Test
+**07:16:14** ⚠️ Quick Permissions Test
 
-**06:17:51** ✅ Repository Access
+**07:16:15** ✅ Repository Access
   - Repository: stranske/Portable-Alpha-Extension-Model
 
-**06:17:51** ✅ Actions Access
+**07:16:15** ✅ Actions Access
   - Can access workflow runs
 
-**06:17:51** ⚠️ Recent Workflow Runs
+**07:16:15** ⚠️ Recent Workflow Runs
 
-**06:17:52** ✅ Latest Codex Run
+**07:16:15** ✅ Latest Codex Run
   - Status: 
