@@ -16,35 +16,31 @@ env:
   PYTHON_VERSION: '3.12'
 
 jobs:
-  # existing jobs unchanged
   lint-and-format:
     name: Code Quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      - name: Install Chrome for Kaleido
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          cache: pip
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-      - name: Run Ruff (linting)
-        run: ruff check pa_core --output-format=github
-      - name: Run Ruff (formatting check)
-        run: ruff format pa_core --check
-      - name: Run Black (formatting check)
+
+      - name: Ruff (lint)
+        run: ruff check .
+
+      - name: Black (format check)
         run: black --check pa_core tests
-      - name: Check import sorting
+
+      - name: isort (import order)
         run: isort --check-only pa_core tests
 
   type-check:
@@ -52,25 +48,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      - name: Install Chrome for Kaleido
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          cache: pip
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-      - name: Run Pyright
+
+      - name: Pyright
         run: pyright
-      - name: Run MyPy (additional type checking)
+
+      - name: MyPy (additional)
         run: mypy pa_core --ignore-missing-imports
 
   security:
@@ -78,18 +72,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      - name: Install dependencies
+          cache: pip
+
+      - name: Install bandit
         run: |
           python -m pip install --upgrade pip
           pip install bandit[toml]
-      - name: Run Bandit security check
-        run: bandit -r pa_core -f json -o bandit-report.json
-        continue-on-error: true
+
+      # Default: informational. To make it gating, add 'security' to Gate.needs and make this step fail on findings.
+      - name: Bandit (report)
+        run: bandit -r pa_core -f json -o bandit-report.json || true
+
       - name: Upload security report
         uses: actions/upload-artifact@v4
         if: always()
@@ -102,27 +100,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      - name: Install Chrome for Kaleido
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          cache: pip
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
+
       - name: Set PYTHONPATH
         run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-      - name: Run tests with coverage
+
+      - name: Pytest with coverage floor
         run: |
-          pytest tests/ -v --cov=pa_core --cov-report=xml --cov-report=html --cov-report=term
+          pytest tests/ -v --cov=pa_core --cov-report=xml --cov-report=term --cov-fail-under=60
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -130,13 +127,13 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
           path: |
-            htmlcov/
             coverage.xml
 
   integration-test:
@@ -145,35 +142,34 @@ jobs:
     needs: [lint-and-format, type-check, test]
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      - name: Install Chrome for Kaleido
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          cache: pip
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-      - name: Test CLI with sample data
+
+      - name: Prepare sample inputs
         run: |
-          if [ -f "parameters.csv" ] && [ -f "sp500tr_fred_divyield.csv" ]; then
-            python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv
-            echo "✅ CLI integration test passed"
-          else
-            echo "⚠️ Sample data not found, skipping CLI test"
-          fi
-      - name: Test development scripts
+          test -f parameters.csv
+          test -f sp500tr_fred_divyield.csv
+
+      - name: Run CLI
         run: |
-          chmod +x dev.sh || true
-          ./dev.sh --help || true
-          echo "✅ Development scripts work"
+          python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv --mode returns
+
+      - name: Assert artifact exists
+        run: |
+          shopt -s nullglob
+          files=(Outputs.xlsx Outputs.parquet Outputs/*.xlsx Outputs/*.parquet)
+          echo "Artifacts: ${files[@]}"
+          [ ${#files[@]} -gt 0 ] || { echo "::error::No output artifact produced"; exit 1; }
 
   build-docs:
     name: Documentation
@@ -181,18 +177,22 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          cache: pip
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
+
       - name: Build documentation
         run: make docs
+
       - name: Upload documentation
         uses: actions/upload-artifact@v4
         with:
@@ -204,10 +204,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Validate devcontainer.json
         run: |
           python -m json.tool .devcontainer/devcontainer.json > /dev/null
           echo "✅ devcontainer.json is valid"
+
       - name: Test setup script
         run: |
           chmod +x .devcontainer/setup.sh || true
@@ -220,35 +222,34 @@ jobs:
     needs:
       - lint-and-format
       - type-check
-      - security
       - test
       - integration-test
       - codespace-validation
-    if: ${{ always() }}     # <— schedule Gate even if upstream jobs reported neutral/failed
+      # To enforce security as well, add:
+      # - security
+    if: ${{ always() }}
+    env:
+      LINT_RESULT: ${{ needs.lint-and-format.result }}
+      TYPE_RESULT: ${{ needs.type-check.result }}
+      TEST_RESULT: ${{ needs.test.result }}
+      INTEG_RESULT: ${{ needs.integration-test.result }}
+      CSPACE_RESULT: ${{ needs.codespace-validation.result }}
+      # SEC_RESULT: ${{ needs.security.result }}
     steps:
-      - run: |
-          echo "lint-and-format: ${{ needs['lint-and-format'].result }}"
-          echo "type-check:     ${{ needs['type-check'].result }}"
-          echo "security:       ${{ needs['security'].result }}"
-          echo "test:           ${{ needs['test'].result }}"
-          echo "integration:    ${{ needs['integration-test'].result }}"
-          echo "codespace:      ${{ needs['codespace-validation'].result }}"
-          # fail if any upstream failed or cancelled
-          if [ "${{ needs['lint-and-format'].result }}" = "failure" ] || \
-              [ "${{ needs['type-check'].result }}"     = "failure" ] || \
-              [ "${{ needs['security'].result }}"       = "failure" ] || \
-              [ "${{ needs['test'].result }}"           = "failure" ] || \
-              [ "${{ needs['integration-test'].result }}" = "failure" ] || \
-              [ "${{ needs['codespace-validation'].result }}" = "failure" ] || \
-              [ "${{ needs['lint-and-format'].result }}" = "cancelled" ] || \
-              [ "${{ needs['type-check'].result }}"     = "cancelled" ] || \
-              [ "${{ needs['security'].result }}"       = "cancelled" ] || \
-              [ "${{ needs['test'].result }}"           = "cancelled" ] || \
-              [ "${{ needs['integration-test'].result }}" = "cancelled" ] || \
-              [ "${{ needs['codespace-validation'].result }}" = "cancelled" ]; then
-                echo "::error::Upstream job failed or cancelled"
-                exit 1
+      - name: Enforce upstream results
+        run: |
+          set -e
+          echo "lint-and-format: $LINT_RESULT"
+          echo "type-check:     $TYPE_RESULT"
+          echo "test:           $TEST_RESULT"
+          echo "integration:    $INTEG_RESULT"
+          echo "codespace:      $CSPACE_RESULT"
+          FAIL=0
+          for r in "$LINT_RESULT" "$TYPE_RESULT" "$TEST_RESULT" "$INTEG_RESULT" "$CSPACE_RESULT"; do
+            if [ "$r" != "success" ]; then FAIL=1; fi
+          done
+          if [ $FAIL -ne 0 ]; then
+            echo "::error::One or more upstream jobs failed/cancelled/skipped"
+            exit 1
           fi
-          echo "All required jobs passed."
-
-
+          echo "All required jobs succeeded."
