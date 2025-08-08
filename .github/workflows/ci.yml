@@ -21,75 +21,58 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-
-      - name: Install dependencies
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-
-      - name: Ruff (lint)
-        run: ruff check .
-
-      - name: Black (format check)
-        run: black --check pa_core tests
-
-      - name: isort (import order)
-        run: isort --check-only pa_core tests
+      - run: ruff check .
+        name: Ruff (lint)
+      - run: black --check pa_core tests
+        name: Black (format check)
+      - run: isort --check-only pa_core tests
+        name: isort (import order)
 
   type-check:
     name: Type Checking
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-
-      - name: Install dependencies
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-
-      - name: Pyright
-        run: pyright
-
-      - name: MyPy (additional)
-        run: mypy pa_core --ignore-missing-imports
+      - run: pyright
+        name: Pyright
+      - run: mypy pa_core --ignore-missing-imports
+        name: MyPy (additional)
 
   security:
     name: Security Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-
       - name: Install bandit
         run: |
           python -m pip install --upgrade pip
           pip install bandit[toml]
-
-      # Default: informational. To make it gating, add 'security' to Gate.needs and make this step fail on findings.
+      # Informational by default. To gate on Bandit, add 'security' to Gate.needs and make this step fail on findings.
       - name: Bandit (report)
         run: bandit -r pa_core -f json -o bandit-report.json || true
-
-      - name: Upload security report
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-report
@@ -100,41 +83,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-
-      - name: Install dependencies
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-
-      - name: Set PYTHONPATH
-        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
-
       - name: Pytest with coverage floor
         run: |
           pytest tests/ -v --cov=pa_core --cov-report=xml --cov-report=term --cov-fail-under=60
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: test-results
-          path: |
-            coverage.xml
+          path: coverage.xml
 
   integration-test:
     name: Integration Tests
@@ -142,28 +113,22 @@ jobs:
     needs: [lint-and-format, type-check, test]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-
-      - name: Install dependencies
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-
       - name: Prepare sample inputs
         run: |
           test -f parameters.csv
           test -f sp500tr_fred_divyield.csv
-
       - name: Run CLI
         run: |
           python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv --mode returns
-
       - name: Assert artifact exists
         run: |
           shopt -s nullglob
@@ -177,24 +142,18 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
-
-      - name: Install dependencies
+      - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-
-      - name: Build documentation
+      - name: Build docs
         run: make docs
-
-      - name: Upload documentation
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: docs/_build/html/
@@ -204,12 +163,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Validate devcontainer.json
         run: |
           python -m json.tool .devcontainer/devcontainer.json > /dev/null
           echo "✅ devcontainer.json is valid"
-
       - name: Test setup script
         run: |
           chmod +x .devcontainer/setup.sh || true
@@ -229,12 +186,12 @@ jobs:
       # - security
     if: ${{ always() }}
     env:
-      LINT_RESULT: ${{ needs.lint-and-format.result }}
-      TYPE_RESULT: ${{ needs.type-check.result }}
-      TEST_RESULT: ${{ needs.test.result }}
-      INTEG_RESULT: ${{ needs.integration-test.result }}
+      LINT_RESULT:   ${{ needs.lint-and-format.result }}
+      TYPE_RESULT:   ${{ needs.type-check.result }}
+      TEST_RESULT:   ${{ needs.test.result }}
+      INTEG_RESULT:  ${{ needs.integration-test.result }}
       CSPACE_RESULT: ${{ needs.codespace-validation.result }}
-      # SEC_RESULT: ${{ needs.security.result }}
+      # SEC_RESULT:  ${{ needs.security.result }}
     steps:
       - name: Enforce upstream results
         run: |
@@ -246,7 +203,7 @@ jobs:
           echo "codespace:      $CSPACE_RESULT"
           FAIL=0
           for r in "$LINT_RESULT" "$TYPE_RESULT" "$TEST_RESULT" "$INTEG_RESULT" "$CSPACE_RESULT"; do
-            if [ "$r" != "success" ]; then FAIL=1; fi
+            [ "$r" = "success" ] || FAIL=1
           done
           if [ $FAIL -ne 0 ]; then
             echo "::error::One or more upstream jobs failed/cancelled/skipped"
