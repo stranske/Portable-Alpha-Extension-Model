@@ -1,0 +1,56 @@
+# templates/scenario_template.yaml
+index:
+  id: SP500_TR
+  mu: 0.07
+  sigma: 0.16
+
+assets:
+  - id: INT_A1
+    label: Internal Alpha 1
+    mu: 0.04
+    sigma: 0.08
+  - id: EXT_A1
+    label: External Alpha 1
+    mu: 0.05
+    sigma: 0.09
+
+correlations:
+  - pair: [SP500_TR, INT_A1]
+    rho: 0.15
+  - pair: [SP500_TR, EXT_A1]
+    rho: 0.20
+  - pair: [INT_A1, EXT_A1]
+    rho: 0.10
+
+portfolios:
+  - id: internal_pa
+    weights: {{INT_A1: 1.0}}
+  - id: external_pa
+    weights: {{EXT_A1: 1.0}}
+  - id: active_ext
+    weights: {{INT_A1: 0.5, EXT_A1: 0.5}}
+
+sleeves:
+  internal_portable_alpha:
+    alpha_source: portfolio:internal_pa
+    capital_share: 0.40
+  external_portable_alpha:
+    alpha_source: portfolio:external_pa
+    capital_share: 0.30
+    theta: 1.0
+  active_extension:
+    alpha_source: portfolio:active_ext
+    active_share: 0.20
+    capital_share: 0.30
+
+financing:
+  base_curve: OIS
+  spread_bps: 50
+  model: static
+
+risk_metrics:
+  - ShortfallProb
+  - VaR
+  - CVaR
+  - MaxDrawdown
+  - TimeUnderWater
