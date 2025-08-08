@@ -214,41 +214,41 @@ jobs:
           bash -n .devcontainer/setup.sh || true
           echo "✅ Codespace setup script syntax is valid"
 
-    gate:
-      name: Gate
-      runs-on: ubuntu-latest
-      needs:
-        - lint-and-format
-        - type-check
-        - security
-        - test
-        - integration-test
-        - codespace-validation
-      if: ${{ always() }}     # <— schedule Gate even if upstream jobs reported neutral/failed
-      steps:
-        - run: |
-            echo "lint-and-format: ${{ needs['lint-and-format'].result }}"
-            echo "type-check:     ${{ needs['type-check'].result }}"
-            echo "security:       ${{ needs['security'].result }}"
-            echo "test:           ${{ needs['test'].result }}"
-            echo "integration:    ${{ needs['integration-test'].result }}"
-            echo "codespace:      ${{ needs['codespace-validation'].result }}"
-            # fail if any upstream failed or cancelled
-            if [ "${{ needs['lint-and-format'].result }}" = "failure" ] || \
-               [ "${{ needs['type-check'].result }}"     = "failure" ] || \
-               [ "${{ needs['security'].result }}"       = "failure" ] || \
-               [ "${{ needs['test'].result }}"           = "failure" ] || \
-               [ "${{ needs['integration-test'].result }}" = "failure" ] || \
-               [ "${{ needs['codespace-validation'].result }}" = "failure" ] || \
-               [ "${{ needs['lint-and-format'].result }}" = "cancelled" ] || \
-               [ "${{ needs['type-check'].result }}"     = "cancelled" ] || \
-               [ "${{ needs['security'].result }}"       = "cancelled" ] || \
-               [ "${{ needs['test'].result }}"           = "cancelled" ] || \
-               [ "${{ needs['integration-test'].result }}" = "cancelled" ] || \
-               [ "${{ needs['codespace-validation'].result }}" = "cancelled" ]; then
-                 echo "::error::Upstream job failed or cancelled"
-                 exit 1
-            fi
-            echo "All required jobs passed."
+  gate:
+    name: Gate
+    runs-on: ubuntu-latest
+    needs:
+      - lint-and-format
+      - type-check
+      - security
+      - test
+      - integration-test
+      - codespace-validation
+    if: ${{ always() }}     # <— schedule Gate even if upstream jobs reported neutral/failed
+    steps:
+      - run: |
+          echo "lint-and-format: ${{ needs['lint-and-format'].result }}"
+          echo "type-check:     ${{ needs['type-check'].result }}"
+          echo "security:       ${{ needs['security'].result }}"
+          echo "test:           ${{ needs['test'].result }}"
+          echo "integration:    ${{ needs['integration-test'].result }}"
+          echo "codespace:      ${{ needs['codespace-validation'].result }}"
+          # fail if any upstream failed or cancelled
+          if [ "${{ needs['lint-and-format'].result }}" = "failure" ] || \
+              [ "${{ needs['type-check'].result }}"     = "failure" ] || \
+              [ "${{ needs['security'].result }}"       = "failure" ] || \
+              [ "${{ needs['test'].result }}"           = "failure" ] || \
+              [ "${{ needs['integration-test'].result }}" = "failure" ] || \
+              [ "${{ needs['codespace-validation'].result }}" = "failure" ] || \
+              [ "${{ needs['lint-and-format'].result }}" = "cancelled" ] || \
+              [ "${{ needs['type-check'].result }}"     = "cancelled" ] || \
+              [ "${{ needs['security'].result }}"       = "cancelled" ] || \
+              [ "${{ needs['test'].result }}"           = "cancelled" ] || \
+              [ "${{ needs['integration-test'].result }}" = "cancelled" ] || \
+              [ "${{ needs['codespace-validation'].result }}" = "cancelled" ]; then
+                echo "::error::Upstream job failed or cancelled"
+                exit 1
+          fi
+          echo "All required jobs passed."
 
 
