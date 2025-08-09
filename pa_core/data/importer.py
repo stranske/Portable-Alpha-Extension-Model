@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Set
+from typing import Any, Dict, Literal, Set
 
 import pandas as pd
 
@@ -10,8 +10,9 @@ class DataImportAgent:
     """Load asset time series from CSV or Excel and return long-form returns.
 
     Supports both wide and already-long formats and can transform price
-    series to returns. Optionally aggregates higher frequency returns to
-    monthly via compounding.
+    series to returns. If ``frequency`` is ``daily`` the returns are
+    compounded to monthly. After :meth:`load` the agent exposes a
+    ``metadata`` attribute with the applied mappings for UI consumption.
     """
 
     def __init__(
@@ -22,14 +23,15 @@ class DataImportAgent:
         value_col: str = "Return",
         wide: bool = True,
         value_type: Literal["returns", "prices"] = "returns",
-        to_monthly: bool = False,
+        frequency: Literal["monthly", "daily"] = "monthly",
     ) -> None:
         self.date_col = date_col
         self.id_col = id_col
         self.value_col = value_col
         self.wide = wide
         self.value_type = value_type
-        self.to_monthly = to_monthly
+        self.frequency = frequency
+        self.metadata: Dict[str, Any] | None = None
 
     def load(self, path: str | Path) -> pd.DataFrame:
         p = Path(path)
@@ -71,13 +73,25 @@ class DataImportAgent:
 
         long_df.rename(columns={"value": "return"}, inplace=True)
 
-        if self.to_monthly:
+        if self.frequency == "daily":
             long_df = (
                 long_df.set_index("date")
                 .groupby("id")["return"]
-                .transform(lambda s: (1 + s).resample("M").prod() - 1)
+                .apply(lambda s: (1 + s).resample("ME").prod() - 1)
                 .dropna()
                 .reset_index()
             )
+
+        self.metadata = {
+            "source_file": str(p),
+            "value_type": self.value_type,
+            "frequency": self.frequency,
+            "wide": self.wide,
+            "columns": {
+                "date": self.date_col,
+                "id": self.id_col,
+                "value": self.value_col,
+            },
+        }
 
         return long_df.reset_index(drop=True)
