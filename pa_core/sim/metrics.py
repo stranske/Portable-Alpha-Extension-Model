@@ -13,6 +13,10 @@ __all__ = [
     "annualised_return",
     "annualised_vol",
     "breach_probability",
+    "breach_count",
+    "conditional_value_at_risk",
+    "max_drawdown",
+    "time_under_water",
     "shortfall_probability",
     "summary_table",
 ]
@@ -94,6 +98,52 @@ def shortfall_probability(
     return float(np.mean(arr < threshold))
 
 
+def breach_count(
+    returns: NDArray[npt.float64], threshold: float, *, path: int = 0
+) -> int:
+    """Return the number of months below ``threshold`` in a selected path."""
+
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.ndim == 1:
+        series = arr
+    else:
+        if not (0 <= path < arr.shape[0]):
+            raise IndexError("path index out of range")
+        series = arr[path]
+    return int(np.sum(series < threshold))
+
+
+def conditional_value_at_risk(
+    returns: NDArray[npt.float64], confidence: float = 0.95
+) -> float:
+    """Return the conditional VaR (expected shortfall) at ``confidence``."""
+
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must be between 0 and 1")
+    flat = np.asarray(returns).reshape(-1)
+    percentile = np.percentile(flat, 100 * (1 - confidence))
+    tail = flat[flat <= percentile]
+    if tail.size == 0:
+        return float(percentile)
+    return float(np.mean(tail))
+
+
+def max_drawdown(returns: NDArray[npt.float64]) -> float:
+    """Return the maximum drawdown from a series of returns."""
+
+    comp = compound(returns)
+    running_max = np.maximum.accumulate(comp + 1.0, axis=1)
+    drawdown = (comp + 1.0) / running_max - 1.0
+    return float(np.min(drawdown))
+
+
+def time_under_water(returns: NDArray[npt.float64]) -> float:
+    """Return fraction of periods with negative compounded return."""
+
+    comp = compound(returns)
+    return float(np.mean(comp < 0.0))
+
+
 def summary_table(
     returns_map: dict[str, NDArray[npt.float64]],
     *,
@@ -121,8 +171,12 @@ def summary_table(
         ann_ret = annualised_return(arr, periods_per_year)
         ann_vol = annualised_vol(arr, periods_per_year)
         var = value_at_risk(arr, confidence=var_conf)
+        cvar = conditional_value_at_risk(arr, confidence=var_conf)
         breach = breach_probability(arr, breach_threshold)
+        bcount = breach_count(arr, breach_threshold)
         shortfall = shortfall_probability(arr, shortfall_threshold)
+        mdd = max_drawdown(arr)
+        tuw = time_under_water(arr)
         te = (
             tracking_error(arr, bench_arr)
             if bench_arr is not None and name != benchmark
@@ -134,7 +188,11 @@ def summary_table(
                 "AnnReturn": ann_ret,
                 "AnnVol": ann_vol,
                 "VaR": var,
+                "CVaR": cvar,
+                "MaxDD": mdd,
+                "TimeUnderWater": tuw,
                 "BreachProb": breach,
+                "BreachCount": bcount,
                 "ShortfallProb": shortfall,
                 "TE": te,
             }
