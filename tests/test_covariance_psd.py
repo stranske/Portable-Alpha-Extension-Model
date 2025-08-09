@@ -43,6 +43,6 @@ def test_build_cov_matrix_psd_projection() -> None:
     with pytest.warns(RuntimeWarning):
         cov = build_cov_matrix(**params)
     eigvals = np.linalg.eigvalsh(cov)
-    assert float(eigvals.min()) >= -1e-8
+    assert eigvals.min() >= -1e-8
     max_delta = float(np.max(np.abs(cov - raw_cov)))
     assert max_delta < 0.03
