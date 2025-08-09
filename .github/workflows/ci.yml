@@ -4,7 +4,17 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened, ready_for_review ]
   push:
-    branches: [ main, develop ]
+    branches:
+      - '**'           # run on all branches
+    paths:
+      - 'pa_core/**'
+      - 'tests/**'
+      - 'dashboard/**'
+      - 'scripts/**'
+      - 'pyproject.toml'
+      - 'setup.py'
+      - 'requirements*.txt'
+      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 concurrency:
