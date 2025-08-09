@@ -6,7 +6,17 @@ from pathlib import Path
 PKG = types.ModuleType("pa_core")
 PKG.__path__ = [str(Path("pa_core"))]
 sys.modules.setdefault("pa_core", PKG)
+import pytest
+from pathlib import Path
 
+
+@pytest.fixture(autouse=True)
+def patch_pa_core(monkeypatch):
+    import types
+    import sys
+    PKG = types.ModuleType("pa_core")
+    PKG.__path__ = [str(Path("pa_core"))]
+    monkeypatch.setitem(sys.modules, "pa_core", PKG)
 from pa_core.sim.metrics import (
     annualised_return,
     annualised_vol,
