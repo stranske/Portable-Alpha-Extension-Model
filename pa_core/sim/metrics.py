@@ -121,7 +121,7 @@ def conditional_value_at_risk(
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
     flat = np.asarray(returns).reshape(-1)
-    percentile = np.percentile(flat, 100 * (1 - confidence))
+    percentile = np.quantile(flat, 1 - confidence, method='lower')
     tail = flat[flat <= percentile]
     if tail.size == 0:
         return float(percentile)
