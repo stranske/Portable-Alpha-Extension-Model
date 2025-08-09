@@ -89,7 +89,7 @@ def shortfall_probability(
     arr = np.asarray(returns, dtype=np.float64)
     if compound_final:
         comp = compound(arr)
-        final_returns = comp[:, -1] if arr.ndim > 1 else comp[-1]
+        final_returns = comp[:, -1] if arr.ndim > 1 else comp[[-1]]
         return float(np.mean(final_returns < threshold))
     return float(np.mean(arr < threshold))
 
