@@ -8,6 +8,11 @@ import yaml
 from pydantic import BaseModel, field_validator, model_validator
 
 
+CORRELATION_LOWER_BOUND = -0.999
+CORRELATION_UPPER_BOUND = 0.999
+WEIGHT_SUM_TOLERANCE = 1e-6
+
+
 class Index(BaseModel):
     id: str
     label: str | None = None
@@ -29,9 +34,10 @@ class Correlation(BaseModel):
     @field_validator("rho")
     @classmethod
     def _check_rho(cls, v: float) -> float:
-        if not -0.999 <= v <= 0.999:
         if not CORRELATION_LOWER_BOUND <= v <= CORRELATION_UPPER_BOUND:
-            raise ValueError(f"rho must be between {CORRELATION_LOWER_BOUND} and {CORRELATION_UPPER_BOUND}")
+            raise ValueError(
+                f"rho must be between {CORRELATION_LOWER_BOUND} and {CORRELATION_UPPER_BOUND}"
+            )
         return v
 
 
