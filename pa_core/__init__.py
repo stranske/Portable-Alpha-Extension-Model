@@ -9,6 +9,8 @@ from .agents import (
     ExternalPAAgent,
     InternalBetaAgent,
     InternalPAAgent,
+    RiskMetricsAgent,
+    RiskMetrics,
 )
 from .agents.registry import build_all as build_agents
 from .agents.registry import build_from_config
@@ -80,6 +82,8 @@ __all__ = [
     "ActiveExtensionAgent",
     "InternalBetaAgent",
     "InternalPAAgent",
+    "RiskMetricsAgent",
+    "RiskMetrics",
     "ModelConfig",
     "load_config",
     "ConfigError",
