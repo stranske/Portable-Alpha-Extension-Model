@@ -6,7 +6,7 @@ jupyter
 pytest
 hypothesis
 ruff
-pyright
+pyright[nodejs]
 pydantic
 rich
 plotly>=5.19
