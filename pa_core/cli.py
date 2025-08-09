@@ -14,10 +14,12 @@ CLI flags:
 from __future__ import annotations
 
 import argparse
-from typing import Optional, Sequence
+from typing import Optional, Sequence, TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
+
+if TYPE_CHECKING:
+    import numpy as np
 
 from . import (
     RunFlags,
@@ -79,35 +81,6 @@ LABEL_MAP = {
 }
 
 
-def shortfall_probability(
-    returns: np.ndarray,
-    threshold: float = -0.05,  # Default 5% loss threshold
-    compound_final: bool = True,
-) -> float:
-    """Calculate probability of shortfall below threshold.
-
-    Args:
-        returns: Array of monthly returns
-        threshold: Shortfall threshold (negative for losses)
-        compound_final: If True, use final compounded return; if False, use any month
-
-    Returns:
-        Probability of shortfall (0.0 to 1.0)
-    """
-    from .sim.metrics import compound
-
-    arr = np.asarray(returns, dtype=np.float64)
-
-    if compound_final:
-        # Check final compounded return across all simulation paths
-        comp = compound(arr)
-        final_returns = comp[:, -1] if arr.ndim > 1 else comp[-1]
-        return float(np.mean(final_returns < threshold))
-    else:
-        # Check any month falling below threshold
-        return float(np.mean(arr < threshold))
-
-
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
     config: ModelConfig,
@@ -116,23 +89,18 @@ def create_enhanced_summary(
 ) -> pd.DataFrame:
     """Create enhanced summary table with ShortfallProb and better defaults."""
 
-    # Start with basic summary
+    # Start with summary including breach and shortfall probabilities
     summary = summary_table(
         returns_map,
         benchmark=benchmark,
         breach_threshold=-0.02,  # Default 2% monthly loss threshold
+        shortfall_threshold=(
+            -0.05
+            if hasattr(config, "risk_metrics")
+            and "ShortfallProb" in config.risk_metrics
+            else None
+        ),
     )
-
-    # Add ShortfallProb calculation if requested
-    if hasattr(config, "risk_metrics") and "ShortfallProb" in config.risk_metrics:
-        shortfall_probs = []
-        for name, arr in returns_map.items():
-            shortfall_prob = shortfall_probability(
-                arr, threshold=-0.05
-            )  # 5% annual loss
-            shortfall_probs.append(shortfall_prob)
-
-        summary["ShortfallProb"] = shortfall_probs
 
     return summary
 

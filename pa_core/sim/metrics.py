@@ -13,6 +13,7 @@ __all__ = [
     "annualised_return",
     "annualised_vol",
     "breach_probability",
+    "shortfall_probability",
     "summary_table",
 ]
 
@@ -72,12 +73,34 @@ def breach_probability(
     return float(np.mean(series < threshold))
 
 
+def shortfall_probability(
+    returns: NDArray[npt.float64],
+    threshold: float = -0.05,
+    *,
+    compound_final: bool = True,
+) -> float:
+    """Return the probability of compounded returns falling below ``threshold``.
+
+    When ``compound_final`` is ``True`` (default) the check is applied to the
+    final compounded return of each simulation path.  Otherwise each monthly
+    return is compared directly to the threshold.
+    """
+
+    arr = np.asarray(returns, dtype=np.float64)
+    if compound_final:
+        comp = compound(arr)
+        final_returns = comp[:, -1] if arr.ndim > 1 else comp[[-1]]
+        return float(np.mean(final_returns < threshold))
+    return float(np.mean(arr < threshold))
+
+
 def summary_table(
     returns_map: dict[str, NDArray[npt.float64]],
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,
     breach_threshold: float | None = None,
+    shortfall_threshold: float | None = None,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
     """Return a summary DataFrame of key metrics for each agent."""
@@ -93,6 +116,11 @@ def summary_table(
             if breach_threshold is not None
             else None
         )
+        shortfall = (
+            shortfall_probability(arr, shortfall_threshold)
+            if shortfall_threshold is not None
+            else None
+        )
         te = (
             tracking_error(arr, bench_arr)
             if bench_arr is not None and name != benchmark
@@ -105,6 +133,7 @@ def summary_table(
                 "AnnVol": ann_vol,
                 "VaR": var,
                 "BreachProb": breach,
+                "ShortfallProb": shortfall,
                 "TE": te,
             }
         )
