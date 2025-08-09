@@ -28,7 +28,7 @@ def _load_theme() -> ModuleType:
     assert spec and spec.loader  # pragma: no cover - importlib contract
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module
+    return importlib.import_module("pa_core.viz.theme")
 
 
 def apply_theme(path: str) -> ModuleType:
