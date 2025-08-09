@@ -22,9 +22,22 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
 
 ### Quick start
 
-1. **Implement a scenario** – run the model with a CSV or YAML config.
-2. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
-3. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
+1. **Create and validate a scenario** – draft a YAML configuration and verify the schema with `pa validate`. A minimal example is provided in `templates/scenario_example.yaml`:
+
+   > **Scenario structure:**  
+   > A scenario YAML file must include at least the following elements:  
+   > - `analysis_mode`: One of `returns`, `capital`, `alpha_shares`, or `vol_mult` (selects the analysis type).  
+   > - `ShortfallProb`: The mandatory risk metric (removing it will cause validation to fail).  
+   > - Other parameters as required for your use case (see the example template for details).  
+   >  
+   > For a full list of fields and their descriptions, see the comments in `templates/scenario_example.yaml` or refer to the [Scenario Configuration Guide](docs/ScenarioConfig.md) if available.
+   ```bash
+   pa validate templates/scenario_example.yaml
+   ```
+
+2. **Run the simulation** – execute the model with a CSV parameter sweep or YAML config.
+3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
+4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
 Example quick run:
 
