@@ -1,11 +1,49 @@
 from __future__ import annotations
 
+import warnings
 import numpy as npt
 from numpy.typing import NDArray
 
 from ..backend import xp as np
 
 __all__ = ["build_cov_matrix"]
+
+
+def _is_psd(mat: NDArray[npt.float64], tol: float = 0.0) -> bool:
+    """Return True if matrix is positive semidefinite within tolerance."""
+
+    eigvals = np.linalg.eigvalsh(mat)
+    return eigvals.min() >= -tol
+
+
+def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
+    """Project ``mat`` to the nearest PSD matrix using Higham's method."""
+
+    # Symmetrise input
+    sym_mat = 0.5 * (mat + mat.T)
+    u, s, vt = np.linalg.svd(sym_mat)
+    h = vt.T @ np.diag(s) @ vt
+
+    a2 = 0.5 * (sym_mat + vt.T @ np.diag(s) @ vt)
+    eigvals, eigvecs = np.linalg.eigh(sym_mat)
+    eigvals_clipped = np.clip(eigvals, 0, None)
+    psd_mat = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
+    a3 = 0.5 * (psd_mat + psd_mat.T)
+    if _is_psd(a3):
+        return a3
+    # Add jitter until PSD
+    spacing = np.spacing(np.linalg.norm(mat))
+    eye = np.eye(mat.shape[0])
+    k = 1
+    while not _is_psd(a3):
+    while True:
+        eigvals = np.linalg.eigvalsh(a3)
+        mineig = float(eigvals.min())
+        if mineig >= 0.0:
+            break
+        a3 += eye * (-mineig * k**2 + spacing)
+        k += 1
+    return a3
 
 
 def build_cov_matrix(
@@ -20,11 +58,13 @@ def build_cov_matrix(
     sigma_E: float,
     sigma_M: float,
 ) -> NDArray[npt.float64]:
-    """Return 4×4 covariance matrix for (Index, H, E, M).
+    """Return PSD 4×4 covariance matrix for (Index, H, E, M).
 
-    Volatilities are clipped at zero to avoid negative variances and the
-    resulting matrix is symmetrised to guard against numerical drift.
+    Volatilities are clipped at zero to avoid negative variances. The
+    resulting matrix is symmetrised and, if necessary, projected to the
+    nearest positive semidefinite matrix.
     """
+
     sds = np.clip(np.array([idx_sigma, sigma_H, sigma_E, sigma_M]), 0.0, None)
     rho = np.array(
         [
@@ -35,4 +75,13 @@ def build_cov_matrix(
         ]
     )
     cov = np.outer(sds, sds) * rho
-    return 0.5 * (cov + cov.T)  # type: ignore[no-any-return]
+    cov = 0.5 * (cov + cov.T)
+    if _is_psd(cov):
+        return cov
+    adjusted = _nearest_psd(cov)
+    max_delta = float(np.max(np.abs(adjusted - cov)))
+    warnings.warn(
+        f"Covariance matrix was not PSD; projected with max|Δ|={max_delta:.2e}",
+        RuntimeWarning,
+    )
+    return adjusted
