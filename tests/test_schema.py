@@ -51,3 +51,18 @@ def test_missing_rho() -> None:
     }
     with pytest.raises(ValueError):
         Scenario.model_validate(data)
+
+
+def test_sleeve_capital_share_sum() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [],
+        "correlations": [],
+        "portfolios": [],
+        "sleeves": {
+            "s1": {"alpha_source": "p:1", "capital_share": 0.6},
+            "s2": {"alpha_source": "p:2", "capital_share": 0.5},
+        },
+    }
+    with pytest.raises(ValueError, match="capital_share"):
+        Scenario.model_validate(data)
