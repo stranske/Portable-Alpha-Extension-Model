@@ -25,7 +25,10 @@ def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
     h = vt.T @ np.diag(s) @ vt
 
     a2 = 0.5 * (sym_mat + vt.T @ np.diag(s) @ vt)
-    a3 = 0.5 * (a2 + a2.T)
+    eigvals, eigvecs = np.linalg.eigh(sym_mat)
+    eigvals_clipped = np.clip(eigvals, 0, None)
+    psd_mat = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
+    a3 = 0.5 * (psd_mat + psd_mat.T)
     if _is_psd(a3):
         return a3
     # Add jitter until PSD
