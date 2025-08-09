@@ -13,7 +13,7 @@ def _is_psd(mat: NDArray[npt.float64], tol: float = 0.0) -> bool:
     """Return True if matrix is positive semidefinite within tolerance."""
 
     eigvals = np.linalg.eigvalsh(mat)
-    return float(eigvals.min()) >= -tol
+    return eigvals.min() >= -tol
 
 
 def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
