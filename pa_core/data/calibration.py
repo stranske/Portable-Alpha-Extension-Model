@@ -28,7 +28,8 @@ class CalibrationAgent:
         df = df[df["id"].isin(valid_ids)].copy()
         grouped = df.groupby("id")["return"]
         mu = grouped.mean() * 12.0
-        sigma = grouped.std(ddof=1) * np.sqrt(12.0)
+        mu = grouped.mean() * MONTHS_PER_YEAR
+        sigma = grouped.std(ddof=1) * np.sqrt(MONTHS_PER_YEAR)
         assets = [
             Asset(id=i, label=i, mu=float(mu[i]), sigma=float(sigma[i]))
             for i in mu.index
