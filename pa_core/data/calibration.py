@@ -11,6 +11,9 @@ import yaml
 from ..schema import Asset, Correlation, Index
 
 
+MONTHS_PER_YEAR = 12
+
+
 @dataclass
 class CalibrationResult:
     index: Index
@@ -27,7 +30,6 @@ class CalibrationAgent:
         valid_ids = counts[counts >= self.min_obs].index
         df = df[df["id"].isin(valid_ids)].copy()
         grouped = df.groupby("id")["return"]
-        mu = grouped.mean() * 12.0
         mu = grouped.mean() * MONTHS_PER_YEAR
         sigma = grouped.std(ddof=1) * np.sqrt(MONTHS_PER_YEAR)
         assets = [
