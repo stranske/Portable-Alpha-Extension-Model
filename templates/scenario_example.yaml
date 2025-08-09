@@ -1,0 +1,21 @@
+index:
+  id: IDX
+  label: Sample Index
+  mu: 0.07
+  sigma: 0.15
+assets:
+  - id: FUND_A
+    label: Fund A
+    mu: 0.08
+    sigma: 0.2
+correlations:
+  - pair: [IDX, FUND_A]
+    rho: 0.3
+portfolios:
+  - id: core
+    weights:
+      FUND_A: 1.0
+sleeves:
+  core:
+    alpha_source: p:core
+    capital_share: 1.0

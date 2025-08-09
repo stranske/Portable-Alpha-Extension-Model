@@ -22,9 +22,15 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
 
 ### Quick start
 
-1. **Implement a scenario** – run the model with a CSV or YAML config.
-2. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
-3. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
+1. **Create and validate a scenario** – draft a YAML configuration and verify the schema with `pa validate`. A minimal example is provided in `templates/scenario_example.yaml`:
+
+   ```bash
+   pa validate templates/scenario_example.yaml
+   ```
+
+2. **Run the simulation** – execute the model with a CSV parameter sweep or YAML config.
+3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
+4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
 Example quick run:
 
