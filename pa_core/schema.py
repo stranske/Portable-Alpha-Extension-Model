@@ -30,7 +30,8 @@ class Correlation(BaseModel):
     @classmethod
     def _check_rho(cls, v: float) -> float:
         if not -0.999 <= v <= 0.999:
-            raise ValueError("rho must be between -0.999 and 0.999")
+        if not CORRELATION_LOWER_BOUND <= v <= CORRELATION_UPPER_BOUND:
+            raise ValueError(f"rho must be between {CORRELATION_LOWER_BOUND} and {CORRELATION_UPPER_BOUND}")
         return v
 
 
