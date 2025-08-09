@@ -1,0 +1,41 @@
+from __future__ import annotations
+
+# ruff: noqa: E402
+
+from pathlib import Path
+import types
+import sys
+
+import pytest
+import yaml
+
+PKG = types.ModuleType("pa_core")
+PKG.__path__ = [str(Path("pa_core"))]
+sys.modules.setdefault("pa_core", PKG)
+
+from pa_core.pa import main
+
+
+def test_pa_validate(tmp_path: Path) -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [{"pair": ["IDX", "A"], "rho": 0.1}],
+        "portfolios": [{"id": "p1", "weights": {"A": 1.0}}],
+    }
+    path = tmp_path / "scen.yaml"
+    path.write_text(yaml.safe_dump(data))
+    main(["validate", str(path)])
+
+
+def test_pa_validate_fail(tmp_path: Path) -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [],
+        "correlations": [],
+        "portfolios": [{"id": "p1", "weights": {"IDX": 0.5}}],
+    }
+    path = tmp_path / "bad.yaml"
+    path.write_text(yaml.safe_dump(data))
+    with pytest.raises(SystemExit):
+        main(["validate", str(path)])

@@ -19,4 +19,7 @@ setup(
         "xlsxwriter",
     ],
     python_requires=">=3.7",
+    entry_points={
+        "console_scripts": ["pa=pa_core.pa:main"],
+    },
 )
