@@ -41,3 +41,4 @@ Thumbs.db
 
 # local/vendor scripts, not part of code
 get-pip.py
+.cache/

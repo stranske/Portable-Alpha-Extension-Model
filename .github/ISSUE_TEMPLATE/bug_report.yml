@@ -45,7 +45,7 @@ body:
       label: Environment
       description: What environment are you running in?
       value: |
-        - OS: 
+        - OS:
         - Python version:
         - Package version:
         - Using Codespace: Yes/No

@@ -3,9 +3,9 @@
 ## 📋 **Tutorial 6: Implement a New Agent** - Testing Attempted
 
 ### **What Tutorial 6 Covers:**
-1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns`  
-2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`  
-3. Allocate capital to the new agent in your CSV or YAML configuration file  
+1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns`
+2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`
+3. Allocate capital to the new agent in your CSV or YAML configuration file
 4. Run the CLI again and the new sleeve appears in the outputs
 
 ---
@@ -76,13 +76,13 @@
 
 ## 🔧 **Tutorial 6 Status: NOT FULLY WORKING - Requires Code Extension**
 
-**Core Steps**: ⚠️ Partially works (agent class + registry OK)  
-**Config Allocation**: ❌ Fails due to rigid schema  
-**CLI Integration**: ❌ CLI does not accept custom agent capital parameters  
+**Core Steps**: ⚠️ Partially works (agent class + registry OK)
+**Config Allocation**: ❌ Fails due to rigid schema
+**CLI Integration**: ❌ CLI does not accept custom agent capital parameters
 
 **Immediate Fixes Needed:**
-1. **ModelConfig Extension**: Add support for `my_agent_capital` or generic agent allocation fields  
-2. **build_from_config Update**: Include new agent in factory logic based on config keys  
+1. **ModelConfig Extension**: Add support for `my_agent_capital` or generic agent allocation fields
+2. **build_from_config Update**: Include new agent in factory logic based on config keys
 3. **Tutorial Update**: Provide code templates and explain code modifications
 
 **Next**: Update codebase and tutorial to enable configuration-driven custom agent implementation.

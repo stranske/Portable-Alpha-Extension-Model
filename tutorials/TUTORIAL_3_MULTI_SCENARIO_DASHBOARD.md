@@ -87,7 +87,7 @@ For bulk chart generation outside the dashboard, call `scripts/visualise.py` on 
 python scripts/visualise.py \
   --plot risk_return \
   --xlsx DashboardSweep.xlsx \
-  --png --alt-text "Risk-return" 
+  --png --alt-text "Risk-return"
 ```
 
 This produces static images under `plots/`. Use the dashboard for interactive exploration and the script for automated exports.

@@ -48,15 +48,15 @@
 
 ## ✅ **Tutorial 10 Status: PARTIALLY WORKING - Core Display Only**
 
-**Core Chart Rendering**: ✅ Interactive inline plots for all chart types  
-**Data Preloading**: ❌ No built-in data sources from simulations  
-**Export Demonstrations**: ❌ Missing file export examples  
-**Narrative Guidance**: ❌ Minimal explanation of charts and use cases  
+**Core Chart Rendering**: ✅ Interactive inline plots for all chart types
+**Data Preloading**: ❌ No built-in data sources from simulations
+**Export Demonstrations**: ❌ Missing file export examples
+**Narrative Guidance**: ❌ Minimal explanation of charts and use cases
 **Batch Workflows**: ❌ No examples of gallery or batch exports
 
 **Immediate Next Steps:**
-1. Pre-load simulation outputs and parquet data in notebook.  
-2. Demonstrate export workflows (PNG, HTML, JSON, PPTX) within notebook.  
-3. Add narrative markdown cells explaining each figure.  
-4. Include batch loop examples to create multi-scenario galleries.  
+1. Pre-load simulation outputs and parquet data in notebook.
+2. Demonstrate export workflows (PNG, HTML, JSON, PPTX) within notebook.
+3. Add narrative markdown cells explaining each figure.
+4. Include batch loop examples to create multi-scenario galleries.
 5. Highlight theme and threshold integrations for styling.

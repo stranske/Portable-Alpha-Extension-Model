@@ -1,9 +1,9 @@
-# Tutorial 1: Multi-Mode Parameter Sweep Demonstration 
+# Tutorial 1: Multi-Mode Parameter Sweep Demonstration
 
 **🎯 Goal**: Transform basic single-scenario analysis into professional multi-scenario analysis workflows using the Parameter Sweep Engine
 
-**⏱️ Duration**: 45-60 minutes  
-**📋 Prerequisites**: Basic familiarity with Portable Alpha concepts  
+**⏱️ Duration**: 45-60 minutes
+**📋 Prerequisites**: Basic familiarity with Portable Alpha concepts
 **🛠️ Tools**: Parameter sweep engine (all 4 modes), Excel output analysis
 
 ### Setup
@@ -64,7 +64,7 @@ python -m pa_core --params config/params_template.yml --output tutorial_1_baseli
 > ```
 
 **📊 Key Outputs to Examine**:
-- `Output` sheet: Final portfolio metrics 
+- `Output` sheet: Final portfolio metrics
 - `Agent Details` sheet: Individual agent performance
 - `Risk Metrics` sheet: Tracking error, Sharpe ratios
 - `Capital Allocation` sheet: Funding distribution
@@ -100,7 +100,7 @@ python -m pa_core --mode capital --params config/capital_mode_template.csv --out
 2. **Capital Range**: Examine scenarios from $1B to $10B total capital
 3. **Performance Scaling**: Look for non-linear effects in:
    - Tracking Error vs Capital Size
-   - Alpha Generation vs Funding Level  
+   - Alpha Generation vs Funding Level
    - Sharpe Ratio optimization points
 
 **🔍 Key Insights to Find**:
@@ -111,7 +111,7 @@ python -m pa_core --mode capital --params config/capital_mode_template.csv --out
 **📊 Excel Analysis Tips**:
 ```excel
 # Create pivot charts for:
-- Total Capital (X) vs Portfolio Sharpe Ratio (Y)  
+- Total Capital (X) vs Portfolio Sharpe Ratio (Y)
 - Capital Level (X) vs Tracking Error (Y)
 - Funding Size (X) vs Alpha per Dollar (Y)
 ```
@@ -146,7 +146,7 @@ python -m pa_core --mode alpha_shares --params config/alpha_shares_mode_template
 ```excel
 # Advanced pivot tables:
 1. Alpha Source 1 % vs Alpha Source 2 % vs Sharpe Ratio (3D surface)
-2. Total Alpha Capture vs Tracking Error (efficiency frontier)  
+2. Total Alpha Capture vs Tracking Error (efficiency frontier)
 3. Number of Alpha Sources vs Portfolio Volatility (diversification benefit)
 ```
 
@@ -253,7 +253,7 @@ python -m pa_core --mode returns --params config/returns_mode_template.csv --out
 After completing all 5 parts, you now have:
 
 1. **📊 Capital Scaling Analysis**: Optimal size for your strategy
-2. **🎯 Alpha Allocation Optimization**: Best manager combination  
+2. **🎯 Alpha Allocation Optimization**: Best manager combination
 3. **⚠️ Stress Test Results**: Risk limits and resilience testing
 4. **🔬 Sensitivity Analysis**: Robustness to key assumptions
 
@@ -264,7 +264,7 @@ After completing all 5 parts, you now have:
 Portfolio Strategy Recommendation: [Your recommendation]
 
 Capital Allocation: $X billion optimal size (from Part 2)
-Alpha Sources: X% Source A, Y% Source B, Z% Source C (from Part 3)  
+Alpha Sources: X% Source A, Y% Source B, Z% Source C (from Part 3)
 Risk Limits: Tracking error <X% under stress (from Part 4)
 Key Assumptions: Most sensitive to [assumption] (from Part 5)
 
@@ -285,7 +285,7 @@ Confidence Level: [High/Medium/Low] based on scenario robustness
 ### **For Experienced Users**
 
 1. **Custom Parameter Files**: Create your own parameter sweep templates
-2. **Excel Automation**: Build automated dashboards from sweep outputs  
+2. **Excel Automation**: Build automated dashboards from sweep outputs
 3. **Risk Integration**: Combine multiple sweep results for comprehensive risk analysis
 4. **Performance Attribution**: Use sweep results for manager performance evaluation
 
@@ -300,21 +300,21 @@ Confidence Level: [High/Medium/Low] based on scenario robustness
 ## 📋 **SUMMARY: Professional Multi-Scenario Analysis**
 
 **What You Learned**:
-✅ How to use all 4 parameter sweep modes  
-✅ Professional scenario analysis workflows  
-✅ Excel-based results analysis techniques  
-✅ Risk management applications  
-✅ Investment committee presentation skills  
+✅ How to use all 4 parameter sweep modes
+✅ Professional scenario analysis workflows
+✅ Excel-based results analysis techniques
+✅ Risk management applications
+✅ Investment committee presentation skills
 
 **Business Impact**:
 - Move from single-point estimates to robust scenario analysis
 - Provide confidence intervals for all portfolio decisions
-- Demonstrate scenario robustness to investment committees  
+- Demonstrate scenario robustness to investment committees
 - Apply professional stress testing methodologies
 
 **Next Tutorial**: Advanced Threshold Analysis - learn to interpret when scenario results indicate problems vs normal variation.
 
 ---
 
-*Tutorial 1 Enhanced: Multi-Mode Parameter Sweep Demonstration*  
+*Tutorial 1 Enhanced: Multi-Mode Parameter Sweep Demonstration*
 *Portable-Alpha Extension Model - Professional Edition*

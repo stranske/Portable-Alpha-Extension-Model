@@ -21,7 +21,7 @@
 
 **Current Gap:** CLI only runs single simulations, but users expect parameter sweeps:
 - `capital` mode: Vary capital allocations across sleeves
-- `returns` mode: Vary expected returns and volatilities  
+- `returns` mode: Vary expected returns and volatilities
 - `alpha_shares` mode: Vary alpha/beta share splits
 - `vol_mult` mode: Stress test with volatility multipliers
 
@@ -100,7 +100,7 @@ class NewStrategyAgent(Agent):
 ### Parameter Sweep Engine
 - [ ] Users can specify `--mode capital` to vary capital allocations
 - [ ] Users can specify `--mode returns` to vary return assumptions
-- [ ] Users can specify `--mode alpha_shares` to vary alpha/beta splits  
+- [ ] Users can specify `--mode alpha_shares` to vary alpha/beta splits
 - [ ] Users can specify `--mode vol_mult` to stress test volatilities
 - [ ] Output includes all parameter combinations and their results
 - [ ] Backward compatibility maintained (single runs still work)

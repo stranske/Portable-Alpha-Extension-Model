@@ -17,7 +17,7 @@ No issues detected in streamlined debugging.
 **07:16:14** ⚠️ Branch Status Check
 
 **07:16:14** ⚠️ Current Branch
-  - Branch: 
+  - Branch:
 
 **07:16:14** ⚠️ Branch Type
   - Not a Codex branch - workflow won't trigger
@@ -41,4 +41,4 @@ No issues detected in streamlined debugging.
 **07:16:15** ⚠️ Recent Workflow Runs
 
 **07:16:15** ✅ Latest Codex Run
-  - Status: 
+  - Status:

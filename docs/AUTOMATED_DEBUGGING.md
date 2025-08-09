@@ -7,7 +7,7 @@ This document describes the **methodical debugging workflow** designed to fix sp
 The original debugging workflow used a "shotgun approach" - trying to fix everything at once. The new approach:
 
 - **Focuses on specific CI/CD errors** that are actually failing
-- **Runs exact CI/CD commands locally** to reproduce issues  
+- **Runs exact CI/CD commands locally** to reproduce issues
 - **Applies targeted fixes** only for identified problems
 - **Iterates methodically** until all issues are resolved
 - **Avoids over-engineering** and unnecessary changes
@@ -18,7 +18,7 @@ The original debugging workflow used a "shotgun approach" - trying to fix everyt
 
 **Specific CI/CD Tools:**
 - **mypy** - Type checking with `--strict` mode
-- **flake8** - Code quality with exact CI/CD flags  
+- **flake8** - Code quality with exact CI/CD flags
 - **pytest** - Test execution with verbose output
 - **ruff** - Code formatting validation
 
@@ -33,12 +33,12 @@ The original debugging workflow used a "shotgun approach" - trying to fix everyt
 # OLD: Shotgun approach
 def auto_fix_everything():
     fix_all_imports()
-    fix_all_formatting()  
+    fix_all_formatting()
     fix_all_types()
     fix_all_common_issues()
     # ... and many more
 
-# NEW: Methodical approach  
+# NEW: Methodical approach
 def fix_specific_errors(tool, errors):
     for error in errors:
         if "specific pattern" in error:
@@ -52,7 +52,7 @@ def fix_specific_errors(tool, errors):
 make debug-codex
 
 # Debug with auto-commit
-make debug-codex-fix  
+make debug-codex-fix
 
 # Generate report
 make debug-codex-report
@@ -94,10 +94,10 @@ make validate-pr
    ```bash
    # Switch to Codex branch
    git checkout codex/implement-feature-x
-   
+
    # Run automated debugging
    make debug-codex-fix
-   
+
    # Push fixes
    git push
    ```
@@ -163,7 +163,7 @@ Branch: codex/implement-parameter-sweep-engine
 - **unused_import** (medium): 'numpy.typing as npt' imported but unused
 - **formatting** (medium): Code formatting issues detected
 
-## ✅ Automatic Fixes Applied  
+## ✅ Automatic Fixes Applied
 - Fixed fin_rngs type conversion issue
 - Applied code formatting fixes
 - Removed unused imports from cli.py
@@ -198,7 +198,7 @@ The branch is ready for CI/CD validation.
 # Install debugging dependencies
 pip install black isort flake8 mypy
 
-# Make script executable  
+# Make script executable
 chmod +x scripts/debug_codex_pr.py
 ```
 
@@ -215,7 +215,7 @@ This automation **enhances** the established workflow from `DEVELOPMENT_WORKFLOW
 
 1. **Codex creates feature branch** ✓
 2. **Automated debugging runs** ← NEW
-3. **Human assistant reviews/polishes** ← REDUCED SCOPE  
+3. **Human assistant reviews/polishes** ← REDUCED SCOPE
 4. **Tests and validation** ✓
 5. **Merge to main** ✓
 
@@ -226,7 +226,7 @@ The human assistant's role shifts from **manual debugging** to **reviewing autom
 Potential expansions:
 - **Semantic code analysis** using AST parsing
 - **Performance regression detection**
-- **Security vulnerability scanning** 
+- **Security vulnerability scanning**
 - **Documentation generation** for new features
 - **Integration with code review tools**
 - **Machine learning** for pattern recognition

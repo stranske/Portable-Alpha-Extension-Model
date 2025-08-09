@@ -23,12 +23,12 @@ correlations:
     rho: 0.10
 
 portfolios:
-  - id: internal_pa
-    weights: {{INT_A1: 1.0}}
-  - id: external_pa
-    weights: {{EXT_A1: 1.0}}
-  - id: active_ext
-    weights: {{INT_A1: 0.5, EXT_A1: 0.5}}
+    - id: internal_pa
+      weights: {INT_A1: 1.0}
+    - id: external_pa
+      weights: {EXT_A1: 1.0}
+    - id: active_ext
+      weights: {INT_A1: 0.5, EXT_A1: 0.5}
 
 sleeves:
   internal_portable_alpha:

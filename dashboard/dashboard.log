@@ -151,8 +151,8 @@ PermissionError: [Errno 13] Permission denied: '/home/codespace'
 [31m [0m   [2m130 [0m[2m│   │   │   │   [0m[1;4;33m"[0m[1;4;33mTo install Chrome, use the CLI command `kaleido_get_chrome`, [0m [31m [0m
 [31m [0m   [2m131 [0m[2m│   │   │   │   [0m[1;4;33m"[0m[1;4;33mor from Python, use either `kaleido.get_chrome()` [0m[1;4;33m"[0m           [31m [0m
 [31m────────────────────────────────────────────────────────────────────────────────────────[0m
-[1;91mChromeNotFoundError: [0mKaleido v1 and later requires Chrome to be installed. To install 
-Chrome, use the CLI command `kaleido_get_chrome`, or from Python, use either 
+[1;91mChromeNotFoundError: [0mKaleido v1 and later requires Chrome to be installed. To install
+Chrome, use the CLI command `kaleido_get_chrome`, or from Python, use either
 `[1;35mkaleido.get_chrome[0m[1m([0m[1m)[0m` or `[1;35mkaleido.get_chrome_sync[0m[1m([0m[1m)[0m`.
 
 [3mDuring handling of the above exception, another exception occurred:[0m
@@ -208,10 +208,8 @@ Chrome, use the CLI command `kaleido_get_chrome`, or from Python, use either
 
 Kaleido requires Google Chrome to be installed.
 
-Either download and install Chrome yourself following Google's instructions for your 
+Either download and install Chrome yourself following Google's instructions for your
 operating system,
 or install it from your terminal by running:
 
     $ plotly_get_chrome
-
-

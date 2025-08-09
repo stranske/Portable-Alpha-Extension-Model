@@ -56,13 +56,13 @@
 
 ## ✅ **Tutorial 9 Status: WORKING**
 
-**Core Export Functionality**: ✅ PNG, HTML, JSON outputs generated successfully  
-**Alt-Text Support**: ✅ HTML files include `aria-label` for accessibility  
-**Error Handling**: ❌ PNG exceptions are silent; need visible warnings  
+**Core Export Functionality**: ✅ PNG, HTML, JSON outputs generated successfully
+**Alt-Text Support**: ✅ HTML files include `aria-label` for accessibility
+**Error Handling**: ❌ PNG exceptions are silent; need visible warnings
 **Configuration**: ⚠️ Limited; needs extension for additional formats and naming
 
 **Immediate Next Steps:**
-1. Surface export errors via logging or exceptions.  
-2. Document the dependency on `kaleido` for static image export.  
-3. Update tutorial text to include sample usage and dependency notes.  
+1. Surface export errors via logging or exceptions.
+2. Document the dependency on `kaleido` for static image export.
+3. Update tutorial text to include sample usage and dependency notes.
 4. Explore integrating `export_bundle` calls into the CLI flow for batch reports.

@@ -14,7 +14,7 @@ Restructure Tutorial 1 in `docs/UserGuide.md` from a single-scenario tutorial to
 
 ## 📋 **DETAILED IMPLEMENTATION STEPS**
 
-### **Step 1: Update Tutorial Roadmap** 
+### **Step 1: Update Tutorial Roadmap**
 **Location**: `docs/UserGuide.md` around line 66
 **Action**: Update the tutorial roadmap to reflect new 5-part Tutorial 1
 
@@ -28,7 +28,7 @@ Restructure Tutorial 1 in `docs/UserGuide.md` from a single-scenario tutorial to
 1. **Introductory Tutorial 1 – Master the Program (5 Parts)**
    - **Part 1**: Basic Program Operation - single scenario fundamentals
    - **Part 2**: Capital Mode - allocation percentage sweeps
-   - **Part 3**: Returns Mode - return/volatility sensitivity analysis  
+   - **Part 3**: Returns Mode - return/volatility sensitivity analysis
    - **Part 4**: Alpha Shares Mode - alpha/beta split optimization
    - **Part 5**: Vol Mult Mode - volatility stress testing
 ```
@@ -184,7 +184,7 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 You've now mastered:
 - ✅ Basic single-scenario operation (Part 1)
-- ✅ Capital allocation optimization (Part 2)  
+- ✅ Capital allocation optimization (Part 2)
 - ✅ Return assumption sensitivity (Part 3)
 - ✅ Alpha/beta split optimization (Part 4)
 - ✅ Volatility stress testing (Part 5)
@@ -219,7 +219,7 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 p
 - [ ] All 5 commands are copy-pasteable and work correctly
 - [ ] Each part builds logically on the previous part
 - [ ] Template file references are accurate (`config/*.csv`)
-- [ ] Console output expectations are set appropriately  
+- [ ] Console output expectations are set appropriately
 - [ ] Excel file structure is explained for each mode
 - [ ] Cross-references to Tutorials 2-3 are updated
 - [ ] Troubleshooting section covers common issues
@@ -235,6 +235,6 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 p
 ## 📝 **TESTING REQUIREMENTS**
 After implementation, verify:
 - All commands execute without errors
-- Referenced files exist (`config/*.csv`, `sp500tr_fred_divyield.csv`)  
+- Referenced files exist (`config/*.csv`, `sp500tr_fred_divyield.csv`)
 - Excel outputs match descriptions
 - Tutorials 2-3 flow naturally from new Tutorial 1 structure

@@ -3,9 +3,9 @@
 ## 📋 **Tutorial 5: Generate Custom Visualisations** - Testing Complete
 
 ### **What Tutorial 5 Covers:**
-✅ Use `scripts/visualise.py` to build plots outside the dashboard  
-✅ Pass `--plot` names: `risk_return`, `fan`, `path_dist`, `corr_heatmap`, `sharpe_ladder`, `rolling_panel`, `surface`  
-✅ Combine with flags: `--png`, `--pdf`, `--pptx`, `--html`, `--gif`, and `--alt-text` description  
+✅ Use `scripts/visualise.py` to build plots outside the dashboard
+✅ Pass `--plot` names: `risk_return`, `fan`, `path_dist`, `corr_heatmap`, `sharpe_ladder`, `rolling_panel`, `surface`
+✅ Combine with flags: `--png`, `--pdf`, `--pptx`, `--html`, `--gif`, and `--alt-text` description
 
 ---
 
@@ -93,19 +93,19 @@ plots/
 - **Professional reporting**: Embed charts into automated client-ready presentations
 
 ### **Enhanced Tutorial 5 Structure:**
-1. **Part 1**: Single-scenario chart generation (current functionality)  
-2. **Part 2**: Parameter sweep chart gallery creation (bulk iteration example)  
-3. **Part 3**: Interactive HTML dashboards for sweep results  
+1. **Part 1**: Single-scenario chart generation (current functionality)
+2. **Part 2**: Parameter sweep chart gallery creation (bulk iteration example)
+3. **Part 3**: Interactive HTML dashboards for sweep results
 4. **Part 4**: Automated PPTX deck generation for multi-scenario reporting
 
 ---
 
 ## ✅ **Tutorial 5 Status: PARTIALLY WORKING - Needs Dependency & Guidance Fixes**
 
-**Core Functionality**: ✅ Interactive HTML exports work  
-**Static Exports**: ❌ Fails silently due to Chrome/Kaleido dependency  
-**Path-Based Plots**: ❌ Require parquet conversion not documented  
-**User Experience**: ⚠️ Needs installation guidance and plot documentation  
+**Core Functionality**: ✅ Interactive HTML exports work
+**Static Exports**: ❌ Fails silently due to Chrome/Kaleido dependency
+**Path-Based Plots**: ❌ Require parquet conversion not documented
+**User Experience**: ⚠️ Needs installation guidance and plot documentation
 **Parameter Sweep Ready**: 🚀 Can be enhanced with bulk visualization workflows
 
 **Immediate Fixes Needed:**

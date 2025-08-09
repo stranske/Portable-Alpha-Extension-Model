@@ -3,8 +3,8 @@
 ## 📋 **Tutorial 8: Stress-Test Your Assumptions** - Testing Complete
 
 ### **What Tutorial 8 Covers:**
-✅ Run multiple scenarios by varying parameters (capital weights, alpha streams, financing)  
-✅ Re-run the CLI and compare **ShortfallProb** and **TrackingErr** across scenarios  
+✅ Run multiple scenarios by varying parameters (capital weights, alpha streams, financing)
+✅ Re-run the CLI and compare **ShortfallProb** and **TrackingErr** across scenarios
 ✅ Use dashboard and export scripts to visualize how each scenario moves the portfolio
 
 ---
@@ -60,12 +60,12 @@ InternalBeta             0.000  0.102                  0.000    0.103
 ## ⚠️ **User Experience Issues Identified:**
 
 ### **🔴 HIGH PRIORITY: Overwriting Default Output**
-- **Problem**: Tutorial does not mention `--output`; CLI overwrites `Outputs.xlsx` by default  
+- **Problem**: Tutorial does not mention `--output`; CLI overwrites `Outputs.xlsx` by default
 - **User Impact**: Previous scenario results erased without warning
 - **Missing**: Guidance on using `--output` to preserve multiple runs
 
 ### **🟡 MEDIUM PRIORITY: Manual Comparison Overhead**
-- **Problem**: Tutorial instructs to "compare columns" but provides no tools 
+- **Problem**: Tutorial instructs to "compare columns" but provides no tools
 - **User Impact**: Users must manually load files and diff metrics in Python or Excel
 - **Missing**: Built-in comparison or side-by-side visualization
 
@@ -92,15 +92,15 @@ InternalBeta             0.000  0.102                  0.000    0.103
 
 ## ✅ **Tutorial 8 Status: PARTIALLY WORKING - Manual Process**
 
-**Core Functionality**: ✅ CLI runs multiple scenarios and outputs Excel files  
-**Comparison Tools**: ❌ No built-in comparison; requires manual Python/Excel steps  
+**Core Functionality**: ✅ CLI runs multiple scenarios and outputs Excel files
+**Comparison Tools**: ❌ No built-in comparison; requires manual Python/Excel steps
 **Dashboard Support**: ⚠️ Single-file view only; no multi-scenario side-by-side
 **Parameter Sweep Ready**: 🚀 Can be enhanced to automate stress tests with full sweep engine
 
 **Immediate Fixes Needed:**
-1. **Document `--output` flag** to avoid overwriting   
-2. **Provide comparison script** or built-in diff feature  
-3. **Extend dashboard** to support multi-scenario comparison  
+1. **Document `--output` flag** to avoid overwriting
+2. **Provide comparison script** or built-in diff feature
+3. **Extend dashboard** to support multi-scenario comparison
 4. **Leverage sweep engine** to automate stress-testing
 
 **Next**: Update Tutorial 8 documentation and CodeX instructions to incorporate these fixes.

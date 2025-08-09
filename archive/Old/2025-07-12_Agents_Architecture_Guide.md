@@ -1,15 +1,15 @@
-# Agents Architecture Guide  
+# Agents Architecture Guide
 *Portable‑Alpha + Active‑Extension Model*
 
-> "Make everything as simple as possible, but no simpler." – A. Einstein  
+> "Make everything as simple as possible, but no simpler." – A. Einstein
 > (…who probably never had to vectorize Monte‑Carlo code, but would have sympathised.)
 
 ---
 
 ## ⚠️ DEVELOPMENT STATUS & PRIORITIES
 
-**Last Updated:** July 12, 2025  
-**Current Status:** Core implementation complete, critical bugs fixed  
+**Last Updated:** July 12, 2025
+**Current Status:** Core implementation complete, critical bugs fixed
 
 ### ✅ COMPLETED (Do NOT modify these)
 - **ActiveExtensionAgent bug fix** - `active_share` percentage conversion is **WORKING CORRECTLY**
@@ -23,7 +23,7 @@
 
 ### 🎯 HIGH PRIORITY (Focus here)
 1. **Parameter Sweep Engine** - Implement 4 analysis modes (capital/returns/alpha_shares/vol_mult)
-   - Location: `pa_core/cli.py` - add sweep functionality  
+   - Location: `pa_core/cli.py` - add sweep functionality
    - Requirement: Enable users to run multiple parameter variations automatically
    - See: `CODEX_IMPLEMENTATION_SPEC.md` for detailed requirements
 
@@ -36,7 +36,7 @@
    - Location: `pa_core/simulations.py`, `pa_core/sim/`
    - Focus: Vectorization, memory efficiency, parallel processing
 
-### 🔧 MEDIUM PRIORITY  
+### 🔧 MEDIUM PRIORITY
 1. **Enhanced Visualizations** - New chart types and interactions
 2. **Advanced Configuration** - More parameter validation and templates
 3. **Documentation** - API docs and advanced tutorials
@@ -59,9 +59,9 @@
 
 The existing notebook (`Portable_Alpha_Vectors.ipynb`) bundles business logic, UI, simulation, and reporting into one monolith.  Splitting each capital sleeve into an **agent**:
 
-* **Encapsulates** its parameters and maths behind a clean interface.  
-* **Vectorises** return generation (NumPy ops on `shape = (n_sim, n_months)` arrays).  
-* **Parametrises** behaviour via plain‑text config—trivial to grid‑search in CI.  
+* **Encapsulates** its parameters and maths behind a clean interface.
+* **Vectorises** return generation (NumPy ops on `shape = (n_sim, n_months)` arrays).
+* **Parametrises** behaviour via plain‑text config—trivial to grid‑search in CI.
 * **Enables** drop‑in replacement (e.g. a new “Overlay Options” sleeve) without touching the Monte‑Carlo driver.
 
 ---
@@ -403,7 +403,7 @@ class MyNewAgent(BaseAgent):
 
 ### 12.3  CLI wrapper (`scripts/visualise.py`)
 
-*Synopsis*  
+*Synopsis*
 ```bash
 python scripts/visualise.py \
   --plot risk_return --xlsx Outputs.xlsx \
@@ -1157,7 +1157,7 @@ hover text lists CVaR.
 
 ### **13  CLI Additions** &nbsp;*(new subsection in cli.py docstring)*
 
-// NEW  
+// NEW
 ```text
 --png / --pdf / --pptx     Static exports (can be combined)
 --html                    Save interactive HTML
@@ -1177,19 +1177,19 @@ hover text lists CVaR.
      ```
    * propagate the same change to any YAML sample (`params_template.yml`).
 
-2 · **CLI sanity-check** (`pa_core/config.py`)  
-   * on load, assert `"ShortfallProb" in cfg.risk_metrics`;  
+2 · **CLI sanity-check** (`pa_core/config.py`)
+   * on load, assert `"ShortfallProb" in cfg.risk_metrics`;
      if absent, raise `ConfigError("risk_metrics must include ShortfallProb")`.
 
-3 · **Excel exporter** (`pa_core/reporting/excel.py`)  
-   * before writing the *Summary* sheet:  
+3 · **Excel exporter** (`pa_core/reporting/excel.py`)
+   * before writing the *Summary* sheet:
      ```python
      summary["ShortfallProb"] = summary.get("ShortfallProb", 0.0)
      ```
      so old output files never explode the viz.
 
-4 · **Dashboard guard-rail** (`pa_core/viz/risk_return.py`)  
-   * same one-liner:  
+4 · **Dashboard guard-rail** (`pa_core/viz/risk_return.py`)
+   * same one-liner:
      ```python
      df = df.copy()
      df["ShortfallProb"] = df.get("ShortfallProb", 0.0)

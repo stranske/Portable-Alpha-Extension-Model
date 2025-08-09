@@ -8,8 +8,8 @@
 - Tests: 69 passed locally; added test for `--parquet` output structure.
 # Demo Testing Log
 
-**Date Started**: July 23, 2025  
-**Purpose**: Manual testing of all program demos to identify issues for Codex assistance  
+**Date Started**: July 23, 2025
+**Purpose**: Manual testing of all program demos to identify issues for Codex assistance
 **Testing Method**: Work through each demo systematically, document issues, use Codex for fixes
 
 ## Testing Status
@@ -36,17 +36,17 @@
 When you find an issue, add it using this format:
 
 ### Issue #[NUMBER]: [Brief Description]
-**Demo**: [Which demo/tutorial]  
-**Date Found**: [Date]  
-**Description**: [Detailed description of the issue]  
+**Demo**: [Which demo/tutorial]
+**Date Found**: [Date]
+**Description**: [Detailed description of the issue]
 **Steps to Reproduce**:
 1. Step 1
 2. Step 2
 3. etc.
 
-**Expected Behavior**: [What should happen]  
-**Actual Behavior**: [What actually happens]  
-**Priority**: [Low/Medium/High/Critical]  
+**Expected Behavior**: [What should happen]
+**Actual Behavior**: [What actually happens]
+**Priority**: [Low/Medium/High/Critical]
 **Codex Task**: [To be created - brief description of what Codex should help with]
 
 ---
@@ -54,69 +54,69 @@ When you find an issue, add it using this format:
 ## Issues Found
 
 ### Issue #1: Virtual Environment Not Activated by Default
-**Demo**: Tutorial 1 Setup  
-**Date Found**: July 23, 2025  
-**Description**: When starting Tutorial 1, the virtual environment was not activated, causing import errors and missing dependencies.  
+**Demo**: Tutorial 1 Setup
+**Date Found**: July 23, 2025
+**Description**: When starting Tutorial 1, the virtual environment was not activated, causing import errors and missing dependencies.
 **Steps to Reproduce**:
 1. Try to run `python -m pa_core.cli` without activating virtual environment
 2. Get import errors or "module not found" errors
 
-**Expected Behavior**: Tutorial should work immediately or provide clear instructions about virtual environment  
-**Actual Behavior**: Commands fail due to missing virtual environment activation  
-**Priority**: Medium  
+**Expected Behavior**: Tutorial should work immediately or provide clear instructions about virtual environment
+**Actual Behavior**: Commands fail due to missing virtual environment activation
+**Priority**: Medium
 **Codex Task**: Update documentation to include virtual environment activation instructions and/or create a wrapper script
 
 ### Issue #2: Enhanced Tutorial Command Syntax Error **[FIXED]**
-**Demo**: Tutorial 1 Enhanced Part 1  
-**Date Found**: July 23, 2025  
-**Date Fixed**: August 7, 2025  
-**Description**: The Enhanced Tutorial uses incorrect CLI command syntax that doesn't work. Tutorial shows `python -m pa_core --params` but the correct syntax is `python -m pa_core.cli --config`.  
+**Demo**: Tutorial 1 Enhanced Part 1
+**Date Found**: July 23, 2025
+**Date Fixed**: August 7, 2025
+**Description**: The Enhanced Tutorial uses incorrect CLI command syntax that doesn't work. Tutorial shows `python -m pa_core --params` but the correct syntax is `python -m pa_core.cli --config`.
 **Steps to Reproduce**:
 1. Follow Enhanced Tutorial 1 Part 1 exactly as written
 2. Run `python -m pa_core --params config/params_template.yml --output tutorial_1_baseline.xlsx`
 3. Command fails with module not found or similar error
 
-**Expected Behavior**: Tutorial commands should work as written  
-**Actual Behavior**: Command syntax is incorrect and fails  
-**Priority**: High  
+**Expected Behavior**: Tutorial commands should work as written
+**Actual Behavior**: Command syntax is incorrect and fails
+**Priority**: High
 **✅ FIXED**: Updated all commands in TUTORIAL_1_ENHANCED_PARAMETER_SWEEPS.md to use correct syntax:
 - `python -m pa_core.cli --config [config_file] --index sp500tr_fred_divyield.csv --output [output_file]`
 - Added virtual environment setup instructions
 - Updated Part 1-5 commands to include required `--index` parameter
 
 ### Issue #3: Silent CLI Execution
-**Demo**: Tutorial 1 Enhanced Part 1  
-**Date Found**: July 23, 2025  
-**Description**: The CLI runs silently without any console output, making it unclear if the command is working or what's happening during execution.  
+**Demo**: Tutorial 1 Enhanced Part 1
+**Date Found**: July 23, 2025
+**Description**: The CLI runs silently without any console output, making it unclear if the command is working or what's happening during execution.
 **Steps to Reproduce**:
 1. Run working CLI command: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output tutorial_1_baseline.xlsx`
 2. Observe complete silence during execution
 
-**Expected Behavior**: Rich table showing portfolio metrics during/after execution as mentioned in tutorial  
-**Actual Behavior**: No console output whatsoever  
-**Priority**: Medium  
+**Expected Behavior**: Rich table showing portfolio metrics during/after execution as mentioned in tutorial
+**Actual Behavior**: No console output whatsoever
+**Priority**: Medium
 **Codex Task**: Add verbose console output or progress indicators to CLI
 
 ### Issue #4: Missing Required Index Parameter in Tutorial **[FIXED]**
-**Demo**: Tutorial 1 Enhanced Part 1  
-**Date Found**: July 23, 2025  
-**Date Fixed**: August 7, 2025  
-**Description**: Enhanced Tutorial command is missing the required `--index` parameter that specifies the market data file.  
+**Demo**: Tutorial 1 Enhanced Part 1
+**Date Found**: July 23, 2025
+**Date Fixed**: August 7, 2025
+**Description**: Enhanced Tutorial command is missing the required `--index` parameter that specifies the market data file.
 **Steps to Reproduce**:
 1. Compare tutorial command: `python -m pa_core --params config/params_template.yml --output tutorial_1_baseline.xlsx`
 2. Compare working command: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output tutorial_1_baseline.xlsx`
 
-**Expected Behavior**: Tutorial should include all required parameters  
-**Actual Behavior**: Tutorial missing mandatory `--index sp500tr_fred_divyield.csv` parameter  
-**Priority**: High  
+**Expected Behavior**: Tutorial should include all required parameters
+**Actual Behavior**: Tutorial missing mandatory `--index sp500tr_fred_divyield.csv` parameter
+**Priority**: High
 **✅ FIXED**: All tutorial commands now include the required `--index sp500tr_fred_divyield.csv` parameter
 
-### ⚠️ **CRITICAL ISSUE #5**: Parameter Value Inconsistencies 
-**Status**: 🔴 CRITICAL - Tutorial mentions parameters not in template  
-**Tutorial**: Enhanced Tutorial 1  
-**Section**: Parameter Setup  
-**Issue**: Tutorial references market_model='BS' but template only has market_regime  
-**Impact**: Users cannot replicate tutorial setup with provided templates  
+### ⚠️ **CRITICAL ISSUE #5**: Parameter Value Inconsistencies
+**Status**: 🔴 CRITICAL - Tutorial mentions parameters not in template
+**Tutorial**: Enhanced Tutorial 1
+**Section**: Parameter Setup
+**Issue**: Tutorial references market_model='BS' but template only has market_regime
+**Impact**: Users cannot replicate tutorial setup with provided templates
 **Fix Required**: Either update tutorial to match templates OR update templates to include missing parameters
 
 ### ⚠️ **CRITICAL ISSUE #6**: Output Sheet Structure Mismatch **[PARTIALLY FIXED]**
@@ -134,8 +134,8 @@ When you find an issue, add it using this format:
 
 ## ✅ **TUTORIAL 1 PART 1 - FRESH START ANALYSIS COMPLETE**
 
-**Date**: July 23, 2025  
-**Command Used**: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output tutorial_1_fresh_start.xlsx`  
+**Date**: July 23, 2025
+**Command Used**: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output tutorial_1_fresh_start.xlsx`
 **Result**: Successfully generated 82-sheet Excel file with 81 parameter sweep combinations
 
 ### **What Tutorial 1 Actually Does:**
@@ -143,14 +143,14 @@ When you find an issue, add it using this format:
 - **Four Agent Types**: Base, Internal PA, External PA, Active Extension
 - **Key Insights**:
   - Internal PA has highest risk-adjusted returns (Sharpe ~7.0)
-  - Base agent shows highest absolute returns but also highest volatility  
+  - Base agent shows highest absolute returns but also highest volatility
   - External PA provides moderate returns with low tracking error
   - Active Extension has lowest returns but also lowest risk
 
 ### **Real Performance Metrics (81-scenario average):**
 - **Base**: 2.51% return, 0.74% vol (benchmark)
 - **Internal PA**: 2.02% return, 0.29% vol, 0.19% tracking error
-- **External PA**: 0.82% return, 0.45% vol, 0.11% tracking error  
+- **External PA**: 0.82% return, 0.45% vol, 0.11% tracking error
 - **Active Extension**: 0.16% return, 0.22% vol, 0.16% tracking error
 
 ### **Tutorial Works But Documentation Needs Updates**
@@ -158,14 +158,14 @@ The CLI and output generation work perfectly. The main issues are documentation 
 
 ## 🔍 **TUTORIAL 1 PART 1 - WORKING WITH ACTUAL OUTPUT STRUCTURE**
 
-**Date**: August 7, 2025  
-**Command Used**: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output tutorial_1_baseline.xlsx`  
+**Date**: August 7, 2025
+**Command Used**: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output tutorial_1_baseline.xlsx`
 **Result**: 82 sheets (Summary + Run0-Run80), 324 data points, 4 agents × 81 scenarios
 
 ### **✅ Tutorial Questions Successfully Answered (Using Real Data):**
 
-**1. Total Tracking Error:** 0.0015 (0.15%) average across all alpha strategies  
-**2. Agent with Most Alpha:** InternalPA provides best risk-adjusted alpha (Sharpe ~7.0)  
+**1. Total Tracking Error:** 0.0015 (0.15%) average across all alpha strategies
+**2. Agent with Most Alpha:** InternalPA provides best risk-adjusted alpha (Sharpe ~7.0)
 **3. Capital Allocation Insight:** Focus on InternalPA for optimal risk-return trade-off
 
 ### **📊 Actual Performance Metrics (From Summary Sheet):**
@@ -178,7 +178,7 @@ The CLI and output generation work perfectly. The main issues are documentation 
 
 ### **🎯 Key Business Insights:**
 - **InternalPA is the clear winner** for risk-adjusted performance
-- **All strategies show consistent performance** across 81 scenarios  
+- **All strategies show consistent performance** across 81 scenarios
 - **Low tracking errors** (0.1-0.2%) indicate good risk control
 - **Base strategy** provides highest absolute returns but at higher volatility
 
@@ -187,15 +187,15 @@ Despite documentation issues, the actual analysis provides rich insights into po
 
 ## 🏦 **TUTORIAL 1 PART 2 - CAPITAL ALLOCATION OPTIMIZATION**
 
-**Date**: August 7, 2025  
-**Command Used**: `python -m pa_core.cli --config config/capital_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_capital_sweep.xlsx`  
+**Date**: August 7, 2025
+**Command Used**: `python -m pa_core.cli --config config/capital_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_capital_sweep.xlsx`
 **Result**: 28 scenarios testing different capital allocation strategies (38KB file)
 
 ### **🎯 Key Capital Allocation Findings:**
 
-**1. Optimal Strategy:** Simple 2-agent portfolio (Base + InternalPA) achieved highest returns (3.31%)  
-**2. Agent Scaling:** InternalPA shows best performance scaling (2.83% to 4.07% range)  
-**3. Complexity Trade-off:** More agents ≠ better performance (2-agent beat 4-agent strategies)  
+**1. Optimal Strategy:** Simple 2-agent portfolio (Base + InternalPA) achieved highest returns (3.31%)
+**2. Agent Scaling:** InternalPA shows best performance scaling (2.83% to 4.07% range)
+**3. Complexity Trade-off:** More agents ≠ better performance (2-agent beat 4-agent strategies)
 **4. Consistent Winner:** InternalPA appears in ALL top-performing scenarios
 
 ### **📊 Capital Allocation Results:**
@@ -213,23 +213,23 @@ Despite documentation issues, the actual analysis provides rich insights into po
 - **Capital Efficiency:** Fewer, high-quality strategies beat broad diversification
 
 ### **📋 Tutorial Questions Answered (Part 2):**
-✅ **Sweet Spot:** 2-agent allocation (Base + InternalPA) optimal  
-✅ **Scaling Limits:** Performance dilution beyond 2-3 core strategies  
+✅ **Sweet Spot:** 2-agent allocation (Base + InternalPA) optimal
+✅ **Scaling Limits:** Performance dilution beyond 2-3 core strategies
 ✅ **Capacity Constraints:** InternalPA maintains performance across scenarios
 
 ## 🛠️ **TUTORIAL FIXES IMPLEMENTED**
 
-**Date**: August 7, 2025  
+**Date**: August 7, 2025
 **Files Updated**: `tutorials/TUTORIAL_1_ENHANCED_PARAMETER_SWEEPS.md`
 
 ### **✅ Major Fixes Applied:**
 
-1. **Command Syntax Correction**: 
+1. **Command Syntax Correction**:
    - Fixed all 5 parts: `python -m pa_core` → `python -m pa_core.cli`
    - Added required `--index sp500tr_fred_divyield.csv` parameter to all commands
    - Changed `--params` to `--config` throughout
 
-2. **Environment Setup**: 
+2. **Environment Setup**:
    - Added virtual environment activation instructions
    - Added package installation steps
 
@@ -240,27 +240,27 @@ Despite documentation issues, the actual analysis provides rich insights into po
 
 4. **All Parts Updated**:
    - ✅ Part 1: Foundation analysis (corrected command + sheet references)
-   - ✅ Part 2: Capital allocation (corrected command + sheet names)  
+   - ✅ Part 2: Capital allocation (corrected command + sheet names)
    - ✅ Part 3: Alpha capture efficiency (corrected command)
    - ✅ Part 4: Volatility stress testing (corrected command)
    - ✅ Part 5: Return sensitivity analysis (corrected command)
 
-### **🎯 Impact**: 
+### **🎯 Impact**:
 Tutorial now works **first time** for new users without command failures or missing sheets confusion.
 
 **Status**: Tutorial 1 Enhanced is now **fully functional** for first-time users.
 
 ## 📊 **TUTORIAL 1 PART 3 - ALPHA CAPTURE EFFICIENCY ANALYSIS**
 
-**Date**: August 7, 2025  
-**Command Used**: `python -m pa_core.cli --config config/alpha_shares_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_alpha_sweep.xlsx`  
+**Date**: August 7, 2025
+**Command Used**: `python -m pa_core.cli --config config/alpha_shares_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_alpha_sweep.xlsx`
 **Result**: 188 scenarios testing different alpha share allocations (183KB file)
 
 ### **🎯 Alpha Capture Efficiency Findings:**
 
-**1. Parameter Sweep Scope:** 11 external alpha levels (25%-75%) × 17 active share levels (20%-100%) = 187 scenarios  
-**2. Agent Comparison:** Base vs InternalBeta across all alpha share combinations  
-**3. Performance Consistency:** Both agents show stable performance across alpha allocation scenarios  
+**1. Parameter Sweep Scope:** 11 external alpha levels (25%-75%) × 17 active share levels (20%-100%) = 187 scenarios
+**2. Agent Comparison:** Base vs InternalBeta across all alpha share combinations
+**3. Performance Consistency:** Both agents show stable performance across alpha allocation scenarios
 **4. Risk-Return Trade-offs:** InternalBeta maintains lower volatility but also lower returns vs Base
 
 ### **📈 Alpha Shares Results (Sample Analysis):**
@@ -276,21 +276,21 @@ Tutorial now works **first time** for new users without command failures or miss
 - **Risk Management:** InternalBeta shows controlled tracking error (~0.19%) across all scenarios
 
 ### **📋 Tutorial Questions Answered (Part 3):**
-✅ **Optimal Alpha Shares:** Analysis across 25%-75% external alpha allocation range  
-✅ **Manager Allocation:** Comparison of internal vs external alpha capture efficiency  
+✅ **Optimal Alpha Shares:** Analysis across 25%-75% external alpha allocation range
+✅ **Manager Allocation:** Comparison of internal vs external alpha capture efficiency
 ✅ **Efficiency Metrics:** Tracking error and return consistency across scenarios
 
 ## 🧪 **TUTORIAL 1 PART 4 - VOLATILITY STRESS TESTING**
 
-**Date**: August 7, 2025  
-**Command Used**: `python -m pa_core.cli --config config/vol_mult_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_vol_sweep.xlsx`  
+**Date**: August 7, 2025
+**Command Used**: `python -m pa_core.cli --config config/vol_mult_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_vol_sweep.xlsx`
 **Result**: 10 scenarios testing different volatility environments (13KB file)
 
 ### **🎯 Volatility Stress Testing Findings:**
 
-**1. Stress Test Range:** 10 scenarios with volatility multipliers from 2.0x to 4.0x (step 0.25x)  
-**2. Agent Resilience:** Both Base and InternalBeta maintain stable performance across stress conditions  
-**3. Volatility Response:** Base volatility ranges from 0.007325 to 0.008010 (9% increase across stress scenarios)  
+**1. Stress Test Range:** 10 scenarios with volatility multipliers from 2.0x to 4.0x (step 0.25x)
+**2. Agent Resilience:** Both Base and InternalBeta maintain stable performance across stress conditions
+**3. Volatility Response:** Base volatility ranges from 0.007325 to 0.008010 (9% increase across stress scenarios)
 **4. Return Stability:** Both agents show consistent returns despite volatility stress (24-25% annual for Base)
 
 ### **📊 Stress Test Results:**
@@ -301,27 +301,27 @@ Tutorial now works **first time** for new users without command failures or miss
 | High (Run4) | 0.0080 | 2.54% | 0.0131 | 1.03% |
 
 ### **💡 Business Insights from Part 4:**
-- **Stress Resilience:** Both strategies maintain performance stability across 2x-4x volatility stress  
-- **Risk Control:** InternalBeta shows consistent tracking error (~0.002) across all stress scenarios  
-- **Return Consistency:** Base strategy maintains ~2.5% returns regardless of volatility environment  
+- **Stress Resilience:** Both strategies maintain performance stability across 2x-4x volatility stress
+- **Risk Control:** InternalBeta shows consistent tracking error (~0.002) across all stress scenarios
+- **Return Consistency:** Base strategy maintains ~2.5% returns regardless of volatility environment
 - **Stress Testing Value:** 10 scenarios provide comprehensive view of portfolio behavior under market stress
 
 ### **📋 Tutorial Questions Answered (Part 4):**
-✅ **Volatility Sensitivity:** Portfolio resilience tested across 2.0x-4.0x stress multipliers  
-✅ **Stress Performance:** Both agents maintain stable risk-return profiles under stress  
+✅ **Volatility Sensitivity:** Portfolio resilience tested across 2.0x-4.0x stress multipliers
+✅ **Stress Performance:** Both agents maintain stable risk-return profiles under stress
 ✅ **Risk Management:** Tracking error and volatility metrics remain controlled across scenarios
 
 ## 📈 **TUTORIAL 1 PART 5 - RETURN SENSITIVITY ANALYSIS**
 
-**Date**: August 7, 2025  
-**Command Used**: `python -m pa_core.cli --config config/returns_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_returns_sweep.xlsx`  
+**Date**: August 7, 2025
+**Command Used**: `python -m pa_core.cli --config config/returns_mode_template.csv --index sp500tr_fred_divyield.csv --output tutorial_1_returns_sweep.xlsx`
 **Result**: 4-sheet analysis testing return assumption sensitivity (168KB file)
 
 ### **🎯 Return Sensitivity Analysis Findings:**
 
-**1. Analysis Structure:** 4 comprehensive sheets - Inputs, Summary, Base, InternalBeta  
-**2. Parameter Scope:** 4-dimensional sweep across in-house and external return/volatility assumptions  
-**3. Template Design:** 3×3×3×3 = 81 theoretical combinations compressed into summary analysis  
+**1. Analysis Structure:** 4 comprehensive sheets - Inputs, Summary, Base, InternalBeta
+**2. Parameter Scope:** 4-dimensional sweep across in-house and external return/volatility assumptions
+**3. Template Design:** 3×3×3×3 = 81 theoretical combinations compressed into summary analysis
 **4. Agent Focus:** Detailed comparison of Base vs InternalBeta across return scenarios
 
 ### **📊 Return Sensitivity Structure:**
@@ -333,32 +333,32 @@ Tutorial now works **first time** for new users without command failures or miss
 | InternalBeta | Agent Detail | InternalBeta performance across assumptions |
 
 ### **💡 Business Insights from Part 5:**
-- **Return Assumption Testing:** Comprehensive 4D parameter space covering in-house (2%-6% return, 1%-3% vol) and external (1%-5% return, 2%-4% vol) ranges  
-- **Sensitivity Analysis:** Both agents analyzed across full spectrum of return assumptions  
-- **Risk-Return Optimization:** Detailed agent-level analysis enables return assumption sensitivity understanding  
+- **Return Assumption Testing:** Comprehensive 4D parameter space covering in-house (2%-6% return, 1%-3% vol) and external (1%-5% return, 2%-4% vol) ranges
+- **Sensitivity Analysis:** Both agents analyzed across full spectrum of return assumptions
+- **Risk-Return Optimization:** Detailed agent-level analysis enables return assumption sensitivity understanding
 - **Strategic Planning:** 81-scenario parameter sweep provides robust foundation for return forecasting
 
 ### **📋 Tutorial Questions Answered (Part 5):**
-✅ **Return Sensitivity:** Portfolio performance analyzed across 4D return/volatility assumption space  
-✅ **Assumption Impact:** Both Base and InternalBeta tested against varying return scenarios  
+✅ **Return Sensitivity:** Portfolio performance analyzed across 4D return/volatility assumption space
+✅ **Assumption Impact:** Both Base and InternalBeta tested against varying return scenarios
 ✅ **Strategic Insights:** Comprehensive analysis enables robust return assumption planning
 
 ### Issue #7: Tutorial 2 CLI Syntax Errors **[FIXED]**
-**Demo**: Tutorial 2 Advanced Threshold Analysis  
-**Date Found**: August 7, 2025  
-**Date Fixed**: August 7, 2025  
-**Description**: Tutorial 2 uses incorrect CLI syntax throughout - shows `--params` + `--mode` flags but correct syntax is `--config` for CSV files.  
+**Demo**: Tutorial 2 Advanced Threshold Analysis
+**Date Found**: August 7, 2025
+**Date Fixed**: August 7, 2025
+**Description**: Tutorial 2 uses incorrect CLI syntax throughout - shows `--params` + `--mode` flags but correct syntax is `--config` for CSV files.
 **Steps to Reproduce**:
 1. Follow Tutorial 2 Part B exactly as written
 2. Run `python -m pa_core.cli --params config/capital_mode_template.csv --mode capital --index sp500tr_fred_divyield.csv --output Tutorial2_CapitalSweep.xlsx`
 3. Command fails with incorrect parameter syntax
 
-**Expected Behavior**: Tutorial commands should work as written  
-**Actual Behavior**: CLI syntax incorrect - should use `--config` not `--params` + `--mode`  
-**Priority**: High  
+**Expected Behavior**: Tutorial commands should work as written
+**Actual Behavior**: CLI syntax incorrect - should use `--config` not `--params` + `--mode`
+**Priority**: High
 **✅ FIXED**: Updated Tutorial 2 CLI commands throughout:
 - Fixed CLI syntax table to use `--config` for all file types
-- Updated Part B command: `--config config/capital_mode_template.csv` 
+- Updated Part B command: `--config config/capital_mode_template.csv`
 - Updated Part C commands to use correct `--config` syntax
 - Added virtual environment setup instructions
 - Clarified parameter sweep behavior vs single scenario expectations
@@ -366,7 +366,7 @@ Tutorial now works **first time** for new users without command failures or miss
 
 ## ✅ **TUTORIAL 2 ADVANCED THRESHOLD ANALYSIS - TESTING COMPLETE**
 
-**Date**: August 7, 2025  
+**Date**: August 7, 2025
 
 ### **🎯 Tutorial 2 Test Results:**
 
@@ -378,7 +378,7 @@ Tutorial now works **first time** for new users without command failures or miss
 
 **⚠️ Part B - Capital Sweep (SYNTAX ISSUES)**:
 - **Tutorial Command**: `--params config/capital_mode_template.csv --mode capital` (INCORRECT)
-- **Correct Command**: `--config config/capital_mode_template.csv` 
+- **Correct Command**: `--config config/capital_mode_template.csv`
 - **Analysis**: Existing files show excellent threshold compliance
 - **Issue**: CLI documentation table completely wrong throughout tutorial
 
@@ -400,7 +400,7 @@ Tutorial now works **first time** for new users without command failures or miss
 ### **💡 Business Value Demonstrated:**
 
 - ✅ **Risk Management**: Threshold analysis functional across all agent types
-- ✅ **Compliance Monitoring**: TE and ShortfallProb tracking works correctly  
+- ✅ **Compliance Monitoring**: TE and ShortfallProb tracking works correctly
 - ✅ **Parameter Sweeps**: Multiple scenario analysis enables robust risk assessment
 - ✅ **File Management**: Multiple output files support comparative analysis
 
@@ -414,12 +414,12 @@ Tutorial now works **first time** for new users without command failures or miss
 
 ## 🛠️ **TUTORIAL 2 FIXES IMPLEMENTED**
 
-**Date**: August 7, 2025  
+**Date**: August 7, 2025
 **Files Updated**: `tutorials/TUTORIAL_2_ADVANCED_THRESHOLD_ANALYSIS.md`
 
 ### **✅ Major Fixes Applied:**
 
-1. **CLI Syntax Table Correction**: 
+1. **CLI Syntax Table Correction**:
    - Fixed all entries to use `--config` instead of `--params` + `--mode`
    - Unified syntax across all file types (YAML and CSV)
 
@@ -428,7 +428,7 @@ Tutorial now works **first time** for new users without command failures or miss
    - **Part C**: Updated both alpha shares and volatility commands to use `--config`
    - Reformatted commands for better readability
 
-3. **Environment Setup**: 
+3. **Environment Setup**:
    - Added virtual environment activation instructions
    - Clarified dependency installation steps
 
@@ -441,7 +441,7 @@ Tutorial now works **first time** for new users without command failures or miss
    - Removed non-functional `--dashboard` flag from commands
    - Added proper dashboard usage instructions (`streamlit run dashboard/app.py`)
 
-### **🎯 Impact**: 
+### **🎯 Impact**:
 Tutorial 2 now works **first time** for new users without CLI syntax failures.
 
 **Status**: Tutorial 2 Advanced Threshold Analysis is now **fully functional** for first-time users.
@@ -452,7 +452,7 @@ Tutorial 2 now works **first time** for new users without CLI syntax failures.
 
 ### **🎯 Overall Tutorial Results:**
 - ✅ **Part 1**: Foundation analysis (81 scenarios, 82 sheets)
-- ✅ **Part 2**: Capital allocation (28 scenarios, optimal 2-agent strategy)  
+- ✅ **Part 2**: Capital allocation (28 scenarios, optimal 2-agent strategy)
 - ✅ **Part 3**: Alpha capture efficiency (188 scenarios, alpha share optimization)
 - ✅ **Part 4**: Volatility stress testing (10 scenarios, 2x-4x stress resilience)
 - ✅ **Part 5**: Return sensitivity analysis (4 sheets, 4D parameter space)
@@ -465,29 +465,29 @@ Tutorial 2 now works **first time** for new users without CLI syntax failures.
 
 ### **🛠️ Tutorial Now Ready for:**
 - ✅ First-time user execution without errors
-- ✅ Comprehensive parameter sweep demonstrations  
+- ✅ Comprehensive parameter sweep demonstrations
 - ✅ Business-relevant portfolio optimization insights
 - ✅ Multi-dimensional risk analysis workflows
 
 **Status**: Tutorial 1 Enhanced is now **fully functional** for first-time users.
 
 ### Issue #8: Tutorial 3 Dashboard CLI Syntax Issues
-**Demo**: Tutorial 3 Multi-Scenario Dashboard  
-**Date Found**: July 23, 2025  
-**Description**: Tutorial 3 contains the same CLI syntax issues as Tutorial 2 - uses `--params` + `--mode` instead of correct `--config` syntax.  
+**Demo**: Tutorial 3 Multi-Scenario Dashboard
+**Date Found**: July 23, 2025
+**Description**: Tutorial 3 contains the same CLI syntax issues as Tutorial 2 - uses `--params` + `--mode` instead of correct `--config` syntax.
 **Steps to Reproduce**:
 1. Read TUTORIAL_3_MULTI_SCENARIO_DASHBOARD.md
 2. Notice commands like `python -m pa_core --params config/params_template.yml --mode capital --output DashboardSweep.xlsx`
 3. Compare to working syntax: `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output DashboardSweep.xlsx`
 
-**Expected Behavior**: Tutorial commands should use correct CLI syntax  
-**Actual Behavior**: Tutorial uses outdated command syntax that will fail  
-**Priority**: High  
-**Status**: ✅ FIXED - CLI syntax corrected  
+**Expected Behavior**: Tutorial commands should use correct CLI syntax
+**Actual Behavior**: Tutorial uses outdated command syntax that will fail
+**Priority**: High
+**Status**: ✅ FIXED - CLI syntax corrected
 **Dashboard Testing**: Dashboard app.py code structure confirmed functional, expects Excel files with 'Summary' sheet which our existing Tutorial 1 outputs provide
 
 **Additional Findings**:
-- ✅ Dashboard code imports successfully 
+- ✅ Dashboard code imports successfully
 - ✅ Expected file structure: `Outputs.xlsx` with 'Summary' sheet
 - ✅ Existing Tutorial 1 outputs compatible (`Outputs.xlsx` has correct structure)
 - ✅ Streamlit installation confirmed (v1.46.1)
@@ -502,21 +502,21 @@ Tutorial 2 now works **first time** for new users without CLI syntax failures.
 **Codex Task**: Update Tutorial 3 CLI syntax throughout, similar to Tutorial 2 fixes
 
 ### Issue #9: Dashboard Chrome Dependency Error **[FIXED]**
-**Demo**: Tutorial 3 Multi-Scenario Dashboard  
-**Date Found**: August 7, 2025  
-**Date Fixed**: August 7, 2025  
-**Description**: Streamlit dashboard crashes with "Kaleido requires Google Chrome to be installed" error when trying to generate PNG exports.  
+**Demo**: Tutorial 3 Multi-Scenario Dashboard
+**Date Found**: August 7, 2025
+**Date Fixed**: August 7, 2025
+**Description**: Streamlit dashboard crashes with "Kaleido requires Google Chrome to be installed" error when trying to generate PNG exports.
 **Steps to Reproduce**:
 1. Start dashboard with `streamlit run dashboard/app.py`
 2. Load any Excel file
 3. Dashboard crashes immediately with Chrome/Kaleido RuntimeError
 
-**Expected Behavior**: Dashboard should work without requiring Chrome installation  
-**Actual Behavior**: Dashboard crashes with Chrome dependency error  
-**Priority**: High  
-**Status**: ✅ FIXED - Added graceful error handling  
+**Expected Behavior**: Dashboard should work without requiring Chrome installation
+**Actual Behavior**: Dashboard crashes with Chrome dependency error
+**Priority**: High
+**Status**: ✅ FIXED - Added graceful error handling
 
-**✅ SOLUTION IMPLEMENTED**: 
+**✅ SOLUTION IMPLEMENTED**:
 - Modified `dashboard/app.py` to wrap PNG generation in try-except block
 - Added user-friendly warning when Chrome not available
 - Dashboard now works fully without Chrome, just disables PNG export feature
@@ -542,7 +542,7 @@ except RuntimeError as e:
 ### Codex Task Template
 ```
 Title: Fix [Issue Description]
-Branch: codex/fix-[issue-brief-name]  
+Branch: codex/fix-[issue-brief-name]
 Description: [What needs to be done]
 Files Affected: [List of files]
 Testing: [How to verify the fix]
@@ -552,15 +552,15 @@ Testing: [How to verify the fix]
 
 ## ✅ **TUTORIAL 3 DASHBOARD - COMPREHENSIVE TESTING COMPLETE**
 
-**Date**: August 7, 2025  
-**Focus**: Multi-scenario dashboard workflows and Streamlit interface testing  
+**Date**: August 7, 2025
+**Focus**: Multi-scenario dashboard workflows and Streamlit interface testing
 **Data Used**: `Outputs.xlsx` (5 agents, 7 performance metrics)
 
 ### **🎯 Dashboard Functionality Verified:**
 
 **📊 Data Compatibility**: ✅ CONFIRMED
 - Excel files with `Summary` sheet load correctly
-- Required columns present: Agent, AnnReturn, AnnVol, TE, ShortfallProb  
+- Required columns present: Agent, AnnReturn, AnnVol, TE, ShortfallProb
 - 5 agent types with complete performance metrics
 - Data format matches dashboard expectations perfectly
 
@@ -572,7 +572,7 @@ Testing: [How to verify the fix]
 - **Interactive Hover**: Agent details on mouseover
 - **Export Capabilities**: PNG download and Excel re-download
 
-**🖥️ Dashboard Interface**: ✅ VERIFIED  
+**🖥️ Dashboard Interface**: ✅ VERIFIED
 - **Sidebar Controls**: File input, theme selection, agent filtering
 - **Multi-Tab Layout**: Headline, Funding fan, Path dist, Diagnostics
 - **Auto-Refresh**: Configurable interval updates
@@ -589,7 +589,7 @@ From our test file (`Outputs.xlsx`):
 ### **🚀 Tutorial 3 Learning Outcomes:**
 1. **Multi-scenario visualization** through interactive dashboard
 2. **Performance comparison** across agent types with risk metrics
-3. **Export workflows** for presentations and further analysis  
+3. **Export workflows** for presentations and further analysis
 4. **Threshold-based analysis** with visual performance zones
 5. **Real-time data exploration** with filtering and selection controls
 

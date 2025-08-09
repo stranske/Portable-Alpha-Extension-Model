@@ -5,7 +5,7 @@
 
 **Implementation Sequence**:
 1. **FIRST**: Parameter sweep engine implementation (4 modes: capital, returns, alpha_shares, vol_mult)
-2. **THEN**: Tutorial restructuring based on working parameter sweep capabilities  
+2. **THEN**: Tutorial restructuring based on working parameter sweep capabilities
 3. **FINALLY**: Tutorial testing and validation with actual sweep functionality
 
 ## �📋 **TUTORIAL RESTRUCTURING REQUIREMENTS** (Post-Implementation)
@@ -32,11 +32,11 @@ Based on user testing of Tutorial 1, the following issues were identified and ne
   - Common troubleshooting issues
 - **Success Criteria**: User successfully runs program and understands basic metrics
 
-#### **Part 2: Capital Mode Introduction**  
+#### **Part 2: Capital Mode Introduction**
 - **Objective**: Introduce parameter sweep concept with capital allocation
 - **Content**:
   - Explain `--mode=capital` parameter
-  - Use `capital_mode_template.csv` 
+  - Use `capital_mode_template.csv`
   - Show how multiple scenarios are generated
   - Compare single vs. sweep results
   - Excel output differences (multiple sheets vs. single)
@@ -55,7 +55,7 @@ Based on user testing of Tutorial 1, the following issues were identified and ne
 #### **Part 4: Alpha Shares Mode Introduction**
 - **Objective**: Understand alpha/beta split optimization
 - **Content**:
-  - Explain `--mode=alpha_shares` parameter  
+  - Explain `--mode=alpha_shares` parameter
   - Use `alpha_shares_mode_template.csv`
   - Alpha vs. beta share allocation concepts
   - Performance optimization through share splits
@@ -135,7 +135,7 @@ Each template CSV needs clear documentation:
 
 ### **Success Criteria**
 1. **Part 1 Completion**: User can run basic simulation and understand output
-2. **Mode Understanding**: User grasps parameter sweep concept and mode differences  
+2. **Mode Understanding**: User grasps parameter sweep concept and mode differences
 3. **Template Familiarity**: User knows which template to use for different scenarios
 4. **Integration Ready**: User prepared for Tutorials 2-3 with any mode
 5. **Self-Sufficient**: User can troubleshoot common issues independently

@@ -23,5 +23,5 @@ beta_vol_E: 0.12     # high beta volatility
 beta_vol_H: 0.10     # high internal beta vol
 
 corr_EB: 0.1         # low correlations (high diversification)
-corr_EH: 0.1         
+corr_EH: 0.1
 corr_BH: 0.2

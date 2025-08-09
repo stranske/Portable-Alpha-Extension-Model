@@ -1,4 +1,4 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF'
 diff --git a/Portable_Alpha_Vectors.ipynb b/Portable_Alpha_Vectors.ipynb
 index 745855507fe029a512eb2672c99e3ee4bbb54819..88755d34deaaffabdf2fe078224d32f5501a2949 100644
 --- a/Portable_Alpha_Vectors.ipynb
@@ -111,6 +111,6 @@ index 745855507fe029a512eb2672c99e3ee4bbb54819..88755d34deaaffabdf2fe078224d32f5
      "    all_raw_returns,\n",
      "    filename=\"/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable\\ Alpha-Extension\\ Model/Outputs.xlsx\"\n",
      ")\n",
- 
+
 EOF
 )

@@ -8,7 +8,7 @@
 **Fix Needed**: Tutorial should explicitly mention this parameter and explain the modes:
 - `returns`: Fixed returns/volatilities (recommended for beginners)
 - `capital`: Capital allocation sweeps
-- `alpha_shares`: Alpha allocation sweeps  
+- `alpha_shares`: Alpha allocation sweeps
 - `vol_mult`: Volatility multiplier sweeps
 
 ### 2. **Template Mismatch Confusion**
@@ -36,7 +36,7 @@
 ## Successful Aspects
 
 ✅ **CLI Command Structure**: The basic command worked as documented
-✅ **Output Generation**: Excel file was created successfully  
+✅ **Output Generation**: Excel file was created successfully
 ✅ **Console Summary**: Rich table provides clear metric explanations
 ✅ **Error Recovery**: System didn't crash despite unrealistic parameters
 

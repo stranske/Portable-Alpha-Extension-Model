@@ -1,5 +1,5 @@
 # Agents.md
-**Project:** Portable Alpha + Active Extension Model  
+**Project:** Portable Alpha + Active Extension Model
 **Version:** draft-2025-08-08
 
 This document defines the core modules (“agents”), their responsibilities, inputs/outputs, invariants, and test hooks.
@@ -9,7 +9,7 @@ It is written to enable small, focused pull requests and predictable reviews.
 
 ## 0) Architecture overview
 
-**Goal:** simulate a portfolio that combines internal portable alpha, external portable alpha, and an active extension sleeve, 
+**Goal:** simulate a portfolio that combines internal portable alpha, external portable alpha, and an active extension sleeve,
 with financing costs, then report risk/return metrics and board-ready artifacts.
 
 **Design principles**

@@ -14,7 +14,7 @@ The workflow now includes explicit permissions and improved error handling:
 ```yaml
 permissions:
   contents: write          # Push commits
-  pull-requests: write     # Comment on PRs  
+  pull-requests: write     # Comment on PRs
   issues: write           # PR comments (PRs are issues)
   actions: read           # Access artifacts
 ```

@@ -3,18 +3,18 @@
 ## 📋 **Tutorial 3: Visualise the Results (Dashboard and Scripts)** - Testing Complete
 
 ### **What Tutorial 3 Covers:**
-✅ Step 1: Launch dashboard (`--dashboard` flag OR `streamlit run dashboard/app.py`)  
-✅ Step 2: Load results (`Outputs.xlsx` file path, optional `Outputs.parquet`)  
-✅ Step 3: Explore tabs (risk-return scatter, funding fan, path dist, download buttons)  
+✅ Step 1: Launch dashboard (`--dashboard` flag OR `streamlit run dashboard/app.py`)
+✅ Step 2: Load results (`Outputs.xlsx` file path, optional `Outputs.parquet`)
+✅ Step 3: Explore tabs (risk-return scatter, funding fan, path dist, download buttons)
 ✅ Additional: `scripts/visualise.py` for custom chart generation
 
 ---
 
 ## ✅ **What Worked Well:**
 
-### **Step 1: Dashboard Launch** 
+### **Step 1: Dashboard Launch**
 - ✅ **Manual method**: `streamlit run dashboard/app.py` works correctly
-- ✅ **CLI integration**: `--dashboard` flag works correctly  
+- ✅ **CLI integration**: `--dashboard` flag works correctly
 - ✅ **Environment**: Both methods properly launch at http://localhost:8501
 - ✅ **Simulation + Dashboard**: CLI runs simulation then launches dashboard automatically
 
@@ -29,7 +29,7 @@
 - ✅ **Multiple Tabs**: Risk-return scatter, funding fan, path distribution tabs accessible
 
 ### **Scripts/Visualise.py**
-- ✅ **Basic Functionality**: Scripts run without errors for chart generation  
+- ✅ **Basic Functionality**: Scripts run without errors for chart generation
 - ✅ **Excel Integration**: Properly reads `Outputs.xlsx` files
 - ✅ **Multiple Plot Types**: Risk-return, fan, path_dist, etc. all available
 
@@ -39,7 +39,7 @@
 
 ### **🔴 HIGH PRIORITY: Environment Setup Barriers**
 - **Problem**: Streamlit not installed by default, blocks Tutorial 3 completely
-- **User Impact**: New users hit immediate error "streamlit: command not found"  
+- **User Impact**: New users hit immediate error "streamlit: command not found"
 - **Missing**: Installation instructions in tutorial or setup guidance
 - **Required**: Either pre-install streamlit or add setup steps to tutorial
 
@@ -76,7 +76,7 @@
 # Method 1: Manual (✅ Works)
 streamlit run dashboard/app.py
 
-# Method 2: CLI Integration (✅ Works)  
+# Method 2: CLI Integration (✅ Works)
 python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv --dashboard
 ```
 
@@ -101,7 +101,7 @@ python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv 
 
 ### **Parameter Sweep Enhancement Potential:**
 - **Multi-scenario dashboards**: Load parameter sweep Excel files (38KB-183KB outputs)
-- **Bulk visualization workflows**: Compare 50-200 scenarios simultaneously  
+- **Bulk visualization workflows**: Compare 50-200 scenarios simultaneously
 - **Parameter sensitivity charts**: Visual analysis of which parameters affect performance
 - **Professional portfolio visualization**: Demonstrate systematic analysis techniques
 - **Threshold compliance visualization**: Color-coded analysis of sweep results vs limits
@@ -110,9 +110,9 @@ python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv 
 
 ## ✅ **Tutorial 3 Status: PARTIALLY WORKING - Needs Dependency Fixes**
 
-**Core Functionality**: ✅ Dashboard and basic visualization work correctly  
-**Environment Issues**: ❌ Streamlit and Chrome dependencies block new users  
-**User Experience**: ⚠️ Needs setup guidance and comprehensive walkthrough  
+**Core Functionality**: ✅ Dashboard and basic visualization work correctly
+**Environment Issues**: ❌ Streamlit and Chrome dependencies block new users
+**User Experience**: ⚠️ Needs setup guidance and comprehensive walkthrough
 **Parameter Sweep Ready**: 🚀 Can be enhanced with multi-scenario visualization demonstrations
 
 **Critical Dependencies to Address:**

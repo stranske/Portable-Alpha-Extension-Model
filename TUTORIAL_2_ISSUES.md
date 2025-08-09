@@ -23,7 +23,7 @@
 
 ### **Single Scenario Tests:**
 - ✅ `--config config/params_template.yml` → Tutorial2_Baseline.xlsx
-- ✅ `--config tutorial2_aggressive.yml` → Tutorial2_Aggressive.xlsx  
+- ✅ `--config tutorial2_aggressive.yml` → Tutorial2_Aggressive.xlsx
 - ✅ `--config tutorial2_conservative.yml` → Tutorial2_Conservative.xlsx
 - ✅ `--config tutorial2_high_risk.yml` → Tutorial2_HighRisk.xlsx
 - ✅ `--params config/parameters_template.csv` → Tutorial2_CSV_Test.xlsx
@@ -49,7 +49,7 @@ Now that parameter sweeps work, Tutorial 2 can demonstrate:
 
 **Recommended Tutorial 2 Structure (UPDATED):**
 1. **Part A**: Introduction to metric interpretation using single scenarios
-2. **Part B**: Parameter sweep introduction - demonstrate capital allocation sweep  
+2. **Part B**: Parameter sweep introduction - demonstrate capital allocation sweep
 3. **Part C**: Advanced parameter sweeps - alpha shares and volatility stress testing
 4. **Part D**: Multi-scenario Excel analysis and interpretation techniques
 
@@ -57,7 +57,7 @@ Now that parameter sweeps work, Tutorial 2 can demonstrate:
 ```
 Purpose                    | File Type | CLI Flag    | Example | Status
 Single scenario (YAML)     | .yml      | --config    | params_template.yml | ✅ WORKING
-Single scenario (CSV)      | .csv      | --params    | parameters_template.csv | ✅ WORKING  
+Single scenario (CSV)      | .csv      | --params    | parameters_template.csv | ✅ WORKING
 Capital allocation sweep   | .csv      | --params + --mode capital | capital_mode_template.csv | ✅ WORKING
 Alpha shares optimization  | .csv      | --params + --mode alpha_shares | alpha_shares_mode_template.csv | ✅ WORKING
 Returns sensitivity        | .csv      | --params + --mode returns | returns_mode_template.csv | ⚠️ CLI BUG
@@ -89,7 +89,7 @@ Volatility stress test     | .csv      | --params + --mode vol_mult | vol_mult_m
 This transforms Tutorial 2 from basic metric interpretation to advanced portfolio optimization demonstration.
 
 ## 📊 **SUCCESS CRITERIA:**
-- [ ] Tutorial 2 guides users through creating multiple scenarios  
+- [ ] Tutorial 2 guides users through creating multiple scenarios
 - [ ] Clear file selection matrix provided
 - [ ] Parameter sweep integration demonstrated
 - [ ] Excel output interpretation for multiple scenarios explained

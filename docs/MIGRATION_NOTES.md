@@ -1,5 +1,5 @@
 # MIGRATION_NOTES.md
-**Subject:** Deprecating Excel/CSV as parameter inputs; keeping Excel/CSV for data uploads only  
+**Subject:** Deprecating Excel/CSV as parameter inputs; keeping Excel/CSV for data uploads only
 Date: 2025-08-08
 
 ## Policy

@@ -1,4 +1,4 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
+ (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF'
 diff --git a/Portable_Alpha_Vectors.ipynb b/Portable_Alpha_Vectors.ipynb
 index 3a9f2c6b2a5d0dd33a487a1cb58d619cae94d56e..b92e8aec43613352fb0224f2bd6ad08a5f4a8a01 100644
 --- a/Portable_Alpha_Vectors.ipynb
@@ -192,6 +192,6 @@ index 3a9f2c6b2a5d0dd33a487a1cb58d619cae94d56e..b92e8aec43613352fb0224f2bd6ad08a
      "\n",
      "    # -------------------------------------------------------------\n",
      "    # Unified params-dict for BOTH helper functions\n",
- 
+
 EOF
 )

@@ -3,7 +3,7 @@
 ## Overview
 This model simulates a **three-sleeve portable alpha strategy**:
 1. **Internal PA** - Your in-house team manages both alpha and beta
-2. **External PA** - External manager provides alpha, you manage beta separately  
+2. **External PA** - External manager provides alpha, you manage beta separately
 3. **Active Extension** - Traditional active management overlay
 
 ## Parameter Explanation by Category
@@ -22,7 +22,7 @@ Think of this as your asset allocation decision:
 - **Internal PA capital**: Assets managed internally for portable alpha
 - **Total fund capital**: Must equal sum of the three sleeves above
 
-**Example Business Logic**: 
+**Example Business Logic**:
 - Large institutional fund ($300M) might allocate:
   - 50% ($150M) to internal PA (lower fees, full control)
   - 33% ($100M) to external PA (access to specialized alpha)
@@ -35,7 +35,7 @@ Think of this as your asset allocation decision:
 
 **Business Logic**: Higher beta share = more benchmark tracking, lower tracking error
 
-### 4. External PA Manager Configuration  
+### 4. External PA Manager Configuration
 - **External PA alpha fraction**: How much of external manager's mandate is pure alpha vs beta
 - **Typical Range**: 0.3-0.7 (30-70% alpha focus)
 
@@ -46,7 +46,7 @@ Think of this as your asset allocation decision:
 ### 6. Expected Return Assumptions (Annual %)
 Set these based on your capital market assumptions:
 - **In-House annual return**: Expected alpha from internal team (e.g., 2-6%)
-- **Alpha-Extension annual return**: Expected alpha from active overlay (e.g., 3-7%)  
+- **Alpha-Extension annual return**: Expected alpha from active overlay (e.g., 3-7%)
 - **External annual return**: Expected alpha from external PA manager (e.g., 2-5%)
 
 **Calibration Tip**: Use historical performance or market research for realistic assumptions

@@ -1,5 +1,5 @@
 # INSTRUCTIONS_FOR_CODEX.md
-**How to contribute code safely and quickly**  
+**How to contribute code safely and quickly**
 Version: draft-2025-08-08
 
 ## Ground rules

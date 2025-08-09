@@ -96,7 +96,7 @@ pa_core.cli.py → Single simulation only
 ### Option C: Codex Integration Approach
 Given the scope of Option B, **Codex might be more effective** for:
 - **Systematic parameter sweep implementation**
-- **Mode-specific logic development** 
+- **Mode-specific logic development**
 - **Template standardization across all modes**
 - **Comprehensive testing of all 4 modes**
 

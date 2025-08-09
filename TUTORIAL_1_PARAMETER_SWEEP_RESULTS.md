@@ -11,13 +11,13 @@
 - ✅ **Status**: Working perfectly
 - ✅ **Console Output**: Rich table with metrics for all 4 agents
 - ✅ **Excel Output**: Single scenario analysis
-- ✅ **Key Metrics**: 
+- ✅ **Key Metrics**:
   - Base: 2.52% return, 0.69% vol
   - External PA: 0.84% return, 0.46% vol, 0.08% TE
   - Active Ext: 0.17% return, 0.22% vol, 0.14% TE
   - Internal PA: 2.01% return, 0.14% vol, 0.19% TE
 
-#### **Part 2: Capital Mode Parameter Sweep** 
+#### **Part 2: Capital Mode Parameter Sweep**
 **Command**: `python -m pa_core.cli --params config/capital_mode_template.csv --mode capital --output Tutorial1_CapitalSweep.xlsx`
 
 **Results**:
@@ -31,7 +31,7 @@
 **Command**: `python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alpha_shares --output Tutorial1_AlphaSharesSweep.xlsx`
 
 **Results**:
-- ✅ **Status**: Working perfectly  
+- ✅ **Status**: Working perfectly
 - ✅ **File Size**: 183KB (extensive parameter combinations)
 - ✅ **Sweep Logic**: Tests external PA alpha shares (25-75%) vs active shares (20-100%)
 - ✅ **Parameter Combinations**: 11 × 17 = 187 scenarios
@@ -61,7 +61,7 @@
 ### **What Tutorial 1 Can Now Demonstrate:**
 
 1. **Basic Operation** (Part 1): Single scenario analysis with clear metrics interpretation
-2. **Capital Optimization** (Part 2): Systematic exploration of allocation strategies  
+2. **Capital Optimization** (Part 2): Systematic exploration of allocation strategies
 3. **Alpha Efficiency** (Part 3): Optimization of alpha capture across different share allocations
 4. **Stress Testing** (Part 4): Volatility regime analysis for portfolio resilience
 5. **Returns Analysis** (Part 5): Works via `--mode returns` using `returns_mode_template.csv`
@@ -69,7 +69,7 @@
 ### **File Outputs for User Analysis:**
 - `Tutorial1_Basic.xlsx` - Single scenario baseline
 - `Tutorial1_CapitalSweep.xlsx` - 38KB with capital allocation optimization
-- `Tutorial1_AlphaSharesSweep.xlsx` - 183KB with comprehensive alpha optimization  
+- `Tutorial1_AlphaSharesSweep.xlsx` - 183KB with comprehensive alpha optimization
 - `Tutorial1_VolMultSweep.xlsx` - 13KB with volatility stress testing
 
 ## 🎓 **ENHANCED TUTORIAL 1 STRUCTURE (Ready for Implementation)**
@@ -81,13 +81,13 @@
 - Understanding console output and Excel structure
 - Introduction to the 4 agent types and their metrics
 
-#### **Part 2: Capital Allocation Optimization** 
+#### **Part 2: Capital Allocation Optimization**
 - Using `config/capital_mode_template.csv` with `--mode capital`
 - Understanding how different allocations affect risk-return profiles
 - Interpreting multi-sheet Excel output with sweep results
 
 #### **Part 3: Alpha Capture Efficiency**
-- Using `config/alpha_shares_mode_template.csv` with `--mode alpha_shares`  
+- Using `config/alpha_shares_mode_template.csv` with `--mode alpha_shares`
 - Optimizing external PA alpha focus vs active share percentages
 - Analyzing tracking error vs return enhancement trade-offs
 
@@ -115,7 +115,7 @@
 ## 🚀 **IMPLEMENTATION READINESS:**
 
 ✅ **Infrastructure**: Complete and working
-✅ **Templates**: All 4 modes have working CSV templates  
+✅ **Templates**: All 4 modes have working CSV templates
 ✅ **Testing**: 3 of 4 modes confirmed working perfectly
 ✅ **Documentation Plans**: Comprehensive 5-part structure ready
 ✅ **Examples**: Real file outputs available for tutorial development

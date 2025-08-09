@@ -15,48 +15,48 @@ jobs:
     runs-on: ubuntu-latest
     # Run on Codex branches or when manually triggered
     if: >
-      startsWith(github.head_ref, 'codex/') || 
-      startsWith(github.ref_name, 'codex/') || 
+      startsWith(github.head_ref, 'codex/') ||
+      startsWith(github.ref_name, 'codex/') ||
       github.event_name == 'workflow_dispatch'
-    
+
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
+
     steps:
     - uses: actions/checkout@v4
       with:
         token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
         fetch-depth: 0
-        
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-        
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        
+
     - name: Set up Git identity
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        
+
     - name: 🚀 Run Streamlined Debug
       id: streamlined_debug
       run: |
         echo "🔍 Running Codex debugging workflow..."
-        
+
         # Set success output immediately
         echo "streamlined_exit_code=0" >> $GITHUB_OUTPUT
-        
+
         # Basic environment info
         echo "✅ Environment check:"
         echo "  - Python: $(python --version 2>&1 || echo 'Python not found')"
         echo "  - Branch: $(git branch --show-current 2>&1 || echo 'Git not available')"
         echo "  - Directory: $(pwd)"
-        
+
         # Try to run debug script with full error handling
         echo "📊 Attempting streamlined debug..."
         if [ -f "scripts/streamlined_debug.py" ]; then
@@ -68,16 +68,16 @@ jobs:
         else
           echo "⚠️ Debug script not found at scripts/streamlined_debug.py"
         fi
-        
+
         echo "✅ Workflow step completed successfully"
-        
+
     - name: 📊 Upload Streamlined Debug Report
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: streamlined-debug-report-${{ github.run_id }}
         path: streamlined_debug_report.md
-        
+
     - name: 🔍 Run Detailed Debug (if streamlined found issues)
       id: detailed_debug
       if: steps.streamlined_debug.outputs.streamlined_exit_code != '0'
@@ -85,14 +85,14 @@ jobs:
         echo "Streamlined debug found issues. Running detailed analysis..."
         python scripts/debug_codex_pr.py --branch=${{ github.head_ref || github.ref_name }} --report=detailed_debug_report.md --max-iterations=3 --commit
         echo "detailed_exit_code=$?" >> $GITHUB_OUTPUT
-        
+
     - name: 📊 Upload Detailed Debug Report
       uses: actions/upload-artifact@v4
       if: steps.detailed_debug.outcome != 'skipped'
       with:
         name: detailed-debug-report-${{ github.run_id }}
         path: detailed_debug_report.md
-        
+
     - name: 🔍 Check Fork Status
       if: github.event_name == 'pull_request'
       run: |
@@ -105,25 +105,25 @@ jobs:
         else
           echo "✅ PR is from the same repository - all actions available"
         fi
-        
+
     - name: 💬 Comment Results on PR
       if: >
-        github.event_name == 'pull_request' && 
-        (github.event.pull_request.head.repo.full_name == github.repository || 
+        github.event_name == 'pull_request' &&
+        (github.event.pull_request.head.repo.full_name == github.repository ||
          github.repository_owner == github.actor)
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
-          
+
           // Check if we can post comments (not from external fork)
           const isFromFork = context.payload.pull_request.head.repo.full_name !== context.payload.repository.full_name;
           if (isFromFork) {
             console.log('PR is from external fork - skipping comment to avoid permission issues');
             return;
           }
-          
+
           // Read streamlined report
           let streamlinedReport = '';
           try {
@@ -132,7 +132,7 @@ jobs:
             streamlinedReport = '❌ Streamlined debug report generation failed';
             console.log('Streamlined report read error:', error);
           }
-          
+
           // Read detailed report if it exists
           let detailedReport = '';
           try {
@@ -141,32 +141,32 @@ jobs:
             // Detailed report may not exist if streamlined debug passed
             console.log('No detailed report (this is normal if streamlined debug passed)');
           }
-          
+
           // Determine overall status
           const streamlinedPassed = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}' === '0';
           const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
-          
+
           let statusEmoji = streamlinedPassed ? '🎉' : '⚠️';
           let statusText = streamlinedPassed ? 'All Checks Passed' : 'Issues Found';
-          
+
           let comment = `## ${statusEmoji} Automated Codex Debugging Results - ${statusText}
-          
+
           ### 🚀 Streamlined Debug Results
           ${streamlinedReport}
           `;
-          
+
           if (detailedRan && detailedReport) {
             comment += `
           ### 🔍 Detailed Debug Results
           ${detailedReport}
           `;
           }
-          
+
           comment += `
           ---
           *Debug workflow: Streamlined → ${streamlinedPassed ? 'Passed ✅' : 'Failed ❌'}${detailedRan ? ' → Detailed Analysis 🔍' : ''}*
           `;
-          
+
           try {
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -179,37 +179,37 @@ jobs:
             console.log('Failed to post PR comment:', error);
             core.setFailed(`Failed to post PR comment: ${error.message}`);
           }
-          
+
     - name: 🤖 Auto-commit fixes if any
       if: >
-        (steps.streamlined_debug.outputs.streamlined_exit_code == '0' || 
+        (steps.streamlined_debug.outputs.streamlined_exit_code == '0' ||
          steps.detailed_debug.outputs.detailed_exit_code == '0') &&
         github.event_name != 'workflow_dispatch' &&
-        (github.event_name != 'pull_request' || 
+        (github.event_name != 'pull_request' ||
          github.event.pull_request.head.repo.full_name == github.repository)
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        
+
         # Check if this is a fork PR (additional safety check)
         if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
           echo "⚠️ Skipping auto-commit for fork PR to avoid permission issues"
           exit 0
         fi
-        
+
         # Check if there are changes to commit
         if [ -n "$(git status --porcelain)" ]; then
           echo "Changes detected, committing fixes..."
           git add .
           git commit -m "🤖 Auto-fix: Resolve Codex integration issues
-          
+
           - Applied automatic formatting fixes
-          - Resolved type compatibility issues  
+          - Resolved type compatibility issues
           - Cleaned up import statements
           - Fixed common integration patterns
-          
+
           Generated by streamlined debugging workflow"
-          
+
           # Push with error handling
           if git push; then
             echo "✅ Successfully pushed auto-fixes"
@@ -220,13 +220,13 @@ jobs:
         else
           echo "✅ No changes to commit - repository is already in good state"
         fi
-        
+
     - name: 📋 Set final status
       if: always()
       run: |
         streamlined_code="${{ steps.streamlined_debug.outputs.streamlined_exit_code }}"
         detailed_code="${{ steps.detailed_debug.outputs.detailed_exit_code }}"
-        
+
         if [ "$streamlined_code" = "0" ]; then
           echo "✅ Streamlined debug passed - all good!"
           exit 0

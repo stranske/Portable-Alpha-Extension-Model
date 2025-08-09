@@ -4,7 +4,7 @@
 
 **DO NOT MODIFY THESE FILES** - They are working correctly:
 - ✅ `pa_core/agents/active_ext.py` - Active share conversion fixed and tested
-- ✅ `pa_core/cli.py` - Basic CLI functionality working  
+- ✅ `pa_core/cli.py` - Basic CLI functionality working
 - ✅ `dashboard/app.py` - Core dashboard features working
 - ✅ All agent classes - Math and validation working correctly
 
@@ -38,7 +38,7 @@ def check_analysis_mode(self) -> "ModelConfig":
 max_external_combined_pct: float = 30.0
 external_step_size_pct: float = 5.0
 
-# Returns mode sweep parameters:  
+# Returns mode sweep parameters:
 in_house_return_min_pct: float = 2.0
 in_house_return_max_pct: float = 6.0
 in_house_return_step_pct: float = 2.0
@@ -76,20 +76,20 @@ import numpy as np
 
 def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]]:
     """Generate parameter combinations based on analysis_mode."""
-    
+
     if cfg.analysis_mode == "capital":
         # Generate capital allocation combinations
         for ext_pct in np.arange(0, cfg.max_external_combined_pct + cfg.external_step_size_pct, cfg.external_step_size_pct):
             for act_pct in np.arange(0, ext_pct + cfg.external_step_size_pct, cfg.external_step_size_pct):
                 ext_pa_pct = ext_pct - act_pct
                 internal_pct = 100 - ext_pct
-                
+
                 yield {
                     "external_pa_capital": (ext_pa_pct / 100) * cfg.total_fund_capital,
                     "active_ext_capital": (act_pct / 100) * cfg.total_fund_capital,
                     "internal_pa_capital": (internal_pct / 100) * cfg.total_fund_capital,
                 }
-    
+
     elif cfg.analysis_mode == "returns":
         # Generate return assumption combinations
         for mu_H in np.arange(cfg.in_house_return_min_pct, cfg.in_house_return_max_pct + cfg.in_house_return_step_pct, cfg.in_house_return_step_pct):
@@ -98,11 +98,11 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                     for sigma_E in np.arange(cfg.alpha_ext_vol_min_pct, cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct, cfg.alpha_ext_vol_step_pct):
                         yield {
                             "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100, 
+                            "sigma_H": sigma_H / 100,
                             "mu_E": mu_E / 100,
                             "sigma_E": sigma_E / 100,
                         }
-    
+
     elif cfg.analysis_mode == "alpha_shares":
         # Generate alpha share combinations
         for theta_extpa in np.arange(cfg.external_pa_alpha_min_pct, cfg.external_pa_alpha_max_pct + cfg.external_pa_alpha_step_pct, cfg.external_pa_alpha_step_pct):
@@ -111,7 +111,7 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                     "theta_extpa": theta_extpa / 100,
                     "active_share": active_share,  # Keep as percentage for ActiveExtension agent
                 }
-    
+
     elif cfg.analysis_mode == "vol_mult":
         # Generate volatility multiplier combinations
         for sd_mult in np.arange(cfg.sd_multiple_min, cfg.sd_multiple_max + cfg.sd_multiple_step, cfg.sd_multiple_step):
@@ -124,14 +124,14 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
 def run_parameter_sweep(cfg: ModelConfig, index_series, rng_returns, fin_rngs) -> List[Dict[str, Any]]:
     """Run parameter sweep and return results for all combinations."""
     results = []
-    
+
     for i, param_overrides in enumerate(generate_parameter_combinations(cfg)):
         # Create modified config for this combination
         modified_cfg = cfg.model_copy(update=param_overrides)
-        
+
         # Run single simulation with modified config
         # ... (implement simulation logic)
-        
+
         # Store results with parameter combination info
         result = {
             "combination_id": i,
@@ -139,7 +139,7 @@ def run_parameter_sweep(cfg: ModelConfig, index_series, rng_returns, fin_rngs) -
             "summary": summary_table,  # Results from simulation
         }
         results.append(result)
-    
+
     return results
 ```
 
@@ -152,7 +152,7 @@ if hasattr(cfg, 'analysis_mode') and cfg.analysis_mode != "returns":
     # Run parameter sweep
     from .sweep import run_parameter_sweep
     results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
-    
+
     # Export sweep results to Excel with multiple sheets
     from .reporting.excel import export_sweep_results
     export_sweep_results(results, filename=args.output)
@@ -166,7 +166,7 @@ else:
 **Create 4 mode-specific templates in config/:**
 
 1. **config/capital_mode_template.csv** - Capital allocation sweeps
-2. **config/returns_mode_template.csv** - Return assumption sweeps  
+2. **config/returns_mode_template.csv** - Return assumption sweeps
 3. **config/alpha_shares_mode_template.csv** - Alpha share sweeps
 4. **config/vol_mult_mode_template.csv** - Volatility multiplier sweeps
 

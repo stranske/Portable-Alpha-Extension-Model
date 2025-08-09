@@ -69,4 +69,3 @@ dependencies = [
     "python-pptx",
     "xlsxwriter",
 ]
-

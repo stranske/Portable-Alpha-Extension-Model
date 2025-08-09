@@ -4,13 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 import yaml
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    ValidationError,
-    model_validator,
-)
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 
 class ConfigError(ValueError):

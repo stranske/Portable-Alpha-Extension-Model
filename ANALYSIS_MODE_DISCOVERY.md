@@ -5,7 +5,7 @@ The program documentation and parameter files suggest 4 analysis modes (`capital
 
 ## Evidence:
 1. **ModelConfig has no `analysis_mode` field** - The configuration schema doesn't recognize this parameter
-2. **CLI only runs single simulations** - No sweep logic in current codebase  
+2. **CLI only runs single simulations** - No sweep logic in current codebase
 3. **Parameter sweep code is archived** - Found in `archive/Old/Portable_Alpha_Visualizations.py`
 4. **Working parameters.csv uses sweep format** - But CLI ignores sweep-specific parameters
 
@@ -16,7 +16,7 @@ The program documentation and parameter files suggest 4 analysis modes (`capital
 
 ## Impact on Users:
 - **Misleading documentation**: Tutorials suggest 4 modes but only 1 works
-- **Confusing parameter files**: Templates don't match actual CLI capabilities  
+- **Confusing parameter files**: Templates don't match actual CLI capabilities
 - **Analysis mode parameter**: Required but ignored by the system
 
 ## Recommended Fix:

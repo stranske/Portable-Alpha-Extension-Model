@@ -3,10 +3,10 @@
 ## 📋 **Tutorial 7: Customise Visual Style** - Testing Complete
 
 ### **What Tutorial 7 Covers:**
-✅ Editing `config_theme.yaml` for colours and fonts  
-✅ Editing `config_thresholds.yaml` for traffic-light thresholds  
-✅ Reload theme via `pa_core.viz.theme.reload_theme()`  
-✅ Reload thresholds via `pa_core.viz.theme.reload_thresholds()`  
+✅ Editing `config_theme.yaml` for colours and fonts
+✅ Editing `config_thresholds.yaml` for traffic-light thresholds
+✅ Reload theme via `pa_core.viz.theme.reload_theme()`
+✅ Reload thresholds via `pa_core.viz.theme.reload_thresholds()`
 
 ---
 
@@ -31,14 +31,14 @@ plot_bgcolor: "#DDDDDD"
 >>> reload_theme()
 >>> TEMPLATE.layout.colorway  # should reflect new config
 ['#000000', '#FF0000']
-```  
+```
 - ✅ `reload_theme()` updates `TEMPLATE` colours and fonts as expected
 
 ### **Step 3: Modify `config_thresholds.yaml`**
 ```yaml
 shortfall_green: 0.02
 shortfall_amber: 0.05
-```  
+```
 - ✅ File saved successfully
 
 ### **Step 4: Reload Thresholds in Python**
@@ -49,7 +49,7 @@ shortfall_amber: 0.05
 >>> reload_thresholds()
 >>> THRESHOLDS['shortfall_green']  # now updated
 0.02
-```  
+```
 - ✅ `reload_thresholds()` updates thresholds dictionary correctly
 
 ### **Step 5: CLI/Dashboard Style Application**
@@ -78,8 +78,8 @@ shortfall_amber: 0.05
 
 ## ✅ **Tutorial 7 Status: WORKING - Ready for Implementation**
 
-**Core Functionality**: ✅ YAML config edits and reload functions work flawlessly  
-**User Guidance**: ⚠️ Could add code snippets and reload instructions in tutorial text  
+**Core Functionality**: ✅ YAML config edits and reload functions work flawlessly
+**User Guidance**: ⚠️ Could add code snippets and reload instructions in tutorial text
 **Parameter Sweep Integration**: 🚀 Theme and threshold customization can be combined with sweep results for tailored reports
 
 **Recommendation**: Enhance tutorial with explicit code snippets, best-practice guidelines, and live reload instructions for both CLI and dashboard.

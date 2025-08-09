@@ -103,22 +103,22 @@
 2025-08-08T07:10:27.5358900Z ##[group]Checking out the ref
 2025-08-08T07:10:27.5362273Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/299/merge
 2025-08-08T07:10:27.5662108Z Note: switching to 'refs/remotes/pull/299/merge'.
-2025-08-08T07:10:27.5663362Z 
+2025-08-08T07:10:27.5663362Z
 2025-08-08T07:10:27.5664489Z You are in 'detached HEAD' state. You can look around, make experimental
 2025-08-08T07:10:27.5666273Z changes and commit them, and you can discard any commits you make in this
 2025-08-08T07:10:27.5668786Z state without impacting any branches by switching back to a branch.
-2025-08-08T07:10:27.5670775Z 
+2025-08-08T07:10:27.5670775Z
 2025-08-08T07:10:27.5671755Z If you want to create a new branch to retain commits you create, you may
 2025-08-08T07:10:27.5674402Z do so (now or later) by using -c with the switch command. Example:
-2025-08-08T07:10:27.5675823Z 
+2025-08-08T07:10:27.5675823Z
 2025-08-08T07:10:27.5676404Z   git switch -c <new-branch-name>
-2025-08-08T07:10:27.5677443Z 
+2025-08-08T07:10:27.5677443Z
 2025-08-08T07:10:27.5677950Z Or undo this operation with:
-2025-08-08T07:10:27.5678859Z 
+2025-08-08T07:10:27.5678859Z
 2025-08-08T07:10:27.5679275Z   git switch -
-2025-08-08T07:10:27.5679909Z 
+2025-08-08T07:10:27.5679909Z
 2025-08-08T07:10:27.5681043Z Turn off this advice by setting config variable advice.detachedHead to false
-2025-08-08T07:10:27.5682912Z 
+2025-08-08T07:10:27.5682912Z
 2025-08-08T07:10:27.5684978Z HEAD is now at eb202c5 Merge c6a2e8f472c12d41dc3a657caa6e51b3a9e67fd5 into 45d2a64aaa964d207807606a85b04ae65abc44ee
 2025-08-08T07:10:27.5689469Z ##[endgroup]
 2025-08-08T07:10:27.5710838Z [command]/usr/bin/git log -1 --format=%H
@@ -784,7 +784,7 @@
 2025-08-08T07:10:54.0899818Z   Stored in directory: /home/runner/.cache/pip/wheels/32/f9/af/259a6f50f8b89d972aa81e31808a0af14e8bfc6867fb16ed07
 2025-08-08T07:10:54.0919996Z Successfully built jupyter-contrib-nbextensions jupyter_contrib_core
 2025-08-08T07:10:54.4694391Z Installing collected packages: webencodings, wcwidth, sortedcontainers, pytz, pure-eval, ptyprocess, jupyter_highlight_selected_word, ipython_genutils, fastjsonschema, distlib, xlsxwriter, widgetsnbextension, websocket-client, webcolors, watchdog, urllib3, uri-template, tzdata, typing-extensions, types-PyYAML, types-python-dateutil, traitlets, tornado, toml, tinycss2, tenacity, sphinxcontrib-serializinghtml, sphinxcontrib-qthelp, sphinxcontrib-jsmath, sphinxcontrib-htmlhelp, sphinxcontrib-devhelp, sphinxcontrib-applehelp, soupsieve, snowballstemmer, sniffio, smmap, six, simplejson, setuptools, send2trash, ruff, rpds-py, rfc3986-validator, pyzmq, pyyaml, python-json-logger, pygments, pyflakes, pycparser, pycodestyle, pyarrow, psutil, protobuf, prompt_toolkit, prometheus-client, pluggy, platformdirs, pillow, pexpect, pathspec, parso, pandocfilters, packaging, overrides, orjson, numpy, nodeenv, nest-asyncio, narwhals, mypy-extensions, mistune, mdurl, mccabe, MarkupSafe, lxml, logistro, lark, jupyterlab_widgets, jupyterlab-pygments, jsonpointer, json5, isort, iniconfig, imagesize, idna, identify, h11, fqdn, filelock, executing, execnet, et-xmlfile, docutils, defusedxml, decorator, debugpy, coverage, comm, click, charset_normalizer, cfgv, certifi, cachetools, blinker, bleach, babel, attrs, async-lru, asttokens, annotated-types, alabaster, virtualenv, typing-inspection, terminado, stack_data, rfc3987-syntax, rfc3339-validator, requests, referencing, python-pptx, python-dateutil, pytest, pyright, pydantic-core, plotly, pbr, openpyxl, mypy, matplotlib-inline, markdown-it-py, jupyter-core, jinja2, jedi, ipython-pygments-lexers, hypothesis, httpcore, gitdb, flake8, choreographer, cffi, black, beautifulsoup4, anyio, stevedore, sphinx, rich, pytest-xdist, pytest-cov, pydeck, pydantic, pre-commit, pandas, kaleido, jupyter-server-terminals, jupyter-client, jsonschema-specifications, ipython, httpx, gitpython, arrow, argon2-cffi-bindings, sphinxcontrib-jquery, jsonschema, isoduration, ipywidgets, ipykernel, bandit, argon2-cffi, sphinx-rtd-theme, nbformat, jupyter-console, altair, streamlit, nbclient, jupyter-events, nbconvert, nbsphinx, jupyter-server, notebook-shim, jupyterlab-server, jupyter-lsp, jupyterlab, notebook, jupyter_contrib_core, jupyter, jupyter_nbextensions_configurator, jupyter-contrib-nbextensions
-2025-08-08T07:11:20.5742830Z 
+2025-08-08T07:11:20.5742830Z
 2025-08-08T07:11:20.5902747Z Successfully installed MarkupSafe-3.0.2 alabaster-1.0.0 altair-5.5.0 annotated-types-0.7.0 anyio-4.10.0 argon2-cffi-25.1.0 argon2-cffi-bindings-25.1.0 arrow-1.3.0 asttokens-3.0.0 async-lru-2.0.5 attrs-25.3.0 babel-2.17.0 bandit-1.8.6 beautifulsoup4-4.13.4 black-25.1.0 bleach-6.2.0 blinker-1.9.0 cachetools-6.1.0 certifi-2025.8.3 cffi-1.17.1 cfgv-3.4.0 charset_normalizer-3.4.2 choreographer-1.0.9 click-8.2.1 comm-0.2.3 coverage-7.10.2 debugpy-1.8.16 decorator-5.2.1 defusedxml-0.7.1 distlib-0.4.0 docutils-0.21.2 et-xmlfile-2.0.0 execnet-2.1.1 executing-2.2.0 fastjsonschema-2.21.1 filelock-3.18.0 flake8-7.3.0 fqdn-1.5.1 gitdb-4.0.12 gitpython-3.1.45 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 hypothesis-6.137.1 identify-2.6.12 idna-3.10 imagesize-1.4.1 iniconfig-2.1.0 ipykernel-6.30.1 ipython-9.4.0 ipython-pygments-lexers-1.1.1 ipython_genutils-0.2.0 ipywidgets-8.1.7 isoduration-20.11.0 isort-6.0.1 jedi-0.19.2 jinja2-3.1.6 json5-0.12.0 jsonpointer-3.0.0 jsonschema-4.25.0 jsonschema-specifications-2025.4.1 jupyter-1.1.1 jupyter-client-8.6.3 jupyter-console-6.6.3 jupyter-contrib-nbextensions-0.7.0 jupyter-core-5.8.1 jupyter-events-0.12.0 jupyter-lsp-2.2.6 jupyter-server-2.16.0 jupyter-server-terminals-0.5.3 jupyter_contrib_core-0.4.2 jupyter_highlight_selected_word-0.2.0 jupyter_nbextensions_configurator-0.6.4 jupyterlab-4.4.5 jupyterlab-pygments-0.3.0 jupyterlab-server-2.27.3 jupyterlab_widgets-3.0.15 kaleido-1.0.0 lark-1.2.2 logistro-1.1.0 lxml-6.0.0 markdown-it-py-3.0.0 matplotlib-inline-0.1.7 mccabe-0.7.0 mdurl-0.1.2 mistune-3.1.3 mypy-1.17.1 mypy-extensions-1.1.0 narwhals-2.0.1 nbclient-0.10.2 nbconvert-7.16.6 nbformat-5.10.4 nbsphinx-0.9.7 nest-asyncio-1.6.0 nodeenv-1.9.1 notebook-7.4.5 notebook-shim-0.2.4 numpy-2.3.2 openpyxl-3.1.5 orjson-3.11.1 overrides-7.7.0 packaging-25.0 pandas-2.3.1 pandocfilters-1.5.1 parso-0.8.4 pathspec-0.12.1 pbr-6.1.1 pexpect-4.9.0 pillow-11.3.0 platformdirs-4.3.8 plotly-6.2.0 pluggy-1.6.0 pre-commit-4.2.0 prometheus-client-0.22.1 prompt_toolkit-3.0.51 protobuf-6.31.1 psutil-7.0.0 ptyprocess-0.7.0 pure-eval-0.2.3 pyarrow-21.0.0 pycodestyle-2.14.0 pycparser-2.22 pydantic-2.11.7 pydantic-core-2.33.2 pydeck-0.9.1 pyflakes-3.4.0 pygments-2.19.2 pyright-1.1.403 pytest-8.4.1 pytest-cov-6.2.1 pytest-xdist-3.8.0 python-dateutil-2.9.0.post0 python-json-logger-3.3.0 python-pptx-1.0.2 pytz-2025.2 pyyaml-6.0.2 pyzmq-27.0.1 referencing-0.36.2 requests-2.32.4 rfc3339-validator-0.1.4 rfc3986-validator-0.1.1 rfc3987-syntax-1.1.0 rich-14.1.0 rpds-py-0.27.0 ruff-0.12.8 send2trash-1.8.3 setuptools-80.9.0 simplejson-3.20.1 six-1.17.0 smmap-5.0.2 sniffio-1.3.1 snowballstemmer-3.0.1 sortedcontainers-2.4.0 soupsieve-2.7 sphinx-8.1.3 sphinx-rtd-theme-3.0.2 sphinxcontrib-applehelp-2.0.0 sphinxcontrib-devhelp-2.0.0 sphinxcontrib-htmlhelp-2.1.0 sphinxcontrib-jquery-4.1 sphinxcontrib-jsmath-1.0.1 sphinxcontrib-qthelp-2.0.0 sphinxcontrib-serializinghtml-2.0.0 stack_data-0.6.3 stevedore-5.4.1 streamlit-1.48.0 tenacity-9.1.2 terminado-0.18.1 tinycss2-1.4.0 toml-0.10.2 tornado-6.5.1 traitlets-5.14.3 types-PyYAML-6.0.12.20250516 types-python-dateutil-2.9.0.20250708 typing-extensions-4.14.1 typing-inspection-0.4.1 tzdata-2025.2 uri-template-1.3.0 urllib3-2.5.0 virtualenv-20.33.1 watchdog-6.0.0 wcwidth-0.2.13 webcolors-24.11.1 webencodings-0.5.1 websocket-client-1.8.0 widgetsnbextension-4.0.14 xlsxwriter-3.2.5
 2025-08-08T07:11:22.0658256Z Obtaining file:///home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model
 2025-08-08T07:11:22.0683513Z   Installing build dependencies: started
@@ -878,7 +878,7 @@
 2025-08-08T07:11:24.5975880Z 38 | import pkgutil
 2025-08-08T07:11:24.5976172Z 39 | import shutil
 2025-08-08T07:11:24.5976469Z    |
-2025-08-08T07:11:24.5976607Z 
+2025-08-08T07:11:24.5976607Z
 2025-08-08T07:11:24.5976824Z get-pip.py:38:1: E402 Module level import not at top of file
 2025-08-08T07:11:24.5977300Z    |
 2025-08-08T07:11:24.5977562Z 37 | import os.path
@@ -887,7 +887,7 @@
 2025-08-08T07:11:24.5978470Z 39 | import shutil
 2025-08-08T07:11:24.5978825Z 40 | import tempfile
 2025-08-08T07:11:24.5979111Z    |
-2025-08-08T07:11:24.5979268Z 
+2025-08-08T07:11:24.5979268Z
 2025-08-08T07:11:24.5979413Z get-pip.py:39:1: E402 Module level import not at top of file
 2025-08-08T07:11:24.5979714Z    |
 2025-08-08T07:11:24.5979868Z 37 | import os.path
@@ -897,7 +897,7 @@
 2025-08-08T07:11:24.5980623Z 40 | import tempfile
 2025-08-08T07:11:24.5980820Z 41 | import argparse
 2025-08-08T07:11:24.5980995Z    |
-2025-08-08T07:11:24.5981097Z 
+2025-08-08T07:11:24.5981097Z
 2025-08-08T07:11:24.5981236Z get-pip.py:40:1: E402 Module level import not at top of file
 2025-08-08T07:11:24.5981515Z    |
 2025-08-08T07:11:24.5981666Z 38 | import pkgutil
@@ -907,7 +907,7 @@
 2025-08-08T07:11:24.5982406Z 41 | import argparse
 2025-08-08T07:11:24.5982588Z 42 | import importlib
 2025-08-08T07:11:24.5982790Z    |
-2025-08-08T07:11:24.5982880Z 
+2025-08-08T07:11:24.5982880Z
 2025-08-08T07:11:24.5983013Z get-pip.py:41:1: E402 Module level import not at top of file
 2025-08-08T07:11:24.5983290Z    |
 2025-08-08T07:11:24.5983439Z 39 | import shutil
@@ -917,7 +917,7 @@
 2025-08-08T07:11:24.5984703Z 42 | import importlib
 2025-08-08T07:11:24.5984905Z 43 | from base64 import b85decode
 2025-08-08T07:11:24.5985137Z    |
-2025-08-08T07:11:24.5985220Z 
+2025-08-08T07:11:24.5985220Z
 2025-08-08T07:11:24.5985349Z get-pip.py:42:1: E402 Module level import not at top of file
 2025-08-08T07:11:24.5985616Z    |
 2025-08-08T07:11:24.5985763Z 40 | import tempfile
@@ -926,7 +926,7 @@
 2025-08-08T07:11:24.5986295Z    | ^^^^^^^^^^^^^^^^ E402
 2025-08-08T07:11:24.5986495Z 43 | from base64 import b85decode
 2025-08-08T07:11:24.5986696Z    |
-2025-08-08T07:11:24.5986781Z 
+2025-08-08T07:11:24.5986781Z
 2025-08-08T07:11:24.5986905Z get-pip.py:43:1: E402 Module level import not at top of file
 2025-08-08T07:11:24.5987170Z    |
 2025-08-08T07:11:24.5987313Z 41 | import argparse
@@ -934,7 +934,7 @@
 2025-08-08T07:11:24.5987818Z 43 | from base64 import b85decode
 2025-08-08T07:11:24.5988037Z    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E402
 2025-08-08T07:11:24.5988243Z    |
-2025-08-08T07:11:24.5988336Z 
+2025-08-08T07:11:24.5988336Z
 2025-08-08T07:11:24.5988404Z Found 7 errors.
 2025-08-08T07:11:24.6005922Z ##[error]Process completed with exit code 1.
 2025-08-08T07:11:24.6105755Z Post job cleanup.

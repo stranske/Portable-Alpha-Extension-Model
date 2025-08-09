@@ -3,7 +3,7 @@
 ## Issues Identified
 
 ### 1. **Critical: Missing ShortfallProb Calculation**
-- The configuration mandates ShortfallProb in risk_metrics 
+- The configuration mandates ShortfallProb in risk_metrics
 - But summary_table() doesn't calculate it
 - Visualization code expects it but gets None/0.0
 
@@ -14,7 +14,7 @@
 
 ### 3. **Poor User Experience for New Users**
 - No explanation of what the metrics mean
-- Missing context for interpreting the numbers  
+- Missing context for interpreting the numbers
 - No guidance on typical ranges or thresholds
 
 ### 4. **Configuration File Issues**

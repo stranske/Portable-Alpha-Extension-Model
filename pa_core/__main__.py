@@ -17,9 +17,7 @@ from .agents.registry import build_from_config
 from .backend import set_backend
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
-from .sim.metrics import (
-    summary_table,
-)
+from .sim.metrics import summary_table
 from .simulations import simulate_agents
 
 LABEL_MAP = {

@@ -98,10 +98,10 @@ format:
 
 # Pre-commit
 hooks:
-	pre-commit install
+	PRE_COMMIT_HOME=$(PWD)/.cache/pre-commit pre-commit install
 
 hooks-run:
-	pre-commit run --all-files
+	PRE_COMMIT_HOME=$(PWD)/.cache/pre-commit pre-commit run --all-files
 
 # Git workflow commands
 sync:
