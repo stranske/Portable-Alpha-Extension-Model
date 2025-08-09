@@ -173,40 +173,63 @@ jobs:
           bash -n .devcontainer/setup.sh || true
           echo "✅ Codespace setup script syntax is valid"
 
-  gate:
-    name: Gate
+  pr-gate:
+    name: PR Gate
     runs-on: ubuntu-latest
     needs:
       - lint-and-format
       - type-check
+      - security
       - test
       - integration-test
       - codespace-validation
-      # To enforce security as well, add:
-      # - security
     if: ${{ always() }}
-    env:
-      LINT_RESULT:   ${{ needs.lint-and-format.result }}
-      TYPE_RESULT:   ${{ needs.type-check.result }}
-      TEST_RESULT:   ${{ needs.test.result }}
-      INTEG_RESULT:  ${{ needs.integration-test.result }}
-      CSPACE_RESULT: ${{ needs.codespace-validation.result }}
-      # SEC_RESULT:  ${{ needs.security.result }}
     steps:
-      - name: Enforce upstream results
+      - name: Evaluate upstream results
+        id: eval
+        env:
+          LINT:  ${{ needs['lint-and-format'].result }}
+          TYPE:  ${{ needs['type-check'].result }}
+          SEC:   ${{ needs['security'].result }}
+          TEST:  ${{ needs['test'].result }}
+          INTEG: ${{ needs['integration-test'].result }}
+          CSPACE:${{ needs['codespace-validation'].result }}
         run: |
           set -e
-          echo "lint-and-format: $LINT_RESULT"
-          echo "type-check:     $TYPE_RESULT"
-          echo "test:           $TEST_RESULT"
-          echo "integration:    $INTEG_RESULT"
-          echo "codespace:      $CSPACE_RESULT"
-          FAIL=0
-          for r in "$LINT_RESULT" "$TYPE_RESULT" "$TEST_RESULT" "$INTEG_RESULT" "$CSPACE_RESULT"; do
-            [ "$r" = "success" ] || FAIL=1
+          ok=true
+          for v in "$LINT" "$TYPE" "$SEC" "$TEST" "$INTEG" "$CSPACE"; do
+            [ "$v" = "success" ] || ok=false
           done
-          if [ $FAIL -ne 0 ]; then
-            echo "::error::One or more upstream jobs failed/cancelled/skipped"
-            exit 1
-          fi
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
+
+      - name: Publish legacy commit status (bridge for ruleset)
+        if: ${{ always() }}
+        uses: actions/github-script@v7
+        env:
+          CONTEXT_NAME: CI/CD Pipeline / PR Gate (pull_request)
+        with:
+          script: |
+            const ok = '${{ steps.eval.outputs.ok }}' === 'true';
+            const state = ok ? 'success' : 'failure';
+            const sha = (context.payload.pull_request && context.payload.pull_request.head && context.payload.pull_request.head.sha) || process.env.GITHUB_SHA;
+            core.info(`Posting legacy status "${process.env.CONTEXT_NAME}" on ${sha}: ${state}`);
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha,
+              state,
+              context: process.env.CONTEXT_NAME,
+              description: 'PR gate result',
+              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - name: Fail if any upstream job failed
+        if: ${{ steps.eval.outputs.ok != 'true' }}
+        run: |
+          echo "❌ PR Gate: one or more upstream jobs did not succeed."
+          exit 1
+
+      - name: Succeed gate
+        if: ${{ steps.eval.outputs.ok == 'true' }}
+        run: echo "✅ PR Gate: all upstream jobs succeeded."
           echo "All required jobs succeeded."
