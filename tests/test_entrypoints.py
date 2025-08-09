@@ -6,7 +6,8 @@ import tomllib
 
 
 def test_pa_validate_entrypoint() -> None:
-    data = tomllib.loads(Path("pyproject.toml").read_text())
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    data = tomllib.loads(pyproject_path.read_text())
     scripts = data["project"]["scripts"]
     assert scripts["pa-validate"] == "pa_core.validate:main"
 
