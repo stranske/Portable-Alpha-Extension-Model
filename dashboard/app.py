@@ -1,11 +1,15 @@
+"""Streamlit dashboard entrypoint."""
+
+from __future__ import annotations
+
 import importlib
+import importlib.util
 import time
 from pathlib import Path
+from types import ModuleType
 
 import pandas as pd
 import streamlit as st
-
-from pa_core.viz import theme
 
 PLOTS: dict[str, str] = {
     "Headline": "pa_core.viz.risk_return.make",
@@ -17,11 +21,23 @@ _DEF_XLSX = "Outputs.xlsx"
 _DEF_THEME = "config_theme.yaml"
 
 
-def apply_theme(path: str) -> None:
-    """Reload the dashboard colour palette."""
+def _load_theme() -> ModuleType:
+    """Return ``pa_core.viz.theme`` loaded without package side effects."""
+    theme_path = Path(__file__).resolve().parents[1] / "pa_core" / "viz" / "theme.py"
+    spec = importlib.util.spec_from_file_location("pa_core.viz.theme", theme_path)
+    assert spec and spec.loader  # pragma: no cover - importlib contract
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def apply_theme(path: str) -> ModuleType:
+    """Reload the dashboard colour palette and return the theme module."""
+    theme = _load_theme()
     p = Path(path)
     if p.exists():
         theme.reload_theme(str(p))
+    return theme
 
 
 def _get_plot_fn(path: str):
