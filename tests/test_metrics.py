@@ -70,9 +70,16 @@ def test_breach_probability_path():
 
 
 def test_summary_table_breach():
+    arr = np.array([[0.0, -0.03, 0.03]])
+    stats = summary_table({"Base": arr})
+    assert "BreachProb" in stats.columns
+    assert stats["BreachProb"].iloc[0] == 1 / 3
+
+
+def test_summary_table_breach_custom():
     arr = np.array([[0.0, -0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)
-    assert "BreachProb" in stats.columns
+    assert stats["BreachProb"].iloc[0] == 1 / 3
 
 
 def test_shortfall_probability_basic():
@@ -83,6 +90,6 @@ def test_shortfall_probability_basic():
 
 def test_summary_table_shortfall():
     arr = np.array([[0.1, -0.2], [0.05, 0.02]])
-    stats = summary_table({"A": arr}, shortfall_threshold=-0.05)
+    stats = summary_table({"A": arr})
     assert "ShortfallProb" in stats.columns
     assert stats["ShortfallProb"].iloc[0] == 0.5

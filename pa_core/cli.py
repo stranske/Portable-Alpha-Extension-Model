@@ -32,7 +32,6 @@ from . import (
 )
 from .agents.registry import build_from_config
 from .backend import set_backend
-from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
 from .reporting.sweep_excel import export_sweep_results
@@ -83,29 +82,15 @@ LABEL_MAP = {
 
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
-    config: ModelConfig,
     *,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
-    """Create enhanced summary table with ShortfallProb and better defaults."""
+    """Create summary table with standard breach and shortfall defaults."""
 
-    # Start with summary including breach and shortfall probabilities
-    summary = summary_table(
-        returns_map,
-        benchmark=benchmark,
-        breach_threshold=-0.02,  # Default 2% monthly loss threshold
-        shortfall_threshold=(
-            -0.05
-            if hasattr(config, "risk_metrics")
-            and "ShortfallProb" in config.risk_metrics
-            else None
-        ),
-    )
-
-    return summary
+    return summary_table(returns_map, benchmark=benchmark)
 
 
-def print_enhanced_summary(summary: pd.DataFrame, config: ModelConfig) -> None:
+def print_enhanced_summary(summary: pd.DataFrame) -> None:
     """Print enhanced summary with explanations."""
     from rich.console import Console
     from rich.panel import Panel
@@ -313,10 +298,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
     # Enhanced summary with better defaults and ShortfallProb
-    summary = create_enhanced_summary(returns, cfg, benchmark="Base")
+    summary = create_enhanced_summary(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    print_enhanced_summary(summary, cfg)
+    print_enhanced_summary(summary)
     export_to_excel(
         inputs_dict,
         summary,

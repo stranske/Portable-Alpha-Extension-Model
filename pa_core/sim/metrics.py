@@ -99,11 +99,21 @@ def summary_table(
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,
-    breach_threshold: float | None = None,
-    shortfall_threshold: float | None = None,
+    breach_threshold: float = -0.02,
+    shortfall_threshold: float = -0.05,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
-    """Return a summary DataFrame of key metrics for each agent."""
+    """Return a summary DataFrame of key metrics for each agent.
+
+    Parameters
+    ----------
+    breach_threshold:
+        Monthly return threshold for :func:`breach_probability`.  Defaults to
+        ``-0.02`` (a 2% loss).
+    shortfall_threshold:
+        Threshold for :func:`shortfall_probability`.  Defaults to ``-0.05``
+        (a 5% annual loss).
+    """
 
     rows = []
     bench_arr = returns_map.get(benchmark) if benchmark else None
@@ -111,16 +121,8 @@ def summary_table(
         ann_ret = annualised_return(arr, periods_per_year)
         ann_vol = annualised_vol(arr, periods_per_year)
         var = value_at_risk(arr, confidence=var_conf)
-        breach = (
-            breach_probability(arr, breach_threshold)
-            if breach_threshold is not None
-            else None
-        )
-        shortfall = (
-            shortfall_probability(arr, shortfall_threshold)
-            if shortfall_threshold is not None
-            else None
-        )
+        breach = breach_probability(arr, breach_threshold)
+        shortfall = shortfall_probability(arr, shortfall_threshold)
         te = (
             tracking_error(arr, bench_arr)
             if bench_arr is not None and name != benchmark
