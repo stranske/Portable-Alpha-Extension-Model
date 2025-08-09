@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-import numpy as np
 import pandas as pd
 import yaml
 
@@ -12,6 +11,7 @@ from ..schema import Asset, Correlation, Index
 
 
 MONTHS_PER_YEAR = 12
+VOLATILITY_ANNUALIZATION_FACTOR = MONTHS_PER_YEAR**0.5
 
 
 @dataclass
