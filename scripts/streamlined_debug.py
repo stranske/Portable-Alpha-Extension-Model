@@ -285,7 +285,9 @@ class StreamlinedCodexDebugger:
             status_icon = (
                 "✅"
                 if "SUCCESS" in step["status"]
-                else "❌" if "FAILED" in step["status"] else "⚠️"
+                else "❌"
+                if "FAILED" in step["status"]
+                else "⚠️"
             )
             report.append(f"**{step['timestamp']}** {status_icon} {step['step']}")
             if step["details"]:

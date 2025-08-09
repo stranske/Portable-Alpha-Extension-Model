@@ -16,11 +16,7 @@ repos:
         args: ["--fix"]
       - id: ruff-format
 
-  - repo: https://github.com/psf/black
-    rev: 25.1.0
-    hooks:
-      - id: black
-        language_version: python3
+  # Use ruff-format as the sole formatter to avoid conflicts with Black
 
   - repo: https://github.com/PyCQA/isort
     rev: 5.13.2
