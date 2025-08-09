@@ -42,7 +42,7 @@ class Portfolio(BaseModel):
     @model_validator(mode="after")
     def _check_weights(self) -> "Portfolio":
         total = sum(self.weights.values())
-        if abs(total - 1.0) > 1e-6:
+        if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:
             raise ValueError("portfolio weights must sum to 1")
         return self
 
