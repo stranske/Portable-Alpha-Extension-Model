@@ -100,7 +100,7 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
         {
             "id": ["A", "A"],
             "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
-            "return": [(1.01 ** 30) - 1, (1.01 ** 29) - 1],
+            "return": [(1.01 ** 31) - 1, (1.01 ** 29) - 1],
         }
     )
     assert_frame_equal(df_csv.reset_index(drop=True), expected)
