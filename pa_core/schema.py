@@ -77,6 +77,14 @@ class Scenario(BaseModel):
             raise ValueError(f"missing correlations for pairs: {sorted(missing)}")
         return self
 
+    @model_validator(mode="after")
+    def _check_sleeves(self) -> "Scenario":
+        if self.sleeves:
+            total = sum(s.capital_share for s in self.sleeves.values())
+            if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:
+                raise ValueError("sleeves capital_share must sum to 1")
+        return self
+
 
 def load_scenario(path: str | Path) -> Scenario:
     data = yaml.safe_load(Path(path).read_text())
