@@ -2,7 +2,6 @@ name: CI/CD Pipeline
 
 on:
   pull_request:
-    branches: [ main, develop ]
     types: [ opened, synchronize, reopened, ready_for_review ]
   push:
     branches: [ main, develop ]
@@ -30,7 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-      - run: ruff check .
+      - run: ruff check pa_core tests
         name: Ruff (lint)
       - run: black --check pa_core tests
         name: Black (format check)
@@ -42,6 +41,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}

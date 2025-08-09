@@ -1,18 +1,7 @@
 name: Streamlined Codex Auto-Debug
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: [opened, synchronize]
-  push:
-    branches: [ 'codex/**' ]
   workflow_dispatch:
-    inputs:
-      debug_mode:
-        description: 'Enable verbose debugging'
-        required: false
-        default: 'false'
-
 # Explicit permissions for GitHub Actions
 permissions:
   contents: write          # Push commits and access repository
