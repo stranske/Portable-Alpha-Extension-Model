@@ -23,7 +23,8 @@ def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
     sym_mat = 0.5 * (mat + mat.T)
     u, s, vt = np.linalg.svd(sym_mat)
     h = vt.T @ np.diag(s) @ vt
-    a2 = 0.5 * (sym_mat + h)
+
+    a2 = 0.5 * (sym_mat + vt.T @ np.diag(s) @ vt)
     a3 = 0.5 * (a2 + a2.T)
     if _is_psd(a3):
         return a3
