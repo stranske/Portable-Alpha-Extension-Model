@@ -21,10 +21,6 @@ def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
 
     # Symmetrise input
     sym_mat = 0.5 * (mat + mat.T)
-    u, s, vt = np.linalg.svd(sym_mat)
-    h = vt.T @ np.diag(s) @ vt
-
-    a2 = 0.5 * (sym_mat + vt.T @ np.diag(s) @ vt)
     eigvals, eigvecs = np.linalg.eigh(sym_mat)
     eigvals_clipped = np.clip(eigvals, 0, None)
     psd_mat = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
@@ -36,11 +32,8 @@ def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
     eye = np.eye(mat.shape[0])
     k = 1
     while not _is_psd(a3):
-    while True:
         eigvals = np.linalg.eigvalsh(a3)
         mineig = float(eigvals.min())
-        if mineig >= 0.0:
-            break
         a3 += eye * (-mineig * k**2 + spacing)
         k += 1
     return a3

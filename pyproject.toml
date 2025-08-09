@@ -70,3 +70,6 @@ dependencies = [
     "xlsxwriter",
 ]
 
+[project.scripts]
+pa = "pa_core.pa:main"
+
