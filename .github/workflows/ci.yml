@@ -184,6 +184,10 @@ jobs:
       - integration-test
       - codespace-validation
     if: ${{ always() }}
+    permissions:
+      contents: read
+      statuses: write
+
     steps:
       - name: Evaluate upstream results
         id: eval
@@ -195,41 +199,34 @@ jobs:
           INTEG: ${{ needs['integration-test'].result }}
           CSPACE:${{ needs['codespace-validation'].result }}
         run: |
-          set -e
           ok=true
           for v in "$LINT" "$TYPE" "$SEC" "$TEST" "$INTEG" "$CSPACE"; do
             [ "$v" = "success" ] || ok=false
           done
           echo "ok=$ok" >> "$GITHUB_OUTPUT"
 
-      - name: Publish legacy commit status (bridge for ruleset)
+      - name: Post required commit status on merge SHA
         if: ${{ always() }}
         uses: actions/github-script@v7
-        env:
-          CONTEXT_NAME: CI/CD Pipeline / PR Gate (pull_request)
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const ok = '${{ steps.eval.outputs.ok }}' === 'true';
-            const state = ok ? 'success' : 'failure';
-            const sha = (context.payload.pull_request && context.payload.pull_request.head && context.payload.pull_request.head.sha) || process.env.GITHUB_SHA;
-            core.info(`Posting legacy status "${process.env.CONTEXT_NAME}" on ${sha}: ${state}`);
-            await github.rest.repos.createCommitStatus({
+            const sha = process.env.GITHUB_SHA; // PR merge commit on pull_request
+            await github.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha,
-              state,
-              context: process.env.CONTEXT_NAME,
-              description: 'PR gate result',
-              target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+              state: ok ? 'success' : 'failure',
+              context: 'required/pr-gate',
+              description: ok ? 'PR Gate passed' : 'PR Gate failed',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
             });
 
       - name: Fail if any upstream job failed
         if: ${{ steps.eval.outputs.ok != 'true' }}
-        run: |
-          echo "❌ PR Gate: one or more upstream jobs did not succeed."
-          exit 1
+        run: exit 1
 
       - name: Succeed gate
         if: ${{ steps.eval.outputs.ok == 'true' }}
-        run: echo "✅ PR Gate: all upstream jobs succeeded."
-          echo "All required jobs succeeded."
+        run: echo "all good"
