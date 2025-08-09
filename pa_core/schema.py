@@ -3,9 +3,10 @@ from __future__ import annotations
 from itertools import combinations
 from pathlib import Path
 from typing import Dict, List, Tuple
+from collections import Counter
 
 import yaml
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 CORRELATION_LOWER_BOUND = -0.999
@@ -62,16 +63,20 @@ class Sleeve(BaseModel):
 
 class Scenario(BaseModel):
     index: Index
-    assets: List[Asset] = []
-    correlations: List[Correlation] = []
-    portfolios: List[Portfolio] = []
+    assets: List[Asset] = Field(default_factory=list)
+    correlations: List[Correlation] = Field(default_factory=list)
+    portfolios: List[Portfolio] = Field(default_factory=list)
     sleeves: Dict[str, Sleeve] | None = None
 
     @model_validator(mode="after")
     def _check_correlations(self) -> "Scenario":
         ids = [self.index.id] + [a.id for a in self.assets]
         expected = {tuple(sorted(p)) for p in combinations(ids, 2)}
-        provided = {tuple(sorted(c.pair)) for c in self.correlations}
+        pairs = [tuple(sorted(c.pair)) for c in self.correlations]
+        dupes = [p for p, count in Counter(pairs).items() if count > 1]
+        if dupes:
+            raise ValueError(f"duplicate correlations for pairs: {sorted(dupes)}")
+        provided = set(pairs)
         missing = expected - provided
         if missing:
             raise ValueError(f"missing correlations for pairs: {sorted(missing)}")
