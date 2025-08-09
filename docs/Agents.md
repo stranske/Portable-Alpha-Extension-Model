@@ -44,7 +44,8 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 
 **Outputs**
 - DataFrame with columns: `date`, `id`, `return` (monthly), one row per id/date.
-- Metadata: transformation applied (price→return), resampling method, winsorization, lookback window.
+- Metadata captured in `DataImportAgent.metadata` including column mapping,
+  source frequency, and any price→return or resampling steps.
 
 **Rules & invariants**
 - Dates must be strictly increasing within each id.
