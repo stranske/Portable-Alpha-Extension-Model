@@ -19,6 +19,8 @@ help:
 	@echo "  sync       - Sync with remote main branch"
 	@echo "  check-updates - Check for remote updates from Codex"
 	@echo "  dev-check  - Run all development checks (format+lint+test)"
+	@echo "  hooks      - Install git pre-commit hooks"
+	@echo "  hooks-run  - Run pre-commit on all files"
 	@echo ""
 
 # Environment setup
@@ -93,6 +95,13 @@ format:
 	@echo "🎨 Formatting code..."
 	dev-env/bin/black pa_core/ tests/ dashboard/
 	dev-env/bin/isort pa_core/ tests/ dashboard/
+
+# Pre-commit
+hooks:
+	pre-commit install
+
+hooks-run:
+	pre-commit run --all-files
 
 # Git workflow commands
 sync:
