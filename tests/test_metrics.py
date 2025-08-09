@@ -5,6 +5,7 @@ from pa_core.sim.metrics import (
     annualised_vol,
     breach_probability,
     compound,
+    shortfall_probability,
     summary_table,
     tracking_error,
     value_at_risk,
@@ -72,3 +73,16 @@ def test_summary_table_breach():
     arr = np.array([[0.0, -0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)
     assert "BreachProb" in stats.columns
+
+
+def test_shortfall_probability_basic():
+    arr = np.array([[0.1, -0.2], [0.05, 0.02]])
+    prob = shortfall_probability(arr, threshold=-0.05)
+    assert prob == 0.5
+
+
+def test_summary_table_shortfall():
+    arr = np.array([[0.1, -0.2], [0.05, 0.02]])
+    stats = summary_table({"A": arr}, shortfall_threshold=-0.05)
+    assert "ShortfallProb" in stats.columns
+    assert stats["ShortfallProb"].iloc[0] == 0.5
