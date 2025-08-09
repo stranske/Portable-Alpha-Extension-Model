@@ -25,7 +25,8 @@ def _load_theme() -> ModuleType:
     """Return ``pa_core.viz.theme`` loaded without package side effects."""
     theme_path = Path(__file__).resolve().parents[1] / "pa_core" / "viz" / "theme.py"
     spec = importlib.util.spec_from_file_location("pa_core.viz.theme", theme_path)
-    assert spec and spec.loader  # pragma: no cover - importlib contract
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load module 'pa_core.viz.theme' from {theme_path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return importlib.import_module("pa_core.viz.theme")
