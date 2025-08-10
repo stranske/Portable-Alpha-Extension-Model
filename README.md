@@ -92,7 +92,8 @@ options and an optional dashboard:
 
 ```bash
 # CSV parameters
-python -m pa_core.cli --params parameters.csv --index sp500tr_fred_divyield.csv \
+pa-convert-params parameters.csv params.yml
+python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv \
   --mode returns
 
 # or YAML configuration

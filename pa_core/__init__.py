@@ -16,7 +16,7 @@ from .agents.registry import build_all as build_agents
 from .agents.registry import build_from_config
 from .backend import get_backend, set_backend
 from .config import ConfigError, ModelConfig, load_config
-from .data import load_index_returns, load_parameters
+from .data import load_index_returns
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting import export_to_excel, print_summary
 from .reporting.sweep_excel import export_sweep_results
@@ -42,7 +42,6 @@ from .sim.metrics import (
 from .sweep import run_parameter_sweep
 
 __all__ = [
-    "load_parameters",
     "load_index_returns",
     "simulate_financing",
     "prepare_mc_universe",
