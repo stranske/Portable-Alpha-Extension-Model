@@ -18,3 +18,10 @@ def test_pa_convert_entrypoint() -> None:
     scripts = data["project"]["scripts"]
     assert scripts["pa-convert-params"] == "pa_core.data.convert:main"
 
+
+def test_pa_entrypoint() -> None:
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    data = tomllib.loads(pyproject_path.read_text())
+    scripts = data["project"]["scripts"]
+    assert scripts["pa"] == "pa_core.pa:main"
+
