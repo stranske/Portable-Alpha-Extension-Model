@@ -119,6 +119,19 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def check_shares(self) -> "ModelConfig":
+        tol = 1e-6
+        for name, val in [("w_beta_H", self.w_beta_H), ("w_alpha_H", self.w_alpha_H)]:
+            if not 0.0 <= val <= 1.0:
+                raise ValueError(f"{name} must be between 0 and 1")
+        if abs(self.w_beta_H + self.w_alpha_H - 1.0) > tol:
+            raise ValueError("w_beta_H and w_alpha_H must sum to 1")
+        for name, val in [("theta_extpa", self.theta_extpa), ("active_share", self.active_share)]:
+            if not 0.0 <= val <= 1.0:
+                raise ValueError(f"{name} must be between 0 and 1")
+        return self
+
+    @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":
         valid_modes = ["capital", "returns", "alpha_shares", "vol_mult"]
         if self.analysis_mode not in valid_modes:

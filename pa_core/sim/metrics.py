@@ -129,11 +129,11 @@ def conditional_value_at_risk(
 
 
 def max_drawdown(returns: NDArray[npt.float64]) -> float:
-    """Return the maximum drawdown from a series of returns."""
+    """Return the maximum drawdown from a series of arithmetic returns."""
 
-    comp = compound(returns)
-    running_max = np.maximum.accumulate(comp + 1.0, axis=1)
-    drawdown = (comp + 1.0) / running_max - 1.0
+    cumulative = np.cumsum(returns, axis=1)
+    running_max = np.maximum.accumulate(cumulative, axis=1)
+    drawdown = cumulative - running_max
     return float(np.min(drawdown))
 
 
