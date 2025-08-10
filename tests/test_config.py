@@ -2,9 +2,8 @@ from pathlib import Path
 
 import yaml
 
-from pa_core import load_parameters
-from pa_core.cli import LABEL_MAP
 from pa_core.config import ModelConfig, load_config
+from pa_core.data.convert import convert
 
 
 def test_load_yaml(tmp_path):
@@ -64,9 +63,10 @@ def test_template_yaml_loads():
     assert isinstance(cfg, ModelConfig)
 
 
-def test_template_csv_loads(tmp_path):
+def test_csv_to_yaml_conversion(tmp_path):
     root = Path(__file__).resolve().parents[1]
     csv_path = root / "config" / "parameters_template.csv"
-    raw = load_parameters(csv_path, LABEL_MAP)
-    cfg = load_config(raw)
+    out_yaml = tmp_path / "out.yml"
+    convert(csv_path, out_yaml)
+    cfg = load_config(out_yaml)
     assert isinstance(cfg, ModelConfig)

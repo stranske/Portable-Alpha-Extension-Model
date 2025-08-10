@@ -23,6 +23,7 @@ setup(
         "console_scripts": [
             "pa=pa_core.pa:main",
             "pa-validate=pa_core.validate:main",
+            "pa-convert-params=pa_core.data.convert:main",
         ],
     },
 )
