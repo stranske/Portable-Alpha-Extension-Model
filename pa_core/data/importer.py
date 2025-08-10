@@ -59,15 +59,14 @@ class DataImportAgent:
                 raise ValueError(f"missing columns: {sorted(missing)}")
             long_df = df[[self.date_col, self.id_col, self.value_col]].copy()
 
-        long_df.dropna(subset=[self.value_col], inplace=True)
-        long_df.sort_values([self.date_col, self.id_col], inplace=True)
-        long_df.rename(
-            columns={self.date_col: "date", self.id_col: "id", self.value_col: "value"},
-            inplace=True,
+        long_df = long_df.dropna(subset=[self.value_col])
+        long_df = long_df.sort_values(by=[self.date_col, self.id_col])
+        long_df = long_df.rename(
+            columns={self.date_col: "date", self.id_col: "id", self.value_col: "value"}
         )
 
         if self.value_type == "prices":
-            long_df = long_df.sort_values(["id", "date"])
+            long_df = long_df.sort_values(by=["id", "date"])
             if self.frequency == "daily":
                 wide = long_df.pivot(index="date", columns="id", values="value")
                 month_end = wide.resample("M").last()
@@ -76,20 +75,21 @@ class DataImportAgent:
                 rets = month_end.pct_change().iloc[1:]
                 returns = pd.concat([first, rets])
                 returns.index = month_end.index[: len(returns)]
-                returns = returns.melt(ignore_index=False, var_name="id", value_name="return")
+                returns = returns.melt(
+                    ignore_index=False, var_name="id", value_name="return"
+                )
                 long_df = (
                     returns.dropna()
                     .reset_index()
-                    .rename(columns={"index": "date"})
-                    [["id", "date", "return"]]
+                    .rename(columns={"index": "date"})[["id", "date", "return"]]
                 )
             else:
                 long_df["return"] = long_df.groupby("id")["value"].pct_change()
-                long_df.dropna(subset=["return"], inplace=True)
-                long_df.drop(columns=["value"], inplace=True)
+                long_df = long_df.dropna(subset=["return"])
+                long_df = long_df.drop(columns=["value"])
         else:
-            long_df.rename(columns={"value": "return"}, inplace=True)
-            long_df.dropna(subset=["return"], inplace=True)
+            long_df = long_df.rename(columns={"value": "return"})
+            long_df = long_df.dropna(subset=["return"])
 
             if self.frequency == "daily":
                 long_df = (
