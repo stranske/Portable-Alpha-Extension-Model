@@ -89,6 +89,7 @@ class DataImportAgent:
                 long_df.drop(columns=["value"], inplace=True)
         else:
             long_df.rename(columns={"value": "return"}, inplace=True)
+            long_df.dropna(subset=["return"], inplace=True)
 
             if self.frequency == "daily":
                 long_df = (
