@@ -86,6 +86,7 @@ class DataImportAgent:
             else:
                 long_df["return"] = long_df.groupby("id")["value"].pct_change()
                 long_df.dropna(subset=["return"], inplace=True)
+                long_df.drop(columns=["value"], inplace=True)
         else:
             long_df.rename(columns={"value": "return"}, inplace=True)
 
