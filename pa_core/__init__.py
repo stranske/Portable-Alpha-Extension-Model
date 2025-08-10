@@ -16,18 +16,12 @@ from .agents.registry import build_all as build_agents
 from .agents.registry import build_from_config
 from .backend import get_backend, set_backend
 from .config import ConfigError, ModelConfig, load_config
-from .data import (
-    build_range,
-    build_range_int,
-    get_num,
-    load_index_returns,
-    load_parameters,
-    select_csv_file,
-)
+from .data import load_index_returns, load_parameters
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting import export_to_excel, print_summary
 from .reporting.sweep_excel import export_sweep_results
 from .run_flags import RunFlags
+from .orchestrator import SimulatorOrchestrator
 from .sim import (
     draw_financing_series,
     draw_joint_returns,
@@ -48,11 +42,7 @@ from .sim.metrics import (
 from .sweep import run_parameter_sweep
 
 __all__ = [
-    "select_csv_file",
     "load_parameters",
-    "get_num",
-    "build_range",
-    "build_range_int",
     "load_index_returns",
     "simulate_financing",
     "prepare_mc_universe",
@@ -90,5 +80,6 @@ __all__ = [
     "RunFlags",
     "build_agents",
     "build_from_config",
+    "SimulatorOrchestrator",
     "viz",
 ]
