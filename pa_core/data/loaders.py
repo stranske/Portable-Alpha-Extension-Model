@@ -36,7 +36,8 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
                     continue
                 try:
                     num = pd.to_numeric(val)
-                except Exception:
+                num = pd.to_numeric(val, errors='coerce')
+                if pd.isna(num):
                     num = val
                 if hasattr(num, "__float__") and "(%)" in col:
                     num = float(num) / 100.0
