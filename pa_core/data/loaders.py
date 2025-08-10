@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 import pandas as pd
 
@@ -18,13 +18,11 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
                 if key == "risk_metrics" and isinstance(val, str):
                     data[key] = [v for v in val.split(";") if v]
                     continue
-                try:
-                    num = pd.to_numeric(val)
-                num = pd.to_numeric(val, errors='coerce')
+                num = cast(Any, pd.to_numeric(val, errors="coerce"))
                 if pd.isna(num):
                     num = val
                 if hasattr(num, "__float__") and "(%)" in friendly:
-                    num = float(num) / 100.0
+                    num = float(cast(float, num)) / 100.0
                 data[key] = num
     elif not df.empty:
         row = df.iloc[0].to_dict()
@@ -34,13 +32,11 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
                 if key == "risk_metrics" and isinstance(val, str):
                     data[key] = [v for v in val.split(";") if v]
                     continue
-                try:
-                    num = pd.to_numeric(val)
-                num = pd.to_numeric(val, errors='coerce')
+                num = cast(Any, pd.to_numeric(val, errors="coerce"))
                 if pd.isna(num):
                     num = val
                 if hasattr(num, "__float__") and "(%)" in col:
-                    num = float(num) / 100.0
+                    num = float(cast(float, num)) / 100.0
                 data[key] = num
     return data
 

@@ -1,10 +1,8 @@
-"""Streamlit dashboard entrypoint."""
-
+"""Shared utilities and home page for the Streamlit dashboard."""
 from __future__ import annotations
 
 import importlib
 import importlib.util
-import time
 from pathlib import Path
 from types import ModuleType
 
@@ -56,59 +54,10 @@ def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
 
 
 def main() -> None:
+    """Render the dashboard home page."""
+
     st.title("Portable Alpha Dashboard")
-    xlsx = st.sidebar.text_input("Results file", _DEF_XLSX)
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
-    apply_theme(theme_path)
-    if not Path(xlsx).exists():
-        st.warning(f"File {xlsx} not found")
-        st.stop()
-    summary, paths = load_data(xlsx)
-
-    months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
-
-    # Handle missing Config column gracefully
-    if "Config" in summary.columns:
-        config_options = summary["Config"].unique().tolist()
-        agents = st.sidebar.multiselect("Agents", config_options, config_options)
-    else:
-        # If no Config column, use the index (agent names) instead
-        if summary.index.name:
-            agent_options = summary.index.tolist()
-        else:
-            agent_options = (
-                summary.index.tolist() if len(summary.index) > 0 else ["All"]
-            )
-        agents = st.sidebar.multiselect("Agents", agent_options, agent_options)
-    st.sidebar.number_input("Risk-free rate", value=0.0)
-    auto = st.sidebar.checkbox("Auto-refresh")
-    interval = st.sidebar.number_input("Refresh every (s)", 5, 300, 60)
-
-    tab_names = list(PLOTS) + ["Diagnostics"]
-    tabs = st.tabs(tab_names)
-
-    for name, tab in zip(tab_names[:-1], tabs[:-1]):
-        fn = _get_plot_fn(PLOTS[name])
-        with tab:
-            if name == "Headline":
-                st.plotly_chart(fn(summary), use_container_width=True)
-            elif paths is not None:
-                sub_paths = paths[agents].iloc[:, :months]
-                st.plotly_chart(fn(sub_paths), use_container_width=True)
-
-    with tabs[-1]:
-        st.dataframe(summary)
-
-    png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(format="png")
-    st.download_button(
-        "Download PNG", png, file_name="risk_return.png", mime="image/png"
-    )
-    with open(xlsx, "rb") as fh:
-        st.download_button("Download XLSX", fh, file_name=Path(xlsx).name)
-
-    if auto:
-        time.sleep(interval)
-        st.experimental_rerun()
+    st.write("Select a page from the sidebar to begin.")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
