@@ -5,7 +5,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-import yaml
 
 import types
 import sys
@@ -14,7 +13,7 @@ PKG = types.ModuleType("pa_core")
 PKG.__path__ = [str(Path("pa_core"))]
 sys.modules.setdefault("pa_core", PKG)
 
-from pa_core.schema import Scenario, load_scenario
+from pa_core.schema import Scenario, load_scenario, save_scenario
 
 
 def test_roundtrip(tmp_path: Path) -> None:
@@ -26,7 +25,7 @@ def test_roundtrip(tmp_path: Path) -> None:
     }
     scen = Scenario.model_validate(data)
     out = tmp_path / "scen.yaml"
-    out.write_text(yaml.safe_dump(scen.model_dump()))
+    save_scenario(scen, out)
     scen2 = load_scenario(out)
     assert scen2 == scen
 
@@ -79,4 +78,57 @@ def test_sleeve_capital_share_sum() -> None:
         },
     }
     with pytest.raises(ValueError, match="capital_share"):
+        Scenario.model_validate(data)
+
+
+def test_duplicate_asset_ids() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [
+            {"id": "A", "mu": 0.05, "sigma": 0.1},
+            {"id": "A", "mu": 0.04, "sigma": 0.1},
+        ],
+        "correlations": [],
+        "portfolios": [],
+    }
+    with pytest.raises(ValueError, match="duplicate asset ids"):
+        Scenario.model_validate(data)
+
+
+def test_duplicate_portfolio_ids() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [{"pair": ["IDX", "A"], "rho": 0.1}],
+        "portfolios": [
+            {"id": "p1", "weights": {"A": 1.0}},
+            {"id": "p1", "weights": {"A": 1.0}},
+        ],
+    }
+    with pytest.raises(ValueError, match="duplicate portfolio ids"):
+        Scenario.model_validate(data)
+
+
+def test_portfolio_unknown_asset() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [{"pair": ["IDX", "A"], "rho": 0.1}],
+        "portfolios": [{"id": "p1", "weights": {"B": 1.0}}],
+    }
+    with pytest.raises(ValueError, match="unknown assets"):
+        Scenario.model_validate(data)
+
+
+def test_extra_correlations() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [
+            {"pair": ["IDX", "A"], "rho": 0.1},
+            {"pair": ["IDX", "B"], "rho": 0.2},
+        ],
+        "portfolios": [],
+    }
+    with pytest.raises(ValueError, match="unexpected correlations"):
         Scenario.model_validate(data)

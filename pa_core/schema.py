@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 from collections import Counter
 
-from collections import Counter
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -70,6 +69,27 @@ class Scenario(BaseModel):
     sleeves: Dict[str, Sleeve] | None = None
 
     @model_validator(mode="after")
+    def _check_assets_and_portfolios(self) -> "Scenario":
+        asset_ids = [a.id for a in self.assets]
+        dup_assets = [i for i, c in Counter(asset_ids).items() if c > 1]
+        if dup_assets:
+            raise ValueError(f"duplicate asset ids: {sorted(dup_assets)}")
+
+        port_ids = [p.id for p in self.portfolios]
+        dup_ports = [i for i, c in Counter(port_ids).items() if c > 1]
+        if dup_ports:
+            raise ValueError(f"duplicate portfolio ids: {sorted(dup_ports)}")
+
+        asset_id_set = set(asset_ids)
+        for p in self.portfolios:
+            unknown = set(p.weights) - asset_id_set
+            if unknown:
+                raise ValueError(
+                    f"portfolio {p.id} references unknown assets: {sorted(unknown)}"
+                )
+        return self
+
+    @model_validator(mode="after")
     def _check_correlations(self) -> "Scenario":
         ids = [self.index.id] + [a.id for a in self.assets]
         expected = {tuple(sorted(p)) for p in combinations(ids, 2)}
@@ -81,6 +101,9 @@ class Scenario(BaseModel):
         missing = expected - provided
         if missing:
             raise ValueError(f"missing correlations for pairs: {sorted(missing)}")
+        extra = provided - expected
+        if extra:
+            raise ValueError(f"unexpected correlations for pairs: {sorted(extra)}")
         return self
 
     @model_validator(mode="after")
@@ -95,3 +118,7 @@ class Scenario(BaseModel):
 def load_scenario(path: str | Path) -> Scenario:
     data = yaml.safe_load(Path(path).read_text())
     return Scenario.model_validate(data)
+
+
+def save_scenario(scenario: Scenario, path: str | Path) -> None:
+    Path(path).write_text(yaml.safe_dump(scenario.model_dump()))
