@@ -476,7 +476,7 @@ inspect the baseline output metrics:
 
 ```bash
 python -m pa_core.cli \
-  --config params_template.yml \
+  --config config/params_template.yml \
   --index sp500tr_fred_divyield.csv \
   --output Tutorial2_Baseline.xlsx
 ```
