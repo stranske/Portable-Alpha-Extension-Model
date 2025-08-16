@@ -19,7 +19,7 @@ def test_nearest_psd_makes_matrix_psd() -> None:
     mat = np.array([[1.0, 2.0], [2.0, 1.0]])
     psd = nearest_psd(mat)
     eigvals = np.linalg.eigvalsh(psd)
-    assert eigvals.min() >= -1e-8
+    assert eigvals.min() >= EIGENVALUE_TOLERANCE
     assert np.allclose(psd, psd.T)
 
 
