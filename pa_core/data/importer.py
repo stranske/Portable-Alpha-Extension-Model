@@ -110,7 +110,13 @@ class DataImportAgent:
         bad = counts[counts < self.min_obs]
         if not bad.empty:
             ids = ", ".join(sorted(bad.index.astype(str)))
-            raise ValueError(f"insufficient data for ids: {ids}")
+            max_ids = 10
+            id_list = sorted(bad.index.astype(str))
+            shown_ids = id_list[:max_ids]
+            ids_str = ", ".join(shown_ids)
+            if len(id_list) > max_ids:
+                ids_str += f", ... and {len(id_list) - max_ids} more"
+            raise ValueError(f"insufficient data for ids: {ids_str}")
 
         self.metadata = {
             "source_file": str(p),
