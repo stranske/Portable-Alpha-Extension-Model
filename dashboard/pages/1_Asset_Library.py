@@ -7,7 +7,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from pa_core.data import DataImportAgent
+from pa_core.data import CalibrationAgent, DataImportAgent
 from dashboard.app import _DEF_THEME, apply_theme
 
 
@@ -26,6 +26,22 @@ def main() -> None:
     df = importer.load(tmp_path)
     st.dataframe(df)
     st.json(importer.metadata)
+
+    ids = sorted(df["id"].unique())
+    index_id = st.selectbox("Index column", ids)
+    if st.button("Calibrate"):
+        calib = CalibrationAgent(min_obs=importer.min_obs)
+        result = calib.calibrate(df, index_id)
+        tmp_yaml = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
+        calib.to_yaml(result, tmp_yaml.name)
+        yaml_str = Path(tmp_yaml.name).read_text()
+        tmp_yaml.close()
+        st.download_button(
+            "Download Asset Library YAML",
+            yaml_str,
+            file_name="asset_library.yaml",
+            mime="application/x-yaml",
+        )
 
 
 if __name__ == "__main__":
