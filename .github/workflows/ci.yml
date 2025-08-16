@@ -6,15 +6,6 @@ on:
   push:
     branches:
       - '**'           # run on all branches
-    paths:
-      - 'pa_core/**'
-      - 'tests/**'
-      - 'dashboard/**'
-      - 'scripts/**'
-      - 'pyproject.toml'
-      - 'setup.py'
-      - 'requirements*.txt'
-      - '.github/workflows/ci.yml'
   workflow_dispatch:
 
 concurrency:
@@ -44,8 +35,8 @@ jobs:
           pip install -e .
       - run: ruff check pa_core tests
         name: Ruff (lint)
-      - run: black --check pa_core tests
-        name: Black (format check)
+      - run: ruff format --check pa_core tests
+        name: Ruff Format (check)
       - run: isort --check-only pa_core tests
         name: isort (import order)
 
@@ -98,6 +89,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
@@ -128,6 +122,9 @@ jobs:
     needs: [lint-and-format, type-check, test]
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
