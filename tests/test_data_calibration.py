@@ -22,7 +22,7 @@ from pa_core.data import CalibrationAgent, DataImportAgent
 
 def test_calibration_wide_csv() -> None:
     path = Path("templates/asset_timeseries_wide_returns.csv")
-    importer = DataImportAgent(date_col="Date")
+    importer = DataImportAgent(date_col="Date", min_obs=1)
     df = importer.load(path)
     calib = CalibrationAgent(min_obs=1)
     result = calib.calibrate(df, index_id="SP500_TR")
@@ -50,9 +50,9 @@ def test_import_long_equals_wide() -> None:
     wide = Path("templates/asset_timeseries_wide_returns.csv")
     long = Path("templates/asset_timeseries_long_returns.csv")
 
-    df_wide = DataImportAgent(date_col="Date").load(wide)
+    df_wide = DataImportAgent(date_col="Date", min_obs=1).load(wide)
     df_long = DataImportAgent(
-        date_col="Date", id_col="Id", value_col="Return", wide=False
+        date_col="Date", id_col="Id", value_col="Return", wide=False, min_obs=1
     ).load(long)
 
     assert_frame_equal(df_wide, df_long)
@@ -60,7 +60,7 @@ def test_import_long_equals_wide() -> None:
 
 def test_calibration_to_yaml(tmp_path: Path) -> None:
     path = Path("templates/asset_timeseries_wide_returns.csv")
-    importer = DataImportAgent(date_col="Date")
+    importer = DataImportAgent(date_col="Date", min_obs=1)
     df = importer.load(path)
     calib = CalibrationAgent(min_obs=1)
     result = calib.calibrate(df, index_id="SP500_TR")
@@ -85,10 +85,10 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
     df.to_excel(xlsx_path, index=False)
 
     importer_csv = DataImportAgent(
-        date_col="Date", frequency="daily", value_type="prices"
+        date_col="Date", frequency="daily", value_type="prices", min_obs=1
     )
     importer_xlsx = DataImportAgent(
-        date_col="Date", frequency="daily", value_type="prices"
+        date_col="Date", frequency="daily", value_type="prices", min_obs=1
     )
 
     df_csv = importer_csv.load(csv_path)
@@ -107,3 +107,22 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
 
     assert importer_csv.metadata["frequency"] == "daily"
     assert importer_csv.metadata["value_type"] == "prices"
+
+
+def test_import_min_obs_enforced(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-31", periods=10, freq="M")
+    df = pd.DataFrame({"Date": dates, "A": np.arange(10)})
+    path = tmp_path / "short.csv"
+    df.to_csv(path, index=False)
+    agent = DataImportAgent(date_col="Date", min_obs=12)
+    with pytest.raises(ValueError, match="insufficient data"):
+        agent.load(path)
+
+
+def test_import_duplicate_dates_fail(tmp_path: Path) -> None:
+    df = pd.DataFrame({"Date": ["2020-01-31", "2020-01-31"], "A": [0.1, 0.2]})
+    path = tmp_path / "dup.csv"
+    df.to_csv(path, index=False)
+    agent = DataImportAgent(date_col="Date", min_obs=1)
+    with pytest.raises(ValueError, match="strictly increasing"):
+        agent.load(path)
