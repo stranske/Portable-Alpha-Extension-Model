@@ -91,21 +91,21 @@ main entry point is ``pa_core.cli`` which exposes analysis modes, export
 options and an optional dashboard:
 
 ```bash
-# CSV parameters
-pa-convert-params parameters.csv params.yml
 python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv \
   --mode returns
 
-# or YAML configuration
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv \
-  --mode returns
-
 # optional pivot-style output
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv --pivot
+python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv --pivot
 
 # launch dashboard and export images
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
+```
+
+Legacy CSV parameter files can be converted for this release with:
+
+```bash
+pa-convert-params old_parameters.csv params.yml
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.
@@ -218,7 +218,7 @@ Three capital buckets (all in $ mm, must sum to 1000)
 
 External PA capital (
 )
-Manager takes 
+Manager takes
  X m of index (β) and ((external_pa_alpha_frac × X m)) of α.
 Default α fraction = 50 % ((\theta_{\mathrm{ExtPA}}=0.50)).
 Active Extension capital (
@@ -233,7 +233,7 @@ Internal beta backing (
 [ W = \sigma_{\text{ref}} \times (\mathrm{sd_of_vol_mult}) \times 1000 \quad (\text{$ mm}). ]
 
 That cash sits in reserve to back a $ 1 b index position via futures/swaps.
-Because the external PA and active-extension managers each hold index exposure “inside” their 
+Because the external PA and active-extension managers each hold index exposure “inside” their
  Y m, you do not hold margin for that portion. You only hold (W) for the total $ 1 b.
 3. Capital-Allocation Equations
 Check:
@@ -445,7 +445,7 @@ Why each bucket’s formula ensures no double-counting
 
 Whenever you give $ X m to External PA, that manager holds the index exposure on your behalf. You do not hold margin for that portion. Similarly, the Active Extension manager holds their own index.
 On your books, you only need to hold margin for a single $ 1 b index. That is (W).
-Once you hand 
+Once you hand
  Y m to active ext, both managers hold ((X + Y)) of index on your behalf. So your margin (W) backs the entire $ 1 b, not just the “leftover” portion.
 9. Step-by-Step Implementation Checklist
 Read and parse user parameters (dates, vols, α fractions, active share, capital buckets, etc.).
