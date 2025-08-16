@@ -24,6 +24,7 @@ class DataImportAgent:
         wide: bool = True,
         value_type: Literal["returns", "prices"] = "returns",
         frequency: Literal["monthly", "daily"] = "monthly",
+        min_obs: int = 36,
     ) -> None:
         self.date_col = date_col
         self.id_col = id_col
@@ -31,6 +32,7 @@ class DataImportAgent:
         self.wide = wide
         self.value_type = value_type
         self.frequency = frequency
+        self.min_obs = min_obs
         self.metadata: Dict[str, Any] | None = None
 
     def load(self, path: str | Path) -> pd.DataFrame:
@@ -99,6 +101,22 @@ class DataImportAgent:
                     .dropna()
                     .reset_index()
                 )
+
+        diffs = long_df.groupby("id")["date"].diff()
+        if (diffs.dropna() <= pd.Timedelta(0)).any():
+            raise ValueError("dates must be strictly increasing within each id")
+
+        counts = long_df.groupby("id").size()
+        bad = counts[counts < self.min_obs]
+        if not bad.empty:
+            ids = ", ".join(sorted(bad.index.astype(str)))
+            max_ids = 10
+            id_list = sorted(bad.index.astype(str))
+            shown_ids = id_list[:max_ids]
+            ids_str = ", ".join(shown_ids)
+            if len(id_list) > max_ids:
+                ids_str += f", ... and {len(id_list) - max_ids} more"
+            raise ValueError(f"insufficient data for ids: {ids_str}")
 
         self.metadata = {
             "source_file": str(p),
