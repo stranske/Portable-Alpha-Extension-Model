@@ -1,6 +1,14 @@
 import numpy as np
 import pytest
 
+import types
+import sys
+from pathlib import Path
+
+PKG = types.ModuleType("pa_core")
+PKG.__path__ = [str(Path("pa_core"))]
+sys.modules.setdefault("pa_core", PKG)
+
 from pa_core.agents import (
     ActiveExtensionAgent,
     AgentParams,
@@ -110,6 +118,47 @@ def test_agent_math_identity():
     pa_agent = InternalPAAgent(pa_p)
     expected_pa = pa_p.alpha_share * r_H
     np.testing.assert_allclose(pa_agent.monthly_returns(r_beta, r_H, f), expected_pa)
+
+
+def test_external_pa_theta_zero_returns_pure_beta() -> None:
+    """Theta=0 collapses ExternalPAAgent to beta-only sleeve."""
+
+    r_beta, _, _, r_M, _, f_ext, _ = _mock_inputs()
+    p = AgentParams("ExternalPA", 100.0, 0.2, 0.0, {"theta_extpa": 0.0})
+    agent = ExternalPAAgent(p)
+    out = agent.monthly_returns(r_beta, r_M, f_ext)
+    expected = p.beta_share * (r_beta - f_ext)
+    np.testing.assert_allclose(out, expected)
+
+
+def test_active_extension_zero_share_returns_pure_beta() -> None:
+    """active_share=0 collapses ActiveExtensionAgent to beta-only sleeve."""
+
+    r_beta, _, r_E, _, _, _, f_act = _mock_inputs()
+    p = AgentParams("ActiveExt", 100.0, 0.3, 0.0, {"active_share": 0.0})
+    agent = ActiveExtensionAgent(p)
+    out = agent.monthly_returns(r_beta, r_E, f_act)
+    expected = p.beta_share * (r_beta - f_act)
+    np.testing.assert_allclose(out, expected)
+
+
+def test_base_agent_alpha_zero_returns_pure_beta() -> None:
+    r_beta, r_H, *_ = _mock_inputs()
+    p = AgentParams("Base", 100.0, 0.7, 0.0, {})
+    agent = BaseAgent(p)
+    f = np.zeros_like(r_beta)
+    out = agent.monthly_returns(r_beta, r_H, f)
+    expected = p.beta_share * (r_beta - f)
+    np.testing.assert_allclose(out, expected)
+
+
+def test_internal_pa_no_alpha_returns_zero() -> None:
+    r_beta, _, *_ = _mock_inputs()
+    zeros = np.zeros_like(r_beta)
+    p = AgentParams("InternalPA", 50.0, 0.0, 0.4, {})
+    agent = InternalPAAgent(p)
+    out = agent.monthly_returns(r_beta, zeros, zeros)
+    assert np.allclose(out, 0.0)
 
 
 def test_build_from_config_basic():
