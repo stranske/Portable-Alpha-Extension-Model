@@ -34,7 +34,7 @@ def test_scenario_golden() -> None:
             "risk_metrics": ["ShortfallProb"],
         }
     )
-    idx = pd.Series([0.01, 0.02, 0.015, 0.03, 0.005, 0.025] * 20)
+    idx = pd.Series(INDEX_SERIES_PATTERN * 20)
     orch = SimulatorOrchestrator(cfg, idx)
     returns, summary = orch.run(seed=0)
     base = summary.loc[summary.Agent == "Base"].iloc[0]
