@@ -153,6 +153,11 @@ def test_base_agent_alpha_zero_returns_pure_beta() -> None:
 
 
 def test_internal_pa_no_alpha_returns_zero() -> None:
+    """
+    When InternalPAAgent is constructed with zero alpha share and receives zero alpha inputs,
+    it is expected to return zero monthly returns. This test verifies that the agent
+    correctly collapses to a zero-return sleeve in the absence of any alpha contribution.
+    """
     r_beta, _, *_ = _mock_inputs()
     zeros = np.zeros_like(r_beta)
     p = AgentParams("InternalPA", 50.0, 0.0, 0.4, {})
