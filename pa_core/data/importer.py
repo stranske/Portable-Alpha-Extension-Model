@@ -71,24 +71,22 @@ class DataImportAgent:
         if self.value_type == "prices":
             long_df = long_df.sort_values(by=["id", "date"])
             if self.frequency == "daily":
-                  wide = long_df.pivot(index="date", columns="id", values="value")
-                  month_end = wide.resample("M").last()
-                  month_start = wide.resample("MS").first()
-                  first = (month_start.shift(-1) / month_start - 1).iloc[:1]
-                  rets = month_end.pct_change().iloc[1:]
-                  returns = pd.concat([first, rets])
-                  returns.index = month_end.index[: len(returns)]
-                  returns = returns.melt(
-                      ignore_index=False, var_name="id", value_name="return"
-                  )
-                  long_df = cast(
-                      pd.DataFrame,
-                      (
-                          returns.dropna()
-                          .reset_index()
-                          .rename(columns={"index": "date"})[["id", "date", "return"]]
-                      ),
-                  )
+                wide = long_df.pivot(index="date", columns="id", values="value")
+                month_end = wide.resample("ME").last()
+                month_start = wide.resample("MS").first()
+                first = (month_start.shift(-1) / month_start - 1).iloc[:1]
+                rets = month_end.pct_change().iloc[1:]
+                returns = pd.concat([first, rets])
+                returns.index = month_end.index[: len(returns)]
+                returns = returns.melt(ignore_index=False, var_name="id", value_name="return")
+                long_df = cast(
+                    pd.DataFrame,
+                    (
+                        returns.dropna()
+                        .reset_index()
+                        .rename(columns={"index": "date"})[["id", "date", "return"]]
+                    ),
+                )
             else:
                 long_df["return"] = long_df.groupby("id")["value"].pct_change()
                 long_df = long_df.dropna(subset=["return"])

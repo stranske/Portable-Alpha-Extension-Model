@@ -109,8 +109,30 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
     assert importer_csv.metadata["value_type"] == "prices"
 
 
+def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
+    returns = pd.Series(0.01, index=dates)
+    df = pd.DataFrame({"Date": dates, "A": returns.values})
+
+    path = tmp_path / "returns.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(
+        date_col="Date", frequency="daily", value_type="returns", min_obs=1
+    )
+    out = importer.load(path)
+
+    expected = pd.DataFrame(
+        {
+            "id": ["A", "A"],
+            "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
+            "return": [(1.01 ** 31) - 1, (1.01 ** 29) - 1],
+        }
+    )
+    assert_frame_equal(out.reset_index(drop=True), expected)
+
 def test_import_min_obs_enforced(tmp_path: Path) -> None:
-    dates = pd.date_range("2020-01-31", periods=10, freq="M")
+    dates = pd.date_range("2020-01-31", periods=10, freq="ME")
     df = pd.DataFrame({"Date": dates, "A": np.arange(10)})
     path = tmp_path / "short.csv"
     df.to_csv(path, index=False)
