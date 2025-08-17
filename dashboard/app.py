@@ -1,4 +1,5 @@
 """Shared utilities and home page for the Streamlit dashboard."""
+
 from __future__ import annotations
 
 import importlib
@@ -53,6 +54,19 @@ def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     return summary, paths
 
 
+def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
+    """Return mean and vol by simulation from ``parquet`` if it exists."""
+    p = Path(parquet)
+    if not p.exists():
+        return None
+    df = pd.read_parquet(p)
+    return (
+        df.groupby("Sim")["Return"]
+        .agg(["mean", "std"])
+        .rename(columns={"mean": "mean_return", "std": "volatility"})
+    )
+
+
 def main() -> None:
     """Render the dashboard home page."""
 
@@ -63,6 +77,13 @@ def main() -> None:
     st.page_link("pages/2_Portfolio_Builder.py", label="Portfolio Builder")
     st.page_link("pages/3_Scenario_Wizard.py", label="Scenario Wizard")
     st.page_link("pages/4_Results.py", label="Results")
+
+    history = load_history()
+    if history is not None:
+        st.subheader("Run history")
+        st.dataframe(history)
+    else:
+        st.info("No runs found. Run a scenario to see history.")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
