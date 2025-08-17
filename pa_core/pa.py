@@ -10,7 +10,6 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
     # Simple conversion logic to avoid complex imports
     import csv
     import yaml
-    from pathlib import Path
     
     # Label mapping for CSV conversion
     label_map = {
