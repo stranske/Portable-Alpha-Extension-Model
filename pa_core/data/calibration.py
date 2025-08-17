@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import List, cast
 
 import pandas as pd
 import yaml
@@ -26,20 +26,25 @@ class CalibrationAgent:
         self.min_obs = min_obs
 
     def calibrate(self, df: pd.DataFrame, index_id: str) -> CalibrationResult:
-        counts = df.groupby("id")["return"].count()
-        valid_ids = counts[counts >= self.min_obs].index
-        df = df[df["id"].isin(valid_ids)].copy()
+        counts = cast(pd.Series, df.groupby("id")["return"].count())
+        filtered = cast(pd.Series, counts[counts >= self.min_obs])
+        valid_ids = cast(pd.Index, filtered.index).tolist()
+        df = cast(pd.DataFrame, df[df["id"].isin(valid_ids)].copy())
         grouped = df.groupby("id")["return"]
-        mu = grouped.mean() * MONTHS_PER_YEAR
-        sigma = grouped.std(ddof=1) * VOLATILITY_ANNUALIZATION_FACTOR
+        mu = cast(pd.Series, grouped.mean()) * MONTHS_PER_YEAR
+        sigma = cast(pd.Series, grouped.std(ddof=1)) * VOLATILITY_ANNUALIZATION_FACTOR
+        if index_id not in mu.index:
+            raise ValueError("index_id not present in data")
+        index_obj = Index(
+            id=index_id,
+            label=index_id,
+            mu=float(mu[index_id]),
+            sigma=float(sigma[index_id]),
+        )
         assets = [
             Asset(id=i, label=i, mu=float(mu[i]), sigma=float(sigma[i]))
             for i in mu.index
         ]
-        if index_id not in mu.index:
-            raise ValueError("index_id not present in data")
-        index_asset = next(a for a in assets if a.id == index_id)
-        other_assets = [a for a in assets if a.id != index_id]
         pivot = df.pivot(index="date", columns="id", values="return")
         corr = pivot.corr()
         pairs: List[Correlation] = []
@@ -47,9 +52,7 @@ class CalibrationAgent:
         for i, a in enumerate(ids):
             for b in ids[i + 1 :]:
                 pairs.append(Correlation(pair=(a, b), rho=float(corr.loc[a, b])))
-        return CalibrationResult(
-            index=index_asset, assets=other_assets, correlations=pairs
-        )
+        return CalibrationResult(index=index_obj, assets=assets, correlations=pairs)
 
     def to_yaml(self, result: CalibrationResult, path: str | Path) -> None:
         data = {
