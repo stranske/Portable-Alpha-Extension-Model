@@ -64,7 +64,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
                 key = label_map[param_name]
                 
                 # Handle different value types
-                if key == "risk_metrics" and isinstance(value, str):
+                if key == "risk_metrics" and value:
                     data[key] = [v.strip() for v in value.split(";") if v.strip()]
                     continue
                 
