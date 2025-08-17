@@ -33,7 +33,7 @@ def run_parameter_sweep(config: ModelConfig, mode: str) -> pd.DataFrame:
     pass
 
 # Usage should be:
-# python -m pa_core --params config.csv --mode capital --sweep-range 0.1,0.5,0.1
+# python -m pa_core.cli --config config.yml --mode capital --sweep-range 0.1,0.5,0.1
 ```
 
 **Reference:** See `CODEX_IMPLEMENTATION_SPEC.md` for complete requirements
@@ -86,12 +86,12 @@ class NewStrategyAgent(Agent):
 
 ### While Developing
 1. **Run tests frequently:** `python -m pytest tests/test_[relevant].py -v`
-2. **Test your changes:** Use `my_first_scenario.csv` for validation
+2. **Test your changes:** Use `my_first_scenario.yml` for validation
 3. **Follow existing patterns:** Look at current agent implementations
 
 ### Before Pushing
 1. **Run full test suite:** `python -m pytest tests/ -v`
-2. **Test with sample data:** `python -m pa_core --params my_first_scenario.csv`
+2. **Test with sample data:** `python -m pa_core.cli --config my_first_scenario.yml`
 3. **Commit with clear messages:** `git commit -m "feat: add parameter sweep engine"`
 4. **Push to feature branch:** `git push origin feature/your-feature-name`
 
