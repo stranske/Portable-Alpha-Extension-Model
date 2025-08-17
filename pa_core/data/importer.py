@@ -114,7 +114,7 @@ class DataImportAgent:
         bad = cast(pd.Series, counts[counts < self.min_obs])
         if not bad.empty:
             max_ids = 10
-            id_list = sorted(map(str, bad.index.tolist()))
+            id_list = sorted(bad.index.astype(str))
             shown_ids = id_list[:max_ids]
             ids_str = ", ".join(shown_ids)
             if len(id_list) > max_ids:
