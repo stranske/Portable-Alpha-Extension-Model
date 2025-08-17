@@ -175,7 +175,6 @@ class TestTutorial2ThresholdAnalysis:
         threshold_config = runner.tmp_path / "test_threshold_config.yml"
         
         # Copy base config and modify for threshold testing
-        import shutil
         shutil.copy(runner.project_root / "my_first_scenario.yml", threshold_config)
         
         output_file = runner.tmp_path / "tutorial2_threshold.xlsx"
