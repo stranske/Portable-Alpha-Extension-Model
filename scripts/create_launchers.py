@@ -13,26 +13,35 @@ import stat
 from pathlib import Path
 
 
-def _make_windows_launcher(name: str, target: Path) -> None:
-    """Create a ``.bat`` launcher calling *name* in *target* directory."""
+def make_windows_launcher(name: str, target: Path) -> Path:
+    """Create a ``.bat`` launcher calling *name* in *target* directory.
+
+    Returns the path to the created launcher file.
+    """
+    path = target / f"{name}.bat"
     content = f'@echo off\n"{name}" %*\nif %errorlevel% neq 0 exit /b %errorlevel%\n'
-    (target / f"{name}.bat").write_text(content, newline="\r\n")
+    path.write_text(content, newline="\r\n")
+    return path
 
 
-def _make_mac_launcher(name: str, target: Path) -> None:
-    """Create a ``.command`` launcher calling *name* in *target* directory."""
+def make_mac_launcher(name: str, target: Path) -> Path:
+    """Create a ``.command`` launcher calling *name* in *target* directory.
+
+    Returns the path to the created launcher file.
+    """
     path = target / f"{name}.command"
     content = (
-        f'#!/bin/bash\n'
-        f'set -e\n'
-        f'if ! command -v {name} >/dev/null 2>&1; then\n'
+        f"#!/bin/bash\n"
+        f"set -e\n"
+        f"if ! command -v {name} >/dev/null 2>&1; then\n"
         f'  echo "Error: {name} not found in PATH." >&2\n'
-        f'  exit 1\n'
-        f'fi\n'
+        f"  exit 1\n"
+        f"fi\n"
         f'{name} "$@"\n'
     )
     path.write_text(content)
     path.chmod(path.stat().st_mode | stat.S_IEXEC)
+    return path
 
 
 def main() -> int:
@@ -49,8 +58,8 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     for script in args.scripts:
-        _make_windows_launcher(script, out_dir)
-        _make_mac_launcher(script, out_dir)
+        make_windows_launcher(script, out_dir)
+        make_mac_launcher(script, out_dir)
     return 0
 
 
