@@ -80,6 +80,12 @@ pa-make-zip --output portable_windows.zip
 
 See `docs/PORTABLE_ZIP_GUIDE.md` for details.
 
+Generate Windows `.bat` and macOS `.command` launchers for the console scripts:
+
+```bash
+python scripts/create_launchers.py pa-dashboard pa
+```
+
 ## Setup
 
 Run the setup script to create a Python virtual environment and install dependencies

@@ -57,7 +57,12 @@ def main() -> None:
     """Render the dashboard home page."""
 
     st.title("Portable Alpha Dashboard")
-    st.write("Select a page from the sidebar to begin.")
+    st.write("Select a page from the sidebar or use the links below to begin.")
+
+    st.page_link("pages/1_Asset_Library.py", label="Asset Library")
+    st.page_link("pages/2_Portfolio_Builder.py", label="Portfolio Builder")
+    st.page_link("pages/3_Scenario_Wizard.py", label="Scenario Wizard")
+    st.page_link("pages/4_Results.py", label="Results")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
