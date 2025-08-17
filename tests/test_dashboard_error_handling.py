@@ -19,7 +19,6 @@ def test_dashboard_error_handling_filenotfound():
             os.chdir(temp_dir)
             
             # Import and test the dashboard code logic
-            from pathlib import Path
             
             # This replicates the exact logic from cli.py
             dashboard_path = Path("dashboard/app.py")
