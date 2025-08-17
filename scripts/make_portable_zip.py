@@ -118,10 +118,10 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
             return True
         if any(part == pattern for part in parts):
             return True
+
         if pattern.endswith("*") and path.name.startswith(pattern[:-1]):
             return True
     return False
-
 
 def create_filtered_zip(
     root_dir: Path, output_path: Path, excludes: Set[str], *, verbose: bool = False
