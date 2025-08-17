@@ -76,7 +76,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
                         num_val = int(value)
                     
                     # Convert percentages
-                    if "(%)" in param_name and isinstance(num_val, (int, float)):
+                    if "(%)" in param_name:
                         num_val = float(num_val) / 100.0
                     
                     data[key] = num_val
