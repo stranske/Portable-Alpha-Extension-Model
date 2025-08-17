@@ -126,7 +126,14 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
         {
             "id": ["A", "A"],
             "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
-            "return": [(1.01 ** 31) - 1, (1.01 ** 29) - 1],
+    # Calculate number of days in each month dynamically
+    jan_days = (dates.month == 1).sum()
+    feb_days = (dates.month == 2).sum()
+    expected = pd.DataFrame(
+        {
+            "id": ["A", "A"],
+            "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
+            "return": [(1.01 ** jan_days) - 1, (1.01 ** feb_days) - 1],
         }
     )
     assert_frame_equal(out.reset_index(drop=True), expected)
