@@ -22,7 +22,15 @@ def _make_windows_launcher(name: str, target: Path) -> None:
 def _make_mac_launcher(name: str, target: Path) -> None:
     """Create a ``.command`` launcher calling *name* in *target* directory."""
     path = target / f"{name}.command"
-    content = f'#!/bin/bash\n{name} "$@"\n'
+    content = (
+        f'#!/bin/bash\n'
+        f'set -e\n'
+        f'if ! command -v {name} >/dev/null 2>&1; then\n'
+        f'  echo "Error: {name} not found in PATH." >&2\n'
+        f'  exit 1\n'
+        f'fi\n'
+        f'{name} "$@"\n'
+    )
     path.write_text(content)
     path.chmod(path.stat().st_mode | stat.S_IEXEC)
 
