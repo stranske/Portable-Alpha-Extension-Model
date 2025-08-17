@@ -46,3 +46,19 @@ def test_build_cov_matrix_psd_projection() -> None:
     assert eigvals.min() >= -1e-8
     max_delta = float(np.max(np.abs(cov - raw_cov)))
     assert max_delta < 0.03
+
+
+def test_build_cov_matrix_invalid_rho() -> None:
+    with pytest.raises(ValueError):
+        build_cov_matrix(
+            rho_idx_H=1.2,
+            rho_idx_E=0.0,
+            rho_idx_M=0.0,
+            rho_H_E=0.0,
+            rho_H_M=0.0,
+            rho_E_M=0.0,
+            idx_sigma=0.2,
+            sigma_H=0.2,
+            sigma_E=0.2,
+            sigma_M=0.2,
+        )

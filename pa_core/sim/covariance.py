@@ -5,6 +5,7 @@ import numpy as npt
 from numpy.typing import NDArray
 
 from ..backend import xp as np
+from ..schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 
 __all__ = ["build_cov_matrix", "nearest_psd"]
 
@@ -62,6 +63,19 @@ def build_cov_matrix(
     resulting matrix is symmetrised and, if necessary, projected to the
     nearest positive semidefinite matrix.
     """
+
+    for name, rho in [
+        ("rho_idx_H", rho_idx_H),
+        ("rho_idx_E", rho_idx_E),
+        ("rho_idx_M", rho_idx_M),
+        ("rho_H_E", rho_H_E),
+        ("rho_H_M", rho_H_M),
+        ("rho_E_M", rho_E_M),
+    ]:
+        if not (CORRELATION_LOWER_BOUND <= rho <= CORRELATION_UPPER_BOUND):
+            raise ValueError(
+                f"{name} must be between {CORRELATION_LOWER_BOUND} and {CORRELATION_UPPER_BOUND}"
+            )
 
     sds = np.clip(np.array([idx_sigma, sigma_H, sigma_E, sigma_M]), 0.0, None)
     rho = np.array(
