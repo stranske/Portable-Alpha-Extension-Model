@@ -35,7 +35,7 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
    pa validate templates/scenario_example.yaml
    ```
 
-2. **Run the simulation** – execute the model with a YAML config (convert legacy CSV files with `pa-convert-params`).
+2. **Run the simulation** – execute the model with a YAML config (if you are migrating from older CSV-based configurations, convert your CSV files with `pa-convert-params`).
 3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
 4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
