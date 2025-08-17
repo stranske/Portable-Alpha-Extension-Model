@@ -2,17 +2,14 @@ from __future__ import annotations
 
 # ruff: noqa: E402
 
-import types
-import sys
 from pathlib import Path
+import sys
 
 import pandas as pd
 import pytest
 
-# Prevent importing full pa_core package with heavy deps
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
@@ -20,7 +17,6 @@ from pa_core.orchestrator import SimulatorOrchestrator
 
 # Simple pattern to simulate index returns - represents monthly returns
 INDEX_SERIES_PATTERN = [0.01, -0.005, 0.008, 0.012, -0.003, 0.006]
-
 
 EXPECTED = {
     "AnnReturn": 0.018939562681426825,
