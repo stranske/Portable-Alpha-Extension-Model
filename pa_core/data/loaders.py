@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import Any, Dict, cast
 
@@ -7,7 +8,18 @@ import pandas as pd
 
 
 def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, Any]:
-    """Return parameter dictionary by mapping CSV headers via ``label_map``."""
+    """Return parameter dictionary by mapping CSV headers via ``label_map``.
+    
+    .. deprecated:: 
+        CSV parameter loading is deprecated and will be removed in the next release.
+        Use YAML configurations instead.
+    """
+    warnings.warn(
+        "CSV parameter loading is deprecated and will be removed in the next release. "
+        "Use YAML configurations and 'pa convert' to migrate existing CSV files.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     df = pd.read_csv(path)
     data: Dict[str, Any] = {}
     if {"Parameter", "Value"}.issubset(df.columns):
