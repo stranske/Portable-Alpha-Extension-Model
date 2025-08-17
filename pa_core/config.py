@@ -140,7 +140,7 @@ class ModelConfig(BaseModel):
 
 
 def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
-    """Return ``ModelConfig`` parsed from YAML/CSV dictionary."""
+    """Return ``ModelConfig`` parsed from YAML dictionary."""
     if isinstance(path, dict):
         data = path
     else:
