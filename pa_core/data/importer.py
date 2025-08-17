@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Literal, Set
+from typing import Any, Dict, Literal, Set, cast
 
 import pandas as pd
 
@@ -48,6 +48,7 @@ class DataImportAgent:
             raise ValueError("date column missing")
         df[self.date_col] = pd.to_datetime(df[self.date_col])
 
+        long_df: pd.DataFrame
         if self.wide:
             long_df = df.melt(
                 id_vars=[self.date_col],
@@ -59,9 +60,9 @@ class DataImportAgent:
             missing = required - set(df.columns)
             if missing:
                 raise ValueError(f"missing columns: {sorted(missing)}")
-            long_df = df[[self.date_col, self.id_col, self.value_col]].copy()
+            long_df = cast(pd.DataFrame, df[[self.date_col, self.id_col, self.value_col]].copy())
 
-        long_df = long_df.dropna(subset=[self.value_col])
+        long_df = cast(pd.DataFrame, long_df.dropna(subset=[self.value_col]))
         long_df = long_df.sort_values(by=[self.date_col, self.id_col])
         long_df = long_df.rename(
             columns={self.date_col: "date", self.id_col: "id", self.value_col: "value"}
@@ -70,21 +71,24 @@ class DataImportAgent:
         if self.value_type == "prices":
             long_df = long_df.sort_values(by=["id", "date"])
             if self.frequency == "daily":
-                wide = long_df.pivot(index="date", columns="id", values="value")
-                month_end = wide.resample("M").last()
-                month_start = wide.resample("MS").first()
-                first = (month_start.shift(-1) / month_start - 1).iloc[:1]
-                rets = month_end.pct_change().iloc[1:]
-                returns = pd.concat([first, rets])
-                returns.index = month_end.index[: len(returns)]
-                returns = returns.melt(
-                    ignore_index=False, var_name="id", value_name="return"
-                )
-                long_df = (
-                    returns.dropna()
-                    .reset_index()
-                    .rename(columns={"index": "date"})[["id", "date", "return"]]
-                )
+                  wide = long_df.pivot(index="date", columns="id", values="value")
+                  month_end = wide.resample("M").last()
+                  month_start = wide.resample("MS").first()
+                  first = (month_start.shift(-1) / month_start - 1).iloc[:1]
+                  rets = month_end.pct_change().iloc[1:]
+                  returns = pd.concat([first, rets])
+                  returns.index = month_end.index[: len(returns)]
+                  returns = returns.melt(
+                      ignore_index=False, var_name="id", value_name="return"
+                  )
+                  long_df = cast(
+                      pd.DataFrame,
+                      (
+                          returns.dropna()
+                          .reset_index()
+                          .rename(columns={"index": "date"})[["id", "date", "return"]]
+                      ),
+                  )
             else:
                 long_df["return"] = long_df.groupby("id")["value"].pct_change()
                 long_df = long_df.dropna(subset=["return"])
@@ -106,12 +110,11 @@ class DataImportAgent:
         if (diffs.dropna() <= pd.Timedelta(0)).any():
             raise ValueError("dates must be strictly increasing within each id")
 
-        counts = long_df.groupby("id").size()
-        bad = counts[counts < self.min_obs]
-        if not bad.empty:
-            ids = ", ".join(sorted(bad.index.astype(str)))
+        counts = cast(pd.Series, long_df.groupby("id").size())
+        bad = cast(pd.Series, counts[counts < self.min_obs])
+        if len(bad) > 0:
             max_ids = 10
-            id_list = sorted(bad.index.astype(str))
+            id_list = sorted(map(str, bad.index.tolist()))
             shown_ids = id_list[:max_ids]
             ids_str = ", ".join(shown_ids)
             if len(id_list) > max_ids:
@@ -130,4 +133,4 @@ class DataImportAgent:
             },
         }
 
-        return long_df.reset_index(drop=True)
+        return cast(pd.DataFrame, long_df.reset_index(drop=True))

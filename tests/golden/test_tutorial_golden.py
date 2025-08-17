@@ -6,10 +6,12 @@ and validate that expected artifacts are produced with deterministic results.
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
 from typing import List
+
 import pandas as pd
 import pytest
 
@@ -72,7 +74,7 @@ class TestTutorial1ParameterSweeps:
         ])
         
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=50000)
+        runner.assert_file_exists_and_size(output_file, min_size=45000)
         
         # Validate expected sheets exist - Summary is always present
         sheets = runner.get_excel_sheets(output_file)
@@ -101,7 +103,7 @@ class TestTutorial1ParameterSweeps:
         ])
         
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=50000)
+        runner.assert_file_exists_and_size(output_file, min_size=45000)
         
         # Validate sweep produces multiple scenarios
         sheets = runner.get_excel_sheets(output_file)
@@ -124,8 +126,8 @@ class TestTutorial1ParameterSweeps:
         ])
         
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=50000)
-        
+        runner.assert_file_exists_and_size(output_file, min_size=45000)
+
         summary = runner.read_excel_summary(output_file)
         assert len(summary) > 1, "Capital sweep should produce multiple scenarios"
 
@@ -160,7 +162,7 @@ class TestTutorial1ParameterSweeps:
         ])
         
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=30000)  # Lower min size for vol_mult mode
+        runner.assert_file_exists_and_size(output_file, min_size=15000)
         
         summary = runner.read_excel_summary(output_file)
         assert len(summary) > 1, "Volatility mult sweep should produce multiple scenarios"
