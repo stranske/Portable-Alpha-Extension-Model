@@ -87,7 +87,6 @@ class NewStrategyAgent(Agent):
 ### While Developing
 1. **Run tests frequently:** `python -m pytest tests/test_[relevant].py -v`
 2. **Test your changes:** Use `config/params_template.yml` for validation
-3. **Follow existing patterns:** Look at current agent implementations
 
 ### Before Pushing
 1. **Run full test suite:** `python -m pytest tests/ -v`
