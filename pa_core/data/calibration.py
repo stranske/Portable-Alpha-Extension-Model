@@ -44,7 +44,6 @@ class CalibrationAgent:
         assets = [
             Asset(id=i, label=i, mu=float(mu[i]), sigma=float(sigma[i]))
             for i in mu.index
-            if i != index_id
         ]
         pivot = df.pivot(index="date", columns="id", values="return")
         corr = pivot.corr()
