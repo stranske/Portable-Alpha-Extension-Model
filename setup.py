@@ -5,7 +5,7 @@ setup(
     version="0.1.0",
     description="Portable alpha plus active extension model",
     author="Your Name",
-    packages=find_packages(include=["pa_core*", "archive*"]),
+    packages=find_packages(include=["pa_core*", "archive*", "scripts*"]),
     install_requires=[
         "numpy",
         "pandas",
@@ -25,6 +25,7 @@ setup(
             "pa-validate=pa_core.validate:main",
             "pa-convert-params=pa_core.data.convert:main",
             "pa-dashboard=dashboard.cli:main",
+            "pa-make-zip=scripts.make_portable_zip:main",
         ],
     },
 )

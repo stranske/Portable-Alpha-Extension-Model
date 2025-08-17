@@ -70,6 +70,16 @@ This project includes comprehensive VS Code configuration:
 - **Linting**: Automatic ruff linting on save
 - **Extensions**: Recommended extensions will be suggested on first open
 
+### Packaging
+
+Create a portable Windows archive of the project:
+
+```bash
+pa-make-zip --output portable_windows.zip
+```
+
+See `docs/PORTABLE_ZIP_GUIDE.md` for details.
+
 ## Setup
 
 Run the setup script to create a Python virtual environment and install dependencies

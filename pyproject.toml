@@ -45,7 +45,7 @@ python_files = ["test_*.py"]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["pa_core*", "archive*"]
+include = ["pa_core*", "archive*", "scripts*"]
 
 [build-system]
 requires = ["setuptools>=61"]
@@ -75,3 +75,4 @@ pa = "pa_core.pa:main"
 pa-validate = "pa_core.validate:main"
 pa-convert-params = "pa_core.data.convert:main"
 pa-dashboard = "dashboard.cli:main"
+pa-make-zip = "scripts.make_portable_zip:main"
