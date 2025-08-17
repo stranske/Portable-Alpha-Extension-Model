@@ -6,13 +6,13 @@ import types
 import sys
 from pathlib import Path
 
-import numpy as np
-
 PKG = types.ModuleType("pa_core")
 PKG.__path__ = [str(Path("pa_core"))]
 sys.modules.setdefault("pa_core", PKG)
 import numpy as np
 from pa_core.sim.covariance import nearest_psd
+
+EIGENVALUE_TOLERANCE = -1e-8
 
 
 def test_nearest_psd_makes_matrix_psd() -> None:
