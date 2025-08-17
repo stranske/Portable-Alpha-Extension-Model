@@ -118,11 +118,10 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
             return True
         if any(part == pattern for part in parts):
             return True
+
         if pattern.endswith("*") and path.name.startswith(pattern[:-1]):
             return True
     return False
-
-
 
 def create_filtered_zip(
     root_dir: Path, output_path: Path, excludes: Set[str], *, verbose: bool = False
@@ -141,12 +140,12 @@ def create_filtered_zip(
                     files_excluded += 1
                     if verbose:
                         print(f"Excluded: {path.relative_to(root_dir)}")
-                else:
-                    arcname = path.relative_to(root_dir)
-                    zipf.write(path, arcname)
-                    files_added += 1
-                    if verbose:
-                        print(f"Included: {arcname}")
+                    continue
+                arcname = path.relative_to(root_dir)
+                zipf.write(path, arcname)
+                files_added += 1
+                if verbose:
+                    print(f"Included: {arcname}")
 
     size_mb = output_path.stat().st_size / 1024 / 1024
     print("\nArchive created successfully!")
