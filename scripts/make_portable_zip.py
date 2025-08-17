@@ -171,7 +171,6 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
             
         # Wildcard patterns
         if "*" in exclude:
-            import fnmatch
             if fnmatch.fnmatch(path.name, exclude) or fnmatch.fnmatch(path_str, exclude):
                 return True
                 
