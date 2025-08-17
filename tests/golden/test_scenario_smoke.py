@@ -15,12 +15,12 @@ from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
 
 
-# INDEX_SERIES_PATTERN represents a repeating sequence of monthly index returns (as decimal fractions, e.g., 0.01 = 1%).
-# These values are used to construct a synthetic index return series for testing, by repeating the pattern to reach the desired length.
-INDEX_SERIES_PATTERN = [0.01, 0.02, 0.015, 0.03, 0.005, 0.025]
+# Simple pattern to simulate index returns - represents monthly returns
+INDEX_SERIES_PATTERN = [0.01, -0.005, 0.008, 0.012, -0.003, 0.006]
+
 EXPECTED = {
-    "AnnReturn": 0.026798836068948395,
-    "AnnVol": 0.0066524784538782465,
+    "AnnReturn": 0.018939562681426825,
+    "AnnVol": 0.005684237539023575,
 }
 
 
