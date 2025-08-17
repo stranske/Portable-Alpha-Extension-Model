@@ -112,7 +112,7 @@ class DataImportAgent:
 
         counts = cast(pd.Series, long_df.groupby("id").size())
         bad = cast(pd.Series, counts[counts < self.min_obs])
-        if len(bad) > 0:
+        if not bad.empty:
             max_ids = 10
             id_list = sorted(map(str, bad.index.tolist()))
             shown_ids = id_list[:max_ids]
