@@ -39,6 +39,7 @@ def main() -> None:
                 calib.to_yaml(result, tmp_yaml.name)
                 yaml_str = Path(tmp_yaml.name).read_text()
                 tmp_yaml.close()
+
                 st.download_button(
                     "Download Asset Library YAML",
                     yaml_str,

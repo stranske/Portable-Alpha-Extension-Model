@@ -107,12 +107,11 @@ dev_setup() {
 # Run demo
 run_demo() {
     print_status "Running demo with sample configuration..."
-    if [ -f "parameters.csv" ] && [ -f "sp500tr_fred_divyield.csv" ]; then
-        pa-convert-params parameters.csv params.yml
-        python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv
+    if [ -f "config/params_template.yml" ] && [ -f "sp500tr_fred_divyield.csv" ]; then
+        python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
         print_success "Demo completed! Check Outputs.xlsx for results"
     else
-        print_warning "Sample data files not found. Please ensure parameters.csv and sp500tr_fred_divyield.csv exist"
+        print_warning "Sample data files not found. Please ensure config/params_template.yml and sp500tr_fred_divyield.csv exist"
     fi
 }
 
