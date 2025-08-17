@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 
 from ..backend import xp as np
 
-__all__ = ["build_cov_matrix"]
+__all__ = ["build_cov_matrix", "nearest_psd"]
 
 
 def _is_psd(mat: NDArray[npt.float64], tol: float = 0.0) -> bool:
@@ -16,8 +16,13 @@ def _is_psd(mat: NDArray[npt.float64], tol: float = 0.0) -> bool:
     return eigvals.min() >= -tol
 
 
-def _nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
-    """Project ``mat`` to the nearest PSD matrix using Higham's method."""
+def nearest_psd(mat: NDArray[npt.float64]) -> NDArray[npt.float64]:
+    """Return the nearest positive semidefinite matrix using Higham's method.
+
+    The input is symmetrised and eigenvalues are clipped at zero. If the
+    resulting matrix is still not PSD, jitter is added iteratively until all
+    eigenvalues are non-negative.
+    """
 
     # Symmetrise input
     sym_mat = 0.5 * (mat + mat.T)
@@ -71,7 +76,7 @@ def build_cov_matrix(
     cov = 0.5 * (cov + cov.T)
     if _is_psd(cov):
         return cov
-    adjusted = _nearest_psd(cov)
+    adjusted = nearest_psd(cov)
     max_delta = float(np.max(np.abs(adjusted - cov)))
     warnings.warn(
         f"Covariance matrix was not PSD; projected with max|Δ|={max_delta:.2e}",
