@@ -49,3 +49,4 @@ def test_asset_library_calibration(monkeypatch):
     )
     module["main"]()
     assert "SP500_TR" in captured["data"]
+
