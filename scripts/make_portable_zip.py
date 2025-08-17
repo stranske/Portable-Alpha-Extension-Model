@@ -159,7 +159,8 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
         return True  # Path is outside root, exclude it
     
     # Always exclude empty files (might be test artifacts)
-    if path.is_file() and path.stat().st_size == 0 and path.suffix == '.py':
+    # Exclude empty Python files, except for empty __init__.py files (which are needed for package structure)
+    if path.is_file() and path.stat().st_size == 0 and path.suffix == '.py' and path.name != '__init__.py':
         return True
         
     # Check against exclude patterns
