@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import shutil
 import zipfile
 from pathlib import Path
 from typing import Set
