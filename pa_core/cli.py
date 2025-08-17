@@ -312,13 +312,35 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import os
             import subprocess
             import sys
+            from pathlib import Path
 
             # Use the same Python interpreter with -m streamlit to ensure venv
-            subprocess.run(
-                [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
-                check=False,
-                cwd=os.getcwd(),
-            )
+            try:
+                dashboard_path = Path("dashboard/app.py")
+                if not dashboard_path.exists():
+                    raise FileNotFoundError(f"Dashboard file not found: {dashboard_path}")
+                
+                subprocess.run(
+                    [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
+                    check=True,
+                    cwd=os.getcwd(),
+                )
+            except FileNotFoundError as e:
+                print(f"❌ Dashboard launch failed: {e}")
+                print("💡 Ensure the dashboard files are present in the 'dashboard/' directory.")
+                return
+            except subprocess.CalledProcessError as e:
+                print(f"❌ Dashboard launch failed with exit code {e.returncode}")
+                print("💡 Common solutions:")
+                print("   • Install Streamlit: pip install streamlit")
+                print("   • Check if 'dashboard/app.py' is valid Python code")
+                print("   • Verify your Python environment is properly configured")
+                return
+            except Exception as e:
+                print(f"❌ Unexpected error launching dashboard: {e}")
+                print("💡 Please check your Python environment and try running manually:")
+                print(f"   {sys.executable} -m streamlit run dashboard/app.py")
+                return
 
 
 if __name__ == "__main__":  # pragma: no cover - CLI entry point
