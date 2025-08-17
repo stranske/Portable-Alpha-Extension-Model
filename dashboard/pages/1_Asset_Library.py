@@ -23,7 +23,6 @@ def main() -> None:
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         tmp.write(uploaded.getvalue())
         tmp_path = tmp.name
-    
     try:
         importer = DataImportAgent()
         df = importer.load(tmp_path)
@@ -39,7 +38,6 @@ def main() -> None:
             try:
                 calib.to_yaml(result, tmp_yaml.name)
                 yaml_str = Path(tmp_yaml.name).read_text()
-                tmp_yaml.close()
                 st.download_button(
                     "Download Asset Library YAML",
                     yaml_str,
@@ -47,13 +45,11 @@ def main() -> None:
                     mime="application/x-yaml",
                 )
             finally:
-                # Clean up the temporary YAML file
-                if os.path.exists(tmp_yaml.name):
-                    os.unlink(tmp_yaml.name)
+                # Clean up the YAML temp file
+                Path(tmp_yaml.name).unlink(missing_ok=True)
     finally:
-        # Clean up the temporary uploaded file
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
+        # Clean up the uploaded data temp file
+        Path(tmp_path).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
