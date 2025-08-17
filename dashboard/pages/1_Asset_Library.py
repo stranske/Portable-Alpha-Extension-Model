@@ -38,6 +38,8 @@ def main() -> None:
             try:
                 calib.to_yaml(result, tmp_yaml.name)
                 yaml_str = Path(tmp_yaml.name).read_text()
+                tmp_yaml.close()
+
                 st.download_button(
                     "Download Asset Library YAML",
                     yaml_str,
@@ -45,11 +47,29 @@ def main() -> None:
                     mime="application/x-yaml",
                 )
             finally:
-                # Clean up the YAML temp file
-                Path(tmp_yaml.name).unlink(missing_ok=True)
+                # Clean up the temporary YAML file
+                if os.path.exists(tmp_yaml.name):
+                    os.unlink(tmp_yaml.name)
     finally:
-        # Clean up the uploaded data temp file
-        Path(tmp_path).unlink(missing_ok=True)
+        # Clean up the temporary uploaded file
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
+
+    ids = sorted(df["id"].unique())
+    index_id = st.selectbox("Index column", ids)
+    if st.button("Calibrate"):
+        calib = CalibrationAgent(min_obs=importer.min_obs)
+        result = calib.calibrate(df, index_id)
+        tmp_yaml = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
+        calib.to_yaml(result, tmp_yaml.name)
+        yaml_str = Path(tmp_yaml.name).read_text()
+        tmp_yaml.close()
+        st.download_button(
+            "Download Asset Library YAML",
+            yaml_str,
+            file_name="asset_library.yaml",
+            mime="application/x-yaml",
+        )
 
 
 if __name__ == "__main__":
