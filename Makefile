@@ -70,8 +70,7 @@ clean:
 	rm -rf htmlcov/
 
 demo:
- pa-convert-params parameters.csv params.yml
- python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv
+	python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
 
 dashboard:
 	python -m streamlit run dashboard/app.py
