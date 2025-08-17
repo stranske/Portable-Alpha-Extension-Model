@@ -137,7 +137,7 @@ parameter sweep. Replace the index file with your own returns series and set
 | Capital allocation sweep    | `config/capital_mode_template.yml`     | `python -m pa_core.cli --config config/capital_mode_template.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
 | Returns sensitivity sweep   | `config/returns_mode_template.yml`     | `python -m pa_core.cli --config config/returns_mode_template.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
 | Alpha shares optimisation   | `config/alpha_shares_mode_template.yml`| `python -m pa_core.cli --config config/alpha_shares_mode_template.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
-| Volatility stress test      | `config/vol_mult_mode_template.csv`    | `pa-convert-params config/vol_mult_mode_template.csv vol_mult_mode.yml && python -m pa_core.cli --config vol_mult_mode.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
+| Volatility stress test      | `config/vol_mult_mode_template.yml`    | `python -m pa_core.cli --config config/vol_mult_mode_template.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
 
 All four sweep modes now run correctly when the appropriate template and `--mode`
 are supplied.
