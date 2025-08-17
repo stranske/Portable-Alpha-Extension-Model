@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from dashboard.app import load_history
+from pa_core.dashboard.app import load_history
 
 
 def test_load_history(tmp_path):
