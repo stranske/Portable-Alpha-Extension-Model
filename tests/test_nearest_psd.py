@@ -6,13 +6,16 @@ import types
 import sys
 from pathlib import Path
 
-import numpy as np
-
 PKG = types.ModuleType("pa_core")
 PKG.__path__ = [str(Path("pa_core"))]
 sys.modules.setdefault("pa_core", PKG)
 import numpy as np
 from pa_core.sim.covariance import nearest_psd
+
+# Tolerance for numerical precision errors when checking if eigenvalues are non-negative
+# in PSD matrix validation. Eigenvalues slightly below zero (e.g., > -1e-8) are considered
+# acceptable due to floating-point inaccuracies.
+EIGENVALUE_TOLERANCE = -1e-8
 
 
 def test_nearest_psd_makes_matrix_psd() -> None:
