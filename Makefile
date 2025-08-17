@@ -77,7 +77,14 @@ dashboard:
 
 # Documentation
 docs:
-	sphinx-build -b html docs/ docs/_build/html
+        sphinx-build -b html docs/ docs/_build/html
+
+# Packaging
+launchers:
+	pa-create-launchers pa pa-dashboard
+
+portable-zip:
+	pa-make-zip --output portable_windows.zip
 
 # Security check
 security:
