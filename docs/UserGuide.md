@@ -35,7 +35,7 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
    pa validate templates/scenario_example.yaml
    ```
 
-2. **Run the simulation** – execute the model with a CSV parameter sweep or YAML config.
+2. **Run the simulation** – execute the model with a YAML config (if you are migrating from older CSV-based configurations, convert your CSV files with `pa-convert-params`).
 3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
 4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
@@ -133,12 +133,11 @@ parameter sweep. Replace the index file with your own returns series and set
 
 | Scenario type               | Template file                          | Example command |
 |-----------------------------|---------------------------------------|-----------------|
-| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
-| Single scenario (CSV)       | `config/parameters_template.csv`       | `pa-convert-params config/parameters_template.csv params.yml && python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
-| Capital allocation sweep    | `config/capital_mode_template.csv`     | `pa-convert-params config/capital_mode_template.csv capital_mode.yml && python -m pa_core.cli --config capital_mode.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
-| Returns sensitivity sweep   | `config/returns_mode_template.csv`     | `pa-convert-params config/returns_mode_template.csv returns_mode.yml && python -m pa_core.cli --config returns_mode.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
-| Alpha shares optimisation   | `config/alpha_shares_mode_template.csv`| `pa-convert-params config/alpha_shares_mode_template.csv alpha_mode.yml && python -m pa_core.cli --config alpha_mode.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
-| Volatility stress test      | `config/vol_mult_mode_template.csv`    | `pa-convert-params config/vol_mult_mode_template.csv vol_mult_mode.yml && python -m pa_core.cli --config vol_mult_mode.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
+| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
+| Capital allocation sweep    | `config/capital_mode_template.yml`     | `python -m pa_core.cli --config config/capital_mode_template.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
+| Returns sensitivity sweep   | `config/returns_mode_template.yml`     | `python -m pa_core.cli --config config/returns_mode_template.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
+| Alpha shares optimisation   | `config/alpha_shares_mode_template.yml`| `python -m pa_core.cli --config config/alpha_shares_mode_template.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
+| Volatility stress test      | `config/vol_mult_mode_template.yml`    | `python -m pa_core.cli --config config/vol_mult_mode_template.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
 
 All four sweep modes now run correctly when the appropriate template and `--mode`
 are supplied.
