@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import shutil
 import zipfile
 from pathlib import Path
 from typing import Set
@@ -120,6 +121,7 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
         if pattern.endswith("*") and path.name.startswith(pattern[:-1]):
             return True
     return False
+
 
 
 def create_filtered_zip(
