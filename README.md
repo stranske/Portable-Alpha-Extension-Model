@@ -91,21 +91,21 @@ main entry point is ``pa_core.cli`` which exposes analysis modes, export
 options and an optional dashboard:
 
 ```bash
-# CSV parameters
-pa-convert-params parameters.csv params.yml
-python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv \
-  --mode returns
-
-# or YAML configuration
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
   --mode returns
 
 # optional pivot-style output
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv --pivot
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --pivot
 
 # launch dashboard and export images
-python -m pa_core.cli --config params.yaml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
+```
+
+Legacy CSV parameter files can be converted for this release with:
+
+```bash
+pa-convert-params old_parameters.csv params.yml
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.
