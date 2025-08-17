@@ -91,27 +91,27 @@ main entry point is ``pa_core.cli`` which exposes analysis modes, export
 options and an optional dashboard:
 
 ```bash
-python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
   --mode returns
 
 # optional pivot-style output
-python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv --pivot
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --pivot
 
 # launch dashboard and export images
-python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
 ```
 
 Legacy CSV parameter files can be converted for this release with:
 
 ```bash
-pa-convert-params old_parameters.csv params.yml
+pa-convert-params old_parameters.csv config/params_template.yml
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.
 
 Sample configuration templates live in the `config/` directory.
-Both `parameters_template.csv` and `params_template.yml` list all
+The `params_template.yml` file lists all
 supported fields and include the mandatory `ShortfallProb` metric.
 They also specify an `analysis_mode` value of `returns`, `capital`,
 `alpha_shares` or `vol_mult`. The CLI refuses to run if this field is
