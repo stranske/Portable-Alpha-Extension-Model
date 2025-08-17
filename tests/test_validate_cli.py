@@ -1,18 +1,11 @@
 from __future__ import annotations
 
-import sys
-import types
 from pathlib import Path
 
 import pytest
 import yaml
 
-# Stub package to avoid importing heavy dependencies in pa_core.__init__
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
-
-from pa_core import validate  # noqa: E402
+from pa_core import validate
 
 
 def test_validate_cli_ok(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
