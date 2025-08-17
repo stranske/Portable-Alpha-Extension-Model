@@ -1,7 +1,9 @@
 """Create a portable Windows zip archive of the project.
 
-This utility creates a clean, runtime-only distribution by filtering out
-development artifacts and only including necessary files for deployment.
+
+This utility is a starting point for generating a self-contained zip
+that can be distributed on Windows systems without an installer.
+
 """
 
 from __future__ import annotations
