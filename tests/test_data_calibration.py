@@ -111,7 +111,7 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
 
 def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
-    returns = pd.Series(0.01, index=dates)
+    returns = pd.Series(DAILY_RETURN, index=dates)
     df = pd.DataFrame({"Date": dates, "A": returns.values})
 
     path = tmp_path / "returns.csv"
