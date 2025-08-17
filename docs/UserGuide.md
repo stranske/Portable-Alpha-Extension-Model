@@ -132,7 +132,7 @@ parameter sweep. Replace the index file with your own returns series and set
 
 | Scenario type               | Template file                          | Example command |
 |-----------------------------|---------------------------------------|-----------------|
-| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
+| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
 | Capital allocation sweep    | `config/capital_mode_template.csv`     | `pa-convert-params config/capital_mode_template.csv capital_mode.yml && python -m pa_core.cli --config capital_mode.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
 | Returns sensitivity sweep   | `config/returns_mode_template.csv`     | `pa-convert-params config/returns_mode_template.csv returns_mode.yml && python -m pa_core.cli --config returns_mode.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
 | Alpha shares optimisation   | `config/alpha_shares_mode_template.csv`| `pa-convert-params config/alpha_shares_mode_template.csv alpha_mode.yml && python -m pa_core.cli --config alpha_mode.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
