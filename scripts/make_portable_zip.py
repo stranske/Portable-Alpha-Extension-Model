@@ -9,6 +9,7 @@ that can be distributed on Windows systems without an installer.
 from __future__ import annotations
 
 import argparse
+import fnmatch
 import shutil
 import zipfile
 from pathlib import Path
@@ -188,8 +189,8 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
     return False
 
 
-def create_filtered_zip(root_dir: Path, output_path: Path, excludes: Set[str]) -> None:
-    """Create a zip file with filtered content."""
+def create_filtered_zip(root_dir: Path, output_path: Path, excludes: Set[str], *, verbose: bool = False) -> None:
+    """Create a zip archive excluding paths that match excludes."""
     print(f"Creating portable archive: {output_path}")
     print(f"Source directory: {root_dir}")
     
@@ -201,11 +202,14 @@ def create_filtered_zip(root_dir: Path, output_path: Path, excludes: Set[str]) -
             if path.is_file():
                 if should_exclude_path(path, root_dir, excludes):
                     files_excluded += 1
-                    print(f"  EXCLUDED: {path.relative_to(root_dir)}")
-                else:
-                    arcname = path.relative_to(root_dir)
-                    zipf.write(path, arcname)
-                    files_added += 1
+                    if verbose:
+                        print(f"Excluded: {path.relative_to(root_dir)}")
+                    continue
+                arcname = path.relative_to(root_dir)
+                zipf.write(path, arcname)
+                files_added += 1
+                if verbose:
+                    print(f"Included: {arcname}")
                     
     print(f"\nArchive created successfully!")
     print(f"Files included: {files_added}")
@@ -257,67 +261,6 @@ Examples:
         
     if args.verbose:
         print(f"Total exclude patterns: {len(excludes)}")
-    
-    if not args.verbose:
-        # Use a quieter version for non-verbose output
-        def quiet_create_filtered_zip(root_dir: Path, output_path: Path, excludes: Set[str]) -> None:
-            """Create zip with minimal output."""
-            files_added = 0
-            files_excluded = 0
-            
-            print(f"Creating portable archive: {output_path}")
-            print(f"Source directory: {root_dir}")
-            print("Filtering files...")
-            
-            with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-                for path in root_dir.rglob('*'):
-                    if path.is_file():
-                        if should_exclude_path(path, root_dir, excludes):
-                            files_excluded += 1
-                        else:
-                            arcname = path.relative_to(root_dir)
-                            zipf.write(path, arcname)
-                            files_added += 1
-                            
-            print(f"\nArchive created successfully!")
-            print(f"Files included: {files_added}")
-            print(f"Files excluded: {files_excluded}")
-            print(f"Archive size: {output_path.stat().st_size / 1024 / 1024:.2f} MB")
-        
-        create_filtered_zip_func = quiet_create_filtered_zip
-    else:
-        create_filtered_zip_func = create_filtered_zip
-    
-    # Create the filtered archive
-    try:
-    # Use a single function with a verbose parameter
-    def create_filtered_zip(root_dir: Path, output_path: Path, excludes: Set[str], verbose: bool = False) -> None:
-        """Create zip archive, optionally with verbose output."""
-        files_added = 0
-        files_excluded = 0
-        
-        print(f"Creating portable archive: {output_path}")
-        print(f"Source directory: {root_dir}")
-        print("Filtering files...")
-        
-        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for path in root_dir.rglob('*'):
-                if path.is_file():
-                    if should_exclude_path(path, root_dir, excludes):
-                        files_excluded += 1
-                        if verbose:
-                            print(f"Excluded: {path.relative_to(root_dir)}")
-                    else:
-                        arcname = path.relative_to(root_dir)
-                        zipf.write(path, arcname)
-                        files_added += 1
-                        if verbose:
-                            print(f"Included: {arcname}")
-                        
-        print(f"\nArchive created successfully!")
-        print(f"Files included: {files_added}")
-        print(f"Files excluded: {files_excluded}")
-        print(f"Archive size: {output_path.stat().st_size / 1024 / 1024:.2f} MB")
     
     # Create the filtered archive
     try:
