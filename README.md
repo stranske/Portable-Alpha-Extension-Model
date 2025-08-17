@@ -105,7 +105,7 @@ python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_d
 Legacy CSV parameter files can be converted for this release with:
 
 ```bash
-pa-convert-params old_parameters.csv config/params_template.yml
+pa-convert-params old_parameters.csv params.yml
 ```
 
 This writes results to `Outputs.xlsx` in the current directory.
