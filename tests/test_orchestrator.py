@@ -83,5 +83,8 @@ def test_orchestrator_reproducible_seed() -> None:
     ret1, sum1 = orch.run(seed=42)
     ret2, sum2 = orch.run(seed=42)
     for key in ret1:
-        np.testing.assert_allclose(ret1[key], ret2[key])
+        if isinstance(ret1[key], pd.DataFrame):
+            pd.testing.assert_frame_equal(ret1[key], ret2[key])
+        else:
+            np.testing.assert_allclose(ret1[key], ret2[key])
     pd.testing.assert_frame_equal(sum1, sum2)
