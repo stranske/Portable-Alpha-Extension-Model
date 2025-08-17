@@ -15,7 +15,7 @@ from pathlib import Path
 
 def _make_windows_launcher(name: str, target: Path) -> None:
     """Create a ``.bat`` launcher calling *name* in *target* directory."""
-    content = f"@echo off\n{name} %*\n"
+    content = f'@echo off\n"{name}" %*\nif %errorlevel% neq 0 exit /b %errorlevel%\n'
     (target / f"{name}.bat").write_text(content, newline="\r\n")
 
 
