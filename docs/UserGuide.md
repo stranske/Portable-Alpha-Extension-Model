@@ -24,18 +24,18 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
 
 1. **Create and validate a scenario** – draft a YAML configuration and verify the schema with `pa validate`. A minimal example is provided in `templates/scenario_example.yaml`:
 
-   > **Scenario structure:**  
-   > A scenario YAML file must include at least the following elements:  
-   > - `analysis_mode`: One of `returns`, `capital`, `alpha_shares`, or `vol_mult` (selects the analysis type).  
-   > - `ShortfallProb`: The mandatory risk metric (removing it will cause validation to fail).  
-   > - Other parameters as required for your use case (see the example template for details).  
-   >  
+   > **Scenario structure:**
+   > A scenario YAML file must include at least the following elements:
+   > - `analysis_mode`: One of `returns`, `capital`, `alpha_shares`, or `vol_mult` (selects the analysis type).
+   > - `ShortfallProb`: The mandatory risk metric (removing it will cause validation to fail).
+   > - Other parameters as required for your use case (see the example template for details).
+   >
    > For a full list of fields and their descriptions, see the comments in `templates/scenario_example.yaml` or refer to the [Scenario Configuration Guide](docs/ScenarioConfig.md) if available.
    ```bash
    pa validate templates/scenario_example.yaml
    ```
 
-2. **Run the simulation** – execute the model with a YAML config (if you are migrating from older CSV-based configurations, convert your CSV files with `pa-convert-params`).
+2. **Run the simulation** – execute the model with a YAML config (convert legacy CSV files with `pa-convert-params`).
 3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
 4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
@@ -119,8 +119,8 @@ shortfall probability and tracking error in a repeatable workflow.
 13. Install Chrome or Chromium if you plan to use `--png`, `--pdf` or `--pptx`; these exports rely on the browser together with the **kaleido** Python package (`pip install kaleido`).
 
 ```bash
-pa-convert-params parameters.csv params.yml
-python -m pa_core.cli --config params.yml --index sp500tr_fred_divyield.csv
+pa-convert-params parameters.csv config/params_template.yml
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
 `AllReturns` sheet. The existing sheet order is retained for compatibility. Convert the extra sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
