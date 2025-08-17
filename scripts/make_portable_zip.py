@@ -288,7 +288,38 @@ Examples:
     
     # Create the filtered archive
     try:
-        create_filtered_zip_func(root, output_path, excludes)
+    # Use a single function with a verbose parameter
+    def create_filtered_zip(root_dir: Path, output_path: Path, excludes: Set[str], verbose: bool = False) -> None:
+        """Create zip archive, optionally with verbose output."""
+        files_added = 0
+        files_excluded = 0
+        
+        print(f"Creating portable archive: {output_path}")
+        print(f"Source directory: {root_dir}")
+        print("Filtering files...")
+        
+        with zipfile.ZipFile(output_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for path in root_dir.rglob('*'):
+                if path.is_file():
+                    if should_exclude_path(path, root_dir, excludes):
+                        files_excluded += 1
+                        if verbose:
+                            print(f"Excluded: {path.relative_to(root_dir)}")
+                    else:
+                        arcname = path.relative_to(root_dir)
+                        zipf.write(path, arcname)
+                        files_added += 1
+                        if verbose:
+                            print(f"Included: {arcname}")
+                        
+        print(f"\nArchive created successfully!")
+        print(f"Files included: {files_added}")
+        print(f"Files excluded: {files_excluded}")
+        print(f"Archive size: {output_path.stat().st_size / 1024 / 1024:.2f} MB")
+    
+    # Create the filtered archive
+    try:
+        create_filtered_zip(root, output_path, excludes, verbose=args.verbose)
     except Exception as e:
         print(f"Error creating archive: {e}")
         return 1
