@@ -1,11 +1,17 @@
 from __future__ import annotations
 
 from pathlib import Path
+import types
+import sys
 
 import pytest
 import yaml
 
-from pa_core import validate
+PKG = types.ModuleType("pa_core")
+PKG.__path__ = [str(Path("pa_core"))]
+sys.modules.setdefault("pa_core", PKG)
+
+import pa_core.validate as validate
 
 
 def test_validate_cli_ok(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -37,3 +43,28 @@ def test_validate_cli_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     assert exc.value.code == 1
     captured = capsys.readouterr()
     assert "missing correlations" in captured.out
+
+
+def test_validate_cli_config_ok(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "mu_H": 0.04, "sigma_H": 0.01}
+    path = tmp_path / "conf.yml"
+    path.write_text(yaml.safe_dump(data))
+    validate.main(["--schema", "config", str(path)])
+    captured = capsys.readouterr()
+    assert captured.out.strip() == "OK"
+    assert captured.err == ""
+
+
+def test_validate_cli_config_error(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    data = {"N_SIMULATIONS": 1}
+    path = tmp_path / "conf.yml"
+    path.write_text(yaml.safe_dump(data))
+    with pytest.raises(SystemExit) as exc:
+        validate.main(["--schema", "config", str(path)])
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    assert "N_MONTHS" in captured.out

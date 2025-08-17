@@ -7,6 +7,23 @@ def _write_yaml(path: Path, content: str) -> None:
     path.write_text(content)
 
 
+def _run_validate(args: list[str]) -> subprocess.CompletedProcess[str]:
+    pkg_root = Path(__file__).resolve().parents[1] / "pa_core"
+    script = (
+        "import runpy,sys,types;"
+        "pkg=types.ModuleType('pa_core');"
+        "pkg.__path__=[sys.argv[1]];"
+        "sys.modules['pa_core']=pkg;"
+        "sys.argv=['pa_core.validate']+sys.argv[2:];"
+        "runpy.run_module('pa_core.validate', run_name='__main__')"
+    )
+    return subprocess.run(
+        [sys.executable, "-c", script, str(pkg_root), *args],
+        capture_output=True,
+        text=True,
+    )
+
+
 def test_validate_cli_ok(tmp_path: Path) -> None:
     yaml_path = tmp_path / "scen.yaml"
     _write_yaml(
@@ -28,11 +45,7 @@ portfolios:
     weights: {A: 1.0}
 """,
     )
-    result = subprocess.run(
-        [sys.executable, "-m", "pa_core.validate", str(yaml_path)],
-        capture_output=True,
-        text=True,
-    )
+    result = _run_validate([str(yaml_path)])
     assert result.returncode == 0
     assert result.stdout.strip() == "OK"
 
@@ -53,10 +66,22 @@ portfolios:
     weights: {A: 1.0}
 """,
     )
-    result = subprocess.run(
-        [sys.executable, "-m", "pa_core.validate", str(yaml_path)],
-        capture_output=True,
-        text=True,
-    )
+    result = _run_validate([str(yaml_path)])
     assert result.returncode != 0
     assert "unknown assets" in result.stdout
+
+
+def test_validate_cli_config(tmp_path: Path) -> None:
+    yaml_path = tmp_path / "conf.yml"
+    _write_yaml(
+        yaml_path,
+        """
+N_SIMULATIONS: 1
+N_MONTHS: 1
+mu_H: 0.04
+sigma_H: 0.01
+""",
+    )
+    result = _run_validate(["--schema", "config", str(yaml_path)])
+    assert result.returncode == 0
+    assert result.stdout.strip() == "OK"

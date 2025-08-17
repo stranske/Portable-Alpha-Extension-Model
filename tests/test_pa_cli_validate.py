@@ -39,3 +39,18 @@ def test_pa_validate_fail(tmp_path: Path) -> None:
     path.write_text(yaml.safe_dump(data))
     with pytest.raises(SystemExit):
         main(["validate", str(path)])
+
+
+def test_pa_validate_config(tmp_path: Path) -> None:
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "mu_H": 0.04, "sigma_H": 0.01}
+    path = tmp_path / "conf.yml"
+    path.write_text(yaml.safe_dump(data))
+    main(["validate", "--schema", "config", str(path)])
+
+
+def test_pa_validate_config_fail(tmp_path: Path) -> None:
+    data = {"N_SIMULATIONS": 1}
+    path = tmp_path / "conf.yml"
+    path.write_text(yaml.safe_dump(data))
+    with pytest.raises(SystemExit):
+        main(["validate", "--schema", "config", str(path)])
