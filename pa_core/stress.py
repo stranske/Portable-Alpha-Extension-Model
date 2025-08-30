@@ -6,14 +6,14 @@ liquidity squeezes or volatility regime shifts.  Presets return a new
 """
 from __future__ import annotations
 
-from typing import Callable, Dict, Mapping
+from typing import Callable, Mapping
 
 from .config import ModelConfig
 
 Preset = Mapping[str, float | Callable[[ModelConfig], float]]
 
 
-STRESS_PRESETS: Dict[str, Preset] = {
+STRESS_PRESETS: dict[str, Preset] = {
     "liquidity_squeeze": {
         "internal_financing_sigma_month": 0.05,
         "ext_pa_financing_sigma_month": 0.05,
