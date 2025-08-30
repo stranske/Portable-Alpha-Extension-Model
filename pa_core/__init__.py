@@ -22,8 +22,11 @@ from .backend import get_backend, set_backend
 from .config import ConfigError, ModelConfig, load_config
 from .data import load_index_returns
 from .random import spawn_agent_rngs, spawn_rngs
-from .reporting import export_to_excel, print_summary
-from .reporting.sweep_excel import export_sweep_results
+try:  # pragma: no cover - optional heavy deps
+    from .reporting import export_to_excel, print_summary
+    from .reporting.sweep_excel import export_sweep_results
+except Exception:  # pragma: no cover
+    export_to_excel = print_summary = export_sweep_results = None
 from .run_flags import RunFlags
 from .orchestrator import SimulatorOrchestrator
 from .sim import (
