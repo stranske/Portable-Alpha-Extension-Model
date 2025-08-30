@@ -34,6 +34,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
                     continue
                 
                 # Try to convert to number
+                num_val = None  # Initialize to avoid undefined variable
                 try:
                     if '.' in str(value):
                         num_val = float(value)
