@@ -19,6 +19,9 @@ from typing import Optional, Sequence, TYPE_CHECKING
 from pathlib import Path
 
 import pandas as pd
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
 if TYPE_CHECKING:
     import numpy as np
@@ -41,9 +44,6 @@ from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
-
-
-
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
     *,
@@ -56,10 +56,6 @@ def create_enhanced_summary(
 
 def print_enhanced_summary(summary: pd.DataFrame) -> None:
     """Print enhanced summary with explanations."""
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-
     console = Console()
 
     # Print explanatory header

@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
+import yaml
 from pathlib import Path
 from typing import Sequence
 
 def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
     """Convert legacy parameters CSV to YAML configuration."""
-    # Simple conversion logic to avoid complex imports
-    import csv
-    import yaml
     
     # Label mapping for CSV conversion
     label_map = {
