@@ -1,11 +1,11 @@
-"""Guided interface for running a full simulation with validation."""
+"""5-Step Wizard for guided scenario creation with validation."""
 
 from __future__ import annotations
 
 import tempfile
 import yaml
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import streamlit as st
 
@@ -18,109 +18,662 @@ from dashboard.validation_ui import (
     validation_status_indicator
 )
 from pa_core import cli as pa_cli
+from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
 
 
-def _write_temp(uploaded: st.runtime.uploaded_file_manager.UploadedFile, suffix: str) -> str:
-    """Write *uploaded* content to a temporary file with *suffix* and return path."""
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(uploaded.getvalue())
+def _write_temp_yaml(data: Dict[str, Any]) -> str:
+    """Write configuration data to a temporary YAML file and return path."""
+    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yml') as tmp:
+        yaml.safe_dump(data, tmp, default_flow_style=False)
         return tmp.name
 
 
-def main() -> None:
-    st.title("Scenario Wizard")
+def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
+    """Render step progress indicator."""
+    st.markdown("### 📋 Scenario Configuration Wizard")
     
-    # Theme and validation settings
+    progress = current_step / total_steps
+    st.progress(progress)
+    
+    # Step indicators
+    steps = ["Analysis Mode", "Capital Allocation", "Return & Risk", "Correlations", "Review & Run"]
+    cols = st.columns(5)
+    
+    for i, (col, step_name) in enumerate(zip(cols, steps)):
+        with col:
+            if i + 1 < current_step:
+                st.success(f"✅ {i+1}. {step_name}")
+            elif i + 1 == current_step:
+                st.info(f"📍 {i+1}. {step_name}")
+            else:
+                st.write(f"⭕ {i+1}. {step_name}")
+
+
+def _render_step_1_analysis_mode(config: WizardScenarioConfig) -> WizardScenarioConfig:
+    """Step 1: Analysis Mode Selection."""
+    st.subheader("Step 1: Analysis Mode & Basic Settings")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Choose Your Analysis Focus:**")
+        
+        mode_options = {
+            AnalysisMode.RETURNS: "📈 Returns Analysis - Compare different return assumptions",
+            AnalysisMode.CAPITAL: "💰 Capital Allocation - Optimize capital distribution", 
+            AnalysisMode.ALPHA_SHARES: "🎯 Alpha Shares - Analyze alpha source allocation",
+            AnalysisMode.VOL_MULT: "📊 Volatility Stress - Test volatility scenarios"
+        }
+        
+        selected_mode = st.selectbox(
+            "Analysis Mode",
+            options=list(mode_options.keys()),
+            format_func=lambda x: mode_options[x],
+            index=list(mode_options.keys()).index(config.analysis_mode),
+            help="Choose the primary focus of your analysis"
+        )
+        
+        # Update config if mode changed
+        if selected_mode != config.analysis_mode:
+            config = get_default_config(selected_mode)
+    
+    with col2:
+        st.markdown("**Simulation Settings:**")
+        
+        config.n_simulations = st.number_input(
+            "Number of Simulations",
+            min_value=100,
+            max_value=10000,
+            value=config.n_simulations,
+            step=100,
+            help="More simulations provide more accurate results but take longer"
+        )
+        
+        config.n_months = st.number_input(
+            "Simulation Horizon (months)",
+            min_value=1,
+            max_value=60,
+            value=config.n_months,
+            help="Length of each simulation run in months"
+        )
+    
+    # Mode-specific guidance
+    mode_descriptions = {
+        AnalysisMode.RETURNS: "This mode focuses on testing different return assumptions while keeping capital allocation fixed. Ideal for sensitivity analysis on alpha expectations.",
+        AnalysisMode.CAPITAL: "This mode optimizes capital allocation across sleeves. Use when determining the optimal mix of internal PA, external PA, and active extension.",
+        AnalysisMode.ALPHA_SHARES: "This mode analyzes the allocation of alpha sources across different strategies. Perfect for optimizing alpha capture efficiency.",
+        AnalysisMode.VOL_MULT: "This mode stress-tests your portfolio under different volatility scenarios. Essential for risk management and extreme event preparation."
+    }
+    
+    st.info(f"**{selected_mode.value.title()} Mode:** {mode_descriptions[selected_mode]}")
+    
+    return config
+
+
+def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig:
+    """Step 2: Capital Allocation Settings."""
+    st.subheader("Step 2: Capital Allocation")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Fund Capital ($ millions):**")
+        
+        config.total_fund_capital = st.number_input(
+            "Total Fund Capital",
+            min_value=1.0,
+            value=config.total_fund_capital,
+            step=10.0,
+            format="%.1f",
+            help="Total capital available for allocation"
+        )
+        
+        config.external_pa_capital = st.number_input(
+            "External PA Capital",
+            min_value=0.0,
+            max_value=config.total_fund_capital,
+            value=config.external_pa_capital,
+            step=5.0,
+            format="%.1f",
+            help="Capital allocated to external portable alpha managers"
+        )
+        
+        config.active_ext_capital = st.number_input(
+            "Active Extension Capital", 
+            min_value=0.0,
+            max_value=config.total_fund_capital,
+            value=config.active_ext_capital,
+            step=5.0,
+            format="%.1f",
+            help="Capital for active equity overlay strategies"
+        )
+        
+        # Calculate remaining capital
+        remaining = config.total_fund_capital - config.external_pa_capital - config.active_ext_capital
+        config.internal_pa_capital = st.number_input(
+            "Internal PA Capital",
+            min_value=0.0,
+            value=max(0.0, remaining),
+            step=5.0,
+            format="%.1f",
+            help="Capital managed internally for portable alpha"
+        )
+    
+    with col2:
+        st.markdown("**Portfolio Weights & Shares:**")
+        
+        config.w_beta_h = st.slider(
+            "Internal Beta Weight",
+            min_value=0.0,
+            max_value=1.0,
+            value=config.w_beta_h,
+            step=0.05,
+            help="Beta component weight in internal sleeve"
+        )
+        
+        config.w_alpha_h = 1.0 - config.w_beta_h
+        st.write(f"Internal Alpha Weight: {config.w_alpha_h:.2f} (auto-calculated)")
+        
+        config.theta_extpa = st.slider(
+            "External PA Alpha Fraction",
+            min_value=0.0,
+            max_value=1.0,
+            value=config.theta_extpa,
+            step=0.05,
+            help="Fraction of alpha from external PA manager"
+        )
+        
+        config.active_share = st.slider(
+            "Active Extension Share",
+            min_value=0.0,
+            max_value=1.0,
+            value=config.active_share,
+            step=0.05,
+            help="Active share for equity overlay strategy"
+        )
+    
+    # Validation and visualization
+    total_allocated = config.external_pa_capital + config.active_ext_capital + config.internal_pa_capital
+    
+    if abs(total_allocated - config.total_fund_capital) > 0.01:
+        st.error(f"❌ Capital allocation mismatch! Allocated: ${total_allocated:.1f}M, Total: ${config.total_fund_capital:.1f}M")
+    else:
+        st.success(f"✅ Capital allocation balanced: ${total_allocated:.1f}M")
+        
+        # Allocation pie chart
+        if total_allocated > 0:
+            allocation_data = {
+                "External PA": config.external_pa_capital,
+                "Active Extension": config.active_ext_capital, 
+                "Internal PA": config.internal_pa_capital
+            }
+            # Filter out zero allocations
+            allocation_data = {k: v for k, v in allocation_data.items() if v > 0}
+            
+            if allocation_data:
+                st.plotly_chart(
+                    {
+                        "data": [{
+                            "type": "pie",
+                            "labels": list(allocation_data.keys()),
+                            "values": list(allocation_data.values()),
+                            "textinfo": "label+percent"
+                        }],
+                        "layout": {
+                            "title": "Capital Allocation",
+                            "showlegend": True
+                        }
+                    },
+                    use_container_width=True
+                )
+    
+    return config
+
+
+def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioConfig:
+    """Step 3: Return & Risk Parameters."""
+    st.subheader("Step 3: Return & Risk Parameters")
+    
+    st.markdown("*All parameters are annualized*")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Expected Returns (Annual %):**")
+        
+        config.mu_h = st.number_input(
+            "In-House Alpha Return",
+            value=config.mu_h * 100,
+            step=0.5,
+            format="%.2f",
+            help="Expected annual return from in-house alpha generation"
+        ) / 100
+        
+        config.mu_e = st.number_input(
+            "Extension Alpha Return",
+            value=config.mu_e * 100,
+            step=0.5,
+            format="%.2f", 
+            help="Expected annual return from active extension strategies"
+        ) / 100
+        
+        config.mu_m = st.number_input(
+            "External PA Alpha Return",
+            value=config.mu_m * 100,
+            step=0.5,
+            format="%.2f",
+            help="Expected annual return from external PA managers"
+        ) / 100
+    
+    with col2:
+        st.markdown("**Volatility (Annual %):**")
+        
+        config.sigma_h = st.number_input(
+            "In-House Alpha Volatility",
+            min_value=0.01,
+            value=config.sigma_h * 100,
+            step=0.1,
+            format="%.2f",
+            help="Annual volatility of in-house alpha"
+        ) / 100
+        
+        config.sigma_e = st.number_input(
+            "Extension Alpha Volatility",
+            min_value=0.01,
+            value=config.sigma_e * 100,
+            step=0.1,
+            format="%.2f",
+            help="Annual volatility of active extension alpha"
+        ) / 100
+        
+        config.sigma_m = st.number_input(
+            "External PA Alpha Volatility",
+            min_value=0.01,
+            value=config.sigma_m * 100,
+            step=0.1,
+            format="%.2f",
+            help="Annual volatility of external PA alpha"
+        ) / 100
+    
+    # Risk metrics selection
+    st.markdown("**Risk Metrics to Calculate:**")
+    
+    metric_options = {
+        RiskMetric.RETURN: "Return - Expected portfolio return",
+        RiskMetric.RISK: "Risk - Portfolio volatility", 
+        RiskMetric.SHORTFALL_PROB: "Shortfall Probability - Risk of underperformance"
+    }
+    
+    selected_metrics = st.multiselect(
+        "Select Risk Metrics",
+        options=list(metric_options.keys()),
+        default=config.risk_metrics,
+        format_func=lambda x: metric_options[x],
+        help="Choose which risk metrics to calculate and display"
+    )
+    
+    config.risk_metrics = selected_metrics
+    
+    return config
+
+
+def _render_step_4_correlations(config: WizardScenarioConfig) -> WizardScenarioConfig:
+    """Step 4: Correlation Parameters."""
+    st.subheader("Step 4: Correlation Parameters")
+    
+    st.markdown("*Set correlations between different alpha sources and the market index*")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Index Correlations:**")
+        
+        config.rho_idx_h = st.slider(
+            "Index ↔ In-House Alpha",
+            min_value=-0.99,
+            max_value=0.99,
+            value=config.rho_idx_h,
+            step=0.05,
+            help="Correlation between market index and in-house alpha"
+        )
+        
+        config.rho_idx_e = st.slider(
+            "Index ↔ Extension Alpha",
+            min_value=-0.99,
+            max_value=0.99,
+            value=config.rho_idx_e,
+            step=0.05,
+            help="Correlation between market index and extension alpha"
+        )
+        
+        config.rho_idx_m = st.slider(
+            "Index ↔ External PA Alpha",
+            min_value=-0.99,
+            max_value=0.99,
+            value=config.rho_idx_m,
+            step=0.05,
+            help="Correlation between market index and external PA alpha"
+        )
+    
+    with col2:
+        st.markdown("**Cross-Alpha Correlations:**")
+        
+        config.rho_h_e = st.slider(
+            "In-House ↔ Extension Alpha",
+            min_value=-0.99,
+            max_value=0.99,
+            value=config.rho_h_e,
+            step=0.05,
+            help="Correlation between in-house and extension alpha"
+        )
+        
+        config.rho_h_m = st.slider(
+            "In-House ↔ External PA Alpha",
+            min_value=-0.99,
+            max_value=0.99,
+            value=config.rho_h_m,
+            step=0.05,
+            help="Correlation between in-house and external PA alpha"
+        )
+        
+        config.rho_e_m = st.slider(
+            "Extension ↔ External PA Alpha",
+            min_value=-0.99,
+            max_value=0.99,
+            value=config.rho_e_m,
+            step=0.05,
+            help="Correlation between extension and external PA alpha"
+        )
+    
+    # Correlation matrix visualization
+    import numpy as np
+    import pandas as pd
+    
+    corr_matrix = pd.DataFrame(
+        [
+            [1.0, config.rho_idx_h, config.rho_idx_e, config.rho_idx_m],
+            [config.rho_idx_h, 1.0, config.rho_h_e, config.rho_h_m],
+            [config.rho_idx_e, config.rho_h_e, 1.0, config.rho_e_m],
+            [config.rho_idx_m, config.rho_h_m, config.rho_e_m, 1.0]
+        ],
+        index=["Index", "In-House", "Extension", "External PA"],
+        columns=["Index", "In-House", "Extension", "External PA"]
+    )
+    
+    st.markdown("**Correlation Matrix:**")
+    st.dataframe(corr_matrix.round(3), use_container_width=True)
+    
+    # Check for potential issues
+    eigenvalues = np.linalg.eigvals(corr_matrix.values)
+    min_eigenvalue = np.min(eigenvalues)
+    
+    if min_eigenvalue < -1e-6:
+        st.warning(f"⚠️ Correlation matrix may not be positive definite (min eigenvalue: {min_eigenvalue:.6f}). Consider adjusting correlations.")
+    else:
+        st.success("✅ Correlation matrix is valid")
+    
+    return config
+
+
+def _render_step_5_review(config: WizardScenarioConfig) -> bool:
+    """Step 5: Review & Run. Returns True if user wants to run simulation."""
+    st.subheader("Step 5: Review & Run")
+    
+    # Configuration summary
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("**Configuration Summary:**")
+        
+        st.write(f"**Analysis Mode:** {config.analysis_mode.value.title()}")
+        st.write(f"**Simulations:** {config.n_simulations:,}")
+        st.write(f"**Time Horizon:** {config.n_months} months")
+        
+        st.markdown("**Capital Allocation:**")
+        total_capital = config.total_fund_capital
+        st.write(f"• Total Fund: ${total_capital:.1f}M")
+        st.write(f"• External PA: ${config.external_pa_capital:.1f}M ({config.external_pa_capital/total_capital:.1%})")
+        st.write(f"• Active Extension: ${config.active_ext_capital:.1f}M ({config.active_ext_capital/total_capital:.1%})")
+        st.write(f"• Internal PA: ${config.internal_pa_capital:.1f}M ({config.internal_pa_capital/total_capital:.1%})")
+    
+    with col2:
+        st.markdown("**Expected Returns & Risk:**")
+        st.write(f"• In-House Alpha: {config.mu_h:.2%} ± {config.sigma_h:.2%}")
+        st.write(f"• Extension Alpha: {config.mu_e:.2%} ± {config.sigma_e:.2%}") 
+        st.write(f"• External PA Alpha: {config.mu_m:.2%} ± {config.sigma_m:.2%}")
+        
+        st.markdown("**Key Correlations:**")
+        st.write(f"• Index ↔ In-House: {config.rho_idx_h:.2f}")
+        st.write(f"• In-House ↔ Extension: {config.rho_h_e:.2f}")
+        st.write(f"• Extension ↔ External PA: {config.rho_e_m:.2f}")
+    
+    # Validation
+    try:
+        config.model_validate(config.model_dump())
+        validation_status = "✅"
+        validation_msg = "Configuration is valid"
+        can_run = True
+    except Exception as e:
+        validation_status = "❌"
+        validation_msg = f"Validation errors: {str(e)}"
+        can_run = False
+    
+    if can_run:
+        st.success(f"{validation_status} {validation_msg}")
+    else:
+        st.error(f"{validation_status} {validation_msg}")
+    
+    # Action buttons
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        if st.button("🔄 Reset to Defaults", help="Reset all parameters to sensible defaults"):
+            st.session_state.wizard_config = get_default_config(config.analysis_mode)
+            st.rerun()
+    
+    with col2:
+        if st.button("💾 Download YAML", help="Download configuration as YAML file"):
+            yaml_data = config.to_yaml_dict()
+            yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
+            st.download_button(
+                "Download Configuration",
+                yaml_str,
+                file_name=f"scenario_{config.analysis_mode.value}.yml",
+                mime="application/x-yaml"
+            )
+    
+    with col3:
+        run_simulation = st.button(
+            f"{validation_status} Run Simulation",
+            disabled=not can_run,
+            help="Start the Monte Carlo simulation with current parameters"
+        )
+    
+    return run_simulation
+
+
+def main() -> None:
+    """Main wizard interface with 5-step stepper."""
+    
+    # Initialize session state
+    if "wizard_step" not in st.session_state:
+        st.session_state.wizard_step = 1
+        
+    if "wizard_config" not in st.session_state:
+        st.session_state.wizard_config = get_default_config(AnalysisMode.RETURNS)
+    
+    # Theme and validation settings in sidebar
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
-    validation_settings = create_validation_sidebar()
-
-    st.write("Upload a scenario configuration and index returns to run a simulation.")
     
-    # File uploaders
-    cfg = st.file_uploader("Scenario YAML", type=["yaml", "yml"])
-    idx = st.file_uploader("Index CSV", type=["csv"])
-    output = st.text_input("Output workbook", _DEF_XLSX)
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📋 Quick Actions")
     
-    # Display validation results if config is uploaded
-    if cfg is not None and validation_settings.get('validate_on_change', True):
-        st.subheader("📋 Configuration Validation")
+    if st.sidebar.button("🏠 Reset to Step 1"):
+        st.session_state.wizard_step = 1
+        st.rerun()
         
+    if st.sidebar.button("🔄 Reset All Defaults"):
+        st.session_state.wizard_config = get_default_config(st.session_state.wizard_config.analysis_mode)
+        st.rerun()
+    
+    # Alternative: File upload mode
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("📁 Alternative: File Upload")
+    
+    cfg = st.sidebar.file_uploader("Upload Scenario YAML", type=["yaml", "yml"])
+    if cfg is not None:
         try:
-            # Parse uploaded YAML content
             config_data = yaml.safe_load(cfg.getvalue())
-            
-            # Validate the configuration
-            validation_results = validate_scenario_config(config_data, validation_settings)
-            
-            # Display validation results
-            display_validation_results(validation_results, "Configuration Validation")
-            
-            # Display margin buffer if capital allocation data is available
-            if all(key in config_data for key in ['external_pa_capital', 'active_ext_capital', 'internal_pa_capital']):
-                try:
-                    from pa_core.validators import calculate_margin_requirement
-                    
-                    reference_sigma = config_data.get('reference_sigma', 0.01) 
-                    volatility_multiple = config_data.get('volatility_multiple', 3.0)
-                    total_capital = config_data.get('total_fund_capital', 1000.0)
-                    
-                    margin_requirement = calculate_margin_requirement(
-                        reference_sigma=reference_sigma,
-                        volatility_multiple=volatility_multiple, 
-                        total_capital=total_capital
-                    )
-                    
-                    internal_pa_capital = config_data.get('internal_pa_capital', 0.0)
-                    available_buffer = total_capital - margin_requirement - internal_pa_capital
-                    
-                    create_margin_buffer_display(margin_requirement, available_buffer, total_capital)
-                    
-                except Exception as e:
-                    st.warning(f"Could not compute margin requirements: {e}")
-            
-        except yaml.YAMLError as e:
-            st.error(f"Invalid YAML format: {e}")
+            if st.sidebar.button("Load Configuration"):
+                # Convert uploaded config to wizard format
+                wizard_config = WizardScenarioConfig.model_validate({
+                    'analysis_mode': config_data.get('analysis_mode', 'returns'),
+                    'n_simulations': config_data.get('N_SIMULATIONS', 1000),
+                    'n_months': config_data.get('N_MONTHS', 12),
+                    'total_fund_capital': config_data.get('total_fund_capital', 300.0),
+                    'external_pa_capital': config_data.get('external_pa_capital', 100.0),
+                    'active_ext_capital': config_data.get('active_ext_capital', 50.0),
+                    'internal_pa_capital': config_data.get('internal_pa_capital', 150.0),
+                    'w_beta_h': config_data.get('w_beta_H', 0.5),
+                    'w_alpha_h': config_data.get('w_alpha_H', 0.5),
+                    'theta_extpa': config_data.get('theta_extpa', 0.5),
+                    'active_share': config_data.get('active_share', 0.5),
+                    'mu_h': config_data.get('mu_H', 0.04),
+                    'sigma_h': config_data.get('sigma_H', 0.01),
+                    'mu_e': config_data.get('mu_E', 0.05),
+                    'sigma_e': config_data.get('sigma_E', 0.02),
+                    'mu_m': config_data.get('mu_M', 0.03),
+                    'sigma_m': config_data.get('sigma_M', 0.02),
+                    'rho_idx_h': config_data.get('rho_idx_H', 0.05),
+                    'rho_idx_e': config_data.get('rho_idx_E', 0.0),
+                    'rho_idx_m': config_data.get('rho_idx_M', 0.0),
+                    'rho_h_e': config_data.get('rho_H_E', 0.1),
+                    'rho_h_m': config_data.get('rho_H_M', 0.1),
+                    'rho_e_m': config_data.get('rho_E_M', 0.0),
+                    'internal_financing_mean_month': config_data.get('internal_financing_mean_month', 0.0),
+                    'internal_financing_sigma_month': config_data.get('internal_financing_sigma_month', 0.0),
+                    'internal_spike_prob': config_data.get('internal_spike_prob', 0.0),
+                    'internal_spike_factor': config_data.get('internal_spike_factor', 0.0),
+                    'ext_pa_financing_mean_month': config_data.get('ext_pa_financing_mean_month', 0.0),
+                    'ext_pa_financing_sigma_month': config_data.get('ext_pa_financing_sigma_month', 0.0),
+                    'ext_pa_spike_prob': config_data.get('ext_pa_spike_prob', 0.0),
+                    'ext_pa_spike_factor': config_data.get('ext_pa_spike_factor', 0.0),
+                    'act_ext_financing_mean_month': config_data.get('act_ext_financing_mean_month', 0.0),
+                    'act_ext_financing_sigma_month': config_data.get('act_ext_financing_sigma_month', 0.0),
+                    'act_ext_spike_prob': config_data.get('act_ext_spike_prob', 0.0),
+                    'act_ext_spike_factor': config_data.get('act_ext_spike_factor', 0.0),
+                    'risk_metrics': config_data.get('risk_metrics', ['Return', 'Risk', 'ShortfallProb']),
+                })
+                st.session_state.wizard_config = wizard_config
+                st.session_state.wizard_step = 5  # Go to review step
+                st.rerun()
         except Exception as e:
-            st.warning(f"Could not validate configuration: {e}")
+            st.sidebar.error(f"Error loading config: {e}")
     
-    # Run button with validation status
-    validation_status = "✅" 
-    run_disabled = False
+    # Main wizard interface
+    current_step = st.session_state.wizard_step
+    config = st.session_state.wizard_config
     
-    if cfg is not None and validation_settings.get('validate_on_change', True):
-        try:
-            config_data = yaml.safe_load(cfg.getvalue())
-            validation_results = validate_scenario_config(config_data, validation_settings)
-            validation_status = validation_status_indicator(validation_results)
+    _render_progress_bar(current_step)
+    
+    # Render current step
+    if current_step == 1:
+        config = _render_step_1_analysis_mode(config)
+        st.session_state.wizard_config = config
+        
+        if st.button("➡️ Next: Capital Allocation", use_container_width=True):
+            st.session_state.wizard_step = 2
+            st.rerun()
             
-            # Disable run if there are validation errors
-            has_errors = any(not r.is_valid for r in validation_results)
-            if has_errors:
-                run_disabled = True
-                st.warning("⚠️ Cannot run simulation due to validation errors. Please resolve the issues shown above.")
+    elif current_step == 2:
+        config = _render_step_2_capital(config)
+        st.session_state.wizard_config = config
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅️ Back: Analysis Mode"):
+                st.session_state.wizard_step = 1
+                st.rerun()
+        with col2:
+            if st.button("➡️ Next: Return & Risk"):
+                st.session_state.wizard_step = 3
+                st.rerun()
                 
-        except Exception:
-            validation_status = "❓"
-
-    if st.button(f"{validation_status} Run Simulation", disabled=run_disabled):
-        if cfg is None or idx is None:
-            st.warning("Please upload both files before running.")
-            return
-
-        cfg_path = _write_temp(cfg, ".yaml")
-        idx_path = _write_temp(idx, ".csv")
-        try:
-            with st.spinner("Running simulation..."):
-                pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
-        except Exception as exc:  # pragma: no cover - runtime feedback
-            st.error(f"Simulation failed: {exc}")
-        else:
-            st.success(f"✅ Run complete! Results written to {output}.")
-            st.page_link("pages/4_Results.py", label="View results →")
-        finally:
-            Path(cfg_path).unlink(missing_ok=True)
-            Path(idx_path).unlink(missing_ok=True)
+    elif current_step == 3:
+        config = _render_step_3_returns_risk(config)
+        st.session_state.wizard_config = config
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅️ Back: Capital Allocation"):
+                st.session_state.wizard_step = 2
+                st.rerun()
+        with col2:
+            if st.button("➡️ Next: Correlations"):
+                st.session_state.wizard_step = 4
+                st.rerun()
+                
+    elif current_step == 4:
+        config = _render_step_4_correlations(config)
+        st.session_state.wizard_config = config
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅️ Back: Return & Risk"):
+                st.session_state.wizard_step = 3
+                st.rerun()
+        with col2:
+            if st.button("➡️ Next: Review & Run"):
+                st.session_state.wizard_step = 5
+                st.rerun()
+                
+    elif current_step == 5:
+        run_simulation = _render_step_5_review(config)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("⬅️ Back: Correlations"):
+                st.session_state.wizard_step = 4
+                st.rerun()
+        
+        # Handle simulation execution
+        if run_simulation:
+            # Need index data for simulation
+            st.subheader("📊 Index Data Required")
+            idx = st.file_uploader("Index CSV", type=["csv"], help="Upload market index returns data")
+            output = st.text_input("Output workbook", _DEF_XLSX)
+            
+            if idx is not None:
+                # Convert config to YAML and run simulation
+                yaml_data = config.to_yaml_dict()
+                cfg_path = _write_temp_yaml(yaml_data)
+                
+                # Write index data to temp file
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
+                    tmp.write(idx.getvalue())
+                    idx_path = tmp.name
+                
+                try:
+                    with st.spinner("🔄 Running simulation..."):
+                        pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
+                except Exception as exc:
+                    st.error(f"❌ Simulation failed: {exc}")
+                else:
+                    st.success(f"✅ Simulation complete! Results written to {output}")
+                    st.balloons()
+                    
+                    # Show summary
+                    st.subheader("📋 Run Summary")
+                    yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
+                    with st.expander("Configuration Used", expanded=False):
+                        st.code(yaml_str, language='yaml')
+                    
+                    st.page_link("pages/4_Results.py", label="📈 View Results →")
+                    
+                finally:
+                    Path(cfg_path).unlink(missing_ok=True)
+                    Path(idx_path).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
