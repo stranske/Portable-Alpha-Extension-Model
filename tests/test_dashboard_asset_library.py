@@ -1,16 +1,7 @@
 from __future__ import annotations
 
 import runpy
-import sys
-import types
 from pathlib import Path
-
-
-root = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(root))
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(root / "pa_core")]
-sys.modules.setdefault("pa_core", PKG)
 
 
 class Uploaded:

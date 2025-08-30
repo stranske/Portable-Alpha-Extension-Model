@@ -1,15 +1,8 @@
 # ruff: noqa: E402
 from pathlib import Path
-import sys
-import types
-
 import numpy as np
 import pandas as pd
 import pytest
-
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
 
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator

@@ -4,13 +4,6 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-import types
-import sys
-from pathlib import Path
-
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
 
 from pa_core.portfolio import PortfolioAggregator
 from pa_core.schema import Asset, Correlation

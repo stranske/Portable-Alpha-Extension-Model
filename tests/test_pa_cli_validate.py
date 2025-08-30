@@ -3,15 +3,8 @@ from __future__ import annotations
 # ruff: noqa: E402
 
 from pathlib import Path
-import types
-import sys
-
 import pytest
 import yaml
-
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
 
 from pa_core.pa import main
 
