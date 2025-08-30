@@ -9,7 +9,9 @@ from pa_core.wizard_schema import (
     WizardScenarioConfig, 
     AnalysisMode, 
     RiskMetric,
-    get_default_config
+    get_default_config,
+    ANALYSIS_MODE_DESCRIPTIONS,
+    ANALYSIS_MODE_DISPLAY_NAMES
 )
 
 
@@ -182,3 +184,82 @@ class TestAnalysisModeDefaults:
         assert config.sigma_h <= returns_config.sigma_h
         assert config.sigma_e <= returns_config.sigma_e
         assert config.sigma_m <= returns_config.sigma_m
+
+
+class TestAnalysisModeProperties:
+    """Test the new property methods for AnalysisMode enum."""
+    
+    def test_description_property_exists(self):
+        """Test that all analysis modes have description property."""
+        for mode in AnalysisMode:
+            description = mode.description
+            assert isinstance(description, str)
+            assert len(description) > 50, f"Description for {mode.value} should be substantial"
+    
+    def test_display_name_property_exists(self):
+        """Test that all analysis modes have display_name property."""
+        for mode in AnalysisMode:
+            display_name = mode.display_name
+            assert isinstance(display_name, str)
+            assert len(display_name) > 5, f"Display name for {mode.value} should be meaningful"
+    
+    def test_specific_display_names(self):
+        """Test specific expected display names."""
+        expected = {
+            AnalysisMode.CAPITAL: "Capital Allocation Analysis",
+            AnalysisMode.RETURNS: "Return Assumption Sensitivity Analysis",
+            AnalysisMode.ALPHA_SHARES: "Alpha Capture Efficiency Analysis",
+            AnalysisMode.VOL_MULT: "Volatility Stress Testing"
+        }
+        
+        for mode, expected_name in expected.items():
+            assert mode.display_name == expected_name
+    
+    def test_descriptions_contain_expected_content(self):
+        """Test that descriptions contain expected analysis-specific content."""
+        # Each description should contain the mode name
+        assert "Capital Allocation Analysis" in AnalysisMode.CAPITAL.description
+        assert "Return Assumption Sensitivity Analysis" in AnalysisMode.RETURNS.description
+        assert "Alpha Capture Efficiency Analysis" in AnalysisMode.ALPHA_SHARES.description
+        assert "Volatility Stress Testing" in AnalysisMode.VOL_MULT.description
+        
+        # Each should contain business-focused content
+        assert "Business Focus:" in AnalysisMode.CAPITAL.description
+        assert "Key Parameters:" in AnalysisMode.RETURNS.description
+        assert "Ideal for:" in AnalysisMode.ALPHA_SHARES.description
+        assert "Constraint:" in AnalysisMode.VOL_MULT.description
+    
+    def test_constants_are_comprehensive(self):
+        """Test that constants cover all enum values."""
+        enum_values = {mode.value for mode in AnalysisMode}
+        
+        # All enum values should have descriptions
+        assert set(ANALYSIS_MODE_DESCRIPTIONS.keys()) == enum_values
+        
+        # All enum values should have display names
+        assert set(ANALYSIS_MODE_DISPLAY_NAMES.keys()) == enum_values
+    
+    def test_constants_are_used_by_properties(self):
+        """Test that the property methods use the module-level constants."""
+        # This ensures the refactoring correctly moved constants out of embedded dictionaries
+        for mode in AnalysisMode:
+            # Description should come from the constant
+            assert mode.description == ANALYSIS_MODE_DESCRIPTIONS[mode.value]
+            
+            # Display name should come from the constant
+            assert mode.display_name == ANALYSIS_MODE_DISPLAY_NAMES[mode.value]
+    
+    def test_description_error_handling(self):
+        """Test that description property handles missing values appropriately."""
+        # Create a mock enum value that's not in the constants
+        # This tests the error path without modifying the actual constants
+        from unittest.mock import Mock
+        
+        mock_mode = Mock()
+        mock_mode.value = "nonexistent_mode"
+        
+        # Bind the property method to our mock
+        description_method = AnalysisMode.description.fget
+        
+        with pytest.raises(ValueError, match="No description found for AnalysisMode value 'nonexistent_mode'"):
+            description_method(mock_mode)
