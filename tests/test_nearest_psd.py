@@ -2,13 +2,6 @@ from __future__ import annotations
 
 # ruff: noqa: E402
 
-import types
-import sys
-from pathlib import Path
-
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
 import numpy as np
 from pa_core.sim.covariance import nearest_psd
 

@@ -1,15 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-import types
-import sys
-
 import pytest
 import yaml
-
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
 
 import pa_core.validate as validate
 

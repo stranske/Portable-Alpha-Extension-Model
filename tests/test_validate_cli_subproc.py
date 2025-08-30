@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -8,19 +9,14 @@ def _write_yaml(path: Path, content: str) -> None:
 
 
 def _run_validate(args: list[str]) -> subprocess.CompletedProcess[str]:
-    pkg_root = Path(__file__).resolve().parents[1] / "pa_core"
-    script = (
-        "import runpy,sys,types;"
-        "pkg=types.ModuleType('pa_core');"
-        "pkg.__path__=[sys.argv[1]];"
-        "sys.modules['pa_core']=pkg;"
-        "sys.argv=['pa_core.validate']+sys.argv[2:];"
-        "runpy.run_module('pa_core.validate', run_name='__main__')"
-    )
+    pkg_root = Path(__file__).resolve().parents[1]
+    # Use proper PYTHONPATH instead of manual module setup
+    env = {**os.environ, "PYTHONPATH": str(pkg_root)}
     return subprocess.run(
-        [sys.executable, "-c", script, str(pkg_root), *args],
+        [sys.executable, "-m", "pa_core.validate", *args],
         capture_output=True,
         text=True,
+        env=env,
     )
 
 
