@@ -221,7 +221,7 @@ def validate_capital_allocation(
     return results
 
 
-def validate_simulation_parameters(n_simulations: int, step_sizes: Dict[str, float] = None) -> List[ValidationResult]:
+def validate_simulation_parameters(n_simulations: int, step_sizes: Dict[str, float] | None = None) -> List[ValidationResult]:
     """Validate simulation parameters for extreme values.
     
     Args:
