@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from pa_core.config import load_config, ConfigError
+from pa_core.config import load_config
 
 
 class TestEnhancedConfigValidation:
