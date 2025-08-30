@@ -111,7 +111,8 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
 
 def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
-    returns = pd.Series(DAILY_RETURN, index=dates)
+    daily_return = 0.01  # 1% daily return
+    returns = pd.Series(daily_return, index=dates)
     df = pd.DataFrame({"Date": dates, "A": returns.values})
 
     path = tmp_path / "returns.csv"
@@ -122,10 +123,6 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     )
     out = importer.load(path)
 
-    expected = pd.DataFrame(
-        {
-            "id": ["A", "A"],
-            "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
     # Calculate number of days in each month dynamically
     jan_days = (dates.month == 1).sum()
     feb_days = (dates.month == 2).sum()
