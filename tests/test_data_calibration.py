@@ -111,7 +111,7 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
 
 def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
-    DAILY_RETURN = 0.01 / 365  # Small daily return
+    DAILY_RETURN = 0.001  # Fixed daily return of 0.1%
     returns = pd.Series(DAILY_RETURN, index=dates)
     df = pd.DataFrame({"Date": dates, "A": returns.values})
 
@@ -123,14 +123,14 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     )
     out = importer.load(path)
 
-    # Calculate number of days in each month dynamically
+    # Calculate expected monthly returns by compounding daily returns within each month
     jan_days = (dates.month == 1).sum()
     feb_days = (dates.month == 2).sum()
     expected = pd.DataFrame(
         {
             "id": ["A", "A"],
             "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
-            "return": [(1.01 ** jan_days) - 1, (1.01 ** feb_days) - 1],
+            "return": [((1 + DAILY_RETURN) ** jan_days) - 1, ((1 + DAILY_RETURN) ** feb_days) - 1],
         }
     )
     assert_frame_equal(out.reset_index(drop=True), expected)
@@ -152,3 +152,55 @@ def test_import_duplicate_dates_fail(tmp_path: Path) -> None:
     agent = DataImportAgent(date_col="Date", min_obs=1)
     with pytest.raises(ValueError, match="strictly increasing"):
         agent.load(path)
+
+
+def test_daily_to_monthly_robust_frequency_handling(tmp_path: Path) -> None:
+    """Test that daily-to-monthly conversion correctly handles months with different day counts.
+    
+    This test validates that the system doesn't rely on hardcoded day-count assumptions
+    like 365 days per year, but properly compounds returns within actual calendar months.
+    """
+    # Include months with different day counts: Feb (28 days), Apr (30 days), May (31 days)
+    dates = pd.date_range("2021-02-01", "2021-05-31", freq="D")
+    DAILY_RETURN = 0.0005  # 0.05% daily return
+    returns = pd.Series(DAILY_RETURN, index=dates)
+    df = pd.DataFrame({"Date": dates, "A": returns.values})
+
+    path = tmp_path / "variable_months.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(
+        date_col="Date", frequency="daily", value_type="returns", min_obs=1
+    )
+    result = importer.load(path)
+
+    # Verify we get the correct number of monthly observations
+    assert len(result) == 4  # Feb, Mar, Apr, May 2021
+
+    # Calculate expected returns for each month based on actual day counts
+    feb_days = (dates.month == 2).sum()  # 28 days in Feb 2021
+    mar_days = (dates.month == 3).sum()  # 31 days in Mar 2021
+    apr_days = (dates.month == 4).sum()  # 30 days in Apr 2021
+    may_days = (dates.month == 5).sum()  # 31 days in May 2021
+
+    expected_returns = [
+        ((1 + DAILY_RETURN) ** feb_days) - 1,  # Feb: 28 days
+        ((1 + DAILY_RETURN) ** mar_days) - 1,  # Mar: 31 days
+        ((1 + DAILY_RETURN) ** apr_days) - 1,  # Apr: 30 days  
+        ((1 + DAILY_RETURN) ** may_days) - 1,  # May: 31 days
+    ]
+
+    expected_dates = pd.to_datetime(["2021-02-28", "2021-03-31", "2021-04-30", "2021-05-31"])
+
+    for i, (expected_return, expected_date) in enumerate(zip(expected_returns, expected_dates)):
+        assert result.iloc[i]["return"] == pytest.approx(expected_return)
+        assert result.iloc[i]["date"] == expected_date
+        assert result.iloc[i]["id"] == "A"
+
+    # Verify that Feb (28 days) has a different monthly return than Mar/May (31 days)
+    feb_return = result.iloc[0]["return"]
+    mar_return = result.iloc[1]["return"] 
+    may_return = result.iloc[3]["return"]
+    
+    assert feb_return != mar_return  # Different day counts should produce different returns
+    assert mar_return == pytest.approx(may_return)  # Same day counts should produce same returns
