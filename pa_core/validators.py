@@ -145,11 +145,7 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     frame is sorted by term to support interpolation.
     """
 
-    df = pd.read_csv(path)
-    required = {"term", "multiplier"}
-    if not required.issubset(df.columns):
-        missing = ", ".join(sorted(required - set(df.columns)))
-        raise ValueError(f"Schedule missing required columns: {missing}")
+        raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
     return df.sort_values("term")
 
 
