@@ -2,7 +2,6 @@ from __future__ import annotations
 
 # ruff: noqa: E402
 
-from pathlib import Path
 import numpy as np
 import pytest
 

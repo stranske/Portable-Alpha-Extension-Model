@@ -4,9 +4,6 @@ import pytest
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
 from pa_core.wizard_schema import (
-    WizardScenarioConfig, 
-    AnalysisMode, 
-    RiskMetric,
     get_default_config,
     ANALYSIS_MODE_DESCRIPTIONS,
     ANALYSIS_MODE_DISPLAY_NAMES
