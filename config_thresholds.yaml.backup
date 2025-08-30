@@ -1,9 +1,0 @@
-shortfall_green: 0.05
-shortfall_amber: 0.10
-drawdown_limit: 0.05
-te_cap: 0.03
-excess_return_target: 0.05
-excess_return_floor: 0.03
-sharpe_green: 0.5
-sharpe_amber: 0.4
-confidence: 0.95
