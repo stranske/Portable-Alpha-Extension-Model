@@ -5,7 +5,6 @@ from __future__ import annotations
 import tempfile
 import yaml
 from pathlib import Path
-from typing import Dict, Any
 
 import streamlit as st
 
@@ -61,14 +60,20 @@ def main() -> None:
                 try:
                     from pa_core.validators import calculate_margin_requirement
                     
-                    reference_sigma = config_data.get('reference_sigma', 0.01) 
+                    reference_sigma = config_data.get('reference_sigma', 0.01)
                     volatility_multiple = config_data.get('volatility_multiple', 3.0)
                     total_capital = config_data.get('total_fund_capital', 1000.0)
-                    
+                    financing_model = config_data.get('financing_model', 'simple_proxy')
+                    schedule_path = config_data.get('financing_schedule_path')
+                    term_months = config_data.get('financing_term_months', 1.0)
+
                     margin_requirement = calculate_margin_requirement(
                         reference_sigma=reference_sigma,
-                        volatility_multiple=volatility_multiple, 
-                        total_capital=total_capital
+                        volatility_multiple=volatility_multiple,
+                        total_capital=total_capital,
+                        financing_model=financing_model,
+                        schedule_path=schedule_path,
+                        term_months=term_months,
                     )
                     
                     internal_pa_capital = config_data.get('internal_pa_capital', 0.0)

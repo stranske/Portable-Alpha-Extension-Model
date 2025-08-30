@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple, NamedTuple
+from typing import Any, Dict, List, Tuple, NamedTuple, Optional
+from pathlib import Path
+
 import numpy as np
+import pandas as pd
 
 from .schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 from .sim.covariance import nearest_psd, _is_psd
@@ -134,18 +137,51 @@ def validate_covariance_matrix_psd(cov_matrix: np.ndarray, label: str = "covaria
     return result, psd_info
 
 
-def calculate_margin_requirement(reference_sigma: float, volatility_multiple: float, total_capital: float = 1000.0) -> float:
-    """Calculate margin requirement for beta backing.
-    
-    Args:
-        reference_sigma: Reference volatility (monthly)
-        volatility_multiple: Volatility multiplier for margin calculation
-        total_capital: Total capital in millions (default 1000)
-        
-    Returns:
-        Margin requirement in millions
+def load_margin_schedule(path: Path) -> pd.DataFrame:
+    """Load and validate broker margin schedule.
+
+    The schedule must contain ``term`` and ``multiplier`` columns representing
+    the term (in months) and corresponding margin multiplier.  The returned
+    frame is sorted by term to support interpolation.
     """
-    return reference_sigma * volatility_multiple * total_capital
+
+    df = pd.read_csv(path)
+    required = {"term", "multiplier"}
+    if not required.issubset(df.columns):
+        missing = ", ".join(sorted(required - set(df.columns)))
+        raise ValueError(f"Schedule missing required columns: {missing}")
+    return df.sort_values("term")
+
+
+def calculate_margin_requirement(
+    reference_sigma: float,
+    volatility_multiple: float = 3.0,
+    total_capital: float = 1000.0,
+    *,
+    financing_model: str = "simple_proxy",
+    margin_schedule: Optional[pd.DataFrame] = None,
+    schedule_path: Optional[Path] = None,
+    term_months: float = 1.0,
+) -> float:
+    """Calculate margin requirement for beta backing.
+
+    Supports either a simple proxy ``sigma_ref × k`` or a broker-provided
+    margin schedule with term-structure interpolation.
+    """
+
+    if financing_model == "schedule":
+        if margin_schedule is None:
+            if schedule_path is None:
+                raise ValueError("schedule_path required for schedule financing model")
+            margin_schedule = load_margin_schedule(schedule_path)
+
+        terms = margin_schedule["term"].to_numpy(float)
+        multipliers = margin_schedule["multiplier"].to_numpy(float)
+        k = float(np.interp(term_months, terms, multipliers))
+    else:
+        k = volatility_multiple
+
+    return reference_sigma * k * total_capital
 
 
 def validate_capital_allocation(
@@ -154,7 +190,11 @@ def validate_capital_allocation(
     internal_pa_capital: float,
     total_fund_capital: float = 1000.0,
     reference_sigma: float = 0.01,
-    volatility_multiple: float = 3.0
+    volatility_multiple: float = 3.0,
+    *,
+    financing_model: str = "simple_proxy",
+    margin_schedule_path: Optional[Path] = None,
+    term_months: float = 1.0,
 ) -> List[ValidationResult]:
     """Validate capital allocation including margin requirements.
     
@@ -175,7 +215,14 @@ def validate_capital_allocation(
     total_allocated = external_pa_capital + active_ext_capital + internal_pa_capital
     
     # Calculate margin requirement
-    margin_requirement = calculate_margin_requirement(reference_sigma, volatility_multiple, total_fund_capital)
+    margin_requirement = calculate_margin_requirement(
+        reference_sigma,
+        volatility_multiple,
+        total_fund_capital,
+        financing_model=financing_model,
+        schedule_path=margin_schedule_path,
+        term_months=term_months,
+    )
     
     # Check basic capital allocation
     if total_allocated > total_fund_capital:
