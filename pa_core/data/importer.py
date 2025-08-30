@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Literal, Set, cast
 
 import pandas as pd
+import yaml
 
 
 class DataImportAgent:
@@ -132,3 +133,35 @@ class DataImportAgent:
         }
 
         return cast(pd.DataFrame, long_df.reset_index(drop=True))
+
+    # ------------------------------------------------------------------
+    # Mapping templates
+
+    def save_template(self, path: str | Path) -> None:
+        """Persist the current column mapping and options to a YAML file.
+
+        The template captures the initializer arguments so that a new
+        :class:`DataImportAgent` can be reconstructed later or in a UI
+        workflow. Only simple built-in types are stored to keep templates
+        portable.
+        """
+
+        data = {
+            "date_col": self.date_col,
+            "id_col": self.id_col,
+            "value_col": self.value_col,
+            "wide": self.wide,
+            "value_type": self.value_type,
+            "frequency": self.frequency,
+            "min_obs": self.min_obs,
+        }
+        Path(path).write_text(yaml.safe_dump(data))
+
+    @classmethod
+    def from_template(cls, path: str | Path) -> "DataImportAgent":
+        """Create an instance from a previously saved mapping template."""
+
+        data = yaml.safe_load(Path(path).read_text()) or {}
+        if not isinstance(data, dict):  # pragma: no cover - defensive
+            raise TypeError("template must define a mapping")
+        return cls(**data)
