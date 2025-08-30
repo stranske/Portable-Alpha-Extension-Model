@@ -22,7 +22,7 @@ during parameter sweeps, leading to long computation times. A warning is
 issued when step sizes fall below this value.
 """
 
-LOW_BUFFER_THRESHOLD = 0.1  # Buffer ratio threshold (10%) for capital allocation warnings  
+LOW_BUFFER_THRESHOLD = 0.1
 """float: Threshold for capital buffer warnings.
 
 When the available capital buffer falls below this percentage of total capital,
