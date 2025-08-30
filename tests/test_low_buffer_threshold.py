@@ -4,7 +4,12 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from pa_core.viz import theme, risk_return, beta_scatter, breach_calendar, te_cvar_scatter, risk_return_bubble
+from pa_core.viz import theme
+from pa_core.viz import risk_return
+from pa_core.viz import beta_scatter
+from pa_core.viz import breach_calendar
+from pa_core.viz import te_cvar_scatter
+from pa_core.viz import risk_return_bubble
 
 
 def test_low_buffer_threshold_constant_defined():
