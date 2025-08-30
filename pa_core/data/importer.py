@@ -99,7 +99,7 @@ class DataImportAgent:
                 long_df = (
                     long_df.set_index("date")
                     .groupby("id")["return"]
-                    .apply(lambda s: (1 + s).resample("ME").prod() - 1)
+                    .apply(lambda s: (1 + s * 365).resample("ME").prod() - 1)
                     .dropna()
                     .reset_index()
                 )
