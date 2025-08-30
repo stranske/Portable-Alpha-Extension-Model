@@ -54,8 +54,27 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
 
 
 def load_index_returns(path: str | Path) -> pd.Series:
-    """Load index returns from a CSV file and return as Series."""
+    """Load index returns from a CSV file and return as Series.
+    
+    Validates and converts data to numeric format, handling non-numeric values
+    by converting them to NaN and dropping them from the final series.
+    
+    Raises:
+        ValueError: If no valid numeric data is found in the file.
+    """
     df = pd.read_csv(path)
     if df.shape[1] == 1:
-        return df.iloc[:, 0]
-    return df.iloc[:, 1]
+        series = df.iloc[:, 0]
+    else:
+        series = df.iloc[:, 1]
+    
+    # Convert to numeric, coercing errors to NaN
+    series = pd.to_numeric(series, errors='coerce')
+    
+    # Drop NaN values (which includes originally non-numeric entries)
+    series = series.dropna()
+    
+    if len(series) == 0:
+        raise ValueError(f"No valid numeric data found in CSV file: {path}")
+    
+    return series
