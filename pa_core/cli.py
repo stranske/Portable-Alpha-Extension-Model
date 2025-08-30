@@ -43,9 +43,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
-
-
-
+from .manifest import ManifestWriter
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
     *,
