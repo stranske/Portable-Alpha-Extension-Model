@@ -8,6 +8,26 @@ import numpy as np
 from .schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 from .sim.covariance import nearest_psd, _is_psd
 
+# Module-level constants for validation thresholds
+#
+# These constants define the thresholds used in validation functions.
+# Defining them as named constants improves maintainability and makes 
+# it easier to adjust thresholds without searching for magic numbers.
+
+MIN_RECOMMENDED_STEP_SIZE = 0.1
+"""float: Threshold below which step sizes are considered very small.
+
+Step sizes below this threshold may result in excessive parameter combinations 
+during parameter sweeps, leading to long computation times. A warning is 
+issued when step sizes fall below this value.
+"""
+
+LOW_BUFFER_THRESHOLD = 0.1
+"""float: Threshold for capital buffer warnings.
+
+When the available capital buffer falls below this percentage of total capital,
+a warning is issued to alert users that capital allocation is approaching limits.
+"""
 
 class ValidationResult(NamedTuple):
     """Result of a validation check."""
@@ -194,7 +214,7 @@ def validate_capital_allocation(
     available_buffer = total_fund_capital - margin_plus_internal
     buffer_ratio = available_buffer / total_fund_capital if total_fund_capital > 0 else 0
     
-    if buffer_ratio < 0.1:  # Less than 10% buffer
+    if buffer_ratio < LOW_BUFFER_THRESHOLD:  # Use named constant instead of magic number
         severity = 'warning' if buffer_ratio >= 0 else 'error'
         results.append(ValidationResult(
             is_valid=buffer_ratio >= 0,
@@ -266,12 +286,12 @@ def validate_simulation_parameters(n_simulations: int, step_sizes: Dict[str, flo
                     severity='error',
                     details={'parameter': param, 'value': step_size}
                 ))
-            elif step_size < 0.1:  # Very small step size
+            elif step_size < MIN_RECOMMENDED_STEP_SIZE:  # Use named constant instead of magic number
                 results.append(ValidationResult(
                     is_valid=True,
                     message=f"Very small step size for {param} ({step_size}) may result in many parameter combinations",
                     severity='warning',
-                    details={'parameter': param, 'value': step_size, 'minimum_recommended': 0.1}
+                    details={'parameter': param, 'value': step_size, 'minimum_recommended': MIN_RECOMMENDED_STEP_SIZE}
                 ))
     
     return results
