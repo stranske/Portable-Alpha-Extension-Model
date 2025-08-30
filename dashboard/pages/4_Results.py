@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -27,6 +28,13 @@ def main() -> None:
         st.warning(f"File {xlsx} not found")
         st.stop()
     summary, paths = load_data(xlsx)
+
+    manifest_path = Path(xlsx).with_name("manifest.json")
+    if manifest_path.exists():
+        manifest = json.loads(manifest_path.read_text())
+        seed = manifest.get("seed")
+        if seed is not None:
+            st.caption(f"Seed: {seed}")
 
     months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
 

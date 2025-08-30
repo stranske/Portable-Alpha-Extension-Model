@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 from typing import Optional, Sequence, TYPE_CHECKING
+from pathlib import Path
 
 import pandas as pd
 
@@ -39,6 +40,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
+from .manifest import ManifestWriter
 
 
 
@@ -324,6 +326,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
         from pathlib import Path
 
+    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
         from . import viz
 
         plots = Path("plots")
@@ -414,7 +417,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import os
             import subprocess
             import sys
-            from pathlib import Path
 
             # Use the same Python interpreter with -m streamlit to ensure venv
             try:
