@@ -447,6 +447,40 @@ def _render_step_5_review(config: WizardScenarioConfig) -> bool:
         st.write(f"• In-House ↔ Extension: {config.rho_h_e:.2f}")
         st.write(f"• Extension ↔ External PA: {config.rho_e_m:.2f}")
     
+    # Diff vs last run
+    if "last_wizard_config" in st.session_state:
+        last_config = st.session_state.last_wizard_config
+        if last_config != config:
+            with st.expander("🔍 Changes vs Last Run", expanded=False):
+                changes = []
+                
+                # Compare key parameters
+                comparisons = [
+                    ("Analysis Mode", last_config.analysis_mode.value, config.analysis_mode.value),
+                    ("Simulations", last_config.n_simulations, config.n_simulations),
+                    ("External PA Capital", f"${last_config.external_pa_capital:.1f}M", f"${config.external_pa_capital:.1f}M"),
+                    ("Active Extension Capital", f"${last_config.active_ext_capital:.1f}M", f"${config.active_ext_capital:.1f}M"),
+                    ("Internal PA Capital", f"${last_config.internal_pa_capital:.1f}M", f"${config.internal_pa_capital:.1f}M"),
+                    ("In-House Return", f"{last_config.mu_h:.2%}", f"{config.mu_h:.2%}"),
+                    ("Extension Return", f"{last_config.mu_e:.2%}", f"{config.mu_e:.2%}"),
+                    ("External PA Return", f"{last_config.mu_m:.2%}", f"{config.mu_m:.2%}"),
+                ]
+                
+                for param, old_val, new_val in comparisons:
+                    if old_val != new_val:
+                        changes.append(f"• **{param}**: {old_val} → {new_val}")
+                
+                if changes:
+                    st.markdown("**Changed Parameters:**")
+                    for change in changes:
+                        st.markdown(change)
+                else:
+                    st.info("No changes from last configuration")
+        else:
+            st.info("💡 Configuration matches last run")
+    else:
+        st.info("💡 This is your first configuration - no previous run to compare")
+    
     # Validation
     try:
         config.model_validate(config.model_dump())
@@ -639,6 +673,9 @@ def main() -> None:
         
         # Handle simulation execution
         if run_simulation:
+            # Store config for diff functionality
+            st.session_state.last_wizard_config = config
+            
             # Need index data for simulation
             st.subheader("📊 Index Data Required")
             idx = st.file_uploader("Index CSV", type=["csv"], help="Upload market index returns data")
@@ -665,6 +702,20 @@ def main() -> None:
                     
                     # Show summary
                     st.subheader("📋 Run Summary")
+                    
+                    # Display key run parameters
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Analysis Mode", config.analysis_mode.value.title())
+                        st.metric("Simulations", f"{config.n_simulations:,}")
+                        st.metric("Time Horizon", f"{config.n_months} months")
+                    
+                    with col2:
+                        st.metric("Total Capital", f"${config.total_fund_capital:.1f}M")
+                        st.metric("External PA", f"${config.external_pa_capital:.1f}M")
+                        st.metric("Active Extension", f"${config.active_ext_capital:.1f}M")
+                    
+                    # Show configuration used
                     yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
                     with st.expander("Configuration Used", expanded=False):
                         st.code(yaml_str, language='yaml')
