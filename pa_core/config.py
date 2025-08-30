@@ -17,7 +17,40 @@ class ConfigError(ValueError):
     """Invalid configuration."""
 
 
-__all__ = ["ModelConfig", "load_config", "ConfigError"]
+__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings"]
+
+
+def get_field_mappings(model_class: type[BaseModel] = None) -> Dict[str, str]:
+    """
+    Extract field mappings from a Pydantic model.
+    
+    Returns a dictionary mapping field aliases (human-readable names) 
+    to field names (snake_case), based on the model's field definitions.
+    
+    Args:
+        model_class: Pydantic model class to extract mappings from.
+                    Defaults to ModelConfig.
+    
+    Returns:
+        Dictionary mapping alias -> field_name
+    """
+    if model_class is None:
+        model_class = ModelConfig
+        
+    mappings = {}
+    
+    for field_name, field_info in model_class.model_fields.items():
+        # Check if field has an alias
+        if hasattr(field_info, 'alias') and field_info.alias:
+            alias = field_info.alias
+            # Use the alias as the human-readable name
+            mappings[alias] = field_name
+        else:
+            # For fields without aliases, use the field name as both key and value
+            # This maintains backward compatibility
+            mappings[field_name] = field_name
+    
+    return mappings
 
 
 class ModelConfig(BaseModel):
@@ -25,50 +58,50 @@ class ModelConfig(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
 
-    N_SIMULATIONS: int = Field(gt=0, alias="N_SIMULATIONS")
-    N_MONTHS: int = Field(gt=0, alias="N_MONTHS")
+    N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
+    N_MONTHS: int = Field(gt=0, alias="Number of months")
 
-    external_pa_capital: float = 0.0
-    active_ext_capital: float = 0.0
-    internal_pa_capital: float = 0.0
-    total_fund_capital: float = 1000.0
+    external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
+    active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
+    internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
+    total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
 
-    w_beta_H: float = 0.5
-    w_alpha_H: float = 0.5
-    theta_extpa: float = 0.5
-    active_share: float = 0.5
+    w_beta_H: float = Field(default=0.5, alias="In-House beta share")
+    w_alpha_H: float = Field(default=0.5, alias="In-House alpha share")
+    theta_extpa: float = Field(default=0.5, alias="External PA alpha fraction")
+    active_share: float = Field(default=0.5, alias="Active share (%)")
 
-    mu_H: float = 0.04
-    sigma_H: float = 0.01
-    mu_E: float = 0.05
-    sigma_E: float = 0.02
-    mu_M: float = 0.03
-    sigma_M: float = 0.02
+    mu_H: float = Field(default=0.04, alias="In-House annual return (%)")
+    sigma_H: float = Field(default=0.01, alias="In-House annual vol (%)")
+    mu_E: float = Field(default=0.05, alias="Alpha-Extension annual return (%)")
+    sigma_E: float = Field(default=0.02, alias="Alpha-Extension annual vol (%)")
+    mu_M: float = Field(default=0.03, alias="External annual return (%)")
+    sigma_M: float = Field(default=0.02, alias="External annual vol (%)")
 
-    rho_idx_H: float = 0.05
-    rho_idx_E: float = 0.0
-    rho_idx_M: float = 0.0
-    rho_H_E: float = 0.10
-    rho_H_M: float = 0.10
-    rho_E_M: float = 0.0
+    rho_idx_H: float = Field(default=0.05, alias="Corr index–In-House")
+    rho_idx_E: float = Field(default=0.0, alias="Corr index–Alpha-Extension")
+    rho_idx_M: float = Field(default=0.0, alias="Corr index–External")
+    rho_H_E: float = Field(default=0.10, alias="Corr In-House–Alpha-Extension")
+    rho_H_M: float = Field(default=0.10, alias="Corr In-House–External")
+    rho_E_M: float = Field(default=0.0, alias="Corr Alpha-Extension–External")
 
-    internal_financing_mean_month: float = 0.0
-    internal_financing_sigma_month: float = 0.0
-    internal_spike_prob: float = 0.0
-    internal_spike_factor: float = 0.0
+    internal_financing_mean_month: float = Field(default=0.0, alias="Internal financing mean (monthly %)")
+    internal_financing_sigma_month: float = Field(default=0.0, alias="Internal financing vol (monthly %)")
+    internal_spike_prob: float = Field(default=0.0, alias="Internal monthly spike prob")
+    internal_spike_factor: float = Field(default=0.0, alias="Internal spike multiplier")
 
-    ext_pa_financing_mean_month: float = 0.0
-    ext_pa_financing_sigma_month: float = 0.0
-    ext_pa_spike_prob: float = 0.0
-    ext_pa_spike_factor: float = 0.0
+    ext_pa_financing_mean_month: float = Field(default=0.0, alias="External PA financing mean (monthly %)")
+    ext_pa_financing_sigma_month: float = Field(default=0.0, alias="External PA financing vol (monthly %)")
+    ext_pa_spike_prob: float = Field(default=0.0, alias="External PA monthly spike prob")
+    ext_pa_spike_factor: float = Field(default=0.0, alias="External PA spike multiplier")
 
-    act_ext_financing_mean_month: float = 0.0
-    act_ext_financing_sigma_month: float = 0.0
-    act_ext_spike_prob: float = 0.0
-    act_ext_spike_factor: float = 0.0
+    act_ext_financing_mean_month: float = Field(default=0.0, alias="Active Ext financing mean (monthly %)")
+    act_ext_financing_sigma_month: float = Field(default=0.0, alias="Active Ext financing vol (monthly %)")
+    act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
+    act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
 
     # Parameter sweep options
-    analysis_mode: str = "returns"
+    analysis_mode: str = Field(default="returns", alias="Analysis mode")
 
     max_external_combined_pct: float = 30.0
     external_step_size_pct: float = 5.0
@@ -106,7 +139,8 @@ class ModelConfig(BaseModel):
             "Return",
             "Risk",
             "ShortfallProb",
-        ]
+        ],
+        alias="risk_metrics"
     )
 
     @model_validator(mode="after")
