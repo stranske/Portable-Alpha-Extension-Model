@@ -8,6 +8,7 @@ CLI flags:
     --html                 Save interactive HTML
     --gif                  Animated export of monthly paths
     --alt-text TEXT        Alt text for HTML/PPTX exports
+    --packet               Committee-ready export packet (PPTX + Excel)
     --dashboard            Launch Streamlit dashboard after run
 """
 
@@ -135,6 +136,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Alt text for HTML/PPTX exports",
     )
     parser.add_argument(
+        "--packet",
+        action="store_true",
+        help="Export comprehensive committee packet (PPTX + Excel)",
+    )
+    parser.add_argument(
         "--dashboard",
         action="store_true",
         help="Launch Streamlit dashboard after run",
@@ -150,6 +156,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         gif=args.gif,
         dashboard=args.dashboard,
         alt_text=args.alt_text,
+        packet=args.packet,
     )
 
     set_backend(args.backend)
@@ -177,6 +184,56 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
+        
+        # Handle packet export for parameter sweep mode
+        if flags.packet:
+            try:
+                from pathlib import Path
+                from .reporting.export_packet import create_export_packet
+                from . import viz
+                
+                # Build consolidated summary from sweep results (similar to export_sweep_results)
+                summary_frames = []
+                for res in results:
+                    summary = res["summary"].copy()
+                    summary["ShortfallProb"] = summary.get("ShortfallProb", 0.0)
+                    summary["Combination"] = f"Run{res['combination_id']}"
+                    summary_frames.append(summary)
+                
+                if summary_frames:
+                    all_summary = pd.concat(summary_frames, ignore_index=True)
+                    
+                    # Create visualization from consolidated summary
+                    if "ShortfallProb" in all_summary.columns:
+                        fig = viz.risk_return.make(all_summary)
+                    else:
+                        fig = viz.sharpe_ladder.make(all_summary)
+                    
+                    # Create export packet with sweep results
+                    base_name = Path(args.output or "parameter_sweep_packet").stem
+                    
+                    # Create a simplified raw_returns_dict for packet export
+                    raw_returns_dict = {"Summary": all_summary}
+                    
+                    pptx_path, excel_path = create_export_packet(
+                        figs=[fig],
+                        summary_df=all_summary,
+                        raw_returns_dict=raw_returns_dict,
+                        inputs_dict={k: raw_params.get(k, "") for k in raw_params},
+                        base_filename=base_name,
+                        alt_texts=[flags.alt_text] if flags.alt_text else None,
+                        pivot=args.pivot,
+                    )
+                    print("✅ Parameter sweep export packet created:")
+                    print(f"   📊 Excel: {excel_path}")
+                    print(f"   📋 PowerPoint: {pptx_path}")
+                else:
+                    print("⚠️  No summary data available for export packet")
+            except RuntimeError as e:
+                print(f"❌ Export packet failed: {e}")
+            except Exception as e:
+                print(f"❌ Unexpected error creating export packet: {e}")
+                print("💡 Please check your environment and try individual exports instead.")
         return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
@@ -264,7 +321,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         pivot=args.pivot,
     )
 
-    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
+    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
         from pathlib import Path
 
         from . import viz
@@ -276,16 +333,53 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         else:
             fig = viz.sharpe_ladder.make(summary)
         stem = plots / "summary"
+        
+        # Handle packet export first (comprehensive export)
+        if flags.packet:
+            try:
+                from .reporting.export_packet import create_export_packet
+                
+                # Use base filename from --output or default
+                base_name = Path(flags.save_xlsx or "committee_packet").stem
+                pptx_path, excel_path = create_export_packet(
+                    figs=[fig],
+                    summary_df=summary,
+                    raw_returns_dict=raw_returns_dict,
+                    inputs_dict=inputs_dict,
+                    base_filename=base_name,
+                    alt_texts=[flags.alt_text] if flags.alt_text else None,
+                    pivot=args.pivot,
+                )
+                print("✅ Export packet created:")
+                print(f"   📊 Excel: {excel_path}")
+                print(f"   📋 PowerPoint: {pptx_path}")
+            except RuntimeError as e:
+                print(f"❌ Export packet failed: {e}")
+                return
+            except Exception as e:
+                print(f"❌ Unexpected error creating export packet: {e}")
+                print("💡 Please check your environment and try individual exports instead.")
+                return
+        
+        # Individual export formats (with improved error handling)
         if flags.png:
             try:
                 fig.write_image(stem.with_suffix(".png"))
-            except Exception:
-                pass
+            except Exception as e:
+                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
+                    print("❌ PNG export failed: Chrome/Chromium required")
+                    print("💡 Install with: sudo apt-get install chromium-browser")
+                else:
+                    print(f"❌ PNG export failed: {e}")
         if flags.pdf:
             try:
                 viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))
-            except Exception:
-                pass
+            except Exception as e:
+                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
+                    print("❌ PDF export failed: Chrome/Chromium required")
+                    print("💡 Install with: sudo apt-get install chromium-browser")
+                else:
+                    print(f"❌ PDF export failed: {e}")
         if flags.pptx:
             try:
                 viz.pptx_export.save(
@@ -293,8 +387,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     str(stem.with_suffix(".pptx")),
                     alt_texts=[flags.alt_text] if flags.alt_text else None,
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
+                    print("❌ PPTX export failed: Chrome/Chromium required")
+                    print("💡 Install with: sudo apt-get install chromium-browser")
+                else:
+                    print(f"❌ PPTX export failed: {e}")
         if flags.html:
             viz.html_export.save(
                 fig,
@@ -306,8 +404,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             anim = viz.animation.make(arr)
             try:
                 anim.write_image(str(plots / "paths.gif"))
-            except Exception:
-                pass
+            except Exception as e:
+                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
+                    print("❌ GIF export failed: Chrome/Chromium required")
+                    print("💡 Install with: sudo apt-get install chromium-browser")
+                else:
+                    print(f"❌ GIF export failed: {e}")
         if flags.dashboard:
             import os
             import subprocess
