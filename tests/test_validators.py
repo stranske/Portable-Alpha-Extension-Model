@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from pathlib import Path
 
 from pa_core.validators import (
     ValidationResult,
-    PSDProjectionInfo,
     validate_correlations,
     validate_covariance_matrix_psd,
     validate_capital_allocation,
     validate_simulation_parameters,
     calculate_margin_requirement,
+    load_margin_schedule,
     format_validation_messages,
 )
 
@@ -184,6 +185,23 @@ class TestCapitalAllocationValidation:
         )
         expected = 0.02 * 3.0 * 1000.0  # 60.0
         assert margin == expected
+
+    def test_margin_requirement_schedule_interpolation(self, tmp_path: Path):
+        """Test margin requirement using a broker schedule."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        schedule_path = tmp_path / "sched.csv"
+        schedule_path.write_text(csv)
+        schedule = load_margin_schedule(schedule_path)
+
+        margin = calculate_margin_requirement(
+            reference_sigma=0.02,
+            total_capital=1000.0,
+            financing_model="schedule",
+            margin_schedule=schedule,
+            term_months=2.0,
+        )
+        # Interpolated multiplier at 2 months should be 3
+        assert margin == pytest.approx(0.02 * 3.0 * 1000.0)
 
 
 class TestSimulationParameterValidation:
