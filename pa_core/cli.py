@@ -19,6 +19,9 @@ from typing import Optional, Sequence, TYPE_CHECKING
 from pathlib import Path
 
 import pandas as pd
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
 if TYPE_CHECKING:
     import numpy as np
@@ -41,9 +44,6 @@ from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
-
-
-
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
     *,
@@ -56,10 +56,6 @@ def create_enhanced_summary(
 
 def print_enhanced_summary(summary: pd.DataFrame) -> None:
     """Print enhanced summary with explanations."""
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-
     console = Console()
 
     # Print explanatory header
@@ -186,11 +182,23 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
+
+        # Write reproducibility manifest
+        mw = ManifestWriter(Path(args.output).with_name("manifest.json"))
+        # Only include args.output in data_files if it exists
+        data_files = [args.index, args.config]
+        if args.output and Path(args.output).exists():
+            data_files.append(args.output)
+        mw.write(
+            config_path=args.config,
+            data_files=data_files,
+            seed=args.seed,
+            cli_args=vars(args),
+        )
         
         # Handle packet export for parameter sweep mode
         if flags.packet:
             try:
-                from pathlib import Path
                 from .reporting.export_packet import create_export_packet
                 from . import viz
                 
@@ -324,7 +332,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
-        from pathlib import Path
+        pass
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
         from . import viz

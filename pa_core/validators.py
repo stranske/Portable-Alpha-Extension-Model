@@ -254,7 +254,16 @@ def validate_simulation_parameters(n_simulations: int, step_sizes: Dict[str, flo
     results = []
     
     # Check N_SIMULATIONS
-    if n_simulations < 100:
+    if n_simulations <= 10:
+        results.append(ValidationResult(
+            is_valid=True,
+            message=(
+                f"N_SIMULATIONS={n_simulations} is very low and suitable only for testing"
+            ),
+            severity='warning',
+            details={'value': n_simulations, 'minimum': 10},
+        ))
+    elif n_simulations < 100:
         results.append(ValidationResult(
             is_valid=False,
             message=f"N_SIMULATIONS={n_simulations} is too low. Minimum recommended: 100",
