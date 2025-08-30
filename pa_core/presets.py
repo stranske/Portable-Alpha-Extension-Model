@@ -56,8 +56,16 @@ class PresetLibrary:
         self._presets[preset.id] = preset
 
     def delete(self, preset_id: str) -> None:
-        self._presets.pop(preset_id, None)
+        """Delete the preset with the given id.
 
+        Raises
+        ------
+        KeyError
+            If the preset with the given id does not exist.
+        """
+        if preset_id not in self._presets:
+            raise KeyError(preset_id)
+        self._presets.pop(preset_id)
     # Serialization helpers
     def to_dict(self) -> Dict[str, Dict[str, float]]:
         return {pid: asdict(p) for pid, p in self._presets.items()}
