@@ -14,7 +14,7 @@ from .sim.covariance import nearest_psd, _is_psd
 # Defining them as named constants improves maintainability and makes 
 # it easier to adjust thresholds without searching for magic numbers.
 
-MIN_RECOMMENDED_STEP_SIZE = 0.1  # Minimum recommended step size (10%) to avoid excessive parameter combinations
+MIN_RECOMMENDED_STEP_SIZE = 0.1
 """float: Threshold below which step sizes are considered very small.
 
 Step sizes below this threshold may result in excessive parameter combinations 
