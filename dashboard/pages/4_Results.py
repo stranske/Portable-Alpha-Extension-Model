@@ -99,7 +99,6 @@ def main() -> None:
                 # (Streamlit dashboard should start quickly even if pa_core has import delays)
                 sys.path.append(str(Path(__file__).parents[1]))
                 from pa_core.reporting.export_packet import create_export_packet
-                from pa_core import viz
                 
                 # Create figure
                 fig = _get_plot_fn(PLOTS["Headline"])(summary)

@@ -3,6 +3,11 @@
 import pytest
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
+from pa_core.wizard_schema import (
+    WizardScenarioConfig, 
+    AnalysisMode, 
+    get_default_config
+)
 
 class TestAnalysisMode:
     """Test AnalysisMode enum functionality."""
