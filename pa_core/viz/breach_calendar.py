@@ -18,7 +18,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         df["TrackingErr"] if "TrackingErr" in df else pd.Series(0.0, index=df.index)
     )
     short_vals = (
-        df["ShortfallProb"] if "ShortfallProb" in df else pd.Series(0.0, index=df.index)
+        df["ShortfallProb"] if "ShortfallProb" in df else pd.Series(theme.DEFAULT_SHORTFALL_PROB, index=df.index)
     )
     te_breach = (te_vals > te_cap).astype(float)
     short_breach = (short_vals > short_cap).astype(float)
