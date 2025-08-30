@@ -98,7 +98,7 @@ def main() -> None:
             has_errors = any(not r.is_valid for r in validation_results)
             if has_errors:
                 run_disabled = True
-                st.warning("⚠️ Cannot run simulation due to validation errors. Please fix the issues above.")
+                st.warning("⚠️ Cannot run simulation due to validation errors. Please resolve the issues shown above.")
                 
         except Exception:
             validation_status = "❓"
