@@ -35,6 +35,7 @@ from . import (
     load_index_returns,
 )
 from .agents.registry import build_from_config
+from .stress import STRESS_PRESETS, apply_stress_preset
 from .backend import set_backend
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
@@ -44,6 +45,7 @@ from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
+
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
     *,
@@ -97,6 +99,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         choices=["capital", "returns", "alpha_shares", "vol_mult"],
         default="returns",
         help="Parameter sweep analysis mode",
+    )
+    parser.add_argument(
+        "--stress-preset",
+        choices=sorted(STRESS_PRESETS.keys()),
+        help="Apply predefined stress scenario",
     )
     parser.add_argument(
         "--pivot",
@@ -167,6 +174,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     cfg = load_config(args.config)
     cfg = cfg.model_copy(update={"analysis_mode": args.mode})
+    if args.stress_preset:
+        cfg = apply_stress_preset(cfg, args.stress_preset)
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
 

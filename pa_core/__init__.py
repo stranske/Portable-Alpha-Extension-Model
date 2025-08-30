@@ -44,6 +44,7 @@ from .sim.metrics import (
     value_at_risk,
 )
 from .sweep import run_parameter_sweep, run_parameter_sweep_cached, sweep_results_to_dataframe
+from .stress import STRESS_PRESETS, apply_stress_preset
 from .validators import (
     ValidationResult,
     PSDProjectionInfo,
@@ -74,6 +75,8 @@ __all__ = [
     "run_parameter_sweep",
     "run_parameter_sweep_cached",
     "sweep_results_to_dataframe",
+    "apply_stress_preset",
+    "STRESS_PRESETS",
     "tracking_error",
     "value_at_risk",
     "compound",
