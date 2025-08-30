@@ -144,7 +144,14 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     the term (in months) and corresponding margin multiplier.  The returned
     frame is sorted by term to support interpolation.
     """
-
+    if not path.exists():
+        raise FileNotFoundError(f"Margin schedule file not found: {path}")
+    
+    df = pd.read_csv(path)
+    required_cols = {"term", "multiplier"}
+    missing = required_cols - set(df.columns)
+    
+    if missing:
         raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
     return df.sort_values("term")
 
