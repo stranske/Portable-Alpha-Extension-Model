@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, field_validator, model_validator
+from typing import List, Dict, Any
+from pydantic import BaseModel, Field, model_validator
 
 
 class AnalysisMode(str, Enum):

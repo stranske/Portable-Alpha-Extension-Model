@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import numpy as np
-import pytest
 
 from pa_core.validators import (
     ValidationResult,
-    PSDProjectionInfo,
     validate_correlations,
     validate_covariance_matrix_psd,
     validate_capital_allocation,

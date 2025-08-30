@@ -1,7 +1,7 @@
 import pytest
 
 from pa_core.config import ModelConfig
-from pa_core.stress import STRESS_PRESETS, apply_stress_preset
+from pa_core.stress import apply_stress_preset
 
 
 def _base_cfg() -> ModelConfig:

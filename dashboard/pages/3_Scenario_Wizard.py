@@ -5,18 +5,11 @@ from __future__ import annotations
 import tempfile
 import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 import streamlit as st
 
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
-from dashboard.validation_ui import (
-    display_validation_results,
-    create_validation_sidebar, 
-    validate_scenario_config,
-    create_margin_buffer_display,
-    validation_status_indicator
-)
 from pa_core import cli as pa_cli
 from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
 

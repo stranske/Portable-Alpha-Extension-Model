@@ -8,7 +8,6 @@ from pathlib import Path
 from pa_core.wizard_schema import (
     WizardScenarioConfig, 
     AnalysisMode, 
-    RiskMetric,
     get_default_config
 )
 
