@@ -8,7 +8,6 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
-
 class Uploaded:
     def __init__(self, path: Path):
         self.name = path.name
