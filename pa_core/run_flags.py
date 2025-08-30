@@ -15,3 +15,4 @@ class RunFlags:
     gif: bool = False
     dashboard: bool = False
     alt_text: str | None = None
+    packet: bool = False

@@ -1,6 +1,7 @@
 # Portable Alpha-Extension Model
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/stranske/Portable-Alpha-Extension-Model)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Portable Alpha + Active Extension Model Specification
 Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
@@ -504,3 +505,7 @@ Compute metrics:
 Ann Return, Ann Vol, VaR 95, Tracking Error, Breach Probability.
 Export Inputs, Summary, Raw returns to Excel + print narrative.
 # Test update Thu Jul 17 07:08:01 UTC 2025
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
