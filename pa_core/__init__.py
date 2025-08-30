@@ -43,7 +43,7 @@ from .sim.metrics import (
     tracking_error,
     value_at_risk,
 )
-from .sweep import run_parameter_sweep
+from .sweep import run_parameter_sweep, run_parameter_sweep_cached, sweep_results_to_dataframe
 from .validators import (
     ValidationResult,
     PSDProjectionInfo,
@@ -72,6 +72,8 @@ __all__ = [
     "export_sweep_results",
     "print_summary",
     "run_parameter_sweep",
+    "run_parameter_sweep_cached",
+    "sweep_results_to_dataframe",
     "tracking_error",
     "value_at_risk",
     "compound",

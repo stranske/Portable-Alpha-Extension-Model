@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterator, List
 
+import hashlib
+import json
+
 import numpy as np
 import pandas as pd
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
+from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
@@ -182,3 +186,61 @@ def run_parameter_sweep(
         )
 
     return results
+
+
+# ---------------------------------------------------------------------------
+# Cached sweep and result helpers
+
+_SWEEP_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+
+
+def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str:
+    """Return a hash key for caching parameter sweeps."""
+    cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
+    idx_hash = hashlib.sha256(index_series.to_numpy().tobytes()).hexdigest()
+    return hashlib.sha256((cfg_json + idx_hash + str(seed)).encode()).hexdigest()
+
+
+def run_parameter_sweep_cached(
+    cfg: ModelConfig,
+    index_series: pd.Series,
+    seed: int,
+) -> List[Dict[str, Any]]:
+    """Run ``run_parameter_sweep`` with simple in-memory caching.
+
+    The cache key is derived from the configuration, index series and seed.
+    Subsequent calls with identical parameters return the cached results
+    without re-running the simulation.
+    """
+    key = _make_cache_key(cfg, index_series, seed)
+    if key not in _SWEEP_CACHE:
+        rng_returns = spawn_rngs(seed, 1)[0]
+        fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
+        _SWEEP_CACHE[key] = run_parameter_sweep(cfg, index_series, rng_returns, fin_rngs)
+    return _SWEEP_CACHE[key]
+
+
+def sweep_results_to_dataframe(results: List[Dict[str, Any]]) -> pd.DataFrame:
+    """Flatten sweep results into a single DataFrame.
+
+    Each combination's summary metrics are combined with its parameters and
+    identifier to form one row per agent and parameter combination.
+    """
+    frames: List[pd.DataFrame] = []
+    for res in results:
+        summary = res["summary"].copy()
+        for key, val in res["parameters"].items():
+            summary[key] = val
+        summary["combination_id"] = res["combination_id"]
+        frames.append(summary)
+    if frames:
+        return pd.concat(frames, ignore_index=True)
+    return pd.DataFrame()
+
+
+__all__ = [
+    "generate_parameter_combinations",
+    "run_parameter_sweep",
+    "run_parameter_sweep_cached",
+    "sweep_results_to_dataframe",
+]

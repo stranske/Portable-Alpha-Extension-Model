@@ -186,11 +186,19 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
+
+        # Write reproducibility manifest
+        mw = ManifestWriter(Path(args.output).with_name("manifest.json"))
+        mw.write(
+            config_path=args.config,
+            data_files=[args.index, args.output, args.config],
+            seed=args.seed,
+            cli_args=vars(args),
+        )
         
         # Handle packet export for parameter sweep mode
         if flags.packet:
             try:
-                from pathlib import Path
                 from .reporting.export_packet import create_export_packet
                 from . import viz
                 
@@ -324,7 +332,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
-        from pathlib import Path
+        pass
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
         from . import viz
