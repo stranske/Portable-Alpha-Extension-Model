@@ -2,7 +2,6 @@
 Test the num_val undefined variable fix in pa_core/pa.py
 """
 
-import pytest
 import tempfile
 import os
 from pathlib import Path
