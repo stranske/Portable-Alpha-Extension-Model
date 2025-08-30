@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pandas as pd
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 
 from pa_core.config import load_config
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
