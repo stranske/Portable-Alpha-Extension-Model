@@ -127,7 +127,9 @@ Constraint: Multipliers should be reasonable (typically 1.5x to 5x).
 Ideal for: Portfolio managers preparing for extreme market events
 and validating risk management frameworks under stress conditions."""
         }
-        return descriptions.get(self.value, "No description available")
+        if self.value not in descriptions:
+            raise ValueError(f"No description found for AnalysisMode value '{self.value}'. Please update the descriptions dictionary.")
+        return descriptions[self.value]
     
     @property
     def display_name(self) -> str:
