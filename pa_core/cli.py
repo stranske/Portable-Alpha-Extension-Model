@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 from typing import Optional, Sequence, TYPE_CHECKING
+from pathlib import Path
 
 import pandas as pd
 
@@ -38,6 +39,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
+from .manifest import ManifestWriter
 
 
 
@@ -177,6 +179,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
+        manifest_path = Path(args.output).with_name("manifest.json")
+        ManifestWriter(manifest_path).write(
+            config_path=args.config,
+            data_files=[args.index, args.config],
+            seed=args.seed,
+            cli_args=vars(args),
+        )
         return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
@@ -264,9 +273,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         pivot=args.pivot,
     )
 
-    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
-        from pathlib import Path
+    # Write reproducibility manifest
+    manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+    ManifestWriter(manifest_path).write(
+        config_path=args.config,
+        data_files=[args.index, args.config],
+        seed=args.seed,
+        cli_args=vars(args),
+    )
 
+    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
         from . import viz
 
         plots = Path("plots")
@@ -312,7 +328,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             import os
             import subprocess
             import sys
-            from pathlib import Path
 
             # Use the same Python interpreter with -m streamlit to ensure venv
             try:
