@@ -420,7 +420,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 alt_text=flags.alt_text,
             )
         if flags.gif:
-            arr = next(iter(raw_returns_dict.values())).to_numpy()
+            try:
+                arr = next(iter(raw_returns_dict.values())).to_numpy()
+            except (ValueError, TypeError) as e:
+                print(f"❌ GIF export failed: Data conversion error - {e}")
+                print("💡 Check that return data contains only numeric values")
+                return
             anim = viz.animation.make(arr)
             try:
                 anim.write_image(str(plots / "paths.gif"))
