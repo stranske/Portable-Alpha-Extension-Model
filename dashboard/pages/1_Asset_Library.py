@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import tempfile
+from dataclasses import asdict
 from pathlib import Path
 
 import streamlit as st
 
 from pa_core.data import CalibrationAgent, DataImportAgent
+from pa_core.presets import AlphaPreset, PresetLibrary
 from dashboard.app import _DEF_THEME, apply_theme
 
 
@@ -46,6 +48,45 @@ def main() -> None:
             finally:
                 # Clean up the YAML temp file
                 Path(tmp_yaml.name).unlink(missing_ok=True)
+
+            st.subheader("Alpha Presets")
+            lib: PresetLibrary = st.session_state.setdefault(
+                "preset_lib", PresetLibrary()
+            )
+            if lib.presets:
+                st.dataframe(
+                    [asdict(p) for p in lib.presets.values()],
+                    use_container_width=True,
+                )
+            with st.form("preset_form"):
+                pid = st.text_input("Preset ID")
+                mu = st.number_input("mu", value=0.0, format="%.4f")
+                sigma = st.number_input("sigma", value=0.0, format="%.4f")
+                rho = st.number_input("rho", value=0.0, format="%.4f")
+                if st.form_submit_button("Save Preset") and pid:
+                    preset = AlphaPreset(id=pid, mu=mu, sigma=sigma, rho=rho)
+                    if pid in lib.presets:
+                        lib.update(preset)
+                    else:
+                        lib.add(preset)
+            del_id = st.selectbox("Delete preset", [""] + list(lib.presets), index=0)
+            if st.button("Delete Preset") and del_id:
+                lib.delete(del_id)
+            st.download_button(
+                "Download Presets YAML",
+                lib.to_yaml_str(),
+                file_name="alpha_presets.yaml",
+                mime="application/x-yaml",
+            )
+            uploaded_preset = st.file_uploader(
+                "Import presets", type=["yaml", "yml", "json"]
+            )
+            if uploaded_preset is not None:
+                text = uploaded_preset.getvalue().decode("utf-8")
+                if uploaded_preset.name.endswith((".yaml", ".yml")):
+                    lib.load_yaml_str(text)
+                else:
+                    lib.load_json_str(text)
     finally:
         # Clean up the uploaded data temp file
         Path(tmp_path).unlink(missing_ok=True)
