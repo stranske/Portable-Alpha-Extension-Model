@@ -658,6 +658,50 @@ The files are written under a `plots/` directory with names such as `summary.png
 `summary.pdf` and `summary.pptx`. When run on a parameter sweep the PPTX contains one
 slide per scenario so you can distribute a ready‑made presentation.
 
+#### Committee-Ready Export Packet
+
+For comprehensive reporting, use the `--packet` flag to generate a professional export package containing both a PowerPoint presentation and enhanced Excel workbook:
+
+```bash
+# Generate committee packet for parameter sweep
+python -m pa_core.cli \
+  --config my_first_scenario.yml \
+  --index sp500tr_fred_divyield.csv \
+  --packet --output CommitteeReport.xlsx
+```
+
+This creates two files:
+- `CommitteeReport.pptx` - Professional presentation with title slide, executive summary, risk-return charts, and parameter appendix
+- `CommitteeReport.xlsx` - Enhanced Excel workbook with executive summary sheet, detailed formatting, and all underlying data
+
+The export packet includes:
+
+**PowerPoint Features:**
+- Professional title slide for committee presentation
+- Executive summary with key metrics and parameters
+- Risk-return visualizations with accessibility alt-text
+- Detailed parameter appendix for transparency
+
+**Excel Features:**
+- Executive Summary sheet with key metrics
+- Enhanced formatting with professional styling
+- All original data sheets and analysis results
+- Auto-sized columns and frozen headers
+
+**Accessibility Support:**
+Add descriptive text for screen readers and accessibility compliance:
+
+```bash
+python -m pa_core.cli \
+  --config scenario.yml \
+  --index data.csv \
+  --packet --alt-text "Risk-return analysis showing efficient frontier" \
+  --output AccessibleReport.xlsx
+```
+
+**Dashboard Export:**
+The Streamlit dashboard also includes an "Export Committee Packet" button on the Results page for one-click generation of professional reports.
+
 > **Dependency Note**
 > PNG/PDF/PPTX exports require a local Chrome or Chromium installation in addition to the
 > `kaleido` Python package. Install Chrome with:
