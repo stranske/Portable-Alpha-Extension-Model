@@ -131,9 +131,7 @@ def _create_appendix_slide(pres: Presentation, inputs_dict: Dict[str, Any]) -> N
         for param in params:
             if param in inputs_dict:
                 value = inputs_dict[param]
-                if isinstance(value, (float, int)) and param.startswith(("mu_", "sigma_", "rho_")):
-                    # Format percentages for financial parameters
-                    display_value = f"{value:.4f}" if isinstance(value, float) else str(value)
+                    display_value = f"{value * 100:.2f}%" if isinstance(value, float) else f"{value}%"
                 else:
                     display_value = str(value)
                 
