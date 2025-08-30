@@ -101,10 +101,14 @@ class PresetLibrary:
 
     def load_yaml_str(self, text: str) -> None:
         data = yaml.safe_load(text) or {}
+        # Validate for duplicate IDs before clearing existing presets
+        ids = [p.get("id") for p in data.values()]
+        duplicate_ids = {id for id in ids if ids.count(id) > 1}
+        if duplicate_ids:
+            raise ValueError(f"Duplicate preset IDs found in input: {', '.join(duplicate_ids)}")
         self._presets = {}
         for p in data.values():
             self.add(AlphaPreset(**p))
-
     def load_json_str(self, text: str) -> None:
         data = json.loads(text)
         self._presets = {}
