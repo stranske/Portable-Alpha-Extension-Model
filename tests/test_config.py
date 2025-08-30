@@ -8,7 +8,7 @@ from pa_core.data.convert import convert
 
 def test_load_yaml(tmp_path):
     data = {
-        "N_SIMULATIONS": 10,
+        "N_SIMULATIONS": 1000,  # Valid value
         "N_MONTHS": 6,
         "mu_H": 0.04,
         "sigma_H": 0.01,
@@ -21,7 +21,7 @@ def test_load_yaml(tmp_path):
     path.write_text(yaml.safe_dump(data))
     cfg = load_config(path)
     assert isinstance(cfg, ModelConfig)
-    assert cfg.N_SIMULATIONS == 10
+    assert cfg.N_SIMULATIONS == 1000
     assert cfg.N_MONTHS == 6
     assert cfg.external_pa_capital == 100.0
     assert cfg.active_ext_capital == 200.0
@@ -30,16 +30,16 @@ def test_load_yaml(tmp_path):
 
 
 def test_load_dict():
-    data = {"N_SIMULATIONS": 5, "N_MONTHS": 3, "mu_H": 0.05}
+    data = {"N_SIMULATIONS": 1000, "N_MONTHS": 3, "mu_H": 0.05}  # Valid N_SIMULATIONS
     cfg = load_config(data)
-    assert cfg.N_SIMULATIONS == 5
+    assert cfg.N_SIMULATIONS == 1000
     assert cfg.N_MONTHS == 3
     assert cfg.mu_H == 0.05
 
 
 def test_invalid_capital(tmp_path):
     data = {
-        "N_SIMULATIONS": 1,
+        "N_SIMULATIONS": 1000,  # Valid value
         "N_MONTHS": 1,
         "external_pa_capital": 800.0,
         "active_ext_capital": 800.0,
