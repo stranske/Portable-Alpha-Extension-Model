@@ -2,7 +2,7 @@
 
 try:  # pragma: no cover - optional dependency
     from . import viz
-except Exception:  # pragma: no cover - viz may require heavy deps
+except (ImportError, ModuleNotFoundError):  # pragma: no cover - viz may require heavy deps
     viz = None
 
 from .agents import (
