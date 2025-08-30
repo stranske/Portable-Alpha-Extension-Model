@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from . import theme
+from .utils import safe_to_numpy
 
 
 def _rolling_drawdown(paths: np.ndarray, window: int) -> np.ndarray:
@@ -14,9 +15,9 @@ def _rolling_drawdown(paths: np.ndarray, window: int) -> np.ndarray:
     median = np.median(cum, axis=0)
     roll_max = pd.Series(median).cummax()
     dd = 1 - median / roll_max
-    return (  # type: ignore[no-any-return]
-        pd.Series(dd).rolling(window, min_periods=1).max().to_numpy()
-    )
+    
+    rolled_series = pd.Series(dd).rolling(window, min_periods=1).max()
+    return safe_to_numpy(rolled_series)  # type: ignore[no-any-return]
 
 
 def _rolling_te(paths: np.ndarray, window: int) -> np.ndarray:
@@ -31,7 +32,9 @@ def _rolling_sharpe(paths: np.ndarray, window: int) -> np.ndarray:
     roll_mean = returns.rolling(window, axis=1, min_periods=1).mean()
     roll_std = returns.rolling(window, axis=1, min_periods=1).std()
     sharpe = roll_mean / roll_std
-    return sharpe.mean(axis=0).to_numpy() * np.sqrt(12)  # type: ignore[no-any-return]
+    
+    sharpe_series = sharpe.mean(axis=0)
+    return safe_to_numpy(sharpe_series) * np.sqrt(12)  # type: ignore[no-any-return]
 
 
 def make(df_paths: pd.DataFrame | np.ndarray, window: int = 12) -> go.Figure:

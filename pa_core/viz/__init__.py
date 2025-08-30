@@ -69,6 +69,7 @@ from . import (
     te_cvar_scatter,
     theme,
     triple_scatter,
+    utils,
     violin,
     waterfall,
     weighted_stack,
@@ -147,5 +148,6 @@ __all__ = [
     "seasonality_heatmap",
     "spark_matrix",
     "triple_scatter",
+    "utils",
     "weighted_stack",
 ]
