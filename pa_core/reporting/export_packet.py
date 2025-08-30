@@ -131,9 +131,12 @@ def _create_appendix_slide(pres: Presentation, inputs_dict: Dict[str, Any]) -> N
         for param in params:
             if param in inputs_dict:
                 value = inputs_dict[param]
-                    display_value = f"{value * 100:.2f}%" if isinstance(value, float) else f"{value}%"
+                if isinstance(value, float):
+                    display_value = f"{value * 100:.2f}%"
                 else:
                     display_value = str(value)
+            else:
+                display_value = "N/A"
                 
                 p = tf.add_paragraph()
                 p.text = f"  {param}: {display_value}"
