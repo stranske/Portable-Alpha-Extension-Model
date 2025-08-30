@@ -31,7 +31,7 @@ def safe_to_numpy(
     try:
         result = data.to_numpy()
         # Check for problematic values that might cause issues downstream
-        if np.any(np.isinf(result)) or np.any(np.isnan(result)):
+        if np.any(~np.isfinite(result)):
             # Use fallback handling
             clean_data = data.fillna(fillna_value).replace([np.inf, -np.inf], fillna_value)
             return clean_data.to_numpy()
