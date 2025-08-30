@@ -30,6 +30,7 @@ def test_asset_library_calibration(monkeypatch):
     captured: dict[str, str] = {}
 
     def fake_download(label, data, **kwargs):
+        captured["label"] = label
         captured["data"] = data
 
     monkeypatch.setattr(st_mod, "download_button", fake_download)
@@ -39,5 +40,6 @@ def test_asset_library_calibration(monkeypatch):
         min_obs=1
     )
     module["main"]()
+    assert captured["label"] == "Download Asset Library YAML"
     assert "SP500_TR" in captured["data"]
 
