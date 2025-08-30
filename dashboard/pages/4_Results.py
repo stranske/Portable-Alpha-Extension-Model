@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
@@ -94,9 +95,8 @@ def main() -> None:
         # Export packet button
         if st.button("📦 Export Committee Packet"):
             try:
-                # Import here to avoid startup issues
-                from pathlib import Path
-                import sys
+                # Import pa_core modules here to avoid startup issues with heavy dependencies
+                # (Streamlit dashboard should start quickly even if pa_core has import delays)
                 sys.path.append(str(Path(__file__).parents[1]))
                 from pa_core.reporting.export_packet import create_export_packet
                 from pa_core import viz
