@@ -693,15 +693,21 @@ def main() -> None:
                     st.success(f"✅ Simulation complete! Results written to {output}")
                     st.balloons()
                     
-                    # Show summary
-                    st.subheader("📋 Run Summary")
-                    
-                    # Display key run parameters
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric("Analysis Mode", config.analysis_mode.value.title())
-                        st.metric("Simulations", f"{config.n_simulations:,}")
-                        st.metric("Time Horizon", f"{config.n_months} months")
+                    reference_sigma = config_data.get('reference_sigma', 0.01)
+                    volatility_multiple = config_data.get('volatility_multiple', 3.0)
+                    total_capital = config_data.get('total_fund_capital', 1000.0)
+                    financing_model = config_data.get('financing_model', 'simple_proxy')
+                    schedule_path = config_data.get('financing_schedule_path')
+                    term_months = config_data.get('financing_term_months', 1.0)
+
+                    margin_requirement = calculate_margin_requirement(
+                        reference_sigma=reference_sigma,
+                        volatility_multiple=volatility_multiple,
+                        total_capital=total_capital,
+                        financing_model=financing_model,
+                        schedule_path=schedule_path,
+                        term_months=term_months,
+                    )
                     
                     with col2:
                         st.metric("Total Capital", f"${config.total_fund_capital:.1f}M")

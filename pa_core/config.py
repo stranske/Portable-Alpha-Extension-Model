@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Union, Optional
 
 import yaml
 from pydantic import (
@@ -133,6 +133,9 @@ class ModelConfig(BaseModel):
     # Margin calculation parameters
     reference_sigma: float = 0.01  # Monthly volatility for margin calculation
     volatility_multiple: float = 3.0  # Multiplier for margin requirement
+    financing_model: str = "simple_proxy"  # or "schedule"
+    financing_schedule_path: Optional[Path] = None
+    financing_term_months: float = 1.0
 
     risk_metrics: List[str] = Field(
         default_factory=lambda: [
@@ -142,6 +145,15 @@ class ModelConfig(BaseModel):
         ],
         alias="risk_metrics"
     )
+
+    @model_validator(mode="after")
+    def check_financing_model(self) -> "ModelConfig":
+        valid = {"simple_proxy", "schedule"}
+        if self.financing_model not in valid:
+            raise ValueError(f"financing_model must be one of: {sorted(valid)}")
+        if self.financing_model == "schedule" and self.financing_schedule_path is None:
+            raise ValueError("financing_schedule_path required for schedule financing model")
+        return self
 
     @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
@@ -158,11 +170,14 @@ class ModelConfig(BaseModel):
         # Enhanced capital validation with margin requirements
         validation_results = validate_capital_allocation(
             external_pa_capital=self.external_pa_capital,
-            active_ext_capital=self.active_ext_capital, 
+            active_ext_capital=self.active_ext_capital,
             internal_pa_capital=self.internal_pa_capital,
             total_fund_capital=self.total_fund_capital,
             reference_sigma=self.reference_sigma,
-            volatility_multiple=self.volatility_multiple
+            volatility_multiple=self.volatility_multiple,
+            financing_model=self.financing_model,
+            margin_schedule_path=self.financing_schedule_path,
+            term_months=self.financing_term_months,
         )
         
         # Check for critical errors

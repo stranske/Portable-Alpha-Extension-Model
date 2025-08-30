@@ -53,6 +53,7 @@ from .validators import (
     validate_capital_allocation,
     validate_simulation_parameters,
     calculate_margin_requirement,
+    load_margin_schedule,
     format_validation_messages,
 )
 
@@ -109,5 +110,6 @@ __all__ = [
     "validate_capital_allocation",
     "validate_simulation_parameters",
     "calculate_margin_requirement",
+    "load_margin_schedule",
     "format_validation_messages",
 ]
