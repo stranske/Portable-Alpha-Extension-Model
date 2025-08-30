@@ -17,7 +17,7 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
     for prob in probs.fillna(0.0):
         if prob <= thr.get("shortfall_green", 0.05):
             color.append("green")
-        elif prob <= thr.get("shortfall_amber", 0.1):
+        elif prob <= thr.get("shortfall_amber", theme.LOW_BUFFER_THRESHOLD):
             color.append("orange")
         else:
             color.append("red")

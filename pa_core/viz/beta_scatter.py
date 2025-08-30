@@ -22,7 +22,7 @@ def make(
     for p in probs:
         if p <= thr.get("shortfall_green", 0.05):
             colors.append("green")
-        elif p <= thr.get("shortfall_amber", 0.1):
+        elif p <= thr.get("shortfall_amber", theme.LOW_BUFFER_THRESHOLD):
             colors.append("orange")
         else:
             colors.append("red")

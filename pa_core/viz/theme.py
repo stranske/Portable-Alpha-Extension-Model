@@ -5,6 +5,9 @@ from pathlib import Path
 import plotly.graph_objects as go
 import yaml
 
+# Default threshold constant for buffer ratio
+LOW_BUFFER_THRESHOLD = 0.1  # 10% - used as fallback for shortfall_amber threshold
+
 # Load thresholds for traffic-light styling
 _THRESH_PATH = Path(__file__).resolve().parents[1] / "config_thresholds.yaml"
 _THEME_PATH = Path(__file__).resolve().parents[1] / "config_theme.yaml"
