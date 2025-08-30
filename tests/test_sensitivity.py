@@ -1,17 +1,6 @@
-import importlib.util
-import pathlib
-
 import pandas as pd
 import pytest
-
-spec = importlib.util.spec_from_file_location(
-    "sensitivity",
-    pathlib.Path(__file__).resolve().parents[1] / "pa_core" / "sensitivity.py",
-)
-sensitivity = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(sensitivity)
-
-
+from pa_core import sensitivity
 def test_one_factor_deltas():
     base = pd.DataFrame({"Sharpe": [1.0]})
     scenarios = {
