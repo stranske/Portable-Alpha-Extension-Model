@@ -33,7 +33,7 @@ from .sim import (
     simulate_alpha_streams,
     simulate_financing,
 )
-from .sim.covariance import build_cov_matrix
+from .sim.covariance import build_cov_matrix, build_cov_matrix_with_validation
 from .sim.metrics import (
     annualised_return,
     annualised_vol,
@@ -44,12 +44,23 @@ from .sim.metrics import (
     value_at_risk,
 )
 from .sweep import run_parameter_sweep
+from .validators import (
+    ValidationResult,
+    PSDProjectionInfo,
+    validate_correlations,
+    validate_covariance_matrix_psd,
+    validate_capital_allocation,
+    validate_simulation_parameters,
+    calculate_margin_requirement,
+    format_validation_messages,
+)
 
 __all__ = [
     "load_index_returns",
     "simulate_financing",
     "prepare_mc_universe",
     "build_cov_matrix",
+    "build_cov_matrix_with_validation",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -85,4 +96,13 @@ __all__ = [
     "build_from_config",
     "SimulatorOrchestrator",
     "viz",
+    # Validation functions
+    "ValidationResult",
+    "PSDProjectionInfo", 
+    "validate_correlations",
+    "validate_covariance_matrix_psd",
+    "validate_capital_allocation",
+    "validate_simulation_parameters",
+    "calculate_margin_requirement",
+    "format_validation_messages",
 ]

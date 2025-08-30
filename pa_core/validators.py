@@ -29,7 +29,6 @@ When the available capital buffer falls below this percentage of total capital,
 a warning is issued to alert users that capital allocation is approaching limits.
 """
 
-
 class ValidationResult(NamedTuple):
     """Result of a validation check."""
     is_valid: bool
