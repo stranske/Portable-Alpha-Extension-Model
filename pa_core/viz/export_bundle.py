@@ -23,6 +23,7 @@ def save(
         try:
             fig.write_image(stem.with_suffix(".png"))
         except Exception:
+            # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
             pass
         alt = next(alt_iter, None) if alt_iter else None
         html_export.save(fig, stem.with_suffix(".html"), alt_text=alt)
