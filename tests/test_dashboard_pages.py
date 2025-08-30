@@ -1,6 +1,8 @@
 import runpy
 from pathlib import Path
 
+import pytest
+
 PAGES = [
     Path("dashboard/app.py"),
     Path("dashboard/pages/1_Asset_Library.py"),
@@ -13,7 +15,6 @@ PAGES = [
 def test_pages_import() -> None:
     # NOTE: Currently failing due to IndentationError in pa_core/validators.py
     # This test validates that dashboard pages can be imported with proper PYTHONPATH setup
-    import pytest
     
     for page in PAGES:
         try:
