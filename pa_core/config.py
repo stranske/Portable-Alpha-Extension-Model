@@ -97,6 +97,10 @@ class ModelConfig(BaseModel):
     sd_multiple_max: float = 4.0
     sd_multiple_step: float = 0.25
 
+    # Margin calculation parameters
+    reference_sigma: float = 0.01  # Monthly volatility for margin calculation
+    volatility_multiple: float = 3.0  # Multiplier for margin requirement
+
     risk_metrics: List[str] = Field(
         default_factory=lambda: [
             "Return",
@@ -107,6 +111,8 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
+        from .validators import validate_capital_allocation
+        
         cap_sum = (
             self.external_pa_capital
             + self.active_ext_capital
@@ -114,6 +120,23 @@ class ModelConfig(BaseModel):
         )
         if cap_sum > self.total_fund_capital:
             raise ValueError("Capital allocation exceeds total_fund_capital")
+            
+        # Enhanced capital validation with margin requirements
+        validation_results = validate_capital_allocation(
+            external_pa_capital=self.external_pa_capital,
+            active_ext_capital=self.active_ext_capital, 
+            internal_pa_capital=self.internal_pa_capital,
+            total_fund_capital=self.total_fund_capital,
+            reference_sigma=self.reference_sigma,
+            volatility_multiple=self.volatility_multiple
+        )
+        
+        # Check for critical errors
+        errors = [r for r in validation_results if not r.is_valid]
+        if errors:
+            error_messages = [r.message for r in errors]
+            raise ValueError("; ".join(error_messages))
+        
         if "ShortfallProb" not in self.risk_metrics:
             raise ConfigError("risk_metrics must include ShortfallProb")
         return self
@@ -136,6 +159,35 @@ class ModelConfig(BaseModel):
         valid_modes = ["capital", "returns", "alpha_shares", "vol_mult"]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
+        return self
+
+    @model_validator(mode="after") 
+    def check_simulation_params(self) -> "ModelConfig":
+        from .validators import validate_simulation_parameters
+        
+        # Collect step sizes for validation
+        step_sizes = {
+            'external_step_size_pct': self.external_step_size_pct,
+            'in_house_return_step_pct': self.in_house_return_step_pct,
+            'in_house_vol_step_pct': self.in_house_vol_step_pct,
+            'alpha_ext_return_step_pct': self.alpha_ext_return_step_pct,
+            'alpha_ext_vol_step_pct': self.alpha_ext_vol_step_pct,
+            'external_pa_alpha_step_pct': self.external_pa_alpha_step_pct,
+            'active_share_step_pct': self.active_share_step_pct,
+            'sd_multiple_step': self.sd_multiple_step,
+        }
+        
+        validation_results = validate_simulation_parameters(
+            n_simulations=self.N_SIMULATIONS,
+            step_sizes=step_sizes
+        )
+        
+        # Only raise errors for critical validation failures
+        errors = [r for r in validation_results if not r.is_valid]
+        if errors:
+            error_messages = [r.message for r in errors]
+            raise ValueError("; ".join(error_messages))
+        
         return self
 
 
