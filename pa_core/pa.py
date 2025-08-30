@@ -73,23 +73,20 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
                         num_val = float(value)
                     else:
                         num_val = int(value)
-                    
-                    # Convert percentages
-                    if "(%)" in param_name:
-                        num_val = float(num_val) / 100.0
-                    
-                    data[key] = num_val
                 except (ValueError, TypeError):
                     # Try int first, then float, else leave as string
-                    num_val = int(value)
-                except (ValueError, TypeError):
                     try:
-                        num_val = float(value)
+                        num_val = int(value)
                     except (ValueError, TypeError):
-                        num_val = value
+                        try:
+                            num_val = float(value)
+                        except (ValueError, TypeError):
+                            num_val = value
+                
                 # Convert percentages
                 if "(%)" in param_name and isinstance(num_val, (int, float)):
                     num_val = float(num_val) / 100.0
+                
                 data[key] = num_val
     
     # Add default risk_metrics if not present
