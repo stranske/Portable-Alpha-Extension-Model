@@ -8,7 +8,7 @@ import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
-from ..viz import risk_return
+from ..viz import risk_return, theme
 
 __all__ = ["export_to_excel"]
 
@@ -48,7 +48,7 @@ def export_to_excel(
         )
         df_inputs.to_excel(writer, sheet_name="Inputs", index=False)
         summary_df = summary_df.copy()
-        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", 0.0)
+        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         if pivot:

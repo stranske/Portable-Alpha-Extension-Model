@@ -8,7 +8,7 @@ import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
-from ..viz import risk_return
+from ..viz import risk_return, theme
 
 __all__ = ["export_sweep_results"]
 
@@ -24,7 +24,7 @@ def export_sweep_results(
         for res in results:
             sheet = f"Run{res['combination_id']}"
             summary = res["summary"].copy()
-            summary["ShortfallProb"] = summary.get("ShortfallProb", 0.0)
+            summary["ShortfallProb"] = summary.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)

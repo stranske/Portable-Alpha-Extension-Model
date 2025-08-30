@@ -56,6 +56,9 @@ TEMPLATE = go.layout.Template(
     )
 )
 
+# Default value for missing ShortfallProb in visualizations and exports
+DEFAULT_SHORTFALL_PROB = 0.0
+
 # Map agent class -> category name used for consistent colours
 CATEGORY_BY_AGENT = {
     "InternalPAAgent": "Internal Portable Alpha",
