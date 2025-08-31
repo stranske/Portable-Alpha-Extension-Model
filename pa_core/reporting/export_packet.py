@@ -137,11 +137,11 @@ def _create_appendix_slide(pres: Presentation, inputs_dict: Dict[str, Any]) -> N
                     display_value = str(value)
             else:
                 display_value = "N/A"
-                
-                p = tf.add_paragraph()
-                p.text = f"  {param}: {display_value}"
-                p.font.size = Pt(12)
-                p.level = 1
+
+            p = tf.add_paragraph()
+            p.text = f"  {param}: {display_value}"
+            p.font.size = Pt(12)
+            p.level = 1
 
 
 def _create_comprehensive_pptx(
