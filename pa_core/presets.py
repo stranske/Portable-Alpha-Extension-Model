@@ -109,7 +109,8 @@ class PresetLibrary:
             raise ValueError(f"Duplicate preset IDs found in input: {', '.join(duplicates)}")
         self._presets = {}
         for p in data.values():
-            self.add(AlphaPreset(**p))
+            preset = AlphaPreset(**p)
+            self._presets[preset.id] = preset
 
     def load_json_str(self, text: str) -> None:
         data = json.loads(text)
