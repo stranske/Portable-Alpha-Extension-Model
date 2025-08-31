@@ -5,8 +5,7 @@ used by portfolio managers in the guided wizard interface.
 """
 
 from enum import Enum
-from typing import List, Dict, Any
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 
 # Analysis mode constants moved out of class for better maintainability
