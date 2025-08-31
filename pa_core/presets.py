@@ -66,6 +66,7 @@ class PresetLibrary:
         if preset_id not in self._presets:
             raise KeyError(preset_id)
         self._presets.pop(preset_id)
+
     # Serialization helpers
     def to_dict(self) -> Dict[str, Dict[str, float]]:
         return {pid: asdict(p) for pid, p in self._presets.items()}
@@ -101,7 +102,7 @@ class PresetLibrary:
 
     def load_yaml_str(self, text: str) -> None:
         data = yaml.safe_load(text) or {}
-        # Validate for duplicate IDs before clearing existing presets
+        # Check for duplicate IDs in the input data
         ids = [p.get("id") for p in data.values()]
         duplicate_ids = {id for id in ids if ids.count(id) > 1}
         if duplicate_ids:
@@ -115,7 +116,9 @@ class PresetLibrary:
         
         self._presets = {}
         for p in data.values():
-            self.add(AlphaPreset(**p))
+            preset = AlphaPreset(**p)
+            self._presets[preset.id] = preset
+
     def load_json_str(self, text: str) -> None:
         data = json.loads(text)
         # Validate that each preset.id matches its dictionary key
@@ -126,7 +129,8 @@ class PresetLibrary:
         
         self._presets = {}
         for p in data.values():
-            self.add(AlphaPreset(**p))
+            preset = AlphaPreset(**p)
+            self._presets[preset.id] = preset
 
     @property
     def presets(self) -> Dict[str, AlphaPreset]:

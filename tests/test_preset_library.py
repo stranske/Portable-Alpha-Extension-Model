@@ -6,6 +6,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+import pytest
 from pa_core.presets import AlphaPreset, PresetLibrary
 
 
