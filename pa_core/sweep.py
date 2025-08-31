@@ -197,7 +197,9 @@ _SWEEP_CACHE: Dict[str, List[Dict[str, Any]]] = {}
 def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str:
     """Return a hash key for caching parameter sweeps."""
     cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
-    idx_hash = hashlib.sha256(pd.util.hash_pandas_object(index_series).values.tobytes()).hexdigest()
+    # Use getattr to avoid static checker complaining about pandas.util access
+    hash_fn = getattr(pd, "util").hash_pandas_object  # type: ignore[attr-defined]
+    idx_hash = hashlib.sha256(hash_fn(index_series).values.tobytes()).hexdigest()
     return hashlib.sha256((cfg_json + idx_hash + str(seed)).encode()).hexdigest()
 
 
