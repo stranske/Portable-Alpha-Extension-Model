@@ -29,9 +29,14 @@ jobs:
         run: |
           python -m scripts.create_launchers pa pa-dashboard --output launchers
 
+      - name: Include launchers in portable zip
+        run: |
+          mkdir -p dist
+          cp -r launchers dist/
+
       - name: Build portable Windows zip
         run: |
-          python -m scripts.make_portable_zip --output portable_windows.zip
+          python -m scripts.make_portable_zip --output portable_windows.zip --include dist/launchers
 
       - name: Upload artifact (workflow)
         uses: actions/upload-artifact@v4
