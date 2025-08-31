@@ -29,23 +29,23 @@ jobs:
         run: |
           python -m scripts.create_launchers pa pa-dashboard --output launchers
 
-      - name: Include launchers in portable zip
+      - name: Set ZIP filename
         run: |
-          mkdir -p dist
-          cp -r launchers dist/
+          NAME="portable_windows_${GITHUB_REF_NAME:-manual}.zip"
+          echo "ZIP_NAME=$NAME" >> "$GITHUB_ENV"
 
       - name: Build portable Windows zip
         run: |
-          python -m scripts.make_portable_zip --output portable_windows.zip --include dist/launchers
+          python -m scripts.make_portable_zip --output "$ZIP_NAME"
 
       - name: Upload artifact (workflow)
         uses: actions/upload-artifact@v4
         with:
           name: portable_windows
-          path: portable_windows.zip
+          path: ${{ env.ZIP_NAME }}
 
       - name: Attach asset to GitHub Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: portable_windows.zip
+          files: ${{ env.ZIP_NAME }}
