@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from . import theme
+from .utils import safe_to_numpy
 
 
 def make(df_summary: pd.DataFrame) -> go.Figure:
@@ -27,7 +28,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     
     te_breach = (te_vals > te_cap).astype(float)
     short_breach = (short_vals > short_cap).astype(float)
-    z = np.vstack([te_breach.to_numpy(), short_breach.to_numpy()])
+    z = np.vstack([safe_to_numpy(te_breach), safe_to_numpy(short_breach)])
     fig = go.Figure(
         data=go.Heatmap(z=z, x=list(months), y=["TE", "Shortfall"]),
         layout_template=theme.TEMPLATE,

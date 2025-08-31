@@ -16,7 +16,7 @@ def make(df: pd.DataFrame) -> Union[Any, go.Figure]:
     """
     try:
         from dash import dash_table
-    except Exception:
+    except (ImportError, ModuleNotFoundError):
         fig = go.Figure(
             data=[
                 go.Table(

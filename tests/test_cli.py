@@ -1,5 +1,4 @@
 from pathlib import Path
-import sys
 import yaml
 
 from pa_core.cli import main

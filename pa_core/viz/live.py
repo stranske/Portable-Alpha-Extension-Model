@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 
 try:
     import websockets
-except Exception:  # pragma: no cover - optional dep
+except (ImportError, ModuleNotFoundError):  # pragma: no cover - optional dep
     websockets = None
 
 
