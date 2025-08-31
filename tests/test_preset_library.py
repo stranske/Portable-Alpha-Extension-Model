@@ -51,7 +51,6 @@ preset_b:
   rho: 0.35
 """
     
-    import pytest
     with pytest.raises(ValueError, match="Duplicate preset IDs"):
         lib.load_yaml_str(duplicate_yaml)
 
