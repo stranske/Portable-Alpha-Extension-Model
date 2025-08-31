@@ -1,0 +1,46 @@
+name: Release Packaging
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build-portable-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install package (for console scripts)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Generate OS launchers (bat/command)
+        run: |
+          pa-create-launchers pa pa-dashboard --output launchers
+
+      - name: Build portable Windows zip
+        run: |
+          pa-make-zip --output portable_windows.zip
+
+      - name: Upload artifact (workflow)
+        uses: actions/upload-artifact@v4
+        with:
+          name: portable_windows
+          path: portable_windows.zip
+
+      - name: Attach asset to GitHub Release
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: portable_windows.zip
