@@ -1,6 +1,6 @@
 {
-  "git_commit": "0d0abd2376ae1cb30263234e3f09c1a2b1ebcc60",
-  "timestamp": "2025-08-30T20:23:33.937122+00:00",
+  "git_commit": "5a789e7a56516161c5cd58a149ec552b61d450af",
+  "timestamp": "2025-08-31T02:04:40.374226+00:00",
   "seed": null,
   "config": {
     "N_SIMULATIONS": 1000,
@@ -47,12 +47,12 @@
   "data_files": {
     "sp500tr_fred_divyield.csv": "ec6bf57e8eacb6b97f5ca79bbafb9906d67ae972c1cab1b4c0a57187bfcd640d",
     "my_first_scenario.yml": "1ac0905b8d0242f4b153f6107d8be2f96be526cc506019c37a06df826a4e9a26",
-    "Test_Field_Mappings.xlsx": "1ecb36499434cf6c77be945be4ae9f34fa5eddbe7f0391c9da9e7fa28977d612"
+    "ValidationTest.xlsx": "9ed913c5a0b46e274a365a528fad94b4069b4ce15eae0066a37730f90599e73f"
   },
   "cli_args": {
     "config": "my_first_scenario.yml",
     "index": "sp500tr_fred_divyield.csv",
-    "output": "Test_Field_Mappings.xlsx",
+    "output": "ValidationTest.xlsx",
     "mode": "returns",
     "stress_preset": null,
     "pivot": false,
