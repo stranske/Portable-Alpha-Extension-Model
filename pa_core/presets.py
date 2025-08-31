@@ -121,7 +121,8 @@ class PresetLibrary:
             raise ValueError(f"Duplicate preset IDs found in input: {', '.join(duplicates)}")
         self._presets = {}
         for p in data.values():
-            self.add(AlphaPreset(**p))
+            preset = AlphaPreset(**p)
+            self._presets[preset.id] = preset
 
     @property
     def presets(self) -> Dict[str, AlphaPreset]:
