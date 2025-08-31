@@ -169,7 +169,19 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     missing = required_cols - set(df.columns)
     
     if missing:
-        raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
+        raise ValueError(
+            f"Margin schedule CSV file missing required columns: {missing}"
+        )
+    df = df.sort_values("term")
+
+    if (df["term"] < 0).any():
+        raise ValueError("Margin schedule terms must be non-negative")
+    if (df["multiplier"] <= 0).any():
+        raise ValueError("Margin schedule multipliers must be positive")
+    if df["term"].duplicated().any():
+        raise ValueError("Margin schedule terms must not contain duplicates")
+    if df["term"].diff().dropna().le(0).any():
+        raise ValueError("Margin schedule terms must be strictly increasing (each term must be greater than the previous)")
     return df.sort_values("term")
 
 
