@@ -1,6 +1,4 @@
 import numpy as np
-import pytest
-from pathlib import Path
 
 from pa_core.sim.metrics import (
     annualised_return,

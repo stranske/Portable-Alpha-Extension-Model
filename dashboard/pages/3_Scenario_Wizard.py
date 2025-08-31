@@ -10,6 +10,7 @@ from typing import Dict, Any
 import streamlit as st
 
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
+from dashboard.glossary import tooltip
 from pa_core import cli as pa_cli
 from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
 
@@ -83,7 +84,7 @@ def _render_step_1_analysis_mode(config: WizardScenarioConfig) -> WizardScenario
         )
         
         config.n_months = st.number_input(
-            "Simulation Horizon (months)",
+            "Simulation Horizon [months]",
             min_value=1,
             max_value=60,
             value=config.n_months,
@@ -122,7 +123,7 @@ def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig
         )
         
         config.external_pa_capital = st.number_input(
-            "External PA Capital",
+            "External PA Capital [$M]",
             min_value=0.0,
             max_value=config.total_fund_capital,
             value=config.external_pa_capital,
@@ -132,7 +133,7 @@ def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig
         )
         
         config.active_ext_capital = st.number_input(
-            "Active Extension Capital", 
+            "Active Extension Capital [$M]", 
             min_value=0.0,
             max_value=config.total_fund_capital,
             value=config.active_ext_capital,
@@ -144,7 +145,7 @@ def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig
         # Calculate remaining capital
         remaining = config.total_fund_capital - config.external_pa_capital - config.active_ext_capital
         config.internal_pa_capital = st.number_input(
-            "Internal PA Capital",
+            "Internal PA Capital [$M]",
             min_value=0.0,
             value=max(0.0, remaining),
             step=5.0,
@@ -182,7 +183,7 @@ def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig
             max_value=1.0,
             value=config.active_share,
             step=0.05,
-            help="Active share for equity overlay strategy"
+            help=tooltip("active share")
         )
     
     # Validation and visualization
@@ -235,7 +236,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
         st.markdown("**Expected Returns (Annual %):**")
         
         config.mu_h = st.number_input(
-            "In-House Alpha Return",
+            "In-House Alpha Return [annual %]",
             value=config.mu_h * 100,
             step=0.5,
             format="%.2f",
@@ -243,7 +244,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
         ) / 100
         
         config.mu_e = st.number_input(
-            "Extension Alpha Return",
+            "Extension Alpha Return [annual %]",
             value=config.mu_e * 100,
             step=0.5,
             format="%.2f", 
@@ -251,7 +252,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
         ) / 100
         
         config.mu_m = st.number_input(
-            "External PA Alpha Return",
+            "External PA Alpha Return [annual %]",
             value=config.mu_m * 100,
             step=0.5,
             format="%.2f",
@@ -262,7 +263,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
         st.markdown("**Volatility (Annual %):**")
         
         config.sigma_h = st.number_input(
-            "In-House Alpha Volatility",
+            "In-House Alpha Volatility [annual %]",
             min_value=0.01,
             value=config.sigma_h * 100,
             step=0.1,
@@ -271,7 +272,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
         ) / 100
         
         config.sigma_e = st.number_input(
-            "Extension Alpha Volatility",
+            "Extension Alpha Volatility [annual %]",
             min_value=0.01,
             value=config.sigma_e * 100,
             step=0.1,
@@ -280,7 +281,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
         ) / 100
         
         config.sigma_m = st.number_input(
-            "External PA Alpha Volatility",
+            "External PA Alpha Volatility [annual %]",
             min_value=0.01,
             value=config.sigma_m * 100,
             step=0.1,

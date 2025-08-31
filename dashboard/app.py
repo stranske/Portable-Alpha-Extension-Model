@@ -10,6 +10,8 @@ from types import ModuleType
 import pandas as pd
 import streamlit as st
 
+from dashboard.glossary import GLOSSARY
+
 PLOTS: dict[str, str] = {
     "Headline": "pa_core.viz.risk_return.make",
     "Funding fan": "pa_core.viz.fan.make",
@@ -72,6 +74,10 @@ def main() -> None:
 
     st.title("Portable Alpha Dashboard")
     st.write("Select a page from the sidebar or use the links below to begin.")
+
+    with st.sidebar.expander("Glossary"):
+        for term, definition in GLOSSARY.items():
+            st.markdown(f"**{term}** – {definition}")
 
     st.page_link("pages/1_Asset_Library.py", label="Asset Library")
     st.page_link("pages/2_Portfolio_Builder.py", label="Portfolio Builder")
