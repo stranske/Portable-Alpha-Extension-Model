@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 
 try:
     from PyPDF2 import PdfMerger
-except Exception:  # pragma: no cover - optional dep
+except (ImportError, ModuleNotFoundError):  # pragma: no cover - optional dep
     PdfMerger = None
 
 

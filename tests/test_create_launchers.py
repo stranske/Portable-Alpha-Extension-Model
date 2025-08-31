@@ -1,13 +1,7 @@
-import sys
-from pathlib import Path
-
-root = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(root))
-
 from scripts.create_launchers import (
     make_mac_launcher,
     make_windows_launcher,
-)  # noqa: E402
+)
 
 
 def test_make_launchers(tmp_path):

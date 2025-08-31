@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from . import theme
+from .utils import safe_to_numpy
 
 
 def _rolling_drawdown(paths: np.ndarray, window: int) -> np.ndarray:
@@ -15,15 +16,8 @@ def _rolling_drawdown(paths: np.ndarray, window: int) -> np.ndarray:
     roll_max = pd.Series(median).cummax()
     dd = 1 - median / roll_max
     
-    try:
-        return (  # type: ignore[no-any-return]
-            pd.Series(dd).rolling(window, min_periods=1).max().to_numpy()
-        )
-    except (ValueError, TypeError):
-        # Handle potential issues with non-numeric data or conversion errors
-        # Fill NaN values and try again
-        clean_dd = pd.Series(dd).fillna(0.0)
-        return clean_dd.rolling(window, min_periods=1).max().to_numpy()  # type: ignore[no-any-return]
+    rolled_series = pd.Series(dd).rolling(window, min_periods=1).max()
+    return safe_to_numpy(rolled_series)  # type: ignore[no-any-return]
 
 
 def _rolling_te(paths: np.ndarray, window: int) -> np.ndarray:
@@ -39,13 +33,8 @@ def _rolling_sharpe(paths: np.ndarray, window: int) -> np.ndarray:
     roll_std = returns.rolling(window, axis=1, min_periods=1).std()
     sharpe = roll_mean / roll_std
     
-    try:
-        return sharpe.mean(axis=0).to_numpy() * np.sqrt(12)  # type: ignore[no-any-return]
-    except (ValueError, TypeError):
-        # Handle potential issues with non-numeric data or conversion errors
-        # Fill NaN values and try again
-        clean_sharpe = sharpe.fillna(0.0)
-        return clean_sharpe.mean(axis=0).to_numpy() * np.sqrt(12)  # type: ignore[no-any-return]
+    sharpe_series = sharpe.mean(axis=0)
+    return safe_to_numpy(sharpe_series) * np.sqrt(12)  # type: ignore[no-any-return]
 
 
 def make(df_paths: pd.DataFrame | np.ndarray, window: int = 12) -> go.Figure:

@@ -1,10 +1,6 @@
 from pathlib import Path
-import sys
-
 import yaml
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 from pa_core.cli import main
 
 
