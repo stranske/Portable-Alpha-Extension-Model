@@ -2,10 +2,8 @@ from __future__ import annotations
 
 # ruff: noqa: E402
 
-from pathlib import Path
 import numpy as np
 import pytest
-from typing import Tuple
 
 from pa_core.agents.risk_metrics import RiskMetricsAgent
 from pa_core.sim.metrics import (
