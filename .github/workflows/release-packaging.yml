@@ -27,11 +27,11 @@ jobs:
 
       - name: Generate OS launchers (bat/command)
         run: |
-          pa-create-launchers pa pa-dashboard --output launchers
+          python -m scripts.create_launchers pa pa-dashboard --output launchers
 
       - name: Build portable Windows zip
         run: |
-          pa-make-zip --output portable_windows.zip
+          python -m scripts.make_portable_zip --output portable_windows.zip
 
       - name: Upload artifact (workflow)
         uses: actions/upload-artifact@v4
