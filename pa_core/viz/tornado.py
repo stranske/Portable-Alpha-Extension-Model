@@ -9,7 +9,7 @@ try:  # theme is optional when loading module standalone
     from . import theme
 
     TEMPLATE = theme.TEMPLATE
-except Exception:  # pragma: no cover - fallback when package not fully available
+except (ImportError, ModuleNotFoundError):  # pragma: no cover - fallback when package not fully available
     TEMPLATE = None
 
 
