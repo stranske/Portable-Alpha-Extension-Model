@@ -106,11 +106,24 @@ class PresetLibrary:
         duplicate_ids = {id for id in ids if ids.count(id) > 1}
         if duplicate_ids:
             raise ValueError(f"Duplicate preset IDs found in input: {', '.join(duplicate_ids)}")
+        
+        # Validate that each preset.id matches its dictionary key
+        for key, preset_data in data.items():
+            preset_id = preset_data.get("id")
+            if preset_id != key:
+                raise ValueError(f"Preset ID '{preset_id}' does not match its key '{key}'")
+        
         self._presets = {}
         for p in data.values():
             self.add(AlphaPreset(**p))
     def load_json_str(self, text: str) -> None:
         data = json.loads(text)
+        # Validate that each preset.id matches its dictionary key
+        for key, preset_data in data.items():
+            preset_id = preset_data.get("id")
+            if preset_id != key:
+                raise ValueError(f"Preset ID '{preset_id}' does not match its key '{key}'")
+        
         self._presets = {}
         for p in data.values():
             self.add(AlphaPreset(**p))
