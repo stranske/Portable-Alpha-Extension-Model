@@ -64,15 +64,13 @@ def load_index_returns(path: str | Path) -> pd.Series:
     """
     df = pd.read_csv(path)
     if df.shape[1] == 1:
-        series = df.iloc[:, 0]
+        raw = df.iloc[:, 0]
     else:
-        series = df.iloc[:, 1]
-    
-    # Convert to numeric, coercing errors to NaN
-    series = pd.to_numeric(series, errors='coerce')
-    
-    # Drop NaN values (which includes originally non-numeric entries)
-    series = series.dropna()
+        raw = df.iloc[:, 1]
+
+    # Convert to numeric, coerce errors to NaN, then wrap as Series to satisfy typing
+    numeric = pd.to_numeric(raw, errors='coerce')
+    series = pd.Series(numeric).dropna()
     
     if len(series) == 0:
         raise ValueError(f"No valid numeric data found in CSV file: {path}")

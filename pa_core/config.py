@@ -20,7 +20,7 @@ class ConfigError(ValueError):
 __all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings"]
 
 
-def get_field_mappings(model_class: type[BaseModel] = None) -> Dict[str, str]:
+def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
     """
     Extract field mappings from a Pydantic model.
     

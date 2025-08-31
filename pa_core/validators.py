@@ -179,7 +179,8 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     if (df["multiplier"] <= 0).any():
         raise ValueError("Margin schedule multipliers must be positive")
     if df["term"].duplicated().any():
-        raise ValueError("Margin schedule terms must not contain duplicates")
+            "Margin schedule terms must not contain duplicates (each term must be unique)"
+        )
     if df["term"].diff().dropna().le(0).any():
         raise ValueError("Margin schedule terms must be strictly increasing (each term must be greater than the previous)")
     return df.sort_values("term")
@@ -257,7 +258,7 @@ def validate_capital_allocation(
     )
 
     # Check basic capital allocation
-    if total_allocated > total_fund_capital:
+    if float(total_allocated) > float(total_fund_capital):
         results.append(
             ValidationResult(
                 is_valid=False,
@@ -299,9 +300,7 @@ def validate_capital_allocation(
         available_buffer / total_fund_capital if total_fund_capital > 0 else 0
     )
 
-    if (
-        buffer_ratio < LOW_BUFFER_THRESHOLD
-    ):  # Use named constant instead of magic number
+    if float(buffer_ratio) < float(LOW_BUFFER_THRESHOLD):  # numeric comparison only
         severity = "warning" if buffer_ratio >= 0 else "error"
         results.append(
             ValidationResult(

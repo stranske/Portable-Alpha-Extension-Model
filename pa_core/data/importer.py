@@ -97,10 +97,11 @@ class DataImportAgent:
             long_df = long_df.dropna(subset=["return"])
 
             if self.frequency == "daily":
+                # Compound daily returns into month-end returns
                 long_df = (
                     long_df.set_index("date")
                     .groupby("id")["return"]
-                    .apply(lambda s: (1 + s * 365).resample("ME").prod() - 1)
+                    .apply(lambda s: (1 + s).resample("ME").prod() - 1)
                     .dropna()
                     .reset_index()
                 )
@@ -113,7 +114,7 @@ class DataImportAgent:
         bad = cast(pd.Series, counts[counts < self.min_obs])
         if not bad.empty:
             max_ids = 10
-            id_list = sorted(bad.index.astype(str))
+            id_list = [str(x) for x in sorted(bad.index.tolist())]
             shown_ids = id_list[:max_ids]
             ids_str = ", ".join(shown_ids)
             if len(id_list) > max_ids:
@@ -162,5 +163,22 @@ class DataImportAgent:
         """Create an instance from a previously saved mapping template."""
         data = yaml.safe_load(Path(path).read_text())
         if not isinstance(data, dict):
-            raise TypeError(f"Invalid template file: expected YAML dictionary but got {type(data).__name__}")
+            raise TypeError(
+                f"Invalid template file: expected YAML dictionary but got {type(data).__name__}"
+            )
+        # Only keep known keys with expected types
+        allowed = {
+            "date_col": str,
+            "id_col": str,
+            "value_col": str,
+            "wide": bool,
+            "value_type": str,
+            "frequency": str,
+            "min_obs": int,
+        }
+        kwargs: Dict[str, Any] = {}
+        for key, typ in allowed.items():
+            if key in data:
+                kwargs[key] = data[key]
+        return cls(**kwargs)
 

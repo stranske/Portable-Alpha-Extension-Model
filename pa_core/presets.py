@@ -69,11 +69,17 @@ class PresetLibrary:
 
     # Serialization helpers
     def to_dict(self) -> Dict[str, Dict[str, float]]:
-        return {pid: asdict(p) for pid, p in self._presets.items()}
+        # Ensure the nested dict contains the id key as well for round-trip
+        out: Dict[str, Dict[str, float]] = {}
+        for pid, p in self._presets.items():
+            d = asdict(p)
+            d["id"] = p.id
+            out[pid] = d  # type: ignore[assignment]
+        return out
 
     @classmethod
     def from_dict(cls, data: Dict[str, Dict[str, float]]) -> "PresetLibrary":
-        presets = [AlphaPreset(**v) for v in data.values()]
+        presets = [AlphaPreset(id=k, mu=v["mu"], sigma=v["sigma"], rho=v["rho"]) for k, v in data.items()]
         return cls(presets)
 
     # YAML/JSON import/export
