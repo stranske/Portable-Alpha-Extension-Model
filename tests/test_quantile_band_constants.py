@@ -108,8 +108,8 @@ class TestQuantileBandConstants:
         assert len(default_value) == 2
         
         # Check that the default values match our constants
-        # Note: We can't directly compare the objects since they might be 
-        # evaluated expressions, so we compare the actual values
+        # Note: We can't directly compare the objects since they might be evaluated expressions,
+        # so we compare the actual values.
         default_lower, default_upper = default_value
         assert default_lower == DEFAULT_LOWER_QUANTILE
         assert default_upper == DEFAULT_UPPER_QUANTILE
