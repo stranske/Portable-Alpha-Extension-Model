@@ -160,8 +160,6 @@ class DataImportAgent:
     @classmethod
     def from_template(cls, path: str | Path) -> "DataImportAgent":
         """Create an instance from a previously saved mapping template."""
-        import yaml
-        
         data = yaml.safe_load(Path(path).read_text())
         if not isinstance(data, dict):
             raise TypeError(f"Invalid template file: expected YAML dictionary but got {type(data).__name__}")

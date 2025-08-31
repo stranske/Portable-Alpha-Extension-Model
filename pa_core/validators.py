@@ -161,9 +161,13 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     ensures terms are non-negative, multipliers are positive and the term
     structure is strictly increasing to avoid interpolation ambiguities.
     """
+    if not path.exists():
+        raise FileNotFoundError(f"Margin schedule file not found: {path}")
+    
     df = pd.read_csv(path)
-    required_columns = {"term", "multiplier"}
-    missing = required_columns - set(df.columns)
+    required_cols = {"term", "multiplier"}
+    missing = required_cols - set(df.columns)
+    
     if missing:
         raise ValueError(
             f"Margin schedule CSV file missing required columns: {missing}"
@@ -178,8 +182,7 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
         raise ValueError("Margin schedule terms must not contain duplicates")
     if df["term"].diff().dropna().le(0).any():
         raise ValueError("Margin schedule terms must be strictly increasing (each term must be greater than the previous)")
-
-    return df
+    return df.sort_values("term")
 
 
 def calculate_margin_requirement(
