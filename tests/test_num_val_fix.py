@@ -1,5 +1,5 @@
 """
-Test the num_val undefined variable fix in pa_core/pa.py
+'Tests for CSV to YAML conversion edge cases that previously caused undefined variable errors in _convert_csv_to_yaml function.'
 """
 
 import tempfile
