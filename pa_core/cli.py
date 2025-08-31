@@ -45,6 +45,7 @@ from .sim.metrics import summary_table
 from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
+from .viz.utils import safe_to_numpy
 
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
@@ -421,7 +422,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
         if flags.gif:
             try:
-                arr = next(iter(raw_returns_dict.values())).to_numpy()
+                arr = safe_to_numpy(next(iter(raw_returns_dict.values())))
             except (ValueError, TypeError) as e:
                 print(f"❌ GIF export failed: Data conversion error - {e}")
                 print("💡 Check that return data contains only numeric values")

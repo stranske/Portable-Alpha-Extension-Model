@@ -2,7 +2,7 @@
 
 try:  # pragma: no cover - optional dependency
     from . import viz
-except Exception:  # pragma: no cover - viz may require heavy deps
+except (ImportError, ModuleNotFoundError):  # pragma: no cover - viz may require heavy deps
     viz = None
 
 from .agents import (
@@ -22,6 +22,7 @@ from .backend import get_backend, set_backend
 from .config import ConfigError, ModelConfig, load_config
 from .data import load_index_returns
 from .random import spawn_agent_rngs, spawn_rngs
+
 try:  # pragma: no cover - optional heavy deps
     from .reporting import export_to_excel, print_summary
     from .reporting.sweep_excel import export_sweep_results
@@ -46,8 +47,13 @@ from .sim.metrics import (
     tracking_error,
     value_at_risk,
 )
-from .sweep import run_parameter_sweep, run_parameter_sweep_cached, sweep_results_to_dataframe
+from .sweep import (
+    run_parameter_sweep,
+    run_parameter_sweep_cached,
+    sweep_results_to_dataframe,
+)
 from .stress import STRESS_PRESETS, apply_stress_preset
+from .presets import AlphaPreset, PresetLibrary
 from .validators import (
     ValidationResult,
     PSDProjectionInfo,
@@ -81,6 +87,8 @@ __all__ = [
     "sweep_results_to_dataframe",
     "apply_stress_preset",
     "STRESS_PRESETS",
+    "AlphaPreset",
+    "PresetLibrary",
     "tracking_error",
     "value_at_risk",
     "compound",
@@ -107,7 +115,7 @@ __all__ = [
     "viz",
     # Validation functions
     "ValidationResult",
-    "PSDProjectionInfo", 
+    "PSDProjectionInfo",
     "validate_correlations",
     "validate_covariance_matrix_psd",
     "validate_capital_allocation",

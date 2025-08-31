@@ -2,16 +2,11 @@ from __future__ import annotations
 
 import runpy
 import sys
-import types
 from pathlib import Path
 
 
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(root / "pa_core")]
-sys.modules.setdefault("pa_core", PKG)
-
 
 class Uploaded:
     def __init__(self, path: Path):
@@ -31,15 +26,42 @@ def test_asset_library_calibration(monkeypatch):
     )
     module["main"].__globals__["apply_theme"] = lambda *a, **k: None
     monkeypatch.setattr(st_mod, "title", lambda *a, **k: None)
-    monkeypatch.setattr(st_mod, "file_uploader", lambda *a, **k: uploaded)
+
+    uploads = [uploaded, None]
+
+    def fake_uploader(*a, **k):
+        return uploads.pop(0)
+
+    monkeypatch.setattr(st_mod, "file_uploader", fake_uploader)
     monkeypatch.setattr(st_mod, "dataframe", lambda *a, **k: None)
     monkeypatch.setattr(st_mod, "json", lambda *a, **k: None)
-    monkeypatch.setattr(st_mod, "selectbox", lambda *a, **k: "SP500_TR")
-    monkeypatch.setattr(st_mod, "button", lambda *a, **k: True)
+
+    selects = ["SP500_TR", ""]
+    monkeypatch.setattr(st_mod, "selectbox", lambda *a, **k: selects.pop(0))
+
+    buttons = [True, False]
+    monkeypatch.setattr(st_mod, "button", lambda *a, **k: buttons.pop(0))
+
+    monkeypatch.setattr(st_mod, "subheader", lambda *a, **k: None)
+    st_mod.session_state = {}
+
+    class DummyForm:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(st_mod, "form", lambda *a, **k: DummyForm())
+    monkeypatch.setattr(st_mod, "text_input", lambda *a, **k: "")
+    monkeypatch.setattr(st_mod, "number_input", lambda *a, **k: 0.0)
+    monkeypatch.setattr(st_mod, "form_submit_button", lambda *a, **k: False)
+
     captured: dict[str, str] = {}
 
     def fake_download(label, data, **kwargs):
-        captured["data"] = data
+        if label == "Download Asset Library YAML":
+            captured["data"] = data
 
     monkeypatch.setattr(st_mod, "download_button", fake_download)
     from pa_core.data import DataImportAgent as RealImporter
@@ -49,4 +71,3 @@ def test_asset_library_calibration(monkeypatch):
     )
     module["main"]()
     assert "SP500_TR" in captured["data"]
-

@@ -10,13 +10,6 @@ import pytest
 import yaml
 from pandas.testing import assert_frame_equal
 
-import types
-import sys
-
-PKG = types.ModuleType("pa_core")
-PKG.__path__ = [str(Path("pa_core"))]
-sys.modules.setdefault("pa_core", PKG)
-
 from pa_core.data import CalibrationAgent, DataImportAgent
 
 
