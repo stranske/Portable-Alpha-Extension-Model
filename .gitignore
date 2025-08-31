@@ -41,3 +41,7 @@ Thumbs.db
 
 # local/vendor scripts, not part of code
 get-pip.py
+
+# Local sample data (do not commit)
+my_first_scenario.csv
+parameters.csv
