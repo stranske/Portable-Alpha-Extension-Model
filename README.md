@@ -6,6 +6,15 @@
 Portable Alpha + Active Extension Model Specification
 Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
 
+## Plain-English Primer
+
+If you're new to the project, start with the [primer](docs/primer.md) for simple definitions of terms like **active share**, **tracking error (TE)** and **CVaR**. A quick way to explore the model is via the command line:
+
+```bash
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
+python -m dashboard.cli  # launch Streamlit dashboard
+```
+
 ## Quick Start
 
 ### 🚀 GitHub Codespaces (Recommended)

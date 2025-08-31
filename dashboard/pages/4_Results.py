@@ -18,6 +18,7 @@ from dashboard.app import (
     apply_theme,
     load_data,
 )
+from dashboard.glossary import tooltip
 
 
 def main() -> None:
@@ -38,6 +39,15 @@ def main() -> None:
             st.caption(f"Seed: {seed}")
 
     months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
+
+    st.subheader("Key Metrics")
+    col1, col2, col3 = st.columns(3)
+    if "TrackingErr" in summary:
+        col1.metric("Tracking Error", f"{summary['TrackingErr'].mean():.2%}", help=tooltip("TE"))
+    if "CVaR" in summary:
+        col2.metric("CVaR", f"{summary['CVaR'].mean():.2%}", help=tooltip("CVaR"))
+    if "BreachProb" in summary:
+        col3.metric("Breach Prob", f"{summary['BreachProb'].mean():.2%}", help=tooltip("breach probability"))
 
     if "Config" in summary.columns:
         config_options = summary["Config"].unique().tolist()
