@@ -68,7 +68,6 @@ preset_a:
   rho: 0.3
 """
     
-    import pytest
     with pytest.raises(ValueError, match="Preset ID 'different_id' does not match its key 'preset_a'"):
         lib.load_yaml_str(mismatched_yaml)
 
@@ -93,7 +92,6 @@ def test_load_json_str_duplicate_validation():
   }
 }"""
     
-    import pytest
     # This should fail because same_id != preset_b 
     with pytest.raises(ValueError, match="Preset ID 'same_id' does not match its key 'preset_b'"):
         lib.load_json_str(mismatched_duplicate_json)
@@ -117,7 +115,6 @@ def test_load_json_str_add_method_duplicate_validation():
   }
 }"""
     
-    import pytest
     # This should fail with key mismatch first
     with pytest.raises(ValueError, match="Preset ID 'existing_preset' does not match its key 'new_key'"):
         lib.load_json_str(json_with_existing_id)
@@ -152,6 +149,5 @@ def test_load_json_str_id_mismatch_validation():
   }
 }"""
     
-    import pytest
     with pytest.raises(ValueError, match="Preset ID 'different_id' does not match its key 'preset_a'"):
         lib.load_json_str(mismatched_json)
