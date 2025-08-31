@@ -60,8 +60,9 @@ def test_asset_library_calibration(monkeypatch):
     captured: dict[str, str] = {}
 
     def fake_download(label, data, **kwargs):
-        captured["label"] = label
-        captured["data"] = data
+        if label == "Download Asset Library YAML":
+            captured["label"] = label
+            captured["data"] = data
 
     monkeypatch.setattr(st_mod, "download_button", fake_download)
     from pa_core.data import DataImportAgent as RealImporter
