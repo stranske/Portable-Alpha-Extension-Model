@@ -1,10 +1,8 @@
-"""Scenario Grid & Frontier explorer (scaffold).
+"""Placeholder for Scenario Grid & Frontier page.
 
-This page provides a minimal UI to visualise a parameter grid heatmap
-using existing viz helpers. It will be extended to compute sweeps from
-``ModelConfig`` and support promoting a selected cell to the Portfolio
-Builder. For now, it accepts a CSV upload shaped like the test fixture
-(`AE_leverage`, `ExtPA_frac`, `Sharpe`) and renders a heatmap.
+This branch focuses on Stress Lab UI (#382). The full Scenario Grid implementation
+is available on its feature branch. This stub exists so dashboard tests that import
+pages continue to pass.
 """
 
 from __future__ import annotations

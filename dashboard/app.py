@@ -84,6 +84,7 @@ def main() -> None:
     st.page_link("pages/3_Scenario_Wizard.py", label="Scenario Wizard")
     st.page_link("pages/4_Results.py", label="Results")
     st.page_link("pages/5_Scenario_Grid.py", label="Scenario Grid & Frontier (beta)")
+    st.page_link("pages/6_Stress_Lab.py", label="Stress Lab (presets)")
 
     history = load_history()
     if history is not None:

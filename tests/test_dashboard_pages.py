@@ -8,9 +8,9 @@ PAGES = [
     Path("dashboard/pages/2_Portfolio_Builder.py"), 
     Path("dashboard/pages/3_Scenario_Wizard.py"),
     Path("dashboard/pages/4_Results.py"),
-    Path("dashboard/pages/5_Scenario_Grid.py"),
+        Path("dashboard/pages/5_Scenario_Grid.py"),
+        Path("dashboard/pages/6_Stress_Lab.py"),
 ]
-
 
 def test_pages_import() -> None:
     # NOTE: Currently failing due to IndentationError in pa_core/validators.py
