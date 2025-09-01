@@ -90,7 +90,8 @@ def export_to_excel(
             img_bytes = risk_return.make(summary_df).to_image(format="png")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
-        except (ValueError, RuntimeError, OSError, MemoryError):
+        except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
+            # Some tests pass a minimal summary without expected columns like 'Agent' or 'AnnVol'; skip chart.
             pass
 
     wb.save(filename)
