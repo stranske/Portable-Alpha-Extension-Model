@@ -19,11 +19,38 @@ def main() -> None:
     apply_theme(theme_path)
 
     # Show any promoted alpha shares from Scenario Grid
+    promoted_active_share: float | None = None
+    promoted_theta: float | None = None
     if "promoted_alpha_shares" in st.session_state:
         vals = st.session_state["promoted_alpha_shares"]
+        except (TypeError, ValueError, KeyError):
+            promoted_active_share = None
+            promoted_theta = None
         st.info(
-            f"Promoted alpha shares: active_share={vals.get('active_share'):.2f}, "
-            f"theta_extpa={vals.get('theta_extpa'):.2f}"
+            (
+                "Promoted alpha shares from Scenario Grid "
+                f"(active_share={(promoted_active_share or 0.0):.2f}, "
+                f"theta_extpa={(promoted_theta or 0.0):.2f})"
+            )
+        )
+
+    # Optional alpha-share annotation (pre-populated when promoted)
+    with st.expander("Alpha Shares (annotation – included in download)", expanded=bool(promoted_active_share or promoted_theta)):
+        active_share_input = st.number_input(
+            "Active share [0..1]",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.01,
+            value=(promoted_active_share if promoted_active_share is not None else 0.5),
+            help="Optional. Included in the exported YAML under alpha_shares metadata.",
+        )
+        theta_extpa_input = st.number_input(
+            "External PA alpha fraction θ [0..1]",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.01,
+            value=(promoted_theta if promoted_theta is not None else 0.5),
+            help="Optional. Included in the exported YAML under alpha_shares metadata.",
         )
 
     uploaded = st.file_uploader("Upload Asset Library YAML", type=["yaml", "yml"])
@@ -59,7 +86,13 @@ def main() -> None:
     if st.button("Generate Portfolio"):
         try:
             scenario.portfolios = [Portfolio(id="portfolio1", weights=weights)]
-            yaml_str = yaml.safe_dump(scenario.model_dump())
+            data = scenario.model_dump()
+            # Attach alpha-share annotations if provided
+            data["alpha_shares"] = {
+                "active_share": float(active_share_input),
+                "theta_extpa": float(theta_extpa_input),
+            }
+            yaml_str = yaml.safe_dump(data, sort_keys=False)
             st.download_button(
                 "Download Portfolio YAML",
                 yaml_str,
