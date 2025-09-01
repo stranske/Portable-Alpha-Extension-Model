@@ -23,10 +23,7 @@ def main() -> None:
     promoted_theta: float | None = None
     if "promoted_alpha_shares" in st.session_state:
         vals = st.session_state["promoted_alpha_shares"]
-        try:
-            promoted_active_share = float(vals.get("active_share"))
-            promoted_theta = float(vals.get("theta_extpa"))
-        except Exception:
+        except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
         st.info(
