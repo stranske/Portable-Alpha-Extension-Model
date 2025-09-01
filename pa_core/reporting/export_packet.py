@@ -8,7 +8,7 @@ errors when static chart export is unavailable.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Iterable, Sequence, Tuple, IO
+from typing import Any, Iterable, Sequence, Tuple
 
 import io
 import pandas as pd
