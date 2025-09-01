@@ -18,6 +18,14 @@ def main() -> None:
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
 
+    # Show any promoted alpha shares from Scenario Grid
+    if "promoted_alpha_shares" in st.session_state:
+        vals = st.session_state["promoted_alpha_shares"]
+        st.info(
+            f"Promoted alpha shares: active_share={vals.get('active_share'):.2f}, "
+            f"theta_extpa={vals.get('theta_extpa'):.2f}"
+        )
+
     uploaded = st.file_uploader("Upload Asset Library YAML", type=["yaml", "yml"])
     if uploaded is None:
         st.info("Upload an asset library YAML to begin.")
