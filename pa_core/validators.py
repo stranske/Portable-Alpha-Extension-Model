@@ -178,6 +178,8 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
         raise ValueError("Margin schedule terms must be non-negative")
     if bool((df["multiplier"] <= 0).any()):
         raise ValueError("Margin schedule multipliers must be positive")
+    if bool(df["term"].duplicated().any()):
+        raise ValueError(
             "Margin schedule terms must not contain duplicates (each term value must be unique)"
         )
     if bool(df["term"].diff().dropna().le(0).any()):

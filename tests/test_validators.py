@@ -225,7 +225,7 @@ class TestMarginScheduleValidation:
         csv = "term,multiplier\n1,2\n1,3\n"
         path = tmp_path / "sched.csv"
         path.write_text(csv)
-        with pytest.raises(ValueError, match="strictly increasing"):
+        with pytest.raises(ValueError, match="must not contain duplicates"):
             load_margin_schedule(path)
 
     def test_negative_term(self, tmp_path: Path):
