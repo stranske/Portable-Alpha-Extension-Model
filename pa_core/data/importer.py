@@ -26,6 +26,11 @@ class DataImportAgent:
         value_type: Literal["returns", "prices"] = "returns",
         frequency: Literal["monthly", "daily"] = "monthly",
         min_obs: int = 36,
+        # Optional I/O parsing controls
+        sheet_name: str | int | None = None,
+        na_values: list[str] | None = None,
+        decimal: str = ".",
+        thousands: str | None = None,
     ) -> None:
         self.date_col = date_col
         self.id_col = id_col
@@ -34,14 +39,29 @@ class DataImportAgent:
         self.value_type = value_type
         self.frequency = frequency
         self.min_obs = min_obs
+        # I/O parsing options (safe defaults keep existing behavior)
+        self.sheet_name = sheet_name
+        self.na_values = na_values
+        self.decimal = decimal
+        self.thousands = thousands
         self.metadata: Dict[str, Any] | None = None
 
     def load(self, path: str | Path) -> pd.DataFrame:
         p = Path(path)
         if p.suffix.lower() == ".csv":
-            df = pd.read_csv(p)
+            csv_kwargs: Dict[str, Any] = {}
+            if self.na_values is not None:
+                csv_kwargs["na_values"] = self.na_values
+            if self.decimal:
+                csv_kwargs["decimal"] = self.decimal
+            if self.thousands is not None:
+                csv_kwargs["thousands"] = self.thousands
+            df = pd.read_csv(p, **csv_kwargs)
         elif p.suffix.lower() in {".xlsx", ".xls"}:
-            df = pd.read_excel(p)
+            if self.sheet_name is None:
+                df = pd.read_excel(p)
+            else:
+                df = pd.read_excel(p, sheet_name=self.sheet_name)
         else:
             raise ValueError("unsupported file type")
 
@@ -63,6 +83,8 @@ class DataImportAgent:
                 raise ValueError(f"missing columns: {sorted(missing)}")
             long_df = cast(pd.DataFrame, df[[self.date_col, self.id_col, self.value_col]].copy())
 
+        # Coerce value column to numeric early; treat non-numeric as NA and drop
+        long_df[self.value_col] = pd.to_numeric(long_df[self.value_col], errors="coerce")
         long_df = cast(pd.DataFrame, long_df.dropna(subset=[self.value_col]))
         long_df = long_df.sort_values(by=[self.date_col, self.id_col])
         long_df = long_df.rename(
@@ -106,6 +128,10 @@ class DataImportAgent:
                     .reset_index()
                 )
 
+        # Ensure we have data after parsing
+        if long_df.empty:
+            raise ValueError("no valid data after parsing")
+
         diffs = long_df.groupby("id")["date"].diff()
         if (diffs.dropna() <= pd.Timedelta(0)).any():
             raise ValueError("dates must be strictly increasing within each id")
@@ -126,6 +152,12 @@ class DataImportAgent:
             "value_type": self.value_type,
             "frequency": self.frequency,
             "wide": self.wide,
+            "io": {
+                "sheet_name": self.sheet_name,
+                "na_values": list(self.na_values) if self.na_values is not None else None,
+                "decimal": self.decimal,
+                "thousands": self.thousands,
+            },
             "columns": {
                 "date": self.date_col,
                 "id": self.id_col,
@@ -155,6 +187,11 @@ class DataImportAgent:
             "value_type": self.value_type,
             "frequency": self.frequency,
             "min_obs": self.min_obs,
+            # I/O options
+            "sheet_name": self.sheet_name,
+            "na_values": list(self.na_values) if self.na_values is not None else None,
+            "decimal": self.decimal,
+            "thousands": self.thousands,
         }
         Path(path).write_text(yaml.safe_dump(data))
 
@@ -175,10 +212,25 @@ class DataImportAgent:
             "value_type": str,
             "frequency": str,
             "min_obs": int,
+            # I/O options
+            "sheet_name": (str | int | type(None)),
+            "na_values": (list | type(None)),
+            "decimal": str,
+            "thousands": (str | type(None)),
         }
         kwargs: Dict[str, Any] = {}
         for key, typ in allowed.items():
             if key in data:
-                kwargs[key] = data[key]
+                value = data[key]
+                # Handle typing for unions (e.g., str | int | type(None))
+                if isinstance(typ, tuple):
+                    expected_types = typ
+                else:
+                    expected_types = (typ,)
+                if not isinstance(value, expected_types):
+                    raise TypeError(
+                        f"Template key '{key}' expects type {expected_types} but got {type(value).__name__}"
+                    )
+                kwargs[key] = value
         return cls(**kwargs)
 
