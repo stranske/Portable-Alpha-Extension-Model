@@ -12,7 +12,6 @@ PAGES = [
         Path("dashboard/pages/6_Stress_Lab.py"),
 ]
 
-
 def test_pages_import() -> None:
     # NOTE: Currently failing due to IndentationError in pa_core/validators.py
     # This test validates that dashboard pages can be imported with proper PYTHONPATH setup
