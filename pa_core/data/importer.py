@@ -219,8 +219,18 @@ class DataImportAgent:
             "thousands": (str | type(None)),
         }
         kwargs: Dict[str, Any] = {}
-        for key in allowed.keys():
+        for key, typ in allowed.items():
             if key in data:
-                kwargs[key] = data[key]
+                value = data[key]
+                # Handle typing for unions (e.g., str | int | type(None))
+                if isinstance(typ, tuple):
+                    expected_types = typ
+                else:
+                    expected_types = (typ,)
+                if not isinstance(value, expected_types):
+                    raise TypeError(
+                        f"Template key '{key}' expects type {expected_types} but got {type(value).__name__}"
+                    )
+                kwargs[key] = value
         return cls(**kwargs)
 
