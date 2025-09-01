@@ -60,8 +60,8 @@ def main() -> None:
                             ys.append(y_best)
                     if xs and ys:
                         fig.add_scatter(x=xs, y=ys, mode="lines+markers", name="Frontier", line=dict(color="white", width=2), marker=dict(color="white"))
-                except Exception:
-                    pass
+                except (ValueError, KeyError) as exc:
+                    st.error(f"Failed to compute frontier overlay: {exc}")
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.error(f"CSV must include columns: {sorted(required)}")
