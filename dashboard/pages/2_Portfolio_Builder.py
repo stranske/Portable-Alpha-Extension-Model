@@ -88,11 +88,10 @@ def main() -> None:
             scenario.portfolios = [Portfolio(id="portfolio1", weights=weights)]
             data = scenario.model_dump()
             # Attach alpha-share annotations if provided
-            if active_share_input is not None and theta_extpa_input is not None:
-                data["alpha_shares"] = {
-                    "active_share": float(active_share_input),
-                    "theta_extpa": float(theta_extpa_input),
-                }
+            data["alpha_shares"] = {
+                "active_share": float(active_share_input),
+                "theta_extpa": float(theta_extpa_input),
+            }
             yaml_str = yaml.safe_dump(data, sort_keys=False)
             st.download_button(
                 "Download Portfolio YAML",
