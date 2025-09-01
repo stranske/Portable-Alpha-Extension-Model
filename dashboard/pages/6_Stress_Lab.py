@@ -24,8 +24,7 @@ def _read_index_csv(file) -> pd.Series:
     data = file.getvalue() if hasattr(file, "getvalue") else file.read()
     df = pd.read_csv(io.BytesIO(data))
     num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
-    if not num_cols:
-        raise ValueError("No numeric column found in index CSV")
+        raise ValueError("No numeric columns found in index CSV. Please ensure the file contains at least one column with numeric data.")
     return pd.Series(df[num_cols[0]].dropna().to_numpy())
 
 
