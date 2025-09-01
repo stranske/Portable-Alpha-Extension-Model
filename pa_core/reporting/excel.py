@@ -90,7 +90,7 @@ def export_to_excel(
             img_bytes = risk_return.make(summary_df).to_image(format="png")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
-        except Exception:
+        except (ValueError, RuntimeError, OSError, MemoryError):
             pass
 
     wb.save(filename)

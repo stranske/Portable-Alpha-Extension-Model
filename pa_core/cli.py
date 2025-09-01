@@ -15,6 +15,7 @@ CLI flags:
 from __future__ import annotations
 
 import argparse
+import json
 from typing import Optional, Sequence, TYPE_CHECKING
 from pathlib import Path
 
@@ -209,9 +210,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         manifest_data = None
         try:
             if manifest_json.exists():
-                import json as _json
-                manifest_data = _json.loads(manifest_json.read_text())
-        except Exception:
+                manifest_data = json.loads(manifest_json.read_text())
+        except (json.JSONDecodeError, FileNotFoundError, PermissionError):
             manifest_data = None
         
         # Handle packet export for parameter sweep mode
@@ -376,9 +376,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 manifest_data = None
                 try:
                     if manifest_json.exists():
-                        import json as _json
-                        manifest_data = _json.loads(manifest_json.read_text())
-                except Exception:
+                        manifest_data = json.loads(manifest_json.read_text())
+                except (json.JSONDecodeError, FileNotFoundError, PermissionError):
                     manifest_data = None
                 pptx_path, excel_path = create_export_packet(
                     figs=[fig],

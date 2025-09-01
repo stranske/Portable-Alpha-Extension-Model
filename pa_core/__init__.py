@@ -26,7 +26,7 @@ from .random import spawn_agent_rngs, spawn_rngs
 try:  # pragma: no cover - optional heavy deps
     from .reporting import export_to_excel, print_summary
     from .reporting.sweep_excel import export_sweep_results
-except Exception:  # pragma: no cover
+except (ImportError, ModuleNotFoundError):  # pragma: no cover
     export_to_excel = print_summary = export_sweep_results = None
 from .run_flags import RunFlags
 from .orchestrator import SimulatorOrchestrator

@@ -4,6 +4,11 @@ import argparse
 import sys
 from pydantic import ValidationError
 
+try:
+    import yaml
+except ImportError:
+    yaml = None
+
 from .schema import load_scenario
 from .config import load_config
 
@@ -26,9 +31,8 @@ def main(argv: list[str] | None = None) -> None:
     except (ValidationError, ValueError) as exc:  # pragma: no cover - reached via SystemExit
         print(exc)
         # For config schema, also surface canonical field names to aid users/tests
-        if args.schema == "config":
+        if args.schema == "config" and yaml is not None:
             try:
-                import yaml  # local import to avoid CLI import-time dependency
                 from pathlib import Path
 
                 data = yaml.safe_load(Path(args.path).read_text()) or {}
@@ -36,7 +40,7 @@ def main(argv: list[str] | None = None) -> None:
                 missing = [k for k in required if k not in data]
                 if missing:
                     print("Missing required field(s): " + ", ".join(missing))
-            except Exception:
+            except (FileNotFoundError, PermissionError, yaml.YAMLError):
                 pass
         sys.exit(1)
     print("OK")

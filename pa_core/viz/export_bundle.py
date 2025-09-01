@@ -22,7 +22,7 @@ def save(
         stem = base.with_name(f"{base.stem}_{i}")
         try:
             fig.write_image(stem.with_suffix(".png"))
-        except Exception:
+        except (ValueError, RuntimeError, OSError, MemoryError):
             # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
             pass
         alt = next(alt_iter, None) if alt_iter else None
