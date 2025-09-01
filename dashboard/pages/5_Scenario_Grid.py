@@ -170,8 +170,10 @@ def main() -> None:
                         file_name="scenario_alpha_shares.yml",
                         mime="application/x-yaml",
                     )
-            except Exception as exc:  # pragma: no cover - runtime UX
-                st.error(f"Sweep failed: {exc}")
+            except ValueError as exc:
+                st.error(f"Invalid configuration: {exc}")
+            except RuntimeError as exc:
+                st.error(f"Simulation failed: {exc}")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
