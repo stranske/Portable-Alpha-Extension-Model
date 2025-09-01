@@ -60,9 +60,9 @@ def main() -> None:
                 )
             with st.form("preset_form"):
                 pid = st.text_input("Preset ID")
-                mu = st.number_input("mu", value=0.0, format="%.4f")
-                sigma = st.number_input("sigma", value=0.0, format="%.4f")
-                rho = st.number_input("rho", value=0.0, format="%.4f")
+                mu = st.number_input("mu [annual %]", value=0.0, format="%.4f", help="Expected annual return as a decimal (e.g., 0.04 for 4%)")
+                sigma = st.number_input("sigma [annual %]", value=0.0, format="%.4f", help="Annual volatility as a decimal (e.g., 0.10 for 10%)")
+                rho = st.number_input("rho [-1..1]", value=0.0, format="%.4f", help="Correlation coefficient between -1 and 1")
                 if st.form_submit_button("Save Preset") and pid:
                     preset = AlphaPreset(id=pid, mu=mu, sigma=sigma, rho=rho)
                     if pid in lib.presets:

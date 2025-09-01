@@ -31,12 +31,17 @@ def main() -> None:
         st.stop()
     summary, paths = load_data(xlsx)
 
+    # Load manifest if available for display and export embedding
+    manifest_data = None
     manifest_path = Path(xlsx).with_name("manifest.json")
     if manifest_path.exists():
-        manifest = json.loads(manifest_path.read_text())
-        seed = manifest.get("seed")
-        if seed is not None:
-            st.caption(f"Seed: {seed}")
+        try:
+            manifest_data = json.loads(manifest_path.read_text())
+            seed = manifest_data.get("seed")
+            if seed is not None:
+                st.caption(f"Seed: {seed}")
+        except Exception:
+            manifest_data = None
 
     months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
 
@@ -133,6 +138,7 @@ def main() -> None:
                         raw_returns_dict=raw_returns_dict,
                         inputs_dict=inputs_dict,
                         base_filename=base_name,
+                        manifest=manifest_data,
                     )
                 
                 st.success("✅ Export packet created!")

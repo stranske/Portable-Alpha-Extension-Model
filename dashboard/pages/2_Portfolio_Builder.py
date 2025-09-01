@@ -35,11 +35,11 @@ def main() -> None:
         st.warning("No assets found in file.")
         return
 
-    st.subheader("Weights") 
+    st.subheader("Weights [sum to 1.0]") 
     weight_inputs: dict[str, float] = {}
     for asset in scenario.assets:
         weight_inputs[asset.id] = st.number_input(
-            asset.id, min_value=0.0, max_value=1.0, step=0.01, value=0.0
+            f"{asset.id} [0..1]", min_value=0.0, max_value=1.0, step=0.01, value=0.0,
         )
     total = sum(weight_inputs.values())
     if total == 0:
