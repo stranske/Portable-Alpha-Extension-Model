@@ -205,6 +205,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             seed=args.seed,
             cli_args=vars(args),
         )
+        manifest_json = Path(args.output).with_name("manifest.json")
+        manifest_data = None
+        try:
+            if manifest_json.exists():
+                import json as _json
+                manifest_data = _json.loads(manifest_json.read_text())
+        except Exception:
+            manifest_data = None
         
         # Handle packet export for parameter sweep mode
         if flags.packet:
@@ -243,6 +251,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                         base_filename=base_name,
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
+                        manifest=manifest_data,
                     )
                     print("✅ Parameter sweep export packet created:")
                     print(f"   📊 Excel: {excel_path}")
@@ -362,6 +371,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 
                 # Use base filename from --output or default
                 base_name = Path(flags.save_xlsx or "committee_packet").stem
+                # Load manifest (if written) for embedding
+                manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+                manifest_data = None
+                try:
+                    if manifest_json.exists():
+                        import json as _json
+                        manifest_data = _json.loads(manifest_json.read_text())
+                except Exception:
+                    manifest_data = None
                 pptx_path, excel_path = create_export_packet(
                     figs=[fig],
                     summary_df=summary,
@@ -370,6 +388,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     base_filename=base_name,
                     alt_texts=[flags.alt_text] if flags.alt_text else None,
                     pivot=args.pivot,
+                    manifest=manifest_data,
                 )
                 print("✅ Export packet created:")
                 print(f"   📊 Excel: {excel_path}")

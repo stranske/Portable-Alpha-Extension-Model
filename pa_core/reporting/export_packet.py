@@ -8,7 +8,7 @@ errors when static chart export is unavailable.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Iterable, Sequence, Tuple
+from typing import Any, Iterable, Mapping, Sequence, Tuple
 
 import io
 import pandas as pd
@@ -97,6 +97,7 @@ def create_export_packet(
     base_filename: str | Path = "committee_packet",
     alt_texts: Sequence[str] | None = None,
     pivot: bool = False,
+    manifest: Mapping[str, Any] | None = None,
 ) -> Tuple[str, str]:
     """Create PPTX + Excel packet and return their paths."""
     base = Path(str(base_filename))
@@ -116,6 +117,7 @@ def create_export_packet(
     for fig in figs:
         _add_chart_slide(prs, fig, next(alt_iter, None) if alt_iter else None)
 
+    # Appendix reminding where detailed tables live
     slide = prs.slides.add_slide(prs.slide_layouts[5])
     tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(1))
     p = tx_box.text_frame.paragraphs[0]
@@ -124,6 +126,56 @@ def create_export_packet(
     run.font.size = Pt(14)
     run.font.color.rgb = RGBColor(80, 80, 80)
     p.alignment = PP_ALIGN.LEFT
+
+    # Optional manifest summary appendix
+    if manifest:
+        slide = prs.slides.add_slide(prs.slide_layouts[5])
+        tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(6))
+        tf = tx_box.text_frame
+        tf.clear()
+        # Title
+        title_run = tf.paragraphs[0].add_run()
+        title_run.text = "Reproducibility Manifest"
+        title_run.font.size = Pt(20)
+        title_run.font.bold = True
+
+        def _add_line(text: str) -> None:
+            p = tf.add_paragraph()
+            r = p.add_run()
+            r.text = text
+            r.font.size = Pt(11)
+
+        git_commit = str(manifest.get("git_commit", "unknown"))
+        timestamp = str(manifest.get("timestamp", ""))
+        seed = manifest.get("seed")
+        data_files = manifest.get("data_files") or {}
+        cli_args = manifest.get("cli_args") or {}
+        cfg = manifest.get("config") or {}
+
+        _add_line(f"Commit: {git_commit}")
+        _add_line(f"Timestamp (UTC): {timestamp}")
+        if seed is not None:
+            _add_line(f"Seed: {seed}")
+        if isinstance(data_files, dict) and data_files:
+            _add_line("Data files (sha256):")
+            for path, h in list(data_files.items())[:8]:
+                _add_line(f"  • {Path(path).name}: {h[:12]}…")
+            if len(data_files) > 8:
+                _add_line(f"  • … and {len(data_files) - 8} more")
+        if isinstance(cli_args, dict) and cli_args:
+            mode = cli_args.get("mode")
+            _add_line(f"Mode: {mode}")
+        if isinstance(cfg, dict) and cfg:
+            _add_line("Key config fields:")
+            keys = [
+                "N_SIMULATIONS",
+                "N_MONTHS",
+                "w_beta_H",
+                "w_alpha_H",
+            ]
+            for k in keys:
+                if k in cfg:
+                    _add_line(f"  • {k}: {cfg[k]}")
 
     prs.save(pptx_path)
     return pptx_path, excel_path
