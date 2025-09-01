@@ -214,7 +214,7 @@ class DataImportAgent:
             "min_obs": int,
             # I/O options
             "sheet_name": (str | int | type(None)),
-            "na_values": list,
+            "na_values": (list | type(None)),
             "decimal": str,
             "thousands": (str | type(None)),
         }
