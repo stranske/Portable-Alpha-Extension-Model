@@ -7,6 +7,6 @@ def save(fig: go.Figure, path: str) -> None:
     """Write figure to PDF using kaleido."""
     try:
         fig.write_image(path, format="pdf")
-    except Exception:
+    except (ValueError, RuntimeError, OSError, MemoryError):
         with open(path, "wb") as fh:
             fh.write(str(fig.to_json()).encode())

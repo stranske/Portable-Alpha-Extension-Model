@@ -49,7 +49,7 @@ class ManifestWriter:
             commit = subprocess.check_output(
                 ["git", "rev-parse", "HEAD"], cwd=repo_root, text=True
             ).strip()
-        except Exception:
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             commit = "unknown"
         cfg = yaml.safe_load(Path(config_path).read_text())
         hashes = {

@@ -60,7 +60,7 @@ def export_sweep_results(
             img_bytes = fig.to_image(format="png")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
-        except Exception:
+        except (ValueError, RuntimeError, OSError, MemoryError):
             pass
 
     wb.save(filename)
