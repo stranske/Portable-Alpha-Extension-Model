@@ -25,7 +25,7 @@ def _read_csv(file) -> pd.DataFrame:
     try:
         data = file.getvalue() if hasattr(file, "getvalue") else file.read()
         return pd.read_csv(io.BytesIO(data))
-    except Exception as exc:  # pragma: no cover - user input variability
+    except (UnicodeDecodeError, pd.errors.EmptyDataError, pd.errors.ParserError) as exc:  # pragma: no cover - user input variability
         st.error(f"Failed to parse CSV: {exc}")
         return pd.DataFrame()
 
