@@ -174,14 +174,13 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
         )
     df = df.sort_values("term")
 
-    if (df["term"] < 0).any():
+    if bool((df["term"] < 0).any()):
         raise ValueError("Margin schedule terms must be non-negative")
-    if (df["multiplier"] <= 0).any():
+    if bool((df["multiplier"] <= 0).any()):
         raise ValueError("Margin schedule multipliers must be positive")
-    if df["term"].duplicated().any():
-            "Margin schedule terms must not contain duplicates (each term must be unique)"
+            "Margin schedule terms must not contain duplicates (each term value must be unique)"
         )
-    if df["term"].diff().dropna().le(0).any():
+    if bool(df["term"].diff().dropna().le(0).any()):
         raise ValueError("Margin schedule terms must be strictly increasing (each term must be greater than the previous)")
     return df.sort_values("term")
 
