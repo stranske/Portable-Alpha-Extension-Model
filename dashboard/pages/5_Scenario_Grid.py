@@ -12,6 +12,7 @@ from __future__ import annotations
 import io
 
 import pandas as pd  # type: ignore[reportMissingImports]
+import yaml
 import streamlit as st
 
 from dashboard.app import _DEF_THEME, apply_theme
@@ -46,6 +47,21 @@ def main() -> None:
             required = {"AE_leverage", "ExtPA_frac", "Sharpe"}
             if required.issubset(df.columns):
                 fig = grid_heatmap.make(df, x="AE_leverage", y="ExtPA_frac", z="Sharpe")
+                # Frontier overlay: for each AE_leverage, pick ExtPA_frac with max Sharpe
+                try:
+                    pivot = df.pivot(index="ExtPA_frac", columns="AE_leverage", values="Sharpe").sort_index().sort_index(axis=1)
+                    xs = []
+                    ys = []
+                    for col in pivot.columns:
+                        col_series = pivot[col]
+                        if col_series.notna().any():
+                            y_best = float(col_series.idxmax())
+                            xs.append(float(col))
+                            ys.append(y_best)
+                    if xs and ys:
+                        fig.add_scatter(x=xs, y=ys, mode="lines+markers", name="Frontier", line=dict(color="white", width=2), marker=dict(color="white"))
+                except Exception:
+                    pass
                 st.plotly_chart(fig, use_container_width=True)
             else:
                 st.error(f"CSV must include columns: {sorted(required)}")
@@ -107,6 +123,21 @@ def main() -> None:
                 # Help static checker understand this is a DataFrame
                 from typing import cast
                 fig2 = grid_heatmap.make(cast(pd.DataFrame, grid_df), x="active_share", y="theta_extpa", z="Sharpe")  # type: ignore[arg-type]
+                # Frontier overlay: best theta per active_share
+                try:
+                    pv = grid_df.pivot(index="theta_extpa", columns="active_share", values="Sharpe").sort_index().sort_index(axis=1)
+                    xs2: list[float] = []
+                    ys2: list[float] = []
+                    for col in pv.columns:
+                        col_series = pv[col]
+                        if col_series.notna().any():
+                            y_best = float(col_series.idxmax())
+                            xs2.append(float(col))
+                            ys2.append(y_best)
+                    if xs2 and ys2:
+                        fig2.add_scatter(x=xs2, y=ys2, mode="lines+markers", name="Frontier", line=dict(color="white", width=2), marker=dict(color="white"))
+                except Exception:
+                    pass
                 st.plotly_chart(fig2, use_container_width=True)
 
                 # Simple promote: allow choosing a point from available values
@@ -121,6 +152,24 @@ def main() -> None:
                         "theta_extpa": float(sel_y),
                     }
                     st.success("Selection promoted. Other pages can read session_state['promoted_alpha_shares'].")
+                    st.page_link("pages/2_Portfolio_Builder.py", label="→ Go to Portfolio Builder")
+
+                    # Offer a ready-to-run scenario YAML with promoted parameters
+                    cfg_yaml = {
+                        "Number of simulations": 1000,
+                        "Number of months": 12,
+                        "analysis_mode": "alpha_shares",
+                        "theta_extpa": float(sel_y),
+                        "active_share": float(sel_x),
+                        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+                    }
+                    yaml_str = yaml.safe_dump(cfg_yaml, sort_keys=False)
+                    st.download_button(
+                        "Download Scenario YAML",
+                        yaml_str,
+                        file_name="scenario_alpha_shares.yml",
+                        mime="application/x-yaml",
+                    )
             except Exception as exc:  # pragma: no cover - runtime UX
                 st.error(f"Sweep failed: {exc}")
 

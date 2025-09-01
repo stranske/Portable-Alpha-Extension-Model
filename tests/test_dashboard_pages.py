@@ -8,6 +8,7 @@ PAGES = [
     Path("dashboard/pages/2_Portfolio_Builder.py"), 
     Path("dashboard/pages/3_Scenario_Wizard.py"),
     Path("dashboard/pages/4_Results.py"),
+    Path("dashboard/pages/5_Scenario_Grid.py"),
 ]
 
 
@@ -17,7 +18,7 @@ def test_pages_import() -> None:
     
     for page in PAGES:
         try:
-            runpy.run_path(page)
+            runpy.run_path(str(page))
         except IndentationError as e:
             if "validators.py" in str(e):
                 # Expected failure due to pre-existing syntax error in validators.py
