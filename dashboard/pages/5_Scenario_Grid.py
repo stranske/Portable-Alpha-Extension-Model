@@ -136,8 +136,8 @@ def main() -> None:
                             ys2.append(y_best)
                     if xs2 and ys2:
                         fig2.add_scatter(x=xs2, y=ys2, mode="lines+markers", name="Frontier", line=dict(color="white", width=2), marker=dict(color="white"))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    st.error(f"Frontier overlay failed: {exc}")
                 st.plotly_chart(fig2, use_container_width=True)
 
                 # Simple promote: allow choosing a point from available values
