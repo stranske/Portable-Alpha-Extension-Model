@@ -108,9 +108,7 @@ def main() -> None:
                 deltas[c] = merged[f"{c}_S"] - merged[f"{c}_B"]
             delta_df = pd.DataFrame(deltas)
             # Format percentage-like columns for readability
-            for pct_col in ["AnnReturn", "AnnVol", "BreachProb", "ShortfallProb", "TE"]:
-                if pct_col in delta_df.columns:
-                    delta_df[pct_col] = delta_df[pct_col].map(lambda x: x if pd.isna(x) else x)
+                    delta_df[pct_col] = delta_df[pct_col].map(lambda x: _format_pct(x) if not pd.isna(x) else x)
             st.dataframe(delta_df)
 
         except Exception as exc:  # pragma: no cover - runtime UX
