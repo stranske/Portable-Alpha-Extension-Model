@@ -10,20 +10,24 @@ from __future__ import annotations
 import io
 
 import pandas as pd  # type: ignore[reportMissingImports]
-import yaml
 import streamlit as st
+import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from pa_core.viz import grid_heatmap
 from pa_core.config import ModelConfig
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
+from pa_core.viz import grid_heatmap
 
 
 def _read_csv(file) -> pd.DataFrame:
     try:
         data = file.getvalue() if hasattr(file, "getvalue") else file.read()
         return pd.read_csv(io.BytesIO(data))
-    except (UnicodeDecodeError, pd.errors.EmptyDataError, pd.errors.ParserError) as exc:  # pragma: no cover - user input variability
+    except (
+        UnicodeDecodeError,
+        pd.errors.EmptyDataError,
+        pd.errors.ParserError,
+    ) as exc:  # pragma: no cover - user input variability
         st.error(f"Failed to parse CSV: {exc}")
         return pd.DataFrame()
 
@@ -33,7 +37,7 @@ def main() -> None:
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
 
-    tab1, tab2 = st.tabs(["Upload Grid CSV", "Compute from Config"]) 
+    tab1, tab2 = st.tabs(["Upload Grid CSV", "Compute from Config"])
 
     with tab1:
         st.markdown(
@@ -47,7 +51,13 @@ def main() -> None:
                 fig = grid_heatmap.make(df, x="AE_leverage", y="ExtPA_frac", z="Sharpe")
                 # Frontier overlay: for each AE_leverage, pick ExtPA_frac with max Sharpe
                 try:
-                    pivot = df.pivot(index="ExtPA_frac", columns="AE_leverage", values="Sharpe").sort_index().sort_index(axis=1)
+                    pivot = (
+                        df.pivot(
+                            index="ExtPA_frac", columns="AE_leverage", values="Sharpe"
+                        )
+                        .sort_index()
+                        .sort_index(axis=1)
+                    )
                     xs = []
                     ys = []
                     for col in pivot.columns:
@@ -57,7 +67,14 @@ def main() -> None:
                             xs.append(float(col))
                             ys.append(y_best)
                     if xs and ys:
-                        fig.add_scatter(x=xs, y=ys, mode="lines+markers", name="Frontier", line=dict(color="white", width=2), marker=dict(color="white"))
+                        fig.add_scatter(
+                            x=xs,
+                            y=ys,
+                            mode="lines+markers",
+                            name="Frontier",
+                            line=dict(color="white", width=2),
+                            marker=dict(color="white"),
+                        )
                 except (ValueError, KeyError) as exc:
                     st.error(f"Failed to compute frontier overlay: {exc}")
                 st.plotly_chart(fig, use_container_width=True)
@@ -68,7 +85,9 @@ def main() -> None:
 
     with tab2:
         st.markdown("Compute an alpha-shares grid via Monte Carlo sweep.")
-        idx_file = st.file_uploader("Index returns CSV (single numeric column)", type=["csv"], key="idx_csv")
+        idx_file = st.file_uploader(
+            "Index returns CSV (single numeric column)", type=["csv"], key="idx_csv"
+        )
         seed = st.number_input("Random seed", value=42, step=1)
 
         # Optional step controls
@@ -85,26 +104,34 @@ def main() -> None:
             try:
                 idx_df = _read_csv(idx_file)
                 # Use first numeric column as index series
-                num_cols = [c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])]
+                num_cols = [
+                    c
+                    for c in idx_df.columns
+                    if pd.api.types.is_numeric_dtype(idx_df[c])
+                ]
                 if not num_cols:
                     st.error("No numeric column found in index CSV")
                     return
                 # Ensure a plain pandas Series for type-checker
                 index_series = pd.Series(idx_df[num_cols[0]].dropna().to_numpy())
 
-                base_cfg = ModelConfig.model_validate({
-                    "Number of simulations": 1000,
-                    "Number of months": 12,
-                })
-                cfg = base_cfg.model_copy(update={
-                    "analysis_mode": "alpha_shares",
-                    "external_pa_alpha_min_pct": float(ext_min),
-                    "external_pa_alpha_max_pct": float(ext_max),
-                    "external_pa_alpha_step_pct": float(ext_step),
-                    "active_share_min_pct": float(act_min),
-                    "active_share_max_pct": float(act_max),
-                    "active_share_step_pct": float(act_step),
-                })
+                base_cfg = ModelConfig.model_validate(
+                    {
+                        "Number of simulations": 1000,
+                        "Number of months": 12,
+                    }
+                )
+                cfg = base_cfg.model_copy(
+                    update={
+                        "analysis_mode": "alpha_shares",
+                        "external_pa_alpha_min_pct": float(ext_min),
+                        "external_pa_alpha_max_pct": float(ext_max),
+                        "external_pa_alpha_step_pct": float(ext_step),
+                        "active_share_min_pct": float(act_min),
+                        "active_share_max_pct": float(act_max),
+                        "active_share_step_pct": float(act_step),
+                    }
+                )
 
                 prog = st.progress(0.0)
 
@@ -122,16 +149,24 @@ def main() -> None:
                     st.warning("No base agent rows found in results.")
                     return
                 base_rows["Sharpe"] = base_rows.apply(
-                    lambda r: (r["AnnReturn"] / r["AnnVol"]) if r["AnnVol"] else 0.0, axis=1
+                    lambda r: (r["AnnReturn"] / r["AnnVol"]) if r["AnnVol"] else 0.0,
+                    axis=1,
                 )
                 # Use native parameter names for axes
                 grid_df = base_rows[["active_share", "theta_extpa", "Sharpe"]].copy()
                 # Help static checker understand this is a DataFrame
                 from typing import cast
+
                 fig2 = grid_heatmap.make(cast(pd.DataFrame, grid_df), x="active_share", y="theta_extpa", z="Sharpe")  # type: ignore[arg-type]
                 # Frontier overlay: best theta per active_share
                 try:
-                    pv = grid_df.pivot(index="theta_extpa", columns="active_share", values="Sharpe").sort_index().sort_index(axis=1)
+                    pv = (
+                        grid_df.pivot(
+                            index="theta_extpa", columns="active_share", values="Sharpe"
+                        )
+                        .sort_index()
+                        .sort_index(axis=1)
+                    )
                     xs2: list[float] = []
                     ys2: list[float] = []
                     for col in pv.columns:
@@ -141,7 +176,14 @@ def main() -> None:
                             xs2.append(float(col))
                             ys2.append(y_best)
                     if xs2 and ys2:
-                        fig2.add_scatter(x=xs2, y=ys2, mode="lines+markers", name="Frontier", line=dict(color="white", width=2), marker=dict(color="white"))
+                        fig2.add_scatter(
+                            x=xs2,
+                            y=ys2,
+                            mode="lines+markers",
+                            name="Frontier",
+                            line=dict(color="white", width=2),
+                            marker=dict(color="white"),
+                        )
                 except Exception as exc:
                     st.error(f"Frontier overlay failed: {exc}")
                 st.plotly_chart(fig2, use_container_width=True)
@@ -157,8 +199,13 @@ def main() -> None:
                         "active_share": float(sel_x),
                         "theta_extpa": float(sel_y),
                     }
-                    st.success("Selection promoted. Other pages can read session_state['promoted_alpha_shares'].")
-                    st.page_link("pages/2_Portfolio_Builder.py", label="→ Go to Portfolio Builder")
+                    st.success(
+                        "Selection promoted. Other pages can read session_state['promoted_alpha_shares']."
+                    )
+                    st.page_link(
+                        "pages/2_Portfolio_Builder.py",
+                        label="→ Go to Portfolio Builder",
+                    )
 
                     # Offer a ready-to-run scenario YAML with promoted parameters
                     cfg_yaml = {

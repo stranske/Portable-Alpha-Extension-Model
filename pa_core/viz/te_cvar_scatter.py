@@ -19,7 +19,11 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
     df = df_summary.copy()
     thr = theme.THRESHOLDS
     probs = df.get("ShortfallProb")
-    probs = probs.fillna(theme.DEFAULT_SHORTFALL_PROB) if probs is not None else pd.Series(theme.DEFAULT_SHORTFALL_PROB, index=df.index)
+    probs = (
+        probs.fillna(theme.DEFAULT_SHORTFALL_PROB)
+        if probs is not None
+        else pd.Series(theme.DEFAULT_SHORTFALL_PROB, index=df.index)
+    )
     colors = []
     for p in probs:
         if p <= thr.get("shortfall_green", 0.05):

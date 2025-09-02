@@ -3,9 +3,9 @@ import numpy as np
 from pa_core.sim.metrics import (
     annualised_return,
     annualised_vol,
+    breach_count,
     breach_probability,
     compound,
-    breach_count,
     conditional_value_at_risk,
     max_drawdown,
     shortfall_probability,

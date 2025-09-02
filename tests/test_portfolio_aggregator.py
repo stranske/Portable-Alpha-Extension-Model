@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-# ruff: noqa: E402
-
 import numpy as np
 import pytest
 
 from pa_core.portfolio import PortfolioAggregator
 from pa_core.schema import Asset, Correlation
+
+# ruff: noqa: E402
 
 
 def test_aggregator_single_and_cross() -> None:
