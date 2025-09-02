@@ -43,9 +43,51 @@ multivariate normal sampling and other matrix operations.
 TEST_TOLERANCE_EPSILON = 1e-12
 """float: Very small tolerance for numerical test assertions.
 
-This constant is used as an absolute tolerance when testing that values are 
+This constant is used as an absolute tolerance when testing that values are
 approximately zero in unit tests, particularly for tracking error calculations.
 """
+
+# Frequency mapping
+# ---------------
+#
+# Some validation routines need to convert human friendly frequency names to
+# pandas frequency codes.  Centralising the mapping here keeps the behaviour
+# consistent across the code base and makes it easy to extend in the future.
+
+FREQUENCY_MAP = {
+    "daily": "B",  # business day
+    "weekly": "W",
+    "monthly": "M",
+    "quarterly": "Q",
+    "annual": "A",
+}
+"""Mapping from common frequency aliases to pandas offset codes."""
+
+
+def get_frequency_code(alias: str) -> str:
+    """Return the pandas frequency code for a human readable alias.
+
+    Parameters
+    ----------
+    alias:
+        Frequency alias such as ``"monthly"`` or ``"daily"``.  The lookup is
+        case-insensitive.
+
+    Returns
+    -------
+    str
+        The pandas frequency string understood by :func:`pandas.date_range`.
+
+    Raises
+    ------
+    KeyError
+        If the alias is unknown.
+    """
+
+    try:
+        return FREQUENCY_MAP[alias.lower()]
+    except KeyError as exc:  # pragma: no cover - explicit for clarity
+        raise KeyError(f"Unknown frequency alias: {alias}") from exc
 
 
 class ValidationResult(NamedTuple):

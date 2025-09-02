@@ -8,9 +8,18 @@ import json
 import numpy as np
 import pandas as pd
 import logging
-# tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
+
+# tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency
+# at import time.  If ``tqdm`` isn't installed we silently fall back to an
+# identity wrapper so that the module can still be imported during testing.
+try:  # pragma: no cover - exercised in environments without tqdm
+    from tqdm.auto import tqdm as _tqdm
+    _HAS_TQDM = True
 except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
+
+    def _tqdm(iterable, total=None, desc=None):
+        return iterable
 
 from .agents.registry import build_from_config
 from .config import ModelConfig

@@ -164,9 +164,11 @@ class TestAnalysisModeProperties:
         """Test that description property handles missing values appropriately."""
         # Create a mock enum value that's not in the constants
         # This tests the error path without modifying the actual constants
-        from unittest.mock import Mock
-        
-        mock_mode = Mock()
+        from unittest.mock import MagicMock
+
+        mock_mode = MagicMock()
+        mock_mode.__enter__.return_value = mock_mode
+        mock_mode.__exit__.return_value = None
         mock_mode.value = "nonexistent_mode"
         
         # Bind the property method to our mock

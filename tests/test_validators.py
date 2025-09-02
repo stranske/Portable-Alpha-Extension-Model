@@ -15,7 +15,29 @@ from pa_core.validators import (
     calculate_margin_requirement,
     load_margin_schedule,
     format_validation_messages,
+    FREQUENCY_MAP,
+    get_frequency_code,
 )
+
+
+class TestFrequencyMap:
+    """Tests for the human friendly frequency mapping."""
+
+    @pytest.mark.parametrize(
+        "alias, expected",
+        [
+            ("daily", "B"),
+            ("weekly", "W"),
+            ("monthly", "M"),
+            ("quarterly", "Q"),
+            ("annual", "A"),
+        ],
+    )
+    def test_frequency_map_mappings(self, alias: str, expected: str) -> None:
+        """Ensure each alias resolves to the correct pandas frequency code."""
+
+        assert FREQUENCY_MAP[alias] == expected
+        assert get_frequency_code(alias) == expected
 
 
 class TestCorrelationValidation:
