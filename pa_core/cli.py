@@ -502,7 +502,23 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS, n_sim=mod_cfg.N_SIMULATIONS, params=params_local, rng=rng_returns
                 )
-                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
+                f_int_l, f_ext_l, f_act_l = draw_financing_series(
+                    n_months=mod_cfg.N_MONTHS,
+                    n_sim=mod_cfg.N_SIMULATIONS,
+                    internal_mean=mod_cfg.internal_financing_mean_month,
+                    internal_sigma=mod_cfg.internal_financing_sigma_month,
+                    internal_spike_prob=mod_cfg.internal_spike_prob,
+                    internal_spike_factor=mod_cfg.internal_spike_factor,
+                    ext_pa_mean=mod_cfg.ext_pa_financing_mean_month,
+                    ext_pa_sigma=mod_cfg.ext_pa_financing_sigma_month,
+                    ext_pa_spike_prob=mod_cfg.ext_pa_spike_prob,
+                    ext_pa_spike_factor=mod_cfg.ext_pa_spike_factor,
+                    act_ext_mean=mod_cfg.act_ext_financing_mean_month,
+                    act_ext_sigma=mod_cfg.act_ext_financing_sigma_month,
+                    act_ext_spike_prob=mod_cfg.act_ext_spike_prob,
+                    act_ext_spike_factor=mod_cfg.act_ext_spike_factor,
+                    rng=rng_financing,
+                )
                 agents_l = build_from_config(mod_cfg)
                 returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
