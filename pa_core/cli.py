@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
+import sys
 from typing import Optional, Sequence, TYPE_CHECKING
 from pathlib import Path
 
@@ -48,6 +50,9 @@ from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
 from .viz.utils import safe_to_numpy
 from .sleeve_suggestor import suggest_sleeve_sizes
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
@@ -348,9 +353,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     print("⚠️  No summary data available for export packet")
             except RuntimeError as e:
                 print(f"❌ Export packet failed: {e}")
-            except Exception as e:
-                print(f"❌ Unexpected error creating export packet: {e}")
-                print("💡 Please check your environment and try individual exports instead.")
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.error(f"Export packet failed due to missing dependency: {e}")
+                print(f"❌ Export packet failed due to missing dependency: {e}")
+                print("💡 Install required packages: pip install plotly kaleido openpyxl")
+            except (ValueError, TypeError, KeyError) as e:
+                logger.error(f"Export packet failed due to data issue: {e}")
+                print(f"❌ Export packet failed due to data issue: {e}")
+                print("💡 Check your configuration and data inputs")
         
         # Sensitivity analysis can also be applied to parameter sweep results
         if args.sensitivity:
@@ -458,8 +468,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             ann = 12.0 * mean_month
             rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
         inputs_dict["_attribution_df"] = pd.DataFrame(rows)
-    except Exception:
-        pass
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"Attribution calculation failed due to data type issue: {e}")
+        logger.debug(f"Returns data types: {[(agent, type(arr)) for agent, arr in returns.items()]}")
+        # Create empty attribution dataframe as fallback
+        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
+    except (ValueError, KeyError) as e:
+        logger.warning(f"Attribution calculation failed due to configuration issue: {e}")
+        logger.debug(f"Returns keys: {list(returns.keys())}")
+        # Create empty attribution dataframe as fallback
+        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
     print_enhanced_summary(summary)
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
@@ -543,10 +561,30 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
             sens_df = one_factor_deltas(params=base_params, steps=steps, evaluator=_eval)
             inputs_dict["_sensitivity_df"] = sens_df
-        except Exception as e:
+        except ImportError as e:
+            logger.warning(f"Sensitivity analysis module not available: {e}")
             Console().print(
                 Panel(
-                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed.\n[dim]Reason: {e}[/dim]",
+                    f"[bold red]Error:[/bold red] Sensitivity analysis module not found.\n[dim]Reason: {e}[/dim]",
+                    title="Sensitivity Analysis",
+                    style="red"
+                )
+            )
+        except (KeyError, ValueError) as e:
+            logger.error(f"Sensitivity analysis configuration error: {e}")
+            logger.debug(f"Base parameters: {base_params}")
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
+                    title="Sensitivity Analysis",
+                    style="yellow"
+                )
+            )
+        except TypeError as e:
+            logger.error(f"Sensitivity analysis data type error: {e}")
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to data type error.\n[dim]Reason: {e}[/dim]\n[dim]Check that all parameters are numeric values.[/dim]",
                     title="Sensitivity Analysis",
                     style="yellow"
                 )
@@ -664,9 +702,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     pos_value = base_value * 1.05
                     pos_result = _eval({param_name: pos_value})
                     scenarios[pos_key] = pd.DataFrame({"AnnReturn": [pos_result]})
-                except Exception as e:
-                    failed_params.append(f"{pos_key}: {type(e).__name__}: {str(e)}")
+                except (ValueError, ZeroDivisionError) as e:
+                    failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
                     skipped_params.append(pos_key)
+                    logger.warning(f"Parameter evaluation failed for {pos_key} due to configuration: {e}")
+                    print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
+                except (KeyError, TypeError) as e:
+                    failed_params.append(f"{pos_key}: Data type error: {str(e)}")
+                    skipped_params.append(pos_key)
+                    logger.error(f"Parameter evaluation failed for {pos_key} due to data issue: {e}")
                     print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
                 
                 # Test negative perturbation
@@ -675,9 +719,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     neg_value = base_value * 0.95
                     neg_result = _eval({param_name: neg_value})
                     scenarios[neg_key] = pd.DataFrame({"AnnReturn": [neg_result]})
-                except Exception as e:
-                    failed_params.append(f"{neg_key}: {type(e).__name__}: {str(e)}")
+                except (ValueError, ZeroDivisionError) as e:
+                    failed_params.append(f"{neg_key}: Configuration error: {str(e)}")
                     skipped_params.append(neg_key)
+                    logger.warning(f"Parameter evaluation failed for {neg_key} due to configuration: {e}")
+                    print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
+                except (KeyError, TypeError) as e:
+                    failed_params.append(f"{neg_key}: Data type error: {str(e)}")
+                    skipped_params.append(neg_key)
+                    logger.error(f"Parameter evaluation failed for {neg_key} due to data issue: {e}")
                     print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
             
             if scenarios:
@@ -706,9 +756,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     print(f"   • {failure}")
                 
         except ImportError:
+            logger.error("Sensitivity analysis module not available")
             print("❌ Sensitivity analysis requires the sensitivity module")
-        except Exception as e:
-            print(f"❌ Sensitivity analysis failed: {e}")
+        except (ValueError, KeyError) as e:
+            logger.error(f"Sensitivity analysis configuration error: {e}")
+            print(f"❌ Sensitivity analysis failed due to configuration error: {e}")
+            print("💡 Check your parameter names and values")
+        except TypeError as e:
+            logger.error(f"Sensitivity analysis data type error: {e}")
+            print(f"❌ Sensitivity analysis failed due to data type error: {e}")
+            print("💡 Ensure all parameters are numeric values")
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
         pass
