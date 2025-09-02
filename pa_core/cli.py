@@ -291,19 +291,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     # Assign globals so tests can patch pa_core.cli.<name>.
     # Only assign if not already set (e.g., by a test patch) to avoid clobbering mocks.
     global draw_joint_returns, draw_financing_series, simulate_agents, export_to_excel, build_from_config, build_cov_matrix
-    if draw_joint_returns is None:
-        draw_joint_returns = _draw_joint_returns
-    if draw_financing_series is None:
-        draw_financing_series = _draw_financing_series
-    if simulate_agents is None:
-        simulate_agents = _simulate_agents
-    if export_to_excel is None:
-        export_to_excel = _export_to_excel
-    if build_from_config is None:
-        build_from_config = _build_from_config
-    if build_cov_matrix is None:
-        build_cov_matrix = _build_cov_matrix
-
+    _globals_map = {
+        "draw_joint_returns": _draw_joint_returns,
+        "draw_financing_series": _draw_financing_series,
+        "simulate_agents": _simulate_agents,
+        "export_to_excel": _export_to_excel,
+        "build_from_config": _build_from_config,
+        "build_cov_matrix": _build_cov_matrix,
+    }
+    for name, impl in _globals_map.items():
+        if globals()[name] is None:
+            globals()[name] = impl
     # Import pandas locally for runtime usage
     import pandas as pd
 
