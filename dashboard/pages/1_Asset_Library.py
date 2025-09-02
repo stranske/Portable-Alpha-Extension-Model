@@ -81,8 +81,6 @@ def main() -> None:
             with tcol1:
                 if st.button("💾 Save mapping as template"):
                     with tempfile.NamedTemporaryFile(suffix=".yaml") as t:
-                        importer.save_template(t.name)
-                        t.flush()  # Ensure data is written to disk
                         tmpl_str = Path(t.name).read_text()
                     st.download_button(
                         "Download mapping.yaml",
