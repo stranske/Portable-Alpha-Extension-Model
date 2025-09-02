@@ -802,12 +802,12 @@ def main() -> None:
                             st.success(f"✅ Simulation complete! Results written to {output}")
                             st.balloons()
                             
-                            reference_sigma = config_data.get('reference_sigma', 0.01)
-                            volatility_multiple = config_data.get('volatility_multiple', 3.0)
-                            total_capital = config_data.get('total_fund_capital', 1000.0)
-                            financing_model = config_data.get('financing_model', 'simple_proxy')
-                            schedule_path = config_data.get('financing_schedule_path')
-                            term_months = config_data.get('financing_term_months', 1.0)
+                            reference_sigma = yaml_data.get('reference_sigma', 0.01)
+                            volatility_multiple = yaml_data.get('volatility_multiple', 3.0)
+                            total_capital = yaml_data.get('total_fund_capital', 1000.0)
+                            financing_model = yaml_data.get('financing_model', 'simple_proxy')
+                            schedule_path = yaml_data.get('financing_schedule_path')
+                            term_months = yaml_data.get('financing_term_months', 1.0)
 
                             margin_requirement = calculate_margin_requirement(
                                 reference_sigma=reference_sigma,
