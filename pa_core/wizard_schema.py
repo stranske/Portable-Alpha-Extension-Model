@@ -6,6 +6,7 @@ used by portfolio managers in the guided wizard interface.
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -162,26 +163,96 @@ class WizardScenarioConfig(BaseModel):  # Minimal placeholder for UI wiring
 
 @dataclass
 class DefaultConfigView:
+    # Core simulation parameters
+    analysis_mode: AnalysisMode
+    n_simulations: int
+    n_months: int
+    
+    # Capital allocation
     external_pa_capital: float
     active_ext_capital: float
     internal_pa_capital: float
+    total_fund_capital: float
+    
+    # Portfolio shares and fractions
+    w_beta_h: float
+    w_alpha_h: float
     theta_extpa: float
     active_share: float
+    
+    # Expected returns
+    mu_h: float
+    mu_e: float
+    mu_m: float
+    
+    # Volatilities
     sigma_h: float
     sigma_e: float
     sigma_m: float
+    
+    # Correlations
+    rho_idx_h: float
+    rho_idx_e: float
+    rho_idx_m: float
+    rho_h_e: float
+    rho_h_m: float
+    rho_e_m: float
+    
+    # Risk metrics
+    risk_metrics: List[str]
 
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
+    """Create DefaultConfigView from ModelConfig with consistent field mappings.
+    
+    This function maps ModelConfig fields to DefaultConfigView fields, handling
+    field name differences (e.g., N_SIMULATIONS -> n_simulations, mu_H -> mu_h).
+    All defaults come from the validated ModelConfig instance.
+    
+    Args:
+        m: Validated ModelConfig instance with all required defaults
+        
+    Returns:
+        DefaultConfigView with all attributes populated from ModelConfig
+    """
     return DefaultConfigView(
+        # Core simulation parameters
+        analysis_mode=AnalysisMode(m.analysis_mode),
+        n_simulations=m.N_SIMULATIONS,
+        n_months=m.N_MONTHS,
+        
+        # Capital allocation
         external_pa_capital=m.external_pa_capital,
         active_ext_capital=m.active_ext_capital,
         internal_pa_capital=m.internal_pa_capital,
+        total_fund_capital=m.total_fund_capital,
+        
+        # Portfolio shares and fractions
+        w_beta_h=m.w_beta_H,
+        w_alpha_h=m.w_alpha_H,
         theta_extpa=m.theta_extpa,
         active_share=m.active_share,
+        
+        # Expected returns
+        mu_h=m.mu_H,
+        mu_e=m.mu_E,
+        mu_m=m.mu_M,
+        
+        # Volatilities
         sigma_h=m.sigma_H,
         sigma_e=m.sigma_E,
         sigma_m=m.sigma_M,
+        
+        # Correlations
+        rho_idx_h=m.rho_idx_H,
+        rho_idx_e=m.rho_idx_E,
+        rho_idx_m=m.rho_idx_M,
+        rho_h_e=m.rho_H_E,
+        rho_h_m=m.rho_H_M,
+        rho_e_m=m.rho_E_M,
+        
+        # Risk metrics
+        risk_metrics=m.risk_metrics,
     )
 
 
