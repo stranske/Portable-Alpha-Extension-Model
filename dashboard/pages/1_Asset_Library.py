@@ -32,11 +32,11 @@ def main() -> None:
 
     # Persist the uploaded file to a temp path for pandas/Excel readers
     suffix = Path(uploaded.name).suffix
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
         tmp.write(uploaded.getvalue())
+        tmp.flush()  # Ensure data is written to disk
         tmp_path = tmp.name
 
-    try:
         st.markdown("---")
         st.subheader("Column Mapping & Parse Options")
 
@@ -93,8 +93,7 @@ def main() -> None:
             tcol1, tcol2 = st.columns([1, 1])
             with tcol1:
                 if st.button("💾 Save mapping as template"):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
-                        importer.save_template(t.name)
+                    with tempfile.NamedTemporaryFile(suffix=".yaml") as t:
                         tmpl_str = Path(t.name).read_text()
                     st.download_button(
                         "Download mapping.yaml",
@@ -111,8 +110,8 @@ def main() -> None:
 
                     text = tmpl_upload.getvalue().decode("utf-8")
                     # Write to temp so from_template can read
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
-                        Path(t.name).write_text(text)
+                        t.write(text.encode('utf-8'))
+                        t.flush()
                         importer = _DIA.from_template(t.name)
 
         # Load using current importer configuration
@@ -202,9 +201,6 @@ def main() -> None:
                 lib.load_yaml_str(text)
             else:
                 lib.load_json_str(text)
-    finally:
-        # Clean up the uploaded data temp file
-        Path(tmp_path).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

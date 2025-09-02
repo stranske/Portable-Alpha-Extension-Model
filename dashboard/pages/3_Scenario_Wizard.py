@@ -398,8 +398,8 @@ def _render_step_2_capital(config: Any) -> Any:
                     # Persist to a secure temp path for validated loader
                     fd, tpath = tempfile.mkstemp(suffix=".csv")
                     try:
-                        with os.fdopen(fd, "wb") as fh:
-                            fh.write(uploaded.getvalue())
+                        os.close(fd)  # Close file descriptor before writing to path
+                        Path(tpath).write_bytes(uploaded.getvalue())
                     except Exception:
                         os.unlink(tpath)
                         raise
@@ -902,8 +902,8 @@ def main() -> None:
                     fd, idx_path = tempfile.mkstemp(suffix='.csv')
                     sim_ok = False
                     try:
-                        with os.fdopen(fd, 'wb') as fh:
-                            fh.write(idx.getvalue())
+                        os.close(fd)  # Close file descriptor before writing to path
+                        Path(idx_path).write_bytes(idx.getvalue())
 
                         with st.spinner("🔄 Running simulation..."):
                             pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
