@@ -4,7 +4,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 from dashboard.app import load_history, save_history
 
 
