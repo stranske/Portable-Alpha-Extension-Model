@@ -14,6 +14,99 @@ from dashboard.glossary import tooltip
 from pa_core import cli as pa_cli
 from pa_core.validators import load_margin_schedule, calculate_margin_requirement
 from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
+from pa_core.config import load_config
+from types import SimpleNamespace
+
+
+def _build_yaml_from_config(config: Any) -> Dict[str, Any]:
+    """Construct a YAML-compatible dict for ModelConfig from the wizard state.
+
+    Includes optional Financing & Margin settings stored in session state.
+    """
+    ss = st.session_state
+    fs = ss.get("financing_settings", {})
+
+    analysis_mode = getattr(config, "analysis_mode", AnalysisMode.RETURNS)
+    n_simulations = int(getattr(config, "n_simulations", 1000))
+    n_months = int(getattr(config, "n_months", 12))
+
+    total_capital = float(getattr(config, "total_fund_capital", 300.0))
+    external_pa_capital = float(getattr(config, "external_pa_capital", 100.0))
+    active_ext_capital = float(getattr(config, "active_ext_capital", 50.0))
+    internal_pa_capital = float(getattr(config, "internal_pa_capital", max(0.0, total_capital - external_pa_capital - active_ext_capital)))
+
+    w_beta_h = float(getattr(config, "w_beta_h", 0.5))
+    w_alpha_h = float(getattr(config, "w_alpha_h", 1.0 - w_beta_h))
+    theta_extpa = float(getattr(config, "theta_extpa", 0.5))
+    active_share = float(getattr(config, "active_share", 0.5))
+
+    mu_h = float(getattr(config, "mu_h", 0.04))
+    mu_e = float(getattr(config, "mu_e", 0.05))
+    mu_m = float(getattr(config, "mu_m", 0.03))
+    sigma_h = float(getattr(config, "sigma_h", 0.01))
+    sigma_e = float(getattr(config, "sigma_e", 0.02))
+    sigma_m = float(getattr(config, "sigma_m", 0.02))
+
+    rho_idx_h = float(getattr(config, "rho_idx_h", 0.05))
+    rho_idx_e = float(getattr(config, "rho_idx_e", 0.0))
+    rho_idx_m = float(getattr(config, "rho_idx_m", 0.0))
+    rho_h_e = float(getattr(config, "rho_h_e", 0.10))
+    rho_h_m = float(getattr(config, "rho_h_m", 0.10))
+    rho_e_m = float(getattr(config, "rho_e_m", 0.0))
+
+    rms = getattr(config, "risk_metrics", [RiskMetric.RETURN, RiskMetric.RISK, RiskMetric.SHORTFALL_PROB])
+    risk_metrics = [rm if isinstance(rm, str) else rm.value for rm in rms]
+
+    fm = fs.get("financing_model", "simple_proxy")
+    ref_sigma = float(fs.get("reference_sigma", 0.01))
+    vol_mult = float(fs.get("volatility_multiple", 3.0))
+    term_m = float(fs.get("term_months", 1.0))
+    sched_path = fs.get("schedule_path")
+
+    yaml_dict: Dict[str, Any] = {
+        "N_SIMULATIONS": n_simulations,
+        "N_MONTHS": n_months,
+        "analysis_mode": analysis_mode.value if hasattr(analysis_mode, "value") else str(analysis_mode),
+
+        "total_fund_capital": total_capital,
+        "external_pa_capital": external_pa_capital,
+        "active_ext_capital": active_ext_capital,
+        "internal_pa_capital": internal_pa_capital,
+
+        "w_beta_H": w_beta_h,
+        "w_alpha_H": w_alpha_h,
+        "theta_extpa": theta_extpa,
+        "active_share": active_share,
+
+        "mu_H": mu_h,
+        "mu_E": mu_e,
+        "mu_M": mu_m,
+        "sigma_H": sigma_h,
+        "sigma_E": sigma_e,
+        "sigma_M": sigma_m,
+
+        "rho_idx_H": rho_idx_h,
+        "rho_idx_E": rho_idx_e,
+        "rho_idx_M": rho_idx_m,
+        "rho_H_E": rho_h_e,
+        "rho_H_M": rho_h_m,
+        "rho_E_M": rho_e_m,
+
+        "risk_metrics": risk_metrics,
+
+        "reference_sigma": ref_sigma,
+        "volatility_multiple": vol_mult,
+        "financing_model": fm,
+        "financing_schedule_path": str(sched_path) if (fm == "schedule" and sched_path) else None,
+        "financing_term_months": term_m,
+    }
+
+    return yaml_dict
+
+
+def _validate_yaml_dict(yaml_dict: Dict[str, Any]) -> None:
+    """Validate using core ModelConfig; raises on error."""
+    load_config(yaml_dict)
 
 
 def _write_temp_yaml(data: Dict[str, Any]) -> str:
@@ -44,7 +137,7 @@ def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
                 st.write(f"⭕ {i+1}. {step_name}")
 
 
-def _render_step_1_analysis_mode(config: WizardScenarioConfig) -> WizardScenarioConfig:
+def _render_step_1_analysis_mode(config: Any) -> Any:
     """Step 1: Analysis Mode Selection."""
     st.subheader("Step 1: Analysis Mode & Basic Settings")
     
@@ -105,7 +198,7 @@ def _render_step_1_analysis_mode(config: WizardScenarioConfig) -> WizardScenario
     return config
 
 
-def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig:
+def _render_step_2_capital(config: Any) -> Any:
     """Step 2: Capital Allocation Settings."""
     st.subheader("Step 2: Capital Allocation")
     
@@ -329,7 +422,7 @@ def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig
     return config
 
 
-def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioConfig:
+def _render_step_3_returns_risk(config: Any) -> Any:
     """Step 3: Return & Risk Parameters."""
     st.subheader("Step 3: Return & Risk Parameters")
     
@@ -416,7 +509,7 @@ def _render_step_3_returns_risk(config: WizardScenarioConfig) -> WizardScenarioC
     return config
 
 
-def _render_step_4_correlations(config: WizardScenarioConfig) -> WizardScenarioConfig:
+def _render_step_4_correlations(config: Any) -> Any:
     """Step 4: Correlation Parameters."""
     st.subheader("Step 4: Correlation Parameters")
     
@@ -514,7 +607,7 @@ def _render_step_4_correlations(config: WizardScenarioConfig) -> WizardScenarioC
     return config
 
 
-def _render_step_5_review(config: WizardScenarioConfig) -> bool:
+def _render_step_5_review(config: Any) -> bool:
     """Step 5: Review & Run. Returns True if user wants to run simulation."""
     st.subheader("Step 5: Review & Run")
     
@@ -545,6 +638,19 @@ def _render_step_5_review(config: WizardScenarioConfig) -> bool:
         st.write(f"• Index ↔ In-House: {config.rho_idx_h:.2f}")
         st.write(f"• In-House ↔ Extension: {config.rho_h_e:.2f}")
         st.write(f"• Extension ↔ External PA: {config.rho_e_m:.2f}")
+
+    # Financing summary
+    fs = st.session_state.get("financing_settings", {})
+    if fs:
+        st.markdown("**Financing & Margin:**")
+        fm = fs.get("financing_model", "simple_proxy")
+        st.write(f"• Model: {fm}")
+        st.write(f"• Reference sigma (monthly): {float(fs.get('reference_sigma', 0.01)):.4f}")
+        if fm == "simple_proxy":
+            st.write(f"• Volatility multiple (k): {float(fs.get('volatility_multiple', 3.0)):.2f}")
+        else:
+            st.write(f"• Term (months): {float(fs.get('term_months', 1.0)):.1f}")
+            st.write(f"• Schedule file: {'set' if fs.get('schedule_path') else 'not set'}")
     
     # Diff vs last run
     if "last_wizard_config" in st.session_state:
@@ -582,7 +688,8 @@ def _render_step_5_review(config: WizardScenarioConfig) -> bool:
     
     # Validation
     try:
-        config.model_validate(config.model_dump())
+        yaml_preview = _build_yaml_from_config(config)
+        _validate_yaml_dict(yaml_preview)
         validation_status = "✅"
         validation_msg = "Configuration is valid"
         can_run = True
@@ -601,17 +708,18 @@ def _render_step_5_review(config: WizardScenarioConfig) -> bool:
     
     with col1:
         if st.button("🔄 Reset to Defaults", help="Reset all parameters to sensible defaults"):
-            st.session_state.wizard_config = get_default_config(config.analysis_mode)
+            mode = getattr(config, "analysis_mode", AnalysisMode.RETURNS)
+            st.session_state.wizard_config = get_default_config(mode)
             st.rerun()
     
     with col2:
         if st.button("💾 Download YAML", help="Download configuration as YAML file"):
-            yaml_data = config.to_yaml_dict()
+            yaml_data = _build_yaml_from_config(config)
             yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
             st.download_button(
                 "Download Configuration",
                 yaml_str,
-                file_name=f"scenario_{config.analysis_mode.value}.yml",
+                file_name=f"scenario_{getattr(config.analysis_mode, 'value', str(config.analysis_mode))}.yml",
                 mime="application/x-yaml"
             )
     
@@ -647,7 +755,9 @@ def main() -> None:
         st.rerun()
         
     if st.sidebar.button("🔄 Reset All Defaults"):
-        st.session_state.wizard_config = get_default_config(st.session_state.wizard_config.analysis_mode)
+        current = st.session_state.wizard_config
+        mode = getattr(current, "analysis_mode", AnalysisMode.RETURNS)
+        st.session_state.wizard_config = get_default_config(mode)
         st.rerun()
     
     # Alternative: File upload mode
@@ -782,7 +892,7 @@ def main() -> None:
             
             if idx is not None:
                 # Convert config to YAML and run simulation
-                yaml_data = config.to_yaml_dict()
+                yaml_data = _build_yaml_from_config(config)
                 cfg_path = _write_temp_yaml(yaml_data)
                 
                 # Write index data to temp file
@@ -811,7 +921,7 @@ def main() -> None:
                         margin_requirement = calculate_margin_requirement(
                             reference_sigma=ref_sigma,
                             volatility_multiple=vol_mult,
-                            total_capital=config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0,
+                            total_capital=float(yaml_data.get("total_fund_capital", 1000.0)),
                             financing_model=fm,
                             schedule_path=Path(sched_path) if sched_path else None,
                             term_months=term_m,
@@ -827,7 +937,7 @@ def main() -> None:
                         st.code(yaml_str, language='yaml')
 
                     st.page_link("pages/4_Results.py", label="📈 View Results →")
-                    
+
                 finally:
                     Path(cfg_path).unlink(missing_ok=True)
                     Path(idx_path).unlink(missing_ok=True)
