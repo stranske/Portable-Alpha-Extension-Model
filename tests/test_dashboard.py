@@ -1,9 +1,4 @@
-import sys
-from pathlib import Path
-
-root = Path(__file__).resolve().parents[1]
-sys.path.append(str(root))
-from dashboard.app import apply_theme  # noqa: E402
+from dashboard.app import apply_theme
 
 
 def test_apply_theme(tmp_path):
