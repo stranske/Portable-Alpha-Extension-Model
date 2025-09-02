@@ -8,7 +8,9 @@ import json
 import numpy as np
 import pandas as pd
 import logging
-from tqdm import tqdm
+# tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
+except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
+    _HAS_TQDM = False
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
@@ -17,6 +19,14 @@ from .sim import draw_financing_series, draw_joint_returns
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
+
+
+def progress_bar(
+    iterable: Any, total: Optional[int] = None, desc: Optional[str] = None
+) -> Any:
+    if _HAS_TQDM:
+        return _tqdm(iterable, total=total, desc=desc)  # type: ignore[name-defined]
+    return iterable
 
 
 def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]]:
@@ -127,7 +137,7 @@ def run_parameter_sweep(
 
     iterator = enumerate(combos)
     if progress is None:
-        iterator = enumerate(tqdm(combos, total=total, desc="sweep"))
+        iterator = enumerate(progress_bar(combos, total=total, desc="sweep"))
 
     for i, overrides in iterator:
         mod_cfg = cfg.model_copy(update=overrides)
