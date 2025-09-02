@@ -10,6 +10,9 @@ import pandas as pd
 import logging
 
 # tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
+try:
+    from tqdm import tqdm as _tqdm
+    _HAS_TQDM = True
 except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
