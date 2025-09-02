@@ -41,6 +41,7 @@ from .backend import set_backend
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
 from .reporting.sweep_excel import export_sweep_results
+from .reporting.attribution import compute_sleeve_return_attribution
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
@@ -428,16 +429,20 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     summary = create_enhanced_summary(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    # Attach a basic sleeve-level return attribution to inputs (annualized mean monthly return by agent)
+    # Attach a sleeve-level return attribution by component for Excel/sunburst
     try:
-        rows: list[dict[str, object]] = []
-        for agent, arr in returns.items():
-            mean_month = float(arr.mean())
-            ann = 12.0 * mean_month
-            rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
-        inputs_dict["_attribution_df"] = pd.DataFrame(rows)
+        inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(cfg, idx_series)
     except Exception:
-        pass
+        # Fallback to a trivial attribution if helper fails
+        try:
+            rows: list[dict[str, object]] = []
+            for agent, arr in returns.items():
+                mean_month = float(arr.mean())
+                ann = 12.0 * mean_month
+                rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
+            inputs_dict["_attribution_df"] = pd.DataFrame(rows)
+        except Exception:
+            pass
     print_enhanced_summary(summary)
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
