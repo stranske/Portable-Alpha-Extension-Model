@@ -28,15 +28,11 @@ def main() -> None:
     if uploaded is None:
         return
 
-    # Persist the uploaded file to a secure temp path for pandas/Excel readers
+    # Persist the uploaded file to a temp path for pandas/Excel readers
     suffix = Path(uploaded.name).suffix
-    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(uploaded.getvalue())
-    except Exception:
-        os.unlink(tmp_path)
-        raise
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+        tmp.write(uploaded.getvalue())
+        tmp_path = tmp.name
 
     try:
         st.markdown("---")
@@ -84,16 +80,9 @@ def main() -> None:
             tcol1, tcol2 = st.columns([1, 1])
             with tcol1:
                 if st.button("💾 Save mapping as template"):
-                    tfd, tpath = tempfile.mkstemp(suffix=".yaml")
-                    try:
-                        importer.save_template(tpath)
-                        tmpl_str = Path(tpath).read_text()
-                    finally:
-                        try:
-                            os.close(tfd)
-                        except Exception:
-                            pass
-                        Path(tpath).unlink(missing_ok=True)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
+                        importer.save_template(t.name)
+                        tmpl_str = Path(t.name).read_text()
                     st.download_button(
                         "Download mapping.yaml",
                         tmpl_str,
@@ -105,17 +94,10 @@ def main() -> None:
                 if tmpl_upload is not None and st.button("Apply template"):
                     from pa_core.data import DataImportAgent as _DIA
                     text = tmpl_upload.getvalue().decode("utf-8")
-                    # Write to secure temp path so from_template can read
-                    tfd, tpath = tempfile.mkstemp(suffix=".yaml")
-                    try:
-                        Path(tpath).write_text(text)
-                        importer = _DIA.from_template(tpath)
-                    finally:
-                        try:
-                            os.close(tfd)
-                        except Exception:
-                            pass
-                        Path(tpath).unlink(missing_ok=True)
+                    # Write to temp so from_template can read
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
+                        Path(t.name).write_text(text)
+                        importer = _DIA.from_template(t.name)
 
         # Load using current importer configuration
         df = importer.load(tmp_path)
