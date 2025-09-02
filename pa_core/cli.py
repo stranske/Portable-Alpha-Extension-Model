@@ -350,7 +350,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             if results:
                 sweep_df = pd.concat([res["summary"] for res in results], ignore_index=True)
                 base_agents = sweep_df[sweep_df["Agent"] == "Base"]
-                if not base_agents.empty:
+                if not base_agents.empty and isinstance(base_agents, pd.DataFrame):
                     best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax()]
                     worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin()]
                     print(f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn")
@@ -511,7 +511,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
                 base_row = summary_l[summary_l["Agent"] == "Base"]
-                return float(base_row["AnnReturn"].iloc[0]) if not base_row.empty else 0.0
+                if isinstance(base_row, pd.DataFrame) and not base_row.empty:
+                    return float(base_row["AnnReturn"].iloc[0])
+                return 0.0
 
             # Define parameter perturbations to test (±5% relative changes)
             base_params = {
@@ -552,6 +554,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             
             if scenarios:
                 base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]].copy()
+                if not isinstance(base_df, pd.DataFrame):
+                    base_df = pd.DataFrame(base_df)
                 deltas = one_factor_deltas(base_df, scenarios, value="AnnReturn")
                 
                 print("\n📊 Sensitivity Analysis Results:")
