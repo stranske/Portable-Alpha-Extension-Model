@@ -155,3 +155,12 @@ def export_to_excel(
             pass
 
     wb.save(filename)
+
+    # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
+    trade_df = inputs_dict.get("_tradeoff_df")
+    if isinstance(trade_df, pd.DataFrame) and not trade_df.empty:
+        try:
+            with pd.ExcelWriter(filename, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+                trade_df.to_excel(writer, sheet_name="SleeveTradeoffs", index=True)
+        except Exception:
+            pass
