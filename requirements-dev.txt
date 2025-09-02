@@ -10,6 +10,7 @@ pyright[nodejs]
 pydantic
 rich
 pyyaml
+tqdm
 plotly>=5.19
 kaleido            # Plotly static export driver
 streamlit>=1.35

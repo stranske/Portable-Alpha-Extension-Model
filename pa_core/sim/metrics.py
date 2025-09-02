@@ -4,6 +4,10 @@ import numpy as npt
 import pandas as pd
 from numpy.typing import NDArray
 
+from typing import Callable, Dict
+
+from importlib.metadata import entry_points
+
 from ..backend import xp as np
 
 __all__ = [
@@ -19,7 +23,26 @@ __all__ = [
     "time_under_water",
     "shortfall_probability",
     "summary_table",
+    "register_metric",
 ]
+
+
+_EXTRA_METRICS: Dict[str, Callable[[NDArray[npt.float64]], float]] = {}
+
+
+def register_metric(name: str, func: Callable[[NDArray[npt.float64]], float]) -> None:
+    """Register a custom risk metric for inclusion in ``summary_table``."""
+    if name in _EXTRA_METRICS:
+        raise KeyError(f"Metric already registered: {name}")
+    _EXTRA_METRICS[name] = func
+
+
+def _load_metric_plugins() -> None:
+    for ep in entry_points(group="pa_core.risk_metrics"):
+        register_metric(ep.name, ep.load())
+
+
+_load_metric_plugins()
 
 
 def tracking_error(
@@ -182,6 +205,7 @@ def summary_table(
             if bench_arr is not None and name != benchmark
             else None
         )
+        extras = {k: fn(arr) for k, fn in _EXTRA_METRICS.items()}
         rows.append(
             {
                 "Agent": name,
@@ -195,6 +219,7 @@ def summary_table(
                 "BreachCount": bcount,
                 "ShortfallProb": shortfall,
                 "TE": te,
+                **extras,
             }
         )
 

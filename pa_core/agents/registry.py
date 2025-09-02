@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Iterable, List, Type
+
+from importlib.metadata import entry_points
 
 from ..config import ModelConfig
 from .active_ext import ActiveExtensionAgent
@@ -10,13 +12,30 @@ from .internal_beta import InternalBetaAgent
 from .internal_pa import InternalPAAgent
 from .types import Agent, AgentParams
 
-_AGENT_MAP = {
+_AGENT_MAP: dict[str, Type[Agent]] = {
     "Base": BaseAgent,
     "ExternalPA": ExternalPAAgent,
     "ActiveExt": ActiveExtensionAgent,
     "InternalBeta": InternalBetaAgent,
     "InternalPA": InternalPAAgent,
 }
+
+
+def register_agent(name: str, cls: Type[Agent]) -> None:
+    """Register ``cls`` under ``name`` for agent construction."""
+    if name in _AGENT_MAP:
+        raise KeyError(f"Agent already registered: {name}")
+    _AGENT_MAP[name] = cls
+
+
+def load_plugins() -> None:
+    """Load third-party agent plugins via entry points."""
+    for ep in entry_points(group="pa_core.agents"):
+        register_agent(ep.name, ep.load())
+
+
+# Load any agent plugins on import
+load_plugins()
 
 
 def build_all(params_list: Iterable[AgentParams]) -> List[Agent]:

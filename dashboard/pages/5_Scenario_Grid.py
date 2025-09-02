@@ -106,7 +106,15 @@ def main() -> None:
                     "active_share_step_pct": float(act_step),
                 })
 
-                results = run_parameter_sweep_cached(cfg, index_series, int(seed))
+                prog = st.progress(0.0)
+
+                def _update(i: int, total: int) -> None:
+                    prog.progress(i / total)
+
+                results = run_parameter_sweep_cached(
+                    cfg, index_series, int(seed), progress=_update
+                )
+                prog.empty()
                 df_res = sweep_results_to_dataframe(results)
                 # Focus on Base agent and compute Sharpe
                 base_rows = df_res[df_res["Agent"] == "Base"].copy()
