@@ -9,8 +9,8 @@ import pandas as pd
 
 def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, Any]:
     """Return parameter dictionary by mapping CSV headers via ``label_map``.
-    
-    .. deprecated:: 
+
+    .. deprecated::
         CSV parameter loading is deprecated and will be removed in the next release.
         Use YAML configurations instead.
     """
@@ -20,7 +20,13 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
         DeprecationWarning,
         stacklevel=2
     )
-    df = pd.read_csv(path)
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"Parameter file not found: {p}")
+    try:
+        df = pd.read_csv(p)
+    except (pd.errors.EmptyDataError, OSError) as exc:
+        raise ValueError(f"Failed to read parameter CSV: {exc}") from exc
     data: Dict[str, Any] = {}
     if {"Parameter", "Value"}.issubset(df.columns):
         for friendly, key in label_map.items():
@@ -55,14 +61,24 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
 
 def load_index_returns(path: str | Path) -> pd.Series:
     """Load index returns from a CSV file and return as Series.
-    
+
     Validates and converts data to numeric format, handling non-numeric values
     by converting them to NaN and dropping them from the final series.
-    
-    Raises:
-        ValueError: If no valid numeric data is found in the file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the CSV file does not exist.
+    ValueError
+        If the file cannot be read or contains no valid numeric data.
     """
-    df = pd.read_csv(path)
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"Index returns file not found: {p}")
+    try:
+        df = pd.read_csv(p)
+    except (pd.errors.EmptyDataError, OSError) as exc:
+        raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
     if df.shape[1] == 1:
         raw = df.iloc[:, 0]
     else:

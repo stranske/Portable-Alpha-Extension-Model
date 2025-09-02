@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import numpy as np
 import pandas as pd
 
@@ -23,6 +24,7 @@ def suggest_sleeve_sizes(
     max_internal: float | None = None,
     sort_by: str = "risk_score",
     seed: int | None = None,
+    max_evals: int | None = 500,
 ) -> pd.DataFrame:
     """Suggest sleeve allocations that respect risk constraints.
 
@@ -47,6 +49,11 @@ def suggest_sleeve_sizes(
         Grid step as a fraction of ``total_fund_capital``.
     seed:
         Optional random seed for reproducibility.
+    max_evals:
+        If set and the Cartesian grid would exceed this number of
+        combinations, a random subset of at most ``max_evals`` points is
+        evaluated. This prevents exponential runtime as ``step`` becomes
+        small.
 
     Returns
     -------
@@ -56,11 +63,34 @@ def suggest_sleeve_sizes(
 
     total = cfg.total_fund_capital
     grid = np.arange(0.0, total + 1e-9, total * step)
+
+    combos = [
+        (ext_cap, act_cap)
+        for ext_cap, act_cap in itertools.product(grid, repeat=2)
+        if (total - ext_cap - act_cap) >= 0
+    ]
+    if max_evals is not None and len(combos) > max_evals:
+        rng = np.random.default_rng(seed)
+        idx = rng.choice(len(combos), size=max_evals, replace=False)
+        combos = [combos[i] for i in idx]
+
     records: list[dict[str, float]] = []
-    for ext_cap in grid:
-        for act_cap in grid:
-            int_cap = total - ext_cap - act_cap
-            if int_cap < 0:
+    for ext_cap, act_cap in combos:
+        int_cap = total - ext_cap - act_cap
+        test_cfg = cfg.model_copy(
+            update={
+                "external_pa_capital": float(ext_cap),
+                "active_ext_capital": float(act_cap),
+                "internal_pa_capital": float(int_cap),
+            }
+        )
+        orch = SimulatorOrchestrator(test_cfg, idx_series)
+        _, summary = orch.run(seed=seed)
+        meets = True
+        metrics: dict[str, float] = {}
+        for agent in ["ExternalPA", "ActiveExt", "InternalPA"]:
+            sub = summary[summary["Agent"] == agent]
+            if sub.empty:
                 continue
             # Bounds filtering (if provided)
             if min_external is not None and ext_cap < min_external:
