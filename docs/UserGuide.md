@@ -145,6 +145,47 @@ parameter sweep. Replace the index file with your own returns series and set
 All four sweep modes now run correctly when the appropriate template and `--mode`
 are supplied.
 
+### CLI flags quick reference (new)
+
+Use these flags to enable committee-ready packets, sensitivity tornado charts, and the constraint-aware sleeve suggestor.
+
+| Flag | Purpose | Default |
+|------|---------|---------|
+| `--packet` | Generate a PPTX + Excel packet with embedded figures | off |
+| `--sensitivity` | Run one-factor sensitivity and include a tornado chart in packet/Excel | off |
+| `--suggest-sleeves` | Run constraint-aware sleeve suggestion before simulation | off |
+| `--tradeoff-table` | Export a ranked sleeve trade-off table | off |
+| `--tradeoff-top` | Top-N rows to include in trade-off table | `10` |
+| `--tradeoff-sort` | Column to sort trade-offs by (e.g., `risk_score`) | `risk_score` |
+| `--max-te` | Max tracking error constraint for suggestions | `0.02` |
+| `--max-breach` | Max breach probability constraint | `0.05` |
+| `--max-cvar` | Max CVaR constraint | `0.03` |
+| `--sleeve-step` | Capital grid step (in mm) for search | `0.25` |
+| `--min-external`/`--max-external` | Bounds for ExternalPA capital (mm) | none |
+| `--min-active`/`--max-active` | Bounds for ActiveExt capital (mm) | none |
+| `--min-internal`/`--max-internal` | Bounds for InternalPA capital (mm) | none |
+
+Examples:
+
+```bash
+# Export full committee packet with sensitivity tornado and attribution visuals
+python -m pa_core.cli \
+   --config my_first_scenario.yml \
+   --index sp500tr_fred_divyield.csv \
+   --output Results.xlsx \
+   --packet --sensitivity
+
+# Run sleeve suggestions under risk constraints and export top trade-offs
+python -m pa_core.cli \
+   --config my_first_scenario.yml \
+   --index sp500tr_fred_divyield.csv \
+   --output Results.xlsx \
+   --suggest-sleeves \
+   --tradeoff-table --tradeoff-top 15 \
+   --max-te 0.02 --max-breach 0.05 --max-cvar 0.03 \
+   --sleeve-step 0.5
+```
+
 ### Template details
 
 | Template file | Purpose | Key parameters |
@@ -1115,6 +1156,70 @@ from pa_core.viz import rolling_var
 fig = rolling_var.make(df_paths, window=12)
 fig.show()
 ```
+
+## Sensitivity Tornado + Attribution (CLI and Exports)
+
+Use the sensitivity flag to compute one‑factor deltas for key parameters and render a tornado chart. When combined with the packet export, the PPTX includes:
+
+- Executive summary slide
+- Sensitivity Tornado (largest absolute deltas first)
+- Return attribution sunburst by sleeve (Beta / Alpha / Financing)
+
+Outputs also include Excel sheets: Sensitivity, Attribution, and RiskAttribution when data is available.
+
+Example:
+
+```bash
+python -m pa_core.cli \
+   --config config/params_template.yml \
+   --index sp500tr_fred_divyield.csv \
+   --sensitivity \
+   --packet \
+   --output Results.xlsx
+```
+
+Notes
+- Static PPTX/PNG/PDF exports require a renderer (Chromium/Chrome + kaleido). If missing, the CLI prints an actionable error.
+- The tornado bars are sourced from the absolute delta column (DeltaAbs) produced by the sensitivity analysis.
+- The attribution table decomposes annual return into Beta, Alpha and Financing contributions per sleeve; a risk‑attribution table (volatility and TE approximations) is added when available.
+
+## Constraint‑aware Sleeve Suggestor & Trade‑off Table
+
+The sleeve suggestor proposes feasible ExternalPA / ActiveExt / InternalPA capital combinations that satisfy risk constraints. It uses a simple grid search (no black‑box optimiser) and can be run interactively or in summary mode.
+
+Interactive suggest‑and‑apply flow:
+
+```bash
+python -m pa_core.cli \
+   --config config/params_template.yml \
+   --index sp500tr_fred_divyield.csv \
+   --suggest-sleeves \
+   --max-te 0.03 \
+   --max-breach 0.05 \
+   --max-cvar 0.04 \
+   --sleeve-step 0.25 \
+   --output SleeveRun.xlsx
+```
+
+- The CLI prints a ranked table of feasible combinations and prompts you to select a row to apply and continue with the run.
+- Optional bounds per sleeve (mm capital): `--min-external/--max-external/--min-active/--max-active/--min-internal/--max-internal`.
+
+Export a trade‑off table without interactive selection and include it in the workbook (sheet: `SleeveTradeoffs`):
+
+```bash
+python -m pa_core.cli \
+   --config config/params_template.yml \
+   --index sp500tr_fred_divyield.csv \
+   --tradeoff-table \
+   --tradeoff-top 10 \
+   --tradeoff-sort risk_score \
+   --output SleeveTradeoffs.xlsx
+```
+
+Tips
+- `risk_score` is a simple composite: TE + BreachProb + |CVaR| (lower is better). You can sort by any column with `--tradeoff-sort`.
+- For finer grids reduce `--sleeve-step`. The search auto‑caps evaluations to avoid exponential explosion.
+- Combine `--tradeoff-table` with `--packet` to include the results in the PPTX deck alongside the summary and charts.
 
 ## Financing schedule configuration
 

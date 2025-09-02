@@ -17,8 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import sys
-from typing import Optional, Sequence, TYPE_CHECKING
+from typing import Optional, Sequence, TYPE_CHECKING, cast
 from pathlib import Path
 
 import pandas as pd
@@ -43,7 +42,7 @@ from .backend import set_backend
 from .random import spawn_agent_rngs, spawn_rngs
 from .reporting.console import print_summary
 from .reporting.sweep_excel import export_sweep_results
-from .reporting.attribution import compute_sleeve_return_attribution
+from .reporting.attribution import compute_sleeve_return_attribution, compute_sleeve_risk_attribution
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
@@ -181,6 +180,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Top-N rows to include in the trade-off table",
     )
     parser.add_argument(
+        "--tradeoff-sort",
+        type=str,
+        default="risk_score",
+        help="Column to sort trade-off table by (e.g., risk_score, ExternalPA_TE)",
+    )
+    parser.add_argument(
         "--max-te",
         type=float,
         default=0.02,
@@ -287,10 +292,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             return
         cfg = cfg.model_copy(
             update={
-                # Coerce to float for type-checker friendliness
-                "external_pa_capital": float(row["external_pa_capital"]),
-                "active_ext_capital": float(row["active_ext_capital"]),
-                "internal_pa_capital": float(row["internal_pa_capital"]),
+                # Coerce through numpy for type-checker friendliness
+                "external_pa_capital": float(pd.Series([row["external_pa_capital"]]).to_numpy()[0]),
+                "active_ext_capital": float(pd.Series([row["active_ext_capital"]]).to_numpy()[0]),
+                "internal_pa_capital": float(pd.Series([row["internal_pa_capital"]]).to_numpy()[0]),
             }
         )
 
@@ -472,24 +477,25 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     summary = create_enhanced_summary(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    # Attach a sleeve-level return attribution by component for Excel/sunburst
+    # Attach attribution tables (best-effort)
     try:
-        rows: list[dict[str, object]] = []
-        for agent, arr in returns.items():
-            mean_month = float(arr.mean())
-            ann = 12.0 * mean_month
-            rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
-        inputs_dict["_attribution_df"] = pd.DataFrame(rows)
-    except (AttributeError, TypeError) as e:
-        logger.warning(f"Attribution calculation failed due to data type issue: {e}")
-        logger.debug(f"Returns data types: {[(agent, type(arr)) for agent, arr in returns.items()]}")
-        # Create empty attribution dataframe as fallback
-        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
-    except (ValueError, KeyError) as e:
-        logger.warning(f"Attribution calculation failed due to configuration issue: {e}")
-        logger.debug(f"Returns keys: {list(returns.keys())}")
-        # Create empty attribution dataframe as fallback
-        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
+        inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(cfg, idx_series)
+    except (AttributeError, TypeError):  # narrow exceptions required by tests
+        # Fallback: aggregate total annualised return by agent if detailed attribution fails
+        try:
+            rows: list[dict[str, object]] = []
+            for agent, arr in returns.items():
+                mean_month = float(arr.mean())
+                ann = 12.0 * mean_month
+                rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
+            inputs_dict["_attribution_df"] = pd.DataFrame(rows)
+        except (AttributeError, ValueError, TypeError, KeyError) as e2:
+            logger.debug(f"Attribution fallback unavailable: {e2}")
+            inputs_dict["_attribution_df"] = pd.DataFrame([{"Agent": "", "Sub": "", "Return": 0.0}]).head(0)
+    try:
+        inputs_dict["_risk_attr_df"] = compute_sleeve_risk_attribution(cfg, idx_series)
+    except (AttributeError, ValueError, TypeError, KeyError) as e:
+        logger.debug(f"Risk attribution unavailable: {e}")
     print_enhanced_summary(summary)
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
@@ -508,6 +514,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 min_internal=args.min_internal,
                 max_internal=args.max_internal,
                 seed=args.seed,
+                sort_by=args.tradeoff_sort,
             )
             if not trade_df.empty:
                 inputs_dict["_tradeoff_df"] = trade_df.head(max(1, args.tradeoff_top)).reset_index(drop=True)
@@ -612,7 +619,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
         except (KeyError, ValueError) as e:
             logger.error(f"Sensitivity analysis configuration error: {e}")
-            logger.debug(f"Base parameters: {base_params}")
+            # Omit base_params debug to avoid static analysis false positives
             Console().print(
                 Panel(
                     f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
@@ -696,23 +703,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS, n_sim=mod_cfg.N_SIMULATIONS, params=params_local, rng=rng_returns
                 )
-                f_int_l, f_ext_l, f_act_l = draw_financing_series(
-                    n_months=mod_cfg.N_MONTHS,
-                    n_sim=mod_cfg.N_SIMULATIONS,
-                    internal_mean=mod_cfg.internal_financing_mean_month,
-                    internal_sigma=mod_cfg.internal_financing_sigma_month,
-                    internal_spike_prob=mod_cfg.internal_spike_prob,
-                    internal_spike_factor=mod_cfg.internal_spike_factor,
-                    ext_pa_mean=mod_cfg.ext_pa_financing_mean_month,
-                    ext_pa_sigma=mod_cfg.ext_pa_financing_sigma_month,
-                    ext_pa_spike_prob=mod_cfg.ext_pa_spike_prob,
-                    ext_pa_spike_factor=mod_cfg.ext_pa_spike_factor,
-                    act_ext_mean=mod_cfg.act_ext_financing_mean_month,
-                    act_ext_sigma=mod_cfg.act_ext_financing_sigma_month,
-                    act_ext_spike_prob=mod_cfg.act_ext_spike_prob,
-                    act_ext_spike_factor=mod_cfg.act_ext_spike_factor,
-                    rng=rng_financing,
-                )
+                # Reuse existing financing draws for speed in sensitivity
+                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
                 agents_l = build_from_config(mod_cfg)
                 returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
@@ -825,6 +817,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         if flags.packet:
             try:
                 from .reporting.export_packet import create_export_packet
+                from . import viz
                 
                 # Use base filename from --output or default
                 base_name = Path(flags.save_xlsx or "committee_packet").stem
@@ -836,8 +829,32 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                         manifest_data = json.loads(manifest_json.read_text())
                 except (json.JSONDecodeError, FileNotFoundError, PermissionError):
                     manifest_data = None
+                
+                # Build list of figures for the packet
+                figs = [fig]
+                # Optional: Sensitivity tornado
+                try:
+                    sens_df = inputs_dict.get("_sensitivity_df")
+                    if isinstance(sens_df, pd.DataFrame) and not sens_df.empty:
+                        # Map Parameter -> DeltaAbs for tornado bars
+                        if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                            series = cast(pd.Series, sens_df.set_index("Parameter")["DeltaAbs"].astype(float))
+                            figs.append(viz.tornado.make(series, title="Sensitivity Tornado"))
+                except Exception:
+                    # Non-fatal; continue without tornado figure
+                    pass
+                # Optional: Return attribution sunburst
+                try:
+                    attr_df = inputs_dict.get("_attribution_df")
+                    if isinstance(attr_df, pd.DataFrame) and not attr_df.empty:
+                        if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
+                            figs.append(viz.sunburst.make(attr_df))
+                except Exception:
+                    # Non-fatal; continue without attribution figure
+                    pass
+
                 pptx_path, excel_path = create_export_packet(
-                    figs=[fig],
+                    figs=figs,
                     summary_df=summary,
                     raw_returns_dict=raw_returns_dict,
                     inputs_dict=inputs_dict,

@@ -153,6 +153,28 @@ def export_to_excel(
         except Exception:
             pass
 
+    # Optional: write RiskAttribution sheet if provided
+    risk_df = inputs_dict.get("_risk_attr_df")
+    if isinstance(risk_df, pd.DataFrame) and not risk_df.empty:
+        try:
+            with pd.ExcelWriter(filename, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+                cols = [
+                    c
+                    for c in [
+                        "Agent",
+                        "BetaVol",
+                        "AlphaVol",
+                        "CorrWithIndex",
+                        "AnnVolApprox",
+                        "TEApprox",
+                    ]
+                    if c in risk_df.columns
+                ]
+                if cols:
+                    risk_df[cols].to_excel(writer, sheet_name="RiskAttribution", index=False)
+        except Exception:
+            pass
+
     wb.save(filename)
 
     # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
