@@ -1,6 +1,6 @@
 {
-  "git_commit": "1fb1416d4a2a164f465290addea6d6a6225d8c86",
-  "timestamp": "2025-09-02T03:26:20.282879+00:00",
+  "git_commit": "a926e86b8b036ae9878e8881bea711bd257a36a1",
+  "timestamp": "2025-09-02T03:29:37.955287+00:00",
   "seed": null,
   "config": {
     "N_SIMULATIONS": 1000,
@@ -47,12 +47,12 @@
   "data_files": {
     "sp500tr_fred_divyield.csv": "ec6bf57e8eacb6b97f5ca79bbafb9906d67ae972c1cab1b4c0a57187bfcd640d",
     "my_first_scenario.yml": "1ac0905b8d0242f4b153f6107d8be2f96be526cc506019c37a06df826a4e9a26",
-    "test_sleeve.xlsx": "473953b7e7a2f6251c55c1aea12eab08d83c6338348728b2248a99e7b9eaa9b0"
+    "test_validation.xlsx": "6b7f496f0de1f987022279c3f7873daff1a262a9878fad05a720ddb4c41948c3"
   },
   "cli_args": {
     "config": "my_first_scenario.yml",
     "index": "sp500tr_fred_divyield.csv",
-    "output": "test_sleeve.xlsx",
+    "output": "test_validation.xlsx",
     "mode": "returns",
     "stress_preset": null,
     "pivot": false,
@@ -66,10 +66,10 @@
     "alt_text": null,
     "packet": false,
     "dashboard": false,
-    "suggest_sleeves": true,
-    "max_te": 0.05,
-    "max_breach": 0.1,
-    "max_cvar": 0.05,
+    "suggest_sleeves": false,
+    "max_te": 0.02,
+    "max_breach": 0.05,
+    "max_cvar": 0.03,
     "sleeve_step": 0.25
   }
 }
