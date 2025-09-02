@@ -73,6 +73,7 @@ from . import (
     violin,
     waterfall,
     weighted_stack,
+    tornado,
     widgets,
 )
 
@@ -150,4 +151,5 @@ __all__ = [
     "triple_scatter",
     "utils",
     "weighted_stack",
+    "tornado",
 ]
