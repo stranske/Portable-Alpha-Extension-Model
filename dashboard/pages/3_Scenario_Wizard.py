@@ -15,49 +15,52 @@ from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
 from pa_core import cli as pa_cli
 from pa_core.validators import load_margin_schedule, calculate_margin_requirement
-from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
+from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config, DefaultConfigView
 from pa_core.config import load_config
 from types import SimpleNamespace
 
 
-def _build_yaml_from_config(config: Any) -> Dict[str, Any]:
+def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     """Construct a YAML-compatible dict for ModelConfig from the wizard state.
 
     Includes optional Financing & Margin settings stored in session state.
+    
+    Args:
+        config: DefaultConfigView object with all required configuration attributes.
     """
     ss = st.session_state
     fs = ss.get("financing_settings", {})
 
-    analysis_mode = getattr(config, "analysis_mode", AnalysisMode.RETURNS)
-    n_simulations = int(getattr(config, "n_simulations", 1000))
-    n_months = int(getattr(config, "n_months", 12))
+    # Direct attribute access - all attributes are guaranteed to exist on DefaultConfigView
+    analysis_mode = config.analysis_mode
+    n_simulations = int(config.n_simulations)
+    n_months = int(config.n_months)
 
-    total_capital = float(getattr(config, "total_fund_capital", 300.0))
-    external_pa_capital = float(getattr(config, "external_pa_capital", 100.0))
-    active_ext_capital = float(getattr(config, "active_ext_capital", 50.0))
-    internal_pa_capital = float(getattr(config, "internal_pa_capital", max(0.0, total_capital - external_pa_capital - active_ext_capital)))
+    total_capital = float(config.total_fund_capital)
+    external_pa_capital = float(config.external_pa_capital)
+    active_ext_capital = float(config.active_ext_capital)
+    internal_pa_capital = float(config.internal_pa_capital)
 
-    w_beta_h = float(getattr(config, "w_beta_h", 0.5))
-    w_alpha_h = float(getattr(config, "w_alpha_h", 1.0 - w_beta_h))
-    theta_extpa = float(getattr(config, "theta_extpa", 0.5))
-    active_share = float(getattr(config, "active_share", 0.5))
+    w_beta_h = float(config.w_beta_h)
+    w_alpha_h = float(config.w_alpha_h)
+    theta_extpa = float(config.theta_extpa)
+    active_share = float(config.active_share)
 
-    mu_h = float(getattr(config, "mu_h", 0.04))
-    mu_e = float(getattr(config, "mu_e", 0.05))
-    mu_m = float(getattr(config, "mu_m", 0.03))
-    sigma_h = float(getattr(config, "sigma_h", 0.01))
-    sigma_e = float(getattr(config, "sigma_e", 0.02))
-    sigma_m = float(getattr(config, "sigma_m", 0.02))
+    mu_h = float(config.mu_h)
+    mu_e = float(config.mu_e)
+    mu_m = float(config.mu_m)
+    sigma_h = float(config.sigma_h)
+    sigma_e = float(config.sigma_e)
+    sigma_m = float(config.sigma_m)
 
-    rho_idx_h = float(getattr(config, "rho_idx_h", 0.05))
-    rho_idx_e = float(getattr(config, "rho_idx_e", 0.0))
-    rho_idx_m = float(getattr(config, "rho_idx_m", 0.0))
-    rho_h_e = float(getattr(config, "rho_h_e", 0.10))
-    rho_h_m = float(getattr(config, "rho_h_m", 0.10))
-    rho_e_m = float(getattr(config, "rho_e_m", 0.0))
+    rho_idx_h = float(config.rho_idx_h)
+    rho_idx_e = float(config.rho_idx_e)
+    rho_idx_m = float(config.rho_idx_m)
+    rho_h_e = float(config.rho_h_e)
+    rho_h_m = float(config.rho_h_m)
+    rho_e_m = float(config.rho_e_m)
 
-    rms = getattr(config, "risk_metrics", [RiskMetric.RETURN, RiskMetric.RISK, RiskMetric.SHORTFALL_PROB])
-    risk_metrics = [rm if isinstance(rm, str) else rm.value for rm in rms]
+    risk_metrics = config.risk_metrics
 
     fm = fs.get("financing_model", "simple_proxy")
     ref_sigma = float(fs.get("reference_sigma", 0.01))
@@ -712,7 +715,7 @@ def _render_step_4_correlations(config: Any) -> Any:
     
     with col1:
         if st.button("🔄 Reset to Defaults", help="Reset all parameters to sensible defaults"):
-            mode = getattr(config, "analysis_mode", AnalysisMode.RETURNS)
+            mode = config.analysis_mode
             st.session_state.wizard_config = get_default_config(mode)
             st.rerun()
     
@@ -723,7 +726,7 @@ def _render_step_4_correlations(config: Any) -> Any:
             st.download_button(
                 "Download Configuration",
                 yaml_str,
-                file_name=f"scenario_{getattr(config.analysis_mode, 'value', str(config.analysis_mode))}.yml",
+                file_name=f"scenario_{config.analysis_mode.value if hasattr(config.analysis_mode, 'value') else str(config.analysis_mode)}.yml",
                 mime="application/x-yaml"
             )
     
@@ -760,7 +763,7 @@ def main() -> None:
         
     if st.sidebar.button("🔄 Reset All Defaults"):
         current = st.session_state.wizard_config
-        mode = getattr(current, "analysis_mode", AnalysisMode.RETURNS)
+        mode = current.analysis_mode
         st.session_state.wizard_config = get_default_config(mode)
         st.rerun()
     
