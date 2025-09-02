@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 import yaml
 from pathlib import Path
@@ -394,10 +395,15 @@ def _render_step_2_capital(config: Any) -> Any:
             schedule_df = None
             if uploaded is not None:
                 try:
-                    # Persist to temp path for validated loader
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
-                        tmp.write(uploaded.getvalue())
-                        tmp_path = Path(tmp.name)
+                    # Persist to a secure temp path for validated loader
+                    fd, tpath = tempfile.mkstemp(suffix=".csv")
+                    try:
+                        with os.fdopen(fd, "wb") as fh:
+                            fh.write(uploaded.getvalue())
+                    except Exception:
+                        os.unlink(tpath)
+                        raise
+                    tmp_path = Path(tpath)
                     ss.financing_settings["schedule_path"] = str(tmp_path)
                     schedule_df = load_margin_schedule(tmp_path)
                     st.success("Schedule validated ✓")
@@ -607,11 +613,6 @@ def _render_step_4_correlations(config: Any) -> Any:
     else:
         st.success("✅ Correlation matrix is valid")
     
-def _render_step_5_review(config: WizardScenarioConfig) -> bool:
-
-
-def _render_step_5_review(config: Any) -> bool:
-    """Step 5: Review & Run. Returns True if user wants to run simulation."""
     st.subheader("Step 5: Review & Run")
     
     # Configuration summary
@@ -896,54 +897,58 @@ def main() -> None:
             if idx is not None:
                 # Convert config to YAML and run simulation
                 yaml_data = _build_yaml_from_config(config)
-                cfg_path = _write_temp_yaml(yaml_data)
-                
-                # Write index data to temp file
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
-                    tmp.write(idx.getvalue())
-                    idx_path = tmp.name
-                
-                try:
-                    with st.spinner("🔄 Running simulation..."):
-                        pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
-                except Exception as exc:
-                    st.error(f"❌ Simulation failed: {exc}")
-                else:
-                    st.success(f"✅ Simulation complete! Results written to {output}")
-                    st.balloons()
-
-                    # Show quick margin summary using current financing settings if available
-                    fs = st.session_state.get("financing_settings", {})
-                    fm = fs.get("financing_model", "simple_proxy")
-                    ref_sigma = float(fs.get("reference_sigma", 0.01))
-                    vol_mult = float(fs.get("volatility_multiple", 3.0))
-                    term_m = float(fs.get("term_months", 1.0))
-                    sched_path = fs.get("schedule_path")
-
+                with _temp_yaml_file(yaml_data) as cfg_path:
+                    # Write index data to a secure temp file
+                    fd, idx_path = tempfile.mkstemp(suffix='.csv')
+                    sim_ok = False
                     try:
-                        margin_requirement = calculate_margin_requirement(
-                            reference_sigma=ref_sigma,
-                            volatility_multiple=vol_mult,
-                            total_capital=float(yaml_data.get("total_fund_capital", 1000.0)),
-                            financing_model=fm,
-                            schedule_path=Path(sched_path) if sched_path else None,
-                            term_months=term_m,
-                        )
-                        st.info(f"Margin requirement: ${margin_requirement:.1f}M (model: {fm})")
-                    except Exception:
-                        # Non-blocking: skip margin summary if misconfigured
-                        pass
+                        with os.fdopen(fd, 'wb') as fh:
+                            fh.write(idx.getvalue())
 
-                    # Show configuration used
-                    yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
-                    with st.expander("Configuration Used", expanded=False):
-                        st.code(yaml_str, language='yaml')
+                        with st.spinner("🔄 Running simulation..."):
+                            pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
+                        sim_ok = True
+                    except Exception as exc:
+                        st.error(f"❌ Simulation failed: {exc}")
+                    finally:
+                        # Cleanup index temp file
+                        try:
+                            os.unlink(idx_path)
+                        except Exception:
+                            pass
 
-                    st.page_link("pages/4_Results.py", label="📈 View Results →")
+                    if sim_ok:
+                        st.success(f"✅ Simulation complete! Results written to {output}")
+                        st.balloons()
 
-                finally:
-                    Path(cfg_path).unlink(missing_ok=True)
-                    Path(idx_path).unlink(missing_ok=True)
+                        # Show quick margin summary using current financing settings if available
+                        fs = st.session_state.get("financing_settings", {})
+                        fm = fs.get("financing_model", "simple_proxy")
+                        ref_sigma = float(fs.get("reference_sigma", 0.01))
+                        vol_mult = float(fs.get("volatility_multiple", 3.0))
+                        term_m = float(fs.get("term_months", 1.0))
+                        sched_path = fs.get("schedule_path")
+
+                        try:
+                            margin_requirement = calculate_margin_requirement(
+                                reference_sigma=ref_sigma,
+                                volatility_multiple=vol_mult,
+                                total_capital=float(yaml_data.get("total_fund_capital", 1000.0)),
+                                financing_model=fm,
+                                schedule_path=Path(sched_path) if sched_path else None,
+                                term_months=term_m,
+                            )
+                            st.info(f"Margin requirement: ${margin_requirement:.1f}M (model: {fm})")
+                        except Exception:
+                            # Non-blocking: skip margin summary if misconfigured
+                            pass
+
+                        # Show configuration used
+                        yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
+                        with st.expander("Configuration Used", expanded=False):
+                            st.code(yaml_str, language='yaml')
+
+                        st.page_link("pages/4_Results.py", label="📈 View Results →")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
