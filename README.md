@@ -196,6 +196,24 @@ make docs
 
 View at `docs/_build/html/index.html`
 
+### Optional dependencies
+
+Some features require optional packages:
+
+- Parquet export/import: install the `parquet` extra to enable pandas.read_parquet/write_parquet via pyarrow.
+
+Install examples:
+
+```bash
+# Core install (runtime deps include PyYAML>=6)
+pip install .
+
+# With Parquet support
+pip install .[parquet]
+```
+
+If `pyarrow` is not installed, the dashboard and CLI will skip Parquet operations gracefully and continue with Excel/CSV.
+
 ## Financing schedule (configurable) ⚙️
 
 You can choose how margin requirements are computed via `financing_model`:

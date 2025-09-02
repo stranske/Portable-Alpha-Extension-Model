@@ -17,8 +17,13 @@ setup(
         "streamlit>=1.35",
         "python-pptx",
         "xlsxwriter",
-        "pyyaml",
+        "PyYAML>=6",
     ],
+    extras_require={
+        "parquet": [
+            "pyarrow",
+        ],
+    },
     python_requires=">=3.10",
     entry_points={
         "console_scripts": [
