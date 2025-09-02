@@ -6,6 +6,7 @@ import tempfile
 import yaml
 from pathlib import Path
 from typing import Dict, Any
+from contextlib import contextmanager
 
 import streamlit as st
 
@@ -109,11 +110,13 @@ def _validate_yaml_dict(yaml_dict: Dict[str, Any]) -> None:
     load_config(yaml_dict)
 
 
-def _write_temp_yaml(data: Dict[str, Any]) -> str:
-    """Write configuration data to a temporary YAML file and return path."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yml') as tmp:
+@contextmanager
+def _temp_yaml_file(data: Dict[str, Any]):
+    """Context manager for temporary YAML file that ensures cleanup."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml') as tmp:
         yaml.safe_dump(data, tmp, default_flow_style=False)
-        return tmp.name
+        tmp.flush()  # Ensure data is written to disk
+        yield tmp.name
 
 
 def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:

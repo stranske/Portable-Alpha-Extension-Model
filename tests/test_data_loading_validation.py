@@ -13,57 +13,48 @@ from pa_core.viz import breach_calendar, rolling_panel
 def test_load_index_returns_with_malformed_data():
     """Test that load_index_returns handles malformed CSV data gracefully."""
     # Create a malformed CSV with non-numeric data
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
         f.write("Date,Return\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,invalid_number\n")  # This should cause issues
         f.write("2020-03-01,0.03\n")
-        csv_path = f.name
+        f.flush()  # Ensure data is written to disk
 
-    try:
         # This should not crash, but handle the error gracefully
-        series = load_index_returns(csv_path)
+        series = load_index_returns(f.name)
         # Check that we got a valid numeric series
         assert isinstance(series, pd.Series)
         assert len(series) > 0
         # All values should be numeric (after error handling)
         assert pd.api.types.is_numeric_dtype(series)
-    finally:
-        Path(csv_path).unlink()
 
 
 def test_load_index_returns_with_empty_data():
     """Test that load_index_returns handles empty CSV files gracefully."""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
         f.write("Date,Return\n")  # Header only, no data
-        csv_path = f.name
+        f.flush()  # Ensure data is written to disk
 
-    try:
         # Should raise ValueError for empty data
         with pytest.raises(ValueError, match="No valid numeric data found"):
-            load_index_returns(csv_path)
-    finally:
-        Path(csv_path).unlink()
+            load_index_returns(f.name)
 
 
 def test_load_index_returns_with_text_in_numeric_columns():
     """Test handling of mixed data types in numeric columns."""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
         f.write("Date,Return\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,N/A\n")  # Common CSV format for missing data
         f.write("2020-03-01,0.03\n")
         f.write("2020-04-01,#DIV/0!\n")  # Excel error values
-        csv_path = f.name
+        f.flush()  # Ensure data is written to disk
 
-    try:
-        series = load_index_returns(csv_path)
+        series = load_index_returns(f.name)
         # Should handle these gracefully
         assert isinstance(series, pd.Series)
         # Non-numeric values should be handled appropriately
         assert pd.api.types.is_numeric_dtype(series)
-    finally:
-        Path(csv_path).unlink()
 
 
 def test_breach_calendar_with_non_numeric_data():
