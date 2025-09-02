@@ -117,7 +117,7 @@ def export_to_excel(
             param_col = df.columns[0]
             value_col = df.columns[1]
             series = df.set_index(param_col)[value_col].astype(float)
-            fig = tornado.make(series)
+            fig = tornado.make(cast(pd.Series, series))
             img_bytes = fig.to_image(format="png")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
