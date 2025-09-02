@@ -96,11 +96,4 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
             {"Agent": "InternalBeta", "Sub": "Financing", "Return": ib_fin},
         ]
 
-    df = pd.DataFrame.from_records(rows)
-    # Ensure required columns exist and are ordered
-    required = ["Agent", "Sub", "Return"]
-    for col in required:
-        if col not in df.columns:
-            df[col] = []
-    df = df[required]
-    return pd.DataFrame(df).reset_index(drop=True)
+    return df.reset_index(drop=True)
