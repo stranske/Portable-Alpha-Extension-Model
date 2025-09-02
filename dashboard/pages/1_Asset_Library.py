@@ -94,8 +94,8 @@ def main() -> None:
                     from pa_core.data import DataImportAgent as _DIA
                     text = tmpl_upload.getvalue().decode("utf-8")
                     # Write to temp so from_template can read
-                    with tempfile.NamedTemporaryFile(suffix=".yaml") as t:
-                        Path(t.name).write_text(text)
+                        t.write(text.encode('utf-8'))
+                        t.flush()
                         importer = _DIA.from_template(t.name)
 
         # Load using current importer configuration
