@@ -503,8 +503,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
             sens_df = one_factor_deltas(params=base_params, steps=steps, evaluator=_eval)
             inputs_dict["_sensitivity_df"] = sens_df
-        except Exception:
-            pass
+        except Exception as e:
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed.\n[dim]Reason: {e}[/dim]",
+                    title="Sensitivity Analysis",
+                    style="yellow"
+                )
+            )
 
     export_to_excel(
         inputs_dict,
