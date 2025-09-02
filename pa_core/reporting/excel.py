@@ -125,4 +125,33 @@ def export_to_excel(
             # Non-fatal if renderer or data missing
             pass
 
+    # Optional: write Attribution sheet if provided in inputs_dict
+    attr_df = inputs_dict.get("_attribution_df")
+    if isinstance(attr_df, pd.DataFrame) and not attr_df.empty:
+        try:
+            with pd.ExcelWriter(filename, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+                cols = [c for c in ["Agent", "Sub", "Return"] if c in attr_df.columns]
+                if cols:
+                    attr_df[cols].to_excel(writer, sheet_name="Attribution", index=False)
+        except Exception:
+            pass
+
+    # Best-effort: embed sunburst image on Attribution sheet
+    if "Attribution" in wb.sheetnames:
+        try:
+            from ..viz import sunburst
+
+            ws = wb["Attribution"]
+            df_attr = pd.DataFrame(ws.values)
+            df_attr.columns = df_attr.iloc[0]
+            df_attr = df_attr.drop(index=0)
+            # Ensure required columns exist
+            if {"Agent", "Sub", "Return"} <= set(df_attr.columns):
+                fig = sunburst.make(df_attr)
+                img_bytes = fig.to_image(format="png")
+                img = XLImage(io.BytesIO(img_bytes))
+                ws.add_image(img, "H2")
+        except Exception:
+            pass
+
     wb.save(filename)

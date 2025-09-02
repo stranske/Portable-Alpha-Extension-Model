@@ -15,6 +15,13 @@ def suggest_sleeve_sizes(
     max_breach: float,
     max_cvar: float,
     step: float = 0.25,
+    min_external: float | None = None,
+    max_external: float | None = None,
+    min_active: float | None = None,
+    max_active: float | None = None,
+    min_internal: float | None = None,
+    max_internal: float | None = None,
+    sort_by: str = "risk_score",
     seed: int | None = None,
 ) -> pd.DataFrame:
     """Suggest sleeve allocations that respect risk constraints.
@@ -55,6 +62,19 @@ def suggest_sleeve_sizes(
             int_cap = total - ext_cap - act_cap
             if int_cap < 0:
                 continue
+            # Bounds filtering (if provided)
+            if min_external is not None and ext_cap < min_external:
+                continue
+            if max_external is not None and ext_cap > max_external:
+                continue
+            if min_active is not None and act_cap < min_active:
+                continue
+            if max_active is not None and act_cap > max_active:
+                continue
+            if min_internal is not None and int_cap < min_internal:
+                continue
+            if max_internal is not None and int_cap > max_internal:
+                continue
             test_cfg = cfg.model_copy(
                 update={
                     "external_pa_capital": float(ext_cap),
@@ -86,5 +106,15 @@ def suggest_sleeve_sizes(
                     "internal_pa_capital": float(int_cap),
                 }
                 record.update(metrics)
+                # Composite risk score (lower is better): TE + BreachProb + |CVaR|
+                score = 0.0
+                for ag in ["ExternalPA", "ActiveExt", "InternalPA"]:
+                    score += record.get(f"{ag}_TE", 0.0)
+                    score += record.get(f"{ag}_BreachProb", 0.0)
+                    score += abs(record.get(f"{ag}_CVaR", 0.0))
+                record["risk_score"] = score
                 records.append(record)
-    return pd.DataFrame.from_records(records)
+    df = pd.DataFrame.from_records(records)
+    if not df.empty and sort_by in df.columns:
+        df = df.sort_values(sort_by, ascending=True).reset_index(drop=True)
+    return df

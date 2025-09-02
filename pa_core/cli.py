@@ -187,6 +187,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         default=0.25,
         help="Grid step size for sleeve suggestions",
     )
+    # Optional sleeve bounds (in capital mm units)
+    parser.add_argument("--min-external", type=float, default=None, help="Minimum ExternalPA capital (mm)")
+    parser.add_argument("--max-external", type=float, default=None, help="Maximum ExternalPA capital (mm)")
+    parser.add_argument("--min-active", type=float, default=None, help="Minimum ActiveExt capital (mm)")
+    parser.add_argument("--max-active", type=float, default=None, help="Maximum ActiveExt capital (mm)")
+    parser.add_argument("--min-internal", type=float, default=None, help="Minimum InternalPA capital (mm)")
+    parser.add_argument("--max-internal", type=float, default=None, help="Maximum InternalPA capital (mm)")
     args = parser.parse_args(argv)
 
     flags = RunFlags(
@@ -236,6 +243,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             max_breach=args.max_breach,
             max_cvar=args.max_cvar,
             step=args.sleeve_step,
+            min_external=args.min_external,
+            max_external=args.max_external,
+            min_active=args.min_active,
+            max_active=args.max_active,
+            min_internal=args.min_internal,
+            max_internal=args.max_internal,
             seed=args.seed,
         )
         if suggestions.empty:
@@ -249,15 +262,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             print("Aborting run.")
             return
         try:
-            row = suggestions.iloc[int(choice)]
+            idx_sel = int(choice)
+            row = suggestions.iloc[idx_sel]
         except (ValueError, IndexError):
             print("Invalid selection. Aborting run.")
             return
         cfg = cfg.model_copy(
             update={
-                "external_pa_capital": float(row["external_pa_capital"]),
-                "active_ext_capital": float(row["active_ext_capital"]),
-                "internal_pa_capital": float(row["internal_pa_capital"]),
+                # Coerce through numpy for type-checker friendliness
+                "external_pa_capital": float(pd.Series([row["external_pa_capital"]]).to_numpy()[0]),
+                "active_ext_capital": float(pd.Series([row["active_ext_capital"]]).to_numpy()[0]),
+                "internal_pa_capital": float(pd.Series([row["internal_pa_capital"]]).to_numpy()[0]),
             }
         )
 
@@ -413,6 +428,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     summary = create_enhanced_summary(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
+    # Attach a basic sleeve-level return attribution to inputs (annualized mean monthly return by agent)
+    try:
+        rows: list[dict[str, object]] = []
+        for agent, arr in returns.items():
+            mean_month = float(arr.mean())
+            ann = 12.0 * mean_month
+            rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
+        inputs_dict["_attribution_df"] = pd.DataFrame(rows)
+    except Exception:
+        pass
     print_enhanced_summary(summary)
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
