@@ -9,7 +9,7 @@ ruff
 pyright[nodejs]
 pydantic
 rich
-pyyaml
+PyYAML>=6
 tqdm
 plotly>=5.19
 kaleido            # Plotly static export driver
