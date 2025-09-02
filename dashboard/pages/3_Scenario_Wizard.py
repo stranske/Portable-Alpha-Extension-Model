@@ -6,20 +6,24 @@ import tempfile
 import yaml
 from pathlib import Path
 from typing import Dict, Any
+from contextlib import contextmanager
 
 import streamlit as st
 
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
 from pa_core import cli as pa_cli
+from pa_core.validators import load_margin_schedule, calculate_margin_requirement
 from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
 
 
-def _write_temp_yaml(data: Dict[str, Any]) -> str:
-    """Write configuration data to a temporary YAML file and return path."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yml') as tmp:
+@contextmanager
+def _temp_yaml_file(data: Dict[str, Any]):
+    """Context manager for temporary YAML file that ensures cleanup."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml') as tmp:
         yaml.safe_dump(data, tmp, default_flow_style=False)
-        return tmp.name
+        tmp.flush()  # Ensure data is written to disk
+        yield tmp.name
 
 
 def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
@@ -221,6 +225,110 @@ def _render_step_2_capital(config: WizardScenarioConfig) -> WizardScenarioConfig
                     use_container_width=True
                 )
     
+    # Financing & Margin (optional enhancement)
+    st.markdown("---")
+    with st.expander("⚙️ Financing & Margin (optional)", expanded=False):
+        # Defaults in session state
+        ss = st.session_state
+        if "financing_settings" not in ss:
+            ss.financing_settings = {
+                "financing_model": "simple_proxy",
+                "reference_sigma": 0.01,
+                "volatility_multiple": 3.0,
+                "term_months": 1.0,
+                "schedule_path": None,
+            }
+
+        fm = st.selectbox(
+            "Financing model",
+            options=["simple_proxy", "schedule"],
+            index=["simple_proxy", "schedule"].index(ss.financing_settings["financing_model"]),
+            help="Choose how to compute margin: proxy multiple or broker schedule",
+        )
+        ss.financing_settings["financing_model"] = fm
+
+        colA, colB = st.columns(2)
+        with colA:
+            ref_sigma = st.number_input(
+                "Reference sigma (monthly)",
+                min_value=0.0,
+                value=float(ss.financing_settings["reference_sigma"]),
+                step=0.001,
+                format="%.4f",
+                help="Monthly reference volatility used for margin",
+            )
+            ss.financing_settings["reference_sigma"] = ref_sigma
+
+        if fm == "simple_proxy":
+            with colB:
+                k = st.number_input(
+                    "Volatility multiple (k)",
+                    min_value=0.1,
+                    value=float(ss.financing_settings["volatility_multiple"]),
+                    step=0.1,
+                    format="%.2f",
+                    help="Proxy multiple used to size margin",
+                )
+                ss.financing_settings["volatility_multiple"] = k
+
+            margin = calculate_margin_requirement(
+                reference_sigma=ref_sigma,
+                volatility_multiple=k,
+                total_capital=config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0,
+                financing_model="simple_proxy",
+            )
+            st.metric("Estimated Margin Requirement", f"${margin:.1f}M")
+
+        else:
+            with colB:
+                term = st.number_input(
+                    "Term (months)",
+                    min_value=0.0,
+                    value=float(ss.financing_settings["term_months"]),
+                    step=0.5,
+                    format="%.1f",
+                    help="Interpolate schedule multiplier at this tenor",
+                )
+                ss.financing_settings["term_months"] = term
+
+            uploaded = st.file_uploader(
+                "Upload margin schedule CSV (columns: term,multiplier)",
+                type=["csv"],
+                accept_multiple_files=False,
+                help="Terms must be non-negative, unique, strictly increasing; multipliers positive",
+            )
+
+            schedule_df = None
+            if uploaded is not None:
+                try:
+                    # Persist to temp path for validated loader
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+                        tmp.write(uploaded.getvalue())
+                        tmp_path = Path(tmp.name)
+                    ss.financing_settings["schedule_path"] = str(tmp_path)
+                    schedule_df = load_margin_schedule(tmp_path)
+                    st.success("Schedule validated ✓")
+                    st.dataframe(schedule_df, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Schedule error: {e}")
+                    ss.financing_settings["schedule_path"] = None
+                
+            if schedule_df is not None:
+                # Interpolate multiplier and compute margin
+                margin = calculate_margin_requirement(
+                    reference_sigma=ref_sigma,
+                    total_capital=config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0,
+                    financing_model="schedule",
+                    margin_schedule=schedule_df,
+                    term_months=term,
+                )
+                # Interpolated k = margin / (ref_sigma * total_capital)
+                total_cap = config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0
+                k_interp = margin / max(ref_sigma * total_cap, 1e-12)
+                c1, c2 = st.columns(2)
+                c1.metric("Interpolated k (multiplier)", f"{k_interp:.2f}")
+                c2.metric("Estimated Margin Requirement", f"${margin:.1f}M")
+
     return config
 
 
@@ -678,53 +786,49 @@ def main() -> None:
             if idx is not None:
                 # Convert config to YAML and run simulation
                 yaml_data = config.to_yaml_dict()
-                cfg_path = _write_temp_yaml(yaml_data)
                 
-                # Write index data to temp file
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
-                    tmp.write(idx.getvalue())
-                    idx_path = tmp.name
-                
-                try:
-                    with st.spinner("🔄 Running simulation..."):
-                        pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
-                except Exception as exc:
-                    st.error(f"❌ Simulation failed: {exc}")
-                else:
-                    st.success(f"✅ Simulation complete! Results written to {output}")
-                    st.balloons()
+                # Write index data to temp file and run simulation
+                with tempfile.NamedTemporaryFile(suffix='.csv') as tmp_idx:
+                    tmp_idx.write(idx.getvalue())
+                    tmp_idx.flush()  # Ensure data is written to disk
                     
-                    reference_sigma = config_data.get('reference_sigma', 0.01)
-                    volatility_multiple = config_data.get('volatility_multiple', 3.0)
-                    total_capital = config_data.get('total_fund_capital', 1000.0)
-                    financing_model = config_data.get('financing_model', 'simple_proxy')
-                    schedule_path = config_data.get('financing_schedule_path')
-                    term_months = config_data.get('financing_term_months', 1.0)
+                    with _temp_yaml_file(yaml_data) as cfg_path:
+                        try:
+                            with st.spinner("🔄 Running simulation..."):
+                                pa_cli.main(["--config", cfg_path, "--index", tmp_idx.name, "--output", output])
+                        except Exception as exc:
+                            st.error(f"❌ Simulation failed: {exc}")
+                        else:
+                            st.success(f"✅ Simulation complete! Results written to {output}")
+                            st.balloons()
+                            
+                            reference_sigma = yaml_data.get('reference_sigma', 0.01)
+                            volatility_multiple = yaml_data.get('volatility_multiple', 3.0)
+                            total_capital = yaml_data.get('total_fund_capital', 1000.0)
+                            financing_model = yaml_data.get('financing_model', 'simple_proxy')
+                            schedule_path = yaml_data.get('financing_schedule_path')
+                            term_months = yaml_data.get('financing_term_months', 1.0)
 
-                    margin_requirement = calculate_margin_requirement(
-                        reference_sigma=reference_sigma,
-                        volatility_multiple=volatility_multiple,
-                        total_capital=total_capital,
-                        financing_model=financing_model,
-                        schedule_path=schedule_path,
-                        term_months=term_months,
-                    )
-                    
-                    with col2:
-                        st.metric("Total Capital", f"${config.total_fund_capital:.1f}M")
-                        st.metric("External PA", f"${config.external_pa_capital:.1f}M")
-                        st.metric("Active Extension", f"${config.active_ext_capital:.1f}M")
-                    
-                    # Show configuration used
-                    yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
-                    with st.expander("Configuration Used", expanded=False):
-                        st.code(yaml_str, language='yaml')
-                    
-                    st.page_link("pages/4_Results.py", label="📈 View Results →")
-                    
-                finally:
-                    Path(cfg_path).unlink(missing_ok=True)
-                    Path(idx_path).unlink(missing_ok=True)
+                            margin_requirement = calculate_margin_requirement(
+                                reference_sigma=reference_sigma,
+                                volatility_multiple=volatility_multiple,
+                                total_capital=total_capital,
+                                financing_model=financing_model,
+                                schedule_path=schedule_path,
+                                term_months=term_months,
+                            )
+                            
+                            with col2:
+                                st.metric("Total Capital", f"${config.total_fund_capital:.1f}M")
+                                st.metric("External PA", f"${config.external_pa_capital:.1f}M")
+                                st.metric("Active Extension", f"${config.active_ext_capital:.1f}M")
+                            
+                            # Show configuration used
+                            yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
+                            with st.expander("Configuration Used", expanded=False):
+                                st.code(yaml_str, language='yaml')
+                            
+                            st.page_link("pages/4_Results.py", label="📈 View Results →")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point

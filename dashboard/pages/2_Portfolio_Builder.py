@@ -29,13 +29,14 @@ def main() -> None:
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
-        st.info(
-            (
-                "Promoted alpha shares from Scenario Grid "
-                f"(active_share={(promoted_active_share or 0.0):.2f}, "
-                f"theta_extpa={(promoted_theta or 0.0):.2f})"
+        if (promoted_active_share is not None) or (promoted_theta is not None):
+            st.info(
+                (
+                    "Promoted alpha shares from Scenario Grid "
+                    f"(active_share={(promoted_active_share or 0.0):.2f}, "
+                    f"theta_extpa={(promoted_theta or 0.0):.2f})"
+                )
             )
-        )
 
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander("Alpha Shares (annotation – included in download)", expanded=bool(promoted_active_share or promoted_theta)):
@@ -61,13 +62,10 @@ def main() -> None:
         st.info("Upload an asset library YAML to begin.")
         return
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp:
         tmp.write(uploaded.getvalue())
-        tmp_path = tmp.name
-    try:
-        scenario = load_scenario(tmp_path)
-    finally:
-        Path(tmp_path).unlink(missing_ok=True)
+        tmp.flush()  # Ensure data is written to disk
+        scenario = load_scenario(tmp.name)
 
     if not scenario.assets:
         st.warning("No assets found in file.")

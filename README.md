@@ -196,6 +196,39 @@ make docs
 
 View at `docs/_build/html/index.html`
 
+## Financing schedule (configurable) ⚙️
+
+You can choose how margin requirements are computed via `financing_model`:
+
+- simple_proxy (default): margin = reference_sigma × volatility_multiple × total_capital
+- schedule: interpolate from a broker-provided CSV schedule
+
+When using the schedule model, add these fields to your YAML config:
+
+- financing_model: "schedule"
+- financing_schedule_path: path to a CSV with columns term,multiplier
+- financing_term_months: the term (in months) at which to interpolate the multiplier
+
+CSV requirements for the schedule:
+
+- Columns: term (months), multiplier (positive)
+- Terms must be non-negative, unique, and strictly increasing
+- Multipliers must be positive
+
+An example template is provided at `config/margin_schedule_template.csv`.
+
+YAML snippet:
+
+```yaml
+financing_model: schedule  # or simple_proxy
+financing_schedule_path: config/margin_schedule_template.csv
+financing_term_months: 3.0
+reference_sigma: 0.01
+volatility_multiple: 3.0  # only used for simple_proxy
+```
+
+Validation: the loader enforces the CSV shape and monotonic terms; errors list the exact rule violated. The Scenario Wizard page reads these fields and passes them to validators.
+
 ## 1. Purpose and High-Level Overview
 Goal:
 Construct a Monte Carlo framework that allocates a fixed pool of capital (e.g. $1 b) across three “sleeves” (Internal, External Portable-Alpha, and Active Extension), simulates joint returns on Index, In-House α, Extension α, and External PA α, and then reports portfolio metrics (annual return, volatility, VaR, tracking error, breach probability).
