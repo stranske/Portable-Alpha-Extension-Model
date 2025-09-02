@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import tempfile
 from dataclasses import asdict
@@ -20,6 +21,9 @@ except Exception:  # pragma: no cover - conservative fallback
     _BARE_MODE = True
 from pa_core.presets import AlphaPreset, PresetLibrary
 from dashboard.app import _DEF_THEME, apply_theme
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:
@@ -101,8 +105,9 @@ def main() -> None:
                     finally:
                         try:
                             os.close(fd)
-                        except Exception:
-                            pass
+                        except OSError as e:
+                            # Log the error but don't fail - file descriptor might already be closed
+                            logger.warning(f"Error closing file descriptor {fd}: {e}")
                         Path(tmp_tmpl).unlink(missing_ok=True)
                     st.download_button(
                         "Download mapping.yaml",
@@ -153,8 +158,9 @@ def main() -> None:
             finally:
                 try:
                     os.close(yfd)
-                except Exception:
-                    pass
+                except OSError as e:
+                    # Log the error but don't fail - file descriptor might already be closed
+                    logger.warning(f"Error closing file descriptor {yfd}: {e}")
                 Path(ypath).unlink(missing_ok=True)
 
         # Preset library management
