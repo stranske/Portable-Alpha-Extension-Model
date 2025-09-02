@@ -5,30 +5,31 @@ from typing import Mapping
 import pandas as pd
 import plotly.graph_objects as go
 
-try:  # theme is optional when loading module standalone
-    from . import theme
+from . import theme
 
-    TEMPLATE = theme.TEMPLATE
-except (ImportError, ModuleNotFoundError):  # pragma: no cover - fallback when package not fully available
-    TEMPLATE = None
+__all__ = ["make"]
 
 
-def make(contrib: Mapping[str, float] | pd.Series) -> go.Figure:
-    """Return tornado chart sorted by absolute contribution.
+def make(contrib: Mapping[str, float] | pd.Series, title: str | None = None) -> go.Figure:
+    """Render a tornado chart from a mapping/Series of contributions.
 
-    Parameters
-    ----------
-    contrib: Mapping[str, float] or Series
-        Mapping of parameter name to delta contribution.
+    Inputs may be a dict-like mapping of parameter -> delta contribution,
+    or a pandas Series. Bars are sorted by absolute value descending.
     """
     if isinstance(contrib, pd.Series):
         series = contrib.astype(float)
     else:
-        series = pd.Series({k: float(v) for k, v in contrib.items()})
+        series = pd.Series({str(k): float(v) for k, v in contrib.items()})
+
+    if series.empty:
+        return go.Figure(layout_template=theme.TEMPLATE)
 
     series = series.reindex(series.abs().sort_values(ascending=False).index)
-    layout = dict(template=TEMPLATE) if TEMPLATE else {}
-    fig = go.Figure(layout=layout)
-    fig.add_trace(go.Bar(x=series.values, y=series.index, orientation="h"))
-    fig.update_layout(xaxis_title="Delta", yaxis_title="Parameter")
+    fig = go.Figure(layout_template=theme.TEMPLATE)
+    fig.add_trace(go.Bar(x=series.values, y=series.index.tolist(), orientation="h"))
+    fig.update_layout(
+        title=title or "Sensitivity Tornado",
+        xaxis_title="Delta",
+        yaxis_title="Parameter",
+    )
     return fig
