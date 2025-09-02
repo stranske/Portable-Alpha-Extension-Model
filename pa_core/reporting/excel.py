@@ -142,15 +142,14 @@ def export_to_excel(
             from ..viz import sunburst
 
             ws = wb["Attribution"]
-            df_attr = pd.DataFrame(ws.values)
-            df_attr.columns = df_attr.iloc[0]
-            df_attr = df_attr.drop(index=0)
-            # Ensure required columns exist
-            if {"Agent", "Sub", "Return"} <= set(df_attr.columns):
-                fig = sunburst.make(df_attr)
-                img_bytes = fig.to_image(format="png")
-                img = XLImage(io.BytesIO(img_bytes))
-                ws.add_image(img, "H2")
+            # Use attr_df directly instead of reconstructing from worksheet
+            if isinstance(attr_df, pd.DataFrame) and not attr_df.empty:
+                # Ensure required columns exist
+                if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
+                    fig = sunburst.make(attr_df)
+                    img_bytes = fig.to_image(format="png")
+                    img = XLImage(io.BytesIO(img_bytes))
+                    ws.add_image(img, "H2")
         except Exception:
             pass
 
