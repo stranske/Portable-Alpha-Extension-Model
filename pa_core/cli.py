@@ -151,7 +151,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument(
         "--sensitivity",
         action="store_true",
-        help="Compute one-factor sensitivity deltas and include tornado in packet/Excel",
+        help="Run one-factor sensitivity analysis on key parameters and include a tornado chart in packet/Excel exports",
     )
     parser.add_argument(
         "--dashboard",
@@ -186,11 +186,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         type=float,
         default=0.25,
         help="Grid step size for sleeve suggestions",
-    )
-    parser.add_argument(
-        "--sensitivity",
-        action="store_true",
-        help="Run one-factor sensitivity analysis on key parameters",
     )
     args = parser.parse_args(argv)
 
