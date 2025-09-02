@@ -292,10 +292,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             return
         cfg = cfg.model_copy(
             update={
-                # Coerce through numpy for type-checker friendliness
-                "external_pa_capital": float(pd.Series([row["external_pa_capital"]]).to_numpy()[0]),
-                "active_ext_capital": float(pd.Series([row["active_ext_capital"]]).to_numpy()[0]),
-                "internal_pa_capital": float(pd.Series([row["internal_pa_capital"]]).to_numpy()[0]),
+                # Direct float conversion for clarity and efficiency
+                "external_pa_capital": float(row["external_pa_capital"]),
+                "active_ext_capital": float(row["active_ext_capital"]),
+                "internal_pa_capital": float(row["internal_pa_capital"]),
             }
         )
 
@@ -619,7 +619,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
         except (KeyError, ValueError) as e:
             logger.error(f"Sensitivity analysis configuration error: {e}")
-            # Omit base_params debug to avoid static analysis false positives
             Console().print(
                 Panel(
                     f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
@@ -703,7 +702,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS, n_sim=mod_cfg.N_SIMULATIONS, params=params_local, rng=rng_returns
                 )
-                # Reuse existing financing draws for speed in sensitivity
+                # Reuse existing financing draws for speed in sensitivity.
+                # NOTE: This introduces correlation between sensitivity analysis runs,
+                # as all runs use the same random financing draws. This is intentional
+                # to isolate the effect of parameter changes and reduce noise from
+                # random variation. If independent draws are required for each run,
+                # modify this section to generate new draws per run. Interpret results
+                # accordingly, as sensitivity estimates may be affected by this choice.
                 f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
                 agents_l = build_from_config(mod_cfg)
                 returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
