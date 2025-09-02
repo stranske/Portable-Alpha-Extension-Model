@@ -205,7 +205,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":
-        valid_modes = ["capital", "returns", "alpha_shares", "vol_mult"]
+        valid_modes = ["capital", "returns", "alpha_shares", "vol_mult", "single_with_sensitivity"]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
         return self
