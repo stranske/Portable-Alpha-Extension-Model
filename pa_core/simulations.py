@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from typing import Any, Iterable, Tuple
+from functools import singledispatch
 
 from numpy.typing import NDArray
 
@@ -33,6 +34,51 @@ __all__ = [
 ]
 
 
+@singledispatch
+def _resolve_streams(
+    agent: Agent,
+    r_beta: NDArray[Any],
+    r_H: NDArray[Any],
+    r_E: NDArray[Any],
+    r_M: NDArray[Any],
+    f_int: NDArray[Any],
+    f_ext_pa: NDArray[Any],
+    f_act_ext: NDArray[Any],
+) -> Tuple[NDArray[Any], NDArray[Any]]:
+    """Return ``(alpha_stream, financing)`` for ``agent``."""
+    raise TypeError(f"Unsupported agent type: {type(agent)}")
+
+
+@_resolve_streams.register
+def _(agent: BaseAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+    r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
+    return r_H, f_int
+
+
+@_resolve_streams.register
+def _(agent: ExternalPAAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+    r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
+    return r_M, f_ext_pa
+
+
+@_resolve_streams.register
+def _(agent: ActiveExtensionAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+    r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
+    return r_E, f_act_ext
+
+
+@_resolve_streams.register
+def _(agent: InternalBetaAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+    r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
+    return r_H, f_int
+
+
+@_resolve_streams.register
+def _(agent: InternalPAAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+    r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
+    return r_H, np.zeros_like(r_beta)
+
+
 def simulate_agents(
     agents: Iterable[Agent],
     r_beta: NDArray[Any],
@@ -44,27 +90,10 @@ def simulate_agents(
     f_act_ext: NDArray[Any],
 ) -> dict[str, NDArray[Any]]:
     """Return per-agent monthly returns using vectorised operations."""
-
     results: dict[str, NDArray[Any]] = {}
+    streams = (r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext)
     for agent in agents:
-        if isinstance(agent, BaseAgent):
-            alpha = r_H
-            financing = f_int
-        elif isinstance(agent, ExternalPAAgent):
-            alpha = r_M
-            financing = f_ext_pa
-        elif isinstance(agent, ActiveExtensionAgent):
-            alpha = r_E
-            financing = f_act_ext
-        elif isinstance(agent, InternalBetaAgent):
-            alpha = r_H
-            financing = f_int
-        elif isinstance(agent, InternalPAAgent):
-            alpha = r_H
-            financing = np.zeros_like(r_beta)
-        else:  # pragma: no cover - defensive
-            raise TypeError(f"Unsupported agent type: {type(agent)}")
-
+        alpha, financing = _resolve_streams(agent, *streams)
         results[agent.p.name] = agent.monthly_returns(r_beta, alpha, financing)
 
     return results
