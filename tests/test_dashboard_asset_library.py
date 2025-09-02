@@ -8,6 +8,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 
+
 class Uploaded:
     def __init__(self, path: Path):
         self.name = path.name
@@ -58,8 +59,10 @@ def test_asset_library_calibration(monkeypatch):
     monkeypatch.setattr(st_mod, "form_submit_button", lambda *a, **k: False)
 
     captured: dict[str, str] = {}
+    labels: list[str] = []
 
     def fake_download(label, data, **kwargs):
+        labels.append(label)
         if label == "Download Asset Library YAML":
             captured["label"] = label
             captured["data"] = data
@@ -71,5 +74,6 @@ def test_asset_library_calibration(monkeypatch):
         min_obs=1
     )
     module["main"]()
-    assert captured["label"] == "Download Asset Library YAML"
+    assert "Download Asset Library YAML" in labels
+    assert "Download Presets JSON" in labels
     assert "SP500_TR" in captured["data"]
