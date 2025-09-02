@@ -200,7 +200,8 @@ View at `docs/_build/html/index.html`
 
 Some features require optional packages:
 
-- Parquet export/import: install the `parquet` extra to enable pandas.read_parquet/write_parquet via pyarrow.
+- Parquet export/import: install the `parquet` extra to enable pandas.read_parquet/write_parquet via pyarrow. When pyarrow is
+  missing the dashboard falls back to a CSV summary if available.
 
 Install examples:
 
@@ -212,7 +213,8 @@ pip install .
 pip install .[parquet]
 ```
 
-If `pyarrow` is not installed, the dashboard and CLI will skip Parquet operations gracefully and continue with Excel/CSV.
+If `pyarrow` is not installed, the dashboard and CLI skip Parquet operations gracefully. The exporter writes a CSV alongside the
+Parquet file so the dashboard remains usable.
 
 ### Python version requirement and packaging
 

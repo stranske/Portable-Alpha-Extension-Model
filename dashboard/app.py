@@ -52,16 +52,53 @@ def _get_plot_fn(path: str):
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name="Summary")
     p = Path(xlsx).with_suffix(".parquet")
-    paths = pd.read_parquet(p) if p.exists() else None
+    paths: pd.DataFrame | None = None
+    if p.exists():
+        try:
+            paths = pd.read_parquet(p)
+        except ImportError:
+            csv_path = p.with_suffix(".csv")
+            if csv_path.exists():
+                st.info("pyarrow missing; using CSV path data instead")
+                paths = pd.read_csv(csv_path, index_col=0)
+            else:
+                st.info(
+                    "Install pyarrow for Parquet support or provide a matching CSV file"
+                )
     return summary, paths
 
 
+def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None:
+    """Persist run history to Parquet and CSV for dashboard use."""
+    p = Path(base)
+    try:
+        df.to_parquet(p)
+    except ImportError:
+        st.info("pyarrow not installed; skipping Parquet export")
+    df.to_csv(p.with_suffix(".csv"), index=False)
+
+
 def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
-    """Return mean and vol by simulation from ``parquet`` if it exists."""
+    """Return mean and vol by simulation from ``parquet`` or CSV."""
     p = Path(parquet)
-    if not p.exists():
+    csv_path = p.with_suffix(".csv")
+    df: pd.DataFrame | None = None
+    if p.exists():
+        try:
+            df = pd.read_parquet(p)
+        except ImportError:
+            if csv_path.exists():
+                st.info("pyarrow missing; loading CSV history")
+                df = pd.read_csv(csv_path)
+            else:
+                st.info(
+                    "Install pyarrow for Parquet support or provide a CSV fallback"
+                )
+                return None
+    elif csv_path.exists():
+        df = pd.read_csv(csv_path)
+    else:
         return None
-    df = pd.read_parquet(p)
     return (
         df.groupby("Sim")["Return"]
         .agg(["mean", "std"])
