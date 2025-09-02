@@ -17,8 +17,9 @@ setup(
         "streamlit>=1.35",
         "python-pptx",
         "xlsxwriter",
+        "pyyaml",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     entry_points={
         "console_scripts": [
             "pa=pa_core.pa:main",
