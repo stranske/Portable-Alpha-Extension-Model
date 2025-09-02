@@ -1,9 +1,12 @@
 
 import pandas as pd
+import yaml
+from pathlib import Path
 
 
 from pa_core.config import load_config
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
+from pa_core.cli import main
 
 
 def test_suggest_sleeve_sizes_returns_feasible():
@@ -21,3 +24,32 @@ def test_suggest_sleeve_sizes_returns_feasible():
     )
     assert not df.empty
     assert {"external_pa_capital", "active_ext_capital", "internal_pa_capital"}.issubset(df.columns)
+
+
+def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
+    cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+    monkeypatch.setattr("builtins.input", lambda _: "0")
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--suggest-sleeves",
+            "--max-te",
+            "0.02",
+            "--max-breach",
+            "0.5",
+            "--max-cvar",
+            "0.05",
+            "--sleeve-step",
+            "0.5",
+        ]
+    )
+    assert out_file.exists()
