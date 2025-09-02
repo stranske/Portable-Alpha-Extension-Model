@@ -24,8 +24,8 @@ def main() -> None:
     if "promoted_alpha_shares" in st.session_state:
         try:
             vals = st.session_state["promoted_alpha_shares"]
-            promoted_active_share = vals.get("active_share")
-            promoted_theta = vals.get("theta_extpa")
+            promoted_active_share = vals["active_share"]
+            promoted_theta = vals["theta_extpa"]
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
