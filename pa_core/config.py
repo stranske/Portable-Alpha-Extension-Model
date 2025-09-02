@@ -205,7 +205,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":
-        valid_modes = ["capital", "returns", "alpha_shares", "vol_mult"]
+        valid_modes = ["capital", "returns", "alpha_shares", "vol_mult", "single_with_sensitivity"]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
         return self
@@ -241,11 +241,25 @@ class ModelConfig(BaseModel):
 
 
 def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
-    """Return ``ModelConfig`` parsed from YAML dictionary."""
+    """Return ``ModelConfig`` parsed from YAML dictionary or file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``path`` is a string/Path and the file does not exist.
+    ConfigError
+        If the YAML content cannot be parsed or mandatory fields are missing.
+    """
     if isinstance(path, dict):
         data = path
     else:
-        data = yaml.safe_load(Path(path).read_text())
+        p = Path(path)
+        if not p.exists():
+            raise FileNotFoundError(f"Config file not found: {p}")
+        try:
+            data = yaml.safe_load(p.read_text())
+        except yaml.YAMLError as exc:  # pragma: no cover - user input
+            raise ConfigError(f"Invalid YAML in config file {p}: {exc}") from exc
     try:
         cfg = ModelConfig(**data)
     except ValidationError as e:  # pragma: no cover - explicit failure

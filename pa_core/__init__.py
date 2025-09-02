@@ -17,7 +17,7 @@ from .agents import (
     RiskMetrics,
 )
 from .agents.registry import build_all as build_agents
-from .agents.registry import build_from_config
+from .agents.registry import build_from_config, register_agent
 from .backend import get_backend, set_backend
 from .config import ConfigError, ModelConfig, load_config
 from .data import load_index_returns
@@ -46,6 +46,7 @@ from .sim.metrics import (
     summary_table,
     tracking_error,
     value_at_risk,
+    register_metric,
 )
 from .sweep import (
     run_parameter_sweep,
@@ -96,6 +97,7 @@ __all__ = [
     "annualised_vol",
     "summary_table",
     "shortfall_probability",
+    "register_metric",
     "Agent",
     "AgentParams",
     "BaseAgent",
@@ -111,6 +113,7 @@ __all__ = [
     "RunFlags",
     "build_agents",
     "build_from_config",
+    "register_agent",
     "SimulatorOrchestrator",
     "viz",
     # Validation functions

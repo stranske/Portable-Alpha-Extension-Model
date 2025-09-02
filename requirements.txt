@@ -8,6 +8,8 @@ ruff
 pyright==1.1.404
 pydantic
 rich
+pyyaml
+tqdm
 # CI/CD dependencies
 flake8             # Code quality checking
 mypy               # Type checking

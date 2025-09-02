@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterator, List
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import hashlib
 import json
 
 import numpy as np
 import pandas as pd
+import logging
+from tqdm import tqdm
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
@@ -95,19 +97,39 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
         raise ValueError(f"Unsupported analysis mode: {cfg.analysis_mode}")
 
 
+logger = logging.getLogger(__name__)
+
+
 def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
     rng_returns: np.random.Generator,
     fin_rngs: Dict[str, np.random.Generator],
+    progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:
-    """Run the parameter sweep and collect results."""
+    """Run the parameter sweep and collect results.
+
+    Parameters
+    ----------
+    progress:
+        Optional callback accepting ``(current, total)`` to report progress. When
+        ``None``, a ``tqdm`` progress bar is displayed.
+    """
     results: List[Dict[str, Any]] = []
 
     mu_idx = float(index_series.mean())
     idx_sigma = float(index_series.std(ddof=1))
 
-    for i, overrides in enumerate(generate_parameter_combinations(cfg)):
+    # Pre-compute combinations for progress tracking
+    combos = list(generate_parameter_combinations(cfg))
+    total = len(combos)
+    logger.info("Starting parameter sweep", extra={"total_combinations": total})
+
+    iterator = enumerate(combos)
+    if progress is None:
+        iterator = enumerate(tqdm(combos, total=total, desc="sweep"))
+
+    for i, overrides in iterator:
         mod_cfg = cfg.model_copy(update=overrides)
 
         build_cov_matrix(
@@ -185,6 +207,14 @@ def run_parameter_sweep(
             }
         )
 
+        if progress is not None:
+            progress(i + 1, total)
+        else:
+            logger.debug(
+                "sweep step", extra={"current": i + 1, "total": total}
+            )
+
+    logger.info("Parameter sweep complete")
     return results
 
 
@@ -207,6 +237,7 @@ def run_parameter_sweep_cached(
     cfg: ModelConfig,
     index_series: pd.Series,
     seed: int,
+    progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:
     """Run ``run_parameter_sweep`` with simple in-memory caching.
 
@@ -218,7 +249,9 @@ def run_parameter_sweep_cached(
     if key not in _SWEEP_CACHE:
         rng_returns = spawn_rngs(seed, 1)[0]
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
-        _SWEEP_CACHE[key] = run_parameter_sweep(cfg, index_series, rng_returns, fin_rngs)
+        _SWEEP_CACHE[key] = run_parameter_sweep(
+            cfg, index_series, rng_returns, fin_rngs, progress=progress
+        )
     return _SWEEP_CACHE[key]
 
 
