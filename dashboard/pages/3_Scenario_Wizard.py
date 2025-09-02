@@ -613,8 +613,6 @@ def _render_step_4_correlations(config: Any) -> Any:
     else:
         st.success("✅ Correlation matrix is valid")
     
-def _render_step_5_review(config: Any) -> bool:
-    """Step 5: Review & Run. Returns True if user wants to run simulation."""
     st.subheader("Step 5: Review & Run")
     
     # Configuration summary
