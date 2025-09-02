@@ -165,6 +165,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Suggest feasible sleeve allocations before running",
     )
     parser.add_argument(
+        "--tradeoff-table",
+        action="store_true",
+        help="Compute sleeve trade-off table and include in Excel/packet",
+    )
+    parser.add_argument(
+        "--tradeoff-top",
+        type=int,
+        default=10,
+        help="Top-N rows to include in the trade-off table",
+    )
+    parser.add_argument(
         "--max-te",
         type=float,
         default=0.02,
@@ -466,6 +477,34 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         except Exception:
             pass
     print_enhanced_summary(summary)
+    # Optional: compute trade-off table (non-interactive) and attach for export
+    if args.tradeoff_table:
+        try:
+            trade_df = suggest_sleeve_sizes(
+                cfg,
+                idx_series,
+                max_te=args.max_te,
+                max_breach=args.max_breach,
+                max_cvar=args.max_cvar,
+                step=args.sleeve_step,
+                min_external=args.min_external,
+                max_external=args.max_external,
+                min_active=args.min_active,
+                max_active=args.max_active,
+                min_internal=args.min_internal,
+                max_internal=args.max_internal,
+                seed=args.seed,
+            )
+            if not trade_df.empty:
+                inputs_dict["_tradeoff_df"] = trade_df.head(max(1, args.tradeoff_top)).reset_index(drop=True)
+        except Exception as e:
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Trade-off table computation failed.\n[dim]Reason: {e}[/dim]",
+                    title="Trade-off Table",
+                    style="yellow"
+                )
+            )
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
         try:

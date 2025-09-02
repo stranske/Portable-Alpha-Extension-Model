@@ -88,6 +88,42 @@ def _add_chart_slide(prs: Any, fig: Any, alt: str | None = None) -> None:
         el.set("descr", alt)
 
 
+def _add_table_slide(prs: Any, df: pd.DataFrame, title: str = "Table") -> None:
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    # Title
+    tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.6))
+    tf = tx_box.text_frame
+    tf.clear()
+    run = tf.paragraphs[0].add_run()
+    run.text = title
+    run.font.size = Pt(24)
+    run.font.bold = True
+
+    head = df.copy()
+    max_rows = 12
+    if len(head) > max_rows:
+        head = head.iloc[:max_rows]
+
+    rows, cols = head.shape
+    left, top = Inches(0.5), Inches(1.1)
+    width, height = Inches(9), Inches(5)
+    table = slide.shapes.add_table(rows + 1, cols, left, top, width, height).table
+
+    # Header
+    for c, name in enumerate(head.columns):
+        cell = table.cell(0, c)
+        cell.text = str(name)
+        cell.text_frame.paragraphs[0].runs[0].font.bold = True
+
+    # Body
+    for r in range(rows):
+        for c in range(cols):
+            val = head.iat[r, c]
+            cell = table.cell(r + 1, c)
+            cell.text = f"{val:.3f}" if isinstance(val, float) else str(val)
+            cell.text_frame.paragraphs[0].runs[0].font.size = Pt(10)
+
+
 def create_export_packet(
     *,
     figs: Iterable[Any],
