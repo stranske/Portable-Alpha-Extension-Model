@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 from dataclasses import asdict
 from pathlib import Path
@@ -27,12 +28,15 @@ def main() -> None:
     if uploaded is None:
         return
 
-    # Persist the uploaded file to a temp path for pandas/Excel readers
+    # Persist the uploaded file to a secure temp path for pandas/Excel readers
     suffix = Path(uploaded.name).suffix
-    with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
-        tmp.write(uploaded.getvalue())
-        tmp.flush()  # Ensure data is written to disk
-        tmp_path = tmp.name
+    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+    try:
+        with os.fdopen(fd, "wb") as fh:
+            fh.write(uploaded.getvalue())
+    except Exception:
+        os.unlink(tmp_path)
+        raise
 
     try:
         st.markdown("---")
@@ -80,9 +84,16 @@ def main() -> None:
             tcol1, tcol2 = st.columns([1, 1])
             with tcol1:
                 if st.button("💾 Save mapping as template"):
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
-                        importer.save_template(t.name)
-                        tmpl_str = Path(t.name).read_text()
+                    tfd, tpath = tempfile.mkstemp(suffix=".yaml")
+                    try:
+                        importer.save_template(tpath)
+                        tmpl_str = Path(tpath).read_text()
+                    finally:
+                        try:
+                            os.close(tfd)
+                        except Exception:
+                            pass
+                        Path(tpath).unlink(missing_ok=True)
                     st.download_button(
                         "Download mapping.yaml",
                         tmpl_str,
@@ -94,10 +105,17 @@ def main() -> None:
                 if tmpl_upload is not None and st.button("Apply template"):
                     from pa_core.data import DataImportAgent as _DIA
                     text = tmpl_upload.getvalue().decode("utf-8")
-                    # Write to temp so from_template can read
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
-                        Path(t.name).write_text(text)
-                        importer = _DIA.from_template(t.name)
+                    # Write to secure temp path so from_template can read
+                    tfd, tpath = tempfile.mkstemp(suffix=".yaml")
+                    try:
+                        Path(tpath).write_text(text)
+                        importer = _DIA.from_template(tpath)
+                    finally:
+                        try:
+                            os.close(tfd)
+                        except Exception:
+                            pass
+                        Path(tpath).unlink(missing_ok=True)
 
         # Load using current importer configuration
         df = importer.load(tmp_path)
@@ -111,15 +129,22 @@ def main() -> None:
         if st.button("Calibrate"):
             calib = CalibrationAgent(min_obs=importer.min_obs)
             result = calib.calibrate(df, index_id)
-            with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp_yaml:
-                calib.to_yaml(result, tmp_yaml.name)
-                yaml_str = Path(tmp_yaml.name).read_text()
+            yfd, ypath = tempfile.mkstemp(suffix=".yaml")
+            try:
+                calib.to_yaml(result, ypath)
+                yaml_str = Path(ypath).read_text()
                 st.download_button(
                     "Download Asset Library YAML",
                     yaml_str,
                     file_name="asset_library.yaml",
                     mime="application/x-yaml",
                 )
+            finally:
+                try:
+                    os.close(yfd)
+                except Exception:
+                    pass
+                Path(ypath).unlink(missing_ok=True)
 
         # Preset library management
         st.subheader("Alpha Presets")
