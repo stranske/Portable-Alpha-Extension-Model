@@ -32,7 +32,7 @@ def save(
     for fig in figs:
         slide = pres.slides.add_slide(pres.slide_layouts[5])
         try:
-            img_bytes = fig.to_image(format="png")
+            img_bytes = fig.to_image(format="png", engine="kaleido")
             pic = slide.shapes.add_picture(io.BytesIO(img_bytes), Inches(0), Inches(0))
             alt = next(alt_iter, None) if alt_iter else None
             if not alt:
