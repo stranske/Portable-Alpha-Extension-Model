@@ -120,5 +120,5 @@ class TestValidationConstants:
     def test_epsilon_constants_are_small_positive_values(self):
         """Test that epsilon constants are appropriately small positive values."""
         # Both epsilon constants should be very small positive numbers
-        assert 0 < NUMERICAL_STABILITY_EPSILON < 1e-10
-        assert 0 < TEST_TOLERANCE_EPSILON < 1e-10
+        assert NUMERICAL_STABILITY_EPSILON == 1e-12
+        assert TEST_TOLERANCE_EPSILON == 1e-12
