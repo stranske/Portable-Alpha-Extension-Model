@@ -10,9 +10,11 @@ from pathlib import Path
 import streamlit as st
 
 from pa_core.data import CalibrationAgent, DataImportAgent
+
 try:
     # Detect bare (pytest) mode where Streamlit ScriptRunContext is absent
     from streamlit.runtime.scriptrunner import get_script_run_ctx  # type: ignore
+
     _BARE_MODE = get_script_run_ctx() is None
 except Exception:  # pragma: no cover - conservative fallback
     _BARE_MODE = True
@@ -42,14 +44,25 @@ def main() -> None:
         col1, col2, col3 = st.columns(3)
         with col1:
             date_col = st.text_input("Date column", value="Date")
-            wide = st.radio("Input layout", options=["wide", "long"], index=0, horizontal=True) == "wide"
-            value_type = st.radio("Value type", options=["returns", "prices"], index=0, horizontal=True)
+            wide = (
+                st.radio(
+                    "Input layout", options=["wide", "long"], index=0, horizontal=True
+                )
+                == "wide"
+            )
+            value_type = st.radio(
+                "Value type", options=["returns", "prices"], index=0, horizontal=True
+            )
         with col2:
             id_col = st.text_input("ID column (long only)", value="Id")
             value_col = st.text_input("Value column (long only)", value="Return")
-            frequency = st.radio("Frequency", options=["monthly", "daily"], index=0, horizontal=True)
+            frequency = st.radio(
+                "Frequency", options=["monthly", "daily"], index=0, horizontal=True
+            )
         with col3:
-            min_obs = st.number_input("Min observations per id", min_value=1, value=36, step=1)
+            min_obs = st.number_input(
+                "Min observations per id", min_value=1, value=36, step=1
+            )
             sheet_name = st.text_input("Excel sheet name (optional)", value="")
             na_values_str = st.text_input("NA markers (comma‑sep)", value="")
             decimal = st.text_input("Decimal separator", value=".", max_chars=1)
@@ -66,7 +79,7 @@ def main() -> None:
             value_col=value_col,
             wide=wide,
             value_type=value_type,  # "returns" | "prices"
-            frequency=frequency,     # "monthly" | "daily"
+            frequency=frequency,  # "monthly" | "daily"
             min_obs=int(min_obs),
             sheet_name=sheet_arg,
             na_values=na_values,
@@ -90,9 +103,12 @@ def main() -> None:
                         mime="application/x-yaml",
                     )
             with tcol2:
-                tmpl_upload = st.file_uploader("Load mapping template", type=["yaml", "yml"], key="import_mapping")
+                tmpl_upload = st.file_uploader(
+                    "Load mapping template", type=["yaml", "yml"], key="import_mapping"
+                )
                 if tmpl_upload is not None and st.button("Apply template"):
                     from pa_core.data import DataImportAgent as _DIA
+
                     text = tmpl_upload.getvalue().decode("utf-8")
                     # Write to temp so from_template can read
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as t:
@@ -130,9 +146,7 @@ def main() -> None:
 
         # Preset library management
         st.subheader("Alpha Presets")
-        lib: PresetLibrary = st.session_state.setdefault(
-            "preset_lib", PresetLibrary()
-        )
+        lib: PresetLibrary = st.session_state.setdefault("preset_lib", PresetLibrary())
         if lib.presets:
             st.dataframe(
                 [asdict(p) for p in lib.presets.values()],
@@ -140,9 +154,24 @@ def main() -> None:
             )
         with st.form("preset_form"):
             pid = st.text_input("Preset ID")
-            mu = st.number_input("mu [annual %]", value=0.0, format="%.4f", help="Expected annual return as a decimal (e.g., 0.04 for 4%)")
-            sigma = st.number_input("sigma [annual %]", value=0.0, format="%.4f", help="Annual volatility as a decimal (e.g., 0.10 for 10%)")
-            rho = st.number_input("rho [-1..1]", value=0.0, format="%.4f", help="Correlation coefficient between -1 and 1")
+            mu = st.number_input(
+                "mu [annual %]",
+                value=0.0,
+                format="%.4f",
+                help="Expected annual return as a decimal (e.g., 0.04 for 4%)",
+            )
+            sigma = st.number_input(
+                "sigma [annual %]",
+                value=0.0,
+                format="%.4f",
+                help="Annual volatility as a decimal (e.g., 0.10 for 10%)",
+            )
+            rho = st.number_input(
+                "rho [-1..1]",
+                value=0.0,
+                format="%.4f",
+                help="Correlation coefficient between -1 and 1",
+            )
             if st.form_submit_button("Save Preset") and pid:
                 preset = AlphaPreset(id=pid, mu=mu, sigma=sigma, rho=rho)
                 if pid in lib.presets:
@@ -157,6 +186,12 @@ def main() -> None:
             lib.to_yaml_str(),
             file_name="alpha_presets.yaml",
             mime="application/x-yaml",
+        )
+        st.download_button(
+            "Download Presets JSON",
+            lib.to_json_str(),
+            file_name="alpha_presets.json",
+            mime="application/json",
         )
         uploaded_preset = st.file_uploader(
             "Import presets", type=["yaml", "yml", "json"], key="import_presets"
