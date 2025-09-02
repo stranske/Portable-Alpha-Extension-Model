@@ -162,25 +162,25 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "--max-te",
         type=float,
         default=0.02,
-        help="Max tracking error for sleeve suggestions",
+        help="Maximum tracking error for sleeve suggestions",
     )
     parser.add_argument(
         "--max-breach",
         type=float,
         default=0.05,
-        help="Max breach probability for sleeve suggestions",
+        help="Maximum breach probability for sleeve suggestions",
     )
     parser.add_argument(
         "--max-cvar",
         type=float,
-        default=0.05,
-        help="Max CVaR (absolute) for sleeve suggestions",
+        default=0.03,
+        help="Maximum CVaR for sleeve suggestions",
     )
     parser.add_argument(
         "--sleeve-step",
         type=float,
         default=0.25,
-        help="Grid step as fraction of total capital for suggestions",
+        help="Grid step size for sleeve suggestions",
     )
     args = parser.parse_args(argv)
 
@@ -208,6 +208,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     if args.stress_preset:
         cfg = apply_stress_preset(cfg, args.stress_preset)
+    
+    # Capture raw params BEFORE any config modifications
+    raw_params = cfg.model_dump()
+    
     idx_series = load_index_returns(args.index)
 
     # Ensure idx_series is a pandas Series for type safety
@@ -218,6 +222,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
+    # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
         suggestions = suggest_sleeve_sizes(
             cfg,
@@ -250,8 +255,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 "internal_pa_capital": float(row["internal_pa_capital"]),
             }
         )
-
-    raw_params = cfg.model_dump()
 
     if cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]:
         # Parameter sweep mode
