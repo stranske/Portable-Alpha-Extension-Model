@@ -607,7 +607,7 @@ def _render_step_4_correlations(config: Any) -> Any:
     else:
         st.success("✅ Correlation matrix is valid")
     
-    return config
+def _render_step_5_review(config: WizardScenarioConfig) -> bool:
 
 
 def _render_step_5_review(config: Any) -> bool:
