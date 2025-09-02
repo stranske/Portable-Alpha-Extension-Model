@@ -53,7 +53,7 @@ def one_factor_deltas(
         delta_abs = max(abs(low), abs(high))
         records.append((k, base, m_minus, m_plus, low, high, delta_abs))
 
-    df = pd.DataFrame(
+    df = pd.DataFrame.from_records(
         records,
         columns=["Parameter", "Base", "Minus", "Plus", "Low", "High", "DeltaAbs"],
     )

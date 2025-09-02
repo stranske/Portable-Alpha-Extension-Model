@@ -475,18 +475,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 mu_H = mod_cfg.mu_H
                 mu_E = mod_cfg.mu_E
                 mu_M = mod_cfg.mu_M
-                cov_mat = build_cov_matrix(
-                    mod_cfg.rho_idx_H,
-                    mod_cfg.rho_idx_E,
-                    mod_cfg.rho_idx_M,
-                    mod_cfg.rho_H_E,
-                    mod_cfg.rho_H_M,
-                    mod_cfg.rho_E_M,
-                    idx_sigma,
-                    sigma_H,
-                    sigma_E,
-                    sigma_M,
-                )
+                # Note: We rely on draw_joint_returns to rebuild the covariance from params,
+                # so we don't need to materialize the covariance matrix here.
                 params_local = {
                     "mu_idx_month": mu_idx / 12,
                     "default_mu_H": mu_H / 12,
@@ -523,8 +513,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 agents_l = build_from_config(mod_cfg)
                 returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
-                base_row = summary_l[summary_l["Agent"] == "Base"]
-                return float(base_row["AnnReturn"].iloc[0]) if not base_row.empty else 0.0
+                vals = summary_l.loc[summary_l["Agent"] == "Base", "AnnReturn"]
+                return float(vals.to_numpy()[0]) if not vals.empty else 0.0
 
             sens_df = one_factor_deltas(params=base_params, steps=steps, evaluator=_eval)
             inputs_dict["_sensitivity_df"] = sens_df

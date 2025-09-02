@@ -93,8 +93,17 @@ def main() -> None:
             tcol1, tcol2 = st.columns([1, 1])
             with tcol1:
                 if st.button("💾 Save mapping as template"):
-                    with tempfile.NamedTemporaryFile(suffix=".yaml") as t:
-                        tmpl_str = Path(t.name).read_text()
+                    # Persist current importer mapping to a YAML template (secure temp file)
+                    fd, tmp_tmpl = tempfile.mkstemp(suffix=".yaml")
+                    try:
+                        importer.save_template(tmp_tmpl)
+                        tmpl_str = Path(tmp_tmpl).read_text()
+                    finally:
+                        try:
+                            os.close(fd)
+                        except Exception:
+                            pass
+                        Path(tmp_tmpl).unlink(missing_ok=True)
                     st.download_button(
                         "Download mapping.yaml",
                         tmpl_str,
@@ -109,11 +118,15 @@ def main() -> None:
                     from pa_core.data import DataImportAgent as _DIA
 
                     text = tmpl_upload.getvalue().decode("utf-8")
-                    # Write to temp so from_template can read
-                    with tempfile.NamedTemporaryFile(suffix=".yaml") as t:
-                        t.write(text.encode("utf-8"))
-                        t.flush()
-                        importer = _DIA.from_template(t.name)
+                    # Write to temp so from_template can read (secure temp file)
+                    fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
+                    try:
+                        with os.fdopen(fd, "wb") as t:
+                            t.write(text.encode("utf-8"))
+                            t.flush()
+                        importer = _DIA.from_template(tmp_path)
+                    finally:
+                        Path(tmp_path).unlink(missing_ok=True)
 
         # Load using current importer configuration
         df = importer.load(tmp_path)
