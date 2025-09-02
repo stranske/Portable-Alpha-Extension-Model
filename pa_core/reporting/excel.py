@@ -48,29 +48,51 @@ def export_to_excel(
         )
         df_inputs.to_excel(writer, sheet_name="Inputs", index=False)
         summary_df = summary_df.copy()
-        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+        summary_df["ShortfallProb"] = summary_df.get(
+            "ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+        )
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         # Optional: Sensitivity sheet if provided
-        sens_df = inputs_dict.get("_sensitivity_df")
-        if isinstance(sens_df, pd.DataFrame) and not sens_df.empty:
+        sens_maybe = inputs_dict.get("_sensitivity_df")
+        sens_df: pd.DataFrame | None = (
+            sens_maybe if isinstance(sens_maybe, pd.DataFrame) else None
+        )
+        if sens_df is not None and not sens_df.empty:
             # Write a concise view
-            cols = [c for c in ["Parameter", "Base", "Minus", "Plus", "Low", "High", "DeltaAbs"] if c in sens_df.columns]
+            cols = [
+                c
+                for c in [
+                    "Parameter",
+                    "Base",
+                    "Minus",
+                    "Plus",
+                    "Low",
+                    "High",
+                    "DeltaAbs",
+                ]
+                if c in sens_df.columns
+            ]
             sens_df[cols].to_excel(writer, sheet_name="Sensitivity", index=False)
-
+        # Write returns either pivoted or per-sheet
         if pivot:
             frames = []
             for name, df in raw_returns_dict.items():
-                long_df = df.stack().rename("Return").reset_index()
-                long_df.columns = ["Sim", "Month", "Return"]
-                long_df["Agent"] = name
-                frames.append(long_df[["Sim", "Month", "Agent", "Return"]])
-            all_returns = pd.concat(frames, ignore_index=True)
-            all_returns.to_excel(writer, sheet_name="AllReturns", index=False)
+                if isinstance(df, pd.DataFrame) and not df.empty:
+                    stacked = df.stack()
+                    stacked.name = "Return"
+                    long_df = stacked.reset_index()
+                    long_df.columns = ["Sim", "Month", "Return"]
+                    long_df["Agent"] = name
+                    frames.append(long_df[["Sim", "Month", "Agent", "Return"]])
+            if frames:
+                all_returns = pd.concat(frames, ignore_index=True)
+                all_returns.to_excel(writer, sheet_name="AllReturns", index=False)
         else:
             for sheet_name, df in raw_returns_dict.items():
-                safe_name = sheet_name if len(sheet_name) <= 31 else sheet_name[:31]
-                df.to_excel(writer, sheet_name=safe_name, index=True)
+                if isinstance(df, pd.DataFrame):
+                    safe_name = sheet_name if len(sheet_name) <= 31 else sheet_name[:31]
+                    df.to_excel(writer, sheet_name=safe_name, index=True)
 
     wb = openpyxl.load_workbook(filename)
     for ws in wb.worksheets:
@@ -108,7 +130,8 @@ def export_to_excel(
 
             ws = wb["Sensitivity"]
             # Build figure from the written sheet
-            df = pd.DataFrame(ws.values)
+            values: Any = ws.values
+            df = pd.DataFrame(values)
             df.columns = df.iloc[0]
             df = df.drop(index=0)
             # Convert the DataFrame to a Series mapping parameter names to values
@@ -126,13 +149,20 @@ def export_to_excel(
             pass
 
     # Optional: write Attribution sheet if provided in inputs_dict
-    attr_df = inputs_dict.get("_attribution_df")
-    if isinstance(attr_df, pd.DataFrame) and not attr_df.empty:
+    attr_maybe = inputs_dict.get("_attribution_df")
+    attr_df: pd.DataFrame | None = (
+        attr_maybe if isinstance(attr_maybe, pd.DataFrame) else None
+    )
+    if attr_df is not None and not attr_df.empty:
         try:
-            with pd.ExcelWriter(filename, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            with pd.ExcelWriter(
+                filename, engine="openpyxl", mode="a", if_sheet_exists="replace"
+            ) as writer:
                 cols = [c for c in ["Agent", "Sub", "Return"] if c in attr_df.columns]
                 if cols:
-                    attr_df[cols].to_excel(writer, sheet_name="Attribution", index=False)
+                    attr_df[cols].to_excel(
+                        writer, sheet_name="Attribution", index=False
+                    )
         except Exception:
             pass
 
@@ -143,7 +173,7 @@ def export_to_excel(
 
             ws = wb["Attribution"]
             # Use attr_df directly instead of reconstructing from worksheet
-            if isinstance(attr_df, pd.DataFrame) and not attr_df.empty:
+            if attr_df is not None and not attr_df.empty:
                 # Ensure required columns exist
                 if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                     fig = sunburst.make(attr_df)
@@ -154,10 +184,15 @@ def export_to_excel(
             pass
 
     # Optional: write RiskAttribution sheet if provided
-    risk_df = inputs_dict.get("_risk_attr_df")
-    if isinstance(risk_df, pd.DataFrame) and not risk_df.empty:
+    risk_maybe = inputs_dict.get("_risk_attr_df")
+    risk_df: pd.DataFrame | None = (
+        risk_maybe if isinstance(risk_maybe, pd.DataFrame) else None
+    )
+    if risk_df is not None and not risk_df.empty:
         try:
-            with pd.ExcelWriter(filename, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            with pd.ExcelWriter(
+                filename, engine="openpyxl", mode="a", if_sheet_exists="replace"
+            ) as writer:
                 cols = [
                     c
                     for c in [
@@ -171,17 +206,24 @@ def export_to_excel(
                     if c in risk_df.columns
                 ]
                 if cols:
-                    risk_df[cols].to_excel(writer, sheet_name="RiskAttribution", index=False)
+                    risk_df[cols].to_excel(
+                        writer, sheet_name="RiskAttribution", index=False
+                    )
         except Exception:
             pass
 
     wb.save(filename)
 
     # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
-    trade_df = inputs_dict.get("_tradeoff_df")
-    if isinstance(trade_df, pd.DataFrame) and not trade_df.empty:
+    trade_maybe = inputs_dict.get("_tradeoff_df")
+    trade_df: pd.DataFrame | None = (
+        trade_maybe if isinstance(trade_maybe, pd.DataFrame) else None
+    )
+    if trade_df is not None and not trade_df.empty:
         try:
-            with pd.ExcelWriter(filename, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+            with pd.ExcelWriter(
+                filename, engine="openpyxl", mode="a", if_sheet_exists="replace"
+            ) as writer:
                 trade_df.to_excel(writer, sheet_name="SleeveTradeoffs", index=True)
         except Exception:
             pass

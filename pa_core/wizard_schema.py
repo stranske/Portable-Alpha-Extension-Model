@@ -12,7 +12,6 @@ from pydantic import BaseModel, Field
 
 from .config import ModelConfig
 
-
 # Module-level constants for names and descriptions
 ANALYSIS_MODE_DESCRIPTIONS = {
     "capital": """Capital Allocation Analysis
@@ -167,29 +166,29 @@ class DefaultConfigView:
     analysis_mode: AnalysisMode
     n_simulations: int
     n_months: int
-    
+
     # Capital allocation
     external_pa_capital: float
     active_ext_capital: float
     internal_pa_capital: float
     total_fund_capital: float
-    
+
     # Portfolio shares and fractions
     w_beta_h: float
     w_alpha_h: float
     theta_extpa: float
     active_share: float
-    
+
     # Expected returns
     mu_h: float
     mu_e: float
     mu_m: float
-    
+
     # Volatilities
     sigma_h: float
     sigma_e: float
     sigma_m: float
-    
+
     # Correlations
     rho_idx_h: float
     rho_idx_e: float
@@ -197,21 +196,21 @@ class DefaultConfigView:
     rho_h_e: float
     rho_h_m: float
     rho_e_m: float
-    
+
     # Risk metrics
     risk_metrics: List[str]
 
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
     """Create DefaultConfigView from ModelConfig with consistent field mappings.
-    
+
     This function maps ModelConfig fields to DefaultConfigView fields, handling
     field name differences (e.g., N_SIMULATIONS -> n_simulations, mu_H -> mu_h).
     All defaults come from the validated ModelConfig instance.
-    
+
     Args:
         m: Validated ModelConfig instance with all required defaults
-        
+
     Returns:
         DefaultConfigView with all attributes populated from ModelConfig
     """
@@ -220,29 +219,24 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         analysis_mode=AnalysisMode(m.analysis_mode),
         n_simulations=m.N_SIMULATIONS,
         n_months=m.N_MONTHS,
-        
         # Capital allocation
         external_pa_capital=m.external_pa_capital,
         active_ext_capital=m.active_ext_capital,
         internal_pa_capital=m.internal_pa_capital,
         total_fund_capital=m.total_fund_capital,
-        
         # Portfolio shares and fractions
         w_beta_h=m.w_beta_H,
         w_alpha_h=m.w_alpha_H,
         theta_extpa=m.theta_extpa,
         active_share=m.active_share,
-        
         # Expected returns
         mu_h=m.mu_H,
         mu_e=m.mu_E,
         mu_m=m.mu_M,
-        
         # Volatilities
         sigma_h=m.sigma_H,
         sigma_e=m.sigma_E,
         sigma_m=m.sigma_M,
-        
         # Correlations
         rho_idx_h=m.rho_idx_H,
         rho_idx_e=m.rho_idx_E,
@@ -250,7 +244,6 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         rho_h_e=m.rho_H_E,
         rho_h_m=m.rho_H_M,
         rho_e_m=m.rho_E_M,
-        
         # Risk metrics
         risk_metrics=m.risk_metrics,
     )
@@ -264,7 +257,9 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     """
 
     # Build ModelConfig using alias names via model_validate to satisfy typing
-    base = ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+    base = ModelConfig.model_validate(
+        {"Number of simulations": 1, "Number of months": 1}
+    )
     cfg = _make_view(base)
 
     if mode == AnalysisMode.CAPITAL:
@@ -290,7 +285,9 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     elif mode == AnalysisMode.VOL_MULT:
         # Slightly conservative vols vs. returns baseline
         returns_defaults = _make_view(
-            ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+            ModelConfig.model_validate(
+                {"Number of simulations": 1, "Number of months": 1}
+            )
         )
         cfg.sigma_h = returns_defaults.sigma_h * 0.9
         cfg.sigma_e = returns_defaults.sigma_e * 0.9

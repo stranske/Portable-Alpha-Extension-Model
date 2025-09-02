@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-# ruff: noqa: E402
-
 import numpy as np
 import pytest
 
 from pa_core.sim.covariance import build_cov_matrix
+
+# ruff: noqa: E402
 
 
 def test_build_cov_matrix_psd_projection() -> None:

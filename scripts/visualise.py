@@ -51,7 +51,19 @@ def main(argv: list[str] | None = None) -> None:
 
     df_summary = pd.read_excel(args.xlsx, sheet_name="Summary")
     parquet_path = Path(args.xlsx).with_suffix(".parquet")
-    df_paths = pd.read_parquet(parquet_path) if parquet_path.exists() else None
+    df_paths = None
+    if parquet_path.exists():
+        try:
+            df_paths = pd.read_parquet(parquet_path)
+        except ImportError:
+            csv_path = parquet_path.with_suffix(".csv")
+            if csv_path.exists():
+                logging.info("pyarrow missing; using CSV path data")
+                df_paths = pd.read_csv(csv_path, index_col=0)
+            else:
+                logging.info(
+                    "Install pyarrow for Parquet support or provide a matching CSV file"
+                )
 
     if args.plot in {"fan", "path_dist"} and df_paths is None:
         raise FileNotFoundError(parquet_path)

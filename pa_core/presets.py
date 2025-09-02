@@ -7,11 +7,11 @@ with the index (rho).
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
+import json
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, Iterable
 
-import json
 import yaml
 
 
@@ -79,7 +79,10 @@ class PresetLibrary:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Dict[str, float]]) -> "PresetLibrary":
-        presets = [AlphaPreset(id=k, mu=v["mu"], sigma=v["sigma"], rho=v["rho"]) for k, v in data.items()]
+        presets = [
+            AlphaPreset(id=k, mu=v["mu"], sigma=v["sigma"], rho=v["rho"])
+            for k, v in data.items()
+        ]
         return cls(presets)
 
     # YAML/JSON import/export
@@ -112,14 +115,18 @@ class PresetLibrary:
         ids = [p.get("id") for p in data.values()]
         duplicate_ids = {id for id in ids if ids.count(id) > 1}
         if duplicate_ids:
-            raise ValueError(f"Duplicate preset IDs found in input: {', '.join(duplicate_ids)}")
-        
+            raise ValueError(
+                f"Duplicate preset IDs found in input: {', '.join(duplicate_ids)}"
+            )
+
         # Validate that each preset.id matches its dictionary key
         for key, preset_data in data.items():
             preset_id = preset_data.get("id")
             if preset_id != key:
-                raise ValueError(f"Preset ID '{preset_id}' does not match its key '{key}'")
-        
+                raise ValueError(
+                    f"Preset ID '{preset_id}' does not match its key '{key}'"
+                )
+
         self._presets = {}
         for p in data.values():
             preset = AlphaPreset(**p)
@@ -131,8 +138,10 @@ class PresetLibrary:
         for key, preset_data in data.items():
             preset_id = preset_data.get("id")
             if preset_id != key:
-                raise ValueError(f"Preset ID '{preset_id}' does not match its key '{key}'")
-        
+                raise ValueError(
+                    f"Preset ID '{preset_id}' does not match its key '{key}'"
+                )
+
         self._presets = {}
         for p in data.values():
             preset = AlphaPreset(**p)

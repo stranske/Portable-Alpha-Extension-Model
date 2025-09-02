@@ -68,12 +68,12 @@ from . import (
     surface_slice,
     te_cvar_scatter,
     theme,
+    tornado,
     triple_scatter,
     utils,
     violin,
     waterfall,
     weighted_stack,
-    tornado,
     widgets,
 )
 

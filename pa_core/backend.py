@@ -15,7 +15,10 @@ def set_backend(name: str) -> None:
     elif name == "cupy":
         try:
             xp = importlib.import_module("cupy")
-        except (ImportError, ModuleNotFoundError) as e:  # pragma: no cover - depends on optional dep
+        except (
+            ImportError,
+            ModuleNotFoundError,
+        ) as e:  # pragma: no cover - depends on optional dep
             raise ImportError("CuPy backend requested but not installed") from e
     else:
         raise ValueError(f"Unknown backend: {name}")

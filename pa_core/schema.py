@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+from collections import Counter
 from itertools import combinations
 from pathlib import Path
 from typing import Dict, List, Tuple
-from collections import Counter
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
-
 
 CORRELATION_LOWER_BOUND = -0.999
 CORRELATION_UPPER_BOUND = 0.999

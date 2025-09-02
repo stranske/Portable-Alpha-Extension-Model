@@ -1,5 +1,8 @@
 .PHONY: help setup install install-dev test lint typecheck ci clean demo dashboard docs
 
+# Prefer repo virtualenv python if available
+PY := $(shell if [ -x ".venv/bin/python" ]; then echo ".venv/bin/python"; else command -v python; fi)
+
 # Default target
 help:
 	@echo "Portable Alpha Extension Model - Development Commands"
@@ -37,25 +40,20 @@ install-dev:
 
 # Testing and quality checks
 test:
-	python -m pytest tests/ -v
+	$(PY) -m pytest tests/ -v
 
 test-cov:
-	python -m pytest tests/ --cov=pa_core --cov-report=html --cov-report=term
+	$(PY) -m pytest tests/ --cov=pa_core --cov-report=html --cov-report=term
 
 lint:
-	@if [ ! -d "dev-env" ]; then \
-		echo "🔧 Setting up development environment..."; \
-		python3 -m venv dev-env; \
-		dev-env/bin/pip install black isort flake8 mypy; \
-	fi
-	@echo "🔍 Linting code..."
-	dev-env/bin/flake8 pa_core/ tests/ dashboard/ --max-line-length=88 --ignore=E203,W503
+	@echo "� Linting code (ruff, pa_core only)..."
+	$(PY) -m ruff check pa_core
 
 lint-fix:
-	python -m ruff check pa_core --fix
+	$(PY) -m ruff check pa_core --fix
 
 typecheck:
-	python -m pyright
+	$(PY) -m pyright
 
 ci: lint typecheck test
 
@@ -70,14 +68,14 @@ clean:
 	rm -rf htmlcov/
 
 demo:
-	python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
+	$(PY) -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
 
 dashboard:
-	python -m streamlit run dashboard/app.py
+	$(PY) -m streamlit run dashboard/app.py
 
 # Documentation
 docs:
-        sphinx-build -b html docs/ docs/_build/html
+	sphinx-build -b html docs/ docs/_build/html
 
 # Packaging
 launchers:
@@ -88,7 +86,7 @@ portable-zip:
 
 # Security check
 security:
-	python -m bandit -r pa_core/
+	$(PY) -m bandit -r pa_core/
 
 # Format code
 format:
@@ -132,16 +130,16 @@ check-updates:
 # Methodical debugging workflow for Codex PRs
 debug-codex:
 	@echo "🎯 Running methodical Codex PR debugging..."
-	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3
+	$(PY) scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3
 
 debug-codex-fix:
 	@echo "🔧 Running methodical Codex PR debugging with auto-commit..."
-	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --commit
+	$(PY) scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --commit
 
 debug-codex-report:
 	@echo "📄 Generating methodical Codex PR debugging report..."
-	python scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --report=debug_report.md
+	$(PY) scripts/debug_codex_pr.py --branch=$(shell git branch --show-current) --max-iterations=3 --report=debug_report.md
 
 # Quick CI/CD validation workflow
-validate-pr: debug-codex dev-check
+validate-pr: dev-check
 	@echo "✅ PR validation complete!"

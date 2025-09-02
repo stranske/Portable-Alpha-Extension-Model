@@ -1,6 +1,7 @@
 import numpy as np
+
 from pa_core.agents.base import BaseAgent
-from pa_core.agents.registry import register_agent, build_all
+from pa_core.agents.registry import build_all, register_agent
 from pa_core.agents.types import AgentParams
 from pa_core.sim.metrics import register_metric, summary_table
 

@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-import time
 import json
 import sys
+import time
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 from dashboard.app import (
-    PLOTS,
     _DEF_THEME,
     _DEF_XLSX,
+    PLOTS,
     _get_plot_fn,
     apply_theme,
     load_data,
@@ -48,11 +48,17 @@ def main() -> None:
     st.subheader("Key Metrics")
     col1, col2, col3 = st.columns(3)
     if "TrackingErr" in summary:
-        col1.metric("Tracking Error", f"{summary['TrackingErr'].mean():.2%}", help=tooltip("TE"))
+        col1.metric(
+            "Tracking Error", f"{summary['TrackingErr'].mean():.2%}", help=tooltip("TE")
+        )
     if "CVaR" in summary:
         col2.metric("CVaR", f"{summary['CVaR'].mean():.2%}", help=tooltip("CVaR"))
     if "BreachProb" in summary:
-        col3.metric("Breach Prob", f"{summary['BreachProb'].mean():.2%}", help=tooltip("breach probability"))
+        col3.metric(
+            "Breach Prob",
+            f"{summary['BreachProb'].mean():.2%}",
+            help=tooltip("breach probability"),
+        )
 
     if "Config" in summary.columns:
         config_options = summary["Config"].unique().tolist()
@@ -86,7 +92,7 @@ def main() -> None:
 
     # Export buttons
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
         # PNG export with error handling
         try:
@@ -96,16 +102,20 @@ def main() -> None:
             )
         except RuntimeError as e:
             if "Chrome" in str(e) or "Kaleido" in str(e):
-                st.warning("📷 PNG export requires Chrome installation. Run: `sudo apt-get install -y chromium-browser`")
-                st.info("💡 Tip: Use browser screenshot or install Chrome for PNG exports")
+                st.warning(
+                    "📷 PNG export requires Chrome installation. Run: `sudo apt-get install -y chromium-browser`"
+                )
+                st.info(
+                    "💡 Tip: Use browser screenshot or install Chrome for PNG exports"
+                )
             else:
                 st.error(f"PNG export error: {e}")
-    
+
     with col2:
         # Excel download
         with open(xlsx, "rb") as fh:
             st.download_button("Download XLSX", fh, file_name=Path(xlsx).name)
-    
+
     with col3:
         # Export packet button
         if st.button("📦 Export Committee Packet"):
@@ -114,23 +124,23 @@ def main() -> None:
                 # (Streamlit dashboard should start quickly even if pa_core has import delays)
                 sys.path.append(str(Path(__file__).parents[1]))
                 from pa_core.reporting.export_packet import create_export_packet
-                
+
                 # Create figure
                 fig = _get_plot_fn(PLOTS["Headline"])(summary)
-                
+
                 # Create raw returns dict for export
                 raw_returns_dict = {"Summary": summary}
-                
+
                 # Extract inputs from summary or create minimal inputs
                 inputs_dict = {
                     "Data_Source": xlsx,
                     "Generated_At": str(pd.Timestamp.now()),
                     "Summary_Rows": len(summary),
                 }
-                
+
                 # Create packet with timestamp to avoid conflicts
                 base_name = f"committee_packet_{int(time.time())}"
-                
+
                 with st.spinner("Creating export packet..."):
                     pptx_path, excel_path = create_export_packet(
                         figs=[fig],
@@ -140,35 +150,39 @@ def main() -> None:
                         base_filename=base_name,
                         manifest=manifest_data,
                     )
-                
+
                 st.success("✅ Export packet created!")
-                
+
                 # Provide download links
                 with open(pptx_path, "rb") as pptx_file:
                     st.download_button(
-                        "📋 Download PowerPoint", 
-                        pptx_file.read(), 
+                        "📋 Download PowerPoint",
+                        pptx_file.read(),
                         file_name=Path(pptx_path).name,
-                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
                     )
-                
+
                 with open(excel_path, "rb") as excel_file:
                     st.download_button(
-                        "📊 Download Enhanced Excel", 
-                        excel_file.read(), 
+                        "📊 Download Enhanced Excel",
+                        excel_file.read(),
                         file_name=Path(excel_path).name,
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     )
-                    
+
             except RuntimeError as e:
                 if "Chrome" in str(e) or "Chromium" in str(e) or "Kaleido" in str(e):
-                    st.error("📷 Export packet requires Chrome/Chromium for chart generation.")
+                    st.error(
+                        "📷 Export packet requires Chrome/Chromium for chart generation."
+                    )
                     st.info("Install with: `sudo apt-get install chromium-browser`")
                 else:
                     st.error(f"Export packet failed: {e}")
             except Exception as e:
                 st.error(f"Unexpected error creating export packet: {e}")
-                st.info("Please check your environment and try individual exports instead.")
+                st.info(
+                    "Please check your environment and try individual exports instead."
+                )
 
     if auto:
         time.sleep(interval)
