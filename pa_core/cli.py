@@ -269,10 +269,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             return
         cfg = cfg.model_copy(
             update={
-                # Coerce through numpy for type-checker friendliness
-                "external_pa_capital": float(pd.Series([row["external_pa_capital"]]).to_numpy()[0]),
-                "active_ext_capital": float(pd.Series([row["active_ext_capital"]]).to_numpy()[0]),
-                "internal_pa_capital": float(pd.Series([row["internal_pa_capital"]]).to_numpy()[0]),
+                # Coerce to float for type-checker friendliness
+                "external_pa_capital": float(row["external_pa_capital"]),
+                "active_ext_capital": float(row["active_ext_capital"]),
+                "internal_pa_capital": float(row["internal_pa_capital"]),
             }
         )
 
