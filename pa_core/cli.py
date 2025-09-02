@@ -182,6 +182,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         default=0.25,
         help="Grid step size for sleeve suggestions",
     )
+    parser.add_argument(
+        "--sensitivity",
+        action="store_true",
+        help="Run one-factor sensitivity analysis on key parameters",
+    )
     args = parser.parse_args(argv)
 
     flags = RunFlags(
@@ -205,7 +210,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     cfg = load_config(args.config)
-    cfg = cfg.model_copy(update={"analysis_mode": args.mode})
+    # Override analysis_mode if we want single simulation for sensitivity analysis
+    if args.sensitivity and cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]:
+        # For sensitivity analysis, we want to do single simulation first, then perturbations
+        cfg = cfg.model_copy(update={"analysis_mode": "single_with_sensitivity"})
+    else:
+        cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     if args.stress_preset:
         cfg = apply_stress_preset(cfg, args.stress_preset)
     
@@ -256,7 +266,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             }
         )
 
-    if cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]:
+    if cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"] and not args.sensitivity:
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
@@ -330,6 +340,27 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             except Exception as e:
                 print(f"❌ Unexpected error creating export packet: {e}")
                 print("💡 Please check your environment and try individual exports instead.")
+        
+        # Sensitivity analysis can also be applied to parameter sweep results
+        if args.sensitivity:
+            print("\n🔍 Parameter sweep sensitivity analysis:")
+            print("ℹ️  Sensitivity analysis on parameter sweep results shows")
+            print("   how different parameter combinations affect outcomes.")
+            
+            if results:
+                sweep_df = pd.concat([res["summary"] for res in results], ignore_index=True)
+                base_agents = sweep_df[sweep_df["Agent"] == "Base"]
+                if not base_agents.empty:
+                    best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax()]
+                    worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin()]
+                    print(f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn")
+                    print(f"   📉 Worst combination: {worst_combo['AnnReturn']:.2f}% AnnReturn")
+                    print(f"   📊 Range: {best_combo['AnnReturn'] - worst_combo['AnnReturn']:.2f}% difference")
+                else:
+                    print("   ⚠️  No Base agent results found in sweep")
+            else:
+                print("   ❌ No sweep results available")
+                
         return
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
@@ -416,6 +447,136 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
+
+    # Optional sensitivity analysis (one-factor deltas on AnnReturn)
+    if args.sensitivity:
+        try:
+            from .sensitivity import one_factor_deltas
+            
+            print("\n🔍 Running sensitivity analysis...")
+            
+            # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
+            def _eval(p: dict[str, float]) -> float:
+                """Evaluate AnnReturn for Base agent given parameter overrides."""
+                mod_cfg = cfg.model_copy(update=p)
+                
+                # Rebuild covariance matrix with new parameters
+                build_cov_matrix(
+                    mod_cfg.rho_idx_H,
+                    mod_cfg.rho_idx_E,
+                    mod_cfg.rho_idx_M,
+                    mod_cfg.rho_H_E,
+                    mod_cfg.rho_H_M,
+                    mod_cfg.rho_E_M,
+                    idx_sigma,
+                    mod_cfg.sigma_H,
+                    mod_cfg.sigma_E,
+                    mod_cfg.sigma_M,
+                )
+                
+                params_local = {
+                    "mu_idx_month": mu_idx / 12,
+                    "default_mu_H": mod_cfg.mu_H / 12,
+                    "default_mu_E": mod_cfg.mu_E / 12,
+                    "default_mu_M": mod_cfg.mu_M / 12,
+                    "idx_sigma_month": idx_sigma / 12,
+                    "default_sigma_H": mod_cfg.sigma_H / 12,
+                    "default_sigma_E": mod_cfg.sigma_E / 12,
+                    "default_sigma_M": mod_cfg.sigma_M / 12,
+                    "rho_idx_H": mod_cfg.rho_idx_H,
+                    "rho_idx_E": mod_cfg.rho_idx_E,
+                    "rho_idx_M": mod_cfg.rho_idx_M,
+                    "rho_H_E": mod_cfg.rho_H_E,
+                    "rho_H_M": mod_cfg.rho_H_M,
+                    "rho_E_M": mod_cfg.rho_E_M,
+                    "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
+                    "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
+                    "internal_spike_prob": mod_cfg.internal_spike_prob,
+                    "internal_spike_factor": mod_cfg.internal_spike_factor,
+                    "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
+                    "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
+                    "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
+                    "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
+                    "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
+                    "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
+                    "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
+                    "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
+                }
+                
+                r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
+                    n_months=mod_cfg.N_MONTHS, n_sim=mod_cfg.N_SIMULATIONS, params=params_local, rng=rng_returns
+                )
+                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
+                agents_l = build_from_config(mod_cfg)
+                returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
+                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
+                base_row = summary_l[summary_l["Agent"] == "Base"]
+                return float(base_row["AnnReturn"].iloc[0]) if not base_row.empty else 0.0
+
+            # Define parameter perturbations to test (±5% relative changes)
+            base_params = {
+                "mu_H": cfg.mu_H,
+                "sigma_H": cfg.sigma_H,
+                "mu_E": cfg.mu_E,
+                "sigma_E": cfg.sigma_E,
+                "mu_M": cfg.mu_M,
+                "sigma_M": cfg.sigma_M,
+            }
+            
+            scenarios = {}
+            failed_params = []
+            skipped_params = []
+            
+            for param_name, base_value in base_params.items():
+                # Test positive perturbation
+                pos_key = f"{param_name}_+5%"
+                try:
+                    pos_value = base_value * 1.05
+                    pos_result = _eval({param_name: pos_value})
+                    scenarios[pos_key] = pd.DataFrame({"AnnReturn": [pos_result]})
+                except Exception as e:
+                    failed_params.append(f"{pos_key}: {type(e).__name__}: {str(e)}")
+                    skipped_params.append(pos_key)
+                    print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
+                
+                # Test negative perturbation
+                neg_key = f"{param_name}_-5%"
+                try:
+                    neg_value = base_value * 0.95
+                    neg_result = _eval({param_name: neg_value})
+                    scenarios[neg_key] = pd.DataFrame({"AnnReturn": [neg_result]})
+                except Exception as e:
+                    failed_params.append(f"{neg_key}: {type(e).__name__}: {str(e)}")
+                    skipped_params.append(neg_key)
+                    print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
+            
+            if scenarios:
+                base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]].copy()
+                deltas = one_factor_deltas(base_df, scenarios, value="AnnReturn")
+                
+                print("\n📊 Sensitivity Analysis Results:")
+                print("=" * 50)
+                for param, delta in deltas.items():
+                    direction = "📈" if delta > 0 else "📉"
+                    print(f"{direction} {param:20} | Delta: {delta:+8.4f}%")
+                
+                if skipped_params:
+                    print(f"\n⚠️  Warning: {len(skipped_params)} parameter evaluations failed and were skipped:")
+                    for param in skipped_params:
+                        print(f"   • {param}")
+                    print("\n💡 Consider reviewing parameter ranges or model constraints.")
+                
+                print(f"\n✅ Sensitivity analysis completed. Evaluated {len(scenarios)} scenarios.")
+            else:
+                print("❌ All parameter evaluations failed. Sensitivity analysis could not be completed.")
+                print("\n📋 Failed parameter details:")
+                for failure in failed_params:
+                    print(f"   • {failure}")
+                
+        except ImportError:
+            print("❌ Sensitivity analysis requires the sensitivity module")
+        except Exception as e:
+            print(f"❌ Sensitivity analysis failed: {e}")
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
         pass
