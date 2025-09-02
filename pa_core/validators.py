@@ -231,8 +231,7 @@ def calculate_margin_requirement(
         # Guard for static type checker
         if not isinstance(ms, pd.DataFrame):
             raise TypeError("margin_schedule must be a pandas DataFrame when provided")
-        # Narrow type for static type checker
-        ms = cast(pd.DataFrame, ms)
+        # ms is guaranteed to be a pd.DataFrame here
         terms = ms["term"].to_numpy(float)
         multipliers = ms["multiplier"].to_numpy(float)
         k = float(np.interp(term_months, terms, multipliers))
