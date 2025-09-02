@@ -29,13 +29,14 @@ def main() -> None:
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
-        st.info(
-            (
-                "Promoted alpha shares from Scenario Grid "
-                f"(active_share={(promoted_active_share or 0.0):.2f}, "
-                f"theta_extpa={(promoted_theta or 0.0):.2f})"
+        if (promoted_active_share is not None) or (promoted_theta is not None):
+            st.info(
+                (
+                    "Promoted alpha shares from Scenario Grid "
+                    f"(active_share={(promoted_active_share or 0.0):.2f}, "
+                    f"theta_extpa={(promoted_theta or 0.0):.2f})"
+                )
             )
-        )
 
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander("Alpha Shares (annotation – included in download)", expanded=bool(promoted_active_share or promoted_theta)):

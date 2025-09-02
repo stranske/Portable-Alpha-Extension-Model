@@ -48,3 +48,13 @@ risk_metrics:
   - Return
   - Risk
   - ShortfallProb
+
+# Financing model configuration
+# simple_proxy: uses reference_sigma × volatility_multiple × total_fund_capital
+# schedule: interpolates from a broker margin schedule CSV (term,multiplier)
+# Uncomment to enable schedule-based margin
+# financing_model: schedule  # default is simple_proxy
+# financing_schedule_path: config/margin_schedule_template.csv
+# financing_term_months: 1.0
+# reference_sigma: 0.01       # used by both models
+# volatility_multiple: 3.0    # used by simple_proxy only
