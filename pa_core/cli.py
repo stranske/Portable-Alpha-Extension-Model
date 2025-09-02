@@ -149,6 +149,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Export comprehensive committee packet (PPTX + Excel)",
     )
     parser.add_argument(
+        "--sensitivity",
+        action="store_true",
+        help="Compute one-factor sensitivity deltas and include tornado in packet/Excel",
+    )
+    parser.add_argument(
         "--dashboard",
         action="store_true",
         help="Launch Streamlit dashboard after run",
@@ -406,6 +411,101 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     print_enhanced_summary(summary)
+    # Optional sensitivity analysis (one-factor deltas on AnnReturn)
+    if args.sensitivity:
+        try:
+            from .sim.sensitivity import one_factor_deltas
+
+            # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
+            base_params = {
+                "mu_H": cfg.mu_H,
+                "sigma_H": cfg.sigma_H,
+                "mu_E": cfg.mu_E,
+                "sigma_E": cfg.sigma_E,
+                "mu_M": cfg.mu_M,
+                "sigma_M": cfg.sigma_M,
+                "w_beta_H": cfg.w_beta_H,
+                "w_alpha_H": cfg.w_alpha_H,
+            }
+            steps = {
+                "mu_H": 0.01,
+                "sigma_H": 0.005,
+                "mu_E": 0.01,
+                "sigma_E": 0.005,
+                "mu_M": 0.01,
+                "sigma_M": 0.005,
+                "w_beta_H": 0.05,
+                "w_alpha_H": 0.05,
+            }
+
+            def _eval(p: dict[str, float]) -> float:
+                # Copy cfg with updates
+                mod_cfg = cfg.model_copy(update=p)
+                # Recompute params and draws quickly with same RNGs
+                mu_idx = float(inputs_dict.get("mu_idx", 0.06))
+                idx_sigma = float(inputs_dict.get("sigma_idx", 0.16))
+                sigma_H = mod_cfg.sigma_H
+                sigma_E = mod_cfg.sigma_E
+                sigma_M = mod_cfg.sigma_M
+                mu_H = mod_cfg.mu_H
+                mu_E = mod_cfg.mu_E
+                mu_M = mod_cfg.mu_M
+                cov_mat = build_cov_matrix(
+                    mod_cfg.rho_idx_H,
+                    mod_cfg.rho_idx_E,
+                    mod_cfg.rho_idx_M,
+                    mod_cfg.rho_H_E,
+                    mod_cfg.rho_H_M,
+                    mod_cfg.rho_E_M,
+                    idx_sigma,
+                    sigma_H,
+                    sigma_E,
+                    sigma_M,
+                )
+                params_local = {
+                    "mu_idx_month": mu_idx / 12,
+                    "default_mu_H": mu_H / 12,
+                    "default_mu_E": mu_E / 12,
+                    "default_mu_M": mu_M / 12,
+                    "idx_sigma_month": idx_sigma / 12,
+                    "default_sigma_H": sigma_H / 12,
+                    "default_sigma_E": sigma_E / 12,
+                    "default_sigma_M": sigma_M / 12,
+                    "rho_idx_H": mod_cfg.rho_idx_H,
+                    "rho_idx_E": mod_cfg.rho_idx_E,
+                    "rho_idx_M": mod_cfg.rho_idx_M,
+                    "rho_H_E": mod_cfg.rho_H_E,
+                    "rho_H_M": mod_cfg.rho_H_M,
+                    "rho_E_M": mod_cfg.rho_E_M,
+                    # financing left the same for speed
+                    "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
+                    "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
+                    "internal_spike_prob": mod_cfg.internal_spike_prob,
+                    "internal_spike_factor": mod_cfg.internal_spike_factor,
+                    "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
+                    "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
+                    "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
+                    "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
+                    "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
+                    "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
+                    "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
+                    "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
+                }
+                r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
+                    n_months=mod_cfg.N_MONTHS, n_sim=mod_cfg.N_SIMULATIONS, params=params_local, rng=rng_returns
+                )
+                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
+                agents_l = build_from_config(mod_cfg)
+                returns_l = simulate_agents(agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l)
+                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
+                base_row = summary_l[summary_l["Agent"] == "Base"]
+                return float(base_row["AnnReturn"].iloc[0]) if not base_row.empty else 0.0
+
+            sens_df = one_factor_deltas(params=base_params, steps=steps, evaluator=_eval)
+            inputs_dict["_sensitivity_df"] = sens_df
+        except Exception:
+            pass
+
     export_to_excel(
         inputs_dict,
         summary,

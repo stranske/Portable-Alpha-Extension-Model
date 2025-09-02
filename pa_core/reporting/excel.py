@@ -51,6 +51,13 @@ def export_to_excel(
         summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
+        # Optional: Sensitivity sheet if provided
+        sens_df = inputs_dict.get("_sensitivity_df")
+        if isinstance(sens_df, pd.DataFrame) and not sens_df.empty:
+            # Write a concise view
+            cols = [c for c in ["Parameter", "Base", "Minus", "Plus", "Low", "High", "DeltaAbs"] if c in sens_df.columns]
+            sens_df[cols].to_excel(writer, sheet_name="Sensitivity", index=False)
+
         if pivot:
             frames = []
             for name, df in raw_returns_dict.items():
@@ -92,6 +99,24 @@ def export_to_excel(
             ws.add_image(img, "H2")
         except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
             # Some tests pass a minimal summary without expected columns like 'Agent' or 'AnnVol'; skip chart.
+            pass
+
+    # Best-effort: embed tornado image on Sensitivity sheet
+    if "Sensitivity" in wb.sheetnames:
+        try:
+            from ..viz import tornado
+
+            ws = wb["Sensitivity"]
+            # Build figure from the written sheet
+            df = pd.DataFrame(ws.values)
+            df.columns = df.iloc[0]
+            df = df.drop(index=0)
+            fig = tornado.make(df)  # type: ignore[arg-type]
+            img_bytes = fig.to_image(format="png")
+            img = XLImage(io.BytesIO(img_bytes))
+            ws.add_image(img, "H2")
+        except Exception:
+            # Non-fatal if renderer or data missing
             pass
 
     wb.save(filename)
