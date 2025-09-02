@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from pa_core.agents.risk_metrics import RiskMetricsAgent
+from pa_core.random import spawn_rngs
 from pa_core.sim.metrics import (
     breach_count,
     breach_probability,
@@ -20,14 +21,14 @@ from pa_core.sim.metrics import (
 @pytest.fixture
 def standard_returns_data() -> np.ndarray:
     """Standard returns data for basic agent testing."""
-    rng = np.random.default_rng(0)  # Fixed seed for reproducibility
+    rng = spawn_rngs(0, 1)[0]  # Fixed seed for reproducibility
     return rng.normal(0.0, 0.1, size=(100, 12))
 
 
 @pytest.fixture
 def small_returns_data() -> np.ndarray:
     """Smaller returns dataset for scaling tests."""
-    rng = np.random.default_rng(1)  # Different seed for variety
+    rng = spawn_rngs(1, 1)[0]  # Different seed for variety
     return rng.normal(0.0, 0.05, size=(50, 6))
 
 
@@ -94,7 +95,7 @@ def test_risk_metrics_agent_scaling_behavior(small_returns_data, agent_default_p
 ])
 def test_risk_metrics_agent_different_data_sizes(returns_shape, expected_behavior, agent_default_params) -> None:
     """Test that agent handles different data sizes appropriately."""
-    rng = np.random.default_rng(42)
+    rng = spawn_rngs(42, 1)[0]
     returns = rng.normal(0.0, 0.1, size=returns_shape)
     agent = agent_default_params
     
