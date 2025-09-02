@@ -215,7 +215,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     cfg = load_config(args.config)
-    elif args.mode is not None:
+    if args.mode is not None:
         cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     if args.stress_preset:
         cfg = apply_stress_preset(cfg, args.stress_preset)
