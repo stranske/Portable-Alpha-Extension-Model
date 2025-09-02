@@ -475,8 +475,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
             if not trade_df.empty:
                 inputs_dict["_tradeoff_df"] = trade_df.head(max(1, args.tradeoff_top)).reset_index(drop=True)
-        except Exception:
-            pass
+        except Exception as e:
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Trade-off table computation failed.\n[dim]Reason: {e}[/dim]",
+                    title="Trade-off Table",
+                    style="yellow"
+                )
+            )
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
         try:
