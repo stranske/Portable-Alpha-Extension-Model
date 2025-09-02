@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Tuple, NamedTuple, Optional
 from pathlib import Path
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple, cast
 
 import numpy as np
 import pandas as pd
 
 from .schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
-from .sim.covariance import nearest_psd, _is_psd
 
 # Module-level constants for validation thresholds
 #
@@ -117,6 +116,9 @@ def validate_covariance_matrix_psd(
     Returns:
         Tuple of (validation result, PSD projection info)
     """
+    # Lazy import to avoid circular dependency at module import time
+    from .sim.covariance import _is_psd, nearest_psd
+
     if not _is_psd(cov_matrix):
         # Perform projection and gather detailed info
         original_eigenvalues = np.linalg.eigvalsh(cov_matrix)
@@ -178,11 +180,11 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     """
     if not path.exists():
         raise FileNotFoundError(f"Margin schedule file not found: {path}")
-    
+
     df = pd.read_csv(path)
     required_cols = {"term", "multiplier"}
     missing = required_cols - set(df.columns)
-    
+
     if missing:
         raise ValueError(
             f"Margin schedule CSV file missing required columns: {missing}"
@@ -198,7 +200,9 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
             "Margin schedule terms must not contain duplicates (each term value must be unique)"
         )
     if bool(df["term"].diff().dropna().le(0).any()):
-        raise ValueError("Margin schedule terms must be strictly increasing (each term must be greater than the previous)")
+        raise ValueError(
+            "Margin schedule terms must be strictly increasing (each term must be greater than the previous)"
+        )
     return df.sort_values("term")
 
 
@@ -219,13 +223,18 @@ def calculate_margin_requirement(
     """
 
     if financing_model == "schedule":
-        if margin_schedule is None:
+        ms = margin_schedule
+        if ms is None:
             if schedule_path is None:
                 raise ValueError("schedule_path required for schedule financing model")
-            margin_schedule = load_margin_schedule(schedule_path)
-
-        terms = margin_schedule["term"].to_numpy(float)
-        multipliers = margin_schedule["multiplier"].to_numpy(float)
+            ms = load_margin_schedule(schedule_path)
+        # Guard for static type checker
+        if not isinstance(ms, pd.DataFrame):
+            raise TypeError("margin_schedule must be a pandas DataFrame when provided")
+        # Narrow type for static type checker
+        ms = cast(pd.DataFrame, ms)
+        terms = ms["term"].to_numpy(float)
+        multipliers = ms["multiplier"].to_numpy(float)
         k = float(np.interp(term_months, terms, multipliers))
     else:
         k = volatility_multiple

@@ -4,6 +4,7 @@ Provides predefined overrides for common stress tests such as
 liquidity squeezes or volatility regime shifts.  Presets return a new
 ``ModelConfig`` instance with the modifications applied.
 """
+
 from __future__ import annotations
 
 from typing import Callable, Mapping
@@ -59,10 +60,8 @@ def apply_stress_preset(cfg: ModelConfig, name: str) -> ModelConfig:
     if name not in STRESS_PRESETS:
         raise KeyError(f"Unknown stress preset: {name}")
     preset = STRESS_PRESETS[name]
-    updates = {
-        k: (v(cfg) if callable(v) else v) for k, v in preset.items()
-    }
+    updates = {k: (v(cfg) if callable(v) else v) for k, v in preset.items()}
     return cfg.model_copy(update=updates)
 
-__all__ = ["STRESS_PRESETS", "apply_stress_preset"]
 
+__all__ = ["STRESS_PRESETS", "apply_stress_preset"]

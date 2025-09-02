@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-# ruff: noqa: E402
-
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +9,8 @@ import yaml
 from pandas.testing import assert_frame_equal
 
 from pa_core.data import CalibrationAgent, DataImportAgent
+
+# ruff: noqa: E402
 
 
 def test_calibration_wide_csv() -> None:
@@ -93,7 +93,7 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
         {
             "id": ["A", "A"],
             "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
-            "return": [(1.01 ** 31) - 1, (1.01 ** 29) - 1],
+            "return": [(1.01**31) - 1, (1.01**29) - 1],
         }
     )
     assert_frame_equal(df_csv.reset_index(drop=True), expected)
@@ -123,10 +123,14 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
         {
             "id": ["A", "A"],
             "date": pd.to_datetime(["2020-01-31", "2020-02-29"]),
-            "return": [((1 + DAILY_RETURN) ** jan_days) - 1, ((1 + DAILY_RETURN) ** feb_days) - 1],
+            "return": [
+                ((1 + DAILY_RETURN) ** jan_days) - 1,
+                ((1 + DAILY_RETURN) ** feb_days) - 1,
+            ],
         }
     )
     assert_frame_equal(out.reset_index(drop=True), expected)
+
 
 def test_import_min_obs_enforced(tmp_path: Path) -> None:
     dates = pd.date_range("2020-01-31", periods=10, freq="ME")
@@ -138,21 +142,26 @@ def test_import_min_obs_enforced(tmp_path: Path) -> None:
         agent.load(path)
 
 
-@pytest.mark.parametrize("periods,min_obs,should_fail", [
-    (10, 12, True),   # Insufficient data - should fail
-    (15, 12, False),  # Sufficient data - should pass
-    (12, 12, False),  # Exactly enough data - should pass
-    (5, 3, False),    # More than enough - should pass
-])
-def test_import_min_obs_validation_scenarios(tmp_path: Path, periods, min_obs, should_fail) -> None:
+@pytest.mark.parametrize(
+    "periods,min_obs,should_fail",
+    [
+        (10, 12, True),  # Insufficient data - should fail
+        (15, 12, False),  # Sufficient data - should pass
+        (12, 12, False),  # Exactly enough data - should pass
+        (5, 3, False),  # More than enough - should pass
+    ],
+)
+def test_import_min_obs_validation_scenarios(
+    tmp_path: Path, periods, min_obs, should_fail
+) -> None:
     """Test minimum observation validation with different data sizes and requirements."""
     dates = pd.date_range("2020-01-31", periods=periods, freq="ME")
     df = pd.DataFrame({"Date": dates, "A": np.arange(periods)})
     path = tmp_path / f"data_{periods}_{min_obs}.csv"
     df.to_csv(path, index=False)
-    
+
     agent = DataImportAgent(date_col="Date", min_obs=min_obs)
-    
+
     if should_fail:
         with pytest.raises(ValueError, match="insufficient data"):
             agent.load(path)
@@ -170,22 +179,27 @@ def test_import_duplicate_dates_fail(tmp_path: Path) -> None:
         agent.load(path)
 
 
-@pytest.mark.parametrize("date_sequence,should_fail", [
-    (["2020-01-31", "2020-01-31"], True),            # Exact duplicate - should fail
-    (["2020-01-31", "2020-02-29"], False),           # Valid sequence - should pass  
-    (["2020-01-01", "2020-02-01", "2020-03-01"], False), # Valid sequence - should pass
-])
-def test_import_date_validation_scenarios(tmp_path: Path, date_sequence, should_fail) -> None:
+@pytest.mark.parametrize(
+    "date_sequence,should_fail",
+    [
+        (["2020-01-31", "2020-01-31"], True),  # Exact duplicate - should fail
+        (["2020-01-31", "2020-02-29"], False),  # Valid sequence - should pass
+        (
+            ["2020-01-01", "2020-02-01", "2020-03-01"],
+            False,
+        ),  # Valid sequence - should pass
+    ],
+)
+def test_import_date_validation_scenarios(
+    tmp_path: Path, date_sequence, should_fail
+) -> None:
     """Test date validation with various date sequence scenarios."""
-    df = pd.DataFrame({
-        "Date": date_sequence, 
-        "A": [0.1] * len(date_sequence)
-    })
+    df = pd.DataFrame({"Date": date_sequence, "A": [0.1] * len(date_sequence)})
     path = tmp_path / f"dates_{len(date_sequence)}.csv"
     df.to_csv(path, index=False)
-    
+
     agent = DataImportAgent(date_col="Date", min_obs=1)
-    
+
     if should_fail:
         with pytest.raises(ValueError, match="strictly increasing"):
             agent.load(path)
@@ -196,7 +210,7 @@ def test_import_date_validation_scenarios(tmp_path: Path, date_sequence, should_
 
 def test_daily_to_monthly_robust_frequency_handling(tmp_path: Path) -> None:
     """Test that daily-to-monthly conversion correctly handles months with different day counts.
-    
+
     This test validates that the system doesn't rely on hardcoded day-count assumptions
     like 365 days per year, but properly compounds returns within actual calendar months.
     """
@@ -226,21 +240,29 @@ def test_daily_to_monthly_robust_frequency_handling(tmp_path: Path) -> None:
     expected_returns = [
         ((1 + DAILY_RETURN) ** feb_days) - 1,  # Feb: 28 days
         ((1 + DAILY_RETURN) ** mar_days) - 1,  # Mar: 31 days
-        ((1 + DAILY_RETURN) ** apr_days) - 1,  # Apr: 30 days  
+        ((1 + DAILY_RETURN) ** apr_days) - 1,  # Apr: 30 days
         ((1 + DAILY_RETURN) ** may_days) - 1,  # May: 31 days
     ]
 
-    expected_dates = pd.to_datetime(["2021-02-28", "2021-03-31", "2021-04-30", "2021-05-31"])
+    expected_dates = pd.to_datetime(
+        ["2021-02-28", "2021-03-31", "2021-04-30", "2021-05-31"]
+    )
 
-    for i, (expected_return, expected_date) in enumerate(zip(expected_returns, expected_dates)):
+    for i, (expected_return, expected_date) in enumerate(
+        zip(expected_returns, expected_dates)
+    ):
         assert result.iloc[i]["return"] == pytest.approx(expected_return)
         assert result.iloc[i]["date"] == expected_date
         assert result.iloc[i]["id"] == "A"
 
     # Verify that Feb (28 days) has a different monthly return than Mar/May (31 days)
     feb_return = result.iloc[0]["return"]
-    mar_return = result.iloc[1]["return"] 
+    mar_return = result.iloc[1]["return"]
     may_return = result.iloc[3]["return"]
-    
-    assert feb_return != mar_return  # Different day counts should produce different returns
-    assert mar_return == pytest.approx(may_return)  # Same day counts should produce same returns
+
+    assert (
+        feb_return != mar_return
+    )  # Different day counts should produce different returns
+    assert mar_return == pytest.approx(
+        may_return
+    )  # Same day counts should produce same returns

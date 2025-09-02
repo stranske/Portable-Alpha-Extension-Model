@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-# ruff: noqa: E402
-
 from pathlib import Path
 
 import pytest
 
 from pa_core.schema import Scenario, load_scenario, save_scenario
+
+# ruff: noqa: E402
 
 
 def test_roundtrip(tmp_path: Path) -> None:

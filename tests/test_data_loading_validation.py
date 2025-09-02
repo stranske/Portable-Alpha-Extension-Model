@@ -1,10 +1,11 @@
 """Test data loading validation and error handling."""
 
 import tempfile
-import pytest
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
+import pytest
 
 from pa_core.data import load_index_returns
 from pa_core.viz import breach_calendar, rolling_panel
@@ -13,7 +14,7 @@ from pa_core.viz import breach_calendar, rolling_panel
 def test_load_index_returns_with_malformed_data():
     """Test that load_index_returns handles malformed CSV data gracefully."""
     # Create a malformed CSV with non-numeric data
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv") as f:
         f.write("Date,Return\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,invalid_number\n")  # This should cause issues
@@ -31,7 +32,7 @@ def test_load_index_returns_with_malformed_data():
 
 def test_load_index_returns_with_empty_data():
     """Test that load_index_returns handles empty CSV files gracefully."""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv") as f:
         f.write("Date,Return\n")  # Header only, no data
         f.flush()  # Ensure data is written to disk
 
@@ -42,7 +43,7 @@ def test_load_index_returns_with_empty_data():
 
 def test_load_index_returns_with_text_in_numeric_columns():
     """Test handling of mixed data types in numeric columns."""
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv") as f:
         f.write("Date,Return\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,N/A\n")  # Common CSV format for missing data
@@ -60,11 +61,13 @@ def test_load_index_returns_with_text_in_numeric_columns():
 def test_breach_calendar_with_non_numeric_data():
     """Test that breach_calendar handles non-numeric data gracefully."""
     # Create a DataFrame with some problematic data
-    df = pd.DataFrame({
-        'Month': [1, 2, 3],
-        'TrackingErr': [0.01, 0.02, "invalid"],  # Contains string
-        'ShortfallProb': [0.05, 0.1, 0.15]
-    })
+    df = pd.DataFrame(
+        {
+            "Month": [1, 2, 3],
+            "TrackingErr": [0.01, 0.02, "invalid"],  # Contains string
+            "ShortfallProb": [0.05, 0.1, 0.15],
+        }
+    )
 
     # This should not crash after our fix
     fig = breach_calendar.make(df)
@@ -74,11 +77,13 @@ def test_breach_calendar_with_non_numeric_data():
 def test_rolling_panel_with_malformed_data():
     """Test that rolling_panel handles malformed input data gracefully."""
     # Create array with some NaN values
-    data = np.array([
-        [0.01, np.nan, 0.03, 0.04],
-        [0.02, 0.025, np.inf, 0.035],  # Contains infinity
-        [-0.01, 0.015, 0.025, 0.045]
-    ])
+    data = np.array(
+        [
+            [0.01, np.nan, 0.03, 0.04],
+            [0.02, 0.025, np.inf, 0.035],  # Contains infinity
+            [-0.01, 0.015, 0.025, 0.045],
+        ]
+    )
 
     try:
         fig = rolling_panel.make(data, window=2)

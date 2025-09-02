@@ -78,7 +78,12 @@ def test_custom_na_values_dropped(tmp_path: Path) -> None:
     data.to_csv(csv_path, index=False)
 
     importer = DataImportAgent(
-        date_col="Date", id_col="Id", value_col="Return", wide=False, min_obs=1, na_values=["NA"]
+        date_col="Date",
+        id_col="Id",
+        value_col="Return",
+        wide=False,
+        min_obs=1,
+        na_values=["NA"],
     )
     df = importer.load(csv_path)
     # Only one valid row remains

@@ -23,15 +23,21 @@ def export_sweep_results(
         summary_frames = []
         for res in results:
             sheet = f"Run{res['combination_id']}"
-            summary = res["summary"].copy()
-            summary["ShortfallProb"] = summary.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+            summary_obj = res["summary"]
+            if not isinstance(summary_obj, pd.DataFrame):
+                continue
+            summary = summary_obj.copy()
+            summary["ShortfallProb"] = summary.get(
+                "ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+            )
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)
 
         if summary_frames:
-            all_summary = pd.concat(summary_frames, ignore_index=True)
-            all_summary.to_excel(writer, sheet_name="Summary", index=False)
+            combined = pd.concat(summary_frames, ignore_index=True)
+            combined.to_excel(writer, sheet_name="Summary", index=False)
+            all_summary = combined
 
     wb = openpyxl.load_workbook(filename)
     for ws in wb.worksheets:

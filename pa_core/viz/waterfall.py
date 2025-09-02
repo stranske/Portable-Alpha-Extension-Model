@@ -10,12 +10,11 @@ from . import theme
 
 def make(contrib: Mapping[str, float] | pd.Series) -> go.Figure:
     """Return waterfall chart of risk or return contributions."""
-    if isinstance(contrib, pd.Series):
-        labels = contrib.index.tolist()
-        values = contrib.values.tolist()
-    else:
-        labels = list(contrib.keys())
-        values = [float(v) for v in contrib.values()]
+    if not isinstance(contrib, pd.Series):
+        contrib = pd.Series({str(k): float(v) for k, v in contrib.items()})
+    series: pd.Series = contrib
+    labels = series.index.tolist()
+    values = series.astype(float).tolist()
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(
         go.Waterfall(x=labels, y=values, connector=dict(line=dict(color="grey")))

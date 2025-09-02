@@ -4,11 +4,12 @@ Test the subprocess error handling in the CLI dashboard functionality.
 
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
-import sys
 
 
 def test_dashboard_error_handling_filenotfound():

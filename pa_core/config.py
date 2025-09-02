@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Union, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import yaml
 from pydantic import (
@@ -23,25 +23,25 @@ __all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings"]
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
     """
     Extract field mappings from a Pydantic model.
-    
-    Returns a dictionary mapping field aliases (human-readable names) 
+
+    Returns a dictionary mapping field aliases (human-readable names)
     to field names (snake_case), based on the model's field definitions.
-    
+
     Args:
         model_class: Pydantic model class to extract mappings from.
                     Defaults to ModelConfig.
-    
+
     Returns:
         Dictionary mapping alias -> field_name
     """
     if model_class is None:
         model_class = ModelConfig
-        
+
     mappings = {}
-    
+
     for field_name, field_info in model_class.model_fields.items():
         # Check if field has an alias
-        if hasattr(field_info, 'alias') and field_info.alias:
+        if hasattr(field_info, "alias") and field_info.alias:
             alias = field_info.alias
             # Use the alias as the human-readable name
             mappings[alias] = field_name
@@ -49,7 +49,7 @@ def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, 
             # For fields without aliases, use the field name as both key and value
             # This maintains backward compatibility
             mappings[field_name] = field_name
-    
+
     return mappings
 
 
@@ -62,7 +62,9 @@ class ModelConfig(BaseModel):
     N_MONTHS: int = Field(gt=0, alias="Number of months")
 
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
-    active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
+    active_ext_capital: float = Field(
+        default=0.0, alias="Active Extension capital (mm)"
+    )
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
 
@@ -85,20 +87,40 @@ class ModelConfig(BaseModel):
     rho_H_M: float = Field(default=0.10, alias="Corr In-House–External")
     rho_E_M: float = Field(default=0.0, alias="Corr Alpha-Extension–External")
 
-    internal_financing_mean_month: float = Field(default=0.0, alias="Internal financing mean (monthly %)")
-    internal_financing_sigma_month: float = Field(default=0.0, alias="Internal financing vol (monthly %)")
+    internal_financing_mean_month: float = Field(
+        default=0.0, alias="Internal financing mean (monthly %)"
+    )
+    internal_financing_sigma_month: float = Field(
+        default=0.0, alias="Internal financing vol (monthly %)"
+    )
     internal_spike_prob: float = Field(default=0.0, alias="Internal monthly spike prob")
     internal_spike_factor: float = Field(default=0.0, alias="Internal spike multiplier")
 
-    ext_pa_financing_mean_month: float = Field(default=0.0, alias="External PA financing mean (monthly %)")
-    ext_pa_financing_sigma_month: float = Field(default=0.0, alias="External PA financing vol (monthly %)")
-    ext_pa_spike_prob: float = Field(default=0.0, alias="External PA monthly spike prob")
-    ext_pa_spike_factor: float = Field(default=0.0, alias="External PA spike multiplier")
+    ext_pa_financing_mean_month: float = Field(
+        default=0.0, alias="External PA financing mean (monthly %)"
+    )
+    ext_pa_financing_sigma_month: float = Field(
+        default=0.0, alias="External PA financing vol (monthly %)"
+    )
+    ext_pa_spike_prob: float = Field(
+        default=0.0, alias="External PA monthly spike prob"
+    )
+    ext_pa_spike_factor: float = Field(
+        default=0.0, alias="External PA spike multiplier"
+    )
 
-    act_ext_financing_mean_month: float = Field(default=0.0, alias="Active Ext financing mean (monthly %)")
-    act_ext_financing_sigma_month: float = Field(default=0.0, alias="Active Ext financing vol (monthly %)")
-    act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
-    act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
+    act_ext_financing_mean_month: float = Field(
+        default=0.0, alias="Active Ext financing mean (monthly %)"
+    )
+    act_ext_financing_sigma_month: float = Field(
+        default=0.0, alias="Active Ext financing vol (monthly %)"
+    )
+    act_ext_spike_prob: float = Field(
+        default=0.0, alias="Active Ext monthly spike prob"
+    )
+    act_ext_spike_factor: float = Field(
+        default=0.0, alias="Active Ext spike multiplier"
+    )
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
@@ -143,7 +165,7 @@ class ModelConfig(BaseModel):
             "Risk",
             "ShortfallProb",
         ],
-        alias="risk_metrics"
+        alias="risk_metrics",
     )
 
     @model_validator(mode="after")
@@ -152,13 +174,15 @@ class ModelConfig(BaseModel):
         if self.financing_model not in valid:
             raise ValueError(f"financing_model must be one of: {sorted(valid)}")
         if self.financing_model == "schedule" and self.financing_schedule_path is None:
-            raise ValueError("financing_schedule_path required for schedule financing model")
+            raise ValueError(
+                "financing_schedule_path required for schedule financing model"
+            )
         return self
 
     @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
         from .validators import validate_capital_allocation
-        
+
         cap_sum = (
             self.external_pa_capital
             + self.active_ext_capital
@@ -166,7 +190,7 @@ class ModelConfig(BaseModel):
         )
         if cap_sum > self.total_fund_capital:
             raise ValueError("Capital allocation exceeds total_fund_capital")
-            
+
         # Enhanced capital validation with margin requirements
         validation_results = validate_capital_allocation(
             external_pa_capital=self.external_pa_capital,
@@ -179,13 +203,13 @@ class ModelConfig(BaseModel):
             margin_schedule_path=self.financing_schedule_path,
             term_months=self.financing_term_months,
         )
-        
+
         # Check for critical errors
         errors = [r for r in validation_results if not r.is_valid]
         if errors:
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
-        
+
         if "ShortfallProb" not in self.risk_metrics:
             raise ConfigError("risk_metrics must include ShortfallProb")
         return self
@@ -198,45 +222,53 @@ class ModelConfig(BaseModel):
                 raise ValueError(f"{name} must be between 0 and 1")
         if abs(self.w_beta_H + self.w_alpha_H - 1.0) > tol:
             raise ValueError("w_beta_H and w_alpha_H must sum to 1")
-        for name, val in [("theta_extpa", self.theta_extpa), ("active_share", self.active_share)]:
+        for name, val in [
+            ("theta_extpa", self.theta_extpa),
+            ("active_share", self.active_share),
+        ]:
             if not 0.0 <= val <= 1.0:
                 raise ValueError(f"{name} must be between 0 and 1")
         return self
 
     @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":
-        valid_modes = ["capital", "returns", "alpha_shares", "vol_mult", "single_with_sensitivity"]
+        valid_modes = [
+            "capital",
+            "returns",
+            "alpha_shares",
+            "vol_mult",
+            "single_with_sensitivity",
+        ]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
         return self
 
-    @model_validator(mode="after") 
+    @model_validator(mode="after")
     def check_simulation_params(self) -> "ModelConfig":
         from .validators import validate_simulation_parameters
-        
+
         # Collect step sizes for validation
         step_sizes = {
-            'external_step_size_pct': self.external_step_size_pct,
-            'in_house_return_step_pct': self.in_house_return_step_pct,
-            'in_house_vol_step_pct': self.in_house_vol_step_pct,
-            'alpha_ext_return_step_pct': self.alpha_ext_return_step_pct,
-            'alpha_ext_vol_step_pct': self.alpha_ext_vol_step_pct,
-            'external_pa_alpha_step_pct': self.external_pa_alpha_step_pct,
-            'active_share_step_pct': self.active_share_step_pct,
-            'sd_multiple_step': self.sd_multiple_step,
+            "external_step_size_pct": self.external_step_size_pct,
+            "in_house_return_step_pct": self.in_house_return_step_pct,
+            "in_house_vol_step_pct": self.in_house_vol_step_pct,
+            "alpha_ext_return_step_pct": self.alpha_ext_return_step_pct,
+            "alpha_ext_vol_step_pct": self.alpha_ext_vol_step_pct,
+            "external_pa_alpha_step_pct": self.external_pa_alpha_step_pct,
+            "active_share_step_pct": self.active_share_step_pct,
+            "sd_multiple_step": self.sd_multiple_step,
         }
-        
+
         validation_results = validate_simulation_parameters(
-            n_simulations=self.N_SIMULATIONS,
-            step_sizes=step_sizes
+            n_simulations=self.N_SIMULATIONS, step_sizes=step_sizes
         )
-        
+
         # Only raise errors for critical validation failures
         errors = [r for r in validation_results if not r.is_valid]
         if errors:
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
-        
+
         return self
 
 

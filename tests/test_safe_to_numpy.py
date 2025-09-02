@@ -35,10 +35,10 @@ def test_safe_to_numpy_with_mixed_types():
     """Test safe_to_numpy with mixed data types - should use fallback."""
     # Create a series that would fail on direct to_numpy() due to mixed types
     # This simulates the real-world scenario that prompted the duplication issue
-    series = pd.Series([1.0, 'invalid', 3.0])
+    series = pd.Series([1.0, "invalid", 3.0])
     # Convert to numeric with errors='coerce' to simulate real processing
-    series = pd.to_numeric(series, errors='coerce')
-    
+    series = pd.to_numeric(series, errors="coerce")
+
     result = safe_to_numpy(series, fillna_value=-999.0)
     expected = np.array([1.0, -999.0, 3.0])
     np.testing.assert_array_equal(result, expected)
