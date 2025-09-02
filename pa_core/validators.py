@@ -32,6 +32,21 @@ When the available capital buffer falls below this percentage of total capital,
 a warning is issued to alert users that capital allocation is approaching limits.
 """
 
+NUMERICAL_STABILITY_EPSILON = 1e-12
+"""float: Small epsilon value for numerical stability.
+
+This constant is used to regularize covariance matrices by adding to the diagonal
+when they are not positive semi-definite, ensuring numerical stability during
+multivariate normal sampling and other matrix operations.
+"""
+
+TEST_TOLERANCE_EPSILON = 1e-12
+"""float: Very small tolerance for numerical test assertions.
+
+This constant is used as an absolute tolerance when testing that values are 
+approximately zero in unit tests, particularly for tracking error calculations.
+"""
+
 
 class ValidationResult(NamedTuple):
     """Result of a validation check."""

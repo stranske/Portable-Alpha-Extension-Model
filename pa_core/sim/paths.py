@@ -7,6 +7,7 @@ from numpy.random import Generator
 from numpy.typing import NDArray
 
 from ..backend import xp as np
+from ..validators import NUMERICAL_STABILITY_EPSILON
 
 __all__ = [
     "simulate_financing",
@@ -71,9 +72,8 @@ def prepare_mc_universe(
             mean=mean, cov=cov, size=(N_SIMULATIONS, N_MONTHS)
         )
     except np.linalg.LinAlgError:
-        eps = 1e-12
         sims = rng.multivariate_normal(
-            mean=mean, cov=cov + np.eye(4) * eps, size=(N_SIMULATIONS, N_MONTHS)
+            mean=mean, cov=cov + np.eye(4) * NUMERICAL_STABILITY_EPSILON, size=(N_SIMULATIONS, N_MONTHS)
         )
     return sims
 
