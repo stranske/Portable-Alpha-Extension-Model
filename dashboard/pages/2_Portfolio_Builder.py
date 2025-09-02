@@ -22,17 +22,30 @@ def main() -> None:
     promoted_active_share: float | None = None
     promoted_theta: float | None = None
     if "promoted_alpha_shares" in st.session_state:
-        vals = st.session_state["promoted_alpha_shares"]
+        try:
+            vals = st.session_state["promoted_alpha_shares"]
+            # Expecting a mapping with keys: active_share, theta_extpa
+            promoted_active_share = (
+                float(vals.get("active_share"))
+                if isinstance(vals, dict) and vals.get("active_share") is not None
+                else None
+            )
+            promoted_theta = (
+                float(vals.get("theta_extpa"))
+                if isinstance(vals, dict) and vals.get("theta_extpa") is not None
+                else None
+            )
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
-        st.info(
-            (
-                "Promoted alpha shares from Scenario Grid "
-                f"(active_share={(promoted_active_share or 0.0):.2f}, "
-                f"theta_extpa={(promoted_theta or 0.0):.2f})"
+        if (promoted_active_share is not None) or (promoted_theta is not None):
+            st.info(
+                (
+                    "Promoted alpha shares from Scenario Grid "
+                    f"(active_share={(promoted_active_share or 0.0):.2f}, "
+                    f"theta_extpa={(promoted_theta or 0.0):.2f})"
+                )
             )
-        )
 
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander("Alpha Shares (annotation – included in download)", expanded=bool(promoted_active_share or promoted_theta)):

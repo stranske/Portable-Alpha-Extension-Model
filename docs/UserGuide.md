@@ -835,8 +835,7 @@ for label, df in df_summary.groupby("Scenario"):
     export_bundle.save([fig], f"plots/{label}")
 ```
 
-This workflow is ideal for client‑ready reporting where each parameter
-combination requires its own set of images.
+This produces a folder of charts for every scenario in the sweep so you can compare results side by side.
 
 ### Tutorial 6 – Implement a New Agent
 
@@ -1116,3 +1115,24 @@ from pa_core.viz import rolling_var
 fig = rolling_var.make(df_paths, window=12)
 fig.show()
 ```
+
+## Financing schedule configuration
+
+Set `financing_model` in your YAML to control margin requirement calculation:
+
+- simple_proxy (default): margin = reference_sigma × volatility_multiple × total_fund_capital.
+- schedule: read a CSV schedule and interpolate a multiplier at financing_term_months.
+
+Required fields for schedule mode:
+
+- financing_model: schedule
+- financing_schedule_path: path/to/schedule.csv
+- financing_term_months: 1.0  # choose the tenor for interpolation
+
+CSV shape and rules:
+
+- Columns: term (months), multiplier (positive)
+- term must be non-negative, unique, and strictly increasing
+- multiplier must be positive
+
+Example: config/margin_schedule_template.csv is provided. If validation fails, the error message indicates which rule was violated (missing columns, non-monotonic terms, duplicates, negative term, or non-positive multiplier).
