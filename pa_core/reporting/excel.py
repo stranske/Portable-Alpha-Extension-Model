@@ -111,7 +111,13 @@ def export_to_excel(
             df = pd.DataFrame(ws.values)
             df.columns = df.iloc[0]
             df = df.drop(index=0)
-            fig = tornado.make(df)  # type: ignore[arg-type]
+            # Convert the DataFrame to a Series mapping parameter names to values
+            # Assumes the first column is the parameter name and the second column is the value
+            # Adjust column names if needed
+            param_col = df.columns[0]
+            value_col = df.columns[1]
+            series = df.set_index(param_col)[value_col].astype(float)
+            fig = tornado.make(series)
             img_bytes = fig.to_image(format="png")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
