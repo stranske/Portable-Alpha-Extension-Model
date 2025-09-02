@@ -203,6 +203,18 @@ class DefaultConfigView:
 
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
+    """Create DefaultConfigView from ModelConfig with consistent field mappings.
+    
+    This function maps ModelConfig fields to DefaultConfigView fields, handling
+    field name differences (e.g., N_SIMULATIONS -> n_simulations, mu_H -> mu_h).
+    All defaults come from the validated ModelConfig instance.
+    
+    Args:
+        m: Validated ModelConfig instance with all required defaults
+        
+    Returns:
+        DefaultConfigView with all attributes populated from ModelConfig
+    """
     return DefaultConfigView(
         # Core simulation parameters
         analysis_mode=AnalysisMode(m.analysis_mode),
