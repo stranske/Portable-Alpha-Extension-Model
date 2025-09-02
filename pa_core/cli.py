@@ -619,7 +619,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             )
         except (KeyError, ValueError) as e:
             logger.error(f"Sensitivity analysis configuration error: {e}")
-            # Omit base_params debug to avoid static analysis false positives
             Console().print(
                 Panel(
                     f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
