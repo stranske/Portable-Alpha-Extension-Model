@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 from dataclasses import asdict
 from pathlib import Path
@@ -110,10 +111,10 @@ def main() -> None:
         if st.button("Calibrate"):
             calib = CalibrationAgent(min_obs=importer.min_obs)
             result = calib.calibrate(df, index_id)
-            tmp_yaml = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
+            yfd, ypath = tempfile.mkstemp(suffix=".yaml")
             try:
-                calib.to_yaml(result, tmp_yaml.name)
-                yaml_str = Path(tmp_yaml.name).read_text()
+                calib.to_yaml(result, ypath)
+                yaml_str = Path(ypath).read_text()
                 st.download_button(
                     "Download Asset Library YAML",
                     yaml_str,
@@ -121,8 +122,11 @@ def main() -> None:
                     mime="application/x-yaml",
                 )
             finally:
-                # Clean up the YAML temp file
-                Path(tmp_yaml.name).unlink(missing_ok=True)
+                try:
+                    os.close(yfd)
+                except Exception:
+                    pass
+                Path(ypath).unlink(missing_ok=True)
 
         # Preset library management
         st.subheader("Alpha Presets")

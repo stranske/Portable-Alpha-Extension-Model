@@ -43,7 +43,7 @@ def test_csv_conversion_with_field_mappings():
     from pa_core.pa import _convert_csv_to_yaml
     
     # Create a test CSV file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
         writer = csv.writer(f)
         writer.writerow(['Parameter', 'Value'])
         writer.writerow(['Analysis mode', 'returns'])
@@ -53,35 +53,30 @@ def test_csv_conversion_with_field_mappings():
         writer.writerow(['Total fund capital (mm)', '1000.0'])
         writer.writerow(['In-House annual return (%)', '4.0'])
         writer.writerow(['risk_metrics', 'Return;Risk;ShortfallProb'])
-        csv_path = f.name
-    
-    try:
-        # Convert to YAML
-        yaml_path = csv_path.replace('.csv', '.yml')
-        _convert_csv_to_yaml(csv_path, yaml_path)
+        f.flush()  # Ensure data is written to disk
         
-        # Verify the YAML file was created
-        assert Path(yaml_path).exists(), "YAML file was not created"
-        
-        # Load and verify the converted configuration
-        from pa_core.config import load_config
-        config = load_config(yaml_path)
-        
-        # Verify some key values
-        assert config.analysis_mode == "returns"
-        assert config.N_SIMULATIONS == 100
-        assert config.N_MONTHS == 12
-        assert config.external_pa_capital == 500.0
-        assert config.total_fund_capital == 1000.0
-        assert config.mu_H == 0.04  # Should be converted from percentage
-        assert "Return" in config.risk_metrics
-        assert "Risk" in config.risk_metrics
-        assert "ShortfallProb" in config.risk_metrics
-        
-    finally:
-        # Clean up
-        Path(csv_path).unlink(missing_ok=True)
-        Path(yaml_path).unlink(missing_ok=True)
+        # Create temporary YAML file for output
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml') as yaml_f:
+            # Convert to YAML
+            _convert_csv_to_yaml(f.name, yaml_f.name)
+            
+            # Verify the YAML file was created
+            assert Path(yaml_f.name).exists(), "YAML file was not created"
+            
+            # Load and verify the converted configuration
+            from pa_core.config import load_config
+            config = load_config(yaml_f.name)
+            
+            # Verify some key values
+            assert config.analysis_mode == "returns"
+            assert config.N_SIMULATIONS == 100
+            assert config.N_MONTHS == 12
+            assert config.external_pa_capital == 500.0
+            assert config.total_fund_capital == 1000.0
+            assert config.mu_H == 0.04  # Should be converted from percentage
+            assert "Return" in config.risk_metrics
+            assert "Risk" in config.risk_metrics
+            assert "ShortfallProb" in config.risk_metrics
 
 
 def test_legacy_compatibility():

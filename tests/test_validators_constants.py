@@ -10,6 +10,8 @@ try:
         ValidationResult,
         MIN_RECOMMENDED_STEP_SIZE,
         LOW_BUFFER_THRESHOLD,
+        NUMERICAL_STABILITY_EPSILON,
+        TEST_TOLERANCE_EPSILON,
         validate_simulation_parameters,
     )
 except ImportError:
@@ -102,3 +104,21 @@ class TestValidationConstants:
         
         # The details should contain the exact constant value
         assert warnings[0].details['minimum_recommended'] == MIN_RECOMMENDED_STEP_SIZE
+
+    def test_numerical_stability_epsilon_constant(self):
+        """Test that NUMERICAL_STABILITY_EPSILON constant is defined correctly."""
+        # Test that the constant exists and has the expected value
+        assert NUMERICAL_STABILITY_EPSILON == 1e-12
+        assert isinstance(NUMERICAL_STABILITY_EPSILON, float)
+
+    def test_test_tolerance_epsilon_constant(self):
+        """Test that TEST_TOLERANCE_EPSILON constant is defined correctly."""
+        # Test that the constant exists and has the expected value  
+        assert TEST_TOLERANCE_EPSILON == 1e-12
+        assert isinstance(TEST_TOLERANCE_EPSILON, float)
+
+    def test_epsilon_constants_are_small_positive_values(self):
+        """Test that epsilon constants are appropriately small positive values."""
+        # Both epsilon constants should be very small positive numbers
+        assert NUMERICAL_STABILITY_EPSILON == 1e-12
+        assert TEST_TOLERANCE_EPSILON == 1e-12

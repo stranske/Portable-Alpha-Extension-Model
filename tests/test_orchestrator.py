@@ -6,6 +6,7 @@ from typing import Dict, Any
 
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
+from pa_core.validators import TEST_TOLERANCE_EPSILON
 
 
 # Test data fixtures for clear separation of normal vs problematic cases
@@ -106,7 +107,7 @@ def test_te_zero_when_no_alpha_allocation(valid_config_no_alpha, sample_index_re
     np.testing.assert_allclose(base, internal_beta)
     
     te_val = summary.loc[summary.Agent == "InternalBeta", "TE"].iloc[0]
-    assert te_val == pytest.approx(0.0, abs=1e-12)
+    assert te_val == pytest.approx(0.0, abs=TEST_TOLERANCE_EPSILON)
 
 
 # Tests for problematic/invalid scenarios
