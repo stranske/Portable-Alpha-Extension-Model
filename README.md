@@ -214,6 +214,10 @@ pip install .[parquet]
 
 If `pyarrow` is not installed, the dashboard and CLI will skip Parquet operations gracefully and continue with Excel/CSV.
 
+### Python version requirement and packaging
+
+This project requires Python 3.10 or newer. Packaging is unified via `pyproject.toml` (PEP 621); no legacy `setup.py` is required.
+
 ## Financing schedule (configurable) ⚙️
 
 You can choose how margin requirements are computed via `financing_model`:

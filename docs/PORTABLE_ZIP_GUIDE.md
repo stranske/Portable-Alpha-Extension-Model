@@ -25,7 +25,7 @@ The portable archive includes only essential runtime files:
 - **Core Python package** (`pa_core/` directory)
 - **Dashboard and web interface** (`dashboard/` directory)  
 - **Configuration templates** (`config/`, `templates/` directories)
-- **Setup and requirements** (`setup.py`, `requirements.txt`, `pyproject.toml`)
+- **Setup and requirements** (`requirements.txt`, `pyproject.toml`)
 - **Sample configurations** (`my_first_scenario.yml`, `sp500tr_fred_divyield.csv`)
 - **Documentation** (`README.md`, `docs/`, `tutorials/`)
 - **Launch scripts** (`dev.sh`, `scripts/launch_dashboard.*`)

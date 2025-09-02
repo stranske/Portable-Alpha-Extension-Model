@@ -8,8 +8,13 @@ import json
 import numpy as np
 import pandas as pd
 import logging
+
 # tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
-except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
+try:  # pragma: no cover - exercised indirectly
+    from tqdm import tqdm as _tqdm  # type: ignore
+
+    _HAS_TQDM = True
+except Exception:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
