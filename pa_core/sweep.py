@@ -9,9 +9,8 @@ import numpy as np
 import pandas as pd
 
 # tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
-try:  # pragma: no cover - optional dependency at runtime
-    from tqdm import tqdm as _tqdm  # type: ignore
-
+try:
+    from tqdm import tqdm as _tqdm
     _HAS_TQDM = True
 except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
