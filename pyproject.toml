@@ -68,7 +68,7 @@ dependencies = [
     "streamlit>=1.35",
     "python-pptx",
     "xlsxwriter",
-  "PyYAML>=6",
+    "PyYAML>=6",
 ]
 
 [project.optional-dependencies]
