@@ -47,6 +47,7 @@ from .simulations import simulate_agents
 from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
 from .viz.utils import safe_to_numpy
+from .sleeve_suggestor import suggest_sleeve_sizes
 
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
@@ -152,6 +153,35 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         action="store_true",
         help="Launch Streamlit dashboard after run",
     )
+    parser.add_argument(
+        "--suggest-sleeves",
+        action="store_true",
+        help="Suggest feasible sleeve allocations before running",
+    )
+    parser.add_argument(
+        "--max-te",
+        type=float,
+        default=0.02,
+        help="Maximum tracking error for sleeve suggestions",
+    )
+    parser.add_argument(
+        "--max-breach",
+        type=float,
+        default=0.05,
+        help="Maximum breach probability for sleeve suggestions",
+    )
+    parser.add_argument(
+        "--max-cvar",
+        type=float,
+        default=0.03,
+        help="Maximum CVaR for sleeve suggestions",
+    )
+    parser.add_argument(
+        "--sleeve-step",
+        type=float,
+        default=0.25,
+        help="Grid step size for sleeve suggestions",
+    )
     args = parser.parse_args(argv)
 
     flags = RunFlags(
@@ -178,7 +208,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     if args.stress_preset:
         cfg = apply_stress_preset(cfg, args.stress_preset)
+    
+    # Capture raw params BEFORE any config modifications
     raw_params = cfg.model_dump()
+    
     idx_series = load_index_returns(args.index)
 
     # Ensure idx_series is a pandas Series for type safety
@@ -188,6 +221,40 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+
+    # Handle sleeve suggestion if requested
+    if args.suggest_sleeves:
+        suggestions = suggest_sleeve_sizes(
+            cfg,
+            idx_series,
+            max_te=args.max_te,
+            max_breach=args.max_breach,
+            max_cvar=args.max_cvar,
+            step=args.sleeve_step,
+            seed=args.seed,
+        )
+        if suggestions.empty:
+            print("No feasible sleeve allocations found.")
+            return
+        print(suggestions.to_string(index=True))
+        choice = input(
+            "Select row index to apply and continue (blank to abort): "
+        ).strip()
+        if not choice:
+            print("Aborting run.")
+            return
+        try:
+            row = suggestions.iloc[int(choice)]
+        except (ValueError, IndexError):
+            print("Invalid selection. Aborting run.")
+            return
+        cfg = cfg.model_copy(
+            update={
+                "external_pa_capital": float(row["external_pa_capital"]),
+                "active_ext_capital": float(row["active_ext_capital"]),
+                "internal_pa_capital": float(row["internal_pa_capital"]),
+            }
+        )
 
     if cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]:
         # Parameter sweep mode
