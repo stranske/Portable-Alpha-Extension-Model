@@ -2,7 +2,6 @@ import pandas as pd
 import pytest
 from pa_core import sensitivity
 
-
 def test_one_factor_deltas():
     base = pd.DataFrame({"Sharpe": [1.0]})
     scenarios = {
