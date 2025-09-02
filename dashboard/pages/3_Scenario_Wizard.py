@@ -726,7 +726,7 @@ def _render_step_4_correlations(config: Any) -> Any:
             st.download_button(
                 "Download Configuration",
                 yaml_str,
-                file_name=f"scenario_{config.analysis_mode.value if hasattr(config.analysis_mode, 'value') else str(config.analysis_mode)}.yml",
+                file_name=f"scenario_{config.analysis_mode.value}.yml",
                 mime="application/x-yaml"
             )
     
