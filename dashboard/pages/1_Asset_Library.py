@@ -110,7 +110,8 @@ def main() -> None:
 
                     text = tmpl_upload.getvalue().decode("utf-8")
                     # Write to temp so from_template can read
-                        t.write(text.encode('utf-8'))
+                    with tempfile.NamedTemporaryFile(suffix=".yaml") as t:
+                        t.write(text.encode("utf-8"))
                         t.flush()
                         importer = _DIA.from_template(t.name)
 
