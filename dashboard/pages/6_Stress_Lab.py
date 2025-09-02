@@ -110,8 +110,6 @@ def main() -> None:
                 deltas[c] = merged[f"{c}_S"] - merged[f"{c}_B"]
             delta_df = pd.DataFrame(deltas)
             # Optional: format percentage-like columns for readability (kept simple)
-            # for pct_col in [c for c in delta_df.columns if c not in {"Agent"}]:
-            #     delta_df[pct_col] = delta_df[pct_col].map(lambda x: _format_pct(x) if not pd.isna(x) else x)
             st.dataframe(delta_df)
 
         except Exception as exc:  # pragma: no cover - runtime UX
