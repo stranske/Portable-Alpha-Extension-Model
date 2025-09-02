@@ -7,6 +7,7 @@ from numpy.random import Generator
 from numpy.typing import NDArray
 
 from ..backend import xp as np
+from ..random import spawn_rngs
 from ..validators import NUMERICAL_STABILITY_EPSILON
 
 __all__ = [
@@ -35,7 +36,7 @@ def simulate_financing(
     if n_scenarios <= 0:
         raise ValueError("n_scenarios must be positive")
     if rng is None:
-        rng = np.random.default_rng(seed)
+        rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
     jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (
@@ -63,7 +64,7 @@ def prepare_mc_universe(
     if cov_mat.shape != (4, 4):
         raise ValueError("cov_mat must be 4×4 and ordered as [idx, H, E, M]")
     if rng is None:
-        rng = np.random.default_rng(seed)
+        rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
     mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
     cov = cov_mat / 12.0
@@ -87,7 +88,7 @@ def draw_joint_returns(
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
     if rng is None:
-        rng = np.random.default_rng()
+        rng = spawn_rngs(None, 1)[0]
     assert rng is not None
     assert rng is not None
     μ_idx = params["mu_idx_month"]
@@ -145,22 +146,22 @@ def draw_financing_series(
         if isinstance(tmp_int, Generator):
             r_int: Generator = tmp_int
         else:
-            r_int = np.random.default_rng()
+            r_int = spawn_rngs(None, 1)[0]
 
         tmp_ext = rngs.get("external_pa")
         if isinstance(tmp_ext, Generator):
             r_ext: Generator = tmp_ext
         else:
-            r_ext = np.random.default_rng()
+            r_ext = spawn_rngs(None, 1)[0]
 
         tmp_act = rngs.get("active_ext")
         if isinstance(tmp_act, Generator):
             r_act: Generator = tmp_act
         else:
-            r_act = np.random.default_rng()
+            r_act = spawn_rngs(None, 1)[0]
     else:
         if rng is None:
-            rng = np.random.default_rng()
+            rng = spawn_rngs(None, 1)[0]
         assert isinstance(rng, Generator)
         r_int = rng
         r_ext = rng
@@ -222,6 +223,7 @@ def simulate_alpha_streams(
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
-    return np.random.multivariate_normal(  # type: ignore[no-any-return]
+    rng = spawn_rngs(None, 1)[0]
+    return rng.multivariate_normal(  # type: ignore[no-any-return]
         means, cov, size=T
     )
