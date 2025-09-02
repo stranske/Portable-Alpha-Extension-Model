@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
+import sys
 from typing import Optional, Sequence, TYPE_CHECKING
 from pathlib import Path
 
@@ -49,6 +51,9 @@ from .sweep import run_parameter_sweep
 from .manifest import ManifestWriter
 from .viz.utils import safe_to_numpy
 from .sleeve_suggestor import suggest_sleeve_sizes
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 def create_enhanced_summary(
     returns_map: dict[str, np.ndarray],
@@ -360,9 +365,14 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     print("⚠️  No summary data available for export packet")
             except RuntimeError as e:
                 print(f"❌ Export packet failed: {e}")
-            except Exception as e:
-                print(f"❌ Unexpected error creating export packet: {e}")
-                print("💡 Please check your environment and try individual exports instead.")
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.error(f"Export packet failed due to missing dependency: {e}")
+                print(f"❌ Export packet failed due to missing dependency: {e}")
+                print("💡 Install required packages: pip install plotly kaleido openpyxl")
+            except (ValueError, TypeError, KeyError) as e:
+                logger.error(f"Export packet failed due to data issue: {e}")
+                print(f"❌ Export packet failed due to data issue: {e}")
+                print("💡 Check your configuration and data inputs")
         
         # Sensitivity analysis can also be applied to parameter sweep results
         if args.sensitivity:
@@ -464,18 +474,22 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     # Attach a sleeve-level return attribution by component for Excel/sunburst
     try:
-        inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(cfg, idx_series)
-    except Exception:
-        # Fallback to a trivial attribution if helper fails
-        try:
-            rows: list[dict[str, object]] = []
-            for agent, arr in returns.items():
-                mean_month = float(arr.mean())
-                ann = 12.0 * mean_month
-                rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
-            inputs_dict["_attribution_df"] = pd.DataFrame(rows)
-        except Exception:
-            pass
+        rows: list[dict[str, object]] = []
+        for agent, arr in returns.items():
+            mean_month = float(arr.mean())
+            ann = 12.0 * mean_month
+            rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
+        inputs_dict["_attribution_df"] = pd.DataFrame(rows)
+    except (AttributeError, TypeError) as e:
+        logger.warning(f"Attribution calculation failed due to data type issue: {e}")
+        logger.debug(f"Returns data types: {[(agent, type(arr)) for agent, arr in returns.items()]}")
+        # Create empty attribution dataframe as fallback
+        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
+    except (ValueError, KeyError) as e:
+        logger.warning(f"Attribution calculation failed due to configuration issue: {e}")
+        logger.debug(f"Returns keys: {list(returns.keys())}")
+        # Create empty attribution dataframe as fallback
+        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
     print_enhanced_summary(summary)
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
@@ -587,10 +601,30 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
             sens_df = one_factor_deltas(params=base_params, steps=steps, evaluator=_eval)
             inputs_dict["_sensitivity_df"] = sens_df
-        except Exception as e:
+        except ImportError as e:
+            logger.warning(f"Sensitivity analysis module not available: {e}")
             Console().print(
                 Panel(
-                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed.\n[dim]Reason: {e}[/dim]",
+                    f"[bold red]Error:[/bold red] Sensitivity analysis module not found.\n[dim]Reason: {e}[/dim]",
+                    title="Sensitivity Analysis",
+                    style="red"
+                )
+            )
+        except (KeyError, ValueError) as e:
+            logger.error(f"Sensitivity analysis configuration error: {e}")
+            logger.debug(f"Base parameters: {base_params}")
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
+                    title="Sensitivity Analysis",
+                    style="yellow"
+                )
+            )
+        except TypeError as e:
+            logger.error(f"Sensitivity analysis data type error: {e}")
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to data type error.\n[dim]Reason: {e}[/dim]\n[dim]Check that all parameters are numeric values.[/dim]",
                     title="Sensitivity Analysis",
                     style="yellow"
                 )
@@ -708,9 +742,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     pos_value = base_value * 1.05
                     pos_result = _eval({param_name: pos_value})
                     scenarios[pos_key] = pd.DataFrame({"AnnReturn": [pos_result]})
-                except Exception as e:
-                    failed_params.append(f"{pos_key}: {type(e).__name__}: {str(e)}")
+                except (ValueError, ZeroDivisionError) as e:
+                    failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
                     skipped_params.append(pos_key)
+                    logger.warning(f"Parameter evaluation failed for {pos_key} due to configuration: {e}")
+                    print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
+                except (KeyError, TypeError) as e:
+                    failed_params.append(f"{pos_key}: Data type error: {str(e)}")
+                    skipped_params.append(pos_key)
+                    logger.error(f"Parameter evaluation failed for {pos_key} due to data issue: {e}")
                     print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
                 
                 # Test negative perturbation
@@ -719,9 +759,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     neg_value = base_value * 0.95
                     neg_result = _eval({param_name: neg_value})
                     scenarios[neg_key] = pd.DataFrame({"AnnReturn": [neg_result]})
-                except Exception as e:
-                    failed_params.append(f"{neg_key}: {type(e).__name__}: {str(e)}")
+                except (ValueError, ZeroDivisionError) as e:
+                    failed_params.append(f"{neg_key}: Configuration error: {str(e)}")
                     skipped_params.append(neg_key)
+                    logger.warning(f"Parameter evaluation failed for {neg_key} due to configuration: {e}")
+                    print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
+                except (KeyError, TypeError) as e:
+                    failed_params.append(f"{neg_key}: Data type error: {str(e)}")
+                    skipped_params.append(neg_key)
+                    logger.error(f"Parameter evaluation failed for {neg_key} due to data issue: {e}")
                     print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
             
             if scenarios:
@@ -750,9 +796,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     print(f"   • {failure}")
                 
         except ImportError:
+            logger.error("Sensitivity analysis module not available")
             print("❌ Sensitivity analysis requires the sensitivity module")
-        except Exception as e:
-            print(f"❌ Sensitivity analysis failed: {e}")
+        except (ValueError, KeyError) as e:
+            logger.error(f"Sensitivity analysis configuration error: {e}")
+            print(f"❌ Sensitivity analysis failed due to configuration error: {e}")
+            print("💡 Check your parameter names and values")
+        except TypeError as e:
+            logger.error(f"Sensitivity analysis data type error: {e}")
+            print(f"❌ Sensitivity analysis failed due to data type error: {e}")
+            print("💡 Ensure all parameters are numeric values")
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard, flags.packet]):
         pass
@@ -799,30 +852,61 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             except RuntimeError as e:
                 print(f"❌ Export packet failed: {e}")
                 return
-            except Exception as e:
-                print(f"❌ Unexpected error creating export packet: {e}")
-                print("💡 Please check your environment and try individual exports instead.")
+            except (ImportError, ModuleNotFoundError) as e:
+                logger.error(f"Export packet failed due to missing dependency: {e}")
+                print(f"❌ Export packet failed due to missing dependency: {e}")
+                print("💡 Install required packages: pip install plotly kaleido openpyxl python-pptx")
+                return
+            except (ValueError, TypeError, KeyError) as e:
+                logger.error(f"Export packet failed due to data/config issue: {e}")
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
+                print("💡 Check your data inputs and configuration settings")
+                return
+            except (OSError, PermissionError) as e:
+                logger.error(f"Export packet failed due to file system issue: {e}")
+                print(f"❌ Export packet failed due to file system issue: {e}")
+                print("💡 Check file permissions and available disk space")
                 return
         
         # Individual export formats (with improved error handling)
         if flags.png:
             try:
                 fig.write_image(stem.with_suffix(".png"))
-            except Exception as e:
-                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
-                    print("❌ PNG export failed: Chrome/Chromium required")
+            except (ImportError, ModuleNotFoundError) as e:
+                if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
+                    logger.error(f"PNG export failed due to missing dependency: {e}")
+                    print("❌ PNG export failed: Chrome/Chromium or Kaleido required")
                     print("💡 Install with: sudo apt-get install chromium-browser")
                 else:
-                    print(f"❌ PNG export failed: {e}")
+                    logger.error(f"PNG export failed due to missing module: {e}")
+                    print(f"❌ PNG export failed due to missing dependency: {e}")
+            except (OSError, PermissionError) as e:
+                logger.error(f"PNG export failed due to file system issue: {e}")
+                print(f"❌ PNG export failed: Cannot write file - {e}")
+                print("💡 Check file permissions and available disk space")
+            except (ValueError, TypeError) as e:
+                logger.error(f"PNG export failed due to data issue: {e}")
+                print(f"❌ PNG export failed: Invalid data - {e}")
+                print("💡 Check your visualization data and parameters")
         if flags.pdf:
             try:
                 viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))
-            except Exception as e:
-                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
-                    print("❌ PDF export failed: Chrome/Chromium required")
+            except (ImportError, ModuleNotFoundError) as e:
+                if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
+                    logger.error(f"PDF export failed due to missing dependency: {e}")
+                    print("❌ PDF export failed: Chrome/Chromium or Kaleido required")
                     print("💡 Install with: sudo apt-get install chromium-browser")
                 else:
-                    print(f"❌ PDF export failed: {e}")
+                    logger.error(f"PDF export failed due to missing module: {e}")
+                    print(f"❌ PDF export failed due to missing dependency: {e}")
+            except (OSError, PermissionError) as e:
+                logger.error(f"PDF export failed due to file system issue: {e}")
+                print(f"❌ PDF export failed: Cannot write file - {e}")
+                print("💡 Check file permissions and available disk space")
+            except (ValueError, TypeError) as e:
+                logger.error(f"PDF export failed due to data issue: {e}")
+                print(f"❌ PDF export failed: Invalid data - {e}")
+                print("💡 Check your visualization data and parameters")
         if flags.pptx:
             try:
                 viz.pptx_export.save(
@@ -830,12 +914,26 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     str(stem.with_suffix(".pptx")),
                     alt_texts=[flags.alt_text] if flags.alt_text else None,
                 )
-            except Exception as e:
-                if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
-                    print("❌ PPTX export failed: Chrome/Chromium required")
+            except (ImportError, ModuleNotFoundError) as e:
+                if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
+                    logger.error(f"PPTX export failed due to missing dependency: {e}")
+                    print("❌ PPTX export failed: Chrome/Chromium or Kaleido required")
                     print("💡 Install with: sudo apt-get install chromium-browser")
+                elif "pptx" in str(e).lower() or "python-pptx" in str(e).lower():
+                    logger.error(f"PPTX export failed due to missing python-pptx: {e}")
+                    print("❌ PPTX export failed: python-pptx required")
+                    print("💡 Install with: pip install python-pptx")
                 else:
-                    print(f"❌ PPTX export failed: {e}")
+                    logger.error(f"PPTX export failed due to missing module: {e}")
+                    print(f"❌ PPTX export failed due to missing dependency: {e}")
+            except (OSError, PermissionError) as e:
+                logger.error(f"PPTX export failed due to file system issue: {e}")
+                print(f"❌ PPTX export failed: Cannot write file - {e}")
+                print("💡 Check file permissions and available disk space")
+            except (ValueError, TypeError) as e:
+                logger.error(f"PPTX export failed due to data issue: {e}")
+                print(f"❌ PPTX export failed: Invalid data - {e}")
+                print("💡 Check your visualization data and parameters")
         if flags.html:
             viz.html_export.save(
                 fig,
@@ -879,16 +977,22 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 print("💡 Ensure the dashboard files are present in the 'dashboard/' directory.")
                 return
             except subprocess.CalledProcessError as e:
+                logger.error(f"Dashboard launch failed with exit code {e.returncode}: {e}")
                 print(f"❌ Dashboard launch failed with exit code {e.returncode}")
                 print("💡 Common solutions:")
                 print("   • Install Streamlit: pip install streamlit")
                 print("   • Check if 'dashboard/app.py' is valid Python code")
                 print("   • Verify your Python environment is properly configured")
                 return
-            except Exception as e:
-                print(f"❌ Unexpected error launching dashboard: {e}")
-                print("💡 Please check your Python environment and try running manually:")
-                print(f"   {sys.executable} -m streamlit run dashboard/app.py")
+            except ImportError as e:
+                logger.error(f"Dashboard launch failed due to missing streamlit: {e}")
+                print(f"❌ Dashboard launch failed: Streamlit not available - {e}")
+                print("💡 Install Streamlit: pip install streamlit")
+                return
+            except (OSError, PermissionError) as e:
+                logger.error(f"Dashboard launch failed due to system issue: {e}")
+                print(f"❌ Dashboard launch failed: System/permission error - {e}")
+                print("💡 Check file permissions and system resources")
                 return
 
 
