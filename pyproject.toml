@@ -68,7 +68,13 @@ dependencies = [
     "streamlit>=1.35",
     "python-pptx",
     "xlsxwriter",
-    "pyyaml",
+  "PyYAML>=6",
+]
+
+[project.optional-dependencies]
+# Optional extras
+parquet = [
+  "pyarrow",
 ]
 
 [project.scripts]
