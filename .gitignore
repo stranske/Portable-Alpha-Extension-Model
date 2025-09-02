@@ -45,3 +45,5 @@ get-pip.py
 # Local sample data (do not commit)
 my_first_scenario.csv
 parameters.csv
+
+.pre-commit-cache/
