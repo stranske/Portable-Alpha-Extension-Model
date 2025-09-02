@@ -21,10 +21,11 @@ def main() -> None:
     if uploaded is None:
         return
     suffix = Path(uploaded.name).suffix
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
         tmp.write(uploaded.getvalue())
+        tmp.flush()  # Ensure data is written to disk
         tmp_path = tmp.name
-    try:
+        
         importer = DataImportAgent()
         df = importer.load(tmp_path)
         st.dataframe(df)
@@ -35,8 +36,7 @@ def main() -> None:
         if st.button("Calibrate"):
             calib = CalibrationAgent(min_obs=importer.min_obs)
             result = calib.calibrate(df, index_id)
-            tmp_yaml = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
-            try:
+            with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp_yaml:
                 calib.to_yaml(result, tmp_yaml.name)
                 yaml_str = Path(tmp_yaml.name).read_text()
                 st.download_button(
@@ -45,9 +45,6 @@ def main() -> None:
                     file_name="asset_library.yaml",
                     mime="application/x-yaml",
                 )
-            finally:
-                # Clean up the YAML temp file
-                Path(tmp_yaml.name).unlink(missing_ok=True)
 
             st.subheader("Alpha Presets")
             lib: PresetLibrary = st.session_state.setdefault(
@@ -87,9 +84,6 @@ def main() -> None:
                     lib.load_yaml_str(text)
                 else:
                     lib.load_json_str(text)
-    finally:
-        # Clean up the uploaded data temp file
-        Path(tmp_path).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

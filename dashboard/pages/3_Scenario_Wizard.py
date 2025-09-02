@@ -6,6 +6,7 @@ import tempfile
 import yaml
 from pathlib import Path
 from typing import Dict, Any
+from contextlib import contextmanager
 
 import streamlit as st
 
@@ -16,11 +17,13 @@ from pa_core.validators import load_margin_schedule, calculate_margin_requiremen
 from pa_core.wizard_schema import WizardScenarioConfig, AnalysisMode, RiskMetric, get_default_config
 
 
-def _write_temp_yaml(data: Dict[str, Any]) -> str:
-    """Write configuration data to a temporary YAML file and return path."""
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yml') as tmp:
+@contextmanager
+def _temp_yaml_file(data: Dict[str, Any]):
+    """Context manager for temporary YAML file that ensures cleanup."""
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yml') as tmp:
         yaml.safe_dump(data, tmp, default_flow_style=False)
-        return tmp.name
+        tmp.flush()  # Ensure data is written to disk
+        yield tmp.name
 
 
 def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
@@ -783,54 +786,49 @@ def main() -> None:
             if idx is not None:
                 # Convert config to YAML and run simulation
                 yaml_data = config.to_yaml_dict()
-                cfg_path = _write_temp_yaml(yaml_data)
                 
-                # Write index data to temp file
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as tmp:
-                    tmp.write(idx.getvalue())
-                    idx_path = tmp.name
-                
-                try:
-                    with st.spinner("🔄 Running simulation..."):
-                        pa_cli.main(["--config", cfg_path, "--index", idx_path, "--output", output])
-                except Exception as exc:
-                    st.error(f"❌ Simulation failed: {exc}")
-                else:
-                    st.success(f"✅ Simulation complete! Results written to {output}")
-                    st.balloons()
-
-                    # Show quick margin summary using current financing settings if available
-                    fs = st.session_state.get("financing_settings", {})
-                    fm = fs.get("financing_model", "simple_proxy")
-                    ref_sigma = float(fs.get("reference_sigma", 0.01))
-                    vol_mult = float(fs.get("volatility_multiple", 3.0))
-                    term_m = float(fs.get("term_months", 1.0))
-                    sched_path = fs.get("schedule_path")
-
-                    try:
-                        margin_requirement = calculate_margin_requirement(
-                            reference_sigma=ref_sigma,
-                            volatility_multiple=vol_mult,
-                            total_capital=config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0,
-                            financing_model=fm,
-                            schedule_path=Path(sched_path) if sched_path else None,
-                            term_months=term_m,
-                        )
-                        st.info(f"Margin requirement: ${margin_requirement:.1f}M (model: {fm})")
-                    except Exception:
-                        # Non-blocking: skip margin summary if misconfigured
-                        pass
-
-                    # Show configuration used
-                    yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
-                    with st.expander("Configuration Used", expanded=False):
-                        st.code(yaml_str, language='yaml')
-
-                    st.page_link("pages/4_Results.py", label="📈 View Results →")
+                # Write index data to temp file and run simulation
+                with tempfile.NamedTemporaryFile(suffix='.csv') as tmp_idx:
+                    tmp_idx.write(idx.getvalue())
+                    tmp_idx.flush()  # Ensure data is written to disk
                     
-                finally:
-                    Path(cfg_path).unlink(missing_ok=True)
-                    Path(idx_path).unlink(missing_ok=True)
+                    with _temp_yaml_file(yaml_data) as cfg_path:
+                        try:
+                            with st.spinner("🔄 Running simulation..."):
+                                pa_cli.main(["--config", cfg_path, "--index", tmp_idx.name, "--output", output])
+                        except Exception as exc:
+                            st.error(f"❌ Simulation failed: {exc}")
+                        else:
+                            st.success(f"✅ Simulation complete! Results written to {output}")
+                            st.balloons()
+                            
+                            reference_sigma = yaml_data.get('reference_sigma', 0.01)
+                            volatility_multiple = yaml_data.get('volatility_multiple', 3.0)
+                            total_capital = yaml_data.get('total_fund_capital', 1000.0)
+                            financing_model = yaml_data.get('financing_model', 'simple_proxy')
+                            schedule_path = yaml_data.get('financing_schedule_path')
+                            term_months = yaml_data.get('financing_term_months', 1.0)
+
+                            margin_requirement = calculate_margin_requirement(
+                                reference_sigma=reference_sigma,
+                                volatility_multiple=volatility_multiple,
+                                total_capital=total_capital,
+                                financing_model=financing_model,
+                                schedule_path=schedule_path,
+                                term_months=term_months,
+                            )
+                            
+                            with col2:
+                                st.metric("Total Capital", f"${config.total_fund_capital:.1f}M")
+                                st.metric("External PA", f"${config.external_pa_capital:.1f}M")
+                                st.metric("Active Extension", f"${config.active_ext_capital:.1f}M")
+                            
+                            # Show configuration used
+                            yaml_str = yaml.safe_dump(yaml_data, default_flow_style=False)
+                            with st.expander("Configuration Used", expanded=False):
+                                st.code(yaml_str, language='yaml')
+                            
+                            st.page_link("pages/4_Results.py", label="📈 View Results →")
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point

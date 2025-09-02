@@ -22,38 +22,28 @@ def test_convert_csv_to_yaml_with_undefined_num_val_conditions():
     ]
     
     # Create temporary CSV file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
         for row in problematic_data:
             val = row[1] if row[1] is not None else ""
             f.write(f"{row[0]},{val}\n")
-        csv_path = f.name
-    
-    try:
+        f.flush()  # Ensure data is written to disk
+        
         # Create temporary YAML file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-            yaml_path = f.name
-        
-        # This should not crash due to undefined num_val variable
-        # Prior to the fix, this could raise NameError: name 'num_val' is not defined
-        _convert_csv_to_yaml(csv_path, yaml_path)
-        
-        # Verify the output file was created
-        assert Path(yaml_path).exists()
-        
-        # Verify the content is valid YAML
-        import yaml
-        with open(yaml_path, 'r') as f:
-            content = yaml.safe_load(f)
-            assert isinstance(content, dict)
-            # Should have default risk_metrics
-            assert "risk_metrics" in content
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml') as yaml_f:
+            # This should not crash due to undefined num_val variable
+            # Prior to the fix, this could raise NameError: name 'num_val' is not defined
+            _convert_csv_to_yaml(f.name, yaml_f.name)
             
-    finally:
-        # Clean up
-        if os.path.exists(csv_path):
-            os.unlink(csv_path)
-        if os.path.exists(yaml_path):
-            os.unlink(yaml_path)
+            # Verify the output file was created
+            assert Path(yaml_f.name).exists()
+            
+            # Verify the content is valid YAML
+            import yaml
+            with open(yaml_f.name, 'r') as yaml_content:
+                content = yaml.safe_load(yaml_content)
+                assert isinstance(content, dict)
+                # Should have default risk_metrics
+                assert "risk_metrics" in content
 
 
 def test_convert_csv_to_yaml_percentage_conversion():
@@ -68,33 +58,24 @@ def test_convert_csv_to_yaml_percentage_conversion():
         ("Normal value", "100"),           # Should stay as 100
     ]
     
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.csv') as f:
         for row in test_data:
             f.write(f"{row[0]},{row[1]}\n")
-        csv_path = f.name
-    
-    try:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
-            yaml_path = f.name
+        f.flush()  # Ensure data is written to disk
         
-        _convert_csv_to_yaml(csv_path, yaml_path)
-        
-        # Check that percentages were converted correctly
-        import yaml
-        with open(yaml_path, 'r') as f:
-            content = yaml.safe_load(f)
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.yml') as yaml_f:
+            _convert_csv_to_yaml(f.name, yaml_f.name)
+            
+            # Check that percentages were converted correctly
+            import yaml
+            with open(yaml_f.name, 'r') as yaml_content:
+                content = yaml.safe_load(yaml_content)
             
             # Find fields that should be percentage-converted
             # Note: The exact field names depend on the field mapping
             # This test just verifies no crash occurs and valid YAML is produced
             assert isinstance(content, dict)
             assert "risk_metrics" in content
-            
-    finally:
-        if os.path.exists(csv_path):
-            os.unlink(csv_path)
-        if os.path.exists(yaml_path):
-            os.unlink(yaml_path)
 
 
 if __name__ == "__main__":

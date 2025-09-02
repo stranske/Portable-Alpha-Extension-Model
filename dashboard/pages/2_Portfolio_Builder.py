@@ -24,17 +24,8 @@ def main() -> None:
     if "promoted_alpha_shares" in st.session_state:
         try:
             vals = st.session_state["promoted_alpha_shares"]
-            # Expecting a mapping with keys: active_share, theta_extpa
-            promoted_active_share = (
-                float(vals.get("active_share"))
-                if isinstance(vals, dict) and vals.get("active_share") is not None
-                else None
-            )
-            promoted_theta = (
-                float(vals.get("theta_extpa"))
-                if isinstance(vals, dict) and vals.get("theta_extpa") is not None
-                else None
-            )
+            promoted_active_share = vals.get("active_share")
+            promoted_theta = vals.get("theta_extpa")
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
@@ -71,13 +62,10 @@ def main() -> None:
         st.info("Upload an asset library YAML to begin.")
         return
 
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".yaml") as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp:
         tmp.write(uploaded.getvalue())
-        tmp_path = tmp.name
-    try:
-        scenario = load_scenario(tmp_path)
-    finally:
-        Path(tmp_path).unlink(missing_ok=True)
+        tmp.flush()  # Ensure data is written to disk
+        scenario = load_scenario(tmp.name)
 
     if not scenario.assets:
         st.warning("No assets found in file.")
