@@ -82,21 +82,36 @@ jobs:
 
   test:
     name: Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        os: [ubuntu-latest]
+        include:
+          - os: macos-latest
+            python-version: '3.12'
+          - os: windows-latest
+            python-version: '3.12'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
           cache: pip
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
+          pip install build twine
       - name: Pytest with coverage floor
         run: |
           pytest tests/ -v --cov=pa_core --cov-report=xml --cov-report=term --cov-fail-under=60
+      - name: Build artifacts
+        run: |
+          python -m build
+          twine check dist/*
       - uses: codecov/codecov-action@v3
         with:
           file: ./coverage.xml
@@ -106,8 +121,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results
-          path: coverage.xml
+          name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: |
+            coverage.xml
+            dist
 
   integration-test:
     name: Integration Tests
@@ -164,17 +181,17 @@ jobs:
         run: |
           # Create artifacts directory
           mkdir -p tutorial-artifacts
-          
+
           # Generate basic scenario
           python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output tutorial-artifacts/basic-scenario.xlsx --seed 42 || true
-          
+
           # Generate parameter sweeps
           python -m pa_core.cli --config config/returns_mode_template.yml --index sp500tr_fred_divyield.csv --mode returns --output tutorial-artifacts/returns-sweep.xlsx --seed 42 || true
           python -m pa_core.cli --config config/capital_mode_template.yml --index sp500tr_fred_divyield.csv --mode capital --output tutorial-artifacts/capital-sweep.xlsx --seed 42 || true
-          
+
           # Try to generate exports with charts (may fail without proper Chrome setup)
           python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output tutorial-artifacts/with-exports.xlsx --png --pptx --seed 42 || echo "Export generation failed - likely due to Chrome/display issues"
-          
+
           # List generated artifacts
           echo "Generated artifacts:"
           find tutorial-artifacts -type f -exec ls -lh {} \;
@@ -258,7 +275,7 @@ jobs:
           TEST:  ${{ needs['test'].result }}
           INTEG: ${{ needs['integration-test'].result }}
           GOLDEN: ${{ needs['golden-tutorial-tests'].result }}
-          CSPACE:${{ needs['codespace-validation'].result }}
+          CSPACE: ${{ needs['codespace-validation'].result }}
         run: |
           ok=true
           for v in "$LINT" "$TYPE" "$SEC" "$TEST" "$INTEG" "$GOLDEN" "$CSPACE"; do

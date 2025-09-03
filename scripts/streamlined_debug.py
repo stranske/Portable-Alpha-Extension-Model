@@ -22,9 +22,12 @@ class StreamlinedCodexDebugger:
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
         """Run command with timeout and capture output."""
+        import shlex
         try:
+            # Parse command string into arguments to avoid shell injection
+            args = shlex.split(cmd)
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, text=True, timeout=timeout
+                args, capture_output=True, text=True, timeout=timeout
             )
             return result.returncode == 0, result.stdout + result.stderr
         except subprocess.TimeoutExpired:

@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
 
@@ -40,6 +41,20 @@ create_export_packet: Any = None
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
+
+
+class JsonFormatter(logging.Formatter):
+    """Format logs as JSON lines."""
+
+    def format(self, record: logging.LogRecord) -> str:  # type: ignore[override]
+        ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        entry = {
+            "level": record.levelname,
+            "timestamp": ts,
+            "module": record.name,
+            "message": record.getMessage(),
+        }
+        return json.dumps(entry)
 
 
 def create_enhanced_summary(
@@ -95,7 +110,55 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     console.print(guidance)
 
 
-def main(argv: Optional[Sequence[str]] = None) -> None:
+class Dependencies:
+    """Container for CLI dependencies using explicit dependency injection."""
+
+    def __init__(
+        self,
+        build_from_config=None,
+        export_to_excel=None,
+        draw_financing_series=None,
+        draw_joint_returns=None,
+        build_cov_matrix=None,
+        simulate_agents=None,
+    ):
+        """Initialize dependencies with explicit function parameters.
+
+        Args:
+            build_from_config: Function to build agents from config
+            export_to_excel: Function to export results to Excel
+            draw_financing_series: Function to generate financing series
+            draw_joint_returns: Function to generate joint returns
+            build_cov_matrix: Function to build covariance matrix
+            simulate_agents: Function to simulate agents
+
+        If any parameter is None, the default implementation will be imported.
+        """
+        # Import defaults only when needed to avoid heavy imports at module load
+        if build_from_config is None:
+            from .agents.registry import build_from_config
+        if export_to_excel is None:
+            from .reporting import export_to_excel
+        if draw_financing_series is None:
+            from .sim import draw_financing_series
+        if draw_joint_returns is None:
+            from .sim import draw_joint_returns
+        if build_cov_matrix is None:
+            from .sim.covariance import build_cov_matrix
+        if simulate_agents is None:
+            from .simulations import simulate_agents
+
+        self.build_from_config = build_from_config
+        self.export_to_excel = export_to_excel
+        self.draw_financing_series = draw_financing_series
+        self.draw_joint_returns = draw_joint_returns
+        self.build_cov_matrix = build_cov_matrix
+        self.simulate_agents = simulate_agents
+
+
+def main(
+    argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None
+) -> None:
     # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
     # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
     import os
@@ -119,6 +182,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     # Import light dependencies needed for argument parsing defaults
     # Import pandas for runtime usage (safe after bootstrap probe above)
     import pandas as pd  # type: ignore
+
     from .stress import STRESS_PRESETS
 
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
@@ -144,7 +208,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument(
         "--backend",
         choices=["numpy", "cupy"],
-        default="numpy",
         help="Computation backend",
     )
     parser.add_argument(
@@ -275,6 +338,26 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     args = parser.parse_args(argv)
 
+    run_log_path: Path | None = None
+    if args.log_json:
+        run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        run_dir = Path("runs") / run_ts
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run_log_path = run_dir / "run.log"
+
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        root_logger.handlers.clear()
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
+        root_logger.addHandler(console_handler)
+
+        file_handler = logging.FileHandler(run_log_path)
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(JsonFormatter())
+        root_logger.addHandler(file_handler)
+
     prev_manifest_data: dict[str, Any] | None = None
     prev_summary_df: pd.DataFrame = pd.DataFrame()
     if getattr(args, "prev_manifest", None):
@@ -296,45 +379,38 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 
-    # Defer heavy imports until after bootstrap
-    from .agents.registry import build_from_config as _build_from_config
-    from .backend import set_backend
+    # Defer heavy imports until after bootstrap (lightweight imports only)
+    from .backend import resolve_and_set_backend
     from .config import load_config
+
+    cfg = load_config(args.config)
+    args.backend = resolve_and_set_backend(args.backend, cfg)
+
     from .data import load_index_returns
     from .manifest import ManifestWriter
     from .logging_utils import setup_json_logging
     from .random import spawn_agent_rngs, spawn_rngs
-    from .reporting import export_to_excel as _export_to_excel
     from .reporting.attribution import (
         compute_sleeve_return_attribution,
         compute_sleeve_risk_attribution,
     )
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
-    from .sim import draw_financing_series as _draw_financing_series
-    from .sim import draw_joint_returns as _draw_joint_returns
-    from .sim.covariance import build_cov_matrix as _build_cov_matrix
-    from .simulations import simulate_agents as _simulate_agents
     from .sleeve_suggestor import suggest_sleeve_sizes
-    from .stress import STRESS_PRESETS, apply_stress_preset
+    from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
     from .viz.utils import safe_to_numpy
 
-    # Assign globals so tests can patch pa_core.cli.<name>.
-    # Only assign if not already set (e.g., by a test patch) to avoid clobbering mocks.
-    global draw_joint_returns, draw_financing_series, simulate_agents, export_to_excel, build_from_config, build_cov_matrix, create_export_packet
-    _globals_map = {
-        "draw_joint_returns": _draw_joint_returns,
-        "draw_financing_series": _draw_financing_series,
-        "simulate_agents": _simulate_agents,
-        "export_to_excel": _export_to_excel,
-        "build_from_config": _build_from_config,
-        "build_cov_matrix": _build_cov_matrix,
-    }
-    for name, impl in _globals_map.items():
-        if globals()[name] is None:
-            globals()[name] = impl
-
+    # Initialize dependencies - use provided deps for testing or create default
+    if deps is None:
+        deps = Dependencies(
+            build_from_config=build_from_config,
+            export_to_excel=export_to_excel,
+            draw_financing_series=draw_financing_series,
+            draw_joint_returns=draw_joint_returns,
+            build_cov_matrix=build_cov_matrix,
+            simulate_agents=simulate_agents,
+        )
 
     flags = RunFlags(
         save_xlsx=args.output,
@@ -348,7 +424,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         packet=args.packet,
     )
 
-    set_backend(args.backend)
+    # cfg is already loaded earlier; do not reload
+    backend_choice = resolve_and_set_backend(args.backend, cfg)
+    args.backend = backend_choice
 
     # Optional structured logging setup
     run_dir: Path | None = None
@@ -369,7 +447,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         ["internal", "external_pa", "active_ext"],
     )
 
-    cfg = load_config(args.config)
     if args.mode is not None:
         cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     if args.stress_preset:
@@ -450,7 +527,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
+            run_log=run_log_path,
             previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
@@ -564,7 +641,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     sigma_M = cfg.sigma_M
 
     # Build covariance (validates shapes)
-    _ = build_cov_matrix(
+    _ = deps.build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
         cfg.rho_idx_M,
@@ -609,13 +686,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     N_SIMULATIONS = cfg.N_SIMULATIONS
     N_MONTHS = cfg.N_MONTHS
 
-    r_beta, r_H, r_E, r_M = draw_joint_returns(
+    r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
         rng=rng_returns,
     )
-    f_int, f_ext, f_act = draw_financing_series(
+    f_int, f_ext, f_act = deps.draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
@@ -623,8 +700,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     # Build agents and run sim
-    agents = build_from_config(cfg)
-    returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
+    agents = deps.build_from_config(cfg)
+    returns = deps.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
     # Build summary using wrapper (allows tests to mock this safely)
     summary = create_enhanced_summary(returns, benchmark="Base")
@@ -724,11 +801,21 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 mu_idx_val = inputs_dict.get("mu_idx", 0.06)
                 idx_sigma_val = inputs_dict.get("sigma_idx", 0.16)
                 try:
-                    mu_idx = float(mu_idx_val)  # type: ignore[arg-type]
+                    if isinstance(mu_idx_val, (float, int)):
+                        mu_idx = float(mu_idx_val)
+                    elif isinstance(mu_idx_val, str):
+                        mu_idx = float(mu_idx_val)
+                    else:
+                        mu_idx = 0.06
                 except Exception:
                     mu_idx = 0.06
                 try:
-                    idx_sigma = float(idx_sigma_val)  # type: ignore[arg-type]
+                    if isinstance(idx_sigma_val, (float, int)):
+                        idx_sigma = float(idx_sigma_val)
+                    elif isinstance(idx_sigma_val, str):
+                        idx_sigma = float(idx_sigma_val)
+                    else:
+                        idx_sigma = 0.16
                 except Exception:
                     idx_sigma = 0.16
                 sigma_H = mod_cfg.sigma_H
@@ -768,15 +855,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
                     "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
                 }
-                r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
+                r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,
                     n_sim=mod_cfg.N_SIMULATIONS,
                     params=params_local,
                     rng=rng_returns,
                 )
                 f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
-                agents_l = build_from_config(mod_cfg)
-                returns_l = simulate_agents(
+                agents_l = deps.build_from_config(mod_cfg)
+                returns_l = deps.simulate_agents(
                     agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
                 )
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
@@ -827,7 +914,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 )
             )
 
-    export_to_excel(
+    deps.export_to_excel(
         inputs_dict,
         summary,
         raw_returns_dict,
@@ -837,7 +924,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     # Write reproducibility manifest for normal run
     try:
-        mw = ManifestWriter(Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json"))
+        mw = ManifestWriter(
+            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+        )
         data_files = [args.index, args.config]
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
         if out_path.exists():
@@ -867,7 +956,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 mod_cfg = cfg.model_copy(update=p)
 
                 # Rebuild covariance matrix with new parameters
-                build_cov_matrix(
+                deps.build_cov_matrix(
                     mod_cfg.rho_idx_H,
                     mod_cfg.rho_idx_E,
                     mod_cfg.rho_idx_M,
@@ -909,7 +998,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
                 }
 
-                r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
+                r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,
                     n_sim=mod_cfg.N_SIMULATIONS,
                     params=params_local,
@@ -923,8 +1012,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 # modify this section to generate new draws per run. Interpret results
                 # accordingly, as sensitivity estimates may be affected by this choice.
                 f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
-                agents_l = build_from_config(mod_cfg)
-                returns_l = simulate_agents(
+                agents_l = deps.build_from_config(mod_cfg)
+                returns_l = deps.simulate_agents(
                     agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
                 )
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
@@ -991,7 +1080,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
 
             if scenarios:
-                base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]].copy()
+                base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]]
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
                 deltas = one_factor_deltas(base_df, scenarios, value="AnnReturn")
@@ -1084,21 +1173,29 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 try:
                     # inputs_dict is a plain dict[str, object]; guard types before use
                     sens_val = inputs_dict.get("_sensitivity_df")
-                    sens_df: Optional[pd.DataFrame] = sens_val if isinstance(sens_val, pd.DataFrame) else None
+                    sens_df: Optional[pd.DataFrame] = (
+                        sens_val if isinstance(sens_val, pd.DataFrame) else None
+                    )
                     if sens_df is not None and (not sens_df.empty):
                         if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
                             series = cast(
                                 pd.Series,
-                                sens_df.set_index("Parameter")["DeltaAbs"].astype(float),
+                                sens_df.set_index("Parameter")["DeltaAbs"].astype(
+                                    float
+                                ),
                             )
-                            figs.append(viz.tornado.make(series, title="Sensitivity Tornado"))
+                            figs.append(
+                                viz.tornado.make(series, title="Sensitivity Tornado")
+                            )
                 except Exception:
                     # Non-fatal; continue without tornado figure
                     pass
                 # Optional: Return attribution sunburst
                 try:
                     attr_val = inputs_dict.get("_attribution_df")
-                    attr_df: Optional[pd.DataFrame] = attr_val if isinstance(attr_val, pd.DataFrame) else None
+                    attr_df: Optional[pd.DataFrame] = (
+                        attr_val if isinstance(attr_val, pd.DataFrame) else None
+                    )
                     if attr_df is not None and (not attr_df.empty):
                         if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                             figs.append(viz.sunburst.make(attr_df))
@@ -1141,9 +1238,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
@@ -1305,5 +1400,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 return
 
 
+# (Backward compatibility global variable assignment removed)
 if __name__ == "__main__":  # pragma: no cover - CLI entry point
     main()

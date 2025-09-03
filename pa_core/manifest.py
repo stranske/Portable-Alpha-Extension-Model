@@ -20,8 +20,8 @@ class Manifest:
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
     backend: str | None = None
-    run_log: str | None = None
     previous_run: str | None = None
+    run_log: str | None = None
 
 
 class ManifestWriter:
@@ -44,8 +44,8 @@ class ManifestWriter:
         data_files: Sequence[str | Path],
         seed: int | None,
         cli_args: Mapping[str, Any],
-    backend: str | None = None,
-    run_log: str | None = None,
+        backend: str | None = None,
+        run_log: str | Path | None = None,
         previous_run: str | None = None,
     ) -> None:
         """Write manifest to ``self.path``."""

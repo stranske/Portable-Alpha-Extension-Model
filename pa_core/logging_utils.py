@@ -8,25 +8,30 @@ from typing import Any
 
 
 class JSONLogFormatter(logging.Formatter):
-    """JSONL formatter: one JSON object per log record.
+    """JSONL formatter emitting keys expected by tests.
 
-    Fields:
-      - ts: ISO8601 UTC timestamp
-      - level: log level name
-      - logger: logger name
-      - msg: message string
-      - extra: any extra attributes added to the record (best-effort)
+    Each log record is serialised with the following core fields:
+      - ``timestamp``: ISO8601 UTC timestamp
+      - ``level``: log level name
+      - ``module``: logger name
+      - ``message``: log message
+      - ``extra``: any additional JSON-serialisable attributes
     """
 
     def format(self, record: logging.LogRecord) -> str:  # noqa: D401
+        ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        msg = record.getMessage()
         payload: dict[str, Any] = {
-            "ts": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
+            "timestamp": ts,
+            "ts": ts,
             "level": record.levelname,
+            "module": record.name,
             "logger": record.name,
-            "msg": record.getMessage(),
+            "message": msg,
+            "msg": msg,
         }
         # Capture common context if present
-        for key in ("run_id", "run_phase", "event", "module", "funcName"):
+        for key in ("run_id", "run_phase", "event", "funcName"):
             if hasattr(record, key):
                 payload[key] = getattr(record, key)
         # Include extras (safely) if provided via record.__dict__
@@ -68,7 +73,9 @@ class JSONLogFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False)
 
 
-def setup_json_logging(log_path: str | Path, *, level: int = logging.INFO, run_id: str | None = None) -> None:
+def setup_json_logging(
+    log_path: str | Path, *, level: int = logging.INFO, run_id: str | None = None
+) -> None:
     """Configure root logging to write JSONL to log_path.
 
     Creates parent directory if needed and attaches a FileHandler using JSONLogFormatter.
