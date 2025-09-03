@@ -98,7 +98,7 @@ def main(argv: list[str] | None = None) -> None:
             raise FileNotFoundError(parquet_path)
         anim = animation.make(df_paths)
         try:
-            anim.write_image(f"{stem}.gif")
+            anim.write_gif(f"{stem}.gif")
         except Exception as e:
             logging.warning("GIF export failed: %s", e)
     if args.html:
