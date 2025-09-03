@@ -7,7 +7,6 @@ directory mechanisms instead of hard-coded Unix-style /tmp/ paths.
 from __future__ import annotations
 
 import tempfile
-import os
 import sys
 from pathlib import Path
 from unittest import mock

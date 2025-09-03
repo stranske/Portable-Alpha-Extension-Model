@@ -28,15 +28,15 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
     # Mock all the external dependencies
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
          mock.patch("make_portable_zip.Path.exists") as mock_exists, \
-         mock.patch("make_portable_zip.Path.mkdir") as mock_mkdir, \
-         mock.patch("make_portable_zip.shutil.rmtree") as mock_rmtree, \
-         mock.patch("make_portable_zip._download") as mock_download, \
-         mock.patch("make_portable_zip._unzip") as mock_unzip, \
-         mock.patch("make_portable_zip._enable_embedded_site") as mock_enable_site, \
-         mock.patch("make_portable_zip._write_launcher_bats") as mock_write_bats, \
+         mock.patch("make_portable_zip.Path.mkdir"), \
+         mock.patch("make_portable_zip.shutil.rmtree"), \
+         mock.patch("make_portable_zip._download"), \
+         mock.patch("make_portable_zip._unzip"), \
+         mock.patch("make_portable_zip._enable_embedded_site"), \
+         mock.patch("make_portable_zip._write_launcher_bats"), \
          mock.patch("make_portable_zip.subprocess.run") as mock_subprocess_run, \
-         mock.patch("make_portable_zip.shutil.copytree") as mock_copytree, \
-         mock.patch("make_portable_zip.shutil.copy2") as mock_copy2, \
+         mock.patch("make_portable_zip.shutil.copytree"), \
+         mock.patch("make_portable_zip.shutil.copy2"), \
          mock.patch("make_portable_zip.zipfile.ZipFile") as mock_zipfile, \
          mock.patch("make_portable_zip.Path.iterdir") as mock_iterdir, \
          mock.patch("make_portable_zip.Path.rglob") as mock_rglob:
@@ -142,7 +142,6 @@ def test_no_os_system_imports():
     lines = source.splitlines()
     code_lines = []
     in_multiline_string = False
-    string_delimiter = None
     
     for line in lines:
         stripped = line.strip()
