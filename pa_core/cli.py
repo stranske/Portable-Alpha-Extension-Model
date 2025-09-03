@@ -946,7 +946,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
 
             if scenarios:
-                base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]].copy()
+                base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]]
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
                 deltas = one_factor_deltas(base_df, scenarios, value="AnnReturn")
