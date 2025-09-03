@@ -36,7 +36,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
-    backend_choice = resolve_and_set_backend(args.backend, cfg)
+    backend_choice = args.backend or cfg.backend
+    set_backend(backend_choice)
     args.backend = backend_choice
 
     rng_returns = spawn_rngs(args.seed, 1)[0]

@@ -1,13 +1,17 @@
 """Create a portable Windows zip archive of the project.
 
-This utility filters out development artifacts to produce a
-self-contained archive suitable for distribution without an installer.
+Default behavior creates a source-only archive (no interpreter). On Windows,
+use ``--with-python`` to bundle the embeddable CPython runtime and generate
+launchers that run the CLI and dashboard without requiring a prior install.
 """
 
 from __future__ import annotations
 
 import argparse
 import fnmatch
+import os
+import shutil
+import sys
 import zipfile
 from pathlib import Path
 from typing import Set
@@ -153,6 +157,131 @@ def create_filtered_zip(
     print(f"Archive size: {size_mb:.2f} MB")
 
 
+def _download(url: str, dest: Path) -> None:  # pragma: no cover - network/deps
+    import urllib.request
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with urllib.request.urlopen(url) as resp, open(dest, "wb") as f:
+        shutil.copyfileobj(resp, f)
+
+
+def _unzip(zip_path: Path, dest_dir: Path) -> None:  # pragma: no cover - platform
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        zf.extractall(dest_dir)
+
+
+def _enable_embedded_site(py_dir: Path) -> None:  # pragma: no cover - windows only
+    # Enable site-packages in Windows embeddable distribution by editing the
+    # pythonXY._pth file: add 'Lib\\site-packages' and ensure 'import site'.
+    pth_files = list(py_dir.glob("python*._pth"))
+    if not pth_files:
+        return
+    pth = pth_files[0]
+    lines = pth.read_text(encoding="utf-8").splitlines()
+    has_import_site = any(line.strip() == "import site" for line in lines)
+    if not has_import_site:
+        lines.append("import site")
+    if all("Lib\\\\site-packages" not in line for line in lines):
+        lines.insert(0, "Lib\\site-packages")
+    pth.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _write_launcher_bats(staging: Path) -> None:  # pragma: no cover - windows only
+    py_exe = staging / "python" / "python.exe"
+    launchers = {
+        "pa.bat": f"@echo off\n\"%~dp0python\\python.exe\" -m pa_core.cli %*\n",
+        "pa-dashboard.bat": (
+            "@echo off\n"
+            "\"%~dp0python\\python.exe\" -m streamlit run dashboard\\app.py %*\n"
+        ),
+        "pa-validate.bat": f"@echo off\n\"%~dp0python\\python.exe\" -m pa_core.validate %*\n",
+        "pa-convert-params.bat": (
+            "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.data.convert %*\n"
+        ),
+    }
+    for name, content in launchers.items():
+        (staging / name).write_text(content, newline="\r\n")
+
+
+def build_windows_portable_zip(
+    project_root: Path,
+    output_path: Path,
+    *,
+    python_version: str = "3.12.11",
+    verbose: bool = False,
+) -> None:  # pragma: no cover - platform/network
+    """Build a Windows portable zip including embeddable Python and deps.
+
+    Steps (Windows only):
+    - Download CPython embeddable zip for the selected version
+    - Enable site-packages import
+    - Bootstrap pip (get-pip.py)
+    - pip install -r requirements.txt into the embedded env
+    - Copy project sources
+    - Generate .bat launchers
+    - Zip the staging directory
+    """
+    if sys.platform != "win32":
+        # Fallback to source-only zip when not on Windows
+        excludes = get_default_excludes()
+        create_filtered_zip(project_root, output_path, excludes, verbose=verbose)
+        print("Note: --with-python requires Windows; created source-only archive.")
+        return
+
+    staging = output_path.with_suffix("").parent / "portable_build"
+    if staging.exists():
+        shutil.rmtree(staging)
+    staging.mkdir(parents=True, exist_ok=True)
+
+    # 1) Download embeddable Python
+    major_minor = ".".join(python_version.split(".")[:2])
+    embed_name = f"python-{python_version}-embed-amd64.zip"
+    base = f"https://www.python.org/ftp/python/{python_version}/{embed_name}"
+    embed_zip = staging / embed_name
+    print(f"Downloading embeddable Python {python_version}...")
+    _download(base, embed_zip)
+    (staging / "python").mkdir(exist_ok=True)
+    _unzip(embed_zip, staging / "python")
+    _enable_embedded_site(staging / "python")
+
+    # 2) Bootstrap pip
+    print("Bootstrapping pip in embedded Python...")
+    get_pip = staging / "get-pip.py"
+    _download("https://bootstrap.pypa.io/get-pip.py", get_pip)
+    os.system(f'"{staging / "python" / "python.exe"}" {get_pip}')
+
+    # 3) Install dependencies
+    req = project_root / "requirements.txt"
+    if req.exists():
+        os.system(
+            f'"{staging / "python" / "python.exe"}" -m pip install -r "{req}" --no-warn-script-location'
+        )
+
+    # 4) Copy project sources
+    print("Copying project files...")
+    for item in project_root.iterdir():
+        if item.name in {".git", "dev-env", "archive"}:
+            continue
+        if item.is_dir() and item.name in {".venv", "__pycache__"}:
+            continue
+        dest = staging / item.name
+        if item.is_dir():
+            shutil.copytree(item, dest, dirs_exist_ok=True)
+        else:
+            shutil.copy2(item, dest)
+
+    # 5) Write launchers
+    _write_launcher_bats(staging)
+
+    # 6) Create final zip from staging
+    print("Creating final portable zip...")
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        for path in staging.rglob("*"):
+            if path.is_file():
+                zf.write(path, path.relative_to(staging))
+    print("Portable zip created:", output_path)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Create a portable zip archive with development files filtered out",
@@ -174,18 +303,36 @@ def main() -> int:
         action="store_true",
         help="Show every file included or excluded",
     )
+    parser.add_argument(
+        "--with-python",
+        action="store_true",
+        help="On Windows, include embeddable Python runtime and dependencies",
+    )
+    parser.add_argument(
+        "--python-version",
+        default="3.12.11",
+        help="Python version for embeddable runtime (Windows only)",
+    )
     args = parser.parse_args()
 
     root = Path(__file__).resolve().parents[1]
     output_path = Path(args.output).resolve()
 
-    excludes = get_default_excludes().union(args.exclude_pattern)
-
-    try:
-        create_filtered_zip(root, output_path, excludes, verbose=args.verbose)
-    except Exception as exc:  # pragma: no cover - runtime guard
-        print(f"Error creating archive: {exc}")
-        return 1
+    if args.with_python:
+        try:
+            build_windows_portable_zip(
+                root, output_path, python_version=args.python_version, verbose=args.verbose
+            )
+        except Exception as exc:  # pragma: no cover - runtime guard
+            print(f"Error creating portable zip: {exc}")
+            return 1
+    else:
+        excludes = get_default_excludes().union(args.exclude_pattern)
+        try:
+            create_filtered_zip(root, output_path, excludes, verbose=args.verbose)
+        except Exception as exc:  # pragma: no cover - runtime guard
+            print(f"Error creating archive: {exc}")
+            return 1
     return 0
 
 

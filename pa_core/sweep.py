@@ -113,36 +113,30 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
-# Create a cached empty DataFrame with expected columns to avoid repeated creation
-# This provides a significant performance improvement for empty result cases
-_EMPTY_RESULTS_DF: pd.DataFrame | None = None
+"""Module-level cached empty DataFrame used for sweep results shape."""
+EMPTY_RESULTS_COLUMNS: pd.Index = pd.Index(
+    [
+        "Agent",
+        "AnnReturn",
+        "AnnVol",
+        "VaR",
+        "CVaR",
+        "MaxDD",
+        "TimeUnderWater",
+        "BreachProb",
+        "BreachCount",
+        "ShortfallProb",
+        "TE",
+        "combination_id",
+    ],
+    dtype="object",
+)
+_EMPTY_RESULTS_DF: pd.DataFrame = pd.DataFrame(columns=EMPTY_RESULTS_COLUMNS)
 
 
 def _get_empty_results_dataframe() -> pd.DataFrame:
-    """Return a cached empty DataFrame with expected columns for sweep results."""
-    global _EMPTY_RESULTS_DF
-    if _EMPTY_RESULTS_DF is None:
-        # Define the expected columns from summary_table plus parameters and combination_id
-        # This matches the structure returned by summary_table in pa_core.sim.metrics
-        columns: pd.Index = pd.Index(
-            [
-                "Agent",
-                "AnnReturn",
-                "AnnVol",
-                "VaR",
-                "CVaR",
-                "MaxDD",
-                "TimeUnderWater",
-                "BreachProb",
-                "BreachCount",
-                "ShortfallProb",
-                "TE",
-                "combination_id",
-            ],
-            dtype="object",
-        )
-        _EMPTY_RESULTS_DF = pd.DataFrame(columns=columns)
-    return _EMPTY_RESULTS_DF.copy()  # Return a copy to avoid mutations
+    """Return a copy of the cached empty DataFrame for sweep results."""
+    return _EMPTY_RESULTS_DF.copy()
 
 
 def run_parameter_sweep(
