@@ -352,8 +352,8 @@ def main(
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 
-    # Defer heavy imports until after backend selection
-    from .backend import set_backend
+    # Defer heavy imports until after bootstrap (lightweight imports only)
+    from .backend import resolve_and_set_backend
     from .config import load_config
 
     cfg = load_config(args.config)
@@ -391,6 +391,10 @@ def main(
         alt_text=args.alt_text,
         packet=args.packet,
     )
+
+    # cfg is already loaded earlier; do not reload
+    backend_choice = resolve_and_set_backend(args.backend, cfg)
+    args.backend = backend_choice
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(

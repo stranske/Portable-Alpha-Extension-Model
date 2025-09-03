@@ -6,7 +6,7 @@ from typing import Optional, Sequence
 import pandas as pd
 
 from .agents.registry import build_from_config
-from .backend import set_backend
+from .backend import resolve_and_set_backend
 from .config import load_config
 from .data import load_index_returns
 from .random import spawn_agent_rngs, spawn_rngs
@@ -36,8 +36,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
-    backend_choice = args.backend or cfg.backend
-    set_backend(backend_choice)
+    backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
