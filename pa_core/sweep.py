@@ -124,11 +124,23 @@ def _get_empty_results_dataframe() -> pd.DataFrame:
     if _EMPTY_RESULTS_DF is None:
         # Define the expected columns from summary_table plus parameters and combination_id
         # This matches the structure returned by summary_table in pa_core.sim.metrics
-        columns = [
-            "Agent", "AnnReturn", "AnnVol", "VaR", "CVaR", "MaxDD", 
-            "TimeUnderWater", "BreachProb", "BreachCount", "ShortfallProb", "TE",
-            "combination_id"
-        ]
+        columns: pd.Index = pd.Index(
+            [
+                "Agent",
+                "AnnReturn",
+                "AnnVol",
+                "VaR",
+                "CVaR",
+                "MaxDD",
+                "TimeUnderWater",
+                "BreachProb",
+                "BreachCount",
+                "ShortfallProb",
+                "TE",
+                "combination_id",
+            ],
+            dtype="object",
+        )
         _EMPTY_RESULTS_DF = pd.DataFrame(columns=columns)
     return _EMPTY_RESULTS_DF.copy()  # Return a copy to avoid mutations
 
