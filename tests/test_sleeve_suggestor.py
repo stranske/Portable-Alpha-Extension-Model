@@ -29,6 +29,27 @@ def test_suggest_sleeve_sizes_returns_feasible():
     }.issubset(df.columns)
 
 
+def test_suggest_sleeve_sizes_respects_bounds():
+    cfg = load_config("test_params.yml")
+    cfg = cfg.model_copy(update={"N_SIMULATIONS": 50})
+    idx_series = pd.Series([0.0] * cfg.N_MONTHS)
+    max_te = 0.02
+    max_breach = 0.5
+    max_cvar = 0.05
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=max_te,
+        max_breach=max_breach,
+        max_cvar=max_cvar,
+        step=0.5,
+        seed=1,
+    )
+    assert (df.filter(regex="_TE").fillna(0) <= max_te).all().all()
+    assert (df.filter(regex="_BreachProb").fillna(0) <= max_breach).all().all()
+    assert (df.filter(regex="_CVaR").fillna(0).abs() <= max_cvar).all().all()
+
+
 def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
     cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1}
     cfg_path = tmp_path / "cfg.yaml"
