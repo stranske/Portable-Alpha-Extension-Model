@@ -11,7 +11,7 @@ Below is a comprehensive description of the updated portable‐alpha + active‐
 The simplest way to explore the model is through the interactive dashboard wizard.
 
 ```bash
-python -m dashboard.cli  # launches Streamlit on port 8501
+python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501  # launches Streamlit on port 8501
 ```
 
 1. Open the **Scenario Wizard** page.
