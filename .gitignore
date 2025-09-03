@@ -51,3 +51,5 @@ parameters.csv
 # Generated scenario grid plots
 plots/*.png
 
+# Run artifacts
+runs/

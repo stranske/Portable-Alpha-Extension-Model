@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import os
-import runpy
-import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -12,15 +10,11 @@ from unittest.mock import patch
 import pytest
 
 
-def test_file_descriptor_closing_with_oserror_logging():
+def test_file_descriptor_closing_with_oserror_logging(dashboard_module_loader):
     """Test that OSError during file descriptor closing is properly logged."""
 
     # Get the logger from the asset library module
-    root = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(root))
-    asset_lib_module = runpy.run_path(
-        "dashboard/pages/1_Asset_Library.py", run_name="test_module"
-    )
+    asset_lib_module = dashboard_module_loader("dashboard/pages/1_Asset_Library.py")
     logger = asset_lib_module["logger"]
 
     # Test the actual pattern used in the Asset Library
@@ -48,15 +42,11 @@ def test_file_descriptor_closing_with_oserror_logging():
         assert "Bad file descriptor" in call_args
 
 
-def test_file_descriptor_closing_normal_case():
+def test_file_descriptor_closing_normal_case(dashboard_module_loader):
     """Test that normal file descriptor closing works without warnings."""
 
     # Get the logger from the asset library module
-    root = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(root))
-    asset_lib_module = runpy.run_path(
-        "dashboard/pages/1_Asset_Library.py", run_name="test_module"
-    )
+    asset_lib_module = dashboard_module_loader("dashboard/pages/1_Asset_Library.py")
     logger = asset_lib_module["logger"]
 
     with patch.object(logger, "warning") as mock_warning:
@@ -75,15 +65,11 @@ def test_file_descriptor_closing_normal_case():
         mock_warning.assert_not_called()
 
 
-def test_specific_oserror_handling_not_broad_exception():
+def test_specific_oserror_handling_not_broad_exception(dashboard_module_loader):
     """Test that we only catch OSError, not other exceptions."""
 
     # Get the logger from the asset library module
-    root = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(root))
-    asset_lib_module = runpy.run_path(
-        "dashboard/pages/1_Asset_Library.py", run_name="test_module"
-    )
+    asset_lib_module = dashboard_module_loader("dashboard/pages/1_Asset_Library.py")
     logger = asset_lib_module["logger"]
 
     with patch.object(logger, "warning") as mock_warning:
@@ -106,14 +92,10 @@ def test_specific_oserror_handling_not_broad_exception():
         mock_warning.assert_not_called()
 
 
-def test_logger_uses_correct_module_name():
+def test_logger_uses_correct_module_name(dashboard_module_loader):
     """Test that the logger is created with the correct module name."""
     # Get the logger from the asset library module
-    root = Path(__file__).resolve().parents[1]
-    sys.path.insert(0, str(root))
-    asset_lib_module = runpy.run_path(
-        "dashboard/pages/1_Asset_Library.py", run_name="test_module"
-    )
+    asset_lib_module = dashboard_module_loader("dashboard/pages/1_Asset_Library.py")
     logger = asset_lib_module["logger"]
 
     # Verify that the logger we import is using the right name

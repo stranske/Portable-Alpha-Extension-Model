@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import yaml
+from .backend import get_backend
 
 
 @dataclass
@@ -22,6 +23,7 @@ class Manifest:
     backend: str | None = None
     run_log: str | None = None
     previous_run: str | None = None
+    run_log: str | None = None
 
 
 class ManifestWriter:
@@ -47,6 +49,7 @@ class ManifestWriter:
     backend: str | None = None,
     run_log: str | None = None,
         previous_run: str | None = None,
+        run_log: str | Path | None = None,
     ) -> None:
         """Write manifest to ``self.path``."""
 
@@ -71,5 +74,6 @@ class ManifestWriter:
             backend=backend,
             run_log=str(run_log) if run_log else None,
             previous_run=previous_run,
+            run_log=str(run_log) if run_log else None,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))

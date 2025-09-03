@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Literal
 
 import yaml
 from pydantic import (
@@ -58,6 +58,7 @@ class ModelConfig(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
 
+    backend: Literal["numpy", "cupy"] = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
 
@@ -241,6 +242,13 @@ class ModelConfig(BaseModel):
         ]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
+        return self
+
+    @model_validator(mode="after")
+    def check_backend(self) -> "ModelConfig":
+        valid_backends = ["numpy", "cupy"]
+        if self.backend not in valid_backends:
+            raise ValueError(f"backend must be one of: {valid_backends}")
         return self
 
     @model_validator(mode="after")

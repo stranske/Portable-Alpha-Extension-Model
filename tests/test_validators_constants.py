@@ -10,7 +10,10 @@ try:
         LOW_BUFFER_THRESHOLD,
         MIN_RECOMMENDED_STEP_SIZE,
         NUMERICAL_STABILITY_EPSILON,
+        SYNTHETIC_DATA_MEAN,
+        SYNTHETIC_DATA_STD,
         TEST_TOLERANCE_EPSILON,
+        VOLATILITY_STRESS_MULTIPLIER,
         ValidationResult,
         validate_simulation_parameters,
     )
@@ -133,8 +136,32 @@ class TestValidationConstants:
         assert TEST_TOLERANCE_EPSILON == 1e-12
         assert isinstance(TEST_TOLERANCE_EPSILON, float)
 
+    def test_volatility_stress_multiplier_constant(self):
+        """Test that VOLATILITY_STRESS_MULTIPLIER constant is defined correctly."""
+        # Test that the constant exists and has the expected value
+        assert VOLATILITY_STRESS_MULTIPLIER == 3
+        assert isinstance(VOLATILITY_STRESS_MULTIPLIER, int)
+        assert VOLATILITY_STRESS_MULTIPLIER > 0  # Should be positive multiplier
+
     def test_epsilon_constants_are_small_positive_values(self):
         """Test that epsilon constants are appropriately small positive values."""
         # Both epsilon constants should be very small positive numbers
         assert NUMERICAL_STABILITY_EPSILON == 1e-12
         assert TEST_TOLERANCE_EPSILON == 1e-12
+
+    def test_synthetic_data_constants_defined(self):
+        """Test that synthetic data constants are defined correctly."""
+        # Test that both constants exist and have the expected values
+        assert SYNTHETIC_DATA_MEAN == 0.0
+        assert SYNTHETIC_DATA_STD == 0.01
+        assert isinstance(SYNTHETIC_DATA_MEAN, float)
+        assert isinstance(SYNTHETIC_DATA_STD, float)
+
+    def test_synthetic_data_constants_are_realistic(self):
+        """Test that synthetic data constants represent realistic values."""
+        # Mean should be zero (neutral expected return)
+        assert SYNTHETIC_DATA_MEAN == 0.0
+        
+        # Standard deviation should be positive and reasonable for test data
+        assert SYNTHETIC_DATA_STD > 0.0
+        assert SYNTHETIC_DATA_STD <= 1.0  # Should be reasonable for test scenarios

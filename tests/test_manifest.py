@@ -1,7 +1,19 @@
 import json
 from pathlib import Path
+import sys
+import types
 
 import yaml
+
+sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
+pptx_mod = types.ModuleType("pptx")
+pptx_util = types.ModuleType("pptx.util")
+pptx_mod.Presentation = object
+pptx_util.Inches = lambda x: x
+pptx_mod.util = pptx_util
+sys.modules.setdefault("pptx", pptx_mod)
+sys.modules.setdefault("pptx.util", pptx_util)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from pa_core.cli import main
 
@@ -33,3 +45,4 @@ def test_manifest_written(tmp_path):
     assert manifest["seed"] == seed
     assert manifest["config"]["N_SIMULATIONS"] == 1
     assert str(cfg_path) in manifest["data_files"]
+    assert manifest["backend"] == "numpy"
