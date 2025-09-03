@@ -10,6 +10,7 @@ DO NOT run the vulnerable examples in production!
 
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -45,11 +46,12 @@ def demonstrate_secure_implementation():
     print()
     
     # Safe example with harmless paths
-    python_exe = Path("/usr/bin/python3")  # Standard path
-    script_path = Path("/tmp/safe_script.py")
+    python_exe = Path(sys.executable)  # Use current Python interpreter
     
-    # Create a safe test script
-    script_path.write_text("print('Hello from secure subprocess!')\n")
+    # Create a temporary script file using cross-platform temp directory
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as temp_script:
+        temp_script.write("print('Hello from secure subprocess!')\n")
+        script_path = Path(temp_script.name)
     
     try:
         print(f"Executing: {python_exe} {script_path}")
@@ -63,7 +65,7 @@ def demonstrate_secure_implementation():
     except FileNotFoundError as e:
         print(f"❌ File not found: {e}")
     finally:
-        # Clean up
+        # Clean up the temporary script file
         if script_path.exists():
             script_path.unlink()
     

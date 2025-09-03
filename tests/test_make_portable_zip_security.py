@@ -18,12 +18,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import make_portable_zip
 
 
-def test_build_windows_portable_zip_uses_subprocess_not_os_system():
+def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path):
     """Test that build_windows_portable_zip uses secure subprocess.run() calls."""
     # Create a mock staging directory and project root
-    temp_staging = Path("/tmp/test_staging")
-    temp_project = Path("/tmp/test_project")
-    temp_output = Path("/tmp/test_output.zip")
+    temp_staging = tmp_path / "test_staging"
+    temp_project = tmp_path / "test_project"
+    temp_output = tmp_path / "test_output.zip"
     
     # Mock all the external dependencies
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
@@ -43,8 +43,8 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system():
         
         # Set up mocks
         mock_exists.return_value = True
-        mock_iterdir.return_value = [Path("/tmp/test_project/file1.py")]
-        mock_rglob.return_value = [Path("/tmp/test_staging/file1.py")]
+        mock_iterdir.return_value = [temp_project / "file1.py"]
+        mock_rglob.return_value = [temp_staging / "file1.py"]
         mock_zipfile.return_value.__enter__.return_value.write = mock.Mock()
         
         # Call the function
@@ -79,10 +79,10 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system():
             assert kwargs.get("check") is True, "Should use check=True for security"
 
 
-def test_subprocess_calls_prevent_command_injection():
+def test_subprocess_calls_prevent_command_injection(tmp_path: Path):
     """Test that the subprocess calls prevent command injection attacks."""
     # Test with malicious path containing shell metacharacters
-    malicious_path = Path("/tmp/test; rm -rf /; echo pwned")
+    malicious_path = tmp_path / "test; rm -rf /; echo pwned"
     
     with mock.patch("make_portable_zip.subprocess.run") as mock_subprocess_run:
         # Create a minimal version of the problematic code using secure subprocess
@@ -102,10 +102,10 @@ def test_subprocess_calls_prevent_command_injection():
         assert "; rm -rf /" in str(call_args[0]) or "; rm -rf /" in str(call_args[1])
 
 
-def test_error_handling_in_subprocess_calls():
+def test_error_handling_in_subprocess_calls(tmp_path: Path):
     """Test that subprocess errors are properly handled and wrapped."""
-    temp_project = Path("/tmp/test_project")
-    temp_output = Path("/tmp/test_output.zip")
+    temp_project = tmp_path / "test_project"
+    temp_output = tmp_path / "test_output.zip"
     
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
          mock.patch("make_portable_zip.Path.exists", return_value=True), \
