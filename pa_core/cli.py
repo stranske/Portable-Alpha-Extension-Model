@@ -111,40 +111,42 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
 
 
 class Dependencies:
-    """Container for CLI dependencies to avoid global variable issues."""
+    """Container for CLI dependencies using explicit dependency injection."""
 
-    def __init__(self):
-        # Import dependencies when needed to avoid heavy imports at module load.
-        # If a global override already exists (e.g., patched in tests), use it
-        # instead of importing the real implementation. This enables unit tests
-        # to patch functions like ``simulate_agents`` by targeting the module
-        # level name.
-        global build_from_config, export_to_excel, draw_financing_series, draw_joint_returns, build_cov_matrix, simulate_agents
-
+    def __init__(
+        self,
+        build_from_config=None,
+        export_to_excel=None,
+        draw_financing_series=None,
+        draw_joint_returns=None,
+        build_cov_matrix=None,
+        simulate_agents=None,
+    ):
+        """Initialize dependencies with explicit function parameters.
+        
+        Args:
+            build_from_config: Function to build agents from config
+            export_to_excel: Function to export results to Excel
+            draw_financing_series: Function to generate financing series
+            draw_joint_returns: Function to generate joint returns
+            build_cov_matrix: Function to build covariance matrix
+            simulate_agents: Function to simulate agents
+            
+        If any parameter is None, the default implementation will be imported.
+        """
+        # Import defaults only when needed to avoid heavy imports at module load
         if build_from_config is None:
-            from .agents.registry import build_from_config as _build_from_config
-
-            build_from_config = _build_from_config
+            from .agents.registry import build_from_config
         if export_to_excel is None:
-            from .reporting import export_to_excel as _export_to_excel
-
-            export_to_excel = _export_to_excel
+            from .reporting import export_to_excel
         if draw_financing_series is None:
-            from .sim import draw_financing_series as _draw_financing_series
-
-            draw_financing_series = _draw_financing_series
+            from .sim import draw_financing_series
         if draw_joint_returns is None:
-            from .sim import draw_joint_returns as _draw_joint_returns
-
-            draw_joint_returns = _draw_joint_returns
+            from .sim import draw_joint_returns
         if build_cov_matrix is None:
-            from .sim.covariance import build_cov_matrix as _build_cov_matrix
-
-            build_cov_matrix = _build_cov_matrix
+            from .sim.covariance import build_cov_matrix
         if simulate_agents is None:
-            from .simulations import simulate_agents as _simulate_agents
-
-            simulate_agents = _simulate_agents
+            from .simulations import simulate_agents
 
         self.build_from_config = build_from_config
         self.export_to_excel = export_to_excel
@@ -387,7 +389,8 @@ def main(
     from .utils import select_and_set_backend
 
     cfg = load_config(args.config)
-    select_and_set_backend(args, cfg)
+    backend_choice = select_and_set_backend(args.backend, cfg)
+    args.backend = backend_choice
 
     from .data import load_index_returns
     from .manifest import ManifestWriter
