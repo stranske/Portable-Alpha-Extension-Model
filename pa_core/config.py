@@ -124,6 +124,7 @@ class ModelConfig(BaseModel):
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
+    backend: str = Field(default="numpy", alias="Computation backend")
 
     max_external_combined_pct: float = 30.0
     external_step_size_pct: float = 5.0
@@ -241,6 +242,13 @@ class ModelConfig(BaseModel):
         ]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
+        return self
+
+    @model_validator(mode="after")
+    def check_backend(self) -> "ModelConfig":
+        valid_backends = ["numpy", "cupy"]
+        if self.backend not in valid_backends:
+            raise ValueError(f"backend must be one of: {valid_backends}")
         return self
 
     @model_validator(mode="after")
