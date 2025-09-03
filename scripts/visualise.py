@@ -83,12 +83,12 @@ def main(argv: list[str] | None = None) -> None:
     stem = base / args.plot
     if args.png:
         try:
-            fig.write_image(f"{stem}.png")
+            fig.write_image(f"{stem}.png", engine="kaleido")
         except Exception as e:
             logging.warning("PNG export failed: %s", e)
     if args.pdf:
         try:
-            fig.write_image(f"{stem}.pdf")
+            fig.write_image(f"{stem}.pdf", engine="kaleido")
         except Exception as e:
             logging.warning("PDF export failed: %s", e)
     if args.pptx:
@@ -98,7 +98,7 @@ def main(argv: list[str] | None = None) -> None:
             raise FileNotFoundError(parquet_path)
         anim = animation.make(df_paths)
         try:
-            anim.write_gif(f"{stem}.gif")
+            anim.write_image(f"{stem}.gif")
         except Exception as e:
             logging.warning("GIF export failed: %s", e)
     if args.html:

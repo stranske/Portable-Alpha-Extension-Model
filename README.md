@@ -113,14 +113,14 @@ Execute this once before running any notebooks or other scripts.
 
 ### Exports
 
-Static PNG/PDF/PPTX exports prefer the [Kaleido](https://github.com/plotly/Kaleido)
-renderer:
+Static PNG/PDF/PPTX exports use the [Kaleido](https://github.com/plotly/Kaleido)
+renderer by default:
 
 ```bash
 pip install kaleido
 ```
 
-If Kaleido is unavailable, install Chrome or Chromium instead:
+Kaleido v1+ requires a local Chrome/Chromium install. If you don't have it yet:
 
 ```bash
 sudo apt-get install -y chromium-browser
