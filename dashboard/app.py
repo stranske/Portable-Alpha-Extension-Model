@@ -48,9 +48,44 @@ def _get_plot_fn(path: str):
     return getattr(mod, func)
 
 
+def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
+    """Best-effort loader for path data beside an Excel file.
+
+    Order of attempts:
+    1) Read sibling .parquet if present (guarded for missing engines).
+    2) Read sibling .csv if present.
+    3) Read 'AllReturns' sheet from the Excel workbook.
+
+    Returns None if no option succeeds.
+    """
+    # 1) Parquet sidecar
+    p_parquet = Path(xlsx).with_suffix(".parquet")
+    if p_parquet.exists():
+        try:
+            return pd.read_parquet(p_parquet)
+        except Exception:
+            # Graceful degradation if pyarrow/fastparquet is missing or file invalid
+            pass
+
+    # 2) CSV sidecar
+    p_csv = Path(xlsx).with_suffix(".csv")
+    if p_csv.exists():
+        try:
+            return pd.read_csv(p_csv)
+        except Exception:
+            pass
+
+    # 3) Excel 'AllReturns' sheet fallback
+    try:
+        return pd.read_excel(xlsx, sheet_name="AllReturns")
+    except Exception:
+        return None
+
+
 @st.cache_data(ttl=600)
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name="Summary")
+<<<<<<< Updated upstream
     p = Path(xlsx).with_suffix(".parquet")
     paths: pd.DataFrame | None = None
     if p.exists():
@@ -65,6 +100,10 @@ def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
                 st.info(
                     "Install pyarrow for Parquet support or provide a matching CSV file"
                 )
+=======
+    # Try parquet -> csv -> Excel('AllReturns') for path-based charts
+    paths = _load_paths_sidecar(xlsx)
+>>>>>>> Stashed changes
     return summary, paths
 
 
@@ -81,11 +120,15 @@ def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None
 def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     """Return mean and vol by simulation from ``parquet`` or CSV."""
     p = Path(parquet)
+<<<<<<< Updated upstream
     csv_path = p.with_suffix(".csv")
+=======
+>>>>>>> Stashed changes
     df: pd.DataFrame | None = None
     if p.exists():
         try:
             df = pd.read_parquet(p)
+<<<<<<< Updated upstream
         except ImportError:
             if csv_path.exists():
                 st.info("pyarrow missing; loading CSV history")
@@ -98,6 +141,19 @@ def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     elif csv_path.exists():
         df = pd.read_csv(csv_path)
     else:
+=======
+        except Exception:
+            df = None
+    # CSV fallback: try sibling .csv if parquet missing or unreadable
+    if df is None:
+        p_csv = p.with_suffix(".csv")
+        if p_csv.exists():
+            try:
+                df = pd.read_csv(p_csv)
+            except Exception:
+                df = None
+    if df is None:
+>>>>>>> Stashed changes
         return None
     return (
         df.groupby("Sim")["Return"]
