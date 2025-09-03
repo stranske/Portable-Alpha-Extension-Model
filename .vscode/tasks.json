@@ -75,10 +75,12 @@
             "args": [
                 "-m",
                 "pa_core.cli",
-                "--params",
-                "parameters.csv",
+                "--config",
+                "my_first_scenario.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv"
+                "sp500tr_fred_divyield.csv",
+                "--output",
+                "QuickTest.xlsx"
             ],
             "group": "build",
             "presentation": {
