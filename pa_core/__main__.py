@@ -6,7 +6,7 @@ from typing import Optional, Sequence
 import pandas as pd
 
 from .agents.registry import build_from_config
-from .backend import set_backend
+from .backend import resolve_and_set_backend
 from .config import load_config
 from .data import load_index_returns
 from .random import spawn_agent_rngs, spawn_rngs

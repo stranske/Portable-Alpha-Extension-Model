@@ -1,6 +1,6 @@
 # Portable Zip Creation
 
-The `make_portable_zip.py` script creates a clean, runtime-only distribution of the Portable Alpha Extension Model project by filtering out development artifacts.
+The portable zip tool creates a clean distribution of the Portable Alpha Extension Model by filtering out development artifacts. On Windows, it can optionally bundle the embeddable CPython runtime and generate launcher scripts so users don't need to install Python.
 
 ## Usage
 
@@ -16,6 +16,9 @@ python scripts/make_portable_zip.py --verbose
 
 # Add custom exclusion patterns
 python scripts/make_portable_zip.py --exclude-pattern "*.log" --exclude-pattern "temp_*"
+
+# Windows only: include embeddable Python and create .bat launchers
+pa-make-zip --with-python --python-version 3.12.11 --output portable_windows.zip
 ```
 
 ## What Gets Included
@@ -29,6 +32,14 @@ The portable archive includes only essential runtime files:
 - **Sample configurations** (`my_first_scenario.yml`, `sp500tr_fred_divyield.csv`)
 - **Documentation** (`README.md`, `docs/`, `tutorials/`)
 - **Launch scripts** (`dev.sh`, `scripts/launch_dashboard.*`)
+
+When using `--with-python` on Windows, the archive also includes:
+
+- `python/` (CPython embeddable runtime)
+- Launcher batch files in the root:
+	- `pa.bat` (CLI)
+	- `pa-dashboard.bat` (Streamlit dashboard)
+	- `pa-validate.bat`, `pa-convert-params.bat`
 
 ## What Gets Excluded
 
@@ -61,3 +72,14 @@ python scripts/make_portable_zip.py --exclude-pattern "*.log" --exclude-pattern 
 ```
 
 This is useful for excluding project-specific temporary files or additional development artifacts.
+
+## Usage (Windows portable)
+
+1. Unzip anywhere (e.g., `C:\PortableAlpha`)
+2. Double-click `pa-dashboard.bat` to open the dashboard, or run `pa.bat --help`
+3. Example:
+	`pa.bat --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output Outputs.xlsx`
+
+Notes:
+- First run may bootstrap pip to install dependencies into the embedded Python.
+- For offline environments, pre-bundle wheel files or build the archive in a connected environment and distribute the completed zip.

@@ -114,20 +114,44 @@ class Dependencies:
     """Container for CLI dependencies to avoid global variable issues."""
 
     def __init__(self):
-        # Import dependencies when needed to avoid heavy imports at module load
-        from .agents.registry import build_from_config as _build_from_config
-        from .reporting import export_to_excel as _export_to_excel
-        from .sim import draw_financing_series as _draw_financing_series
-        from .sim import draw_joint_returns as _draw_joint_returns
-        from .sim.covariance import build_cov_matrix as _build_cov_matrix
-        from .simulations import simulate_agents as _simulate_agents
+        # Import dependencies when needed to avoid heavy imports at module load.
+        # If a global override already exists (e.g., patched in tests), use it
+        # instead of importing the real implementation. This enables unit tests
+        # to patch functions like ``simulate_agents`` by targeting the module
+        # level name.
+        global build_from_config, export_to_excel, draw_financing_series, draw_joint_returns, build_cov_matrix, simulate_agents
 
-        self.build_from_config = _build_from_config
-        self.export_to_excel = _export_to_excel
-        self.draw_financing_series = _draw_financing_series
-        self.draw_joint_returns = _draw_joint_returns
-        self.build_cov_matrix = _build_cov_matrix
-        self.simulate_agents = _simulate_agents
+        if build_from_config is None:
+            from .agents.registry import build_from_config as _build_from_config
+
+            build_from_config = _build_from_config
+        if export_to_excel is None:
+            from .reporting import export_to_excel as _export_to_excel
+
+            export_to_excel = _export_to_excel
+        if draw_financing_series is None:
+            from .sim import draw_financing_series as _draw_financing_series
+
+            draw_financing_series = _draw_financing_series
+        if draw_joint_returns is None:
+            from .sim import draw_joint_returns as _draw_joint_returns
+
+            draw_joint_returns = _draw_joint_returns
+        if build_cov_matrix is None:
+            from .sim.covariance import build_cov_matrix as _build_cov_matrix
+
+            build_cov_matrix = _build_cov_matrix
+        if simulate_agents is None:
+            from .simulations import simulate_agents as _simulate_agents
+
+            simulate_agents = _simulate_agents
+
+        self.build_from_config = build_from_config
+        self.export_to_excel = export_to_excel
+        self.draw_financing_series = draw_financing_series
+        self.draw_joint_returns = draw_joint_returns
+        self.build_cov_matrix = build_cov_matrix
+        self.simulate_agents = simulate_agents
 
 
 def main(
@@ -156,6 +180,7 @@ def main(
     # Import light dependencies needed for argument parsing defaults
     # Import pandas for runtime usage (safe after bootstrap probe above)
     import pandas as pd  # type: ignore
+
     from .stress import STRESS_PRESETS
 
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
@@ -366,7 +391,6 @@ def main(
         compute_sleeve_return_attribution,
         compute_sleeve_risk_attribution,
     )
-
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
     from .sleeve_suggestor import suggest_sleeve_sizes
@@ -1148,7 +1172,9 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(f"❌ Export packet failed due to data or configuration issue: {e}")
+                print(
+                    f"❌ Export packet failed due to data or configuration issue: {e}"
+                )
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
