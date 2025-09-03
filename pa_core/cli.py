@@ -181,7 +181,6 @@ def main(
     parser.add_argument(
         "--backend",
         choices=["numpy", "cupy"],
-        default="numpy",
         help="Computation backend",
     )
     parser.add_argument(
@@ -353,9 +352,15 @@ def main(
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 
-    # Defer heavy imports until after bootstrap (lightweight imports only)
+    # Defer heavy imports until after backend selection
     from .backend import set_backend
     from .config import load_config
+
+    cfg = load_config(args.config)
+    backend_choice = args.backend or cfg.backend
+    set_backend(backend_choice)
+    args.backend = backend_choice
+
     from .data import load_index_returns
     from .manifest import ManifestWriter
     from .random import spawn_agent_rngs, spawn_rngs
@@ -367,7 +372,7 @@ def main(
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
     from .sleeve_suggestor import suggest_sleeve_sizes
-    from .stress import STRESS_PRESETS, apply_stress_preset
+    from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
     from .viz.utils import safe_to_numpy
 
@@ -387,15 +392,12 @@ def main(
         packet=args.packet,
     )
 
-    set_backend(args.backend)
-
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
         args.seed,
         ["internal", "external_pa", "active_ext"],
     )
 
-    cfg = load_config(args.config)
     if args.mode is not None:
         cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     if args.stress_preset:
