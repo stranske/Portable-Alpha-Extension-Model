@@ -63,7 +63,7 @@ def export_sweep_results(
 
         try:
             fig = risk_return.make(all_summary)
-            img_bytes = fig.to_image(format="png")
+            img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (ValueError, RuntimeError, OSError, MemoryError):

@@ -19,7 +19,10 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
     """
     console = Console()
     if isinstance(summary, pd.DataFrame):
-        data = summary.to_dict(orient="list")
+        # Convert DataFrame to dict of columns -> list values
+        data: dict[str, list[object]] = {
+            str(col): list(summary[col].tolist()) for col in summary.columns
+        }
     else:
         # Convert mapping to single-row dataframe-like dict
         data = {str(k): [v] for k, v in dict(summary).items()}

@@ -744,8 +744,12 @@ python -m pa_core.cli \
 The Streamlit dashboard also includes an "Export Committee Packet" button on the Results page for one-click generation of professional reports.
 
 > **Dependency Note**
-> PNG/PDF/PPTX exports require a local Chrome or Chromium installation in addition to the
-> `kaleido` Python package. Install Chrome with:
+> PNG/PDF/PPTX exports require the `kaleido` Python package and a local Chrome/Chromium install.
+> Install Kaleido (preferred static renderer) with:
+> ```bash
+> pip install kaleido
+> ```
+> Then install Chrome/Chromium if not already present:
 > ```bash
 > sudo apt-get install -y chromium-browser
 > ```

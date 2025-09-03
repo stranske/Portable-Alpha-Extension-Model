@@ -47,12 +47,12 @@ def build_run_diff(
             if pdt.is_numeric_dtype(current_summary[col]) and pdt.is_numeric_dtype(
                 previous_summary[col]
             ):
-                cur_val = current_summary[col].iloc[0]
-                prev_val = previous_summary[col].iloc[0]
                 try:
+                    cur_val = float(current_summary[col].iloc[0])
+                    prev_val = float(previous_summary[col].iloc[0])
                     delta = cur_val - prev_val
-                    except (TypeError, ValueError):
-                        continue
+                except (TypeError, ValueError):
+                    continue
                 metric_records.append(
                     {
                         "Metric": col,
