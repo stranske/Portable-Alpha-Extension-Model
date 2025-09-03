@@ -392,7 +392,7 @@ def main(
         packet=args.packet,
     )
 
-    cfg = load_config(args.config)
+    # cfg is already loaded earlier; do not reload
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
 
