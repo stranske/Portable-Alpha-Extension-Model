@@ -16,6 +16,8 @@ from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
 from pa_core import cli as pa_cli
 from pa_core.config import load_config
+from pa_core.data import load_index_returns
+from pa_core.sleeve_suggestor import suggest_sleeve_sizes
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.wizard_schema import (
     AnalysisMode,
@@ -468,6 +470,79 @@ def _render_step_2_capital(config: Any) -> Any:
                 c1.metric("Interpolated k (multiplier)", f"{k_interp:.2f}")
                 c2.metric("Estimated Margin Requirement", f"${margin:.1f}M")
 
+    st.markdown("---")
+    with st.expander("🧮 Sleeve Suggestor", expanded=False):
+        st.markdown(
+            "Suggest sleeve allocations that satisfy risk constraints."
+        )
+        max_te = st.number_input(
+            "Max Tracking Error",
+            min_value=0.0,
+            value=0.02,
+            step=0.01,
+            format="%.2f",
+        )
+        max_breach = st.number_input(
+            "Max Breach Probability",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.5,
+            step=0.05,
+            format="%.2f",
+        )
+        max_cvar = st.number_input(
+            "Max CVaR",
+            min_value=0.0,
+            value=0.05,
+            step=0.01,
+            format="%.2f",
+        )
+        step = st.number_input(
+            "Grid Step",
+            min_value=0.01,
+            max_value=1.0,
+            value=0.25,
+            step=0.05,
+            format="%.2f",
+        )
+
+        if st.button("Run Suggestor"):
+            yaml_dict = _build_yaml_from_config(config)
+            cfg = load_config(yaml_dict)
+            idx_path = Path(__file__).resolve().parents[2] / "sp500tr_fred_divyield.csv"
+            idx_series = load_index_returns(idx_path)
+            df = suggest_sleeve_sizes(
+                cfg,
+                idx_series,
+                max_te=max_te,
+                max_breach=max_breach,
+                max_cvar=max_cvar,
+                step=step,
+            )
+            st.session_state["sleeve_suggestions"] = df
+
+        suggestions = st.session_state.get("sleeve_suggestions")
+        if suggestions is not None:
+            if suggestions.empty:
+                st.warning("No feasible sleeve allocations found.")
+            else:
+                st.dataframe(suggestions, use_container_width=True)
+                idx = st.number_input(
+                    "Suggestion index",
+                    min_value=0,
+                    max_value=len(suggestions) - 1,
+                    value=0,
+                    step=1,
+                )
+                if st.button("Apply suggestion"):
+                    row = suggestions.iloc[int(idx)]
+                    config.external_pa_capital = float(row["external_pa_capital"])
+                    config.active_ext_capital = float(row["active_ext_capital"])
+                    config.internal_pa_capital = float(row["internal_pa_capital"])
+                    st.session_state["suggestion_applied"] = True
+                    st.session_state["suggestion_confirmed"] = False
+                    st.success("Suggested allocation applied. Review before running.")
+
     return config
 
 
@@ -808,6 +883,16 @@ def _render_step_4_correlations(config: Any) -> Any:
         st.success(f"{validation_status} {validation_msg}")
     else:
         st.error(f"{validation_status} {validation_msg}")
+
+    confirmed = True
+    if st.session_state.get("suggestion_applied"):
+        confirmed = st.checkbox(
+            "I confirm the suggested sleeve allocation",
+            key="suggestion_confirmed",
+        )
+        if not confirmed:
+            st.warning("Sleeve suggestion applied - please confirm before running.")
+    can_run = can_run and confirmed
 
     # Action buttons
     col1, col2, col3 = st.columns(3)

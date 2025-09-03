@@ -20,6 +20,8 @@ def export_to_excel(
     filename: str = "Outputs.xlsx",
     *,
     pivot: bool = False,
+    diff_config_df: pd.DataFrame | None = None,
+    diff_metrics_df: pd.DataFrame | None = None,
 ) -> None:
     """Write inputs, summary, and raw returns into an Excel workbook.
 
@@ -74,6 +76,12 @@ def export_to_excel(
                 if c in sens_df.columns
             ]
             sens_df[cols].to_excel(writer, sheet_name="Sensitivity", index=False)
+        # Optional diff sheets
+        if diff_config_df is not None and not diff_config_df.empty:
+            diff_config_df.to_excel(writer, sheet_name="ConfigDiff", index=False)
+        if diff_metrics_df is not None and not diff_metrics_df.empty:
+            diff_metrics_df.to_excel(writer, sheet_name="MetricDiff", index=False)
+
         # Write returns either pivoted or per-sheet
         if pivot:
             frames = []
@@ -116,7 +124,9 @@ def export_to_excel(
                     cell.number_format = "0.00%"
 
         try:
-            img_bytes = risk_return.make(summary_df).to_image(format="png")
+            img_bytes = risk_return.make(summary_df).to_image(
+                format="png", engine="kaleido"
+            )
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
@@ -141,7 +151,7 @@ def export_to_excel(
             value_col = df.columns[1]
             series = df.set_index(param_col)[value_col].astype(float)
             fig = tornado.make(cast(pd.Series, series))
-            img_bytes = fig.to_image(format="png")
+            img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except Exception:
@@ -177,7 +187,7 @@ def export_to_excel(
                 # Ensure required columns exist
                 if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                     fig = sunburst.make(attr_df)
-                    img_bytes = fig.to_image(format="png")
+                    img_bytes = fig.to_image(format="png", engine="kaleido")
                     img = XLImage(io.BytesIO(img_bytes))
                     ws.add_image(img, "H2")
         except Exception:

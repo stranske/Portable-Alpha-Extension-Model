@@ -21,7 +21,8 @@ def save(
     for i, fig in enumerate(figs, start=1):
         stem = base.with_name(f"{base.stem}_{i}")
         try:
-            fig.write_image(stem.with_suffix(".png"))
+            # Prefer Kaleido for static export
+            fig.write_image(stem.with_suffix(".png"), engine="kaleido")
         except (ValueError, RuntimeError, OSError, MemoryError):
             # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
             pass

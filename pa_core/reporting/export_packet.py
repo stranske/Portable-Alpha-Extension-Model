@@ -138,15 +138,33 @@ def create_export_packet(
     alt_texts: Sequence[str] | None = None,
     pivot: bool = False,
     manifest: Mapping[str, Any] | None = None,
+    prev_summary_df: pd.DataFrame | None = None,
+    prev_manifest: Mapping[str, Any] | None = None,
 ) -> Tuple[str, str]:
     """Create PPTX + Excel packet and return their paths."""
     base = Path(str(base_filename))
     pptx_path = str(base.with_suffix(".pptx"))
     excel_path = str(base.with_suffix(".xlsx"))
 
+    from .run_diff import build_run_diff
+
+    cfg_diff_df: pd.DataFrame | None = None
+    metric_diff_df: pd.DataFrame | None = None
+    if prev_manifest is not None or prev_summary_df is not None:
+        prev_sum = prev_summary_df if prev_summary_df is not None else pd.DataFrame()
+        cfg_diff_df, metric_diff_df = build_run_diff(
+            manifest, prev_manifest, summary_df, prev_sum
+        )
+
     # Excel workbook (full tables)
     export_to_excel(
-        inputs_dict, summary_df, raw_returns_dict, filename=excel_path, pivot=pivot
+        inputs_dict,
+        summary_df,
+        raw_returns_dict,
+        filename=excel_path,
+        pivot=pivot,
+        diff_config_df=cfg_diff_df,
+        diff_metrics_df=metric_diff_df,
     )
 
     # PowerPoint deck
@@ -172,6 +190,12 @@ def create_export_packet(
     run.font.size = Pt(14)
     run.font.color.rgb = RGBColor(80, 80, 80)
     p.alignment = PP_ALIGN.LEFT
+
+    # Diff appendix comparing to previous run
+    if cfg_diff_df is not None and not cfg_diff_df.empty:
+        _add_table_slide(prs, cfg_diff_df, title="Config Changes")
+    if metric_diff_df is not None and not metric_diff_df.empty:
+        _add_table_slide(prs, metric_diff_df, title="Metric Changes")
 
     # Optional manifest summary appendix
     if manifest:

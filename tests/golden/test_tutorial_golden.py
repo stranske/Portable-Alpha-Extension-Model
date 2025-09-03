@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import List
 
@@ -26,7 +27,7 @@ class TutorialTestRunner:
 
     def run_cli(self, args: List[str]) -> subprocess.CompletedProcess:
         """Run CLI command with PYTHONPATH set."""
-        cmd = ["python", "-m", "pa_core.cli"] + args
+        cmd = [sys.executable, "-m", "pa_core.cli"] + args
         env = os.environ.copy()
         env["PYTHONPATH"] = self.pythonpath
         return subprocess.run(

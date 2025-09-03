@@ -19,6 +19,7 @@ class Manifest:
     config: Mapping[str, Any]
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
+    previous_run: str | None = None
 
 
 class ManifestWriter:
@@ -41,6 +42,7 @@ class ManifestWriter:
         data_files: Sequence[str | Path],
         seed: int | None,
         cli_args: Mapping[str, Any],
+        previous_run: str | None = None,
     ) -> None:
         """Write manifest to ``self.path``."""
 
@@ -62,5 +64,6 @@ class ManifestWriter:
             config=cfg,
             data_files=hashes,
             cli_args=dict(cli_args),
+            previous_run=previous_run,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))
