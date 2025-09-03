@@ -1,8 +1,7 @@
-"""Placeholder for Scenario Grid & Frontier page.
+"""Scenario Grid & Frontier interactive page.
 
-This branch focuses on Stress Lab UI (#382). The full Scenario Grid implementation
-is available on its feature branch. This stub exists so dashboard tests that import
-pages continue to pass.
+Allows exploring alpha-share configurations via CSV upload or Monte Carlo sweep,
+renders a frontier overlay and supports promoting selections to other pages.
 """
 
 from __future__ import annotations
@@ -168,7 +167,12 @@ def main() -> None:
                 # Help static checker understand this is a DataFrame
                 from typing import cast
 
-                fig2 = grid_heatmap.make(cast(pd.DataFrame, grid_df), x="active_share", y="theta_extpa", z="Sharpe")  # type: ignore[arg-type]
+                fig2 = grid_heatmap.make(
+                    cast(pd.DataFrame, grid_df),
+                    x="active_share",
+                    y="theta_extpa",
+                    z="Sharpe",
+                )  # type: ignore[arg-type]
                 # Frontier overlay: best theta per active_share
                 try:
                     pv = (
