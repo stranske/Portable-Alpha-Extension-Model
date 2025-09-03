@@ -2,6 +2,7 @@
 
 from pa_core.config import ModelConfig
 from pa_core.stress import apply_stress_preset
+from pa_core.validators import TEST_TOLERANCE_EPSILON, VOLATILITY_STRESS_MULTIPLIER
 import importlib.util
 from pathlib import Path
 
@@ -113,8 +114,8 @@ def test_config_diff_with_stress_preset():
     for param in expected_vol_params:
         base_val = diff_dict[param]['Base']
         stressed_val = diff_dict[param]['Stressed']
-        # Stress preset multiplies by 3
-        assert abs(stressed_val - (base_val * 3)) < 1e-10, f"Parameter {param} not correctly stressed: {base_val} -> {stressed_val}"
+        # Stress preset multiplies by VOLATILITY_STRESS_MULTIPLIER
+        assert abs(stressed_val - (base_val * VOLATILITY_STRESS_MULTIPLIER)) < TEST_TOLERANCE_EPSILON, f"Parameter {param} not correctly stressed: {base_val} -> {stressed_val}"
 
 
 def test_config_diff_empty_when_identical():

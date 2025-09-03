@@ -46,6 +46,14 @@ This constant is used as an absolute tolerance when testing that values are
 approximately zero in unit tests, particularly for tracking error calculations.
 """
 
+VOLATILITY_STRESS_MULTIPLIER = 3
+"""int: Default multiplier for volatility stress testing.
+
+This constant represents the multiplier applied to volatility parameters
+in stress test scenarios such as the 2008_vol_regime preset, where volatilities
+are increased by this factor to simulate high-volatility market conditions.
+"""
+
 
 class ValidationResult(NamedTuple):
     """Result of a validation check."""
