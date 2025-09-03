@@ -1,14 +1,23 @@
 from __future__ import annotations
 
-import ipywidgets as widgets
 import pandas as pd
-from IPython.display import display
+
+try:  # pragma: no cover - optional dependency
+    import ipywidgets as widgets  # type: ignore[import-not-found]
+    from IPython.display import display  # type: ignore[import-not-found]
+except Exception:  # pragma: no cover - ipywidgets not installed
+    widgets = None  # type: ignore[assignment]
+    display = None  # type: ignore[assignment]
 
 from . import risk_return
 
 
 def explore(df_summary: pd.DataFrame) -> None:
     """Display interactive risk-return explorer."""
+
+    if widgets is None or display is None:  # pragma: no cover - import check
+        msg = "ipywidgets is required for pa_core.viz.widgets"
+        raise ImportError(msg)
 
     def _update(scale: float) -> None:
         scaled = df_summary.copy()
