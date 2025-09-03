@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -20,10 +21,11 @@ import make_portable_zip
 
 def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path):
     """Test that build_windows_portable_zip uses secure subprocess.run() calls."""
-    # Create a mock staging directory and project root
-    temp_staging = tmp_path / "test_staging"
-    temp_project = tmp_path / "test_project"
-    temp_output = tmp_path / "test_output.zip"
+    # Create mock paths using platform-agnostic temporary directory
+    temp_dir = Path(tempfile.gettempdir())
+    temp_staging = temp_dir / "test_staging"
+    temp_project = temp_dir / "test_project"  
+    temp_output = temp_dir / "test_output.zip"
     
     # Mock all the external dependencies
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
@@ -41,7 +43,7 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
          mock.patch("make_portable_zip.Path.iterdir") as mock_iterdir, \
          mock.patch("make_portable_zip.Path.rglob") as mock_rglob:
         
-        # Set up mocks
+        # Set up mocks  
         mock_exists.return_value = True
         mock_iterdir.return_value = [temp_project / "file1.py"]
         mock_rglob.return_value = [temp_staging / "file1.py"]
@@ -81,8 +83,9 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
 
 def test_subprocess_calls_prevent_command_injection(tmp_path: Path):
     """Test that the subprocess calls prevent command injection attacks."""
-    # Test with malicious path containing shell metacharacters
-    malicious_path = tmp_path / "test; rm -rf /; echo pwned"
+    # Test with malicious path containing shell metacharacters - use platform-agnostic base
+    temp_dir = Path(tempfile.gettempdir()) 
+    malicious_path = temp_dir / "test; rm -rf /; echo pwned"
     
     with mock.patch("make_portable_zip.subprocess.run") as mock_subprocess_run:
         # Create a minimal version of the problematic code using secure subprocess
@@ -104,8 +107,9 @@ def test_subprocess_calls_prevent_command_injection(tmp_path: Path):
 
 def test_error_handling_in_subprocess_calls(tmp_path: Path):
     """Test that subprocess errors are properly handled and wrapped."""
-    temp_project = tmp_path / "test_project"
-    temp_output = tmp_path / "test_output.zip"
+    temp_dir = Path(tempfile.gettempdir())
+    temp_project = temp_dir / "test_project"
+    temp_output = temp_dir / "test_output.zip"
     
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
          mock.patch("make_portable_zip.Path.exists", return_value=True), \
