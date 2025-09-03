@@ -5,7 +5,7 @@ import pandas as pd
 try:  # pragma: no cover - optional dependency
     import ipywidgets as widgets  # type: ignore[import-not-found]
     from IPython.display import display  # type: ignore[import-not-found]
-except Exception:  # pragma: no cover - ipywidgets not installed
+except (ImportError, ModuleNotFoundError):  # pragma: no cover - ipywidgets not installed
     widgets = None  # type: ignore[assignment]
     display = None  # type: ignore[assignment]
 
