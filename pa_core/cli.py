@@ -377,14 +377,12 @@ def main(
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 
-    # Defer heavy imports until after bootstrap (lightweight imports only)
-    from .backend import resolve_and_set_backend
+    # Defer heavy imports until after backend selection
     from .config import load_config
+    from .utils import select_and_set_backend
 
     cfg = load_config(args.config)
-    backend_choice = args.backend or cfg.backend
-    set_backend(backend_choice)
-    args.backend = backend_choice
+    select_and_set_backend(args, cfg)
 
     from .data import load_index_returns
     from .manifest import ManifestWriter
@@ -415,10 +413,6 @@ def main(
         alt_text=args.alt_text,
         packet=args.packet,
     )
-
-    # cfg is already loaded earlier; do not reload
-    backend_choice = resolve_and_set_backend(args.backend, cfg)
-    args.backend = backend_choice
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
