@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
-import os
 import shutil
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -187,14 +187,13 @@ def _enable_embedded_site(py_dir: Path) -> None:  # pragma: no cover - windows o
 
 
 def _write_launcher_bats(staging: Path) -> None:  # pragma: no cover - windows only
-    py_exe = staging / "python" / "python.exe"
     launchers = {
-        "pa.bat": f"@echo off\n\"%~dp0python\\python.exe\" -m pa_core.cli %*\n",
+        "pa.bat": "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.cli %*\n",
         "pa-dashboard.bat": (
             "@echo off\n"
             "\"%~dp0python\\python.exe\" -m streamlit run dashboard\\app.py %*\n"
         ),
-        "pa-validate.bat": f"@echo off\n\"%~dp0python\\python.exe\" -m pa_core.validate %*\n",
+        "pa-validate.bat": "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.validate %*\n",
         "pa-convert-params.bat": (
             "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.data.convert %*\n"
         ),
@@ -234,7 +233,6 @@ def build_windows_portable_zip(
     staging.mkdir(parents=True, exist_ok=True)
 
     # 1) Download embeddable Python
-    major_minor = ".".join(python_version.split(".")[:2])
     embed_name = f"python-{python_version}-embed-amd64.zip"
     base = f"https://www.python.org/ftp/python/{python_version}/{embed_name}"
     embed_zip = staging / embed_name
@@ -244,18 +242,33 @@ def build_windows_portable_zip(
     _unzip(embed_zip, staging / "python")
     _enable_embedded_site(staging / "python")
 
-    # 2) Bootstrap pip
+    # 2) Bootstrap pip - SECURE VERSION using subprocess.run()
     print("Bootstrapping pip in embedded Python...")
     get_pip = staging / "get-pip.py"
     _download("https://bootstrap.pypa.io/get-pip.py", get_pip)
-    os.system(f'"{staging / "python" / "python.exe"}" {get_pip}')
+    
+    # SECURITY FIX: Use subprocess.run() with list of arguments instead of os.system()
+    # This prevents command injection even if paths contain malicious characters
+    python_exe = staging / "python" / "python.exe"
+    try:
+        subprocess.run([str(python_exe), str(get_pip)], check=True, cwd=staging)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Failed to bootstrap pip: {e}") from e
 
-    # 3) Install dependencies
+    # 3) Install dependencies - SECURE VERSION using subprocess.run()
     req = project_root / "requirements.txt"
     if req.exists():
-        os.system(
-            f'"{staging / "python" / "python.exe"}" -m pip install -r "{req}" --no-warn-script-location'
-        )
+        # SECURITY FIX: Use subprocess.run() with list of arguments instead of os.system()
+        # This prevents command injection even if paths contain malicious characters
+        try:
+            subprocess.run([
+                str(python_exe),
+                "-m", "pip", "install",
+                "-r", str(req),
+                "--no-warn-script-location"
+            ], check=True, cwd=staging)
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Failed to install dependencies: {e}") from e
 
     # 4) Copy project sources
     print("Copying project files...")
