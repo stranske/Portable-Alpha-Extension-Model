@@ -26,9 +26,12 @@ class GitHubActionsPRDebugger:
         
     def run_command(self, cmd: str, capture_output: bool = True) -> Tuple[bool, str]:
         """Run shell command and return success status and output."""
+        import shlex
         try:
+            # Parse command string into arguments to avoid shell injection
+            args = shlex.split(cmd)
             result = subprocess.run(
-                cmd, shell=True, capture_output=capture_output, text=True
+                args, capture_output=capture_output, text=True
             )
             return result.returncode == 0, result.stdout + result.stderr
         except Exception as e:
