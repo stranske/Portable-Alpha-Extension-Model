@@ -40,7 +40,7 @@ def save(
             if alt:
                 el = pic._element.xpath("./p:nvPicPr/p:cNvPr")[0]
                 el.set("descr", alt)
-        except (ValueError, RuntimeError, OSError, MemoryError, AttributeError):
+        except Exception:
             # Fallback: ignore export errors
             pass
     pres.save(str(path))

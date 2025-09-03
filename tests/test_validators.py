@@ -2,19 +2,20 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
-from pathlib import Path
 
 from pa_core.validators import (
     ValidationResult,
+    calculate_margin_requirement,
+    format_validation_messages,
+    load_margin_schedule,
+    validate_capital_allocation,
     validate_correlations,
     validate_covariance_matrix_psd,
-    validate_capital_allocation,
     validate_simulation_parameters,
-    calculate_margin_requirement,
-    load_margin_schedule,
-    format_validation_messages,
 )
 
 

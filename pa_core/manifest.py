@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
+import hashlib
 import json
 import subprocess
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-import hashlib
 import yaml
 
 
@@ -53,9 +53,7 @@ class ManifestWriter:
             commit = "unknown"
         cfg = yaml.safe_load(Path(config_path).read_text())
         hashes = {
-            str(Path(p)): self._hash_file(p)
-            for p in data_files
-            if Path(p).exists()
+            str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()
         }
         manifest = Manifest(
             git_commit=commit,

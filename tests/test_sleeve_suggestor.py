@@ -1,16 +1,15 @@
+from pathlib import Path
 
 import pandas as pd
 import yaml
-from pathlib import Path
 
-
+from pa_core.cli import main
 from pa_core.config import load_config
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
-from pa_core.cli import main
 
 
 def test_suggest_sleeve_sizes_returns_feasible():
-    cfg = load_config('test_params.yml')
+    cfg = load_config("test_params.yml")
     cfg = cfg.model_copy(update={"N_SIMULATIONS": 50})
     idx_series = pd.Series([0.0] * cfg.N_MONTHS)
     df = suggest_sleeve_sizes(
@@ -23,7 +22,11 @@ def test_suggest_sleeve_sizes_returns_feasible():
         seed=1,
     )
     assert not df.empty
-    assert {"external_pa_capital", "active_ext_capital", "internal_pa_capital"}.issubset(df.columns)
+    assert {
+        "external_pa_capital",
+        "active_ext_capital",
+        "internal_pa_capital",
+    }.issubset(df.columns)
 
 
 def test_cli_sleeve_suggestion(tmp_path, monkeypatch):

@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
+from typing import Dict, Tuple, TypeAlias
 
+import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
 
@@ -13,7 +14,7 @@ from .sim.metrics import summary_table
 from .sim.paths import draw_financing_series, prepare_mc_universe
 from .simulations import simulate_agents
 
-Array = NDArray
+Array: TypeAlias = NDArray[np.float64]
 
 
 class SimulatorOrchestrator:

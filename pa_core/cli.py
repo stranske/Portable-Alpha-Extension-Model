@@ -17,8 +17,8 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-from typing import Optional, Sequence, TYPE_CHECKING, cast
 from pathlib import Path
+from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
 
 import pandas as pd
 from rich.console import Console
@@ -59,17 +59,27 @@ logger = logging.getLogger(__name__)
 
 
 def create_enhanced_summary(
-    returns_map: dict[str, np.ndarray],
+    returns_map: dict[str, "np.ndarray"],
     *,
     benchmark: str | None = None,
-) -> pd.DataFrame:
+) -> "pd.DataFrame":
     """Create summary table with standard breach and shortfall defaults."""
+
+    # Local import to avoid heavy imports at module load
+    from .sim.metrics import summary_table
 
     return summary_table(returns_map, benchmark=benchmark)
 
 
-def print_enhanced_summary(summary: pd.DataFrame) -> None:
+def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     """Print enhanced summary with explanations."""
+    # Local imports to avoid heavy import at module load
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.text import Text
+
+    from .reporting.console import print_summary
+
     console = Console()
 
     # Print explanatory header
@@ -102,6 +112,29 @@ def print_enhanced_summary(summary: pd.DataFrame) -> None:
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
+    # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
+    # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
+    import os
+    import sys
+
+    try:  # quick probe for required heavy deps in subprocess execution
+        import numpy as _np  # noqa: F401
+        import pandas as _pd  # noqa: F401
+    except Exception:  # pragma: no cover - only triggered in misconfigured subprocs
+        # Attempt to locate project venv based on package location
+        project_root = Path(__file__).resolve().parents[1]
+        venv_python = project_root / ".venv" / "bin" / "python"
+        if venv_python.exists() and str(venv_python) != sys.executable:
+            # Re-exec under the venv interpreter, preserving args
+            args_list = list(argv) if argv is not None else sys.argv[1:]
+            os.execv(
+                str(venv_python), [str(venv_python), "-m", "pa_core.cli", *args_list]
+            )
+        # If no venv found, continue and let normal imports raise a helpful error later
+
+    # Import light dependencies needed for argument parsing defaults
+    from .stress import STRESS_PRESETS
+
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument("--config", required=True, help="YAML config file")
     parser.add_argument("--index", required=True, help="Index returns CSV")
@@ -246,6 +279,46 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     args = parser.parse_args(argv)
 
+    # Defer heavy imports until after bootstrap
+    from .agents.registry import build_from_config as _build_from_config
+    from .backend import set_backend
+    from .config import load_config
+    from .data import load_index_returns
+    from .manifest import ManifestWriter
+    from .random import spawn_agent_rngs, spawn_rngs
+    from .reporting import export_to_excel as _export_to_excel
+    from .reporting.attribution import (
+        compute_sleeve_return_attribution,
+        compute_sleeve_risk_attribution,
+    )
+    from .reporting.sweep_excel import export_sweep_results
+    from .run_flags import RunFlags
+    from .sim import draw_financing_series as _draw_financing_series
+    from .sim import draw_joint_returns as _draw_joint_returns
+    from .sim.covariance import build_cov_matrix as _build_cov_matrix
+    from .simulations import simulate_agents as _simulate_agents
+    from .sleeve_suggestor import suggest_sleeve_sizes
+    from .stress import STRESS_PRESETS, apply_stress_preset
+    from .sweep import run_parameter_sweep
+    from .viz.utils import safe_to_numpy
+
+    # Assign globals so tests can patch pa_core.cli.<name>.
+    # Only assign if not already set (e.g., by a test patch) to avoid clobbering mocks.
+    global draw_joint_returns, draw_financing_series, simulate_agents, export_to_excel, build_from_config, build_cov_matrix
+    _globals_map = {
+        "draw_joint_returns": _draw_joint_returns,
+        "draw_financing_series": _draw_financing_series,
+        "simulate_agents": _simulate_agents,
+        "export_to_excel": _export_to_excel,
+        "build_from_config": _build_from_config,
+        "build_cov_matrix": _build_cov_matrix,
+    }
+    for name, impl in _globals_map.items():
+        if globals()[name] is None:
+            globals()[name] = impl
+    # Import pandas locally for runtime usage
+    import pandas as pd
+
     flags = RunFlags(
         save_xlsx=args.output,
         png=args.png,
@@ -358,7 +431,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Handle packet export for parameter sweep mode
         if flags.packet:
             try:
-                from .reporting.export_packet import create_export_packet
                 from . import viz
 
                 # Build consolidated summary from sweep results (similar to export_sweep_results)
@@ -441,9 +513,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 print("   ❌ No sweep results available")
 
         return
+
+    # Normal single-run mode below
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
-
     mu_H = cfg.mu_H
     sigma_H = cfg.sigma_H
     mu_E = cfg.mu_E
@@ -451,6 +524,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     mu_M = cfg.mu_M
     sigma_M = cfg.sigma_M
 
+    # Build covariance (validates shapes)
     _ = build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
@@ -509,16 +583,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         rngs=fin_rngs,
     )
 
-    # Build agents based on the configuration
+    # Build agents and run sim
     agents = build_from_config(cfg)
-
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
-    # Enhanced summary with better defaults and ShortfallProb
+    # Build summary using wrapper (allows tests to mock this safely)
     summary = create_enhanced_summary(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    # Attach attribution tables (best-effort)
+
+    # Optional attribution tables for downstream exports
     try:
         inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(
             cfg, idx_series
@@ -897,7 +971,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
         plots = Path("plots")
         plots.mkdir(exist_ok=True)
-        if "ShortfallProb" in summary.columns:
+        # Guard summary type for static checkers
+        if isinstance(summary, pd.DataFrame) and ("ShortfallProb" in summary.columns):
             fig = viz.risk_return.make(summary)
         else:
             fig = viz.sharpe_ladder.make(summary)
@@ -906,7 +981,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Handle packet export first (comprehensive export)
         if flags.packet:
             try:
-                from .reporting.export_packet import create_export_packet
                 from . import viz
 
                 # Use base filename from --output or default
@@ -944,13 +1018,21 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                     pass
                 # Optional: Return attribution sunburst
                 try:
-                    attr_df = inputs_dict.get("_attribution_df")
-                    if isinstance(attr_df, pd.DataFrame) and not attr_df.empty:
-                        if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
+                    attr_obj = inputs_dict.get("_attribution_df")
+                    if (
+                        attr_obj is not None
+                        and hasattr(attr_obj, "empty")
+                        and hasattr(attr_obj, "columns")
+                    ):
+                        attr_df = cast(pd.DataFrame, attr_obj)
+                        if not attr_df.empty and {"Agent", "Sub", "Return"} <= set(
+                            attr_df.columns
+                        ):
                             figs.append(viz.sunburst.make(attr_df))
-                except Exception:
-                    # Non-fatal; continue without attribution figure
-                    pass
+                except (AttributeError, TypeError) as e:
+                    logger.debug(
+                        "Skipping sunburst figure due to data issue", exc_info=e
+                    )
 
                 pptx_path, excel_path = create_export_packet(
                     figs=figs,
@@ -977,7 +1059,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(f"❌ Export packet failed due to data or configuration issue: {e}")
+                print(
+                    f"❌ Export packet failed due to data or configuration issue: {e}"
+                )
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
@@ -1008,6 +1092,19 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 logger.error(f"PNG export failed due to data issue: {e}")
                 print(f"❌ PNG export failed: Invalid data - {e}")
                 print("💡 Check your visualization data and parameters")
+            except Exception as e:
+                logger.error(f"PNG export failed: {e}")
+                msg = str(e).lower()
+                if any(
+                    term in msg
+                    for term in ("kaleido", "chrome", "chromium", "cancelled")
+                ):
+                    print("❌ PNG export failed: Kaleido or Chrome/Chromium required")
+                    print(
+                        "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
+                    )
+                else:
+                    print(f"❌ PNG export failed: {e}")
         if flags.pdf:
             try:
                 viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))

@@ -19,8 +19,8 @@ try:
     _BARE_MODE = get_script_run_ctx() is None
 except Exception:  # pragma: no cover - conservative fallback
     _BARE_MODE = True
-from pa_core.presets import AlphaPreset, PresetLibrary
 from dashboard.app import _DEF_THEME, apply_theme
+from pa_core.presets import AlphaPreset, PresetLibrary
 
 # Create logger for this module
 logger = logging.getLogger(__name__)

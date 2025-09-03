@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+
 from pydantic import ValidationError
 
 try:
@@ -9,8 +10,8 @@ try:
 except ImportError:
     yaml = None
 
-from .schema import load_scenario
 from .config import load_config
+from .schema import load_scenario
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -28,7 +29,10 @@ def main(argv: list[str] | None = None) -> None:
             load_scenario(args.path)
         else:
             load_config(args.path)
-    except (ValidationError, ValueError) as exc:  # pragma: no cover - reached via SystemExit
+    except (
+        ValidationError,
+        ValueError,
+    ) as exc:  # pragma: no cover - reached via SystemExit
         print(exc)
         # For config schema, also surface canonical field names to aid users/tests
         if args.schema == "config" and yaml is not None:

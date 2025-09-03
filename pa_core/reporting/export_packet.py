@@ -7,15 +7,15 @@ errors when static chart export is unavailable.
 
 from __future__ import annotations
 
+import io
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
-import io
 import pandas as pd
 from pptx import Presentation as _Presentation  # type: ignore
-from pptx.util import Inches, Pt
-from pptx.enum.text import PP_ALIGN
 from pptx.dml.color import RGBColor
+from pptx.enum.text import PP_ALIGN
+from pptx.util import Inches, Pt
 
 from .excel import export_to_excel
 

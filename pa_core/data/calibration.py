@@ -9,7 +9,6 @@ import yaml
 
 from ..schema import Asset, Correlation, Index
 
-
 MONTHS_PER_YEAR = 12
 VOLATILITY_ANNUALIZATION_FACTOR = MONTHS_PER_YEAR**0.5
 

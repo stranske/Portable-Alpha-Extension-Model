@@ -26,4 +26,3 @@ def test_invalid_preset_raises():
     cfg = _base_cfg()
     with pytest.raises(KeyError):
         apply_stress_preset(cfg, "unknown")
-

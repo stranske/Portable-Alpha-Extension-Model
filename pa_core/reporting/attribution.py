@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Dict
+from typing import Dict, List
 
 import pandas as pd
 
@@ -9,7 +9,9 @@ from ..config import ModelConfig
 __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
 
 
-def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
+def compute_sleeve_return_attribution(
+    cfg: ModelConfig, idx_series: pd.Series
+) -> pd.DataFrame:
     """Compute per-agent annual return attribution by component.
 
     Components:
@@ -29,7 +31,13 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     w_ext = float(cfg.external_pa_capital) / total if total > 0 else 0.0
     w_act = float(cfg.active_ext_capital) / total if total > 0 else 0.0
     w_int = float(cfg.internal_pa_capital) / total if total > 0 else 0.0
-    leftover_beta = max(total - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital, 0.0)
+    leftover_beta = max(
+        total
+        - cfg.external_pa_capital
+        - cfg.active_ext_capital
+        - cfg.internal_pa_capital,
+        0.0,
+    )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
     # Monthly means
@@ -100,7 +108,9 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     return df
 
 
-def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
+def compute_sleeve_risk_attribution(
+    cfg: ModelConfig, idx_series: pd.Series
+) -> pd.DataFrame:
     """Approximate per-agent risk attribution and TE vs index.
 
     Provides simple, assumption-driven approximations using monthly moments:
@@ -118,7 +128,13 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     w_ext = float(cfg.external_pa_capital) / total if total > 0 else 0.0
     w_act = float(cfg.active_ext_capital) / total if total > 0 else 0.0
     w_int = float(cfg.internal_pa_capital) / total if total > 0 else 0.0
-    leftover_beta = max(total - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital, 0.0)
+    leftover_beta = max(
+        total
+        - cfg.external_pa_capital
+        - cfg.active_ext_capital
+        - cfg.internal_pa_capital,
+        0.0,
+    )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
     # Monthly sigmas (follow existing convention used in simulator params)
@@ -131,9 +147,11 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     active_share = float(getattr(cfg, "active_share", 50.0)) / 100.0
 
     def ann_vol(x_monthly: float) -> float:
-        return (12.0 ** 0.5) * x_monthly
+        return (12.0**0.5) * x_monthly
 
-    def _metrics(b: float, alpha_sigma: float, rho_idx_alpha: float) -> Dict[str, float]:
+    def _metrics(
+        b: float, alpha_sigma: float, rho_idx_alpha: float
+    ) -> Dict[str, float]:
         # Monthly variances
         var_I = idx_sigma_m * idx_sigma_m
         var_A = alpha_sigma * alpha_sigma
@@ -150,59 +168,69 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
             "BetaVol": ann_vol(abs(b) * idx_sigma_m),
             "AlphaVol": ann_vol(alpha_sigma),
             "CorrWithIndex": float(corr),
-            "AnnVolApprox": ann_vol(var_R ** 0.5),
-            "TEApprox": ann_vol(var_TE ** 0.5),
+            "AnnVolApprox": ann_vol(var_R**0.5),
+            "TEApprox": ann_vol(var_TE**0.5),
         }
 
     rows: List[Dict[str, float | str]] = []
     # Base sleeve: beta and alpha from H
-    rows.append({
-        "Agent": "Base",
-        **_metrics(
-            b=float(cfg.w_beta_H),
-            alpha_sigma=float(cfg.w_alpha_H) * sigma_H_m,
-            rho_idx_alpha=float(cfg.rho_idx_H),
-        ),
-    })
-    # ExternalPA
-    if w_ext > 0:
-        rows.append({
-            "Agent": "ExternalPA",
+    rows.append(
+        {
+            "Agent": "Base",
             **_metrics(
-                b=w_ext,
-                alpha_sigma=w_ext * theta_extpa * sigma_M_m,
-                rho_idx_alpha=float(cfg.rho_idx_M),
-            ),
-        })
-    # ActiveExt
-    if w_act > 0:
-        rows.append({
-            "Agent": "ActiveExt",
-            **_metrics(
-                b=w_act,
-                alpha_sigma=w_act * active_share * sigma_E_m,
-                rho_idx_alpha=float(cfg.rho_idx_E),
-            ),
-        })
-    # InternalPA
-    if w_int > 0:
-        rows.append({
-            "Agent": "InternalPA",
-            **_metrics(
-                b=0.0,
-                alpha_sigma=w_int * sigma_H_m,
+                b=float(cfg.w_beta_H),
+                alpha_sigma=float(cfg.w_alpha_H) * sigma_H_m,
                 rho_idx_alpha=float(cfg.rho_idx_H),
             ),
-        })
+        }
+    )
+    # ExternalPA
+    if w_ext > 0:
+        rows.append(
+            {
+                "Agent": "ExternalPA",
+                **_metrics(
+                    b=w_ext,
+                    alpha_sigma=w_ext * theta_extpa * sigma_M_m,
+                    rho_idx_alpha=float(cfg.rho_idx_M),
+                ),
+            }
+        )
+    # ActiveExt
+    if w_act > 0:
+        rows.append(
+            {
+                "Agent": "ActiveExt",
+                **_metrics(
+                    b=w_act,
+                    alpha_sigma=w_act * active_share * sigma_E_m,
+                    rho_idx_alpha=float(cfg.rho_idx_E),
+                ),
+            }
+        )
+    # InternalPA
+    if w_int > 0:
+        rows.append(
+            {
+                "Agent": "InternalPA",
+                **_metrics(
+                    b=0.0,
+                    alpha_sigma=w_int * sigma_H_m,
+                    rho_idx_alpha=float(cfg.rho_idx_H),
+                ),
+            }
+        )
     # InternalBeta (leftover)
     if w_leftover > 0:
-        rows.append({
-            "Agent": "InternalBeta",
-            **_metrics(
-                b=w_leftover,
-                alpha_sigma=0.0,
-                rho_idx_alpha=0.0,
-            ),
-        })
+        rows.append(
+            {
+                "Agent": "InternalBeta",
+                **_metrics(
+                    b=w_leftover,
+                    alpha_sigma=0.0,
+                    rho_idx_alpha=0.0,
+                ),
+            }
+        )
 
     return pd.DataFrame(rows)

@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-# ruff: noqa: E402
-
 from pathlib import Path
+
 import pytest
 import yaml
 
 from pa_core.pa import main
+
+# ruff: noqa: E402
 
 
 def test_pa_validate(tmp_path: Path) -> None:

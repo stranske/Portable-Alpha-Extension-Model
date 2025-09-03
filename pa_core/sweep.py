@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterator, List, Optional
-
 import hashlib
 import json
+import logging
+from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import numpy as np
 import pandas as pd
-import logging
 
 # tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
-try:  # pragma: no cover - optional dependency
+try:
     from tqdm import tqdm as _tqdm
     _HAS_TQDM = True
 except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
@@ -224,9 +223,7 @@ def run_parameter_sweep(
         if progress is not None:
             progress(i + 1, total)
         else:
-            logger.debug(
-                "sweep step", extra={"current": i + 1, "total": total}
-            )
+            logger.debug("sweep step", extra={"current": i + 1, "total": total})
 
     logger.info("Parameter sweep complete")
     return results

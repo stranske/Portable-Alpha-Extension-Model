@@ -1,4 +1,3 @@
-
 from dashboard.glossary import GLOSSARY, tooltip
 
 TERMS = ["active share", "buffer multiple", "breach probability", "TE", "CVaR"]

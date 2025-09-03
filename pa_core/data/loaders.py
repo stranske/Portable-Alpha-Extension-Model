@@ -18,7 +18,7 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
         "CSV parameter loading is deprecated and will be removed in the next release. "
         "Use YAML configurations and 'pa convert' to migrate existing CSV files.",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
     p = Path(path)
     if not p.exists():
@@ -85,10 +85,10 @@ def load_index_returns(path: str | Path) -> pd.Series:
         raw = df.iloc[:, 1]
 
     # Convert to numeric, coerce errors to NaN, then wrap as Series to satisfy typing
-    numeric = pd.to_numeric(raw, errors='coerce')
+    numeric = pd.to_numeric(raw, errors="coerce")
     series = pd.Series(numeric).dropna()
-    
+
     if len(series) == 0:
         raise ValueError(f"No valid numeric data found in CSV file: {path}")
-    
+
     return series

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
+import sys
+import types
 from pathlib import Path
 
 import pandas as pd
 from pandas.testing import assert_frame_equal
-
-import types
-import sys
 
 PKG = types.ModuleType("pa_core")
 PKG.__path__ = [str(Path("pa_core"))]
@@ -45,4 +44,3 @@ def test_template_roundtrip_excel(tmp_path: Path) -> None:
     df2 = cloned.load(xlsx_path)
 
     assert_frame_equal(df, df2)
-

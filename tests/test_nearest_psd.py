@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import numpy as np
+
+from pa_core.sim.covariance import nearest_psd
+
 # ruff: noqa: E402
 
-import numpy as np
-from pa_core.sim.covariance import nearest_psd
 
 # Tolerance for numerical precision errors when checking if eigenvalues are non-negative
 # in PSD matrix validation. Eigenvalues slightly below zero (e.g., > -1e-8) are considered

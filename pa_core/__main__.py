@@ -5,22 +5,16 @@ from typing import Optional, Sequence
 
 import pandas as pd
 
-from . import (
-    draw_financing_series,
-    draw_joint_returns,
-    export_to_excel,
-    load_config,
-    load_index_returns,
-)
 from .agents.registry import build_from_config
 from .backend import set_backend
+from .config import load_config
+from .data import load_index_returns
 from .random import spawn_agent_rngs, spawn_rngs
+from .reporting import export_to_excel
+from .sim import draw_financing_series, draw_joint_returns
 from .sim.covariance import build_cov_matrix
-from .sim.metrics import (
-    summary_table,
-)
+from .sim.metrics import summary_table
 from .simulations import simulate_agents
-
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:

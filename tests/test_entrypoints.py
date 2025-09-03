@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 
 def test_pa_validate_entrypoint() -> None:
@@ -24,4 +23,3 @@ def test_pa_entrypoint() -> None:
     data = tomllib.loads(pyproject_path.read_text())
     scripts = data["project"]["scripts"]
     assert scripts["pa"] == "pa_core.pa:main"
-

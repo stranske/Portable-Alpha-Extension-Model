@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
@@ -13,8 +14,7 @@ from ..sim.metrics import (
     time_under_water,
 )
 
-
-Array = NDArray[np.float64]
+Array: TypeAlias = NDArray[np.float64]
 
 
 @dataclass

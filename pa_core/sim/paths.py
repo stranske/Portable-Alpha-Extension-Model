@@ -74,7 +74,9 @@ def prepare_mc_universe(
         )
     except np.linalg.LinAlgError:
         sims = rng.multivariate_normal(
-            mean=mean, cov=cov + np.eye(4) * NUMERICAL_STABILITY_EPSILON, size=(N_SIMULATIONS, N_MONTHS)
+            mean=mean,
+            cov=cov + np.eye(4) * NUMERICAL_STABILITY_EPSILON,
+            size=(N_SIMULATIONS, N_MONTHS),
         )
     return sims
 
@@ -224,6 +226,4 @@ def simulate_alpha_streams(
     """Simulate T observations of (Index_return, H, E, M)."""
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
     rng = spawn_rngs(None, 1)[0]
-    return rng.multivariate_normal(  # type: ignore[no-any-return]
-        means, cov, size=T
-    )
+    return rng.multivariate_normal(means, cov, size=T)  # type: ignore[no-any-return]

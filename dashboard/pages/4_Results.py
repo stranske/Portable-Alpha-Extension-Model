@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-import time
 import json
 import sys
+import time
 from pathlib import Path
 
 import pandas as pd
 import streamlit as st
 
 from dashboard.app import (
-    PLOTS,
     _DEF_THEME,
     _DEF_XLSX,
+    PLOTS,
     _get_plot_fn,
     apply_theme,
     load_data,

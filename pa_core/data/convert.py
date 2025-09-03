@@ -6,8 +6,8 @@ from typing import Sequence
 
 import yaml
 
+from ..config import get_field_mappings, load_config
 from .loaders import load_parameters
-from ..config import load_config, get_field_mappings
 
 
 def convert(csv_path: str | Path, yaml_path: str | Path) -> None:
@@ -15,7 +15,7 @@ def convert(csv_path: str | Path, yaml_path: str | Path) -> None:
 
     # Get the field mappings from the ModelConfig Pydantic model
     label_map = get_field_mappings()
-    
+
     raw = load_parameters(csv_path, label_map)
     cfg = load_config(raw)
     Path(yaml_path).write_text(yaml.safe_dump(cfg.model_dump()))
