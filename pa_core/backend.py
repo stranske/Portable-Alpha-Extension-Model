@@ -23,7 +23,10 @@ def set_backend(name: str) -> None:
             ImportError,
             ModuleNotFoundError,
         ) as e:  # pragma: no cover - depends on optional dep
-            raise ImportError("CuPy backend requested but not installed") from e
+            raise ImportError(
+                "CuPy backend requested but not installed. Install CuPy or run with "
+                "--backend numpy."
+            ) from e
     else:
         raise ValueError(f"Unknown backend: {name}")
 

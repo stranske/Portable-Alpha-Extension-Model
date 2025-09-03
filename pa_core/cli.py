@@ -355,6 +355,12 @@ def main(
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
     from .config import load_config
+
+    cfg = load_config(args.config)
+    backend_choice = args.backend or cfg.backend
+    set_backend(backend_choice)
+    args.backend = backend_choice
+
     from .data import load_index_returns
     from .manifest import ManifestWriter
     from .random import spawn_agent_rngs, spawn_rngs
@@ -366,7 +372,7 @@ def main(
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
     from .sleeve_suggestor import suggest_sleeve_sizes
-    from .stress import STRESS_PRESETS, apply_stress_preset
+    from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
     from .viz.utils import safe_to_numpy
 
