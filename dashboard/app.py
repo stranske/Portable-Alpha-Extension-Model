@@ -48,6 +48,40 @@ def _get_plot_fn(path: str):
     return getattr(mod, func)
 
 
+def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
+    """Best-effort loader for path data beside an Excel file.
+
+    Order of attempts:
+    1) Read sibling .parquet if present (guarded for missing engines).
+    2) Read sibling .csv if present.
+    3) Read 'AllReturns' sheet from the Excel workbook.
+
+    Returns None if no option succeeds.
+    """
+    # 1) Parquet sidecar
+    p_parquet = Path(xlsx).with_suffix(".parquet")
+    if p_parquet.exists():
+        try:
+            return pd.read_parquet(p_parquet)
+        except Exception:
+            # Graceful degradation if pyarrow/fastparquet is missing or file invalid
+            pass
+
+    # 2) CSV sidecar
+    p_csv = Path(xlsx).with_suffix(".csv")
+    if p_csv.exists():
+        try:
+            return pd.read_csv(p_csv)
+        except Exception:
+            pass
+
+    # 3) Excel 'AllReturns' sheet fallback
+    try:
+        return pd.read_excel(xlsx, sheet_name="AllReturns")
+    except Exception:
+        return None
+
+
 @st.cache_data(ttl=600)
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name="Summary")
@@ -81,7 +115,6 @@ def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None
 def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     """Return mean and vol by simulation from ``parquet`` or CSV."""
     p = Path(parquet)
-    csv_path = p.with_suffix(".csv")
     df: pd.DataFrame | None = None
     if p.exists():
         try:
