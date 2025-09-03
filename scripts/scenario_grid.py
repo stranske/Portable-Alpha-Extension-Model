@@ -3,9 +3,9 @@ from __future__ import annotations
 """Generate heatmaps for a small alpha-share parameter grid.
 
 This helper script demonstrates the parameter sweep engine by running a
-5×5 grid over ``theta_extpa`` (external PA alpha fraction) and
-``active_share``.  Summary metrics for the combined portfolio are
-rendered as heatmaps and written to ``plots/``.
+5×5 grid over the external PA alpha fraction (`external_pa_alpha_min_pct`, `external_pa_alpha_max_pct`, `external_pa_alpha_step_pct`) and
+active share (`active_share_min_pct`, `active_share_max_pct`, `active_share_step_pct`). Summary metrics for the combined portfolio are
+rendered as heatmaps and written to `plots/`.
 
 The grid is deterministic thanks to a fixed random seed so results are
 repeatable across runs.
