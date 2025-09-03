@@ -2,6 +2,7 @@ numpy
 pandas
 openpyxl
 jupyter
+ipywidgets
 pytest
 hypothesis
 ruff
