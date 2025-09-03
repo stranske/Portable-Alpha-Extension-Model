@@ -724,11 +724,21 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 mu_idx_val = inputs_dict.get("mu_idx", 0.06)
                 idx_sigma_val = inputs_dict.get("sigma_idx", 0.16)
                 try:
-                    mu_idx = float(mu_idx_val)  # type: ignore[arg-type]
+                    if isinstance(mu_idx_val, (float, int)):
+                        mu_idx = float(mu_idx_val)
+                    elif isinstance(mu_idx_val, str):
+                        mu_idx = float(mu_idx_val)
+                    else:
+                        mu_idx = 0.06
                 except Exception:
                     mu_idx = 0.06
                 try:
-                    idx_sigma = float(idx_sigma_val)  # type: ignore[arg-type]
+                    if isinstance(idx_sigma_val, (float, int)):
+                        idx_sigma = float(idx_sigma_val)
+                    elif isinstance(idx_sigma_val, str):
+                        idx_sigma = float(idx_sigma_val)
+                    else:
+                        idx_sigma = 0.16
                 except Exception:
                     idx_sigma = 0.16
                 sigma_H = mod_cfg.sigma_H
