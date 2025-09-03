@@ -86,11 +86,13 @@ Create a portable Windows archive of the project:
 
 ```bash
 pa-make-zip --output portable_windows.zip
+# Windows: include the embeddable Python runtime and launchers
+pa-make-zip --with-python --python-version 3.12.11 --output portable_windows.zip
 # or using Make
 make portable-zip
 ```
 
-See `docs/PORTABLE_ZIP_GUIDE.md` for details.
+See `docs/PORTABLE_ZIP_GUIDE.md` for details, including bundling the Windows embeddable Python runtime.
 
 Generate Windows `.bat` and macOS `.command` launchers for the console scripts:
 
