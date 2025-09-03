@@ -5,6 +5,8 @@
 - Manifest: records selected computation backend and run log path.
 - Dashboard: new "Run Logs" page to browse recent logs.
 - Docs: README and User Guide updated to mention structured logs and manifest linkage.
+- CI: streamlined test matrix to reduce redundant OS/Python combinations.
+- Fix JSON logging format and duplicate manifest parameters uncovered by tests.
 
 ## 0.1.x
 - Portable Windows zip with optional embeddable Python and launchers.
