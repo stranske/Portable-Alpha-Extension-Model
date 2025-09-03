@@ -28,6 +28,10 @@ types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
 isort              # Import sorting
 
+# Build and packaging dependencies
+build              # Modern Python build tool
+twine              # Package upload tool
+
 # Documentation
 sphinx             # Documentation generation
 sphinx-rtd-theme   # ReadTheDocs theme

@@ -384,7 +384,8 @@ def main(
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 
-    # Defer heavy imports until after backend selection
+    # Defer heavy imports until after bootstrap (lightweight imports only)
+    from .backend import resolve_and_set_backend, set_backend
     from .config import load_config
     from .utils import select_and_set_backend
 
