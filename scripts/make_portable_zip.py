@@ -173,7 +173,7 @@ def _unzip(zip_path: Path, dest_dir: Path) -> None:  # pragma: no cover - platfo
 def _enable_embedded_site(py_dir: Path) -> None:  # pragma: no cover - windows only
     # Enable site-packages in Windows embeddable distribution by editing the
     # pythonXY._pth file: add 'Lib\\site-packages' and ensure 'import site'.
-    pth_files = list(py_dir.glob("python*. _pth")) or list(py_dir.glob("python*._pth"))
+    pth_files = list(py_dir.glob("python*._pth"))
     if not pth_files:
         return
     pth = pth_files[0]
