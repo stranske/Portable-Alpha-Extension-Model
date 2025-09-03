@@ -2,19 +2,20 @@
 
 from pa_core.config import ModelConfig
 from pa_core.stress import apply_stress_preset
+import importlib.util
+from pathlib import Path
 
-
-def test_config_diff_function():
-    """Test the _config_diff function detects all parameter differences."""
-    # Import the function from the module
-    import importlib.util
-    from pathlib import Path
-    
-    # Load the stress lab module
+def load_stress_lab_module():
     module_path = Path(__file__).parent.parent / "dashboard" / "pages" / "6_Stress_Lab.py"
     spec = importlib.util.spec_from_file_location("stress_lab", module_path)
     stress_lab = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(stress_lab)
+    return stress_lab
+
+def test_config_diff_function():
+    """Test the _config_diff function detects all parameter differences."""
+    # Import the function from the module
+    stress_lab = load_stress_lab_module()
     
     _config_diff = stress_lab._config_diff
     
