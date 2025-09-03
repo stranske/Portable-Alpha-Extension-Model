@@ -16,7 +16,6 @@ from typing import Dict, List, Tuple
 
 def run_command(cmd: str, capture_output: bool = True) -> Tuple[int, str, str]:
     """Run a shell command and return (exit_code, stdout, stderr)."""
-    import shlex
     try:
         # Parse command string into arguments to avoid shell injection
         args = shlex.split(cmd)
