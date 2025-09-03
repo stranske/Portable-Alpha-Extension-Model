@@ -130,6 +130,54 @@ def test_export_packet_handles_empty_data():
                 raise
 
 
+def test_export_packet_diff_appendix():
+    summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
+
+    prev_summary = summary_df.copy()
+    prev_summary["AnnReturn"] = prev_summary["AnnReturn"] + 0.01
+    prev_manifest = {"config": {"N_SIMULATIONS": 500}}
+    curr_manifest = {"config": {"N_SIMULATIONS": 1000}}
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            pptx_path, excel_path = create_export_packet(
+                figs=[fig],
+                summary_df=summary_df,
+                raw_returns_dict=raw_returns_dict,
+                inputs_dict=inputs_dict,
+                base_filename=str(Path(tmpdir) / "test_packet_diff"),
+                manifest=curr_manifest,
+                prev_summary_df=prev_summary,
+                prev_manifest=prev_manifest,
+            )
+
+            assert Path(pptx_path).exists()
+            assert Path(excel_path).exists()
+
+            cfg_diff = pd.read_excel(excel_path, sheet_name="ConfigDiff")
+            met_diff = pd.read_excel(excel_path, sheet_name="MetricDiff")
+            assert "Parameter" in cfg_diff.columns
+            assert "Metric" in met_diff.columns
+
+            from pptx import Presentation
+
+            prs = Presentation(pptx_path)
+            texts = [
+                shape.text
+                for slide in prs.slides
+                for shape in slide.shapes
+                if getattr(shape, "has_text_frame", False)
+                and getattr(shape.text_frame, "text", "")
+            ]
+            assert any("Config Changes" in t for t in texts)
+            assert any("Metric Changes" in t for t in texts)
+        except RuntimeError as e:
+            if "Chrome" in str(e) or "Chromium" in str(e) or "Kaleido" in str(e):
+                pytest.skip("Chrome/Chromium not available in test environment")
+            else:
+                raise
+
+
 if __name__ == "__main__":
     # Run tests directly if executed as script
     try:

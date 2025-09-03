@@ -201,6 +201,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Launch Streamlit dashboard after run",
     )
     parser.add_argument(
+        "--prev-manifest",
+        dest="prev_manifest",
+        help="Path to manifest.json from previous run for diff",
+    )
+    parser.add_argument(
         "--suggest-sleeves",
         action="store_true",
         help="Suggest feasible sleeve allocations before running",
@@ -279,6 +284,23 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     args = parser.parse_args(argv)
 
+    prev_manifest_data: dict[str, Any] | None = None
+    prev_summary_df: pd.DataFrame = pd.DataFrame()
+    if getattr(args, "prev_manifest", None):
+        try:
+            prev_manifest_path = Path(args.prev_manifest)
+            if prev_manifest_path.exists():
+                prev_manifest_data = json.loads(prev_manifest_path.read_text())
+                prev_out = prev_manifest_data.get("cli_args", {}).get("output")
+                if prev_out and Path(prev_out).exists():
+                    try:
+                        prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
+                    except Exception:
+                        prev_summary_df = pd.DataFrame()
+        except Exception:
+            prev_manifest_data = None
+            prev_summary_df = pd.DataFrame()
+
     # Defer heavy imports until after bootstrap
     from .agents.registry import build_from_config as _build_from_config
     from .backend import set_backend
@@ -316,8 +338,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     for name, impl in _globals_map.items():
         if globals()[name] is None:
             globals()[name] = impl
-    # Import pandas locally for runtime usage
-    import pandas as pd
+
 
     flags = RunFlags(
         save_xlsx=args.output,
@@ -419,6 +440,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             data_files=data_files,
             seed=args.seed,
             cli_args=vars(args),
+            previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         manifest_data = None
@@ -1034,16 +1056,18 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                         "Skipping sunburst figure due to data issue", exc_info=e
                     )
 
-                pptx_path, excel_path = create_export_packet(
-                    figs=figs,
-                    summary_df=summary,
-                    raw_returns_dict=raw_returns_dict,
-                    inputs_dict=inputs_dict,
-                    base_filename=base_name,
-                    alt_texts=[flags.alt_text] if flags.alt_text else None,
-                    pivot=args.pivot,
-                    manifest=manifest_data,
-                )
+                    pptx_path, excel_path = create_export_packet(
+                        figs=figs,
+                        summary_df=summary,
+                        raw_returns_dict=raw_returns_dict,
+                        inputs_dict=inputs_dict,
+                        base_filename=base_name,
+                        alt_texts=[flags.alt_text] if flags.alt_text else None,
+                        pivot=args.pivot,
+                        manifest=manifest_data,
+                        prev_summary_df=prev_summary_df,
+                        prev_manifest=prev_manifest_data,
+                    )
                 print("✅ Export packet created:")
                 print(f"   📊 Excel: {excel_path}")
                 print(f"   📋 PowerPoint: {pptx_path}")
