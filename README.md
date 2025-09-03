@@ -6,16 +6,31 @@
 Portable Alpha + Active Extension Model Specification
 Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
 
-## Plain-English Primer
+## Quick Start: Dashboard Wizard
 
-If you're new to the project, start with the [primer](docs/primer.md) for simple definitions of terms like **active share**, **tracking error (TE)** and **CVaR**. A quick way to explore the model is via the command line:
+The simplest way to explore the model is through the interactive dashboard wizard.
+
+```bash
+python -m dashboard.cli  # launches Streamlit on port 8501
+```
+
+1. Open the **Scenario Wizard** page.
+2. Step through the guided prompts and click **Run** to view results.
+3. Download the generated YAML if you'd like to reuse the scenario later.
+
+## Advanced: CLI & YAML
+
+Power users can work directly with YAML configuration files via the command-line interface:
 
 ```bash
 python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
-python -m dashboard.cli  # launch Streamlit dashboard
 ```
 
-## Quick Start
+## Plain-English Primer
+
+If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **tracking error (TE)**, and **CVaR**.
+
+## Development Setup
 
 ### 🚀 GitHub Codespaces (Recommended)
 
@@ -33,7 +48,7 @@ Once the Codespace loads, run:
 ./dev.sh dashboard # Start interactive dashboard (opens on port 8501)
 ```
 
-### Development Setup
+### dev.sh helper script
 
 For the fastest setup, use the development helper script:
 
@@ -80,6 +95,8 @@ This project includes comprehensive VS Code configuration:
 - **Linting**: Automatic ruff linting on save
 - **Extensions**: Recommended extensions will be suggested on first open
 
+## Optional Dependencies & Exports
+
 ### Packaging
 
 Create a portable Windows archive of the project:
@@ -100,17 +117,6 @@ python scripts/create_launchers.py pa-dashboard pa
 make launchers
 ```
 
-## Setup
-
-Run the setup script to create a Python virtual environment and install dependencies
-(including **Streamlit** for the dashboard and **Kaleido** for static exports):
-
-```bash
-./setup.sh
-```
-
-Execute this once before running any notebooks or other scripts.
-
 ### Exports
 
 Static PNG/PDF/PPTX exports use the [Kaleido](https://github.com/plotly/Kaleido)
@@ -125,6 +131,10 @@ Kaleido v1+ requires a local Chrome/Chromium install. If you don't have it yet:
 ```bash
 sudo apt-get install -y chromium-browser
 ```
+
+### Additional Optional Packages
+
+- Parquet export/import: install the `parquet` extra to enable `pandas.read_parquet`/`write_parquet` via pyarrow. When pyarrow is missing the dashboard falls back to CSV.
 
 After setting up the environment you can run the command line interface. The
 main entry point is ``pa_core.cli`` which exposes analysis modes, export
@@ -205,26 +215,6 @@ make docs
 ```
 
 View at `docs/_build/html/index.html`
-
-### Optional dependencies
-
-Some features require optional packages:
-
-- Parquet export/import: install the `parquet` extra to enable pandas.read_parquet/write_parquet via pyarrow. When pyarrow is
-  missing the dashboard falls back to a CSV summary if available.
-
-Install examples:
-
-```bash
-# Core install (runtime deps include PyYAML>=6)
-pip install .
-
-# With Parquet support
-pip install .[parquet]
-```
-
-If `pyarrow` is not installed, the dashboard and CLI skip Parquet operations gracefully. The exporter writes a CSV alongside the
-Parquet file so the dashboard remains usable.
 
 ### Python version requirement and packaging
 
