@@ -40,7 +40,8 @@ def _config_diff(base: ModelConfig, stressed: ModelConfig) -> pd.DataFrame:
     base_d = base.model_dump()
     stress_d = stressed.model_dump()
     rows = []
-    for key in sorted(stress_d.keys()):
+    # Check all keys from both configurations to catch removed parameters
+    for key in sorted(set(base_d.keys()) | set(stress_d.keys())):
         b_val = base_d.get(key)
         s_val = stress_d.get(key)
         if b_val != s_val:
