@@ -18,39 +18,33 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Optional, Sequence, cast
 
 import pandas as pd
 from rich.console import Console
 from rich.panel import Panel
-from rich.text import Text
 
 if TYPE_CHECKING:
     import numpy as np
 
-from . import (
-    RunFlags,
-    draw_financing_series,
-    draw_joint_returns,
-    export_to_excel,
-    load_config,
-    load_index_returns,
-)
-from .agents.registry import build_from_config
-from .stress import STRESS_PRESETS, apply_stress_preset
-from .backend import set_backend
+from .config import load_config
+from .data.loaders import load_index_returns
+from .manifest import ManifestWriter
 from .random import spawn_agent_rngs, spawn_rngs
-from .reporting.console import print_summary
-from .reporting.sweep_excel import export_sweep_results
 from .reporting.attribution import (
     compute_sleeve_return_attribution,
     compute_sleeve_risk_attribution,
 )
+from .reporting.excel import export_to_excel
+from .reporting.export_packet import create_export_packet
+from .reporting.sweep_excel import export_sweep_results
+from .run_flags import RunFlags
 from .sim.covariance import build_cov_matrix
-from .sim.metrics import summary_table
+from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
+from .agents.registry import build_from_config
+from .stress import apply_stress_preset
 from .sweep import run_parameter_sweep
-from .manifest import ManifestWriter
 from .viz.utils import safe_to_numpy
 from .sleeve_suggestor import suggest_sleeve_sizes
 
@@ -279,44 +273,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     args = parser.parse_args(argv)
 
-    # Defer heavy imports until after bootstrap
-    from .agents.registry import build_from_config as _build_from_config
     from .backend import set_backend
-    from .config import load_config
-    from .data import load_index_returns
-    from .manifest import ManifestWriter
-    from .random import spawn_agent_rngs, spawn_rngs
-    from .reporting import export_to_excel as _export_to_excel
-    from .reporting.attribution import (
-        compute_sleeve_return_attribution,
-        compute_sleeve_risk_attribution,
-    )
-    from .reporting.sweep_excel import export_sweep_results
-    from .run_flags import RunFlags
-    from .sim import draw_financing_series as _draw_financing_series
-    from .sim import draw_joint_returns as _draw_joint_returns
-    from .sim.covariance import build_cov_matrix as _build_cov_matrix
-    from .simulations import simulate_agents as _simulate_agents
-    from .sleeve_suggestor import suggest_sleeve_sizes
-    from .stress import STRESS_PRESETS, apply_stress_preset
-    from .sweep import run_parameter_sweep
-    from .viz.utils import safe_to_numpy
-
-    # Assign globals so tests can patch pa_core.cli.<name>.
-    # Only assign if not already set (e.g., by a test patch) to avoid clobbering mocks.
-    global draw_joint_returns, draw_financing_series, simulate_agents, export_to_excel, build_from_config, build_cov_matrix
-    _globals_map = {
-        "draw_joint_returns": _draw_joint_returns,
-        "draw_financing_series": _draw_financing_series,
-        "simulate_agents": _simulate_agents,
-        "export_to_excel": _export_to_excel,
-        "build_from_config": _build_from_config,
-        "build_cov_matrix": _build_cov_matrix,
-    }
-    for name, impl in _globals_map.items():
-        if globals()[name] is None:
-            globals()[name] = impl
-    # Import pandas locally for runtime usage
     import pandas as pd
 
     flags = RunFlags(
@@ -1000,10 +957,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 figs = [fig]
                 # Optional: Sensitivity tornado
                 try:
-                    sens_df = inputs_dict.get("_sensitivity_df")
-                    if isinstance(sens_df, pd.DataFrame) and not sens_df.empty:
-                        # Map Parameter -> DeltaAbs for tornado bars
-                        if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                    sens_df_obj = inputs_dict.get("_sensitivity_df")
+                    if isinstance(sens_df_obj, pd.DataFrame):
+                        sens_df: pd.DataFrame = sens_df_obj
+                        if not sens_df.empty and {"Parameter", "DeltaAbs"} <= set(
+                            sens_df.columns
+                        ):
                             series = cast(
                                 pd.Series,
                                 sens_df.set_index("Parameter")["DeltaAbs"].astype(
@@ -1059,9 +1018,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:

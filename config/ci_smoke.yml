@@ -1,0 +1,27 @@
+N_SIMULATIONS: 10
+N_MONTHS: 12
+analysis_mode: returns
+external_pa_capital: 10.0
+active_ext_capital: 5.0
+internal_pa_capital: 15.0
+total_fund_capital: 30.0
+w_beta_H: 0.5
+w_alpha_H: 0.5
+theta_extpa: 0.5
+active_share: 0.5
+mu_H: 0.04
+sigma_H: 0.01
+mu_E: 0.05
+sigma_E: 0.02
+mu_M: 0.03
+sigma_M: 0.02
+rho_idx_H: 0.05
+rho_idx_E: 0.0
+rho_idx_M: 0.0
+rho_H_E: 0.10
+rho_H_M: 0.10
+rho_E_M: 0.0
+risk_metrics:
+  - Return
+  - Risk
+  - ShortfallProb
