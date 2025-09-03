@@ -20,6 +20,8 @@ def export_to_excel(
     filename: str = "Outputs.xlsx",
     *,
     pivot: bool = False,
+    diff_config_df: pd.DataFrame | None = None,
+    diff_metrics_df: pd.DataFrame | None = None,
 ) -> None:
     """Write inputs, summary, and raw returns into an Excel workbook.
 
@@ -74,6 +76,12 @@ def export_to_excel(
                 if c in sens_df.columns
             ]
             sens_df[cols].to_excel(writer, sheet_name="Sensitivity", index=False)
+        # Optional diff sheets
+        if diff_config_df is not None and not diff_config_df.empty:
+            diff_config_df.to_excel(writer, sheet_name="ConfigDiff", index=False)
+        if diff_metrics_df is not None and not diff_metrics_df.empty:
+            diff_metrics_df.to_excel(writer, sheet_name="MetricDiff", index=False)
+
         # Write returns either pivoted or per-sheet
         if pivot:
             frames = []
