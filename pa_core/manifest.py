@@ -20,7 +20,8 @@ class Manifest:
     config: Mapping[str, Any]
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
-    backend: str
+    backend: str | None = None
+    run_log: str | None = None
     previous_run: str | None = None
     run_log: str | None = None
 
@@ -45,6 +46,8 @@ class ManifestWriter:
         data_files: Sequence[str | Path],
         seed: int | None,
         cli_args: Mapping[str, Any],
+    backend: str | None = None,
+    run_log: str | None = None,
         previous_run: str | None = None,
         run_log: str | Path | None = None,
     ) -> None:
@@ -68,7 +71,8 @@ class ManifestWriter:
             config=cfg,
             data_files=hashes,
             cli_args=dict(cli_args),
-            backend=get_backend(),
+            backend=backend,
+            run_log=str(run_log) if run_log else None,
             previous_run=previous_run,
             run_log=str(run_log) if run_log else None,
         )

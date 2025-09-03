@@ -2,6 +2,7 @@
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/stranske/Portable-Alpha-Extension-Model)
 [![License](https://img.shields.io/github/license/stranske/Portable-Alpha-Extension-Model)](LICENSE)
+[![Authors](https://img.shields.io/badge/authors-Portable%20Alpha%20Team-blue.svg)](pyproject.toml)
 
 Portable Alpha + Active Extension Model Specification
 Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
@@ -152,6 +153,12 @@ python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_d
 # launch dashboard and export images
 python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
+```
+
+Structured logging: add `--log-json` to write JSONL to `runs/<timestamp>/run.log`. The manifest (`manifest.json`) records the selected backend and the log path for reproducibility:
+
+```bash
+python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --log-json
 ```
 
 Legacy CSV parameter files can be converted for this release with:
