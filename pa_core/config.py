@@ -125,7 +125,6 @@ class ModelConfig(BaseModel):
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
-    backend: str = Field(default="numpy", alias="Computation backend")
 
     max_external_combined_pct: float = 30.0
     external_step_size_pct: float = 5.0
