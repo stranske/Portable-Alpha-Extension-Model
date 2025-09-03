@@ -1,8 +1,5 @@
 """Tests for the Stress Lab dashboard functionality."""
 
-import pytest
-from unittest.mock import Mock
-import pandas as pd
 from pa_core.config import ModelConfig
 from pa_core.stress import apply_stress_preset
 
@@ -10,7 +7,6 @@ from pa_core.stress import apply_stress_preset
 def test_config_diff_function():
     """Test the _config_diff function detects all parameter differences."""
     # Import the function from the module
-    import sys
     import importlib.util
     from pathlib import Path
     
@@ -72,7 +68,6 @@ def test_config_diff_function():
 def test_config_diff_with_stress_preset():
     """Test _config_diff works correctly with actual stress presets."""
     # Import the function from the module
-    import sys
     import importlib.util
     from pathlib import Path
     
@@ -124,7 +119,6 @@ def test_config_diff_with_stress_preset():
 def test_config_diff_empty_when_identical():
     """Test that _config_diff returns empty DataFrame for identical configs."""
     # Import the function from the module
-    import sys
     import importlib.util
     from pathlib import Path
     
@@ -161,7 +155,6 @@ def test_config_diff_empty_when_identical():
 def test_config_diff_detects_all_key_differences():
     """Test that the fix correctly detects parameters from both configs (the main issue)."""
     # Import the function from the module
-    import sys
     import importlib.util
     from pathlib import Path
     
