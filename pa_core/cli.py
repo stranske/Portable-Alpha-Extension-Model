@@ -221,11 +221,6 @@ def main(
         default=None,
         help="Random seed for reproducible simulations",
     )
-    parser.add_argument(
-        "--log-json",
-        action="store_true",
-        help="Emit structured JSON logs to runs/<timestamp>/run.log",
-    )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
     parser.add_argument(
@@ -387,10 +382,10 @@ def main(
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend, set_backend
     from .config import load_config
-    from .utils import select_and_set_backend
 
     cfg = load_config(args.config)
-    backend_choice = select_and_set_backend(args.backend, cfg)
+    backend_choice = args.backend or cfg.backend
+    resolve_and_set_backend(backend_choice)
     args.backend = backend_choice
 
     from .data import load_index_returns
@@ -529,7 +524,6 @@ def main(
             backend=args.backend,
             run_log=str(run_log_path) if run_log_path else None,
             previous_run=args.prev_manifest,
-            run_log=run_log_path,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         manifest_data = None
