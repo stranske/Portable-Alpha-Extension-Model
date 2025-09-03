@@ -159,7 +159,6 @@ class Dependencies:
 def main(
     argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None
 ) -> None:
-    global create_export_packet
     # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
     # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
     import os
