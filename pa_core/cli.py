@@ -1268,16 +1268,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 print("💡 Check file permissions and system resources")
                 return
 
-    # Maintain backwards compatibility for external code that might depend on these globals
-    # This allows tests and other code to still patch the old global names if needed
-    global draw_joint_returns, draw_financing_series, simulate_agents, export_to_excel, build_from_config, build_cov_matrix
-    draw_joint_returns = deps.draw_joint_returns
-    draw_financing_series = deps.draw_financing_series
-    simulate_agents = deps.simulate_agents
-    export_to_excel = deps.export_to_excel
-    build_from_config = deps.build_from_config
-    build_cov_matrix = deps.build_cov_matrix
-
-
+# (Backward compatibility global variable assignment removed)
 if __name__ == "__main__":  # pragma: no cover - CLI entry point
     main()
