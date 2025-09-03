@@ -153,7 +153,7 @@ def main() -> None:
                     axis=1,
                 )
                 # Use native parameter names for axes
-                grid_df = base_rows[["active_share", "theta_extpa", "Sharpe"]].copy()
+                grid_df = base_rows[["active_share", "theta_extpa", "Sharpe"]]
                 # Help static checker understand this is a DataFrame
                 from typing import cast
 
