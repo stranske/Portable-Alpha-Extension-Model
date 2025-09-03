@@ -182,6 +182,7 @@ def main(
     # Import light dependencies needed for argument parsing defaults
     # Import pandas for runtime usage (safe after bootstrap probe above)
     import pandas as pd  # type: ignore
+
     from .stress import STRESS_PRESETS
 
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
@@ -378,9 +379,9 @@ def main(
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 
-    # Defer heavy imports until after bootstrap (lightweight imports only)
-    from .backend import resolve_and_set_backend
+    # Defer heavy imports until after backend selection
     from .config import load_config
+    from .utils import select_and_set_backend
 
     cfg = load_config(args.config)
     backend_choice = resolve_and_set_backend(args.backend, cfg)
@@ -393,7 +394,6 @@ def main(
         compute_sleeve_return_attribution,
         compute_sleeve_risk_attribution,
     )
-
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
     from .sleeve_suggestor import suggest_sleeve_sizes
@@ -416,10 +416,6 @@ def main(
         alt_text=args.alt_text,
         packet=args.packet,
     )
-
-    # cfg is already loaded earlier; do not reload
-    backend_choice = resolve_and_set_backend(args.backend, cfg)
-    args.backend = backend_choice
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
@@ -1179,7 +1175,9 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(f"❌ Export packet failed due to data or configuration issue: {e}")
+                print(
+                    f"❌ Export packet failed due to data or configuration issue: {e}"
+                )
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
