@@ -199,6 +199,26 @@ def test_empty_dataframe_caching():
     assert len(empty1.columns) == 0, "Should have no columns"
 
 
+def test_no_function_attribute_caching_antipattern():
+    """Test that we don't use the function attribute caching anti-pattern.
+    
+    This test verifies that we've eliminated the hard-to-maintain pattern:
+    if not hasattr(function_name, '_cache'):
+        function_name._cache = pd.DataFrame()
+    """
+    # The function should not have any cache attributes attached to it
+    assert not hasattr(test_export_packet_handles_empty_data, '_empty_summary_cache'), \
+        "Function should not have cache attributes attached"
+    assert not hasattr(test_export_packet_handles_empty_data, '_cache'), \
+        "Function should not have generic cache attributes"
+    
+    # Instead, we should use the module-level pattern
+    assert '_EMPTY_DATAFRAME' in globals(), \
+        "Should use module-level cached variable"
+    assert isinstance(_EMPTY_DATAFRAME, pd.DataFrame), \
+        "Module-level cache should be a DataFrame"
+
+
 if __name__ == "__main__":
     # Run tests directly if executed as script
     try:
