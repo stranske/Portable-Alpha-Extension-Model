@@ -100,8 +100,11 @@ def test_export_packet_with_alt_text():
 
 def test_export_packet_handles_empty_data():
     """Test that export packet handles edge cases gracefully."""
-    # Empty summary
-    empty_summary = pd.DataFrame()
+    # Use a cached empty summary for better performance
+    # This avoids creating unnecessary DataFrame objects in tests
+    if not hasattr(test_export_packet_handles_empty_data, '_empty_summary_cache'):
+        test_export_packet_handles_empty_data._empty_summary_cache = pd.DataFrame()
+    empty_summary = test_export_packet_handles_empty_data._empty_summary_cache
 
     inputs_dict = {"test": "value"}
     raw_returns_dict = {"Empty": empty_summary}
