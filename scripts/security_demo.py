@@ -9,7 +9,7 @@ DO NOT run the vulnerable examples in production!
 """
 
 import subprocess
-import sys
+import tempfile
 from pathlib import Path
 
 
@@ -20,18 +20,18 @@ def demonstrate_vulnerability():
     
     print("1. VULNERABLE CODE (DO NOT USE):")
     print("   import os")
-    print("   python_exe = '/tmp/malicious; rm -rf /tmp/test; echo pwned'")
-    print("   get_pip = '/tmp/get-pip.py'") 
+    print("   python_exe = 'malicious; rm -rf test; echo pwned'")
+    print("   get_pip = 'get-pip.py'") 
     print("   os.system(f'\"{python_exe}\" {get_pip}')")
     print()
-    print("   This would execute: /tmp/malicious; rm -rf /tmp/test; echo pwned /tmp/get-pip.py")
+    print("   This would execute: malicious; rm -rf test; echo pwned get-pip.py")
     print("   The semicolon allows command injection!")
     print()
     
     print("2. SECURE CODE (RECOMMENDED):")
     print("   import subprocess")
-    print("   python_exe = '/tmp/malicious; rm -rf /tmp/test; echo pwned'")
-    print("   get_pip = '/tmp/get-pip.py'")
+    print("   python_exe = 'malicious; rm -rf test; echo pwned'")
+    print("   get_pip = 'get-pip.py'")
     print("   subprocess.run([str(python_exe), str(get_pip)], check=True)")
     print()
     print("   This passes arguments as a list - no shell interpretation!")
@@ -44,12 +44,13 @@ def demonstrate_secure_implementation():
     print("=== SECURE IMPLEMENTATION EXAMPLE ===")
     print()
     
-    # Safe example with harmless paths
+    # Safe example with harmless paths - use platform-agnostic temporary directory
     python_exe = Path("/usr/bin/python3")  # Standard path
-    script_path = Path("/tmp/safe_script.py")
     
-    # Create a safe test script
-    script_path.write_text("print('Hello from secure subprocess!')\n")
+    # Create a safe test script using cross-platform temporary file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as tmp_script:
+        tmp_script.write("print('Hello from secure subprocess!')\n")
+        script_path = Path(tmp_script.name)
     
     try:
         print(f"Executing: {python_exe} {script_path}")
@@ -63,7 +64,7 @@ def demonstrate_secure_implementation():
     except FileNotFoundError as e:
         print(f"❌ File not found: {e}")
     finally:
-        # Clean up
+        # Clean up - remove temporary file
         if script_path.exists():
             script_path.unlink()
     
