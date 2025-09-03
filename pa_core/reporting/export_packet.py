@@ -29,7 +29,9 @@ def _add_title_slide(prs: Any, title: str, subtitle: str | None = None) -> None:
         slide.placeholders[1].text = subtitle
 
 
-def _add_summary_table_slide(prs: Any, df: pd.DataFrame, title: str = "Executive Summary") -> None:
+def _add_summary_table_slide(
+    prs: Any, df: pd.DataFrame, title: str = "Executive Summary"
+) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[5])
     # Title
     tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.6))
@@ -61,7 +63,9 @@ def _add_summary_table_slide(prs: Any, df: pd.DataFrame, title: str = "Executive
         for c in range(cols):
             val = head.iat[r, c]
             cell = table.cell(r + 1, c)
-            cell.text = f"{val:.2%}" if isinstance(val, float) and 0 <= val <= 1 else str(val)
+            cell.text = (
+                f"{val:.2%}" if isinstance(val, float) and 0 <= val <= 1 else str(val)
+            )
             cell.text_frame.paragraphs[0].runs[0].font.size = Pt(10)
 
 
@@ -72,8 +76,8 @@ def _add_chart_slide(prs: Any, fig: Any, alt: str | None = None) -> None:
     except Exception as e:
         raise RuntimeError(
             "PPTX export requires a static image renderer (Kaleido/Chromium). "
-            "Install Chrome/Chromium or Plotly Kaleido. For Debian/Ubuntu: "
-            "sudo apt-get install -y chromium-browser; or pip install 'plotly[kaleido]'. "
+            "Install Plotly Kaleido or Chrome/Chromium. For Debian/Ubuntu: "
+            "pip install 'plotly[kaleido]' or sudo apt-get install -y chromium-browser. "
             f"Original error: {e}"
         ) from e
 
@@ -141,11 +145,17 @@ def create_export_packet(
     excel_path = str(base.with_suffix(".xlsx"))
 
     # Excel workbook (full tables)
-    export_to_excel(inputs_dict, summary_df, raw_returns_dict, filename=excel_path, pivot=pivot)
+    export_to_excel(
+        inputs_dict, summary_df, raw_returns_dict, filename=excel_path, pivot=pivot
+    )
 
     # PowerPoint deck
     prs = _Presentation()
-    _add_title_slide(prs, title="Portfolio Analysis Packet", subtitle=f"Generated: {pd.Timestamp.now():%Y-%m-%d %H:%M}")
+    _add_title_slide(
+        prs,
+        title="Portfolio Analysis Packet",
+        subtitle=f"Generated: {pd.Timestamp.now():%Y-%m-%d %H:%M}",
+    )
     if not summary_df.empty:
         _add_summary_table_slide(prs, summary_df)
 
@@ -166,7 +176,9 @@ def create_export_packet(
     # Optional manifest summary appendix
     if manifest:
         slide = prs.slides.add_slide(prs.slide_layouts[5])
-        tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(6))
+        tx_box = slide.shapes.add_textbox(
+            Inches(0.5), Inches(0.5), Inches(9), Inches(6)
+        )
         tf = tx_box.text_frame
         tf.clear()
         # Title
