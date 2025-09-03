@@ -17,6 +17,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
 
@@ -40,6 +41,20 @@ create_export_packet: Any = None
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
+
+
+class JsonFormatter(logging.Formatter):
+    """Format logs as JSON lines."""
+
+    def format(self, record: logging.LogRecord) -> str:  # type: ignore[override]
+        ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        entry = {
+            "level": record.levelname,
+            "timestamp": ts,
+            "module": record.name,
+            "message": record.getMessage(),
+        }
+        return json.dumps(entry)
 
 
 def create_enhanced_summary(
@@ -97,7 +112,7 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
 
 class Dependencies:
     """Container for CLI dependencies to avoid global variable issues."""
-    
+
     def __init__(self):
         # Import dependencies when needed to avoid heavy imports at module load
         from .agents.registry import build_from_config as _build_from_config
@@ -106,7 +121,7 @@ class Dependencies:
         from .sim import draw_joint_returns as _draw_joint_returns
         from .sim.covariance import build_cov_matrix as _build_cov_matrix
         from .simulations import simulate_agents as _simulate_agents
-        
+
         self.build_from_config = _build_from_config
         self.export_to_excel = _export_to_excel
         self.draw_financing_series = _draw_financing_series
@@ -115,7 +130,9 @@ class Dependencies:
         self.simulate_agents = _simulate_agents
 
 
-def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None) -> None:
+def main(
+    argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None
+) -> None:
     # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
     # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
     import os
@@ -172,6 +189,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         type=int,
         default=None,
         help="Random seed for reproducible simulations",
+    )
+    parser.add_argument(
+        "--log-json",
+        action="store_true",
+        help="Emit structured JSON logs to runs/<timestamp>/run.log",
     )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
@@ -290,6 +312,26 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     )
     args = parser.parse_args(argv)
 
+    run_log_path: Path | None = None
+    if args.log_json:
+        run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
+        run_dir = Path("runs") / run_ts
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run_log_path = run_dir / "run.log"
+
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        root_logger.handlers.clear()
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.WARNING)
+        root_logger.addHandler(console_handler)
+
+        file_handler = logging.FileHandler(run_log_path)
+        file_handler.setLevel(logging.INFO)
+        file_handler.setFormatter(JsonFormatter())
+        root_logger.addHandler(file_handler)
+
     prev_manifest_data: dict[str, Any] | None = None
     prev_summary_df: pd.DataFrame = pd.DataFrame()
     if getattr(args, "prev_manifest", None):
@@ -321,7 +363,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         compute_sleeve_return_attribution,
         compute_sleeve_risk_attribution,
     )
-    # from .reporting.export_packet import create_export_packet  # Removed unused import for consistency
+
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
     from .sleeve_suggestor import suggest_sleeve_sizes
@@ -434,6 +476,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             seed=args.seed,
             cli_args=vars(args),
             previous_run=args.prev_manifest,
+            run_log=run_log_path,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         manifest_data = None
@@ -1105,9 +1148,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
@@ -1267,6 +1308,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 print(f"❌ Dashboard launch failed: System/permission error - {e}")
                 print("💡 Check file permissions and system resources")
                 return
+
 
 # (Backward compatibility global variable assignment removed)
 if __name__ == "__main__":  # pragma: no cover - CLI entry point
