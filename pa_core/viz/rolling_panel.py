@@ -15,7 +15,7 @@ def _rolling_drawdown(paths: np.ndarray, window: int) -> np.ndarray:
     median = np.median(cum, axis=0)
     roll_max = pd.Series(median).cummax()
     dd = 1 - median / roll_max
-    
+
     rolled_series = pd.Series(dd).rolling(window, min_periods=1).max()
     return safe_to_numpy(rolled_series)  # type: ignore[no-any-return]
 
@@ -32,7 +32,7 @@ def _rolling_sharpe(paths: np.ndarray, window: int) -> np.ndarray:
     roll_mean = returns.rolling(window, axis=1, min_periods=1).mean()
     roll_std = returns.rolling(window, axis=1, min_periods=1).std()
     sharpe = roll_mean / roll_std
-    
+
     sharpe_series = sharpe.mean(axis=0)
     return safe_to_numpy(sharpe_series) * np.sqrt(12)  # type: ignore[no-any-return]
 

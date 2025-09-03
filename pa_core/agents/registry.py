@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from typing import Iterable, List, Type
-
 from importlib.metadata import entry_points
+from typing import Iterable, List, Type
 
 from ..config import ModelConfig
 from .active_ext import ActiveExtensionAgent

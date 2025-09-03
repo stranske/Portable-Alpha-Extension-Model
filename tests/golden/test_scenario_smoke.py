@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-# ruff: noqa: E402
-
 import pandas as pd
 import pytest
 
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
+
+# ruff: noqa: E402
 
 
 # Simple pattern to simulate index returns - represents monthly returns

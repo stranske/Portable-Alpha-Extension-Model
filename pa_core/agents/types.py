@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, TypeAlias
 
-import numpy as npt
+import numpy as np
 from numpy.typing import NDArray
 
-Array = NDArray[npt.float64]
+# Explicitly declare as a type alias for Pyright
+Array: TypeAlias = NDArray[np.float64]
 
 
 @dataclass

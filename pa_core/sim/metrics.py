@@ -1,12 +1,11 @@
 from __future__ import annotations
 
+from importlib.metadata import entry_points
+from typing import Callable, Dict
+
 import numpy as npt
 import pandas as pd
 from numpy.typing import NDArray
-
-from typing import Callable, Dict
-
-from importlib.metadata import entry_points
 
 from ..backend import xp as np
 
@@ -144,7 +143,7 @@ def conditional_value_at_risk(
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
     flat = np.asarray(returns).reshape(-1)
-    percentile = np.quantile(flat, 1 - confidence, method='lower')
+    percentile = np.quantile(flat, 1 - confidence, method="lower")
     tail = flat[flat < percentile]
     if tail.size == 0:
         return float(percentile)

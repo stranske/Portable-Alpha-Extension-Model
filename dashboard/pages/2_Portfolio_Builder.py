@@ -9,8 +9,8 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from pa_core.schema import Portfolio, load_scenario
 from pa_core.portfolio.aggregator import PortfolioAggregator
+from pa_core.schema import Portfolio, load_scenario
 
 
 def main() -> None:
@@ -39,7 +39,10 @@ def main() -> None:
             )
 
     # Optional alpha-share annotation (pre-populated when promoted)
-    with st.expander("Alpha Shares (annotation – included in download)", expanded=bool(promoted_active_share or promoted_theta)):
+    with st.expander(
+        "Alpha Shares (annotation – included in download)",
+        expanded=bool(promoted_active_share or promoted_theta),
+    ):
         active_share_input = st.number_input(
             "Active share [0..1]",
             min_value=0.0,
@@ -71,11 +74,15 @@ def main() -> None:
         st.warning("No assets found in file.")
         return
 
-    st.subheader("Weights [sum to 1.0]") 
+    st.subheader("Weights [sum to 1.0]")
     weight_inputs: dict[str, float] = {}
     for asset in scenario.assets:
         weight_inputs[asset.id] = st.number_input(
-            f"{asset.id} [0..1]", min_value=0.0, max_value=1.0, step=0.01, value=0.0,
+            f"{asset.id} [0..1]",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.01,
+            value=0.0,
         )
     total = sum(weight_inputs.values())
     if total == 0:

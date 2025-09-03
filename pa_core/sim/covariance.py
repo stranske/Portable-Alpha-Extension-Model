@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+
 import numpy as npt
 from numpy.typing import NDArray
 
@@ -115,31 +116,31 @@ def build_cov_matrix_with_validation(
 
     Similar to build_cov_matrix but returns additional validation information
     for enhanced user feedback.
-    
+
     Returns:
         Tuple of (covariance_matrix, validation_info)
         where validation_info contains details about any PSD projection.
     """
     from ..validators import validate_correlations, validate_covariance_matrix_psd
-    
+
     correlations = {
         "rho_idx_H": rho_idx_H,
-        "rho_idx_E": rho_idx_E, 
+        "rho_idx_E": rho_idx_E,
         "rho_idx_M": rho_idx_M,
         "rho_H_E": rho_H_E,
         "rho_H_M": rho_H_M,
         "rho_E_M": rho_E_M,
     }
-    
+
     # Validate correlations
     correlation_results = validate_correlations(correlations)
-    
+
     # Check for any correlation validation errors
     has_errors = any(not r.is_valid for r in correlation_results)
     if has_errors:
         error_msgs = [r.message for r in correlation_results if not r.is_valid]
         raise ValueError("; ".join(error_msgs))
-    
+
     # Build matrix using existing logic
     sds = np.clip(np.array([idx_sigma, sigma_H, sigma_E, sigma_M]), 0.0, None)
     rho = np.array(
@@ -152,17 +153,17 @@ def build_cov_matrix_with_validation(
     )
     cov = np.outer(sds, sds) * rho
     cov = 0.5 * (cov + cov.T)
-    
+
     # Validate PSD and get detailed info
     validation_result, psd_info = validate_covariance_matrix_psd(cov)
-    
+
     validation_info = {
-        'correlation_validations': correlation_results,
-        'psd_validation': validation_result,
-        'psd_info': psd_info,
-        'was_projected': psd_info.was_projected,
+        "correlation_validations": correlation_results,
+        "psd_validation": validation_result,
+        "psd_info": psd_info,
+        "was_projected": psd_info.was_projected,
     }
-    
+
     if psd_info.was_projected:
         # Issue warning and return projected matrix
         warnings.warn(validation_result.message, RuntimeWarning)
