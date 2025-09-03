@@ -270,7 +270,7 @@ jobs:
           TEST:  ${{ needs['test'].result }}
           INTEG: ${{ needs['integration-test'].result }}
           GOLDEN: ${{ needs['golden-tutorial-tests'].result }}
-          CSPACE:${{ needs['codespace-validation'].result }}
+          CSPACE: ${{ needs['codespace-validation'].result }}
         run: |
           ok=true
           for v in "$LINT" "$TYPE" "$SEC" "$TEST" "$INTEG" "$GOLDEN" "$CSPACE"; do
