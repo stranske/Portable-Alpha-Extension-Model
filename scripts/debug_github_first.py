@@ -8,6 +8,7 @@ initial targeted fixes are likely to resolve all identified issues.
 """
 
 import argparse
+import shlex
 import subprocess
 import sys
 from typing import Dict, List, Tuple
@@ -15,9 +16,12 @@ from typing import Dict, List, Tuple
 
 def run_command(cmd: str, capture_output: bool = True) -> Tuple[int, str, str]:
     """Run a shell command and return (exit_code, stdout, stderr)."""
+    import shlex
     try:
+        # Parse command string into arguments to avoid shell injection
+        args = shlex.split(cmd)
         result = subprocess.run(
-            cmd, shell=True, capture_output=capture_output, text=True, timeout=300
+            args, capture_output=capture_output, text=True, timeout=300
         )
         return result.returncode, result.stdout, result.stderr
     except subprocess.TimeoutExpired:
@@ -169,7 +173,7 @@ def commit_and_push_fixes() -> bool:
     
     # Commit with descriptive message
     commit_msg = "fix: resolve GitHub Actions CI/CD failures\n\n- Fix import sorting violations\n- Update ruff configuration\n- Install missing dev dependencies"
-    code, _, _ = run_command(f'git commit -m "{commit_msg}"')
+    code, _, _ = run_command(f"git commit -m {shlex.quote(commit_msg)}")
     if code != 0:
         print("❌ Failed to commit changes")
         return False
