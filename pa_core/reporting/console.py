@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, cast
+from typing import Mapping
 
 import pandas as pd
 from rich.console import Console
@@ -19,7 +19,7 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
     """
     console = Console()
     if isinstance(summary, pd.DataFrame):
-        data: dict[str, list[object]] = {str(k): list(v) for k, v in tmp.items()}  # type: ignore[assignment]
+        }
     else:
         # Convert mapping to single-row dataframe-like dict
         data = {str(k): [v] for k, v in dict(summary).items()}

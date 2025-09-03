@@ -115,6 +115,7 @@ def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None
 def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     """Return mean and vol by simulation from ``parquet`` or CSV."""
     p = Path(parquet)
+    csv_path = p.with_suffix(".csv")
     df: pd.DataFrame | None = None
     if p.exists():
         try:
@@ -124,9 +125,7 @@ def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
                 st.info("pyarrow missing; loading CSV history")
                 df = pd.read_csv(csv_path)
             else:
-                st.info(
-                    "Install pyarrow for Parquet support or provide a CSV fallback"
-                )
+                st.info("Install pyarrow for Parquet support or provide a CSV fallback")
                 return None
     elif csv_path.exists():
         df = pd.read_csv(csv_path)
