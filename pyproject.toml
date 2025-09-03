@@ -55,7 +55,7 @@ build-backend = "setuptools.build_meta"
 name = "portable-alpha-extension-model"
 version = "0.1.0"
 description = "Portable alpha plus active extension model"
-authors = [{ name = "Your Name" }]
+authors = [{ name = "Stranske", email = "stranske@gmail.com" }]
 requires-python = ">=3.10"
 dependencies = [
     "numpy",
