@@ -148,6 +148,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Computation backend",
     )
     parser.add_argument(
+        "--log-json",
+        action="store_true",
+        help="Write structured JSON logs to runs/<timestamp>/run.log and reference from manifest",
+    )
+    parser.add_argument(
         "--seed",
         type=int,
         default=None,
@@ -297,6 +302,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .config import load_config
     from .data import load_index_returns
     from .manifest import ManifestWriter
+    from .logging_utils import setup_json_logging
     from .random import spawn_agent_rngs, spawn_rngs
     from .reporting import export_to_excel as _export_to_excel
     from .reporting.attribution import (
@@ -343,6 +349,19 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
 
     set_backend(args.backend)
+
+    # Optional structured logging setup
+    run_dir: Path | None = None
+    run_log_path: Path | None = None
+    if args.log_json:
+        # Create run directory under ./runs/<timestamp>
+        ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        run_dir = Path("runs") / ts
+        run_log_path = run_dir / "run.log"
+        try:
+            setup_json_logging(run_log_path)
+        except (OSError, PermissionError, RuntimeError, ValueError) as e:
+            logger.warning(f"Failed to set up JSON logging: {e}")
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
@@ -430,6 +449,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             data_files=data_files,
             seed=args.seed,
             cli_args=vars(args),
+            backend=args.backend,
+            run_log=str(run_log_path) if run_log_path else None,
             previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
@@ -607,7 +628,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     # Build summary using wrapper (allows tests to mock this safely)
     summary = create_enhanced_summary(returns, benchmark="Base")
-    inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
+    inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
 
     # Optional attribution tables for downstream exports
@@ -700,8 +721,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 # Copy cfg with updates
                 mod_cfg = cfg.model_copy(update=p)
                 # Recompute params and draws quickly with same RNGs
-                mu_idx = float(inputs_dict.get("mu_idx", 0.06))
-                idx_sigma = float(inputs_dict.get("sigma_idx", 0.16))
+                mu_idx_val = inputs_dict.get("mu_idx", 0.06)
+                idx_sigma_val = inputs_dict.get("sigma_idx", 0.16)
+                try:
+                    mu_idx = float(mu_idx_val)  # type: ignore[arg-type]
+                except Exception:
+                    mu_idx = 0.06
+                try:
+                    idx_sigma = float(idx_sigma_val)  # type: ignore[arg-type]
+                except Exception:
+                    idx_sigma = 0.16
                 sigma_H = mod_cfg.sigma_H
                 sigma_E = mod_cfg.sigma_E
                 sigma_M = mod_cfg.sigma_M
@@ -805,6 +834,25 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
+
+    # Write reproducibility manifest for normal run
+    try:
+        mw = ManifestWriter(Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json"))
+        data_files = [args.index, args.config]
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            data_files.append(str(out_path))
+        mw.write(
+            config_path=args.config,
+            data_files=data_files,
+            seed=args.seed,
+            cli_args=vars(args),
+            backend=args.backend,
+            run_log=str(run_log_path) if run_log_path else None,
+            previous_run=args.prev_manifest,
+        )
+    except (OSError, PermissionError, FileNotFoundError) as e:
+        logger.warning(f"Failed to write manifest: {e}")
 
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
@@ -1034,34 +1082,25 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 figs = [fig]
                 # Optional: Sensitivity tornado
                 try:
-                    sens_df = inputs_dict.get("_sensitivity_df")
-                    if isinstance(sens_df, pd.DataFrame) and not sens_df.empty:
-                        # Map Parameter -> DeltaAbs for tornado bars
+                    # inputs_dict is a plain dict[str, object]; guard types before use
+                    sens_val = inputs_dict.get("_sensitivity_df")
+                    sens_df: Optional[pd.DataFrame] = sens_val if isinstance(sens_val, pd.DataFrame) else None
+                    if sens_df is not None and (not sens_df.empty):
                         if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
                             series = cast(
                                 pd.Series,
-                                sens_df.set_index("Parameter")["DeltaAbs"].astype(
-                                    float
-                                ),
+                                sens_df.set_index("Parameter")["DeltaAbs"].astype(float),
                             )
-                            figs.append(
-                                viz.tornado.make(series, title="Sensitivity Tornado")
-                            )
+                            figs.append(viz.tornado.make(series, title="Sensitivity Tornado"))
                 except Exception:
                     # Non-fatal; continue without tornado figure
                     pass
                 # Optional: Return attribution sunburst
                 try:
-                    attr_obj = inputs_dict.get("_attribution_df")
-                    if (
-                        attr_obj is not None
-                        and hasattr(attr_obj, "empty")
-                        and hasattr(attr_obj, "columns")
-                    ):
-                        attr_df = cast(pd.DataFrame, attr_obj)
-                        if not attr_df.empty and {"Agent", "Sub", "Return"} <= set(
-                            attr_df.columns
-                        ):
+                    attr_val = inputs_dict.get("_attribution_df")
+                    attr_df: Optional[pd.DataFrame] = attr_val if isinstance(attr_val, pd.DataFrame) else None
+                    if attr_df is not None and (not attr_df.empty):
+                        if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                             figs.append(viz.sunburst.make(attr_df))
                 except (AttributeError, TypeError) as e:
                     logger.debug(
