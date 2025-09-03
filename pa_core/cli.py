@@ -20,39 +20,23 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
 
-import pandas as pd
-from rich.console import Console
-from rich.panel import Panel
-from rich.text import Text
+# Rich is imported lazily in functions to keep import time low
 
 if TYPE_CHECKING:
     import numpy as np
+    import pandas as pd
 
-from . import (
-    RunFlags,
-    draw_financing_series,
-    draw_joint_returns,
-    export_to_excel,
-    load_config,
-    load_index_returns,
-)
-from .agents.registry import build_from_config
-from .stress import STRESS_PRESETS, apply_stress_preset
-from .backend import set_backend
-from .random import spawn_agent_rngs, spawn_rngs
-from .reporting.console import print_summary
-from .reporting.sweep_excel import export_sweep_results
-from .reporting.attribution import (
-    compute_sleeve_return_attribution,
-    compute_sleeve_risk_attribution,
-)
-from .sim.covariance import build_cov_matrix
-from .sim.metrics import summary_table
-from .simulations import simulate_agents
-from .sweep import run_parameter_sweep
-from .manifest import ManifestWriter
-from .viz.utils import safe_to_numpy
-from .sleeve_suggestor import suggest_sleeve_sizes
+# Intentionally avoid heavy imports at module import time. Required modules are
+# imported lazily inside functions after environment bootstrap.
+
+# Placeholders for late-bound globals assigned in main()
+draw_joint_returns: Any = None
+draw_financing_series: Any = None
+simulate_agents: Any = None
+export_to_excel: Any = None
+build_from_config: Any = None
+build_cov_matrix: Any = None
+create_export_packet: Any = None
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
@@ -153,6 +137,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         # If no venv found, continue and let normal imports raise a helpful error later
 
     # Import light dependencies needed for argument parsing defaults
+    # Import pandas for runtime usage (safe after bootstrap probe above)
+    import pandas as pd  # type: ignore
     from .stress import STRESS_PRESETS
 
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
@@ -311,7 +297,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             prev_manifest_path = Path(args.prev_manifest)
             if prev_manifest_path.exists():
                 prev_manifest_data = json.loads(prev_manifest_path.read_text())
-                prev_out = prev_manifest_data.get("cli_args", {}).get("output")
+                prev_out = (
+                    prev_manifest_data.get("cli_args", {}).get("output")
+                    if isinstance(prev_manifest_data, dict)
+                    else None
+                )
                 if prev_out and Path(prev_out).exists():
                     try:
                         prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
@@ -467,6 +457,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     summary_frames.append(summary)
 
                 if summary_frames:
+                    from .reporting.export_packet import (
+                        create_export_packet as _create_export_packet,
+                    )
+
+                    if create_export_packet is None:
+                        create_export_packet = _create_export_packet
                     all_summary = pd.concat(summary_frames, ignore_index=True)
 
                     # Create visualization from consolidated summary
@@ -665,6 +661,10 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     max(1, args.tradeoff_top)
                 ).reset_index(drop=True)
         except Exception as e:
+            # Local import to avoid heavy import at module load
+            from rich.console import Console
+            from rich.panel import Panel
+
             Console().print(
                 Panel(
                     f"[bold yellow]Warning:[/bold yellow] Trade-off table computation failed.\n[dim]Reason: {e}[/dim]",
@@ -763,6 +763,10 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             inputs_dict["_sensitivity_df"] = sens_df
         except ImportError as e:
             logger.warning(f"Sensitivity analysis module not available: {e}")
+            # Local import to avoid heavy import at module load
+            from rich.console import Console
+            from rich.panel import Panel
+
             Console().print(
                 Panel(
                     f"[bold red]Error:[/bold red] Sensitivity analysis module not found.\n[dim]Reason: {e}[/dim]",
@@ -772,6 +776,10 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             )
         except (KeyError, ValueError) as e:
             logger.error(f"Sensitivity analysis configuration error: {e}")
+            # Local import to avoid heavy import at module load
+            from rich.console import Console
+            from rich.panel import Panel
+
             Console().print(
                 Panel(
                     f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
@@ -781,6 +789,10 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             )
         except TypeError as e:
             logger.error(f"Sensitivity analysis data type error: {e}")
+            # Local import to avoid heavy import at module load
+            from rich.console import Console
+            from rich.panel import Panel
+
             Console().print(
                 Panel(
                     f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to data type error.\n[dim]Reason: {e}[/dim]\n[dim]Check that all parameters are numeric values.[/dim]",
@@ -1058,19 +1070,26 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     logger.debug(
                         "Skipping sunburst figure due to data issue", exc_info=e
                     )
+                # Late-bind create_export_packet to allow test monkeypatching
+                from .reporting.export_packet import (
+                    create_export_packet as _create_export_packet,
+                )
 
-                    pptx_path, excel_path = create_export_packet(
-                        figs=figs,
-                        summary_df=summary,
-                        raw_returns_dict=raw_returns_dict,
-                        inputs_dict=inputs_dict,
-                        base_filename=base_name,
-                        alt_texts=[flags.alt_text] if flags.alt_text else None,
-                        pivot=args.pivot,
-                        manifest=manifest_data,
-                        prev_summary_df=prev_summary_df,
-                        prev_manifest=prev_manifest_data,
-                    )
+                if create_export_packet is None:
+                    create_export_packet = _create_export_packet
+
+                pptx_path, excel_path = create_export_packet(
+                    figs=figs,
+                    summary_df=summary,
+                    raw_returns_dict=raw_returns_dict,
+                    inputs_dict=inputs_dict,
+                    base_filename=base_name,
+                    alt_texts=[flags.alt_text] if flags.alt_text else None,
+                    pivot=args.pivot,
+                    manifest=manifest_data,
+                    prev_summary_df=prev_summary_df,
+                    prev_manifest=prev_manifest_data,
+                )
                 print("✅ Export packet created:")
                 print(f"   📊 Excel: {excel_path}")
                 print(f"   📋 PowerPoint: {pptx_path}")

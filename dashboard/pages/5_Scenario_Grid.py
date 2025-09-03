@@ -18,6 +18,17 @@ from pa_core.config import ModelConfig
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
 
+# Cached empty DataFrame to avoid repeated creation in error cases
+_EMPTY_DATAFRAME: pd.DataFrame | None = None
+
+
+def _get_empty_dataframe() -> pd.DataFrame:
+    """Return a cached empty DataFrame to avoid repeated object creation."""
+    global _EMPTY_DATAFRAME
+    if _EMPTY_DATAFRAME is None:
+        _EMPTY_DATAFRAME = pd.DataFrame()
+    return _EMPTY_DATAFRAME
+
 
 def _read_csv(file) -> pd.DataFrame:
     try:
@@ -29,7 +40,7 @@ def _read_csv(file) -> pd.DataFrame:
         pd.errors.ParserError,
     ) as exc:  # pragma: no cover - user input variability
         st.error(f"Failed to parse CSV: {exc}")
-        return pd.DataFrame()
+        return _get_empty_dataframe()
 
 
 def main() -> None:

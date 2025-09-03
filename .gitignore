@@ -47,3 +47,7 @@ my_first_scenario.csv
 parameters.csv
 
 .pre-commit-cache/
+
+# Generated scenario grid plots
+plots/*.png
+

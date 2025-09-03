@@ -124,7 +124,9 @@ def export_to_excel(
                     cell.number_format = "0.00%"
 
         try:
-            img_bytes = risk_return.make(summary_df).to_image(format="png")
+            img_bytes = risk_return.make(summary_df).to_image(
+                format="png", engine="kaleido"
+            )
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
@@ -149,7 +151,7 @@ def export_to_excel(
             value_col = df.columns[1]
             series = df.set_index(param_col)[value_col].astype(float)
             fig = tornado.make(cast(pd.Series, series))
-            img_bytes = fig.to_image(format="png")
+            img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except Exception:
@@ -185,7 +187,7 @@ def export_to_excel(
                 # Ensure required columns exist
                 if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                     fig = sunburst.make(attr_df)
-                    img_bytes = fig.to_image(format="png")
+                    img_bytes = fig.to_image(format="png", engine="kaleido")
                     img = XLImage(io.BytesIO(img_bytes))
                     ws.add_image(img, "H2")
         except Exception:

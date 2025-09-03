@@ -16,11 +16,13 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
     """Save multiple figures into a single PDF file."""
     figs = list(figs)
     path = Path(path)
-    if PdfMerger is None or not figs:
+    # If PdfMerger is unavailable or only a single figure provided, write a one-page PDF
+    if PdfMerger is None or len(figs) <= 1:
         if figs:
             try:
-                figs[0].write_image(path, format="pdf")
+                figs[0].write_image(path, format="pdf", engine="kaleido")
             except (ValueError, RuntimeError, OSError, MemoryError):
+                # Fallback: write JSON representation instead of PDF bytes
                 with open(path, "wb") as fh:
                     json_data = figs[0].to_json() or ""
                     fh.write(json_data.encode())
@@ -30,7 +32,7 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
     for fig in figs:
         buf = io.BytesIO()
         try:
-            fig.write_image(buf, format="pdf")
+            fig.write_image(buf, format="pdf", engine="kaleido")
             buf.seek(0)
             merger.append(buf)
         except (ValueError, RuntimeError, OSError, MemoryError):

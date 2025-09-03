@@ -11,6 +11,7 @@ import pandas as pd
 # tqdm is optional; provide a no-op fallback wrapper to avoid hard dependency at import time
 try:
     from tqdm import tqdm as _tqdm
+
     _HAS_TQDM = True
 except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
@@ -111,6 +112,25 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
 
 
 logger = logging.getLogger(__name__)
+
+# Create a cached empty DataFrame with expected columns to avoid repeated creation
+# This provides a significant performance improvement for empty result cases
+_EMPTY_RESULTS_DF: pd.DataFrame | None = None
+
+
+def _get_empty_results_dataframe() -> pd.DataFrame:
+    """Return a cached empty DataFrame with expected columns for sweep results."""
+    global _EMPTY_RESULTS_DF
+    if _EMPTY_RESULTS_DF is None:
+        # Define the expected columns from summary_table plus parameters and combination_id
+        # This matches the structure returned by summary_table in pa_core.sim.metrics
+        columns = [
+            "Agent", "AnnReturn", "AnnVol", "VaR", "CVaR", "MaxDD", 
+            "TimeUnderWater", "BreachProb", "BreachCount", "ShortfallProb", "TE",
+            "combination_id"
+        ]
+        _EMPTY_RESULTS_DF = pd.DataFrame(columns=columns)
+    return _EMPTY_RESULTS_DF.copy()  # Return a copy to avoid mutations
 
 
 def run_parameter_sweep(
@@ -281,7 +301,7 @@ def sweep_results_to_dataframe(results: List[Dict[str, Any]]) -> pd.DataFrame:
         frames.append(summary)
     if frames:
         return pd.concat(frames, ignore_index=True)
-    return pd.DataFrame()
+    return _get_empty_results_dataframe()
 
 
 __all__ = [
