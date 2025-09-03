@@ -384,7 +384,7 @@ def main(
     from .utils import select_and_set_backend
 
     cfg = load_config(args.config)
-    backend_choice = resolve_and_set_backend(args.backend, cfg)
+    backend_choice = select_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
 
     from .data import load_index_returns
