@@ -9,6 +9,10 @@ import pytest
 
 from pa_core.reporting.export_packet import create_export_packet
 
+# Module-level cached empty DataFrame to avoid repeated creation during tests
+# This provides better performance and follows the same pattern used in pa_core/sweep.py
+_EMPTY_DATAFRAME = pd.DataFrame()
+
 
 def create_test_data():
     """Create test data for export packet tests."""
@@ -100,8 +104,9 @@ def test_export_packet_with_alt_text():
 
 def test_export_packet_handles_empty_data():
     """Test that export packet handles edge cases gracefully."""
-    # Empty summary
-    empty_summary = pd.DataFrame()
+    # Use module-level cached empty DataFrame instead of creating new instances
+    # This follows the recommended pattern and avoids function attribute caching
+    empty_summary = _EMPTY_DATAFRAME
 
     inputs_dict = {"test": "value"}
     raw_returns_dict = {"Empty": empty_summary}
@@ -176,6 +181,22 @@ def test_export_packet_diff_appendix():
                 pytest.skip("Chrome/Chromium not available in test environment")
             else:
                 raise
+
+
+def test_empty_dataframe_caching():
+    """Test that the module-level cached empty DataFrame works as expected."""
+    # The cached DataFrame should be the same object when accessed multiple times
+    empty1 = _EMPTY_DATAFRAME
+    empty2 = _EMPTY_DATAFRAME
+    
+    # Same object in memory (identity check)
+    assert empty1 is empty2, "Cached DataFrame should be the same object"
+    
+    # Proper DataFrame properties
+    assert isinstance(empty1, pd.DataFrame), "Should be a DataFrame"
+    assert empty1.empty, "Should be empty"
+    assert len(empty1) == 0, "Should have no rows"
+    assert len(empty1.columns) == 0, "Should have no columns"
 
 
 if __name__ == "__main__":
