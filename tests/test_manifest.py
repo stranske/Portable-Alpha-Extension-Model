@@ -13,7 +13,6 @@ pptx_util.Inches = lambda x: x
 pptx_mod.util = pptx_util
 sys.modules.setdefault("pptx", pptx_mod)
 sys.modules.setdefault("pptx.util", pptx_util)
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from pa_core.cli import main
 
