@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping
+from typing import Mapping, cast
 
 import pandas as pd
 from rich.console import Console
@@ -19,8 +19,9 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
     """
     console = Console()
     if isinstance(summary, pd.DataFrame):
-        # Convert DataFrame to dict for table rendering
-        data = {str(col): summary[col].tolist() for col in summary.columns}
+        # Convert DataFrame to dict of columns -> list values
+        df = cast(pd.DataFrame, summary)
+        data: dict[str, list[object]] = {str(col): list(df[col].tolist()) for col in df.columns}
     else:
         # Convert mapping to single-row dataframe-like dict
         data = {str(k): [v] for k, v in dict(summary).items()}
