@@ -1,11 +1,7 @@
-import sys
-from pathlib import Path
-
 import pandas as pd
 import pytest
 
-from dashboard.app import load_history
-
+from dashboard.app import load_history, save_history
 
 
 def test_load_history(tmp_path):

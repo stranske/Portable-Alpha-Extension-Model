@@ -13,6 +13,19 @@ except (
 ):  # pragma: no cover - viz may require heavy deps
     viz = None  # type: ignore[assignment]
 
+# Re-export commonly used helpers for CLI scripts
+from .run_flags import RunFlags
+from .sim import draw_financing_series, draw_joint_returns
+from .reporting.excel import export_to_excel
+from .config import load_config
+from .data.loaders import load_index_returns
+
 __all__: list[str] = [
     "viz",
+    "RunFlags",
+    "draw_financing_series",
+    "draw_joint_returns",
+    "export_to_excel",
+    "load_config",
+    "load_index_returns",
 ]
