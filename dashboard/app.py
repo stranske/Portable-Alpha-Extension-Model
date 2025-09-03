@@ -85,7 +85,6 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
 @st.cache_data(ttl=600)
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name="Summary")
-<<<<<<< Updated upstream
     p = Path(xlsx).with_suffix(".parquet")
     paths: pd.DataFrame | None = None
     if p.exists():
@@ -100,10 +99,6 @@ def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
                 st.info(
                     "Install pyarrow for Parquet support or provide a matching CSV file"
                 )
-=======
-    # Try parquet -> csv -> Excel('AllReturns') for path-based charts
-    paths = _load_paths_sidecar(xlsx)
->>>>>>> Stashed changes
     return summary, paths
 
 
@@ -120,15 +115,10 @@ def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None
 def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     """Return mean and vol by simulation from ``parquet`` or CSV."""
     p = Path(parquet)
-<<<<<<< Updated upstream
-    csv_path = p.with_suffix(".csv")
-=======
->>>>>>> Stashed changes
     df: pd.DataFrame | None = None
     if p.exists():
         try:
             df = pd.read_parquet(p)
-<<<<<<< Updated upstream
         except ImportError:
             if csv_path.exists():
                 st.info("pyarrow missing; loading CSV history")
@@ -141,19 +131,6 @@ def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     elif csv_path.exists():
         df = pd.read_csv(csv_path)
     else:
-=======
-        except Exception:
-            df = None
-    # CSV fallback: try sibling .csv if parquet missing or unreadable
-    if df is None:
-        p_csv = p.with_suffix(".csv")
-        if p_csv.exists():
-            try:
-                df = pd.read_csv(p_csv)
-            except Exception:
-                df = None
-    if df is None:
->>>>>>> Stashed changes
         return None
     return (
         df.groupby("Sim")["Return"]
