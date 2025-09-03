@@ -353,7 +353,7 @@ def main(
             prev_summary_df = pd.DataFrame()
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
-    from .backend import resolve_and_set_backend
+    from .backend import resolve_and_set_backend, set_backend
     from .config import load_config
 
     cfg = load_config(args.config)
