@@ -72,7 +72,7 @@ def _add_summary_table_slide(
 def _add_chart_slide(prs: Any, fig: Any, alt: str | None = None) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[5])
     try:
-        img = fig.to_image(format="png")
+        img = fig.to_image(format="png", engine="kaleido")
     except Exception as e:
         raise RuntimeError(
             "PPTX export requires a static image renderer (Kaleido/Chromium). "

@@ -1073,7 +1073,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         # Individual export formats (with improved error handling)
         if flags.png:
             try:
-                fig.write_image(stem.with_suffix(".png"))
+                fig.write_image(stem.with_suffix(".png"), engine="kaleido")
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                     logger.error(f"PNG export failed due to missing dependency: {e}")

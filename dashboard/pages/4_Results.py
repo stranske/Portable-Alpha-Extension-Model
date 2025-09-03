@@ -96,16 +96,14 @@ def main() -> None:
     with col1:
         # PNG export with error handling
         try:
-            png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(format="png")
+            png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(
+                format="png", engine="kaleido"
+            )
             st.download_button(
                 "Download PNG", png, file_name="risk_return.png", mime="image/png"
             )
-        except Exception as e:
-            err_msg = str(e).lower()
-            if any(
-                term in err_msg
-                for term in ("kaleido", "chrome", "chromium", "cancelled")
-            ):
+        except RuntimeError as e:
+            if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                 st.warning(
                     "📷 PNG export requires Kaleido or Chrome/Chromium. Install via `pip install kaleido` or `sudo apt-get install -y chromium-browser`"
                 )

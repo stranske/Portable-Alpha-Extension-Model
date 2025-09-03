@@ -123,8 +123,7 @@ pip install kaleido
 If Kaleido is unavailable, install Chrome or Chromium instead:
 
 ```bash
-plotly_get_chrome  # Plotly helper to download Chrome
-sudo apt-get install -y chromium-browser  # or use system packages
+sudo apt-get install -y chromium-browser
 ```
 
 After setting up the environment you can run the command line interface. The
