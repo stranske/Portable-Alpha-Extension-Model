@@ -76,8 +76,8 @@ def _add_chart_slide(prs: Any, fig: Any, alt: str | None = None) -> None:
     except Exception as e:
         raise RuntimeError(
             "PPTX export requires a static image renderer (Kaleido/Chromium). "
-            "Install Chrome/Chromium or Plotly Kaleido. For Debian/Ubuntu: "
-            "sudo apt-get install -y chromium-browser; or pip install 'plotly[kaleido]'. "
+            "Install Plotly Kaleido or Chrome/Chromium. For Debian/Ubuntu: "
+            "pip install 'plotly[kaleido]' or sudo apt-get install -y chromium-browser. "
             f"Original error: {e}"
         ) from e
 

@@ -111,10 +111,21 @@ Run the setup script to create a Python virtual environment and install dependen
 
 Execute this once before running any notebooks or other scripts.
 
-> **Note**
-> Static PNG/PDF/PPTX exports rely on a local Chrome or Chromium installation.
-> On Debian/Ubuntu run `sudo apt-get install -y chromium-browser` before using
-> `--png`, `--pdf` or `--pptx`.
+### Exports
+
+Static PNG/PDF/PPTX exports prefer the [Kaleido](https://github.com/plotly/Kaleido)
+renderer:
+
+```bash
+pip install kaleido
+```
+
+If Kaleido is unavailable, install Chrome or Chromium instead:
+
+```bash
+plotly_get_chrome  # Plotly helper to download Chrome
+sudo apt-get install -y chromium-browser  # or use system packages
+```
 
 After setting up the environment you can run the command line interface. The
 main entry point is ``pa_core.cli`` which exposes analysis modes, export

@@ -100,13 +100,17 @@ def main() -> None:
             st.download_button(
                 "Download PNG", png, file_name="risk_return.png", mime="image/png"
             )
-        except RuntimeError as e:
-            if "Chrome" in str(e) or "Kaleido" in str(e):
+        except Exception as e:
+            err_msg = str(e).lower()
+            if any(
+                term in err_msg
+                for term in ("kaleido", "chrome", "chromium", "cancelled")
+            ):
                 st.warning(
-                    "📷 PNG export requires Chrome installation. Run: `sudo apt-get install -y chromium-browser`"
+                    "📷 PNG export requires Kaleido or Chrome/Chromium. Install via `pip install kaleido` or `sudo apt-get install -y chromium-browser`"
                 )
                 st.info(
-                    "💡 Tip: Use browser screenshot or install Chrome for PNG exports"
+                    "💡 Tip: Use browser screenshot or install Kaleido (preferred) or Chrome for PNG exports"
                 )
             else:
                 st.error(f"PNG export error: {e}")
@@ -171,11 +175,17 @@ def main() -> None:
                     )
 
             except RuntimeError as e:
-                if "Chrome" in str(e) or "Chromium" in str(e) or "Kaleido" in str(e):
+                if (
+                    "kaleido" in str(e).lower()
+                    or "chrome" in str(e).lower()
+                    or "chromium" in str(e).lower()
+                ):
                     st.error(
-                        "📷 Export packet requires Chrome/Chromium for chart generation."
+                        "📷 Export packet requires Kaleido or Chrome/Chromium for chart generation."
                     )
-                    st.info("Install with: `sudo apt-get install chromium-browser`")
+                    st.info(
+                        "Install with: `pip install kaleido` or `sudo apt-get install chromium-browser`"
+                    )
                 else:
                     st.error(f"Export packet failed: {e}")
             except Exception as e:

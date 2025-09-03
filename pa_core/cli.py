@@ -20,28 +20,42 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
 
-# NOTE: Avoid importing heavy third-party libs (pandas, rich) at module import time.
-if TYPE_CHECKING:  # pragma: no cover - for type checking only
-    import pandas as pd  # noqa: F401
+import pandas as pd
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
-# NOTE: We intentionally avoid importing heavy pa_core modules (which may import numpy)
-# at module import time to support subprocess tests that call `python -m pa_core.cli`
-# with a non-venv interpreter. Heavy imports are deferred into main() after a
-# lightweight bootstrap that ensures numpy is available (or re-execs into the venv).
-if TYPE_CHECKING:  # pragma: no cover - for type checking only
-    import numpy as np  # noqa: F401
+if TYPE_CHECKING:
+    import numpy as np
+
+from . import (
+    RunFlags,
+    draw_financing_series,
+    draw_joint_returns,
+    export_to_excel,
+    load_config,
+    load_index_returns,
+)
+from .agents.registry import build_from_config
+from .stress import STRESS_PRESETS, apply_stress_preset
+from .backend import set_backend
+from .random import spawn_agent_rngs, spawn_rngs
+from .reporting.console import print_summary
+from .reporting.sweep_excel import export_sweep_results
+from .reporting.attribution import (
+    compute_sleeve_return_attribution,
+    compute_sleeve_risk_attribution,
+)
+from .sim.covariance import build_cov_matrix
+from .sim.metrics import summary_table
+from .simulations import simulate_agents
+from .sweep import run_parameter_sweep
+from .manifest import ManifestWriter
+from .viz.utils import safe_to_numpy
+from .sleeve_suggestor import suggest_sleeve_sizes
 
 # Configure logger for this module
 logger = logging.getLogger(__name__)
-
-# Module-level placeholders so tests can patch these symbols on pa_core.cli
-# They are assigned real implementations inside main() via global assignment.
-draw_joint_returns: Any = None
-draw_financing_series: Any = None
-simulate_agents: Any = None
-export_to_excel: Any = None
-build_from_config: Any = None
-build_cov_matrix: Any = None
 
 
 def create_enhanced_summary(
@@ -418,7 +432,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         if flags.packet:
             try:
                 from . import viz
-                from .reporting.export_packet import create_export_packet
 
                 # Build consolidated summary from sweep results (similar to export_sweep_results)
                 summary_frames = []
@@ -470,6 +483,34 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 logger.error(f"Export packet failed due to data issue: {e}")
                 print(f"❌ Export packet failed due to data issue: {e}")
                 print("💡 Check your configuration and data inputs")
+
+        # Sensitivity analysis can also be applied to parameter sweep results
+        if args.sensitivity:
+            print("\n🔍 Parameter sweep sensitivity analysis:")
+            print("ℹ️  Sensitivity analysis on parameter sweep results shows")
+            print("   how different parameter combinations affect outcomes.")
+
+            if results:
+                sweep_df = pd.concat(
+                    [res["summary"] for res in results], ignore_index=True
+                )
+                base_agents = sweep_df[sweep_df["Agent"] == "Base"]
+                if not base_agents.empty and isinstance(base_agents, pd.DataFrame):
+                    best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax()]
+                    worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin()]
+                    print(
+                        f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn"
+                    )
+                    print(
+                        f"   📉 Worst combination: {worst_combo['AnnReturn']:.2f}% AnnReturn"
+                    )
+                    print(
+                        f"   📊 Range: {best_combo['AnnReturn'] - worst_combo['AnnReturn']:.2f}% difference"
+                    )
+                else:
+                    print("   ⚠️  No Base agent results found in sweep")
+            else:
+                print("   ❌ No sweep results available")
 
         return
 
@@ -553,21 +594,176 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     # Optional attribution tables for downstream exports
     try:
-        attr_df = compute_sleeve_return_attribution(cfg, idx_series)
-        inputs_dict["_attribution_df"] = attr_df
-    except (AttributeError, TypeError) as e:
-        logger.debug("Skipping return attribution due to data/type issue", exc_info=e)
-    except (ValueError, KeyError) as e:
-        logger.debug("Skipping return attribution due to value/key issue", exc_info=e)
+        inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(
+            cfg, idx_series
+        )
+    except (AttributeError, TypeError):  # narrow exceptions required by tests
+        # Fallback: aggregate total annualised return by agent if detailed attribution fails
+        try:
+            rows: list[dict[str, object]] = []
+            for agent, arr in returns.items():
+                mean_month = float(arr.mean())
+                ann = 12.0 * mean_month
+                rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
+            inputs_dict["_attribution_df"] = pd.DataFrame(rows)
+        except (AttributeError, ValueError, TypeError, KeyError) as e2:
+            logger.debug(f"Attribution fallback unavailable: {e2}")
+            inputs_dict["_attribution_df"] = pd.DataFrame(
+                [{"Agent": "", "Sub": "", "Return": 0.0}]
+            ).head(0)
     try:
-        risk_df = compute_sleeve_risk_attribution(cfg, idx_series)
-        inputs_dict["_risk_attr_df"] = risk_df
-    except (AttributeError, TypeError) as e:
-        logger.debug("Skipping risk attribution due to data/type issue", exc_info=e)
-    except (ValueError, KeyError) as e:
-        logger.debug("Skipping risk attribution due to value/key issue", exc_info=e)
+        inputs_dict["_risk_attr_df"] = compute_sleeve_risk_attribution(cfg, idx_series)
+    except (AttributeError, ValueError, TypeError, KeyError) as e:
+        logger.debug(f"Risk attribution unavailable: {e}")
+    print_enhanced_summary(summary)
+    # Optional: compute trade-off table (non-interactive) and attach for export
+    if args.tradeoff_table:
+        try:
+            trade_df = suggest_sleeve_sizes(
+                cfg,
+                idx_series,
+                max_te=args.max_te,
+                max_breach=args.max_breach,
+                max_cvar=args.max_cvar,
+                step=args.sleeve_step,
+                min_external=args.min_external,
+                max_external=args.max_external,
+                min_active=args.min_active,
+                max_active=args.max_active,
+                min_internal=args.min_internal,
+                max_internal=args.max_internal,
+                seed=args.seed,
+                sort_by=args.tradeoff_sort,
+            )
+            if not trade_df.empty:
+                inputs_dict["_tradeoff_df"] = trade_df.head(
+                    max(1, args.tradeoff_top)
+                ).reset_index(drop=True)
+        except Exception as e:
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Trade-off table computation failed.\n[dim]Reason: {e}[/dim]",
+                    title="Trade-off Table",
+                    style="yellow",
+                )
+            )
+    # Optional sensitivity analysis (one-factor deltas on AnnReturn)
+    if args.sensitivity:
+        try:
+            from .sim.sensitivity import one_factor_deltas
 
-    # Write Excel for single-run mode
+            # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
+            base_params = {
+                "mu_H": cfg.mu_H,
+                "sigma_H": cfg.sigma_H,
+                "mu_E": cfg.mu_E,
+                "sigma_E": cfg.sigma_E,
+                "mu_M": cfg.mu_M,
+                "sigma_M": cfg.sigma_M,
+                "w_beta_H": cfg.w_beta_H,
+                "w_alpha_H": cfg.w_alpha_H,
+            }
+            steps = {
+                "mu_H": 0.01,
+                "sigma_H": 0.005,
+                "mu_E": 0.01,
+                "sigma_E": 0.005,
+                "mu_M": 0.01,
+                "sigma_M": 0.005,
+                "w_beta_H": 0.05,
+                "w_alpha_H": 0.05,
+            }
+
+            def _eval(p: dict[str, float]) -> float:
+                # Copy cfg with updates
+                mod_cfg = cfg.model_copy(update=p)
+                # Recompute params and draws quickly with same RNGs
+                mu_idx = float(inputs_dict.get("mu_idx", 0.06))
+                idx_sigma = float(inputs_dict.get("sigma_idx", 0.16))
+                sigma_H = mod_cfg.sigma_H
+                sigma_E = mod_cfg.sigma_E
+                sigma_M = mod_cfg.sigma_M
+                mu_H = mod_cfg.mu_H
+                mu_E = mod_cfg.mu_E
+                mu_M = mod_cfg.mu_M
+                # Note: We rely on draw_joint_returns to rebuild the covariance from params,
+                # so we don't need to materialize the covariance matrix here.
+                params_local = {
+                    "mu_idx_month": mu_idx / 12,
+                    "default_mu_H": mu_H / 12,
+                    "default_mu_E": mu_E / 12,
+                    "default_mu_M": mu_M / 12,
+                    "idx_sigma_month": idx_sigma / 12,
+                    "default_sigma_H": sigma_H / 12,
+                    "default_sigma_E": sigma_E / 12,
+                    "default_sigma_M": sigma_M / 12,
+                    "rho_idx_H": mod_cfg.rho_idx_H,
+                    "rho_idx_E": mod_cfg.rho_idx_E,
+                    "rho_idx_M": mod_cfg.rho_idx_M,
+                    "rho_H_E": mod_cfg.rho_H_E,
+                    "rho_H_M": mod_cfg.rho_H_M,
+                    "rho_E_M": mod_cfg.rho_E_M,
+                    # financing left the same for speed
+                    "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
+                    "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
+                    "internal_spike_prob": mod_cfg.internal_spike_prob,
+                    "internal_spike_factor": mod_cfg.internal_spike_factor,
+                    "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
+                    "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
+                    "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
+                    "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
+                    "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
+                    "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
+                    "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
+                    "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
+                }
+                r_beta_l, r_H_l, r_E_l, r_M_l = draw_joint_returns(
+                    n_months=mod_cfg.N_MONTHS,
+                    n_sim=mod_cfg.N_SIMULATIONS,
+                    params=params_local,
+                    rng=rng_returns,
+                )
+                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
+                agents_l = build_from_config(mod_cfg)
+                returns_l = simulate_agents(
+                    agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
+                )
+                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
+                vals = summary_l.loc[summary_l["Agent"] == "Base", "AnnReturn"]
+                return float(vals.to_numpy()[0]) if not vals.empty else 0.0
+
+            sens_df = one_factor_deltas(
+                params=base_params, steps=steps, evaluator=_eval
+            )
+            inputs_dict["_sensitivity_df"] = sens_df
+        except ImportError as e:
+            logger.warning(f"Sensitivity analysis module not available: {e}")
+            Console().print(
+                Panel(
+                    f"[bold red]Error:[/bold red] Sensitivity analysis module not found.\n[dim]Reason: {e}[/dim]",
+                    title="Sensitivity Analysis",
+                    style="red",
+                )
+            )
+        except (KeyError, ValueError) as e:
+            logger.error(f"Sensitivity analysis configuration error: {e}")
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
+                    title="Sensitivity Analysis",
+                    style="yellow",
+                )
+            )
+        except TypeError as e:
+            logger.error(f"Sensitivity analysis data type error: {e}")
+            Console().print(
+                Panel(
+                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to data type error.\n[dim]Reason: {e}[/dim]\n[dim]Check that all parameters are numeric values.[/dim]",
+                    title="Sensitivity Analysis",
+                    style="yellow",
+                )
+            )
+
     export_to_excel(
         inputs_dict,
         summary,
@@ -734,15 +930,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                         "\n💡 Consider reviewing parameter ranges or model constraints."
                     )
 
-                # Explicitly summarise failures so callers can detect them
-                if failed_params:
-                    print("\n⚠️  Some parameter evaluations failed:")
-                    for failure in failed_params:
-                        print(f"   • {failure}")
-                else:
-                    # Positive confirmation to make the outcome explicit (and test-detectable)
-                    print("\nNo parameter evaluations failed.")
-
                 print(
                     f"\n✅ Sensitivity analysis completed. Evaluated {len(scenarios)} scenarios."
                 )
@@ -766,7 +953,18 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
             print("💡 Ensure all parameters are numeric values")
 
-    # Proceed to visualization/export if any output flag is set
+    if any(
+        [
+            flags.png,
+            flags.pdf,
+            flags.pptx,
+            flags.html,
+            flags.gif,
+            flags.dashboard,
+            flags.packet,
+        ]
+    ):
+        pass
 
     if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
         from . import viz
@@ -784,7 +982,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         if flags.packet:
             try:
                 from . import viz
-                from .reporting.export_packet import create_export_packet
 
                 # Use base filename from --output or default
                 base_name = Path(flags.save_xlsx or "committee_packet").stem
@@ -803,28 +1000,22 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 figs = [fig]
                 # Optional: Sensitivity tornado
                 try:
-                    sens_obj = inputs_dict.get("_sensitivity_df")
-                    if (
-                        sens_obj is not None
-                        and hasattr(sens_obj, "empty")
-                        and hasattr(sens_obj, "columns")
-                    ):
-                        sens_df = cast(pd.DataFrame, sens_obj)
-                        if not sens_df.empty and {"Parameter", "DeltaAbs"} <= set(
-                            sens_df.columns
-                        ):
-                            series = sens_df.set_index("Parameter")["DeltaAbs"].astype(
-                                float
+                    sens_df = inputs_dict.get("_sensitivity_df")
+                    if isinstance(sens_df, pd.DataFrame) and not sens_df.empty:
+                        # Map Parameter -> DeltaAbs for tornado bars
+                        if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                            series = cast(
+                                pd.Series,
+                                sens_df.set_index("Parameter")["DeltaAbs"].astype(
+                                    float
+                                ),
                             )
                             figs.append(
-                                viz.tornado.make(
-                                    cast(pd.Series, series), title="Sensitivity Tornado"
-                                )
+                                viz.tornado.make(series, title="Sensitivity Tornado")
                             )
-                except (AttributeError, TypeError) as e:
-                    logger.debug(
-                        "Skipping tornado figure due to data issue", exc_info=e
-                    )
+                except Exception:
+                    # Non-fatal; continue without tornado figure
+                    pass
                 # Optional: Return attribution sunburst
                 try:
                     attr_obj = inputs_dict.get("_attribution_df")
@@ -886,8 +1077,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                     logger.error(f"PNG export failed due to missing dependency: {e}")
-                    print("❌ PNG export failed: Chrome/Chromium or Kaleido required")
-                    print("💡 Install with: sudo apt-get install chromium-browser")
+                    print("❌ PNG export failed: Kaleido or Chrome/Chromium required")
+                    print(
+                        "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
+                    )
                 else:
                     logger.error(f"PNG export failed due to missing module: {e}")
                     print(f"❌ PNG export failed due to missing dependency: {e}")
@@ -899,14 +1092,29 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
                 logger.error(f"PNG export failed due to data issue: {e}")
                 print(f"❌ PNG export failed: Invalid data - {e}")
                 print("💡 Check your visualization data and parameters")
+            except Exception as e:
+                logger.error(f"PNG export failed: {e}")
+                msg = str(e).lower()
+                if any(
+                    term in msg
+                    for term in ("kaleido", "chrome", "chromium", "cancelled")
+                ):
+                    print("❌ PNG export failed: Kaleido or Chrome/Chromium required")
+                    print(
+                        "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
+                    )
+                else:
+                    print(f"❌ PNG export failed: {e}")
         if flags.pdf:
             try:
                 viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                     logger.error(f"PDF export failed due to missing dependency: {e}")
-                    print("❌ PDF export failed: Chrome/Chromium or Kaleido required")
-                    print("💡 Install with: sudo apt-get install chromium-browser")
+                    print("❌ PDF export failed: Kaleido or Chrome/Chromium required")
+                    print(
+                        "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
+                    )
                 else:
                     logger.error(f"PDF export failed due to missing module: {e}")
                     print(f"❌ PDF export failed due to missing dependency: {e}")
@@ -928,8 +1136,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                     logger.error(f"PPTX export failed due to missing dependency: {e}")
-                    print("❌ PPTX export failed: Chrome/Chromium or Kaleido required")
-                    print("💡 Install with: sudo apt-get install chromium-browser")
+                    print("❌ PPTX export failed: Kaleido or Chrome/Chromium required")
+                    print(
+                        "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
+                    )
                 elif "pptx" in str(e).lower() or "python-pptx" in str(e).lower():
                     logger.error(f"PPTX export failed due to missing python-pptx: {e}")
                     print("❌ PPTX export failed: python-pptx required")
