@@ -172,7 +172,7 @@ def commit_and_push_fixes() -> bool:
     
     # Commit with descriptive message
     commit_msg = "fix: resolve GitHub Actions CI/CD failures\n\n- Fix import sorting violations\n- Update ruff configuration\n- Install missing dev dependencies"
-    code, _, _ = run_command(f"git commit -m {shlex.quote(commit_msg)}")
+    code, _, _ = run_command(['git', 'commit', '-m', commit_msg])
     if code != 0:
         print("❌ Failed to commit changes")
         return False
