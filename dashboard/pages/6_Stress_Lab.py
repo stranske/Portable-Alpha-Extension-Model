@@ -35,6 +35,19 @@ def _format_pct(x: float) -> str:
     return f"{x:.2%}"
 
 
+def _config_diff(base: ModelConfig, stressed: ModelConfig) -> pd.DataFrame:
+    """Return DataFrame of parameters that differ between two configs."""
+    base_d = base.model_dump()
+    stress_d = stressed.model_dump()
+    rows = []
+    for key in sorted(stress_d.keys()):
+        b_val = base_d.get(key)
+        s_val = stress_d.get(key)
+        if b_val != s_val:
+            rows.append({"Parameter": key, "Base": b_val, "Stressed": s_val})
+    return pd.DataFrame(rows)
+
+
 def main() -> None:
     st.title("Stress Lab (presets)")
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
@@ -157,6 +170,22 @@ def main() -> None:
             delta_df = pd.DataFrame(deltas)
             # Optional: format percentage-like columns for readability (kept simple)
             st.dataframe(delta_df)
+            st.download_button(
+                "Download deltas as CSV",
+                delta_df.to_csv(index=False).encode("utf-8"),
+                "stress_deltas.csv",
+                "text/csv",
+            )
+
+            st.subheader("Config diff")
+            diff_df = _config_diff(base_cfg, stressed_cfg)
+            st.dataframe(diff_df)
+            st.download_button(
+                "Download config diff",
+                diff_df.to_csv(index=False).encode("utf-8"),
+                "config_diff.csv",
+                "text/csv",
+            )
 
         except Exception as exc:  # pragma: no cover - runtime UX
             st.error(str(exc))
