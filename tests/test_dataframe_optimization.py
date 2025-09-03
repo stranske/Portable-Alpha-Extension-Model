@@ -1,7 +1,6 @@
 """Tests for DataFrame optimization changes."""
 
 import pandas as pd
-import pytest
 
 from pa_core.sweep import sweep_results_to_dataframe
 
