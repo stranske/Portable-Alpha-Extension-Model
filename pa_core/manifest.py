@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import yaml
+from .backend import get_backend
 
 
 @dataclass
@@ -19,6 +20,7 @@ class Manifest:
     config: Mapping[str, Any]
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
+    backend: str
     previous_run: str | None = None
     run_log: str | None = None
 
@@ -66,6 +68,7 @@ class ManifestWriter:
             config=cfg,
             data_files=hashes,
             cli_args=dict(cli_args),
+            backend=get_backend(),
             previous_run=previous_run,
             run_log=str(run_log) if run_log else None,
         )

@@ -58,6 +58,7 @@ class ModelConfig(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
 
+    backend: str = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
 
