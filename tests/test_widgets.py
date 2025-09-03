@@ -2,25 +2,13 @@ import pandas as pd
 import pytest
 
 ipywidgets = pytest.importorskip("ipywidgets")
-import importlib.machinery
-import importlib.util
 import sys
 from pathlib import Path
 
 pkg_path = Path(__file__).resolve().parent.parent / "pa_core" / "viz"
+sys.path.insert(0, str(pkg_path.parent.parent))
 
-sys.modules.setdefault(
-    "pa_core", importlib.util.module_from_spec(importlib.machinery.ModuleSpec("pa_core", None))
-)
-viz_pkg = importlib.util.module_from_spec(importlib.machinery.ModuleSpec("pa_core.viz", None))
-viz_pkg.__path__ = [str(pkg_path)]
-sys.modules["pa_core.viz"] = viz_pkg
-
-spec = importlib.util.spec_from_file_location("pa_core.viz.widgets", pkg_path / "widgets.py")
-widgets = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(widgets)
-
-
+import pa_core.viz.widgets as widgets
 def test_explore_widget():
     df = pd.DataFrame(
         {
