@@ -49,8 +49,10 @@ def build_run_diff(
             ):
                 cur_val = current_summary[col].iloc[0]
                 prev_val = previous_summary[col].iloc[0]
-                except (TypeError, ValueError):
-                    continue
+                try:
+                    delta = cur_val - prev_val
+                    except (TypeError, ValueError):
+                        continue
                 metric_records.append(
                     {
                         "Metric": col,
