@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import List, cast
 
 import pandas as pd
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from ..schema import Asset, Correlation, Index
 

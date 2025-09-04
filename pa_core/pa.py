@@ -4,9 +4,9 @@ import argparse
 import csv
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import Any, Sequence
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
@@ -18,7 +18,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
     # Get the field mappings from the ModelConfig Pydantic model
     label_map = get_field_mappings()
 
-    data = {}
+    data: dict[str, Any] = {}
 
     # Read CSV and convert
     with open(csv_path, "r", encoding="utf-8") as f:
@@ -36,7 +36,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
                     continue
 
                 # Try to convert to number
-                num_val = None  # Initialize to avoid undefined variable
+                num_val: float | int | str | None = None
                 try:
                     if "." in str(value):
                         num_val = float(value)

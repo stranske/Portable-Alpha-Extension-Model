@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, cast
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 
 def safe_to_numpy(
     data: Union[pd.Series, pd.DataFrame], fillna_value: float = 0.0
-) -> np.ndarray:
+  ) -> NDArray[np.float64]:
     """
     Safely convert pandas Series or DataFrame to numpy array with fallback handling.
 
@@ -29,14 +30,14 @@ def safe_to_numpy(
         ValueError: If the conversion fails even after fallback handling
     """
     try:
-        result = data.to_numpy()
+        result = cast(NDArray[np.float64], data.to_numpy())
         # Check for problematic values that might cause issues downstream
         if np.any(~np.isfinite(result)):
             # Use fallback handling
             clean_data = data.fillna(fillna_value).replace(
                 [np.inf, -np.inf], fillna_value
             )
-            return clean_data.to_numpy()
+            return cast(NDArray[np.float64], clean_data.to_numpy())
         return result
     except (ValueError, TypeError):
         # Handle potential issues with non-numeric data or conversion errors
@@ -44,6 +45,6 @@ def safe_to_numpy(
             clean_data = data.fillna(fillna_value).replace(
                 [np.inf, -np.inf], fillna_value
             )
-            return clean_data.to_numpy()
+            return cast(NDArray[np.float64], clean_data.to_numpy())
         except Exception as e:
             raise ValueError(f"Failed to convert data to numpy array: {e}") from e
