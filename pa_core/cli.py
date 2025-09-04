@@ -417,7 +417,6 @@ def main(
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
         run_dir = Path("runs") / ts
         run_log_path = run_dir / "run.log"
-        assert run_log_path is not None
         try:
             setup_json_logging(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
