@@ -4,13 +4,10 @@ Tests for improved CLI exception handling to verify specific exceptions
 are caught and logged properly instead of broad Exception catches.
 """
 import logging
-from unittest.mock import MagicMock, patch
 
-import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.cli import main
 
 
 @pytest.fixture
@@ -111,12 +108,11 @@ def test_sensitivity_parameter_evaluation_value_error(caplog_debug):
     skipped_params = []
 
     param_name = "mu_H"
-    base_value = 0.04
     pos_key = f"{param_name}_+5%"
 
     try:
         pos_value = -0.01  # This will cause ValueError
-        pos_result = mock_evaluator({param_name: pos_value})
+        mock_evaluator({param_name: pos_value})
     except (ValueError, ZeroDivisionError) as e:
         failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
         skipped_params.append(pos_key)
@@ -159,7 +155,7 @@ def test_sensitivity_parameter_evaluation_key_error(caplog_debug):
     pos_key = f"{param_name}_+5%"
 
     try:
-        pos_result = mock_evaluator({param_name: 0.05})
+        mock_evaluator({param_name: 0.05})
     except (ValueError, ZeroDivisionError) as e:
         failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
         skipped_params.append(pos_key)
