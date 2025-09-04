@@ -120,8 +120,8 @@ def test_error_handling_in_subprocess_calls(tmp_path: Path):
     """Test that subprocess errors are properly handled and wrapped."""
     make_portable_zip = _load_make_portable_zip_module()
     
-    temp_project = Path("/tmp/test_project")
-    temp_output = Path("/tmp/test_output.zip")
+    temp_project = tmp_path / "test_project"
+    temp_output = tmp_path / "test_output.zip"
     
     with mock.patch.object(make_portable_zip, 'sys') as mock_sys, \
          mock.patch.object(make_portable_zip.Path, 'exists', return_value=True), \
