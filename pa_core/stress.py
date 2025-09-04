@@ -7,7 +7,7 @@ liquidity squeezes or volatility regime shifts.  Presets return a new
 
 from __future__ import annotations
 
-from typing import Callable, Mapping
+from typing import Callable, Mapping, cast
 
 from .config import ModelConfig
 
@@ -61,7 +61,7 @@ def apply_stress_preset(cfg: ModelConfig, name: str) -> ModelConfig:
         raise KeyError(f"Unknown stress preset: {name}")
     preset = STRESS_PRESETS[name]
     updates = {k: (v(cfg) if callable(v) else v) for k, v in preset.items()}
-    return cfg.model_copy(update=updates)
+    return cast(ModelConfig, cfg.model_copy(update=updates))
 
 
 __all__ = ["STRESS_PRESETS", "apply_stress_preset"]

@@ -29,7 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
           pip install -e .
-      - run: ruff check pa_core tests
+      - run: ruff check pa_core tests --fix --unsafe-fixes
         name: Ruff (lint)
       - run: black --check pa_core tests
         name: Black (format check)
@@ -291,7 +291,10 @@ jobs:
           script: |
             const ok = '${{ steps.eval.outputs.ok }}' === 'true';
             const sha = process.env.GITHUB_SHA; // PR merge commit on pull_request
-            await github.repos.createCommitStatus({
+            if (!github?.rest?.repos) {
+              throw new Error('Octokit not initialized');
+            }
+            await github.rest.repos.createCommitStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
               sha,

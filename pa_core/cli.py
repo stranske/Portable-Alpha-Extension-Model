@@ -338,26 +338,6 @@ def main(
     )
     args = parser.parse_args(argv)
 
-    run_log_path: Path | None = None
-    if args.log_json:
-        run_ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
-        run_dir = Path("runs") / run_ts
-        run_dir.mkdir(parents=True, exist_ok=True)
-        run_log_path = run_dir / "run.log"
-
-        root_logger = logging.getLogger()
-        root_logger.setLevel(logging.INFO)
-        root_logger.handlers.clear()
-
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.WARNING)
-        root_logger.addHandler(console_handler)
-
-        file_handler = logging.FileHandler(run_log_path)
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(JsonFormatter())
-        root_logger.addHandler(file_handler)
-
     prev_manifest_data: dict[str, Any] | None = None
     prev_summary_df: pd.DataFrame = pd.DataFrame()
     if getattr(args, "prev_manifest", None):
@@ -769,7 +749,7 @@ def main(
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
         try:
-            from .sim.sensitivity import one_factor_deltas
+            from .sim.sensitivity import one_factor_deltas as sim_one_factor_deltas
 
             # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
             base_params = {
@@ -869,7 +849,7 @@ def main(
                 vals = summary_l.loc[summary_l["Agent"] == "Base", "AnnReturn"]
                 return float(vals.to_numpy()[0]) if not vals.empty else 0.0
 
-            sens_df = one_factor_deltas(
+            sens_df = sim_one_factor_deltas(
                 params=base_params, steps=steps, evaluator=_eval
             )
             inputs_dict["_sensitivity_df"] = sens_df
@@ -945,7 +925,7 @@ def main(
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
         try:
-            from .sensitivity import one_factor_deltas
+            from .sensitivity import one_factor_deltas as simple_one_factor_deltas
 
             print("\n🔍 Running sensitivity analysis...")
 
@@ -1082,7 +1062,7 @@ def main(
                 base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]]
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
-                deltas = one_factor_deltas(base_df, scenarios, value="AnnReturn")
+                deltas = simple_one_factor_deltas(base_df, scenarios, value="AnnReturn")
 
                 print("\n📊 Sensitivity Analysis Results:")
                 print("=" * 50)
@@ -1172,14 +1152,14 @@ def main(
                 try:
                     # inputs_dict is a plain dict[str, object]; guard types before use
                     sens_val = inputs_dict.get("_sensitivity_df")
-                    sens_df: Optional[pd.DataFrame] = (
+                    sens_df_plot: Optional[pd.DataFrame] = (
                         sens_val if isinstance(sens_val, pd.DataFrame) else None
                     )
-                    if sens_df is not None and (not sens_df.empty):
-                        if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                    if sens_df_plot is not None and (not sens_df_plot.empty):
+                        if {"Parameter", "DeltaAbs"} <= set(sens_df_plot.columns):
                             series = cast(
                                 pd.Series,
-                                sens_df.set_index("Parameter")["DeltaAbs"].astype(
+                                sens_df_plot.set_index("Parameter")["DeltaAbs"].astype(
                                     float
                                 ),
                             )

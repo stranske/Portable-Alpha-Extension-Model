@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from itertools import combinations
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, cast
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -116,7 +116,7 @@ class Scenario(BaseModel):
 
 def load_scenario(path: str | Path) -> Scenario:
     data = yaml.safe_load(Path(path).read_text())
-    return Scenario.model_validate(data)
+    return cast(Scenario, Scenario.model_validate(data))
 
 
 def save_scenario(scenario: Scenario, path: str | Path) -> None:

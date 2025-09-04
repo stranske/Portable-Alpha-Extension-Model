@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, List
 
+import math
+
 import pandas as pd
 
 from ..config import ModelConfig
@@ -147,7 +149,7 @@ def compute_sleeve_risk_attribution(
     active_share = float(getattr(cfg, "active_share", 50.0)) / 100.0
 
     def ann_vol(x_monthly: float) -> float:
-        return (12.0**0.5) * x_monthly
+        return math.sqrt(12.0) * x_monthly
 
     def _metrics(
         b: float, alpha_sigma: float, rho_idx_alpha: float

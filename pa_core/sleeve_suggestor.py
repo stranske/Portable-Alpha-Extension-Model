@@ -78,6 +78,21 @@ def suggest_sleeve_sizes(
     records: list[dict[str, float]] = []
     for ext_cap, act_cap in combos:
         int_cap = total - ext_cap - act_cap
+
+        # Bounds filtering (if provided)
+        if min_external is not None and ext_cap < min_external:
+            continue
+        if max_external is not None and ext_cap > max_external:
+            continue
+        if min_active is not None and act_cap < min_active:
+            continue
+        if max_active is not None and act_cap > max_active:
+            continue
+        if min_internal is not None and int_cap < min_internal:
+            continue
+        if max_internal is not None and int_cap > max_internal:
+            continue
+
         test_cfg = cfg.model_copy(
             update={
                 "external_pa_capital": float(ext_cap),
@@ -87,64 +102,37 @@ def suggest_sleeve_sizes(
         )
         orch = SimulatorOrchestrator(test_cfg, idx_series)
         _, summary = orch.run(seed=seed)
+
         meets = True
         metrics: dict[str, float] = {}
         for agent in ["ExternalPA", "ActiveExt", "InternalPA"]:
             sub = summary[summary["Agent"] == agent]
             if sub.empty:
                 continue
-            # Bounds filtering (if provided)
-            if min_external is not None and ext_cap < min_external:
-                continue
-            if max_external is not None and ext_cap > max_external:
-                continue
-            if min_active is not None and act_cap < min_active:
-                continue
-            if max_active is not None and act_cap > max_active:
-                continue
-            if min_internal is not None and int_cap < min_internal:
-                continue
-            if max_internal is not None and int_cap > max_internal:
-                continue
-            test_cfg = cfg.model_copy(
-                update={
-                    "external_pa_capital": float(ext_cap),
-                    "active_ext_capital": float(act_cap),
-                    "internal_pa_capital": float(int_cap),
-                }
-            )
-            orch = SimulatorOrchestrator(test_cfg, idx_series)
-            _, summary = orch.run(seed=seed)
-            meets = True
-            metrics: dict[str, float] = {}
-            for agent in ["ExternalPA", "ActiveExt", "InternalPA"]:
-                sub = summary[summary["Agent"] == agent]
-                if sub.empty:
-                    continue
-                row = sub.iloc[0]
-                te = row["TE"] if row["TE"] is not None else 0.0
-                bprob = row["BreachProb"]
-                cvar = row["CVaR"]
-                metrics[f"{agent}_TE"] = te
-                metrics[f"{agent}_BreachProb"] = bprob
-                metrics[f"{agent}_CVaR"] = cvar
-                if te > max_te or bprob > max_breach or abs(cvar) > max_cvar:
-                    meets = False
-            if meets:
-                record = {
-                    "external_pa_capital": float(ext_cap),
-                    "active_ext_capital": float(act_cap),
-                    "internal_pa_capital": float(int_cap),
-                }
-                record.update(metrics)
-                # Composite risk score (lower is better): TE + BreachProb + |CVaR|
-                score = 0.0
-                for ag in ["ExternalPA", "ActiveExt", "InternalPA"]:
-                    score += record.get(f"{ag}_TE", 0.0)
-                    score += record.get(f"{ag}_BreachProb", 0.0)
-                    score += abs(record.get(f"{ag}_CVaR", 0.0))
-                record["risk_score"] = score
-                records.append(record)
+            row = sub.iloc[0]
+            te = row["TE"] if row["TE"] is not None else 0.0
+            bprob = row["BreachProb"]
+            cvar = row["CVaR"]
+            metrics[f"{agent}_TE"] = float(te)
+            metrics[f"{agent}_BreachProb"] = float(bprob)
+            metrics[f"{agent}_CVaR"] = float(cvar)
+            if te > max_te or bprob > max_breach or abs(cvar) > max_cvar:
+                meets = False
+        if meets:
+            record = {
+                "external_pa_capital": float(ext_cap),
+                "active_ext_capital": float(act_cap),
+                "internal_pa_capital": float(int_cap),
+            }
+            record.update(metrics)
+            # Composite risk score (lower is better): TE + BreachProb + |CVaR|
+            score = 0.0
+            for ag in ["ExternalPA", "ActiveExt", "InternalPA"]:
+                score += record.get(f"{ag}_TE", 0.0)
+                score += record.get(f"{ag}_BreachProb", 0.0)
+                score += abs(record.get(f"{ag}_CVaR", 0.0))
+            record["risk_score"] = score
+            records.append(record)
     df = pd.DataFrame.from_records(records)
     if not df.empty and sort_by in df.columns:
         df = df.sort_values(sort_by, ascending=True).reset_index(drop=True)

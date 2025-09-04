@@ -23,16 +23,19 @@ def test_load_index_returns_leaves_no_temp_files():
     temp_files_before = set(os.listdir(temp_dir))
 
     # Create a simple CSV file and test loading
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv") as f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
         f.write("Date,Return\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,0.02\n")
         f.write("2020-03-01,0.03\n")
-        f.flush()
+        csv_path = f.name
 
+    try:
         # This function should not create any persistent temp files
-        series = load_index_returns(f.name)
+        series = load_index_returns(csv_path)
         assert isinstance(series, pd.Series)
+    finally:
+        os.remove(csv_path)
 
     # Check that no new temporary files were created
     temp_files_after = set(os.listdir(temp_dir))
@@ -57,16 +60,22 @@ def test_csv_to_yaml_conversion_leaves_no_temp_files():
     temp_files_before = set(os.listdir(temp_dir))
 
     # Test the CSV to YAML conversion function
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".csv") as csv_f:
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as csv_f:
         csv_f.write("Parameter,Value\n")
         csv_f.write("Analysis mode,returns\n")
         csv_f.write("Number of simulations,100\n")
-        csv_f.flush()
+        csv_path = csv_f.name
 
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml") as yaml_f:
-            # This should not create any persistent temp files
-            _convert_csv_to_yaml(csv_f.name, yaml_f.name)
-            assert Path(yaml_f.name).exists()
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yml") as yaml_f:
+        yaml_path = yaml_f.name
+
+    try:
+        # This should not create any persistent temp files
+        _convert_csv_to_yaml(csv_path, yaml_path)
+        assert Path(yaml_path).exists()
+    finally:
+        os.remove(csv_path)
+        os.remove(yaml_path)
 
     # Check that no new temporary files were created
     temp_files_after = set(os.listdir(temp_dir))
@@ -91,16 +100,19 @@ def test_temp_files_auto_cleanup_on_exception():
 
     # Test that files are cleaned up even if an exception occurs
     try:
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv") as f:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
             f.write("Date,Return\n")
             f.write("2020-01-01,invalid_data\n")  # This might cause issues
-            f.flush()
+            csv_path = f.name
 
+        try:
             # Even if this raises an exception, the temp file should be cleaned up
             try:
-                load_index_returns(f.name)
+                load_index_returns(csv_path)
             except Exception:
                 pass  # Ignore any exceptions for this test
+        finally:
+            os.remove(csv_path)
     except Exception:
         pass  # Ignore any exceptions for this test
 
@@ -122,19 +134,13 @@ def test_temp_files_auto_cleanup_on_exception():
 def test_no_delete_false_in_codebase():
     """Test that delete=False has been removed from all relevant files."""
     # Check that we haven't missed any delete=False usage in key files
-    dashboard_files = [
+    monitored_files = [
         "dashboard/pages/1_Asset_Library.py",
         "dashboard/pages/2_Portfolio_Builder.py",
         "dashboard/pages/3_Scenario_Wizard.py",
     ]
 
-    test_files = [
-        "tests/test_data_loading_validation.py",
-        "tests/test_field_mappings.py",
-        "tests/test_num_val_fix.py",
-    ]
-
-    for file_path in dashboard_files + test_files:
+    for file_path in monitored_files:
         full_path = Path(__file__).parent.parent / file_path
         if full_path.exists():
             content = full_path.read_text()

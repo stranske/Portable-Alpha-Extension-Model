@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 from typing import Sequence
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from ..config import get_field_mappings, load_config
 from .loaders import load_parameters
