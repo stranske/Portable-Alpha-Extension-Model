@@ -33,7 +33,7 @@ def nearest_psd(mat: NDArray[np.float64]) -> NDArray[np.float64]:
     psd_mat = eigvecs @ xp.diag(eigvals_clipped) @ eigvecs.T
     a3 = 0.5 * (psd_mat + psd_mat.T)
     if _is_psd(a3):
-        return a3
+        return np.asarray(a3, dtype=np.float64)
     # Add jitter until PSD
     spacing = xp.spacing(xp.linalg.norm(mat))
     eye = xp.eye(mat.shape[0])
@@ -43,7 +43,7 @@ def nearest_psd(mat: NDArray[np.float64]) -> NDArray[np.float64]:
         mineig = float(eigvals.min())
         a3 += eye * (-mineig * k**2 + spacing)
         k += 1
-    return a3
+    return np.asarray(a3, dtype=np.float64)
 
 
 def build_cov_matrix(
@@ -90,14 +90,14 @@ def build_cov_matrix(
     cov = xp.outer(sds, sds) * rho
     cov = 0.5 * (cov + cov.T)
     if _is_psd(cov):
-        return cov
+        return np.asarray(cov, dtype=np.float64)
     adjusted = nearest_psd(cov)
     max_delta = float(xp.max(xp.abs(adjusted - cov)))
     warnings.warn(
         f"Covariance matrix was not PSD; projected with max|Δ|={max_delta:.2e}",
         RuntimeWarning,
     )
-    return adjusted
+    return np.asarray(adjusted, dtype=np.float64)
 
 
 def build_cov_matrix_with_validation(
@@ -169,4 +169,4 @@ def build_cov_matrix_with_validation(
         warnings.warn(validation_result.message, RuntimeWarning)
         return nearest_psd(cov), validation_info
     else:
-        return cov, validation_info
+        return np.asarray(cov, dtype=np.float64), validation_info
