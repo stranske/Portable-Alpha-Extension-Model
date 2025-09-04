@@ -537,7 +537,6 @@ def main(
                     from .reporting.export_packet import (
                         create_export_packet as create_export_packet_fn,
                     )
-
                     all_summary = pd.concat(summary_frames, ignore_index=True)
 
                     # Create visualization from consolidated summary
