@@ -31,10 +31,10 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
     """Test that build_windows_portable_zip uses secure subprocess.run() calls."""
     make_portable_zip = _load_make_portable_zip_module()
     
-    # Create a mock staging directory and project root
-    temp_staging = Path("/tmp/test_staging")
-    temp_project = Path("/tmp/test_project")
-    temp_output = Path("/tmp/test_output.zip")
+    # Create a mock staging directory and project root using tmp_path for portability
+    temp_staging = tmp_path / "test_staging"
+    temp_project = tmp_path / "test_project"
+    temp_output = tmp_path / "test_output.zip"
     
     # Mock all the external dependencies using object attributes instead of module names
     with mock.patch.object(make_portable_zip, 'sys') as mock_sys, \
