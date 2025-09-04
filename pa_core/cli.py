@@ -384,7 +384,9 @@ def main(
     from .config import load_config
 
     cfg = load_config(args.config)
-    args.backend = resolve_and_set_backend(args.backend, cfg)
+    backend_choice = args.backend or cfg.backend
+    resolve_and_set_backend(backend_choice)
+    args.backend = backend_choice
 
     from .data import load_index_returns
     from .manifest import ManifestWriter
@@ -527,7 +529,7 @@ def main(
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=run_log_path,
+            run_log=str(run_log_path) if run_log_path else None,
             previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
