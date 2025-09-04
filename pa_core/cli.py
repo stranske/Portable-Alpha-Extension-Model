@@ -417,7 +417,7 @@ def main(
         # Create run directory under ./runs/<timestamp>
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
         run_dir = Path("runs") / ts
-        run_log_path = cast(Path, run_dir) / "run.log"
+        run_log_path = run_dir / "run.log"
         try:
             setup_json_logging(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
