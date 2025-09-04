@@ -1,9 +1,12 @@
 from pathlib import Path
+from typing import Any
 
-import openpyxl
 import pandas as pd
+import pytest
 
 from pa_core.reporting import export_to_excel
+
+openpyxl: Any = pytest.importorskip("openpyxl")
 
 
 def test_shortfallprob_present(tmp_path: Path) -> None:

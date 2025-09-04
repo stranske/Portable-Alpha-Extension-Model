@@ -160,7 +160,7 @@ class TestValidationConstants:
         """Test that synthetic data constants represent realistic values."""
         # Mean should be zero (neutral expected return)
         assert SYNTHETIC_DATA_MEAN == 0.0
-        
+
         # Standard deviation should be positive and reasonable for test data
         assert SYNTHETIC_DATA_STD > 0.0
         assert SYNTHETIC_DATA_STD <= 1.0  # Should be reasonable for test scenarios

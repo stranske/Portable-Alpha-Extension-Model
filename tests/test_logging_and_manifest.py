@@ -5,8 +5,6 @@ import json
 import logging
 from pathlib import Path
 
-import pytest
-
 from pa_core.logging_utils import JSONLogFormatter
 from pa_core.manifest import ManifestWriter
 

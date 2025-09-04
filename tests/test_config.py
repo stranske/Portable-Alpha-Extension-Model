@@ -1,9 +1,12 @@
 from pathlib import Path
+from typing import Any
 
-import yaml
+import pytest
 
 from pa_core.config import ModelConfig, load_config
 from pa_core.data.convert import convert
+
+yaml: Any = pytest.importorskip("yaml")
 
 
 def test_load_yaml(tmp_path):

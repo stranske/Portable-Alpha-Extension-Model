@@ -369,8 +369,8 @@ def main(
     args.backend = backend_choice
 
     from .data import load_index_returns
-    from .manifest import ManifestWriter
     from .logging_utils import setup_json_logging
+    from .manifest import ManifestWriter
     from .random import spawn_agent_rngs, spawn_rngs
     from .reporting.attribution import (
         compute_sleeve_return_attribution,
@@ -411,13 +411,13 @@ def main(
     args.backend = backend_choice
 
     # Optional structured logging setup
-    run_dir: Path | None = None
     run_log_path: Path | None = None
     if args.log_json:
         # Create run directory under ./runs/<timestamp>
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
         run_dir = Path("runs") / ts
         run_log_path = run_dir / "run.log"
+        assert run_log_path is not None
         try:
             setup_json_logging(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
@@ -537,6 +537,7 @@ def main(
                     from .reporting.export_packet import (
                         create_export_packet as create_export_packet_fn,
                     )
+
                     all_summary = pd.concat(summary_frames, ignore_index=True)
 
                     # Create visualization from consolidated summary
@@ -1214,7 +1215,9 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(f"❌ Export packet failed due to data or configuration issue: {e}")
+                print(
+                    f"❌ Export packet failed due to data or configuration issue: {e}"
+                )
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:

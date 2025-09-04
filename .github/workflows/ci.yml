@@ -291,14 +291,16 @@ jobs:
           script: |
             const ok = '${{ steps.eval.outputs.ok }}' === 'true';
             const sha = process.env.GITHUB_SHA; // PR merge commit on pull_request
+            const owner = process.env.GITHUB_REPOSITORY_OWNER;
+            const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
             await github.rest.repos.createCommitStatus({
-              owner: github.context.repo.owner,
-              repo: github.context.repo.repo,
+              owner,
+              repo,
               sha,
               state: ok ? 'success' : 'failure',
               context: 'required/pr-gate',
               description: ok ? 'PR Gate passed' : 'PR Gate failed',
-              target_url: `${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}`
+              target_url: `${github.context.serverUrl}/${owner}/${repo}/actions/runs/${github.context.runId}`
             });
 
       - name: Fail if any upstream job failed

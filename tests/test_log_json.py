@@ -2,10 +2,13 @@ import json
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
-import yaml
+import pytest
 
 from pa_core.cli import main
+
+yaml: Any = pytest.importorskip("yaml")
 
 
 def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):

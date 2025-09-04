@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 
 
-
 @pytest.fixture
 def caplog_debug(caplog):
     """Fixture to capture debug-level logs."""

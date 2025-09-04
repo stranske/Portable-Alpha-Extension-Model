@@ -1,6 +1,5 @@
 """Test that wizard schema has all required attributes, eliminating need for getattr() with defaults."""
 
-
 from pa_core.config import ModelConfig
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 

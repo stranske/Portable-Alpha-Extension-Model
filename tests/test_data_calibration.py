@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import pytest
-import yaml
 from pandas.testing import assert_frame_equal
 
 from pa_core.data import CalibrationAgent, DataImportAgent
+
+yaml: Any = pytest.importorskip("yaml")
 
 # ruff: noqa: E402
 
@@ -98,6 +100,7 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
     )
     assert_frame_equal(df_csv.reset_index(drop=True), expected)
 
+    assert importer_csv.metadata is not None
     assert importer_csv.metadata["frequency"] == "daily"
     assert importer_csv.metadata["value_type"] == "prices"
 

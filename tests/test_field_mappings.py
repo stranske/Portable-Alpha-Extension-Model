@@ -62,7 +62,9 @@ def test_csv_conversion_with_field_mappings():
 
     try:
         # Create temporary YAML file for output
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yml") as yaml_f:
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".yml"
+        ) as yaml_f:
             yaml_path = yaml_f.name
 
         try:

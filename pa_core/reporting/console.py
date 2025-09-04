@@ -21,7 +21,9 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
     if isinstance(summary, pd.DataFrame):
         # Convert DataFrame to dict of columns -> list values
         df = cast(pd.DataFrame, summary)
-        data: dict[str, list[object]] = {str(col): df[col].tolist() for col in df.columns}
+        data: dict[str, list[object]] = {
+            str(col): df[col].tolist() for col in df.columns
+        }
     else:
         # Convert mapping to single-row dataframe-like dict
         data = {str(k): [v] for k, v in dict(summary).items()}

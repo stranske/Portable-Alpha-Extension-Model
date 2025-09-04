@@ -20,7 +20,9 @@ def test_build_cov_matrix_shape():
 
 
 def test_simulate_financing_shape():
-    out = simulate_financing(12, SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD, 0.0, 2.0, n_scenarios=5)
+    out = simulate_financing(
+        12, SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD, 0.0, 2.0, n_scenarios=5
+    )
     assert out.shape == (5, 12)
     assert np.all(out >= 0)
 
