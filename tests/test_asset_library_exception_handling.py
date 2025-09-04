@@ -19,8 +19,15 @@ def test_file_descriptor_closing_with_oserror_logging(dashboard_module_loader):
 
     # Test the actual pattern used in the Asset Library
     with patch.object(logger, "warning") as mock_warning:
+        original_close = os.close
+
+        def close_then_raise(fd: int) -> None:
+            """Close the descriptor then raise OSError to simulate double close."""
+            original_close(fd)
+            raise OSError("Bad file descriptor")
+
         # Mock os.close to raise an OSError (common when fd is already closed)
-        with patch("os.close", side_effect=OSError("Bad file descriptor")):
+        with patch("os.close", side_effect=close_then_raise):
             # Simulate the exact pattern from Asset Library
             fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
             try:
@@ -73,8 +80,14 @@ def test_specific_oserror_handling_not_broad_exception(dashboard_module_loader):
     logger = asset_lib_module["logger"]
 
     with patch.object(logger, "warning") as mock_warning:
+        original_close = os.close
+
+        def close_then_value_error(fd: int) -> None:
+            original_close(fd)
+            raise ValueError("Some other error")
+
         # Mock os.close to raise a different exception (not OSError)
-        with patch("os.close", side_effect=ValueError("Some other error")):
+        with patch("os.close", side_effect=close_then_value_error):
             fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
             try:
                 Path(tmp_path).write_text("test content")

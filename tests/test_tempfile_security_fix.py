@@ -143,7 +143,7 @@ def test_no_delete_false_in_codebase():
     for file_path in monitored_files:
         full_path = Path(__file__).parent.parent / file_path
         if full_path.exists():
-            content = full_path.read_text()
+            content = full_path.read_text(encoding="utf-8", errors="ignore")
             # Should not find delete=False anymore
             assert (
                 "delete=False" not in content
