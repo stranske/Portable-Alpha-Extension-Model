@@ -215,6 +215,13 @@ such as `ShortfallProb` trigger a `ConfigError` during loading.
 
 ### Testing
 
+Install the package and development dependencies first:
+
+```bash
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
 ```bash
 # Run all tests
 ./dev.sh test
