@@ -3,6 +3,7 @@
 Tests for backend selection helper function to ensure consistent behavior
 between cli.py and __main__.py after refactoring.
 """
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -95,16 +96,22 @@ class TestBackendSelectionIntegration:
             config_data["backend"] = backend
             
         fd, path = tempfile.mkstemp(suffix=".yml")
-        with open(path, "w") as f:
-            yaml.dump(config_data, f)
-        
+        try:
+            with open(path, "w") as f:
+                yaml.dump(config_data, f)
+        finally:
+            os.close(fd)
+
         return path
 
     def _create_test_index(self):
         """Create a temporary index file for testing."""
         fd, path = tempfile.mkstemp(suffix=".csv")
-        with open(path, "w") as f:
-            f.write("Date,Return\n2020-01-01,0.01\n2020-02-01,0.02\n")
+        try:
+            with open(path, "w") as f:
+                f.write("Date,Return\n2020-01-01,0.01\n2020-02-01,0.02\n")
+        finally:
+            os.close(fd)
         return path
 
     def test_cli_and_main_consistent_behavior_no_args(self):
