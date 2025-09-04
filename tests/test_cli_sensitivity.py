@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -65,7 +65,7 @@ sigma_M: 0.01
             patch("pa_core.cli.draw_joint_returns") as mock_draws,
             patch("pa_core.cli.simulate_agents") as mock_simulate,
             patch("pa_core.cli.create_enhanced_summary") as mock_summary,
-            patch("pa_core.cli.export_to_excel") as mock_export,
+            patch("pa_core.cli.export_to_excel"),
             patch("pa_core.cli.build_from_config") as mock_build_agents,
             patch("pa_core.cli.build_cov_matrix"),
             patch("pa_core.cli.draw_financing_series") as mock_financing,
@@ -152,9 +152,9 @@ sigma_M: 0.01
             patch("pa_core.cli.draw_joint_returns") as mock_draws,
             patch("pa_core.cli.simulate_agents") as mock_simulate,
             patch("pa_core.cli.create_enhanced_summary") as mock_summary,
-            patch("pa_core.cli.export_to_excel") as mock_export,
+            patch("pa_core.cli.export_to_excel"),
             patch("pa_core.cli.build_from_config") as mock_build_agents,
-            patch("pa_core.cli.build_cov_matrix") as mock_cov,
+            patch("pa_core.cli.build_cov_matrix"),
             patch("builtins.print") as mock_print,
         ):
 
@@ -258,14 +258,16 @@ sigma_M: 0.01
             )
 
             # Mock one of the evaluation steps to raise an exception
+            call_count = 0
+
             def side_effect_simulate(*args, **kwargs):
+                nonlocal call_count
                 # Raise exception on second and subsequent calls (sensitivity analysis calls)
-                if side_effect_simulate.call_count > 1:
+                if call_count > 1:
                     raise ValueError("Simulated parameter evaluation failure")
-                side_effect_simulate.call_count += 1
+                call_count += 1
                 return {"Base": [[0.01, 0.02, 0.01]]}
 
-            side_effect_simulate.call_count = 0
             mock_simulate.side_effect = side_effect_simulate
             mock_build_agents.return_value = []
             mock_draws.return_value = ([], [], [], [])

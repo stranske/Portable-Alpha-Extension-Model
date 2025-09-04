@@ -1,11 +1,14 @@
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
-import yaml
+import pytest
 
 from pa_core.cli import main
 from pa_core.config import load_config
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
+
+yaml: Any = pytest.importorskip("yaml")
 
 
 def test_suggest_sleeve_sizes_returns_feasible():

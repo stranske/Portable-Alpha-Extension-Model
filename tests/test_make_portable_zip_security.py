@@ -38,33 +38,26 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
     temp_output = tmp_path / "test_output.zip"
 
     # Mock all the external dependencies using object attributes instead of module names
-    with mock.patch.object(make_portable_zip, "sys") as mock_sys, mock.patch.object(
-        make_portable_zip.Path, "exists"
-    ) as mock_exists, mock.patch.object(
-        make_portable_zip.Path, "mkdir"
-    ) as _mock_mkdir, mock.patch.object(
-        make_portable_zip.shutil, "rmtree"
-    ) as _mock_rmtree, mock.patch.object(
-        make_portable_zip, "_download"
-    ) as _mock_download, mock.patch.object(
-        make_portable_zip, "_unzip"
-    ) as _mock_unzip, mock.patch.object(
-        make_portable_zip, "_enable_embedded_site"
-    ) as _mock_enable_site, mock.patch.object(
-        make_portable_zip, "_write_launcher_bats"
-    ) as _mock_write_bats, mock.patch.object(
-        make_portable_zip.subprocess, "run"
-    ) as mock_subprocess_run, mock.patch.object(
-        make_portable_zip.shutil, "copytree"
-    ) as _mock_copytree, mock.patch.object(
-        make_portable_zip.shutil, "copy2"
-    ) as _mock_copy2, mock.patch.object(
-        make_portable_zip.zipfile, "ZipFile"
-    ) as mock_zipfile, mock.patch.object(
-        make_portable_zip.Path, "iterdir"
-    ) as mock_iterdir, mock.patch.object(
-        make_portable_zip.Path, "rglob"
-    ) as mock_rglob:
+    with (
+        mock.patch.object(make_portable_zip, "sys") as mock_sys,
+        mock.patch.object(make_portable_zip.Path, "exists") as mock_exists,
+        mock.patch.object(make_portable_zip.Path, "mkdir") as _mock_mkdir,
+        mock.patch.object(make_portable_zip.shutil, "rmtree") as _mock_rmtree,
+        mock.patch.object(make_portable_zip, "_download") as _mock_download,
+        mock.patch.object(make_portable_zip, "_unzip") as _mock_unzip,
+        mock.patch.object(
+            make_portable_zip, "_enable_embedded_site"
+        ) as _mock_enable_site,
+        mock.patch.object(
+            make_portable_zip, "_write_launcher_bats"
+        ) as _mock_write_bats,
+        mock.patch.object(make_portable_zip.subprocess, "run") as mock_subprocess_run,
+        mock.patch.object(make_portable_zip.shutil, "copytree") as _mock_copytree,
+        mock.patch.object(make_portable_zip.shutil, "copy2") as _mock_copy2,
+        mock.patch.object(make_portable_zip.zipfile, "ZipFile") as mock_zipfile,
+        mock.patch.object(make_portable_zip.Path, "iterdir") as mock_iterdir,
+        mock.patch.object(make_portable_zip.Path, "rglob") as mock_rglob,
+    ):
         # Set up mocks
         mock_sys.platform = "win32"
         mock_exists.return_value = True
@@ -145,20 +138,16 @@ def test_error_handling_in_subprocess_calls(tmp_path: Path):
     temp_project = tmp_path / "test_project"
     temp_output = tmp_path / "test_output.zip"
 
-    with mock.patch.object(make_portable_zip, "sys") as mock_sys, mock.patch.object(
-        make_portable_zip.Path, "exists", return_value=True
-    ), mock.patch.object(make_portable_zip.Path, "mkdir"), mock.patch.object(
-        make_portable_zip.shutil, "rmtree"
-    ), mock.patch.object(
-        make_portable_zip, "_download"
-    ), mock.patch.object(
-        make_portable_zip, "_unzip"
-    ), mock.patch.object(
-        make_portable_zip, "_enable_embedded_site"
-    ), mock.patch.object(
-        make_portable_zip.subprocess, "run"
-    ) as mock_subprocess_run, mock.patch.object(
-        make_portable_zip.Path, "iterdir", return_value=[]
+    with (
+        mock.patch.object(make_portable_zip, "sys") as mock_sys,
+        mock.patch.object(make_portable_zip.Path, "exists", return_value=True),
+        mock.patch.object(make_portable_zip.Path, "mkdir"),
+        mock.patch.object(make_portable_zip.shutil, "rmtree"),
+        mock.patch.object(make_portable_zip, "_download"),
+        mock.patch.object(make_portable_zip, "_unzip"),
+        mock.patch.object(make_portable_zip, "_enable_embedded_site"),
+        mock.patch.object(make_portable_zip.subprocess, "run") as mock_subprocess_run,
+        mock.patch.object(make_portable_zip.Path, "iterdir", return_value=[]),
     ):
         # Set up mocks
         mock_sys.platform = "win32"
@@ -182,7 +171,9 @@ def test_no_os_system_imports():
     ), "Module should not expose os.system"
 
     # Check the module source doesn't contain dangerous patterns (excluding comments)
-    module_file = Path(make_portable_zip.__file__)
+    module_file_str = make_portable_zip.__file__
+    assert module_file_str is not None
+    module_file = Path(module_file_str)
     source = module_file.read_text()
 
     # Remove comments and docstrings to check only actual code

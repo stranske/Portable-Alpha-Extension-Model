@@ -5,13 +5,11 @@ between cli.py and __main__.py after refactoring.
 """
 import os
 import tempfile
-from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 import yaml
 
-from pa_core.backend import resolve_and_set_backend, get_backend, set_backend
+from pa_core.backend import get_backend, resolve_and_set_backend
 from pa_core.config import ModelConfig
 
 
@@ -21,13 +19,9 @@ class TestBackendSelectionHelper:
     def test_resolve_backend_cli_priority(self):
         """Test that CLI argument takes priority over config."""
         # Create a config with cupy backend
-        config_data = {
-            "N_SIMULATIONS": 1,
-            "N_MONTHS": 1,
-            "backend": "cupy"
-        }
+        config_data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "backend": "cupy"}
         cfg = ModelConfig(**config_data)
-        
+
         # CLI argument should override config
         backend = resolve_and_set_backend("numpy", cfg)
         assert backend == "numpy"
@@ -38,10 +32,10 @@ class TestBackendSelectionHelper:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
-            "backend": "numpy"  # Would be cupy but we can't test that without cupy
+            "backend": "numpy",  # Would be cupy but we can't test that without cupy
         }
         cfg = ModelConfig(**config_data)
-        
+
         # Should use config backend when CLI is None
         backend = resolve_and_set_backend(None, cfg)
         assert backend == "numpy"
@@ -62,11 +56,7 @@ class TestBackendSelectionHelper:
 
     def test_config_with_backend_field(self):
         """Test that ModelConfig accepts backend field."""
-        config_data = {
-            "N_SIMULATIONS": 10,
-            "N_MONTHS": 12,
-            "backend": "numpy"
-        }
+        config_data = {"N_SIMULATIONS": 10, "N_MONTHS": 12, "backend": "numpy"}
         cfg = ModelConfig(**config_data)
         assert cfg.backend == "numpy"
 
@@ -75,9 +65,9 @@ class TestBackendSelectionHelper:
         config_data = {
             "N_SIMULATIONS": 10,
             "N_MONTHS": 12,
-            "backend": "invalid_backend"
+            "backend": "invalid_backend",
         }
-        
+
         with pytest.raises(ValueError, match="backend must be one of"):
             ModelConfig(**config_data)
 
@@ -90,11 +80,11 @@ class TestBackendSelectionIntegration:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"]
+            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
         }
         if backend:
             config_data["backend"] = backend
-            
+
         fd, path = tempfile.mkstemp(suffix=".yml")
         try:
             with open(path, "w") as f:
@@ -118,19 +108,19 @@ class TestBackendSelectionIntegration:
         """Test that both entry points behave consistently without backend args."""
         # Test the helper function directly instead of full integration
         # since we've already tested the individual components
-        
+
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
             "backend": "numpy",
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"]
+            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
         }
         cfg = ModelConfig(**config_data)
-        
+
         # Simulate what both entry points should do without CLI backend arg
         result1 = resolve_and_set_backend(None, cfg)
         result2 = resolve_and_set_backend(None, cfg)
-        
+
         # Both should give same result (config backend)
         assert result1 == result2 == "numpy"
 
@@ -140,13 +130,13 @@ class TestBackendSelectionIntegration:
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
             "backend": "numpy",  # Config has one value
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"]
+            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
         }
         cfg = ModelConfig(**config_data)
-        
+
         # Simulate what both entry points should do with CLI backend arg
-        result1 = resolve_and_set_backend("numpy", cfg)  # CLI overrides 
+        result1 = resolve_and_set_backend("numpy", cfg)  # CLI overrides
         result2 = resolve_and_set_backend("numpy", cfg)  # Same for both
-        
+
         # Both should use CLI arg (numpy)
         assert result1 == result2 == "numpy"

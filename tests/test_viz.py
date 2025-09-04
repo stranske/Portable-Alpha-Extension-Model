@@ -525,7 +525,7 @@ def test_theme_reload(tmp_path):
     from pa_core.viz import theme
 
     theme.reload_theme(cfg)
-    assert theme.TEMPLATE.layout.font.family == "DejaVu Sans"
-    assert list(theme.TEMPLATE.layout.colorway)[:2] == ["#111111", "#222222"]
-    assert theme.TEMPLATE.layout.paper_bgcolor == "#eeeeee"
-    assert theme.TEMPLATE.layout.plot_bgcolor == "#dddddd"
+    assert theme.TEMPLATE.layout.font.family == "DejaVu Sans"  # type: ignore[attr-defined]
+    assert list(theme.TEMPLATE.layout.colorway)[:2] == ["#111111", "#222222"]  # type: ignore[attr-defined]
+    assert theme.TEMPLATE.layout.paper_bgcolor == "#eeeeee"  # type: ignore[attr-defined]
+    assert theme.TEMPLATE.layout.plot_bgcolor == "#dddddd"  # type: ignore[attr-defined]

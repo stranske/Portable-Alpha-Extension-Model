@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
-import yaml
 
 import pa_core.validate as validate
+
+yaml: Any = pytest.importorskip("yaml")
 
 
 def test_validate_cli_ok(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:

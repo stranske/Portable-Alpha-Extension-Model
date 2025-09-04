@@ -2,6 +2,7 @@ import numpy as np
 from hypothesis import given
 from hypothesis import strategies as st
 from hypothesis.extra import numpy as nps
+from hypothesis.strategies import DrawFn
 
 from pa_core.agents import (
     ActiveExtensionAgent,
@@ -20,14 +21,16 @@ from pa_core.validators import SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD
     n_scenarios=st.integers(min_value=1, max_value=10),
 )
 def test_simulate_financing_shapes(T, n_scenarios):
-    out = simulate_financing(T, SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD, 0.0, 1.0, n_scenarios=n_scenarios)
+    out = simulate_financing(
+        T, SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD, 0.0, 1.0, n_scenarios=n_scenarios
+    )
     expected_shape = (T,) if n_scenarios == 1 else (n_scenarios, T)
     assert out.shape == expected_shape
     assert np.all(np.isfinite(out))
 
 
 @st.composite
-def _env(draw):
+def _env(draw: DrawFn):
     n_sim = draw(st.integers(min_value=1, max_value=5))
     n_months = draw(st.integers(min_value=1, max_value=12))
     shape = (n_sim, n_months)
@@ -44,7 +47,7 @@ def _env(draw):
 
 
 @st.composite
-def _params(draw, name):
+def _params(draw: DrawFn, name: str) -> AgentParams:
     capital = draw(st.floats(min_value=1, max_value=1000))
     beta_share = draw(st.floats(0, 1))
     alpha_share = draw(st.floats(0, 1))

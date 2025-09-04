@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from pa_core.viz.utils import safe_to_numpy
 

@@ -1,7 +1,11 @@
 import zipfile
 from pathlib import Path
 
-from scripts.make_portable_zip import create_filtered_zip, get_default_excludes, should_exclude_path
+from scripts.make_portable_zip import (
+    create_filtered_zip,
+    get_default_excludes,
+    should_exclude_path,
+)
 
 
 def test_should_exclude_basic_patterns(tmp_path: Path) -> None:

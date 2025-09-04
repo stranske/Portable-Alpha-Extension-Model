@@ -40,14 +40,14 @@ def resolve_and_set_backend(
     cli_backend: Optional[str], config: Optional["ModelConfig"] = None
 ) -> str:
     """Resolve backend choice from CLI args and config, then set it.
-    
+
     Args:
         cli_backend: Backend specified via CLI (can be None)
         config: ModelConfig object (can be None)
-        
+
     Returns:
         The resolved backend name that was set
-        
+
     The resolution priority is:
     1. CLI argument (if provided)
     2. Config file setting (if config provided)
@@ -60,6 +60,6 @@ def resolve_and_set_backend(
         backend_choice = config.backend
     else:
         backend_choice = "numpy"
-    
+
     set_backend(backend_choice)
     return backend_choice

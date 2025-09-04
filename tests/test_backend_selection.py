@@ -1,7 +1,6 @@
-import json
-from pathlib import Path
 import sys
 import types
+from pathlib import Path
 
 import pytest
 import yaml
@@ -9,13 +8,13 @@ import yaml
 sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
 pptx_mod = types.ModuleType("pptx")
 pptx_util = types.ModuleType("pptx.util")
-pptx_mod.Presentation = object
-pptx_util.Inches = lambda x: x
-pptx_mod.util = pptx_util
+pptx_mod.Presentation = object  # type: ignore[attr-defined]
+pptx_util.Inches = lambda x: x  # type: ignore[attr-defined]
+pptx_mod.util = pptx_util  # type: ignore[attr-defined]
 sys.modules.setdefault("pptx", pptx_mod)
 sys.modules.setdefault("pptx.util", pptx_util)
 
-from pa_core.cli import main
+from pa_core.cli import main  # noqa: E402
 
 
 def _write_cfg(tmp_path, backend=None):
@@ -31,38 +30,44 @@ def _write_cfg(tmp_path, backend=None):
 def test_backend_cli_numpy(tmp_path):
     cfg_path, idx_csv = _write_cfg(tmp_path)
     out_file = tmp_path / "out.xlsx"
-    main([
-        "--config",
-        str(cfg_path),
-        "--index",
-        str(idx_csv),
-        "--output",
-        str(out_file),
-        "--backend",
-        "numpy",
-    ])
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--backend",
+            "numpy",
+        ]
+    )
     assert out_file.exists()
 
 
 def test_backend_cli_cupy_missing(tmp_path):
     cfg_path, idx_csv = _write_cfg(tmp_path)
     with pytest.raises(ImportError, match="CuPy backend requested"):
-        main([
-            "--config",
-            str(cfg_path),
-            "--index",
-            str(idx_csv),
-            "--backend",
-            "cupy",
-        ])
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--backend",
+                "cupy",
+            ]
+        )
 
 
 def test_backend_config_cupy_missing(tmp_path):
     cfg_path, idx_csv = _write_cfg(tmp_path, backend="cupy")
     with pytest.raises(ImportError, match="CuPy backend requested"):
-        main([
-            "--config",
-            str(cfg_path),
-            "--index",
-            str(idx_csv),
-        ])
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+            ]
+        )

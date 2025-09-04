@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+
 import pa_core.viz.widgets as widgets
 
 ipywidgets = pytest.importorskip("ipywidgets")

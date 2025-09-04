@@ -27,9 +27,7 @@ def make(
         per-cell hover ``customdata``. Each field will be pivoted similarly to
         ``z`` and stacked along the last dimension.
     """
-    table = (
-        df_grid.pivot(index=y, columns=x, values=z).sort_index().sort_index(axis=1)
-    )
+    table = df_grid.pivot(index=y, columns=x, values=z).sort_index().sort_index(axis=1)
 
     heatmap = go.Heatmap(z=table.values, x=table.columns, y=table.index)
 

@@ -108,7 +108,7 @@ def test_export_packet_handles_empty_data():
     # This follows the recommended pattern and avoids function attribute caching
     empty_summary = _EMPTY_DATAFRAME
 
-    inputs_dict = {"test": "value"}
+    inputs_dict: dict[str, object] = {"test": "value"}
     raw_returns_dict = {"Empty": empty_summary}
 
     fig = go.Figure()
@@ -188,10 +188,10 @@ def test_empty_dataframe_caching():
     # The cached DataFrame should be the same object when accessed multiple times
     empty1 = _EMPTY_DATAFRAME
     empty2 = _EMPTY_DATAFRAME
-    
+
     # Same object in memory (identity check)
     assert empty1 is empty2, "Cached DataFrame should be the same object"
-    
+
     # Proper DataFrame properties
     assert isinstance(empty1, pd.DataFrame), "Should be a DataFrame"
     assert empty1.empty, "Should be empty"
@@ -201,22 +201,24 @@ def test_empty_dataframe_caching():
 
 def test_no_function_attribute_caching_antipattern():
     """Test that we don't use the function attribute caching anti-pattern.
-    
+
     This test verifies that we've eliminated the hard-to-maintain pattern:
     if not hasattr(function_name, '_cache'):
         function_name._cache = pd.DataFrame()
     """
     # The function should not have any cache attributes attached to it
-    assert not hasattr(test_export_packet_handles_empty_data, '_empty_summary_cache'), \
-        "Function should not have cache attributes attached"
-    assert not hasattr(test_export_packet_handles_empty_data, '_cache'), \
-        "Function should not have generic cache attributes"
-    
+    assert not hasattr(
+        test_export_packet_handles_empty_data, "_empty_summary_cache"
+    ), "Function should not have cache attributes attached"
+    assert not hasattr(
+        test_export_packet_handles_empty_data, "_cache"
+    ), "Function should not have generic cache attributes"
+
     # Instead, we should use the module-level pattern
-    assert '_EMPTY_DATAFRAME' in globals(), \
-        "Should use module-level cached variable"
-    assert isinstance(_EMPTY_DATAFRAME, pd.DataFrame), \
-        "Module-level cache should be a DataFrame"
+    assert "_EMPTY_DATAFRAME" in globals(), "Should use module-level cached variable"
+    assert isinstance(
+        _EMPTY_DATAFRAME, pd.DataFrame
+    ), "Module-level cache should be a DataFrame"
 
 
 if __name__ == "__main__":

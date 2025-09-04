@@ -1,9 +1,12 @@
 from pathlib import Path
+from typing import Any
 
-import openpyxl
 import pandas as pd
+import pytest
 
 from pa_core.reporting import export_to_excel
+
+openpyxl: Any = pytest.importorskip("openpyxl")
 
 
 def test_export_to_excel_sheets(tmp_path: Path):

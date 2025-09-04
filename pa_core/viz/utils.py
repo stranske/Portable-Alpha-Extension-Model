@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 
 def safe_to_numpy(
     data: Union[pd.Series, pd.DataFrame], fillna_value: float = 0.0
-  ) -> NDArray[np.float64]:
+) -> NDArray[np.float64]:
     """
     Safely convert pandas Series or DataFrame to numpy array with fallback handling.
 

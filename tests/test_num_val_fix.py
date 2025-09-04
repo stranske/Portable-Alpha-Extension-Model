@@ -1,17 +1,19 @@
-"""
-'Tests for CSV to YAML conversion edge cases that previously caused undefined variable errors in _convert_csv_to_yaml function.'
-"""
+"""Tests for CSV to YAML conversion edge cases that previously caused undefined variable errors in _convert_csv_to_yaml function."""
 
 import os
 import tempfile
 from pathlib import Path
+from typing import Any
+
+import pytest
+
+yaml: Any = pytest.importorskip("yaml")
 
 
-def test_convert_csv_to_yaml_with_undefined_num_val_conditions():
+def test_convert_csv_to_yaml_with_undefined_num_val_conditions() -> None:
     """Test that _convert_csv_to_yaml handles edge cases that could cause undefined num_val."""
     from pa_core.pa import _convert_csv_to_yaml
 
-    # Create a test CSV with problematic values that could trigger the original bug
     problematic_data = [
         ("Parameter", "Value"),
         ("Total capital", "1000"),  # Normal case - should work
@@ -22,7 +24,6 @@ def test_convert_csv_to_yaml_with_undefined_num_val_conditions():
         ("Bad value", None),  # None-like value (written as empty string)
     ]
 
-    # Create temporary CSV file
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
         for row in problematic_data:
             val = row[1] if row[1] is not None else ""
@@ -40,9 +41,6 @@ def test_convert_csv_to_yaml_with_undefined_num_val_conditions():
         # Verify the output file was created
         assert Path(yaml_path).exists()
 
-        # Verify the content is valid YAML
-        import yaml
-
         with open(yaml_path, "r") as yaml_content:
             content = yaml.safe_load(yaml_content)
             assert isinstance(content, dict)
@@ -53,11 +51,10 @@ def test_convert_csv_to_yaml_with_undefined_num_val_conditions():
         os.remove(yaml_path)
 
 
-def test_convert_csv_to_yaml_percentage_conversion():
+def test_convert_csv_to_yaml_percentage_conversion() -> None:
     """Test that percentage conversion still works correctly after the fix."""
     from pa_core.pa import _convert_csv_to_yaml
 
-    # Create a test CSV with percentage values
     test_data = [
         ("Parameter", "Value"),
         ("Risk-free rate (%)", "5.0"),  # Should convert to 0.05
@@ -76,9 +73,6 @@ def test_convert_csv_to_yaml_percentage_conversion():
     try:
         _convert_csv_to_yaml(csv_path, yaml_path)
 
-        # Check that percentages were converted correctly
-        import yaml
-
         with open(yaml_path, "r") as yaml_content:
             content = yaml.safe_load(yaml_content)
 
@@ -92,7 +86,7 @@ def test_convert_csv_to_yaml_percentage_conversion():
         os.remove(yaml_path)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover - manual execution
     test_convert_csv_to_yaml_with_undefined_num_val_conditions()
     test_convert_csv_to_yaml_percentage_conversion()
     print("All tests passed!")
