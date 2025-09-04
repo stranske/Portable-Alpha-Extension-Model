@@ -20,6 +20,7 @@ class Manifest:
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
     backend: str | None = None
+    run_log: str | None = None
     previous_run: str | None = None
 
 
