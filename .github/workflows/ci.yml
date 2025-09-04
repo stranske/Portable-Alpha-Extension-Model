@@ -300,7 +300,7 @@ jobs:
               state: ok ? 'success' : 'failure',
               context: 'required/pr-gate',
               description: ok ? 'PR Gate passed' : 'PR Gate failed',
-              target_url: `${github.context.serverUrl}/${owner}/${repo}/actions/runs/${github.context.runId}`
+              target_url: `${github.serverUrl}/${owner}/${repo}/actions/runs/${github.context.runId}`
             });
 
       - name: Fail if any upstream job failed

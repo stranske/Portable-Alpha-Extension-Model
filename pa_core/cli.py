@@ -418,7 +418,7 @@ def main(
         run_dir = Path("runs") / ts
         run_log_path = run_dir / "run.log"
         try:
-            setup_json_logging(run_log_path)
+            setup_json_logging(str(run_log_path))
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
@@ -1214,9 +1214,7 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
