@@ -189,7 +189,7 @@ def test_no_more_silent_failures():
     from pathlib import Path
 
     cli_file = Path(__file__).parent.parent / "pa_core" / "cli.py"
-    cli_content = cli_file.read_text()
+    cli_content = cli_file.read_text(encoding="utf-8")
 
     # Check that we don't have the old silent pattern
     assert "except Exception:\n        pass" not in cli_content
@@ -205,7 +205,7 @@ def test_specific_exception_types_used():
     from pathlib import Path
 
     cli_file = Path(__file__).parent.parent / "pa_core" / "cli.py"
-    cli_content = cli_file.read_text()
+    cli_content = cli_file.read_text(encoding="utf-8")
 
     # Verify we have specific exception handling
     assert "(AttributeError, TypeError)" in cli_content
