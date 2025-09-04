@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -18,33 +19,34 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import make_portable_zip
 
 
-def test_build_windows_portable_zip_uses_subprocess_not_os_system():
+def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path):
     """Test that build_windows_portable_zip uses secure subprocess.run() calls."""
-    # Create a mock staging directory and project root
-    temp_staging = Path("/tmp/test_staging")
-    temp_project = Path("/tmp/test_project")
-    temp_output = Path("/tmp/test_output.zip")
+    # Create mock paths using platform-agnostic temporary directory
+    temp_dir = Path(tempfile.gettempdir())
+    temp_staging = temp_dir / "test_staging"
+    temp_project = temp_dir / "test_project"  
+    temp_output = temp_dir / "test_output.zip"
     
     # Mock all the external dependencies
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
          mock.patch("make_portable_zip.Path.exists") as mock_exists, \
-         mock.patch("make_portable_zip.Path.mkdir") as mock_mkdir, \
-         mock.patch("make_portable_zip.shutil.rmtree") as mock_rmtree, \
-         mock.patch("make_portable_zip._download") as mock_download, \
-         mock.patch("make_portable_zip._unzip") as mock_unzip, \
-         mock.patch("make_portable_zip._enable_embedded_site") as mock_enable_site, \
-         mock.patch("make_portable_zip._write_launcher_bats") as mock_write_bats, \
+         mock.patch("make_portable_zip.Path.mkdir"), \
+         mock.patch("make_portable_zip.shutil.rmtree"), \
+         mock.patch("make_portable_zip._download"), \
+         mock.patch("make_portable_zip._unzip"), \
+         mock.patch("make_portable_zip._enable_embedded_site"), \
+         mock.patch("make_portable_zip._write_launcher_bats"), \
          mock.patch("make_portable_zip.subprocess.run") as mock_subprocess_run, \
-         mock.patch("make_portable_zip.shutil.copytree") as mock_copytree, \
-         mock.patch("make_portable_zip.shutil.copy2") as mock_copy2, \
+         mock.patch("make_portable_zip.shutil.copytree"), \
+         mock.patch("make_portable_zip.shutil.copy2"), \
          mock.patch("make_portable_zip.zipfile.ZipFile") as mock_zipfile, \
          mock.patch("make_portable_zip.Path.iterdir") as mock_iterdir, \
          mock.patch("make_portable_zip.Path.rglob") as mock_rglob:
         
-        # Set up mocks
+        # Set up mocks  
         mock_exists.return_value = True
-        mock_iterdir.return_value = [Path("/tmp/test_project/file1.py")]
-        mock_rglob.return_value = [Path("/tmp/test_staging/file1.py")]
+        mock_iterdir.return_value = [temp_project / "file1.py"]
+        mock_rglob.return_value = [temp_staging / "file1.py"]
         mock_zipfile.return_value.__enter__.return_value.write = mock.Mock()
         
         # Call the function
@@ -79,10 +81,11 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system():
             assert kwargs.get("check") is True, "Should use check=True for security"
 
 
-def test_subprocess_calls_prevent_command_injection():
+def test_subprocess_calls_prevent_command_injection(tmp_path: Path):
     """Test that the subprocess calls prevent command injection attacks."""
-    # Test with malicious path containing shell metacharacters
-    malicious_path = Path("/tmp/test; rm -rf /; echo pwned")
+    # Test with malicious path containing shell metacharacters - use platform-agnostic base
+    temp_dir = Path(tempfile.gettempdir()) 
+    malicious_path = temp_dir / "test; rm -rf /; echo pwned"
     
     with mock.patch("make_portable_zip.subprocess.run") as mock_subprocess_run:
         # Create a minimal version of the problematic code using secure subprocess
@@ -102,10 +105,11 @@ def test_subprocess_calls_prevent_command_injection():
         assert "; rm -rf /" in str(call_args[0]) or "; rm -rf /" in str(call_args[1])
 
 
-def test_error_handling_in_subprocess_calls():
+def test_error_handling_in_subprocess_calls(tmp_path: Path):
     """Test that subprocess errors are properly handled and wrapped."""
-    temp_project = Path("/tmp/test_project")
-    temp_output = Path("/tmp/test_output.zip")
+    temp_dir = Path(tempfile.gettempdir())
+    temp_project = temp_dir / "test_project"
+    temp_output = temp_dir / "test_output.zip"
     
     with mock.patch("make_portable_zip.sys.platform", "win32"), \
          mock.patch("make_portable_zip.Path.exists", return_value=True), \
@@ -142,7 +146,6 @@ def test_no_os_system_imports():
     lines = source.splitlines()
     code_lines = []
     in_multiline_string = False
-    string_delimiter = None
     
     for line in lines:
         stripped = line.strip()

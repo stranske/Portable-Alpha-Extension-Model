@@ -123,7 +123,7 @@ class Dependencies:
         simulate_agents=None,
     ):
         """Initialize dependencies with explicit function parameters.
-        
+
         Args:
             build_from_config: Function to build agents from config
             export_to_excel: Function to export results to Excel
@@ -131,7 +131,7 @@ class Dependencies:
             draw_joint_returns: Function to generate joint returns
             build_cov_matrix: Function to build covariance matrix
             simulate_agents: Function to simulate agents
-            
+
         If any parameter is None, the default implementation will be imported.
         """
         # Import defaults only when needed to avoid heavy imports at module load
@@ -220,11 +220,6 @@ def main(
         type=int,
         default=None,
         help="Random seed for reproducible simulations",
-    )
-    parser.add_argument(
-        "--log-json",
-        action="store_true",
-        help="Emit structured JSON logs to runs/<timestamp>/run.log",
     )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
@@ -385,13 +380,11 @@ def main(
             prev_summary_df = pd.DataFrame()
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
-    from .backend import resolve_and_set_backend, set_backend
+    from .backend import resolve_and_set_backend
     from .config import load_config
-    from .utils import select_and_set_backend
 
     cfg = load_config(args.config)
-    backend_choice = select_and_set_backend(args.backend, cfg)
-    args.backend = backend_choice
+    args.backend = resolve_and_set_backend(args.backend, cfg)
 
     from .data import load_index_returns
     from .manifest import ManifestWriter
@@ -410,7 +403,14 @@ def main(
 
     # Initialize dependencies - use provided deps for testing or create default
     if deps is None:
-        deps = Dependencies()
+        deps = Dependencies(
+            build_from_config=build_from_config,
+            export_to_excel=export_to_excel,
+            draw_financing_series=draw_financing_series,
+            draw_joint_returns=draw_joint_returns,
+            build_cov_matrix=build_cov_matrix,
+            simulate_agents=simulate_agents,
+        )
 
     flags = RunFlags(
         save_xlsx=args.output,
@@ -527,9 +527,8 @@ def main(
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
-            previous_run=args.prev_manifest,
             run_log=run_log_path,
+            previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         manifest_data = None
@@ -925,7 +924,9 @@ def main(
 
     # Write reproducibility manifest for normal run
     try:
-        mw = ManifestWriter(Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json"))
+        mw = ManifestWriter(
+            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+        )
         data_files = [args.index, args.config]
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
         if out_path.exists():
@@ -1172,21 +1173,29 @@ def main(
                 try:
                     # inputs_dict is a plain dict[str, object]; guard types before use
                     sens_val = inputs_dict.get("_sensitivity_df")
-                    sens_df: Optional[pd.DataFrame] = sens_val if isinstance(sens_val, pd.DataFrame) else None
+                    sens_df: Optional[pd.DataFrame] = (
+                        sens_val if isinstance(sens_val, pd.DataFrame) else None
+                    )
                     if sens_df is not None and (not sens_df.empty):
                         if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
                             series = cast(
                                 pd.Series,
-                                sens_df.set_index("Parameter")["DeltaAbs"].astype(float),
+                                sens_df.set_index("Parameter")["DeltaAbs"].astype(
+                                    float
+                                ),
                             )
-                            figs.append(viz.tornado.make(series, title="Sensitivity Tornado"))
+                            figs.append(
+                                viz.tornado.make(series, title="Sensitivity Tornado")
+                            )
                 except Exception:
                     # Non-fatal; continue without tornado figure
                     pass
                 # Optional: Return attribution sunburst
                 try:
                     attr_val = inputs_dict.get("_attribution_df")
-                    attr_df: Optional[pd.DataFrame] = attr_val if isinstance(attr_val, pd.DataFrame) else None
+                    attr_df: Optional[pd.DataFrame] = (
+                        attr_val if isinstance(attr_val, pd.DataFrame) else None
+                    )
                     if attr_df is not None and (not attr_df.empty):
                         if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                             figs.append(viz.sunburst.make(attr_df))
@@ -1229,9 +1238,7 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
