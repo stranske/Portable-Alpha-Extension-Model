@@ -555,11 +555,8 @@ def main(
 
                 if summary_frames:
                     from .reporting.export_packet import (
-                        create_export_packet as _create_export_packet,
+                        create_export_packet as create_export_packet_fn,
                     )
-
-                    if create_export_packet is None:
-                        create_export_packet = _create_export_packet
                     all_summary = pd.concat(summary_frames, ignore_index=True)
 
                     # Create visualization from consolidated summary
@@ -574,7 +571,7 @@ def main(
                     # Create a simplified raw_returns_dict for packet export
                     raw_returns_dict = {"Summary": all_summary}
 
-                    pptx_path, excel_path = create_export_packet(
+                    pptx_path, excel_path = create_export_packet_fn(
                         figs=[fig],
                         summary_df=all_summary,
                         raw_returns_dict=raw_returns_dict,
@@ -1207,13 +1204,10 @@ def main(
                     )
                 # Late-bind create_export_packet to allow test monkeypatching
                 from .reporting.export_packet import (
-                    create_export_packet as _create_export_packet,
+                    create_export_packet as create_export_packet_fn,
                 )
 
-                if create_export_packet is None:
-                    create_export_packet = _create_export_packet
-
-                pptx_path, excel_path = create_export_packet(
+                pptx_path, excel_path = create_export_packet_fn(
                     figs=figs,
                     summary_df=summary,
                     raw_returns_dict=raw_returns_dict,
