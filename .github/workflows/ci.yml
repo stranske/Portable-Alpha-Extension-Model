@@ -293,6 +293,10 @@ jobs:
             const sha = process.env.GITHUB_SHA; // PR merge commit on pull_request
             const owner = process.env.GITHUB_REPOSITORY_OWNER;
             const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+            const runId = process.env.GITHUB_RUN_ID || (github && github.context && github.context.runId);
+            if (!runId) {
+              throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
+            }
             await github.rest.repos.createCommitStatus({
               owner,
               repo,
@@ -300,7 +304,7 @@ jobs:
               state: ok ? 'success' : 'failure',
               context: 'required/pr-gate',
               description: ok ? 'PR Gate passed' : 'PR Gate failed',
-              target_url: `${github.serverUrl}/${owner}/${repo}/actions/runs/${github.context.runId}`
+              target_url: `${github.serverUrl}/${owner}/${repo}/actions/runs/${runId}`
             });
 
       - name: Fail if any upstream job failed
