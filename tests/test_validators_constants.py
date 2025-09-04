@@ -14,7 +14,6 @@ try:
         SYNTHETIC_DATA_STD,
         TEST_TOLERANCE_EPSILON,
         VOLATILITY_STRESS_MULTIPLIER,
-        ValidationResult,
         validate_simulation_parameters,
     )
 except ImportError:
