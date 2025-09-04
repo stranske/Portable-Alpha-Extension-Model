@@ -181,7 +181,7 @@ class TestAnalysisModeProperties:
 
         # Bind the property method to our mock
         description_method = AnalysisMode.description.fget
-        assert description_method is not None
+        assert description_method is not None, "AnalysisMode.description.fget should not be None"
         with pytest.raises(
             ValueError,
             match="No description found for AnalysisMode value 'nonexistent_mode'",
