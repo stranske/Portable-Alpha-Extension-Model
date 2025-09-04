@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-import tomllib
+try:  # Python 3.11+
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - fallback for <3.11
+    import tomli as tomllib
 from pathlib import Path
 
 

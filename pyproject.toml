@@ -74,6 +74,7 @@ dependencies = [
     "python-pptx",
     "xlsxwriter",
     "PyYAML>=6",
+    "tomli; python_version < \"3.11\"",
 ]
 
 [project.optional-dependencies]

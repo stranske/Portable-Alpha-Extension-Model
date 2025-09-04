@@ -5,7 +5,6 @@ This test verifies that after the security fix, no temporary files are left
 behind when using the functions that previously used delete=False.
 """
 
-import glob
 import os
 import tempfile
 from pathlib import Path
@@ -99,7 +98,7 @@ def test_temp_files_auto_cleanup_on_exception():
 
             # Even if this raises an exception, the temp file should be cleaned up
             try:
-                series = load_index_returns(f.name)
+                load_index_returns(f.name)
             except Exception:
                 pass  # Ignore any exceptions for this test
     except Exception:
