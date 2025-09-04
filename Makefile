@@ -19,6 +19,7 @@ help:
 	@echo "  demo       - Run CLI demo with sample data"
 	@echo "  dashboard  - Start Streamlit dashboard"
 	@echo "  docs       - Generate documentation"
+	@echo "  capture    - Headless capture of wizard screenshots"
 	@echo "  sync       - Sync with remote main branch"
 	@echo "  check-updates - Check for remote updates from Codex"
 	@echo "  dev-check  - Run all development checks (format+lint+test)"
@@ -76,6 +77,10 @@ dashboard:
 # Documentation
 docs:
 	sphinx-build -b html docs/ docs/_build/html
+
+# Headless screenshot capture (requires playwright)
+capture:
+	$(PY) scripts/capture_wizard.py --out-dir docs/images --port 8501
 
 # Packaging
 launchers:

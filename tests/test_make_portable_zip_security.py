@@ -9,6 +9,7 @@ from __future__ import annotations
 import importlib.util
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -26,7 +27,7 @@ def _load_make_portable_zip_module():
     return module
 
 
-def test_build_windows_portable_zip_uses_subprocess_not_os_system():
+def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path):
     """Test that build_windows_portable_zip uses secure subprocess.run() calls."""
     make_portable_zip = _load_make_portable_zip_module()
     
@@ -54,8 +55,8 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system():
         # Set up mocks
         mock_sys.platform = "win32"
         mock_exists.return_value = True
-        mock_iterdir.return_value = [Path("/tmp/test_project/file1.py")]
-        mock_rglob.return_value = [Path("/tmp/test_staging/file1.py")]
+        mock_iterdir.return_value = [temp_project / "file1.py"]
+        mock_rglob.return_value = [temp_staging / "file1.py"]
         mock_zipfile.return_value.__enter__.return_value.write = mock.Mock()
         
         # Call the function
@@ -90,7 +91,7 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system():
             assert kwargs.get("check") is True, "Should use check=True for security"
 
 
-def test_subprocess_calls_prevent_command_injection():
+def test_subprocess_calls_prevent_command_injection(tmp_path: Path):
     """Test that the subprocess calls prevent command injection attacks."""
     make_portable_zip = _load_make_portable_zip_module()
     
@@ -115,7 +116,7 @@ def test_subprocess_calls_prevent_command_injection():
         assert "; rm -rf /" in str(call_args[0]) or "; rm -rf /" in str(call_args[1])
 
 
-def test_error_handling_in_subprocess_calls():
+def test_error_handling_in_subprocess_calls(tmp_path: Path):
     """Test that subprocess errors are properly handled and wrapped."""
     make_portable_zip = _load_make_portable_zip_module()
     
@@ -159,7 +160,6 @@ def test_no_os_system_imports():
     lines = source.splitlines()
     code_lines = []
     in_multiline_string = False
-    string_delimiter = None
     
     for line in lines:
         stripped = line.strip()

@@ -110,6 +110,14 @@ def main() -> None:
         act_max = st.sidebar.number_input("Active share max [%]", value=100.0, step=5.0)
         act_step = st.sidebar.number_input("Active share step [%]", value=5.0, step=1.0)
 
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("Axis options")
+        y_axis_mode = st.sidebar.selectbox(
+            "Y axis",
+            options=["External alpha fraction (theta)", "External PA $ (mm)"],
+            index=0,
+        )
+
         if idx_file is not None and st.button("Run sweep"):
             try:
                 idx_df = _read_csv(idx_file)
@@ -162,23 +170,90 @@ def main() -> None:
                     lambda r: (r["AnnReturn"] / r["AnnVol"]) if r["AnnVol"] else 0.0,
                     axis=1,
                 )
-                # Use native parameter names for axes
-                grid_df = base_rows[["active_share", "theta_extpa", "Sharpe"]]
+                # Compute external PA dollars (mm) if total fund capital present
+                if "external_pa_capital" in base_rows.columns:
+                    base_rows["external_pa_dollars_mm"] = base_rows["external_pa_capital"].astype(float)
+                elif hasattr(base_cfg, "total_fund_capital"):
+                    # Derive from theta and total fund capital when available
+                    try:
+                        if "theta_extpa" in base_rows.columns:
+                            theta_series = base_rows["theta_extpa"].astype(float)
+                        else:
+                            theta_series = pd.Series(0.0, index=base_rows.index, dtype=float)
+                        base_rows["external_pa_dollars_mm"] = theta_series * float(
+                            getattr(base_cfg, "total_fund_capital")
+                        )
+                    except Exception:
+                        base_rows["external_pa_dollars_mm"] = float("nan")
+
+                # Decide y-axis based on selection
+                if y_axis_mode.startswith("External PA $") and "external_pa_dollars_mm" in base_rows.columns:
+                    y_col = "external_pa_dollars_mm"
+                else:
+                    y_col = "theta_extpa"
+
+                # Use native parameter names for axes and attach metrics
+                grid_df = base_rows[["active_share", y_col, "Sharpe"]].copy()
+                grid_df.rename(columns={y_col: "y_axis"}, inplace=True)
                 # Help static checker understand this is a DataFrame
                 from typing import cast
 
+                # Attach additional metrics for richer hover (computed from summary where available)
+                # Map available per-row metrics; fall back gracefully if missing
+                extra_cols = [
+                    c
+                    for c in [
+                        "AnnReturn",
+                        "AnnVol",
+                        "TE",
+                        "CVaR",
+                        "BreachProb",
+                        "ShortfallProb",
+                    ]
+                    if c in base_rows.columns
+                ]
+                # Append extra columns into grid for custom hover
+                grid_df = pd.concat([grid_df, base_rows[extra_cols]], axis=1)
+
+                # Build heatmap with custom fields for richer hover
                 fig2 = grid_heatmap.make(
                     cast(pd.DataFrame, grid_df),
                     x="active_share",
-                    y="theta_extpa",
+                    y="y_axis",
                     z="Sharpe",
+                    custom_fields=extra_cols,
                 )  # type: ignore[arg-type]
+                # Customize hover to show metrics; use %{customdata[i]}
+                hover_lines = [
+                    "active_share=%{x:.2f}",
+                    (
+                        "external_pa_dollars_mm=%{y:.2f}"
+                        if y_col == "external_pa_dollars_mm"
+                        else "theta_extpa=%{y:.2f}"
+                    ),
+                    "Sharpe=%{z:.2f}",
+                ]
+                # Map extra field labels
+                field_map = {
+                    "AnnReturn": "AnnReturn",
+                    "AnnVol": "AnnVol",
+                    "TE": "TE",
+                    "CVaR": "CVaR",
+                    "BreachProb": "BreachProb",
+                    "ShortfallProb": "ShortfallProb",
+                }
+                for i, field in enumerate(extra_cols):
+                    label = field_map.get(field, field)
+                    hover_lines.append(f"{label}=%{{customdata[{i}]}}")
+                try:
+                    fig2.update_traces(hovertemplate="<br>".join(hover_lines))
+                except Exception:
+                    pass
                 # Frontier overlay: best theta per active_share
                 try:
                     pv = (
-                        grid_df.pivot(
-                            index="theta_extpa", columns="active_share", values="Sharpe"
-                        )
+                        grid_df.rename(columns={"y_axis": y_col})
+                        .pivot(index=y_col, columns="active_share", values="Sharpe")
                         .sort_index()
                         .sort_index(axis=1)
                     )
@@ -206,13 +281,28 @@ def main() -> None:
                 # Simple promote: allow choosing a point from available values
                 st.subheader("Promote selection")
                 x_vals = sorted(grid_df["active_share"].unique().tolist())
-                y_vals = sorted(grid_df["theta_extpa"].unique().tolist())
-                sel_x = st.selectbox("Active share", options=x_vals)
-                sel_y = st.selectbox("External PA alpha fraction", options=y_vals)
+                y_vals = sorted(grid_df["y_axis"].unique().tolist())
+                if not x_vals or not y_vals:
+                    st.warning("No grid points available to promote.")
+                    return
+                sel_x = st.selectbox("Active share", options=x_vals, index=0)
+                sel_y = st.selectbox(
+                    "External PA value",
+                    options=y_vals,
+                    index=0,
+                    format_func=(
+                        (lambda v: f"${v:,.0f} mm" if y_col == "external_pa_dollars_mm" else f"{v:.2f}")
+                    ),
+                )
                 if st.button("Promote to session"):
+                    if sel_x is None or sel_y is None:
+                        st.warning("Please select both axes values before promoting.")
+                        return
                     st.session_state["promoted_alpha_shares"] = {
                         "active_share": float(sel_x),
-                        "theta_extpa": float(sel_y),
+                        "theta_extpa": float(sel_y)
+                        if y_col != "external_pa_dollars_mm"
+                        else float(sel_y) / float(getattr(base_cfg, "total_fund_capital", 1.0)),
                     }
                     st.success(
                         "Selection promoted. Other pages can read session_state['promoted_alpha_shares']."
@@ -227,7 +317,11 @@ def main() -> None:
                         "Number of simulations": 1000,
                         "Number of months": 12,
                         "analysis_mode": "alpha_shares",
-                        "theta_extpa": float(sel_y),
+                        # Convert y selection back to theta if using dollars
+                        "theta_extpa": float(sel_y)
+                        if y_col != "external_pa_dollars_mm"
+                        else float(sel_y)
+                        / float(getattr(base_cfg, "total_fund_capital", 1.0)),
                         "active_share": float(sel_x),
                         "risk_metrics": ["Return", "Risk", "ShortfallProb"],
                     }
@@ -238,6 +332,18 @@ def main() -> None:
                         file_name="scenario_alpha_shares.yml",
                         mime="application/x-yaml",
                     )
+
+                # Optional: export heatmap to PNG if kaleido is available
+                try:
+                    img_bytes = fig2.to_image(format="png", scale=2)
+                    st.download_button(
+                        label="Download heatmap PNG",
+                        data=img_bytes,
+                        file_name="scenario_grid.png",
+                        mime="image/png",
+                    )
+                except Exception:
+                    pass
             except ValueError as exc:
                 st.error(f"Invalid configuration: {exc}")
             except RuntimeError as exc:

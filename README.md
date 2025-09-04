@@ -5,7 +5,28 @@
 [![Authors](https://img.shields.io/badge/authors-Portable%20Alpha%20Team-blue.svg)](pyproject.toml)
 
 Portable Alpha + Active Extension Model Specification
-Below is a comprehensive description of the updated portable‐alpha + active‐extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
+
+Start here: Run the Dashboard Wizard (recommended)
+
+Most users should begin with the interactive dashboard wizard. It guides you through loading data and running a scenario without touching the command line.
+
+1) Setup (first time only)
+  - ./dev.sh setup
+2) Launch the dashboard wizard
+  - ./dev.sh dashboard
+  - Or: python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501
+3) In the app, open “Scenario Wizard” and follow the prompts to run and view results.
+
+Wizard preview:
+
+![Wizard landing](docs/images/wizard_landing.png)
+![Wizard review](docs/images/wizard_review.png)
+
+Advanced: CLI/YAML workflows
+
+The command-line interface and YAML configurations remain fully supported for power users and automation. See the Advanced usage section below for details.
+
+Below is a comprehensive description of the updated portable‑alpha + active‑extension model, ready to paste into a Markdown cell. Every section is clearly labeled, and all equations use LaTeX delimiters.
 
 ## Quick Start: Dashboard Wizard
 
@@ -45,8 +66,8 @@ Click the "Open in GitHub Codespaces" badge above for an instant, fully-configur
 
 Once the Codespace loads, run:
 ```bash
-./dev.sh demo      # Quick demo
-./dev.sh dashboard # Start interactive dashboard (opens on port 8501)
+./dev.sh dashboard # Start the dashboard wizard (opens on port 8501)
+./dev.sh demo      # Optional: quick demo via CLI
 ```
 
 ### dev.sh helper script
@@ -66,7 +87,7 @@ For the fastest setup, use the development helper script:
 # Run demo with sample data
 ./dev.sh demo
 
-# Start interactive dashboard
+# Start interactive dashboard wizard
 ./dev.sh dashboard
 ```
 
@@ -120,6 +141,17 @@ python scripts/create_launchers.py pa-dashboard pa
 make launchers
 ```
 
+## Setup
+
+Run the setup script to create a Python virtual environment and install dependencies
+(including **Streamlit** for the dashboard and **Kaleido** for static exports):
+
+```bash
+./setup.sh
+```
+
+Execute this once before running any notebooks or other scripts. Then prefer the dashboard wizard to run your first scenario.
+
 ### Exports
 
 Static PNG/PDF/PPTX exports use the [Kaleido](https://github.com/plotly/Kaleido)
@@ -135,13 +167,10 @@ Kaleido v1+ requires a local Chrome/Chromium install. If you don't have it yet:
 sudo apt-get install -y chromium-browser
 ```
 
-### Additional Optional Packages
+Advanced usage (CLI/YAML)
 
-- Parquet export/import: install the `parquet` extra to enable `pandas.read_parquet`/`write_parquet` via pyarrow. When pyarrow is missing the dashboard falls back to CSV.
-
-After setting up the environment you can run the command line interface. The
-main entry point is ``pa_core.cli`` which exposes analysis modes, export
-options and an optional dashboard:
+If you prefer the command line, the main entry point is ``pa_core.cli`` which exposes analysis modes, export
+options and dashboard integration:
 
 ```bash
 python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
@@ -150,7 +179,7 @@ python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_d
 # optional pivot-style output
 python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --pivot
 
-# launch dashboard and export images
+# launch dashboard alongside a run and export images
 python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
 ```
@@ -169,12 +198,9 @@ python pa_core/pa.py convert old_parameters.csv params.yml
 
 This writes results to `Outputs.xlsx` in the current directory.
 
-Sample configuration templates live in the `config/` directory.
-The `params_template.yml` file lists all
-supported fields and include the mandatory `ShortfallProb` metric.
-They also specify an `analysis_mode` value of `returns`, `capital`,
-`alpha_shares` or `vol_mult`. The CLI refuses to run if this field is
-missing. Copy one of these files to start your own runs.
+Sample configuration templates live in the `config/` directory. The `params_template.yml` file lists all
+supported fields (including mandatory `ShortfallProb`) and specifies an `analysis_mode` value of `returns`, `capital`,
+`alpha_shares` or `vol_mult`. The CLI refuses to run if this field is missing. Copy one of these files to start your own runs.
 
 ### Config validation
 
@@ -224,6 +250,38 @@ make docs
 ```
 
 View at `docs/_build/html/index.html`
+
+### Screenshot capture (optional)
+
+To regenerate the wizard screenshots headlessly:
+
+```bash
+pip install playwright
+playwright install chromium
+make capture
+```
+
+Images will be saved under `docs/images/`.
+
+### Optional dependencies
+
+Some features require optional packages:
+
+- Parquet export/import: install the `parquet` extra to enable pandas.read_parquet/write_parquet via pyarrow. When pyarrow is
+  missing the dashboard falls back to a CSV summary if available.
+
+Install examples:
+
+```bash
+# Core install (runtime deps include PyYAML>=6)
+pip install .
+
+# With Parquet support
+pip install .[parquet]
+```
+
+If `pyarrow` is not installed, the dashboard and CLI skip Parquet operations gracefully. The exporter writes a CSV alongside the
+Parquet file so the dashboard remains usable.
 
 ### Python version requirement and packaging
 
