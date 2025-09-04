@@ -175,7 +175,6 @@ def test_make_portable_zip_security_tests_use_tmp_path_fixture():
 def test_ast_tmp_path_detection_function():
     """Test the AST-based tmp_path detection function directly."""
     # Create a temporary test file with various scenarios
-    import tempfile
     
     test_cases = [
         # Case 1: Standard tmp_path usage
