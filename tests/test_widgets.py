@@ -1,9 +1,9 @@
 import pandas as pd
 import pytest
+import pa_core.viz.widgets as widgets
 
 ipywidgets = pytest.importorskip("ipywidgets")
 
-import pa_core.viz.widgets as widgets
 
 def test_explore_widget():
     df = pd.DataFrame(

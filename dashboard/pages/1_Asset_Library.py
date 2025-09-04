@@ -36,10 +36,11 @@ def main() -> None:
 
     # Persist the uploaded file to a temp path for pandas/Excel readers
     suffix = Path(uploaded.name).suffix
-    with tempfile.NamedTemporaryFile(suffix=suffix) as tmp:
-        tmp.write(uploaded.getvalue())
-        tmp.flush()  # Ensure data is written to disk
-        tmp_path = tmp.name
+    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+    try:
+        with os.fdopen(fd, "wb") as tmp:
+            tmp.write(uploaded.getvalue())
+            tmp.flush()  # Ensure data is written to disk
 
         st.markdown("---")
         st.subheader("Column Mapping & Parse Options")
@@ -124,14 +125,14 @@ def main() -> None:
 
                     text = tmpl_upload.getvalue().decode("utf-8")
                     # Write to temp so from_template can read (secure temp file)
-                    fd, tmp_path = tempfile.mkstemp(suffix=".yaml")
+                    fd, tmp_yaml = tempfile.mkstemp(suffix=".yaml")
                     try:
                         with os.fdopen(fd, "wb") as t:
                             t.write(text.encode("utf-8"))
                             t.flush()
-                        importer = _DIA.from_template(tmp_path)
+                        importer = _DIA.from_template(tmp_yaml)
                     finally:
-                        Path(tmp_path).unlink(missing_ok=True)
+                        Path(tmp_yaml).unlink(missing_ok=True)
 
         # Load using current importer configuration
         df = importer.load(tmp_path)
@@ -221,6 +222,9 @@ def main() -> None:
                 lib.load_yaml_str(text)
             else:
                 lib.load_json_str(text)
+
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
