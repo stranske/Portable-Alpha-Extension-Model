@@ -21,7 +21,7 @@
   color: 0e8a16
   description: Route this issue to Codex
 - name: agent:copilot
-  color: 0e8a16
+  color: c5def5
   description: Route this issue to Copilot
 - name: autofix
   color: 0366d6
