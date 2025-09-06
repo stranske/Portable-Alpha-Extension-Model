@@ -290,10 +290,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const ok = '${{ steps.eval.outputs.ok }}' === 'true';
-            const sha = process.env.GITHUB_SHA; // PR merge commit on pull_request
+            const sha = process.env.GITHUB_SHA || context.sha; // PR merge commit on pull_request
             const owner = process.env.GITHUB_REPOSITORY_OWNER;
             const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
-            const runId = process.env.GITHUB_RUN_ID || (github && github.context && github.context.runId);
+            const runId = process.env.GITHUB_RUN_ID || context.runId;
             if (!runId) {
               throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
             }
