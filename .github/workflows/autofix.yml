@@ -19,7 +19,7 @@ jobs:
         with:
           fetch-depth: 0
           repository: ${{ github.repository }}
-          ref: ${{ github.head_ref }}
+          ref: refs/pull/${{ github.event.pull_request.number }}/head
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - name: Install formatters
