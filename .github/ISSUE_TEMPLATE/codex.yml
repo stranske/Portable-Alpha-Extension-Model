@@ -1,0 +1,39 @@
+# .github/ISSUE_TEMPLATE/codex.yml
+name: Codex task
+description: Create a structured task that Codex can pick up
+title: "[CODEX] <brief title>"
+labels: ["triage"]
+body:
+  - type: checkboxes
+    id: routing
+    attributes:
+      label: Routing
+      description: Tick this to route the issue to Codex automation.
+      options:
+        - label: Route to Codex
+          required: false
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: One sentence on what needs to happen…
+    validations:
+      required: true
+
+  - type: textarea
+    id: ac
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] Expected behavior A
+        - [ ] Expected behavior B
+    validations:
+      required: true
+
+  - type: textarea
+    id: agent-notes
+    attributes:
+      label: Agent quickstart
+      value: |
+        Agent quickstart: see CONTRIBUTING.md -> "Agent quickstart".
