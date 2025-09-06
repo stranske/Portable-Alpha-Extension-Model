@@ -5,6 +5,7 @@ on:
     types: [opened, labeled, synchronize, ready_for_review]
 permissions:
   pull-requests: write
+  contents: read
 jobs:
   enable:
     if: >
