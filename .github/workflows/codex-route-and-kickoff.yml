@@ -1,1 +1,8 @@
-
+name: Codex Route and Kickoff
+on: [push]
+jobs:
+  kickoff:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo kickoff
+        run: echo "Codex Route and Kickoff workflow started."
