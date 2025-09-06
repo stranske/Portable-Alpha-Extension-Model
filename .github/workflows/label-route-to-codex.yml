@@ -20,4 +20,4 @@ jobs:
             const labels = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number: number });
             const has = labels.data.some(l => l.name === label);
             if (wants && !has) await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [label] });
-            if (!wants && has) await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: label }).catch(()=>{});
+            if (!wants && has) await github.rest.issues.removeLabel({ owner, repo, issue_number: number, name: label }).catch(err => console.log('Failed to remove label:', err.message));
