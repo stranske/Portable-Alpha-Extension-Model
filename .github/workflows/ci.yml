@@ -300,7 +300,7 @@ jobs:
             const baseUrl = process.env.GITHUB_SERVER_URL
               || (github.context && github.context.serverUrl)
               || 'https://github.com';
-            const serverUrl = baseUrl.replace(/^http:/, 'https:');
+            const serverUrl = baseUrl?.replace?.(/^http:/, 'https:') || 'https://github.com';
             await github.rest.repos.createCommitStatus({
               owner,
               repo,
