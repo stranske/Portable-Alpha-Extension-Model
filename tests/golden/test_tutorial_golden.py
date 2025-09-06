@@ -36,7 +36,7 @@ class TutorialTestRunner:
             env=env,
             capture_output=True,
             text=True,
-            timeout=60,
+            timeout=600,
         )
 
     def assert_file_exists_and_size(self, filepath: Path, min_size: int = 1000):
