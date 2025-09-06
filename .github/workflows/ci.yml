@@ -290,7 +290,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const ok = '${{ steps.eval.outputs.ok }}' === 'true';
-            const sha = process.env.GITHUB_SHA || (github && github.context && github.context.sha);
+            const sha =
+              process.env.GITHUB_SHA ||
+              context.sha ||
+              context.payload?.pull_request?.head?.sha;
             if (!sha) {
               throw new Error('sha is not defined. Ensure this code runs within a workflow run context.');
             }
