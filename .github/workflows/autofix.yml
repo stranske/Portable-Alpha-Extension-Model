@@ -41,7 +41,7 @@ jobs:
             git config user.name "GitHub Actions"
             git config user.email "actions@github.com"
             git add -A
-            git commit -m "ci: autofix formatting/lint [skip ci]"
+            git commit -m "ci: autofix formatting/lint [ci skip]"
             git push
           else
             echo "No changes to commit."
