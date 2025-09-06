@@ -25,6 +25,6 @@ jobs:
           body: |
             Auto-created kickoff PR for Codex to work on issue #${{ github.event.issue.number }}.
             This will run Streamlined Codex Auto-Debug and post results.
-          labels: from:codex,automerge,risk:low
+          labels: from:codex,risk:low
           draft: true
           commit-message: "chore(codex): kickoff for #${{ github.event.issue.number }}"
