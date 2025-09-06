@@ -16,8 +16,10 @@ jobs:
             const login = (pr.user?.login || '').toLowerCase();
             const branch = (pr.head?.ref || '').toLowerCase();
             const labels = [];
-            if (login.includes('copilot') || branch.startsWith('copilot/')) labels.push('from:copilot');
-            if (login.includes('codex') || branch.startsWith('codex/')) labels.push('from:codex');
+            const copilotAgents = ['github-copilot[bot]', 'copilot-bot']; // Add all trusted Copilot agent usernames here
+            const codexAgents = ['github-codex[bot]', 'codex-bot']; // Add all trusted Codex agent usernames here
+            if (copilotAgents.includes(login) || branch.startsWith('copilot/')) labels.push('from:copilot');
+            if (codexAgents.includes(login) || branch.startsWith('codex/')) labels.push('from:codex');
             if (labels.length) {
               labels.push('risk:low');
               await github.rest.issues.addLabels({
