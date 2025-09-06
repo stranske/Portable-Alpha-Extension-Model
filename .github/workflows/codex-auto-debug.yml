@@ -63,7 +63,7 @@ jobs:
         echo "Running streamlined debugging workflow..."
         if [ ! -f scripts/streamlined_debug.py ]; then
           echo "ERROR: scripts/streamlined_debug.py not found!" >&2
-          exit_code=127
+          exit_code=2
         else
           python scripts/streamlined_debug.py
           exit_code=$?
