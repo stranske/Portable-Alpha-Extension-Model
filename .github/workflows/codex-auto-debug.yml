@@ -24,6 +24,8 @@ permissions:
 jobs:
   streamlined-debug:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # Run on Codex branches or when manually triggered
     if: >
       startsWith(github.head_ref, 'codex/') ||
@@ -46,6 +48,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Authenticate with GitHub CLI
+      run: echo $GH_TOKEN | gh auth login --with-token
+
     - name: Set up Git identity
       run: |
         git config --global user.name "GitHub Actions"
@@ -54,9 +59,19 @@ jobs:
     - name: 🚀 Run Streamlined Debug
       id: streamlined_debug
       run: |
+        set +e
         echo "Running streamlined debugging workflow..."
-        python scripts/streamlined_debug.py
-        exit_code=$?
+        if [ ! -f scripts/streamlined_debug.py ]; then
+          echo "ERROR: scripts/streamlined_debug.py not found!" >&2
+          exit_code=127
+        else
+          python scripts/streamlined_debug.py
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            echo "ERROR: scripts/streamlined_debug.py failed with exit code $exit_code" >&2
+          fi
+        fi
+        set -e
         echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
 
     - name: 📊 Upload Streamlined Debug Report
