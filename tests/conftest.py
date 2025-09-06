@@ -67,12 +67,4 @@ def ensure_pa_core_importable() -> None:
         sys.path.insert(0, root_str)
 
 
-@pytest.fixture
-def ensure_imports():
-    """Fixture to ensure modules are importable for legacy tests.
-
-    This fixture handles the setup that was previously duplicated across test files.
-    New tests should preferably use proper PYTHONPATH setup instead.
-    """
-    ensure_pa_core_importable()
-    # Cleanup is handled automatically by pytest fixture teardown
+ensure_pa_core_importable()
