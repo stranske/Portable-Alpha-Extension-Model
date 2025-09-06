@@ -1,0 +1,87 @@
+name: Route to Agent + Kickoff PR
+on:
+  issues:
+    types: [opened, edited, labeled, reopened]
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  route-and-kick:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide requested agents
+        id: decide
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue  = context.payload.issue;
+            const body   = issue.body || "";
+            const labels = issue.labels?.map(l => l.name) || [];
+            const wantsCodex   = /- \[[xX]\]\s*Route to Codex/.test(body)   || labels.includes("agent:codex");
+            const wantsCopilot = /- \[[xX]\]\s*Route to Copilot/.test(body) || labels.includes("agent:copilot");
+            core.setOutput("num", issue.number.toString());
+            core.setOutput("title", issue.title || "");
+            core.setOutput("codex", wantsCodex ? "true" : "false");
+            core.setOutput("copilot", wantsCopilot ? "true" : "false");
+
+      - name: Ensure agent labels present
+        if: steps.decide.outputs.codex == 'true' || steps.decide.outputs.copilot == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const n = Number("${{ steps.decide.outputs.num }}");
+            const add = [];
+            if ("${{ steps.decide.outputs.codex }}"   === "true") add.push("agent:codex");
+            if ("${{ steps.decide.outputs.copilot }}" === "true") add.push("agent:copilot");
+            if (add.length) await github.rest.issues.addLabels({ owner, repo, issue_number: n, labels: add });
+
+      - name: Check for existing kickoff PRs
+        id: check
+        if: steps.decide.outputs.codex == 'true' || steps.decide.outputs.copilot == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prs = await github.paginate(github.rest.pulls.list, { owner, repo, state: "open", per_page: 100 });
+            const n = Number("${{ steps.decide.outputs.num }}");
+            core.setOutput("codex_exists",   prs.some(pr => pr.head?.ref === `codex/fix-${n}`)   ? "true" : "false");
+            core.setOutput("copilot_exists", prs.some(pr => pr.head?.ref === `copilot/fix-${n}`) ? "true" : "false");
+
+      - name: Create kickoff marker for Codex
+        if: steps.decide.outputs.codex == 'true' && steps.check.outputs.codex_exists != 'true'
+        run: |
+          mkdir -p .gate_smoke/codex
+          printf "# Kickoff for issue #%s (Codex)\n" "${{ steps.decide.outputs.num }}" > ".gate_smoke/codex/issue-${{ steps.decide.outputs.num }}.md"
+
+      - name: Create kickoff PR for Codex
+        if: steps.decide.outputs.codex == 'true' && steps.check.outputs.codex_exists != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: codex/fix-${{ steps.decide.outputs.num }}
+          title: "Codex: Fix #${{ steps.decide.outputs.num }} — ${{ steps.decide.outputs.title }}"
+          body: "Auto-created kickoff PR for Codex to work on issue #${{ steps.decide.outputs.num }}."
+          labels: from:codex,automerge,risk:low
+          draft: true
+          commit-message: "chore(codex): kickoff for #${{ steps.decide.outputs.num }}"
+
+      - name: Create kickoff marker for Copilot
+        if: steps.decide.outputs.copilot == 'true' && steps.check.outputs.copilot_exists != 'true'
+        run: |
+          mkdir -p .gate_smoke/copolot
+          printf "# Kickoff for issue #%s (Copilot)\n" "${{ steps.decide.outputs.num }}" > ".gate_smoke/copolot/issue-${{ steps.decide.outputs.num }}.md"
+
+      - name: Create kickoff PR for Copilot
+        if: steps.decide.outputs.copilot == 'true' && steps.check.outputs.copilot_exists != 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: copilot/fix-${{ steps.decide.outputs.num }}
+          title: "Copilot: Fix #${{ steps.decide.outputs.num }} — ${{ steps.decide.outputs.title }}"
+          body: "Auto-created kickoff PR for Copilot to work on issue #${{ steps.decide.outputs.num }}."
+          labels: from:copilot,automerge,risk:low
+          draft: true
+          commit-message: "chore(copilot): kickoff for #${{ steps.decide.outputs.num }}"
