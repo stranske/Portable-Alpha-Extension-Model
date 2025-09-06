@@ -303,9 +303,10 @@ jobs:
             if (!runId) {
               throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
             }
-            const serverUrl = github.serverUrl && github.serverUrl.startsWith('https')
-              ? github.serverUrl
-              : 'https://github.com';
+            const baseUrl = process.env.GITHUB_SERVER_URL
+              || (github.context && github.context.serverUrl)
+              || 'https://github.com';
+            const serverUrl = baseUrl?.replace?.(/^http:/, 'https:') || 'https://github.com';
             await github.rest.repos.createCommitStatus({
               owner,
               repo,
