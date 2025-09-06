@@ -72,8 +72,8 @@ jobs:
       - name: Create kickoff marker for Copilot
         if: steps.decide.outputs.copilot == 'true' && steps.check.outputs.copilot_exists != 'true'
         run: |
-          mkdir -p .gate_smoke/copolot
-          printf "# Kickoff for issue #%s (Copilot)\n" "${{ steps.decide.outputs.num }}" > ".gate_smoke/copolot/issue-${{ steps.decide.outputs.num }}.md"
+          mkdir -p .gate_smoke/copilot
+          printf "# Kickoff for issue #%s (Copilot)\n" "${{ steps.decide.outputs.num }}" > ".gate_smoke/copilot/issue-${{ steps.decide.outputs.num }}.md"
 
       - name: Create kickoff PR for Copilot
         if: steps.decide.outputs.copilot == 'true' && steps.check.outputs.copilot_exists != 'true'
