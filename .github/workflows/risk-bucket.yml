@@ -1,0 +1,58 @@
+# .github/workflows/risk-bucket.yml
+name: Compute PR risk bucket
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  pull-requests: write
+  issues: write
+jobs:
+  risk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner, repo, pull_number: prNumber, per_page: 100
+            });
+            const sum = files.reduce((s,f) => s + (f.changes || 0), 0);
+            const paths = files.map(f => f.filename);
+            function isDocsEtcPath(p) {
+              return (
+                /^docs\//.test(p) ||
+                /^tests\//.test(p) ||
+                /^templates\//.test(p) ||
+                /^config\//.test(p) ||
+                p.endsWith('.md') ||
+                p.endsWith('.yml') ||
+                p.endsWith('.yaml')
+              );
+            }
+            const touchesCore = paths.some(p => /^pa_core\//.test(p) || /^dashboard\//.test(p) || p === 'pyproject.toml' || p === 'setup.py');
+            const touchesCI   = paths.some(p => /^\.github\/workflows\//.test(p));
+            const onlyDocsEtc = paths.every(isDocsEtcPath);
+            let risk = 'risk:low';
+            if (touchesCore || touchesCI) {
+              if (sum > 200 || paths.length > 10) risk = 'risk:high';
+              else risk = 'risk:medium';
+            } else if (!onlyDocsEtc && (sum > 80 || paths.length > 6)) {
+              risk = sum > 200 ? 'risk:high' : 'risk:medium';
+            }
+            // Normalize labels
+            const existing = (await github.rest.issues.listLabelsOnIssue({owner, repo, issue_number: prNumber})).data.map(l=>l.name);
+            const remove = existing.filter(n => ['risk:low','risk:medium','risk:high'].includes(n) && n !== risk);
+            for (const n of remove) await github.rest.issues.removeLabel({owner, repo, issue_number: prNumber, name: n})
+              .catch(err => console.warn('Failed to remove label', n, err.message || err));
+            if (!existing.includes(risk)) {
+              await github.rest.issues.addLabels({owner, repo, issue_number: prNumber, labels: [risk]});
+            }
+            // Auto-add `automerge` if clearly low-risk and agent PR
+            if (risk === 'risk:low' && (existing.includes('from:codex') || existing.includes('from:copilot'))) {
+              if (!existing.includes('automerge')) {
+                await github.rest.issues.addLabels({owner, repo, issue_number: prNumber, labels: ['automerge']});
+              }
+            }

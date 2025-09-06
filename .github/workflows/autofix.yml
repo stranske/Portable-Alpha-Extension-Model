@@ -1,0 +1,50 @@
+# .github/workflows/autofix.yml
+name: Autofix trivial issues
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  autofix:
+    if: >
+      github.event.pull_request.draft == false &&
+      ( contains(github.event.pull_request.labels.*.name, 'autofix') ||
+        contains(github.event.pull_request.labels.*.name, 'from:copilot') ||
+        contains(github.event.pull_request.labels.*.name, 'from:codex') )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install formatters
+        run: |
+          python -m pip install -U pip
+          pip install "ruff==0.5.0" "black==24.0.0" "isort==5.13.0" "docformatter==1.7.0"
+      - name: Run auto-fixers
+        run: |
+          ruff check --fix .
+          black .
+          isort .
+          docformatter --recursive -i .
+      - name: Commit and push if changed
+        env:
+          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+        run: |
+          if [ "$IS_FORK" = "true" ]; then
+            echo "Skipping push for external fork PR"
+            exit 0
+          fi
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add -A
+            git commit -m "ci: autofix formatting/lint [ci skip]"
+            git push
+          else
+            echo "No changes to commit."
+          fi
