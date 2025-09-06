@@ -3,7 +3,7 @@
   color: 0e8a16
   description: PR was created by or for Codex
 - name: from:copilot
-  color: 0e8a16
+  color: 0366d6
   description: PR was created by or for Copilot
 - name: automerge
   color: 0052cc
