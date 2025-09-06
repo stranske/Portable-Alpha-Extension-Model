@@ -19,7 +19,7 @@ jobs:
             if (login.includes('copilot') || branch.startsWith('copilot/')) labels.push('from:copilot');
             if (login.includes('codex') || branch.startsWith('codex/')) labels.push('from:codex');
             if (labels.length) {
-              labels.push('automerge','risk:low');
+              labels.push('risk:low');
               await github.rest.issues.addLabels({
                 owner: context.repo.owner, repo: context.repo.repo,
                 issue_number: pr.number, labels
