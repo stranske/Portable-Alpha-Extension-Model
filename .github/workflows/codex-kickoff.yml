@@ -4,8 +4,8 @@ on:
   issues:
     types: [labeled]
 permissions:
-  contents: [read, write]
-  pull-requests: [read, write]
+  contents: write
+  pull-requests: write
   issues: read
 jobs:
   kickoff:
