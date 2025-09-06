@@ -15,7 +15,7 @@ jobs:
             const { owner, repo } = context.repo;
             const number = context.payload.issue.number;
             const body = context.payload.issue.body || "";
-            const wants = /- \[[xX]\]\s*Route to Codex/.test(body);
+            const wants = /- \[[xX]\]\s*Route to Codex/i.test(body);
             const label = "agent:codex";
             const labels = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number: number });
             const has = labels.data.some(l => l.name === label);
