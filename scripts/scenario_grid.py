@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Generate heatmaps for a small alpha-share parameter grid.
 
 This helper script demonstrates the parameter sweep engine by running a
@@ -11,8 +9,10 @@ The grid is deterministic thanks to a fixed random seed so results are
 repeatable across runs.
 """
 
-from pathlib import Path
+from __future__ import annotations
+
 import argparse
+from pathlib import Path
 
 import numpy as np
 import pandas as pd

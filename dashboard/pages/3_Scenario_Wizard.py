@@ -6,7 +6,6 @@ import os
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Any, Dict
 
 import streamlit as st
@@ -750,6 +749,11 @@ def _render_step_4_correlations(config: Any) -> Any:
     else:
         st.success("✅ Correlation matrix is valid")
 
+    return config
+
+
+def _render_step_5_review(config: DefaultConfigView) -> bool:
+    """Step 5: Review configuration and optionally run simulation."""
     st.subheader("Step 5: Review & Run")
 
     # Configuration summary
