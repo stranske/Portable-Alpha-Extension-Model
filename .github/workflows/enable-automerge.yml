@@ -1,7 +1,8 @@
 # .github/workflows/enable-automerge.yml
 name: Enable auto-merge for eligible PRs
 on:
-  pull_request:
+  pull_request_target:
+    # run in base repository context so automerge can be enabled for forked PRs
     types: [opened, labeled, synchronize, ready_for_review]
 permissions:
   pull-requests: write
