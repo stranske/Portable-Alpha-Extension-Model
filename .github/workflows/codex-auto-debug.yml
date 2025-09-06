@@ -56,7 +56,8 @@ jobs:
       run: |
         echo "Running streamlined debugging workflow..."
         python scripts/streamlined_debug.py
-        echo "streamlined_exit_code=$?" >> $GITHUB_OUTPUT
+        exit_code=$?
+        echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
 
     - name: 📊 Upload Streamlined Debug Report
       uses: actions/upload-artifact@v4
