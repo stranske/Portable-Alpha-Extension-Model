@@ -21,7 +21,6 @@ If Playwright is not installed, the script will exit with instructions.
 from __future__ import annotations
 
 import argparse
-import os
 import signal
 import subprocess
 import sys
@@ -43,7 +42,6 @@ def _wait_for_port(url: str, timeout: float = 30.0) -> None:
 
 
 def _start_streamlit(port: int) -> subprocess.Popen[str]:
-    env = os.environ.copy()
     # Ensure headless and consistent port
     cmd = [
         sys.executable,
