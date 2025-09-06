@@ -26,7 +26,7 @@ jobs:
             const isInternalBranch = headRepo === repoFullName;
             if (copilotAgents.includes(login) || (isInternalBranch && branch.startsWith('copilot/'))) labels.push('from:copilot');
             if (codexAgents.includes(login) || (isInternalBranch && branch.startsWith('codex/'))) labels.push('from:codex');
-            if (labels.length && isTrustedActor && isInternalBranch) {
+            if (labels.length && isTrustedActor) {
               labels.push('risk:low');
               await github.rest.issues.addLabels({
                 owner: context.repo.owner, repo: context.repo.repo,
