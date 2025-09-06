@@ -20,9 +20,20 @@ jobs:
             });
             const sum = files.reduce((s,f) => s + (f.changes || 0), 0);
             const paths = files.map(f => f.filename);
+            function isDocsEtcPath(p) {
+              return (
+                /^docs\//.test(p) ||
+                /^tests\//.test(p) ||
+                /^templates\//.test(p) ||
+                /^config\//.test(p) ||
+                p.endsWith('.md') ||
+                p.endsWith('.yml') ||
+                p.endsWith('.yaml')
+              );
+            }
             const touchesCore = paths.some(p => /^pa_core\//.test(p) || /^dashboard\//.test(p) || p === 'pyproject.toml' || p === 'setup.py');
             const touchesCI   = paths.some(p => /^\.github\/workflows\//.test(p));
-            const onlyDocsEtc = paths.every(p => /^docs\//.test(p) || /^tests\//.test(p) || /^templates\//.test(p) || /^config\//.test(p) || p.endsWith('.md') || p.endsWith('.yml') || p.endsWith('.yaml'));
+            const onlyDocsEtc = paths.every(isDocsEtcPath);
             let risk = 'risk:low';
             if (touchesCore || touchesCI) {
               if (sum > 200 || paths.length > 10) risk = 'risk:high';
