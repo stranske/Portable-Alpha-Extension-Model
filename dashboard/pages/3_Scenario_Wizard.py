@@ -751,7 +751,11 @@ def _render_step_4_correlations(config: Any) -> Any:
     return config
 
 
-def _render_step_5_review(config: Any) -> bool:
+    return config
+
+
+def _render_step_5_review(config: DefaultConfigView) -> bool:
+    """Step 5: Review configuration and optionally run simulation."""
     st.subheader("Step 5: Review & Run")
 
     # Configuration summary
