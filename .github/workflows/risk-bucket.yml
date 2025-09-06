@@ -44,7 +44,8 @@ jobs:
             // Normalize labels
             const existing = (await github.rest.issues.listLabelsOnIssue({owner, repo, issue_number: prNumber})).data.map(l=>l.name);
             const remove = existing.filter(n => ['risk:low','risk:medium','risk:high'].includes(n) && n !== risk);
-            for (const n of remove) await github.rest.issues.removeLabel({owner, repo, issue_number: prNumber, name: n}).catch(()=>{});
+            for (const n of remove) await github.rest.issues.removeLabel({owner, repo, issue_number: prNumber, name: n})
+              .catch(err => console.warn('Failed to remove label', n, err.message || err));
             if (!existing.includes(risk)) {
               await github.rest.issues.addLabels({owner, repo, issue_number: prNumber, labels: [risk]});
             }
