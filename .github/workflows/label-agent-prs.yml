@@ -1,7 +1,9 @@
 # .github/workflows/label-agent-prs.yml
 name: Label agent PRs (Copilot + Codex)
+# Use pull_request_target to ensure the workflow has write access even for forks.
+# Do not check out or run untrusted pull request code in this workflow.
 on:
-  pull_request:
+  pull_request_target:
     types: [opened]
 permissions:
   pull-requests: write
