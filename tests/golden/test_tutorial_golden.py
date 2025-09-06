@@ -25,7 +25,9 @@ class TutorialTestRunner:
         self.project_root = Path(__file__).parent.parent.parent
         self.pythonpath = str(self.project_root)
 
-    def run_cli(self, args: List[str]) -> subprocess.CompletedProcess:
+    def run_cli(
+        self, args: List[str], timeout: int = 600
+    ) -> subprocess.CompletedProcess:
         """Run CLI command with PYTHONPATH set."""
         cmd = [sys.executable, "-m", "pa_core.cli"] + args
         env = os.environ.copy()

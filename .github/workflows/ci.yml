@@ -300,6 +300,9 @@ jobs:
             if (!runId) {
               throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
             }
+            const serverUrl = github.serverUrl && github.serverUrl.startsWith('https')
+              ? github.serverUrl
+              : 'https://github.com';
             await github.rest.repos.createCommitStatus({
               owner,
               repo,
@@ -307,7 +310,7 @@ jobs:
               state: ok ? 'success' : 'failure',
               context: 'required/pr-gate',
               description: ok ? 'PR Gate passed' : 'PR Gate failed',
-              target_url: `${github.serverUrl}/${owner}/${repo}/actions/runs/${runId}`
+              target_url: `${serverUrl}/${owner}/${repo}/actions/runs/${runId}`
             });
 
       - name: Fail if any upstream job failed
