@@ -17,12 +17,16 @@ jobs:
             const pr = context.payload.pull_request;
             const login = (pr.user?.login || '').toLowerCase();
             const branch = (pr.head?.ref || '').toLowerCase();
+            const headRepo = pr.head?.repo?.full_name?.toLowerCase();
+            const repoFullName = `${context.repo.owner}/${context.repo.repo}`.toLowerCase();
             const labels = [];
             const copilotAgents = ['github-copilot[bot]', 'copilot-bot']; // Add all trusted Copilot agent usernames here
             const codexAgents = ['github-codex[bot]', 'codex-bot']; // Add all trusted Codex agent usernames here
-            if (copilotAgents.includes(login) || branch.startsWith('copilot/')) labels.push('from:copilot');
-            if (codexAgents.includes(login) || branch.startsWith('codex/')) labels.push('from:codex');
-            if (labels.length) {
+            const isTrustedActor = copilotAgents.concat(codexAgents).includes(login);
+            const isInternalBranch = headRepo === repoFullName;
+            if (copilotAgents.includes(login) || (isInternalBranch && branch.startsWith('copilot/'))) labels.push('from:copilot');
+            if (codexAgents.includes(login) || (isInternalBranch && branch.startsWith('codex/'))) labels.push('from:codex');
+            if (labels.length && isTrustedActor) {
               labels.push('risk:low');
               await github.rest.issues.addLabels({
                 owner: context.repo.owner, repo: context.repo.repo,

@@ -748,6 +748,8 @@ def _render_step_4_correlations(config: Any) -> Any:
         )
     else:
         st.success("✅ Correlation matrix is valid")
+    return config
+
 
     return config
 
@@ -826,18 +828,18 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
                     ("Simulations", last_config.n_simulations, config.n_simulations),
                     (
                         "External PA Capital",
-                        f"${last_config.external_pa_capital:.1f}M",
-                        f"${config.external_pa_capital:.1f}M",
+                        f"{last_config.external_pa_capital:.1f}M",
+                        f"{config.external_pa_capital:.1f}M",
                     ),
                     (
                         "Active Extension Capital",
-                        f"${last_config.active_ext_capital:.1f}M",
-                        f"${config.active_ext_capital:.1f}M",
+                        f"{last_config.active_ext_capital:.1f}M",
+                        f"{config.active_ext_capital:.1f}M",
                     ),
                     (
                         "Internal PA Capital",
-                        f"${last_config.internal_pa_capital:.1f}M",
-                        f"${config.internal_pa_capital:.1f}M",
+                        f"{last_config.internal_pa_capital:.1f}M",
+                        f"{config.internal_pa_capital:.1f}M",
                     ),
                     (
                         "In-House Return",
@@ -928,8 +930,6 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
         )
 
     return run_simulation
-
-
 def main() -> None:
     """Main wizard interface with 5-step stepper."""
 
