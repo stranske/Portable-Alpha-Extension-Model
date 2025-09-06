@@ -1,7 +1,8 @@
 # .github/workflows/label-agent-prs.yml
 name: Label agent PRs (Copilot + Codex)
+# Uses pull_request_target for write permissions; do not checkout untrusted PR code.
 on:
-  pull_request:
+  pull_request_target:
     types: [opened]
 permissions:
   pull-requests: write
