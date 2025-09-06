@@ -34,7 +34,9 @@ jobs:
           IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
         run: |
           if [ "$IS_FORK" = "true" ]; then
-            echo "Skipping push for external fork PR"; exit 0; fi
+            echo "Skipping push for external fork PR"
+            exit 0
+          fi
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name "GitHub Actions"
             git config user.email "actions@github.com"
