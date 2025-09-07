@@ -10,6 +10,9 @@ permissions:
   actions: read           # Access workflow artifacts
   checks: write           # Update check status
 
+env:
+  GH_TOKEN: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
+  
 jobs:
   streamlined-debug:
     runs-on: ubuntu-latest
@@ -18,8 +21,6 @@ jobs:
       startsWith(github.head_ref, 'codex/') ||
       startsWith(github.ref_name, 'codex/') ||
       github.event_name == 'workflow_dispatch'
-    env:
-      GH_TOKEN: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
 
     steps:
     - uses: actions/checkout@v4
