@@ -90,7 +90,7 @@ jobs:
       if: steps.streamlined_debug.outputs.streamlined_exit_code != '0'
       run: |
         echo "Streamlined debug found issues. Running detailed analysis..."
-        python scripts/debug_codex_pr.py --branch=${{ github.head_ref || github.ref_name }} --report=detailed_debug_report.md --max-iterations=3 --commit || true
+        python scripts/debug_codex_pr.py --branch=${{ github.head_ref || github.ref_name }} --report=detailed_debug_report.md --max-iterations=3 --commit
         exit_code=$?
         echo "detailed_exit_code=$exit_code" >> $GITHUB_OUTPUT
         echo "detailed_code=$exit_code" >> $GITHUB_ENV
