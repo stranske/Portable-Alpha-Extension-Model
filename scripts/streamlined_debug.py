@@ -215,7 +215,7 @@ class StreamlinedCodexDebugger:
         # Check if branch is up to date with remote
         success, output = self.run_command("git status --porcelain -b")
         if success and "ahead" in output:
-            self.log_step("Branch Sync", "⚠️  WARNING", "Branch has unpushed commits")
+            self.log_step("Branch Sync", "ℹ️  INFO", "Branch has unpushed commits")
         elif success and "behind" in output:
             self.log_step("Branch Sync", "⚠️  WARNING", "Branch is behind remote")
         else:
