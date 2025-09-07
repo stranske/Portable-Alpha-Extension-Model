@@ -101,8 +101,8 @@ jobs:
 
       - name: ⚙️ Initialize debug status
         run: |
-          echo "streamlined_code=1" >> $GITHUB_ENV
-          echo "detailed_code=1" >> $GITHUB_ENV
+          echo "streamlined_code=0" >> $GITHUB_ENV
+          echo "detailed_code=0" >> $GITHUB_ENV
 
       - name: 🚀 Run Streamlined Debug
         id: streamlined_debug
