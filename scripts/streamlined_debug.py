@@ -318,12 +318,17 @@ class StreamlinedCodexDebugger:
         token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN") or os.getenv("CODEX_TOKEN")
         headers = {"Authorization": f"Bearer {token}"} if token else {}
         repo = os.getenv("GITHUB_REPOSITORY")
+        if not repo:
+            self.issues_found.append("GITHUB_REPOSITORY is not set or is empty")
+            self.log_step(
+                "Repository Access",
+                "❌ FAILED",
+                "GITHUB_REPOSITORY environment variable is missing or empty",
+            )
+            return False
         # Validate repo format: must be 'owner/repo'
-        valid_repo = False
-        if repo:
-            parts = repo.split("/")
-            if len(parts) == 2 and all(parts) and all("/" not in part for part in parts):
-                valid_repo = True
+        parts = repo.split("/")
+        valid_repo = len(parts) == 2 and all(parts)
         if not valid_repo:
             self.issues_found.append("Invalid GITHUB_REPOSITORY format")
             self.log_step(
