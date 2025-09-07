@@ -25,7 +25,8 @@ on:
         required: false
         default: 'false'
 
-# Least-privilege permissions for what this job actually does
+# Least-privilege permissions for what this job does.
+# actions:read for workflow artifacts, checks:write to update statuses.
 permissions:
   contents: read
   issues: write

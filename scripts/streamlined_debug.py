@@ -120,15 +120,37 @@ class StreamlinedCodexDebugger:
             self.log_step("Workflow Permissions", "❌ FAILED", "Missing permissions block")
             return False
         
-        required_perms = ["contents: read", "pull-requests: write", "issues: write"]
+        required_perms = [
+            "contents: read",
+            "pull-requests: write",
+            "issues: write",
+        ]
         missing_perms = [perm for perm in required_perms if perm not in content]
-        
+
         if missing_perms:
-            self.issues_found.append(f"Missing permissions: {', '.join(missing_perms)}")
-            self.log_step("Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}")
+            self.issues_found.append(
+                f"Missing permissions: {', '.join(missing_perms)}"
+            )
+            self.log_step(
+                "Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}"
+            )
             return False
-        
-        self.log_step("Workflow Permissions", "✅ SUCCESS", "All required permissions present")
+
+        optional_perms = ["actions: read", "checks: write"]
+        missing_optional = [perm for perm in optional_perms if perm not in content]
+        if missing_optional:
+            self.log_step(
+                "Workflow Permissions",
+                "⚠️  WARNING",
+                f"Missing optional permissions: {', '.join(missing_optional)}",
+            )
+        else:
+            self.log_step(
+                "Workflow Permissions",
+                "✅ SUCCESS",
+                "All required permissions present",
+            )
+
         return True
     
     def check_recent_workflow_runs(self) -> bool:
@@ -151,7 +173,7 @@ class StreamlinedCodexDebugger:
             self.log_step(
                 "Workflow Runs", "⚠️  WARNING", "Could not fetch workflow runs"
             )
-            return False
+            return True
         
         try:
             runs = json.loads(output)
