@@ -24,11 +24,15 @@ class StreamlinedCodexDebugger:
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
-        """Run command with timeout and capture output."""
+        """Run command with timeout and capture output. Only allows whitelisted commands."""
         import shlex
+        # Whitelist of allowed commands (add more as needed)
+        ALLOWED_COMMANDS = {"gh", "git"}
         try:
             # Parse command string into arguments to avoid shell injection
             args = shlex.split(cmd)
+            if not args or args[0] not in ALLOWED_COMMANDS:
+                return False, f"Command '{args[0] if args else cmd}' is not allowed."
             result = subprocess.run(
                 args, capture_output=True, text=True, timeout=timeout
             )
