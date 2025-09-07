@@ -167,7 +167,6 @@ jobs:
       - name: ⚙️ Initialize debug status
         run: |
           echo "streamlined_code=0" >> $GITHUB_ENV
-          echo "detailed_code=0" >> $GITHUB_ENV
 
       - name: 🚀 Run Streamlined Debug
         id: streamlined_debug
@@ -228,15 +227,6 @@ jobs:
             echo "✅ No changes to commit"
           fi
 
-      - name: 📊 Upload Detailed Debug Report
-        if: steps.detailed_debug.outcome != 'skipped'
-        uses: actions/upload-artifact@v4
-        with:
-          name: detailed-debug-report-${{ github.run_id }}
-          path: |
-            detailed_debug_report.md
-          if-no-files-found: ignore
-
       - name: 💬 Comment results on PR
         if: >
           github.event_name == 'pull_request' ||
@@ -247,16 +237,11 @@ jobs:
           script: |
             const fs = require('fs');
             const streamlinedExit = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}';
-            const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
             const prNumber = context.payload.pull_request?.number || Number('${{ github.event.inputs.pr_number || '' }}');
 
             let streamlinedReport = '';
             try { streamlinedReport = fs.readFileSync('streamlined_debug_report.md','utf8'); }
             catch { streamlinedReport = '❌ Streamlined debug report not generated.'; }
-
-            let detailedReport = '';
-            try { detailedReport = fs.readFileSync('detailed_debug_report.md','utf8'); }
-            catch {}
 
             const streamlinedPassed = String(streamlinedExit) === '0';
             const statusEmoji = streamlinedPassed ? '🎉' : '⚠️';
@@ -268,11 +253,7 @@ jobs:
             ${streamlinedReport}
             `;
 
-            if (detailedRan && detailedReport) {
-              comment += `\n### 🔍 Detailed Debug Results\n${detailedReport}\n`;
-            }
-
-            comment += `\n---\n*Debug workflow: Streamlined → ${streamlinedPassed ? 'Passed ✅' : 'Failed ❌'}${detailedRan ? ' → Detailed Analysis 🔍' : ''}*`;
+            comment += `\n---\n*Debug workflow: Streamlined → ${streamlinedPassed ? 'Passed ✅' : 'Failed ❌'}*`;
 
             if (prNumber) {
               await github.rest.issues.createComment({
@@ -287,17 +268,13 @@ jobs:
 
       - name: 🤖 Auto-commit fixes if any
         if: >
-          (steps.streamlined_debug.outputs.streamlined_exit_code == '0' ||
-           steps.detailed_debug.outputs.detailed_exit_code == '0') &&
+          steps.streamlined_debug.outputs.streamlined_exit_code == '0' &&
           github.event_name != 'workflow_dispatch' &&
           (github.event_name != 'pull_request' ||
            github.event.pull_request.head.repo.full_name == github.repository)
         run: |
           # Determine push branch
           PUSH_BRANCH="${{ github.head_ref || github.ref_name }}"
-          if [ -z "$PUSH_BRANCH" ]; then
-            PUSH_BRANCH="${{ steps.resolve.outputs.target_ref }}"
-          fi
           # If the target is a PR merge ref or other non-branch ref, bail out gracefully
           case "$PUSH_BRANCH" in
             refs/pull/*) echo "Skipping push: non-branch ref '$PUSH_BRANCH'"; exit 0 ;;
@@ -335,12 +312,8 @@ jobs:
         if: always()
         run: |
           : "${streamlined_code:=1}"
-          : "${detailed_code:=1}"
           if [ "$streamlined_code" = "0" ]; then
             echo "✅ Streamlined debug passed - all good!"
-            exit 0
-          elif [ "$detailed_code" = "0" ]; then
-            echo "✅ Detailed debug resolved issues - all good!"
             exit 0
           else
             echo "⚠️ Issues remain that need manual attention"
