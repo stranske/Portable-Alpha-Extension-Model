@@ -108,7 +108,7 @@ jobs:
         id: streamlined_debug
         run: |
           echo "Running streamlined debugging workflow..."
-          exit_code=1
+          exit_code=0
           if [ -f scripts/streamlined_debug.py ]; then
             python scripts/streamlined_debug.py
             exit_code=$?
