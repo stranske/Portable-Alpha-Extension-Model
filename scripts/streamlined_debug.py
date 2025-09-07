@@ -326,10 +326,10 @@ class StreamlinedCodexDebugger:
                 "GITHUB_REPOSITORY environment variable is missing or empty",
             )
             return False
+
         # Validate repo format: must be 'owner/repo'
         parts = repo.split("/")
-        valid_repo = len(parts) == 2 and all(parts) and all("/" not in part for part in parts)
-        if not valid_repo:
+        if len(parts) != 2 or not all(parts):
             self.issues_found.append("Invalid GITHUB_REPOSITORY format")
             self.log_step(
                 "Repository Access",
@@ -337,6 +337,7 @@ class StreamlinedCodexDebugger:
                 "GITHUB_REPOSITORY must be in 'owner/repo' format",
             )
             return False
+
         api_url = f"https://api.github.com/repos/{repo}"
         try:
             response = requests.get(api_url, headers=headers, timeout=10)
