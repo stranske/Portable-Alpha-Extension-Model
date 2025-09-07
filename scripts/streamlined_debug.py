@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Tuple
 
 import yaml
+import requests
 
 
 class StreamlinedCodexDebugger:
@@ -25,6 +26,9 @@ class StreamlinedCodexDebugger:
         self.issues_found = []
         # Central flag to bypass GitHub-related checks in restricted environments
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
+        token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN") or os.getenv("CODEX_TOKEN")
+        if token and not os.getenv("GH_TOKEN"):
+            os.environ["GH_TOKEN"] = token
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
         """Run command with timeout and capture output.
@@ -311,24 +315,46 @@ class StreamlinedCodexDebugger:
         self.log_step("Quick Permissions Test", "RUNNING")
 
         # Test if we can access repository info
-        success, output = self.run_command(
-            "gh repo view --json name,owner", timeout=10
-        )
-        if not success:
-            self.issues_found.append("Cannot access repository info")
+        token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN") or os.getenv("CODEX_TOKEN")
+        headers = {"Authorization": f"Bearer {token}"} if token else {}
+        repo = os.getenv("GITHUB_REPOSITORY")
+        # Validate repo format: must be 'owner/repo'
+        valid_repo = False
+        if repo:
+            parts = repo.split("/")
+            if len(parts) == 2 and all(parts) and all("/" not in part for part in parts):
+                valid_repo = True
+        if not valid_repo:
+            self.issues_found.append("Invalid GITHUB_REPOSITORY format")
             self.log_step(
                 "Repository Access",
                 "❌ FAILED",
-                "Check repository permissions",
+                "GITHUB_REPOSITORY must be in 'owner/repo' format",
             )
             return False
-        
+        api_url = f"https://api.github.com/repos/{repo}"
         try:
-            repo_data = json.loads(output)
-            repo_name = f"{repo_data['owner']['login']}/{repo_data['name']}"
-            self.log_step("Repository Access", "✅ SUCCESS", f"Repository: {repo_name}")
-        except (json.JSONDecodeError, KeyError):
-            self.log_step("Repository Access", "⚠️  WARNING", "Could not parse repository data")
+            response = requests.get(api_url, headers=headers, timeout=10)
+            if response.status_code != 200:
+                self.issues_found.append("Cannot access repository info")
+                error_details = f"HTTP {response.status_code}: {response.text.strip() or response.reason}"
+                self.log_step(
+                    "Repository Access",
+                    "❌ FAILED",
+                    f"Check repository permissions. {error_details}",
+                )
+                return False
+            repo_data = response.json()
+            repo_name = repo_data.get("full_name", repo or "unknown")
+            self.log_step(
+                "Repository Access",
+                "✅ SUCCESS",
+                f"Repository: {repo_name}",
+            )
+        except Exception as e:
+            self.issues_found.append("Cannot access repository info")
+            self.log_step("Repository Access", "❌ FAILED", str(e))
+            return False
         
         # Test if we can list workflow runs (requires actions:read)
         success, output = self.run_command("gh run list --limit 1", timeout=10)
