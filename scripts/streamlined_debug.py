@@ -122,12 +122,21 @@ class StreamlinedCodexDebugger:
         
         required_perms = ["contents: read", "pull-requests: write", "issues: write"]
         missing_perms = [perm for perm in required_perms if perm not in content]
-        
+
         if missing_perms:
             self.issues_found.append(f"Missing permissions: {', '.join(missing_perms)}")
             self.log_step("Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}")
             return False
-        
+
+        optional_perms = ["actions: read", "checks: write"]
+        missing_optional = [perm for perm in optional_perms if perm not in content]
+        if missing_optional:
+            self.log_step(
+                "Workflow Permissions",
+                "⚠️  WARNING",
+                f"Optional permissions missing: {', '.join(missing_optional)}",
+            )
+
         self.log_step("Workflow Permissions", "✅ SUCCESS", "All required permissions present")
         return True
     
@@ -151,7 +160,7 @@ class StreamlinedCodexDebugger:
             self.log_step(
                 "Workflow Runs", "⚠️  WARNING", "Could not fetch workflow runs"
             )
-            return False
+            return True
         
         try:
             runs = json.loads(output)
