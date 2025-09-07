@@ -120,7 +120,7 @@ class StreamlinedCodexDebugger:
             self.log_step("Workflow Permissions", "❌ FAILED", "Missing permissions block")
             return False
         
-        required_perms = ["contents: write", "pull-requests: write", "issues: write"]
+        required_perms = ["contents: read", "pull-requests: write", "issues: write"]
         missing_perms = [perm for perm in required_perms if perm not in content]
         
         if missing_perms:
@@ -256,15 +256,18 @@ class StreamlinedCodexDebugger:
         except (json.JSONDecodeError, KeyError):
             self.log_step("Repository Access", "⚠️  WARNING", "Could not parse repository data")
         
-        # Test if we can list workflow runs (requires actions:read)
+        # Test if we can list workflow runs (requires actions:read). If the token lacks
+        # this permission, treat it as a warning rather than a hard failure so the
+        # streamlined debug can still provide useful feedback.
         success, output = self.run_command("gh run list --limit 1", timeout=10)
         if success:
             self.log_step("Actions Access", "✅ SUCCESS", "Can access workflow runs")
         else:
-            self.issues_found.append("Cannot access GitHub Actions")
-            self.log_step("Actions Access", "❌ FAILED", "Missing actions:read permission")
-            return False
-        
+            self.log_step(
+                "Actions Access",
+                "⚠️  WARNING",
+                "Cannot access GitHub Actions (actions:read may be missing)",
+            )
         return True
     
     def generate_report(self) -> str:
