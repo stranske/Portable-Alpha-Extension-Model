@@ -337,10 +337,11 @@ class StreamlinedCodexDebugger:
             response = requests.get(api_url, headers=headers, timeout=10)
             if response.status_code != 200:
                 self.issues_found.append("Cannot access repository info")
+                error_details = f"HTTP {response.status_code}: {response.text.strip() or response.reason}"
                 self.log_step(
                     "Repository Access",
                     "❌ FAILED",
-                    "Check repository permissions",
+                    f"Check repository permissions. {error_details}",
                 )
                 return False
             repo_data = response.json()
