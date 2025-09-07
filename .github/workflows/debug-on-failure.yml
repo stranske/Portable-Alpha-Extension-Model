@@ -48,7 +48,7 @@ jobs:
 
             // Which workflow file to dispatch
             const trimmedWorkflow = process.env.DEBUG_WORKFLOW_FILE?.trim();
-            const debugWorkflow = trimmedWorkflow && trimmedWorkflow.length
+            const debugWorkflow = trimmedWorkflow?.length
               ? trimmedWorkflow
               : process.env.DEFAULT_DEBUG_WORKFLOW_FILE;
 
