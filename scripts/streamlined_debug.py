@@ -24,11 +24,15 @@ class StreamlinedCodexDebugger:
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
-        """Run command with timeout and capture output."""
+        """Run command with timeout and capture output. Only allows whitelisted commands."""
         import shlex
+        # Whitelist of allowed commands (add more as needed)
+        ALLOWED_COMMANDS = {"gh", "git"}
         try:
             # Parse command string into arguments to avoid shell injection
             args = shlex.split(cmd)
+            if not args or args[0] not in ALLOWED_COMMANDS:
+                return False, f"Command '{args[0] if args else cmd}' is not allowed."
             result = subprocess.run(
                 args, capture_output=True, text=True, timeout=timeout
             )
@@ -52,7 +56,7 @@ class StreamlinedCodexDebugger:
     
     def check_github_integration(self) -> bool:
         """Quick check of GitHub integration status."""
-        if os.getenv("SKIP_GH_CHECK"):
+        if self.skip_github_checks:
             self.log_step(
                 "GitHub Integration Check",
                 "ℹ️  SKIPPED",
@@ -65,7 +69,6 @@ class StreamlinedCodexDebugger:
         # Check if we can access GitHub API
         success, output = self.run_command("gh auth status", timeout=10)
         if not success:
-            self.issues_found.append("GitHub CLI not authenticated")
             self.log_step(
                 "GitHub Auth",
                 "⚠️  WARNING",
@@ -90,7 +93,7 @@ class StreamlinedCodexDebugger:
                 else:
                     self.log_step(
                         "GitHub PR Status",
-                        "⚠️  INFO",
+                        "ℹ️  INFO",
                         "No active PR on current branch",
                     )
             except json.JSONDecodeError:
@@ -120,7 +123,7 @@ class StreamlinedCodexDebugger:
             self.log_step("Workflow Permissions", "❌ FAILED", "Missing permissions block")
             return False
         
-        required_perms = ["contents: read", "pull-requests: write", "issues: write"]
+        required_perms = ["contents: write", "pull-requests: write", "issues: write"]
         missing_perms = [perm for perm in required_perms if perm not in content]
 
         if missing_perms:
@@ -142,7 +145,7 @@ class StreamlinedCodexDebugger:
     
     def check_recent_workflow_runs(self) -> bool:
         """Check recent workflow run status."""
-        if os.getenv("SKIP_GH_CHECK"):
+        if self.skip_github_checks:
             self.log_step(
                 "Recent Workflow Runs",
                 "ℹ️  SKIPPED",
@@ -235,7 +238,7 @@ class StreamlinedCodexDebugger:
     
     def quick_test_permissions(self) -> bool:
         """Quick test of GitHub permissions without creating a real PR."""
-        if os.getenv("SKIP_GH_CHECK"):
+        if self.skip_github_checks:
             self.log_step(
                 "Quick Permissions Test",
                 "ℹ️  SKIPPED",
@@ -265,18 +268,15 @@ class StreamlinedCodexDebugger:
         except (json.JSONDecodeError, KeyError):
             self.log_step("Repository Access", "⚠️  WARNING", "Could not parse repository data")
         
-        # Test if we can list workflow runs (requires actions:read). If the token lacks
-        # this permission, treat it as a warning rather than a hard failure so the
-        # streamlined debug can still provide useful feedback.
+        # Test if we can list workflow runs (requires actions:read)
         success, output = self.run_command("gh run list --limit 1", timeout=10)
         if success:
             self.log_step("Actions Access", "✅ SUCCESS", "Can access workflow runs")
         else:
-            self.log_step(
-                "Actions Access",
-                "⚠️  WARNING",
-                "Cannot access GitHub Actions (actions:read may be missing)",
-            )
+            self.issues_found.append("Cannot access GitHub Actions")
+            self.log_step("Actions Access", "❌ FAILED", "Missing actions:read permission")
+            return False
+        
         return True
     
     def generate_report(self) -> str:
@@ -369,8 +369,17 @@ class StreamlinedCodexDebugger:
 
 
 def main():
-    print("Debug script placeholder")
-    return 0
+    """Main entry point for streamlined debugging."""
+    debugger = StreamlinedCodexDebugger()
+    success = debugger.run_streamlined_debug()
+    
+    if success:
+        print("\n🎉 All checks passed! Codex integration should work correctly.")
+        sys.exit(0)
+    else:
+        print(f"\n⚠️  Found {len(debugger.issues_found)} issues that need attention.")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
