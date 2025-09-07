@@ -30,6 +30,7 @@ permissions:
   contents: write        # push auto-fixes to same-repo branches
   pull-requests: write   # comment on PRs
   issues: write          # PRs are issues; needed to comment
+  actions: read          # required to query workflow runs
 
 concurrency:
   group: codex-auto-debug-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.ref_name || github.run_id }}
@@ -57,16 +58,22 @@ jobs:
         run: |
           # Priority:
           # 1) workflow_dispatch input target_ref (e.g., refs/pull/123/head)
-          # 2) pull_request merge ref (refs/pull/<num>/merge) for fork support
-          # 3) head ref
+          # 2) pull_request: use head ref for same-repo branches to allow pushes
+          # 3) pull_request merge ref (refs/pull/<num>/merge) for fork support
           # 4) push ref_name
           # 5) repo default branch as absolute last resort
           TARGET_REF="${{ github.event.inputs.target_ref }}"
           if [ -z "$TARGET_REF" ]; then
-            if [ "${{ github.event_name }}" = "pull_request" ] && [ -n "${{ github.event.pull_request.number }}" ]; then
-              TARGET_REF="refs/pull/${{ github.event.pull_request.number }}/merge"
-            elif [ -n "${{ github.head_ref }}" ]; then
-              TARGET_REF="${{ github.head_ref }}"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              HEAD_REPO="${{ github.event.pull_request.head.repo.full_name }}"
+              BASE_REPO="${{ github.repository }}"
+              if [ "$HEAD_REPO" = "$BASE_REPO" ] && [ -n "${{ github.head_ref }}" ]; then
+                TARGET_REF="${{ github.head_ref }}"
+              elif [ -n "${{ github.event.pull_request.number }}" ]; then
+                TARGET_REF="refs/pull/${{ github.event.pull_request.number }}/merge"
+              elif [ -n "${{ github.head_ref }}" ]; then
+                TARGET_REF="${{ github.head_ref }}"
+              fi
             elif [ -n "${{ github.ref_name }}" ]; then
               TARGET_REF="${{ github.ref_name }}"
             else
