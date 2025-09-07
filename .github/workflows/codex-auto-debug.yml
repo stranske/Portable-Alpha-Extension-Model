@@ -57,12 +57,15 @@ jobs:
         run: |
           # Priority:
           # 1) workflow_dispatch input target_ref (e.g., refs/pull/123/head)
-          # 2) pull_request head ref
-          # 3) push ref_name
-          # 4) repo default branch as absolute last resort
+          # 2) pull_request merge ref (refs/pull/<num>/merge) for fork support
+          # 3) head ref
+          # 4) push ref_name
+          # 5) repo default branch as absolute last resort
           TARGET_REF="${{ github.event.inputs.target_ref }}"
           if [ -z "$TARGET_REF" ]; then
-            if [ "${{ github.event_name }}" = "pull_request" ] && [ -n "${{ github.head_ref }}" ]; then
+            if [ "${{ github.event_name }}" = "pull_request" ] && [ -n "${{ github.event.pull_request.number }}" ]; then
+              TARGET_REF="refs/pull/${{ github.event.pull_request.number }}/merge"
+            elif [ -n "${{ github.head_ref }}" ]; then
               TARGET_REF="${{ github.head_ref }}"
             elif [ -n "${{ github.ref_name }}" ]; then
               TARGET_REF="${{ github.ref_name }}"
