@@ -27,7 +27,11 @@ class StreamlinedCodexDebugger:
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
-        """Run command with timeout and capture output. Only allows whitelisted commands."""
+        """Run command with timeout and capture output using safe parsing.
+
+        The command string is parsed with :mod:`shlex` to avoid shell injection
+        and only whitelisted executables are permitted.
+        """
         # Whitelist of allowed commands (add more as needed)
         ALLOWED_COMMANDS = {"gh", "git"}
         try:
@@ -126,28 +130,68 @@ class StreamlinedCodexDebugger:
             self.log_step("Workflow Permissions", "❌ FAILED", "Invalid YAML")
             return False
 
+        required_perms = {
+            "contents": "write",
+            "pull-requests": "write",
+            "issues": "write",
+        }
+
         permissions = workflow_data.get("permissions")
-        if not isinstance(permissions, dict):
+        jobs = workflow_data.get("jobs", {})
+
+        def check_perm_block(perm_block: dict) -> list:
+            return [
+                f"{perm}: {value}"
+                for perm, value in required_perms.items()
+                if perm_block.get(perm) != value
+            ]
+
+        if isinstance(permissions, dict):
+            missing_perms = check_perm_block(permissions)
+            if missing_perms:
+                self.issues_found.append(
+                    f"Missing permissions: {', '.join(missing_perms)}"
+                )
+                self.log_step(
+                    "Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}",
+                )
+                return False
+            self.log_step(
+                "Workflow Permissions",
+                "✅ SUCCESS",
+                "All required permissions present",
+            )
+            return True
+
+        if not isinstance(jobs, dict):
             self.issues_found.append("Workflow missing permissions block")
             self.log_step(
                 "Workflow Permissions", "❌ FAILED", "Missing permissions block"
             )
             return False
 
-        required_perms = {"contents": "write", "pull-requests": "write", "issues": "write"}
-        missing_perms = [
-            f"{perm}: {value}"
-            for perm, value in required_perms.items()
-            if permissions.get(perm) != value
-        ]
+        jobs_missing = {}
+        for job_name, job_def in jobs.items():
+            job_perms = job_def.get("permissions")
+            if not isinstance(job_perms, dict):
+                jobs_missing[job_name] = list(required_perms.keys())
+                continue
+            missing_perms = check_perm_block(job_perms)
+            if missing_perms:
+                jobs_missing[job_name] = missing_perms
 
-        if missing_perms:
-            self.issues_found.append(f"Missing permissions: {', '.join(missing_perms)}")
-            self.log_step("Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}")
+        if jobs_missing:
+            details = ", ".join(
+                f"{job}: {missings}" for job, missings in jobs_missing.items()
+            )
+            self.issues_found.append(f"Missing job permissions: {details}")
+            self.log_step(
+                "Workflow Permissions", "❌ FAILED", f"Missing job perms: {details}",
+            )
             return False
 
         self.log_step(
-            "Workflow Permissions", "✅ SUCCESS", "All required permissions present"
+            "Workflow Permissions", "✅ SUCCESS", "All required job permissions present"
         )
         return True
     
