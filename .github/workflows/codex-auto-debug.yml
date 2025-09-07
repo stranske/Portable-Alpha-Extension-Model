@@ -40,6 +40,12 @@ jobs:
   streamlined-debug:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      actions: read
+
     # Run on codex branches, PRs to main, or manual dispatch (from Option A router)
     if: >
       github.event_name == 'workflow_dispatch' ||
