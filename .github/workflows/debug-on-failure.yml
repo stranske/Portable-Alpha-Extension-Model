@@ -1,48 +1,84 @@
 # .github/workflows/debug-on-failure.yml
 name: Trigger Codex debug on CI failure
+
 on:
   workflow_run:
     workflows: ["CI/CD Pipeline"]
     types: [completed]
+
 permissions:
-  contents: write
-  actions: write
-  checks: read
-  pull-requests: write
-  issues: write
+  actions: write         # to dispatch the debug workflow
+  issues: write          # to comment on the PR
+  pull-requests: read    # to read PR metadata
+  contents: read         # minimal read for repo info
+
 jobs:
   run-debug:
+    # Only when the CI pipeline failed on a PR
     if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.event == 'pull_request' }}
     runs-on: ubuntu-latest
+
+    # Optional override via repo variable; falls back to codex-auto-debug.yml
     env:
-      DEBUG_WORKFLOW_FILE: ${{ vars.DEBUG_WORKFLOW_FILE || 'codex-auto-debug.yml' }}
+      DEBUG_WORKFLOW_FILE: ${{ vars.DEBUG_WORKFLOW_FILE }}
+      DEFAULT_DEBUG_WORKFLOW_FILE: codex-auto-debug.yml
+
     steps:
-      - name: Dispatch Codex Auto-Debug on PR head
+      - name: Dispatch Codex Auto-Debug from default branch
         uses: actions/github-script@v7
         with:
           script: |
             const run = context.payload.workflow_run;
             if (!run.pull_requests || !run.pull_requests.length) {
-              console.log("No pull requests found for this workflow run. Exiting.");
+              core.info("No pull requests associated with this workflow run. Exiting.");
               return;
             }
-            const owner = context.repo.owner, repo = context.repo.repo;
-            const prNum = run.pull_requests[0].number;
-            const { data: pr } = await github.rest.pulls.get({owner, repo, pull_number: prNum});
-            const headRef = pr.head.ref;
 
-            const debugWorkflow = process.env.DEBUG_WORKFLOW_FILE;
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
 
-            // Fire the configured debug workflow (supports workflow_dispatch)
+            // PR metadata
+            const prNumber = run.pull_requests[0].number;
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const headRef = pr.head.ref;   // e.g. feature/branch or forks' branch name
+            const headSha = pr.head.sha;
+
+            // Use the repo's default branch as the dispatch ref so the workflow file is guaranteed present
+            const defaultBranch = (context.payload.repository && context.payload.repository.default_branch) ? context.payload.repository.default_branch : 'main';
+
+            // Which workflow file to dispatch
+            const trimmedWorkflow = process.env.DEBUG_WORKFLOW_FILE?.trim();
+            const debugWorkflow = trimmedWorkflow && trimmedWorkflow.length
+              ? trimmedWorkflow
+              : process.env.DEFAULT_DEBUG_WORKFLOW_FILE;
+
+            // Compose a PR ref that exists in the base repo regardless of forks
+            // refs/pull/<num>/head = the PR's head commit
+            const prRef = `refs/pull/${prNumber}/head`;
+
+            // Kick off the debug workflow living on the default branch, passing PR context
             await github.rest.actions.createWorkflowDispatch({
-              owner, repo,
+              owner,
+              repo,
               workflow_id: debugWorkflow,
-              ref: headRef,
-              inputs: { debug_mode: 'true' }
+              ref: defaultBranch,
+              inputs: {
+                pr_number: String(prNumber),
+                target_ref: prRef,          // what the debug workflow should check out
+                pr_head_ref: headRef,       // informational
+                pr_head_sha: headSha,       // informational / optional verification
+                debug_mode: 'true'
+              }
             });
 
-            // Leave a nudge on the PR
+            // Leave a breadcrumb on the PR for humans
             await github.rest.issues.createComment({
-              owner, repo, issue_number: prNum,
-              body: "CI failed. Kicked off **Streamlined Codex Auto-Debug** on `" + headRef + "`. A report will be attached. If only formatting, the autofix job may push changes."
+              owner,
+              repo,
+              issue_number: prNumber,
+              body:
+                `CI failed. Triggered **Codex Auto-Debug** from \`${defaultBranch}\` with ` +
+                `**target_ref** \`${prRef}\` (head \`${headRef}@${headSha.slice(0,7)}\`).\n\n` +
+                `You’ll see a new debug run under **Actions → Codex Auto-Debug**. ` +
+                `If the failure is trivial (format/lint), the autofix job may push directly.`
             });
