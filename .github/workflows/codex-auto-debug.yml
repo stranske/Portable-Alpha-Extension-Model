@@ -171,7 +171,7 @@ jobs:
             const fs = require('fs');
             const streamlinedExit = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}';
             const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
-            const prNumber = context.payload.pull_request?.number || Number(core.getInput('pr_number')) || Number('${{ github.event.inputs.pr_number || '' }}');
+            const prNumber = context.payload.pull_request?.number || Number('${{ github.event.inputs.pr_number || '' }}');
 
             let streamlinedReport = '';
             try { streamlinedReport = fs.readFileSync('streamlined_debug_report.md','utf8'); }
