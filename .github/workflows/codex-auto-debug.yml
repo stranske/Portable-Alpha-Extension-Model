@@ -27,9 +27,11 @@ on:
 
 # Least-privilege permissions for what this job actually does
 permissions:
-  contents: write        # push auto-fixes to same-repo branches
-  pull-requests: write   # comment on PRs
-  issues: write          # PRs are issues; needed to comment
+  contents: read
+  issues: write
+  pull-requests: write
+  actions: read           # Access workflow artifacts
+  checks: write           # Update check status
 
 concurrency:
   group: codex-auto-debug-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.ref_name || github.run_id }}
