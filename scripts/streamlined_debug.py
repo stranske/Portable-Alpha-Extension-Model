@@ -318,7 +318,21 @@ class StreamlinedCodexDebugger:
         token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN") or os.getenv("CODEX_TOKEN")
         headers = {"Authorization": f"Bearer {token}"} if token else {}
         repo = os.getenv("GITHUB_REPOSITORY")
-        api_url = f"https://api.github.com/repos/{repo}" if repo else ""
+        # Validate repo format: must be 'owner/repo'
+        valid_repo = False
+        if repo:
+            parts = repo.split("/")
+            if len(parts) == 2 and all(parts) and all("/" not in part for part in parts):
+                valid_repo = True
+        if not valid_repo:
+            self.issues_found.append("Invalid GITHUB_REPOSITORY format")
+            self.log_step(
+                "Repository Access",
+                "❌ FAILED",
+                "GITHUB_REPOSITORY must be in 'owner/repo' format",
+            )
+            return False
+        api_url = f"https://api.github.com/repos/{repo}"
         try:
             response = requests.get(api_url, headers=headers, timeout=10)
             if response.status_code != 200:
