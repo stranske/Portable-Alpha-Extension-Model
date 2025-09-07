@@ -1,0 +1,103 @@
+{
+  "name": "codex/test-auto-push",
+  "commit": {
+    "sha": "3cc0fba829a552cb16ad60fd03790bb2fd7dc130",
+    "node_id": "C_kwDOO15QxNoAKDNjYzBmYmE4MjlhNTUyY2IxNmFkNjBmZDAzNzkwYmIyZmQ3ZGMxMzA",
+    "commit": {
+      "author": {
+        "name": "GitHub Actions",
+        "email": "actions@github.com",
+        "date": "2025-09-07T20:29:36Z"
+      },
+      "committer": {
+        "name": "GitHub Actions",
+        "email": "actions@github.com",
+        "date": "2025-09-07T20:29:36Z"
+      },
+      "message": "🤖 Auto-fix: Codex debugging workflow applied minor fixes",
+      "tree": {
+        "sha": "cf193c6803ac58efe9a773d3aa86603d2a7a65ee",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/cf193c6803ac58efe9a773d3aa86603d2a7a65ee"
+      },
+      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/3cc0fba829a552cb16ad60fd03790bb2fd7dc130",
+      "comment_count": 0,
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
+      }
+    },
+    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/3cc0fba829a552cb16ad60fd03790bb2fd7dc130",
+    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/3cc0fba829a552cb16ad60fd03790bb2fd7dc130",
+    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/3cc0fba829a552cb16ad60fd03790bb2fd7dc130/comments",
+    "author": {
+      "login": "actions-user",
+      "id": 65916846,
+      "node_id": "MDQ6VXNlcjY1OTE2ODQ2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65916846?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/actions-user",
+      "html_url": "https://github.com/actions-user",
+      "followers_url": "https://api.github.com/users/actions-user/followers",
+      "following_url": "https://api.github.com/users/actions-user/following{/other_user}",
+      "gists_url": "https://api.github.com/users/actions-user/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/actions-user/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/actions-user/subscriptions",
+      "organizations_url": "https://api.github.com/users/actions-user/orgs",
+      "repos_url": "https://api.github.com/users/actions-user/repos",
+      "events_url": "https://api.github.com/users/actions-user/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/actions-user/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "committer": {
+      "login": "actions-user",
+      "id": 65916846,
+      "node_id": "MDQ6VXNlcjY1OTE2ODQ2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65916846?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/actions-user",
+      "html_url": "https://github.com/actions-user",
+      "followers_url": "https://api.github.com/users/actions-user/followers",
+      "following_url": "https://api.github.com/users/actions-user/following{/other_user}",
+      "gists_url": "https://api.github.com/users/actions-user/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/actions-user/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/actions-user/subscriptions",
+      "organizations_url": "https://api.github.com/users/actions-user/orgs",
+      "repos_url": "https://api.github.com/users/actions-user/repos",
+      "events_url": "https://api.github.com/users/actions-user/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/actions-user/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "parents": [
+      {
+        "sha": "e5903511bf3c57e2106feeac3afa19ca79d88614",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/e5903511bf3c57e2106feeac3afa19ca79d88614",
+        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/e5903511bf3c57e2106feeac3afa19ca79d88614"
+      }
+    ]
+  },
+  "_links": {
+    "self": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/codex/test-auto-push",
+    "html": "https://github.com/stranske/Portable-Alpha-Extension-Model/tree/codex/test-auto-push"
+  },
+  "protected": false,
+  "protection": {
+    "enabled": false,
+    "required_status_checks": {
+      "enforcement_level": "off",
+      "contexts": [
+
+      ],
+      "checks": [
+
+      ]
+    }
+  },
+  "protection_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/codex/test-auto-push/protection"
+}
