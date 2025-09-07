@@ -329,7 +329,7 @@ class StreamlinedCodexDebugger:
 
         # Validate repo format: must be 'owner/repo'
         parts = repo.split("/")
-        if len(parts) != 2 or not all(parts) or any("/" in part for part in parts):
+        if len(parts) != 2 or not all(parts):
             self.issues_found.append("Invalid GITHUB_REPOSITORY format")
             self.log_step(
                 "Repository Access",
