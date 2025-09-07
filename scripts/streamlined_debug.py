@@ -328,7 +328,7 @@ class StreamlinedCodexDebugger:
             return False
         # Validate repo format: must be 'owner/repo'
         parts = repo.split("/")
-        valid_repo = len(parts) == 2 and all(parts)
+        valid_repo = len(parts) == 2 and all(parts) and all("/" not in part for part in parts)
         if not valid_repo:
             self.issues_found.append("Invalid GITHUB_REPOSITORY format")
             self.log_step(
