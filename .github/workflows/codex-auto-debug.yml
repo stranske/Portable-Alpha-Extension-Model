@@ -169,7 +169,7 @@ jobs:
           github-token: ${{ env.CODEX_TOKEN }}
           script: |
             const fs = require('fs');
-            const streamlinedExit = core.getInput('streamlined_exit', { required: false }) || '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}';
+            const streamlinedExit = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}';
             const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
             const prNumber = context.payload.pull_request?.number || Number(core.getInput('pr_number')) || Number('${{ github.event.inputs.pr_number || '' }}');
 
