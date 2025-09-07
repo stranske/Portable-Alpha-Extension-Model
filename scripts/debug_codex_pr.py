@@ -10,7 +10,7 @@ import sys
 import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-
+import shlex
 
 class CodexPRDebugger:
     """Enhanced debugging workflow focusing on actual GitHub CI/CD failures."""
@@ -30,8 +30,6 @@ class CodexPRDebugger:
 
     def run_command(self, cmd: str, capture_output: bool = True) -> Tuple[bool, str]:
         """Run shell command and return success status and output."""
-        import shlex
-
         try:
             # Parse command string into arguments to avoid shell injection
             args = shlex.split(cmd)
