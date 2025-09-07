@@ -163,6 +163,7 @@ class StreamlinedCodexDebugger:
             return True
 
         # Fall back to job-level permissions if no top-level block
+
         jobs = workflow_data.get("jobs")
         if not isinstance(jobs, dict):
             self.issues_found.append("Workflow missing permissions block")
