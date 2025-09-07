@@ -52,7 +52,7 @@ class StreamlinedCodexDebugger:
     
     def check_github_integration(self) -> bool:
         """Quick check of GitHub integration status."""
-        if self.skip_github_checks:
+        if os.getenv("SKIP_GH_CHECK"):
             self.log_step(
                 "GitHub Integration Check",
                 "ℹ️  SKIPPED",
@@ -65,6 +65,7 @@ class StreamlinedCodexDebugger:
         # Check if we can access GitHub API
         success, output = self.run_command("gh auth status", timeout=10)
         if not success:
+            self.issues_found.append("GitHub CLI not authenticated")
             self.log_step(
                 "GitHub Auth",
                 "⚠️  WARNING",
@@ -89,7 +90,7 @@ class StreamlinedCodexDebugger:
                 else:
                     self.log_step(
                         "GitHub PR Status",
-                        "ℹ️  INFO",
+                        "⚠️  INFO",
                         "No active PR on current branch",
                     )
             except json.JSONDecodeError:
@@ -132,7 +133,7 @@ class StreamlinedCodexDebugger:
     
     def check_recent_workflow_runs(self) -> bool:
         """Check recent workflow run status."""
-        if self.skip_github_checks:
+        if os.getenv("SKIP_GH_CHECK"):
             self.log_step(
                 "Recent Workflow Runs",
                 "ℹ️  SKIPPED",
@@ -150,7 +151,7 @@ class StreamlinedCodexDebugger:
             self.log_step(
                 "Workflow Runs", "⚠️  WARNING", "Could not fetch workflow runs"
             )
-            return True
+            return False
         
         try:
             runs = json.loads(output)
@@ -225,7 +226,7 @@ class StreamlinedCodexDebugger:
     
     def quick_test_permissions(self) -> bool:
         """Quick test of GitHub permissions without creating a real PR."""
-        if self.skip_github_checks:
+        if os.getenv("SKIP_GH_CHECK"):
             self.log_step(
                 "Quick Permissions Test",
                 "ℹ️  SKIPPED",
