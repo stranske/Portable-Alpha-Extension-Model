@@ -27,7 +27,11 @@ class StreamlinedCodexDebugger:
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
-        """Run a whitelisted command with timeout, safely parsing args with shlex."""
+        """Run command with timeout and capture output.
+
+        Parses the command string with ``shlex`` for safety and only allows
+        whitelisted commands.
+        """
         # Whitelist of allowed commands (add more as needed)
         ALLOWED_COMMANDS = {"gh", "git"}
         try:
@@ -158,42 +162,46 @@ class StreamlinedCodexDebugger:
             )
             return True
 
-        # Fall back to job-level permissions if global block is absent
+        # Fall back to job-level permissions if no top-level block
+
         jobs = workflow_data.get("jobs")
         if not isinstance(jobs, dict):
             self.issues_found.append("Workflow missing permissions block")
             self.log_step(
-                "Workflow Permissions", "❌ FAILED", "Missing permissions block"
+                "Workflow Permissions",
+                "❌ FAILED",
+                "Missing permissions block",
             )
             return False
 
-        jobs_missing = []
-        for job_name, job_cfg in jobs.items():
-            job_perms = job_cfg.get("permissions")
+        job_issues = []
+        for job_name, job_data in jobs.items():
+            job_perms = job_data.get("permissions")
             if not isinstance(job_perms, dict):
-                jobs_missing.append(job_name)
+                job_issues.append(f"{job_name}: missing permissions block")
                 continue
-            if any(
-                job_perms.get(perm) != value
+            missing_perms = [
+                f"{perm}: {value}"
                 for perm, value in required_perms.items()
-            ):
-                jobs_missing.append(job_name)
+                if job_perms.get(perm) != value
+            ]
+            if missing_perms:
+                job_issues.append(f"{job_name}: missing {', '.join(missing_perms)}")
 
-        if jobs_missing:
-            self.issues_found.append(
-                "Jobs missing permissions: " + ", ".join(jobs_missing)
-            )
+        if job_issues:
+            issue_text = "; ".join(job_issues)
+            self.issues_found.append(f"Job-level permissions issues: {issue_text}")
             self.log_step(
                 "Workflow Permissions",
                 "❌ FAILED",
-                f"Jobs missing permissions: {jobs_missing}",
+                f"Jobs with issues: {issue_text}",
             )
             return False
 
         self.log_step(
             "Workflow Permissions",
             "✅ SUCCESS",
-            "All required permissions present in jobs",
+            "All required job-level permissions present",
         )
         return True
     
