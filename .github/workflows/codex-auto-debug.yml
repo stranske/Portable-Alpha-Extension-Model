@@ -51,6 +51,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Set up GitHub CLI
+      uses: actions/setup-gh@v3
+
     - name: Authenticate with GitHub CLI
       run: echo $GH_TOKEN | gh auth login --with-token
 
