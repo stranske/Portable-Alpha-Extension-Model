@@ -170,7 +170,10 @@ class StreamlinedCodexDebugger:
         jobs_missing = []
         for job_name, job_cfg in jobs.items():
             job_perms = job_cfg.get("permissions")
-            if not isinstance(job_perms, dict) or any(
+            if not isinstance(job_perms, dict):
+                jobs_missing.append(job_name)
+                continue
+            if any(
                 job_perms.get(perm) != value
                 for perm, value in required_perms.items()
             ):
