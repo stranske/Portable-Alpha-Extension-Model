@@ -229,16 +229,10 @@ jobs:
         if: >
           (steps.streamlined_debug.outputs.streamlined_exit_code == '0' ||
            steps.detailed_debug.outputs.detailed_exit_code == '0') &&
-          github.event_name != 'workflow_dispatch'
+          github.event_name != 'workflow_dispatch' &&
+          (github.event_name != 'pull_request' ||
+           github.event.pull_request.head.repo.full_name == github.repository)
         run: |
-          # Only attempt to push for same-repo branches; fork PRs will fail without extra perms
-          REPO_FULL="${{ github.repository }}"
-          HEAD_REPO_FULL="${{ github.event.pull_request.head.repo.full_name || github.repository }}"
-          if [ "$REPO_FULL" != "$HEAD_REPO_FULL" ]; then
-            echo "Skipping auto-push for fork PR ($HEAD_REPO_FULL)."
-            exit 0
-          fi
-
           if [ -n "$(git status --porcelain)" ]; then
             echo "Changes detected, committing fixes..."
             git add -A
