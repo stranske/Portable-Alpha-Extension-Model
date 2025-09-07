@@ -6,7 +6,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  issues: read
+  issues: write
 jobs:
   kickoff:
     if: contains(github.event.issue.labels.*.name, 'agent:codex') || contains(github.event.issue.labels.*.name, 'codex')
