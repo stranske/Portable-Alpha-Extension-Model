@@ -161,7 +161,6 @@ class StreamlinedCodexDebugger:
                 "✅ SUCCESS",
                 "All required permissions present",
             )
-            return True
 
         if not isinstance(jobs, dict):
             self.issues_found.append("Workflow missing permissions block")
@@ -174,7 +173,9 @@ class StreamlinedCodexDebugger:
         for job_name, job_def in jobs.items():
             job_perms = job_def.get("permissions")
             if not isinstance(job_perms, dict):
-                jobs_missing[job_name] = list(required_perms.keys())
+                jobs_missing[job_name] = [
+                    f"{perm}: {value}" for perm, value in required_perms.items()
+                ]
                 continue
             missing_perms = check_perm_block(job_perms)
             if missing_perms:
@@ -182,7 +183,7 @@ class StreamlinedCodexDebugger:
 
         if jobs_missing:
             details = ", ".join(
-                f"{job}: {missings}" for job, missings in jobs_missing.items()
+                f"{job}: {', '.join(missings)}" for job, missings in jobs_missing.items()
             )
             self.issues_found.append(f"Missing job permissions: {details}")
             self.log_step(
