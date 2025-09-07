@@ -22,12 +22,16 @@ jobs:
             const number = context.payload.issue.number;
             const label  = context.payload.label.name;
 
-            const copilot = (process.env.COPILOT_ASSIGNEE || '').trim();
-            const codex   = (process.env.CODEX_ASSIGNEE   || '').trim();
+            const labelToVar = {
+              'agent:copilot': { assignee: (process.env.COPILOT_ASSIGNEE || '').trim(), varName: 'COPILOT_ASSIGNEE' },
+              'agent:codex':   { assignee: (process.env.CODEX_ASSIGNEE   || '').trim(), varName: 'CODEX_ASSIGNEE' }
+            };
 
-            const target = label === 'agent:copilot' ? copilot : codex;
+            const mapping = labelToVar[label];
+            const target = mapping ? mapping.assignee : '';
             if (!target) {
-              core.setFailed(`No assignee configured for ${label}. Set repo variable ${label === 'agent:copilot' ? 'COPILOT_ASSIGNEE' : 'CODEX_ASSIGNEE'}.`);
+              const varName = mapping ? mapping.varName : 'UNKNOWN_ASSIGNEE_VAR';
+              core.setFailed(`No assignee configured for ${label}. Set repo variable ${varName}.`);
               return;
             }
 
