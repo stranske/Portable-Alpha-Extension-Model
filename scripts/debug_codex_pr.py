@@ -126,11 +126,12 @@ class CodexPRDebugger:
             print("  🔍 Checking pytest (Tests)...")
             success, output = self.run_command("python -m pytest tests/ -v --tb=short")
             if not success:
-                pytest_errors: List[str] = [f"Test output:\n{output}"]
+                pytest_errors: List[str] = []
                 for line in output.split("\n"):
                     if "FAILED" in line or "ERROR" in line:
                         pytest_errors.append(line.strip())
                 if pytest_errors:
+                    pytest_errors.insert(0, f"Test output:\n{output}")
                     errors["pytest"] = pytest_errors
 
         # Check ruff formatting - exact CI/CD command
