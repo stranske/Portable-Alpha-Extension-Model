@@ -43,13 +43,24 @@ jobs:
       with:
         python-version: '3.12'
 
+    - name: Install GitHub CLI
+      uses: actions/setup-gh-cli@v3
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Set up GitHub CLI
+      uses: actions/setup-gh@v3
+
     - name: Authenticate with GitHub CLI
       run: echo $GH_TOKEN | gh auth login --with-token
+
+    - name: Verify GitHub CLI authentication
+      run: |
+        gh auth status >/dev/null 2>&1 || { echo 'GitHub CLI authentication failed - check GITHUB_TOKEN permissions.'; exit 1; }
+        gh repo view >/dev/null 2>&1 || { echo 'Failed to access repository - verify token has contents:read permission.'; exit 1; }
 
     - name: Set up Git identity
       run: |

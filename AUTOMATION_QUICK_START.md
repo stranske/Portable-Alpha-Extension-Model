@@ -10,6 +10,16 @@
 make install-dev
 ```
 
+### GitHub Token Permissions
+
+Automation workflows use the GitHub CLI and require authentication. Provide a personal access token via the `CODEX_PAT` secret or rely on the default `GITHUB_TOKEN` with these permissions:
+
+- contents: write
+- pull-requests: write
+- issues: write
+- actions: read
+- checks: write
+
 ### 2. Run Automation (Any Time)
 ```bash
 # Quick debugging check

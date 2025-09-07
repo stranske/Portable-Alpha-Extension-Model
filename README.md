@@ -107,6 +107,19 @@ make dashboard # Start dashboard
 ./setup.sh     # Original setup script
 ```
 
+### GitHub Token Permissions
+
+Workflows such as `codex-auto-debug` require authentication via a personal access token (CODEX_PAT) or the built-in `GITHUB_TOKEN`.
+The token must allow:
+
+- contents: write
+- pull-requests: write
+- issues: write
+- actions: read
+- checks: write
+
+Store a PAT with these scopes as the `CODEX_PAT` repository secret, or ensure the provided `GITHUB_TOKEN` is granted equivalent permissions.
+
 ### VS Code Integration
 
 This project includes comprehensive VS Code configuration:

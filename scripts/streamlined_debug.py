@@ -20,6 +20,8 @@ class StreamlinedCodexDebugger:
         self.repo_root = Path.cwd()
         self.debug_steps = []
         self.issues_found = []
+        # Central flag to bypass GitHub-related checks in restricted environments
+        self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
         """Run command with timeout and capture output."""
@@ -156,7 +158,7 @@ class StreamlinedCodexDebugger:
             codex_runs = [run for run in runs if "Codex" in run.get("workflowName", "")]
             
             if not codex_runs:
-                self.log_step("Codex Workflows", "⚠️  INFO", "No recent Codex workflow runs")
+                self.log_step("Codex Workflows", "ℹ️  INFO", "No recent Codex workflow runs")
                 return True
             
             latest_run = codex_runs[0]
@@ -203,18 +205,18 @@ class StreamlinedCodexDebugger:
             return False
         
         branch = branch.strip()
-        self.log_step("Current Branch", "✅ INFO", f"Branch: {branch}")
+        self.log_step("Current Branch", "ℹ️  INFO", f"Branch: {branch}")
         
         # Check if it's a Codex branch
         if not branch.startswith("codex/"):
-            self.log_step("Branch Type", "⚠️  INFO", "Not a Codex branch - workflow won't trigger")
+            self.log_step("Branch Type", "ℹ️  INFO", "Not a Codex branch - workflow won't trigger")
         else:
             self.log_step("Branch Type", "✅ SUCCESS", "Codex branch - workflow will trigger")
         
         # Check if branch is up to date with remote
         success, output = self.run_command("git status --porcelain -b")
         if success and "ahead" in output:
-            self.log_step("Branch Sync", "⚠️  INFO", "Branch has unpushed commits")
+            self.log_step("Branch Sync", "ℹ️  INFO", "Branch has unpushed commits")
         elif success and "behind" in output:
             self.log_step("Branch Sync", "⚠️  WARNING", "Branch is behind remote")
         else:
