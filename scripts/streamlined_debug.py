@@ -6,11 +6,14 @@ Automated first-step debugging for Codex updates and issues.
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Tuple
+
+import yaml
 
 
 class StreamlinedCodexDebugger:
@@ -25,7 +28,6 @@ class StreamlinedCodexDebugger:
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
         """Run command with timeout and capture output. Only allows whitelisted commands."""
-        import shlex
         # Whitelist of allowed commands (add more as needed)
         ALLOWED_COMMANDS = {"gh", "git"}
         try:
@@ -116,22 +118,37 @@ class StreamlinedCodexDebugger:
             self.log_step("Workflow File", "❌ FAILED", "codex-auto-debug.yml not found")
             return False
         
-        # Check for permissions block
-        content = workflow_file.read_text()
-        if "permissions:" not in content:
-            self.issues_found.append("Workflow missing permissions block")
-            self.log_step("Workflow Permissions", "❌ FAILED", "Missing permissions block")
+        # Validate permissions using YAML parsing
+        try:
+            workflow_data = yaml.safe_load(workflow_file.read_text())
+        except yaml.YAMLError:
+            self.issues_found.append("Invalid workflow YAML format")
+            self.log_step("Workflow Permissions", "❌ FAILED", "Invalid YAML")
             return False
-        
-        required_perms = ["contents: write", "pull-requests: write", "issues: write"]
-        missing_perms = [perm for perm in required_perms if perm not in content]
-        
+
+        permissions = workflow_data.get("permissions")
+        if not isinstance(permissions, dict):
+            self.issues_found.append("Workflow missing permissions block")
+            self.log_step(
+                "Workflow Permissions", "❌ FAILED", "Missing permissions block"
+            )
+            return False
+
+        required_perms = {"contents": "write", "pull-requests": "write", "issues": "write"}
+        missing_perms = [
+            f"{perm}: {value}"
+            for perm, value in required_perms.items()
+            if permissions.get(perm) != value
+        ]
+
         if missing_perms:
             self.issues_found.append(f"Missing permissions: {', '.join(missing_perms)}")
             self.log_step("Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}")
             return False
-        
-        self.log_step("Workflow Permissions", "✅ SUCCESS", "All required permissions present")
+
+        self.log_step(
+            "Workflow Permissions", "✅ SUCCESS", "All required permissions present"
+        )
         return True
     
     def check_recent_workflow_runs(self) -> bool:
