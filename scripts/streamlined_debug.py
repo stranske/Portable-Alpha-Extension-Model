@@ -27,11 +27,7 @@ class StreamlinedCodexDebugger:
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
-        """Run command with timeout and capture output using safe parsing.
-
-        The command string is parsed with :mod:`shlex` to avoid shell injection
-        and only whitelisted executables are permitted.
-        """
+        """Run a whitelisted command with timeout, safely parsing args with shlex."""
         # Whitelist of allowed commands (add more as needed)
         ALLOWED_COMMANDS = {"gh", "git"}
         try:
@@ -137,25 +133,24 @@ class StreamlinedCodexDebugger:
         }
 
         permissions = workflow_data.get("permissions")
-        jobs = workflow_data.get("jobs", {})
-
-        def check_perm_block(perm_block: dict) -> list:
-            return [
+        if isinstance(permissions, dict):
+            missing_perms = [
                 f"{perm}: {value}"
                 for perm, value in required_perms.items()
-                if perm_block.get(perm) != value
+                if permissions.get(perm) != value
             ]
 
-        if isinstance(permissions, dict):
-            missing_perms = check_perm_block(permissions)
             if missing_perms:
                 self.issues_found.append(
                     f"Missing permissions: {', '.join(missing_perms)}"
                 )
                 self.log_step(
-                    "Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}",
+                    "Workflow Permissions",
+                    "❌ FAILED",
+                    f"Missing: {missing_perms}",
                 )
                 return False
+
             self.log_step(
                 "Workflow Permissions",
                 "✅ SUCCESS",
@@ -163,6 +158,8 @@ class StreamlinedCodexDebugger:
             )
             return True
 
+        # Fall back to job-level permissions if global block is absent
+        jobs = workflow_data.get("jobs")
         if not isinstance(jobs, dict):
             self.issues_found.append("Workflow missing permissions block")
             self.log_step(
@@ -170,28 +167,33 @@ class StreamlinedCodexDebugger:
             )
             return False
 
-        jobs_missing = {}
-        for job_name, job_def in jobs.items():
-            job_perms = job_def.get("permissions")
+        jobs_missing = []
+        for job_name, job_cfg in jobs.items():
+            job_perms = job_cfg.get("permissions")
             if not isinstance(job_perms, dict):
-                jobs_missing[job_name] = list(required_perms.keys())
+                jobs_missing.append(job_name)
                 continue
-            missing_perms = check_perm_block(job_perms)
-            if missing_perms:
-                jobs_missing[job_name] = missing_perms
+            if any(
+                job_perms.get(perm) != value
+                for perm, value in required_perms.items()
+            ):
+                jobs_missing.append(job_name)
 
         if jobs_missing:
-            details = ", ".join(
-                f"{job}: {missings}" for job, missings in jobs_missing.items()
+            self.issues_found.append(
+                "Jobs missing permissions: " + ", ".join(jobs_missing)
             )
-            self.issues_found.append(f"Missing job permissions: {details}")
             self.log_step(
-                "Workflow Permissions", "❌ FAILED", f"Missing job perms: {details}",
+                "Workflow Permissions",
+                "❌ FAILED",
+                f"Jobs missing permissions: {jobs_missing}",
             )
             return False
 
         self.log_step(
-            "Workflow Permissions", "✅ SUCCESS", "All required job permissions present"
+            "Workflow Permissions",
+            "✅ SUCCESS",
+            "All required permissions present in jobs",
         )
         return True
     
