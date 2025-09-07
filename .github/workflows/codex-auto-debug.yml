@@ -116,6 +116,54 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
+      - name: 🔎 Diagnose permissions and branch protection
+        id: diag
+        env:
+          GH_TOKEN: ${{ env.GH_TOKEN }}
+        run: |
+          echo "Event: ${{ github.event_name }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "Repo:  ${{ github.repository }}"
+          echo "Base repo: ${{ github.repository }}"
+          echo "Head repo: ${{ github.event.pull_request.head.repo.full_name || github.repository }}"
+          echo "Head ref:  ${{ github.head_ref || '' }}"
+          echo "Ref name:  ${{ github.ref_name }}"
+          echo "Resolved target_ref: ${{ steps.resolve.outputs.target_ref }}"
+
+          echo "-- git status --"
+          git --no-pager status -sb || true
+          echo "-- git remotes --"
+          git remote -v || true
+          echo "-- current branch --"
+          git rev-parse --abbrev-ref HEAD || true
+
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          if [ -z "$BRANCH" ]; then BRANCH="${{ steps.resolve.outputs.target_ref }}"; fi
+          # Normalize refs/pull/*/merge to empty to avoid false protection queries
+          case "$BRANCH" in
+            refs/pull/*) BRANCH="" ;;
+          esac
+          echo "diag_branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$BRANCH" ]; then
+            echo "-- checking branch metadata for '$BRANCH' --"
+            curl -sSfL \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${{ github.repository }}/branches/${BRANCH}" \
+              | tee branch_meta.json || true
+            PROTECTED=$(jq -r '.protected // false' branch_meta.json 2>/dev/null || echo false)
+            echo "Protected: $PROTECTED"
+            echo "protected=$PROTECTED" >> "$GITHUB_OUTPUT"
+          else
+            echo "Skipping branch protection check (non-branch ref)."
+            echo "protected=unknown" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "-- token scoped repos (sanity) --"
+          curl -sS -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/user" | jq '{login, type}' || true
+
       - name: ⚙️ Initialize debug status
         run: |
           echo "streamlined_code=0" >> $GITHUB_ENV
@@ -233,14 +281,38 @@ jobs:
           (github.event_name != 'pull_request' ||
            github.event.pull_request.head.repo.full_name == github.repository)
         run: |
+          # Determine push branch
+          PUSH_BRANCH="${{ github.head_ref || github.ref_name }}"
+          if [ -z "$PUSH_BRANCH" ]; then
+            PUSH_BRANCH="${{ steps.resolve.outputs.target_ref }}"
+          fi
+          # If the target is a PR merge ref or other non-branch ref, bail out gracefully
+          case "$PUSH_BRANCH" in
+            refs/pull/*) echo "Skipping push: non-branch ref '$PUSH_BRANCH'"; exit 0 ;;
+          esac
+
+          # Double-check same-repo push safety
+          REPO_FULL="${{ github.repository }}"
+          HEAD_REPO_FULL="${{ github.event.pull_request.head.repo.full_name || github.repository }}"
+          if [ "$REPO_FULL" != "$HEAD_REPO_FULL" ]; then
+            echo "ℹ️ Skipping auto-push for fork PR ($HEAD_REPO_FULL). Maintainer action required."
+            exit 0
+          fi
+
           if [ -n "$(git status --porcelain)" ]; then
             echo "Changes detected, committing fixes..."
             git add -A
             git commit -m "🤖 Auto-fix: Codex debugging workflow applied minor fixes"
-            if git push; then
+
+            # Use explicit token-authenticated URL to avoid credential/remote issues
+            PUSH_URL="https://x-access-token:${{ env.CODEX_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${REPO_FULL}"
+            echo "Pushing to $REPO_FULL:$PUSH_BRANCH"
+            if git push "$PUSH_URL" HEAD:"$PUSH_BRANCH"; then
               echo "✅ Successfully pushed auto-fixes"
             else
               echo "❌ Failed to push auto-fixes; check branch protections/permissions"
+              echo "   Branch: $PUSH_BRANCH | Repo: $REPO_FULL"
+              echo "   Hint: Ensure 'Allow GitHub Actions to bypass branch protections' is enabled if using protected branches."
               exit 1
             fi
           else
