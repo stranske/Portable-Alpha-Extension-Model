@@ -6,11 +6,14 @@ Automated first-step debugging for Codex updates and issues.
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Tuple
+
+import yaml
 
 
 class StreamlinedCodexDebugger:
@@ -24,8 +27,7 @@ class StreamlinedCodexDebugger:
         self.skip_github_checks = bool(os.getenv("SKIP_GH_CHECK"))
         
     def run_command(self, cmd: str, timeout: int = 30) -> Tuple[bool, str]:
-        """Run command with timeout and capture output. Only allows whitelisted commands."""
-        import shlex
+        """Run a whitelisted command with timeout, safely parsing args with shlex."""
         # Whitelist of allowed commands (add more as needed)
         ALLOWED_COMMANDS = {"gh", "git"}
         try:
@@ -116,31 +118,83 @@ class StreamlinedCodexDebugger:
             self.log_step("Workflow File", "❌ FAILED", "codex-auto-debug.yml not found")
             return False
         
-        # Check for permissions block
-        content = workflow_file.read_text()
-        if "permissions:" not in content:
-            self.issues_found.append("Workflow missing permissions block")
-            self.log_step("Workflow Permissions", "❌ FAILED", "Missing permissions block")
-            return False
-        
-        required_perms = ["contents: write", "pull-requests: write", "issues: write"]
-        missing_perms = [perm for perm in required_perms if perm not in content]
-
-        if missing_perms:
-            self.issues_found.append(f"Missing permissions: {', '.join(missing_perms)}")
-            self.log_step("Workflow Permissions", "❌ FAILED", f"Missing: {missing_perms}")
+        # Validate permissions using YAML parsing
+        try:
+            workflow_data = yaml.safe_load(workflow_file.read_text())
+        except yaml.YAMLError:
+            self.issues_found.append("Invalid workflow YAML format")
+            self.log_step("Workflow Permissions", "❌ FAILED", "Invalid YAML")
             return False
 
-        optional_perms = ["actions: read", "checks: write"]
-        missing_optional = [perm for perm in optional_perms if perm not in content]
-        if missing_optional:
+        required_perms = {
+            "contents": "write",
+            "pull-requests": "write",
+            "issues": "write",
+        }
+
+        permissions = workflow_data.get("permissions")
+        if isinstance(permissions, dict):
+            missing_perms = [
+                f"{perm}: {value}"
+                for perm, value in required_perms.items()
+                if permissions.get(perm) != value
+            ]
+
+            if missing_perms:
+                self.issues_found.append(
+                    f"Missing permissions: {', '.join(missing_perms)}"
+                )
+                self.log_step(
+                    "Workflow Permissions",
+                    "❌ FAILED",
+                    f"Missing: {missing_perms}",
+                )
+                return False
+
             self.log_step(
                 "Workflow Permissions",
-                "⚠️  WARNING",
-                f"Optional permissions missing: {', '.join(missing_optional)}",
+                "✅ SUCCESS",
+                "All required permissions present",
             )
+            return True
 
-        self.log_step("Workflow Permissions", "✅ SUCCESS", "All required permissions present")
+        # Fall back to job-level permissions if global block is absent
+        jobs = workflow_data.get("jobs")
+        if not isinstance(jobs, dict):
+            self.issues_found.append("Workflow missing permissions block")
+            self.log_step(
+                "Workflow Permissions", "❌ FAILED", "Missing permissions block"
+            )
+            return False
+
+        jobs_missing = []
+        for job_name, job_cfg in jobs.items():
+            job_perms = job_cfg.get("permissions")
+            if not isinstance(job_perms, dict):
+                jobs_missing.append(job_name)
+                continue
+            if any(
+                job_perms.get(perm) != value
+                for perm, value in required_perms.items()
+            ):
+                jobs_missing.append(job_name)
+
+        if jobs_missing:
+            self.issues_found.append(
+                "Jobs missing permissions: " + ", ".join(jobs_missing)
+            )
+            self.log_step(
+                "Workflow Permissions",
+                "❌ FAILED",
+                f"Jobs missing permissions: {jobs_missing}",
+            )
+            return False
+
+        self.log_step(
+            "Workflow Permissions",
+            "✅ SUCCESS",
+            "All required permissions present in jobs",
+        )
         return True
     
     def check_recent_workflow_runs(self) -> bool:
