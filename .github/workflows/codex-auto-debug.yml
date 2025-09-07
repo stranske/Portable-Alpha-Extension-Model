@@ -8,12 +8,24 @@ on:
     branches: [ 'codex/**' ]
   workflow_dispatch:
     inputs:
+      pr_number:
+        description: 'PR number (when dispatched by debug-on-failure)'
+        required: false
+      target_ref:
+        description: 'Git ref to check out (e.g., refs/pull/123/head)'
+        required: false
+      pr_head_ref:
+        description: 'PR head ref (branch name) for logs only'
+        required: false
+      pr_head_sha:
+        description: 'PR head SHA for logs only'
+        required: false
       debug_mode:
         description: 'Enable verbose debugging'
         required: false
         default: 'false'
 
-# Explicit permissions for GitHub Actions
+# Least-privilege permissions for what this job actually does
 permissions:
   contents: read
   issues: write
@@ -21,221 +33,226 @@ permissions:
   actions: read           # Access workflow artifacts
   checks: write           # Update check status
 
+concurrency:
+  group: codex-auto-debug-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.ref_name || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   streamlined-debug:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    # Run on Codex branches or when manually triggered
+
+    # Run on codex branches, PRs to main, or manual dispatch (from Option A router)
     if: >
-      startsWith(github.head_ref, 'codex/') ||
-      startsWith(github.ref_name, 'codex/') ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' ||
+      startsWith(github.head_ref || '', 'codex/') ||
+      startsWith(github.ref_name || '', 'codex/') ||
+      github.event_name == 'pull_request'
+
+    env:
+      # prefer personal token if present, otherwise fall back
+      CODEX_TOKEN: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
+      DEBUG_MODE: ${{ github.event.inputs.debug_mode || 'false' }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
+      - name: 🧾 Resolve target checkout ref
+        id: resolve
+        run: |
+          # Priority:
+          # 1) workflow_dispatch input target_ref (e.g., refs/pull/123/head)
+          # 2) pull_request merge ref (refs/pull/<num>/merge) for fork support
+          # 3) head ref
+          # 4) push ref_name
+          # 5) repo default branch as absolute last resort
+          TARGET_REF="${{ github.event.inputs.target_ref }}"
+          if [ -z "$TARGET_REF" ]; then
+            if [ "${{ github.event_name }}" = "pull_request" ] && [ -n "${{ github.event.pull_request.number }}" ]; then
+              TARGET_REF="refs/pull/${{ github.event.pull_request.number }}/merge"
+            elif [ -n "${{ github.head_ref }}" ]; then
+              TARGET_REF="${{ github.head_ref }}"
+            elif [ -n "${{ github.ref_name }}" ]; then
+              TARGET_REF="${{ github.ref_name }}"
+            else
+              TARGET_REF="${{ github.event.repository.default_branch || 'main' }}"
+            fi
+          fi
+          echo "target_ref=$TARGET_REF" >> "$GITHUB_OUTPUT"
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+      - name: 📥 Check out code at target ref
+        uses: actions/checkout@v4
+        with:
+          token: ${{ env.CODEX_TOKEN }}
+          ref: ${{ steps.resolve.outputs.target_ref }}
+          fetch-depth: 0
 
-    - name: Install GitHub CLI
-      uses: actions/setup-gh-cli@v3
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            echo "requirements.txt not found; installing minimal toolchain"
+            pip install --upgrade pip
+          fi
 
-    - name: Set up GitHub CLI
-      uses: actions/setup-gh@v3
+      - name: 🧭 Set up Git identity
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
-    - name: Authenticate with GitHub CLI
-      run: echo $GH_TOKEN | gh auth login --with-token
+      - name: ⚙️ Initialize debug status
+        run: |
+          echo "streamlined_code=0" >> $GITHUB_ENV
+          echo "detailed_code=0" >> $GITHUB_ENV
 
-    - name: Verify GitHub CLI authentication
-      run: |
-        gh auth status >/dev/null 2>&1 || { echo 'GitHub CLI authentication failed - check GITHUB_TOKEN permissions.'; exit 1; }
-        gh repo view >/dev/null 2>&1 || { echo 'Failed to access repository - verify token has contents:read permission.'; exit 1; }
+      - name: 🚀 Run Streamlined Debug
+        id: streamlined_debug
+        run: |
+          echo "Running streamlined debugging workflow..."
+          exit_code=0
+          if [ -f scripts/streamlined_debug.py ]; then
+            python scripts/streamlined_debug.py
+            exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo "ERROR: streamlined_debug.py failed with exit code $exit_code" >&2
+            fi
+          else
+            echo "ERROR: scripts/streamlined_debug.py not found!" >&2
+            exit_code=2
+          fi
+          echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
+          echo "streamlined_code=$exit_code" >> $GITHUB_ENV
 
-    - name: Set up Git identity
-      run: |
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
+      - name: 📊 Upload Streamlined Debug Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamlined-debug-report-${{ github.run_id }}
+          path: |
+            streamlined_debug_report.md
+          if-no-files-found: ignore
 
-    - name: Initialize debug status
-      run: |
-        echo "streamlined_code=0" >> $GITHUB_ENV
-        echo "detailed_code=0" >> $GITHUB_ENV
-
-    - name: 🚀 Run Streamlined Debug
-      id: streamlined_debug
-      run: |
-        echo "Running streamlined debugging workflow..."
-        if [ ! -f scripts/streamlined_debug.py ]; then
-          echo "ERROR: scripts/streamlined_debug.py not found!" >&2
-          exit_code=2
-        else
-          python scripts/streamlined_debug.py
+      - name: 🔍 Run Detailed Debug (if streamlined found issues)
+        id: detailed_debug
+        if: steps.streamlined_debug.outputs.streamlined_exit_code != '0'
+        run: |
+          echo "Streamlined debug found issues. Running detailed analysis..."
+          BRANCH_IN="${{ github.event.inputs.pr_head_ref || github.head_ref || github.ref_name }}"
+          python scripts/debug_codex_pr.py \
+            --branch="$BRANCH_IN" \
+            --report=detailed_debug_report.md \
+            --max-iterations=3 \
+            --commit
           exit_code=$?
           if [ $exit_code -ne 0 ]; then
-            echo "ERROR: scripts/streamlined_debug.py failed with exit code $exit_code" >&2
+            echo "ERROR: debug_codex_pr.py failed with exit code $exit_code" >&2
           fi
-        fi
-        echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
-        echo "streamlined_code=$exit_code" >> $GITHUB_ENV
+          # never fail the job here; final status handles that
+          echo "detailed_exit_code=$exit_code" >> $GITHUB_OUTPUT
+          echo "detailed_code=$exit_code" >> $GITHUB_ENV
+          true
 
-    - name: 📊 Upload Streamlined Debug Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: streamlined-debug-report-${{ github.run_id }}
-        path: streamlined_debug_report.md
+      - name: 📊 Upload Detailed Debug Report
+        if: steps.detailed_debug.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: detailed-debug-report-${{ github.run_id }}
+          path: |
+            detailed_debug_report.md
+          if-no-files-found: ignore
 
-    - name: 🔍 Run Detailed Debug (if streamlined found issues)
-      id: detailed_debug
-      if: steps.streamlined_debug.outputs.streamlined_exit_code != '0'
-      run: |
-        echo "Streamlined debug found issues. Running detailed analysis..."
-        python scripts/debug_codex_pr.py --branch=${{ github.head_ref || github.ref_name }} --report=detailed_debug_report.md --max-iterations=3 --commit
-        exit_code=$?
-        if [ $exit_code -ne 0 ]; then
-          echo "ERROR: debug_codex_pr.py failed with exit code $exit_code" >&2
-        fi
-        # Prevent workflow failure due to non-zero exit code
-        true
-        echo "detailed_exit_code=$exit_code" >> $GITHUB_OUTPUT
-        echo "detailed_code=$exit_code" >> $GITHUB_ENV
+      - name: 💬 Comment results on PR
+        if: >
+          github.event_name == 'pull_request' ||
+          (github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ env.CODEX_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const streamlinedExit = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}';
+            const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
+            const prNumber = context.payload.pull_request?.number || Number('${{ github.event.inputs.pr_number || '' }}');
 
-    - name: 📊 Upload Detailed Debug Report
-      uses: actions/upload-artifact@v4
-      if: steps.detailed_debug.outcome != 'skipped'
-      with:
-        name: detailed-debug-report-${{ github.run_id }}
-        path: detailed_debug_report.md
+            let streamlinedReport = '';
+            try { streamlinedReport = fs.readFileSync('streamlined_debug_report.md','utf8'); }
+            catch { streamlinedReport = '❌ Streamlined debug report not generated.'; }
 
-    - name: 💬 Comment Results on PR
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.CODEX_PAT || secrets.GITHUB_TOKEN }}
-        script: |
-          const fs = require('fs');
+            let detailedReport = '';
+            try { detailedReport = fs.readFileSync('detailed_debug_report.md','utf8'); }
+            catch {}
 
-          // Read streamlined report
-          let streamlinedReport = '';
-          try {
-            streamlinedReport = fs.readFileSync('streamlined_debug_report.md', 'utf8');
-          } catch (error) {
-            streamlinedReport = '❌ Streamlined debug report generation failed';
-            console.log('Streamlined report read error:', error);
-          }
+            const streamlinedPassed = String(streamlinedExit) === '0';
+            const statusEmoji = streamlinedPassed ? '🎉' : '⚠️';
+            const statusText  = streamlinedPassed ? 'All Checks Passed' : 'Issues Found';
 
-          // Read detailed report if it exists
-          let detailedReport = '';
-          try {
-            detailedReport = fs.readFileSync('detailed_debug_report.md', 'utf8');
-          } catch (error) {
-            // Detailed report may not exist if streamlined debug passed
-            console.log('No detailed report (this is normal if streamlined debug passed)');
-          }
+            let comment = `## ${statusEmoji} Automated Codex Debugging Results - ${statusText}
 
-          // Determine overall status
-          const streamlinedPassed = '${{ steps.streamlined_debug.outputs.streamlined_exit_code }}' === '0';
-          const detailedRan = '${{ steps.detailed_debug.outcome }}' !== 'skipped';
+            ### 🚀 Streamlined Debug Results
+            ${streamlinedReport}
+            `;
 
-          let statusEmoji = streamlinedPassed ? '🎉' : '⚠️';
-          let statusText = streamlinedPassed ? 'All Checks Passed' : 'Issues Found';
+            if (detailedRan && detailedReport) {
+              comment += `\n### 🔍 Detailed Debug Results\n${detailedReport}\n`;
+            }
 
-          let comment = `## ${statusEmoji} Automated Codex Debugging Results - ${statusText}
+            comment += `\n---\n*Debug workflow: Streamlined → ${streamlinedPassed ? 'Passed ✅' : 'Failed ❌'}${detailedRan ? ' → Detailed Analysis 🔍' : ''}*`;
 
-          ### 🚀 Streamlined Debug Results
-          ${streamlinedReport}
-          `;
-
-          if (detailedRan && detailedReport) {
-            comment += `
-          ### 🔍 Detailed Debug Results
-          ${detailedReport}
-          `;
-          }
-
-          comment += `
-          ---
-          *Debug workflow: Streamlined → ${streamlinedPassed ? 'Passed ✅' : 'Failed ❌'}${detailedRan ? ' → Detailed Analysis 🔍' : ''}*
-          `;
-
-          try {
-            const repoOwner = context.repo?.owner;
-            const repoName = context.repo?.repo;
-            if (repoOwner && repoName) {
+            if (prNumber) {
               await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: repoOwner,
-                repo: repoName,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
                 body: comment
               });
-              console.log('Successfully posted PR comment');
             } else {
-              console.log('Missing GitHub repo context, skipping PR comment');
+              core.info('No PR number available; skipping PR comment.');
             }
-          } catch (error) {
-            console.log('Failed to post PR comment:', error);
-            core.setFailed(`Failed to post PR comment: ${error.message}`);
-          }
 
-    - name: 🤖 Auto-commit fixes if any
-      if: >
-        (steps.streamlined_debug.outputs.streamlined_exit_code == '0' ||
-         steps.detailed_debug.outputs.detailed_exit_code == '0') &&
-        github.event_name != 'workflow_dispatch'
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+      - name: 🤖 Auto-commit fixes if any
+        if: >
+          (steps.streamlined_debug.outputs.streamlined_exit_code == '0' ||
+           steps.detailed_debug.outputs.detailed_exit_code == '0') &&
+          github.event_name != 'workflow_dispatch'
+        run: |
+          # Only attempt to push for same-repo branches; fork PRs will fail without extra perms
+          REPO_FULL="${{ github.repository }}"
+          HEAD_REPO_FULL="${{ github.event.pull_request.head.repo.full_name || github.repository }}"
+          if [ "$REPO_FULL" != "$HEAD_REPO_FULL" ]; then
+            echo "Skipping auto-push for fork PR ($HEAD_REPO_FULL)."
+            exit 0
+          fi
 
-        # Check if there are changes to commit
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "Changes detected, committing fixes..."
-          git add .
-          git commit -m "🤖 Auto-fix: Resolve Codex integration issues
-
-          - Applied automatic formatting fixes
-          - Resolved type compatibility issues
-          - Cleaned up import statements
-          - Fixed common integration patterns
-
-          Generated by streamlined debugging workflow"
-
-          # Push with error handling
-          if git push; then
-            echo "✅ Successfully pushed auto-fixes"
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Changes detected, committing fixes..."
+            git add -A
+            git commit -m "🤖 Auto-fix: Codex debugging workflow applied minor fixes"
+            if git push; then
+              echo "✅ Successfully pushed auto-fixes"
+            else
+              echo "❌ Failed to push auto-fixes; check branch protections/permissions"
+              exit 1
+            fi
           else
-            echo "❌ Failed to push auto-fixes - may need different permissions"
+            echo "✅ No changes to commit"
+          fi
+
+      - name: 📋 Set final status
+        if: always()
+        run: |
+          : "${streamlined_code:=1}"
+          : "${detailed_code:=1}"
+          if [ "$streamlined_code" = "0" ]; then
+            echo "✅ Streamlined debug passed - all good!"
+            exit 0
+          elif [ "$detailed_code" = "0" ]; then
+            echo "✅ Detailed debug resolved issues - all good!"
+            exit 0
+          else
+            echo "⚠️ Issues remain that need manual attention"
             exit 1
           fi
-        else
-          echo "✅ No changes to commit - repository is already in good state"
-        fi
-
-    - name: 📋 Set final status
-      if: always()
-      run: |
-        streamlined_code="${streamlined_code}"
-        detailed_code="${detailed_code}"
-        : "${streamlined_code:=1}"
-        : "${detailed_code:=1}"
-
-        if [ "$streamlined_code" = "0" ]; then
-          echo "✅ Streamlined debug passed - all good!"
-          exit 0
-        elif [ "$detailed_code" = "0" ]; then
-          echo "✅ Detailed debug resolved issues - all good!"
-          exit 0
-        else
-          echo "⚠️ Issues remain that need manual attention"
-          exit 1
-        fi
