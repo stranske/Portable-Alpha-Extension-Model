@@ -5,6 +5,7 @@ Automated first-step debugging for Codex updates and issues.
 """
 
 import json
+import os
 import subprocess
 import sys
 import time
@@ -49,29 +50,54 @@ class StreamlinedCodexDebugger:
     
     def check_github_integration(self) -> bool:
         """Quick check of GitHub integration status."""
+        if os.getenv("SKIP_GH_CHECK"):
+            self.log_step(
+                "GitHub Integration Check",
+                "ℹ️  SKIPPED",
+                "SKIP_GH_CHECK set; skipping GitHub checks",
+            )
+            return True
+
         self.log_step("GitHub Integration Check", "RUNNING")
-        
+
         # Check if we can access GitHub API
         success, output = self.run_command("gh auth status", timeout=10)
         if not success:
             self.issues_found.append("GitHub CLI not authenticated")
-            self.log_step("GitHub Auth", "❌ FAILED", "Run: gh auth login")
-            return False
-            
+            self.log_step(
+                "GitHub Auth",
+                "⚠️  WARNING",
+                "GitHub CLI not authenticated - skipping further GitHub checks",
+            )
+            return True
+
         # Check current PR status if in PR context
-        success, output = self.run_command("gh pr status --json number,title", timeout=15)
+        success, output = self.run_command(
+            "gh pr status --json number,title", timeout=15
+        )
         if success and output.strip():
             try:
                 pr_data = json.loads(output)
                 if pr_data.get("currentBranch"):
                     pr_info = pr_data["currentBranch"]
-                    self.log_step("GitHub PR Status", "✅ SUCCESS", 
-                                f"PR #{pr_info.get('number', 'N/A')}: {pr_info.get('title', 'N/A')}")
+                    self.log_step(
+                        "GitHub PR Status",
+                        "✅ SUCCESS",
+                        f"PR #{pr_info.get('number', 'N/A')}: {pr_info.get('title', 'N/A')}",
+                    )
                 else:
-                    self.log_step("GitHub PR Status", "⚠️  INFO", "No active PR on current branch")
+                    self.log_step(
+                        "GitHub PR Status",
+                        "⚠️  INFO",
+                        "No active PR on current branch",
+                    )
             except json.JSONDecodeError:
-                self.log_step("GitHub PR Status", "⚠️  WARNING", "Could not parse PR data")
-        
+                self.log_step(
+                    "GitHub PR Status",
+                    "⚠️  WARNING",
+                    "Could not parse PR data",
+                )
+
         self.log_step("GitHub Integration Check", "✅ COMPLETE")
         return True
     
@@ -105,11 +131,24 @@ class StreamlinedCodexDebugger:
     
     def check_recent_workflow_runs(self) -> bool:
         """Check recent workflow run status."""
+        if os.getenv("SKIP_GH_CHECK"):
+            self.log_step(
+                "Recent Workflow Runs",
+                "ℹ️  SKIPPED",
+                "SKIP_GH_CHECK set; skipping GitHub checks",
+            )
+            return True
+
         self.log_step("Recent Workflow Runs", "RUNNING")
-        
-        success, output = self.run_command("gh run list --limit 3 --json databaseId,conclusion,workflowName", timeout=20)
+
+        success, output = self.run_command(
+            "gh run list --limit 3 --json databaseId,conclusion,workflowName",
+            timeout=20,
+        )
         if not success:
-            self.log_step("Workflow Runs", "⚠️  WARNING", "Could not fetch workflow runs")
+            self.log_step(
+                "Workflow Runs", "⚠️  WARNING", "Could not fetch workflow runs"
+            )
             return False
         
         try:
@@ -185,13 +224,27 @@ class StreamlinedCodexDebugger:
     
     def quick_test_permissions(self) -> bool:
         """Quick test of GitHub permissions without creating a real PR."""
+        if os.getenv("SKIP_GH_CHECK"):
+            self.log_step(
+                "Quick Permissions Test",
+                "ℹ️  SKIPPED",
+                "SKIP_GH_CHECK set; skipping GitHub checks",
+            )
+            return True
+
         self.log_step("Quick Permissions Test", "RUNNING")
-        
+
         # Test if we can access repository info
-        success, output = self.run_command("gh repo view --json name,owner", timeout=10)
+        success, output = self.run_command(
+            "gh repo view --json name,owner", timeout=10
+        )
         if not success:
             self.issues_found.append("Cannot access repository info")
-            self.log_step("Repository Access", "❌ FAILED", "Check repository permissions")
+            self.log_step(
+                "Repository Access",
+                "❌ FAILED",
+                "Check repository permissions",
+            )
             return False
         
         try:
@@ -233,7 +286,15 @@ class StreamlinedCodexDebugger:
         # Detailed steps
         report.append("## 📋 Debugging Steps")
         for step in self.debug_steps:
-            status_icon = "✅" if "SUCCESS" in step["status"] else "❌" if "FAILED" in step["status"] else "⚠️"
+            status = step["status"]
+            if "SUCCESS" in status:
+                status_icon = "✅"
+            elif "FAILED" in status:
+                status_icon = "❌"
+            elif "SKIPPED" in status or "INFO" in status:
+                status_icon = "ℹ️"
+            else:
+                status_icon = "⚠️"
             report.append(f"**{step['timestamp']}** {status_icon} {step['step']}")
             if step["details"]:
                 report.append(f"  - {step['details']}")
