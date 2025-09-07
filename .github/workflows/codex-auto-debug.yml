@@ -24,6 +24,8 @@ permissions:
 jobs:
   streamlined-debug:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     # Run on Codex branches or when manually triggered
     if: >
       startsWith(github.head_ref, 'codex/') ||
@@ -46,18 +48,34 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: Authenticate with GitHub CLI
+      run: echo $GH_TOKEN | gh auth login --with-token
+
     - name: Set up Git identity
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
 
+    - name: Initialize debug status
+      run: |
+        echo "streamlined_code=1" >> $GITHUB_ENV
+        echo "detailed_code=1" >> $GITHUB_ENV
+
     - name: 🚀 Run Streamlined Debug
       id: streamlined_debug
       run: |
         echo "Running streamlined debugging workflow..."
-        python scripts/streamlined_debug.py
-        exit_code=$?
-        echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
+        if [ ! -f scripts/streamlined_debug.py ]; then
+          echo "ERROR: scripts/streamlined_debug.py not found!" >&2
+          exit_code=2
+        else
+          python scripts/streamlined_debug.py
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+            echo "ERROR: scripts/streamlined_debug.py failed with exit code $exit_code" >&2
+          fi
+          echo "streamlined_exit_code=$exit_code" >> $GITHUB_OUTPUT
+          echo "streamlined_code=$exit_code" >> $GITHUB_ENV
 
     - name: 📊 Upload Streamlined Debug Report
       uses: actions/upload-artifact@v4
@@ -72,7 +90,14 @@ jobs:
       run: |
         echo "Streamlined debug found issues. Running detailed analysis..."
         python scripts/debug_codex_pr.py --branch=${{ github.head_ref || github.ref_name }} --report=detailed_debug_report.md --max-iterations=3 --commit
-        echo "detailed_exit_code=$?" >> $GITHUB_OUTPUT
+        exit_code=$?
+        if [ $exit_code -ne 0 ]; then
+          echo "ERROR: debug_codex_pr.py failed with exit code $exit_code" >&2
+        fi
+        # Prevent workflow failure due to non-zero exit code
+        true
+        echo "detailed_exit_code=$exit_code" >> $GITHUB_OUTPUT
+        echo "detailed_code=$exit_code" >> $GITHUB_ENV
 
     - name: 📊 Upload Detailed Debug Report
       uses: actions/upload-artifact@v4
@@ -187,8 +212,10 @@ jobs:
     - name: 📋 Set final status
       if: always()
       run: |
-        streamlined_code="${{ steps.streamlined_debug.outputs.streamlined_exit_code }}"
-        detailed_code="${{ steps.detailed_debug.outputs.detailed_exit_code }}"
+        streamlined_code="${streamlined_code}"
+        detailed_code="${detailed_code}"
+        : "${streamlined_code:=1}"
+        : "${detailed_code:=1}"
 
         if [ "$streamlined_code" = "0" ]; then
           echo "✅ Streamlined debug passed - all good!"
