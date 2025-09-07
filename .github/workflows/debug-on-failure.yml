@@ -47,8 +47,9 @@ jobs:
             const defaultBranch = (context.payload.repository && context.payload.repository.default_branch) ? context.payload.repository.default_branch : 'main';
 
             // Which workflow file to dispatch
-            const debugWorkflow = process.env.DEBUG_WORKFLOW_FILE && process.env.DEBUG_WORKFLOW_FILE.trim().length
-              ? process.env.DEBUG_WORKFLOW_FILE.trim()
+            const trimmedWorkflow = process.env.DEBUG_WORKFLOW_FILE?.trim();
+            const debugWorkflow = trimmedWorkflow && trimmedWorkflow.length
+              ? trimmedWorkflow
               : process.env.DEFAULT_DEBUG_WORKFLOW_FILE;
 
             // Compose a PR ref that exists in the base repo regardless of forks
