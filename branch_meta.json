@@ -1,25 +1,25 @@
 {
   "name": "copilot/fix-698",
   "commit": {
-    "sha": "8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d",
-    "node_id": "C_kwDOO15QxNoAKDg5MjlmNDlmMGZjMWE5MjAwZDllZTljYjgwODZlOWQxN2U2YjU4OWQ",
+    "sha": "af04e4e44ea821015f94b7c4195acd3f7327eaf8",
+    "node_id": "C_kwDOO15QxNoAKGFmMDRlNGU0NGVhODIxMDE1Zjk0YjdjNDE5NWFjZDNmNzMyN2VhZjg",
     "commit": {
       "author": {
         "name": "github-actions[bot]",
         "email": "github-actions[bot]@users.noreply.github.com",
-        "date": "2025-09-10T03:09:30Z"
+        "date": "2025-09-10T03:10:30Z"
       },
       "committer": {
         "name": "github-actions[bot]",
         "email": "github-actions[bot]@users.noreply.github.com",
-        "date": "2025-09-10T03:09:30Z"
+        "date": "2025-09-10T03:10:30Z"
       },
       "message": "🤖 Auto-fix: Codex debugging workflow applied minor fixes",
       "tree": {
-        "sha": "48217942714b330f3d1414f62926c15c1801b0a8",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/48217942714b330f3d1414f62926c15c1801b0a8"
+        "sha": "d76ae00febb3090dd25899759d112f3a266a1ad7",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/d76ae00febb3090dd25899759d112f3a266a1ad7"
       },
-      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d",
+      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/af04e4e44ea821015f94b7c4195acd3f7327eaf8",
       "comment_count": 0,
       "verification": {
         "verified": false,
@@ -29,9 +29,9 @@
         "verified_at": null
       }
     },
-    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d",
-    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d",
-    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d/comments",
+    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/af04e4e44ea821015f94b7c4195acd3f7327eaf8",
+    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/af04e4e44ea821015f94b7c4195acd3f7327eaf8",
+    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/af04e4e44ea821015f94b7c4195acd3f7327eaf8/comments",
     "author": {
       "login": "github-actions[bot]",
       "id": 41898282,
@@ -76,9 +76,9 @@
     },
     "parents": [
       {
-        "sha": "24ce59b0da13bb4031c7788c8cefab4466b7a6f6",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/24ce59b0da13bb4031c7788c8cefab4466b7a6f6",
-        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/24ce59b0da13bb4031c7788c8cefab4466b7a6f6"
+        "sha": "8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d",
+        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/8929f49f0fc1a9200d9ee9cb8086e9d17e6b589d"
       }
     ]
   },
