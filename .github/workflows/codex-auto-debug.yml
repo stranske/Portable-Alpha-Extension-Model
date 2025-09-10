@@ -113,8 +113,8 @@ jobs:
 
       - name: 🧭 Set up Git identity
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: 🔎 Diagnose permissions and branch protection
         id: diag
@@ -243,6 +243,13 @@ jobs:
           (github.event_name != 'pull_request' ||
            github.event.pull_request.head.repo.full_name == github.repository)
         run: |
+          # Check if last commit was made by github-actions bot to prevent loops
+          LAST_AUTHOR=$(git log -1 --format="%an")
+          if [ "$LAST_AUTHOR" = "github-actions[bot]" ]; then
+            echo "ℹ️ Last commit was made by github-actions[bot], skipping auto-commit to prevent loops"
+            exit 0
+          fi
+
           # Set up git identity
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
@@ -267,10 +274,12 @@ jobs:
             git add -A
             git commit -m "🤖 Auto-fix: Codex debugging workflow applied minor fixes"
 
-            # Use explicit token-authenticated URL to avoid credential/remote issues
-            PUSH_URL="https://x-access-token:${{ env.CODEX_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${REPO_FULL}"
+            # Configure git credential helper securely to avoid token exposure in logs
+            git config --local credential.helper store
+            echo "https://x-access-token:${{ env.CODEX_TOKEN || secrets.GITHUB_TOKEN }}@github.com" | git credential approve
+            
             echo "Pushing to $REPO_FULL:$PUSH_BRANCH"
-            if git push "$PUSH_URL" HEAD:"$PUSH_BRANCH"; then
+            if git push origin HEAD:"$PUSH_BRANCH"; then
               echo "✅ Successfully pushed auto-fixes"
             else
               echo "❌ Failed to push auto-fixes; check branch protections/permissions"
