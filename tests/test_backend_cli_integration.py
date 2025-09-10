@@ -36,9 +36,8 @@ class TestBackendCLIIntegration:
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
             "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            **({"backend": backend} if backend else {}),
         }
-        if backend:
-            cfg["backend"] = backend
         
         cfg_path = tmp_path / "test_cfg.yaml"
         cfg_path.write_text(yaml.safe_dump(cfg))
