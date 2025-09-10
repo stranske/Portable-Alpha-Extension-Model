@@ -1,0 +1,53 @@
+name: Bridge agent labels to assignee (Copilot/Codex)
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write  # required to assign the issue
+
+jobs:
+  bridge:
+    if: >
+      github.event.label.name == 'agent:copilot' ||
+      github.event.label.name == 'agent:codex'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign based on label
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const number = context.payload.issue.number;
+            const label  = context.payload.label.name;
+
+            const labelToVar = {
+              'agent:copilot': { assignee: (process.env.COPILOT_ASSIGNEE || '').trim(), varName: 'COPILOT_ASSIGNEE' },
+              'agent:codex':   { assignee: (process.env.CODEX_ASSIGNEE   || '').trim(), varName: 'CODEX_ASSIGNEE' }
+            };
+
+            const mapping = labelToVar[label];
+            const target = mapping ? mapping.assignee : '';
+            if (!target) {
+              const varName = mapping ? mapping.varName : 'UNKNOWN_ASSIGNEE_VAR';
+              core.setFailed(`No assignee configured for ${label}. Set repo variable ${varName}.`);
+              return;
+            }
+
+            const curr = (context.payload.issue.assignees || []).map(a => (a.login || '').toLowerCase());
+            if (curr.includes(target.toLowerCase())) {
+              core.info(`Issue already assigned to ${target}; nothing to do.`);
+              return;
+            }
+
+            try {
+              await github.rest.issues.addAssignees({ owner, repo, issue_number: number, assignees: [target] });
+              core.info(`Assigned ${target} due to label ${label}.`);
+            } catch (e) {
+              // Most common failure: "422 Validation Failed" if target isn't a collaborator.
+              core.setFailed(`Failed to assign ${target}: ${e.message}`);
+            }
+        env:
+          COPILOT_ASSIGNEE: ${{ vars.COPILOT_ASSIGNEE }}
+          CODEX_ASSIGNEE:   ${{ vars.CODEX_ASSIGNEE }}
