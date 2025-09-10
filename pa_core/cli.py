@@ -364,9 +364,12 @@ def main(
     from .config import load_config
 
     cfg = load_config(args.config)
-    backend_choice = args.backend or cfg.backend
-    resolve_and_set_backend(backend_choice)
+    # Resolve and set backend once, with proper signature
+    backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
+    
+    # Echo backend selection at start
+    print(f"🔧 Using backend: {backend_choice}")
 
     from .data import load_index_returns
     from .logging_utils import setup_json_logging
@@ -406,9 +409,7 @@ def main(
         packet=args.packet,
     )
 
-    # cfg is already loaded earlier; do not reload
-    backend_choice = resolve_and_set_backend(args.backend, cfg)
-    args.backend = backend_choice
+    # cfg is already loaded earlier; backend already resolved
 
     # Optional structured logging setup
     run_log_path: Path | None = None
