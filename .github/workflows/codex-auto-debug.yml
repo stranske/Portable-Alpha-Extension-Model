@@ -195,37 +195,7 @@ jobs:
             streamlined_debug_report.md
           if-no-files-found: ignore
 
-      - name: 🤖 Auto-commit fixes if any
-        env:
-          CODEX_PAT: ${{ secrets.CODEX_PAT }}
-        run: |
-          # Use CODEX_PAT for authentication
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          REPO_FULL="${{ github.repository }}"
-          PUSH_BRANCH="${{ github.ref_name }}"
-          # If the target is a PR merge ref or other non-branch ref, bail out gracefully
-          case "$PUSH_BRANCH" in
-            refs/pull/*) echo "Skipping push: non-branch ref '$PUSH_BRANCH'"; exit 0 ;;
-          esac
-          # Double-check same-repo push safety
-          if [ -n "$(git status --porcelain)" ]; then
-            echo "Changes detected, committing fixes..."
-            git add -A
-            git commit -m "🤖 Auto-fix: Codex debugging workflow applied minor fixes"
-            git remote set-url origin https://x-access-token:${CODEX_PAT}@github.com/${REPO_FULL}.git
-            echo "Pushing to $REPO_FULL:$PUSH_BRANCH with CODEX_PAT"
-            if git push origin HEAD:"$PUSH_BRANCH"; then
-              echo "✅ Successfully pushed auto-fixes"
-            else
-              echo "❌ Failed to push auto-fixes; check branch protections/permissions"
-              echo "   Branch: $PUSH_BRANCH | Repo: $REPO_FULL"
-              echo "   Hint: Ensure PAT is valid and has repo/workflow scopes."
-              exit 1
-            fi
-          else
-            echo "✅ No changes to commit"
-          fi
+
 
       - name: 💬 Comment results on PR
         if: >
@@ -273,6 +243,10 @@ jobs:
           (github.event_name != 'pull_request' ||
            github.event.pull_request.head.repo.full_name == github.repository)
         run: |
+          # Set up git identity
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
           # Determine push branch
           PUSH_BRANCH="${{ github.head_ref || github.ref_name }}"
           # If the target is a PR merge ref or other non-branch ref, bail out gracefully
