@@ -1,25 +1,25 @@
 {
   "name": "copilot/fix-698",
   "commit": {
-    "sha": "c0be42feda1da737ebaeebecab9b09df0e0f3825",
-    "node_id": "C_kwDOO15QxNoAKGMwYmU0MmZlZGExZGE3MzdlYmFlZWJlY2FiOWIwOWRmMGUwZjM4MjU",
+    "sha": "d662a42abc50d923421a27f39df67ab7e474ffeb",
+    "node_id": "C_kwDOO15QxNoAKGQ2NjJhNDJhYmM1MGQ5MjM0MjFhMjdmMzlkZjY3YWI3ZTQ3NGZmZWI",
     "commit": {
       "author": {
-        "name": "github-actions[bot]",
-        "email": "github-actions[bot]@users.noreply.github.com",
-        "date": "2025-09-10T03:28:13Z"
+        "name": "copilot-swe-agent[bot]",
+        "email": "198982749+Copilot@users.noreply.github.com",
+        "date": "2025-09-10T03:52:54Z"
       },
       "committer": {
-        "name": "github-actions[bot]",
-        "email": "github-actions[bot]@users.noreply.github.com",
-        "date": "2025-09-10T03:28:13Z"
+        "name": "copilot-swe-agent[bot]",
+        "email": "198982749+Copilot@users.noreply.github.com",
+        "date": "2025-09-10T03:52:54Z"
       },
-      "message": "🤖 Auto-fix: Codex debugging workflow applied minor fixes",
+      "message": "Complete workflow security and loop prevention fixes\n\nCo-authored-by: stranske <23046322+stranske@users.noreply.github.com>",
       "tree": {
-        "sha": "79a483352dfaa33a3aad8fe71df7501805c2bc4e",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/79a483352dfaa33a3aad8fe71df7501805c2bc4e"
+        "sha": "f7e984efaa1493b3fec3df757d4aea87431401ce",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/f7e984efaa1493b3fec3df757d4aea87431401ce"
       },
-      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/c0be42feda1da737ebaeebecab9b09df0e0f3825",
+      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/d662a42abc50d923421a27f39df67ab7e474ffeb",
       "comment_count": 0,
       "verification": {
         "verified": false,
@@ -29,56 +29,56 @@
         "verified_at": null
       }
     },
-    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/c0be42feda1da737ebaeebecab9b09df0e0f3825",
-    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/c0be42feda1da737ebaeebecab9b09df0e0f3825",
-    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/c0be42feda1da737ebaeebecab9b09df0e0f3825/comments",
+    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/d662a42abc50d923421a27f39df67ab7e474ffeb",
+    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/d662a42abc50d923421a27f39df67ab7e474ffeb",
+    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/d662a42abc50d923421a27f39df67ab7e474ffeb/comments",
     "author": {
-      "login": "github-actions[bot]",
-      "id": 41898282,
-      "node_id": "MDM6Qm90NDE4OTgyODI=",
-      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "login": "Copilot",
+      "id": 198982749,
+      "node_id": "BOT_kgDOC9w8XQ",
+      "avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
       "gravatar_id": "",
-      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
-      "html_url": "https://github.com/apps/github-actions",
-      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
-      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
-      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
-      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
-      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
-      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "url": "https://api.github.com/users/Copilot",
+      "html_url": "https://github.com/apps/copilot-swe-agent",
+      "followers_url": "https://api.github.com/users/Copilot/followers",
+      "following_url": "https://api.github.com/users/Copilot/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Copilot/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Copilot/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Copilot/subscriptions",
+      "organizations_url": "https://api.github.com/users/Copilot/orgs",
+      "repos_url": "https://api.github.com/users/Copilot/repos",
+      "events_url": "https://api.github.com/users/Copilot/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Copilot/received_events",
       "type": "Bot",
       "user_view_type": "public",
       "site_admin": false
     },
     "committer": {
-      "login": "github-actions[bot]",
-      "id": 41898282,
-      "node_id": "MDM6Qm90NDE4OTgyODI=",
-      "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+      "login": "Copilot",
+      "id": 198982749,
+      "node_id": "BOT_kgDOC9w8XQ",
+      "avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
       "gravatar_id": "",
-      "url": "https://api.github.com/users/github-actions%5Bbot%5D",
-      "html_url": "https://github.com/apps/github-actions",
-      "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
-      "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
-      "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
-      "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
-      "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
-      "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+      "url": "https://api.github.com/users/Copilot",
+      "html_url": "https://github.com/apps/copilot-swe-agent",
+      "followers_url": "https://api.github.com/users/Copilot/followers",
+      "following_url": "https://api.github.com/users/Copilot/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Copilot/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Copilot/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Copilot/subscriptions",
+      "organizations_url": "https://api.github.com/users/Copilot/orgs",
+      "repos_url": "https://api.github.com/users/Copilot/repos",
+      "events_url": "https://api.github.com/users/Copilot/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Copilot/received_events",
       "type": "Bot",
       "user_view_type": "public",
       "site_admin": false
     },
     "parents": [
       {
-        "sha": "a7037abd20865cc67837c80f823dff84a1f959f0",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/a7037abd20865cc67837c80f823dff84a1f959f0",
-        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/a7037abd20865cc67837c80f823dff84a1f959f0"
+        "sha": "f575adc0a5ca3b0a6ce0203f6cde65b497683eba",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/f575adc0a5ca3b0a6ce0203f6cde65b497683eba",
+        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/f575adc0a5ca3b0a6ce0203f6cde65b497683eba"
       }
     ]
   },
