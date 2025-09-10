@@ -1,90 +1,90 @@
 {
-  "name": "copilot/fix-698",
+  "name": "copilot/fix-600",
   "commit": {
-    "sha": "d662a42abc50d923421a27f39df67ab7e474ffeb",
-    "node_id": "C_kwDOO15QxNoAKGQ2NjJhNDJhYmM1MGQ5MjM0MjFhMjdmMzlkZjY3YWI3ZTQ3NGZmZWI",
+    "sha": "1f512b3b7452e4942a511c17fb655ec11a219edf",
+    "node_id": "C_kwDOO15QxNoAKDFmNTEyYjNiNzQ1MmU0OTQyYTUxMWMxN2ZiNjU1ZWMxMWEyMTllZGY",
     "commit": {
       "author": {
-        "name": "copilot-swe-agent[bot]",
-        "email": "198982749+Copilot@users.noreply.github.com",
-        "date": "2025-09-10T03:52:54Z"
+        "name": "stranske",
+        "email": "stranske@gmail.com",
+        "date": "2025-09-10T04:43:35Z"
       },
       "committer": {
-        "name": "copilot-swe-agent[bot]",
-        "email": "198982749+Copilot@users.noreply.github.com",
-        "date": "2025-09-10T03:52:54Z"
+        "name": "GitHub",
+        "email": "noreply@github.com",
+        "date": "2025-09-10T04:43:35Z"
       },
-      "message": "Complete workflow security and loop prevention fixes\n\nCo-authored-by: stranske <23046322+stranske@users.noreply.github.com>",
+      "message": "Update tests/test_backend_cli_integration.py\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
       "tree": {
-        "sha": "f7e984efaa1493b3fec3df757d4aea87431401ce",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/f7e984efaa1493b3fec3df757d4aea87431401ce"
+        "sha": "5d59517cc2ad944a68584479519ca5106a3d0c13",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/5d59517cc2ad944a68584479519ca5106a3d0c13"
       },
-      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/d662a42abc50d923421a27f39df67ab7e474ffeb",
+      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/1f512b3b7452e4942a511c17fb655ec11a219edf",
       "comment_count": 0,
       "verification": {
-        "verified": false,
-        "reason": "unsigned",
-        "signature": null,
-        "payload": null,
-        "verified_at": null
+        "verified": true,
+        "reason": "valid",
+        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJowQH3CRC1aQ7uu5UhlAAAb1QQAFPLI/VtKZD0hU4CJbbyGJNm\n/vpRMlrJudqWkXysrDdBLteuaUmRESiTA3Xe0xZYrhoxjxBgzCJmMREb0aUVACAm\nP5TYu7YFZpv5lZEYBLLnv0LHVH2MmJhC+tTVBH/hIV6Yc92FJJVcQrpylK1QmxlV\n9+hKTHnfHqVkeDV8luAIkivfTp5RmNF58fE1VzsSSWKwKHYab2AXlAfTRnVYpbE6\nR37WRCLrHTleO3Gud0uy0gebS9kBMY1/52QVzDT58ccBf9rwgXQT369Us685F9ru\ne9qlY7/5nVV2SVSdP4B/WdlXHF0/dR4oOI5pABqKatQ7cEmoJQ9wdZDz4t87elA8\nSa2c3Tp4GSZVbW9TmDsx6pF9vq8ybbRlQvtVNoL2+z5bg/9th6rCCL4sgNWW+k9f\nBaZn8QT3lx8yFFX2sbeCh8XfyEA3rncKUuhyhq6n8Vrfan/ahEaDDaubGsHBFdHC\nz/XMPIh44aglXEJX6BKKD/B1Ja2xshKUMgQWqL/5SxvykM8PX/CWYkoF34S3JrIi\nhgNr/9D9JDD7lIRjhQKUQo7yxwqhJ/GaHcruEGY57j4pZdNx/0hgvkKujSrS76q3\neIwcR7XbsyFHV+aVmcO/QMk3yQ36DNjw5oy8XdLYZ2vlGJOcWQB05Cjy9as9AL4t\nvnm0lDtVmgtFuAwB31s7\n=86nE\n-----END PGP SIGNATURE-----\n",
+        "payload": "tree 5d59517cc2ad944a68584479519ca5106a3d0c13\nparent 8c08bdeac95857f5a2cc6b4dfb193b71a78da2ff\nauthor stranske <stranske@gmail.com> 1757479415 -0500\ncommitter GitHub <noreply@github.com> 1757479415 -0500\n\nUpdate tests/test_backend_cli_integration.py\n\nCo-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",
+        "verified_at": "2025-09-10T04:43:36Z"
       }
     },
-    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/d662a42abc50d923421a27f39df67ab7e474ffeb",
-    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/d662a42abc50d923421a27f39df67ab7e474ffeb",
-    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/d662a42abc50d923421a27f39df67ab7e474ffeb/comments",
+    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/1f512b3b7452e4942a511c17fb655ec11a219edf",
+    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/1f512b3b7452e4942a511c17fb655ec11a219edf",
+    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/1f512b3b7452e4942a511c17fb655ec11a219edf/comments",
     "author": {
-      "login": "Copilot",
-      "id": 198982749,
-      "node_id": "BOT_kgDOC9w8XQ",
-      "avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+      "login": "stranske",
+      "id": 23046322,
+      "node_id": "MDQ6VXNlcjIzMDQ2MzIy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23046322?v=4",
       "gravatar_id": "",
-      "url": "https://api.github.com/users/Copilot",
-      "html_url": "https://github.com/apps/copilot-swe-agent",
-      "followers_url": "https://api.github.com/users/Copilot/followers",
-      "following_url": "https://api.github.com/users/Copilot/following{/other_user}",
-      "gists_url": "https://api.github.com/users/Copilot/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/Copilot/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/Copilot/subscriptions",
-      "organizations_url": "https://api.github.com/users/Copilot/orgs",
-      "repos_url": "https://api.github.com/users/Copilot/repos",
-      "events_url": "https://api.github.com/users/Copilot/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/Copilot/received_events",
-      "type": "Bot",
+      "url": "https://api.github.com/users/stranske",
+      "html_url": "https://github.com/stranske",
+      "followers_url": "https://api.github.com/users/stranske/followers",
+      "following_url": "https://api.github.com/users/stranske/following{/other_user}",
+      "gists_url": "https://api.github.com/users/stranske/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/stranske/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/stranske/subscriptions",
+      "organizations_url": "https://api.github.com/users/stranske/orgs",
+      "repos_url": "https://api.github.com/users/stranske/repos",
+      "events_url": "https://api.github.com/users/stranske/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/stranske/received_events",
+      "type": "User",
       "user_view_type": "public",
       "site_admin": false
     },
     "committer": {
-      "login": "Copilot",
-      "id": 198982749,
-      "node_id": "BOT_kgDOC9w8XQ",
-      "avatar_url": "https://avatars.githubusercontent.com/in/1143301?v=4",
+      "login": "web-flow",
+      "id": 19864447,
+      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
       "gravatar_id": "",
-      "url": "https://api.github.com/users/Copilot",
-      "html_url": "https://github.com/apps/copilot-swe-agent",
-      "followers_url": "https://api.github.com/users/Copilot/followers",
-      "following_url": "https://api.github.com/users/Copilot/following{/other_user}",
-      "gists_url": "https://api.github.com/users/Copilot/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/Copilot/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/Copilot/subscriptions",
-      "organizations_url": "https://api.github.com/users/Copilot/orgs",
-      "repos_url": "https://api.github.com/users/Copilot/repos",
-      "events_url": "https://api.github.com/users/Copilot/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/Copilot/received_events",
-      "type": "Bot",
+      "url": "https://api.github.com/users/web-flow",
+      "html_url": "https://github.com/web-flow",
+      "followers_url": "https://api.github.com/users/web-flow/followers",
+      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
+      "organizations_url": "https://api.github.com/users/web-flow/orgs",
+      "repos_url": "https://api.github.com/users/web-flow/repos",
+      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "type": "User",
       "user_view_type": "public",
       "site_admin": false
     },
     "parents": [
       {
-        "sha": "f575adc0a5ca3b0a6ce0203f6cde65b497683eba",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/f575adc0a5ca3b0a6ce0203f6cde65b497683eba",
-        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/f575adc0a5ca3b0a6ce0203f6cde65b497683eba"
+        "sha": "8c08bdeac95857f5a2cc6b4dfb193b71a78da2ff",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/8c08bdeac95857f5a2cc6b4dfb193b71a78da2ff",
+        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/8c08bdeac95857f5a2cc6b4dfb193b71a78da2ff"
       }
     ]
   },
   "_links": {
-    "self": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/copilot/fix-698",
-    "html": "https://github.com/stranske/Portable-Alpha-Extension-Model/tree/copilot/fix-698"
+    "self": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/copilot/fix-600",
+    "html": "https://github.com/stranske/Portable-Alpha-Extension-Model/tree/copilot/fix-600"
   },
   "protected": false,
   "protection": {
@@ -99,5 +99,5 @@
       ]
     }
   },
-  "protection_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/copilot/fix-698/protection"
+  "protection_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/copilot/fix-600/protection"
 }
