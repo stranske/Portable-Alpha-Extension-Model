@@ -1,90 +1,90 @@
 {
-  "name": "stranske-patch-1",
+  "name": "704/merge",
   "commit": {
-    "sha": "52b3f4c33f57a3186c0f2ee2a097fdc308f7b395",
-    "node_id": "C_kwDOO15QxNoAKDUyYjNmNGMzM2Y1N2EzMTg2YzBmMmVlMmEwOTdmZGMzMDhmN2IzOTU",
+    "sha": "5bcfe3ea991ed3e0a844503433f398f3cf681a25",
+    "node_id": "C_kwDOO15QxNoAKDViY2ZlM2VhOTkxZWQzZTBhODQ0NTAzNDMzZjM5OGYzY2Y2ODFhMjU",
     "commit": {
       "author": {
-        "name": "stranske",
-        "email": "stranske@gmail.com",
-        "date": "2025-09-10T01:01:39Z"
+        "name": "GitHub Actions",
+        "email": "actions@github.com",
+        "date": "2025-09-10T01:03:32Z"
       },
       "committer": {
-        "name": "GitHub",
-        "email": "noreply@github.com",
-        "date": "2025-09-10T01:01:39Z"
+        "name": "GitHub Actions",
+        "email": "actions@github.com",
+        "date": "2025-09-10T01:03:32Z"
       },
-      "message": "Add issue event tracer workflow",
+      "message": "🤖 Auto-fix: Codex debugging workflow applied minor fixes",
       "tree": {
-        "sha": "23e38cb8c50707804f93b1584511177da0a71a88",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/23e38cb8c50707804f93b1584511177da0a71a88"
+        "sha": "6a8a64198ad31d100e4c1e051bbc6caa3cc68a03",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/trees/6a8a64198ad31d100e4c1e051bbc6caa3cc68a03"
       },
-      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/52b3f4c33f57a3186c0f2ee2a097fdc308f7b395",
+      "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/git/commits/5bcfe3ea991ed3e0a844503433f398f3cf681a25",
       "comment_count": 0,
       "verification": {
-        "verified": true,
-        "reason": "valid",
-        "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJowM3zCRC1aQ7uu5UhlAAAuYMQAC/lXkycRRLsp/GkgoaSVeKO\nqa2FJFtqqd+id/gnAPeV5hTkgxOZ4cLX6nfkJ1Qtg7jlu8VrYu2AWNoBXilb5Vtc\nv9Fgx6Yc2ztaq+NOTaPKqJheDAdthX6gkFn2ZGSUzmlG7pD/4CbDd5Y9FVEhcsc/\n4GE00l2GPW9dAtopHv1J0EQCWB7HE7aneM0l9DrW1QTtg0JumyjfgyU2MH/sCMTl\nT/6k43Vz6zsRSv71cXdYg1cgoTYcOdPi6b1jKIwz+csfpxZffNHm0X07UxHHGJDf\nqVvsfjao8Ec2/YS4hLdml0vSSCbQElgIhMpyHs8QSN7J6fRogY+VYbBPWaKjoHAf\nhEPkLPbNsepCi08F6eyWihOtdUGoaXI/K/VwSToVM4ZpMr1UQKoGU0Pvj8jiDyQl\nyBKrOCznyyeav/RCajfKg3gd5G3NFaKRjQP4wVYcoj9JkbqGO7heePQ2rLcDUSTe\n65onOENbdz1KTTdNeSSzv9hWVn9U9ztB4jrxxiyZIA38D3ypYaiffVl95vubG0M8\nBw0pEufKjupqoovMu6WfHgHoVfTUEdSGql7joA4C2aHNXIU7DUPSUThH+Jf62HCd\nXRMI20G4+dojj3zrfWCW6xg6gf6Ffyoal7U1tURPpD/cfR6LeBPAF+ViAKv/QkiV\nhwZEbu63aAnUTLvRKMl4\n=sXI+\n-----END PGP SIGNATURE-----\n",
-        "payload": "tree 23e38cb8c50707804f93b1584511177da0a71a88\nparent 5dcabbdc38232decbcd74465c688c0b29c00be82\nauthor stranske <stranske@gmail.com> 1757466099 -0500\ncommitter GitHub <noreply@github.com> 1757466099 -0500\n\nAdd issue event tracer workflow",
-        "verified_at": "2025-09-10T01:01:40Z"
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null,
+        "verified_at": null
       }
     },
-    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/52b3f4c33f57a3186c0f2ee2a097fdc308f7b395",
-    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/52b3f4c33f57a3186c0f2ee2a097fdc308f7b395",
-    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/52b3f4c33f57a3186c0f2ee2a097fdc308f7b395/comments",
+    "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/5bcfe3ea991ed3e0a844503433f398f3cf681a25",
+    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/5bcfe3ea991ed3e0a844503433f398f3cf681a25",
+    "comments_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/5bcfe3ea991ed3e0a844503433f398f3cf681a25/comments",
     "author": {
-      "login": "stranske",
-      "id": 23046322,
-      "node_id": "MDQ6VXNlcjIzMDQ2MzIy",
-      "avatar_url": "https://avatars.githubusercontent.com/u/23046322?v=4",
+      "login": "actions-user",
+      "id": 65916846,
+      "node_id": "MDQ6VXNlcjY1OTE2ODQ2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65916846?v=4",
       "gravatar_id": "",
-      "url": "https://api.github.com/users/stranske",
-      "html_url": "https://github.com/stranske",
-      "followers_url": "https://api.github.com/users/stranske/followers",
-      "following_url": "https://api.github.com/users/stranske/following{/other_user}",
-      "gists_url": "https://api.github.com/users/stranske/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/stranske/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/stranske/subscriptions",
-      "organizations_url": "https://api.github.com/users/stranske/orgs",
-      "repos_url": "https://api.github.com/users/stranske/repos",
-      "events_url": "https://api.github.com/users/stranske/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/stranske/received_events",
+      "url": "https://api.github.com/users/actions-user",
+      "html_url": "https://github.com/actions-user",
+      "followers_url": "https://api.github.com/users/actions-user/followers",
+      "following_url": "https://api.github.com/users/actions-user/following{/other_user}",
+      "gists_url": "https://api.github.com/users/actions-user/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/actions-user/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/actions-user/subscriptions",
+      "organizations_url": "https://api.github.com/users/actions-user/orgs",
+      "repos_url": "https://api.github.com/users/actions-user/repos",
+      "events_url": "https://api.github.com/users/actions-user/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/actions-user/received_events",
       "type": "User",
       "user_view_type": "public",
       "site_admin": false
     },
     "committer": {
-      "login": "web-flow",
-      "id": 19864447,
-      "node_id": "MDQ6VXNlcjE5ODY0NDQ3",
-      "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+      "login": "actions-user",
+      "id": 65916846,
+      "node_id": "MDQ6VXNlcjY1OTE2ODQ2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/65916846?v=4",
       "gravatar_id": "",
-      "url": "https://api.github.com/users/web-flow",
-      "html_url": "https://github.com/web-flow",
-      "followers_url": "https://api.github.com/users/web-flow/followers",
-      "following_url": "https://api.github.com/users/web-flow/following{/other_user}",
-      "gists_url": "https://api.github.com/users/web-flow/gists{/gist_id}",
-      "starred_url": "https://api.github.com/users/web-flow/starred{/owner}{/repo}",
-      "subscriptions_url": "https://api.github.com/users/web-flow/subscriptions",
-      "organizations_url": "https://api.github.com/users/web-flow/orgs",
-      "repos_url": "https://api.github.com/users/web-flow/repos",
-      "events_url": "https://api.github.com/users/web-flow/events{/privacy}",
-      "received_events_url": "https://api.github.com/users/web-flow/received_events",
+      "url": "https://api.github.com/users/actions-user",
+      "html_url": "https://github.com/actions-user",
+      "followers_url": "https://api.github.com/users/actions-user/followers",
+      "following_url": "https://api.github.com/users/actions-user/following{/other_user}",
+      "gists_url": "https://api.github.com/users/actions-user/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/actions-user/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/actions-user/subscriptions",
+      "organizations_url": "https://api.github.com/users/actions-user/orgs",
+      "repos_url": "https://api.github.com/users/actions-user/repos",
+      "events_url": "https://api.github.com/users/actions-user/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/actions-user/received_events",
       "type": "User",
       "user_view_type": "public",
       "site_admin": false
     },
     "parents": [
       {
-        "sha": "5dcabbdc38232decbcd74465c688c0b29c00be82",
-        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/5dcabbdc38232decbcd74465c688c0b29c00be82",
-        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/5dcabbdc38232decbcd74465c688c0b29c00be82"
+        "sha": "52b3f4c33f57a3186c0f2ee2a097fdc308f7b395",
+        "url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/commits/52b3f4c33f57a3186c0f2ee2a097fdc308f7b395",
+        "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/commit/52b3f4c33f57a3186c0f2ee2a097fdc308f7b395"
       }
     ]
   },
   "_links": {
-    "self": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/stranske-patch-1",
-    "html": "https://github.com/stranske/Portable-Alpha-Extension-Model/tree/stranske-patch-1"
+    "self": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/704/merge",
+    "html": "https://github.com/stranske/Portable-Alpha-Extension-Model/tree/704/merge"
   },
   "protected": false,
   "protection": {
@@ -99,5 +99,5 @@
       ]
     }
   },
-  "protection_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/stranske-patch-1/protection"
+  "protection_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/704/merge/protection"
 }
