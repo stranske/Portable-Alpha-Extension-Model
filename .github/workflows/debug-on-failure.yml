@@ -100,7 +100,9 @@ jobs:
               repo,
               run_id: run.id
             });
-            const lintJob = jobs.jobs.find(j => j.name === 'Code Quality');
+            const lintJob = jobs.jobs.find(j =>
+              /lint|quality/i.test(j.name)
+            );
             if (!lintJob || lintJob.conclusion === 'success') {
               core.info('Lint job passed; skipping autofix.');
               return;
