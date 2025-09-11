@@ -67,7 +67,7 @@ class TestBackendCLIIntegration:
         
         # Verify backend echo message
         captured = capsys.readouterr()
-        assert "🔧 Using backend: numpy" in captured.out
+        assert "[BACKEND] Using backend: numpy" in captured.out
         
         # Verify backend is recorded in manifest
         if manifest_file.exists():
@@ -108,7 +108,7 @@ class TestBackendCLIIntegration:
         
         # Verify backend echo message shows config backend
         captured = capsys.readouterr()
-        assert "🔧 Using backend: numpy" in captured.out
+        assert "[BACKEND] Using backend: numpy" in captured.out
 
     def test_backend_config_cupy_missing(self, tmp_path):
         """Test config with cupy backend gives helpful error."""
@@ -139,7 +139,7 @@ class TestBackendCLIIntegration:
         
         # Verify CLI override worked
         captured = capsys.readouterr()
-        assert "🔧 Using backend: numpy" in captured.out
+        assert "[BACKEND] Using backend: numpy" in captured.out
         assert out_file.exists()
 
     def test_backend_default_fallback(self, tmp_path, capsys):
@@ -157,7 +157,7 @@ class TestBackendCLIIntegration:
         
         # Should default to numpy
         captured = capsys.readouterr()
-        assert "🔧 Using backend: numpy" in captured.out
+        assert "[BACKEND] Using backend: numpy" in captured.out
         assert out_file.exists()
 
     def test_backend_in_manifest_matches_actual(self, tmp_path):

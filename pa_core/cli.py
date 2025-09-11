@@ -17,9 +17,20 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
+
+# Fix UTF-8 encoding for Windows compatibility
+if sys.platform.startswith("win"):
+    import os
+
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
 
 # Rich is imported lazily in functions to keep import time low
 
@@ -367,9 +378,9 @@ def main(
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
-    
+
     # Echo backend selection at start
-    print(f"🔧 Using backend: {backend_choice}")
+    print(f"[BACKEND] Using backend: {backend_choice}")
 
     from .data import load_index_returns
     from .logging_utils import setup_json_logging
