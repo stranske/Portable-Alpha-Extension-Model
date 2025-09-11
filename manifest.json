@@ -1,10 +1,11 @@
 {
-  "git_commit": "39f31c156be56bff0a20e8721309235b8a153028",
-  "timestamp": "2025-09-03T22:29:30.063387+00:00",
+  "git_commit": "8b53949b38345bc4c1d54e483cab7e11a75b45b8",
+  "timestamp": "2025-09-10T04:25:55.922278+00:00",
   "seed": null,
   "config": {
-    "N_SIMULATIONS": 1000,
-    "N_MONTHS": 12,
+    "N_SIMULATIONS": 1,
+    "N_MONTHS": 1,
+    "backend": "numpy",
     "analysis_mode": "returns",
     "external_pa_capital": 100.0,
     "active_ext_capital": 50.0,
@@ -46,19 +47,19 @@
   },
   "data_files": {
     "sp500tr_fred_divyield.csv": "ec6bf57e8eacb6b97f5ca79bbafb9906d67ae972c1cab1b4c0a57187bfcd640d",
-    "my_first_scenario.yml": "1ac0905b8d0242f4b153f6107d8be2f96be526cc506019c37a06df826a4e9a26",
-    "test_cli_explicit.xlsx": "5d31aa9897ed44faa10c3d172a915c3671f6e16362d6a77b5409ea84312d5451"
+    "test_config_with_backend.yml": "513a87d2b70b984772dac826c6aa345fed7f3e03f335b079450ecb5e7d218ffb",
+    "Test_config_backend.xlsx": "6a452eb63476d5cd2abfcddea695726f80d9aca759fde1f9ab9ea5f211df7b4a"
   },
   "cli_args": {
-    "config": "my_first_scenario.yml",
+    "config": "test_config_with_backend.yml",
     "index": "sp500tr_fred_divyield.csv",
-    "output": "test_cli_explicit.xlsx",
+    "output": "Test_config_backend.xlsx",
     "mode": "returns",
     "stress_preset": null,
     "pivot": false,
     "backend": "numpy",
-    "seed": null,
     "log_json": false,
+    "seed": null,
     "png": false,
     "pdf": false,
     "pptx": false,
@@ -84,6 +85,7 @@
     "min_internal": null,
     "max_internal": null
   },
-  "previous_run": null,
-  "run_log": null
+  "backend": "numpy",
+  "run_log": null,
+  "previous_run": null
 }
