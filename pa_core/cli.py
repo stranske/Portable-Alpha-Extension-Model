@@ -1226,9 +1226,7 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 return
             except (OSError, PermissionError) as e:
