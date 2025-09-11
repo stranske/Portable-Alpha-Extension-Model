@@ -40,7 +40,7 @@ jobs:
             echo "push_ref=${{ github.event.inputs.head_ref }}" >> "$GITHUB_OUTPUT"
             echo "repo=${{ github.event.inputs.head_repo }}" >> "$GITHUB_OUTPUT"
           else
-            echo "checkout_ref=refs/pull/${{ github.event.pull_request.number }}/head" >> "$GITHUB_OUTPUT"
+            echo "checkout_ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
             echo "push_ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
             echo "repo=${{ github.event.pull_request.head.repo.full_name }}" >> "$GITHUB_OUTPUT"
           fi
@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          repository: ${{ github.repository }}
+          repository: ${{ steps.vars.outputs.repo }}
           ref: ${{ steps.vars.outputs.checkout_ref }}
 
       - uses: actions/setup-python@v5

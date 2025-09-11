@@ -16,7 +16,7 @@ repos:
         args: [--fix, --exit-non-zero-on-fix]
 
   - repo: https://github.com/psf/black
-    rev: <PINNED_BLACK_VERSION>
+    rev: 23.9.1
     hooks:
       - id: black
         language_version: python3
