@@ -5,7 +5,7 @@ openpyxl
 jupyter
 pytest
 hypothesis
-ruff
+ruff==0.5.0
 pyright[nodejs]
 pydantic
 rich
@@ -19,7 +19,7 @@ xlsxwriter         # already implied in reporting/
 tomli; python_version<'3.11'
 
 # Development dependencies
-black              # Code formatting
+black==23.9.1      # Code formatting
 pre-commit         # Git hooks
 pytest-cov         # Test coverage
 pytest-xdist       # Parallel testing
@@ -27,7 +27,8 @@ bandit             # Security linting
 mypy               # Additional type checking
 types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
-isort              # Import sorting
+isort==5.13.0      # Import sorting
+docformatter==1.7.0  # Docstring formatting
 
 # Build and packaging dependencies
 build              # Modern Python build tool

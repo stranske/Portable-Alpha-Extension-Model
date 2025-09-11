@@ -104,10 +104,12 @@ jobs:
       - name: 📦 Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          elif [ -f requirements.txt ]; then
             pip install -r requirements.txt
           else
-            echo "requirements.txt not found; installing minimal toolchain"
+            echo "requirements files not found; installing minimal toolchain"
             pip install --upgrade pip
           fi
 
@@ -260,7 +262,7 @@ jobs:
           # Set up git identity using local config
           git config --local user.name "github-actions[bot]"
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Determine push branch
           PUSH_BRANCH="${{ github.head_ref || github.ref_name }}"
           # If the target is a PR merge ref or other non-branch ref, bail out gracefully
@@ -281,9 +283,9 @@ jobs:
             git add -A
             git commit -m "🤖 Auto-fix: Codex debugging workflow applied minor fixes"
 
-          # Configure git authentication securely without token exposure  
+          # Configure git authentication securely without token exposure
           git config --local credential.helper '!f() { echo "username=x-access-token"; echo "password=${{ env.CODEX_TOKEN || secrets.GITHUB_TOKEN }}"; }; f'
-            
+
             echo "Pushing to $REPO_FULL:$PUSH_BRANCH"
             if git push origin HEAD:"$PUSH_BRANCH"; then
               echo "✅ Successfully pushed auto-fixes"
