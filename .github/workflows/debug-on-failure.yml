@@ -29,6 +29,9 @@ jobs:
         with:
           script: |
             const run = context.payload.workflow_run;
+            if (!run || !run.id) {
+              throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
+            }
             if (!run.pull_requests || !run.pull_requests.length) {
               core.info("No pull requests associated with this workflow run. Exiting.");
               return;
@@ -88,6 +91,9 @@ jobs:
         with:
           script: |
             const run = context.payload.workflow_run;
+            if (!run || !run.id) {
+              throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
+            }
             if (!run.pull_requests || !run.pull_requests.length) {
               core.info('No pull requests associated with this workflow run. Exiting.');
               return;
