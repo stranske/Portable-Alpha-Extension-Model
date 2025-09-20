@@ -17,6 +17,7 @@ flake8             # Code quality checking
 mypy               # Type checking
 black              # Code formatting
 types-PyYAML       # Type stubs for PyYAML
+types-requests     # Type stubs for requests
 
 plotly>=5.19
 kaleido            # Plotly static export driver

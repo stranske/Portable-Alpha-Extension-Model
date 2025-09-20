@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, Iterable
+from typing import Dict, Iterable, cast
 
 import yaml
 
@@ -104,7 +104,7 @@ class PresetLibrary:
 
     # Convenience methods for strings (used by dashboard)
     def to_yaml_str(self) -> str:
-        return yaml.safe_dump(self.to_dict())
+        return cast(str, yaml.safe_dump(self.to_dict()))
 
     def to_json_str(self) -> str:
         return json.dumps(self.to_dict())

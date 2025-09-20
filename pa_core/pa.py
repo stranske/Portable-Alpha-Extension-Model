@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any, Sequence
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 
 def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:

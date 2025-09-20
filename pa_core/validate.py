@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import argparse
+import importlib
 import sys
-import types
-from typing import Optional
+from types import ModuleType
 
 from pydantic import ValidationError
 
 from .config import load_config
 from .schema import load_scenario
 
-_yaml: types.ModuleType | None
+yaml: ModuleType | None
 try:
-    import yaml as _yaml  # type: ignore[import-untyped]
+    yaml = importlib.import_module("yaml")
 except ImportError:  # pragma: no cover - dependency optional
-    _yaml = None
-yaml: Optional[types.ModuleType] = _yaml
+    yaml = None
 
 
 def main(argv: list[str] | None = None) -> None:

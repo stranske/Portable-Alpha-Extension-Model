@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import logging
 import argparse
+import logging
 from pathlib import Path
+from typing import Any, Callable, Dict
 
 import pandas as pd  # type: ignore
 
@@ -21,7 +22,8 @@ from pa_core.viz import (
 
 logging.basicConfig(level=logging.INFO)
 
-PLOTS = {
+PlotFunction = Callable[[Any], Any]
+PLOTS: Dict[str, PlotFunction] = {
     "risk_return": risk_return.make,
     "fan": fan.make,
     "path_dist": path_dist.make,

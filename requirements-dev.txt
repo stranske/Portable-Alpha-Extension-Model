@@ -26,6 +26,7 @@ pytest-xdist       # Parallel testing
 bandit             # Security linting
 mypy               # Additional type checking
 types-PyYAML       # Type stubs for PyYAML
+types-requests     # Type stubs for requests
 flake8             # Additional linting
 isort==5.13.0      # Import sorting
 docformatter==1.7.0  # Docstring formatting

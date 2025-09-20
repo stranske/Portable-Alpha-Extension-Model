@@ -6,21 +6,12 @@ from typing import Any, Dict, List
 
 import streamlit as st
 
-try:
-    from pa_core.validators import (
-        ValidationResult,
-        format_validation_messages,
-        validate_capital_allocation,
-        validate_correlations,
-        validate_simulation_parameters,
-    )
-except ImportError:
-    # Fallback for development
-    ValidationResult = None
-    validate_correlations = None
-    validate_capital_allocation = None
-    validate_simulation_parameters = None
-    format_validation_messages = None
+from pa_core.validators import (
+    ValidationResult,
+    validate_capital_allocation,
+    validate_correlations,
+    validate_simulation_parameters,
+)
 
 
 def display_validation_results(
@@ -116,25 +107,24 @@ def validate_scenario_config(
     all_results = []
 
     # Validate correlations if present
-    if validate_correlations:
-        correlations = {}
-        for key in [
-            "rho_idx_H",
-            "rho_idx_E",
-            "rho_idx_M",
-            "rho_H_E",
-            "rho_H_M",
-            "rho_E_M",
-        ]:
-            if key in config_data:
-                correlations[key] = config_data[key]
+    correlations = {}
+    for key in [
+        "rho_idx_H",
+        "rho_idx_E",
+        "rho_idx_M",
+        "rho_H_E",
+        "rho_H_M",
+        "rho_E_M",
+    ]:
+        if key in config_data:
+            correlations[key] = config_data[key]
 
-        if correlations:
-            correlation_results = validate_correlations(correlations)
-            all_results.extend(correlation_results)
+    if correlations:
+        correlation_results = validate_correlations(correlations)
+        all_results.extend(correlation_results)
 
     # Validate capital allocation if present
-    if validate_capital_allocation and all(
+    if all(
         key in config_data
         for key in ["external_pa_capital", "active_ext_capital", "internal_pa_capital"]
     ):
@@ -149,7 +139,7 @@ def validate_scenario_config(
         all_results.extend(capital_results)
 
     # Validate simulation parameters if present
-    if validate_simulation_parameters and "N_SIMULATIONS" in config_data:
+    if "N_SIMULATIONS" in config_data:
         step_sizes = {}
         for key in [
             "external_step_size_pct",
