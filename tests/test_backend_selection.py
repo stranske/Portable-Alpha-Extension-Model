@@ -3,7 +3,7 @@ import types
 from pathlib import Path
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))
 pptx_mod = types.ModuleType("pptx")

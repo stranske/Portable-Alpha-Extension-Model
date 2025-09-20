@@ -13,8 +13,8 @@ import time
 from pathlib import Path
 from typing import Tuple
 
-import yaml
-import requests
+import yaml  # type: ignore[import-untyped]
+import requests  # type: ignore[import-untyped]
 
 
 class StreamlinedCodexDebugger:

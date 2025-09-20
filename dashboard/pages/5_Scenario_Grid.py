@@ -10,7 +10,7 @@ import io
 
 import pandas as pd  # type: ignore[reportMissingImports]
 import streamlit as st
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from dashboard.app import _DEF_THEME, apply_theme
 from pa_core.config import ModelConfig

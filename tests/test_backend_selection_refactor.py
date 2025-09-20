@@ -7,7 +7,7 @@ import os
 import tempfile
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from pa_core.backend import get_backend, resolve_and_set_backend
 from pa_core.config import ModelConfig

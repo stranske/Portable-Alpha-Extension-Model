@@ -11,7 +11,7 @@ import types
 from pathlib import Path
 
 import pytest
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 # Mock streamlit and pptx early to avoid import issues
 sys.modules.setdefault("streamlit", types.ModuleType("streamlit"))

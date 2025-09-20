@@ -10,12 +10,11 @@ from pydantic import ValidationError
 from .config import load_config
 from .schema import load_scenario
 
-_yaml: types.ModuleType | None
 try:
-    import yaml as _yaml  # type: ignore[import-untyped]
+    import yaml as _yaml_module  # type: ignore[import-untyped]
 except ImportError:  # pragma: no cover - dependency optional
-    _yaml = None
-yaml: Optional[types.ModuleType] = _yaml
+    _yaml_module = None
+yaml: Optional[types.ModuleType] = _yaml_module
 
 
 def main(argv: list[str] | None = None) -> None:

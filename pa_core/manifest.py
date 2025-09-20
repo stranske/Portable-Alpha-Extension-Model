@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 @dataclass

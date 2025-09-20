@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Literal, Set, cast
 
 import pandas as pd
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 class DataImportAgent:

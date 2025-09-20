@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, cast
 
 import pandas as pd
 import pytest
@@ -51,7 +51,8 @@ class TutorialTestRunner:
 
     def get_excel_sheets(self, filepath: Path) -> List[str]:
         """Get sheet names from Excel file."""
-        return pd.ExcelFile(filepath).sheet_names
+        excel_file = pd.ExcelFile(filepath)
+        return cast(List[str], excel_file.sheet_names)
 
     def read_excel_summary(self, filepath: Path) -> pd.DataFrame:
         """Read summary sheet from Excel output."""

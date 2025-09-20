@@ -11,14 +11,20 @@ import argparse
 import shlex
 import subprocess
 import sys
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Tuple, Union
 
 
-def run_command(cmd: str, capture_output: bool = True) -> Tuple[int, str, str]:
+Command = Union[str, Sequence[str]]
+
+
+def run_command(cmd: Command, capture_output: bool = True) -> Tuple[int, str, str]:
     """Run a shell command and return (exit_code, stdout, stderr)."""
     try:
-        # Parse command string into arguments to avoid shell injection
-        args = shlex.split(cmd)
+        if isinstance(cmd, str):
+            # Parse command string into arguments to avoid shell injection
+            args = shlex.split(cmd)
+        else:
+            args = list(cmd)
         result = subprocess.run(
             args, capture_output=capture_output, text=True, timeout=300
         )

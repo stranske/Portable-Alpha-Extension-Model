@@ -6,10 +6,10 @@ import os
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 import streamlit as st
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
@@ -923,13 +923,18 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
             )
 
     with col3:
-        run_simulation = st.button(
-            f"{validation_status} Run Simulation",
-            disabled=not can_run,
-            help="Start the Monte Carlo simulation with current parameters",
+        run_simulation = cast(
+            bool,
+            st.button(
+                f"{validation_status} Run Simulation",
+                disabled=not can_run,
+                help="Start the Monte Carlo simulation with current parameters",
+            ),
         )
 
     return run_simulation
+
+
 def main() -> None:
     """Main wizard interface with 5-step stepper."""
 

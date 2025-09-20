@@ -5,7 +5,7 @@ from __future__ import annotations
 import tempfile
 
 import streamlit as st
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from dashboard.app import _DEF_THEME, apply_theme
 from pa_core.portfolio.aggregator import PortfolioAggregator
