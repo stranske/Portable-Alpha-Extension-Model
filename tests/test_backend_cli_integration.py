@@ -23,8 +23,8 @@ pptx_mod.util = pptx_util  # type: ignore[attr-defined]
 sys.modules.setdefault("pptx", pptx_mod)
 sys.modules.setdefault("pptx.util", pptx_util)
 
-from pa_core.cli import main  # noqa: E402
 from pa_core.backend import get_backend  # noqa: E402
+from pa_core.cli import main  # noqa: E402
 
 
 class TestBackendCLIIntegration:

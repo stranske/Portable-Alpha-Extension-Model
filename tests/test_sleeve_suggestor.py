@@ -12,7 +12,7 @@ yaml: Any = pytest.importorskip("yaml")
 
 
 def test_suggest_sleeve_sizes_returns_feasible():
-    cfg = load_config("test_params.yml")
+    cfg = load_config("examples/scenarios/test_params.yml")
     cfg = cfg.model_copy(update={"N_SIMULATIONS": 50})
     idx_series = pd.Series([0.0] * cfg.N_MONTHS)
     df = suggest_sleeve_sizes(
@@ -33,7 +33,7 @@ def test_suggest_sleeve_sizes_returns_feasible():
 
 
 def test_suggest_sleeve_sizes_respects_bounds():
-    cfg = load_config("test_params.yml")
+    cfg = load_config("examples/scenarios/test_params.yml")
     cfg = cfg.model_copy(update={"N_SIMULATIONS": 50})
     idx_series = pd.Series([0.0] * cfg.N_MONTHS)
     max_te = 0.02
