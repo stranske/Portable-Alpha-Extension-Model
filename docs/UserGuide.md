@@ -136,7 +136,7 @@ file with your own returns series and set `--output` to avoid overwriting previo
 | Single scenario             | `config/params_template.yml`     | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
 | Capital allocation sweep    | Copy `params_template.yml`, set `analysis_mode: capital` | `python -m pa_core.cli --config my_capital_sweep.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
 | Returns sensitivity sweep   | Copy `params_template.yml`, set `analysis_mode: returns` | `python -m pa_core.cli --config my_returns_sweep.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
-| Alpha shares optimisation   | Copy `params_template.yml`, set `analysis_mode: alpha_shares` | `python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
+| Alpha shares optimization   | Copy `params_template.yml`, set `analysis_mode: alpha_shares` | `python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
 | Volatility stress test      | Copy `params_template.yml`, set `analysis_mode: vol_mult` | `python -m pa_core.cli --config my_vol_sweep.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
 
 All four sweep modes run correctly when the appropriate `analysis_mode` and `--mode`
