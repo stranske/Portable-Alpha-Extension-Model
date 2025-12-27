@@ -5,7 +5,7 @@ from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 
 
 def test_cached_sweep_deterministic():
-    cfg = load_config("config/alpha_shares_mode_template.yml")
+    cfg = load_config("examples/scenarios/my_first_scenario.yml")
     idx = pd.Series([0.01, 0.02, -0.01, 0.0])
     res1 = run_parameter_sweep_cached(cfg, idx, seed=123)
     res2 = run_parameter_sweep_cached(cfg, idx, seed=123)
