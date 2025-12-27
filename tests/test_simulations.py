@@ -1,11 +1,6 @@
 import numpy as np
 
-from pa_core.agents import (
-    AgentParams,
-    BaseAgent,
-    ExternalPAAgent,
-    InternalBetaAgent,
-)
+from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
 from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
 from pa_core.sim.paths import draw_financing_series

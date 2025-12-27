@@ -1,9 +1,6 @@
 import sys
 
-from scripts.create_launchers import (
-    make_mac_launcher,
-    make_windows_launcher,
-)
+from scripts.create_launchers import make_mac_launcher, make_windows_launcher
 
 
 def test_make_launchers(tmp_path):
