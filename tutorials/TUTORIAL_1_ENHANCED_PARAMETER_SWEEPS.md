@@ -167,7 +167,7 @@ python -m pa_core.cli --mode alpha_shares --config my_alpha_sweep.yml --output t
 
 ```bash
 # Volatility multiplier mode - 13KB output with stress test scenarios
-python -m pa_core --mode vol_mult --config my_vol_sweep.yml --output tutorial_1_vol_sweep.xlsx
+python -m pa_core.cli --mode vol_mult --config my_vol_sweep.yml --output tutorial_1_vol_sweep.xlsx
 ```
 
 **📈 Stress Testing Workflow**:
