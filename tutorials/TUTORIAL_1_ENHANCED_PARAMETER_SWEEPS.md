@@ -91,7 +91,7 @@ python -m pa_core --params config/params_template.yml --output tutorial_1_baseli
 
 ```bash
 # Capital mode sweep - 38KB output with optimal allocation analysis
-python -m pa_core --mode capital --params config/capital_mode_template.csv --output tutorial_1_capital_sweep.xlsx
+python -m pa_core.cli --mode capital --config my_capital_sweep.yml --output tutorial_1_capital_sweep.xlsx
 ```
 
 **📈 Analysis Workflow**:
@@ -128,7 +128,7 @@ python -m pa_core --mode capital --params config/capital_mode_template.csv --out
 
 ```bash
 # Alpha shares mode - 183KB output, 187 scenario combinations
-python -m pa_core --mode alpha_shares --params config/alpha_shares_mode_template.csv --output tutorial_1_alpha_sweep.xlsx
+python -m pa_core.cli --mode alpha_shares --config my_alpha_sweep.yml --output tutorial_1_alpha_sweep.xlsx
 ```
 
 **📈 Analysis Workflow**:
@@ -167,7 +167,7 @@ python -m pa_core --mode alpha_shares --params config/alpha_shares_mode_template
 
 ```bash
 # Volatility multiplier mode - 13KB output with stress test scenarios
-python -m pa_core --mode vol_mult --params config/vol_mult_mode_template.csv --output tutorial_1_vol_sweep.xlsx
+python -m pa_core.cli --mode vol_mult --config my_vol_sweep.yml --output tutorial_1_vol_sweep.xlsx
 ```
 
 **📈 Stress Testing Workflow**:
@@ -206,7 +206,7 @@ python -m pa_core --mode vol_mult --params config/vol_mult_mode_template.csv --o
 
 ```bash
 # Returns mode - comprehensive return sensitivity analysis
-python -m pa_core --mode returns --params config/returns_mode_template.csv --output tutorial_1_returns_sweep.xlsx
+python -m pa_core.cli --mode returns --config my_returns_sweep.yml --output tutorial_1_returns_sweep.xlsx
 ```
 
 > **Note**: A CLI bug in early versions caused this mode to fail. Make

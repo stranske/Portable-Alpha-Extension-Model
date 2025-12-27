@@ -34,11 +34,11 @@ Use the correct template and CLI flags for each scenario type:
 | Purpose                    | File type | CLI flags                      | Example file                     |
 |----------------------------|-----------|--------------------------------|---------------------------------|
 | Single scenario (YAML)     | `.yml`    | `--config`                     | `params_template.yml`           |
-| Single scenario (CSV)      | `.csv`    | `--params`                     | `parameters_template.csv`       |
-| Capital allocation sweep   | `.csv`    | `--params` + `--mode capital`   | `capital_mode_template.csv`     |
-| Alpha shares optimisation  | `.csv`    | `--params` + `--mode alpha_shares` | `alpha_shares_mode_template.csv` |
-| Returns sensitivity        | `.csv`    | `--params` + `--mode returns`   | `returns_mode_template.csv`     |
-| Volatility stress test     | `.csv`    | `--params` + `--mode vol_mult`  | `vol_mult_mode_template.csv`    |
+| Single scenario            | `.yml`    | `--config`                     | `params_template.yml`           |
+| Capital allocation sweep   | `.yml`    | `--config` + `--mode capital`   | Copy `params_template.yml`, set `analysis_mode: capital` |
+| Alpha shares optimization  | `.yml`    | `--config` + `--mode alpha_shares` | Copy `params_template.yml`, set `analysis_mode: alpha_shares` |
+| Returns sensitivity        | `.yml`    | `--config` + `--mode returns`   | Copy `params_template.yml`, set `analysis_mode: returns` |
+| Volatility stress test     | `.yml`    | `--config` + `--mode vol_mult`  | Copy `params_template.yml`, set `analysis_mode: vol_mult` |
 
 ---
 
@@ -67,7 +67,7 @@ Use the sweep engine to test funding levels automatically:
 
 ```bash
 python -m pa_core.cli \
-  --params config/capital_mode_template.csv \
+  --config my_capital_sweep.yml \
   --mode capital \
   --index sp500tr_fred_divyield.csv \
   --output Tutorial2_CapitalSweep.xlsx \
@@ -85,8 +85,8 @@ Sort the **Summary** sheet by `TE` or `ShortfallProb` and filter for
 Run additional sweeps and keep the results separate:
 
 ```bash
-python -m pa_core.cli --params config/alpha_shares_mode_template.csv --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
-python -m pa_core.cli --params config/vol_mult_mode_template.csv --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx \
+python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
+python -m pa_core.cli --config my_vol_sweep.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx \
   --dashboard
 ```
 
