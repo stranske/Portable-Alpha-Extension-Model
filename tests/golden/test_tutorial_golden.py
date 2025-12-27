@@ -313,7 +313,11 @@ class TestTutorial4Validation:
     """Tutorial 4: Validation and Quality Checks."""
 
     def test_validation_demo_scenario(self, runner: TutorialTestRunner):
-        """Test validation demo scenario from Tutorial 4."""
+        """Test validation demo scenario correctly rejects invalid config.
+
+        The validation_demo.yml file intentionally has N_SIMULATIONS=50
+        which is below the minimum of 100, demonstrating validation guardrails.
+        """
         output_file = runner.tmp_path / "tutorial4_validation.xlsx"
 
         result = runner.run_cli(
@@ -329,5 +333,6 @@ class TestTutorial4Validation:
             ]
         )
 
-        assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=45000)
+        # The demo file is intentionally invalid - it should fail validation
+        assert result.returncode != 0, "Expected validation failure for invalid config"
+        assert "N_SIMULATIONS" in result.stderr, "Expected N_SIMULATIONS validation error"
