@@ -53,16 +53,15 @@ python -m pa_core.cli \
   --output QuickStart.xlsx
 ```
 
-To run a multi-scenario sweep, supply one of the CSV templates and specify a
-mode:
+To run a multi-scenario sweep, create a YAML file with your sweep parameters
+and specify the appropriate mode:
 
 ```bash
-# Convert CSV template to YAML first
-pa-convert-params config/capital_mode_template.csv config/capital_mode_template.yml
+# Create a capital sweep config (copy and modify params_template.yml)
+# Set analysis_mode: capital and add ranges for external_pa_capital, active_ext_capital
 
-# Run the sweep
 python -m pa_core.cli \
-  --config config/capital_mode_template.yml \
+  --config my_capital_sweep.yml \
   --mode capital \
   --index sp500tr_fred_divyield.csv \
   --output CapitalSweep.xlsx
@@ -128,24 +127,20 @@ The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by
 
 ### Configuration template quick reference
 
-Use these starter files under `config/` to run either a single scenario or a full
-parameter sweep. Replace the index file with your own returns series and set
-`--output` to avoid overwriting previous runs.
+The primary configuration file is `config/params_template.yml`. Copy and modify
+it to create sweep configurations for different analysis modes. Replace the index
+file with your own returns series and set `--output` to avoid overwriting previous runs.
 
-| Scenario type               | Template file                          | Example command |
-|-----------------------------|---------------------------------------|-----------------|
-| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
-| Capital allocation sweep    | `config/capital_mode_template.csv`     | `pa-convert-params config/capital_mode_template.csv capital_mode.yml && python -m pa_core.cli --config capital_mode.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
-| Returns sensitivity sweep   | `config/returns_mode_template.csv`     | `pa-convert-params config/returns_mode_template.csv returns_mode.yml && python -m pa_core.cli --config returns_mode.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
-| Alpha shares optimisation   | `config/alpha_shares_mode_template.csv`| `pa-convert-params config/alpha_shares_mode_template.csv alpha_mode.yml && python -m pa_core.cli --config alpha_mode.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
-| Single scenario (YAML)      | `config/params_template.yml`           | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
-| Capital allocation sweep    | `config/capital_mode_template.yml`     | `python -m pa_core.cli --config config/capital_mode_template.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
-| Returns sensitivity sweep   | `config/returns_mode_template.yml`     | `python -m pa_core.cli --config config/returns_mode_template.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
-| Alpha shares optimisation   | `config/alpha_shares_mode_template.yml`| `python -m pa_core.cli --config config/alpha_shares_mode_template.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
-| Volatility stress test      | `config/vol_mult_mode_template.yml`    | `python -m pa_core.cli --config config/vol_mult_mode_template.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
+| Scenario type               | Base template                    | Example command |
+|-----------------------------|----------------------------------|-----------------|
+| Single scenario             | `config/params_template.yml`     | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
+| Capital allocation sweep    | Copy `params_template.yml`, set `analysis_mode: capital` | `python -m pa_core.cli --config my_capital_sweep.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
+| Returns sensitivity sweep   | Copy `params_template.yml`, set `analysis_mode: returns` | `python -m pa_core.cli --config my_returns_sweep.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
+| Alpha shares optimisation   | Copy `params_template.yml`, set `analysis_mode: alpha_shares` | `python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
+| Volatility stress test      | Copy `params_template.yml`, set `analysis_mode: vol_mult` | `python -m pa_core.cli --config my_vol_sweep.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
 
-All four sweep modes now run correctly when the appropriate template and `--mode`
-are supplied.
+All four sweep modes run correctly when the appropriate `analysis_mode` and `--mode`
+flag are supplied. See the Parameter Sweep Engine section below for YAML snippets.
 
 ### CLI flags quick reference (new)
 
@@ -193,11 +188,10 @@ python -m pa_core.cli \
 | Template file | Purpose | Key parameters |
 |---------------|---------|----------------|
 | `params_template.yml` | Single-scenario YAML baseline | `analysis_mode`, capital amounts, risk metrics |
-| `parameters_template.csv` | Spreadsheet version of the baseline | same fields as the YAML file |
-| `capital_mode_template.csv` | Sweep external and active extension capital allocations | `external_pa_capital`, `active_ext_capital` ranges |
-| `returns_mode_template.csv` | Return and volatility sensitivity analysis | expected return and volatility ranges |
-| `alpha_shares_mode_template.csv` | Optimise alpha vs beta share splits | `external_pa_alpha_fraction`, `active_share` ranges |
-| `vol_mult_mode_template.csv` | Stress test with higher vol multipliers | `vol_mult` values |
+
+Create sweep configurations by copying `params_template.yml` and setting the
+appropriate `analysis_mode`. See the Parameter Sweep Engine section for the
+key parameters used by each mode.
 ## 3. Introductory Tutorial Series
 
 The following tutorials provide a hands‑on introduction to the model.
@@ -362,21 +356,22 @@ As a new user, start with the simplest possible setup - a minimal "sweep" that t
 
 The `--mode=capital` parameter runs multiple scenarios automatically, varying external and active extension capital allocations:
 
-1. **Examine the capital template**:
+1. **Create a capital sweep config** by copying `params_template.yml`:
    ```bash
-   head config/capital_mode_template.csv
+   cp config/params_template.yml my_capital_sweep.yml
    ```
-   You'll see columns for different capital allocation scenarios.
-
-2. **Convert CSV template to YAML** (required for CLI):
-   ```bash
-   pa-convert-params config/capital_mode_template.csv config/capital_mode_template.yml
+   Edit the file to set `analysis_mode: capital` and add capital ranges:
+   ```yaml
+   analysis_mode: capital
+   external_pa_capital: [80, 100, 120]
+   active_ext_capital: [20, 40, 60]
+   internal_pa_capital: [100]
    ```
 
-3. **Run a capital allocation sweep**:
+2. **Run a capital allocation sweep**:
    ```bash
    python -m pa_core.cli \
-     --config config/capital_mode_template.yml \
+     --config my_capital_sweep.yml \
      --index sp500tr_fred_divyield.csv \
      --mode capital \
      --output CapitalSweep.xlsx
@@ -398,25 +393,25 @@ The `--mode=capital` parameter runs multiple scenarios automatically, varying ex
 
 Use `--mode=alpha_shares` to optimize the split between alpha-generating and beta-matching components:
 
-1. **Examine the alpha shares template**:
+1. **Create an alpha shares sweep config** by copying `params_template.yml`:
    ```bash
-   head config/alpha_shares_mode_template.csv
+   cp config/params_template.yml my_alpha_sweep.yml
    ```
-   This varies the percentage allocated to alpha generation vs. beta matching.
-
-2. **Convert CSV template to YAML**:
-   ```bash
-   pa-convert-params config/alpha_shares_mode_template.csv config/alpha_shares_mode_template.yml
+   Edit to set `analysis_mode: alpha_shares` and add alpha/beta ranges:
+   ```yaml
+   analysis_mode: alpha_shares
+   external_pa_alpha_fraction: [0.4, 0.5, 0.6]
+   active_share: [0.5, 0.6, 0.7]
    ```
 
-3. **Run alpha/beta optimization**:
+2. **Run alpha/beta optimization**:
    ```bash
-    python -m pa_core.cli \
-      --config config/alpha_shares_mode_template.yml \
-      --index sp500tr_fred_divyield.csv \
-      --mode alpha_shares \
-      --output AlphaSweep.xlsx
-    ```
+   python -m pa_core.cli \
+     --config my_alpha_sweep.yml \
+     --index sp500tr_fred_divyield.csv \
+     --mode alpha_shares \
+     --output AlphaSweep.xlsx
+   ```
 
    > **Note**: Parameter sweeps run silently. Open the Excel file to see results.
 
@@ -430,24 +425,23 @@ Use `--mode=alpha_shares` to optimize the split between alpha-generating and bet
 
 Use `--mode=vol_mult` to test how your strategy performs under different volatility regimes:
 
-1. **Examine the volatility multiplier template**:
+1. **Create a vol mult sweep config** by copying `params_template.yml`:
    ```bash
-   head config/vol_mult_mode_template.csv
+   cp config/params_template.yml my_vol_sweep.yml
    ```
-   This scales all volatilities by different multipliers (e.g., 0.5x, 1.0x, 1.5x, 2.0x).
-
-2. **Convert CSV template to YAML**:
-   ```bash
-   pa-convert-params config/vol_mult_mode_template.csv config/vol_mult_mode_template.yml
+   Edit to set `analysis_mode: vol_mult` and add multiplier ranges:
+   ```yaml
+   analysis_mode: vol_mult
+   vol_mult: [1.0, 1.5, 2.0, 2.5]
    ```
 
-3. **Run volatility stress test**:
+2. **Run volatility stress test**:
    ```bash
-    python -m pa_core.cli \
-      --config config/vol_mult_mode_template.yml \
-      --index sp500tr_fred_divyield.csv \
-      --mode vol_mult \
-      --output VolStressTest.xlsx
+   python -m pa_core.cli \
+     --config my_vol_sweep.yml \
+     --index sp500tr_fred_divyield.csv \
+     --mode vol_mult \
+     --output VolStressTest.xlsx
     ```
 
    > **Note**: Parameter sweeps run silently. Check the output Excel file for results.
@@ -462,24 +456,24 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 Use `--mode=returns` to test various return/volatility scenarios:
 
-1. **Examine the returns template**:
+1. **Create a returns sweep config** by copying `params_template.yml`:
    ```bash
-   head config/returns_mode_template.csv
+   cp config/params_template.yml my_returns_sweep.yml
    ```
-   This template varies expected returns and volatilities for different agents.
-
-2. **Convert CSV template to YAML**:
-   ```bash
-   pa-convert-params config/returns_mode_template.csv config/returns_mode_template.yml
+   Edit to set `analysis_mode: returns` and add return/volatility ranges:
+   ```yaml
+   analysis_mode: returns
+   exp_return_H: [0.03, 0.04, 0.05]
+   vol_H: [0.01, 0.015]
    ```
 
-3. **Run returns sensitivity analysis**:
+2. **Run returns sensitivity analysis**:
    ```bash
-    python -m pa_core.cli \
-      --config config/returns_mode_template.yml \
-      --index sp500tr_fred_divyield.csv \
-      --mode returns \
-      --output ReturnsSweep.xlsx
+   python -m pa_core.cli \
+     --config my_returns_sweep.yml \
+     --index sp500tr_fred_divyield.csv \
+     --mode returns \
+     --output ReturnsSweep.xlsx
    ```
 
    > **Note**: Parameter sweeps run silently. Open the Excel file to examine the results.
@@ -538,12 +532,13 @@ the 3% cap.
 Use the parameter sweep engine to explore multiple funding levels automatically:
 
 ```bash
-# Convert CSV template to YAML first
-pa-convert-params config/capital_mode_template.csv config/capital_mode_template.yml
+# Create a capital sweep config
+cp config/params_template.yml my_capital_sweep.yml
+# Edit my_capital_sweep.yml: set analysis_mode: capital and add ranges
 
 # Run the sweep
 python -m pa_core.cli \
-  --config config/capital_mode_template.yml \
+  --config my_capital_sweep.yml \
   --mode capital \
   --index sp500tr_fred_divyield.csv \
   --output Tutorial2_CapitalSweep.xlsx
@@ -560,13 +555,15 @@ Analyse alpha share optimisation and volatility stress testing with unique
 output names so previous results are preserved:
 
 ```bash
-# Convert CSV templates to YAML
-pa-convert-params config/alpha_shares_mode_template.csv config/alpha_shares_mode_template.yml
-pa-convert-params config/vol_mult_mode_template.csv config/vol_mult_mode_template.yml
+# Create sweep configs from the base template
+cp config/params_template.yml my_alpha_sweep.yml
+cp config/params_template.yml my_vol_sweep.yml
+# Edit my_alpha_sweep.yml: set analysis_mode: alpha_shares and add ranges
+# Edit my_vol_sweep.yml: set analysis_mode: vol_mult and add multipliers
 
 # Run the sweeps
-python -m pa_core.cli --config config/alpha_shares_mode_template.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
-python -m pa_core.cli --config config/vol_mult_mode_template.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
+python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
+python -m pa_core.cli --config my_vol_sweep.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
 ```
 
 These sweeps can generate dozens of scenarios (up to 200 depending on the template). Apply the same threshold checks as in Part B and compare results across sheets.
@@ -658,12 +655,9 @@ Always include meaningful `--alt-text` so exported figures remain accessible.
 When running a parameter sweep you can include the same export flags to produce a presentation deck for every scenario automatically.  The CLI names the PPTX after your `--output` file so a single command generates both the Excel workbook and a slide pack:
 
 ```bash
-# Convert CSV template first
-pa-convert-params config/capital_mode_template.csv config/capital_mode_template.yml
-
-# Run with PPTX export
+# Create and run a capital sweep with PPTX export
 python -m pa_core.cli \
-  --config config/capital_mode_template.yml \
+  --config my_capital_sweep.yml \
   --mode capital \
   --pptx --output CapitalSweep.xlsx
 ```
@@ -673,12 +667,9 @@ This writes `CapitalSweep.pptx` alongside the Excel results with one slide per s
 You can combine multiple export flags to create a full set of images at the same time:
 
 ```bash
-# Convert CSV template first
-pa-convert-params config/alpha_shares_mode_template.csv config/alpha_shares_mode_template.yml
-
 # Run with multiple export formats
 python -m pa_core.cli \
-  --config config/alpha_shares_mode_template.yml \
+  --config my_alpha_sweep.yml \
   --mode alpha_shares \
   --png --pdf --pptx --output AlphaSweep.xlsx
 ```
@@ -1022,16 +1013,17 @@ These visual tools complement the Excel output by making it easy to spot how rea
 
 ### Tutorial 8 – Stress-Test Your Assumptions
 
-After completing the tutorials you can stress‑test your assumptions by **automating parameter sweeps**. Supply one of the sweep templates and choose a mode such as `returns` or `capital` to run dozens of scenarios in a single command. Always set `--output` so the results are saved to a unique workbook instead of overwriting `Outputs.xlsx`:
+After completing the tutorials you can stress‑test your assumptions by **automating parameter sweeps**. Create a sweep config from `params_template.yml` and choose a mode such as `returns` or `capital` to run dozens of scenarios in a single command. Always set `--output` so the results are saved to a unique workbook instead of overwriting `Outputs.xlsx`:
 
 ```bash
-# Convert CSV template to YAML
-pa-convert-params config/returns_mode_template.csv config/returns_mode_template.yml
+# Create a returns sweep config for stress testing
+cp config/params_template.yml my_stress_test.yml
+# Edit my_stress_test.yml: set analysis_mode: returns and add ranges
 
 # Run stress test
 python -m pa_core.cli \
   --mode returns \
-  --config config/returns_mode_template.yml \
+  --config my_stress_test.yml \
   --output StressTest.xlsx
 ```
 The CLI names each sheet after its parameter set so the tabs match the rows in the `Summary` table. Use helpers like `viz.surface.make()` or `viz.grid_heatmap.make()` to visualise the landscape and spot parameter combinations that exceed the thresholds defined in `config_thresholds.yaml`.

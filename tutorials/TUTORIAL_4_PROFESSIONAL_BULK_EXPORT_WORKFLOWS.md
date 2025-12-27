@@ -38,7 +38,7 @@ Pass one or more export flags when running the CLI. The example below generates 
 
 ```bash
 python -m pa_core.cli \
-  --params config/capital_mode_template.csv \
+  --config my_capital_sweep.yml \
   --mode capital \
   --pptx --output CapitalSweep.xlsx
 ```
@@ -51,7 +51,7 @@ Export PNG, PDF and HTML in one run:
 
 ```bash
 python -m pa_core.cli \
-  --params config/alpha_shares_mode_template.csv \
+  --config my_alpha_sweep.yml \
   --mode alpha_shares \
   --png --pdf --html --output AlphaSweep.xlsx
 ```

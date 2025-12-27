@@ -83,16 +83,16 @@ As a new user, start with the simplest possible command to establish baseline un
 
 The `--mode=capital` parameter runs multiple scenarios automatically, varying external and active extension capital allocations:
 
-1. **Examine the capital template**:
+1. **Create a capital sweep config** by copying `params_template.yml`:
    ```bash
-   head config/capital_mode_template.csv
+   cp config/params_template.yml my_capital_sweep.yml
+   # Edit to set analysis_mode: capital and add capital ranges
    ```
-   You'll see columns for different capital allocation scenarios.
 
 2. **Run a capital allocation sweep**:
    ```bash
    python -m pa_core.cli \
-     --config config/capital_mode_template.csv \
+     --config my_capital_sweep.yml \
      --index sp500tr_fred_divyield.csv \
      --mode capital \
      --output CapitalSweep.xlsx
@@ -111,16 +111,16 @@ The `--mode=capital` parameter runs multiple scenarios automatically, varying ex
 
 Use `--mode=returns` to test various return/volatility scenarios:
 
-1. **Examine the returns template**:
+1. **Create a returns sweep config** by copying `params_template.yml`:
    ```bash
-   head config/returns_mode_template.csv
+   cp config/params_template.yml my_returns_sweep.yml
+   # Edit to set analysis_mode: returns and add return/vol ranges
    ```
-   This template varies expected returns and volatilities for different agents.
 
 2. **Run returns sensitivity analysis**:
    ```bash
    python -m pa_core.cli \
-     --config config/returns_mode_template.csv \
+     --config my_returns_sweep.yml \
      --index sp500tr_fred_divyield.csv \
      --mode returns \
      --output ReturnsSweep.xlsx
@@ -136,16 +136,16 @@ Use `--mode=returns` to test various return/volatility scenarios:
 
 Use `--mode=alpha_shares` to optimize the split between alpha-generating and beta-matching components:
 
-1. **Examine the alpha shares template**:
+1. **Create an alpha shares sweep config** by copying `params_template.yml`:
    ```bash
-   head config/alpha_shares_mode_template.csv
+   cp config/params_template.yml my_alpha_sweep.yml
+   # Edit to set analysis_mode: alpha_shares and add alpha/beta ranges
    ```
-   This varies the percentage allocated to alpha generation vs. beta matching.
 
 2. **Run alpha/beta optimization**:
    ```bash
    python -m pa_core.cli \
-     --config config/alpha_shares_mode_template.csv \
+     --config my_alpha_sweep.yml \
      --index sp500tr_fred_divyield.csv \
      --mode alpha_shares \
      --output AlphaSweep.xlsx
@@ -161,16 +161,16 @@ Use `--mode=alpha_shares` to optimize the split between alpha-generating and bet
 
 Use `--mode=vol_mult` to test how your strategy performs under different volatility regimes:
 
-1. **Examine the volatility multiplier template**:
+1. **Create a vol mult sweep config** by copying `params_template.yml`:
    ```bash
-   head config/vol_mult_mode_template.csv
+   cp config/params_template.yml my_vol_sweep.yml
+   # Edit to set analysis_mode: vol_mult and add multiplier ranges
    ```
-   This scales all volatilities by different multipliers (e.g., 0.5x, 1.0x, 1.5x, 2.0x).
 
 2. **Run volatility stress test**:
    ```bash
    python -m pa_core.cli \
-     --config config/vol_mult_mode_template.csv \
+     --config my_vol_sweep.yml \
      --index sp500tr_fred_divyield.csv \
      --mode vol_mult \
      --output VolStressTest.xlsx

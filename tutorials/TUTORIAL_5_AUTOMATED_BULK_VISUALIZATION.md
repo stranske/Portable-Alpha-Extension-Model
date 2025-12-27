@@ -12,7 +12,7 @@ Start by running your parameter sweep **with the `--pivot` flag** so an `AllRetu
 
 ```bash
 python -m pa_core.cli \
-  --params config/capital_mode_template.csv \
+  --config my_capital_sweep.yml \
   --mode capital \
   --output Sweep.xlsx \
   --pivot

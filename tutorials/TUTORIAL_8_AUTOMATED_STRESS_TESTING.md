@@ -17,12 +17,12 @@ sudo apt-get install -y chromium-browser
 
 ### Step 1 – Run a stress‑test sweep
 
-Choose a sweep template such as `returns_mode_template.csv` and always pass `--output` so previous results are preserved:
+Create a sweep config from `params_template.yml` and always pass `--output` so previous results are preserved:
 
 ```bash
 python -m pa_core.cli \
   --mode returns \
-  --config config/returns_mode_template.csv \
+  --config my_returns_sweep.yml \
   --output StressTest.xlsx
 ```
 

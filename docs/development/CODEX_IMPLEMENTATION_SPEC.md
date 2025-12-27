@@ -161,20 +161,19 @@ else:
     # ... existing code ...
 ```
 
-### 3. Template Standardization
+### 3. Configuration Guidelines
 
-**Create 4 mode-specific templates in config/:**
+**Use `config/params_template.yml` as the base configuration:**
 
-1. **config/capital_mode_template.csv** - Capital allocation sweeps
-2. **config/returns_mode_template.csv** - Return assumption sweeps  
-3. **config/alpha_shares_mode_template.csv** - Alpha share sweeps
-4. **config/vol_mult_mode_template.csv** - Volatility multiplier sweeps
+Create sweep configurations by copying `params_template.yml` and setting the
+appropriate `analysis_mode` field. The Parameter Sweep Engine section in 
+`docs/UserGuide.md` provides YAML snippets for each mode.
 
-Each template should include:
-- Clear parameter explanations for the specific analysis mode
-- Appropriate sweep ranges and step sizes
-- Business-relevant default values
-- Mode-specific guidance in comments
+Each sweep config should include:
+- Clear `analysis_mode` set to: `capital`, `returns`, `alpha_shares`, or `vol_mult`
+- Appropriate sweep ranges as arrays (e.g., `external_pa_capital: [80, 100, 120]`)
+- Business-relevant default values for non-sweep parameters
+- The mandatory `ShortfallProb` risk metric
 
 ### 4. Documentation Updates
 
