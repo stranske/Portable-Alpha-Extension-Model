@@ -36,7 +36,7 @@ Use the correct template and CLI flags for each scenario type:
 | Single scenario (YAML)     | `.yml`    | `--config`                     | `params_template.yml`           |
 | Single scenario            | `.yml`    | `--config`                     | `params_template.yml`           |
 | Capital allocation sweep   | `.yml`    | `--config` + `--mode capital`   | Copy `params_template.yml`, set `analysis_mode: capital` |
-| Alpha shares optimisation  | `.yml`    | `--config` + `--mode alpha_shares` | Copy `params_template.yml`, set `analysis_mode: alpha_shares` |
+| Alpha shares optimization  | `.yml`    | `--config` + `--mode alpha_shares` | Copy `params_template.yml`, set `analysis_mode: alpha_shares` |
 | Returns sensitivity        | `.yml`    | `--config` + `--mode returns`   | Copy `params_template.yml`, set `analysis_mode: returns` |
 | Volatility stress test     | `.yml`    | `--config` + `--mode vol_mult`  | Copy `params_template.yml`, set `analysis_mode: vol_mult` |
 
