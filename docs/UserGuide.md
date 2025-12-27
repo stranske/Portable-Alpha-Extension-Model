@@ -442,7 +442,6 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
      --index sp500tr_fred_divyield.csv \
      --mode vol_mult \
      --output VolStressTest.xlsx
-    ```
 
    > **Note**: Parameter sweeps run silently. Check the output Excel file for results.
 
