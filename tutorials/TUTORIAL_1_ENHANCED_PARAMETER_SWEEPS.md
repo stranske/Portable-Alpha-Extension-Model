@@ -128,7 +128,7 @@ python -m pa_core --mode capital --config my_capital_sweep.yml --output tutorial
 
 ```bash
 # Alpha shares mode - 183KB output, 187 scenario combinations
-python -m pa_core --mode alpha_shares --config my_alpha_sweep.yml --output tutorial_1_alpha_sweep.xlsx
+python -m pa_core.cli --mode alpha_shares --config my_alpha_sweep.yml --output tutorial_1_alpha_sweep.xlsx
 ```
 
 **📈 Analysis Workflow**:
