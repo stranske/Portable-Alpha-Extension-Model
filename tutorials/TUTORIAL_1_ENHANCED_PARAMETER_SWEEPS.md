@@ -206,7 +206,7 @@ python -m pa_core.cli --mode vol_mult --config my_vol_sweep.yml --output tutoria
 
 ```bash
 # Returns mode - comprehensive return sensitivity analysis
-python -m pa_core --mode returns --config my_returns_sweep.yml --output tutorial_1_returns_sweep.xlsx
+python -m pa_core.cli --mode returns --config my_returns_sweep.yml --output tutorial_1_returns_sweep.xlsx
 ```
 
 > **Note**: A CLI bug in early versions caused this mode to fail. Make
