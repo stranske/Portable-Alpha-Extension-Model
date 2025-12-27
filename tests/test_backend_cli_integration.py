@@ -3,10 +3,10 @@
 Integration tests for backend selection between CLI and backend module.
 Tests both --backend numpy and --backend cupy scenarios as requested in issue #600.
 """
+
 import importlib.util
 import json
 import sys
-import tempfile
 import types
 from pathlib import Path
 
@@ -38,14 +38,14 @@ class TestBackendCLIIntegration:
             "risk_metrics": ["Return", "Risk", "ShortfallProb"],
             **({"backend": backend} if backend else {}),
         }
-        
+
         cfg_path = tmp_path / "test_cfg.yaml"
         cfg_path.write_text(yaml.safe_dump(cfg))
-        
+
         # Get the actual index CSV from repository
         repo_root = Path(__file__).resolve().parents[1]
-        idx_csv = repo_root / "sp500tr_fred_divyield.csv"
-        
+        idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+
         return cfg_path, idx_csv
 
     def test_backend_numpy_cli_flag(self, tmp_path, capsys):
@@ -53,22 +53,28 @@ class TestBackendCLIIntegration:
         cfg_path, idx_csv = self._create_test_config(tmp_path)
         out_file = tmp_path / "numpy_test.xlsx"
         manifest_file = tmp_path / "manifest.json"
-        
+
         # Run CLI with numpy backend
-        main([
-            "--config", str(cfg_path),
-            "--index", str(idx_csv),
-            "--output", str(out_file),
-            "--backend", "numpy",
-        ])
-        
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--backend",
+                "numpy",
+            ]
+        )
+
         # Verify output file created
         assert out_file.exists()
-        
+
         # Verify backend echo message
         captured = capsys.readouterr()
         assert "[BACKEND] Using backend: numpy" in captured.out
-        
+
         # Verify backend is recorded in manifest
         if manifest_file.exists():
             manifest_data = json.loads(manifest_file.read_text())
@@ -78,15 +84,20 @@ class TestBackendCLIIntegration:
     def test_backend_cupy_cli_flag_missing(self, tmp_path):
         """Test --backend cupy gives helpful error when CuPy not installed."""
         cfg_path, idx_csv = self._create_test_config(tmp_path)
-        
+
         # Should raise ImportError with helpful message
         with pytest.raises(ImportError) as exc_info:
-            main([
-                "--config", str(cfg_path),
-                "--index", str(idx_csv),
-                "--backend", "cupy",
-            ])
-        
+            main(
+                [
+                    "--config",
+                    str(cfg_path),
+                    "--index",
+                    str(idx_csv),
+                    "--backend",
+                    "cupy",
+                ]
+            )
+
         # Verify helpful error message
         assert "CuPy backend requested but not installed" in str(exc_info.value)
         assert "--backend numpy" in str(exc_info.value)
@@ -95,17 +106,22 @@ class TestBackendCLIIntegration:
         """Test backend selection from config file when no CLI flag."""
         cfg_path, idx_csv = self._create_test_config(tmp_path, backend="numpy")
         out_file = tmp_path / "config_backend_test.xlsx"
-        
+
         # Run CLI without backend flag (should use config)
-        main([
-            "--config", str(cfg_path),
-            "--index", str(idx_csv),
-            "--output", str(out_file),
-        ])
-        
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+            ]
+        )
+
         # Verify output file created
         assert out_file.exists()
-        
+
         # Verify backend echo message shows config backend
         captured = capsys.readouterr()
         assert "[BACKEND] Using backend: numpy" in captured.out
@@ -113,14 +129,18 @@ class TestBackendCLIIntegration:
     def test_backend_config_cupy_missing(self, tmp_path):
         """Test config with cupy backend gives helpful error."""
         cfg_path, idx_csv = self._create_test_config(tmp_path, backend="cupy")
-        
+
         # Should raise ImportError
         with pytest.raises(ImportError) as exc_info:
-            main([
-                "--config", str(cfg_path),
-                "--index", str(idx_csv),
-            ])
-        
+            main(
+                [
+                    "--config",
+                    str(cfg_path),
+                    "--index",
+                    str(idx_csv),
+                ]
+            )
+
         assert "CuPy backend requested but not installed" in str(exc_info.value)
 
     def test_backend_cli_overrides_config(self, tmp_path, capsys):
@@ -128,15 +148,21 @@ class TestBackendCLIIntegration:
         # Config has one backend, CLI specifies another
         cfg_path, idx_csv = self._create_test_config(tmp_path, backend="cupy")
         out_file = tmp_path / "override_test.xlsx"
-        
+
         # CLI should override config (numpy overrides cupy config)
-        main([
-            "--config", str(cfg_path),
-            "--index", str(idx_csv),
-            "--output", str(out_file),
-            "--backend", "numpy",  # This should override config
-        ])
-        
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--backend",
+                "numpy",  # This should override config
+            ]
+        )
+
         # Verify CLI override worked
         captured = capsys.readouterr()
         assert "[BACKEND] Using backend: numpy" in captured.out
@@ -147,14 +173,19 @@ class TestBackendCLIIntegration:
         # Create config without backend field
         cfg_path, idx_csv = self._create_test_config(tmp_path)
         out_file = tmp_path / "default_backend_test.xlsx"
-        
+
         # Run without backend flag
-        main([
-            "--config", str(cfg_path),
-            "--index", str(idx_csv),
-            "--output", str(out_file),
-        ])
-        
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+            ]
+        )
+
         # Should default to numpy
         captured = capsys.readouterr()
         assert "[BACKEND] Using backend: numpy" in captured.out
@@ -165,18 +196,24 @@ class TestBackendCLIIntegration:
         cfg_path, idx_csv = self._create_test_config(tmp_path)
         out_file = tmp_path / "manifest_backend_test.xlsx"
         manifest_file = out_file.with_name("manifest.json")
-        
+
         # Run with specific backend
-        main([
-            "--config", str(cfg_path),
-            "--index", str(idx_csv),
-            "--output", str(out_file),
-            "--backend", "numpy",
-        ])
-        
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--backend",
+                "numpy",
+            ]
+        )
+
         # Verify actual backend is set correctly
         assert get_backend() == "numpy"
-        
+
         # Verify manifest contains correct backend
         if manifest_file.exists():
             manifest_data = json.loads(manifest_file.read_text())
@@ -185,11 +222,11 @@ class TestBackendCLIIntegration:
 
 @pytest.mark.skipif(
     "cupy" not in sys.modules and not importlib.util.find_spec("cupy"),
-    reason="CuPy not available - skipping CuPy backend tests"
+    reason="CuPy not available - skipping CuPy backend tests",
 )
 class TestBackendCuPyIntegration:
     """Tests that would run if CuPy was available."""
-    
+
     def test_backend_cupy_success(self, tmp_path, capsys):
         """Test --backend cupy works when CuPy is available."""
         # This test would only run if CuPy is actually installed

@@ -45,7 +45,7 @@ python -m streamlit run dashboard/app.py --server.headless=true --server.port=85
 Power users can work directly with YAML configuration files via the command-line interface:
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
+python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
 ```
 
 ## Plain-English Primer
@@ -186,21 +186,21 @@ If you prefer the command line, the main entry point is ``pa_core.cli`` which ex
 options and dashboard integration:
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \
   --mode returns
 
 # optional pivot-style output
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --pivot
+python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --pivot
 
 # launch dashboard alongside a run and export images
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv \
+python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
 ```
 
 Structured logging: add `--log-json` to write JSONL to `runs/<timestamp>/run.log`. The manifest (`manifest.json`) records the selected backend and the log path for reproducibility:
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --log-json
+python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --log-json
 ```
 
 Legacy CSV parameter files can be converted for this release with:

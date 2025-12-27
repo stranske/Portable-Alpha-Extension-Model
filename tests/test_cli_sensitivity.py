@@ -70,7 +70,6 @@ sigma_M: 0.01
             patch("pa_core.cli.build_cov_matrix"),
             patch("pa_core.cli.draw_financing_series") as mock_financing,
         ):
-
             # Mock the simulation properly
             mock_draws.return_value = ([], [], [], [])  # r_beta, r_H, r_E, r_M
             mock_financing.return_value = ([], [], [])  # f_int, f_ext, f_act
@@ -157,7 +156,6 @@ sigma_M: 0.01
             patch("pa_core.cli.build_cov_matrix"),
             patch("builtins.print") as mock_print,
         ):
-
             # Mock simulation results
             mock_summary.return_value = pd.DataFrame(
                 {"Agent": ["Base"], "AnnReturn": [8.5], "AnnVol": [12.0]}
@@ -187,9 +185,9 @@ sigma_M: 0.01
                 if "sensitivity" in call.lower() or "🔍" in call
             ]
 
-            assert (
-                len(sensitivity_messages) > 0
-            ), "Sensitivity analysis messages not found in output"
+            assert len(sensitivity_messages) > 0, (
+                "Sensitivity analysis messages not found in output"
+            )
 
 
 def test_sensitivity_analysis_error_logging():
@@ -251,7 +249,6 @@ sigma_M: 0.01
             patch("pa_core.cli.build_cov_matrix"),
             patch("builtins.print") as mock_print,
         ):
-
             # Mock main simulation to return valid results
             mock_summary.return_value = pd.DataFrame(
                 {"Agent": ["Base"], "AnnReturn": [8.5], "AnnVol": [12.0]}
@@ -290,6 +287,6 @@ sigma_M: 0.01
                 call for call in print_calls if "failed" in call.lower() or "⚠️" in call
             ]
 
-            assert (
-                len(error_messages) > 0
-            ), "Parameter evaluation failure messages not found in output"
+            assert len(error_messages) > 0, (
+                "Parameter evaluation failure messages not found in output"
+            )
