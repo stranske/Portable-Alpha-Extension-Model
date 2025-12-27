@@ -1,4 +1,5 @@
 from pathlib import Path
+from textwrap import dedent
 from typing import Any
 
 import pytest
@@ -68,8 +69,6 @@ def test_template_yaml_loads():
 
 def test_csv_to_yaml_conversion(tmp_path):
     """Test CSV to YAML conversion using a generated CSV file."""
-    from textwrap import dedent
-
     # Create a minimal CSV file for testing conversion
     csv_path = tmp_path / "test_params.csv"
     csv_content = dedent("""\
