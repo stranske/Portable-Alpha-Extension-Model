@@ -91,7 +91,7 @@ python -m pa_core --params config/params_template.yml --output tutorial_1_baseli
 
 ```bash
 # Capital mode sweep - 38KB output with optimal allocation analysis
-python -m pa_core --mode capital --config my_capital_sweep.yml --output tutorial_1_capital_sweep.xlsx
+python -m pa_core.cli --mode capital --config my_capital_sweep.yml --output tutorial_1_capital_sweep.xlsx
 ```
 
 **📈 Analysis Workflow**:
