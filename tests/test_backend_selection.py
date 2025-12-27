@@ -23,7 +23,7 @@ def _write_cfg(tmp_path, backend=None):
         cfg["backend"] = backend
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
-    idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
     return cfg_path, idx_csv
 
 

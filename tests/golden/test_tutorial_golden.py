@@ -74,9 +74,9 @@ class TestTutorial1ParameterSweeps:
         result = runner.run_cli(
             [
                 "--config",
-                "my_first_scenario.yml",
+                "examples/scenarios/my_first_scenario.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--output",
                 str(output_file),
                 "--seed",
@@ -112,7 +112,7 @@ class TestTutorial1ParameterSweeps:
                 "--config",
                 "config/returns_mode_template.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--mode",
                 "returns",
                 "--output",
@@ -142,7 +142,7 @@ class TestTutorial1ParameterSweeps:
                 "--config",
                 "config/capital_mode_template.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--mode",
                 "capital",
                 "--output",
@@ -167,7 +167,7 @@ class TestTutorial1ParameterSweeps:
                 "--config",
                 "config/alpha_shares_mode_template.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--mode",
                 "alpha_shares",
                 "--output",
@@ -192,7 +192,7 @@ class TestTutorial1ParameterSweeps:
                 "--config",
                 "config/vol_mult_mode_template.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--mode",
                 "vol_mult",
                 "--output",
@@ -220,7 +220,10 @@ class TestTutorial2ThresholdAnalysis:
         threshold_config = runner.tmp_path / "test_threshold_config.yml"
 
         # Copy base config and modify for threshold testing
-        shutil.copy(runner.project_root / "my_first_scenario.yml", threshold_config)
+        shutil.copy(
+            runner.project_root / "examples/scenarios/my_first_scenario.yml",
+            threshold_config,
+        )
 
         output_file = runner.tmp_path / "tutorial2_threshold.xlsx"
 
@@ -229,7 +232,7 @@ class TestTutorial2ThresholdAnalysis:
                 "--config",
                 str(threshold_config),
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--output",
                 str(output_file),
                 "--seed",
@@ -262,9 +265,9 @@ class TestTutorialExports:
         result = runner.run_cli(
             [
                 "--config",
-                "my_first_scenario.yml",
+                "examples/scenarios/my_first_scenario.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--output",
                 str(output_file),
                 "--png",
@@ -290,9 +293,9 @@ class TestTutorialExports:
         result = runner.run_cli(
             [
                 "--config",
-                "my_first_scenario.yml",
+                "examples/scenarios/my_first_scenario.yml",
                 "--index",
-                "sp500tr_fred_divyield.csv",
+                "data/sp500tr_fred_divyield.csv",
                 "--output",
                 str(output_file),
                 "--pptx",
@@ -328,9 +331,9 @@ class TestDeterministicResults:
             result = runner.run_cli(
                 [
                     "--config",
-                    "my_first_scenario.yml",
+                    "examples/scenarios/my_first_scenario.yml",
                     "--index",
-                    "sp500tr_fred_divyield.csv",
+                    "data/sp500tr_fred_divyield.csv",
                     "--output",
                     str(output_file),
                     "--seed",

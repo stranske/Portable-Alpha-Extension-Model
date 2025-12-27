@@ -9,7 +9,7 @@ def test_main_with_yaml(tmp_path):
     cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
-    idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
     out_file = tmp_path / "out.xlsx"
     main(
         [
@@ -28,7 +28,7 @@ def test_main_with_png(tmp_path, monkeypatch):
     cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
-    idx_csv = Path(__file__).resolve().parents[1] / "sp500tr_fred_divyield.csv"
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
     out_file = tmp_path / "out.xlsx"
     monkeypatch.chdir(tmp_path)
     main(

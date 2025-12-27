@@ -53,3 +53,20 @@ plots/*.png
 
 # Run artifacts
 runs/
+
+# Jupyter
+.jupyter/
+*.ipynb_checkpoints/
+
+# Generated outputs (should not be committed)
+*.parquet
+*.pptx
+*.log
+
+# Archive generated outputs (keep the folder but not contents)
+archive/generated-outputs/*
+!archive/generated-outputs/.gitkeep
+
+# Plots output folder (generated, don't commit)
+plots/*
+!plots/.gitkeep

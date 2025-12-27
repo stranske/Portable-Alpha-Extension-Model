@@ -48,14 +48,14 @@ source .venv/bin/activate && PYTHONPATH=/path/to/repository [command]
 **CLI Usage** - Core functionality:
 ```bash
 # Basic simulation (takes 16 seconds - NEVER CANCEL)
-python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output Results.xlsx
+python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output Results.xlsx
 
 # Parameter sweep modes (takes 4-16 seconds - NEVER CANCEL)
-python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --mode returns --output ReturnsSweep.xlsx
-python -m pa_core.cli --config config/capital_mode_template.csv --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx
+python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --mode returns --output ReturnsSweep.xlsx
+python -m pa_core.cli --config config/capital_mode_template.csv --index data/sp500tr_fred_divyield.csv --output CapitalSweep.xlsx
 
 # With exports (requires Chrome/Chromium - takes 4-16 seconds - NEVER CANCEL)
-python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --png --pdf --alt-text "Risk analysis"
+python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --png --pdf --alt-text "Risk analysis"
 
 # Parameter conversion (takes 1-2 seconds)
 python -m pa_core.data.convert config/parameters_template.csv converted_params.yml
@@ -89,14 +89,14 @@ python -m pa_core.validate my_config.yml  # Config validation - takes 1 second
 1. **Basic Simulation Workflow**:
    ```bash
    # Test single scenario (16 seconds - NEVER CANCEL)
-   python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output Test1.xlsx
+   python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output Test1.xlsx
    # Verify: Test1.xlsx created with ~160KB size
    ```
 
 2. **Parameter Sweep Workflow**:
    ```bash  
    # Test returns sweep (4 seconds - NEVER CANCEL)
-   python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --mode returns --output Test2.xlsx
+   python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --mode returns --output Test2.xlsx
    # Verify: Test2.xlsx created successfully
    ```
 
@@ -119,7 +119,7 @@ python -m pa_core.validate my_config.yml  # Config validation - takes 1 second
 Test static export functionality:
 ```bash
 # PNG/PDF exports (4 seconds - NEVER CANCEL, requires Chrome/Chromium)
-python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --png --pdf --output ExportTest.xlsx
+python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --png --pdf --output ExportTest.xlsx
 # Verify: ExportTest.xlsx and associated PNG/PDF files created
 ```
 
@@ -154,11 +154,11 @@ python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyie
 # Quick development cycle
 ./dev.sh lint                 # <1 second
 ./dev.sh test                 # 2-3 seconds  
-python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output QuickTest.xlsx  # 16 seconds
+python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output QuickTest.xlsx  # 16 seconds
 
 # Full validation cycle  
 ./dev.sh ci                   # 15 seconds total
-python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --mode returns --output ValidationTest.xlsx  # 4 seconds
+python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --mode returns --output ValidationTest.xlsx  # 4 seconds
 ```
 
 ## Troubleshooting
