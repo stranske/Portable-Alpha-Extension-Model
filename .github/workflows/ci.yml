@@ -143,11 +143,11 @@ jobs:
           pip install -e .
       - name: Prepare sample inputs
         run: |
-          test -f my_first_scenario.yml
-          test -f sp500tr_fred_divyield.csv
+          test -f examples/scenarios/my_first_scenario.yml
+          test -f data/sp500tr_fred_divyield.csv
       - name: Run CLI
         run: |
-          python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --seed 42
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --seed 42
       - name: Assert artifact exists
         run: |
           shopt -s nullglob
@@ -183,14 +183,14 @@ jobs:
           mkdir -p tutorial-artifacts
 
           # Generate basic scenario
-          python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output tutorial-artifacts/basic-scenario.xlsx --seed 42 || true
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output tutorial-artifacts/basic-scenario.xlsx --seed 42 || true
 
           # Generate parameter sweeps
-          python -m pa_core.cli --config config/returns_mode_template.yml --index sp500tr_fred_divyield.csv --mode returns --output tutorial-artifacts/returns-sweep.xlsx --seed 42 || true
-          python -m pa_core.cli --config config/capital_mode_template.yml --index sp500tr_fred_divyield.csv --mode capital --output tutorial-artifacts/capital-sweep.xlsx --seed 42 || true
+          python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --mode returns --output tutorial-artifacts/returns-sweep.xlsx --seed 42 || true
+          python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --mode capital --output tutorial-artifacts/capital-sweep.xlsx --seed 42 || true
 
           # Try to generate exports with charts (may fail without proper Chrome setup)
-          python -m pa_core.cli --config my_first_scenario.yml --index sp500tr_fred_divyield.csv --output tutorial-artifacts/with-exports.xlsx --png --pptx --seed 42 || echo "Export generation failed - likely due to Chrome/display issues"
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output tutorial-artifacts/with-exports.xlsx --png --pptx --seed 42 || echo "Export generation failed - likely due to Chrome/display issues"
 
           # List generated artifacts
           echo "Generated artifacts:"
