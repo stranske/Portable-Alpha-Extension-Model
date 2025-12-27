@@ -335,4 +335,6 @@ class TestTutorial4Validation:
 
         # The demo file is intentionally invalid - it should fail validation
         assert result.returncode != 0, "Expected validation failure for invalid config"
-        assert "N_SIMULATIONS" in result.stderr, "Expected N_SIMULATIONS validation error"
+        assert (
+            "N_SIMULATIONS" in result.stderr
+        ), "Expected N_SIMULATIONS validation error"

@@ -70,18 +70,23 @@ def test_template_yaml_loads():
 def test_csv_to_yaml_conversion(tmp_path):
     """Test CSV to YAML conversion using a generated CSV file."""
     # Create a minimal CSV file for testing conversion
+    # The CSV loader expects:
+    # - Columns named "Parameter" and "Value" (capitalized)
+    # - Parameter names as human-readable aliases from ModelConfig
     csv_path = tmp_path / "test_params.csv"
-    csv_content = dedent("""\
-        parameter,value
-        N_SIMULATIONS,1000
-        N_MONTHS,6
-        mu_H,0.04
-        sigma_H,0.01
-        external_pa_capital,100.0
-        active_ext_capital,200.0
-        internal_pa_capital,300.0
-        total_fund_capital,1000.0
-    """)
+    csv_content = dedent(
+        """\
+        Parameter,Value
+        Number of simulations,1000
+        Number of months,6
+        In-House annual return (%),4.0
+        In-House annual vol (%),1.0
+        External PA capital (mm),100.0
+        Active Extension capital (mm),200.0
+        Internal PA capital (mm),300.0
+        Total fund capital (mm),1000.0
+    """
+    )
     csv_path.write_text(csv_content)
     out_yaml = tmp_path / "out.yml"
     convert(csv_path, out_yaml)
