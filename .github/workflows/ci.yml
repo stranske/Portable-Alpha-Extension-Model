@@ -24,8 +24,8 @@ jobs:
     uses: stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main
     with:
       python-versions: '["3.12"]'
-      typecheck: false  # PAEM uses pyright locally, not mypy
-      run-mypy: false   # Disable mypy (deprecated, but explicit)
+      typecheck: false # PAEM uses pyright locally, not mypy
+      run-mypy: false # Disable mypy (deprecated, but explicit)
       coverage: true
       coverage-min: "60" # Target: 85% - see issue for tracking
     secrets: inherit

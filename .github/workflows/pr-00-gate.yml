@@ -33,8 +33,8 @@ jobs:
     with:
       python-versions: '["3.12"]' # Single version, no multi-platform
       coverage-min: "60" # Target: 85% - tracking issue to be created
-      typecheck: false  # PAEM uses pyright locally, not mypy
-      run-mypy: false   # Disable mypy (deprecated, but explicit)
+      typecheck: false # PAEM uses pyright locally, not mypy
+      run-mypy: false # Disable mypy (deprecated, but explicit)
       format_check: false # Using ruff for formatting
       working-directory: "."
       artifact-prefix: "gate-"
