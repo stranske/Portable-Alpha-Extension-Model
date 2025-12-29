@@ -100,6 +100,9 @@ STDLIB_MODULES = {
     "dataclasses",
     "pprint",
     "typing_extensions",
+    # Python 3.11+ stdlib additions
+    "runpy",
+    "tomllib",
 }
 
 # Known test framework modules
@@ -169,6 +172,7 @@ MODULE_TO_PACKAGE = {
     "sklearn": "scikit-learn",
     "cv2": "opencv-python",
     "tomli": "tomli",
+    "pptx": "python-pptx",
 }
 
 
