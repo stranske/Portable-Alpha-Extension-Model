@@ -104,7 +104,7 @@ class PresetLibrary:
 
     # Convenience methods for strings (used by dashboard)
     def to_yaml_str(self) -> str:
-        return yaml.safe_dump(self.to_dict())
+        return str(yaml.safe_dump(self.to_dict()))
 
     def to_json_str(self) -> str:
         return json.dumps(self.to_dict())

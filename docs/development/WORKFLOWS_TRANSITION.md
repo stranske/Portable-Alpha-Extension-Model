@@ -474,7 +474,7 @@ PAEM's Codespace validation job could benefit other consumer repos:
 
 ### Mypy vs Pyright Configuration
 
-**Issue**: PAEM uses pyright for type checking, but the reusable workflow defaults to mypy.
+**Issue**: PAEM now uses mypy for type checking, consistent with the Workflows system.
 
 **Resolution**: Set both `typecheck: false` and `run-mypy: false` in workflow inputs.
 
