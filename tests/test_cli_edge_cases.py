@@ -20,7 +20,9 @@ def test_cli_rejects_non_series_index(monkeypatch):
     bad_index = pd.DataFrame({"a": [0.01, 0.02], "b": [0.03, 0.04]})
     monkeypatch.setattr("pa_core.data.load_index_returns", lambda _: bad_index)
 
-    with pytest.raises(ValueError, match="Index data must be convertible to pandas Series"):
+    with pytest.raises(
+        ValueError, match="Index data must be convertible to pandas Series"
+    ):
         main(["--config", "cfg.yaml", "--index", "idx.csv"])
 
 
@@ -75,6 +77,13 @@ def test_cli_log_json_setup_warning(monkeypatch, caplog):
 
     caplog.set_level("WARNING")
     main(
-        ["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves", "--log-json"]
+        [
+            "--config",
+            "cfg.yaml",
+            "--index",
+            "idx.csv",
+            "--suggest-sleeves",
+            "--log-json",
+        ]
     )
     assert "Failed to set up JSON logging" in caplog.text
