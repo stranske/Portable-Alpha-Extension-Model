@@ -6,7 +6,6 @@ ipywidgets
 pytest
 hypothesis
 ruff
-pyright==1.1.404
 pydantic
 rich
 PyYAML>=6

@@ -6,7 +6,6 @@ jupyter
 pytest
 hypothesis
 ruff==0.5.0
-pyright[nodejs]
 pydantic
 rich
 PyYAML>=6
