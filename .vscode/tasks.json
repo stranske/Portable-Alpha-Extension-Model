@@ -52,12 +52,15 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Type Check (Pyright)",
+            "label": "Run Type Check (mypy)",
             "type": "shell",
             "command": ".venv/bin/python",
             "args": [
                 "-m",
-                "pyright"
+                "mypy",
+                "pa_core",
+                "--config-file",
+                "pyproject.toml"
             ],
             "group": "test",
             "presentation": {

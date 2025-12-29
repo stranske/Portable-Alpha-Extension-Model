@@ -16,17 +16,17 @@ repos:
         args: [--fix, --exit-non-zero-on-fix]
 
   - repo: https://github.com/psf/black
-    rev: <PINNED_BLACK_VERSION>
+    rev: 23.9.1
     hooks:
       - id: black
         language_version: python3
 
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
     hooks:
-      - id: pyright
-        name: pyright
-        entry: pyright
-        language: node
-        additional_dependencies: [pyright]
-        types: [python]
+      - id: mypy
+        args: [--config-file, pyproject.toml]
+        additional_dependencies:
+          - types-PyYAML
         pass_filenames: false
+        files: ^pa_core/

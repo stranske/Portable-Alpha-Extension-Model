@@ -72,8 +72,8 @@ run_lint() {
 
 # Run type checking
 run_typecheck() {
-    print_status "Running type checking with pyright..."
-    python -m pyright
+    print_status "Running type checking with mypy..."
+    python -m mypy pa_core --config-file pyproject.toml
     if [ $? -eq 0 ]; then
         print_success "Type checking passed!"
     else
@@ -131,7 +131,7 @@ usage() {
     echo "  setup     - Initial development environment setup"
     echo "  test      - Run pytest test suite"
     echo "  lint      - Run ruff linting"
-    echo "  typecheck - Run pyright type checking"
+    echo "  typecheck - Run mypy type checking"
     echo "  ci        - Run full CI pipeline (lint + typecheck + test)"
     echo "  demo      - Run CLI demo with sample data"
     echo "  dashboard - Start Streamlit dashboard"

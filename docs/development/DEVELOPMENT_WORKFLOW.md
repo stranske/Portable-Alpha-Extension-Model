@@ -61,7 +61,7 @@ git push origin main
 ```bash
 make format      # Format code with black/isort
 make lint        # Check with flake8/ruff
-make typecheck   # Check types with pyright
+make typecheck   # Check types with mypy
 make test        # Run tests with coverage
 make dev-check   # Run all checks
 ```
