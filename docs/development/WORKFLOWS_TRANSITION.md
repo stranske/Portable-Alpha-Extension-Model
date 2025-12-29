@@ -411,6 +411,48 @@ PAEM's Codespace validation job could benefit other consumer repos:
 
 ---
 
+## Lessons Learned
+
+### Script Requirements Not Documented
+
+**Issue**: The `reusable-10-ci-python.yml` workflow requires consumer repos to have specific helper scripts that were not documented in the INTEGRATION_GUIDE:
+
+1. **`scripts/sync_test_dependencies.py`** - Validates test imports match declared dependencies
+2. **`tools/resolve_mypy_pin.py`** - Resolves Python version for mypy type checking
+
+**Resolution**: Copied scripts from Manager-Database (a working consumer repo) to PAEM.
+
+**Follow-up**: Created [Workflows issue #281](https://github.com/stranske/Workflows/issues/281) to update documentation.
+
+### Script Customization Required
+
+**Issue**: The `sync_test_dependencies.py` script needed customization for PAEM:
+
+1. **STDLIB_MODULES** missing Python 3.11+ modules (`runpy`, `tomllib`)
+2. **MODULE_TO_PACKAGE** missing mappings where import name differs from package name (`pptx` → `python-pptx`)
+
+**Resolution**: Added the missing modules and mappings to PAEM's copy of the script.
+
+**Recommendation**: Workflows should maintain the canonical version of these scripts with comprehensive mappings that work across all consumer repos.
+
+### Mypy vs Pyright Configuration
+
+**Issue**: PAEM uses pyright for type checking, but the reusable workflow defaults to mypy.
+
+**Resolution**: Set both `typecheck: false` and `run-mypy: false` in workflow inputs.
+
+**Note**: The `typecheck` input controls the consolidated type-checking step, while `run-mypy` specifically controls mypy execution. Both must be disabled for repos using alternative type checkers.
+
+### Invalid Workflow Inputs
+
+**Issue**: The `module-name` input in workflow files caused "workflow file issue" errors.
+
+**Resolution**: Removed the invalid `module-name` input from both `ci.yml` and `pr-00-gate.yml`.
+
+**Root Cause**: Input was copied from a template but not supported by the reusable workflow.
+
+---
+
 ## Rollback Plan
 
 If transition fails:
