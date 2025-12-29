@@ -123,7 +123,7 @@ Your objective is to satisfy the **Acceptance Criteria** by completing each **Ta
 ---
 ## PR Tasks and Acceptance Criteria
 
-**Progress:** 0/9 tasks complete, 9 remaining
+**Progress:** 1/9 tasks complete, 8 remaining
 
 ### Scope
 - [ ] Establish 85% code coverage as baseline for PAEM as part of Workflows consumer transition.
@@ -133,7 +133,7 @@ Your objective is to satisfy the **Acceptance Criteria** by completing each **Ta
 Complete these in order. Mark checkbox done ONLY after implementation is verified:
 
 - [ ] Run coverage report and identify lowest-covered modules
-- [ ] Add tests for uncovered `pa_core.cli` edge cases
+- [x] Add tests for uncovered `pa_core.cli` edge cases
 - [ ] Add tests for `pa_core.config` validation paths
 - [ ] Add tests for `pa_core.reporting` module
 - [ ] Add tests for `dashboard` modules
