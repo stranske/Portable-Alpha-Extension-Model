@@ -194,7 +194,44 @@ jobs:
           echo "✅ Gate passed"
 ```
 
-### 3.4 Create CLAUDE.md
+### 3.4 Copy Required Agent Scripts (CRITICAL)
+
+The reusable agent workflows expect certain scripts to exist in the consumer repo.
+**Failure to copy these will cause `agents-63-issue-intake.yml` to fail with MODULE_NOT_FOUND errors.**
+
+Reference: [SETUP_CHECKLIST.md](https://github.com/stranske/Workflows/blob/main/docs/keepalive/SETUP_CHECKLIST.md)
+
+```bash
+# Create directories
+mkdir -p .github/scripts .github/templates
+
+# JavaScript Agent Scripts (required for issue bridge)
+for script in issue_pr_locator.js issue_context_utils.js issue_scope_parser.js keepalive_instruction_template.js; do
+  curl -sL "https://raw.githubusercontent.com/stranske/Workflows/main/.github/scripts/$script" -o ".github/scripts/$script"
+done
+
+# Python Utility Scripts (required for agent workflows)
+for script in decode_raw_input.py fallback_split.py parse_chatgpt_topics.py; do
+  curl -sL "https://raw.githubusercontent.com/stranske/Workflows/main/.github/scripts/$script" -o ".github/scripts/$script"
+done
+
+# Keepalive Template
+curl -sL "https://raw.githubusercontent.com/stranske/Workflows/main/.github/templates/keepalive-instruction.md" \
+  -o ".github/templates/keepalive-instruction.md"
+```
+
+**Verify the files exist:**
+```bash
+ls -la .github/scripts/
+# Should show: issue_pr_locator.js, issue_context_utils.js, issue_scope_parser.js,
+#              keepalive_instruction_template.js, decode_raw_input.py, 
+#              fallback_split.py, parse_chatgpt_topics.py
+
+ls -la .github/templates/
+# Should show: keepalive-instruction.md
+```
+
+### 3.5 Create CLAUDE.md
 
 Adapt `.github/copilot-instructions.md` content into `CLAUDE.md` format:
 
