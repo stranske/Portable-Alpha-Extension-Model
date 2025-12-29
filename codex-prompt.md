@@ -101,21 +101,49 @@ You should assume you're running in `agent-standard` unless explicitly told othe
 
 ## Task Prompt
 
-# Autofix from CI failure
+## Keepalive Next Task
 
-You are Codex running in autofix mode after a CI failure. Use the available logs and repository context to repair the failing checks.
+Your objective is to satisfy the **Acceptance Criteria** by completing each **Task** within the defined **Scope**.
 
-Guidance:
-- Inspect the latest CI output provided by the caller (logs or summaries) to pinpoint the root cause.
-- Focus on minimal, targeted fixes that unblock the failing job.
-- Leave diagnostic breadcrumbs when a failure cannot be reproduced or fully addressed.
-- Re-run or suggest the smallest relevant checks to verify the fix.
+**This round you MUST:**
+1. Implement actual code or test changes that advance at least one incomplete task toward acceptance.
+2. Commit meaningful source code (.py, .yml, .js, etc.)—not just status/docs updates.
+3. Mark a task checkbox complete ONLY after verifying the implementation works.
+4. Focus on the FIRST unchecked task unless blocked, then move to the next.
+
+**Guidelines:**
+- Keep edits scoped to the current task rather than reshaping the entire PR.
+- Use repository instructions, conventions, and tests to validate work.
+- Prefer small, reviewable commits; leave clear notes when follow-up is required.
+- Do NOT work on unrelated improvements until all PR tasks are complete.
+
+**The Tasks and Acceptance Criteria are provided in the appendix below.** Work through them in order.
 
 ## Run context
-Gate run: https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/20584176016
-Conclusion: cancelled
-PR: #726
-Head SHA: 5fad7b43f21433371ae9c625dead967879b2e445
-Autofix attempts for this head: 1 / 3
-Fix scope: src/, tests/, tools/, scripts/, agents/, templates/, .github/
-Failing jobs: none reported.
+---
+## PR Tasks and Acceptance Criteria
+
+**Progress:** 0/9 tasks complete, 9 remaining
+
+### Scope
+- [ ] Establish 85% code coverage as baseline for PAEM as part of Workflows consumer transition.
+- [ ] Current coverage is ~60%. Target is 85% to align with Workflows consumer repo standards.
+
+### Tasks
+Complete these in order. Mark checkbox done ONLY after implementation is verified:
+
+- [ ] Run coverage report and identify lowest-covered modules
+- [ ] Add tests for uncovered `pa_core.cli` edge cases
+- [ ] Add tests for `pa_core.config` validation paths
+- [ ] Add tests for `pa_core.reporting` module
+- [ ] Add tests for `dashboard` modules
+- [ ] Update CI to enforce 85% minimum
+
+### Acceptance Criteria
+The PR is complete when ALL of these are satisfied:
+
+- [ ] Coverage >= 85% on main branch
+- [ ] CI fails if coverage drops below 85%
+- [ ] All new code has corresponding tests
+
+---
