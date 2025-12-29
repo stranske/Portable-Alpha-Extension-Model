@@ -3,9 +3,10 @@
 #
 # This workflow runs:
 # - Lint (Ruff)
-# - Type checking (pyright/mypy)
 # - Tests (pytest) with coverage
 #
+# NOTE: PAEM uses pyright for type checking locally (see pyproject.toml)
+# The reusable workflow's mypy is disabled here since PAEM doesn't use mypy.
 # NOTE: PAEM uses single Python version (3.12) on Linux only
 # Multi-platform matrix dropped per transition decision 2025-12-29
 name: CI
@@ -23,7 +24,8 @@ jobs:
     uses: stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main
     with:
       python-versions: '["3.12"]'
-      typecheck: true
+      typecheck: false  # PAEM uses pyright locally, not mypy
+      run-mypy: false   # Disable mypy (deprecated, but explicit)
       coverage: true
-      coverage-min: '60'  # Target: 85% - see issue for tracking
+      coverage-min: "60" # Target: 85% - see issue for tracking
     secrets: inherit
