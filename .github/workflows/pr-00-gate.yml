@@ -36,7 +36,6 @@ jobs:
       format_check: false  # Using ruff for formatting
       working-directory: "."
       artifact-prefix: "gate-"
-      module-name: pa_core
     secrets: inherit
 
   # ───────────────────────────────────────────────────────────────────────────

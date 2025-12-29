@@ -26,5 +26,4 @@ jobs:
       typecheck: true
       coverage: true
       coverage-min: '60'  # Target: 85% - see issue for tracking
-      module-name: pa_core
     secrets: inherit
