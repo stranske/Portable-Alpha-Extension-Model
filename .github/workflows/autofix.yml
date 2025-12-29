@@ -1,87 +1,110 @@
-# .github/workflows/autofix.yml
-name: Autofix trivial issues
+# Thin caller for autofix - delegates to Workflows repo reusable workflow
+# Auto-fixes lint and format issues on PRs
+#
+# Triggers:
+# - PR opened/synchronized/reopened
+# - PR labeled with 'autofix' or 'autofix:clean'
+#
+# Copy this file to: .github/workflows/autofix.yml
+#
+# Required secrets:
+# - SERVICE_BOT_PAT: PAT for pushing autofix commits (optional, uses GITHUB_TOKEN if not set)
+name: Autofix
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: 'PR number (when dispatched after CI failure)'
-        required: false
-      head_ref:
-        description: 'Branch name of the PR head'
-        required: false
-      head_repo:
-        description: 'PR head repository full name'
-        required: false
+    types:
+      - synchronize
+      - opened
+      - reopened
+  pull_request_target:
+    types:
+      - labeled
 
 permissions:
+  actions: read
+  checks: read
   contents: write
+  issues: write
   pull-requests: write
 
+concurrency:
+  group: autofix-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
-  autofix:
-    if: >
-      github.event_name == 'workflow_dispatch' || (
-        github.event.pull_request.draft == false && (
-          contains(github.event.pull_request.labels.*.name, 'autofix') ||
-          contains(github.event.pull_request.labels.*.name, 'from:copilot') ||
-          contains(github.event.pull_request.labels.*.name, 'from:codex')
-        )
-      )
+  # Resolve PR context
+  resolve:
+    name: Resolve Context
     runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.context.outputs.should_run }}
+      pr_number: ${{ steps.context.outputs.pr_number }}
+      pr_head_ref: ${{ steps.context.outputs.head_ref }}
+      pr_title: ${{ steps.context.outputs.pr_title }}
+      pr_is_draft: ${{ steps.context.outputs.pr_is_draft }}
+      pr_labels_json: ${{ steps.context.outputs.pr_labels_json }}
+      same_repo: ${{ steps.context.outputs.same_repo }}
+      caller_actor: ${{ steps.context.outputs.caller_actor }}
     steps:
-      - name: Resolve checkout info
-        id: vars
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "checkout_ref=${{ github.event.inputs.head_ref }}" >> "$GITHUB_OUTPUT"
-            echo "push_ref=${{ github.event.inputs.head_ref }}" >> "$GITHUB_OUTPUT"
-            echo "repo=${{ github.event.inputs.head_repo }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "checkout_ref=refs/pull/${{ github.event.pull_request.number }}/head" >> "$GITHUB_OUTPUT"
-            echo "push_ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
-            echo "repo=${{ github.event.pull_request.head.repo.full_name }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - uses: actions/checkout@v4
+      - name: Resolve PR context
+        id: context
+        uses: actions/github-script@v8
         with:
-          fetch-depth: 0
-          repository: ${{ github.repository }}
-          ref: ${{ steps.vars.outputs.checkout_ref }}
+          script: |
+            const pr = context.payload.pull_request;
+            if (!pr) {
+              core.setOutput('should_run', 'false');
+              return;
+            }
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+            // Event validation
+            const isLabeled = context.eventName === 'pull_request_target' && context.payload.action === 'labeled';
+            const isPush = context.eventName === 'pull_request' && ['synchronize', 'opened', 'reopened'].includes(context.payload.action);
 
-      - name: Install formatters
-        run: |
-          python -m pip install -U pip
-          pip install -r requirements-dev.txt
+            if (!isLabeled && !isPush) {
+              core.info(`Unsupported event: ${context.eventName}/${context.payload.action}`);
+              core.setOutput('should_run', 'false');
+              return;
+            }
 
-      - name: Run auto-fixers
-        run: |
-          ruff check --fix .
-          black .
-          isort .
-          docformatter --recursive -i .
+            // Label validation for labeled events
+            if (isLabeled) {
+              const label = context.payload.label?.name?.toLowerCase();
+              if (label !== 'autofix' && label !== 'autofix:clean') {
+                core.info(`Label '${label}' is not an autofix trigger.`);
+                core.setOutput('should_run', 'false');
+                return;
+              }
+            }
 
-      - name: Commit and push if changed
-        env:
-          TARGET_REPO: ${{ steps.vars.outputs.repo }}
-          PUSH_REF: ${{ steps.vars.outputs.push_ref }}
-        run: |
-          if [ "$TARGET_REPO" != "${{ github.repository }}" ]; then
-            echo "Skipping push for external fork PR"
-            exit 0
-          fi
-          if [ -n "$(git status --porcelain)" ]; then
-            git config user.name "GitHub Actions"
-            git config user.email "actions@github.com"
-            git add -A
-            git commit -m "ci: autofix formatting/lint [ci skip]"
-            git push origin HEAD:"$PUSH_REF"
-          else
-            echo "No changes to commit."
-          fi
+            // Explicitly check for null repo (deleted fork case)
+            const sameRepo = pr.head.repo !== null && pr.head.repo.full_name === pr.base.repo?.full_name;
+            const labels = (pr.labels || []).map(l => l.name);
+
+            core.setOutput('should_run', 'true');
+            core.setOutput('pr_number', pr.number);
+            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('pr_title', pr.title);
+            core.setOutput('pr_is_draft', pr.draft ? 'true' : 'false');
+            core.setOutput('pr_labels_json', JSON.stringify(labels));
+            core.setOutput('same_repo', sameRepo ? 'true' : 'false');
+            core.setOutput('caller_actor', context.actor);
+
+  # Call reusable autofix workflow
+  autofix:
+    needs: resolve
+    if: needs.resolve.outputs.should_run == 'true'
+    uses: stranske/Workflows/.github/workflows/reusable-18-autofix.yml@main
+    with:
+      pr_number: ${{ fromJson(needs.resolve.outputs.pr_number) }}
+      pr_head_ref: ${{ needs.resolve.outputs.pr_head_ref }}
+      pr_title: ${{ needs.resolve.outputs.pr_title }}
+      pr_is_draft: ${{ needs.resolve.outputs.pr_is_draft == 'true' }}
+      pr_labels_json: ${{ needs.resolve.outputs.pr_labels_json }}
+      same_repo: ${{ needs.resolve.outputs.same_repo == 'true' }}
+      caller_actor: ${{ needs.resolve.outputs.caller_actor }}
+    secrets:
+      service_bot_pat: ${{ secrets.SERVICE_BOT_PAT }}
+      WORKFLOWS_APP_ID: ${{ secrets.WORKFLOWS_APP_ID }}
+      WORKFLOWS_APP_PRIVATE_KEY: ${{ secrets.WORKFLOWS_APP_PRIVATE_KEY }}

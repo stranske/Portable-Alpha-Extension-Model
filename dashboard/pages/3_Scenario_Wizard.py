@@ -471,9 +471,7 @@ def _render_step_2_capital(config: Any) -> Any:
 
     st.markdown("---")
     with st.expander("🧮 Sleeve Suggestor", expanded=False):
-        st.markdown(
-            "Suggest sleeve allocations that satisfy risk constraints."
-        )
+        st.markdown("Suggest sleeve allocations that satisfy risk constraints.")
         max_te = st.number_input(
             "Max Tracking Error",
             min_value=0.0,
@@ -750,7 +748,6 @@ def _render_step_4_correlations(config: Any) -> Any:
         st.success("✅ Correlation matrix is valid")
     return config
 
-
     return config
 
 
@@ -930,6 +927,8 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
         )
 
     return run_simulation
+
+
 def main() -> None:
     """Main wizard interface with 5-step stepper."""
 

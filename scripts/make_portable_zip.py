@@ -126,6 +126,7 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
             return True
     return False
 
+
 def create_filtered_zip(
     root_dir: Path, output_path: Path, excludes: Set[str], *, verbose: bool = False
 ) -> None:
@@ -188,14 +189,14 @@ def _enable_embedded_site(py_dir: Path) -> None:  # pragma: no cover - windows o
 
 def _write_launcher_bats(staging: Path) -> None:  # pragma: no cover - windows only
     launchers = {
-        "pa.bat": "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.cli %*\n",
+        "pa.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.cli %*\n',
         "pa-dashboard.bat": (
             "@echo off\n"
-            "\"%~dp0python\\python.exe\" -m streamlit run dashboard\\app.py %*\n"
+            '"%~dp0python\\python.exe" -m streamlit run dashboard\\app.py %*\n'
         ),
-        "pa-validate.bat": "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.validate %*\n",
+        "pa-validate.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.validate %*\n',
         "pa-convert-params.bat": (
-            "@echo off\n\"%~dp0python\\python.exe\" -m pa_core.data.convert %*\n"
+            '@echo off\n"%~dp0python\\python.exe" -m pa_core.data.convert %*\n'
         ),
     }
     for name, content in launchers.items():
@@ -246,7 +247,7 @@ def build_windows_portable_zip(
     print("Bootstrapping pip in embedded Python...")
     get_pip = staging / "get-pip.py"
     _download("https://bootstrap.pypa.io/get-pip.py", get_pip)
-    
+
     # SECURITY FIX: Use subprocess.run() with list of arguments instead of os.system()
     # This prevents command injection even if paths contain malicious characters
     python_exe = staging / "python" / "python.exe"
@@ -261,12 +262,19 @@ def build_windows_portable_zip(
         # SECURITY FIX: Use subprocess.run() with list of arguments instead of os.system()
         # This prevents command injection even if paths contain malicious characters
         try:
-            subprocess.run([
-                str(python_exe),
-                "-m", "pip", "install",
-                "-r", str(req),
-                "--no-warn-script-location"
-            ], check=True, cwd=staging)
+            subprocess.run(
+                [
+                    str(python_exe),
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    str(req),
+                    "--no-warn-script-location",
+                ],
+                check=True,
+                cwd=staging,
+            )
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Failed to install dependencies: {e}") from e
 
@@ -334,7 +342,10 @@ def main() -> int:
     if args.with_python:
         try:
             build_windows_portable_zip(
-                root, output_path, python_version=args.python_version, verbose=args.verbose
+                root,
+                output_path,
+                python_version=args.python_version,
+                verbose=args.verbose,
             )
         except Exception as exc:  # pragma: no cover - runtime guard
             print(f"Error creating portable zip: {exc}")

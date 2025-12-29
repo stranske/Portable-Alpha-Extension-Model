@@ -5,7 +5,6 @@ from pathlib import Path
 
 import streamlit as st
 
-
 st.set_page_config(page_title="Run Logs", page_icon="🧾")
 st.title("Run Logs 🧾")
 
@@ -22,14 +21,20 @@ if not run_ids:
 selected = st.selectbox("Select a run:", run_ids)
 run_path = runs_dir / selected
 log_file = run_path / "run.log"
-manifest_file = run_path.parent.parent / "manifest.json"  # fallback; manifest is written near output
+manifest_file = (
+    run_path.parent.parent / "manifest.json"
+)  # fallback; manifest is written near output
 
 cols = st.columns(2)
 with cols[0]:
     st.subheader("Log preview")
     if log_file.exists():
         try:
-            lines = log_file.read_text(encoding="utf-8", errors="replace").strip().splitlines()[-500:]
+            lines = (
+                log_file.read_text(encoding="utf-8", errors="replace")
+                .strip()
+                .splitlines()[-500:]
+            )
             for line in lines:
                 # Try to pretty print JSON; fallback to raw line
                 try:
@@ -59,4 +64,6 @@ with cols[1]:
         except Exception as e:
             st.error(f"Failed to read manifest: {e}")
     else:
-        st.info("Manifest not found near project root. Check the run's output directory.")
+        st.info(
+            "Manifest not found near project root. Check the run's output directory."
+        )

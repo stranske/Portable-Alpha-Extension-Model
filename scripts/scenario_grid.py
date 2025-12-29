@@ -22,7 +22,11 @@ from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap, grid_panel
 
 # Source metrics from ModelConfig to maintain consistency
-METRICS = ModelConfig.METRICS if hasattr(ModelConfig, "METRICS") else ["AnnReturn", "AnnVol", "TE", "CVaR", "BreachProb"]
+METRICS = (
+    ModelConfig.METRICS
+    if hasattr(ModelConfig, "METRICS")
+    else ["AnnReturn", "AnnVol", "TE", "CVaR", "BreachProb"]
+)
 
 
 def run_grid(seed: int, out_dir: Path) -> None:
