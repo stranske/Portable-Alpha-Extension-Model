@@ -1,0 +1,320 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, ready_for_review ]
+  push:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-pr${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  lint-and-format:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - run: ruff check pa_core tests --fix --unsafe-fixes
+        name: Ruff (lint)
+      - run: black --check pa_core tests
+        name: Black (format check)
+      - run: isort --check-only pa_core tests
+        name: isort (import order)
+
+  type-check:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - run: pyright
+        name: Pyright
+      - run: mypy pa_core --ignore-missing-imports
+        name: MyPy (additional)
+
+  security:
+    name: Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install bandit
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit[toml]
+      # Informational by default. To gate on Bandit, add 'security' to Gate.needs and make this step fail on findings.
+      - name: Bandit (report)
+        run: bandit -r pa_core -f json -o bandit-report.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-report
+          path: bandit-report.json
+
+  test:
+    name: Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+        os: [ubuntu-latest]
+        include:
+          - os: macos-latest
+            python-version: '3.12'
+          - os: windows-latest
+            python-version: '3.12'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+          pip install build twine
+      - name: Pytest with coverage floor
+        run: |
+          pytest tests/ -v --cov=pa_core --cov-report=xml --cov-report=term --cov-fail-under=60
+      - name: Build artifacts
+        run: |
+          python -m build
+          twine check dist/*
+      - uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: |
+            coverage.xml
+            dist
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, type-check, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - name: Prepare sample inputs
+        run: |
+          test -f examples/scenarios/my_first_scenario.yml
+          test -f data/sp500tr_fred_divyield.csv
+      - name: Run CLI
+        run: |
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --seed 42
+      - name: Assert artifact exists
+        run: |
+          shopt -s nullglob
+          files=(Outputs.xlsx Outputs.parquet Outputs/*.xlsx Outputs/*.parquet)
+          echo "Artifacts: ${files[@]}"
+          [ ${#files[@]} -gt 0 ] || { echo "::error::No output artifact produced"; exit 1; }
+
+  golden-tutorial-tests:
+    name: Golden Tutorial Tests
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, type-check, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - name: Install Chrome for exports (optional)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser || echo "Chrome install failed - exports will be skipped"
+      - name: Run golden tutorial tests
+        run: |
+          python -m pytest tests/golden/ -v --tb=short
+      - name: Generate tutorial artifacts for review
+        run: |
+          # Create artifacts directory
+          mkdir -p tutorial-artifacts
+
+          # Generate basic scenario
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output tutorial-artifacts/basic-scenario.xlsx --seed 42 || true
+
+          # Generate parameter sweeps
+          python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --mode returns --output tutorial-artifacts/returns-sweep.xlsx --seed 42 || true
+          python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --mode capital --output tutorial-artifacts/capital-sweep.xlsx --seed 42 || true
+
+          # Try to generate exports with charts (may fail without proper Chrome setup)
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml --index data/sp500tr_fred_divyield.csv --output tutorial-artifacts/with-exports.xlsx --png --pptx --seed 42 || echo "Export generation failed - likely due to Chrome/display issues"
+
+          # List generated artifacts
+          echo "Generated artifacts:"
+          find tutorial-artifacts -type f -exec ls -lh {} \;
+      - name: Upload tutorial artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tutorial-artifacts
+          path: tutorial-artifacts/
+          retention-days: 7
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: golden-test-results
+          path: |
+            .pytest_cache/
+            test-results.xml
+          retention-days: 7
+
+  build-docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - name: Build docs
+        run: make docs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: documentation
+          path: docs/_build/html/
+
+  codespace-validation:
+    name: Validate Codespace Config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate devcontainer.json
+        run: |
+          python -m json.tool .devcontainer/devcontainer.json > /dev/null
+          echo "✅ devcontainer.json is valid"
+      - name: Test setup script
+        run: |
+          chmod +x .devcontainer/setup.sh || true
+          bash -n .devcontainer/setup.sh || true
+          echo "✅ Codespace setup script syntax is valid"
+
+  pr-gate:
+    name: PR Gate
+    runs-on: ubuntu-latest
+    needs:
+      - lint-and-format
+      - type-check
+      - security
+      - test
+      - integration-test
+      - golden-tutorial-tests
+      - codespace-validation
+    if: ${{ always() }}
+    permissions:
+      contents: read
+      statuses: write
+
+    steps:
+      - name: Evaluate upstream results
+        id: eval
+        env:
+          LINT:  ${{ needs['lint-and-format'].result }}
+          TYPE:  ${{ needs['type-check'].result }}
+          SEC:   ${{ needs['security'].result }}
+          TEST:  ${{ needs['test'].result }}
+          INTEG: ${{ needs['integration-test'].result }}
+          GOLDEN: ${{ needs['golden-tutorial-tests'].result }}
+          CSPACE: ${{ needs['codespace-validation'].result }}
+        run: |
+          ok=true
+          for v in "$LINT" "$TYPE" "$SEC" "$TEST" "$INTEG" "$GOLDEN" "$CSPACE"; do
+            [ "$v" = "success" ] || ok=false
+          done
+          echo "ok=$ok" >> "$GITHUB_OUTPUT"
+
+      - name: Post required commit status on merge SHA
+        if: ${{ always() }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const ok = '${{ steps.eval.outputs.ok }}' === 'true';
+            const sha = process.env.GITHUB_SHA || context.sha; // PR merge commit on pull_request
+            const owner = process.env.GITHUB_REPOSITORY_OWNER;
+            const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
+            const runId = process.env.GITHUB_RUN_ID || context.runId;
+            if (!runId) {
+              throw new Error('runId is not defined. Ensure this code runs within a workflow run context.');
+            }
+            const baseUrl = process.env.GITHUB_SERVER_URL
+              || (github.context && github.context.serverUrl)
+              || 'https://github.com';
+            const serverUrl = baseUrl?.replace?.(/^http:/, 'https:') || 'https://github.com';
+            await github.rest.repos.createCommitStatus({
+              owner,
+              repo,
+              sha,
+              state: ok ? 'success' : 'failure',
+              context: 'required/pr-gate',
+              description: ok ? 'PR Gate passed' : 'PR Gate failed',
+              target_url: `${serverUrl}/${owner}/${repo}/actions/runs/${runId}`
+            });
+
+      - name: Fail if any upstream job failed
+        if: ${{ steps.eval.outputs.ok != 'true' }}
+        run: exit 1
+
+      - name: Succeed gate
+        if: ${{ steps.eval.outputs.ok == 'true' }}
+        run: echo "all good"

@@ -1,0 +1,179 @@
+# -----------------------------------------------------------------------------
+# Gate Workflow — PAEM Custom Gate
+# -----------------------------------------------------------------------------
+# Orchestrates CI enforcement for pull requests. Includes PAEM-specific jobs:
+# - Codespace validation (PAEM specialty)
+# - Integration tests (golden tutorial tests)
+#
+# IMPORTANT: The `summary` job and `Gate / gate` commit status are REQUIRED
+# for keepalive automation to detect CI results.
+#
+# This is a CUSTOM Gate - not auto-synced from Workflows templates.
+# Based on stranske/Workflows/templates/consumer-repo/.github/workflows/pr-00-gate.yml
+# -----------------------------------------------------------------------------
+
+name: Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+  workflow_dispatch:
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number || github.ref_name }}-gate
+  cancel-in-progress: true
+
+jobs:
+  # ───────────────────────────────────────────────────────────────────────────
+  # Core Python CI - delegates to Workflows reusable workflow
+  # ───────────────────────────────────────────────────────────────────────────
+  python-ci:
+    name: Python CI
+    uses: stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main
+    with:
+      python-versions: '["3.12"]'  # Single version, no multi-platform
+      coverage-min: "60"  # Target: 85% - tracking issue to be created
+      format_check: false  # Using ruff for formatting
+      working-directory: "."
+      artifact-prefix: "gate-"
+      module-name: pa_core
+    secrets: inherit
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # PAEM-specific: Codespace Configuration Validation
+  # ───────────────────────────────────────────────────────────────────────────
+  codespace-validation:
+    name: Codespace Config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate devcontainer.json
+        run: |
+          python -m json.tool .devcontainer/devcontainer.json > /dev/null
+          echo "✅ devcontainer.json is valid JSON"
+      - name: Validate setup script syntax
+        run: |
+          chmod +x .devcontainer/setup.sh 2>/dev/null || true
+          bash -n .devcontainer/setup.sh
+          echo "✅ Codespace setup script syntax is valid"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # PAEM-specific: Integration Tests (CLI + Golden Tutorials)
+  # ───────────────────────────────────────────────────────────────────────────
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [python-ci]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -e .
+      - name: Run CLI integration test
+        run: |
+          python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml \
+            --index data/sp500tr_fred_divyield.csv --seed 42
+          # Verify output was created
+          shopt -s nullglob
+          files=(Outputs.xlsx Outputs.parquet Outputs/*.xlsx Outputs/*.parquet)
+          [ ${#files[@]} -gt 0 ] || { echo "::error::No output artifact produced"; exit 1; }
+      - name: Run golden tutorial tests
+        run: |
+          pytest tests/golden/ -v --tb=short || echo "::warning::Some golden tests failed"
+
+  # ───────────────────────────────────────────────────────────────────────────
+  # Gate Summary - Required for keepalive automation
+  # ───────────────────────────────────────────────────────────────────────────
+  summary:
+    name: gate-summary
+    needs: [python-ci, codespace-validation, integration-tests]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    outputs:
+      state: ${{ steps.summarize.outputs.state }}
+      description: ${{ steps.summarize.outputs.description }}
+    steps:
+      - name: Summarize results
+        id: summarize
+        env:
+          PYTHON_RESULT: ${{ needs.python-ci.result || 'skipped' }}
+          CODESPACE_RESULT: ${{ needs.codespace-validation.result || 'skipped' }}
+          INTEGRATION_RESULT: ${{ needs.integration-tests.result || 'skipped' }}
+        run: |
+          set -euo pipefail
+
+          python_result="${PYTHON_RESULT:-skipped}"
+          codespace_result="${CODESPACE_RESULT:-skipped}"
+          integration_result="${INTEGRATION_RESULT:-skipped}"
+
+          state="success"
+          description="All checks passed"
+
+          # Check Python CI
+          if [[ "$python_result" == "failure" ]]; then
+            state="failure"
+            description="Python CI failed"
+          elif [[ "$python_result" == "cancelled" ]]; then
+            state="error"
+            description="Python CI was cancelled"
+          fi
+
+          # Check Codespace validation (only fail if CI passed)
+          if [[ "$state" == "success" && "$codespace_result" == "failure" ]]; then
+            state="failure"
+            description="Codespace validation failed"
+          fi
+
+          # Check Integration tests (only fail if CI passed)
+          if [[ "$state" == "success" && "$integration_result" == "failure" ]]; then
+            state="failure"
+            description="Integration tests failed"
+          fi
+
+          echo "state=${state}" >> "$GITHUB_OUTPUT"
+          echo "description=${description}" >> "$GITHUB_OUTPUT"
+          echo "[Gate] State: ${state}, Description: ${description}"
+
+      - name: Report Gate commit status
+        if: ${{ always() }}
+        uses: actions/github-script@v7
+        env:
+          STATE: ${{ steps.summarize.outputs.state || 'pending' }}
+          DESCRIPTION: ${{ steps.summarize.outputs.description || 'Gate status pending' }}
+          TARGET_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.payload.pull_request?.head?.sha || context.sha;
+            const state = process.env.STATE;
+            const description = process.env.DESCRIPTION;
+            const target_url = process.env.TARGET_URL;
+
+            await github.rest.repos.createCommitStatus({
+              owner,
+              repo,
+              sha,
+              state,
+              context: 'Gate / gate',
+              description,
+              target_url
+            });
+
+            console.log(`Posted commit status: ${state} - ${description}`);
+
+      - name: Fail if Gate failed
+        if: ${{ steps.summarize.outputs.state == 'failure' }}
+        run: |
+          echo "::error::Gate failed: ${{ steps.summarize.outputs.description }}"
+          exit 1

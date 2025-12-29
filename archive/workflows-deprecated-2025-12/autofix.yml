@@ -1,0 +1,87 @@
+# .github/workflows/autofix.yml
+name: Autofix trivial issues
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number (when dispatched after CI failure)'
+        required: false
+      head_ref:
+        description: 'Branch name of the PR head'
+        required: false
+      head_repo:
+        description: 'PR head repository full name'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  autofix:
+    if: >
+      github.event_name == 'workflow_dispatch' || (
+        github.event.pull_request.draft == false && (
+          contains(github.event.pull_request.labels.*.name, 'autofix') ||
+          contains(github.event.pull_request.labels.*.name, 'from:copilot') ||
+          contains(github.event.pull_request.labels.*.name, 'from:codex')
+        )
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve checkout info
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "checkout_ref=${{ github.event.inputs.head_ref }}" >> "$GITHUB_OUTPUT"
+            echo "push_ref=${{ github.event.inputs.head_ref }}" >> "$GITHUB_OUTPUT"
+            echo "repo=${{ github.event.inputs.head_repo }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "checkout_ref=refs/pull/${{ github.event.pull_request.number }}/head" >> "$GITHUB_OUTPUT"
+            echo "push_ref=${{ github.event.pull_request.head.ref }}" >> "$GITHUB_OUTPUT"
+            echo "repo=${{ github.event.pull_request.head.repo.full_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: ${{ github.repository }}
+          ref: ${{ steps.vars.outputs.checkout_ref }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install formatters
+        run: |
+          python -m pip install -U pip
+          pip install -r requirements-dev.txt
+
+      - name: Run auto-fixers
+        run: |
+          ruff check --fix .
+          black .
+          isort .
+          docformatter --recursive -i .
+
+      - name: Commit and push if changed
+        env:
+          TARGET_REPO: ${{ steps.vars.outputs.repo }}
+          PUSH_REF: ${{ steps.vars.outputs.push_ref }}
+        run: |
+          if [ "$TARGET_REPO" != "${{ github.repository }}" ]; then
+            echo "Skipping push for external fork PR"
+            exit 0
+          fi
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "GitHub Actions"
+            git config user.email "actions@github.com"
+            git add -A
+            git commit -m "ci: autofix formatting/lint [ci skip]"
+            git push origin HEAD:"$PUSH_REF"
+          else
+            echo "No changes to commit."
+          fi
