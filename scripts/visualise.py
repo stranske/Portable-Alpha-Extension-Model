@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import logging
 import argparse
+import logging
 from pathlib import Path
 
 import pandas as pd  # type: ignore
@@ -92,7 +92,9 @@ def main(argv: list[str] | None = None) -> None:
         except Exception as e:
             logging.warning("PDF export failed: %s", e)
     if args.pptx:
-        pptx_export.save([fig], f"{stem}.pptx", alt_texts=[args.alt_text] if args.alt_text else None)
+        pptx_export.save(
+            [fig], f"{stem}.pptx", alt_texts=[args.alt_text] if args.alt_text else None
+        )
     if args.gif:
         if df_paths is None:
             raise FileNotFoundError(parquet_path)

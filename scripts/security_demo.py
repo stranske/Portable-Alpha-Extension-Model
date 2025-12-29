@@ -17,17 +17,17 @@ def demonstrate_vulnerability():
     """Show how the vulnerable code could be exploited."""
     print("=== COMMAND INJECTION VULNERABILITY DEMONSTRATION ===")
     print()
-    
+
     print("1. VULNERABLE CODE (DO NOT USE):")
     print("   import os")
     print("   python_exe = 'malicious; rm -rf test; echo pwned'")
-    print("   get_pip = 'get-pip.py'") 
+    print("   get_pip = 'get-pip.py'")
     print("   os.system(f'\"{python_exe}\" {get_pip}')")
     print()
     print("   This would execute: malicious; rm -rf test; echo pwned get-pip.py")
     print("   The semicolon allows command injection!")
     print()
-    
+
     print("2. SECURE CODE (RECOMMENDED):")
     print("   import subprocess")
     print("   python_exe = 'malicious; rm -rf test; echo pwned'")
@@ -43,22 +43,28 @@ def demonstrate_secure_implementation():
     """Show the secure implementation with actual safe code."""
     print("=== SECURE IMPLEMENTATION EXAMPLE ===")
     print()
-    
+
     # Safe example with harmless paths - use platform-agnostic temporary directory
     python_exe = Path("/usr/bin/python3")  # Standard path
-    
+
     # Create a safe test script using cross-platform temporary file
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as tmp_script:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".py", delete=False
+    ) as tmp_script:
         tmp_script.write("print('Hello from secure subprocess!')\n")
         script_path = Path(tmp_script.name)
-    
+
     try:
         print(f"Executing: {python_exe} {script_path}")
-        result = subprocess.run([str(python_exe), str(script_path)], 
-                              capture_output=True, text=True, check=True)
+        result = subprocess.run(
+            [str(python_exe), str(script_path)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         print(f"Output: {result.stdout.strip()}")
         print("✅ Secure execution successful!")
-        
+
     except subprocess.CalledProcessError as e:
         print(f"❌ Command failed: {e}")
     except FileNotFoundError as e:
@@ -67,7 +73,7 @@ def demonstrate_secure_implementation():
         # Clean up - remove temporary file
         if script_path.exists():
             script_path.unlink()
-    
+
     print()
 
 
@@ -76,13 +82,13 @@ def main():
     print("Command Injection Security Fix Demonstration")
     print("=" * 50)
     print()
-    
+
     demonstrate_vulnerability()
     demonstrate_secure_implementation()
-    
+
     print("KEY TAKEAWAYS:")
     print("• Never use os.system() with user-controlled input")
-    print("• Always use subprocess.run() with argument lists")  
+    print("• Always use subprocess.run() with argument lists")
     print("• Use check=True for proper error handling")
     print("• Convert Path objects to strings explicitly")
     print("• This prevents shell injection attacks")

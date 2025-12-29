@@ -52,7 +52,9 @@ def _start_streamlit(port: int) -> subprocess.Popen[str]:
         "--server.headless=true",
         f"--server.port={port}",
     ]
-    return subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    return subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True
+    )
 
 
 def _stop_process(proc: subprocess.Popen[str]) -> None:
@@ -113,9 +115,16 @@ def _capture_screens(port: int, out_dir: Path) -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Headless capture for Scenario Wizard screenshots")
+    ap = argparse.ArgumentParser(
+        description="Headless capture for Scenario Wizard screenshots"
+    )
     ap.add_argument("--port", type=int, default=8501, help="Dashboard port")
-    ap.add_argument("--out-dir", type=Path, default=Path("docs/images"), help="Output directory for images")
+    ap.add_argument(
+        "--out-dir",
+        type=Path,
+        default=Path("docs/images"),
+        help="Output directory for images",
+    )
     args = ap.parse_args()
 
     proc = _start_streamlit(args.port)

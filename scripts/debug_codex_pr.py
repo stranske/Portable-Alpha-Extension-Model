@@ -5,12 +5,13 @@ Detects actual GitHub CI/CD failures and applies targeted fixes.
 """
 
 import json
+import shlex
+import shutil
 import subprocess
 import sys
-import shutil
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import shlex
+
 
 class CodexPRDebugger:
     """Enhanced debugging workflow focusing on actual GitHub CI/CD failures."""

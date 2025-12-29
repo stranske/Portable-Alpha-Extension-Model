@@ -172,14 +172,18 @@ def main() -> None:
                 )
                 # Compute external PA dollars (mm) if total fund capital present
                 if "external_pa_capital" in base_rows.columns:
-                    base_rows["external_pa_dollars_mm"] = base_rows["external_pa_capital"].astype(float)
+                    base_rows["external_pa_dollars_mm"] = base_rows[
+                        "external_pa_capital"
+                    ].astype(float)
                 elif hasattr(base_cfg, "total_fund_capital"):
                     # Derive from theta and total fund capital when available
                     try:
                         if "theta_extpa" in base_rows.columns:
                             theta_series = base_rows["theta_extpa"].astype(float)
                         else:
-                            theta_series = pd.Series(0.0, index=base_rows.index, dtype=float)
+                            theta_series = pd.Series(
+                                0.0, index=base_rows.index, dtype=float
+                            )
                         base_rows["external_pa_dollars_mm"] = theta_series * float(
                             getattr(base_cfg, "total_fund_capital")
                         )
@@ -187,7 +191,10 @@ def main() -> None:
                         base_rows["external_pa_dollars_mm"] = float("nan")
 
                 # Decide y-axis based on selection
-                if y_axis_mode.startswith("External PA $") and "external_pa_dollars_mm" in base_rows.columns:
+                if (
+                    y_axis_mode.startswith("External PA $")
+                    and "external_pa_dollars_mm" in base_rows.columns
+                ):
                     y_col = "external_pa_dollars_mm"
                 else:
                     y_col = "theta_extpa"
@@ -291,7 +298,13 @@ def main() -> None:
                     options=y_vals,
                     index=0,
                     format_func=(
-                        (lambda v: f"${v:,.0f} mm" if y_col == "external_pa_dollars_mm" else f"{v:.2f}")
+                        (
+                            lambda v: (
+                                f"${v:,.0f} mm"
+                                if y_col == "external_pa_dollars_mm"
+                                else f"{v:.2f}"
+                            )
+                        )
                     ),
                 )
                 if st.button("Promote to session"):
@@ -300,9 +313,12 @@ def main() -> None:
                         return
                     st.session_state["promoted_alpha_shares"] = {
                         "active_share": float(sel_x),
-                        "theta_extpa": float(sel_y)
-                        if y_col != "external_pa_dollars_mm"
-                        else float(sel_y) / float(getattr(base_cfg, "total_fund_capital", 1.0)),
+                        "theta_extpa": (
+                            float(sel_y)
+                            if y_col != "external_pa_dollars_mm"
+                            else float(sel_y)
+                            / float(getattr(base_cfg, "total_fund_capital", 1.0))
+                        ),
                     }
                     st.success(
                         "Selection promoted. Other pages can read session_state['promoted_alpha_shares']."
@@ -318,10 +334,12 @@ def main() -> None:
                         "Number of months": 12,
                         "analysis_mode": "alpha_shares",
                         # Convert y selection back to theta if using dollars
-                        "theta_extpa": float(sel_y)
-                        if y_col != "external_pa_dollars_mm"
-                        else float(sel_y)
-                        / float(getattr(base_cfg, "total_fund_capital", 1.0)),
+                        "theta_extpa": (
+                            float(sel_y)
+                            if y_col != "external_pa_dollars_mm"
+                            else float(sel_y)
+                            / float(getattr(base_cfg, "total_fund_capital", 1.0))
+                        ),
                         "active_share": float(sel_x),
                         "risk_metrics": ["Return", "Risk", "ShortfallProb"],
                     }
