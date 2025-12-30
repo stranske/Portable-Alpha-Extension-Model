@@ -41,6 +41,7 @@ jobs:
 
   # ───────────────────────────────────────────────────────────────────────────
   # PAEM-specific: Codespace Configuration Validation
+  # Runs in PARALLEL with python-ci (no dependency)
   # ───────────────────────────────────────────────────────────────────────────
   codespace-validation:
     name: Codespace Config
@@ -59,11 +60,14 @@ jobs:
 
   # ───────────────────────────────────────────────────────────────────────────
   # PAEM-specific: Integration Tests (CLI + Golden Tutorials)
+  # Runs in PARALLEL with python-ci for faster feedback
   # ───────────────────────────────────────────────────────────────────────────
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    needs: [python-ci]
+    # OPTIMIZATION: Removed 'needs: [python-ci]' - integration tests don't
+    # depend on Python CI passing and can run in parallel for faster feedback.
+    # If integration tests fail, the summary job will still catch it.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
