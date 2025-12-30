@@ -4,10 +4,11 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.cli import main
+from pa_core.cli import Dependencies, main
 
 
 def test_sensitivity_flag_added():
@@ -188,6 +189,110 @@ sigma_M: 0.01
             assert (
                 len(sensitivity_messages) > 0
             ), "Sensitivity analysis messages not found in output"
+
+
+def test_sensitivity_sets_tornado_deltas(monkeypatch, tmp_path):
+    config_file = tmp_path / "config.yml"
+    index_file = tmp_path / "index.csv"
+    output_file = tmp_path / "output.xlsx"
+
+    config_file.write_text(
+        """
+N_SIMULATIONS: 100
+N_MONTHS: 12
+analysis_mode: returns
+external_pa_capital: 100.0
+active_ext_capital: 50.0
+internal_pa_capital: 150.0
+total_fund_capital: 300.0
+w_beta_H: 0.5
+w_alpha_H: 0.5
+theta_extpa: 0.5
+active_share: 0.5
+mu_H: 0.04
+sigma_H: 0.01
+mu_E: 0.05
+sigma_E: 0.02
+mu_M: 0.03
+sigma_M: 0.01
+"""
+    )
+
+    index_data = pd.DataFrame(
+        {
+            "Date": pd.date_range("2020-01-01", periods=10, freq="ME"),
+            "Return": [
+                0.01,
+                -0.02,
+                0.03,
+                0.01,
+                -0.01,
+                0.02,
+                0.01,
+                0.00,
+                0.02,
+                0.01,
+            ],
+        }
+    )
+    index_data.to_csv(index_file, index=False)
+
+    captured: dict[str, object] = {}
+
+    def _stub_export_to_excel(inputs_dict, *_args, **_kwargs):
+        captured["inputs_dict"] = inputs_dict
+
+    deps = Dependencies(
+        build_from_config=lambda _cfg: object(),
+        export_to_excel=_stub_export_to_excel,
+        draw_financing_series=lambda *_args, **_kwargs: (
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+        ),
+        draw_joint_returns=lambda *_args, **_kwargs: (
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+        ),
+        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
+        simulate_agents=lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
+    )
+
+    monkeypatch.setattr(
+        "pa_core.cli.create_enhanced_summary",
+        lambda *_args, **_kwargs: pd.DataFrame(
+            {"Agent": ["Base"], "AnnReturn": [0.05], "AnnVol": [0.1]}
+        ),
+    )
+
+    main(
+        [
+            "--config",
+            str(config_file),
+            "--index",
+            str(index_file),
+            "--output",
+            str(output_file),
+            "--sensitivity",
+        ],
+        deps=deps,
+    )
+
+    inputs_dict = captured.get("inputs_dict")
+    assert isinstance(inputs_dict, dict)
+    sens_df = inputs_dict.get("_sensitivity_df")
+    assert isinstance(sens_df, pd.DataFrame)
+    assert {
+        "Parameter",
+        "Base",
+        "Minus",
+        "Plus",
+        "Low",
+        "High",
+        "DeltaAbs",
+    }.issubset(sens_df.columns)
 
 
 def test_sensitivity_analysis_error_logging():

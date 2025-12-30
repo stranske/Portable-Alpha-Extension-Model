@@ -84,3 +84,66 @@ def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) ->
 
     presentation = pptx.Presentation(pptx_path)
     assert len(presentation.slides) == 5
+
+
+def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
+    from pa_core.reporting.export_packet import create_export_packet
+
+    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    raw_returns = {"Base": pd.DataFrame([[0.01, 0.02]], columns=[0, 1])}
+    sens_df = pd.DataFrame(
+        {
+            "Parameter": ["mu_H"],
+            "Base": [0.05],
+            "Minus": [0.04],
+            "Plus": [0.06],
+            "Low": [-0.01],
+            "High": [0.01],
+            "DeltaAbs": [0.01],
+        }
+    )
+    sens_df.attrs.update({"metric": "AnnReturn", "units": "%", "tickformat": ".2%"})
+    inputs = {"_sensitivity_df": sens_df}
+
+    class _Fig:
+        layout = type(
+            "Layout", (), {"title": type("Title", (), {"text": "Summary"})()}
+        )()
+
+    pptx_path, _excel_path = create_export_packet(
+        figs=[_Fig()],
+        summary_df=summary,
+        raw_returns_dict=raw_returns,
+        inputs_dict=inputs,
+        base_filename=tmp_path / "packet",
+    )
+
+    presentation = pptx.Presentation(pptx_path)
+    assert len(presentation.slides) == 5
+
+
+def test_export_to_excel_includes_tornado_snapshot(tmp_path: Path) -> None:
+    from pa_core.reporting.excel import export_to_excel
+
+    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    sens_df = pd.DataFrame(
+        {
+            "Parameter": ["mu_H", "sigma_H"],
+            "Base": [0.05, 0.05],
+            "Minus": [0.04, 0.045],
+            "Plus": [0.055, 0.052],
+            "Low": [-0.01, -0.005],
+            "High": [0.005, 0.002],
+            "DeltaAbs": [0.01, 0.005],
+        }
+    )
+    sens_df.attrs.update({"metric": "AnnReturn", "units": "%", "tickformat": ".2%"})
+    inputs = {"_sensitivity_df": sens_df}
+    out_path = tmp_path / "outputs.xlsx"
+
+    export_to_excel(inputs, summary, {}, filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path)
+    assert "Sensitivity" in wb.sheetnames
+    ws = wb["Sensitivity"]
+    assert ws._images, "Expected tornado chart snapshot in Sensitivity sheet"

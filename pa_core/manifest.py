@@ -22,6 +22,7 @@ class Manifest:
     backend: str | None = None
     run_log: str | None = None
     previous_run: str | None = None
+    run_timing: Mapping[str, Any] | None = None
 
 
 class ManifestWriter:
@@ -47,6 +48,7 @@ class ManifestWriter:
         backend: str | None = None,
         run_log: str | Path | None = None,
         previous_run: str | Path | None = None,
+        run_timing: Mapping[str, Any] | None = None,
     ) -> None:
         """Write manifest to ``self.path``."""
 
@@ -61,6 +63,7 @@ class ManifestWriter:
         hashes = {
             str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()
         }
+        timing = dict(run_timing) if run_timing else None
         manifest = Manifest(
             git_commit=commit,
             timestamp=datetime.now(timezone.utc).isoformat(),
@@ -71,5 +74,6 @@ class ManifestWriter:
             backend=backend,
             run_log=str(run_log) if run_log else None,
             previous_run=str(previous_run) if previous_run else None,
+            run_timing=timing,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))

@@ -230,12 +230,21 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
         raise FileNotFoundError(f"Margin schedule file not found: {path}")
 
     df = pd.read_csv(path)
+    df.columns = [str(col).strip().lower().replace(" ", "_") for col in df.columns]
+    if "term" not in df.columns and "term_months" in df.columns:
+        df = df.rename(columns={"term_months": "term"})
     required_cols = {"term", "multiplier"}
     missing = required_cols - set(df.columns)
 
     if missing:
         raise ValueError(
             f"Margin schedule CSV file missing required columns: {missing}"
+        )
+    df["term"] = pd.to_numeric(df["term"], errors="coerce")
+    df["multiplier"] = pd.to_numeric(df["multiplier"], errors="coerce")
+    if bool(df[["term", "multiplier"]].isna().any().any()):
+        raise ValueError(
+            "Margin schedule contains non-numeric or missing term/multiplier values"
         )
     df = df.sort_values("term")
 
@@ -252,6 +261,15 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
             "Margin schedule terms must be strictly increasing (each term must be greater than the previous)"
         )
     return df.sort_values("term")
+
+
+def interpolate_margin_multiplier(term_months: float, schedule: pd.DataFrame) -> float:
+    """Return the interpolated margin multiplier for a given term."""
+    terms = schedule["term"].to_numpy(float)
+    multipliers = schedule["multiplier"].to_numpy(float)
+    if terms.size == 0:
+        raise ValueError("Margin schedule must contain at least one row")
+    return float(np.interp(float(term_months), terms, multipliers))
 
 
 def calculate_margin_requirement(
@@ -279,10 +297,7 @@ def calculate_margin_requirement(
         # Guard for static type checker
         if not isinstance(ms, pd.DataFrame):
             raise TypeError("margin_schedule must be a pandas DataFrame when provided")
-        # ms is guaranteed to be a pd.DataFrame here
-        terms = ms["term"].to_numpy(float)
-        multipliers = ms["multiplier"].to_numpy(float)
-        k = float(np.interp(term_months, terms, multipliers))
+        k = interpolate_margin_multiplier(term_months, ms)
     else:
         k = volatility_multiple
 

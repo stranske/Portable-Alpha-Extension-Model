@@ -18,9 +18,10 @@ import argparse
 import json
 import logging
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -61,7 +62,8 @@ class JsonFormatter(logging.Formatter):
 
     # type: ignore[override]
     def format(self, record: logging.LogRecord) -> str:
-        ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        ts = datetime.fromtimestamp(
+            record.created, tz=timezone.utc).isoformat()
         entry = {
             "level": record.levelname,
             "timestamp": ts,
@@ -69,6 +71,23 @@ class JsonFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         return json.dumps(entry)
+
+
+class RunTimer:
+    def __init__(self) -> None:
+        self._start = time.perf_counter()
+        self._start_wall = datetime.now(timezone.utc)
+
+    def elapsed(self) -> float:
+        return max(0.0, time.perf_counter() - self._start)
+
+    def snapshot(self) -> dict[str, Any]:
+        end_wall = datetime.now(timezone.utc)
+        return {
+            "duration_seconds": self.elapsed(),
+            "started_at": self._start_wall.isoformat(),
+            "ended_at": end_wall.isoformat(),
+        }
 
 
 def create_enhanced_summary(
@@ -104,7 +123,8 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     explanation.append("• VaR: Value at Risk (95% confidence)\n")
     explanation.append("• BreachProb: Probability of monthly loss > 2%\n")
     if "ShortfallProb" in summary.columns:
-        explanation.append("• ShortfallProb: Probability of annual loss > 5%\n")
+        explanation.append(
+            "• ShortfallProb: Probability of annual loss > 5%\n")
     explanation.append("• TE: Tracking Error vs benchmark\n")
 
     console.print(Panel(explanation, title="Understanding Your Results"))
@@ -115,11 +135,13 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     # Print additional guidance
     guidance = Text()
     guidance.append("\n💡 Interpretation Tips:\n", style="bold green")
-    guidance.append("• Lower ShortfallProb is better (< 5% is typically good)\n")
+    guidance.append(
+        "• Lower ShortfallProb is better (< 5% is typically good)\n")
     guidance.append(
         "• Higher AnnReturn with lower AnnVol indicates better risk-adjusted returns\n"
     )
-    guidance.append("• TE shows how much each strategy deviates from the benchmark\n")
+    guidance.append(
+        "• TE shows how much each strategy deviates from the benchmark\n")
 
     console.print(guidance)
 
@@ -214,7 +236,8 @@ def main(
             # Re-exec under the venv interpreter, preserving args
             args_list = list(argv) if argv is not None else sys.argv[1:]
             os.execv(
-                str(venv_python), [str(venv_python), "-m", "pa_core.cli", *args_list]
+                str(venv_python), [str(venv_python),
+                                   "-m", "pa_core.cli", *args_list]
             )
         # If no venv found, continue and let normal imports raise a helpful error later
 
@@ -227,7 +250,8 @@ def main(
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument("--config", required=True, help="YAML config file")
     parser.add_argument("--index", required=True, help="Index returns CSV")
-    parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
+    parser.add_argument("--output", default="Outputs.xlsx",
+                        help="Output workbook")
     parser.add_argument(
         "--mode",
         choices=["capital", "returns", "alpha_shares", "vol_mult"],
@@ -300,7 +324,8 @@ def main(
         action="store_true",
         help="Export PPTX file with charts",
     )
-    parser.add_argument("--html", action="store_true", help="Export HTML chart")
+    parser.add_argument("--html", action="store_true",
+                        help="Export HTML chart")
     parser.add_argument(
         "--gif",
         action="store_true",
@@ -416,6 +441,67 @@ def main(
     )
     args = parser.parse_args(argv)
 
+    run_timer = RunTimer()
+    run_end_emitted = False
+    run_log_path: Path | None = None
+    run_backend: str | None = None
+    artifact_candidates: list[Path] = []
+    manifest_path: Path | None = None
+
+    def _record_artifact(path: str | Path | None) -> None:
+        if not path:
+            return
+        artifact_candidates.append(Path(path))
+
+    def _current_duration() -> float:
+        return run_timer.elapsed()
+
+    def _collect_artifacts() -> list[str]:
+        seen: set[str] = set()
+        collected: list[str] = []
+        for cand in artifact_candidates:
+            if cand.exists():
+                value = str(cand)
+                if value not in seen:
+                    seen.add(value)
+                    collected.append(value)
+        return collected
+
+    def _finalize_manifest_timing() -> None:
+        if manifest_path is None or not manifest_path.exists():
+            return
+        try:
+            data = json.loads(manifest_path.read_text())
+            if not isinstance(data, dict):
+                return
+        except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+            return
+        data["run_timing"] = run_timer.snapshot()
+        if run_log_path is not None:
+            data["run_log"] = str(run_log_path)
+        manifest_path.write_text(json.dumps(data, indent=2))
+        _record_artifact(manifest_path)
+
+    def _emit_run_end() -> None:
+        nonlocal run_end_emitted
+        if run_end_emitted:
+            return
+        _finalize_manifest_timing()
+        if run_log_path is None:
+            run_end_emitted = True
+            return
+        run_end_emitted = True
+        from .logging_utils import emit_run_end
+
+        emit_run_end(
+            duration_seconds=_current_duration(),
+            seed=args.seed,
+            backend=run_backend,
+            artifact_paths=_collect_artifacts(),
+            run_log=run_log_path,
+            manifest_path=manifest_path,
+        )
+
     prev_manifest_data: dict[str, Any] | None = None
     prev_summary_df: pd.DataFrame = pd.DataFrame()
     if getattr(args, "prev_manifest", None):
@@ -430,7 +516,8 @@ def main(
                 )
                 if prev_out and Path(prev_out).exists():
                     try:
-                        prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
+                        prev_summary_df = pd.read_excel(
+                            prev_out, sheet_name="Summary")
                     except Exception:
                         prev_summary_df = pd.DataFrame()
         except Exception:
@@ -450,17 +537,21 @@ def main(
     if args.return_copula is not None:
         return_overrides["return_copula"] = args.return_copula
     if return_overrides:
-        cfg = cfg.__class__.model_validate({**cfg.model_dump(), **return_overrides})
+        cfg = cfg.__class__.model_validate(
+            {**cfg.model_dump(), **return_overrides})
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
+    run_backend = backend_choice
 
     if args.cov_shrinkage is not None:
-        cfg = cfg.model_copy(update={"covariance_shrinkage": args.cov_shrinkage})
+        cfg = cfg.model_copy(
+            update={"covariance_shrinkage": args.cov_shrinkage})
     if args.vol_regime is not None:
         cfg = cfg.model_copy(update={"vol_regime": args.vol_regime})
     if args.vol_regime_window is not None:
-        cfg = cfg.model_copy(update={"vol_regime_window": args.vol_regime_window})
+        cfg = cfg.model_copy(
+            update={"vol_regime_window": args.vol_regime_window})
 
     # Echo backend selection at start
     print(f"[BACKEND] Using backend: {backend_choice}")
@@ -507,14 +598,15 @@ def main(
     # cfg is already loaded earlier; backend already resolved
 
     # Optional structured logging setup
-    run_log_path: Path | None = None
     if args.log_json:
         # Create run directory under ./runs/<timestamp>
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
         run_dir = Path("runs") / ts
-        run_log_path = run_dir / "run.log"
+        candidate_log_path = run_dir / "run.log"
         try:
-            setup_json_logging(str(run_log_path))
+            setup_json_logging(str(candidate_log_path))
+            run_log_path = candidate_log_path
+            _record_artifact(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
@@ -568,6 +660,7 @@ def main(
         )
         if suggestions.empty:
             print("No feasible sleeve allocations found.")
+            _emit_run_end()
             return
         print(suggestions.to_string(index=True))
         idx_sel = args.suggest_apply_index
@@ -578,17 +671,21 @@ def main(
                 ).strip()
             except EOFError:
                 print("No selection provided. Aborting run.")
+                _emit_run_end()
                 return
             if not choice:
                 print("Aborting run.")
+                _emit_run_end()
                 return
             try:
                 idx_sel = int(choice)
             except ValueError:
                 print("Invalid selection. Aborting run.")
+                _emit_run_end()
                 return
         if idx_sel < 0 or idx_sel >= len(suggestions):
             print("Invalid selection. Aborting run.")
+            _emit_run_end()
             return
         row = suggestions.iloc[idx_sel]
         cfg = cfg.model_copy(
@@ -618,6 +715,7 @@ def main(
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
+        _record_artifact(args.output)
 
         # Write reproducibility manifest
         mw = ManifestWriter(Path(args.output).with_name("manifest.json"))
@@ -633,8 +731,11 @@ def main(
             backend=args.backend,
             run_log=run_log_path,
             previous_run=args.prev_manifest,
+            run_timing=run_timer.snapshot(),
         )
         manifest_json = Path(args.output).with_name("manifest.json")
+        manifest_path = manifest_json
+        _record_artifact(manifest_json)
         manifest_data = None
         try:
             if manifest_json.exists():
@@ -679,7 +780,8 @@ def main(
                         fig = viz.sharpe_ladder.make(all_summary)
 
                     # Create export packet with sweep results
-                    base_name = Path(args.output or "parameter_sweep_packet").stem
+                    base_name = Path(
+                        args.output or "parameter_sweep_packet").stem
 
                     # Create a simplified raw_returns_dict for packet export
                     raw_returns_dict = {"Summary": all_summary}
@@ -688,7 +790,8 @@ def main(
                         figs=[fig],
                         summary_df=all_summary,
                         raw_returns_dict=raw_returns_dict,
-                        inputs_dict={k: raw_params.get(k, "") for k in raw_params},
+                        inputs_dict={k: raw_params.get(
+                            k, "") for k in raw_params},
                         base_filename=base_name,
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
@@ -696,6 +799,8 @@ def main(
                         prev_summary_df=prev_summary_df,
                         prev_manifest=prev_manifest_data,
                     )
+                    _record_artifact(pptx_path)
+                    _record_artifact(excel_path)
                     print("✅ Parameter sweep export packet created:")
                     print(f"   📊 Excel: {excel_path}")
                     print(f"   📋 PowerPoint: {pptx_path}")
@@ -704,7 +809,8 @@ def main(
             except RuntimeError as e:
                 print(f"❌ Export packet failed: {e}")
             except (ImportError, ModuleNotFoundError) as e:
-                logger.error(f"Export packet failed due to missing dependency: {e}")
+                logger.error(
+                    f"Export packet failed due to missing dependency: {e}")
                 print(f"❌ Export packet failed due to missing dependency: {e}")
                 print(
                     "💡 Install required packages: pip install plotly kaleido openpyxl"
@@ -726,8 +832,10 @@ def main(
                 )
                 base_agents = sweep_df[sweep_df["Agent"] == "Base"]
                 if not base_agents.empty and isinstance(base_agents, pd.DataFrame):
-                    best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax()]
-                    worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin()]
+                    best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax(
+                    )]
+                    worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin(
+                    )]
                     print(
                         f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn"
                     )
@@ -742,6 +850,7 @@ def main(
             else:
                 print("   ❌ No sweep results available")
 
+        _emit_run_end()
         return
 
     # Normal single-run mode below
@@ -835,7 +944,8 @@ def main(
         summary = create_enhanced_summary(returns, benchmark="Base")
         return returns, summary, f_int, f_ext, f_act
 
-    returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
+    returns, summary, f_int, f_ext, f_act = _run_single(
+        cfg, rng_returns, fin_rngs)
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
@@ -850,7 +960,8 @@ def main(
         )
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
-    inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
+    inputs_dict: dict[str, object] = {
+        k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
 
     # Optional attribution tables for downstream exports
@@ -873,7 +984,8 @@ def main(
                 [{"Agent": "", "Sub": "", "Return": 0.0}]
             ).head(0)
     try:
-        inputs_dict["_risk_attr_df"] = compute_sleeve_risk_attribution(cfg, idx_series)
+        inputs_dict["_risk_attr_df"] = compute_sleeve_risk_attribution(
+            cfg, idx_series)
     except (AttributeError, ValueError, TypeError, KeyError) as e:
         logger.debug(f"Risk attribution unavailable: {e}")
     print_enhanced_summary(summary)
@@ -913,230 +1025,6 @@ def main(
                     style="yellow",
                 )
             )
-    # Optional sensitivity analysis (one-factor deltas on AnnReturn)
-    if args.sensitivity:
-        try:
-            from .sim.sensitivity import one_factor_deltas as sim_one_factor_deltas
-
-            # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
-            base_params = {
-                "mu_H": cfg.mu_H,
-                "sigma_H": cfg.sigma_H,
-                "mu_E": cfg.mu_E,
-                "sigma_E": cfg.sigma_E,
-                "mu_M": cfg.mu_M,
-                "sigma_M": cfg.sigma_M,
-                "w_beta_H": cfg.w_beta_H,
-                "w_alpha_H": cfg.w_alpha_H,
-            }
-            steps = {
-                "mu_H": 0.01,
-                "sigma_H": 0.005,
-                "mu_E": 0.01,
-                "sigma_E": 0.005,
-                "mu_M": 0.01,
-                "sigma_M": 0.005,
-                "w_beta_H": 0.05,
-                "w_alpha_H": 0.05,
-            }
-
-            def _eval(p: dict[str, float]) -> float:
-                # Copy cfg with updates
-                mod_cfg = cfg.model_copy(update=p)
-                # Recompute params and draws quickly with same RNGs
-                mu_idx_val = inputs_dict.get("mu_idx", 0.06)
-                idx_sigma_val = inputs_dict.get("sigma_idx", 0.16)
-                try:
-                    if isinstance(mu_idx_val, (float, int)):
-                        mu_idx = float(mu_idx_val)
-                    elif isinstance(mu_idx_val, str):
-                        mu_idx = float(mu_idx_val)
-                    else:
-                        mu_idx = 0.06
-                except Exception:
-                    mu_idx = 0.06
-                try:
-                    if isinstance(idx_sigma_val, (float, int)):
-                        idx_sigma = float(idx_sigma_val)
-                    elif isinstance(idx_sigma_val, str):
-                        idx_sigma = float(idx_sigma_val)
-                    else:
-                        idx_sigma = 0.16
-                except Exception:
-                    idx_sigma = 0.16
-                sigma_H = mod_cfg.sigma_H
-                sigma_E = mod_cfg.sigma_E
-                sigma_M = mod_cfg.sigma_M
-                mu_H = mod_cfg.mu_H
-                mu_E = mod_cfg.mu_E
-                mu_M = mod_cfg.mu_M
-                # Note: We rely on draw_joint_returns to rebuild the covariance from params,
-                # so we don't need to materialize the covariance matrix here.
-                params_local = {
-                    "mu_idx_month": mu_idx / 12,
-                    "default_mu_H": mu_H / 12,
-                    "default_mu_E": mu_E / 12,
-                    "default_mu_M": mu_M / 12,
-                    "idx_sigma_month": idx_sigma / 12,
-                    "default_sigma_H": sigma_H / 12,
-                    "default_sigma_E": sigma_E / 12,
-                    "default_sigma_M": sigma_M / 12,
-                    "rho_idx_H": mod_cfg.rho_idx_H,
-                    "rho_idx_E": mod_cfg.rho_idx_E,
-                    "rho_idx_M": mod_cfg.rho_idx_M,
-                    "rho_H_E": mod_cfg.rho_H_E,
-                    "rho_H_M": mod_cfg.rho_H_M,
-                    "rho_E_M": mod_cfg.rho_E_M,
-                    "return_distribution": mod_cfg.return_distribution,
-                    "return_t_df": mod_cfg.return_t_df,
-                    "return_copula": mod_cfg.return_copula,
-                    "return_distribution_idx": mod_cfg.return_distribution_idx,
-                    "return_distribution_H": mod_cfg.return_distribution_H,
-                    "return_distribution_E": mod_cfg.return_distribution_E,
-                    "return_distribution_M": mod_cfg.return_distribution_M,
-                    # financing left the same for speed
-                    "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
-                    "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
-                    "internal_spike_prob": mod_cfg.internal_spike_prob,
-                    "internal_spike_factor": mod_cfg.internal_spike_factor,
-                    "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
-                    "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
-                    "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
-                    "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
-                    "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
-                    "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
-                    "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
-                    "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
-                }
-                r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
-                    n_months=mod_cfg.N_MONTHS,
-                    n_sim=mod_cfg.N_SIMULATIONS,
-                    params=params_local,
-                    rng=rng_returns,
-                )
-                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
-                agents_l = deps.build_from_config(mod_cfg)
-                returns_l = deps.simulate_agents(
-                    agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
-                )
-                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
-                vals = summary_l.loc[summary_l["Agent"] == "Base", "AnnReturn"]
-                return float(vals.to_numpy()[0]) if not vals.empty else 0.0
-
-            sens_df = sim_one_factor_deltas(
-                params=base_params, steps=steps, evaluator=_eval
-            )
-            inputs_dict["_sensitivity_df"] = sens_df
-        except ImportError as e:
-            logger.warning(f"Sensitivity analysis module not available: {e}")
-            # Local import to avoid heavy import at module load
-            from rich.console import Console
-            from rich.panel import Panel
-
-            Console().print(
-                Panel(
-                    f"[bold red]Error:[/bold red] Sensitivity analysis module not found.\n[dim]Reason: {e}[/dim]",
-                    title="Sensitivity Analysis",
-                    style="red",
-                )
-            )
-        except (KeyError, ValueError) as e:
-            logger.error(f"Sensitivity analysis configuration error: {e}")
-            # Local import to avoid heavy import at module load
-            from rich.console import Console
-            from rich.panel import Panel
-
-            Console().print(
-                Panel(
-                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
-                    title="Sensitivity Analysis",
-                    style="yellow",
-                )
-            )
-        except TypeError as e:
-            logger.error(f"Sensitivity analysis data type error: {e}")
-            # Local import to avoid heavy import at module load
-            from rich.console import Console
-            from rich.panel import Panel
-
-            Console().print(
-                Panel(
-                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to data type error.\n[dim]Reason: {e}[/dim]\n[dim]Check that all parameters are numeric values.[/dim]",
-                    title="Sensitivity Analysis",
-                    style="yellow",
-                )
-            )
-
-    deps.export_to_excel(
-        inputs_dict,
-        summary,
-        raw_returns_dict,
-        filename=flags.save_xlsx or "Outputs.xlsx",
-        pivot=args.pivot,
-    )
-    if args.stress_preset:
-        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
-        if out_path.exists():
-            try:
-                with pd.ExcelWriter(
-                    out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
-                ) as writer:
-                    if base_summary_df is not None and not base_summary_df.empty:
-                        base_summary_df.to_excel(
-                            writer, sheet_name="BaseSummary", index=False
-                        )
-                    if summary is not None and not summary.empty:
-                        summary.to_excel(
-                            writer, sheet_name="StressedSummary", index=False
-                        )
-                    if stress_delta_df is not None and not stress_delta_df.empty:
-                        stress_delta_df.to_excel(
-                            writer, sheet_name="StressDelta", index=False
-                        )
-            except (OSError, PermissionError, ValueError) as e:
-                logger.warning(f"Failed to append stress sheets: {e}")
-        else:
-            logger.warning("Stress sheet export skipped; output workbook missing.")
-
-    # Write reproducibility manifest for normal run
-    try:
-        mw = ManifestWriter(
-            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
-        )
-        data_files = [args.index, args.config]
-        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
-        if out_path.exists():
-            data_files.append(str(out_path))
-        mw.write(
-            config_path=args.config,
-            data_files=data_files,
-            seed=args.seed,
-            cli_args=vars(args),
-            backend=args.backend,
-            run_log=run_log_path,
-            previous_run=args.prev_manifest,
-        )
-    except (OSError, PermissionError, FileNotFoundError) as e:
-        logger.warning(f"Failed to write manifest: {e}")
-
-    manifest_data = None
-    try:
-        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
-            "manifest.json"
-        )
-        if manifest_json.exists():
-            manifest_data = json.loads(manifest_json.read_text())
-    except (json.JSONDecodeError, FileNotFoundError, PermissionError):
-        manifest_data = None
-
-    current_manifest_data = manifest_data or {"config": raw_params}
-    _maybe_print_run_diff(
-        current_manifest=current_manifest_data,
-        prev_manifest=prev_manifest_data,
-        current_summary=summary,
-        prev_summary=prev_summary_df,
-    )
-
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
         try:
@@ -1208,18 +1096,13 @@ def main(
                     rng=rng_returns,
                 )
                 # Reuse existing financing draws for speed in sensitivity.
-                # NOTE: This introduces correlation between sensitivity analysis runs,
-                # as all runs use the same random financing draws. This is intentional
-                # to isolate the effect of parameter changes and reduce noise from
-                # random variation. If independent draws are required for each run,
-                # modify this section to generate new draws per run. Interpret results
-                # accordingly, as sensitivity estimates may be affected by this choice.
                 f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
                 agents_l = deps.build_from_config(mod_cfg)
                 returns_l = deps.simulate_agents(
                     agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
                 )
-                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
+                summary_l = create_enhanced_summary(
+                    returns_l, benchmark="Base")
                 base_row = summary_l[summary_l["Agent"] == "Base"]
                 if isinstance(base_row, pd.DataFrame) and not base_row.empty:
                     return float(base_row["AnnReturn"].iloc[0])
@@ -1238,6 +1121,9 @@ def main(
             scenarios = {}
             failed_params = []
             skipped_params = []
+            param_results: dict[str, dict[str, float | None]] = {
+                name: {"plus": None, "minus": None} for name in base_params
+            }
 
             for param_name, base_value in base_params.items():
                 # Test positive perturbation
@@ -1245,48 +1131,106 @@ def main(
                 try:
                     pos_value = base_value * 1.05
                     pos_result = _eval({param_name: pos_value})
-                    scenarios[pos_key] = pd.DataFrame({"AnnReturn": [pos_result]})
+                    scenarios[pos_key] = pd.DataFrame(
+                        {"AnnReturn": [pos_result]})
+                    param_results[param_name]["plus"] = pos_result
                 except (ValueError, ZeroDivisionError) as e:
-                    failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
+                    failed_params.append(
+                        f"{pos_key}: Configuration error: {str(e)}")
                     skipped_params.append(pos_key)
                     logger.warning(
                         f"Parameter evaluation failed for {pos_key} due to configuration: {e}"
                     )
-                    print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
+                    print(
+                        f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
                 except (KeyError, TypeError) as e:
-                    failed_params.append(f"{pos_key}: Data type error: {str(e)}")
+                    failed_params.append(
+                        f"{pos_key}: Data type error: {str(e)}")
                     skipped_params.append(pos_key)
                     logger.error(
                         f"Parameter evaluation failed for {pos_key} due to data issue: {e}"
                     )
-                    print(f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
+                    print(
+                        f"⚠️  Parameter evaluation failed for {pos_key}: {e}")
 
                 # Test negative perturbation
                 neg_key = f"{param_name}_-5%"
                 try:
                     neg_value = base_value * 0.95
                     neg_result = _eval({param_name: neg_value})
-                    scenarios[neg_key] = pd.DataFrame({"AnnReturn": [neg_result]})
+                    scenarios[neg_key] = pd.DataFrame(
+                        {"AnnReturn": [neg_result]})
+                    param_results[param_name]["minus"] = neg_result
                 except (ValueError, ZeroDivisionError) as e:
-                    failed_params.append(f"{neg_key}: Configuration error: {str(e)}")
+                    failed_params.append(
+                        f"{neg_key}: Configuration error: {str(e)}")
                     skipped_params.append(neg_key)
                     logger.warning(
                         f"Parameter evaluation failed for {neg_key} due to configuration: {e}"
                     )
-                    print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
+                    print(
+                        f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
                 except (KeyError, TypeError) as e:
-                    failed_params.append(f"{neg_key}: Data type error: {str(e)}")
+                    failed_params.append(
+                        f"{neg_key}: Data type error: {str(e)}")
                     skipped_params.append(neg_key)
                     logger.error(
                         f"Parameter evaluation failed for {neg_key} due to data issue: {e}"
                     )
-                    print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
+                    print(
+                        f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
 
             if scenarios:
                 base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]]
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
-                deltas = simple_one_factor_deltas(base_df, scenarios, value="AnnReturn")
+                deltas = simple_one_factor_deltas(
+                    base_df, scenarios, value="AnnReturn")
+                base_value = (
+                    float(base_df["AnnReturn"].iloc[0]
+                          ) if not base_df.empty else 0.0
+                )
+                records = []
+                for name, values in param_results.items():
+                    minus_val = values.get("minus")
+                    plus_val = values.get("plus")
+                    if minus_val is None or plus_val is None:
+                        continue
+                    low = minus_val - base_value
+                    high = plus_val - base_value
+                    delta_abs = max(abs(low), abs(high))
+                    records.append(
+                        (name, base_value, minus_val,
+                         plus_val, low, high, delta_abs)
+                    )
+                if records:
+                    sens_df = pd.DataFrame(
+                        records,
+                        columns=[
+                            "Parameter",
+                            "Base",
+                            "Minus",
+                            "Plus",
+                            "Low",
+                            "High",
+                            "DeltaAbs",
+                        ],
+                    )
+                    sens_df.sort_values(
+                        ["DeltaAbs", "Parameter"],
+                        ascending=[False, True],
+                        inplace=True,
+                        kind="mergesort",
+                    )
+                    sens_df.reset_index(drop=True, inplace=True)
+                    sens_df.attrs.update(
+                        {
+                            "metric": "AnnReturn",
+                            "units": "%",
+                            "tickformat": ".2%",
+                        }
+                    )
+                    inputs_dict["_sensitivity_df"] = sens_df
 
                 print("\n📊 Sensitivity Analysis Results:")
                 print("=" * 50)
@@ -1320,12 +1264,89 @@ def main(
             print("❌ Sensitivity analysis requires the sensitivity module")
         except (ValueError, KeyError) as e:
             logger.error(f"Sensitivity analysis configuration error: {e}")
-            print(f"❌ Sensitivity analysis failed due to configuration error: {e}")
+            print(
+                f"❌ Sensitivity analysis failed due to configuration error: {e}")
             print("💡 Check your parameter names and values")
         except TypeError as e:
             logger.error(f"Sensitivity analysis data type error: {e}")
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
-            print("💡 Ensure all parameters are numeric values")
+
+    deps.export_to_excel(
+        inputs_dict,
+        summary,
+        raw_returns_dict,
+        filename=flags.save_xlsx or "Outputs.xlsx",
+        pivot=args.pivot,
+    )
+    _record_artifact(flags.save_xlsx or "Outputs.xlsx")
+    if args.stress_preset:
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            try:
+                with pd.ExcelWriter(
+                    out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
+                ) as writer:
+                    if base_summary_df is not None and not base_summary_df.empty:
+                        base_summary_df.to_excel(
+                            writer, sheet_name="BaseSummary", index=False
+                        )
+                    if summary is not None and not summary.empty:
+                        summary.to_excel(
+                            writer, sheet_name="StressedSummary", index=False
+                        )
+                    if stress_delta_df is not None and not stress_delta_df.empty:
+                        stress_delta_df.to_excel(
+                            writer, sheet_name="StressDelta", index=False
+                        )
+            except (OSError, PermissionError, ValueError) as e:
+                logger.warning(f"Failed to append stress sheets: {e}")
+        else:
+            logger.warning(
+                "Stress sheet export skipped; output workbook missing.")
+
+    # Write reproducibility manifest for normal run
+    try:
+        mw = ManifestWriter(
+            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+        )
+        data_files = [args.index, args.config]
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            data_files.append(str(out_path))
+        mw.write(
+            config_path=args.config,
+            data_files=data_files,
+            seed=args.seed,
+            cli_args=vars(args),
+            backend=args.backend,
+            run_log=run_log_path,
+            previous_run=args.prev_manifest,
+            run_timing=run_timer.snapshot(),
+        )
+        manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
+            "manifest.json"
+        )
+    except (OSError, PermissionError, FileNotFoundError) as e:
+        logger.warning(f"Failed to write manifest: {e}")
+
+    manifest_data = None
+    try:
+        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
+            "manifest.json"
+        )
+        _record_artifact(manifest_json)
+        if manifest_json.exists():
+            manifest_data = json.loads(manifest_json.read_text())
+    except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+        manifest_data = None
+
+    current_manifest_data = manifest_data or {"config": raw_params}
+    _maybe_print_run_diff(
+        current_manifest=current_manifest_data,
+        prev_manifest=prev_manifest_data,
+        current_summary=summary,
+        prev_summary=prev_summary_df,
+    )
 
     if any(
         [
@@ -1361,6 +1382,16 @@ def main(
         else:
             fig = viz.sharpe_ladder.make(summary)
         stem = plots / "summary"
+        if flags.png:
+            _record_artifact(stem.with_suffix(".png"))
+        if flags.pdf:
+            _record_artifact(stem.with_suffix(".pdf"))
+        if flags.pptx:
+            _record_artifact(stem.with_suffix(".pptx"))
+        if flags.html:
+            _record_artifact(stem.with_suffix(".html"))
+        if flags.gif:
+            _record_artifact(plots / "paths.gif")
 
         # Handle packet export first (comprehensive export)
         if flags.packet:
@@ -1387,18 +1418,16 @@ def main(
                     # inputs_dict is a plain dict[str, object]; guard types before use
                     sens_val = inputs_dict.get("_sensitivity_df")
                     sens_df_plot: Optional[pd.DataFrame] = (
-                        sens_val if isinstance(sens_val, pd.DataFrame) else None
+                        sens_val if isinstance(
+                            sens_val, pd.DataFrame) else None
                     )
                     if sens_df_plot is not None and (not sens_df_plot.empty):
                         if {"Parameter", "DeltaAbs"} <= set(sens_df_plot.columns):
-                            series = cast(
-                                pd.Series,
-                                sens_df_plot.set_index("Parameter")["DeltaAbs"].astype(
-                                    float
-                                ),
-                            )
+                            series = viz.tornado.series_from_sensitivity(
+                                sens_df_plot)
                             figs.append(
-                                viz.tornado.make(series, title="Sensitivity Tornado")
+                                viz.tornado.make(
+                                    series, title="Sensitivity Tornado")
                             )
                 except Exception:
                     # Non-fatal; continue without tornado figure
@@ -1407,7 +1436,8 @@ def main(
                 try:
                     attr_val = inputs_dict.get("_attribution_df")
                     attr_df: Optional[pd.DataFrame] = (
-                        attr_val if isinstance(attr_val, pd.DataFrame) else None
+                        attr_val if isinstance(
+                            attr_val, pd.DataFrame) else None
                     )
                     if attr_df is not None and (not attr_df.empty):
                         if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
@@ -1434,30 +1464,39 @@ def main(
                     prev_manifest=prev_manifest_data,
                     stress_delta_df=stress_delta_df,
                 )
+                _record_artifact(pptx_path)
+                _record_artifact(excel_path)
                 print("✅ Export packet created:")
                 print(f"   📊 Excel: {excel_path}")
                 print(f"   📋 PowerPoint: {pptx_path}")
             except RuntimeError as e:
                 print(f"❌ Export packet failed: {e}")
+                _emit_run_end()
                 return
             except (ImportError, ModuleNotFoundError) as e:
-                logger.error(f"Export packet failed due to missing dependency: {e}")
+                logger.error(
+                    f"Export packet failed due to missing dependency: {e}")
                 print(f"❌ Export packet failed due to missing dependency: {e}")
                 print(
                     "💡 Install required packages: pip install plotly kaleido openpyxl python-pptx"
                 )
+                _emit_run_end()
                 return
             except (ValueError, TypeError, KeyError) as e:
-                logger.error(f"Export packet failed due to data/config issue: {e}")
+                logger.error(
+                    f"Export packet failed due to data/config issue: {e}")
                 print(
                     f"❌ Export packet failed due to data or configuration issue: {e}"
                 )
                 print("💡 Check your data inputs and configuration settings")
+                _emit_run_end()
                 return
             except (OSError, PermissionError) as e:
-                logger.error(f"Export packet failed due to file system issue: {e}")
+                logger.error(
+                    f"Export packet failed due to file system issue: {e}")
                 print(f"❌ Export packet failed due to file system issue: {e}")
                 print("💡 Check file permissions and available disk space")
+                _emit_run_end()
                 return
 
         # Individual export formats (with improved error handling)
@@ -1466,16 +1505,20 @@ def main(
                 fig.write_image(stem.with_suffix(".png"), engine="kaleido")
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
-                    logger.error(f"PNG export failed due to missing dependency: {e}")
+                    logger.error(
+                        f"PNG export failed due to missing dependency: {e}")
                     print("❌ PNG export failed: Kaleido or Chrome/Chromium required")
                     print(
                         "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
                     )
                 else:
-                    logger.error(f"PNG export failed due to missing module: {e}")
-                    print(f"❌ PNG export failed due to missing dependency: {e}")
+                    logger.error(
+                        f"PNG export failed due to missing module: {e}")
+                    print(
+                        f"❌ PNG export failed due to missing dependency: {e}")
             except (OSError, PermissionError) as e:
-                logger.error(f"PNG export failed due to file system issue: {e}")
+                logger.error(
+                    f"PNG export failed due to file system issue: {e}")
                 print(f"❌ PNG export failed: Cannot write file - {e}")
                 print("💡 Check file permissions and available disk space")
             except (ValueError, TypeError) as e:
@@ -1500,16 +1543,20 @@ def main(
                 viz.pdf_export.save(fig, str(stem.with_suffix(".pdf")))
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
-                    logger.error(f"PDF export failed due to missing dependency: {e}")
+                    logger.error(
+                        f"PDF export failed due to missing dependency: {e}")
                     print("❌ PDF export failed: Kaleido or Chrome/Chromium required")
                     print(
                         "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
                     )
                 else:
-                    logger.error(f"PDF export failed due to missing module: {e}")
-                    print(f"❌ PDF export failed due to missing dependency: {e}")
+                    logger.error(
+                        f"PDF export failed due to missing module: {e}")
+                    print(
+                        f"❌ PDF export failed due to missing dependency: {e}")
             except (OSError, PermissionError) as e:
-                logger.error(f"PDF export failed due to file system issue: {e}")
+                logger.error(
+                    f"PDF export failed due to file system issue: {e}")
                 print(f"❌ PDF export failed: Cannot write file - {e}")
                 print("💡 Check file permissions and available disk space")
             except (ValueError, TypeError) as e:
@@ -1518,27 +1565,43 @@ def main(
                 print("💡 Check your visualization data and parameters")
         if flags.pptx:
             try:
+                pptx_figs = [fig]
+                sens_val = inputs_dict.get("_sensitivity_df")
+                sens_df = sens_val if isinstance(
+                    sens_val, pd.DataFrame) else None
+                if sens_df is not None and not sens_df.empty:
+                    if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                        series = viz.tornado.series_from_sensitivity(sens_df)
+                        pptx_figs.append(
+                            viz.tornado.make(
+                                series, title="Sensitivity Tornado")
+                        )
                 viz.pptx_export.save(
-                    [fig],
+                    pptx_figs,
                     str(stem.with_suffix(".pptx")),
                     alt_texts=[flags.alt_text] if flags.alt_text else None,
                 )
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
-                    logger.error(f"PPTX export failed due to missing dependency: {e}")
+                    logger.error(
+                        f"PPTX export failed due to missing dependency: {e}")
                     print("❌ PPTX export failed: Kaleido or Chrome/Chromium required")
                     print(
                         "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
                     )
                 elif "pptx" in str(e).lower() or "python-pptx" in str(e).lower():
-                    logger.error(f"PPTX export failed due to missing python-pptx: {e}")
+                    logger.error(
+                        f"PPTX export failed due to missing python-pptx: {e}")
                     print("❌ PPTX export failed: python-pptx required")
                     print("💡 Install with: pip install python-pptx")
                 else:
-                    logger.error(f"PPTX export failed due to missing module: {e}")
-                    print(f"❌ PPTX export failed due to missing dependency: {e}")
+                    logger.error(
+                        f"PPTX export failed due to missing module: {e}")
+                    print(
+                        f"❌ PPTX export failed due to missing dependency: {e}")
             except (OSError, PermissionError) as e:
-                logger.error(f"PPTX export failed due to file system issue: {e}")
+                logger.error(
+                    f"PPTX export failed due to file system issue: {e}")
                 print(f"❌ PPTX export failed: Cannot write file - {e}")
                 print("💡 Check file permissions and available disk space")
             except (ValueError, TypeError) as e:
@@ -1557,6 +1620,7 @@ def main(
             except (ValueError, TypeError) as e:
                 print(f"❌ GIF export failed: Data conversion error - {e}")
                 print("💡 Check that return data contains only numeric values")
+                _emit_run_end()
                 return
             anim = viz.animation.make(arr)
             try:
@@ -1590,27 +1654,38 @@ def main(
                 print(
                     "💡 Ensure the dashboard files are present in the 'dashboard/' directory."
                 )
+                _emit_run_end()
                 return
             except subprocess.CalledProcessError as e:
                 logger.error(
                     f"Dashboard launch failed with exit code {e.returncode}: {e}"
                 )
-                print(f"❌ Dashboard launch failed with exit code {e.returncode}")
+                print(
+                    f"❌ Dashboard launch failed with exit code {e.returncode}")
                 print("💡 Common solutions:")
                 print("   • Install Streamlit: pip install streamlit")
                 print("   • Check if 'dashboard/app.py' is valid Python code")
                 print("   • Verify your Python environment is properly configured")
+                _emit_run_end()
                 return
             except ImportError as e:
-                logger.error(f"Dashboard launch failed due to missing streamlit: {e}")
-                print(f"❌ Dashboard launch failed: Streamlit not available - {e}")
+                logger.error(
+                    f"Dashboard launch failed due to missing streamlit: {e}")
+                print(
+                    f"❌ Dashboard launch failed: Streamlit not available - {e}")
                 print("💡 Install Streamlit: pip install streamlit")
+                _emit_run_end()
                 return
             except (OSError, PermissionError) as e:
-                logger.error(f"Dashboard launch failed due to system issue: {e}")
-                print(f"❌ Dashboard launch failed: System/permission error - {e}")
+                logger.error(
+                    f"Dashboard launch failed due to system issue: {e}")
+                print(
+                    f"❌ Dashboard launch failed: System/permission error - {e}")
                 print("💡 Check file permissions and system resources")
+                _emit_run_end()
                 return
+
+    _emit_run_end()
 
 
 # (Backward compatibility global variable assignment removed)

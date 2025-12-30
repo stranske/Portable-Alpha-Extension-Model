@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict, List
 
 import streamlit as st
@@ -138,14 +139,35 @@ def validate_scenario_config(
         key in config_data
         for key in ["external_pa_capital", "active_ext_capital", "internal_pa_capital"]
     ):
-        capital_results = validate_capital_allocation(
-            external_pa_capital=config_data.get("external_pa_capital", 0.0),
-            active_ext_capital=config_data.get("active_ext_capital", 0.0),
-            internal_pa_capital=config_data.get("internal_pa_capital", 0.0),
-            total_fund_capital=config_data.get("total_fund_capital", 1000.0),
-            reference_sigma=config_data.get("reference_sigma", 0.01),
-            volatility_multiple=config_data.get("volatility_multiple", 3.0),
+        financing_model = config_data.get("financing_model", "simple_proxy")
+        schedule_path_value = config_data.get("financing_schedule_path")
+        term_months = config_data.get(
+            "financing_term_months", config_data.get("term_months", 1.0)
         )
+        margin_schedule_path = (
+            Path(schedule_path_value) if schedule_path_value else None
+        )
+        try:
+            capital_results = validate_capital_allocation(
+                external_pa_capital=config_data.get("external_pa_capital", 0.0),
+                active_ext_capital=config_data.get("active_ext_capital", 0.0),
+                internal_pa_capital=config_data.get("internal_pa_capital", 0.0),
+                total_fund_capital=config_data.get("total_fund_capital", 1000.0),
+                reference_sigma=config_data.get("reference_sigma", 0.01),
+                volatility_multiple=config_data.get("volatility_multiple", 3.0),
+                financing_model=financing_model,
+                margin_schedule_path=margin_schedule_path,
+                term_months=term_months,
+            )
+        except Exception as exc:
+            capital_results = [
+                ValidationResult(
+                    is_valid=False,
+                    message=f"Capital validation failed: {exc}",
+                    severity="error",
+                    details={"exception": str(exc)},
+                )
+            ]
         all_results.extend(capital_results)
 
     # Validate simulation parameters if present
