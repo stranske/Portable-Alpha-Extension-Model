@@ -10,7 +10,9 @@ from pa_core.pa import main
 yaml = pytest.importorskip("yaml")
 
 
-def _write_returns_csv(path: Path, dates: pd.DatetimeIndex, data: dict[str, list[float]]) -> None:
+def _write_returns_csv(
+    path: Path, dates: pd.DatetimeIndex, data: dict[str, list[float]]
+) -> None:
     df = pd.DataFrame({"Date": dates, **data})
     df.to_csv(path, index=False)
 
