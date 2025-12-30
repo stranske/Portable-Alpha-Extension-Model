@@ -183,6 +183,44 @@ def test_export_packet_diff_appendix():
                 raise
 
 
+def test_export_packet_includes_stress_delta():
+    summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
+    stress_delta = pd.DataFrame(
+        {"Agent": ["Total"], "AnnReturn": [-0.03], "AnnVol": [0.02]}
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            pptx_path, excel_path = create_export_packet(
+                figs=[fig],
+                summary_df=summary_df,
+                raw_returns_dict=raw_returns_dict,
+                inputs_dict=inputs_dict,
+                base_filename=str(Path(tmpdir) / "test_packet_stress"),
+                stress_delta_df=stress_delta,
+            )
+
+            stress_sheet = pd.read_excel(excel_path, sheet_name="StressDelta")
+            assert "Agent" in stress_sheet.columns
+
+            from pptx import Presentation
+
+            prs = Presentation(pptx_path)
+            texts = [
+                shape.text
+                for slide in prs.slides
+                for shape in slide.shapes
+                if getattr(shape, "has_text_frame", False)
+                and getattr(shape.text_frame, "text", "")
+            ]
+            assert any("Stress Delta" in t for t in texts)
+        except RuntimeError as e:
+            if "Chrome" in str(e) or "Chromium" in str(e) or "Kaleido" in str(e):
+                pytest.skip("Chrome/Chromium not available in test environment")
+            else:
+                raise
+
+
 def test_empty_dataframe_caching():
     """Test that the module-level cached empty DataFrame works as expected."""
     # The cached DataFrame should be the same object when accessed multiple times
