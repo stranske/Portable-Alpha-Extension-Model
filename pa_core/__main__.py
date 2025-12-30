@@ -36,9 +36,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
-    backend_choice = args.backend or cfg.backend
-    resolve_and_set_backend(backend_choice)
+    backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
+    print(f"[BACKEND] Using backend: {backend_choice}")
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
