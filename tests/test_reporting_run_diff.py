@@ -63,3 +63,30 @@ def test_build_run_diff_aligns_by_agent() -> None:
     assert "Agent" in metric_diff.columns
     base_rows = metric_diff[metric_diff["Agent"] == "Base"]
     assert set(base_rows["Metric"]) >= {"AnnReturn", "AnnVol"}
+
+
+def test_build_run_diff_aligns_by_combination_and_agent() -> None:
+    current_summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "Base"],
+            "Combination": ["Run1", "Run2"],
+            "AnnReturn": [0.05, 0.04],
+            "AnnVol": [0.1, 0.12],
+        }
+    )
+    previous_summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "Base"],
+            "Combination": ["Run1", "Run2"],
+            "AnnReturn": [0.045, 0.035],
+            "AnnVol": [0.11, 0.115],
+        }
+    )
+
+    _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
+
+    assert {"Agent", "Combination"} <= set(metric_diff.columns)
+    run1 = metric_diff[metric_diff["Combination"] == "Run1"]
+    run2 = metric_diff[metric_diff["Combination"] == "Run2"]
+    assert not run1.empty
+    assert not run2.empty

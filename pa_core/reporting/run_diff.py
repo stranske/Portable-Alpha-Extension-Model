@@ -69,17 +69,16 @@ def build_run_diff(
 
     metric_records: list[dict[str, Any]] = []
     if not current_summary.empty and not previous_summary.empty:
-        id_col = next(
-            (col for col in _ID_COLUMNS if col in current_summary.columns),
-            None,
-        )
-        if id_col and id_col not in previous_summary.columns:
-            id_col = None
+        id_cols = [
+            col
+            for col in _ID_COLUMNS
+            if col in current_summary.columns and col in previous_summary.columns
+        ]
 
         common = [
             c
             for c in current_summary.columns
-            if c in previous_summary.columns and c != id_col
+            if c in previous_summary.columns and c not in id_cols
         ]
         numeric = [
             c
@@ -89,32 +88,41 @@ def build_run_diff(
         ]
         metrics = [c for c in _HEADLINE_METRICS if c in numeric] or numeric
 
-        common_ids = []
-        if id_col:
-            current_ids = list(dict.fromkeys(current_summary[id_col].tolist()))
-            prev_ids = set(previous_summary[id_col].tolist())
-            common_ids = [v for v in current_ids if v in prev_ids]
+        common_ids: list[tuple[Any, ...]] = []
+        current_keys = None
+        if id_cols:
+            current_keys = current_summary[id_cols].apply(tuple, axis=1)
+            prev_keys = previous_summary[id_cols].apply(tuple, axis=1)
+            current_ids = list(dict.fromkeys(current_keys.tolist()))
+            prev_ids = set(prev_keys.tolist())
+            common_ids = [key for key in current_ids if key in prev_ids]
 
-        if id_col and common_ids:
-            for ident in common_ids:
-                cur_row = current_summary[current_summary[id_col] == ident].iloc[0]
-                prev_row = previous_summary[previous_summary[id_col] == ident].iloc[0]
+        if id_cols and common_ids and current_keys is not None:
+            prev_map = {}
+            for key, row in zip(prev_keys.tolist(), previous_summary.itertuples()):
+                if key not in prev_map:
+                    prev_map[key] = row
+            for key in common_ids:
+                cur_row = current_summary[current_keys.eq(key)].iloc[0]
+                prev_row = prev_map.get(key)
+                if prev_row is None:
+                    continue
                 for col in metrics:
                     try:
                         cur_val = float(cur_row[col])
-                        prev_val = float(prev_row[col])
+                        prev_val = float(getattr(prev_row, col))
                         delta = cur_val - prev_val
                     except (TypeError, ValueError):
                         continue
-                    metric_records.append(
-                        {
-                            id_col: ident,
-                            "Metric": col,
-                            "Current": cur_val,
-                            "Previous": prev_val,
-                            "Delta": delta,
-                        }
-                    )
+                    record = {
+                        "Metric": col,
+                        "Current": cur_val,
+                        "Previous": prev_val,
+                        "Delta": delta,
+                    }
+                    for idx, id_col in enumerate(id_cols):
+                        record[id_col] = key[idx]
+                    metric_records.append(record)
         else:
             for col in metrics:
                 try:
