@@ -1,9 +1,10 @@
-Updated the module entrypoint to use the shared backend resolver and emit the backend banner at startup, matching the CLI behavior and backend helper. This keeps backend selection consistent across entrypoints without changing simulation flow. The change is in `pa_core/__main__.py`.
+Moved backend-dependent imports in `pa_core/__main__.py` to after backend selection so the chosen backend is respected, and sped up the backend CLI tests by stubbing the sweep pipeline.  
+- `pa_core/__main__.py` now imports simulation modules after `resolve_and_set_backend` to avoid binding NumPy before a CuPy selection.  
+- `tests/test_backend_selection.py` and `tests/test_backend_cli_integration.py` clamp sweep ranges and add an autouse fixture that stubs `run_parameter_sweep` and `export_sweep_results` to keep backend flag tests fast.  
+- `codex-prompt.md` checkboxes and progress are updated to reflect completed tasks and acceptance criteria.
 
-Tests: `pytest tests/test_backend_cli_integration.py::TestBackendCLIIntegration::test_backend_numpy_cli_flag` (timed out at 120s).
+**Tests**
+- `python -m pytest tests/test_backend_selection_refactor.py tests/test_backend_selection.py tests/test_backend_cli_integration.py`
 
-Notes: set local git identity to `Codex <codex@local>` to allow committing.
-
-Next steps (pick one):
-1. Rerun the CLI integration test with a longer timeout.
-2. Run the full backend CLI integration test file if you want broader coverage.
+If you want to broaden coverage, a natural next step is:  
+1) `python -m pytest`
