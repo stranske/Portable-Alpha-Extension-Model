@@ -250,6 +250,24 @@ def main(
         help="Computation backend",
     )
     parser.add_argument(
+        "--cov-shrinkage",
+        choices=["none", "ledoit_wolf"],
+        default=None,
+        help="Covariance shrinkage mode",
+    )
+    parser.add_argument(
+        "--vol-regime",
+        choices=["single", "two_state"],
+        default=None,
+        help="Volatility regime selection",
+    )
+    parser.add_argument(
+        "--vol-regime-window",
+        type=int,
+        default=None,
+        help="Recent window length (months) for two-state regime",
+    )
+    parser.add_argument(
         "--log-json",
         action="store_true",
         help="Write structured JSON logs to runs/<timestamp>/run.log and reference from manifest",
@@ -407,6 +425,13 @@ def main(
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
 
+    if args.cov_shrinkage is not None:
+        cfg = cfg.model_copy(update={"covariance_shrinkage": args.cov_shrinkage})
+    if args.vol_regime is not None:
+        cfg = cfg.model_copy(update={"vol_regime": args.vol_regime})
+    if args.vol_regime_window is not None:
+        cfg = cfg.model_copy(update={"vol_regime_window": args.vol_regime_window})
+
     # Echo backend selection at start
     print(f"[BACKEND] Using backend: {backend_choice}")
 
@@ -424,6 +449,7 @@ def main(
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
     from .viz.utils import safe_to_numpy
+    from .validators import select_vol_regime_sigma
 
     # Initialize dependencies - use provided deps for testing or create default
     if deps is None:
@@ -487,6 +513,13 @@ def main(
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+
+    n_samples = int(len(idx_series))
+    idx_sigma, _, _ = select_vol_regime_sigma(
+        idx_series,
+        regime=cfg.vol_regime,
+        window=cfg.vol_regime_window,
+    )
 
     # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
@@ -673,7 +706,6 @@ def main(
 
     # Normal single-run mode below
     mu_idx = float(idx_series.mean())
-    idx_sigma = float(idx_series.std(ddof=1))
 
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
@@ -697,6 +729,8 @@ def main(
             sigma_H,
             sigma_E,
             sigma_M,
+            covariance_shrinkage=run_cfg.covariance_shrinkage,
+            n_samples=n_samples,
         )
 
         params = {
@@ -1072,6 +1106,8 @@ def main(
                     mod_cfg.sigma_H,
                     mod_cfg.sigma_E,
                     mod_cfg.sigma_M,
+                    covariance_shrinkage=mod_cfg.covariance_shrinkage,
+                    n_samples=n_samples,
                 )
 
                 params_local = {

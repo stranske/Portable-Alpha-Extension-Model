@@ -23,6 +23,7 @@ from .sim import draw_financing_series, draw_joint_returns
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
+from .validators import select_vol_regime_sigma
 
 
 def progress_bar(
@@ -157,7 +158,12 @@ def run_parameter_sweep(
     results: List[Dict[str, Any]] = []
 
     mu_idx = float(index_series.mean())
-    idx_sigma = float(index_series.std(ddof=1))
+    idx_sigma, _, _ = select_vol_regime_sigma(
+        index_series,
+        regime=cfg.vol_regime,
+        window=cfg.vol_regime_window,
+    )
+    n_samples = int(len(index_series))
 
     # Pre-compute combinations for progress tracking
     combos = list(generate_parameter_combinations(cfg))
@@ -182,6 +188,8 @@ def run_parameter_sweep(
             mod_cfg.sigma_H,
             mod_cfg.sigma_E,
             mod_cfg.sigma_M,
+            covariance_shrinkage=mod_cfg.covariance_shrinkage,
+            n_samples=n_samples,
         )
         params = {
             "mu_idx_month": mu_idx / 12,

@@ -13,6 +13,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .sim.paths import draw_financing_series, prepare_mc_universe
 from .simulations import simulate_agents
+from .validators import select_vol_regime_sigma
 
 Array: TypeAlias = NDArray[np.float64]
 
@@ -28,7 +29,12 @@ class SimulatorOrchestrator:
         """Execute simulations and return per-agent returns and summary table."""
 
         mu_idx = float(self.idx_series.mean())
-        idx_sigma = float(self.idx_series.std(ddof=1))
+        idx_sigma, _, _ = select_vol_regime_sigma(
+            self.idx_series,
+            regime=self.cfg.vol_regime,
+            window=self.cfg.vol_regime_window,
+        )
+        n_samples = int(len(self.idx_series))
 
         cov = build_cov_matrix(
             self.cfg.rho_idx_H,
@@ -41,6 +47,8 @@ class SimulatorOrchestrator:
             self.cfg.sigma_H,
             self.cfg.sigma_E,
             self.cfg.sigma_M,
+            covariance_shrinkage=self.cfg.covariance_shrinkage,
+            n_samples=n_samples,
         )
 
         rng_returns = spawn_rngs(seed, 1)[0]
