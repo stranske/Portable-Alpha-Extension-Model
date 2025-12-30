@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 import pytest
 
-from pa_core.sim.covariance import build_cov_matrix
+from pa_core.sim.covariance import build_cov_matrix, build_cov_matrix_with_validation
 
 # ruff: noqa: E402
 
@@ -78,3 +78,23 @@ def test_build_cov_matrix_ledoit_wolf_shrinkage() -> None:
     assert not any(issubclass(w.category, RuntimeWarning) for w in captured)
     eigvals = np.linalg.eigvalsh(cov)
     assert eigvals.min() >= -1e-8
+
+
+def test_short_sample_shrinkage_limits_psd_adjustment() -> None:
+    params = dict(
+        rho_idx_H=0.9,
+        rho_idx_E=0.9,
+        rho_idx_M=0.9,
+        rho_H_E=-0.9,
+        rho_H_M=-0.9,
+        rho_E_M=-0.9,
+        idx_sigma=0.4,
+        sigma_H=0.4,
+        sigma_E=0.4,
+        sigma_M=0.4,
+        covariance_shrinkage="ledoit_wolf",
+        n_samples=10,
+    )
+    _, info = build_cov_matrix_with_validation(**params)
+    psd_info = info["psd_info"]
+    assert psd_info.max_delta <= 0.03
