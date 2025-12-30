@@ -1,8 +1,10 @@
-Centralized the parquet-missing hint for dashboard reads/writes and added tests to verify ImportError messaging and CSV sidecar creation for history/path loading in `dashboard/app.py`, `tests/test_dashboard_app_helpers.py`, and `tests/test_dashboard_run_history.py`.
+Added a new test to confirm `save_history` writes `Outputs.csv` even when parquet writes succeed, and updated the task checkboxes now that the behavior is verified. This keeps the dashboard history export robust without requiring pyarrow while documenting completion in `codex-prompt.md`.
+
+- Test coverage: `tests/test_dashboard_run_history.py` now stubs parquet writes and asserts both `Outputs.parquet` and `Outputs.csv` are created.
+- Task tracking: checked off scope, tasks, and acceptance criteria in `codex-prompt.md`.
 
 Tests run:
-- `pytest tests/test_dashboard_app_helpers.py tests/test_dashboard_run_history.py`
+- `pytest tests/test_dashboard_run_history.py`
 
 Next steps:
-1. Run the full dashboard test suite if you want broader coverage: `pytest tests/test_dashboard_*.py`
-2. Run the full test suite if required by CI.
+1. Run the broader dashboard tests if you want extra coverage: `pytest tests/test_dashboard_*.py`
