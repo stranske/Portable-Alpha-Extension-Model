@@ -141,7 +141,9 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
         return "numpy"
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
+    monkeypatch.setattr(
+        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
+    )
 
     pa_main.main(
         [
@@ -190,7 +192,9 @@ def test_main_without_overrides(monkeypatch) -> None:
         return "numpy"
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
+    monkeypatch.setattr(
+        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
+    )
 
     pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
 
