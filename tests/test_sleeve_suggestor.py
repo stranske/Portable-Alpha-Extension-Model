@@ -1,11 +1,13 @@
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from pa_core.cli import main
 from pa_core.config import load_config
+from pa_core.sim.metrics import summary_table
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
 
 yaml: Any = pytest.importorskip("yaml")
@@ -80,3 +82,54 @@ def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
         ]
     )
     assert out_file.exists()
+
+
+def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
+    cfg = load_config("examples/scenarios/test_params.yml")
+    cfg = cfg.model_copy(update={"N_SIMULATIONS": 2, "N_MONTHS": 2})
+    idx_series = pd.Series([0.0] * cfg.N_MONTHS)
+
+    base = np.array([[0.0, 0.0], [0.0, 0.0]])
+    ext = np.array([[0.1, -0.1], [0.1, -0.1]])
+    act = np.array([[0.05, -0.05], [0.05, -0.05]])
+    intr = np.array([[0.2, -0.2], [0.2, -0.2]])
+    returns = {"Base": base, "ExternalPA": ext, "ActiveExt": act, "InternalPA": intr}
+    summary = summary_table(returns, benchmark="Base")
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def run(self, seed=None):
+            return returns, summary
+
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator
+    )
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=0.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=1.0,
+        constraint_scope="total",
+    )
+    assert df.empty
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=1.0,
+        constraint_scope="total",
+    )
+    assert not df.empty
+    assert {"Total_TE", "Total_BreachProb", "Total_CVaR"}.issubset(df.columns)
+    assert (df["Total_TE"] <= 1.0).all()
+    assert (df["Total_BreachProb"] <= 1.0).all()
+    assert (df["Total_CVaR"].abs() <= 1.0).all()

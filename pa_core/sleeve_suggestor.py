@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import itertools
+from typing import Literal
 
 import numpy as np
 import pandas as pd
 
 from .config import ModelConfig
 from .orchestrator import SimulatorOrchestrator
+from .sim.metrics import summary_table
 
 
 def suggest_sleeve_sizes(
@@ -26,6 +28,7 @@ def suggest_sleeve_sizes(
     sort_by: str = "risk_score",
     seed: int | None = None,
     max_evals: int | None = 500,
+    constraint_scope: Literal["sleeves", "total", "both"] = "sleeves",
 ) -> pd.DataFrame:
     """Suggest sleeve allocations that respect risk constraints.
 
@@ -55,12 +58,18 @@ def suggest_sleeve_sizes(
         combinations, a random subset of at most ``max_evals`` points is
         evaluated. This prevents exponential runtime as ``step`` becomes
         small.
+    constraint_scope:
+        Apply constraints to per-sleeve metrics, total portfolio metrics,
+        or both.
 
     Returns
     -------
     pandas.DataFrame
         Table of feasible capital combinations and associated metrics.
     """
+
+    if constraint_scope not in {"sleeves", "total", "both"}:
+        raise ValueError("constraint_scope must be one of: sleeves, total, both")
 
     total = cfg.total_fund_capital
     grid = np.arange(0.0, total + 1e-9, total * step)
@@ -101,7 +110,7 @@ def suggest_sleeve_sizes(
             }
         )
         orch = SimulatorOrchestrator(test_cfg, idx_series)
-        _, summary = orch.run(seed=seed)
+        returns, summary = orch.run(seed=seed)
 
         meets = True
         metrics: dict[str, float] = {}
@@ -116,7 +125,41 @@ def suggest_sleeve_sizes(
             metrics[f"{agent}_TE"] = float(te)
             metrics[f"{agent}_BreachProb"] = float(bprob)
             metrics[f"{agent}_CVaR"] = float(cvar)
-            if te > max_te or bprob > max_breach or abs(cvar) > max_cvar:
+            if constraint_scope in {"sleeves", "both"} and (
+                te > max_te or bprob > max_breach or abs(cvar) > max_cvar
+            ):
+                meets = False
+
+        total_metrics: dict[str, float] = {}
+        if "Base" in returns:
+            total_returns = np.zeros_like(returns["Base"])
+            weights = {
+                "ExternalPA": ext_cap / total if total else 0.0,
+                "ActiveExt": act_cap / total if total else 0.0,
+                "InternalPA": int_cap / total if total else 0.0,
+            }
+            for name, weight in weights.items():
+                if weight and name in returns:
+                    total_returns += weight * returns[name]
+
+            total_summary = summary_table(
+                {"Base": returns["Base"], "Total": total_returns}, benchmark="Base"
+            )
+            total_row = total_summary[total_summary["Agent"] == "Total"].iloc[0]
+            total_te = total_row["TE"] if total_row["TE"] is not None else 0.0
+            total_bprob = total_row["BreachProb"]
+            total_cvar = total_row["CVaR"]
+            total_metrics = {
+                "Total_TE": float(total_te),
+                "Total_BreachProb": float(total_bprob),
+                "Total_CVaR": float(total_cvar),
+            }
+            metrics.update(total_metrics)
+            if constraint_scope in {"total", "both"} and (
+                total_te > max_te
+                or total_bprob > max_breach
+                or abs(total_cvar) > max_cvar
+            ):
                 meets = False
         if meets:
             record = {
@@ -127,10 +170,15 @@ def suggest_sleeve_sizes(
             record.update(metrics)
             # Composite risk score (lower is better): TE + BreachProb + |CVaR|
             score = 0.0
-            for ag in ["ExternalPA", "ActiveExt", "InternalPA"]:
-                score += record.get(f"{ag}_TE", 0.0)
-                score += record.get(f"{ag}_BreachProb", 0.0)
-                score += abs(record.get(f"{ag}_CVaR", 0.0))
+            if constraint_scope in {"sleeves", "both"}:
+                for ag in ["ExternalPA", "ActiveExt", "InternalPA"]:
+                    score += record.get(f"{ag}_TE", 0.0)
+                    score += record.get(f"{ag}_BreachProb", 0.0)
+                    score += abs(record.get(f"{ag}_CVaR", 0.0))
+            if constraint_scope in {"total", "both"}:
+                score += record.get("Total_TE", 0.0)
+                score += record.get("Total_BreachProb", 0.0)
+                score += abs(record.get("Total_CVaR", 0.0))
             record["risk_score"] = score
             records.append(record)
     df = pd.DataFrame.from_records(records)
