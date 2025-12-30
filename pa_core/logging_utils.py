@@ -31,7 +31,16 @@ class JSONLogFormatter(logging.Formatter):
             "msg": msg,
         }
         # Capture common context if present
-        for key in ("run_id", "run_phase", "event", "funcName"):
+        for key in (
+            "run_id",
+            "run_phase",
+            "event",
+            "funcName",
+            "duration_seconds",
+            "seed",
+            "backend",
+            "artifact_paths",
+        ):
             if hasattr(record, key):
                 payload[key] = getattr(record, key)
         # Include extras (safely) if provided via record.__dict__
@@ -102,3 +111,25 @@ def setup_json_logging(
     if run_id:
         extra["run_id"] = run_id
     start_logger.info("Run started", extra=extra)
+
+
+def emit_run_end(
+    *,
+    duration_seconds: float,
+    seed: int | None,
+    backend: str | None,
+    artifact_paths: list[str] | None = None,
+    run_id: str | None = None,
+) -> None:
+    """Emit a JSONL run_end record for automation and audits."""
+    logger = logging.getLogger("pa_core.run")
+    extra: dict[str, Any] = {
+        "event": "run_end",
+        "duration_seconds": duration_seconds,
+        "seed": seed,
+        "backend": backend,
+        "artifact_paths": artifact_paths or [],
+    }
+    if run_id:
+        extra["run_id"] = run_id
+    logger.info("Run completed", extra=extra)

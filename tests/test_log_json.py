@@ -28,6 +28,8 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
             "--output",
             str(out_file),
             "--log-json",
+            "--seed",
+            "123",
         ]
     )
 
@@ -35,9 +37,24 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
     manifest = json.loads(manifest_path.read_text())
     log_path = Path(manifest["run_log"])
     assert log_path.exists()
-    first_line = log_path.read_text().splitlines()[0]
+    lines = log_path.read_text().splitlines()
+    first_line = lines[0]
     parsed = json.loads(first_line)
     assert {"level", "timestamp", "module", "message"} <= set(parsed)
+
+    run_end = None
+    for line in lines:
+        obj = json.loads(line)
+        if obj.get("event") == "run_end":
+            run_end = obj
+            break
+    assert run_end is not None
+    assert run_end.get("duration_seconds") is not None
+    assert run_end.get("seed") == 123
+    assert run_end.get("backend") == "numpy"
+    assert isinstance(run_end.get("artifact_paths"), list)
+
+    assert manifest.get("run_timing", {}).get("duration_seconds") is not None
 
     if shutil.which("jq"):
         msg = subprocess.check_output(

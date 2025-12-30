@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence, cast
@@ -410,6 +411,45 @@ def main(
     )
     args = parser.parse_args(argv)
 
+    run_start = time.perf_counter()
+    run_end_emitted = False
+    run_log_path: Path | None = None
+    run_backend: str | None = None
+    artifact_candidates: list[Path] = []
+
+    def _record_artifact(path: str | Path | None) -> None:
+        if not path:
+            return
+        artifact_candidates.append(Path(path))
+
+    def _current_duration() -> float:
+        return max(0.0, time.perf_counter() - run_start)
+
+    def _collect_artifacts() -> list[str]:
+        seen: set[str] = set()
+        collected: list[str] = []
+        for cand in artifact_candidates:
+            if cand.exists():
+                value = str(cand)
+                if value not in seen:
+                    seen.add(value)
+                    collected.append(value)
+        return collected
+
+    def _emit_run_end() -> None:
+        nonlocal run_end_emitted
+        if run_end_emitted or run_log_path is None:
+            return
+        run_end_emitted = True
+        from .logging_utils import emit_run_end
+
+        emit_run_end(
+            duration_seconds=_current_duration(),
+            seed=args.seed,
+            backend=run_backend,
+            artifact_paths=_collect_artifacts(),
+        )
+
     prev_manifest_data: dict[str, Any] | None = None
     prev_summary_df: pd.DataFrame = pd.DataFrame()
     if getattr(args, "prev_manifest", None):
@@ -448,6 +488,7 @@ def main(
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
+    run_backend = backend_choice
 
     if args.cov_shrinkage is not None:
         cfg = cfg.model_copy(update={"covariance_shrinkage": args.cov_shrinkage})
@@ -501,14 +542,15 @@ def main(
     # cfg is already loaded earlier; backend already resolved
 
     # Optional structured logging setup
-    run_log_path: Path | None = None
     if args.log_json:
         # Create run directory under ./runs/<timestamp>
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
         run_dir = Path("runs") / ts
-        run_log_path = run_dir / "run.log"
+        candidate_log_path = run_dir / "run.log"
         try:
-            setup_json_logging(str(run_log_path))
+            setup_json_logging(str(candidate_log_path))
+            run_log_path = candidate_log_path
+            _record_artifact(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
@@ -564,6 +606,7 @@ def main(
         )
         if suggestions.empty:
             print("No feasible sleeve allocations found.")
+            _emit_run_end()
             return
         print(suggestions.to_string(index=True))
         choice = input(
@@ -571,12 +614,14 @@ def main(
         ).strip()
         if not choice:
             print("Aborting run.")
+            _emit_run_end()
             return
         try:
             idx_sel = int(choice)
             row = suggestions.iloc[idx_sel]
         except (ValueError, IndexError):
             print("Invalid selection. Aborting run.")
+            _emit_run_end()
             return
         cfg = cfg.model_copy(
             update={
@@ -602,6 +647,7 @@ def main(
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         export_sweep_results(results, filename=args.output)
+        _record_artifact(args.output)
 
         # Write reproducibility manifest
         mw = ManifestWriter(Path(args.output).with_name("manifest.json"))
@@ -617,8 +663,10 @@ def main(
             backend=args.backend,
             run_log=run_log_path,
             previous_run=args.prev_manifest,
+            run_timing={"duration_seconds": _current_duration()},
         )
         manifest_json = Path(args.output).with_name("manifest.json")
+        _record_artifact(manifest_json)
         manifest_data = None
         try:
             if manifest_json.exists():
@@ -680,6 +728,8 @@ def main(
                         prev_summary_df=prev_summary_df,
                         prev_manifest=prev_manifest_data,
                     )
+                    _record_artifact(pptx_path)
+                    _record_artifact(excel_path)
                     print("✅ Parameter sweep export packet created:")
                     print(f"   📊 Excel: {excel_path}")
                     print(f"   📋 PowerPoint: {pptx_path}")
@@ -726,6 +776,7 @@ def main(
             else:
                 print("   ❌ No sweep results available")
 
+        _emit_run_end()
         return
 
     # Normal single-run mode below
@@ -1057,6 +1108,7 @@ def main(
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
+    _record_artifact(flags.save_xlsx or "Outputs.xlsx")
     if args.stress_preset:
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
         if out_path.exists():
@@ -1098,6 +1150,7 @@ def main(
             backend=args.backend,
             run_log=run_log_path,
             previous_run=args.prev_manifest,
+            run_timing={"duration_seconds": _current_duration()},
         )
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
@@ -1107,6 +1160,7 @@ def main(
         manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
             "manifest.json"
         )
+        _record_artifact(manifest_json)
         if manifest_json.exists():
             manifest_data = json.loads(manifest_json.read_text())
     except (json.JSONDecodeError, FileNotFoundError, PermissionError):
@@ -1344,6 +1398,16 @@ def main(
         else:
             fig = viz.sharpe_ladder.make(summary)
         stem = plots / "summary"
+        if flags.png:
+            _record_artifact(stem.with_suffix(".png"))
+        if flags.pdf:
+            _record_artifact(stem.with_suffix(".pdf"))
+        if flags.pptx:
+            _record_artifact(stem.with_suffix(".pptx"))
+        if flags.html:
+            _record_artifact(stem.with_suffix(".html"))
+        if flags.gif:
+            _record_artifact(plots / "paths.gif")
 
         # Handle packet export first (comprehensive export)
         if flags.packet:
@@ -1417,11 +1481,14 @@ def main(
                     prev_manifest=prev_manifest_data,
                     stress_delta_df=stress_delta_df,
                 )
+                _record_artifact(pptx_path)
+                _record_artifact(excel_path)
                 print("✅ Export packet created:")
                 print(f"   📊 Excel: {excel_path}")
                 print(f"   📋 PowerPoint: {pptx_path}")
             except RuntimeError as e:
                 print(f"❌ Export packet failed: {e}")
+                _emit_run_end()
                 return
             except (ImportError, ModuleNotFoundError) as e:
                 logger.error(f"Export packet failed due to missing dependency: {e}")
@@ -1429,6 +1496,7 @@ def main(
                 print(
                     "💡 Install required packages: pip install plotly kaleido openpyxl python-pptx"
                 )
+                _emit_run_end()
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
@@ -1436,11 +1504,13 @@ def main(
                     f"❌ Export packet failed due to data or configuration issue: {e}"
                 )
                 print("💡 Check your data inputs and configuration settings")
+                _emit_run_end()
                 return
             except (OSError, PermissionError) as e:
                 logger.error(f"Export packet failed due to file system issue: {e}")
                 print(f"❌ Export packet failed due to file system issue: {e}")
                 print("💡 Check file permissions and available disk space")
+                _emit_run_end()
                 return
 
         # Individual export formats (with improved error handling)
@@ -1540,6 +1610,7 @@ def main(
             except (ValueError, TypeError) as e:
                 print(f"❌ GIF export failed: Data conversion error - {e}")
                 print("💡 Check that return data contains only numeric values")
+                _emit_run_end()
                 return
             anim = viz.animation.make(arr)
             try:
@@ -1573,6 +1644,7 @@ def main(
                 print(
                     "💡 Ensure the dashboard files are present in the 'dashboard/' directory."
                 )
+                _emit_run_end()
                 return
             except subprocess.CalledProcessError as e:
                 logger.error(
@@ -1583,17 +1655,22 @@ def main(
                 print("   • Install Streamlit: pip install streamlit")
                 print("   • Check if 'dashboard/app.py' is valid Python code")
                 print("   • Verify your Python environment is properly configured")
+                _emit_run_end()
                 return
             except ImportError as e:
                 logger.error(f"Dashboard launch failed due to missing streamlit: {e}")
                 print(f"❌ Dashboard launch failed: Streamlit not available - {e}")
                 print("💡 Install Streamlit: pip install streamlit")
+                _emit_run_end()
                 return
             except (OSError, PermissionError) as e:
                 logger.error(f"Dashboard launch failed due to system issue: {e}")
                 print(f"❌ Dashboard launch failed: System/permission error - {e}")
                 print("💡 Check file permissions and system resources")
+                _emit_run_end()
                 return
+
+    _emit_run_end()
 
 
 # (Backward compatibility global variable assignment removed)
