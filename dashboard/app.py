@@ -20,6 +20,11 @@ PLOTS: dict[str, str] = {
 
 _DEF_XLSX = "Outputs.xlsx"
 _DEF_THEME = "config_theme.yaml"
+_PARQUET_HINT = "Parquet support missing; install pyarrow or use CSV."
+
+
+def _show_parquet_hint() -> None:
+    st.info(_PARQUET_HINT)
 
 
 def _load_theme() -> ModuleType:
@@ -63,7 +68,7 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
         try:
             return pd.read_parquet(path)
         except ImportError:
-            st.info("Parquet support missing; install pyarrow or use CSV.")
+            _show_parquet_hint()
             return None
         except Exception:
             return None
@@ -104,7 +109,7 @@ def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None
     try:
         df.to_parquet(p)
     except ImportError:
-        st.info("Parquet support missing; install pyarrow or use CSV.")
+        _show_parquet_hint()
     df.to_csv(p.with_suffix(".csv"), index=False)
 
 
@@ -129,7 +134,7 @@ def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
         try:
             df = pd.read_parquet(p)
         except ImportError:
-            st.info("Parquet support missing; install pyarrow or use CSV.")
+            _show_parquet_hint()
             df = None
         except Exception:
             df = None
