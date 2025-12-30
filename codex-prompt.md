@@ -112,14 +112,10 @@ Guidance:
 - Re-run or suggest the smallest relevant checks to verify the fix.
 
 ## Run context
-Gate run: https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/20586038442
-Conclusion: failure
-PR: #726
-Head SHA: 7aa0b79076bdcbe5117617413100c24bb21d3977
+Gate run: https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/20586794327
+Conclusion: cancelled
+PR: #736
+Head SHA: bf485acbb73e0a847238f952a5e3a2ad18a503ad
 Autofix attempts for this head: 1 / 3
 Fix scope: src/, tests/, tools/, scripts/, agents/, templates/, .github/
-Failing jobs:
-- Python CI / python 3.12 (failure)
-  - steps: Finalize check results (failure)
-- gate-summary (failure)
-  - steps: Fail if Gate failed (failure)
+Failing jobs: none reported.
