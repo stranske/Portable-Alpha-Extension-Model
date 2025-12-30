@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import os
 import io
+import os
 from typing import Any, Dict, Iterable
 
 import openpyxl
@@ -52,8 +52,10 @@ def export_sweep_results(
             if col_idx is not None:  # Type guard for mypy/pyright
                 ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
 
-    if "Summary" in wb.sheetnames and all_summary is not None and not (
-        os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
+    if (
+        "Summary" in wb.sheetnames
+        and all_summary is not None
+        and not (os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"))
     ):
         ws = wb["Summary"]
         metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
