@@ -73,3 +73,8 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
             ["jq", "-r", ".message"], input=first_line.encode()
         )
         assert msg.strip().decode() == parsed["message"]
+        run_end_event = subprocess.check_output(
+            ["jq", "-r", 'select(.event=="run_end") | .event', str(log_path)],
+            text=True,
+        )
+        assert run_end_event.strip() == "run_end"
