@@ -158,9 +158,7 @@ def export_to_excel(
                 df = pd.DataFrame(values)
                 df.columns = df.iloc[0]
                 df = df.drop(index=0)
-                param_col = (
-                    "Parameter" if "Parameter" in df.columns else df.columns[0]
-                )
+                param_col = "Parameter" if "Parameter" in df.columns else df.columns[0]
                 value_col = "DeltaAbs" if "DeltaAbs" in df.columns else df.columns[1]
                 series = df.set_index(param_col)[value_col].astype(float)
             fig = tornado.make(cast(pd.Series, series))
