@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict
 
 import pandas as pd
+import pytest
 
 import pa_core.__main__ as pa_main
 import pa_core.agents.registry as registry
@@ -156,7 +157,7 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
             "--backend",
             "numpy",
             "--seed",
-            "42",
+            "123",
             "--return-distribution",
             "student_t",
             "--return-t-df",
@@ -199,3 +200,24 @@ def test_main_without_overrides(monkeypatch) -> None:
     pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
 
     assert calls["build_from_config"] is cfg
+
+
+def test_main_rejects_invalid_vol_regime(monkeypatch) -> None:
+    cfg = FakeConfig(**{**_base_config_data(), "vol_regime": "invalid"})
+    calls = _patch_main_dependencies(monkeypatch)
+
+    def fake_load_config(path: str):
+        calls["load_config"] = path
+        return cfg
+
+    def fake_resolve_and_set_backend(choice, config):
+        calls["resolve_backend"] = (choice, config)
+        return "numpy"
+
+    monkeypatch.setattr(pa_main, "load_config", fake_load_config)
+    monkeypatch.setattr(
+        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
+    )
+
+    with pytest.raises(ValueError, match="vol_regime must be 'single' or 'two_state'"):
+        pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
