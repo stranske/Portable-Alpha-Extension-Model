@@ -265,9 +265,7 @@ def test_export_packet_manifest_details():
         "git_commit": "abc123",
         "timestamp": "2025-01-01T00:00:00Z",
         "seed": 42,
-        "data_files": {
-            f"/tmp/data_{idx}.csv": f"{idx:064x}" for idx in range(9)
-        },
+        "data_files": {f"/tmp/data_{idx}.csv": f"{idx:064x}" for idx in range(9)},
         "cli_args": {"mode": "batch"},
         "config": {
             "N_SIMULATIONS": 500,
