@@ -550,6 +550,7 @@ def main(
 
     # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
+        suggest_seed = args.seed if args.seed is not None else 0
         suggestions = suggest_sleeve_sizes(
             cfg,
             idx_series,
@@ -563,7 +564,7 @@ def main(
             max_active=args.max_active,
             min_internal=args.min_internal,
             max_internal=args.max_internal,
-            seed=args.seed,
+            seed=suggest_seed,
         )
         if suggestions.empty:
             print("No feasible sleeve allocations found.")
@@ -879,6 +880,7 @@ def main(
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
         try:
+            suggest_seed = args.seed if args.seed is not None else 0
             trade_df = suggest_sleeve_sizes(
                 cfg,
                 idx_series,
@@ -892,7 +894,7 @@ def main(
                 max_active=args.max_active,
                 min_internal=args.min_internal,
                 max_internal=args.max_internal,
-                seed=args.seed,
+                seed=suggest_seed,
                 sort_by=args.tradeoff_sort,
             )
             if not trade_df.empty:

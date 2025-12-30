@@ -580,6 +580,9 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             st.error(f"Default index file missing: {idx_path}")
             return
         idx_series = load_index_returns(idx_path)
+        use_seed = st.session_state.get("wizard_use_seed", True)
+        seed_value = st.session_state.get("wizard_seed", 42)
+        suggest_seed = int(seed_value) if use_seed else None
         df = suggest_sleeve_sizes(
             cfg,
             idx_series,
@@ -589,6 +592,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             step=constraints["step"],
             max_evals=constraints["max_evals"],
             constraint_scope=constraints["constraint_scope"],
+            seed=suggest_seed,
         )
         st.session_state["sleeve_suggestions"] = df
         st.session_state["sleeve_suggestion_constraints"] = constraints
