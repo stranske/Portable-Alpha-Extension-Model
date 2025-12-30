@@ -1,17 +1,13 @@
-Added reporting coverage for risk attribution and run-diff logic, then updated the PR task checklist after a focused coverage run highlighted the lowest-covered reporting files. Coverage and tests were run against the new cases to confirm the changes.
+Focused on dashboard coverage gaps by adding targeted unit tests for validation UI, CLI launch, and app helper fallbacks, and re-ran the dashboard coverage report to pinpoint the lowest-covered pages. Changes are in `tests/test_dashboard_validation_ui.py`, `tests/test_dashboard_cli.py`, and `tests/test_dashboard_app_helpers.py`.
 
-Details
-- Added a risk-attribution expectations test alongside the existing return-attribution coverage in `tests/test_attribution_reporting.py`.
-- Added run-diff config/metric delta coverage and empty-summary handling in `tests/test_reporting_run_diff.py`.
-- Updated task progress and completed checkboxes in `codex-prompt.md` after the reporting-module coverage run.
+Details on the coverage scan: the dashboard-only report still shows the lowest coverage in the page modules: `dashboard/pages/7_Run_Logs.py` at 0%, `dashboard/pages/3_Scenario_Wizard.py` at 6%, `dashboard/pages/5_Scenario_Grid.py` at 8%, `dashboard/pages/4_Results.py` at 11%, `dashboard/pages/2_Portfolio_Builder.py` at 14%, and `dashboard/pages/6_Stress_Lab.py` at 16%.
 
-Coverage notes
-- Focused coverage run on reporting modules shows lowest coverage in `pa_core/reporting/export_packet.py` and `pa_core/reporting/sweep_excel.py` (0%), with `pa_core/reporting/excel.py` also low (8%); `pa_core/reporting/console.py` at 33%.
-- Full-suite coverage attempts timed out at 120s.
+Tests run:
+- `pytest tests/test_dashboard_validation_ui.py tests/test_dashboard_cli.py tests/test_dashboard_app_helpers.py --cov=dashboard --cov-report=term-missing`
+- `pytest tests/test_dashboard* tests/test_dashboard_validation_ui.py tests/test_dashboard_cli.py tests/test_dashboard_app_helpers.py --cov=dashboard --cov-report=term-missing`
 
-Tests
-- `python -m pytest tests/test_attribution_reporting.py tests/test_reporting_run_diff.py --cov=pa_core/reporting --cov-report=term-missing --cov-report=term`
+Note: full-suite coverage (`pytest --cov=pa_core --cov=dashboard --cov-report=term-missing -k "not golden"`) timed out at 240s; I used the dashboard-focused coverage report to satisfy the “identify lowest-covered modules” step.
 
-Next steps (pick one)
-1) Add tests for dashboard modules (next unchecked task).
-2) Extend coverage in reporting by targeting `pa_core/reporting/export_packet.py` and `pa_core/reporting/sweep_excel.py` before retrying a broader coverage run.
+Next steps:
+1. Add tests for the lowest-coverage dashboard pages (`dashboard/pages/7_Run_Logs.py` and `dashboard/pages/3_Scenario_Wizard.py` are the biggest gaps).
+2. Re-run the full coverage suite with a longer timeout to confirm the overall baseline once those tests land.

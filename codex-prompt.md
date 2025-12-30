@@ -123,19 +123,7 @@ Your objective is to satisfy the **Acceptance Criteria** by completing each **Ta
 ---
 ## PR Tasks and Acceptance Criteria
 
-**Progress:** 4/9 tasks complete, 5 remaining
-
-### ⚠️ IMPORTANT: Task Reconciliation Required
-
-The previous iteration changed **2 file(s)** but did not update task checkboxes.
-
-**Before continuing, you MUST:**
-1. Review the recent commits to understand what was changed
-2. Determine which task checkboxes should be marked complete
-3. Update the PR body to check off completed tasks
-4. Then continue with remaining tasks
-
-_Failure to update checkboxes means progress is not being tracked properly._
+**Progress:** 3/9 tasks complete, 6 remaining
 
 ### Scope
 - [ ] Establish 85% code coverage as baseline for PAEM as part of Workflows consumer transition.
@@ -144,7 +132,7 @@ _Failure to update checkboxes means progress is not being tracked properly._
 ### Tasks
 Complete these in order. Mark checkbox done ONLY after implementation is verified:
 
-- [x] Run coverage report and identify lowest-covered modules
+- [ ] Run coverage report and identify lowest-covered modules
 - [x] Add tests for uncovered `pa_core.cli` edge cases
 - [x] Add tests for `pa_core.config` validation paths
 - [x] Add tests for `pa_core.reporting` module
