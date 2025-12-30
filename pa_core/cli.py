@@ -433,6 +433,7 @@ def main(
     run_log_path: Path | None = None
     run_backend: str | None = None
     artifact_candidates: list[Path] = []
+    manifest_path: Path | None = None
 
     def _record_artifact(path: str | Path | None) -> None:
         if not path:
@@ -453,9 +454,28 @@ def main(
                     collected.append(value)
         return collected
 
+    def _finalize_manifest_timing() -> None:
+        if manifest_path is None or not manifest_path.exists():
+            return
+        try:
+            data = json.loads(manifest_path.read_text())
+            if not isinstance(data, dict):
+                return
+        except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+            return
+        data["run_timing"] = run_timer.snapshot()
+        if run_log_path is not None:
+            data["run_log"] = str(run_log_path)
+        manifest_path.write_text(json.dumps(data, indent=2))
+        _record_artifact(manifest_path)
+
     def _emit_run_end() -> None:
         nonlocal run_end_emitted
-        if run_end_emitted or run_log_path is None:
+        if run_end_emitted:
+            return
+        _finalize_manifest_timing()
+        if run_log_path is None:
+            run_end_emitted = True
             return
         run_end_emitted = True
         from .logging_utils import emit_run_end
@@ -683,6 +703,7 @@ def main(
             run_timing=run_timer.snapshot(),
         )
         manifest_json = Path(args.output).with_name("manifest.json")
+        manifest_path = manifest_json
         _record_artifact(manifest_json)
         manifest_data = None
         try:
@@ -1168,6 +1189,9 @@ def main(
             run_log=run_log_path,
             previous_run=args.prev_manifest,
             run_timing=run_timer.snapshot(),
+        )
+        manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
+            "manifest.json"
         )
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
