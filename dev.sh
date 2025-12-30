@@ -33,7 +33,7 @@ check_venv() {
         print_warning "Virtual environment not found. Creating it..."
         python3 -m venv .venv
         source .venv/bin/activate
-        ./setup_deps.sh
+        ./scripts/setup_deps.sh
         print_success "Virtual environment created and dependencies installed"
     else
         print_status "Virtual environment found"

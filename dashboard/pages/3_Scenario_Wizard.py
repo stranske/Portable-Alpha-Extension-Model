@@ -444,6 +444,19 @@ def _render_step_2_capital(config: Any) -> Any:
                 except Exception as e:
                     st.error(f"Schedule error: {e}")
                     ss.financing_settings["schedule_path"] = None
+            elif ss.financing_settings.get("schedule_path"):
+                schedule_path = Path(str(ss.financing_settings["schedule_path"]))
+                if schedule_path.exists():
+                    try:
+                        schedule_df = load_margin_schedule(schedule_path)
+                        st.info(f"Using schedule at {schedule_path}")
+                        st.dataframe(schedule_df, use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Schedule error: {e}")
+                        ss.financing_settings["schedule_path"] = None
+                else:
+                    st.warning(f"Schedule file not found: {schedule_path}")
+                    ss.financing_settings["schedule_path"] = None
 
             if schedule_df is not None:
                 # Interpolate multiplier and compute margin
@@ -1160,6 +1173,16 @@ def main() -> None:
                         ),
                     }
                 )
+                financing_model = config_data.get("financing_model", "simple_proxy")
+                st.session_state.financing_settings = {
+                    "financing_model": financing_model,
+                    "reference_sigma": config_data.get("reference_sigma", 0.01),
+                    "volatility_multiple": config_data.get("volatility_multiple", 3.0),
+                    "term_months": config_data.get(
+                        "financing_term_months", config_data.get("term_months", 1.0)
+                    ),
+                    "schedule_path": config_data.get("financing_schedule_path"),
+                }
                 st.session_state.wizard_config = wizard_config
                 st.session_state.wizard_step = 5  # Go to review step
                 st.rerun()
