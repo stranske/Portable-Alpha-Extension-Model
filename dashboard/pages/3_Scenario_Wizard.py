@@ -469,78 +469,181 @@ def _render_step_2_capital(config: Any) -> Any:
                 c1.metric("Interpolated k (multiplier)", f"{k_interp:.2f}")
                 c2.metric("Estimated Margin Requirement", f"${margin:.1f}M")
 
-    st.markdown("---")
-    with st.expander("🧮 Sleeve Suggestor", expanded=False):
-        st.markdown("Suggest sleeve allocations that satisfy risk constraints.")
-        max_te = st.number_input(
+    return config
+
+
+def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
+    st.subheader("Sleeve Suggestor")
+    st.markdown("Provide risk constraints and generate ranked sleeve allocations.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.number_input(
             "Max Tracking Error",
             min_value=0.0,
-            value=0.02,
+            value=st.session_state.get("sleeve_max_te", 0.02),
             step=0.01,
             format="%.2f",
+            key="sleeve_max_te",
         )
-        max_breach = st.number_input(
+        st.number_input(
             "Max Breach Probability",
             min_value=0.0,
             max_value=1.0,
-            value=0.5,
+            value=st.session_state.get("sleeve_max_breach", 0.5),
             step=0.05,
             format="%.2f",
+            key="sleeve_max_breach",
         )
-        max_cvar = st.number_input(
+        st.number_input(
             "Max CVaR",
             min_value=0.0,
-            value=0.05,
+            value=st.session_state.get("sleeve_max_cvar", 0.05),
             step=0.01,
             format="%.2f",
+            key="sleeve_max_cvar",
         )
-        step = st.number_input(
-            "Grid Step",
+
+    with col2:
+        st.number_input(
+            "Grid Step (fraction of total capital)",
             min_value=0.01,
             max_value=1.0,
-            value=0.25,
+            value=st.session_state.get("sleeve_step", 0.25),
             step=0.05,
             format="%.2f",
+            key="sleeve_step",
+        )
+        st.number_input(
+            "Max Evaluations",
+            min_value=50,
+            max_value=5000,
+            value=st.session_state.get("sleeve_max_evals", 500),
+            step=50,
+            key="sleeve_max_evals",
+            help="Cap the number of grid points to evaluate.",
+        )
+        scope_labels = {
+            "sleeves": "Per-sleeve constraints",
+            "total": "Total portfolio constraints",
+            "both": "Sleeves + total constraints",
+        }
+        current_scope = st.session_state.get("sleeve_constraint_scope", "sleeves")
+        if current_scope not in scope_labels:
+            current_scope = "sleeves"
+        scope_index = list(scope_labels.keys()).index(current_scope)
+        st.selectbox(
+            "Constraint Scope",
+            options=list(scope_labels.keys()),
+            index=scope_index,
+            format_func=lambda x: scope_labels[x],
+            key="sleeve_constraint_scope",
         )
 
-        if st.button("Run Suggestor"):
-            yaml_dict = _build_yaml_from_config(config)
-            cfg = load_config(yaml_dict)
-            idx_path = Path(__file__).resolve().parents[2] / "sp500tr_fred_divyield.csv"
-            idx_series = load_index_returns(idx_path)
-            df = suggest_sleeve_sizes(
-                cfg,
-                idx_series,
-                max_te=max_te,
-                max_breach=max_breach,
-                max_cvar=max_cvar,
-                step=step,
-            )
-            st.session_state["sleeve_suggestions"] = df
+    constraints = {
+        "max_te": float(st.session_state["sleeve_max_te"]),
+        "max_breach": float(st.session_state["sleeve_max_breach"]),
+        "max_cvar": float(st.session_state["sleeve_max_cvar"]),
+        "step": float(st.session_state["sleeve_step"]),
+        "max_evals": int(st.session_state["sleeve_max_evals"]),
+        "constraint_scope": st.session_state["sleeve_constraint_scope"],
+    }
 
-        suggestions = st.session_state.get("sleeve_suggestions")
-        if suggestions is not None:
-            if suggestions.empty:
-                st.warning("No feasible sleeve allocations found.")
-            else:
-                st.dataframe(suggestions, use_container_width=True)
-                idx = st.number_input(
-                    "Suggestion index",
-                    min_value=0,
-                    max_value=len(suggestions) - 1,
-                    value=0,
-                    step=1,
-                )
-                if st.button("Apply suggestion"):
-                    row = suggestions.iloc[int(idx)]
-                    config.external_pa_capital = float(row["external_pa_capital"])
-                    config.active_ext_capital = float(row["active_ext_capital"])
-                    config.internal_pa_capital = float(row["internal_pa_capital"])
-                    st.session_state["suggestion_applied"] = True
-                    st.session_state["suggestion_confirmed"] = False
-                    st.success("Suggested allocation applied. Review before running.")
+    if st.button("Run Suggestor"):
+        yaml_dict = _build_yaml_from_config(config)
+        cfg = load_config(yaml_dict)
+        idx_path = (
+            Path(__file__).resolve().parents[2] / "data" / "sp500tr_fred_divyield.csv"
+        )
+        if not idx_path.exists():
+            st.error(f"Default index file missing: {idx_path}")
+            return
+        idx_series = load_index_returns(idx_path)
+        df = suggest_sleeve_sizes(
+            cfg,
+            idx_series,
+            max_te=constraints["max_te"],
+            max_breach=constraints["max_breach"],
+            max_cvar=constraints["max_cvar"],
+            step=constraints["step"],
+            max_evals=constraints["max_evals"],
+            constraint_scope=constraints["constraint_scope"],
+        )
+        st.session_state["sleeve_suggestions"] = df
+        st.session_state["sleeve_suggestion_constraints"] = constraints
 
-    return config
+    constraints_used = st.session_state.get(
+        "sleeve_suggestion_constraints", constraints
+    )
+    st.markdown("**Constraint Summary:**")
+    st.write(
+        f"Max TE: {constraints_used['max_te']:.2%} | "
+        f"Max Breach: {constraints_used['max_breach']:.2%} | "
+        f"Max CVaR: {constraints_used['max_cvar']:.2%} | "
+        f"Scope: {scope_labels.get(constraints_used['constraint_scope'], constraints_used['constraint_scope'])}"
+    )
+
+    suggestions = st.session_state.get("sleeve_suggestions")
+    if suggestions is None:
+        return
+    if suggestions.empty:
+        st.warning("No feasible sleeve allocations found.")
+        return
+
+    ranked = suggestions.sort_values("risk_score", ascending=True).reset_index(
+        drop=True
+    )
+    ranked.insert(0, "rank", range(1, len(ranked) + 1))
+
+    top_n = st.number_input(
+        "Show top results",
+        min_value=1,
+        max_value=len(ranked),
+        value=min(10, len(ranked)),
+        step=1,
+    )
+
+    preferred_cols = [
+        "rank",
+        "external_pa_capital",
+        "active_ext_capital",
+        "internal_pa_capital",
+        "risk_score",
+        "ExternalPA_TE",
+        "ExternalPA_BreachProb",
+        "ExternalPA_CVaR",
+        "ActiveExt_TE",
+        "ActiveExt_BreachProb",
+        "ActiveExt_CVaR",
+        "InternalPA_TE",
+        "InternalPA_BreachProb",
+        "InternalPA_CVaR",
+        "Total_TE",
+        "Total_BreachProb",
+        "Total_CVaR",
+    ]
+    display_cols = [col for col in preferred_cols if col in ranked.columns]
+    tradeoff_table = ranked.loc[:, display_cols].head(int(top_n))
+    st.dataframe(tradeoff_table, use_container_width=True)
+
+    selected_rank = st.number_input(
+        "Select rank to apply",
+        min_value=1,
+        max_value=len(ranked),
+        value=1,
+        step=1,
+    )
+    confirm_apply = st.checkbox("Confirm apply selected suggestion")
+    if st.button("Apply suggestion", disabled=not confirm_apply):
+        row = ranked.iloc[int(selected_rank) - 1]
+        config.external_pa_capital = float(row["external_pa_capital"])
+        config.active_ext_capital = float(row["active_ext_capital"])
+        config.internal_pa_capital = float(row["internal_pa_capital"])
+        st.session_state["suggestion_applied"] = True
+        st.session_state["suggestion_confirmed"] = True
+        st.success("Suggested allocation applied. Review before running.")
+    elif not confirm_apply:
+        st.info("Confirm the selection to enable Apply suggestion.")
 
 
 def _render_step_3_returns_risk(config: Any) -> Any:
@@ -644,6 +747,9 @@ def _render_step_3_returns_risk(config: Any) -> Any:
     )
 
     config.risk_metrics = selected_metrics
+
+    st.markdown("---")
+    _render_sleeve_suggestor(config)
 
     return config
 

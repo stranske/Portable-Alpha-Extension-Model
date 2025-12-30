@@ -51,6 +51,8 @@ def tracking_error(
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
     diff = np.asarray(strategy) - np.asarray(benchmark)
+    if diff.size <= 1:
+        return 0.0
     return float(np.std(diff, ddof=1))
 
 
