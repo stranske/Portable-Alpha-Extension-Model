@@ -26,9 +26,33 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         default=None,
         help="Random seed for reproducible simulations",
     )
+    parser.add_argument(
+        "--return-distribution",
+        choices=["normal", "student_t"],
+        help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
+    )
+    parser.add_argument(
+        "--return-t-df",
+        type=float,
+        help="Override Student-t degrees of freedom (requires student_t; lower df => heavier tails)",
+    )
+    parser.add_argument(
+        "--return-copula",
+        choices=["gaussian", "t"],
+        help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
+    )
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
+    return_overrides: dict[str, float | str] = {}
+    if args.return_distribution is not None:
+        return_overrides["return_distribution"] = args.return_distribution
+    if args.return_t_df is not None:
+        return_overrides["return_t_df"] = args.return_t_df
+    if args.return_copula is not None:
+        return_overrides["return_copula"] = args.return_copula
+    if return_overrides:
+        cfg = cfg.__class__.model_validate({**cfg.model_dump(), **return_overrides})
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
     print(f"[BACKEND] Using backend: {backend_choice}")
@@ -96,6 +120,13 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "rho_H_E": cfg.rho_H_E,
         "rho_H_M": cfg.rho_H_M,
         "rho_E_M": cfg.rho_E_M,
+        "return_distribution": cfg.return_distribution,
+        "return_t_df": cfg.return_t_df,
+        "return_copula": cfg.return_copula,
+        "return_distribution_idx": cfg.return_distribution_idx,
+        "return_distribution_H": cfg.return_distribution_H,
+        "return_distribution_E": cfg.return_distribution_E,
+        "return_distribution_M": cfg.return_distribution_M,
         "internal_financing_mean_month": cfg.internal_financing_mean_month,
         "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
         "internal_spike_prob": cfg.internal_spike_prob,
