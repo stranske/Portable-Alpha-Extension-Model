@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from dashboard.utils import make_grid_cache_key, normalize_share
+from dashboard.utils import bump_session_token, make_grid_cache_key, normalize_share
 from pa_core.config import ModelConfig
 
 
@@ -44,3 +44,15 @@ def test_make_grid_cache_key_changes_with_axis() -> None:
     key1 = make_grid_cache_key(cfg, idx, 42, "External alpha fraction (theta)")
     key2 = make_grid_cache_key(cfg, idx, 42, "External PA $ (mm)")
     assert key1 != key2
+
+
+def test_bump_session_token_increments_int_values() -> None:
+    state: dict[str, object] = {"token": 2}
+    assert bump_session_token(state, "token") == 3
+    assert state["token"] == 3
+
+
+def test_bump_session_token_resets_invalid_values() -> None:
+    state: dict[str, object] = {"token": "abc"}
+    assert bump_session_token(state, "token") == 1
+    assert state["token"] == 1

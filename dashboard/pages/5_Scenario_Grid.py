@@ -13,7 +13,7 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from dashboard.utils import make_grid_cache_key
+from dashboard.utils import bump_session_token, make_grid_cache_key
 from pa_core.config import ModelConfig
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
@@ -387,6 +387,9 @@ def main() -> None:
                     "active_share": float(sel_x),
                     "theta_extpa": theta_val,
                 }
+                bump_session_token(
+                    st.session_state, "scenario_grid_promotion_token"
+                )
                 st.info(
                     "Heatmap selection captured. Open Portfolio Builder to "
                     "see the values populated."
@@ -429,8 +432,8 @@ def main() -> None:
                     "active_share": float(sel_x),
                     "theta_extpa": promoted_selection["theta_extpa"],
                 }
-                st.session_state["scenario_grid_promotion_token"] = (
-                    int(st.session_state.get("scenario_grid_promotion_token", 0)) + 1
+                bump_session_token(
+                    st.session_state, "scenario_grid_promotion_token"
                 )
                 st.session_state[_GRID_PROMOTION_NOTICE_KEY] = (
                     "Selection promoted. Other pages can read "

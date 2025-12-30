@@ -7,6 +7,9 @@ import json
 
 import pandas as pd
 
+from collections.abc import MutableMapping
+from typing import Any
+
 from pa_core.config import ModelConfig
 
 
@@ -41,5 +44,15 @@ def make_grid_cache_key(
     )
     return hashlib.sha256(payload.encode()).hexdigest()
 
+def bump_session_token(state: MutableMapping[str, Any], key: str) -> int:
+    """Increment a session-state token used for cross-page reruns."""
+    current = state.get(key, 0)
+    if isinstance(current, bool) or not isinstance(current, (int, float)):
+        next_token = 1
+    else:
+        next_token = int(current) + 1
+    state[key] = next_token
+    return next_token
 
-__all__ = ["normalize_share", "make_grid_cache_key"]
+
+__all__ = ["normalize_share", "make_grid_cache_key", "bump_session_token"]
