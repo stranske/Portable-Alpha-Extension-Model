@@ -21,8 +21,11 @@ def test_tornado_chart_orders_ties_and_labels_units():
 
 
 def test_tornado_series_from_sensitivity_uses_attrs():
-    sens_df = pd.DataFrame({"Parameter": ["mu_H", "sigma_H"], "DeltaAbs": [0.02, 0.01]})
+    sens_df = pd.DataFrame(
+        {"Parameter": ["B", "A", "C"], "DeltaAbs": [0.02, 0.02, 0.01]}
+    )
     sens_df.attrs.update({"metric": "Sharpe", "units": "x"})
     series = tornado.series_from_sensitivity(sens_df)
+    assert list(series.index) == ["A", "B", "C"]
     fig = tornado.make(series)
     assert fig.layout.xaxis.title.text == "Delta (Sharpe, x)"

@@ -21,7 +21,20 @@ def series_from_sensitivity(
         raise KeyError(f"Missing columns for tornado: {param_col}, {value_col}")
     series = df.set_index(param_col)[value_col].astype(float)
     series.attrs.update(df.attrs)
-    return series
+    order = (
+        pd.DataFrame(
+            {
+                "value": series,
+                "abs": series.abs(),
+                "name": series.index.astype(str),
+            }
+        )
+        .sort_values(["abs", "name"], ascending=[False, True], kind="mergesort")
+        .reset_index(drop=True)
+    )
+    ordered = pd.Series(order["value"].to_numpy(), index=order["name"].to_list())
+    ordered.attrs.update(series.attrs)
+    return ordered
 
 
 def make(
