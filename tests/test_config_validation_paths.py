@@ -4,7 +4,7 @@ from typing import Dict
 
 import pytest
 
-from pa_core.config import load_config
+from pa_core.config import ConfigError, load_config
 
 
 def base_config() -> Dict[str, object]:
@@ -71,3 +71,18 @@ def test_risk_metrics_must_include_shortfallprob() -> None:
 
     with pytest.raises(ValueError, match="risk_metrics must include ShortfallProb"):
         load_config(config_data)
+
+
+def test_load_config_raises_for_missing_file(tmp_path) -> None:
+    missing_path = tmp_path / "missing.yaml"
+
+    with pytest.raises(FileNotFoundError, match="Config file not found"):
+        load_config(missing_path)
+
+
+def test_load_config_invalid_yaml_raises_config_error(tmp_path) -> None:
+    bad_path = tmp_path / "bad.yaml"
+    bad_path.write_text("bad: [")
+
+    with pytest.raises(ConfigError, match="Invalid YAML"):
+        load_config(bad_path)
