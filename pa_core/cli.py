@@ -37,6 +37,7 @@ if sys.platform.startswith("win"):
 if TYPE_CHECKING:
     import numpy as np
     import pandas as pd
+    from .config import ModelConfig
 
 # Intentionally avoid heavy imports at module import time. Required modules are
 # imported lazily inside functions after environment bootstrap.
