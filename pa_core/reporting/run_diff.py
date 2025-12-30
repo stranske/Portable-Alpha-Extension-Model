@@ -57,7 +57,7 @@ def build_run_diff(
             numeric = pd.to_numeric(series, errors="coerce")
         except Exception:
             return False
-        return numeric.notna().any()
+        return bool(numeric.notna().any())
 
     cfg_cur = current_manifest.get("config", {}) if current_manifest else {}
     cfg_prev = previous_manifest.get("config", {}) if previous_manifest else {}
