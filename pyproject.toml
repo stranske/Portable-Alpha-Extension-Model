@@ -52,7 +52,7 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-# addopts = "--cov=pa_core --cov-report=html --cov-report=term-missing"
+addopts = "--cov=pa_core --cov=dashboard --cov-report=term-missing"
 
 [tool.setuptools.packages.find]
 where = ["."]
