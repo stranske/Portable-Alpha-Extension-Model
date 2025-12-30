@@ -224,6 +224,13 @@ such as `ShortfallProb` trigger a `ConfigError` during loading.
 > **Warning**
 > Large values for `N_SIMULATIONS` or using a very small `External step size (%)` drastically increase runtime. For quick tests, try `N_SIMULATIONS=100` and `External step size (%)=5`.
 
+### Return distribution trade-offs
+
+- `normal` + `gaussian` copula is the fastest baseline and matches historical mean/vol assumptions.
+- `student_t` adds heavier tails (more extreme CVaR) and extra random draws, so expect longer runtimes.
+- `t` copula adds tail dependence across sleeves; combine with `student_t` for joint tail events.
+- Lower `return_t_df` increases tail thickness; keep `return_t_df > 2` for finite variance.
+
 ## Development
 
 ### Testing

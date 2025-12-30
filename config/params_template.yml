@@ -29,9 +29,9 @@ rho_H_E: 0.10    # correlation in-house vs extension
 rho_H_M: 0.10    # correlation in-house vs external PA
 rho_E_M: 0.00    # correlation extension vs external PA
 
-return_distribution: normal  # normal | student_t
-return_t_df: 5.0             # degrees of freedom for Student-t
-return_copula: gaussian      # gaussian | t (t-copula adds tail dependence)
+return_distribution: normal  # normal | student_t (student_t adds heavier tails and runtime)
+return_t_df: 5.0             # degrees of freedom for Student-t (lower df => heavier tails)
+return_copula: gaussian      # gaussian | t (t-copula adds tail dependence and runtime)
 # Optional per-series overrides (fallback to return_distribution when omitted)
 # return_distribution_idx: normal
 # return_distribution_H: normal

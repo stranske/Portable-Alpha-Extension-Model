@@ -236,17 +236,17 @@ def main(
     parser.add_argument(
         "--return-distribution",
         choices=["normal", "student_t"],
-        help="Override return distribution (normal or student_t)",
+        help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
     )
     parser.add_argument(
         "--return-t-df",
         type=float,
-        help="Override Student-t degrees of freedom (requires student_t)",
+        help="Override Student-t degrees of freedom (requires student_t; lower df => heavier tails)",
     )
     parser.add_argument(
         "--return-copula",
         choices=["gaussian", "t"],
-        help="Override return copula (gaussian or t)",
+        help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
     )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")

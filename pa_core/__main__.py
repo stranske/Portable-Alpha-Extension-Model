@@ -28,17 +28,17 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument(
         "--return-distribution",
         choices=["normal", "student_t"],
-        help="Override return distribution (normal or student_t)",
+        help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
     )
     parser.add_argument(
         "--return-t-df",
         type=float,
-        help="Override Student-t degrees of freedom (requires student_t)",
+        help="Override Student-t degrees of freedom (requires student_t; lower df => heavier tails)",
     )
     parser.add_argument(
         "--return-copula",
         choices=["gaussian", "t"],
-        help="Override return copula (gaussian or t)",
+        help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
     )
     args = parser.parse_args(argv)
 
