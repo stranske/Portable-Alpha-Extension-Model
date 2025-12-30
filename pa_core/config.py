@@ -251,7 +251,10 @@ class ModelConfig(BaseModel):
             self.return_distribution_E or self.return_distribution,
             self.return_distribution_M or self.return_distribution,
         )
-        if all(dist == "normal" for dist in resolved) and self.return_copula != "gaussian":
+        if (
+            all(dist == "normal" for dist in resolved)
+            and self.return_copula != "gaussian"
+        ):
             raise ValueError(
                 "return_copula must be 'gaussian' when return_distribution is 'normal'"
             )
