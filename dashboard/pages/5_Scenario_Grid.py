@@ -315,8 +315,8 @@ def main() -> None:
                         if y_col == "external_pa_dollars_mm"
                         else float(sel_y)
                     )
-                    st.session_state["promoted_alpha_shares"] = {
-                        "active_share": float(sel_x) / 100.0,
+                    st.session_state["scenario_grid_selection"] = {
+                        "active_share": float(sel_x),
                         "theta_extpa": theta_val,
                     }
                     st.info(
