@@ -14,8 +14,7 @@ class Uploaded:
 
 
 def test_asset_library_calibration(monkeypatch):
-    module = runpy.run_path(
-        "dashboard/pages/1_Asset_Library.py", run_name="page")
+    module = runpy.run_path("dashboard/pages/1_Asset_Library.py", run_name="page")
     uploaded = Uploaded(Path("templates/asset_timeseries_wide_returns.csv"))
     st_mod = module["st"]
     monkeypatch.setattr(
