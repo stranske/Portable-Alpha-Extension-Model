@@ -168,6 +168,14 @@ def main() -> None:
                         prev_manifest_data = None
                         prev_summary_df = None
 
+                stress_delta_df = None
+                try:
+                    stress_delta_df = pd.read_excel(xlsx, sheet_name="StressDelta")
+                    if stress_delta_df.empty:
+                        stress_delta_df = None
+                except (FileNotFoundError, PermissionError, ValueError, OSError):
+                    stress_delta_df = None
+
                 with st.spinner("Creating export packet..."):
                     pptx_path, excel_path = create_export_packet(
                         figs=[fig],
@@ -178,6 +186,7 @@ def main() -> None:
                         manifest=manifest_data,
                         prev_summary_df=prev_summary_df,
                         prev_manifest=prev_manifest_data,
+                        stress_delta_df=stress_delta_df,
                     )
 
                 st.success("✅ Export packet created!")
