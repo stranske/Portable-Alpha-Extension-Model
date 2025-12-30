@@ -74,6 +74,18 @@ def main() -> None:
             frequency = st.radio(
                 "Frequency", options=["monthly", "daily"], index=0, horizontal=True
             )
+            monthly_rule = "ME"
+            if frequency == "daily":
+                monthly_rule = st.radio(
+                    "Monthly resample",
+                    options=["ME", "MS"],
+                    index=0,
+                    horizontal=True,
+                    format_func=lambda rule: (
+                        "Month-end [ME]" if rule == "ME" else "Month-start [MS]"
+                    ),
+                    help="Choose the month label for daily-to-monthly compounding.",
+                )
         with col3:
             min_obs = st.number_input(
                 "Min observations per id", min_value=1, value=36, step=1
@@ -114,6 +126,7 @@ def main() -> None:
             wide=wide,
             value_type=value_type,  # "returns" | "prices"
             frequency=frequency,  # "monthly" | "daily"
+            monthly_rule=monthly_rule,  # "ME" | "MS"
             min_obs=int(min_obs),
             sheet_name=sheet_arg,
             na_values=na_values,
