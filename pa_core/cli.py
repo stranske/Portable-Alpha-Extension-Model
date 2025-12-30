@@ -531,9 +531,6 @@ def main(
         base_cfg = cfg
         cfg = apply_stress_preset(cfg, args.stress_preset)
 
-    # Capture raw params BEFORE any config modifications
-    raw_params = cfg.model_dump()
-
     idx_series = load_index_returns(args.index)
 
     # Ensure idx_series is a pandas Series for type safety
@@ -609,6 +606,9 @@ def main(
                     "internal_pa_capital": float(row["internal_pa_capital"]),
                 }
             )
+
+    # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
+    raw_params = cfg.model_dump()
 
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]

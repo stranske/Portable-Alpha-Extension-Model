@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.cli import main
+from pa_core.cli import Dependencies, main
 from pa_core.config import ModelConfig, load_config
 from pa_core.sim.metrics import summary_table
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
@@ -117,6 +117,86 @@ def test_cli_sleeve_suggestion_auto_apply(tmp_path, monkeypatch):
         ]
     )
     assert out_file.exists()
+
+
+def test_cli_sleeve_suggestion_applies_to_inputs(tmp_path, monkeypatch):
+    cfg = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "analysis_mode": "single_with_sensitivity",
+        "total_fund_capital": 300.0,
+        "external_pa_capital": 100.0,
+        "active_ext_capital": 50.0,
+        "internal_pa_capital": 150.0,
+        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+    }
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    suggestions = pd.DataFrame(
+        [
+            {
+                "external_pa_capital": 200.0,
+                "active_ext_capital": 50.0,
+                "internal_pa_capital": 50.0,
+            }
+        ]
+    )
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.suggest_sleeve_sizes",
+        lambda *_args, **_kwargs: suggestions,
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.sensitivity.one_factor_deltas",
+        lambda *_args, **_kwargs: pd.DataFrame(),
+    )
+
+    captured: dict[str, object] = {}
+
+    def _export_to_excel(inputs_dict, _summary, _raw_returns_dict, **_kwargs):
+        captured["inputs_dict"] = inputs_dict
+
+    deps = Dependencies(
+        build_from_config=lambda _cfg: object(),
+        export_to_excel=_export_to_excel,
+        draw_financing_series=lambda *_args, **_kwargs: (
+            np.zeros((1, 1)),
+            np.zeros((1, 1)),
+            np.zeros((1, 1)),
+        ),
+        draw_joint_returns=lambda *_args, **_kwargs: (
+            np.zeros((1, 1)),
+            np.zeros((1, 1)),
+            np.zeros((1, 1)),
+            np.zeros((1, 1)),
+        ),
+        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
+        simulate_agents=lambda *_args, **_kwargs: {"Base": np.zeros((1, 1))},
+    )
+
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--suggest-sleeves",
+            "--suggest-apply-index",
+            "0",
+            "--sensitivity",
+        ],
+        deps=deps,
+    )
+
+    inputs = captured.get("inputs_dict")
+    assert isinstance(inputs, dict)
+    assert inputs["external_pa_capital"] == 200.0
+    assert inputs["active_ext_capital"] == 50.0
+    assert inputs["internal_pa_capital"] == 50.0
 
 
 def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
