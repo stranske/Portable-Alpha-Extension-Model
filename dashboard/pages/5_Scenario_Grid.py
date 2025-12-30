@@ -22,6 +22,7 @@ from pa_core.viz import grid_heatmap
 _EMPTY_DATAFRAME: pd.DataFrame | None = None
 _GRID_CACHE_KEY = "scenario_grid_cache"
 _GRID_PROMOTION_NOTICE_KEY = "scenario_grid_promotion_notice"
+_GRID_CACHE_LIMIT = 3
 _EXTRA_METRICS = [
     "AnnReturn",
     "AnnVol",
@@ -42,20 +43,46 @@ def _get_empty_dataframe() -> pd.DataFrame:
 
 def _get_grid_cache(cache_key: str) -> dict | None:
     cached = st.session_state.get(_GRID_CACHE_KEY)
-    if isinstance(cached, dict) and cached.get("key") == cache_key:
-        return cached
+    if isinstance(cached, dict):
+        if cached.get("key") == cache_key:
+            return cached
+        entries = cached.get("entries")
+        if isinstance(entries, dict) and cache_key in entries:
+            order = cached.get("order")
+            if isinstance(order, list):
+                if cache_key in order:
+                    order.remove(cache_key)
+                order.append(cache_key)
+            return entries[cache_key]
     return None
 
 
 def _set_grid_cache(
     cache_key: str, grid_df: pd.DataFrame, y_col: str, total_fund: float
 ) -> None:
-    st.session_state[_GRID_CACHE_KEY] = {
+    entry = {
         "key": cache_key,
         "grid_df": grid_df,
         "y_col": y_col,
         "total_fund": total_fund,
     }
+    cached = st.session_state.get(_GRID_CACHE_KEY)
+    if not isinstance(cached, dict) or "entries" not in cached:
+        cached = {"entries": {}, "order": []}
+    entries = cached.get("entries")
+    order = cached.get("order")
+    if not isinstance(entries, dict) or not isinstance(order, list):
+        cached = {"entries": {}, "order": []}
+        entries = cached["entries"]
+        order = cached["order"]
+    entries[cache_key] = entry
+    if cache_key in order:
+        order.remove(cache_key)
+    order.append(cache_key)
+    while len(order) > _GRID_CACHE_LIMIT:
+        oldest = order.pop(0)
+        entries.pop(oldest, None)
+    st.session_state[_GRID_CACHE_KEY] = cached
 
 
 def _read_csv(file) -> pd.DataFrame:
@@ -389,7 +416,7 @@ def main() -> None:
                 if sel_x is None or sel_y is None:
                     st.warning("Please select both axes values before promoting.")
                     return
-                st.session_state["promoted_alpha_shares"] = {
+                promoted_selection = {
                     "active_share": float(sel_x) / 100.0,
                     "theta_extpa": (
                         float(sel_y)
@@ -397,6 +424,14 @@ def main() -> None:
                         else float(sel_y) / total_fund
                     ),
                 }
+                st.session_state["promoted_alpha_shares"] = promoted_selection
+                st.session_state["scenario_grid_selection"] = {
+                    "active_share": float(sel_x),
+                    "theta_extpa": promoted_selection["theta_extpa"],
+                }
+                st.session_state["scenario_grid_promotion_token"] = (
+                    int(st.session_state.get("scenario_grid_promotion_token", 0)) + 1
+                )
                 st.session_state[_GRID_PROMOTION_NOTICE_KEY] = (
                     "Selection promoted. Other pages can read "
                     "session_state['promoted_alpha_shares']."
