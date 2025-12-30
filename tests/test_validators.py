@@ -210,6 +210,23 @@ class TestCapitalAllocationValidation:
         # Interpolated multiplier at 2 months should be 3
         assert margin == pytest.approx(0.02 * 3.0 * 1000.0)
 
+    def test_margin_requirement_schedule_interpolation_from_path(
+        self, tmp_path: Path
+    ):
+        """Test schedule interpolation when loading from the schedule path."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        schedule_path = tmp_path / "sched.csv"
+        schedule_path.write_text(csv)
+
+        margin = calculate_margin_requirement(
+            reference_sigma=0.02,
+            total_capital=1000.0,
+            financing_model="schedule",
+            schedule_path=schedule_path,
+            term_months=2.0,
+        )
+        assert margin == pytest.approx(0.02 * 3.0 * 1000.0)
+
 
 class TestMarginScheduleValidation:
     """Tests for margin schedule loading and validation."""

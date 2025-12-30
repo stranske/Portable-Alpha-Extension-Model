@@ -263,6 +263,15 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     return df.sort_values("term")
 
 
+def interpolate_margin_multiplier(term_months: float, schedule: pd.DataFrame) -> float:
+    """Return the interpolated margin multiplier for a given term."""
+    terms = schedule["term"].to_numpy(float)
+    multipliers = schedule["multiplier"].to_numpy(float)
+    if terms.size == 0:
+        raise ValueError("Margin schedule must contain at least one row")
+    return float(np.interp(float(term_months), terms, multipliers))
+
+
 def calculate_margin_requirement(
     reference_sigma: float,
     volatility_multiple: float = 3.0,
@@ -288,10 +297,7 @@ def calculate_margin_requirement(
         # Guard for static type checker
         if not isinstance(ms, pd.DataFrame):
             raise TypeError("margin_schedule must be a pandas DataFrame when provided")
-        # ms is guaranteed to be a pd.DataFrame here
-        terms = ms["term"].to_numpy(float)
-        multipliers = ms["multiplier"].to_numpy(float)
-        k = float(np.interp(term_months, terms, multipliers))
+        k = interpolate_margin_multiplier(term_months, ms)
     else:
         k = volatility_multiple
 
