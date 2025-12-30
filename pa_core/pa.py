@@ -170,17 +170,17 @@ def main(argv: Sequence[str] | None = None) -> None:
         cov_shrinkage = cast(
             Literal["none", "ledoit_wolf"] | None,
             _coerce_calibration_setting(
-            args.cov_shrinkage or calibration_overrides.get("covariance_shrinkage"),
-            allowed={"none", "ledoit_wolf"},
-            label="covariance_shrinkage",
+                args.cov_shrinkage or calibration_overrides.get("covariance_shrinkage"),
+                allowed={"none", "ledoit_wolf"},
+                label="covariance_shrinkage",
             ),
         )
         vol_regime = cast(
             Literal["single", "two_state"] | None,
             _coerce_calibration_setting(
-            args.vol_regime or calibration_overrides.get("vol_regime"),
-            allowed={"single", "two_state"},
-            label="vol_regime",
+                args.vol_regime or calibration_overrides.get("vol_regime"),
+                allowed={"single", "two_state"},
+                label="vol_regime",
             ),
         )
         vol_regime_window = (
