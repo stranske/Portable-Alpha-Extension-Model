@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional, cast
+from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 import numpy.typing as npt
 from numpy.random import Generator
@@ -23,21 +23,38 @@ _VALID_RETURN_DISTS = {"normal", "student_t"}
 _VALID_RETURN_COPULAS = {"gaussian", "t"}
 
 
-def _validate_return_draw_settings(distribution: str, copula: str, t_df: float) -> None:
-    if distribution not in _VALID_RETURN_DISTS:
-        raise ValueError(
-            f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}"
-        )
+def _validate_return_draw_settings(
+    distribution: str | Sequence[str], copula: str, t_df: float
+) -> None:
+    if isinstance(distribution, str):
+        distributions = (distribution,)
+    else:
+        distributions = tuple(distribution)
+    for dist in distributions:
+        if dist not in _VALID_RETURN_DISTS:
+            raise ValueError(
+                f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}"
+            )
     if copula not in _VALID_RETURN_COPULAS:
         raise ValueError(
             f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}"
         )
-    if distribution == "normal" and copula != "gaussian":
+    if all(dist == "normal" for dist in distributions) and copula != "gaussian":
         raise ValueError(
             "return_copula must be 'gaussian' when return_distribution is 'normal'"
         )
-    if distribution == "student_t" and t_df <= 2.0:
+    if any(dist == "student_t" for dist in distributions) and t_df <= 2.0:
         raise ValueError("return_t_df must be greater than 2 for finite variance")
+
+
+def _resolve_return_distributions(
+    base: str, overrides: Optional[Sequence[Optional[str]]] = None
+) -> tuple[str, str, str, str]:
+    if overrides is None:
+        return (base, base, base, base)
+    if len(overrides) != 4:
+        raise ValueError("return_distributions must have length 4")
+    return tuple((override or base) for override in overrides)
 
 
 def _safe_multivariate_normal(
@@ -76,6 +93,38 @@ def _draw_student_t(
         chi = rng.chisquare(df, size=(*size, n_dim))
         denom = np.sqrt(chi / df)
     shocks = z * (scale / denom)
+    return cast(npt.NDArray[Any], mean + shocks * sigma)
+
+
+def _draw_mixed_returns(
+    *,
+    rng: Generator,
+    mean: npt.NDArray[Any],
+    sigma: npt.NDArray[Any],
+    corr: npt.NDArray[Any],
+    size: tuple[int, int],
+    df: float,
+    copula: str,
+    distributions: Sequence[str],
+) -> npt.NDArray[Any]:
+    n_dim = mean.size
+    z = _safe_multivariate_normal(rng, np.zeros(n_dim), corr, size)
+    shocks = np.empty_like(z)
+    scale = np.sqrt((df - 2.0) / df)
+    denom_common = None
+    if copula == "t":
+        chi = rng.chisquare(df, size=size)
+        denom_common = np.sqrt(chi / df)
+    for i, dist in enumerate(distributions):
+        if dist == "normal":
+            shocks[..., i] = z[..., i]
+        else:
+            if copula == "t":
+                denom = denom_common
+            else:
+                chi = rng.chisquare(df, size=size)
+                denom = np.sqrt(chi / df)
+            shocks[..., i] = z[..., i] * (scale / denom)
     return cast(npt.NDArray[Any], mean + shocks * sigma)
 
 
@@ -118,6 +167,7 @@ def prepare_mc_universe(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
+    return_distributions: Optional[Sequence[Optional[str]]] = None,
     seed: Optional[int] = None,
     rng: Optional[Generator] = None,
 ) -> npt.NDArray[Any]:
@@ -129,10 +179,13 @@ def prepare_mc_universe(
     if rng is None:
         rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
-    _validate_return_draw_settings(return_distribution, return_copula, return_t_df)
+    distributions = _resolve_return_distributions(
+        return_distribution, return_distributions
+    )
+    _validate_return_draw_settings(distributions, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
     cov = cov_mat / 12.0
-    if return_distribution == "normal":
+    if all(dist == "normal" for dist in distributions):
         sims = _safe_multivariate_normal(rng, mean, cov, (N_SIMULATIONS, N_MONTHS))
     else:
         sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
@@ -143,15 +196,27 @@ def prepare_mc_universe(
             out=np.eye(cov.shape[0]),
             where=denom != 0.0,
         )
-        sims = _draw_student_t(
-            rng=rng,
-            mean=mean,
-            sigma=sigma,
-            corr=corr,
-            size=(N_SIMULATIONS, N_MONTHS),
-            df=return_t_df,
-            copula=return_copula,
-        )
+        if all(dist == "student_t" for dist in distributions):
+            sims = _draw_student_t(
+                rng=rng,
+                mean=mean,
+                sigma=sigma,
+                corr=corr,
+                size=(N_SIMULATIONS, N_MONTHS),
+                df=return_t_df,
+                copula=return_copula,
+            )
+        else:
+            sims = _draw_mixed_returns(
+                rng=rng,
+                mean=mean,
+                sigma=sigma,
+                corr=corr,
+                size=(N_SIMULATIONS, N_MONTHS),
+                df=return_t_df,
+                copula=return_copula,
+                distributions=distributions,
+            )
     return sims
 
 
@@ -168,9 +233,19 @@ def draw_joint_returns(
     assert rng is not None
     assert rng is not None
     distribution = params.get("return_distribution", "normal")
+    dist_overrides = (
+        params.get("return_distribution_idx"),
+        params.get("return_distribution_H"),
+        params.get("return_distribution_E"),
+        params.get("return_distribution_M"),
+    )
+    use_overrides = any(val is not None for val in dist_overrides)
     copula = params.get("return_copula", "gaussian")
     t_df = float(params.get("return_t_df", 5.0))
-    _validate_return_draw_settings(distribution, copula, t_df)
+    distributions = _resolve_return_distributions(
+        distribution, dist_overrides if use_overrides else None
+    )
+    _validate_return_draw_settings(distributions, copula, t_df)
     μ_idx = params["mu_idx_month"]
     μ_H = params["default_mu_H"]
     μ_E = params["default_mu_E"]
@@ -195,19 +270,31 @@ def draw_joint_returns(
     )
     μ = np.array([μ_idx, μ_H, μ_E, μ_M])
     σ = np.array([σ_idx, σ_H, σ_E, σ_M])
-    if distribution == "normal":
+    if all(dist == "normal" for dist in distributions):
         Σ = corr * (σ[:, None] * σ[None, :])
         sims = _safe_multivariate_normal(rng, μ, Σ, (n_sim, n_months))
     else:
-        sims = _draw_student_t(
-            rng=rng,
-            mean=μ,
-            sigma=σ,
-            corr=corr,
-            size=(n_sim, n_months),
-            df=t_df,
-            copula=copula,
-        )
+        if all(dist == "student_t" for dist in distributions):
+            sims = _draw_student_t(
+                rng=rng,
+                mean=μ,
+                sigma=σ,
+                corr=corr,
+                size=(n_sim, n_months),
+                df=t_df,
+                copula=copula,
+            )
+        else:
+            sims = _draw_mixed_returns(
+                rng=rng,
+                mean=μ,
+                sigma=σ,
+                corr=corr,
+                size=(n_sim, n_months),
+                df=t_df,
+                copula=copula,
+                distributions=distributions,
+            )
     r_beta = sims[:, :, 0]
     r_H = sims[:, :, 1]
     r_E = sims[:, :, 2]
@@ -312,6 +399,7 @@ def simulate_alpha_streams(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
+    return_distributions: Optional[Sequence[Optional[str]]] = None,
     rng: Optional[Generator] = None,
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
@@ -319,12 +407,15 @@ def simulate_alpha_streams(
         raise ValueError("T must be positive")
     if cov.shape != (4, 4):
         raise ValueError("cov must be 4×4 and ordered as [idx, H, E, M]")
-    _validate_return_draw_settings(return_distribution, return_copula, return_t_df)
+    distributions = _resolve_return_distributions(
+        return_distribution, return_distributions
+    )
+    _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
     if rng is None:
         rng = spawn_rngs(None, 1)[0]
     assert rng is not None
-    if return_distribution == "normal":
+    if all(dist == "normal" for dist in distributions):
         return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]  # type: ignore[no-any-return]
     sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
     denom = np.outer(sigma, sigma)
@@ -334,13 +425,25 @@ def simulate_alpha_streams(
         out=np.eye(cov.shape[0]),
         where=denom != 0.0,
     )
-    sims = _draw_student_t(
-        rng=rng,
-        mean=means,
-        sigma=sigma,
-        corr=corr,
-        size=(T, 1),
-        df=return_t_df,
-        copula=return_copula,
-    )
+    if all(dist == "student_t" for dist in distributions):
+        sims = _draw_student_t(
+            rng=rng,
+            mean=means,
+            sigma=sigma,
+            corr=corr,
+            size=(T, 1),
+            df=return_t_df,
+            copula=return_copula,
+        )
+    else:
+        sims = _draw_mixed_returns(
+            rng=rng,
+            mean=means,
+            sigma=sigma,
+            corr=corr,
+            size=(T, 1),
+            df=return_t_df,
+            copula=return_copula,
+            distributions=distributions,
+        )
     return sims[:, 0, :]  # type: ignore[no-any-return]

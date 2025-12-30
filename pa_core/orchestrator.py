@@ -55,6 +55,12 @@ class SimulatorOrchestrator:
             return_distribution=self.cfg.return_distribution,
             return_t_df=self.cfg.return_t_df,
             return_copula=self.cfg.return_copula,
+            return_distributions=(
+                self.cfg.return_distribution_idx,
+                self.cfg.return_distribution_H,
+                self.cfg.return_distribution_E,
+                self.cfg.return_distribution_M,
+            ),
             rng=rng_returns,
         )
         r_beta = universe[:, :, 0]

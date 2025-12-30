@@ -59,6 +59,18 @@ class ModelConfig(BaseModel):
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
     return_copula: str = Field(default="gaussian", alias="Return copula")
+    return_distribution_idx: Optional[str] = Field(
+        default=None, alias="Index return distribution"
+    )
+    return_distribution_H: Optional[str] = Field(
+        default=None, alias="In-House return distribution"
+    )
+    return_distribution_E: Optional[str] = Field(
+        default=None, alias="Alpha-Extension return distribution"
+    )
+    return_distribution_M: Optional[str] = Field(
+        default=None, alias="External PA return distribution"
+    )
 
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
     active_ext_capital: float = Field(
@@ -221,13 +233,29 @@ class ModelConfig(BaseModel):
             raise ValueError(
                 f"return_distribution must be one of: {sorted(valid_distributions)}"
             )
+        for dist in (
+            self.return_distribution_idx,
+            self.return_distribution_H,
+            self.return_distribution_E,
+            self.return_distribution_M,
+        ):
+            if dist is not None and dist not in valid_distributions:
+                raise ValueError(
+                    f"return_distribution must be one of: {sorted(valid_distributions)}"
+                )
         if self.return_copula not in valid_copulas:
             raise ValueError(f"return_copula must be one of: {sorted(valid_copulas)}")
-        if self.return_distribution == "normal" and self.return_copula != "gaussian":
+        resolved = (
+            self.return_distribution_idx or self.return_distribution,
+            self.return_distribution_H or self.return_distribution,
+            self.return_distribution_E or self.return_distribution,
+            self.return_distribution_M or self.return_distribution,
+        )
+        if all(dist == "normal" for dist in resolved) and self.return_copula != "gaussian":
             raise ValueError(
                 "return_copula must be 'gaussian' when return_distribution is 'normal'"
             )
-        if self.return_distribution == "student_t" and self.return_t_df <= 2.0:
+        if any(dist == "student_t" for dist in resolved) and self.return_t_df <= 2.0:
             raise ValueError("return_t_df must be greater than 2 for finite variance")
         return self
 

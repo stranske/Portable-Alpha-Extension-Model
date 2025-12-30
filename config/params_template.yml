@@ -32,6 +32,11 @@ rho_E_M: 0.00    # correlation extension vs external PA
 return_distribution: normal  # normal | student_t
 return_t_df: 5.0             # degrees of freedom for Student-t
 return_copula: gaussian      # gaussian | t (t-copula adds tail dependence)
+# Optional per-series overrides (fallback to return_distribution when omitted)
+# return_distribution_idx: normal
+# return_distribution_H: normal
+# return_distribution_E: normal
+# return_distribution_M: normal
 
 internal_financing_mean_month: 0.0   # internal financing mean per month
 internal_financing_sigma_month: 0.0  # internal financing volatility per month

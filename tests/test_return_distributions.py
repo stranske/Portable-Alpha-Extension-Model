@@ -137,3 +137,34 @@ def test_student_t_cvar_more_extreme_than_normal() -> None:
     )
     t_cvar = conditional_value_at_risk(r_beta_t, confidence=0.95)
     assert t_cvar < normal_cvar
+
+
+def test_draw_joint_returns_allows_per_series_distributions() -> None:
+    n_sim, n_months = 6000, 12
+    params = _base_params()
+    params.update(
+        {
+            "default_mu_H": params["mu_idx_month"],
+            "default_sigma_H": params["idx_sigma_month"],
+            "rho_idx_H": 0.0,
+            "rho_idx_E": 0.0,
+            "rho_idx_M": 0.0,
+            "rho_H_E": 0.0,
+            "rho_H_M": 0.0,
+            "rho_E_M": 0.0,
+            "return_distribution_idx": "normal",
+            "return_distribution_H": "student_t",
+            "return_distribution_E": "normal",
+            "return_distribution_M": "normal",
+        }
+    )
+    rng = np.random.default_rng(9)
+    r_beta, r_H, _, _ = draw_joint_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng,
+    )
+    normal_cvar = conditional_value_at_risk(r_beta, confidence=0.95)
+    t_cvar = conditional_value_at_risk(r_H, confidence=0.95)
+    assert t_cvar < normal_cvar
