@@ -53,8 +53,15 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
     assert run_end.get("seed") == 123
     assert run_end.get("backend") == "numpy"
     assert isinstance(run_end.get("artifact_paths"), list)
+    artifact_paths = run_end.get("artifact_paths") or []
+    artifact_names = {Path(path).name for path in artifact_paths}
+    assert "run.log" in artifact_names
+    assert "manifest.json" in artifact_names
+    assert out_file.name in artifact_names
 
     assert manifest.get("run_timing", {}).get("duration_seconds") is not None
+    assert manifest.get("run_timing", {}).get("started_at") is not None
+    assert manifest.get("run_timing", {}).get("ended_at") is not None
 
     if shutil.which("jq"):
         msg = subprocess.check_output(
