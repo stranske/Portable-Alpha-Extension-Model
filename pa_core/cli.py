@@ -72,6 +72,23 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(entry)
 
 
+class RunTimer:
+    def __init__(self) -> None:
+        self._start = time.perf_counter()
+        self._start_wall = datetime.now(timezone.utc)
+
+    def elapsed(self) -> float:
+        return max(0.0, time.perf_counter() - self._start)
+
+    def snapshot(self) -> dict[str, Any]:
+        end_wall = datetime.now(timezone.utc)
+        return {
+            "duration_seconds": self.elapsed(),
+            "started_at": self._start_wall.isoformat(),
+            "ended_at": end_wall.isoformat(),
+        }
+
+
 def create_enhanced_summary(
     returns_map: dict[str, "np.ndarray"],
     *,
@@ -411,7 +428,7 @@ def main(
     )
     args = parser.parse_args(argv)
 
-    run_start = time.perf_counter()
+    run_timer = RunTimer()
     run_end_emitted = False
     run_log_path: Path | None = None
     run_backend: str | None = None
@@ -423,7 +440,7 @@ def main(
         artifact_candidates.append(Path(path))
 
     def _current_duration() -> float:
-        return max(0.0, time.perf_counter() - run_start)
+        return run_timer.elapsed()
 
     def _collect_artifacts() -> list[str]:
         seen: set[str] = set()
@@ -663,7 +680,7 @@ def main(
             backend=args.backend,
             run_log=run_log_path,
             previous_run=args.prev_manifest,
-            run_timing={"duration_seconds": _current_duration()},
+            run_timing=run_timer.snapshot(),
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         _record_artifact(manifest_json)
@@ -1150,7 +1167,7 @@ def main(
             backend=args.backend,
             run_log=run_log_path,
             previous_run=args.prev_manifest,
-            run_timing={"duration_seconds": _current_duration()},
+            run_timing=run_timer.snapshot(),
         )
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
