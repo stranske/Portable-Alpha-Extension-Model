@@ -438,6 +438,7 @@ def main(
     run_end_emitted = False
     run_log_path: Path | None = None
     run_backend: str | None = None
+    run_id: str | None = None
     artifact_candidates: list[Path] = []
     manifest_path: Path | None = None
 
@@ -460,26 +461,30 @@ def main(
                     collected.append(value)
         return collected
 
-    def _finalize_manifest_timing() -> None:
+    def _finalize_manifest_timing(
+        snapshot: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        timing = snapshot or run_timer.snapshot()
         if manifest_path is None or not manifest_path.exists():
-            return
+            return timing
         try:
             data = json.loads(manifest_path.read_text())
             if not isinstance(data, dict):
-                return
+                return timing
         except (json.JSONDecodeError, FileNotFoundError, PermissionError):
-            return
-        data["run_timing"] = run_timer.snapshot()
+            return timing
+        data["run_timing"] = timing
         if run_log_path is not None:
             data["run_log"] = str(run_log_path)
         manifest_path.write_text(json.dumps(data, indent=2))
         _record_artifact(manifest_path)
+        return timing
 
     def _emit_run_end() -> None:
         nonlocal run_end_emitted
         if run_end_emitted:
             return
-        _finalize_manifest_timing()
+        timing = _finalize_manifest_timing()
         if run_log_path is None:
             run_end_emitted = True
             return
@@ -487,10 +492,13 @@ def main(
         from .logging_utils import emit_run_end
 
         emit_run_end(
-            duration_seconds=_current_duration(),
+            duration_seconds=timing.get("duration_seconds", _current_duration()),
+            started_at=timing.get("started_at"),
+            ended_at=timing.get("ended_at"),
             seed=args.seed,
             backend=run_backend,
             artifact_paths=_collect_artifacts(),
+            run_id=run_id,
             run_log=run_log_path,
             manifest_path=manifest_path,
         )
@@ -590,10 +598,11 @@ def main(
     if args.log_json:
         # Create run directory under ./runs/<timestamp>
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        run_id = ts
         run_dir = Path("runs") / ts
         candidate_log_path = run_dir / "run.log"
         try:
-            setup_json_logging(str(candidate_log_path))
+            setup_json_logging(str(candidate_log_path), run_id=run_id)
             run_log_path = candidate_log_path
             _record_artifact(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:

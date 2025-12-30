@@ -37,6 +37,8 @@ class JSONLogFormatter(logging.Formatter):
             "event",
             "funcName",
             "duration_seconds",
+            "started_at",
+            "ended_at",
             "seed",
             "backend",
             "artifact_paths",
@@ -118,6 +120,8 @@ def setup_json_logging(
 def emit_run_end(
     *,
     duration_seconds: float,
+    started_at: str | None = None,
+    ended_at: str | None = None,
     seed: int | None,
     backend: str | None,
     artifact_paths: list[str] | None = None,
@@ -134,6 +138,10 @@ def emit_run_end(
         "backend": backend,
         "artifact_paths": artifact_paths or [],
     }
+    if started_at:
+        extra["started_at"] = started_at
+    if ended_at:
+        extra["ended_at"] = ended_at
     if run_id:
         extra["run_id"] = run_id
     if run_log:
