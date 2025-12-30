@@ -1177,9 +1177,7 @@ def main() -> None:
                 st.session_state.financing_settings = {
                     "financing_model": financing_model,
                     "reference_sigma": config_data.get("reference_sigma", 0.01),
-                    "volatility_multiple": config_data.get(
-                        "volatility_multiple", 3.0
-                    ),
+                    "volatility_multiple": config_data.get("volatility_multiple", 3.0),
                     "term_months": config_data.get(
                         "financing_term_months", config_data.get("term_months", 1.0)
                     ),
