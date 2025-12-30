@@ -74,6 +74,48 @@ def main(argv: Sequence[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="Run simulation")
     sub.add_parser("validate", help="Validate scenario YAML")
+    calibrate_parser = sub.add_parser(
+        "calibrate", help="Calibrate asset library from returns data"
+    )
+    calibrate_parser.add_argument(
+        "--input", required=True, help="Input CSV/XLSX file with returns or prices"
+    )
+    calibrate_parser.add_argument(
+        "--index-id", required=True, help="Asset id to use as market index"
+    )
+    calibrate_parser.add_argument(
+        "--output",
+        default="asset_library.yaml",
+        help="Output asset library YAML (default: asset_library.yaml)",
+    )
+    calibrate_parser.add_argument(
+        "--mapping",
+        help="Optional YAML mapping template for DataImportAgent",
+    )
+    calibrate_parser.add_argument(
+        "--min-obs",
+        type=int,
+        default=36,
+        help="Minimum observations per id when no mapping template is provided",
+    )
+    calibrate_parser.add_argument(
+        "--cov-shrinkage",
+        choices=["none", "ledoit_wolf"],
+        default="none",
+        help="Covariance shrinkage mode",
+    )
+    calibrate_parser.add_argument(
+        "--vol-regime",
+        choices=["single", "two_state"],
+        default="single",
+        help="Volatility regime selection",
+    )
+    calibrate_parser.add_argument(
+        "--vol-regime-window",
+        type=int,
+        default=12,
+        help="Recent window length (months) for two-state regime",
+    )
 
     # Add convert subparser with arguments
     convert_parser = sub.add_parser(
@@ -93,6 +135,23 @@ def main(argv: Sequence[str] | None = None) -> None:
         from .validate import main as validate_main
 
         validate_main(list(remaining))
+    elif args.command == "calibrate":
+        from .data import CalibrationAgent, DataImportAgent
+
+        if args.mapping:
+            importer = DataImportAgent.from_template(args.mapping)
+        else:
+            importer = DataImportAgent(min_obs=int(args.min_obs))
+        df = importer.load(args.input)
+        calib = CalibrationAgent(
+            min_obs=importer.min_obs,
+            covariance_shrinkage=args.cov_shrinkage,
+            vol_regime=args.vol_regime,
+            vol_regime_window=int(args.vol_regime_window),
+        )
+        result = calib.calibrate(df, index_id=args.index_id)
+        calib.to_yaml(result, args.output)
+        print(f"✓ Wrote asset library to {args.output}")
     else:  # convert
         # Handle convert command with its specific arguments
         import warnings

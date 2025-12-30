@@ -74,6 +74,15 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 - Annualization: mean×12, stdev×√12
 - Exclude partial months and assets with < 36 obs by default
 
+**Options**
+- `covariance_shrinkage`: `none` | `ledoit_wolf` (shrinks covariance toward the diagonal)
+- `vol_regime`: `single` | `two_state` (selects low/high vol based on a recent window)
+- `vol_regime_window`: length in months for the recent window
+
+**Trade-offs**
+- Shrinkage stabilizes short samples but can mute true cross-asset covariation.
+- Two-state regimes track recent volatility but can be noisy with very short windows.
+
 **Test hooks**
 - Known synthetic input with deterministic μ/σ/ρ
 

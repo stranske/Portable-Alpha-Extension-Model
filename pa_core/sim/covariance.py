@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+from typing import Literal
 
 import numpy as np
 from numpy.typing import NDArray
@@ -9,6 +10,32 @@ from ..backend import xp
 from ..schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 
 __all__ = ["build_cov_matrix", "nearest_psd", "build_cov_matrix_with_validation"]
+
+
+def _ledoit_wolf_shrinkage_from_cov(
+    cov: NDArray[np.float64], n_samples: int
+) -> tuple[NDArray[np.float64], float]:
+    """Return Ledoit-Wolf shrunk covariance and shrinkage intensity.
+
+    Uses a normal-moment approximation to estimate shrinkage intensity from
+    the covariance matrix and sample count.
+    """
+
+    if n_samples <= 1:
+        return np.asarray(cov, dtype=np.float64), 0.0
+    n_features = cov.shape[0]
+    mu = float(xp.trace(cov)) / n_features
+    target = mu * xp.eye(n_features)
+    delta = cov - target
+    delta_norm2 = float(xp.sum(delta**2))
+    if delta_norm2 == 0.0:
+        return np.asarray(cov, dtype=np.float64), 0.0
+    diag = xp.diag(cov)
+    beta = float(xp.sum(cov**2) + xp.sum(xp.outer(diag, diag))) / float(n_samples)
+    beta = min(beta, delta_norm2)
+    shrinkage = 0.0 if delta_norm2 == 0.0 else beta / delta_norm2
+    shrunk_cov = (1.0 - shrinkage) * cov + shrinkage * target
+    return np.asarray(shrunk_cov, dtype=np.float64), float(shrinkage)
 
 
 def _is_psd(mat: NDArray[np.float64], tol: float = 0.0) -> bool:
@@ -57,6 +84,8 @@ def build_cov_matrix(
     sigma_H: float,
     sigma_E: float,
     sigma_M: float,
+    covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none",
+    n_samples: int | None = None,
 ) -> NDArray[np.float64]:
     """Return PSD 4×4 covariance matrix for (Index, H, E, M).
 
@@ -89,6 +118,9 @@ def build_cov_matrix(
     )
     cov = xp.outer(sds, sds) * rho
     cov = 0.5 * (cov + cov.T)
+    if covariance_shrinkage == "ledoit_wolf" and n_samples is not None:
+        cov, _ = _ledoit_wolf_shrinkage_from_cov(cov, int(n_samples))
+        cov = xp.asarray(cov)
     if _is_psd(cov):
         return np.asarray(cov, dtype=np.float64)
     adjusted = nearest_psd(cov)
@@ -111,6 +143,8 @@ def build_cov_matrix_with_validation(
     sigma_H: float,
     sigma_E: float,
     sigma_M: float,
+    covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none",
+    n_samples: int | None = None,
 ) -> tuple[NDArray[np.float64], dict]:
     """Return PSD 4×4 covariance matrix for (Index, H, E, M) with detailed validation info.
 
@@ -153,6 +187,9 @@ def build_cov_matrix_with_validation(
     )
     cov = xp.outer(sds, sds) * rho
     cov = 0.5 * (cov + cov.T)
+    if covariance_shrinkage == "ledoit_wolf" and n_samples is not None:
+        cov, _ = _ledoit_wolf_shrinkage_from_cov(cov, int(n_samples))
+        cov = xp.asarray(cov)
 
     # Validate PSD and get detailed info
     validation_result, psd_info = validate_covariance_matrix_psd(cov)
