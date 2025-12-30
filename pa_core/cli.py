@@ -1221,6 +1221,9 @@ def main(
             scenarios = {}
             failed_params = []
             skipped_params = []
+            param_results: dict[str, dict[str, float | None]] = {
+                name: {"plus": None, "minus": None} for name in base_params
+            }
 
             for param_name, base_value in base_params.items():
                 # Test positive perturbation
@@ -1229,6 +1232,7 @@ def main(
                     pos_value = base_value * 1.05
                     pos_result = _eval({param_name: pos_value})
                     scenarios[pos_key] = pd.DataFrame({"AnnReturn": [pos_result]})
+                    param_results[param_name]["plus"] = pos_result
                 except (ValueError, ZeroDivisionError) as e:
                     failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
                     skipped_params.append(pos_key)
@@ -1250,6 +1254,7 @@ def main(
                     neg_value = base_value * 0.95
                     neg_result = _eval({param_name: neg_value})
                     scenarios[neg_key] = pd.DataFrame({"AnnReturn": [neg_result]})
+                    param_results[param_name]["minus"] = neg_result
                 except (ValueError, ZeroDivisionError) as e:
                     failed_params.append(f"{neg_key}: Configuration error: {str(e)}")
                     skipped_params.append(neg_key)
@@ -1270,6 +1275,37 @@ def main(
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
                 deltas = simple_one_factor_deltas(base_df, scenarios, value="AnnReturn")
+                base_value = (
+                    float(base_df["AnnReturn"].iloc[0]) if not base_df.empty else 0.0
+                )
+                records = []
+                for name, values in param_results.items():
+                    minus_val = values.get("minus")
+                    plus_val = values.get("plus")
+                    if minus_val is None or plus_val is None:
+                        continue
+                    low = minus_val - base_value
+                    high = plus_val - base_value
+                    delta_abs = max(abs(low), abs(high))
+                    records.append(
+                        (name, base_value, minus_val, plus_val, low, high, delta_abs)
+                    )
+                if records:
+                    sens_df = pd.DataFrame(
+                        records,
+                        columns=[
+                            "Parameter",
+                            "Base",
+                            "Minus",
+                            "Plus",
+                            "Low",
+                            "High",
+                            "DeltaAbs",
+                        ],
+                    )
+                    sens_df.sort_values("DeltaAbs", ascending=False, inplace=True)
+                    sens_df.reset_index(drop=True, inplace=True)
+                    inputs_dict["_sensitivity_df"] = sens_df
 
                 print("\n📊 Sensitivity Analysis Results:")
                 print("=" * 50)
