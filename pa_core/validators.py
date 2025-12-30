@@ -230,6 +230,8 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
         raise FileNotFoundError(f"Margin schedule file not found: {path}")
 
     df = pd.read_csv(path)
+    if "term" not in df.columns and "term_months" in df.columns:
+        df = df.rename(columns={"term_months": "term"})
     required_cols = {"term", "multiplier"}
     missing = required_cols - set(df.columns)
 

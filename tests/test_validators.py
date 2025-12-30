@@ -238,6 +238,14 @@ class TestMarginScheduleValidation:
         with pytest.raises(ValueError, match="terms must be non-negative"):
             load_margin_schedule(path)
 
+    def test_term_months_column(self, tmp_path: Path):
+        """Accept term_months as an alias for term."""
+        csv = "term_months,multiplier\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
+        assert list(schedule["term"]) == [1, 3]
+
 
 class TestSimulationParameterValidation:
     """Test simulation parameter validation."""
