@@ -246,6 +246,22 @@ class TestMarginScheduleValidation:
         schedule = load_margin_schedule(path)
         assert list(schedule["term"]) == [1, 3]
 
+    def test_header_normalization(self, tmp_path: Path):
+        """Normalize header casing and whitespace."""
+        csv = "Term Months,Multiplier\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_non_numeric_term_or_multiplier(self, tmp_path: Path):
+        """Reject non-numeric term or multiplier values."""
+        csv = "term,multiplier\n1,2\nx,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        with pytest.raises(ValueError, match="non-numeric or missing"):
+            load_margin_schedule(path)
+
 
 class TestSimulationParameterValidation:
     """Test simulation parameter validation."""
