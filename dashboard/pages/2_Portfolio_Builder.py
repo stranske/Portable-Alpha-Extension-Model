@@ -23,8 +23,8 @@ def main() -> None:
     if "promoted_alpha_shares" in st.session_state:
         try:
             vals = st.session_state["promoted_alpha_shares"]
-            promoted_active_share = vals["active_share"]
-            promoted_theta = vals["theta_extpa"]
+            promoted_active_share = float(vals["active_share"])
+            promoted_theta = float(vals["theta_extpa"])
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
@@ -37,6 +37,18 @@ def main() -> None:
                 )
             )
 
+    # Apply promoted values to widget state once per promotion.
+    promoted_state = (promoted_active_share, promoted_theta)
+    last_promoted = st.session_state.get("alpha_shares_last_promoted")
+    if (
+        promoted_active_share is not None
+        and promoted_theta is not None
+        and promoted_state != last_promoted
+    ):
+        st.session_state["alpha_shares_active_share"] = promoted_active_share
+        st.session_state["alpha_shares_theta_extpa"] = promoted_theta
+        st.session_state["alpha_shares_last_promoted"] = promoted_state
+
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander(
         "Alpha Shares (annotation – included in download)",
@@ -48,6 +60,7 @@ def main() -> None:
             max_value=1.0,
             step=0.01,
             value=(promoted_active_share if promoted_active_share is not None else 0.5),
+            key="alpha_shares_active_share",
             help="Optional. Included in the exported YAML under alpha_shares metadata.",
         )
         theta_extpa_input = st.number_input(
@@ -56,6 +69,7 @@ def main() -> None:
             max_value=1.0,
             step=0.01,
             value=(promoted_theta if promoted_theta is not None else 0.5),
+            key="alpha_shares_theta_extpa",
             help="Optional. Included in the exported YAML under alpha_shares metadata.",
         )
 
