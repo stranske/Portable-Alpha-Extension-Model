@@ -138,3 +138,18 @@ def test_build_run_diff_parses_percent_strings() -> None:
     ann_vol = metric_diff[metric_diff["Metric"] == "AnnVol"].iloc[0]
     assert ann_return["Delta"] == pytest.approx(0.01)
     assert ann_vol["Delta"] == pytest.approx(-0.02)
+
+
+def test_build_run_diff_handles_numeric_string_config() -> None:
+    current_manifest = {"config": {"alpha": "5", "beta": "10%"}}
+    previous_manifest = {"config": {"alpha": "2", "beta": "8%"}}
+    summary = pd.DataFrame({"AnnReturn": [0.05]})
+
+    cfg_diff, _ = build_run_diff(
+        current_manifest, previous_manifest, summary, summary
+    )
+
+    alpha_row = cfg_diff[cfg_diff["Parameter"] == "alpha"].iloc[0]
+    beta_row = cfg_diff[cfg_diff["Parameter"] == "beta"].iloc[0]
+    assert alpha_row["Delta"] == pytest.approx(3.0)
+    assert beta_row["Delta"] == pytest.approx(0.02)

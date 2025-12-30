@@ -44,6 +44,8 @@ def build_run_diff(
         return isinstance(value, Real) and not isinstance(value, bool)
 
     def _coerce_numeric(value: Any) -> float | None:
+        if isinstance(value, bool):
+            return None
         if isinstance(value, str):
             stripped = value.strip()
             if stripped.endswith("%"):
@@ -83,11 +85,10 @@ def build_run_diff(
         prev_val = cfg_prev.get(key)
         if cur_val != prev_val:
             delta: float | str = ""
-            if _is_numeric(cur_val) and _is_numeric(prev_val):
-                try:
-                    delta = float(cur_val) - float(prev_val)
-                except (TypeError, ValueError):
-                    delta = ""
+            cur_num = _coerce_numeric(cur_val)
+            prev_num = _coerce_numeric(prev_val)
+            if cur_num is not None and prev_num is not None:
+                delta = cur_num - prev_num
             config_records.append(
                 {
                     "Parameter": key,
