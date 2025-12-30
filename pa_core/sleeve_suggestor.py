@@ -63,6 +63,18 @@ def _pick_priority_combos(
     return picked
 
 
+def _coerce_metric(value: object) -> float | None:
+    if value is None:
+        return None
+    try:
+        metric = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not np.isfinite(metric):
+        return None
+    return metric
+
+
 def suggest_sleeve_sizes(
     cfg: ModelConfig,
     idx_series: pd.Series,
@@ -194,14 +206,18 @@ def suggest_sleeve_sizes(
 
         meets = True
         metrics: dict[str, float] = {}
+        invalid_metrics = False
         for agent in ["ExternalPA", "ActiveExt", "InternalPA"]:
             sub = summary[summary["Agent"] == agent]
             if sub.empty:
                 continue
             row = sub.iloc[0]
-            te = row["TE"] if row["TE"] is not None else 0.0
-            bprob = row["BreachProb"]
-            cvar = row["CVaR"]
+            te = _coerce_metric(row["TE"])
+            bprob = _coerce_metric(row["BreachProb"])
+            cvar = _coerce_metric(row["CVaR"])
+            if te is None or bprob is None or cvar is None:
+                invalid_metrics = True
+                break
             metrics[f"{agent}_TE"] = float(te)
             metrics[f"{agent}_BreachProb"] = float(bprob)
             metrics[f"{agent}_CVaR"] = float(cvar)
@@ -209,6 +225,8 @@ def suggest_sleeve_sizes(
                 te > max_te or bprob > max_breach or abs(cvar) > max_cvar
             ):
                 meets = False
+        if invalid_metrics:
+            continue
 
         total_metrics: dict[str, float] = {}
         if "Base" in returns:
@@ -226,9 +244,11 @@ def suggest_sleeve_sizes(
                 {"Base": returns["Base"], "Total": total_returns}, benchmark="Base"
             )
             total_row = total_summary[total_summary["Agent"] == "Total"].iloc[0]
-            total_te = total_row["TE"] if total_row["TE"] is not None else 0.0
-            total_bprob = total_row["BreachProb"]
-            total_cvar = total_row["CVaR"]
+            total_te = _coerce_metric(total_row["TE"])
+            total_bprob = _coerce_metric(total_row["BreachProb"])
+            total_cvar = _coerce_metric(total_row["CVaR"])
+            if total_te is None or total_bprob is None or total_cvar is None:
+                continue
             total_metrics = {
                 "Total_TE": float(total_te),
                 "Total_BreachProb": float(total_bprob),

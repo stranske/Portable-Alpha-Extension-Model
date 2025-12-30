@@ -170,3 +170,40 @@ def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
     )
 
     assert len(df) == 2
+
+
+def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    idx_series = pd.Series([0.0])
+
+    returns = {
+        "Base": np.zeros((1, 1)),
+        "ExternalPA": np.zeros((1, 1)),
+        "ActiveExt": np.zeros((1, 1)),
+        "InternalPA": np.zeros((1, 1)),
+    }
+    summary = summary_table(returns, benchmark="Base")
+    summary.loc[summary["Agent"] == "ExternalPA", "TE"] = np.nan
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def run(self, seed=None):
+            return returns, summary
+
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator
+    )
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=1.0,
+    )
+
+    assert df.empty
