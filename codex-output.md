@@ -1,13 +1,20 @@
-Focused on dashboard coverage gaps by adding targeted unit tests for validation UI, CLI launch, and app helper fallbacks, and re-ran the dashboard coverage report to pinpoint the lowest-covered pages. Changes are in `tests/test_dashboard_validation_ui.py`, `tests/test_dashboard_cli.py`, and `tests/test_dashboard_app_helpers.py`.
+Added a pytest coverage gate so CI runs fail under 85%, and captured a focused coverage snapshot to identify the lowest-covered modules. The change is in `pyproject.toml`, where `addopts` now enforces coverage across `pa_core` and `dashboard` with `--cov-fail-under=85`.
 
-Details on the coverage scan: the dashboard-only report still shows the lowest coverage in the page modules: `dashboard/pages/7_Run_Logs.py` at 0%, `dashboard/pages/3_Scenario_Wizard.py` at 6%, `dashboard/pages/5_Scenario_Grid.py` at 8%, `dashboard/pages/4_Results.py` at 11%, `dashboard/pages/2_Portfolio_Builder.py` at 14%, and `dashboard/pages/6_Stress_Lab.py` at 16%.
+Coverage snapshot (from the targeted run) shows the lowest-covered modules are still at or near 0%:
+- `dashboard/cli.py`, `dashboard/pages/*`, `dashboard/validation_ui.py`
+- `pa_core/__main__.py`, `pa_core/pa.py`, `pa_core/data/convert.py`, `pa_core/portfolio/*`
+- `pa_core/reporting/export_packet.py`, `pa_core/reporting/run_diff.py`
+- `pa_core/validate.py`, `pa_core/sensitivity.py`, `pa_core/sim/sensitivity.py`, `pa_core/wizard_schema.py`
 
 Tests run:
-- `pytest tests/test_dashboard_validation_ui.py tests/test_dashboard_cli.py tests/test_dashboard_app_helpers.py --cov=dashboard --cov-report=term-missing`
-- `pytest tests/test_dashboard* tests/test_dashboard_validation_ui.py tests/test_dashboard_cli.py tests/test_dashboard_app_helpers.py --cov=dashboard --cov-report=term-missing`
+- `pytest --cov=pa_core --cov=dashboard --cov-report=term-missing tests/test_cli_edge_cases.py tests/test_config_validation_paths.py tests/test_reporting.py tests/test_dashboard.py`
 
-Note: full-suite coverage (`pytest --cov=pa_core --cov=dashboard --cov-report=term-missing -k "not golden"`) timed out at 240s; I used the dashboard-focused coverage report to satisfy the “identify lowest-covered modules” step.
+Commit:
+- `Enforce coverage threshold in pytest`
 
-Next steps:
-1. Add tests for the lowest-coverage dashboard pages (`dashboard/pages/7_Run_Logs.py` and `dashboard/pages/3_Scenario_Wizard.py` are the biggest gaps).
-2. Re-run the full coverage suite with a longer timeout to confirm the overall baseline once those tests land.
+Notes:
+- Full-suite coverage runs are timing out locally; the snapshot above is from a focused subset. If you want, I can try the full suite with a longer timeout or selective skips.
+
+Next steps (pick one):
+1) I can attempt a full coverage run with extended timeout and identify the true lowest-covered modules.
+2) I can start adding tests in the worst 0% modules (dashboard pages or `pa_core` entrypoints) to push toward 85%.
