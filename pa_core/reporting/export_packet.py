@@ -151,6 +151,7 @@ def create_export_packet(
     manifest: Mapping[str, Any] | None = None,
     prev_summary_df: pd.DataFrame | None = None,
     prev_manifest: Mapping[str, Any] | None = None,
+    stress_delta_df: pd.DataFrame | None = None,
 ) -> Tuple[str, str]:
     """Create PPTX + Excel packet and return their paths."""
     base = Path(str(base_filename))
@@ -177,6 +178,11 @@ def create_export_packet(
         diff_config_df=cfg_diff_df,
         diff_metrics_df=metric_diff_df,
     )
+    if stress_delta_df is not None and not stress_delta_df.empty:
+        with pd.ExcelWriter(
+            excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
+        ) as writer:
+            stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
 
     # PowerPoint deck
     prs = _Presentation()
@@ -207,6 +213,8 @@ def create_export_packet(
         _add_table_slide(prs, cfg_diff_df, title="Config Changes")
     if metric_diff_df is not None and not metric_diff_df.empty:
         _add_table_slide(prs, metric_diff_df, title="Metric Changes")
+    if stress_delta_df is not None and not stress_delta_df.empty:
+        _add_table_slide(prs, stress_delta_df, title="Stress Delta vs Base")
 
     # Optional manifest summary appendix
     if manifest:

@@ -26,3 +26,25 @@ def test_invalid_preset_raises():
     cfg = _base_cfg()
     with pytest.raises(KeyError):
         apply_stress_preset(cfg, "unknown")
+
+
+def test_label_alias_resolves():
+    cfg = _base_cfg()
+    stressed = apply_stress_preset(cfg, "Liquidity squeeze")
+    assert stressed.internal_spike_prob == pytest.approx(0.1)
+
+
+def test_correlation_breakdown_overrides_rhos():
+    cfg = _base_cfg()
+    stressed = apply_stress_preset(cfg, "correlation_breakdown")
+    assert stressed.rho_idx_H == pytest.approx(0.95)
+    assert stressed.rho_H_E == pytest.approx(0.95)
+    assert stressed.rho_E_M == pytest.approx(0.95)
+
+
+def test_2020_gap_day_overrides_returns():
+    cfg = _base_cfg()
+    stressed = apply_stress_preset(cfg, "2020_gap_day")
+    assert stressed.mu_H == pytest.approx(-0.20)
+    assert stressed.mu_E == pytest.approx(-0.25)
+    assert stressed.mu_M == pytest.approx(-0.15)
