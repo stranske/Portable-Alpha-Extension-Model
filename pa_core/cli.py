@@ -233,6 +233,21 @@ def main(
         default=None,
         help="Random seed for reproducible simulations",
     )
+    parser.add_argument(
+        "--return-distribution",
+        choices=["normal", "student_t"],
+        help="Override return distribution (normal or student_t)",
+    )
+    parser.add_argument(
+        "--return-t-df",
+        type=float,
+        help="Override Student-t degrees of freedom (requires student_t)",
+    )
+    parser.add_argument(
+        "--return-copula",
+        choices=["gaussian", "t"],
+        help="Override return copula (gaussian or t)",
+    )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
     parser.add_argument(
@@ -376,6 +391,17 @@ def main(
     from .config import load_config
 
     cfg = load_config(args.config)
+    return_overrides: dict[str, float | str] = {}
+    if args.return_distribution is not None:
+        return_overrides["return_distribution"] = args.return_distribution
+    if args.return_t_df is not None:
+        return_overrides["return_t_df"] = args.return_t_df
+    if args.return_copula is not None:
+        return_overrides["return_copula"] = args.return_copula
+    if return_overrides:
+        cfg = cfg.__class__.model_validate(
+            {**cfg.model_dump(), **return_overrides}
+        )
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
