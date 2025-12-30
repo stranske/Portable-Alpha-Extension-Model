@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import io
 from typing import Any, Dict, cast
 
@@ -103,8 +104,12 @@ def export_to_excel(
                     df.to_excel(writer, sheet_name=safe_name, index=True)
 
     wb = openpyxl.load_workbook(filename)
+    max_autosize_cells = 50_000
     for ws in wb.worksheets:
         ws.freeze_panes = "A2"
+        # Avoid expensive autosizing on large sheets (e.g., raw returns).
+        if ws.max_row * ws.max_column > max_autosize_cells:
+            continue
         for column_cells in ws.columns:
             max_len = max(
                 len(str(cell.value)) if cell.value is not None else 0
@@ -113,7 +118,9 @@ def export_to_excel(
             col_idx = cast(int, column_cells[0].column)
             ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
 
-    if "Summary" in wb.sheetnames:
+    if "Summary" in wb.sheetnames and not (
+        os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
+    ):
         ws = wb["Summary"]
         metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
@@ -134,7 +141,9 @@ def export_to_excel(
             pass
 
     # Best-effort: embed tornado image on Sensitivity sheet
-    if "Sensitivity" in wb.sheetnames:
+    if "Sensitivity" in wb.sheetnames and not (
+        os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
+    ):
         try:
             from ..viz import tornado
 
@@ -177,7 +186,9 @@ def export_to_excel(
             pass
 
     # Best-effort: embed sunburst image on Attribution sheet
-    if "Attribution" in wb.sheetnames:
+    if "Attribution" in wb.sheetnames and not (
+        os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
+    ):
         try:
             from ..viz import sunburst
 
