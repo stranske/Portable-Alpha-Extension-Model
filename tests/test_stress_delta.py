@@ -35,9 +35,7 @@ def test_build_delta_table_includes_total_row():
 
 
 def test_build_stress_workbook_contains_expected_sheets():
-    base = pd.DataFrame(
-        {"Agent": ["Base"], "AnnReturn": [0.05], "BreachCount": [1]}
-    )
+    base = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05], "BreachCount": [1]})
     stressed = pd.DataFrame(
         {"Agent": ["Base"], "AnnReturn": [0.02], "BreachCount": [3]}
     )
