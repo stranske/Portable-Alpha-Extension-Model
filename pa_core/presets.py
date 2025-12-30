@@ -78,9 +78,7 @@ class PresetLibrary:
         return out
 
     @classmethod
-    def from_dict(
-        cls, data: Dict[str, Dict[str, float | str]]
-    ) -> "PresetLibrary":
+    def from_dict(cls, data: Dict[str, Dict[str, float | str]]) -> "PresetLibrary":
         presets = [
             AlphaPreset(
                 id=k,
