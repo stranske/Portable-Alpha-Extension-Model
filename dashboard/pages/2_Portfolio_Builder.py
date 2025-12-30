@@ -8,7 +8,7 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from dashboard.utils import normalize_share
+from dashboard.utils import apply_promoted_alpha_shares, normalize_share
 from pa_core.portfolio.aggregator import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
@@ -47,16 +47,10 @@ def main() -> None:
             )
 
     # Apply promoted values to widget state once per promotion.
-    promoted_state = (promoted_source, promoted_active_share, promoted_theta)
-    last_promoted = st.session_state.get("alpha_shares_last_promoted")
-    if (
-        promoted_active_share is not None
-        and promoted_theta is not None
-        and promoted_state != last_promoted
+    if apply_promoted_alpha_shares(
+        st.session_state, promoted_source, promoted_active_share, promoted_theta
     ):
-        st.session_state["alpha_shares_active_share"] = promoted_active_share
-        st.session_state["alpha_shares_theta_extpa"] = promoted_theta
-        st.session_state["alpha_shares_last_promoted"] = promoted_state
+        st.rerun()
 
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander(
@@ -113,7 +107,9 @@ def main() -> None:
     weights = {k: v / total for k, v in weight_inputs.items() if v > 0}
     st.write(f"Weights normalised to sum to 1 (total input={total:.2f}).")
 
-    if st.button("Generate Portfolio"):
+    generate_now = st.button("Generate Portfolio")
+    auto_generate = bool(st.session_state.get("portfolio_builder_autorun"))
+    if generate_now or auto_generate:
         try:
             scenario.portfolios = [Portfolio(id="portfolio1", weights=weights)]
             data = scenario.model_dump()
@@ -134,6 +130,8 @@ def main() -> None:
             mu, sigma = agg.aggregate(weights)
             st.write(f"Expected return: {mu:.2%}")
             st.write(f"Expected volatility: {sigma:.2%}")
+            if auto_generate:
+                st.session_state["portfolio_builder_autorun"] = False
         except Exception as exc:  # pragma: no cover - streamlit runtime
             st.error(str(exc))
 
