@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import pandas as pd
 
-from dashboard.utils import bump_session_token, make_grid_cache_key, normalize_share
+from dashboard.utils import (
+    apply_promoted_alpha_shares,
+    bump_session_token,
+    make_grid_cache_key,
+    normalize_share,
+)
 from pa_core.config import ModelConfig
 
 
@@ -56,3 +61,27 @@ def test_bump_session_token_resets_invalid_values() -> None:
     state: dict[str, object] = {"token": "abc"}
     assert bump_session_token(state, "token") == 1
     assert state["token"] == 1
+
+
+def test_apply_promoted_alpha_shares_triggers_rerun_on_new_token() -> None:
+    state: dict[str, object] = {
+        "scenario_grid_promotion_token": 2,
+        "alpha_shares_last_promotion_token": 1,
+    }
+    rerun = apply_promoted_alpha_shares(state, "Scenario Grid", 0.4, 0.3)
+    assert rerun is True
+    assert state["alpha_shares_active_share"] == 0.4
+    assert state["alpha_shares_theta_extpa"] == 0.3
+    assert state["alpha_shares_last_promotion_token"] == 2
+    assert state["portfolio_builder_autorun"] is True
+
+
+def test_apply_promoted_alpha_shares_skips_when_unchanged() -> None:
+    state: dict[str, object] = {
+        "scenario_grid_promotion_token": 2,
+        "alpha_shares_last_promotion_token": 2,
+        "alpha_shares_last_promoted": ("Scenario Grid", 0.4, 0.3),
+    }
+    rerun = apply_promoted_alpha_shares(state, "Scenario Grid", 0.4, 0.3)
+    assert rerun is False
+    assert "portfolio_builder_autorun" not in state

@@ -8,7 +8,7 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from dashboard.utils import normalize_share
+from dashboard.utils import apply_promoted_alpha_shares, normalize_share
 from pa_core.portfolio.aggregator import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
@@ -47,23 +47,10 @@ def main() -> None:
             )
 
     # Apply promoted values to widget state once per promotion.
-    promoted_state = (promoted_source, promoted_active_share, promoted_theta)
-    last_promoted = st.session_state.get("alpha_shares_last_promoted")
-    promotion_token = st.session_state.get("scenario_grid_promotion_token")
-    last_token = st.session_state.get("alpha_shares_last_promotion_token")
-    if (
-        promoted_active_share is not None
-        and promoted_theta is not None
-        and (promoted_state != last_promoted or promotion_token != last_token)
+    if apply_promoted_alpha_shares(
+        st.session_state, promoted_source, promoted_active_share, promoted_theta
     ):
-        st.session_state["alpha_shares_active_share"] = promoted_active_share
-        st.session_state["alpha_shares_theta_extpa"] = promoted_theta
-        st.session_state["alpha_shares_last_promoted"] = promoted_state
-        if promotion_token is not None:
-            st.session_state["alpha_shares_last_promotion_token"] = promotion_token
-            if promotion_token != last_token:
-                st.session_state["portfolio_builder_autorun"] = True
-                st.rerun()
+        st.rerun()
 
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander(
