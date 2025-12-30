@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import Literal
+from typing import Iterable, Literal, Sequence
 
 import numpy as np
 import pandas as pd
@@ -9,6 +9,58 @@ import pandas as pd
 from .config import ModelConfig
 from .orchestrator import SimulatorOrchestrator
 from .sim.metrics import summary_table
+
+
+def _clamp_grid(
+    grid: np.ndarray, min_value: float | None, max_value: float | None
+) -> np.ndarray:
+    min_val = 0.0 if min_value is None else min_value
+    max_val = float("inf") if max_value is None else max_value
+    return grid[(grid >= min_val) & (grid <= max_val)]
+
+
+def _pick_priority_combos(
+    combos: Sequence[tuple[float, float]],
+    ext_grid: Iterable[float],
+    act_grid: Iterable[float],
+    total: float,
+    min_internal: float | None,
+    max_internal: float | None,
+) -> list[tuple[float, float]]:
+    def internal_ok(value: float) -> bool:
+        if min_internal is not None and value < min_internal:
+            return False
+        if max_internal is not None and value > max_internal:
+            return False
+        return True
+
+    ext_vals = sorted(set(ext_grid))
+    act_vals = sorted(set(act_grid))
+    if not ext_vals or not act_vals:
+        return []
+
+    candidates = [
+        (ext_vals[0], act_vals[0]),
+        (ext_vals[0], act_vals[-1]),
+        (ext_vals[-1], act_vals[0]),
+        (ext_vals[-1], act_vals[-1]),
+    ]
+
+    target = total / 3
+    ext_mid = min(ext_vals, key=lambda v: abs(v - target))
+    act_mid = min(act_vals, key=lambda v: abs(v - target))
+    candidates.append((ext_mid, act_mid))
+
+    picked = []
+    for ext_cap, act_cap in candidates:
+        int_cap = total - ext_cap - act_cap
+        if int_cap < 0:
+            continue
+        if not internal_ok(int_cap):
+            continue
+        if (ext_cap, act_cap) in combos and (ext_cap, act_cap) not in picked:
+            picked.append((ext_cap, act_cap))
+    return picked
 
 
 def suggest_sleeve_sizes(
@@ -71,18 +123,43 @@ def suggest_sleeve_sizes(
     if constraint_scope not in {"sleeves", "total", "both"}:
         raise ValueError("constraint_scope must be one of: sleeves, total, both")
 
+    if step <= 0:
+        raise ValueError("step must be positive")
+
     total = cfg.total_fund_capital
-    grid = np.arange(0.0, total + 1e-9, total * step)
+    step_size = total * step
+    grid = np.arange(0.0, total + 1e-9, step_size)
+    ext_grid = _clamp_grid(grid, min_external, max_external)
+    act_grid = _clamp_grid(grid, min_active, max_active)
+
+    if ext_grid.size == 0 or act_grid.size == 0:
+        return pd.DataFrame()
 
     combos = [
         (ext_cap, act_cap)
-        for ext_cap, act_cap in itertools.product(grid, repeat=2)
+        for ext_cap, act_cap in itertools.product(ext_grid, act_grid)
         if (total - ext_cap - act_cap) >= 0
     ]
     if max_evals is not None and len(combos) > max_evals:
         rng = np.random.default_rng(seed)
-        idx = rng.choice(len(combos), size=max_evals, replace=False)
-        combos = [combos[i] for i in idx]
+        priority = _pick_priority_combos(
+            combos,
+            ext_grid,
+            act_grid,
+            total,
+            min_internal,
+            max_internal,
+        )
+        remaining = [combo for combo in combos if combo not in priority]
+        budget = max_evals - len(priority)
+        if budget > 0 and remaining:
+            idx = rng.choice(
+                len(remaining), size=min(budget, len(remaining)), replace=False
+            )
+            sampled = [remaining[i] for i in idx]
+        else:
+            sampled = []
+        combos = priority + sampled
 
     records: list[dict[str, float]] = []
     for ext_cap, act_cap in combos:
