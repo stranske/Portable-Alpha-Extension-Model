@@ -6,10 +6,10 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from pa_core.reporting.sweep_excel import export_sweep_results
+
 openpyxl = pytest.importorskip("openpyxl")
 pptx = pytest.importorskip("pptx")
-
-from pa_core.reporting.sweep_excel import export_sweep_results
 
 ONE_PX_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
