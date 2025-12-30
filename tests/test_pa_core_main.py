@@ -107,7 +107,9 @@ class SimpleConfig:
 
 
 def _setup_common_stubs(monkeypatch):
-    monkeypatch.setattr(pa_main, "resolve_and_set_backend", lambda backend, cfg: "numpy")
+    monkeypatch.setattr(
+        pa_main, "resolve_and_set_backend", lambda backend, cfg: "numpy"
+    )
 
     import pa_core.agents.registry as registry
     import pa_core.data as data
@@ -118,7 +120,9 @@ def _setup_common_stubs(monkeypatch):
     import pa_core.sim.metrics as metrics
     import pa_core.simulations as simulations
 
-    monkeypatch.setattr(data, "load_index_returns", lambda path: pd.Series([0.1, 0.2, 0.3]))
+    monkeypatch.setattr(
+        data, "load_index_returns", lambda path: pd.Series([0.1, 0.2, 0.3])
+    )
     monkeypatch.setattr(random, "spawn_rngs", lambda seed, n: ["rng"] * n)
     monkeypatch.setattr(
         random,
@@ -127,9 +131,15 @@ def _setup_common_stubs(monkeypatch):
     )
     monkeypatch.setattr(covariance, "build_cov_matrix", lambda *args, **kwargs: "cov")
     monkeypatch.setattr(registry, "build_from_config", lambda cfg: ["agent"])
-    monkeypatch.setattr(sim, "draw_joint_returns", lambda **kwargs: (["b"], ["h"], ["e"], ["m"]))
-    monkeypatch.setattr(sim, "draw_financing_series", lambda **kwargs: (["i"], ["e"], ["a"]))
-    monkeypatch.setattr(simulations, "simulate_agents", lambda *args, **kwargs: {"Base": [1, 2]})
+    monkeypatch.setattr(
+        sim, "draw_joint_returns", lambda **kwargs: (["b"], ["h"], ["e"], ["m"])
+    )
+    monkeypatch.setattr(
+        sim, "draw_financing_series", lambda **kwargs: (["i"], ["e"], ["a"])
+    )
+    monkeypatch.setattr(
+        simulations, "simulate_agents", lambda *args, **kwargs: {"Base": [1, 2]}
+    )
     monkeypatch.setattr(metrics, "summary_table", lambda *args, **kwargs: "summary")
     monkeypatch.setattr(reporting, "export_to_excel", lambda *args, **kwargs: None)
 
