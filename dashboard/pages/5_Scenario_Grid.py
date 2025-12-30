@@ -42,6 +42,20 @@ def _read_csv(file) -> pd.DataFrame:
         return _get_empty_dataframe()
 
 
+def _extract_plotly_click(selection) -> tuple[float, float] | None:
+    if not isinstance(selection, dict):
+        return None
+    selection_state = selection.get("selection", {})
+    points = selection_state.get("points", [])
+    if not points:
+        return None
+    point = points[-1]
+    try:
+        return float(point["x"]), float(point["y"])
+    except (TypeError, ValueError, KeyError):
+        return None
+
+
 def main() -> None:
     st.title("Scenario Grid & Frontier (beta)")
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
@@ -283,7 +297,32 @@ def main() -> None:
                         )
                 except Exception as exc:
                     st.error(f"Frontier overlay failed: {exc}")
-                st.plotly_chart(fig2, use_container_width=True)
+                selection = st.plotly_chart(
+                    fig2,
+                    use_container_width=True,
+                    key="scenario_grid_heatmap",
+                    on_select="rerun",
+                    selection_mode="points",
+                )
+                clicked = _extract_plotly_click(selection)
+                if clicked is not None:
+                    sel_x, sel_y = clicked
+                    total_fund = float(getattr(base_cfg, "total_fund_capital", 1.0))
+                    if total_fund == 0:
+                        total_fund = 1.0
+                    theta_val = (
+                        float(sel_y) / total_fund
+                        if y_col == "external_pa_dollars_mm"
+                        else float(sel_y)
+                    )
+                    st.session_state["promoted_alpha_shares"] = {
+                        "active_share": float(sel_x),
+                        "theta_extpa": theta_val,
+                    }
+                    st.info(
+                        "Heatmap selection captured. Open Portfolio Builder to "
+                        "see the values populated."
+                    )
 
                 # Simple promote: allow choosing a point from available values
                 st.subheader("Promote selection")
