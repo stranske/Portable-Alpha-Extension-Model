@@ -259,6 +259,68 @@ def test_no_function_attribute_caching_antipattern():
     ), "Module-level cache should be a DataFrame"
 
 
+def test_export_packet_manifest_details():
+    summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
+    manifest = {
+        "git_commit": "abc123",
+        "timestamp": "2025-01-01T00:00:00Z",
+        "seed": 42,
+        "data_files": {
+            f"/tmp/data_{idx}.csv": f"{idx:064x}" for idx in range(9)
+        },
+        "cli_args": {"mode": "batch"},
+        "config": {
+            "N_SIMULATIONS": 500,
+            "N_MONTHS": 24,
+            "w_beta_H": 0.6,
+            "w_alpha_H": 0.4,
+        },
+    }
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        try:
+            pptx_path, excel_path = create_export_packet(
+                figs=[fig],
+                summary_df=summary_df,
+                raw_returns_dict=raw_returns_dict,
+                inputs_dict=inputs_dict,
+                base_filename=str(Path(tmpdir) / "test_packet_manifest"),
+                manifest=manifest,
+            )
+
+            assert Path(pptx_path).exists()
+            assert Path(excel_path).exists()
+
+            from pptx import Presentation
+
+            prs = Presentation(pptx_path)
+            texts = [
+                shape.text
+                for slide in prs.slides
+                for shape in slide.shapes
+                if getattr(shape, "has_text_frame", False)
+                and getattr(shape.text_frame, "text", "")
+            ]
+
+            joined = "\n".join(texts)
+            assert "Reproducibility Manifest" in joined
+            assert "Commit: abc123" in joined
+            assert "Seed: 42" in joined
+            assert "Data files (sha256):" in joined
+            assert "and 1 more" in joined
+            assert "Mode: batch" in joined
+            assert "Key config fields:" in joined
+            assert "N_SIMULATIONS" in joined
+            assert "N_MONTHS" in joined
+            assert "w_beta_H" in joined
+            assert "w_alpha_H" in joined
+        except RuntimeError as e:
+            if "Chrome" in str(e) or "Chromium" in str(e) or "Kaleido" in str(e):
+                pytest.skip("Chrome/Chromium not available in test environment")
+            else:
+                raise
+
+
 if __name__ == "__main__":
     # Run tests directly if executed as script
     try:
