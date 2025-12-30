@@ -1,158 +1,98 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict
 
 import pandas as pd
+import pytest
 
 import pa_core.__main__ as pa_main
-import pa_core.agents.registry as registry
-import pa_core.data as data_module
-import pa_core.random as random_module
-import pa_core.reporting as reporting_module
-import pa_core.sim as sim_module
-import pa_core.sim.covariance as covariance_module
-import pa_core.sim.metrics as metrics_module
-import pa_core.simulations as simulations_module
+from pa_core.config import ModelConfig
 
 
-class FakeConfig:
-    def __init__(self, **data: Any) -> None:
-        self._data = dict(data)
-        for key, value in data.items():
-            setattr(self, key, value)
+def test_main_runs_with_return_overrides(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cfg = ModelConfig(N_SIMULATIONS=2, N_MONTHS=3)
+    monkeypatch.setattr(pa_main, "load_config", lambda _: cfg)
 
-    def model_dump(self) -> Dict[str, Any]:
-        return dict(self._data)
+    backend_calls: Dict[str, Any] = {}
 
-    @classmethod
-    def model_validate(cls, data: Dict[str, Any]) -> "FakeConfig":
-        return cls(**data)
-
-
-def _base_config_data() -> Dict[str, Any]:
-    return {
-        "N_SIMULATIONS": 2,
-        "N_MONTHS": 3,
-        "mu_H": 0.04,
-        "sigma_H": 0.01,
-        "mu_E": 0.05,
-        "sigma_E": 0.02,
-        "mu_M": 0.03,
-        "sigma_M": 0.02,
-        "rho_idx_H": 0.05,
-        "rho_idx_E": 0.0,
-        "rho_idx_M": 0.0,
-        "rho_H_E": 0.1,
-        "rho_H_M": 0.1,
-        "rho_E_M": 0.0,
-        "return_distribution": "normal",
-        "return_t_df": 5.0,
-        "return_copula": "gaussian",
-        "return_distribution_idx": None,
-        "return_distribution_H": None,
-        "return_distribution_E": None,
-        "return_distribution_M": None,
-        "internal_financing_mean_month": 0.0,
-        "internal_financing_sigma_month": 0.0,
-        "internal_spike_prob": 0.0,
-        "internal_spike_factor": 0.0,
-        "ext_pa_financing_mean_month": 0.0,
-        "ext_pa_financing_sigma_month": 0.0,
-        "ext_pa_spike_prob": 0.0,
-        "ext_pa_spike_factor": 0.0,
-        "act_ext_financing_mean_month": 0.0,
-        "act_ext_financing_sigma_month": 0.0,
-        "act_ext_spike_prob": 0.0,
-        "act_ext_spike_factor": 0.0,
-    }
-
-
-def _patch_main_dependencies(monkeypatch):
-    calls: Dict[str, Any] = {}
-
-    def fake_load_index_returns(path: str):
-        calls["index_path"] = path
-        return pd.Series([0.1, 0.2, 0.3])
-
-    def fake_spawn_rngs(seed: int | None, count: int):
-        calls["spawn_rngs"] = (seed, count)
-        return ["rng"]
-
-    def fake_spawn_agent_rngs(seed: int | None, names):
-        calls["spawn_agent_rngs"] = (seed, list(names))
-        return {"internal": "rng-int"}
-
-    def fake_build_cov_matrix(*args, **kwargs):
-        calls["cov_matrix"] = {"args": args, "kwargs": kwargs}
-        return "cov"
-
-    def fake_draw_joint_returns(*args, **kwargs):
-        calls["draw_joint_returns"] = {"args": args, "kwargs": kwargs}
-        return ("beta", "H", "E", "M")
-
-    def fake_draw_financing_series(*args, **kwargs):
-        calls["draw_financing_series"] = {"args": args, "kwargs": kwargs}
-        return ("int", "ext", "act")
-
-    def fake_build_from_config(config):
-        calls["build_from_config"] = config
-        return "agents"
-
-    def fake_simulate_agents(*args, **kwargs):
-        calls["simulate_agents"] = {"args": args, "kwargs": kwargs}
-        return {"Base": [[1.0, 2.0], [3.0, 4.0]]}
-
-    def fake_summary_table(returns, benchmark):
-        calls["summary_table"] = (returns, benchmark)
-        return "summary"
-
-    def fake_export_to_excel(inputs_dict, summary, raw_returns_dict, filename):
-        calls["export_to_excel"] = {
-            "inputs": inputs_dict,
-            "summary": summary,
-            "raw_returns": raw_returns_dict,
-            "filename": filename,
-        }
-
-    monkeypatch.setattr(data_module, "load_index_returns", fake_load_index_returns)
-    monkeypatch.setattr(random_module, "spawn_rngs", fake_spawn_rngs)
-    monkeypatch.setattr(random_module, "spawn_agent_rngs", fake_spawn_agent_rngs)
-    monkeypatch.setattr(covariance_module, "build_cov_matrix", fake_build_cov_matrix)
-    monkeypatch.setattr(sim_module, "draw_joint_returns", fake_draw_joint_returns)
-    monkeypatch.setattr(sim_module, "draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr(registry, "build_from_config", fake_build_from_config)
-    monkeypatch.setattr(simulations_module, "simulate_agents", fake_simulate_agents)
-    monkeypatch.setattr(metrics_module, "summary_table", fake_summary_table)
-    monkeypatch.setattr(reporting_module, "export_to_excel", fake_export_to_excel)
-
-    return calls
-
-
-def test_main_applies_overrides_and_exports(monkeypatch) -> None:
-    cfg = FakeConfig(**_base_config_data())
-    calls = _patch_main_dependencies(monkeypatch)
-
-    def fake_load_config(path: str):
-        calls["load_config"] = path
-        return cfg
-
-    def fake_resolve_and_set_backend(choice, config):
-        calls["resolve_backend"] = (choice, config)
+    def fake_resolve_and_set_backend(backend: str | None, _: ModelConfig) -> str:
+        backend_calls["value"] = backend
         return "numpy"
 
-    monkeypatch.setattr(pa_main, "load_config", fake_load_config)
     monkeypatch.setattr(
         pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
     )
+    monkeypatch.setattr(
+        pa_main,
+        "select_vol_regime_sigma",
+        lambda *_, **__: (0.12, None, None),
+    )
 
+    import pa_core.agents.registry as registry_mod
+    import pa_core.data as data_mod
+    import pa_core.random as random_mod
+    import pa_core.reporting as reporting_mod
+    import pa_core.sim as sim_mod
+    import pa_core.sim.covariance as covariance_mod
+    import pa_core.sim.metrics as metrics_mod
+    import pa_core.simulations as simulations_mod
+
+    monkeypatch.setattr(
+        data_mod, "load_index_returns", lambda _: pd.Series([0.01, 0.02, -0.01])
+    )
+    monkeypatch.setattr(random_mod, "spawn_rngs", lambda *_: ["rng"])
+    monkeypatch.setattr(
+        random_mod,
+        "spawn_agent_rngs",
+        lambda *_: {"internal": "rng", "external_pa": "rng", "active_ext": "rng"},
+    )
+    monkeypatch.setattr(sim_mod, "draw_joint_returns", lambda **_: ("b", "h", "e", "m"))
+    monkeypatch.setattr(
+        sim_mod, "draw_financing_series", lambda **_: ("fi", "fe", "fa")
+    )
+
+    cov_calls: Dict[str, Any] = {}
+
+    def fake_build_cov_matrix(*args: Any, **kwargs: Any) -> None:
+        cov_calls["args"] = args
+        cov_calls["kwargs"] = kwargs
+
+    monkeypatch.setattr(covariance_mod, "build_cov_matrix", fake_build_cov_matrix)
+    monkeypatch.setattr(registry_mod, "build_from_config", lambda _: ["agent"])
+    monkeypatch.setattr(
+        simulations_mod, "simulate_agents", lambda *_: {"Base": [1.0, 2.0]}
+    )
+    monkeypatch.setattr(
+        metrics_mod, "summary_table", lambda *_, **__: {"ok": True}
+    )
+
+    export_calls: Dict[str, Any] = {}
+
+    def fake_export_to_excel(
+        inputs_dict: Dict[str, Any],
+        summary: Dict[str, Any],
+        raw_returns_dict: Dict[str, Any],
+        filename: str,
+    ) -> None:
+        export_calls["inputs"] = inputs_dict
+        export_calls["summary"] = summary
+        export_calls["returns"] = raw_returns_dict
+        export_calls["filename"] = filename
+
+    monkeypatch.setattr(reporting_mod, "export_to_excel", fake_export_to_excel)
+
+    output = tmp_path / "out.xlsx"
     pa_main.main(
         [
             "--config",
-            "config.yaml",
+            "config.yml",
             "--index",
             "index.csv",
             "--output",
-            "out.xlsx",
+            str(output),
             "--backend",
             "numpy",
             "--seed",
@@ -166,36 +106,38 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
         ]
     )
 
-    assert calls["load_config"] == "config.yaml"
-    assert calls["resolve_backend"][0] == "numpy"
-    assert calls["build_from_config"].return_distribution == "student_t"
-    assert calls["build_from_config"].return_t_df == 7.0
-    assert calls["build_from_config"].return_copula == "t"
-    export_call = calls["export_to_excel"]
-    assert export_call["filename"] == "out.xlsx"
-    assert export_call["inputs"]["return_distribution"] == "student_t"
-    assert export_call["inputs"]["return_t_df"] == 7.0
-    assert export_call["inputs"]["return_copula"] == "t"
-    assert isinstance(export_call["raw_returns"]["Base"], pd.DataFrame)
+    captured = capsys.readouterr()
+    assert "[BACKEND] Using backend: numpy" in captured.out
+    assert backend_calls["value"] == "numpy"
+    assert cov_calls["kwargs"]["covariance_shrinkage"] == "none"
+    assert cov_calls["kwargs"]["n_samples"] == 3
+    assert export_calls["filename"] == str(output)
+    assert export_calls["inputs"]["return_distribution"] == "student_t"
+    assert export_calls["inputs"]["return_t_df"] == 7.0
+    assert export_calls["inputs"]["return_copula"] == "t"
 
 
-def test_main_without_overrides(monkeypatch) -> None:
-    cfg = FakeConfig(**_base_config_data())
-    calls = _patch_main_dependencies(monkeypatch)
+def test_main_rejects_invalid_vol_regime(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeConfig:
+        vol_regime = "invalid"
 
-    def fake_load_config(path: str):
-        calls["load_config"] = path
-        return cfg
+        def model_dump(self) -> Dict[str, Any]:
+            return {}
 
-    def fake_resolve_and_set_backend(choice, config):
-        calls["resolve_backend"] = (choice, config)
-        return "numpy"
+    monkeypatch.setattr(pa_main, "load_config", lambda _: FakeConfig())
+    monkeypatch.setattr(pa_main, "resolve_and_set_backend", lambda *_: "numpy")
+    import pa_core.data as data_mod
+    import pa_core.random as random_mod
 
-    monkeypatch.setattr(pa_main, "load_config", fake_load_config)
     monkeypatch.setattr(
-        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
+        data_mod, "load_index_returns", lambda *_: pd.Series([0.01, 0.02])
+    )
+    monkeypatch.setattr(random_mod, "spawn_rngs", lambda *_: ["rng"])
+    monkeypatch.setattr(
+        random_mod,
+        "spawn_agent_rngs",
+        lambda *_: {"internal": "rng", "external_pa": "rng", "active_ext": "rng"},
     )
 
-    pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
-
-    assert calls["build_from_config"] is cfg
+    with pytest.raises(ValueError, match="vol_regime must be 'single' or 'two_state'"):
+        pa_main.main(["--config", "config.yml", "--index", "index.csv"])
