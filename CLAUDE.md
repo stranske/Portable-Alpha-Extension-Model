@@ -1,4 +1,4 @@
-# CLAUDE.md - Portable Alpha Extension Model
+# CLAUDE.md - Consumer Repository Context
 
 > **READ THIS FIRST** before making workflow changes.
 
@@ -17,13 +17,12 @@ stranske/Workflows (central library)
     │ uses: stranske/Workflows/.github/workflows/reusable-*.yml@main
     │
     ▼
-This Repo (PAEM - consumer)
+This Repo (consumer)
     .github/workflows/
       ├── agents-*.yml      → SYNCED from Workflows (don't edit)
       ├── autofix.yml       → SYNCED from Workflows (don't edit)
-      ├── pr-00-gate.yml    → CUSTOM (can edit - PAEM-specific jobs)
+      ├── pr-00-gate.yml    → SYNCED but customizable
       ├── ci.yml            → REPO-SPECIFIC (can edit)
-      ├── release*.yml      → REPO-SPECIFIC (PAEM portable Windows zip)
       └── autofix-versions.env → REPO-SPECIFIC (can edit)
 ```
 
@@ -31,12 +30,22 @@ This Repo (PAEM - consumer)
 
 | File | Editable? | Notes |
 |------|-----------|-------|
-| `agents-*.yml` | ❌ No | Synced from Workflows - changes will be overwritten |
+| `ci.yml` | ✅ Yes | Repo-specific CI configuration |
+| `autofix-versions.env` | ✅ Yes | Repo-specific dependency versions |
+| `pr-00-gate.yml` | ⚠️ Careful | Synced, but can customize if needed |
+| `agents-*.yml` | ❌ No | Synced from Workflows |
 | `autofix.yml` | ❌ No | Synced from Workflows |
-| `pr-00-gate.yml` | ✅ Yes | Custom Gate with PAEM-specific jobs |
-| `ci.yml` | ✅ Yes | PAEM-specific CI configuration |
-| `release*.yml` | ✅ Yes | PAEM portable Windows zip packaging |
-| `autofix-versions.env` | ✅ Yes | Version pins for autofix tools |
+
+## Keepalive System
+
+When an issue is labeled `agent:codex`:
+1. `agents-63-issue-intake.yml` creates a PR with bootstrap file
+2. `agents-keepalive-loop.yml` runs Codex in iterations
+3. Codex works through tasks in PR body until all complete
+
+**Key prompts** (in `.github/codex/prompts/`):
+- `keepalive_next_task.md` - Normal work instructions
+- `fix_ci_failures.md` - CI fix instructions
 
 ## Common Issues
 
@@ -69,9 +78,25 @@ For detailed docs, see **stranske/Workflows**:
 - `docs/keepalive/GoalsAndPlumbing.md` - Keepalive system design
 - `docs/keepalive/SETUP_CHECKLIST.md` - Required files and secrets
 
+## Quick Debug Commands
+
+```bash
+# Compare workflows with reference repo
+diff .github/workflows/autofix.yml \
+     <(gh api repos/stranske/Travel-Plan-Permission/contents/.github/workflows/autofix.yml --jq '.content' | base64 -d)
+
+# Check for missing files
+gh api repos/stranske/Travel-Plan-Permission/contents/.github/workflows --jq '.[].name' | sort > /tmp/tpp.txt
+ls .github/workflows/ | sort > /tmp/here.txt
+diff /tmp/tpp.txt /tmp/here.txt
+
+# Trigger workflow sync from Workflows repo
+gh workflow run maint-68-sync-consumer-repos.yml --repo stranske/Workflows
+```
+
 ---
 
-## 🔀 POLICY: Cross-Repo Work
+## �� POLICY: Cross-Repo Work
 
 > **CRITICAL**: Read this before ANY work that might affect the Workflows repo.
 
@@ -97,93 +122,27 @@ Signs that you need Workflows changes:
 
 **DO NOT** try to fix Workflows issues by editing local files - they will be overwritten on next sync.
 
+### Add Policy Verification Todo
+
+When your todo list involves cross-repo coordination, add as **FINAL** item:
+
+```
+✅ Verify cross-repo policy compliance:
+   - [ ] Changes made in correct repo (Workflows vs Consumer)
+   - [ ] Sync triggered if needed
+   - [ ] Both repos have passing CI
+```
+
 ### Quick Commands
 
 ```bash
 # Check if a file is synced (compare to template)
-diff .github/workflows/autofix.yml \
-     <(gh api repos/stranske/Workflows/contents/templates/consumer-repo/.github/workflows/autofix.yml --jq '.content' | base64 -d)
+diff .github/workflows/agents-keepalive-loop.yml \
+     <(gh api repos/stranske/Workflows/contents/templates/consumer-repo/.github/workflows/agents-keepalive-loop.yml --jq '.content' | base64 -d)
 
 # Trigger sync from Workflows
-gh workflow run maint-68-sync-consumer-repos.yml --repo stranske/Workflows -f repos="stranske/Portable-Alpha-Extension-Model"
+gh workflow run maint-68-sync-consumer-repos.yml --repo stranske/Workflows -f repos="${{ github.repository }}"
 
 # Check sync manifest for what SHOULD be here
 gh api repos/stranske/Workflows/contents/.github/sync-manifest.yml --jq '.content' | base64 -d
 ```
-
----
-
-## PAEM-Specific Development
-
-### Bootstrap and Setup
-```bash
-# Initial setup using dev script (RECOMMENDED)
-./dev.sh setup
-
-# Alternative: Manual setup
-python3 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
-```
-
-**TIMING**: Setup takes 3-5 minutes initially. NEVER CANCEL during dependency installation.
-
-### Build and Test Commands
-```bash
-# Full CI pipeline - takes 15 seconds. NEVER CANCEL.
-./dev.sh ci
-
-# Individual checks
-./dev.sh lint            # Ruff linting - takes <1 second
-./dev.sh typecheck       # Pyright type checking - takes 10 seconds  
-./dev.sh test            # Pytest test suite - takes 2-3 seconds
-```
-
-### Run the Application
-```bash
-# Basic simulation (takes 16 seconds - NEVER CANCEL)
-python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml \
-  --index data/sp500tr_fred_divyield.csv --output Results.xlsx
-
-# Parameter sweep modes (takes 4-16 seconds - NEVER CANCEL)
-python -m pa_core.cli --config examples/scenarios/my_first_scenario.yml \
-  --index data/sp500tr_fred_divyield.csv --mode returns --output ReturnsSweep.xlsx
-
-# Launch Streamlit dashboard (starts in 10-15 seconds)
-./dev.sh dashboard
-```
-
-### File Locations
-```
-├── pa_core/                 # Main Python package
-│   ├── cli.py              # Command-line interface
-│   ├── config.py           # Configuration handling  
-│   ├── agents/             # Simulation agents
-│   ├── data/               # Data loading/conversion
-│   ├── reporting/          # Excel/export functionality
-│   └── viz/                # Visualization components
-├── dashboard/              # Streamlit dashboard
-├── tests/                  # Test suite (pytest)
-├── config/                 # Configuration templates
-├── templates/              # YAML scenario templates  
-└── data/                   # Sample index data
-```
-
-### Troubleshooting
-
-**Import Errors**:
-```bash
-source .venv/bin/activate
-export PYTHONPATH=/workspaces/Portable-Alpha-Extension-Model
-```
-
-**Dashboard Not Starting**:
-```bash
-pip list | grep streamlit
-python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501
-# Allow 10-15 seconds for startup - NEVER CANCEL
-```
-
-**NEVER CANCEL REMINDER**: All build, test, and simulation commands complete in under 30 seconds. Set appropriate timeouts and wait for completion.
