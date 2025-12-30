@@ -300,7 +300,8 @@ class TestSimulationParameterValidation:
     def test_small_step_size_warning(self):
         """Test warning for very small step sizes."""
         results = validate_simulation_parameters(
-            n_simulations=1000, step_sizes={"param1": 0.01}  # Very small
+            n_simulations=1000,
+            step_sizes={"param1": 0.01},  # Very small
         )
 
         warnings = [r for r in results if r.severity == "warning"]

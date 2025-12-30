@@ -143,6 +143,31 @@ def main() -> None:
                 # Create packet with timestamp to avoid conflicts
                 base_name = f"committee_packet_{int(time.time())}"
 
+                prev_manifest_data = None
+                prev_summary_df = None
+                prev_manifest_path = None
+                if manifest_data:
+                    prev_ref = manifest_data.get("previous_run")
+                    if isinstance(prev_ref, str):
+                        candidate = Path(prev_ref)
+                        if candidate.exists():
+                            prev_manifest_path = candidate
+                if prev_manifest_path is not None:
+                    try:
+                        prev_manifest_data = json.loads(prev_manifest_path.read_text())
+                        prev_out = (
+                            prev_manifest_data.get("cli_args", {}).get("output")
+                            if isinstance(prev_manifest_data, dict)
+                            else None
+                        )
+                        if prev_out and Path(prev_out).exists():
+                            prev_summary_df = pd.read_excel(
+                                prev_out, sheet_name="Summary"
+                            )
+                    except Exception:
+                        prev_manifest_data = None
+                        prev_summary_df = None
+
                 with st.spinner("Creating export packet..."):
                     pptx_path, excel_path = create_export_packet(
                         figs=[fig],
@@ -151,6 +176,8 @@ def main() -> None:
                         inputs_dict=inputs_dict,
                         base_filename=base_name,
                         manifest=manifest_data,
+                        prev_summary_df=prev_summary_df,
+                        prev_manifest=prev_manifest_data,
                     )
 
                 st.success("✅ Export packet created!")
