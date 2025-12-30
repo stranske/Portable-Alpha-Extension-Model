@@ -62,6 +62,7 @@ def main() -> None:
         if promotion_token is not None:
             st.session_state["alpha_shares_last_promotion_token"] = promotion_token
             if promotion_token != last_token:
+                st.session_state["portfolio_builder_autorun"] = True
                 st.rerun()
 
     # Optional alpha-share annotation (pre-populated when promoted)
@@ -119,7 +120,9 @@ def main() -> None:
     weights = {k: v / total for k, v in weight_inputs.items() if v > 0}
     st.write(f"Weights normalised to sum to 1 (total input={total:.2f}).")
 
-    if st.button("Generate Portfolio"):
+    generate_now = st.button("Generate Portfolio")
+    auto_generate = bool(st.session_state.get("portfolio_builder_autorun"))
+    if generate_now or auto_generate:
         try:
             scenario.portfolios = [Portfolio(id="portfolio1", weights=weights)]
             data = scenario.model_dump()
@@ -140,6 +143,8 @@ def main() -> None:
             mu, sigma = agg.aggregate(weights)
             st.write(f"Expected return: {mu:.2%}")
             st.write(f"Expected volatility: {sigma:.2%}")
+            if auto_generate:
+                st.session_state["portfolio_builder_autorun"] = False
         except Exception as exc:  # pragma: no cover - streamlit runtime
             st.error(str(exc))
 
