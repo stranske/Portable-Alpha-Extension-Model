@@ -103,7 +103,8 @@ def build_run_diff(
                 if key not in prev_map:
                     prev_map[key] = row
             for key in common_ids:
-                cur_row = current_summary[current_keys.eq(key)].iloc[0]
+                mask = current_keys.apply(lambda x, k=key: x == k)
+                cur_row = current_summary[mask].iloc[0]
                 prev_row = prev_map.get(key)
                 if prev_row is None:
                     continue

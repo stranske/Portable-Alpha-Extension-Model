@@ -572,6 +572,8 @@ def main(
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
                         manifest=manifest_data,
+                        prev_summary_df=prev_summary_df,
+                        prev_manifest=prev_manifest_data,
                     )
                     print("✅ Parameter sweep export packet created:")
                     print(f"   📊 Excel: {excel_path}")
