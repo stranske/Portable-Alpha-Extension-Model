@@ -181,9 +181,7 @@ sigma_M: 0.01
             # Check that sensitivity analysis messages were printed
             print_calls = [str(call) for call in mock_print.call_args_list]
             sensitivity_messages = [
-                call
-                for call in print_calls
-                if "sensitivity" in call.lower() or "🔍" in call
+                call for call in print_calls if "sensitivity" in call.lower() or "🔍" in call
             ]
 
             assert (

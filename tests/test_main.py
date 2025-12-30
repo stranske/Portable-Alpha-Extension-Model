@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict
+from typing import Any, ClassVar
 
 import numpy as np
 import pandas as pd
@@ -45,20 +45,20 @@ class DummyConfig:
     N_SIMULATIONS: int = 2
     N_MONTHS: int = 3
 
-    last_validated: ClassVar[Dict[str, Any] | None] = None
+    last_validated: ClassVar[dict[str, Any] | None] = None
 
-    def model_dump(self) -> Dict[str, Any]:
+    def model_dump(self) -> dict[str, Any]:
         return {key: getattr(self, key) for key in self.__dataclass_fields__}
 
     @classmethod
-    def model_validate(cls, data: Dict[str, Any]) -> "DummyConfig":
+    def model_validate(cls, data: dict[str, Any]) -> DummyConfig:
         cls.last_validated = dict(data)
         return cls(**data)
 
 
 def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
-    export_calls: Dict[str, Any] = {}
-    backend_calls: Dict[str, Any] = {}
+    export_calls: dict[str, Any] = {}
+    backend_calls: dict[str, Any] = {}
 
     def fake_load_config(_: str) -> DummyConfig:
         return DummyConfig()
@@ -68,7 +68,7 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         backend_calls["cfg"] = cfg
         return "numpy"
 
-    def fake_build_from_config(cfg: DummyConfig) -> Dict[str, str]:
+    def fake_build_from_config(cfg: DummyConfig) -> dict[str, str]:
         return {"agent": "stub"}
 
     def fake_load_index_returns(_: str) -> pd.Series:
@@ -95,18 +95,18 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     def fake_build_cov_matrix(*_: Any, **__: Any) -> None:
         return None
 
-    def fake_simulate_agents(*_: Any, **__: Any) -> Dict[str, np.ndarray]:
+    def fake_simulate_agents(*_: Any, **__: Any) -> dict[str, np.ndarray]:
         return {"Base": np.array([[0.01, 0.02], [0.03, 0.04]])}
 
-    def fake_summary_table(returns: Dict[str, np.ndarray], benchmark: str) -> str:
+    def fake_summary_table(returns: dict[str, np.ndarray], benchmark: str) -> str:
         assert benchmark == "Base"
         assert "Base" in returns
         return "summary"
 
     def fake_export_to_excel(
-        inputs: Dict[str, Any],
+        inputs: dict[str, Any],
         summary: str,
-        raw_returns: Dict[str, pd.DataFrame],
+        raw_returns: dict[str, pd.DataFrame],
         filename: str,
     ) -> None:
         export_calls["inputs"] = inputs
@@ -115,20 +115,14 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         export_calls["filename"] = filename
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(
-        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
-    )
-    monkeypatch.setattr(
-        "pa_core.agents.registry.build_from_config", fake_build_from_config
-    )
+    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", fake_build_from_config)
     monkeypatch.setattr("pa_core.data.load_index_returns", fake_load_index_returns)
     monkeypatch.setattr("pa_core.random.spawn_rngs", fake_spawn_rngs)
     monkeypatch.setattr("pa_core.random.spawn_agent_rngs", fake_spawn_agent_rngs)
     monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
     monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr(
-        "pa_core.sim.covariance.build_cov_matrix", fake_build_cov_matrix
-    )
+    monkeypatch.setattr("pa_core.sim.covariance.build_cov_matrix", fake_build_cov_matrix)
     monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
     monkeypatch.setattr("pa_core.sim.metrics.summary_table", fake_summary_table)
     monkeypatch.setattr("pa_core.reporting.export_to_excel", fake_export_to_excel)

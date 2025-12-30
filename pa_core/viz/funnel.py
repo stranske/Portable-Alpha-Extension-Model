@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -10,8 +8,8 @@ from . import theme
 
 
 def make(
-    df_paths: Union[pd.DataFrame, np.ndarray],
-    quantiles: Tuple[float, float] = (0.05, 0.95),
+    df_paths: pd.DataFrame | np.ndarray,
+    quantiles: tuple[float, float] = (0.05, 0.95),
 ) -> go.Figure:
     """Visualise widening distribution of cumulative returns."""
     arr = np.asarray(df_paths)
@@ -22,9 +20,7 @@ def make(
     months = np.arange(arr.shape[1])
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(go.Scatter(x=months, y=upper, line=dict(width=0), showlegend=False))
-    fig.add_trace(
-        go.Scatter(x=months, y=lower, line=dict(width=0), fill="tonexty", name="Band")
-    )
+    fig.add_trace(go.Scatter(x=months, y=lower, line=dict(width=0), fill="tonexty", name="Band"))
     fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name="Median"))
     fig.update_layout(xaxis_title="Month", yaxis_title="Cumulative Return")
     return fig

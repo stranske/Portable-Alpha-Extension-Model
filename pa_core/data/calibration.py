@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Literal, cast
+from typing import Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -33,14 +33,14 @@ class CalibrationDiagnostics:
     shrinkage_intensity: float | None
     vol_regime: Literal["single", "two_state"]
     vol_regime_window: int | None
-    vol_regime_state: Dict[str, str]
+    vol_regime_state: dict[str, str]
 
 
 @dataclass
 class CalibrationResult:
     index: Index
-    assets: List[Asset]
-    correlations: List[Correlation]
+    assets: list[Asset]
+    correlations: list[Correlation]
     diagnostics: CalibrationDiagnostics | None = None
 
 
@@ -101,9 +101,7 @@ class CalibrationAgent:
         if self.covariance_shrinkage == "ledoit_wolf":
             pivot = pivot.dropna()
             if pivot.empty:
-                raise ValueError(
-                    "insufficient data after aligning returns for shrinkage"
-                )
+                raise ValueError("insufficient data after aligning returns for shrinkage")
             returns = pivot.to_numpy(dtype=float)
             cov, shrinkage = _ledoit_wolf_shrinkage(returns)
             base_sigma = pd.Series(
@@ -119,14 +117,12 @@ class CalibrationAgent:
         else:
             grouped = df.groupby("id")["return"]
             mu = cast(pd.Series, grouped.mean()) * MONTHS_PER_YEAR
-            base_sigma = (
-                cast(pd.Series, grouped.std(ddof=1)) * VOLATILITY_ANNUALIZATION_FACTOR
-            )
+            base_sigma = cast(pd.Series, grouped.std(ddof=1)) * VOLATILITY_ANNUALIZATION_FACTOR
             corr = pivot.corr()
             shrinkage = None
         if index_id not in mu.index:
             raise ValueError("index_id not present in data")
-        regime_state: Dict[str, str] = {}
+        regime_state: dict[str, str] = {}
         sigma = base_sigma.copy()
         regime_window: int | None = None
         if self.vol_regime == "two_state":
@@ -154,11 +150,8 @@ class CalibrationAgent:
             mu=float(mu[index_id]),
             sigma=float(sigma[index_id]),
         )
-        assets = [
-            Asset(id=i, label=i, mu=float(mu[i]), sigma=float(sigma[i]))
-            for i in mu.index
-        ]
-        pairs: List[Correlation] = []
+        assets = [Asset(id=i, label=i, mu=float(mu[i]), sigma=float(sigma[i])) for i in mu.index]
+        pairs: list[Correlation] = []
         ids = list(corr.columns)
         for i, a in enumerate(ids):
             for b in ids[i + 1 :]:
@@ -181,8 +174,6 @@ class CalibrationAgent:
         data = {
             "index": result.index.model_dump(),
             "assets": [a.model_dump() for a in result.assets],
-            "correlations": [
-                {"pair": list(c.pair), "rho": c.rho} for c in result.correlations
-            ],
+            "correlations": [{"pair": list(c.pair), "rho": c.rho} for c in result.correlations],
         }
         Path(path).write_text(yaml.safe_dump(data))

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from itertools import combinations
 from pathlib import Path
-from typing import Dict, List, Tuple, cast
+from typing import cast
 
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -28,7 +28,7 @@ class Asset(BaseModel):
 
 
 class Correlation(BaseModel):
-    pair: Tuple[str, str]
+    pair: tuple[str, str]
     rho: float
 
     @field_validator("rho")
@@ -43,10 +43,10 @@ class Correlation(BaseModel):
 
 class Portfolio(BaseModel):
     id: str
-    weights: Dict[str, float]
+    weights: dict[str, float]
 
     @model_validator(mode="after")
-    def _check_weights(self) -> "Portfolio":
+    def _check_weights(self) -> Portfolio:
         total = sum(self.weights.values())
         if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:
             raise ValueError("portfolio weights must sum to 1")
@@ -62,13 +62,13 @@ class Sleeve(BaseModel):
 
 class Scenario(BaseModel):
     index: Index
-    assets: List[Asset] = Field(default_factory=list)
-    correlations: List[Correlation] = Field(default_factory=list)
-    portfolios: List[Portfolio] = Field(default_factory=list)
-    sleeves: Dict[str, Sleeve] | None = None
+    assets: list[Asset] = Field(default_factory=list)
+    correlations: list[Correlation] = Field(default_factory=list)
+    portfolios: list[Portfolio] = Field(default_factory=list)
+    sleeves: dict[str, Sleeve] | None = None
 
     @model_validator(mode="after")
-    def _check_assets_and_portfolios(self) -> "Scenario":
+    def _check_assets_and_portfolios(self) -> Scenario:
         asset_ids = [a.id for a in self.assets]
         dup_assets = [i for i, c in Counter(asset_ids).items() if c > 1]
         if dup_assets:
@@ -83,13 +83,11 @@ class Scenario(BaseModel):
         for p in self.portfolios:
             unknown = set(p.weights) - asset_id_set
             if unknown:
-                raise ValueError(
-                    f"portfolio {p.id} references unknown assets: {sorted(unknown)}"
-                )
+                raise ValueError(f"portfolio {p.id} references unknown assets: {sorted(unknown)}")
         return self
 
     @model_validator(mode="after")
-    def _check_correlations(self) -> "Scenario":
+    def _check_correlations(self) -> Scenario:
         ids = [self.index.id] + [a.id for a in self.assets]
         expected = {tuple(sorted(p)) for p in combinations(ids, 2)}
         pairs = [tuple(sorted(c.pair)) for c in self.correlations]
@@ -106,7 +104,7 @@ class Scenario(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def _check_sleeves(self) -> "Scenario":
+    def _check_sleeves(self) -> Scenario:
         if self.sleeves:
             total = sum(s.capital_share for s in self.sleeves.values())
             if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:

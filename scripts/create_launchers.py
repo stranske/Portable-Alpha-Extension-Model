@@ -49,9 +49,7 @@ def main() -> int:
         description="Generate Windows and macOS launchers for console scripts",
     )
     parser.add_argument("scripts", nargs="+", help="Console script names to wrap")
-    parser.add_argument(
-        "--output", default=".", help="Directory to place the generated launchers"
-    )
+    parser.add_argument("--output", default=".", help="Directory to place the generated launchers")
     args = parser.parse_args()
 
     out_dir = Path(args.output)

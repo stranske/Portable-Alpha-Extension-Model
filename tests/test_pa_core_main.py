@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 import pytest
@@ -22,15 +22,15 @@ class FakeConfig:
         for key, value in data.items():
             setattr(self, key, value)
 
-    def model_dump(self) -> Dict[str, Any]:
+    def model_dump(self) -> dict[str, Any]:
         return dict(self._data)
 
     @classmethod
-    def model_validate(cls, data: Dict[str, Any]) -> "FakeConfig":
+    def model_validate(cls, data: dict[str, Any]) -> FakeConfig:
         return cls(**data)
 
 
-def _base_config_data() -> Dict[str, Any]:
+def _base_config_data() -> dict[str, Any]:
     return {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 3,
@@ -69,7 +69,7 @@ def _base_config_data() -> Dict[str, Any]:
 
 
 def _patch_main_dependencies(monkeypatch):
-    calls: Dict[str, Any] = {}
+    calls: dict[str, Any] = {}
 
     def fake_load_index_returns(path: str):
         calls["index_path"] = path
@@ -142,9 +142,7 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
         return "numpy"
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(
-        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
-    )
+    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
 
     pa_main.main(
         [
@@ -193,9 +191,7 @@ def test_main_without_overrides(monkeypatch) -> None:
         return "numpy"
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(
-        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
-    )
+    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
 
     pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
 
@@ -215,9 +211,7 @@ def test_main_rejects_invalid_vol_regime(monkeypatch) -> None:
         return "numpy"
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(
-        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
-    )
+    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
 
     with pytest.raises(ValueError, match="vol_regime must be 'single' or 'two_state'"):
         pa_main.main(["--config", "config.yaml", "--index", "index.csv"])

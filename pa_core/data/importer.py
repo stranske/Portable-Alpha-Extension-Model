@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Literal, Set, cast
+from typing import Any, Literal, cast
 
 import pandas as pd
 import yaml
@@ -48,12 +48,12 @@ class DataImportAgent:
         self.na_values = na_values
         self.decimal = decimal
         self.thousands = thousands
-        self.metadata: Dict[str, Any] | None = None
+        self.metadata: dict[str, Any] | None = None
 
     def load(self, path: str | Path) -> pd.DataFrame:
         p = Path(path)
         if p.suffix.lower() == ".csv":
-            csv_kwargs: Dict[str, Any] = {}
+            csv_kwargs: dict[str, Any] = {}
             if self.na_values is not None:
                 csv_kwargs["na_values"] = self.na_values
             if self.decimal:
@@ -81,18 +81,14 @@ class DataImportAgent:
                 value_name=self.value_col,
             )
         else:
-            required: Set[str] = {self.id_col, self.value_col}
+            required: set[str] = {self.id_col, self.value_col}
             missing = required - set(df.columns)
             if missing:
                 raise ValueError(f"missing columns: {sorted(missing)}")
-            long_df = cast(
-                pd.DataFrame, df[[self.date_col, self.id_col, self.value_col]].copy()
-            )
+            long_df = cast(pd.DataFrame, df[[self.date_col, self.id_col, self.value_col]].copy())
 
         # Coerce value column to numeric early; treat non-numeric as NA and drop
-        long_df[self.value_col] = pd.to_numeric(
-            long_df[self.value_col], errors="coerce"
-        )
+        long_df[self.value_col] = pd.to_numeric(long_df[self.value_col], errors="coerce")
         long_df = cast(pd.DataFrame, long_df.dropna(subset=[self.value_col]))
         long_df = long_df.sort_values(by=[self.date_col, self.id_col])
         long_df = long_df.rename(
@@ -118,9 +114,7 @@ class DataImportAgent:
                     rets = month_end.pct_change().iloc[1:]
                     returns = pd.concat([first, rets])
                     returns.index = month_end.index[: len(returns)]
-                returns = returns.melt(
-                    ignore_index=False, var_name="id", value_name="return"
-                )
+                returns = returns.melt(ignore_index=False, var_name="id", value_name="return")
                 long_df = cast(
                     pd.DataFrame,
                     (
@@ -174,9 +168,7 @@ class DataImportAgent:
             "wide": self.wide,
             "io": {
                 "sheet_name": self.sheet_name,
-                "na_values": (
-                    list(self.na_values) if self.na_values is not None else None
-                ),
+                "na_values": (list(self.na_values) if self.na_values is not None else None),
                 "decimal": self.decimal,
                 "thousands": self.thousands,
             },
@@ -219,7 +211,7 @@ class DataImportAgent:
         Path(path).write_text(yaml.safe_dump(data))
 
     @classmethod
-    def from_template(cls, path: str | Path) -> "DataImportAgent":
+    def from_template(cls, path: str | Path) -> DataImportAgent:
         """Create an instance from a previously saved mapping template."""
         data = yaml.safe_load(Path(path).read_text())
         if not isinstance(data, dict):
@@ -242,7 +234,7 @@ class DataImportAgent:
             "decimal": str,
             "thousands": (str | type(None)),
         }
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
         for key, typ in allowed.items():
             if key in data:
                 value = data[key]

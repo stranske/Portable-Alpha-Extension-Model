@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import pandas as pd
 
 
-def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, Any]:
+def load_parameters(path: str | Path, label_map: dict[str, str]) -> dict[str, Any]:
     """Return parameter dictionary by mapping CSV headers via ``label_map``.
 
     .. deprecated::
@@ -27,7 +27,7 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
         df = pd.read_csv(p)
     except (pd.errors.EmptyDataError, OSError) as exc:
         raise ValueError(f"Failed to read parameter CSV: {exc}") from exc
-    data: Dict[str, Any] = {}
+    data: dict[str, Any] = {}
     if {"Parameter", "Value"}.issubset(df.columns):
         for friendly, key in label_map.items():
             match = df.loc[df["Parameter"] == friendly, "Value"]

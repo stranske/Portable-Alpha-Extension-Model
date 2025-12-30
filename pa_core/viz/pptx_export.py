@@ -3,8 +3,8 @@ from __future__ import annotations
 import base64
 import io
 import os
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
 
 import plotly.graph_objects as go
 from pptx import Presentation

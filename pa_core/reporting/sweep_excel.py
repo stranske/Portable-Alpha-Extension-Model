@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import io
 import os
-from typing import Any, Dict, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import openpyxl
 import pandas as pd
@@ -14,9 +15,7 @@ from ..viz import risk_return, theme
 __all__ = ["export_sweep_results"]
 
 
-def export_sweep_results(
-    results: Iterable[Dict[str, Any]], filename: str = "Sweep.xlsx"
-) -> None:
+def export_sweep_results(results: Iterable[dict[str, Any]], filename: str = "Sweep.xlsx") -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
     all_summary: pd.DataFrame | None = None
 
@@ -28,9 +27,7 @@ def export_sweep_results(
             if not isinstance(summary_obj, pd.DataFrame):
                 continue
             summary = summary_obj.copy()
-            summary["ShortfallProb"] = summary.get(
-                "ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
-            )
+            summary["ShortfallProb"] = summary.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)
@@ -45,8 +42,7 @@ def export_sweep_results(
         ws.freeze_panes = "A2"
         for column_cells in ws.columns:
             max_len = max(
-                len(str(cell.value)) if cell.value is not None else 0
-                for cell in column_cells
+                len(str(cell.value)) if cell.value is not None else 0 for cell in column_cells
             )
             col_idx = column_cells[0].column
             if col_idx is not None:  # Type guard for mypy/pyright

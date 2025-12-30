@@ -20,9 +20,7 @@ _PCT_COLUMNS = {
 }
 
 
-def build_delta_table(
-    base_summary: pd.DataFrame, stress_summary: pd.DataFrame
-) -> pd.DataFrame:
+def build_delta_table(base_summary: pd.DataFrame, stress_summary: pd.DataFrame) -> pd.DataFrame:
     """Return a delta table (stressed - base) with a Total row."""
     if "Agent" not in base_summary.columns or "Agent" not in stress_summary.columns:
         return pd.DataFrame()
@@ -35,8 +33,7 @@ def build_delta_table(
     numeric_cols = [
         col
         for col in common_cols
-        if pdt.is_numeric_dtype(stress_summary[col])
-        and pdt.is_numeric_dtype(base_summary[col])
+        if pdt.is_numeric_dtype(stress_summary[col]) and pdt.is_numeric_dtype(base_summary[col])
     ]
     merged = stress_summary.merge(base_summary, on="Agent", suffixes=("_S", "_B"))
     deltas: dict[str, pd.Series] = {"Agent": merged["Agent"]}
@@ -77,13 +74,9 @@ def format_delta_table_text(delta_df: pd.DataFrame) -> pd.DataFrame:
         if not pdt.is_numeric_dtype(formatted[col]):
             continue
         if col in _PCT_COLUMNS:
-            formatted[col] = formatted[col].apply(
-                lambda x: f"{x:+.2%}" if pd.notna(x) else ""
-            )
+            formatted[col] = formatted[col].apply(lambda x: f"{x:+.2%}" if pd.notna(x) else "")
         else:
-            formatted[col] = formatted[col].apply(
-                lambda x: f"{x:+.4f}" if pd.notna(x) else ""
-            )
+            formatted[col] = formatted[col].apply(lambda x: f"{x:+.4f}" if pd.notna(x) else "")
     return formatted
 
 

@@ -39,11 +39,9 @@ def main() -> None:
         if (promoted_active_share is not None) or (promoted_theta is not None):
             label = promoted_source or "Scenario Grid"
             st.info(
-                (
-                    f"{label} "
-                    f"(active_share={(promoted_active_share or 0.0):.2f}, "
-                    f"theta_extpa={(promoted_theta or 0.0):.2f})"
-                )
+                f"{label} "
+                f"(active_share={(promoted_active_share or 0.0):.2f}, "
+                f"theta_extpa={(promoted_theta or 0.0):.2f})"
             )
 
     # Apply promoted values to widget state once per promotion.

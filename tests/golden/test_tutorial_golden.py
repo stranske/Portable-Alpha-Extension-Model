@@ -11,7 +11,6 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List
 
 import pandas as pd
 import pytest
@@ -25,9 +24,7 @@ class TutorialTestRunner:
         self.project_root = Path(__file__).parent.parent.parent
         self.pythonpath = str(self.project_root)
 
-    def run_cli(
-        self, args: List[str], timeout: int = 600
-    ) -> subprocess.CompletedProcess:
+    def run_cli(self, args: list[str], timeout: int = 600) -> subprocess.CompletedProcess:
         """Run CLI command with PYTHONPATH set."""
         cmd = [sys.executable, "-m", "pa_core.cli"] + args
         env = os.environ.copy()
@@ -45,11 +42,9 @@ class TutorialTestRunner:
         """Assert file exists and has reasonable size."""
         assert filepath.exists(), f"Expected file {filepath} does not exist"
         size = filepath.stat().st_size
-        assert (
-            size >= min_size
-        ), f"File {filepath} too small: {size} bytes (min: {min_size})"
+        assert size >= min_size, f"File {filepath} too small: {size} bytes (min: {min_size})"
 
-    def get_excel_sheets(self, filepath: Path) -> List[str]:
+    def get_excel_sheets(self, filepath: Path) -> list[str]:
         """Get sheet names from Excel file."""
         return pd.ExcelFile(filepath).sheet_names
 
@@ -99,9 +94,7 @@ class TestTutorial1ParameterSweeps:
         # Check that we have the expected agents
         expected_agents = {"Base", "ExternalPA", "ActiveExt", "InternalPA"}
         actual_agents = set(summary["Agent"].unique())
-        assert expected_agents.issubset(
-            actual_agents
-        ), f"Missing agents. Got: {actual_agents}"
+        assert expected_agents.issubset(actual_agents), f"Missing agents. Got: {actual_agents}"
 
     def test_returns_mode_parameter_sweep(self, runner: TutorialTestRunner):
         """Test returns mode parameter sweep as shown in Tutorial 1 Part 2."""
@@ -206,9 +199,7 @@ class TestTutorial1ParameterSweeps:
         runner.assert_file_exists_and_size(output_file, min_size=15000)
 
         summary = runner.read_excel_summary(output_file)
-        assert (
-            len(summary) > 1
-        ), "Volatility mult sweep should produce multiple scenarios"
+        assert len(summary) > 1, "Volatility mult sweep should produce multiple scenarios"
 
 
 class TestTutorial2ThresholdAnalysis:
@@ -335,6 +326,4 @@ class TestTutorial4Validation:
 
         # The demo file is intentionally invalid - it should fail validation
         assert result.returncode != 0, "Expected validation failure for invalid config"
-        assert (
-            "N_SIMULATIONS" in result.stderr
-        ), "Expected N_SIMULATIONS validation error"
+        assert "N_SIMULATIONS" in result.stderr, "Expected N_SIMULATIONS validation error"

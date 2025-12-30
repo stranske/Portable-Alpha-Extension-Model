@@ -41,7 +41,7 @@ def test_convert_csv_to_yaml_with_undefined_num_val_conditions() -> None:
         # Verify the output file was created
         assert Path(yaml_path).exists()
 
-        with open(yaml_path, "r") as yaml_content:
+        with open(yaml_path) as yaml_content:
             content = yaml.safe_load(yaml_content)
             assert isinstance(content, dict)
             # Should have default risk_metrics
@@ -73,7 +73,7 @@ def test_convert_csv_to_yaml_percentage_conversion() -> None:
     try:
         _convert_csv_to_yaml(csv_path, yaml_path)
 
-        with open(yaml_path, "r") as yaml_content:
+        with open(yaml_path) as yaml_content:
             content = yaml.safe_load(yaml_content)
 
         # Find fields that should be percentage-converted

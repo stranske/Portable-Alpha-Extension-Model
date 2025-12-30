@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -19,7 +19,7 @@ class JSONLogFormatter(logging.Formatter):
     """
 
     def format(self, record: logging.LogRecord) -> str:  # noqa: D401
-        ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        ts = datetime.fromtimestamp(record.created, tz=UTC).isoformat()
         msg = record.getMessage()
         payload: dict[str, Any] = {
             "timestamp": ts,
@@ -156,7 +156,7 @@ def emit_run_end(
         try:
             metadata_path = Path(run_log).parent / "run_end.json"
             payload = dict(extra)
-            payload["recorded_at"] = datetime.now(timezone.utc).isoformat()
+            payload["recorded_at"] = datetime.now(UTC).isoformat()
             metadata_path.write_text(json.dumps(payload, indent=2))
         except (OSError, PermissionError):
             logger.warning("Failed to write run_end metadata file.")

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable, Dict, Iterable, Tuple
+from collections.abc import Callable, Iterable
 
 import pandas as pd
 
@@ -11,9 +11,9 @@ __all__ = [
 
 def one_factor_deltas(
     *,
-    params: Dict[str, float],
-    steps: Dict[str, float],
-    evaluator: Callable[[Dict[str, float]], float],
+    params: dict[str, float],
+    steps: dict[str, float],
+    evaluator: Callable[[dict[str, float]], float],
     keys: Iterable[str] | None = None,
 ) -> pd.DataFrame:
     """Compute one-factor +/- step deltas for an arbitrary evaluator.
@@ -29,7 +29,7 @@ def one_factor_deltas(
     """
 
     base = evaluator(dict(params))
-    records: list[Tuple[str, float, float, float, float, float, float]] = []
+    records: list[tuple[str, float, float, float, float, float, float]] = []
     keys_iter: Iterable[str] = keys if keys is not None else steps.keys()
 
     for k in keys_iter:

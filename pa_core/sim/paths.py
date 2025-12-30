@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional, Sequence, cast
+from collections.abc import Mapping, Sequence
+from typing import Any, cast
 
 import numpy.typing as npt
 from numpy.random import Generator
@@ -32,23 +33,17 @@ def _validate_return_draw_settings(
         distributions = tuple(distribution)
     for dist in distributions:
         if dist not in _VALID_RETURN_DISTS:
-            raise ValueError(
-                f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}"
-            )
+            raise ValueError(f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}")
     if copula not in _VALID_RETURN_COPULAS:
-        raise ValueError(
-            f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}"
-        )
+        raise ValueError(f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}")
     if all(dist == "normal" for dist in distributions) and copula != "gaussian":
-        raise ValueError(
-            "return_copula must be 'gaussian' when return_distribution is 'normal'"
-        )
+        raise ValueError("return_copula must be 'gaussian' when return_distribution is 'normal'")
     if any(dist == "student_t" for dist in distributions) and t_df <= 2.0:
         raise ValueError("return_t_df must be greater than 2 for finite variance")
 
 
 def _resolve_return_distributions(
-    base: str, overrides: Optional[Sequence[Optional[str]]] = None
+    base: str, overrides: Sequence[str | None] | None = None
 ) -> tuple[str, str, str, str]:
     if overrides is None:
         return (base, base, base, base)
@@ -140,9 +135,9 @@ def simulate_financing(
     spike_prob: float,
     spike_factor: float,
     *,
-    seed: Optional[int] = None,
+    seed: int | None = None,
     n_scenarios: int = 1,
-    rng: Optional[Generator] = None,
+    rng: Generator | None = None,
 ) -> npt.NDArray[Any]:
     """Vectorised financing spread simulation with optional spikes."""
     if T <= 0:
@@ -153,9 +148,7 @@ def simulate_financing(
         rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
-    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (
-        spike_factor * financing_sigma
-    )
+    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
     out = np.clip(base + jumps, 0.0, None)
     return out[0] if n_scenarios == 1 else out  # type: ignore[no-any-return]
 
@@ -172,9 +165,9 @@ def prepare_mc_universe(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
-    return_distributions: Optional[Sequence[Optional[str]]] = None,
-    seed: Optional[int] = None,
-    rng: Optional[Generator] = None,
+    return_distributions: Sequence[str | None] | None = None,
+    seed: int | None = None,
+    rng: Generator | None = None,
 ) -> npt.NDArray[Any]:
     """Return stacked draws of (index, H, E, M) returns."""
     if N_SIMULATIONS <= 0 or N_MONTHS <= 0:
@@ -184,9 +177,7 @@ def prepare_mc_universe(
     if rng is None:
         rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
-    distributions = _resolve_return_distributions(
-        return_distribution, return_distributions
-    )
+    distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
     cov = cov_mat / 12.0
@@ -229,8 +220,8 @@ def draw_joint_returns(
     *,
     n_months: int,
     n_sim: int,
-    params: Dict[str, Any],
-    rng: Optional[Generator] = None,
+    params: dict[str, Any],
+    rng: Generator | None = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
     if rng is None:
@@ -311,9 +302,9 @@ def draw_financing_series(
     *,
     n_months: int,
     n_sim: int,
-    params: Dict[str, Any],
-    rng: Optional[Generator] = None,
-    rngs: Optional[Mapping[str, Generator]] = None,
+    params: dict[str, Any],
+    rng: Generator | None = None,
+    rngs: Mapping[str, Generator] | None = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Return three matrices of monthly financing spreads.
 
@@ -404,17 +395,15 @@ def simulate_alpha_streams(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
-    return_distributions: Optional[Sequence[Optional[str]]] = None,
-    rng: Optional[Generator] = None,
+    return_distributions: Sequence[str | None] | None = None,
+    rng: Generator | None = None,
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     if T <= 0:
         raise ValueError("T must be positive")
     if cov.shape != (4, 4):
         raise ValueError("cov must be 4×4 and ordered as [idx, H, E, M]")
-    distributions = _resolve_return_distributions(
-        return_distribution, return_distributions
-    )
+    distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
     if rng is None:

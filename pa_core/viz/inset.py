@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-from typing import Tuple
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -9,7 +8,7 @@ from plotly.subplots import make_subplots
 from . import theme
 
 
-def make(fig: go.Figure, region: Tuple[float, float, float, float]) -> go.Figure:
+def make(fig: go.Figure, region: tuple[float, float, float, float]) -> go.Figure:
     """Return figure with an inset zoomed on ``region``.
 
     Parameters
@@ -20,9 +19,7 @@ def make(fig: go.Figure, region: Tuple[float, float, float, float]) -> go.Figure
         (x0, x1, y0, y1) region to zoom in on.
     """
     x0, x1, y0, y1 = region
-    out = make_subplots(
-        insets=[{"cell": (1, 1), "l": 0.6, "b": 0.05, "w": 0.35, "h": 0.35}]
-    )
+    out = make_subplots(insets=[{"cell": (1, 1), "l": 0.6, "b": 0.05, "w": 0.35, "h": 0.35}])
     for tr in fig.data:
         out.add_trace(tr)
         inset_trace = copy.deepcopy(tr)

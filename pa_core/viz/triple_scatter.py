@@ -18,7 +18,5 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
             text=df_summary.get("Agent"),
         )
     )
-    fig.update_layout(
-        scene=dict(xaxis_title="TE", yaxis_title="Beta", zaxis_title="ER")
-    )
+    fig.update_layout(scene=dict(xaxis_title="TE", yaxis_title="Beta", zaxis_title="ER"))
     return fig

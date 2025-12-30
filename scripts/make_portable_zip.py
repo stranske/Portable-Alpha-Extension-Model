@@ -14,10 +14,9 @@ import subprocess
 import sys
 import zipfile
 from pathlib import Path
-from typing import Set
 
 
-def get_default_excludes() -> Set[str]:
+def get_default_excludes() -> set[str]:
     """Return patterns to exclude from the portable archive."""
     return {
         # Version control
@@ -94,7 +93,7 @@ def get_default_excludes() -> Set[str]:
     }
 
 
-def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
+def should_exclude_path(path: Path, root: Path, excludes: set[str]) -> bool:
     """Return True if *path* should be excluded from the archive."""
     try:
         rel_path = path.relative_to(root)
@@ -128,7 +127,7 @@ def should_exclude_path(path: Path, root: Path, excludes: Set[str]) -> bool:
 
 
 def create_filtered_zip(
-    root_dir: Path, output_path: Path, excludes: Set[str], *, verbose: bool = False
+    root_dir: Path, output_path: Path, excludes: set[str], *, verbose: bool = False
 ) -> None:
     """Create a zip archive excluding paths that match *excludes*."""
     files_added = 0
@@ -191,8 +190,7 @@ def _write_launcher_bats(staging: Path) -> None:  # pragma: no cover - windows o
     launchers = {
         "pa.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.cli %*\n',
         "pa-dashboard.bat": (
-            "@echo off\n"
-            '"%~dp0python\\python.exe" -m streamlit run dashboard\\app.py %*\n'
+            "@echo off\n" '"%~dp0python\\python.exe" -m streamlit run dashboard\\app.py %*\n'
         ),
         "pa-validate.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.validate %*\n',
         "pa-convert-params.bat": (

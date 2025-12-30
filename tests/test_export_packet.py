@@ -37,9 +37,7 @@ def create_test_data():
         mode="markers",
         name="Risk-Return",
     )
-    fig.update_layout(
-        title="Risk-Return Analysis", xaxis_title="Volatility", yaxis_title="Return"
-    )
+    fig.update_layout(title="Risk-Return Analysis", xaxis_title="Volatility", yaxis_title="Return")
 
     return summary_df, raw_returns_dict, inputs_dict, fig
 
@@ -171,8 +169,7 @@ def test_export_packet_diff_appendix():
                 shape.text
                 for slide in prs.slides
                 for shape in slide.shapes
-                if getattr(shape, "has_text_frame", False)
-                and getattr(shape.text_frame, "text", "")
+                if getattr(shape, "has_text_frame", False) and getattr(shape.text_frame, "text", "")
             ]
             assert any("Config Changes" in t for t in texts)
             assert any("Metric Changes" in t for t in texts)
@@ -185,9 +182,7 @@ def test_export_packet_diff_appendix():
 
 def test_export_packet_includes_stress_delta():
     summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
-    stress_delta = pd.DataFrame(
-        {"Agent": ["Total"], "AnnReturn": [-0.03], "AnnVol": [0.02]}
-    )
+    stress_delta = pd.DataFrame({"Agent": ["Total"], "AnnReturn": [-0.03], "AnnVol": [0.02]})
 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:
@@ -210,8 +205,7 @@ def test_export_packet_includes_stress_delta():
                 shape.text
                 for slide in prs.slides
                 for shape in slide.shapes
-                if getattr(shape, "has_text_frame", False)
-                and getattr(shape.text_frame, "text", "")
+                if getattr(shape, "has_text_frame", False) and getattr(shape.text_frame, "text", "")
             ]
             assert any("Stress Delta" in t for t in texts)
         except RuntimeError as e:
@@ -254,9 +248,7 @@ def test_no_function_attribute_caching_antipattern():
 
     # Instead, we should use the module-level pattern
     assert "_EMPTY_DATAFRAME" in globals(), "Should use module-level cached variable"
-    assert isinstance(
-        _EMPTY_DATAFRAME, pd.DataFrame
-    ), "Module-level cache should be a DataFrame"
+    assert isinstance(_EMPTY_DATAFRAME, pd.DataFrame), "Module-level cache should be a DataFrame"
 
 
 def test_export_packet_manifest_details():
@@ -296,8 +288,7 @@ def test_export_packet_manifest_details():
                 shape.text
                 for slide in prs.slides
                 for shape in slide.shapes
-                if getattr(shape, "has_text_frame", False)
-                and getattr(shape.text_frame, "text", "")
+                if getattr(shape, "has_text_frame", False) and getattr(shape.text_frame, "text", "")
             ]
 
             joined = "\n".join(texts)

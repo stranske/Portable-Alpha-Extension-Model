@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Dict
-
 import pytest
 
 from pa_core.config import ConfigError, load_config
 
 
-def base_config() -> Dict[str, object]:
+def base_config() -> dict[str, object]:
     return {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 12,

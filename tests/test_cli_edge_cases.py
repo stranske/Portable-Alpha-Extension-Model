@@ -20,9 +20,7 @@ def test_cli_rejects_non_series_index(monkeypatch):
     bad_index = pd.DataFrame({"a": [0.01, 0.02], "b": [0.03, 0.04]})
     monkeypatch.setattr("pa_core.data.load_index_returns", lambda _: bad_index)
 
-    with pytest.raises(
-        ValueError, match="Index data must be convertible to pandas Series"
-    ):
+    with pytest.raises(ValueError, match="Index data must be convertible to pandas Series"):
         main(["--config", "cfg.yaml", "--index", "idx.csv"])
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Mapping, Tuple
+from collections.abc import Mapping
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(paths_map: Mapping[str, Tuple[pd.DataFrame | np.ndarray, float]]) -> go.Figure:
+def make(paths_map: Mapping[str, tuple[pd.DataFrame | np.ndarray, float]]) -> go.Figure:
     """Return overlay of median cumulative return paths weighted by capital."""
     first = next(iter(paths_map.values()))[0]
     months = np.arange(np.asarray(first).shape[1])

@@ -25,9 +25,7 @@ def test_dashboard_error_handling_filenotfound():
             dashboard_path = Path("dashboard/app.py")
             with pytest.raises(FileNotFoundError, match="Dashboard file not found"):
                 if not dashboard_path.exists():
-                    raise FileNotFoundError(
-                        f"Dashboard file not found: {dashboard_path}"
-                    )
+                    raise FileNotFoundError(f"Dashboard file not found: {dashboard_path}")
         finally:
             os.chdir(original_cwd)
 
@@ -50,9 +48,7 @@ def test_dashboard_error_handling_calledprocesserror():
 
                 # This replicates the logic from cli.py
                 dashboard_path = Path("dashboard/app.py")
-                assert (
-                    dashboard_path.exists()
-                )  # File exists, so we proceed to subprocess
+                assert dashboard_path.exists()  # File exists, so we proceed to subprocess
 
                 with pytest.raises(subprocess.CalledProcessError):
                     subprocess.run(
@@ -82,9 +78,7 @@ def test_dashboard_error_handling_general_exception():
 
                 # This replicates the logic from cli.py
                 dashboard_path = Path("dashboard/app.py")
-                assert (
-                    dashboard_path.exists()
-                )  # File exists, so we proceed to subprocess
+                assert dashboard_path.exists()  # File exists, so we proceed to subprocess
 
                 with pytest.raises(RuntimeError, match="Simulated runtime error"):
                     subprocess.run(

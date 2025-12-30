@@ -18,9 +18,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         months = df.index.tolist()
     te_cap = theme.THRESHOLDS.get("te_cap", 0.03)
     short_cap = theme.THRESHOLDS.get("shortfall_amber", theme.LOW_BUFFER_THRESHOLD)
-    te_vals_raw = (
-        df["TrackingErr"] if "TrackingErr" in df else pd.Series(0.0, index=df.index)
-    )
+    te_vals_raw = df["TrackingErr"] if "TrackingErr" in df else pd.Series(0.0, index=df.index)
     short_vals_raw = (
         df["ShortfallProb"]
         if "ShortfallProb" in df
@@ -28,12 +26,10 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     )
 
     # Ensure values are numeric, converting non-numeric to NaN
-    te_vals = pd.Series(
-        pd.to_numeric(te_vals_raw, errors="coerce"), index=df.index
-    ).fillna(0.0)
-    short_vals = pd.Series(
-        pd.to_numeric(short_vals_raw, errors="coerce"), index=df.index
-    ).fillna(float(theme.DEFAULT_SHORTFALL_PROB))
+    te_vals = pd.Series(pd.to_numeric(te_vals_raw, errors="coerce"), index=df.index).fillna(0.0)
+    short_vals = pd.Series(pd.to_numeric(short_vals_raw, errors="coerce"), index=df.index).fillna(
+        float(theme.DEFAULT_SHORTFALL_PROB)
+    )
 
     te_breach = (te_vals > te_cap).astype(float)
     short_breach = (short_vals > short_cap).astype(float)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple
+from typing import Any, Literal, NamedTuple
 
 import numpy as np
 import pandas as pd
@@ -101,7 +101,7 @@ class ValidationResult(NamedTuple):
     is_valid: bool
     message: str
     severity: str  # 'error', 'warning', 'info'
-    details: Dict[str, Any] = {}
+    details: dict[str, Any] = {}
 
 
 class PSDProjectionInfo(NamedTuple):
@@ -114,7 +114,7 @@ class PSDProjectionInfo(NamedTuple):
     projected_min_eigenvalue: float
 
 
-def validate_correlations(correlations: Dict[str, float]) -> List[ValidationResult]:
+def validate_correlations(correlations: dict[str, float]) -> list[ValidationResult]:
     """Validate correlation values are within bounds [-1, 1].
 
     Args:
@@ -154,7 +154,7 @@ def validate_correlations(correlations: Dict[str, float]) -> List[ValidationResu
 
 def validate_covariance_matrix_psd(
     cov_matrix: np.ndarray, label: str = "covariance matrix"
-) -> Tuple[ValidationResult, PSDProjectionInfo]:
+) -> tuple[ValidationResult, PSDProjectionInfo]:
     """Validate covariance matrix is positive semidefinite and provide projection info.
 
     Args:
@@ -174,9 +174,7 @@ def validate_covariance_matrix_psd(
         projected_eigenvalues = np.linalg.eigvalsh(projected_matrix)
 
         max_delta = float(np.max(np.abs(projected_matrix - cov_matrix)))
-        max_eigenvalue_delta = float(
-            np.max(projected_eigenvalues - original_eigenvalues)
-        )
+        max_eigenvalue_delta = float(np.max(projected_eigenvalues - original_eigenvalues))
         original_min_eig = float(original_eigenvalues.min())
         projected_min_eig = float(projected_eigenvalues.min())
 
@@ -237,15 +235,11 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     missing = required_cols - set(df.columns)
 
     if missing:
-        raise ValueError(
-            f"Margin schedule CSV file missing required columns: {missing}"
-        )
+        raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
     df["term"] = pd.to_numeric(df["term"], errors="coerce")
     df["multiplier"] = pd.to_numeric(df["multiplier"], errors="coerce")
     if bool(df[["term", "multiplier"]].isna().any().any()):
-        raise ValueError(
-            "Margin schedule contains non-numeric or missing term/multiplier values"
-        )
+        raise ValueError("Margin schedule contains non-numeric or missing term/multiplier values")
     df = df.sort_values("term")
 
     if bool((df["term"] < 0).any()):
@@ -278,8 +272,8 @@ def calculate_margin_requirement(
     total_capital: float = 1000.0,
     *,
     financing_model: str = "simple_proxy",
-    margin_schedule: Optional[pd.DataFrame] = None,
-    schedule_path: Optional[Path] = None,
+    margin_schedule: pd.DataFrame | None = None,
+    schedule_path: Path | None = None,
     term_months: float = 1.0,
 ) -> float:
     """Calculate margin requirement for beta backing.
@@ -313,9 +307,9 @@ def validate_capital_allocation(
     volatility_multiple: float = 3.0,
     *,
     financing_model: str = "simple_proxy",
-    margin_schedule_path: Optional[Path] = None,
+    margin_schedule_path: Path | None = None,
     term_months: float = 1.0,
-) -> List[ValidationResult]:
+) -> list[ValidationResult]:
     """Validate capital allocation including margin requirements.
 
     Args:
@@ -383,9 +377,7 @@ def validate_capital_allocation(
 
     # Provide buffer status information
     available_buffer = total_fund_capital - margin_plus_internal
-    buffer_ratio = (
-        available_buffer / total_fund_capital if total_fund_capital > 0 else 0
-    )
+    buffer_ratio = available_buffer / total_fund_capital if total_fund_capital > 0 else 0
 
     if float(buffer_ratio) < float(LOW_BUFFER_THRESHOLD):  # numeric comparison only
         severity = "warning" if buffer_ratio >= 0 else "error"
@@ -419,8 +411,8 @@ def validate_capital_allocation(
 
 
 def validate_simulation_parameters(
-    n_simulations: int, step_sizes: Dict[str, float] | None = None
-) -> List[ValidationResult]:
+    n_simulations: int, step_sizes: dict[str, float] | None = None
+) -> list[ValidationResult]:
     """Validate simulation parameters for extreme values.
 
     Args:
@@ -504,7 +496,7 @@ def validate_simulation_parameters(
 
 
 def format_validation_messages(
-    results: List[ValidationResult], include_details: bool = False
+    results: list[ValidationResult], include_details: bool = False
 ) -> str:
     """Format validation results into a readable message.
 

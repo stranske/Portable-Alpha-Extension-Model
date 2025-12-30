@@ -45,7 +45,7 @@ def make_grid_cache_key(
 ) -> str:
     """Return a stable cache key for scenario grid results."""
     cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
-    hash_fn = getattr(pd, "util").hash_pandas_object  # type: ignore[attr-defined]
+    hash_fn = pd.util.hash_pandas_object  # type: ignore[attr-defined]
     idx_hash = hashlib.sha256(hash_fn(index_series).values.tobytes()).hexdigest()
     payload = json.dumps(
         {

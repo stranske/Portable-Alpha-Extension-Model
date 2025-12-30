@@ -10,7 +10,6 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 
 class CodexPRDebugger:
@@ -18,18 +17,18 @@ class CodexPRDebugger:
 
     def __init__(
         self,
-        branch_name: Optional[str] = None,
+        branch_name: str | None = None,
         skip_mypy: bool = False,
         skip_tests: bool = False,
     ):
         self.branch_name = branch_name
         self.repo_root = Path.cwd()
-        self.fixes_applied: List[str] = []
+        self.fixes_applied: list[str] = []
         self.skip_mypy = skip_mypy
         self.skip_tests = skip_tests
-        self.warnings: List[str] = []
+        self.warnings: list[str] = []
 
-    def run_command(self, cmd: str, capture_output: bool = True) -> Tuple[bool, str]:
+    def run_command(self, cmd: str, capture_output: bool = True) -> tuple[bool, str]:
         """Run shell command and return success status and output."""
         try:
             # Parse command string into arguments to avoid shell injection
@@ -39,7 +38,7 @@ class CodexPRDebugger:
         except Exception as e:
             return False, str(e)
 
-    def check_github_ci_status(self) -> Dict[str, str]:
+    def check_github_ci_status(self) -> dict[str, str]:
         """Check actual GitHub CI/CD status using GitHub CLI."""
         print("🔗 Checking GitHub CI/CD pipeline status...")
         if shutil.which("gh") is None:
@@ -55,10 +54,7 @@ class CodexPRDebugger:
             try:
                 data = json.loads(output)
                 status = {}
-                if (
-                    "currentBranch" in data
-                    and "statusCheckRollup" in data["currentBranch"]
-                ):
+                if "currentBranch" in data and "statusCheckRollup" in data["currentBranch"]:
                     for check in data["currentBranch"]["statusCheckRollup"]:
                         context = check.get("context", check.get("name", "Unknown"))
                         state = check.get("state", "UNKNOWN")
@@ -79,12 +75,12 @@ class CodexPRDebugger:
 
         return {}
 
-    def get_specific_ci_errors(self) -> Dict[str, List[str]]:
+    def get_specific_ci_errors(self) -> dict[str, list[str]]:
         """Get specific errors from CI/CD tools that are actually failing."""
         print("🔍 Running local CI/CD validation checks...")
 
         self.warnings = []
-        errors: Dict[str, List[str]] = {}
+        errors: dict[str, list[str]] = {}
 
         # Check mypy (Type Checking) - exact CI/CD command
         if self.skip_mypy:
@@ -95,7 +91,7 @@ class CodexPRDebugger:
             print("  🔍 Checking mypy (Type Checking)...")
             success, output = self.run_command("python -m mypy pa_core/ --strict")
             if not success:
-                mypy_errors: List[str] = []
+                mypy_errors: list[str] = []
                 for line in output.split("\n"):
                     if "error:" in line and line.strip():
                         mypy_errors.append(line.strip())
@@ -111,7 +107,7 @@ class CodexPRDebugger:
                 "flake8 pa_core/ tests/ dashboard/ --max-line-length=88 --ignore=E203,W503"
             )
             if not success:
-                flake8_errors: List[str] = []
+                flake8_errors: list[str] = []
                 for line in output.split("\n"):
                     if line.strip() and ":" in line:
                         flake8_errors.append(line.strip())
@@ -127,7 +123,7 @@ class CodexPRDebugger:
             print("  🔍 Checking pytest (Tests)...")
             success, output = self.run_command("python -m pytest tests/ -v --tb=short")
             if not success:
-                pytest_errors: List[str] = []
+                pytest_errors: list[str] = []
                 for line in output.split("\n"):
                     if "FAILED" in line or "ERROR" in line:
                         pytest_errors.append(line.strip())
@@ -140,11 +136,9 @@ class CodexPRDebugger:
             self.warnings.append("ruff not found, skipping ruff formatting check")
         else:
             print("  🔍 Checking ruff formatting...")
-            success, output = self.run_command(
-                "ruff format --check pa_core/ tests/ dashboard/"
-            )
+            success, output = self.run_command("ruff format --check pa_core/ tests/ dashboard/")
             if not success:
-                ruff_errors: List[str] = []
+                ruff_errors: list[str] = []
                 for line in output.split("\n"):
                     if line.strip():
                         ruff_errors.append(line.strip())
@@ -153,7 +147,7 @@ class CodexPRDebugger:
 
         return errors
 
-    def fix_test_failures(self, errors: List[str]) -> bool:
+    def fix_test_failures(self, errors: list[str]) -> bool:
         """Fix specific test failures based on error patterns."""
         print("🔧 Analyzing test failures...")
 
@@ -179,25 +173,17 @@ class CodexPRDebugger:
 
                     # Look for long lines that need formatting
                     lines = content.split("\n")
-                    needs_formatting = any(
-                        len(line) > 88 for line in lines if line.strip()
-                    )
+                    needs_formatting = any(len(line) > 88 for line in lines if line.strip())
 
                     if needs_formatting:
                         print("  🔧 Applying formatting fixes to test file...")
                         if shutil.which("ruff") is None:
-                            self.warnings.append(
-                                "ruff not found, unable to format test_agents.py"
-                            )
+                            self.warnings.append("ruff not found, unable to format test_agents.py")
                         else:
                             # Apply formatting
-                            success, _ = self.run_command(
-                                "ruff format tests/test_agents.py"
-                            )
+                            success, _ = self.run_command("ruff format tests/test_agents.py")
                             if success:
-                                self.fixes_applied.append(
-                                    "Fixed formatting in test_agents.py"
-                                )
+                                self.fixes_applied.append("Fixed formatting in test_agents.py")
                                 fixed_any = True
 
             # Check for import errors
@@ -212,7 +198,7 @@ class CodexPRDebugger:
 
         return fixed_any
 
-    def fix_mypy_errors(self, errors: List[str]) -> bool:
+    def fix_mypy_errors(self, errors: list[str]) -> bool:
         """Fix specific mypy type annotation errors."""
         print("🔧 Fixing mypy type annotation errors...")
 
@@ -235,7 +221,7 @@ class CodexPRDebugger:
 
         return fixed_any
 
-    def fix_flake8_errors(self, errors: List[str]) -> bool:
+    def fix_flake8_errors(self, errors: list[str]) -> bool:
         """Fix specific flake8 style errors."""
         print("🔧 Fixing flake8 style errors...")
 
@@ -246,9 +232,7 @@ class CodexPRDebugger:
 
             if "line too long" in error:
                 if shutil.which("black") is None:
-                    self.warnings.append(
-                        "black not found, unable to fix line length issues"
-                    )
+                    self.warnings.append("black not found, unable to fix line length issues")
                     continue
                 print("    🔧 Applying black formatting to fix line length...")
                 success, _ = self.run_command("black pa_core/ tests/ dashboard/")
@@ -259,13 +243,11 @@ class CodexPRDebugger:
                 print("    ⚠️  Unused import - manual review recommended")
 
         if fixed_any:
-            self.fixes_applied.append(
-                "Applied black formatting to fix line length issues"
-            )
+            self.fixes_applied.append("Applied black formatting to fix line length issues")
 
         return fixed_any
 
-    def fix_pytest_errors(self, errors: List[str]) -> bool:
+    def fix_pytest_errors(self, errors: list[str]) -> bool:
         """Analyze pytest errors (usually require manual intervention)."""
         print("🔧 Analyzing pytest errors...")
 
@@ -276,7 +258,7 @@ class CodexPRDebugger:
         # Pytest failures usually require manual fixes
         return False
 
-    def fix_ruff_errors(self, errors: List[str]) -> bool:
+    def fix_ruff_errors(self, errors: list[str]) -> bool:
         """Fix ruff formatting errors."""
         print("🔧 Fixing ruff formatting errors...")
 
@@ -295,14 +277,14 @@ class CodexPRDebugger:
 
         return False
 
-    def run_methodical_debugging(self, max_iterations: int = 3) -> Dict[str, any]:
+    def run_methodical_debugging(self, max_iterations: int = 3) -> dict[str, any]:
         """Run methodical debugging focusing on actual CI/CD failures."""
         print("🎯 Starting methodical Codex PR debugging...")
         print("📋 Focusing on specific CI/CD failures, not shotgun debugging")
 
         iteration = 0
         all_fixes_applied = []
-        all_warnings: List[str] = []
+        all_warnings: list[str] = []
 
         while iteration < max_iterations:
             iteration += 1
@@ -356,7 +338,7 @@ class CodexPRDebugger:
             "warnings": all_warnings,
         }
 
-    def generate_report(self, results: Dict[str, any]) -> str:
+    def generate_report(self, results: dict[str, any]) -> str:
         """Generate a concise debugging report."""
         report = []
 
@@ -419,9 +401,7 @@ def main():
     parser.add_argument(
         "--max-iterations", type=int, default=3, help="Maximum debugging iterations"
     )
-    parser.add_argument(
-        "--skip-mypy", action="store_true", help="Skip mypy type checking"
-    )
+    parser.add_argument("--skip-mypy", action="store_true", help="Skip mypy type checking")
     parser.add_argument("--skip-tests", action="store_true", help="Skip pytest tests")
 
     args = parser.parse_args()

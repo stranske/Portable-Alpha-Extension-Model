@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
-
 import numpy as np
 
 from ..schema import Asset, Correlation
@@ -27,13 +25,13 @@ class PortfolioAggregator:
             cov[i, i] = sigma[self.ids[i]] ** 2
         self.cov = cov
 
-    def aggregate(self, weights: Dict[str, float]) -> Tuple[float, float]:
+    def aggregate(self, weights: dict[str, float]) -> tuple[float, float]:
         w = np.array([weights.get(i, 0.0) for i in self.ids])
         mu = float(w @ self.mu_vec)
         sigma = float(np.sqrt(w @ self.cov @ w))
         return mu, sigma
 
-    def cross_corr(self, w_a: Dict[str, float], w_b: Dict[str, float]) -> float:
+    def cross_corr(self, w_a: dict[str, float], w_b: dict[str, float]) -> float:
         w1 = np.array([w_a.get(i, 0.0) for i in self.ids])
         w2 = np.array([w_b.get(i, 0.0) for i in self.ids])
         sigma1 = float(np.sqrt(w1 @ self.cov @ w1))

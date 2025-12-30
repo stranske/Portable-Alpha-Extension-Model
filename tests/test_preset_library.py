@@ -88,9 +88,7 @@ def test_load_json_str_duplicate_validation():
 }"""
 
     # This should fail because same_id != preset_b
-    with pytest.raises(
-        ValueError, match="Preset ID 'same_id' does not match its key 'preset_b'"
-    ):
+    with pytest.raises(ValueError, match="Preset ID 'same_id' does not match its key 'preset_b'"):
         lib.load_json_str(mismatched_duplicate_json)
 
 

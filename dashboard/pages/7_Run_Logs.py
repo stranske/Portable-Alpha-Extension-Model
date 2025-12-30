@@ -31,9 +31,7 @@ with cols[0]:
     if log_file.exists():
         try:
             lines = (
-                log_file.read_text(encoding="utf-8", errors="replace")
-                .strip()
-                .splitlines()[-500:]
+                log_file.read_text(encoding="utf-8", errors="replace").strip().splitlines()[-500:]
             )
             for line in lines:
                 # Try to pretty print JSON; fallback to raw line
@@ -64,6 +62,4 @@ with cols[1]:
         except Exception as e:
             st.error(f"Failed to read manifest: {e}")
     else:
-        st.info(
-            "Manifest not found near project root. Check the run's output directory."
-        )
+        st.info("Manifest not found near project root. Check the run's output directory.")

@@ -28,8 +28,7 @@ def make(frames: Sequence[go.Frame]) -> go.Figure:
         sliders=[
             {
                 "steps": [
-                    {"args": [[f.name], {}], "label": f.name, "method": "animate"}
-                    for f in frames
+                    {"args": [[f.name], {}], "label": f.name, "method": "animate"} for f in frames
                 ]
             }
         ],

@@ -22,13 +22,9 @@ def test_tempfile_uses_platform_appropriate_directory():
 
     # On Windows, this should not be /tmp
     if sys.platform == "win32":
-        assert not temp_dir.startswith(
-            "/tmp"
-        ), f"Windows should not use /tmp, got {temp_dir}"
+        assert not temp_dir.startswith("/tmp"), f"Windows should not use /tmp, got {temp_dir}"
         # Windows typically uses something like C:\Users\...\AppData\Local\Temp
-        assert (
-            temp_dir.replace("\\", "/").count("/") >= 2
-        ), "Windows temp path should be nested"
+        assert temp_dir.replace("\\", "/").count("/") >= 2, "Windows temp path should be nested"
     else:
         # On Unix-like systems, /tmp is common but not required
         assert temp_dir, "Temp directory should exist"
@@ -45,9 +41,7 @@ def test_temp_paths_work_on_different_platforms(tmp_path: Path, platform):
     # Mock the platform
     with mock.patch("sys.platform", platform):
         # Test creating a temporary file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".py", delete=False
-        ) as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as temp_file:
             temp_file.write("print('Hello World')\n")
             temp_path = Path(temp_file.name)
 
@@ -58,9 +52,7 @@ def test_temp_paths_work_on_different_platforms(tmp_path: Path, platform):
             assert content == "print('Hello World')\n"
 
             # Path should be absolute
-            assert (
-                temp_path.is_absolute()
-            ), f"Temp path should be absolute on {platform}"
+            assert temp_path.is_absolute(), f"Temp path should be absolute on {platform}"
 
         finally:
             # Clean up
@@ -244,9 +236,7 @@ def test_multiple_params(arg1: str, tmp_path: Path, arg2: int):
 
         try:
             result = _check_tmp_path_usage_with_ast(temp_file)
-            assert (
-                result == expected
-            ), f"Test case {i+1} failed: expected {expected}, got {result}"
+            assert result == expected, f"Test case {i+1} failed: expected {expected}, got {result}"
         finally:
             temp_file.unlink()
 

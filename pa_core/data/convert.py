@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 import yaml  # type: ignore[import-untyped]
 
@@ -24,9 +24,7 @@ def convert(csv_path: str | Path, yaml_path: str | Path) -> None:
 def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Convert parameters CSV to YAML")
     parser.add_argument("csv", help="Input parameters CSV file")
-    parser.add_argument(
-        "yaml", nargs="?", help="Output YAML file (default: params.yml)"
-    )
+    parser.add_argument("yaml", nargs="?", help="Output YAML file (default: params.yml)")
     args = parser.parse_args(argv)
     out = args.yaml or Path(args.csv).with_suffix(".yml")
     convert(args.csv, out)

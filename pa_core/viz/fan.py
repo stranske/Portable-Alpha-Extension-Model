@@ -20,11 +20,7 @@ def make(
 
     months = np.arange(arr.shape[1])
     fig = go.Figure(layout_template=theme.TEMPLATE)
-    fig.add_trace(
-        go.Scatter(
-            x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False
-        )
-    )
+    fig.add_trace(go.Scatter(x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False))
     fig.add_trace(
         go.Scatter(
             x=months,

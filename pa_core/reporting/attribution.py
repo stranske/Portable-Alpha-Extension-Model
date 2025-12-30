@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List
 
 import pandas as pd
 
@@ -10,9 +9,7 @@ from ..config import ModelConfig
 __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
 
 
-def compute_sleeve_return_attribution(
-    cfg: ModelConfig, idx_series: pd.Series
-) -> pd.DataFrame:
+def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
     """Compute per-agent annual return attribution by component.
 
     Components:
@@ -33,10 +30,7 @@ def compute_sleeve_return_attribution(
     w_act = float(cfg.active_ext_capital) / total if total > 0 else 0.0
     w_int = float(cfg.internal_pa_capital) / total if total > 0 else 0.0
     leftover_beta = max(
-        total
-        - cfg.external_pa_capital
-        - cfg.active_ext_capital
-        - cfg.internal_pa_capital,
+        total - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital,
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
@@ -57,7 +51,7 @@ def compute_sleeve_return_attribution(
     def annual(x: float) -> float:
         return 12.0 * x
 
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
 
     # Base (benchmark sleeve)
     base_beta = annual(cfg.w_beta_H * mu_idx_m)
@@ -109,9 +103,7 @@ def compute_sleeve_return_attribution(
     return df
 
 
-def compute_sleeve_risk_attribution(
-    cfg: ModelConfig, idx_series: pd.Series
-) -> pd.DataFrame:
+def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
     """Approximate per-agent risk attribution and TE vs index.
 
     Provides simple, assumption-driven approximations using monthly moments:
@@ -130,10 +122,7 @@ def compute_sleeve_risk_attribution(
     w_act = float(cfg.active_ext_capital) / total if total > 0 else 0.0
     w_int = float(cfg.internal_pa_capital) / total if total > 0 else 0.0
     leftover_beta = max(
-        total
-        - cfg.external_pa_capital
-        - cfg.active_ext_capital
-        - cfg.internal_pa_capital,
+        total - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital,
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
@@ -150,9 +139,7 @@ def compute_sleeve_risk_attribution(
     def ann_vol(x_monthly: float) -> float:
         return math.sqrt(12.0) * x_monthly
 
-    def _metrics(
-        b: float, alpha_sigma: float, rho_idx_alpha: float
-    ) -> Dict[str, float]:
+    def _metrics(b: float, alpha_sigma: float, rho_idx_alpha: float) -> dict[str, float]:
         # Monthly variances
         var_I = idx_sigma_m * idx_sigma_m
         var_A = alpha_sigma * alpha_sigma
@@ -173,7 +160,7 @@ def compute_sleeve_risk_attribution(
             "TEApprox": ann_vol(var_TE**0.5),
         }
 
-    rows: List[Dict[str, float | str]] = []
+    rows: list[dict[str, float | str]] = []
     # Base sleeve: beta and alpha from H
     rows.append(
         {

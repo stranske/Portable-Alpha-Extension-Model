@@ -44,14 +44,10 @@ def test_load_index_returns_leaves_no_temp_files():
     # Filter out files that might be created by other processes
     # We only care about files that look like our temp files
     suspicious_files = [
-        f
-        for f in new_files
-        if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
+        f for f in new_files if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
     ]
 
-    assert (
-        len(suspicious_files) == 0
-    ), f"Temporary files left behind: {suspicious_files}"
+    assert len(suspicious_files) == 0, f"Temporary files left behind: {suspicious_files}"
 
 
 def test_csv_to_yaml_conversion_leaves_no_temp_files():
@@ -83,14 +79,10 @@ def test_csv_to_yaml_conversion_leaves_no_temp_files():
 
     # Filter out files that might be created by other processes
     suspicious_files = [
-        f
-        for f in new_files
-        if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
+        f for f in new_files if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
     ]
 
-    assert (
-        len(suspicious_files) == 0
-    ), f"Temporary files left behind: {suspicious_files}"
+    assert len(suspicious_files) == 0, f"Temporary files left behind: {suspicious_files}"
 
 
 def test_temp_files_auto_cleanup_on_exception():
@@ -121,9 +113,7 @@ def test_temp_files_auto_cleanup_on_exception():
     new_files = temp_files_after - temp_files_before
 
     suspicious_files = [
-        f
-        for f in new_files
-        if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
+        f for f in new_files if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
     ]
 
     assert (
@@ -145,9 +135,7 @@ def test_no_delete_false_in_codebase():
         if full_path.exists():
             content = full_path.read_text(encoding="utf-8", errors="ignore")
             # Should not find delete=False anymore
-            assert (
-                "delete=False" not in content
-            ), f"delete=False still found in {file_path}"
+            assert "delete=False" not in content, f"delete=False still found in {file_path}"
 
 
 if __name__ == "__main__":

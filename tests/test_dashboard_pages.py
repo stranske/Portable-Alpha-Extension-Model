@@ -25,8 +25,6 @@ def test_pages_import() -> None:
             if "validators.py" in str(e):
                 # Expected failure due to pre-existing syntax error in validators.py
                 # The manual module setup pattern has been removed successfully
-                pytest.skip(
-                    f"Skipping {page} due to pre-existing syntax error in validators.py"
-                )
+                pytest.skip(f"Skipping {page} due to pre-existing syntax error in validators.py")
             else:
                 raise

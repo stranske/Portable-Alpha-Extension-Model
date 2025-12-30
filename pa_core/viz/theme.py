@@ -13,7 +13,7 @@ _THRESH_PATH = Path(__file__).resolve().parents[1] / "config_thresholds.yaml"
 _THEME_PATH = Path(__file__).resolve().parents[1] / "config_theme.yaml"
 
 if _THRESH_PATH.exists():
-    with open(_THRESH_PATH, "r", encoding="utf-8") as fh:
+    with open(_THRESH_PATH, encoding="utf-8") as fh:
         THRESHOLDS: dict[str, float] = yaml.safe_load(fh) or {}
 else:
     THRESHOLDS = {}
@@ -21,7 +21,7 @@ else:
 
 def _load_theme(path: Path) -> tuple[list[str], str, str, str]:
     if path.exists():
-        with open(path, "r", encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             cfg = yaml.safe_load(fh) or {}
         colors = cfg.get("colorway") or [
             "#377eb8",
@@ -82,7 +82,7 @@ def reload_thresholds(path: str | Path = _THRESH_PATH) -> None:
         to ``pa_core``.
     """
     global THRESHOLDS
-    with open(path, "r", encoding="utf-8") as fh:
+    with open(path, encoding="utf-8") as fh:
         THRESHOLDS = yaml.safe_load(fh) or {}
 
 

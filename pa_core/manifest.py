@@ -3,10 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 import yaml
 
@@ -60,13 +61,11 @@ class ManifestWriter:
         except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             commit = "unknown"
         cfg = yaml.safe_load(Path(config_path).read_text())
-        hashes = {
-            str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()
-        }
+        hashes = {str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()}
         timing = dict(run_timing) if run_timing else None
         manifest = Manifest(
             git_commit=commit,
-            timestamp=datetime.now(timezone.utc).isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             seed=seed,
             config=cfg,
             data_files=hashes,

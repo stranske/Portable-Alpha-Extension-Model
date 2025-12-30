@@ -161,10 +161,7 @@ def test_portfolio_builder_requires_upload(monkeypatch: pytest.MonkeyPatch) -> N
 
     module["main"]()
 
-    assert any(
-        call == ("info", "Upload an asset library YAML to begin.")
-        for call in fake_st.calls
-    )
+    assert any(call == ("info", "Upload an asset library YAML to begin.") for call in fake_st.calls)
 
 
 def test_portfolio_builder_empty_assets_warns(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -174,9 +171,7 @@ def test_portfolio_builder_empty_assets_warns(monkeypatch: pytest.MonkeyPatch) -
 
     module["main"]()
 
-    assert any(
-        call == ("warning", "No assets found in file.") for call in fake_st.calls
-    )
+    assert any(call == ("warning", "No assets found in file.") for call in fake_st.calls)
 
 
 def test_portfolio_builder_zero_weights_warns(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -186,15 +181,12 @@ def test_portfolio_builder_zero_weights_warns(monkeypatch: pytest.MonkeyPatch) -
         file_uploader=_Upload(b"assets: []"),
     )
     module = _load_module(monkeypatch, fake_st)
-    _patch_module_global(
-        module, "load_scenario", lambda _: _Scenario([_Asset("A"), _Asset("B")])
-    )
+    _patch_module_global(module, "load_scenario", lambda _: _Scenario([_Asset("A"), _Asset("B")]))
 
     module["main"]()
 
     assert any(
-        call == ("warning", "Enter weights for at least one asset.")
-        for call in fake_st.calls
+        call == ("warning", "Enter weights for at least one asset.") for call in fake_st.calls
     )
 
 
@@ -224,8 +216,6 @@ def test_portfolio_builder_autorun_generates_download(
     module["main"]()
 
     assert any(call[0] == "download_button" for call in fake_st.calls)
-    assert any(
-        "Expected return" in call[1] for call in fake_st.calls if call[0] == "write"
-    )
+    assert any("Expected return" in call[1] for call in fake_st.calls if call[0] == "write")
     assert fake_st.session_state["portfolio_builder_autorun"] is False
     assert scenario.portfolios

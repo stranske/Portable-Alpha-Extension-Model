@@ -17,9 +17,7 @@ import pytest
 
 def _load_make_portable_zip_module():
     """Load make_portable_zip module using importlib.util to avoid sys.path pollution."""
-    module_path = (
-        Path(__file__).resolve().parents[1] / "scripts" / "make_portable_zip.py"
-    )
+    module_path = Path(__file__).resolve().parents[1] / "scripts" / "make_portable_zip.py"
     spec = importlib.util.spec_from_file_location("make_portable_zip", module_path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Could not load make_portable_zip module from {module_path}")
@@ -45,12 +43,8 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
         mock.patch.object(make_portable_zip.shutil, "rmtree") as _mock_rmtree,
         mock.patch.object(make_portable_zip, "_download") as _mock_download,
         mock.patch.object(make_portable_zip, "_unzip") as _mock_unzip,
-        mock.patch.object(
-            make_portable_zip, "_enable_embedded_site"
-        ) as _mock_enable_site,
-        mock.patch.object(
-            make_portable_zip, "_write_launcher_bats"
-        ) as _mock_write_bats,
+        mock.patch.object(make_portable_zip, "_enable_embedded_site") as _mock_enable_site,
+        mock.patch.object(make_portable_zip, "_write_launcher_bats") as _mock_write_bats,
         mock.patch.object(make_portable_zip.subprocess, "run") as mock_subprocess_run,
         mock.patch.object(make_portable_zip.shutil, "copytree") as _mock_copytree,
         mock.patch.object(make_portable_zip.shutil, "copy2") as _mock_copy2,
@@ -71,9 +65,7 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
         )
 
         # Verify subprocess.run was called for both pip bootstrap and requirements install
-        assert (
-            mock_subprocess_run.call_count >= 2
-        ), "Should call subprocess.run at least twice"
+        assert mock_subprocess_run.call_count >= 2, "Should call subprocess.run at least twice"
 
         # Get the actual calls
         calls = mock_subprocess_run.call_args_list
@@ -84,9 +76,7 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
             first_call_args, list
         ), "subprocess.run should be called with list of arguments"
         assert len(first_call_args) == 2, "Pip bootstrap should have 2 arguments"
-        assert first_call_args[1].endswith(
-            "get-pip.py"
-        ), "Second arg should be get-pip.py path"
+        assert first_call_args[1].endswith("get-pip.py"), "Second arg should be get-pip.py path"
 
         # Verify second call (pip install) uses list of arguments
         second_call_args = calls[1][0][0]  # First positional argument of second call
@@ -166,9 +156,7 @@ def test_no_os_system_imports():
     make_portable_zip = _load_make_portable_zip_module()
 
     # Check that os.system is not accessible from the module
-    assert not hasattr(
-        make_portable_zip, "system"
-    ), "Module should not expose os.system"
+    assert not hasattr(make_portable_zip, "system"), "Module should not expose os.system"
 
     # Check the module source doesn't contain dangerous patterns (excluding comments)
     module_file_str = make_portable_zip.__file__
@@ -206,9 +194,7 @@ def test_no_os_system_imports():
     ]
 
     for pattern in dangerous_patterns:
-        assert (
-            pattern not in code_only
-        ), f"Dangerous pattern '{pattern}' found in actual code"
+        assert pattern not in code_only, f"Dangerous pattern '{pattern}' found in actual code"
 
     # Should contain secure patterns
     secure_patterns = [
@@ -217,6 +203,4 @@ def test_no_os_system_imports():
     ]
 
     for pattern in secure_patterns:
-        assert (
-            pattern in source
-        ), f"Secure pattern '{pattern}' not found in module source"
+        assert pattern in source, f"Secure pattern '{pattern}' not found in module source"

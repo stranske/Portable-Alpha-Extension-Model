@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Mapping, cast
+from collections.abc import Mapping
+from typing import cast
 
 import pandas as pd
 from rich.console import Console
@@ -21,9 +22,7 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
     if isinstance(summary, pd.DataFrame):
         # Convert DataFrame to dict of columns -> list values
         df = cast(pd.DataFrame, summary)
-        data: dict[str, list[object]] = {
-            str(col): df[col].tolist() for col in df.columns
-        }
+        data: dict[str, list[object]] = {str(col): df[col].tolist() for col in df.columns}
     else:
         # Convert mapping to single-row dataframe-like dict
         data = {str(k): [v] for k, v in dict(summary).items()}
@@ -35,11 +34,7 @@ def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
     n_rows = len(next(iter(data.values()))) if data else 0
     for i in range(n_rows):
         row = [
-            (
-                f"{data[c][i]:.4f}"
-                if isinstance(data[c][i], (float, int))
-                else str(data[c][i])
-            )
+            (f"{data[c][i]:.4f}" if isinstance(data[c][i], (float, int)) else str(data[c][i]))
             for c in columns
         ]
         table.add_row(*row)
@@ -74,9 +69,7 @@ def _build_diff_table(df: pd.DataFrame, *, title: str, max_rows: int) -> Table:
     for col in view.columns:
         table.add_column(str(col))
     for row in view.itertuples(index=False):
-        table.add_row(
-            *[_format_cell(value, col) for col, value in zip(view.columns, row)]
-        )
+        table.add_row(*[_format_cell(value, col) for col, value in zip(view.columns, row)])
     return table
 
 
@@ -91,16 +84,12 @@ def print_run_diff(
     printed = False
     if cfg_diff_df is not None and not cfg_diff_df.empty:
         console.print(
-            _build_diff_table(
-                cfg_diff_df, title="Config Changes vs Previous", max_rows=max_rows
-            )
+            _build_diff_table(cfg_diff_df, title="Config Changes vs Previous", max_rows=max_rows)
         )
         printed = True
     if metric_diff_df is not None and not metric_diff_df.empty:
         console.print(
-            _build_diff_table(
-                metric_diff_df, title="Metric Changes vs Previous", max_rows=max_rows
-            )
+            _build_diff_table(metric_diff_df, title="Metric Changes vs Previous", max_rows=max_rows)
         )
         printed = True
     if not printed:

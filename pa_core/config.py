@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -14,7 +14,7 @@ class ConfigError(ValueError):
 __all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings"]
 
 
-def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
+def get_field_mappings(model_class: type[BaseModel] | None = None) -> dict[str, str]:
     """
     Extract field mappings from a Pydantic model.
 
@@ -59,23 +59,15 @@ class ModelConfig(BaseModel):
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
     return_copula: str = Field(default="gaussian", alias="Return copula")
-    return_distribution_idx: Optional[str] = Field(
-        default=None, alias="Index return distribution"
-    )
-    return_distribution_H: Optional[str] = Field(
-        default=None, alias="In-House return distribution"
-    )
-    return_distribution_E: Optional[str] = Field(
+    return_distribution_idx: str | None = Field(default=None, alias="Index return distribution")
+    return_distribution_H: str | None = Field(default=None, alias="In-House return distribution")
+    return_distribution_E: str | None = Field(
         default=None, alias="Alpha-Extension return distribution"
     )
-    return_distribution_M: Optional[str] = Field(
-        default=None, alias="External PA return distribution"
-    )
+    return_distribution_M: str | None = Field(default=None, alias="External PA return distribution")
 
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
-    active_ext_capital: float = Field(
-        default=0.0, alias="Active Extension capital (mm)"
-    )
+    active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
 
@@ -117,12 +109,8 @@ class ModelConfig(BaseModel):
     ext_pa_financing_sigma_month: float = Field(
         default=0.0, alias="External PA financing vol (monthly %)"
     )
-    ext_pa_spike_prob: float = Field(
-        default=0.0, alias="External PA monthly spike prob"
-    )
-    ext_pa_spike_factor: float = Field(
-        default=0.0, alias="External PA spike multiplier"
-    )
+    ext_pa_spike_prob: float = Field(default=0.0, alias="External PA monthly spike prob")
+    ext_pa_spike_factor: float = Field(default=0.0, alias="External PA spike multiplier")
 
     act_ext_financing_mean_month: float = Field(
         default=0.0, alias="Active Ext financing mean (monthly %)"
@@ -130,12 +118,8 @@ class ModelConfig(BaseModel):
     act_ext_financing_sigma_month: float = Field(
         default=0.0, alias="Active Ext financing vol (monthly %)"
     )
-    act_ext_spike_prob: float = Field(
-        default=0.0, alias="Active Ext monthly spike prob"
-    )
-    act_ext_spike_factor: float = Field(
-        default=0.0, alias="Active Ext spike multiplier"
-    )
+    act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
+    act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
@@ -171,10 +155,10 @@ class ModelConfig(BaseModel):
     reference_sigma: float = 0.01  # Monthly volatility for margin calculation
     volatility_multiple: float = 3.0  # Multiplier for margin requirement
     financing_model: str = "simple_proxy"  # or "schedule"
-    financing_schedule_path: Optional[Path] = None
+    financing_schedule_path: Path | None = None
     financing_term_months: float = 1.0
 
-    risk_metrics: List[str] = Field(
+    risk_metrics: list[str] = Field(
         default_factory=lambda: [
             "Return",
             "Risk",
@@ -184,25 +168,19 @@ class ModelConfig(BaseModel):
     )
 
     @model_validator(mode="after")
-    def check_financing_model(self) -> "ModelConfig":
+    def check_financing_model(self) -> ModelConfig:
         valid = {"simple_proxy", "schedule"}
         if self.financing_model not in valid:
             raise ValueError(f"financing_model must be one of: {sorted(valid)}")
         if self.financing_model == "schedule" and self.financing_schedule_path is None:
-            raise ValueError(
-                "financing_schedule_path required for schedule financing model"
-            )
+            raise ValueError("financing_schedule_path required for schedule financing model")
         return self
 
     @model_validator(mode="after")
-    def check_capital(self) -> "ModelConfig":
+    def check_capital(self) -> ModelConfig:
         from .validators import validate_capital_allocation
 
-        cap_sum = (
-            self.external_pa_capital
-            + self.active_ext_capital
-            + self.internal_pa_capital
-        )
+        cap_sum = self.external_pa_capital + self.active_ext_capital + self.internal_pa_capital
         if cap_sum > self.total_fund_capital:
             raise ValueError("Capital allocation exceeds total_fund_capital")
 
@@ -230,13 +208,11 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def check_return_distribution(self) -> "ModelConfig":
+    def check_return_distribution(self) -> ModelConfig:
         valid_distributions = {"normal", "student_t"}
         valid_copulas = {"gaussian", "t"}
         if self.return_distribution not in valid_distributions:
-            raise ValueError(
-                f"return_distribution must be one of: {sorted(valid_distributions)}"
-            )
+            raise ValueError(f"return_distribution must be one of: {sorted(valid_distributions)}")
         for dist in (
             self.return_distribution_idx,
             self.return_distribution_H,
@@ -255,10 +231,7 @@ class ModelConfig(BaseModel):
             self.return_distribution_E or self.return_distribution,
             self.return_distribution_M or self.return_distribution,
         )
-        if (
-            all(dist == "normal" for dist in resolved)
-            and self.return_copula != "gaussian"
-        ):
+        if all(dist == "normal" for dist in resolved) and self.return_copula != "gaussian":
             raise ValueError(
                 "return_copula must be 'gaussian' when return_distribution is 'normal'"
             )
@@ -267,7 +240,7 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def check_shares(self) -> "ModelConfig":
+    def check_shares(self) -> ModelConfig:
         tol = 1e-6
         for name, val in [("w_beta_H", self.w_beta_H), ("w_alpha_H", self.w_alpha_H)]:
             if not 0.0 <= val <= 1.0:
@@ -283,7 +256,7 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def check_analysis_mode(self) -> "ModelConfig":
+    def check_analysis_mode(self) -> ModelConfig:
         valid_modes = [
             "capital",
             "returns",
@@ -296,20 +269,20 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
-    def check_vol_regime_window(self) -> "ModelConfig":
+    def check_vol_regime_window(self) -> ModelConfig:
         if self.vol_regime == "two_state" and self.vol_regime_window <= 1:
             raise ValueError("vol_regime_window must be > 1 for two_state regime")
         return self
 
     @model_validator(mode="after")
-    def check_backend(self) -> "ModelConfig":
+    def check_backend(self) -> ModelConfig:
         valid_backends = ["numpy", "cupy"]
         if self.backend not in valid_backends:
             raise ValueError(f"backend must be one of: {valid_backends}")
         return self
 
     @model_validator(mode="after")
-    def check_simulation_params(self) -> "ModelConfig":
+    def check_simulation_params(self) -> ModelConfig:
         from .validators import validate_simulation_parameters
 
         # Collect step sizes for validation
@@ -337,7 +310,7 @@ class ModelConfig(BaseModel):
         return self
 
 
-def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
+def load_config(path: str | Path | dict[str, Any]) -> ModelConfig:
     """Return ``ModelConfig`` parsed from YAML dictionary or file.
 
     Raises

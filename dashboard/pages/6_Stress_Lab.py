@@ -55,9 +55,7 @@ def main() -> None:
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
 
-    st.markdown(
-        "Pick a preset, run base vs stressed with identical seeds, and review deltas."
-    )
+    st.markdown("Pick a preset, run base vs stressed with identical seeds, and review deltas.")
 
     idx_file = st.file_uploader(
         "Index returns CSV (single numeric column)", type=["csv"], key="stress_idx"
@@ -114,11 +112,7 @@ def main() -> None:
     preset = st.selectbox(
         "Stress preset",
         options=preset_names,
-        index=(
-            preset_names.index("2008_vol_regime")
-            if "2008_vol_regime" in preset_names
-            else 0
-        ),
+        index=(preset_names.index("2008_vol_regime") if "2008_vol_regime" in preset_names else 0),
         format_func=lambda key: STRESS_PRESET_LABELS.get(key, key),
     )
 
@@ -179,9 +173,7 @@ def main() -> None:
                 "config_diff.csv",
                 "text/csv",
             )
-            stress_workbook = build_stress_workbook(
-                base_summary, stress_summary, delta_df, diff_df
-            )
+            stress_workbook = build_stress_workbook(base_summary, stress_summary, delta_df, diff_df)
             st.download_button(
                 "Download stress results (Excel)",
                 stress_workbook,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import streamlit as st
 
@@ -25,7 +25,7 @@ except ImportError:
 
 
 def display_validation_results(
-    results: List[ValidationResult], title: str = "Validation Results"
+    results: list[ValidationResult], title: str = "Validation Results"
 ) -> None:
     """Display validation results in Streamlit with appropriate styling.
 
@@ -69,7 +69,7 @@ def display_validation_results(
                     st.json(info.details)
 
 
-def create_validation_sidebar() -> Dict[str, Any]:
+def create_validation_sidebar() -> dict[str, Any]:
     """Create a sidebar section for validation controls and display.
 
     Returns:
@@ -100,8 +100,8 @@ def create_validation_sidebar() -> Dict[str, Any]:
 
 
 def validate_scenario_config(
-    config_data: Dict[str, Any], validation_settings: Dict[str, Any]
-) -> List[ValidationResult]:
+    config_data: dict[str, Any], validation_settings: dict[str, Any]
+) -> list[ValidationResult]:
     """Validate a scenario configuration and return results.
 
     Args:
@@ -141,12 +141,8 @@ def validate_scenario_config(
     ):
         financing_model = config_data.get("financing_model", "simple_proxy")
         schedule_path_value = config_data.get("financing_schedule_path")
-        term_months = config_data.get(
-            "financing_term_months", config_data.get("term_months", 1.0)
-        )
-        margin_schedule_path = (
-            Path(schedule_path_value) if schedule_path_value else None
-        )
+        term_months = config_data.get("financing_term_months", config_data.get("term_months", 1.0))
+        margin_schedule_path = Path(schedule_path_value) if schedule_path_value else None
         try:
             capital_results = validate_capital_allocation(
                 external_pa_capital=config_data.get("external_pa_capital", 0.0),
@@ -194,7 +190,7 @@ def validate_scenario_config(
     return all_results
 
 
-def display_psd_projection_info(psd_info: Dict[str, Any]) -> None:
+def display_psd_projection_info(psd_info: dict[str, Any]) -> None:
     """Display PSD projection information in a formatted way.
 
     Args:
@@ -270,11 +266,7 @@ def create_margin_buffer_display(
         )
 
     with col3:
-        utilization = (
-            (total_capital - available_buffer) / total_capital
-            if total_capital > 0
-            else 0
-        )
+        utilization = (total_capital - available_buffer) / total_capital if total_capital > 0 else 0
         st.metric(
             "Capital Utilization",
             f"{utilization:.1%}",
@@ -283,20 +275,16 @@ def create_margin_buffer_display(
 
     # Visual buffer indicator
     if buffer_ratio < 0:
-        st.error(
-            "🔴 **Capital Shortfall!** Insufficient capital for current allocation."
-        )
+        st.error("🔴 **Capital Shortfall!** Insufficient capital for current allocation.")
     elif buffer_ratio < 0.1:
-        st.warning(
-            "🟡 **Low Buffer.** Consider reducing allocations or increasing total capital."
-        )
+        st.warning("🟡 **Low Buffer.** Consider reducing allocations or increasing total capital.")
     elif buffer_ratio < 0.2:
         st.info("🟡 **Moderate Buffer.** Capital allocation is near limits.")
     else:
         st.success("🟢 **Healthy Buffer.** Sufficient capital available.")
 
 
-def validation_status_indicator(results: List[ValidationResult]) -> str:
+def validation_status_indicator(results: list[ValidationResult]) -> str:
     """Return a status indicator emoji based on validation results.
 
     Args:
