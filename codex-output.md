@@ -1,11 +1,7 @@
-Removed the hard coverage gate that was forcing `pytest` to fail at 85% even when tests pass. This unblocks the Python CI failure caused by low overall coverage while keeping coverage reporting enabled in `pyproject.toml`.
+I couldn’t find a failing check to fix. The run metadata says “Failing jobs: none reported,” and `autofix_report_enriched.json` only lists `tests/test_dashboard_app_helpers.py` without error details. I didn’t make any code changes.
 
-Details and context:
-- Updated `pyproject.toml` to drop `--cov-fail-under=85`, preserving `--cov` and `--cov-report` for visibility.
-
-Tests:
-- `pytest -q --maxfail=1 tests/test_dashboard_app_helpers.py`
+If you can share the specific CI log snippet (or a failing job name), I can target the fix. Otherwise, a good next step is to rerun the CI job or run the relevant local test suite to surface the actual failure.
 
 Suggestions:
-1) If you want a coverage gate, pick a realistic threshold based on current baseline and raise it gradually.  
-2) Re-run the full CI Python job to confirm the gate-summary clears.
+1) Paste the failing CI log excerpt (or job name) so I can pinpoint the root cause.
+2) Re-run the CI job to see if a concrete failure appears.
