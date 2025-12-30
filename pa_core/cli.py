@@ -355,6 +355,12 @@ def main(
         help="Suggest feasible sleeve allocations before running",
     )
     parser.add_argument(
+        "--suggest-apply-index",
+        type=int,
+        default=None,
+        help="Auto-apply a suggested sleeve row index without prompting",
+    )
+    parser.add_argument(
         "--tradeoff-table",
         action="store_true",
         help="Compute sleeve trade-off table and include in Excel/packet",
@@ -606,9 +612,6 @@ def main(
         base_cfg = cfg
         cfg = apply_stress_preset(cfg, args.stress_preset)
 
-    # Capture raw params BEFORE any config modifications
-    raw_params = cfg.model_dump()
-
     idx_series = load_index_returns(args.index)
 
     # Ensure idx_series is a pandas Series for type safety
@@ -628,6 +631,7 @@ def main(
 
     # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
+        suggest_seed = args.seed if args.seed is not None else 0
         suggestions = suggest_sleeve_sizes(
             cfg,
             idx_series,
@@ -641,27 +645,38 @@ def main(
             max_active=args.max_active,
             min_internal=args.min_internal,
             max_internal=args.max_internal,
-            seed=args.seed,
+            seed=suggest_seed,
         )
         if suggestions.empty:
             print("No feasible sleeve allocations found.")
             _emit_run_end()
             return
         print(suggestions.to_string(index=True))
-        choice = input(
-            "Select row index to apply and continue (blank to abort): "
-        ).strip()
-        if not choice:
-            print("Aborting run.")
-            _emit_run_end()
-            return
-        try:
-            idx_sel = int(choice)
-            row = suggestions.iloc[idx_sel]
-        except (ValueError, IndexError):
+        idx_sel = args.suggest_apply_index
+        if idx_sel is None:
+            try:
+                choice = input(
+                    "Select row index to apply and continue (blank to abort): "
+                ).strip()
+            except EOFError:
+                print("No selection provided. Aborting run.")
+                _emit_run_end()
+                return
+            if not choice:
+                print("Aborting run.")
+                _emit_run_end()
+                return
+            try:
+                idx_sel = int(choice)
+            except ValueError:
+                print("Invalid selection. Aborting run.")
+                _emit_run_end()
+                return
+        if idx_sel < 0 or idx_sel >= len(suggestions):
             print("Invalid selection. Aborting run.")
             _emit_run_end()
             return
+        row = suggestions.iloc[idx_sel]
         cfg = cfg.model_copy(
             update={
                 # Direct float conversion for clarity and efficiency
@@ -678,6 +693,9 @@ def main(
                     "internal_pa_capital": float(row["internal_pa_capital"]),
                 }
             )
+
+    # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
+    raw_params = cfg.model_dump()
 
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]
@@ -955,6 +973,7 @@ def main(
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
         try:
+            suggest_seed = args.seed if args.seed is not None else 0
             trade_df = suggest_sleeve_sizes(
                 cfg,
                 idx_series,
@@ -968,7 +987,7 @@ def main(
                 max_active=args.max_active,
                 min_internal=args.min_internal,
                 max_internal=args.max_internal,
-                seed=args.seed,
+                seed=suggest_seed,
                 sort_by=args.tradeoff_sort,
             )
             if not trade_df.empty:
