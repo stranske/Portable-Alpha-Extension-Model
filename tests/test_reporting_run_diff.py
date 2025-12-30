@@ -90,3 +90,27 @@ def test_build_run_diff_aligns_by_combination_and_agent() -> None:
     run2 = metric_diff[metric_diff["Combination"] == "Run2"]
     assert not run1.empty
     assert not run2.empty
+
+
+def test_build_run_diff_handles_object_numeric_columns() -> None:
+    current_summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "Alt"],
+            "AnnReturn": [0.05, 0.03],
+            "TE": [None, 0.2],
+        }
+    )
+    previous_summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "Alt"],
+            "AnnReturn": [0.04, 0.02],
+            "TE": [None, 0.25],
+        }
+    )
+
+    _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
+
+    te_rows = metric_diff[metric_diff["Metric"] == "TE"]
+    assert not te_rows.empty
+    alt_te = te_rows[te_rows["Agent"] == "Alt"].iloc[0]
+    assert alt_te["Delta"] == pytest.approx(-0.05)

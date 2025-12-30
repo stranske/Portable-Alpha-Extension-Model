@@ -43,6 +43,22 @@ def build_run_diff(
     def _is_numeric(value: Any) -> TypeGuard[Real]:
         return isinstance(value, Real) and not isinstance(value, bool)
 
+    def _coerce_numeric(value: Any) -> float | None:
+        try:
+            num = pd.to_numeric(value, errors="coerce")
+        except Exception:
+            return None
+        if pd.isna(num):
+            return None
+        return float(num)
+
+    def _series_has_numeric(series: pd.Series) -> bool:
+        try:
+            numeric = pd.to_numeric(series, errors="coerce")
+        except Exception:
+            return False
+        return numeric.notna().any()
+
     cfg_cur = current_manifest.get("config", {}) if current_manifest else {}
     cfg_prev = previous_manifest.get("config", {}) if previous_manifest else {}
 
@@ -83,8 +99,14 @@ def build_run_diff(
         numeric = [
             c
             for c in common
-            if pdt.is_numeric_dtype(current_summary[c])
-            and pdt.is_numeric_dtype(previous_summary[c])
+            if (
+                pdt.is_numeric_dtype(current_summary[c])
+                or _series_has_numeric(current_summary[c])
+            )
+            and (
+                pdt.is_numeric_dtype(previous_summary[c])
+                or _series_has_numeric(previous_summary[c])
+            )
         ]
         metrics = [c for c in _HEADLINE_METRICS if c in numeric] or numeric
 
@@ -109,12 +131,11 @@ def build_run_diff(
                 if prev_row is None:
                     continue
                 for col in metrics:
-                    try:
-                        cur_val = float(cur_row[col])
-                        prev_val = float(getattr(prev_row, col))
-                        delta = cur_val - prev_val
-                    except (TypeError, ValueError):
+                    cur_val = _coerce_numeric(cur_row[col])
+                    prev_val = _coerce_numeric(getattr(prev_row, col))
+                    if cur_val is None or prev_val is None:
                         continue
+                    delta = cur_val - prev_val
                     record = {
                         "Metric": col,
                         "Current": cur_val,
@@ -126,12 +147,11 @@ def build_run_diff(
                     metric_records.append(record)
         else:
             for col in metrics:
-                try:
-                    cur_val = float(current_summary[col].iloc[0])
-                    prev_val = float(previous_summary[col].iloc[0])
-                    delta = cur_val - prev_val
-                except (TypeError, ValueError):
+                cur_val = _coerce_numeric(current_summary[col].iloc[0])
+                prev_val = _coerce_numeric(previous_summary[col].iloc[0])
+                if cur_val is None or prev_val is None:
                     continue
+                delta = cur_val - prev_val
                 metric_records.append(
                     {
                         "Metric": col,
