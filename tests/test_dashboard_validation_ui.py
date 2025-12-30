@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
@@ -120,7 +121,10 @@ def test_validate_scenario_config_filters_warnings(
     def fake_validate_correlations(_: Dict[str, float]) -> List[ValidationResult]:
         return [ValidationResult(False, "bad", "error", {})]
 
-    def fake_validate_capital_allocation(**_: Any) -> List[ValidationResult]:
+    seen_kwargs: Dict[str, Any] = {}
+
+    def fake_validate_capital_allocation(**kwargs: Any) -> List[ValidationResult]:
+        seen_kwargs.update(kwargs)
         return [ValidationResult(True, "warn", "warning", {})]
 
     def fake_validate_simulation_parameters(**_: Any) -> List[ValidationResult]:
@@ -143,6 +147,9 @@ def test_validate_scenario_config_filters_warnings(
         "external_pa_capital": 100.0,
         "active_ext_capital": 200.0,
         "internal_pa_capital": 300.0,
+        "financing_model": "schedule",
+        "financing_schedule_path": "config/schedule.csv",
+        "financing_term_months": 2.0,
         "N_SIMULATIONS": 100,
     }
     settings = {"validate_on_change": True, "show_warnings": False}
@@ -152,6 +159,9 @@ def test_validate_scenario_config_filters_warnings(
     severities = {result.severity for result in results}
     assert "warning" not in severities
     assert severities == {"error", "info"}
+    assert seen_kwargs["financing_model"] == "schedule"
+    assert seen_kwargs["term_months"] == 2.0
+    assert seen_kwargs["margin_schedule_path"] == Path("config/schedule.csv")
 
 
 def test_display_psd_projection_info_branches(fake_st: FakeStreamlit) -> None:
