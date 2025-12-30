@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Mapping, Optional, cast
 
 import numpy.typing as npt
 from numpy.random import Generator
@@ -76,7 +76,7 @@ def _draw_student_t(
         chi = rng.chisquare(df, size=(*size, n_dim))
         denom = np.sqrt(chi / df)
     shocks = z * (scale / denom)
-    return mean + shocks * sigma
+    return cast(npt.NDArray[Any], mean + shocks * sigma)
 
 
 def simulate_financing(
