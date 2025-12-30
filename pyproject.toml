@@ -52,7 +52,6 @@ exclude = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "--cov=pa_core --cov=dashboard --cov-report=term-missing"
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -66,9 +65,7 @@ build-backend = "setuptools.build_meta"
 name = "portable-alpha-extension-model"
 version = "0.1.0"
 description = "Portable alpha plus active extension model"
-authors = [
-    { name = "Portable Alpha Extension Model Developers" },
-]
+authors = [{ name = "Portable Alpha Extension Model Developers" }]
 maintainers = [
     { name = "Portable Alpha Extension Model Maintainers", email = "maintainers@example.com" },
 ]
@@ -90,9 +87,7 @@ dependencies = [
 
 [project.optional-dependencies]
 # Optional extras
-parquet = [
-    "pyarrow",
-]
+parquet = ["pyarrow"]
 
 [project.scripts]
 pa = "pa_core.pa:main"
