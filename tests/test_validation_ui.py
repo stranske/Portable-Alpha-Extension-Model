@@ -43,7 +43,9 @@ class _FakeSidebar:
 
 
 class FakeStreamlit(ModuleType):
-    def __init__(self, name: str, sidebar_values: dict[str, bool] | None = None) -> None:
+    def __init__(
+        self, name: str, sidebar_values: dict[str, bool] | None = None
+    ) -> None:
         super().__init__(name)
         self.calls: list[tuple] = []
         self.sidebar = _FakeSidebar(self.calls, sidebar_values)
@@ -63,7 +65,9 @@ class FakeStreamlit(ModuleType):
     def subheader(self, message: str) -> None:
         self.calls.append(("subheader", message))
 
-    def metric(self, label: str, value: str, delta: str | None = None, help: str | None = None) -> None:
+    def metric(
+        self, label: str, value: str, delta: str | None = None, help: str | None = None
+    ) -> None:
         self.calls.append(("metric", label, value, delta, help))
 
     def columns(self, count: int):
