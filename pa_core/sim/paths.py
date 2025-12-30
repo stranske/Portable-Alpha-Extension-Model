@@ -308,8 +308,39 @@ def simulate_alpha_streams(
     mu_H: float,
     mu_E: float,
     mu_M: float,
+    *,
+    return_distribution: str = "normal",
+    return_t_df: float = 5.0,
+    return_copula: str = "gaussian",
+    rng: Optional[Generator] = None,
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
+    if T <= 0:
+        raise ValueError("T must be positive")
+    if cov.shape != (4, 4):
+        raise ValueError("cov must be 4×4 and ordered as [idx, H, E, M]")
+    _validate_return_draw_settings(return_distribution, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
-    rng = spawn_rngs(None, 1)[0]
-    return rng.multivariate_normal(means, cov, size=T)  # type: ignore[no-any-return]
+    if rng is None:
+        rng = spawn_rngs(None, 1)[0]
+    assert rng is not None
+    if return_distribution == "normal":
+        return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]  # type: ignore[no-any-return]
+    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    denom = np.outer(sigma, sigma)
+    corr = np.divide(
+        cov,
+        denom,
+        out=np.eye(cov.shape[0]),
+        where=denom != 0.0,
+    )
+    sims = _draw_student_t(
+        rng=rng,
+        mean=means,
+        sigma=sigma,
+        corr=corr,
+        size=(T, 1),
+        df=return_t_df,
+        copula=return_copula,
+    )
+    return sims[:, 0, :]  # type: ignore[no-any-return]
