@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Tuple
+from numbers import Real
+from typing import Any, Mapping, Tuple, TypeGuard
 
 import pandas as pd
 import pandas.api.types as pdt
@@ -39,8 +40,8 @@ def build_run_diff(
         DataFrames representing config diffs and metric deltas.
     """
 
-    def _is_numeric(value: Any) -> bool:
-        return pdt.is_number(value) and not isinstance(value, bool)
+    def _is_numeric(value: Any) -> TypeGuard[Real]:
+        return isinstance(value, Real) and not isinstance(value, bool)
 
     cfg_cur = current_manifest.get("config", {}) if current_manifest else {}
     cfg_prev = previous_manifest.get("config", {}) if previous_manifest else {}
