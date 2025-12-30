@@ -3,6 +3,7 @@
 Tests for improved CLI exception handling to verify specific exceptions
 are caught and logged properly instead of broad Exception catches.
 """
+
 import logging
 
 import pandas as pd

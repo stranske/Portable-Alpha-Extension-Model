@@ -298,12 +298,10 @@ def main() -> None:
                     options=y_vals,
                     index=0,
                     format_func=(
-                        (
-                            lambda v: (
-                                f"${v:,.0f} mm"
-                                if y_col == "external_pa_dollars_mm"
-                                else f"{v:.2f}"
-                            )
+                        lambda v: (
+                            f"${v:,.0f} mm"
+                            if y_col == "external_pa_dollars_mm"
+                            else f"{v:.2f}"
                         )
                     ),
                 )

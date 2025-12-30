@@ -1,9 +1,22 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Tuple
+from numbers import Real
+from typing import Any, Mapping, Tuple, TypeGuard
 
 import pandas as pd
 import pandas.api.types as pdt
+
+_HEADLINE_METRICS = (
+    "AnnReturn",
+    "AnnVol",
+    "VaR",
+    "CVaR",
+    "MaxDD",
+    "ShortfallProb",
+    "BreachProb",
+    "TE",
+)
+_ID_COLUMNS = ("Agent", "Combination", "Label")
 
 
 def build_run_diff(
@@ -27,6 +40,9 @@ def build_run_diff(
         DataFrames representing config diffs and metric deltas.
     """
 
+    def _is_numeric(value: Any) -> TypeGuard[Real]:
+        return isinstance(value, Real) and not isinstance(value, bool)
+
     cfg_cur = current_manifest.get("config", {}) if current_manifest else {}
     cfg_prev = previous_manifest.get("config", {}) if previous_manifest else {}
 
@@ -35,18 +51,81 @@ def build_run_diff(
         cur_val = cfg_cur.get(key)
         prev_val = cfg_prev.get(key)
         if cur_val != prev_val:
+            delta: float | str = ""
+            if _is_numeric(cur_val) and _is_numeric(prev_val):
+                try:
+                    delta = float(cur_val) - float(prev_val)
+                except (TypeError, ValueError):
+                    delta = ""
             config_records.append(
-                {"Parameter": key, "Current": cur_val, "Previous": prev_val}
+                {
+                    "Parameter": key,
+                    "Current": cur_val,
+                    "Previous": prev_val,
+                    "Delta": delta,
+                }
             )
     cfg_diff_df = pd.DataFrame(config_records)
 
     metric_records: list[dict[str, Any]] = []
     if not current_summary.empty and not previous_summary.empty:
-        common = [c for c in current_summary.columns if c in previous_summary.columns]
-        for col in common:
-            if pdt.is_numeric_dtype(current_summary[col]) and pdt.is_numeric_dtype(
-                previous_summary[col]
-            ):
+        id_cols = [
+            col
+            for col in _ID_COLUMNS
+            if col in current_summary.columns and col in previous_summary.columns
+        ]
+
+        common = [
+            c
+            for c in current_summary.columns
+            if c in previous_summary.columns and c not in id_cols
+        ]
+        numeric = [
+            c
+            for c in common
+            if pdt.is_numeric_dtype(current_summary[c])
+            and pdt.is_numeric_dtype(previous_summary[c])
+        ]
+        metrics = [c for c in _HEADLINE_METRICS if c in numeric] or numeric
+
+        common_ids: list[tuple[Any, ...]] = []
+        current_keys = None
+        if id_cols:
+            current_keys = current_summary[id_cols].apply(tuple, axis=1)
+            prev_keys = previous_summary[id_cols].apply(tuple, axis=1)
+            current_ids = list(dict.fromkeys(current_keys.tolist()))
+            prev_ids = set(prev_keys.tolist())
+            common_ids = [key for key in current_ids if key in prev_ids]
+
+        if id_cols and common_ids and current_keys is not None:
+            prev_map = {}
+            for key, row in zip(prev_keys.tolist(), previous_summary.itertuples()):
+                if key not in prev_map:
+                    prev_map[key] = row
+            for key in common_ids:
+                mask = current_keys.apply(lambda x, k=key: x == k)
+                cur_row = current_summary[mask].iloc[0]
+                prev_row = prev_map.get(key)
+                if prev_row is None:
+                    continue
+                for col in metrics:
+                    try:
+                        cur_val = float(cur_row[col])
+                        prev_val = float(getattr(prev_row, col))
+                        delta = cur_val - prev_val
+                    except (TypeError, ValueError):
+                        continue
+                    record = {
+                        "Metric": col,
+                        "Current": cur_val,
+                        "Previous": prev_val,
+                        "Delta": delta,
+                    }
+                    for idx, id_col in enumerate(id_cols):
+                        record[id_col] = key[idx]
+                    metric_records.append(record)
+        else:
+            for col in metrics:
                 try:
                     cur_val = float(current_summary[col].iloc[0])
                     prev_val = float(previous_summary[col].iloc[0])
