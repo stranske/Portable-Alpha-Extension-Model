@@ -8,6 +8,7 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.utils import normalize_share
 from pa_core.portfolio.aggregator import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
@@ -20,22 +21,42 @@ def main() -> None:
     # Show any promoted alpha shares from Scenario Grid
     promoted_active_share: float | None = None
     promoted_theta: float | None = None
-    if "promoted_alpha_shares" in st.session_state:
+    promoted_source: str | None = None
+    vals = None
+    if "scenario_grid_selection" in st.session_state:
+        vals = st.session_state["scenario_grid_selection"]
+        promoted_source = "Scenario Grid selection"
+    elif "promoted_alpha_shares" in st.session_state:
+        vals = st.session_state["promoted_alpha_shares"]
+        promoted_source = "Scenario Grid promotion"
+    if vals is not None:
         try:
-            vals = st.session_state["promoted_alpha_shares"]
-            promoted_active_share = vals["active_share"]
-            promoted_theta = vals["theta_extpa"]
+            promoted_active_share = normalize_share(float(vals["active_share"]))
+            promoted_theta = normalize_share(float(vals["theta_extpa"]))
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None
         if (promoted_active_share is not None) or (promoted_theta is not None):
+            label = promoted_source or "Scenario Grid"
             st.info(
                 (
-                    "Promoted alpha shares from Scenario Grid "
+                    f"{label} "
                     f"(active_share={(promoted_active_share or 0.0):.2f}, "
                     f"theta_extpa={(promoted_theta or 0.0):.2f})"
                 )
             )
+
+    # Apply promoted values to widget state once per promotion.
+    promoted_state = (promoted_source, promoted_active_share, promoted_theta)
+    last_promoted = st.session_state.get("alpha_shares_last_promoted")
+    if (
+        promoted_active_share is not None
+        and promoted_theta is not None
+        and promoted_state != last_promoted
+    ):
+        st.session_state["alpha_shares_active_share"] = promoted_active_share
+        st.session_state["alpha_shares_theta_extpa"] = promoted_theta
+        st.session_state["alpha_shares_last_promoted"] = promoted_state
 
     # Optional alpha-share annotation (pre-populated when promoted)
     with st.expander(
@@ -48,6 +69,7 @@ def main() -> None:
             max_value=1.0,
             step=0.01,
             value=(promoted_active_share if promoted_active_share is not None else 0.5),
+            key="alpha_shares_active_share",
             help="Optional. Included in the exported YAML under alpha_shares metadata.",
         )
         theta_extpa_input = st.number_input(
@@ -56,6 +78,7 @@ def main() -> None:
             max_value=1.0,
             step=0.01,
             value=(promoted_theta if promoted_theta is not None else 0.5),
+            key="alpha_shares_theta_extpa",
             help="Optional. Included in the exported YAML under alpha_shares metadata.",
         )
 

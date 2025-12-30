@@ -887,6 +887,22 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
     else:
         st.error(f"{validation_status} {validation_msg}")
 
+    st.markdown("**Reproducibility:**")
+    use_seed = st.checkbox(
+        "Use deterministic seed",
+        value=st.session_state.get("wizard_use_seed", True),
+        key="wizard_use_seed",
+    )
+    st.number_input(
+        "Random seed",
+        min_value=0,
+        step=1,
+        value=int(st.session_state.get("wizard_seed", 42)),
+        key="wizard_seed",
+        disabled=not use_seed,
+        help="Fix the random seed to make runs reproducible.",
+    )
+
     confirmed = True
     if st.session_state.get("suggestion_applied"):
         confirmed = st.checkbox(
@@ -1133,17 +1149,21 @@ def main() -> None:
                         os.close(fd)  # Close file descriptor before writing to path
                         Path(idx_path).write_bytes(idx.getvalue())
 
+                        args = [
+                            "--config",
+                            cfg_path,
+                            "--index",
+                            idx_path,
+                            "--output",
+                            output,
+                        ]
+                        use_seed = st.session_state.get("wizard_use_seed", True)
+                        seed_value = st.session_state.get("wizard_seed", 42)
+                        if use_seed:
+                            args.extend(["--seed", str(int(seed_value))])
+
                         with st.spinner("🔄 Running simulation..."):
-                            pa_cli.main(
-                                [
-                                    "--config",
-                                    cfg_path,
-                                    "--index",
-                                    idx_path,
-                                    "--output",
-                                    output,
-                                ]
-                            )
+                            pa_cli.main(args)
                         sim_ok = True
                     except Exception as exc:
                         st.error(f"❌ Simulation failed: {exc}")
