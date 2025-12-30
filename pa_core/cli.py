@@ -351,33 +351,21 @@ def main(
 
     prev_manifest_data: dict[str, Any] | None = None
     prev_summary_df: pd.DataFrame = pd.DataFrame()
-    prev_manifest_ref: str | None = None
-    prev_manifest_path: Path | None = None
-
     if getattr(args, "prev_manifest", None):
-        prev_manifest_ref = str(args.prev_manifest)
-        candidate = Path(args.prev_manifest)
-        if candidate.exists():
-            prev_manifest_path = candidate
-    else:
-        candidate = Path(args.output).with_name("manifest.json")
-        if candidate.exists():
-            prev_manifest_ref = str(candidate)
-            prev_manifest_path = candidate
-
-    if prev_manifest_path is not None and prev_manifest_path.exists():
         try:
-            prev_manifest_data = json.loads(prev_manifest_path.read_text())
-            prev_out = (
-                prev_manifest_data.get("cli_args", {}).get("output")
-                if isinstance(prev_manifest_data, dict)
-                else None
-            )
-            if prev_out and Path(prev_out).exists():
-                try:
-                    prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
-                except Exception:
-                    prev_summary_df = pd.DataFrame()
+            prev_manifest_path = Path(args.prev_manifest)
+            if prev_manifest_path.exists():
+                prev_manifest_data = json.loads(prev_manifest_path.read_text())
+                prev_out = (
+                    prev_manifest_data.get("cli_args", {}).get("output")
+                    if isinstance(prev_manifest_data, dict)
+                    else None
+                )
+                if prev_out and Path(prev_out).exists():
+                    try:
+                        prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
+                    except Exception:
+                        prev_summary_df = pd.DataFrame()
         except Exception:
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
@@ -532,8 +520,8 @@ def main(
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
-            previous_run=prev_manifest_ref,
+            run_log=run_log_path,
+            previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         manifest_data = None
@@ -584,8 +572,6 @@ def main(
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
                         manifest=manifest_data,
-                        prev_summary_df=prev_summary_df,
-                        prev_manifest=prev_manifest_data,
                     )
                     print("✅ Parameter sweep export packet created:")
                     print(f"   📊 Excel: {excel_path}")
@@ -942,8 +928,8 @@ def main(
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
-            previous_run=prev_manifest_ref,
+            run_log=run_log_path,
+            previous_run=args.prev_manifest,
         )
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
