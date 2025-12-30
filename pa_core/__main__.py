@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import fields, is_dataclass
-from typing import Optional, Sequence
+from typing import Literal, Optional, Sequence, cast
 
 import pandas as pd
 
@@ -85,7 +85,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
     mu_idx = float(idx_series.mean())
-    vol_regime = getattr(cfg, "vol_regime", "single")
+    vol_regime_value = getattr(cfg, "vol_regime", "single")
+    if vol_regime_value not in ("single", "two_state"):
+        raise ValueError(
+            f"vol_regime must be 'single' or 'two_state', got {vol_regime_value!r}"
+        )
+    vol_regime = cast(Literal["single", "two_state"], vol_regime_value)
     vol_regime_window = getattr(cfg, "vol_regime_window", 12)
     idx_sigma, _, _ = select_vol_regime_sigma(
         idx_series,
@@ -101,7 +106,15 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     mu_M = cfg.mu_M
     sigma_M = cfg.sigma_M
 
-    covariance_shrinkage = getattr(cfg, "covariance_shrinkage", "none")
+    covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
+    if covariance_shrinkage_value not in ("none", "ledoit_wolf"):
+        raise ValueError(
+            "covariance_shrinkage must be 'none' or 'ledoit_wolf', "
+            f"got {covariance_shrinkage_value!r}"
+        )
+    covariance_shrinkage = cast(
+        Literal["none", "ledoit_wolf"], covariance_shrinkage_value
+    )
     _ = build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
