@@ -57,7 +57,8 @@ logger = logging.getLogger(__name__)
 class JsonFormatter(logging.Formatter):
     """Format logs as JSON lines."""
 
-    def format(self, record: logging.LogRecord) -> str:  # type: ignore[override]
+    # type: ignore[override]
+    def format(self, record: logging.LogRecord) -> str:
         ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
         entry = {
             "level": record.levelname,
@@ -572,6 +573,8 @@ def main(
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
                         manifest=manifest_data,
+                        prev_summary_df=prev_summary_df,
+                        prev_manifest=prev_manifest_data,
                     )
                     print("✅ Parameter sweep export packet created:")
                     print(f"   📊 Excel: {excel_path}")
