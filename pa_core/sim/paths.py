@@ -27,7 +27,7 @@ def _validate_return_draw_settings(
     distribution: str | Sequence[str], copula: str, t_df: float
 ) -> None:
     if isinstance(distribution, str):
-        distributions = (distribution,)
+        distributions: tuple[str, ...] = (distribution,)
     else:
         distributions = tuple(distribution)
     for dist in distributions:
@@ -54,7 +54,12 @@ def _resolve_return_distributions(
         return (base, base, base, base)
     if len(overrides) != 4:
         raise ValueError("return_distributions must have length 4")
-    return tuple((override or base) for override in overrides)
+    return (
+        overrides[0] or base,
+        overrides[1] or base,
+        overrides[2] or base,
+        overrides[3] or base,
+    )
 
 
 def _safe_multivariate_normal(

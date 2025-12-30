@@ -68,19 +68,26 @@ class PresetLibrary:
         self._presets.pop(preset_id)
 
     # Serialization helpers
-    def to_dict(self) -> Dict[str, Dict[str, float]]:
+    def to_dict(self) -> Dict[str, Dict[str, float | str]]:
         # Ensure the nested dict contains the id key as well for round-trip
-        out: Dict[str, Dict[str, float]] = {}
+        out: Dict[str, Dict[str, float | str]] = {}
         for pid, p in self._presets.items():
             d = asdict(p)
             d["id"] = p.id
-            out[pid] = d  # type: ignore[assignment]
+            out[pid] = d
         return out
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Dict[str, float]]) -> "PresetLibrary":
+    def from_dict(
+        cls, data: Dict[str, Dict[str, float | str]]
+    ) -> "PresetLibrary":
         presets = [
-            AlphaPreset(id=k, mu=v["mu"], sigma=v["sigma"], rho=v["rho"])
+            AlphaPreset(
+                id=k,
+                mu=float(v["mu"]),
+                sigma=float(v["sigma"]),
+                rho=float(v["rho"]),
+            )
             for k, v in data.items()
         ]
         return cls(presets)
