@@ -23,15 +23,19 @@ _VALID_RETURN_DISTS = {"normal", "student_t"}
 _VALID_RETURN_COPULAS = {"gaussian", "t"}
 
 
-def _validate_return_draw_settings(
-    distribution: str, copula: str, t_df: float
-) -> None:
+def _validate_return_draw_settings(distribution: str, copula: str, t_df: float) -> None:
     if distribution not in _VALID_RETURN_DISTS:
-        raise ValueError(f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}")
+        raise ValueError(
+            f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}"
+        )
     if copula not in _VALID_RETURN_COPULAS:
-        raise ValueError(f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}")
+        raise ValueError(
+            f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}"
+        )
     if distribution == "normal" and copula != "gaussian":
-        raise ValueError("return_copula must be 'gaussian' when return_distribution is 'normal'")
+        raise ValueError(
+            "return_copula must be 'gaussian' when return_distribution is 'normal'"
+        )
     if distribution == "student_t" and t_df <= 2.0:
         raise ValueError("return_t_df must be greater than 2 for finite variance")
 

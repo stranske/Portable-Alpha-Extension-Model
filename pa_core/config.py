@@ -56,9 +56,7 @@ class ModelConfig(BaseModel):
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
 
-    return_distribution: str = Field(
-        default="normal", alias="Return distribution"
-    )
+    return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
     return_copula: str = Field(default="gaussian", alias="Return copula")
 
