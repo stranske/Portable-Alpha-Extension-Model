@@ -248,4 +248,8 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     )
 
     stress_sheet = pd.read_excel(out_file, sheet_name="StressDelta")
+    base_sheet = pd.read_excel(out_file, sheet_name="BaseSummary")
+    stressed_sheet = pd.read_excel(out_file, sheet_name="StressedSummary")
     assert "Agent" in stress_sheet.columns
+    assert "Agent" in base_sheet.columns
+    assert "Agent" in stressed_sheet.columns

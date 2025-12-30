@@ -721,6 +721,7 @@ def main(
 
     returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
     stress_delta_df = None
+    base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
         from .reporting.stress_delta import build_delta_table
 
@@ -731,6 +732,7 @@ def main(
         _, base_summary, _, _, _ = _run_single(
             base_cfg, base_rng_returns, base_fin_rngs
         )
+        base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
@@ -948,20 +950,29 @@ def main(
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
-    if stress_delta_df is not None and not stress_delta_df.empty:
+    if args.stress_preset:
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
         if out_path.exists():
             try:
                 with pd.ExcelWriter(
                     out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
                 ) as writer:
-                    stress_delta_df.to_excel(
-                        writer, sheet_name="StressDelta", index=False
-                    )
+                    if base_summary_df is not None and not base_summary_df.empty:
+                        base_summary_df.to_excel(
+                            writer, sheet_name="BaseSummary", index=False
+                        )
+                    if summary is not None and not summary.empty:
+                        summary.to_excel(
+                            writer, sheet_name="StressedSummary", index=False
+                        )
+                    if stress_delta_df is not None and not stress_delta_df.empty:
+                        stress_delta_df.to_excel(
+                            writer, sheet_name="StressDelta", index=False
+                        )
             except (OSError, PermissionError, ValueError) as e:
-                logger.warning(f"Failed to append StressDelta sheet: {e}")
+                logger.warning(f"Failed to append stress sheets: {e}")
         else:
-            logger.warning("StressDelta export skipped; output workbook missing.")
+            logger.warning("Stress sheet export skipped; output workbook missing.")
 
     # Write reproducibility manifest for normal run
     try:
