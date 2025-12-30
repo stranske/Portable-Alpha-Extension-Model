@@ -260,6 +260,21 @@ def main(
         default=None,
         help="Random seed for reproducible simulations",
     )
+    parser.add_argument(
+        "--return-distribution",
+        choices=["normal", "student_t"],
+        help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
+    )
+    parser.add_argument(
+        "--return-t-df",
+        type=float,
+        help="Override Student-t degrees of freedom (requires student_t; lower df => heavier tails)",
+    )
+    parser.add_argument(
+        "--return-copula",
+        choices=["gaussian", "t"],
+        help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
+    )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
     parser.add_argument(
@@ -403,6 +418,15 @@ def main(
     from .config import load_config
 
     cfg = load_config(args.config)
+    return_overrides: dict[str, float | str] = {}
+    if args.return_distribution is not None:
+        return_overrides["return_distribution"] = args.return_distribution
+    if args.return_t_df is not None:
+        return_overrides["return_t_df"] = args.return_t_df
+    if args.return_copula is not None:
+        return_overrides["return_copula"] = args.return_copula
+    if return_overrides:
+        cfg = cfg.__class__.model_validate({**cfg.model_dump(), **return_overrides})
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
@@ -714,6 +738,13 @@ def main(
             "rho_H_E": run_cfg.rho_H_E,
             "rho_H_M": run_cfg.rho_H_M,
             "rho_E_M": run_cfg.rho_E_M,
+            "return_distribution": run_cfg.return_distribution,
+            "return_t_df": run_cfg.return_t_df,
+            "return_copula": run_cfg.return_copula,
+            "return_distribution_idx": run_cfg.return_distribution_idx,
+            "return_distribution_H": run_cfg.return_distribution_H,
+            "return_distribution_E": run_cfg.return_distribution_E,
+            "return_distribution_M": run_cfg.return_distribution_M,
             "internal_financing_mean_month": run_cfg.internal_financing_mean_month,
             "internal_financing_sigma_month": run_cfg.internal_financing_sigma_month,
             "internal_spike_prob": run_cfg.internal_spike_prob,
@@ -905,6 +936,13 @@ def main(
                     "rho_H_E": mod_cfg.rho_H_E,
                     "rho_H_M": mod_cfg.rho_H_M,
                     "rho_E_M": mod_cfg.rho_E_M,
+                    "return_distribution": mod_cfg.return_distribution,
+                    "return_t_df": mod_cfg.return_t_df,
+                    "return_copula": mod_cfg.return_copula,
+                    "return_distribution_idx": mod_cfg.return_distribution_idx,
+                    "return_distribution_H": mod_cfg.return_distribution_H,
+                    "return_distribution_E": mod_cfg.return_distribution_E,
+                    "return_distribution_M": mod_cfg.return_distribution_M,
                     # financing left the same for speed
                     "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
                     "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
@@ -1089,6 +1127,13 @@ def main(
                     "rho_H_E": mod_cfg.rho_H_E,
                     "rho_H_M": mod_cfg.rho_H_M,
                     "rho_E_M": mod_cfg.rho_E_M,
+                    "return_distribution": mod_cfg.return_distribution,
+                    "return_t_df": mod_cfg.return_t_df,
+                    "return_copula": mod_cfg.return_copula,
+                    "return_distribution_idx": mod_cfg.return_distribution_idx,
+                    "return_distribution_H": mod_cfg.return_distribution_H,
+                    "return_distribution_E": mod_cfg.return_distribution_E,
+                    "return_distribution_M": mod_cfg.return_distribution_M,
                     "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
                     "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
                     "internal_spike_prob": mod_cfg.internal_spike_prob,
