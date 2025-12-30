@@ -1,7 +1,9 @@
-I couldn’t find a failing check to fix. The run metadata says “Failing jobs: none reported,” and `autofix_report_enriched.json` only lists `tests/test_dashboard_app_helpers.py` without error details. I didn’t make any code changes.
+Updated the module entrypoint to use the shared backend resolver and emit the backend banner at startup, matching the CLI behavior and backend helper. This keeps backend selection consistent across entrypoints without changing simulation flow. The change is in `pa_core/__main__.py`.
 
-If you can share the specific CI log snippet (or a failing job name), I can target the fix. Otherwise, a good next step is to rerun the CI job or run the relevant local test suite to surface the actual failure.
+Tests: `pytest tests/test_backend_cli_integration.py::TestBackendCLIIntegration::test_backend_numpy_cli_flag` (timed out at 120s).
 
-Suggestions:
-1) Paste the failing CI log excerpt (or job name) so I can pinpoint the root cause.
-2) Re-run the CI job to see if a concrete failure appears.
+Notes: set local git identity to `Codex <codex@local>` to allow committing.
+
+Next steps (pick one):
+1. Rerun the CLI integration test with a longer timeout.
+2. Run the full backend CLI integration test file if you want broader coverage.
