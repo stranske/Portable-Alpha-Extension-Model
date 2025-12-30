@@ -8,7 +8,13 @@ import numpy as np
 import pandas as pd
 import yaml  # type: ignore[import-untyped]
 
-from ..schema import Asset, Correlation, Index
+from ..schema import (
+    Asset,
+    CORRELATION_LOWER_BOUND,
+    CORRELATION_UPPER_BOUND,
+    Correlation,
+    Index,
+)
 
 MONTHS_PER_YEAR = 12
 VOLATILITY_ANNUALIZATION_FACTOR = MONTHS_PER_YEAR**0.5
@@ -145,7 +151,14 @@ class CalibrationAgent:
         ids = list(corr.columns)
         for i, a in enumerate(ids):
             for b in ids[i + 1 :]:
-                pairs.append(Correlation(pair=(a, b), rho=float(corr.loc[a, b])))
+                rho = float(corr.loc[a, b])
+                if not np.isfinite(rho):
+                    rho = 0.0
+                else:
+                    rho = float(
+                        np.clip(rho, CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND)
+                    )
+                pairs.append(Correlation(pair=(a, b), rho=rho))
         diagnostics = CalibrationDiagnostics(
             covariance_shrinkage=self.covariance_shrinkage,
             shrinkage_intensity=shrinkage,
