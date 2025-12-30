@@ -52,6 +52,9 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
     assert run_end.get("duration_seconds") is not None
     assert run_end.get("seed") == 123
     assert run_end.get("backend") == "numpy"
+    assert run_end.get("run_id") == log_path.parent.name
+    assert run_end.get("started_at")
+    assert run_end.get("ended_at")
     assert run_end.get("run_log") == str(log_path)
     assert run_end.get("manifest_path") == str(manifest_path)
     assert isinstance(run_end.get("artifact_paths"), list)
@@ -60,13 +63,27 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
     assert "run.log" in artifact_names
     assert "manifest.json" in artifact_names
     assert out_file.name in artifact_names
+    assert run_end.get("status") == "success"
 
     assert manifest.get("run_timing", {}).get("duration_seconds") is not None
     assert manifest.get("run_timing", {}).get("started_at") is not None
     assert manifest.get("run_timing", {}).get("ended_at") is not None
+
+    run_end_path = log_path.parent / "run_end.json"
+    assert run_end_path.exists()
+    run_end_payload = json.loads(run_end_path.read_text())
+    assert run_end_payload.get("event") == "run_end"
+    assert run_end_payload.get("run_log") == str(log_path)
+    assert run_end_payload.get("manifest_path") == str(manifest_path)
+    assert run_end_payload.get("status") == "success"
 
     if shutil.which("jq"):
         msg = subprocess.check_output(
             ["jq", "-r", ".message"], input=first_line.encode()
         )
         assert msg.strip().decode() == parsed["message"]
+        run_end_event = subprocess.check_output(
+            ["jq", "-r", 'select(.event=="run_end") | .event', str(log_path)],
+            text=True,
+        )
+        assert run_end_event.strip() == "run_end"

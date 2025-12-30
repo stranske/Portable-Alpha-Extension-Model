@@ -37,11 +37,14 @@ class JSONLogFormatter(logging.Formatter):
             "event",
             "funcName",
             "duration_seconds",
+            "started_at",
+            "ended_at",
             "seed",
             "backend",
             "artifact_paths",
             "run_log",
             "manifest_path",
+            "status",
         ):
             if hasattr(record, key):
                 payload[key] = getattr(record, key)
@@ -118,12 +121,15 @@ def setup_json_logging(
 def emit_run_end(
     *,
     duration_seconds: float,
+    started_at: str | None = None,
+    ended_at: str | None = None,
     seed: int | None,
     backend: str | None,
     artifact_paths: list[str] | None = None,
     run_id: str | None = None,
     run_log: str | Path | None = None,
     manifest_path: str | Path | None = None,
+    status: str = "success",
 ) -> None:
     """Emit a JSONL run_end record for automation and audits."""
     logger = logging.getLogger("pa_core.run")
@@ -133,7 +139,12 @@ def emit_run_end(
         "seed": seed,
         "backend": backend,
         "artifact_paths": artifact_paths or [],
+        "status": status,
     }
+    if started_at:
+        extra["started_at"] = started_at
+    if ended_at:
+        extra["ended_at"] = ended_at
     if run_id:
         extra["run_id"] = run_id
     if run_log:
@@ -141,3 +152,11 @@ def emit_run_end(
     if manifest_path:
         extra["manifest_path"] = str(manifest_path)
     logger.info("Run completed", extra=extra)
+    if run_log:
+        try:
+            metadata_path = Path(run_log).parent / "run_end.json"
+            payload = dict(extra)
+            payload["recorded_at"] = datetime.now(timezone.utc).isoformat()
+            metadata_path.write_text(json.dumps(payload, indent=2))
+        except (OSError, PermissionError):
+            logger.warning("Failed to write run_end metadata file.")
