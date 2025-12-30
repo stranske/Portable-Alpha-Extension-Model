@@ -101,21 +101,48 @@ You should assume you're running in `agent-standard` unless explicitly told othe
 
 ## Task Prompt
 
-# Autofix from CI failure
+## Keepalive Next Task
 
-You are Codex running in autofix mode after a CI failure. Use the available logs and repository context to repair the failing checks.
+Your objective is to satisfy the **Acceptance Criteria** by completing each **Task** within the defined **Scope**.
 
-Guidance:
-- Inspect the latest CI output provided by the caller (logs or summaries) to pinpoint the root cause.
-- Focus on minimal, targeted fixes that unblock the failing job.
-- Leave diagnostic breadcrumbs when a failure cannot be reproduced or fully addressed.
-- Re-run or suggest the smallest relevant checks to verify the fix.
+**This round you MUST:**
+1. Implement actual code or test changes that advance at least one incomplete task toward acceptance.
+2. Commit meaningful source code (.py, .yml, .js, etc.)—not just status/docs updates.
+3. Mark a task checkbox complete ONLY after verifying the implementation works.
+4. Focus on the FIRST unchecked task unless blocked, then move to the next.
+
+**Guidelines:**
+- Keep edits scoped to the current task rather than reshaping the entire PR.
+- Use repository instructions, conventions, and tests to validate work.
+- Prefer small, reviewable commits; leave clear notes when follow-up is required.
+- Do NOT work on unrelated improvements until all PR tasks are complete.
+
+**The Tasks and Acceptance Criteria are provided in the appendix below.** Work through them in order.
 
 ## Run context
-Gate run: https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/20586798767
-Conclusion: cancelled
-PR: #737
-Head SHA: 2f36b9c67d935594a8116d8c70f7a12c8fc568dd
-Autofix attempts for this head: 1 / 3
-Fix scope: src/, tests/, tools/, scripts/, agents/, templates/, .github/
-Failing jobs: none reported.
+---
+## PR Tasks and Acceptance Criteria
+
+**Progress:** 0/9 tasks complete, 9 remaining
+
+### Scope
+- [ ] Dashboard users need the app to remain functional when Parquet (pyarrow) is not installed.
+
+### Tasks
+Complete these in order. Mark checkbox done ONLY after implementation is verified:
+
+- [ ] Wrap `pd.read_parquet` to catch ImportError
+- [ ] Show clear "install pyarrow or use CSV" hint via `st.info`
+- [ ] Ensure CSV writer is called wherever Parquet is written
+- [ ] Verify `Outputs.csv` written alongside `Outputs.parquet`
+
+### Acceptance Criteria
+The PR is complete when ALL of these are satisfied:
+
+- [ ] ImportError from pyarrow shows friendly message
+- [ ] Message includes guidance to install pyarrow or use CSV
+- [ ] CSV file always written alongside Parquet
+- [ ] Dashboard loads via CSV path when pyarrow missing
+- [ ] No crash when pyarrow unavailable
+
+---
