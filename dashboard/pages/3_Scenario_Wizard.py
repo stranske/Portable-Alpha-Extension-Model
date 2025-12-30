@@ -26,6 +26,14 @@ from pa_core.wizard_schema import (
     get_default_config,
 )
 
+_TOTAL_CAPITAL_KEY = "wizard_total_fund_capital"
+_EXTERNAL_CAPITAL_KEY = "wizard_external_pa_capital"
+_ACTIVE_CAPITAL_KEY = "wizard_active_ext_capital"
+_INTERNAL_CAPITAL_KEY = "wizard_internal_pa_capital"
+_W_BETA_KEY = "wizard_w_beta_h"
+_THETA_EXTPA_KEY = "wizard_theta_extpa"
+_ACTIVE_SHARE_KEY = "wizard_active_share"
+
 
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     """Construct a YAML-compatible dict for ModelConfig from the wizard state.
@@ -224,6 +232,7 @@ def _render_step_2_capital(config: Any) -> Any:
     """Step 2: Capital Allocation Settings."""
     st.subheader("Step 2: Capital Allocation")
 
+    ss = st.session_state
     col1, col2 = st.columns(2)
 
     with col1:
@@ -232,30 +241,33 @@ def _render_step_2_capital(config: Any) -> Any:
         config.total_fund_capital = st.number_input(
             "Total Fund Capital",
             min_value=1.0,
-            value=config.total_fund_capital,
+            value=ss.get(_TOTAL_CAPITAL_KEY, config.total_fund_capital),
             step=10.0,
             format="%.1f",
             help="Total capital available for allocation",
+            key=_TOTAL_CAPITAL_KEY,
         )
 
         config.external_pa_capital = st.number_input(
             "External PA Capital [$M]",
             min_value=0.0,
             max_value=config.total_fund_capital,
-            value=config.external_pa_capital,
+            value=ss.get(_EXTERNAL_CAPITAL_KEY, config.external_pa_capital),
             step=5.0,
             format="%.1f",
             help="Capital allocated to external portable alpha managers",
+            key=_EXTERNAL_CAPITAL_KEY,
         )
 
         config.active_ext_capital = st.number_input(
             "Active Extension Capital [$M]",
             min_value=0.0,
             max_value=config.total_fund_capital,
-            value=config.active_ext_capital,
+            value=ss.get(_ACTIVE_CAPITAL_KEY, config.active_ext_capital),
             step=5.0,
             format="%.1f",
             help="Capital for active equity overlay strategies",
+            key=_ACTIVE_CAPITAL_KEY,
         )
 
         # Calculate remaining capital
@@ -267,10 +279,11 @@ def _render_step_2_capital(config: Any) -> Any:
         config.internal_pa_capital = st.number_input(
             "Internal PA Capital [$M]",
             min_value=0.0,
-            value=max(0.0, remaining),
+            value=ss.get(_INTERNAL_CAPITAL_KEY, max(0.0, remaining)),
             step=5.0,
             format="%.1f",
             help="Capital managed internally for portable alpha",
+            key=_INTERNAL_CAPITAL_KEY,
         )
 
     with col2:
@@ -280,9 +293,10 @@ def _render_step_2_capital(config: Any) -> Any:
             "Internal Beta Weight",
             min_value=0.0,
             max_value=1.0,
-            value=config.w_beta_h,
+            value=ss.get(_W_BETA_KEY, config.w_beta_h),
             step=0.05,
             help="Beta component weight in internal sleeve",
+            key=_W_BETA_KEY,
         )
 
         config.w_alpha_h = 1.0 - config.w_beta_h
@@ -292,18 +306,20 @@ def _render_step_2_capital(config: Any) -> Any:
             "External PA Alpha Fraction",
             min_value=0.0,
             max_value=1.0,
-            value=config.theta_extpa,
+            value=ss.get(_THETA_EXTPA_KEY, config.theta_extpa),
             step=0.05,
             help="Fraction of alpha from external PA manager",
+            key=_THETA_EXTPA_KEY,
         )
 
         config.active_share = st.slider(
             "Active Extension Share",
             min_value=0.0,
             max_value=1.0,
-            value=config.active_share,
+            value=ss.get(_ACTIVE_SHARE_KEY, config.active_share),
             step=0.05,
             help=tooltip("active share"),
+            key=_ACTIVE_SHARE_KEY,
         )
 
     # Validation and visualization
@@ -639,6 +655,10 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         config.external_pa_capital = float(row["external_pa_capital"])
         config.active_ext_capital = float(row["active_ext_capital"])
         config.internal_pa_capital = float(row["internal_pa_capital"])
+        st.session_state[_TOTAL_CAPITAL_KEY] = float(config.total_fund_capital)
+        st.session_state[_EXTERNAL_CAPITAL_KEY] = float(config.external_pa_capital)
+        st.session_state[_ACTIVE_CAPITAL_KEY] = float(config.active_ext_capital)
+        st.session_state[_INTERNAL_CAPITAL_KEY] = float(config.internal_pa_capital)
         st.session_state["suggestion_applied"] = True
         st.session_state["suggestion_confirmed"] = True
         st.success("Suggested allocation applied. Review before running.")
