@@ -20,7 +20,7 @@ import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence, cast
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -120,6 +120,31 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     guidance.append("• TE shows how much each strategy deviates from the benchmark\n")
 
     console.print(guidance)
+
+
+def _maybe_print_run_diff(
+    *,
+    current_manifest: Mapping[str, Any] | None,
+    prev_manifest: Mapping[str, Any] | None,
+    current_summary: "pd.DataFrame",
+    prev_summary: "pd.DataFrame" | None,
+) -> None:
+    if prev_manifest is None and (prev_summary is None or prev_summary.empty):
+        return
+    import pandas as pd
+
+    from .reporting.console import print_run_diff
+    from .reporting.run_diff import build_run_diff
+
+    prev_summary_df = prev_summary if prev_summary is not None else pd.DataFrame()
+    try:
+        cfg_diff, metric_diff = build_run_diff(
+            current_manifest, prev_manifest, current_summary, prev_summary_df
+        )
+    except (KeyError, TypeError, ValueError) as exc:
+        logger.warning(f"Run diff unavailable: {exc}")
+        return
+    print_run_diff(cfg_diff, metric_diff)
 
 
 class Dependencies:
@@ -532,25 +557,35 @@ def main(
         except (json.JSONDecodeError, FileNotFoundError, PermissionError):
             manifest_data = None
 
+        summary_frames = []
+        for res in results:
+            summary = res["summary"].copy()
+            summary["ShortfallProb"] = summary.get("ShortfallProb", 0.0)
+            summary["Combination"] = f"Run{res['combination_id']}"
+            summary_frames.append(summary)
+        all_summary = (
+            pd.concat(summary_frames, ignore_index=True)
+            if summary_frames
+            else pd.DataFrame()
+        )
+
+        current_manifest_data = manifest_data or {"config": raw_params}
+        _maybe_print_run_diff(
+            current_manifest=current_manifest_data,
+            prev_manifest=prev_manifest_data,
+            current_summary=all_summary,
+            prev_summary=prev_summary_df,
+        )
+
         # Handle packet export for parameter sweep mode
         if flags.packet:
             try:
                 from . import viz
 
-                # Build consolidated summary from sweep results (similar to export_sweep_results)
-                summary_frames = []
-                for res in results:
-                    summary = res["summary"].copy()
-                    summary["ShortfallProb"] = summary.get("ShortfallProb", 0.0)
-                    summary["Combination"] = f"Run{res['combination_id']}"
-                    summary_frames.append(summary)
-
-                if summary_frames:
+                if not all_summary.empty:
                     from .reporting.export_packet import (
                         create_export_packet as create_export_packet_fn,
                     )
-
-                    all_summary = pd.concat(summary_frames, ignore_index=True)
 
                     # Create visualization from consolidated summary
                     if "ShortfallProb" in all_summary.columns:
@@ -936,6 +971,24 @@ def main(
         )
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
+
+    manifest_data = None
+    try:
+        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
+            "manifest.json"
+        )
+        if manifest_json.exists():
+            manifest_data = json.loads(manifest_json.read_text())
+    except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+        manifest_data = None
+
+    current_manifest_data = manifest_data or {"config": raw_params}
+    _maybe_print_run_diff(
+        current_manifest=current_manifest_data,
+        prev_manifest=prev_manifest_data,
+        current_summary=summary,
+        prev_summary=prev_summary_df,
+    )
 
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:

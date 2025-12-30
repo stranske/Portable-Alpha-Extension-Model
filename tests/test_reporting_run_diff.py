@@ -90,3 +90,64 @@ def test_build_run_diff_aligns_by_combination_and_agent() -> None:
     run2 = metric_diff[metric_diff["Combination"] == "Run2"]
     assert not run1.empty
     assert not run2.empty
+
+
+def test_build_run_diff_handles_object_numeric_columns() -> None:
+    current_summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "Alt"],
+            "AnnReturn": [0.05, 0.03],
+            "TE": [None, 0.2],
+        }
+    )
+    previous_summary = pd.DataFrame(
+        {
+            "Agent": ["Base", "Alt"],
+            "AnnReturn": [0.04, 0.02],
+            "TE": [None, 0.25],
+        }
+    )
+
+    _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
+
+    te_rows = metric_diff[metric_diff["Metric"] == "TE"]
+    assert not te_rows.empty
+    alt_te = te_rows[te_rows["Agent"] == "Alt"].iloc[0]
+    assert alt_te["Delta"] == pytest.approx(-0.05)
+
+
+def test_build_run_diff_parses_percent_strings() -> None:
+    current_summary = pd.DataFrame(
+        {
+            "Agent": ["Base"],
+            "AnnReturn": ["5.0%"],
+            "AnnVol": ["10%"],
+        }
+    )
+    previous_summary = pd.DataFrame(
+        {
+            "Agent": ["Base"],
+            "AnnReturn": ["4.0%"],
+            "AnnVol": ["12%"],
+        }
+    )
+
+    _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
+
+    ann_return = metric_diff[metric_diff["Metric"] == "AnnReturn"].iloc[0]
+    ann_vol = metric_diff[metric_diff["Metric"] == "AnnVol"].iloc[0]
+    assert ann_return["Delta"] == pytest.approx(0.01)
+    assert ann_vol["Delta"] == pytest.approx(-0.02)
+
+
+def test_build_run_diff_handles_numeric_string_config() -> None:
+    current_manifest = {"config": {"alpha": "5", "beta": "10%"}}
+    previous_manifest = {"config": {"alpha": "2", "beta": "8%"}}
+    summary = pd.DataFrame({"AnnReturn": [0.05]})
+
+    cfg_diff, _ = build_run_diff(current_manifest, previous_manifest, summary, summary)
+
+    alpha_row = cfg_diff[cfg_diff["Parameter"] == "alpha"].iloc[0]
+    beta_row = cfg_diff[cfg_diff["Parameter"] == "beta"].iloc[0]
+    assert alpha_row["Delta"] == pytest.approx(3.0)
+    assert beta_row["Delta"] == pytest.approx(0.02)
