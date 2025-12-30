@@ -51,8 +51,10 @@ def main() -> None:
     last_promoted = st.session_state.get("alpha_shares_last_promoted")
     promotion_token = st.session_state.get("scenario_grid_promotion_token")
     last_token = st.session_state.get("alpha_shares_last_promotion_token")
-    if promoted_active_share is not None and promoted_theta is not None and (
-        promoted_state != last_promoted or promotion_token != last_token
+    if (
+        promoted_active_share is not None
+        and promoted_theta is not None
+        and (promoted_state != last_promoted or promotion_token != last_token)
     ):
         st.session_state["alpha_shares_active_share"] = promoted_active_share
         st.session_state["alpha_shares_theta_extpa"] = promoted_theta
