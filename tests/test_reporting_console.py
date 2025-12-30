@@ -42,3 +42,42 @@ def test_print_summary_with_dataframe(monkeypatch) -> None:
     assert headers == ["Metric", "Value"]
     assert table.columns[0]._cells == ["AnnReturn"]
     assert table.columns[1]._cells == ["0.2000"]
+
+
+def test_print_run_diff_with_data(monkeypatch) -> None:
+    capture = _CaptureConsole()
+    monkeypatch.setattr(reporting_console, "Console", lambda: capture)
+
+    cfg_df = pd.DataFrame(
+        {
+            "Parameter": ["N_SIMULATIONS"],
+            "Current": [1000],
+            "Previous": [500],
+            "Delta": [500],
+        }
+    )
+    metric_df = pd.DataFrame(
+        {
+            "Metric": ["AnnReturn"],
+            "Agent": ["Base"],
+            "Current": [0.1],
+            "Previous": [0.08],
+            "Delta": [0.02],
+        }
+    )
+
+    reporting_console.print_run_diff(cfg_df, metric_df, max_rows=5)
+
+    assert len(capture.printed) == 2
+    titles = [table.title for table in capture.printed]
+    assert "Config Changes vs Previous" in titles
+    assert "Metric Changes vs Previous" in titles
+
+
+def test_print_run_diff_no_changes(monkeypatch) -> None:
+    capture = _CaptureConsole()
+    monkeypatch.setattr(reporting_console, "Console", lambda: capture)
+
+    reporting_console.print_run_diff(pd.DataFrame(), pd.DataFrame(), max_rows=5)
+
+    assert capture.printed == ["No changes detected vs previous run."]

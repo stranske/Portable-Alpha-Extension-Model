@@ -68,6 +68,25 @@ def format_delta_table(delta_df: pd.DataFrame) -> pd.io.formats.style.Styler:
     return delta_df.style.format(formatters)
 
 
+def format_delta_table_text(delta_df: pd.DataFrame) -> pd.DataFrame:
+    """Return deltas formatted as strings for PPTX/table exports."""
+    formatted = delta_df.copy()
+    for col in formatted.columns:
+        if col == "Agent":
+            continue
+        if not pdt.is_numeric_dtype(formatted[col]):
+            continue
+        if col in _PCT_COLUMNS:
+            formatted[col] = formatted[col].apply(
+                lambda x: f"{x:+.2%}" if pd.notna(x) else ""
+            )
+        else:
+            formatted[col] = formatted[col].apply(
+                lambda x: f"{x:+.4f}" if pd.notna(x) else ""
+            )
+    return formatted
+
+
 def build_stress_workbook(
     base_summary: pd.DataFrame,
     stress_summary: pd.DataFrame,
