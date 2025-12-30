@@ -4,7 +4,7 @@ import argparse
 import csv
 import sys
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Literal, Mapping, Sequence, cast
 
 import yaml  # type: ignore[import-untyped]
 
@@ -167,15 +167,21 @@ def main(argv: Sequence[str] | None = None) -> None:
             calibration_overrides = _load_calibration_overrides(args.mapping)
         else:
             importer = DataImportAgent(min_obs=int(args.min_obs))
-        cov_shrinkage = _coerce_calibration_setting(
+        cov_shrinkage = cast(
+            Literal["none", "ledoit_wolf"] | None,
+            _coerce_calibration_setting(
             args.cov_shrinkage or calibration_overrides.get("covariance_shrinkage"),
             allowed={"none", "ledoit_wolf"},
             label="covariance_shrinkage",
+            ),
         )
-        vol_regime = _coerce_calibration_setting(
+        vol_regime = cast(
+            Literal["single", "two_state"] | None,
+            _coerce_calibration_setting(
             args.vol_regime or calibration_overrides.get("vol_regime"),
             allowed={"single", "two_state"},
             label="vol_regime",
+            ),
         )
         vol_regime_window = (
             args.vol_regime_window
@@ -185,10 +191,16 @@ def main(argv: Sequence[str] | None = None) -> None:
         if vol_regime_window is None:
             vol_regime_window = 12
         df = importer.load(args.input)
+        cov_shrinkage_value: Literal["none", "ledoit_wolf"] = (
+            cov_shrinkage if cov_shrinkage is not None else "none"
+        )
+        vol_regime_value: Literal["single", "two_state"] = (
+            vol_regime if vol_regime is not None else "single"
+        )
         calib = CalibrationAgent(
             min_obs=importer.min_obs,
-            covariance_shrinkage=cov_shrinkage or "none",
-            vol_regime=vol_regime or "single",
+            covariance_shrinkage=cov_shrinkage_value,
+            vol_regime=vol_regime_value,
             vol_regime_window=int(vol_regime_window),
         )
         result = calib.calibrate(df, index_id=args.index_id)
