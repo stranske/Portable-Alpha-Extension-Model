@@ -13,7 +13,11 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from dashboard.utils import bump_session_token, make_grid_cache_key
+from dashboard.utils import (
+    build_alpha_shares_payload,
+    bump_session_token,
+    make_grid_cache_key,
+)
 from pa_core.config import ModelConfig
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
@@ -383,15 +387,23 @@ def main() -> None:
                     if y_col == "external_pa_dollars_mm"
                     else float(sel_y)
                 )
-                st.session_state["scenario_grid_selection"] = {
-                    "active_share": float(sel_x),
-                    "theta_extpa": theta_val,
-                }
-                bump_session_token(st.session_state, "scenario_grid_promotion_token")
-                st.info(
-                    "Heatmap selection captured. Open Portfolio Builder to "
-                    "see the values populated."
+                selection_payload = build_alpha_shares_payload(
+                    float(sel_x), float(theta_val)
                 )
+                if selection_payload is not None:
+                    st.session_state["scenario_grid_selection"] = selection_payload
+                    st.session_state["promoted_alpha_shares"] = selection_payload
+                    bump_session_token(
+                        st.session_state, "scenario_grid_promotion_token"
+                    )
+                    st.success(
+                        "Heatmap selection captured. Open Portfolio Builder to "
+                        "see the values populated."
+                    )
+                    st.page_link(
+                        "pages/2_Portfolio_Builder.py",
+                        label="→ Go to Portfolio Builder",
+                    )
 
             # Simple promote: allow choosing a point from available values
             st.subheader("Promote selection")
@@ -417,19 +429,19 @@ def main() -> None:
                 if sel_x is None or sel_y is None:
                     st.warning("Please select both axes values before promoting.")
                     return
-                promoted_selection = {
-                    "active_share": float(sel_x) / 100.0,
-                    "theta_extpa": (
-                        float(sel_y)
-                        if y_col != "external_pa_dollars_mm"
-                        else float(sel_y) / total_fund
-                    ),
-                }
+                promoted_theta = (
+                    float(sel_y)
+                    if y_col != "external_pa_dollars_mm"
+                    else float(sel_y) / total_fund
+                )
+                promoted_selection = build_alpha_shares_payload(
+                    float(sel_x), promoted_theta
+                )
+                if promoted_selection is None:
+                    st.warning("Selection could not be normalized. Try again.")
+                    return
                 st.session_state["promoted_alpha_shares"] = promoted_selection
-                st.session_state["scenario_grid_selection"] = {
-                    "active_share": float(sel_x),
-                    "theta_extpa": promoted_selection["theta_extpa"],
-                }
+                st.session_state["scenario_grid_selection"] = promoted_selection
                 bump_session_token(st.session_state, "scenario_grid_promotion_token")
                 st.session_state[_GRID_PROMOTION_NOTICE_KEY] = (
                     "Selection promoted. Other pages can read "

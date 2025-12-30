@@ -4,6 +4,7 @@ import pandas as pd
 
 from dashboard.utils import (
     apply_promoted_alpha_shares,
+    build_alpha_shares_payload,
     bump_session_token,
     make_grid_cache_key,
     normalize_share,
@@ -21,6 +22,15 @@ def test_normalize_share_preserves_fraction_values() -> None:
 
 def test_normalize_share_handles_none() -> None:
     assert normalize_share(None) is None
+
+
+def test_build_alpha_shares_payload_normalizes_values() -> None:
+    payload = build_alpha_shares_payload(20.0, 30.0)
+    assert payload == {"active_share": 0.2, "theta_extpa": 0.3}
+
+
+def test_build_alpha_shares_payload_handles_none() -> None:
+    assert build_alpha_shares_payload(None, 0.3) is None
 
 
 def test_make_grid_cache_key_stable() -> None:

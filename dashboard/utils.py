@@ -21,6 +21,22 @@ def normalize_share(value: float | None) -> float | None:
     return value
 
 
+def build_alpha_shares_payload(
+    active_share: float | None, theta_extpa: float | None
+) -> dict[str, float] | None:
+    """Return a normalized alpha-shares payload for session state."""
+    if active_share is None or theta_extpa is None:
+        return None
+    active_share_norm = normalize_share(active_share)
+    theta_extpa_norm = normalize_share(theta_extpa)
+    if active_share_norm is None or theta_extpa_norm is None:
+        return None
+    return {
+        "active_share": float(active_share_norm),
+        "theta_extpa": float(theta_extpa_norm),
+    }
+
+
 _GRID_CACHE_VERSION = 1
 
 
@@ -83,6 +99,7 @@ def apply_promoted_alpha_shares(
 
 __all__ = [
     "normalize_share",
+    "build_alpha_shares_payload",
     "make_grid_cache_key",
     "bump_session_token",
     "apply_promoted_alpha_shares",
