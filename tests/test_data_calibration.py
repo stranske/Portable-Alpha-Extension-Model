@@ -246,6 +246,34 @@ def test_calibration_two_state_vol_regime_high() -> None:
     assert asset_a.sigma == pytest.approx(recent_sigma)
 
 
+def test_calibration_two_state_vol_regime_low() -> None:
+    dates = pd.date_range("2020-01-31", periods=6, freq="ME")
+    high = [0.08, -0.07, 0.09]
+    low = [0.01, -0.01, 0.015]
+    rows = []
+    for asset_id, values in {
+        "IDX": high + low,
+        "A": high + low,
+    }.items():
+        rows.extend(
+            {"id": asset_id, "date": date, "return": ret}
+            for date, ret in zip(dates, values, strict=True)
+        )
+    df = pd.DataFrame(rows)
+
+    calib = CalibrationAgent(min_obs=1, vol_regime="two_state", vol_regime_window=3)
+    result = calib.calibrate(df, index_id="IDX")
+
+    diag = result.diagnostics
+    assert diag is not None
+    assert diag.vol_regime == "two_state"
+    assert diag.vol_regime_state.get("A") == "low"
+
+    asset_a = next(asset for asset in result.assets if asset.id == "A")
+    recent_sigma = pd.Series(low).std(ddof=1) * (12.0**0.5)
+    assert asset_a.sigma == pytest.approx(recent_sigma)
+
+
 @pytest.mark.parametrize(
     "date_sequence,should_fail",
     [

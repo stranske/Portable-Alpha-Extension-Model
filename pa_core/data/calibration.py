@@ -128,6 +128,7 @@ class CalibrationAgent:
                         sigma.loc[asset_id] = recent_val
                         regime_state[asset_id] = "high"
                     else:
+                        sigma.loc[asset_id] = recent_val
                         regime_state[asset_id] = "low"
                 regime_window = int(min(self.vol_regime_window, len(recent)))
 
