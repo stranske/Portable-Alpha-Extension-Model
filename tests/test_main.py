@@ -80,11 +80,15 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     def fake_spawn_agent_rngs(seed: int | None, names: list[str]) -> dict[str, object]:
         return {name: object() for name in names}
 
-    def fake_draw_joint_returns(**_: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def fake_draw_joint_returns(
+        **_: Any,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         arr = np.zeros((2, 3))
         return arr, arr, arr, arr
 
-    def fake_draw_financing_series(**_: Any) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def fake_draw_financing_series(
+        **_: Any,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         arr = np.zeros((2, 3))
         return arr, arr, arr
 
@@ -111,14 +115,20 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         export_calls["filename"] = filename
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
-    monkeypatch.setattr("pa_core.agents.registry.build_from_config", fake_build_from_config)
+    monkeypatch.setattr(
+        pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend
+    )
+    monkeypatch.setattr(
+        "pa_core.agents.registry.build_from_config", fake_build_from_config
+    )
     monkeypatch.setattr("pa_core.data.load_index_returns", fake_load_index_returns)
     monkeypatch.setattr("pa_core.random.spawn_rngs", fake_spawn_rngs)
     monkeypatch.setattr("pa_core.random.spawn_agent_rngs", fake_spawn_agent_rngs)
     monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
     monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr("pa_core.sim.covariance.build_cov_matrix", fake_build_cov_matrix)
+    monkeypatch.setattr(
+        "pa_core.sim.covariance.build_cov_matrix", fake_build_cov_matrix
+    )
     monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
     monkeypatch.setattr("pa_core.sim.metrics.summary_table", fake_summary_table)
     monkeypatch.setattr("pa_core.reporting.export_to_excel", fake_export_to_excel)
