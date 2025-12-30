@@ -93,6 +93,8 @@ class DataclassConfig:
 
 
 class SimpleConfig:
+    last_payload: dict[str, float | int | str] | None = None
+
     def __init__(self, values: dict[str, float | int | str]) -> None:
         self._values = values
         for key, value in values.items():
@@ -100,6 +102,7 @@ class SimpleConfig:
 
     @classmethod
     def model_validate(cls, payload: dict[str, float | int | str]) -> "SimpleConfig":
+        cls.last_payload = payload
         return cls(payload)
 
     def model_dump(self) -> dict[str, float | int | str]:
@@ -206,3 +209,28 @@ def test_main_runs_without_overrides(monkeypatch):
     pa_main.main(["--config", "config.yml", "--index", "index.csv"])
 
     assert called["filename"] == "Outputs.xlsx"
+
+
+def test_main_applies_overrides_for_model_dump_config(monkeypatch):
+    config_values = _base_config_values()
+    config = SimpleConfig(config_values)
+
+    monkeypatch.setattr(pa_main, "load_config", lambda path: config)
+    _setup_common_stubs(monkeypatch)
+
+    pa_main.main(
+        [
+            "--config",
+            "config.yml",
+            "--index",
+            "index.csv",
+            "--return-distribution",
+            "student_t",
+            "--return-t-df",
+            "5",
+        ]
+    )
+
+    assert SimpleConfig.last_payload is not None
+    assert SimpleConfig.last_payload["return_distribution"] == "student_t"
+    assert SimpleConfig.last_payload["return_t_df"] == 5.0
