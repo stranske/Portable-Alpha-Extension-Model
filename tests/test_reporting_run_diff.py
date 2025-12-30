@@ -145,9 +145,7 @@ def test_build_run_diff_handles_numeric_string_config() -> None:
     previous_manifest = {"config": {"alpha": "2", "beta": "8%"}}
     summary = pd.DataFrame({"AnnReturn": [0.05]})
 
-    cfg_diff, _ = build_run_diff(
-        current_manifest, previous_manifest, summary, summary
-    )
+    cfg_diff, _ = build_run_diff(current_manifest, previous_manifest, summary, summary)
 
     alpha_row = cfg_diff[cfg_diff["Parameter"] == "alpha"].iloc[0]
     beta_row = cfg_diff[cfg_diff["Parameter"] == "beta"].iloc[0]
