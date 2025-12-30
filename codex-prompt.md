@@ -101,25 +101,60 @@ You should assume you're running in `agent-standard` unless explicitly told othe
 
 ## Task Prompt
 
-# Autofix from CI failure
+## Keepalive Next Task
 
-You are Codex running in autofix mode after a CI failure. Use the available logs and repository context to repair the failing checks.
+Your objective is to satisfy the **Acceptance Criteria** by completing each **Task** within the defined **Scope**.
 
-Guidance:
-- Inspect the latest CI output provided by the caller (logs or summaries) to pinpoint the root cause.
-- Focus on minimal, targeted fixes that unblock the failing job.
-- Leave diagnostic breadcrumbs when a failure cannot be reproduced or fully addressed.
-- Re-run or suggest the smallest relevant checks to verify the fix.
+**This round you MUST:**
+1. Implement actual code or test changes that advance at least one incomplete task toward acceptance.
+2. Commit meaningful source code (.py, .yml, .js, etc.)—not just status/docs updates.
+3. Mark a task checkbox complete ONLY after verifying the implementation works.
+4. Focus on the FIRST unchecked task unless blocked, then move to the next.
+
+**Guidelines:**
+- Keep edits scoped to the current task rather than reshaping the entire PR.
+- Use repository instructions, conventions, and tests to validate work.
+- Prefer small, reviewable commits; leave clear notes when follow-up is required.
+- Do NOT work on unrelated improvements until all PR tasks are complete.
+
+**The Tasks and Acceptance Criteria are provided in the appendix below.** Work through them in order.
 
 ## Run context
-Gate run: https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/20586038442
-Conclusion: failure
-PR: #726
-Head SHA: 7aa0b79076bdcbe5117617413100c24bb21d3977
-Autofix attempts for this head: 1 / 3
-Fix scope: src/, tests/, tools/, scripts/, agents/, templates/, .github/
-Failing jobs:
-- Python CI / python 3.12 (failure)
-  - steps: Finalize check results (failure)
-- gate-summary (failure)
-  - steps: Fail if Gate failed (failure)
+---
+## PR Tasks and Acceptance Criteria
+
+**Progress:** 9/9 tasks complete, 0 remaining
+
+### ⚠️ IMPORTANT: Task Reconciliation Required
+
+The previous iteration changed **1 file(s)** but did not update task checkboxes.
+
+**Before continuing, you MUST:**
+1. Review the recent commits to understand what was changed
+2. Determine which task checkboxes should be marked complete
+3. Update the PR body to check off completed tasks
+4. Then continue with remaining tasks
+
+_Failure to update checkboxes means progress is not being tracked properly._
+
+### Scope
+- [x] Dashboard users need the app to remain functional when Parquet (pyarrow) is not installed.
+
+### Tasks
+Complete these in order. Mark checkbox done ONLY after implementation is verified:
+
+- [x] Wrap `pd.read_parquet` to catch ImportError
+- [x] Show clear "install pyarrow or use CSV" hint via `st.info`
+- [x] Ensure CSV writer is called wherever Parquet is written
+- [x] Verify `Outputs.csv` written alongside `Outputs.parquet`
+
+### Acceptance Criteria
+The PR is complete when ALL of these are satisfied:
+
+- [x] ImportError from pyarrow shows friendly message
+- [x] Message includes guidance to install pyarrow or use CSV
+- [x] CSV file always written alongside Parquet
+- [x] Dashboard loads via CSV path when pyarrow missing
+- [x] No crash when pyarrow unavailable
+
+---

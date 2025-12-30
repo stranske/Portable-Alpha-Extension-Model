@@ -20,6 +20,11 @@ PLOTS: dict[str, str] = {
 
 _DEF_XLSX = "Outputs.xlsx"
 _DEF_THEME = "config_theme.yaml"
+_PARQUET_HINT = "Parquet support missing; install pyarrow or use CSV."
+
+
+def _show_parquet_hint() -> None:
+    st.info(_PARQUET_HINT)
 
 
 def _load_theme() -> ModuleType:
@@ -58,14 +63,22 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
 
     Returns None if no option succeeds.
     """
+
+    def _read_parquet_sidecar(path: Path) -> pd.DataFrame | None:
+        try:
+            return pd.read_parquet(path)
+        except ImportError:
+            _show_parquet_hint()
+            return None
+        except Exception:
+            return None
+
     # 1) Parquet sidecar
     p_parquet = Path(xlsx).with_suffix(".parquet")
     if p_parquet.exists():
-        try:
-            return pd.read_parquet(p_parquet)
-        except Exception:
-            # Graceful degradation if pyarrow/fastparquet is missing or file invalid
-            pass
+        parquet_df = _read_parquet_sidecar(p_parquet)
+        if parquet_df is not None:
+            return parquet_df
 
     # 2) CSV sidecar
     p_csv = Path(xlsx).with_suffix(".csv")
@@ -96,7 +109,7 @@ def save_history(df: pd.DataFrame, base: str | Path = "Outputs.parquet") -> None
     try:
         df.to_parquet(p)
     except ImportError:
-        st.info("pyarrow not installed; skipping Parquet export")
+        _show_parquet_hint()
     df.to_csv(p.with_suffix(".csv"), index=False)
 
 
@@ -120,6 +133,9 @@ def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     if p.exists():
         try:
             df = pd.read_parquet(p)
+        except ImportError:
+            _show_parquet_hint()
+            df = None
         except Exception:
             df = None
     # CSV fallback: try sibling .csv if parquet missing or unreadable
