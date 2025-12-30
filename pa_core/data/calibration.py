@@ -9,9 +9,9 @@ import pandas as pd
 import yaml  # type: ignore[import-untyped]
 
 from ..schema import (
-    Asset,
     CORRELATION_LOWER_BOUND,
     CORRELATION_UPPER_BOUND,
+    Asset,
     Correlation,
     Index,
 )
