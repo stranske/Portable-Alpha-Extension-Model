@@ -17,7 +17,7 @@ import streamlit as st
 from dashboard.app import _DEF_THEME, apply_theme
 from pa_core.config import ModelConfig
 from pa_core.orchestrator import SimulatorOrchestrator
-from pa_core.stress import STRESS_PRESETS, STRESS_PRESET_LABELS, apply_stress_preset
+from pa_core.stress import STRESS_PRESET_LABELS, STRESS_PRESETS, apply_stress_preset
 
 
 def _read_index_csv(file) -> pd.Series:
