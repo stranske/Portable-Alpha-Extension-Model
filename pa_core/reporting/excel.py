@@ -148,17 +148,21 @@ def export_to_excel(
             from ..viz import tornado
 
             ws = wb["Sensitivity"]
-            # Build figure from the written sheet
-            values: Any = ws.values
-            df = pd.DataFrame(values)
-            df.columns = df.iloc[0]
-            df = df.drop(index=0)
-            # Convert the DataFrame to a Series mapping parameter names to values
-            # Assumes the first column is the parameter name and the second column is the value
-            # Adjust column names if needed
-            param_col = df.columns[0]
-            value_col = df.columns[1]
-            series = df.set_index(param_col)[value_col].astype(float)
+            series: pd.Series | None = None
+            if sens_df is not None and not sens_df.empty:
+                if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                    series = sens_df.set_index("Parameter")["DeltaAbs"].astype(float)
+            if series is None:
+                # Build figure from the written sheet as a fallback
+                values: Any = ws.values
+                df = pd.DataFrame(values)
+                df.columns = df.iloc[0]
+                df = df.drop(index=0)
+                param_col = (
+                    "Parameter" if "Parameter" in df.columns else df.columns[0]
+                )
+                value_col = "DeltaAbs" if "DeltaAbs" in df.columns else df.columns[1]
+                series = df.set_index(param_col)[value_col].astype(float)
             fig = tornado.make(cast(pd.Series, series))
             img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))

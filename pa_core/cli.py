@@ -1303,7 +1303,12 @@ def main(
                             "DeltaAbs",
                         ],
                     )
-                    sens_df.sort_values("DeltaAbs", ascending=False, inplace=True)
+                    sens_df.sort_values(
+                        ["DeltaAbs", "Parameter"],
+                        ascending=[False, True],
+                        inplace=True,
+                        kind="mergesort",
+                    )
                     sens_df.reset_index(drop=True, inplace=True)
                     inputs_dict["_sensitivity_df"] = sens_df
 

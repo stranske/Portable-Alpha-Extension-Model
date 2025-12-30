@@ -29,12 +29,24 @@ def make(
     if series.empty:
         return go.Figure(layout_template=theme.TEMPLATE)
 
-    series = series.reindex(series.abs().sort_values(ascending=False).index)
+    series.index = series.index.astype(str)
+    order = (
+        pd.DataFrame(
+            {
+                "value": series,
+                "abs": series.abs(),
+                "name": series.index,
+            }
+        )
+        .sort_values(["abs", "name"], ascending=[False, True], kind="mergesort")
+        .reset_index(drop=True)
+    )
+    series = pd.Series(order["value"].to_numpy(), index=order["name"].to_list())
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(go.Bar(x=series.values, y=series.index.tolist(), orientation="h"))
     fig.update_layout(
         title=title or "Sensitivity Tornado",
-        xaxis_title="Delta",
+        xaxis_title="Delta (AnnReturn, %)",
         yaxis_title="Parameter",
     )
     return fig
