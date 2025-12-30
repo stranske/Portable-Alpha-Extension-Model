@@ -28,6 +28,36 @@ def test_load_paths_sidecar_csv_fallback(tmp_path, monkeypatch):
     assert result is df
 
 
+def test_load_paths_sidecar_parquet_importerror_shows_hint(tmp_path, monkeypatch):
+    xlsx = tmp_path / "Outputs.xlsx"
+    xlsx.write_text("stub")
+
+    parquet = tmp_path / "Outputs.parquet"
+    parquet.write_text("stub")
+
+    csv = tmp_path / "Outputs.csv"
+    csv.write_text("a,b\n1,2\n")
+
+    df = pd.DataFrame({"a": [1]})
+
+    def _raise(*_args, **_kwargs):
+        raise ImportError("no engine")
+
+    seen = {}
+
+    def _info(message):
+        seen["message"] = message
+
+    monkeypatch.setattr(pd, "read_parquet", _raise)
+    monkeypatch.setattr(pd, "read_csv", lambda *_args, **_kwargs: df)
+    monkeypatch.setattr(app.st, "info", _info)
+
+    result = app._load_paths_sidecar(str(xlsx))
+
+    assert result is df
+    assert seen["message"] == app._PARQUET_HINT
+
+
 def test_load_paths_sidecar_excel_fallback(tmp_path, monkeypatch):
     xlsx = tmp_path / "Outputs.xlsx"
     xlsx.write_text("stub")
