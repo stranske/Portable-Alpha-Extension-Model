@@ -567,7 +567,9 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.session_state["sleeve_suggestions"] = df
         st.session_state["sleeve_suggestion_constraints"] = constraints
 
-    constraints_used = st.session_state.get("sleeve_suggestion_constraints", constraints)
+    constraints_used = st.session_state.get(
+        "sleeve_suggestion_constraints", constraints
+    )
     st.markdown("**Constraint Summary:**")
     st.write(
         f"Max TE: {constraints_used['max_te']:.2%} | "
@@ -583,7 +585,9 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.warning("No feasible sleeve allocations found.")
         return
 
-    ranked = suggestions.sort_values("risk_score", ascending=True).reset_index(drop=True)
+    ranked = suggestions.sort_values("risk_score", ascending=True).reset_index(
+        drop=True
+    )
     ranked.insert(0, "rank", range(1, len(ranked) + 1))
 
     top_n = st.number_input(
