@@ -4,7 +4,11 @@ import openpyxl
 import pandas as pd
 import pytest
 
-from pa_core.reporting.stress_delta import build_delta_table, build_stress_workbook
+from pa_core.reporting.stress_delta import (
+    build_delta_table,
+    build_stress_workbook,
+    format_delta_table_text,
+)
 
 
 def test_build_delta_table_includes_total_row():
@@ -49,3 +53,14 @@ def test_build_stress_workbook_contains_expected_sheets():
     assert "StressedSummary" in wb.sheetnames
     assert "Delta" in wb.sheetnames
     assert "ConfigDiff" in wb.sheetnames
+
+
+def test_format_delta_table_text_adds_signs():
+    delta_df = pd.DataFrame(
+        {"Agent": ["Total"], "AnnReturn": [-0.03], "AnnVol": [0.01], "BreachCount": [2]}
+    )
+    formatted = format_delta_table_text(delta_df)
+
+    assert formatted.loc[0, "AnnReturn"] == "-3.00%"
+    assert formatted.loc[0, "AnnVol"] == "+1.00%"
+    assert formatted.loc[0, "BreachCount"] == "+2.0000"

@@ -38,6 +38,8 @@ if TYPE_CHECKING:
     import numpy as np
     import pandas as pd
 
+    from .config import ModelConfig
+
 # Intentionally avoid heavy imports at module import time. Required modules are
 # imported lazily inside functions after environment bootstrap.
 
@@ -468,7 +470,9 @@ def main(
 
     if args.mode is not None:
         cfg = cfg.model_copy(update={"analysis_mode": args.mode})
+    base_cfg = cfg
     if args.stress_preset:
+        base_cfg = cfg
         cfg = apply_stress_preset(cfg, args.stress_preset)
 
     # Capture raw params BEFORE any config modifications
@@ -525,6 +529,14 @@ def main(
                 "internal_pa_capital": float(row["internal_pa_capital"]),
             }
         )
+        if args.stress_preset:
+            base_cfg = base_cfg.model_copy(
+                update={
+                    "external_pa_capital": float(row["external_pa_capital"]),
+                    "active_ext_capital": float(row["active_ext_capital"]),
+                    "internal_pa_capital": float(row["internal_pa_capital"]),
+                }
+            )
 
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]
@@ -662,78 +674,101 @@ def main(
     # Normal single-run mode below
     mu_idx = float(idx_series.mean())
     idx_sigma = float(idx_series.std(ddof=1))
-    mu_H = cfg.mu_H
-    sigma_H = cfg.sigma_H
-    mu_E = cfg.mu_E
-    sigma_E = cfg.sigma_E
-    mu_M = cfg.mu_M
-    sigma_M = cfg.sigma_M
 
-    # Build covariance (validates shapes)
-    _ = deps.build_cov_matrix(
-        cfg.rho_idx_H,
-        cfg.rho_idx_E,
-        cfg.rho_idx_M,
-        cfg.rho_H_E,
-        cfg.rho_H_M,
-        cfg.rho_E_M,
-        idx_sigma,
-        sigma_H,
-        sigma_E,
-        sigma_M,
-    )
+    def _run_single(
+        run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
+    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
+        mu_H = run_cfg.mu_H
+        sigma_H = run_cfg.sigma_H
+        mu_E = run_cfg.mu_E
+        sigma_E = run_cfg.sigma_E
+        mu_M = run_cfg.mu_M
+        sigma_M = run_cfg.sigma_M
 
-    params = {
-        "mu_idx_month": mu_idx / 12,
-        "default_mu_H": mu_H / 12,
-        "default_mu_E": mu_E / 12,
-        "default_mu_M": mu_M / 12,
-        "idx_sigma_month": idx_sigma / 12,
-        "default_sigma_H": sigma_H / 12,
-        "default_sigma_E": sigma_E / 12,
-        "default_sigma_M": sigma_M / 12,
-        "rho_idx_H": cfg.rho_idx_H,
-        "rho_idx_E": cfg.rho_idx_E,
-        "rho_idx_M": cfg.rho_idx_M,
-        "rho_H_E": cfg.rho_H_E,
-        "rho_H_M": cfg.rho_H_M,
-        "rho_E_M": cfg.rho_E_M,
-        "internal_financing_mean_month": cfg.internal_financing_mean_month,
-        "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
-        "internal_spike_prob": cfg.internal_spike_prob,
-        "internal_spike_factor": cfg.internal_spike_factor,
-        "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
-        "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
-        "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
-        "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
-        "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
-        "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
-        "act_ext_spike_prob": cfg.act_ext_spike_prob,
-        "act_ext_spike_factor": cfg.act_ext_spike_factor,
-    }
+        # Build covariance (validates shapes)
+        _ = deps.build_cov_matrix(
+            run_cfg.rho_idx_H,
+            run_cfg.rho_idx_E,
+            run_cfg.rho_idx_M,
+            run_cfg.rho_H_E,
+            run_cfg.rho_H_M,
+            run_cfg.rho_E_M,
+            idx_sigma,
+            sigma_H,
+            sigma_E,
+            sigma_M,
+        )
 
-    N_SIMULATIONS = cfg.N_SIMULATIONS
-    N_MONTHS = cfg.N_MONTHS
+        params = {
+            "mu_idx_month": mu_idx / 12,
+            "default_mu_H": mu_H / 12,
+            "default_mu_E": mu_E / 12,
+            "default_mu_M": mu_M / 12,
+            "idx_sigma_month": idx_sigma / 12,
+            "default_sigma_H": sigma_H / 12,
+            "default_sigma_E": sigma_E / 12,
+            "default_sigma_M": sigma_M / 12,
+            "rho_idx_H": run_cfg.rho_idx_H,
+            "rho_idx_E": run_cfg.rho_idx_E,
+            "rho_idx_M": run_cfg.rho_idx_M,
+            "rho_H_E": run_cfg.rho_H_E,
+            "rho_H_M": run_cfg.rho_H_M,
+            "rho_E_M": run_cfg.rho_E_M,
+            "internal_financing_mean_month": run_cfg.internal_financing_mean_month,
+            "internal_financing_sigma_month": run_cfg.internal_financing_sigma_month,
+            "internal_spike_prob": run_cfg.internal_spike_prob,
+            "internal_spike_factor": run_cfg.internal_spike_factor,
+            "ext_pa_financing_mean_month": run_cfg.ext_pa_financing_mean_month,
+            "ext_pa_financing_sigma_month": run_cfg.ext_pa_financing_sigma_month,
+            "ext_pa_spike_prob": run_cfg.ext_pa_spike_prob,
+            "ext_pa_spike_factor": run_cfg.ext_pa_spike_factor,
+            "act_ext_financing_mean_month": run_cfg.act_ext_financing_mean_month,
+            "act_ext_financing_sigma_month": run_cfg.act_ext_financing_sigma_month,
+            "act_ext_spike_prob": run_cfg.act_ext_spike_prob,
+            "act_ext_spike_factor": run_cfg.act_ext_spike_factor,
+        }
 
-    r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
-        n_months=N_MONTHS,
-        n_sim=N_SIMULATIONS,
-        params=params,
-        rng=rng_returns,
-    )
-    f_int, f_ext, f_act = deps.draw_financing_series(
-        n_months=N_MONTHS,
-        n_sim=N_SIMULATIONS,
-        params=params,
-        rngs=fin_rngs,
-    )
+        N_SIMULATIONS = run_cfg.N_SIMULATIONS
+        N_MONTHS = run_cfg.N_MONTHS
 
-    # Build agents and run sim
-    agents = deps.build_from_config(cfg)
-    returns = deps.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
+        r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
+            n_months=N_MONTHS,
+            n_sim=N_SIMULATIONS,
+            params=params,
+            rng=run_rng_returns,
+        )
+        f_int, f_ext, f_act = deps.draw_financing_series(
+            n_months=N_MONTHS,
+            n_sim=N_SIMULATIONS,
+            params=params,
+            rngs=run_fin_rngs,
+        )
 
-    # Build summary using wrapper (allows tests to mock this safely)
-    summary = create_enhanced_summary(returns, benchmark="Base")
+        # Build agents and run sim
+        agents = deps.build_from_config(run_cfg)
+        returns = deps.simulate_agents(
+            agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
+        )
+
+        # Build summary using wrapper (allows tests to mock this safely)
+        summary = create_enhanced_summary(returns, benchmark="Base")
+        return returns, summary, f_int, f_ext, f_act
+
+    returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
+    stress_delta_df = None
+    base_summary_df: pd.DataFrame | None = None
+    if args.stress_preset:
+        from .reporting.stress_delta import build_delta_table
+
+        base_rng_returns = spawn_rngs(args.seed, 1)[0]
+        base_fin_rngs = spawn_agent_rngs(
+            args.seed, ["internal", "external_pa", "active_ext"]
+        )
+        _, base_summary, _, _, _ = _run_single(
+            base_cfg, base_rng_returns, base_fin_rngs
+        )
+        base_summary_df = base_summary
+        stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
 
@@ -950,6 +985,29 @@ def main(
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
+    if args.stress_preset:
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            try:
+                with pd.ExcelWriter(
+                    out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
+                ) as writer:
+                    if base_summary_df is not None and not base_summary_df.empty:
+                        base_summary_df.to_excel(
+                            writer, sheet_name="BaseSummary", index=False
+                        )
+                    if summary is not None and not summary.empty:
+                        summary.to_excel(
+                            writer, sheet_name="StressedSummary", index=False
+                        )
+                    if stress_delta_df is not None and not stress_delta_df.empty:
+                        stress_delta_df.to_excel(
+                            writer, sheet_name="StressDelta", index=False
+                        )
+            except (OSError, PermissionError, ValueError) as e:
+                logger.warning(f"Failed to append stress sheets: {e}")
+        else:
+            logger.warning("Stress sheet export skipped; output workbook missing.")
 
     # Write reproducibility manifest for normal run
     try:
@@ -1184,7 +1242,17 @@ def main(
     ):
         pass
 
-    if any([flags.png, flags.pdf, flags.pptx, flags.html, flags.gif, flags.dashboard]):
+    if any(
+        [
+            flags.png,
+            flags.pdf,
+            flags.pptx,
+            flags.html,
+            flags.gif,
+            flags.dashboard,
+            flags.packet,
+        ]
+    ):
         from . import viz
 
         plots = Path("plots")
@@ -1266,6 +1334,7 @@ def main(
                     manifest=manifest_data,
                     prev_summary_df=prev_summary_df,
                     prev_manifest=prev_manifest_data,
+                    stress_delta_df=stress_delta_df,
                 )
                 print("✅ Export packet created:")
                 print(f"   📊 Excel: {excel_path}")
