@@ -1,4 +1,3 @@
-import types
 from typing import Any, Dict, List
 
 import pytest
@@ -60,7 +59,9 @@ class FakeStreamlit:
     def write(self, *args: Any, **kwargs: Any) -> None:
         self.calls.append(("write", args))
 
-    def metric(self, label: str, value: str, delta: str | None = None, help: str | None = None) -> None:  # noqa: A002
+    def metric(
+        self, label: str, value: str, delta: str | None = None, help: str | None = None
+    ) -> None:  # noqa: A002
         self.calls.append(("metric", label))
 
     def columns(self, count: int) -> List[_FakeColumn]:
@@ -98,7 +99,9 @@ def test_display_validation_results_mixed(fake_st: FakeStreamlit) -> None:
     assert "expander" in call_types
 
 
-def test_create_validation_sidebar_returns_values(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_validation_sidebar_returns_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     fake = FakeStreamlit([False, True, False])
     monkeypatch.setattr(validation_ui, "st", fake)
 
@@ -111,7 +114,9 @@ def test_create_validation_sidebar_returns_values(monkeypatch: pytest.MonkeyPatc
     }
 
 
-def test_validate_scenario_config_filters_warnings(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_validate_scenario_config_filters_warnings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def fake_validate_correlations(_: Dict[str, float]) -> List[ValidationResult]:
         return [ValidationResult(False, "bad", "error", {})]
 
@@ -121,7 +126,9 @@ def test_validate_scenario_config_filters_warnings(monkeypatch: pytest.MonkeyPat
     def fake_validate_simulation_parameters(**_: Any) -> List[ValidationResult]:
         return [ValidationResult(True, "info", "info", {})]
 
-    monkeypatch.setattr(validation_ui, "validate_correlations", fake_validate_correlations)
+    monkeypatch.setattr(
+        validation_ui, "validate_correlations", fake_validate_correlations
+    )
     monkeypatch.setattr(
         validation_ui, "validate_capital_allocation", fake_validate_capital_allocation
     )

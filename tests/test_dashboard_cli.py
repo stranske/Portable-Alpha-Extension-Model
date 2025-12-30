@@ -11,4 +11,6 @@ def test_cli_main_runs_streamlit(monkeypatch):
     cli.main()
 
     expected_path = Path(cli.__file__).with_name("app.py")
-    run_mock.assert_called_once_with(["streamlit", "run", str(expected_path)], check=True)
+    run_mock.assert_called_once_with(
+        ["streamlit", "run", str(expected_path)], check=True
+    )
