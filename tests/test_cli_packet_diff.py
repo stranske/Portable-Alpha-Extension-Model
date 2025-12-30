@@ -150,9 +150,7 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
             np.zeros((1, 2)),
         ),
         build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
-        simulate_agents=lambda *_args, **_kwargs: {
-            "Base": np.array([[0.01, 0.02]])
-        },
+        simulate_agents=lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
     )
 
     repo_root = Path(__file__).resolve().parents[1]
