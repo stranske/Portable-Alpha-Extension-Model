@@ -397,6 +397,17 @@ def main(
     from .sweep import run_parameter_sweep
     from .viz.utils import safe_to_numpy
 
+    def _write_manifest(mw: ManifestWriter, **kwargs: Any) -> None:
+        try:
+            from inspect import signature
+
+            supported = set(signature(mw.write).parameters)
+            supported.discard("self")
+            filtered = {k: v for k, v in kwargs.items() if k in supported}
+        except (TypeError, ValueError):
+            filtered = kwargs
+        mw.write(**filtered)
+
     # Initialize dependencies - use provided deps for testing or create default
     if deps is None:
         deps = Dependencies(
@@ -514,13 +525,14 @@ def main(
         data_files = [args.index, args.config]
         if args.output and Path(args.output).exists():
             data_files.append(args.output)
-        mw.write(
+        _write_manifest(
+            mw,
             config_path=args.config,
             data_files=data_files,
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
+            run_log=run_log_path,
             previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
@@ -922,13 +934,14 @@ def main(
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
         if out_path.exists():
             data_files.append(str(out_path))
-        mw.write(
+        _write_manifest(
+            mw,
             config_path=args.config,
             data_files=data_files,
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
+            run_log=run_log_path,
             previous_run=args.prev_manifest,
         )
     except (OSError, PermissionError, FileNotFoundError) as e:
