@@ -26,3 +26,9 @@ def test_invalid_preset_raises():
     cfg = _base_cfg()
     with pytest.raises(KeyError):
         apply_stress_preset(cfg, "unknown")
+
+
+def test_label_alias_resolves():
+    cfg = _base_cfg()
+    stressed = apply_stress_preset(cfg, "Liquidity squeeze")
+    assert stressed.internal_spike_prob == pytest.approx(0.1)

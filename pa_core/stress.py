@@ -13,6 +13,13 @@ from .config import ModelConfig
 
 Preset = Mapping[str, float | Callable[[ModelConfig], float]]
 
+STRESS_PRESET_LABELS: dict[str, str] = {
+    "liquidity_squeeze": "Liquidity squeeze",
+    "correlation_breakdown": "Correlation breakdown",
+    "2008_vol_regime": "2008-like vol regime",
+    "2020_gap_day": "2020 gap day",
+}
+
 
 STRESS_PRESETS: dict[str, Preset] = {
     "liquidity_squeeze": {
@@ -47,6 +54,20 @@ STRESS_PRESETS: dict[str, Preset] = {
 }
 
 
+def _normalize_preset_name(name: str) -> str:
+    normalized = name.strip()
+    if normalized in STRESS_PRESETS:
+        return normalized
+    normalized_lower = normalized.lower()
+    for key, label in STRESS_PRESET_LABELS.items():
+        if normalized_lower == label.lower():
+            return key
+    underscored = normalized_lower.replace("-", "_").replace(" ", "_")
+    if underscored in STRESS_PRESETS:
+        return underscored
+    raise KeyError(f"Unknown stress preset: {name}")
+
+
 def apply_stress_preset(cfg: ModelConfig, name: str) -> ModelConfig:
     """Return a copy of ``cfg`` with stress preset ``name`` applied.
 
@@ -57,11 +78,10 @@ def apply_stress_preset(cfg: ModelConfig, name: str) -> ModelConfig:
     name:
         Key in :data:`STRESS_PRESETS`.
     """
-    if name not in STRESS_PRESETS:
-        raise KeyError(f"Unknown stress preset: {name}")
-    preset = STRESS_PRESETS[name]
+    preset_key = _normalize_preset_name(name)
+    preset = STRESS_PRESETS[preset_key]
     updates = {k: (v(cfg) if callable(v) else v) for k, v in preset.items()}
     return cast(ModelConfig, cfg.model_copy(update=updates))
 
 
-__all__ = ["STRESS_PRESETS", "apply_stress_preset"]
+__all__ = ["STRESS_PRESETS", "STRESS_PRESET_LABELS", "apply_stress_preset"]
