@@ -45,8 +45,10 @@ def test_manifest_includes_backend_and_optional_run_log(tmp_path: Path):
         backend="numpy",
         run_log=str(tmp_path / "runs/20200101T000000Z/run.log"),
         previous_run=prev_manifest,
+        run_timing={"duration_seconds": 12.5},
     )
     obj = json.loads(out.read_text())
     assert obj.get("backend") == "numpy"
     assert obj.get("run_log", "").endswith("run.log")
     assert obj.get("previous_run") == str(prev_manifest)
+    assert obj.get("run_timing", {}).get("duration_seconds") == 12.5
