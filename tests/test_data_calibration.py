@@ -128,6 +128,33 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
     assert importer_csv.metadata["value_type"] == "prices"
 
 
+def test_import_daily_prices_monthly_rule_ms(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
+    prices = (1.01) ** np.arange(len(dates))
+    df = pd.DataFrame({"Date": dates, "A": prices})
+
+    path = tmp_path / "prices.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(
+        date_col="Date",
+        frequency="daily",
+        value_type="prices",
+        monthly_rule="MS",
+        min_obs=1,
+    )
+    out = importer.load(path)
+
+    expected = pd.DataFrame(
+        {
+            "id": ["A", "A"],
+            "date": pd.to_datetime(["2020-01-01", "2020-02-01"]),
+            "return": [(1.01**30) - 1, (1.01**28) - 1],
+        }
+    )
+    assert_frame_equal(out.reset_index(drop=True), expected)
+
+
 def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
     DAILY_RETURN = 0.001  # Fixed daily return of 0.1%
@@ -152,6 +179,39 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
             "return": [
                 ((1 + DAILY_RETURN) ** jan_days) - 1,
                 ((1 + DAILY_RETURN) ** feb_days) - 1,
+            ],
+        }
+    )
+    assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_import_daily_returns_monthly_rule_ms(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
+    daily_return = 0.001
+    returns = pd.Series(daily_return, index=dates)
+    df = pd.DataFrame({"Date": dates, "A": returns.values})
+
+    path = tmp_path / "returns.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(
+        date_col="Date",
+        frequency="daily",
+        value_type="returns",
+        monthly_rule="MS",
+        min_obs=1,
+    )
+    out = importer.load(path)
+
+    jan_days = (dates.month == 1).sum()
+    feb_days = (dates.month == 2).sum()
+    expected = pd.DataFrame(
+        {
+            "id": ["A", "A"],
+            "date": pd.to_datetime(["2020-01-01", "2020-02-01"]),
+            "return": [
+                ((1 + daily_return) ** jan_days) - 1,
+                ((1 + daily_return) ** feb_days) - 1,
             ],
         }
     )

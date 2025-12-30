@@ -30,16 +30,26 @@ def main() -> None:
     st.title("Asset Library")
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
-    uploaded = st.file_uploader("Upload CSV or Excel", type=["csv", "xlsx", "xls"])
+    st.markdown("**Upload asset return data**")
+    st.caption("Drag and drop a CSV or Excel file, or click to browse.")
+    uploaded = st.file_uploader(
+        "Drag-and-drop CSV/XLSX",
+        type=["csv", "xlsx", "xls"],
+        help="CSV and Excel files are supported.",
+        label_visibility="collapsed",
+    )
     if uploaded is None:
         return
+    data = uploaded.getvalue()
+    size_kb = len(data) / 1024
+    st.caption(f"Selected file: {uploaded.name} ({size_kb:.1f} KB)")
 
     # Persist the uploaded file to a temp path for pandas/Excel readers
     suffix = Path(uploaded.name).suffix
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     try:
         with os.fdopen(fd, "wb") as tmp:
-            tmp.write(uploaded.getvalue())
+            tmp.write(data)
             tmp.flush()  # Ensure data is written to disk
 
         st.markdown("---")
@@ -64,6 +74,18 @@ def main() -> None:
             frequency = st.radio(
                 "Frequency", options=["monthly", "daily"], index=0, horizontal=True
             )
+            monthly_rule = "ME"
+            if frequency == "daily":
+                monthly_rule = st.radio(
+                    "Monthly resample",
+                    options=["ME", "MS"],
+                    index=0,
+                    horizontal=True,
+                    format_func=lambda rule: (
+                        "Month-end [ME]" if rule == "ME" else "Month-start [MS]"
+                    ),
+                    help="Choose the month label for daily-to-monthly compounding.",
+                )
         with col3:
             min_obs = st.number_input(
                 "Min observations per id", min_value=1, value=36, step=1
@@ -104,6 +126,7 @@ def main() -> None:
             wide=wide,
             value_type=value_type,  # "returns" | "prices"
             frequency=frequency,  # "monthly" | "daily"
+            monthly_rule=monthly_rule,  # "ME" | "MS"
             min_obs=int(min_obs),
             sheet_name=sheet_arg,
             na_values=na_values,
