@@ -1,0 +1,86 @@
+from __future__ import annotations
+
+import base64
+from pathlib import Path
+
+import pandas as pd
+import pytest
+
+openpyxl = pytest.importorskip("openpyxl")
+pptx = pytest.importorskip("pptx")
+
+from pa_core.reporting.sweep_excel import export_sweep_results
+
+ONE_PX_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
+    "ASsJTYQAAAAASUVORK5CYII="
+)
+
+
+def test_export_sweep_results_writes_summary_and_run_sheet(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from pa_core.reporting import sweep_excel
+
+    results = [
+        {
+            "combination_id": 1,
+            "summary": pd.DataFrame(
+                {"Agent": ["Base"], "AnnReturn": [0.05], "AnnVol": [0.1]}
+            ),
+        }
+    ]
+
+    def _raise_make(*_args, **_kwargs):
+        raise RuntimeError("no image")
+
+    monkeypatch.setattr(sweep_excel.risk_return, "make", _raise_make)
+
+    out_path = tmp_path / "sweep.xlsx"
+    export_sweep_results(results, filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path)
+    assert {"Run1", "Summary"} <= set(wb.sheetnames)
+
+    for name in ["Run1", "Summary"]:
+        assert wb[name].freeze_panes == "A2"
+
+    header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
+    assert "ShortfallProb" in header
+
+
+def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) -> None:
+    from pa_core.reporting.export_packet import create_export_packet
+
+    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    raw_returns = {"Base": pd.DataFrame([[0.01, 0.02]], columns=[0, 1])}
+    inputs = {"foo": 1}
+
+    class _Fig:
+        def to_image(self, format: str = "png", engine: str = "kaleido") -> bytes:
+            return ONE_PX_PNG
+
+    manifest = {
+        "git_commit": "abc123",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "seed": 42,
+        "data_files": {"data.csv": "a" * 64},
+        "cli_args": {"mode": "returns"},
+        "config": {"N_SIMULATIONS": 1000, "N_MONTHS": 12},
+    }
+
+    pptx_path, excel_path = create_export_packet(
+        figs=[_Fig()],
+        summary_df=summary,
+        raw_returns_dict=raw_returns,
+        inputs_dict=inputs,
+        base_filename=tmp_path / "packet",
+        alt_texts=["Summary chart"],
+        manifest=manifest,
+    )
+
+    assert Path(pptx_path).exists()
+    assert Path(excel_path).exists()
+
+    presentation = pptx.Presentation(pptx_path)
+    assert len(presentation.slides) == 5

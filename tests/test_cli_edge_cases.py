@@ -26,6 +26,15 @@ def test_cli_rejects_non_series_index(monkeypatch):
         main(["--config", "cfg.yaml", "--index", "idx.csv"])
 
 
+def test_cli_rejects_non_series_type(monkeypatch):
+    cfg = _minimal_config()
+    _patch_core(monkeypatch, cfg)
+    monkeypatch.setattr("pa_core.data.load_index_returns", lambda _: [0.01, 0.02])
+
+    with pytest.raises(ValueError, match="Index data must be a pandas Series"):
+        main(["--config", "cfg.yaml", "--index", "idx.csv"])
+
+
 def test_cli_suggest_sleeves_empty_exits(monkeypatch, capsys):
     cfg = _minimal_config()
     _patch_core(monkeypatch, cfg)
@@ -78,6 +87,28 @@ def test_cli_suggest_sleeves_invalid_selection_aborts(monkeypatch, capsys):
         lambda *_args, **_kwargs: suggestions,
     )
     monkeypatch.setattr("builtins.input", lambda *_args: "not-a-number")
+
+    main(["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves"])
+    captured = capsys.readouterr()
+    assert "Invalid selection. Aborting run." in captured.out
+
+
+def test_cli_suggest_sleeves_out_of_range_aborts(monkeypatch, capsys):
+    cfg = _minimal_config()
+    _patch_core(monkeypatch, cfg)
+    monkeypatch.setattr("pa_core.data.load_index_returns", lambda _: pd.Series([0.01]))
+    suggestions = pd.DataFrame(
+        {
+            "external_pa_capital": [10.0],
+            "active_ext_capital": [5.0],
+            "internal_pa_capital": [2.5],
+        }
+    )
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.suggest_sleeve_sizes",
+        lambda *_args, **_kwargs: suggestions,
+    )
+    monkeypatch.setattr("builtins.input", lambda *_args: "5")
 
     main(["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves"])
     captured = capsys.readouterr()

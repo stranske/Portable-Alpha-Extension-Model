@@ -86,3 +86,14 @@ def test_load_config_invalid_yaml_raises_config_error(tmp_path) -> None:
 
     with pytest.raises(ConfigError, match="Invalid YAML"):
         load_config(bad_path)
+
+
+def test_load_config_missing_required_field_raises_value_error() -> None:
+    config_data = {
+        "N_SIMULATIONS": 1000,
+        "analysis_mode": "returns",
+        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+    }
+
+    with pytest.raises(ValueError, match="Number of months"):
+        load_config(config_data)
