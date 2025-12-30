@@ -1,7 +1,11 @@
 import numpy as np
 
 from pa_core.sim.metrics import conditional_value_at_risk
-from pa_core.sim.paths import draw_joint_returns, simulate_alpha_streams
+from pa_core.sim.paths import (
+    draw_joint_returns,
+    prepare_mc_universe,
+    simulate_alpha_streams,
+)
 
 
 def _base_params() -> dict[str, float | str]:
@@ -167,4 +171,28 @@ def test_draw_joint_returns_allows_per_series_distributions() -> None:
     )
     normal_cvar = conditional_value_at_risk(r_beta, confidence=0.95)
     t_cvar = conditional_value_at_risk(r_H, confidence=0.95)
+    assert t_cvar < normal_cvar
+
+
+def test_prepare_mc_universe_supports_per_series_student_t() -> None:
+    n_sim, n_months = 4000, 12
+    sigma = 0.02
+    cov = np.diag([sigma**2, sigma**2, sigma**2, sigma**2])
+    rng = np.random.default_rng(2024)
+    sims = prepare_mc_universe(
+        N_SIMULATIONS=n_sim,
+        N_MONTHS=n_months,
+        mu_idx=0.0,
+        mu_H=0.0,
+        mu_E=0.0,
+        mu_M=0.0,
+        cov_mat=cov,
+        return_distribution="normal",
+        return_t_df=6.0,
+        return_copula="gaussian",
+        return_distributions=("normal", "student_t", "normal", "normal"),
+        rng=rng,
+    )
+    normal_cvar = conditional_value_at_risk(sims[:, :, 0], confidence=0.95)
+    t_cvar = conditional_value_at_risk(sims[:, :, 1], confidence=0.95)
     assert t_cvar < normal_cvar
