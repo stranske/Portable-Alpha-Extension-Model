@@ -194,8 +194,34 @@ def create_export_packet(
     if not summary_df.empty:
         _add_summary_table_slide(prs, summary_df)
 
+    figs_list = list(figs)
+    try:
+        sens_val = inputs_dict.get("_sensitivity_df")
+        sens_df: pd.DataFrame | None = (
+            sens_val if isinstance(sens_val, pd.DataFrame) else None
+        )
+        if sens_df is not None and not sens_df.empty:
+            if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                from ..viz import tornado
+
+                series = tornado.series_from_sensitivity(sens_df)
+                title = "Sensitivity Tornado"
+                has_tornado = False
+                for fig in figs_list:
+                    layout = getattr(fig, "layout", None)
+                    fig_title = getattr(layout, "title", None) if layout else None
+                    text = getattr(fig_title, "text", None) if fig_title else None
+                    if text and str(text).strip().lower() == title.lower():
+                        has_tornado = True
+                        break
+                if not has_tornado:
+                    figs_list.append(tornado.make(series, title=title))
+    except Exception:
+        # Best-effort only; tornado chart is optional.
+        pass
+
     alt_iter = iter(alt_texts) if alt_texts is not None else None
-    for fig in figs:
+    for fig in figs_list:
         _add_chart_slide(prs, fig, next(alt_iter, None) if alt_iter else None)
 
     # Appendix reminding where detailed tables live

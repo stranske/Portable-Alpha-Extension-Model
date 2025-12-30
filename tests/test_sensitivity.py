@@ -37,6 +37,17 @@ def test_one_factor_deltas_with_ann_return():
     assert all(abs_deltas[i] >= abs_deltas[i + 1] for i in range(len(abs_deltas) - 1))
 
 
+def test_one_factor_deltas_orders_ties():
+    base = pd.DataFrame({"AnnReturn": [1.0]})
+    scenarios = {
+        "beta": pd.DataFrame({"AnnReturn": [1.1]}),
+        "alpha": pd.DataFrame({"AnnReturn": [1.1]}),
+        "gamma": pd.DataFrame({"AnnReturn": [1.05]}),
+    }
+    deltas = sensitivity.one_factor_deltas(base, scenarios, value="AnnReturn")
+    assert list(deltas.index) == ["alpha", "beta", "gamma"]
+
+
 def test_one_factor_deltas_missing_column():
     """Test error handling for missing columns."""
     base = pd.DataFrame({"AnnReturn": [8.5]})

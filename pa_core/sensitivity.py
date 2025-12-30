@@ -35,4 +35,15 @@ def one_factor_deltas(
         deltas[name] = float(df[value].mean()) - base_val
 
     series = pd.Series(deltas)
-    return series.reindex(series.abs().sort_values(ascending=False).index)
+    order = (
+        pd.DataFrame(
+            {
+                "value": series,
+                "abs": series.abs(),
+                "name": series.index.astype(str),
+            }
+        )
+        .sort_values(["abs", "name"], ascending=[False, True], kind="mergesort")
+        .reset_index(drop=True)
+    )
+    return pd.Series(order["value"].to_numpy(), index=order["name"].to_list())

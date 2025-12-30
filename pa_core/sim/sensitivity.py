@@ -57,6 +57,11 @@ def one_factor_deltas(
         records,
         columns=["Parameter", "Base", "Minus", "Plus", "Low", "High", "DeltaAbs"],
     )
-    df.sort_values("DeltaAbs", ascending=False, inplace=True)
+    df.sort_values(
+        ["DeltaAbs", "Parameter"],
+        ascending=[False, True],
+        inplace=True,
+        kind="mergesort",
+    )
     df.reset_index(drop=True, inplace=True)
     return df
