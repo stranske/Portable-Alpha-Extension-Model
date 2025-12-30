@@ -5,16 +5,8 @@ from typing import Optional, Sequence
 
 import pandas as pd
 
-from .agents.registry import build_from_config
 from .backend import resolve_and_set_backend
 from .config import load_config
-from .data import load_index_returns
-from .random import spawn_agent_rngs, spawn_rngs
-from .reporting import export_to_excel
-from .sim import draw_financing_series, draw_joint_returns
-from .sim.covariance import build_cov_matrix
-from .sim.metrics import summary_table
-from .simulations import simulate_agents
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
@@ -39,6 +31,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
     print(f"[BACKEND] Using backend: {backend_choice}")
+
+    # Import backend-dependent modules after setting the backend.
+    from .agents.registry import build_from_config
+    from .data import load_index_returns
+    from .random import spawn_agent_rngs, spawn_rngs
+    from .reporting import export_to_excel
+    from .sim import draw_financing_series, draw_joint_returns
+    from .sim.covariance import build_cov_matrix
+    from .sim.metrics import summary_table
+    from .simulations import simulate_agents
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(

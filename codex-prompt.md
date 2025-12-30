@@ -123,27 +123,39 @@ Your objective is to satisfy the **Acceptance Criteria** by completing each **Ta
 ---
 ## PR Tasks and Acceptance Criteria
 
-**Progress:** 0/10 tasks complete, 10 remaining
+**Progress:** 5/5 tasks complete, 0 remaining
+
+### ⚠️ IMPORTANT: Task Reconciliation Required
+
+The previous iteration changed **2 file(s)** but did not update task checkboxes.
+
+**Before continuing, you MUST:**
+1. Review the recent commits to understand what was changed
+2. Determine which task checkboxes should be marked complete
+3. Update the PR body to check off completed tasks
+4. Then continue with remaining tasks
+
+_Failure to update checkboxes means progress is not being tracked properly._
 
 ### Scope
-- [ ] CLI backend flag calls a function that does not exist, causing import errors and run failures.
+- [x] CLI backend flag calls a function that does not exist, causing import errors and run failures.
 
 ### Tasks
 Complete these in order. Mark checkbox done ONLY after implementation is verified:
 
-- [ ] Reconcile function names between `pa_core/cli.py` and `pa_core/backend.py`
-- [ ] CLI calls existing function (e.g., `set_backend(name)`) or backend exposes matching signature
-- [ ] Echo selected backend once at start of run
-- [ ] Record backend in manifest
-- [ ] Add unit test for `--backend numpy` and `--backend cupy` (skip cupy if missing)
+- [x] Reconcile function names between `pa_core/cli.py` and `pa_core/backend.py`
+- [x] CLI calls existing function (e.g., `set_backend(name)`) or backend exposes matching signature
+- [x] Echo selected backend once at start of run
+- [x] Record backend in manifest
+- [x] Add unit test for `--backend numpy` and `--backend cupy` (skip cupy if missing)
 
 ### Acceptance Criteria
 The PR is complete when ALL of these are satisfied:
 
-- [ ] CLI and backend module agree on function names/signatures
-- [ ] `--backend numpy` runs successfully on CPU-only env
-- [ ] `--backend cupy` errors with helpful message when CuPy missing
-- [ ] Selected backend recorded in manifest
-- [ ] Backend echoed once at run start
+- [x] CLI and backend module agree on function names/signatures
+- [x] `--backend numpy` runs successfully on CPU-only env
+- [x] `--backend cupy` errors with helpful message when CuPy missing
+- [x] Selected backend recorded in manifest
+- [x] Backend echoed once at run start
 
 ---
