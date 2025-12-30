@@ -17,7 +17,12 @@ import streamlit as st
 from dashboard.app import _DEF_THEME, apply_theme
 from pa_core.config import ModelConfig
 from pa_core.orchestrator import SimulatorOrchestrator
-from pa_core.stress import STRESS_PRESETS, apply_stress_preset
+from pa_core.reporting.stress_delta import (
+    build_delta_table,
+    build_stress_workbook,
+    format_delta_table,
+)
+from pa_core.stress import STRESS_PRESET_LABELS, STRESS_PRESETS, apply_stress_preset
 
 
 def _read_index_csv(file) -> pd.Series:
@@ -29,10 +34,6 @@ def _read_index_csv(file) -> pd.Series:
             "No numeric columns found in index CSV. Please ensure the file contains at least one column with numeric data."
         )
     return pd.Series(df[num_cols[0]].dropna().to_numpy())
-
-
-def _format_pct(x: float) -> str:
-    return f"{x:.2%}"
 
 
 def _config_diff(base: ModelConfig, stressed: ModelConfig) -> pd.DataFrame:
@@ -118,6 +119,7 @@ def main() -> None:
             if "2008_vol_regime" in preset_names
             else 0
         ),
+        format_func=lambda key: STRESS_PRESET_LABELS.get(key, key),
     )
 
     if st.button("Run stress test"):
@@ -156,21 +158,11 @@ def main() -> None:
                 st.dataframe(stress_summary)
 
             st.subheader("Delta (Stressed - Base)")
-            # Align on Agent and columns
-            common_cols = [
-                c
-                for c in stress_summary.columns
-                if c in base_summary.columns and c not in {"Agent"}
-            ]
-            merged = stress_summary.merge(
-                base_summary, on="Agent", suffixes=("_S", "_B")
-            )
-            deltas = {"Agent": merged["Agent"]}
-            for c in common_cols:
-                deltas[c] = merged[f"{c}_S"] - merged[f"{c}_B"]
-            delta_df = pd.DataFrame(deltas)
-            # Optional: format percentage-like columns for readability (kept simple)
-            st.dataframe(delta_df)
+            delta_df = build_delta_table(base_summary, stress_summary)
+            if delta_df.empty:
+                st.info("No shared numeric metrics to compare.")
+            else:
+                st.dataframe(format_delta_table(delta_df))
             st.download_button(
                 "Download deltas as CSV",
                 delta_df.to_csv(index=False).encode("utf-8"),
@@ -186,6 +178,15 @@ def main() -> None:
                 diff_df.to_csv(index=False).encode("utf-8"),
                 "config_diff.csv",
                 "text/csv",
+            )
+            stress_workbook = build_stress_workbook(
+                base_summary, stress_summary, delta_df, diff_df
+            )
+            st.download_button(
+                "Download stress results (Excel)",
+                stress_workbook,
+                "stress_results.xlsx",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
 
         except Exception as exc:  # pragma: no cover - runtime UX
