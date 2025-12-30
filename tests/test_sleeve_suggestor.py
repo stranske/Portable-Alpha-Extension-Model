@@ -223,9 +223,7 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
         def run(self, seed=None):
             return returns, summary
 
-    monkeypatch.setattr(
-        "pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator
-    )
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
 
     df = suggest_sleeve_sizes(
         cfg,
@@ -274,9 +272,7 @@ def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
         def run(self, seed=None):
             return returns, summary
 
-    monkeypatch.setattr(
-        "pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator
-    )
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
 
     df = suggest_sleeve_sizes(
         cfg,
@@ -312,9 +308,7 @@ def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
         def run(self, seed=None):
             return returns, summary
 
-    monkeypatch.setattr(
-        "pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator
-    )
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
 
     df = suggest_sleeve_sizes(
         cfg,

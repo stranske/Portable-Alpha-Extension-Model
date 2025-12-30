@@ -17,8 +17,6 @@ def make(contrib: Mapping[str, float] | pd.Series) -> go.Figure:
     labels = contrib_s.index.tolist()
     values = contrib_s.astype(float).tolist()
     fig = go.Figure(layout_template=theme.TEMPLATE)
-    fig.add_trace(
-        go.Waterfall(x=labels, y=values, connector=dict(line=dict(color="grey")))
-    )
+    fig.add_trace(go.Waterfall(x=labels, y=values, connector=dict(line=dict(color="grey"))))
     fig.update_layout(xaxis_title="Agent", yaxis_title="Contribution")
     return fig

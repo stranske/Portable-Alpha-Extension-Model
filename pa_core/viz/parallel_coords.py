@@ -9,7 +9,5 @@ from . import theme
 def make(df: pd.DataFrame) -> go.Figure:
     """Return parallel coordinates plot for multi-metric comparison."""
     dimensions = [dict(label=col, values=df[col]) for col in df.columns]
-    fig = go.Figure(
-        data=go.Parcoords(dimensions=dimensions), layout_template=theme.TEMPLATE
-    )
+    fig = go.Figure(data=go.Parcoords(dimensions=dimensions), layout_template=theme.TEMPLATE)
     return fig

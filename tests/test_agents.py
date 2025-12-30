@@ -89,22 +89,17 @@ def test_agent_math_identity():
     np.testing.assert_allclose(ext.monthly_returns(r_beta, r_M, f), expected_ext)
 
     share_percentage = 70.0  # 70% as percentage value (converted to 0.7 decimal)
-    act_p = AgentParams(
-        "ActiveExt", 100.0, 0.1, 0.0, {"active_share": share_percentage}
-    )
+    act_p = AgentParams("ActiveExt", 100.0, 0.1, 0.0, {"active_share": share_percentage})
     act = ActiveExtensionAgent(act_p)
     expected_act = (
-        act_p.beta_share * (r_beta - f)
-        + (act_p.beta_share * (share_percentage / 100.0)) * r_E
+        act_p.beta_share * (r_beta - f) + (act_p.beta_share * (share_percentage / 100.0)) * r_E
     )
     np.testing.assert_allclose(act.monthly_returns(r_beta, r_E, f), expected_act)
 
     beta_p = AgentParams("InternalBeta", 50.0, 1.0, 0.0, {})
     beta_agent = InternalBetaAgent(beta_p)
     expected_beta = beta_p.beta_share * (r_beta - f)
-    np.testing.assert_allclose(
-        beta_agent.monthly_returns(r_beta, r_H, f), expected_beta
-    )
+    np.testing.assert_allclose(beta_agent.monthly_returns(r_beta, r_H, f), expected_beta)
 
     pa_p = AgentParams("InternalPA", 75.0, 0.0, 0.2, {})
     pa_agent = InternalPAAgent(pa_p)

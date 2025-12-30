@@ -52,9 +52,7 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
     """Instantiate agents based on ``ModelConfig`` values."""
     total_cap = cfg.total_fund_capital
 
-    params: list[AgentParams] = [
-        AgentParams("Base", total_cap, cfg.w_beta_H, cfg.w_alpha_H, {})
-    ]
+    params: list[AgentParams] = [AgentParams("Base", total_cap, cfg.w_beta_H, cfg.w_alpha_H, {})]
 
     if cfg.external_pa_capital > 0:
         params.append(
@@ -90,16 +88,11 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
         )
 
     leftover_beta = (
-        total_cap
-        - cfg.external_pa_capital
-        - cfg.active_ext_capital
-        - cfg.internal_pa_capital
+        total_cap - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital
     )
     if leftover_beta > 0:
         params.append(
-            AgentParams(
-                "InternalBeta", leftover_beta, leftover_beta / total_cap, 0.0, {}
-            )
+            AgentParams("InternalBeta", leftover_beta, leftover_beta / total_cap, 0.0, {})
         )
 
     return build_all(params)

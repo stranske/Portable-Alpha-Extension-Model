@@ -30,9 +30,7 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
             x=df["AnnVol"],
             y=df["AnnReturn"],
             mode="markers",
-            marker=dict(
-                size=20 * size / float(size.max()), color=color, sizemode="diameter"
-            ),
+            marker=dict(size=20 * size / float(size.max()), color=color, sizemode="diameter"),
             text=df.get("Agent", ""),
             hovertemplate="%{text}<br>Vol=%{x:.2%}<br>Return=%{y:.2%}<extra></extra>",
         )

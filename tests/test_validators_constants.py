@@ -42,9 +42,7 @@ class TestValidationConstants:
 
         # Should not trigger warning at exactly the threshold
         warnings = [
-            r
-            for r in results
-            if r.severity == "warning" and "Very small step size" in r.message
+            r for r in results if r.severity == "warning" and "Very small step size" in r.message
         ]
         assert len(warnings) == 0
 
@@ -57,9 +55,7 @@ class TestValidationConstants:
 
         # Should trigger warning
         warnings = [
-            r
-            for r in results
-            if r.severity == "warning" and "Very small step size" in r.message
+            r for r in results if r.severity == "warning" and "Very small step size" in r.message
         ]
         assert len(warnings) == 1
 
@@ -77,9 +73,7 @@ class TestValidationConstants:
 
         # Should not trigger step size warning
         step_warnings = [
-            r
-            for r in results
-            if r.severity == "warning" and "Very small step size" in r.message
+            r for r in results if r.severity == "warning" and "Very small step size" in r.message
         ]
         assert len(step_warnings) == 0
 
@@ -96,9 +90,7 @@ class TestValidationConstants:
 
         # Should only warn about the small step size
         step_warnings = [
-            r
-            for r in results
-            if r.severity == "warning" and "Very small step size" in r.message
+            r for r in results if r.severity == "warning" and "Very small step size" in r.message
         ]
         assert len(step_warnings) == 1
         assert "small_param" in step_warnings[0].message
@@ -114,9 +106,7 @@ class TestValidationConstants:
         )
 
         warnings = [
-            r
-            for r in results
-            if r.severity == "warning" and "Very small step size" in r.message
+            r for r in results if r.severity == "warning" and "Very small step size" in r.message
         ]
         assert len(warnings) == 1
 

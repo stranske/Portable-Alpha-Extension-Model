@@ -107,7 +107,5 @@ class TestEnhancedConfigValidation:
         # margin = 0.05 * 8.0 * 1000 = 400M
         # internal_pa = 700M
         # total = 1100M > 1000M
-        with pytest.raises(
-            ValueError, match="Margin requirement.*exceeds total capital"
-        ):
+        with pytest.raises(ValueError, match="Margin requirement.*exceeds total capital"):
             load_config(config_data)

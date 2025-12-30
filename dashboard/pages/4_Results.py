@@ -48,9 +48,7 @@ def main() -> None:
     st.subheader("Key Metrics")
     col1, col2, col3 = st.columns(3)
     if "TrackingErr" in summary:
-        col1.metric(
-            "Tracking Error", f"{summary['TrackingErr'].mean():.2%}", help=tooltip("TE")
-        )
+        col1.metric("Tracking Error", f"{summary['TrackingErr'].mean():.2%}", help=tooltip("TE"))
     if "CVaR" in summary:
         col2.metric("CVaR", f"{summary['CVaR'].mean():.2%}", help=tooltip("CVaR"))
     if "BreachProb" in summary:
@@ -67,9 +65,7 @@ def main() -> None:
         if summary.index.name:
             agent_options = summary.index.tolist()
         else:
-            agent_options = (
-                summary.index.tolist() if len(summary.index) > 0 else ["All"]
-            )
+            agent_options = summary.index.tolist() if len(summary.index) > 0 else ["All"]
         agents = st.sidebar.multiselect("Agents", agent_options, agent_options)
     st.sidebar.number_input("Risk-free rate", value=0.0)
     auto = st.sidebar.checkbox("Auto-refresh")
@@ -96,12 +92,8 @@ def main() -> None:
     with col1:
         # PNG export with error handling
         try:
-            png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(
-                format="png", engine="kaleido"
-            )
-            st.download_button(
-                "Download PNG", png, file_name="risk_return.png", mime="image/png"
-            )
+            png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(format="png", engine="kaleido")
+            st.download_button("Download PNG", png, file_name="risk_return.png", mime="image/png")
         except RuntimeError as e:
             if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                 st.warning(
@@ -161,9 +153,7 @@ def main() -> None:
                             else None
                         )
                         if prev_out and Path(prev_out).exists():
-                            prev_summary_df = pd.read_excel(
-                                prev_out, sheet_name="Summary"
-                            )
+                            prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
                     except Exception:
                         prev_manifest_data = None
                         prev_summary_df = None
@@ -224,9 +214,7 @@ def main() -> None:
                     st.error(f"Export packet failed: {e}")
             except Exception as e:
                 st.error(f"Unexpected error creating export packet: {e}")
-                st.info(
-                    "Please check your environment and try individual exports instead."
-                )
+                st.info("Please check your environment and try individual exports instead.")
 
     if auto:
         time.sleep(interval)

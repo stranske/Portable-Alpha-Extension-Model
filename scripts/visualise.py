@@ -61,9 +61,7 @@ def main(argv: list[str] | None = None) -> None:
                 logging.info("pyarrow missing; using CSV path data")
                 df_paths = pd.read_csv(csv_path, index_col=0)
             else:
-                logging.info(
-                    "Install pyarrow for Parquet support or provide a matching CSV file"
-                )
+                logging.info("Install pyarrow for Parquet support or provide a matching CSV file")
 
     if args.plot in {"fan", "path_dist"} and df_paths is None:
         raise FileNotFoundError(parquet_path)

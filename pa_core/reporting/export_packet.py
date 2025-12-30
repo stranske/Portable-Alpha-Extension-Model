@@ -36,9 +36,7 @@ def _add_title_slide(prs: Any, title: str, subtitle: str | None = None) -> None:
         slide.placeholders[1].text = subtitle
 
 
-def _add_summary_table_slide(
-    prs: Any, df: pd.DataFrame, title: str = "Executive Summary"
-) -> None:
+def _add_summary_table_slide(prs: Any, df: pd.DataFrame, title: str = "Executive Summary") -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[5])
     # Title
     tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.6))
@@ -70,9 +68,7 @@ def _add_summary_table_slide(
         for c in range(cols):
             val = head.iat[r, c]
             cell = table.cell(r + 1, c)
-            cell.text = (
-                f"{val:.2%}" if isinstance(val, float) and 0 <= val <= 1 else str(val)
-            )
+            cell.text = f"{val:.2%}" if isinstance(val, float) and 0 <= val <= 1 else str(val)
             cell.text_frame.paragraphs[0].runs[0].font.size = Pt(10)
 
 
@@ -164,9 +160,7 @@ def create_export_packet(
     metric_diff_df: pd.DataFrame | None = None
     if prev_manifest is not None or prev_summary_df is not None:
         prev_sum = prev_summary_df if prev_summary_df is not None else pd.DataFrame()
-        cfg_diff_df, metric_diff_df = build_run_diff(
-            manifest, prev_manifest, summary_df, prev_sum
-        )
+        cfg_diff_df, metric_diff_df = build_run_diff(manifest, prev_manifest, summary_df, prev_sum)
 
     # Excel workbook (full tables)
     export_to_excel(
@@ -197,9 +191,7 @@ def create_export_packet(
     figs_list = list(figs)
     try:
         sens_val = inputs_dict.get("_sensitivity_df")
-        sens_df: pd.DataFrame | None = (
-            sens_val if isinstance(sens_val, pd.DataFrame) else None
-        )
+        sens_df: pd.DataFrame | None = sens_val if isinstance(sens_val, pd.DataFrame) else None
         if sens_df is not None and not sens_df.empty:
             if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
                 from ..viz import tornado
@@ -251,9 +243,7 @@ def create_export_packet(
     # Optional manifest summary appendix
     if manifest:
         slide = prs.slides.add_slide(prs.slide_layouts[5])
-        tx_box = slide.shapes.add_textbox(
-            Inches(0.5), Inches(0.5), Inches(9), Inches(6)
-        )
+        tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(6))
         tf = tx_box.text_frame
         tf.clear()
         # Title

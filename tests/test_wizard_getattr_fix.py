@@ -52,9 +52,7 @@ class TestWizardConfigConsistency:
                 ), f"DefaultConfigView missing required attribute '{attr}' for mode {mode.value}"
                 # Ensure attribute is not None and has a reasonable value
                 value = getattr(config, attr)
-                assert (
-                    value is not None
-                ), f"Attribute '{attr}' is None for mode {mode.value}"
+                assert value is not None, f"Attribute '{attr}' is None for mode {mode.value}"
 
     def test_default_config_values_match_model_config_defaults(self):
         """Test that DefaultConfigView values are consistent with ModelConfig defaults where applicable."""
@@ -102,9 +100,7 @@ class TestWizardConfigConsistency:
         # Test VOL_MULT mode has conservative volatilities
         vol_config = get_default_config(AnalysisMode.VOL_MULT)
         # Should be 90% of base model volatilities
-        base_model = ModelConfig.model_validate(
-            {"Number of simulations": 1, "Number of months": 1}
-        )
+        base_model = ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
         assert abs(vol_config.sigma_h - base_model.sigma_H * 0.9) < 1e-10
         assert abs(vol_config.sigma_e - base_model.sigma_E * 0.9) < 1e-10
         assert abs(vol_config.sigma_m - base_model.sigma_M * 0.9) < 1e-10

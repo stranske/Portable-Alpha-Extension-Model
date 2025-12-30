@@ -40,9 +40,7 @@ def test_build_delta_table_includes_total_row():
 
 def test_build_stress_workbook_contains_expected_sheets():
     base = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05], "BreachCount": [1]})
-    stressed = pd.DataFrame(
-        {"Agent": ["Base"], "AnnReturn": [0.02], "BreachCount": [3]}
-    )
+    stressed = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.02], "BreachCount": [3]})
     delta_df = build_delta_table(base, stressed)
     config_diff = pd.DataFrame({"Parameter": ["mu_H"], "Base": [0.01], "Stressed": [0]})
 

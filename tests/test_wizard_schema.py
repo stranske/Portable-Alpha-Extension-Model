@@ -107,18 +107,14 @@ class TestAnalysisModeProperties:
         for mode in AnalysisMode:
             description = mode.description
             assert isinstance(description, str)
-            assert (
-                len(description) > 50
-            ), f"Description for {mode.value} should be substantial"
+            assert len(description) > 50, f"Description for {mode.value} should be substantial"
 
     def test_display_name_property_exists(self):
         """Test that all analysis modes have display_name property."""
         for mode in AnalysisMode:
             display_name = mode.display_name
             assert isinstance(display_name, str)
-            assert (
-                len(display_name) > 5
-            ), f"Display name for {mode.value} should be meaningful"
+            assert len(display_name) > 5, f"Display name for {mode.value} should be meaningful"
 
     def test_specific_display_names(self):
         """Test specific expected display names."""
@@ -136,12 +132,8 @@ class TestAnalysisModeProperties:
         """Test that descriptions contain expected analysis-specific content."""
         # Each description should contain the mode name
         assert "Capital Allocation Analysis" in AnalysisMode.CAPITAL.description
-        assert (
-            "Return Assumption Sensitivity Analysis" in AnalysisMode.RETURNS.description
-        )
-        assert (
-            "Alpha Capture Efficiency Analysis" in AnalysisMode.ALPHA_SHARES.description
-        )
+        assert "Return Assumption Sensitivity Analysis" in AnalysisMode.RETURNS.description
+        assert "Alpha Capture Efficiency Analysis" in AnalysisMode.ALPHA_SHARES.description
         assert "Volatility Stress Testing" in AnalysisMode.VOL_MULT.description
 
         # Each should contain business-focused content
@@ -181,9 +173,7 @@ class TestAnalysisModeProperties:
 
         # Bind the property method to our mock
         description_method = AnalysisMode.description.fget
-        assert (
-            description_method is not None
-        ), "AnalysisMode.description.fget should not be None"
+        assert description_method is not None, "AnalysisMode.description.fget should not be None"
         with pytest.raises(
             ValueError,
             match="No description found for AnalysisMode value 'nonexistent_mode'",

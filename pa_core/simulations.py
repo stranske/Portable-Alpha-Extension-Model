@@ -56,33 +56,25 @@ def _(agent: BaseAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[A
 
 
 @_resolve_streams.register
-def _(
-    agent: ExternalPAAgent, *streams: NDArray[Any]
-) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: ExternalPAAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_M, f_ext_pa
 
 
 @_resolve_streams.register
-def _(
-    agent: ActiveExtensionAgent, *streams: NDArray[Any]
-) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: ActiveExtensionAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_E, f_act_ext
 
 
 @_resolve_streams.register
-def _(
-    agent: InternalPAAgent, *streams: NDArray[Any]
-) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: InternalPAAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_H, np.zeros_like(r_beta)
 
 
 @_resolve_streams.register
-def _(
-    agent: InternalBetaAgent, *streams: NDArray[Any]
-) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: InternalBetaAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return np.zeros_like(r_beta), f_int
 

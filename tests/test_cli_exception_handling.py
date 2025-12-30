@@ -43,9 +43,7 @@ def test_attribution_exception_handling_attribute_error(caplog_debug):
         logging.getLogger("pa_core.cli").warning(
             f"Attribution calculation failed due to data type issue: {e}"
         )
-        inputs_dict["_attribution_df"] = pd.DataFrame(
-            columns=["Agent", "Sub", "Return"]
-        )
+        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
 
     # Verify the fallback was created
     assert "_attribution_df" in inputs_dict
@@ -81,18 +79,14 @@ def test_attribution_exception_handling_value_error(caplog_debug):
         logging.getLogger("pa_core.cli").warning(
             f"Attribution calculation failed due to configuration issue: {e}"
         )
-        inputs_dict["_attribution_df"] = pd.DataFrame(
-            columns=["Agent", "Sub", "Return"]
-        )
+        inputs_dict["_attribution_df"] = pd.DataFrame(columns=["Agent", "Sub", "Return"])
 
     # Verify the fallback was created
     assert "_attribution_df" in inputs_dict
     assert inputs_dict["_attribution_df"].shape == (0, 3)
 
     # Check that specific warning was logged
-    assert (
-        "Attribution calculation failed due to configuration issue" in caplog_debug.text
-    )
+    assert "Attribution calculation failed due to configuration issue" in caplog_debug.text
 
 
 def test_sensitivity_parameter_evaluation_value_error(caplog_debug):
@@ -132,10 +126,7 @@ def test_sensitivity_parameter_evaluation_value_error(caplog_debug):
     assert "mu_H must be non-negative" in failed_params[0]
 
     # Check logging
-    assert (
-        "Parameter evaluation failed for mu_H_+5% due to configuration"
-        in caplog_debug.text
-    )
+    assert "Parameter evaluation failed for mu_H_+5% due to configuration" in caplog_debug.text
     assert "mu_H must be non-negative" in caplog_debug.text
 
 
@@ -175,10 +166,7 @@ def test_sensitivity_parameter_evaluation_key_error(caplog_debug):
     assert "Unknown parameter key" in failed_params[0]
 
     # Check logging
-    assert (
-        "Parameter evaluation failed for invalid_key_+5% due to data issue"
-        in caplog_debug.text
-    )
+    assert "Parameter evaluation failed for invalid_key_+5% due to data issue" in caplog_debug.text
     assert "Unknown parameter key" in caplog_debug.text
 
 

@@ -22,9 +22,7 @@ def make(
     months = np.arange(arr.shape[1])
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(go.Scatter(x=months, y=upper, line=dict(width=0), showlegend=False))
-    fig.add_trace(
-        go.Scatter(x=months, y=lower, line=dict(width=0), fill="tonexty", name="Band")
-    )
+    fig.add_trace(go.Scatter(x=months, y=lower, line=dict(width=0), fill="tonexty", name="Band"))
     fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name="Median"))
     fig.update_layout(xaxis_title="Month", yaxis_title="Cumulative Return")
     return fig

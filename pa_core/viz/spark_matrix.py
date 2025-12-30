@@ -14,9 +14,7 @@ def make(df_series: pd.DataFrame) -> go.Figure:
     fig = make_subplots(rows=rows, cols=1, shared_xaxes=True)
     for i, col in enumerate(cols, start=1):
         fig.add_trace(
-            go.Scatter(
-                x=df_series.index, y=df_series[col], mode="lines", name=str(col)
-            ),
+            go.Scatter(x=df_series.index, y=df_series[col], mode="lines", name=str(col)),
             row=i,
             col=1,
         )

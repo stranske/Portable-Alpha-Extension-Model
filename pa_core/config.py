@@ -59,12 +59,8 @@ class ModelConfig(BaseModel):
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
     return_copula: str = Field(default="gaussian", alias="Return copula")
-    return_distribution_idx: Optional[str] = Field(
-        default=None, alias="Index return distribution"
-    )
-    return_distribution_H: Optional[str] = Field(
-        default=None, alias="In-House return distribution"
-    )
+    return_distribution_idx: Optional[str] = Field(default=None, alias="Index return distribution")
+    return_distribution_H: Optional[str] = Field(default=None, alias="In-House return distribution")
     return_distribution_E: Optional[str] = Field(
         default=None, alias="Alpha-Extension return distribution"
     )
@@ -73,9 +69,7 @@ class ModelConfig(BaseModel):
     )
 
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
-    active_ext_capital: float = Field(
-        default=0.0, alias="Active Extension capital (mm)"
-    )
+    active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
 
@@ -117,12 +111,8 @@ class ModelConfig(BaseModel):
     ext_pa_financing_sigma_month: float = Field(
         default=0.0, alias="External PA financing vol (monthly %)"
     )
-    ext_pa_spike_prob: float = Field(
-        default=0.0, alias="External PA monthly spike prob"
-    )
-    ext_pa_spike_factor: float = Field(
-        default=0.0, alias="External PA spike multiplier"
-    )
+    ext_pa_spike_prob: float = Field(default=0.0, alias="External PA monthly spike prob")
+    ext_pa_spike_factor: float = Field(default=0.0, alias="External PA spike multiplier")
 
     act_ext_financing_mean_month: float = Field(
         default=0.0, alias="Active Ext financing mean (monthly %)"
@@ -130,12 +120,8 @@ class ModelConfig(BaseModel):
     act_ext_financing_sigma_month: float = Field(
         default=0.0, alias="Active Ext financing vol (monthly %)"
     )
-    act_ext_spike_prob: float = Field(
-        default=0.0, alias="Active Ext monthly spike prob"
-    )
-    act_ext_spike_factor: float = Field(
-        default=0.0, alias="Active Ext spike multiplier"
-    )
+    act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
+    act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
@@ -189,20 +175,14 @@ class ModelConfig(BaseModel):
         if self.financing_model not in valid:
             raise ValueError(f"financing_model must be one of: {sorted(valid)}")
         if self.financing_model == "schedule" and self.financing_schedule_path is None:
-            raise ValueError(
-                "financing_schedule_path required for schedule financing model"
-            )
+            raise ValueError("financing_schedule_path required for schedule financing model")
         return self
 
     @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
         from .validators import validate_capital_allocation
 
-        cap_sum = (
-            self.external_pa_capital
-            + self.active_ext_capital
-            + self.internal_pa_capital
-        )
+        cap_sum = self.external_pa_capital + self.active_ext_capital + self.internal_pa_capital
         if cap_sum > self.total_fund_capital:
             raise ValueError("Capital allocation exceeds total_fund_capital")
 
@@ -234,9 +214,7 @@ class ModelConfig(BaseModel):
         valid_distributions = {"normal", "student_t"}
         valid_copulas = {"gaussian", "t"}
         if self.return_distribution not in valid_distributions:
-            raise ValueError(
-                f"return_distribution must be one of: {sorted(valid_distributions)}"
-            )
+            raise ValueError(f"return_distribution must be one of: {sorted(valid_distributions)}")
         for dist in (
             self.return_distribution_idx,
             self.return_distribution_H,
@@ -255,10 +233,7 @@ class ModelConfig(BaseModel):
             self.return_distribution_E or self.return_distribution,
             self.return_distribution_M or self.return_distribution,
         )
-        if (
-            all(dist == "normal" for dist in resolved)
-            and self.return_copula != "gaussian"
-        ):
+        if all(dist == "normal" for dist in resolved) and self.return_copula != "gaussian":
             raise ValueError(
                 "return_copula must be 'gaussian' when return_distribution is 'normal'"
             )

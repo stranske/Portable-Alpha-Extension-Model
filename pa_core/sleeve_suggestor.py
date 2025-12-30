@@ -12,9 +12,7 @@ from .orchestrator import SimulatorOrchestrator
 from .sim.metrics import summary_table
 
 
-def _clamp_grid(
-    grid: np.ndarray, min_value: float | None, max_value: float | None
-) -> np.ndarray:
+def _clamp_grid(grid: np.ndarray, min_value: float | None, max_value: float | None) -> np.ndarray:
     min_val = 0.0 if min_value is None else min_value
     max_val = float("inf") if max_value is None else max_value
     return grid[(grid >= min_val) & (grid <= max_val)]
@@ -174,9 +172,7 @@ def suggest_sleeve_sizes(
             remaining = [combo for combo in combos if combo not in priority]
             budget = max_evals - len(priority)
             if budget > 0 and remaining:
-                idx = rng.choice(
-                    len(remaining), size=min(budget, len(remaining)), replace=False
-                )
+                idx = rng.choice(len(remaining), size=min(budget, len(remaining)), replace=False)
                 sampled = [remaining[i] for i in idx]
             else:
                 sampled = []
@@ -262,9 +258,7 @@ def suggest_sleeve_sizes(
             }
             metrics.update(total_metrics)
             if constraint_scope in {"total", "both"} and (
-                total_te > max_te
-                or total_bprob > max_breach
-                or abs(total_cvar) > max_cvar
+                total_te > max_te or total_bprob > max_breach or abs(total_cvar) > max_cvar
             ):
                 meets = False
         if meets:

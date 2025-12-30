@@ -60,9 +60,7 @@ def main() -> None:
         with col1:
             date_col = st.text_input("Date column", value="Date")
             wide = (
-                st.radio(
-                    "Input layout", options=["wide", "long"], index=0, horizontal=True
-                )
+                st.radio("Input layout", options=["wide", "long"], index=0, horizontal=True)
                 == "wide"
             )
             value_type = st.radio(
@@ -87,9 +85,7 @@ def main() -> None:
                     help="Choose the month label for daily-to-monthly compounding.",
                 )
         with col3:
-            min_obs = st.number_input(
-                "Min observations per id", min_value=1, value=36, step=1
-            )
+            min_obs = st.number_input("Min observations per id", min_value=1, value=36, step=1)
             cov_shrinkage = st.selectbox(
                 "Covariance shrinkage",
                 options=["none", "ledoit_wolf"],

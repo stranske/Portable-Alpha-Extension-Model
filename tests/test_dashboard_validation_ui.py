@@ -130,9 +130,7 @@ def test_validate_scenario_config_filters_warnings(
     def fake_validate_simulation_parameters(**_: Any) -> List[ValidationResult]:
         return [ValidationResult(True, "info", "info", {})]
 
-    monkeypatch.setattr(
-        validation_ui, "validate_correlations", fake_validate_correlations
-    )
+    monkeypatch.setattr(validation_ui, "validate_correlations", fake_validate_correlations)
     monkeypatch.setattr(
         validation_ui, "validate_capital_allocation", fake_validate_capital_allocation
     )
@@ -202,14 +200,10 @@ def test_create_margin_buffer_display_branches(fake_st: FakeStreamlit) -> None:
 def test_validation_status_indicator() -> None:
     assert validation_ui.validation_status_indicator([]) == "✅"
     assert (
-        validation_ui.validation_status_indicator(
-            [ValidationResult(False, "bad", "error", {})]
-        )
+        validation_ui.validation_status_indicator([ValidationResult(False, "bad", "error", {})])
         == "❌"
     )
     assert (
-        validation_ui.validation_status_indicator(
-            [ValidationResult(True, "warn", "warning", {})]
-        )
+        validation_ui.validation_status_indicator([ValidationResult(True, "warn", "warning", {})])
         == "⚠️"
     )

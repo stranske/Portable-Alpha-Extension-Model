@@ -32,17 +32,11 @@ def _validate_return_draw_settings(
         distributions = tuple(distribution)
     for dist in distributions:
         if dist not in _VALID_RETURN_DISTS:
-            raise ValueError(
-                f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}"
-            )
+            raise ValueError(f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}")
     if copula not in _VALID_RETURN_COPULAS:
-        raise ValueError(
-            f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}"
-        )
+        raise ValueError(f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}")
     if all(dist == "normal" for dist in distributions) and copula != "gaussian":
-        raise ValueError(
-            "return_copula must be 'gaussian' when return_distribution is 'normal'"
-        )
+        raise ValueError("return_copula must be 'gaussian' when return_distribution is 'normal'")
     if any(dist == "student_t" for dist in distributions) and t_df <= 2.0:
         raise ValueError("return_t_df must be greater than 2 for finite variance")
 
@@ -153,9 +147,7 @@ def simulate_financing(
         rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
-    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (
-        spike_factor * financing_sigma
-    )
+    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
     out = np.clip(base + jumps, 0.0, None)
     return out[0] if n_scenarios == 1 else out  # type: ignore[no-any-return]
 
@@ -184,9 +176,7 @@ def prepare_mc_universe(
     if rng is None:
         rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
-    distributions = _resolve_return_distributions(
-        return_distribution, return_distributions
-    )
+    distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
     cov = cov_mat / 12.0
@@ -412,9 +402,7 @@ def simulate_alpha_streams(
         raise ValueError("T must be positive")
     if cov.shape != (4, 4):
         raise ValueError("cov must be 4×4 and ordered as [idx, H, E, M]")
-    distributions = _resolve_return_distributions(
-        return_distribution, return_distributions
-    )
+    distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
     if rng is None:

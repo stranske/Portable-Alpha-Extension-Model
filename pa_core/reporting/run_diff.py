@@ -108,17 +108,12 @@ def build_run_diff(
         ]
 
         common = [
-            c
-            for c in current_summary.columns
-            if c in previous_summary.columns and c not in id_cols
+            c for c in current_summary.columns if c in previous_summary.columns and c not in id_cols
         ]
         numeric = [
             c
             for c in common
-            if (
-                pdt.is_numeric_dtype(current_summary[c])
-                or _series_has_numeric(current_summary[c])
-            )
+            if (pdt.is_numeric_dtype(current_summary[c]) or _series_has_numeric(current_summary[c]))
             and (
                 pdt.is_numeric_dtype(previous_summary[c])
                 or _series_has_numeric(previous_summary[c])

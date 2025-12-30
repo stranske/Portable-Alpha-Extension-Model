@@ -10,9 +10,7 @@ from ..config import ModelConfig
 __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
 
 
-def compute_sleeve_return_attribution(
-    cfg: ModelConfig, idx_series: pd.Series
-) -> pd.DataFrame:
+def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
     """Compute per-agent annual return attribution by component.
 
     Components:
@@ -33,10 +31,7 @@ def compute_sleeve_return_attribution(
     w_act = float(cfg.active_ext_capital) / total if total > 0 else 0.0
     w_int = float(cfg.internal_pa_capital) / total if total > 0 else 0.0
     leftover_beta = max(
-        total
-        - cfg.external_pa_capital
-        - cfg.active_ext_capital
-        - cfg.internal_pa_capital,
+        total - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital,
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
@@ -109,9 +104,7 @@ def compute_sleeve_return_attribution(
     return df
 
 
-def compute_sleeve_risk_attribution(
-    cfg: ModelConfig, idx_series: pd.Series
-) -> pd.DataFrame:
+def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
     """Approximate per-agent risk attribution and TE vs index.
 
     Provides simple, assumption-driven approximations using monthly moments:
@@ -130,10 +123,7 @@ def compute_sleeve_risk_attribution(
     w_act = float(cfg.active_ext_capital) / total if total > 0 else 0.0
     w_int = float(cfg.internal_pa_capital) / total if total > 0 else 0.0
     leftover_beta = max(
-        total
-        - cfg.external_pa_capital
-        - cfg.active_ext_capital
-        - cfg.internal_pa_capital,
+        total - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital,
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
@@ -150,9 +140,7 @@ def compute_sleeve_risk_attribution(
     def ann_vol(x_monthly: float) -> float:
         return math.sqrt(12.0) * x_monthly
 
-    def _metrics(
-        b: float, alpha_sigma: float, rho_idx_alpha: float
-    ) -> Dict[str, float]:
+    def _metrics(b: float, alpha_sigma: float, rho_idx_alpha: float) -> Dict[str, float]:
         # Monthly variances
         var_I = idx_sigma_m * idx_sigma_m
         var_A = alpha_sigma * alpha_sigma

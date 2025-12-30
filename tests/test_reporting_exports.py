@@ -17,17 +17,13 @@ ONE_PX_PNG = base64.b64decode(
 )
 
 
-def test_export_sweep_results_writes_summary_and_run_sheet(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monkeypatch) -> None:
     from pa_core.reporting import sweep_excel
 
     results = [
         {
             "combination_id": 1,
-            "summary": pd.DataFrame(
-                {"Agent": ["Base"], "AnnReturn": [0.05], "AnnVol": [0.1]}
-            ),
+            "summary": pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05], "AnnVol": [0.1]}),
         }
     ]
 
@@ -106,9 +102,7 @@ def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
     inputs = {"_sensitivity_df": sens_df}
 
     class _Fig:
-        layout = type(
-            "Layout", (), {"title": type("Title", (), {"text": "Summary"})()}
-        )()
+        layout = type("Layout", (), {"title": type("Title", (), {"text": "Summary"})()})()
 
     pptx_path, _excel_path = create_export_packet(
         figs=[_Fig()],

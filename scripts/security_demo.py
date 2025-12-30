@@ -48,9 +48,7 @@ def demonstrate_secure_implementation():
     python_exe = Path("/usr/bin/python3")  # Standard path
 
     # Create a safe test script using cross-platform temporary file
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".py", delete=False
-    ) as tmp_script:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as tmp_script:
         tmp_script.write("print('Hello from secure subprocess!')\n")
         script_path = Path(tmp_script.name)
 

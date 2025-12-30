@@ -41,9 +41,7 @@ def test_validate_cli_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) 
     assert "missing correlations" in captured.out
 
 
-def test_validate_cli_config_ok(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_validate_cli_config_ok(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "mu_H": 0.04, "sigma_H": 0.01}
     path = tmp_path / "conf.yml"
     path.write_text(yaml.safe_dump(data))
@@ -53,9 +51,7 @@ def test_validate_cli_config_ok(
     assert captured.err == ""
 
 
-def test_validate_cli_config_error(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
+def test_validate_cli_config_error(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     data = {"N_SIMULATIONS": 1}
     path = tmp_path / "conf.yml"
     path.write_text(yaml.safe_dump(data))

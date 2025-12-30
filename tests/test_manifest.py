@@ -29,9 +29,7 @@ def fast_parameter_sweep(monkeypatch):
         return None
 
     monkeypatch.setattr("pa_core.sweep.run_parameter_sweep", _run_parameter_sweep)
-    monkeypatch.setattr(
-        "pa_core.reporting.sweep_excel.export_sweep_results", _export_sweep_results
-    )
+    monkeypatch.setattr("pa_core.reporting.sweep_excel.export_sweep_results", _export_sweep_results)
 
 
 def test_manifest_written(tmp_path):
