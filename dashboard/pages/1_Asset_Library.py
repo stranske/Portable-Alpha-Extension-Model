@@ -30,21 +30,26 @@ def main() -> None:
     st.title("Asset Library")
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
-    st.markdown("**Drag and drop your CSV or Excel file below.**")
+    st.markdown("**Upload asset return data**")
+    st.caption("Drag and drop a CSV or Excel file, or click to browse.")
     uploaded = st.file_uploader(
         "Drag-and-drop CSV/XLSX",
         type=["csv", "xlsx", "xls"],
-        help="Drop a file here or click to browse. CSV and Excel files are supported.",
+        help="CSV and Excel files are supported.",
+        label_visibility="collapsed",
     )
     if uploaded is None:
         return
+    data = uploaded.getvalue()
+    size_kb = len(data) / 1024
+    st.caption(f"Selected file: {uploaded.name} ({size_kb:.1f} KB)")
 
     # Persist the uploaded file to a temp path for pandas/Excel readers
     suffix = Path(uploaded.name).suffix
     fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     try:
         with os.fdopen(fd, "wb") as tmp:
-            tmp.write(uploaded.getvalue())
+            tmp.write(data)
             tmp.flush()  # Ensure data is written to disk
 
         st.markdown("---")
