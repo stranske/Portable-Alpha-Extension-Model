@@ -1,20 +1,24 @@
-# PAEM CI Workflow - Consumer of stranske/Workflows
-# Delegates to reusable workflow, no local scripts required
+# Thin caller for Python CI - delegates to Workflows repo reusable workflow
+# No local scripts required - all logic is centralized in stranske/Workflows
 #
 # This workflow runs:
 # - Lint (Ruff)
-# - Type check (mypy)
-# - Tests (pytest) with coverage
+# - Format check (Black)
+# - Type checking (mypy)
+# - Tests (pytest) on Python 3.11 and 3.12
 #
-# NOTE: PAEM uses single Python version (3.12) on Linux only
-# Multi-platform matrix dropped per transition decision 2025-12-29
+# NOTE: Do NOT add a top-level 'permissions:' block here. It causes
+# startup_failure when calling reusable workflows. The reusable workflow
+# defines its own permissions.
 #
-# IMPORTANT: This workflow runs on push to main ONLY.
-# PR validation is handled by pr-00-gate.yml to avoid duplicate CI runs.
+# Copy this file to: .github/workflows/ci.yml
+# Also copy: autofix-versions.env to .github/workflows/autofix-versions.env
 name: CI
 
 on:
   push:
+    branches: [main]
+  pull_request:
     branches: [main]
   workflow_dispatch:
 
@@ -23,8 +27,8 @@ jobs:
     name: Python CI
     uses: stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main
     with:
-      python-versions: '["3.12"]'
+      python-versions: '["3.11", "3.12"]'
       typecheck: true
       coverage: true
-      coverage-min: "60" # Target: 85% - see issue for tracking
+      coverage-min: '80'
     secrets: inherit
