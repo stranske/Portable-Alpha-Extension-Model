@@ -214,7 +214,13 @@ def create_export_packet(
     if metric_diff_df is not None and not metric_diff_df.empty:
         _add_table_slide(prs, metric_diff_df, title="Metric Changes")
     if stress_delta_df is not None and not stress_delta_df.empty:
-        _add_table_slide(prs, stress_delta_df, title="Stress Delta vs Base")
+        from .stress_delta import format_delta_table_text
+
+        _add_table_slide(
+            prs,
+            format_delta_table_text(stress_delta_df),
+            title="Stress Delta vs Base",
+        )
 
     # Optional manifest summary appendix
     if manifest:
