@@ -399,9 +399,7 @@ def main(
     if args.return_copula is not None:
         return_overrides["return_copula"] = args.return_copula
     if return_overrides:
-        cfg = cfg.__class__.model_validate(
-            {**cfg.model_dump(), **return_overrides}
-        )
+        cfg = cfg.__class__.model_validate({**cfg.model_dump(), **return_overrides})
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
