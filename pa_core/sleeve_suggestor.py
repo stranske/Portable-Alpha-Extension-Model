@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import itertools
+from numbers import Real
 from typing import Iterable, Literal, Sequence
 
 import numpy as np
@@ -66,9 +67,14 @@ def _pick_priority_combos(
 def _coerce_metric(value: object) -> float | None:
     if value is None:
         return None
-    try:
+    if isinstance(value, (str, bytes, bytearray)):
+        try:
+            metric = float(value)
+        except ValueError:
+            return None
+    elif isinstance(value, (Real, np.floating, np.integer)):
         metric = float(value)
-    except (TypeError, ValueError):
+    else:
         return None
     if not np.isfinite(metric):
         return None
