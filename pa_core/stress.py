@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import Callable, Mapping, cast
 
 from .config import ModelConfig
+from .validators import VOLATILITY_STRESS_MULTIPLIER
 
 Preset = Mapping[str, float | Callable[[ModelConfig], float]]
 
@@ -42,9 +43,9 @@ STRESS_PRESETS: dict[str, Preset] = {
         "rho_E_M": 0.95,
     },
     "2008_vol_regime": {
-        "sigma_H": lambda cfg: cfg.sigma_H * 3,
-        "sigma_E": lambda cfg: cfg.sigma_E * 3,
-        "sigma_M": lambda cfg: cfg.sigma_M * 3,
+        "sigma_H": lambda cfg: cfg.sigma_H * VOLATILITY_STRESS_MULTIPLIER,
+        "sigma_E": lambda cfg: cfg.sigma_E * VOLATILITY_STRESS_MULTIPLIER,
+        "sigma_M": lambda cfg: cfg.sigma_M * VOLATILITY_STRESS_MULTIPLIER,
     },
     "2020_gap_day": {
         "mu_H": -0.20,
