@@ -58,6 +58,7 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
 
     Returns None if no option succeeds.
     """
+
     def _read_parquet_sidecar(path: Path) -> pd.DataFrame | None:
         try:
             return pd.read_parquet(path)
