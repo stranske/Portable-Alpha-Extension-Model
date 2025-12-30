@@ -721,7 +721,7 @@ def main(
 
     returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
     stress_delta_df = None
-    if args.stress_preset and flags.packet:
+    if args.stress_preset:
         from .reporting.stress_delta import build_delta_table
 
         base_rng_returns = spawn_rngs(args.seed, 1)[0]
@@ -948,6 +948,20 @@ def main(
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
     )
+    if stress_delta_df is not None and not stress_delta_df.empty:
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            try:
+                with pd.ExcelWriter(
+                    out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
+                ) as writer:
+                    stress_delta_df.to_excel(
+                        writer, sheet_name="StressDelta", index=False
+                    )
+            except (OSError, PermissionError, ValueError) as e:
+                logger.warning(f"Failed to append StressDelta sheet: {e}")
+        else:
+            logger.warning("StressDelta export skipped; output workbook missing.")
 
     # Write reproducibility manifest for normal run
     try:

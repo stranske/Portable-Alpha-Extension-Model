@@ -105,7 +105,7 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 2,
-                "Analysis mode": "single_with_sensitivity",
+                "analysis_mode": "single_with_sensitivity",
             }
         )
     )
@@ -178,3 +178,74 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
     assert isinstance(stress_delta_df, pd.DataFrame)
     assert not stress_delta_df.empty
     assert "Agent" in stress_delta_df.columns
+
+
+def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
+    config_path = tmp_path / "cfg.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "N_SIMULATIONS": 1,
+                "N_MONTHS": 2,
+                "analysis_mode": "single_with_sensitivity",
+            }
+        )
+    )
+
+    def _stub_export_to_excel(
+        _inputs_dict,
+        summary,
+        _raw_returns_dict,
+        filename="Outputs.xlsx",
+        **_kwargs,
+    ):
+        summary.to_excel(filename, sheet_name="Summary", index=False)
+
+    deps = Dependencies(
+        build_from_config=lambda _cfg: object(),
+        export_to_excel=_stub_export_to_excel,
+        draw_financing_series=lambda *_args, **_kwargs: (
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+        ),
+        draw_joint_returns=lambda *_args, **_kwargs: (
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+        ),
+        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
+        simulate_agents=lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
+    )
+
+    repo_root = Path(__file__).resolve().parents[1]
+    idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    monkeypatch.setattr(
+        "pa_core.sim.sensitivity.one_factor_deltas",
+        lambda *_args, **_kwargs: pd.DataFrame(),
+    )
+    monkeypatch.setattr(
+        "pa_core.sensitivity.one_factor_deltas",
+        lambda *_args, **_kwargs: pd.DataFrame(),
+    )
+
+    main(
+        [
+            "--config",
+            str(config_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--stress-preset",
+            "liquidity_squeeze",
+            "--sensitivity",
+        ],
+        deps=deps,
+    )
+
+    stress_sheet = pd.read_excel(out_file, sheet_name="StressDelta")
+    assert "Agent" in stress_sheet.columns
