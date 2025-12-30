@@ -30,7 +30,12 @@ def main() -> None:
     st.title("Asset Library")
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
-    uploaded = st.file_uploader("Upload CSV or Excel", type=["csv", "xlsx", "xls"])
+    st.markdown("**Drag and drop your CSV or Excel file below.**")
+    uploaded = st.file_uploader(
+        "Drag-and-drop CSV/XLSX",
+        type=["csv", "xlsx", "xls"],
+        help="Drop a file here or click to browse. CSV and Excel files are supported.",
+    )
     if uploaded is None:
         return
 
