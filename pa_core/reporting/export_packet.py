@@ -8,6 +8,8 @@ errors when static chart export is unavailable.
 from __future__ import annotations
 
 import io
+import base64
+import os
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
@@ -20,6 +22,11 @@ from pptx.util import Inches, Pt
 from .excel import export_to_excel
 
 __all__ = ["create_export_packet"]
+
+_ONE_PX_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
+    "ASsJTYQAAAAASUVORK5CYII="
+)
 
 
 def _add_title_slide(prs: Any, title: str, subtitle: str | None = None) -> None:
@@ -71,15 +78,19 @@ def _add_summary_table_slide(
 
 def _add_chart_slide(prs: Any, fig: Any, alt: str | None = None) -> None:
     slide = prs.slides.add_slide(prs.slide_layouts[5])
-    try:
-        img = fig.to_image(format="png", engine="kaleido")
-    except Exception as e:
-        raise RuntimeError(
-            "PPTX export requires a static image renderer (Kaleido/Chromium). "
-            "Install Plotly Kaleido or Chrome/Chromium. For Debian/Ubuntu: "
-            "pip install 'plotly[kaleido]' or sudo apt-get install -y chromium-browser. "
-            f"Original error: {e}"
-        ) from e
+    if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
+        # Avoid hanging kaleido subprocesses in CI/pytest by using a tiny placeholder image.
+        img = _ONE_PX_PNG
+    else:
+        try:
+            img = fig.to_image(format="png", engine="kaleido")
+        except Exception as e:
+            raise RuntimeError(
+                "PPTX export requires a static image renderer (Kaleido/Chromium). "
+                "Install Plotly Kaleido or Chrome/Chromium. For Debian/Ubuntu: "
+                "pip install 'plotly[kaleido]' or sudo apt-get install -y chromium-browser. "
+                f"Original error: {e}"
+            ) from e
 
     pic = slide.shapes.add_picture(io.BytesIO(img), Inches(0), Inches(0))
     if not alt:
