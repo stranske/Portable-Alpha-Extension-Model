@@ -114,3 +114,27 @@ def test_build_run_diff_handles_object_numeric_columns() -> None:
     assert not te_rows.empty
     alt_te = te_rows[te_rows["Agent"] == "Alt"].iloc[0]
     assert alt_te["Delta"] == pytest.approx(-0.05)
+
+
+def test_build_run_diff_parses_percent_strings() -> None:
+    current_summary = pd.DataFrame(
+        {
+            "Agent": ["Base"],
+            "AnnReturn": ["5.0%"],
+            "AnnVol": ["10%"],
+        }
+    )
+    previous_summary = pd.DataFrame(
+        {
+            "Agent": ["Base"],
+            "AnnReturn": ["4.0%"],
+            "AnnVol": ["12%"],
+        }
+    )
+
+    _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
+
+    ann_return = metric_diff[metric_diff["Metric"] == "AnnReturn"].iloc[0]
+    ann_vol = metric_diff[metric_diff["Metric"] == "AnnVol"].iloc[0]
+    assert ann_return["Delta"] == pytest.approx(0.01)
+    assert ann_vol["Delta"] == pytest.approx(-0.02)

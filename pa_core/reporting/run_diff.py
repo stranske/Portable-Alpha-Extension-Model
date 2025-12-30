@@ -44,6 +44,16 @@ def build_run_diff(
         return isinstance(value, Real) and not isinstance(value, bool)
 
     def _coerce_numeric(value: Any) -> float | None:
+        if isinstance(value, str):
+            stripped = value.strip()
+            if stripped.endswith("%"):
+                try:
+                    num = pd.to_numeric(stripped.rstrip("%"), errors="coerce")
+                except Exception:
+                    return None
+                if pd.isna(num):
+                    return None
+                return float(num) / 100.0
         try:
             num = pd.to_numeric(value, errors="coerce")
         except Exception:
@@ -54,7 +64,12 @@ def build_run_diff(
 
     def _series_has_numeric(series: pd.Series) -> bool:
         try:
-            numeric = pd.to_numeric(series, errors="coerce")
+            if series.dtype == object:
+                as_str = series.astype(str)
+                cleaned = as_str.str.replace("%", "", regex=False)
+                numeric = pd.to_numeric(cleaned, errors="coerce")
+            else:
+                numeric = pd.to_numeric(series, errors="coerce")
         except Exception:
             return False
         return bool(numeric.notna().any())
