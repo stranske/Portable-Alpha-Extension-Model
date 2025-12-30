@@ -1009,6 +1009,13 @@ def main(
             sens_df = sim_one_factor_deltas(
                 params=base_params, steps=steps, evaluator=_eval
             )
+            sens_df.attrs.update(
+                {
+                    "metric": "AnnReturn",
+                    "units": "%",
+                    "tickformat": ".2%",
+                }
+            )
             inputs_dict["_sensitivity_df"] = sens_df
         except ImportError as e:
             logger.warning(f"Sensitivity analysis module not available: {e}")
@@ -1310,6 +1317,13 @@ def main(
                         kind="mergesort",
                     )
                     sens_df.reset_index(drop=True, inplace=True)
+                    sens_df.attrs.update(
+                        {
+                            "metric": "AnnReturn",
+                            "units": "%",
+                            "tickformat": ".2%",
+                        }
+                    )
                     inputs_dict["_sensitivity_df"] = sens_df
 
                 print("\n📊 Sensitivity Analysis Results:")
@@ -1415,12 +1429,7 @@ def main(
                     )
                     if sens_df_plot is not None and (not sens_df_plot.empty):
                         if {"Parameter", "DeltaAbs"} <= set(sens_df_plot.columns):
-                            series = cast(
-                                pd.Series,
-                                sens_df_plot.set_index("Parameter")["DeltaAbs"].astype(
-                                    float
-                                ),
-                            )
+                            series = viz.tornado.series_from_sensitivity(sens_df_plot)
                             figs.append(
                                 viz.tornado.make(series, title="Sensitivity Tornado")
                             )
@@ -1542,8 +1551,17 @@ def main(
                 print("💡 Check your visualization data and parameters")
         if flags.pptx:
             try:
+                pptx_figs = [fig]
+                sens_val = inputs_dict.get("_sensitivity_df")
+                sens_df = sens_val if isinstance(sens_val, pd.DataFrame) else None
+                if sens_df is not None and not sens_df.empty:
+                    if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
+                        series = viz.tornado.series_from_sensitivity(sens_df)
+                        pptx_figs.append(
+                            viz.tornado.make(series, title="Sensitivity Tornado")
+                        )
                 viz.pptx_export.save(
-                    [fig],
+                    pptx_figs,
                     str(stem.with_suffix(".pptx")),
                     alt_texts=[flags.alt_text] if flags.alt_text else None,
                 )

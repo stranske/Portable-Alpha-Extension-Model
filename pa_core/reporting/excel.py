@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import io
 import os
 from typing import Any, Dict, cast
@@ -12,6 +13,11 @@ from openpyxl.utils import get_column_letter
 from ..viz import risk_return, theme
 
 __all__ = ["export_to_excel"]
+
+_ONE_PX_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
+    "ASsJTYQAAAAASUVORK5CYII="
+)
 
 
 def export_to_excel(
@@ -141,9 +147,7 @@ def export_to_excel(
             pass
 
     # Best-effort: embed tornado image on Sensitivity sheet
-    if "Sensitivity" in wb.sheetnames and not (
-        os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
-    ):
+    if "Sensitivity" in wb.sheetnames:
         try:
             from ..viz import tornado
 
@@ -151,7 +155,7 @@ def export_to_excel(
             series: pd.Series | None = None
             if sens_df is not None and not sens_df.empty:
                 if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
-                    series = sens_df.set_index("Parameter")["DeltaAbs"].astype(float)
+                    series = tornado.series_from_sensitivity(sens_df)
             if series is None:
                 # Build figure from the written sheet as a fallback
                 values: Any = ws.values
@@ -162,7 +166,10 @@ def export_to_excel(
                 value_col = "DeltaAbs" if "DeltaAbs" in df.columns else df.columns[1]
                 series = df.set_index(param_col)[value_col].astype(float)
             fig = tornado.make(cast(pd.Series, series))
-            img_bytes = fig.to_image(format="png", engine="kaleido")
+            if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
+                img_bytes = _ONE_PX_PNG
+            else:
+                img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except Exception:
