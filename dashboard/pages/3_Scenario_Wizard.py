@@ -51,10 +51,15 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     n_simulations = int(config.n_simulations)
     n_months = int(config.n_months)
 
-    total_capital = float(config.total_fund_capital)
-    external_pa_capital = float(config.external_pa_capital)
-    active_ext_capital = float(config.active_ext_capital)
-    internal_pa_capital = float(config.internal_pa_capital)
+    # Prefer session-state overrides so applied suggestions persist across steps.
+    total_capital = float(ss.get(_TOTAL_CAPITAL_KEY, config.total_fund_capital))
+    external_pa_capital = float(
+        ss.get(_EXTERNAL_CAPITAL_KEY, config.external_pa_capital)
+    )
+    active_ext_capital = float(ss.get(_ACTIVE_CAPITAL_KEY, config.active_ext_capital))
+    internal_pa_capital = float(
+        ss.get(_INTERNAL_CAPITAL_KEY, config.internal_pa_capital)
+    )
 
     w_beta_h = float(config.w_beta_h)
     w_alpha_h = float(config.w_alpha_h)
