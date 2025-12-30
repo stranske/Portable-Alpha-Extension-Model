@@ -36,6 +36,7 @@ def test_manifest_includes_backend_and_optional_run_log(tmp_path: Path):
     out = tmp_path / "manifest.json"
 
     mw = ManifestWriter(out)
+    prev_manifest = tmp_path / "runs/20191231T235959Z/manifest.json"
     mw.write(
         config_path=cfg,
         data_files=[data],
@@ -43,8 +44,9 @@ def test_manifest_includes_backend_and_optional_run_log(tmp_path: Path):
         cli_args={"output": "foo.xlsx"},
         backend="numpy",
         run_log=str(tmp_path / "runs/20200101T000000Z/run.log"),
-        previous_run=None,
+        previous_run=prev_manifest,
     )
     obj = json.loads(out.read_text())
     assert obj.get("backend") == "numpy"
     assert obj.get("run_log", "").endswith("run.log")
+    assert obj.get("previous_run") == str(prev_manifest)

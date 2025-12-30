@@ -520,7 +520,7 @@ def main(
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
+            run_log=run_log_path,
             previous_run=args.prev_manifest,
         )
         manifest_json = Path(args.output).with_name("manifest.json")
@@ -928,7 +928,7 @@ def main(
             seed=args.seed,
             cli_args=vars(args),
             backend=args.backend,
-            run_log=str(run_log_path) if run_log_path else None,
+            run_log=run_log_path,
             previous_run=args.prev_manifest,
         )
     except (OSError, PermissionError, FileNotFoundError) as e:

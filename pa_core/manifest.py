@@ -46,7 +46,7 @@ class ManifestWriter:
         cli_args: Mapping[str, Any],
         backend: str | None = None,
         run_log: str | Path | None = None,
-        previous_run: str | None = None,
+        previous_run: str | Path | None = None,
     ) -> None:
         """Write manifest to ``self.path``."""
 
@@ -70,6 +70,6 @@ class ManifestWriter:
             cli_args=dict(cli_args),
             backend=backend,
             run_log=str(run_log) if run_log else None,
-            previous_run=previous_run,
+            previous_run=str(previous_run) if previous_run else None,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))
