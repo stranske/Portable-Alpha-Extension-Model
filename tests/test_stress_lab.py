@@ -10,9 +10,7 @@ from pa_core.validators import TEST_TOLERANCE_EPSILON, VOLATILITY_STRESS_MULTIPL
 
 
 def load_stress_lab_module() -> ModuleType:
-    module_path = (
-        Path(__file__).parent.parent / "dashboard" / "pages" / "6_Stress_Lab.py"
-    )
+    module_path = Path(__file__).parent.parent / "dashboard" / "pages" / "6_Stress_Lab.py"
     spec = importlib.util.spec_from_file_location("stress_lab", module_path)
     if spec is None or spec.loader is None:
         raise ImportError("Cannot load stress_lab module")
@@ -127,8 +125,7 @@ def test_config_diff_with_stress_preset():
         stressed_val = diff_dict[param]["Stressed"]
         # Stress preset multiplies by VOLATILITY_STRESS_MULTIPLIER
         assert (
-            abs(stressed_val - (base_val * VOLATILITY_STRESS_MULTIPLIER))
-            < TEST_TOLERANCE_EPSILON
+            abs(stressed_val - (base_val * VOLATILITY_STRESS_MULTIPLIER)) < TEST_TOLERANCE_EPSILON
         ), f"Parameter {param} not correctly stressed: {base_val} -> {stressed_val}"
 
 

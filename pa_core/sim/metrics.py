@@ -44,9 +44,7 @@ def _load_metric_plugins() -> None:
 _load_metric_plugins()
 
 
-def tracking_error(
-    strategy: NDArray[npt.float64], benchmark: NDArray[npt.float64]
-) -> float:
+def tracking_error(strategy: NDArray[npt.float64], benchmark: NDArray[npt.float64]) -> float:
     """Return the standard deviation of active returns."""
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
@@ -71,9 +69,7 @@ def compound(returns: NDArray[npt.float64]) -> NDArray[npt.float64]:
     return np.cumprod(1.0 + arr, axis=1) - 1.0  # type: ignore[no-any-return]
 
 
-def annualised_return(
-    returns: NDArray[npt.float64], periods_per_year: int = 12
-) -> float:
+def annualised_return(returns: NDArray[npt.float64], periods_per_year: int = 12) -> float:
     """Return annualised compound return from monthly series."""
     comp = compound(returns)
     total_return = comp[:, -1]
@@ -87,9 +83,7 @@ def annualised_vol(returns: NDArray[npt.float64], periods_per_year: int = 12) ->
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
-def breach_probability(
-    returns: NDArray[npt.float64], threshold: float, *, path: int = 0
-) -> float:
+def breach_probability(returns: NDArray[npt.float64], threshold: float, *, path: int = 0) -> float:
     """Return the fraction of months below ``threshold`` in a selected path."""
     arr = np.asarray(returns, dtype=np.float64)
     if arr.ndim == 1:
@@ -122,9 +116,7 @@ def shortfall_probability(
     return float(np.mean(arr < threshold))
 
 
-def breach_count(
-    returns: NDArray[npt.float64], threshold: float, *, path: int = 0
-) -> int:
+def breach_count(returns: NDArray[npt.float64], threshold: float, *, path: int = 0) -> int:
     """Return the number of months below ``threshold`` in a selected path."""
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -137,9 +129,7 @@ def breach_count(
     return int(np.sum(series < threshold))
 
 
-def conditional_value_at_risk(
-    returns: NDArray[npt.float64], confidence: float = 0.95
-) -> float:
+def conditional_value_at_risk(returns: NDArray[npt.float64], confidence: float = 0.95) -> float:
     """Return the conditional VaR (expected shortfall) at ``confidence``."""
 
     if not 0 < confidence < 1:
@@ -201,11 +191,7 @@ def summary_table(
         shortfall = shortfall_probability(arr, shortfall_threshold)
         mdd = max_drawdown(arr)
         tuw = time_under_water(arr)
-        te = (
-            tracking_error(arr, bench_arr)
-            if bench_arr is not None and name != benchmark
-            else None
-        )
+        te = tracking_error(arr, bench_arr) if bench_arr is not None and name != benchmark else None
         extras = {k: fn(arr) for k, fn in _EXTRA_METRICS.items()}
         rows.append(
             {

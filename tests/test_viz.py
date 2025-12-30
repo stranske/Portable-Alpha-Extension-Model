@@ -193,9 +193,7 @@ def test_overlay_and_waterfall_and_bundle(tmp_path):
     assert isinstance(wf_fig, go.Figure)
     wf_fig.to_json()
 
-    export_bundle.save(
-        [over_fig, wf_fig], tmp_path / "bundle", alt_texts=["overlay", "waterfall"]
-    )
+    export_bundle.save([over_fig, wf_fig], tmp_path / "bundle", alt_texts=["overlay", "waterfall"])
     html = (tmp_path / "bundle_1.html").read_text()
     assert 'aria-label="overlay"' in html
 
@@ -397,9 +395,7 @@ def test_horizon_inset_and_quality(tmp_path):
     assert isinstance(inset_fig, go.Figure)
     inset_fig.to_json()
 
-    err_df = pd.DataFrame(
-        [[1, 0], [0, 2]], index=["2024-01", "2024-02"], columns=["A", "B"]
-    )
+    err_df = pd.DataFrame([[1, 0], [0, 2]], index=["2024-01", "2024-02"], columns=["A", "B"])
     qual_fig = data_quality.make(err_df)
     assert isinstance(qual_fig, go.Figure)
     qual_fig.to_json()
@@ -496,9 +492,7 @@ def test_additional_visualisations(tmp_path):
 
     assert isinstance(scenario_play.make(arr), go.Figure)
 
-    idx = pd.MultiIndex.from_product(
-        [[2020, 2021], [0, 1, 2, 3]], names=["Year", "Month"]
-    )
+    idx = pd.MultiIndex.from_product([[2020, 2021], [0, 1, 2, 3]], names=["Year", "Month"])
     df_season = pd.DataFrame({"R": arr[:2].reshape(-1)}, index=idx)
     assert isinstance(seasonality_heatmap.make(df_season), go.Figure)
 

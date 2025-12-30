@@ -26,9 +26,7 @@ from .simulations import simulate_agents
 from .validators import select_vol_regime_sigma
 
 
-def progress_bar(
-    iterable: Any, total: Optional[int] = None, desc: Optional[str] = None
-) -> Any:
+def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str] = None) -> Any:
     if _HAS_TQDM:
         return _tqdm(iterable, total=total, desc=desc)  # type: ignore[name-defined]
     return iterable
@@ -52,8 +50,7 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                 yield {
                     "external_pa_capital": (ext_pa_pct / 100) * cfg.total_fund_capital,
                     "active_ext_capital": (act_pct / 100) * cfg.total_fund_capital,
-                    "internal_pa_capital": (internal_pct / 100)
-                    * cfg.total_fund_capital,
+                    "internal_pa_capital": (internal_pct / 100) * cfg.total_fund_capital,
                 }
     elif cfg.analysis_mode == "returns":
         for mu_H in np.arange(

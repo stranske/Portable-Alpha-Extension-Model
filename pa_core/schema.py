@@ -83,9 +83,7 @@ class Scenario(BaseModel):
         for p in self.portfolios:
             unknown = set(p.weights) - asset_id_set
             if unknown:
-                raise ValueError(
-                    f"portfolio {p.id} references unknown assets: {sorted(unknown)}"
-                )
+                raise ValueError(f"portfolio {p.id} references unknown assets: {sorted(unknown)}")
         return self
 
     @model_validator(mode="after")

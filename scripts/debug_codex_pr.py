@@ -55,10 +55,7 @@ class CodexPRDebugger:
             try:
                 data = json.loads(output)
                 status = {}
-                if (
-                    "currentBranch" in data
-                    and "statusCheckRollup" in data["currentBranch"]
-                ):
+                if "currentBranch" in data and "statusCheckRollup" in data["currentBranch"]:
                     for check in data["currentBranch"]["statusCheckRollup"]:
                         context = check.get("context", check.get("name", "Unknown"))
                         state = check.get("state", "UNKNOWN")
@@ -140,9 +137,7 @@ class CodexPRDebugger:
             self.warnings.append("ruff not found, skipping ruff formatting check")
         else:
             print("  🔍 Checking ruff formatting...")
-            success, output = self.run_command(
-                "ruff format --check pa_core/ tests/ dashboard/"
-            )
+            success, output = self.run_command("ruff format --check pa_core/ tests/ dashboard/")
             if not success:
                 ruff_errors: List[str] = []
                 for line in output.split("\n"):
@@ -179,25 +174,17 @@ class CodexPRDebugger:
 
                     # Look for long lines that need formatting
                     lines = content.split("\n")
-                    needs_formatting = any(
-                        len(line) > 88 for line in lines if line.strip()
-                    )
+                    needs_formatting = any(len(line) > 88 for line in lines if line.strip())
 
                     if needs_formatting:
                         print("  🔧 Applying formatting fixes to test file...")
                         if shutil.which("ruff") is None:
-                            self.warnings.append(
-                                "ruff not found, unable to format test_agents.py"
-                            )
+                            self.warnings.append("ruff not found, unable to format test_agents.py")
                         else:
                             # Apply formatting
-                            success, _ = self.run_command(
-                                "ruff format tests/test_agents.py"
-                            )
+                            success, _ = self.run_command("ruff format tests/test_agents.py")
                             if success:
-                                self.fixes_applied.append(
-                                    "Fixed formatting in test_agents.py"
-                                )
+                                self.fixes_applied.append("Fixed formatting in test_agents.py")
                                 fixed_any = True
 
             # Check for import errors
@@ -246,9 +233,7 @@ class CodexPRDebugger:
 
             if "line too long" in error:
                 if shutil.which("black") is None:
-                    self.warnings.append(
-                        "black not found, unable to fix line length issues"
-                    )
+                    self.warnings.append("black not found, unable to fix line length issues")
                     continue
                 print("    🔧 Applying black formatting to fix line length...")
                 success, _ = self.run_command("black pa_core/ tests/ dashboard/")
@@ -259,9 +244,7 @@ class CodexPRDebugger:
                 print("    ⚠️  Unused import - manual review recommended")
 
         if fixed_any:
-            self.fixes_applied.append(
-                "Applied black formatting to fix line length issues"
-            )
+            self.fixes_applied.append("Applied black formatting to fix line length issues")
 
         return fixed_any
 
@@ -419,9 +402,7 @@ def main():
     parser.add_argument(
         "--max-iterations", type=int, default=3, help="Maximum debugging iterations"
     )
-    parser.add_argument(
-        "--skip-mypy", action="store_true", help="Skip mypy type checking"
-    )
+    parser.add_argument("--skip-mypy", action="store_true", help="Skip mypy type checking")
     parser.add_argument("--skip-tests", action="store_true", help="Skip pytest tests")
 
     args = parser.parse_args()

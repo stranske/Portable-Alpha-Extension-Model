@@ -40,9 +40,7 @@ class TestQuantileBandConstants:
         upper_tail_exclusion = 1.0 - DEFAULT_UPPER_QUANTILE
         assert abs(lower_tail_exclusion - 0.1) < 1e-10
         assert abs(upper_tail_exclusion - 0.1) < 1e-10
-        assert (
-            abs(lower_tail_exclusion + upper_tail_exclusion - 0.2) < 1e-10
-        )  # 20% total exclusion
+        assert abs(lower_tail_exclusion + upper_tail_exclusion - 0.2) < 1e-10  # 20% total exclusion
 
     def test_quantile_band_uses_default_constants(self):
         """Test that the make function uses the named constants by default."""

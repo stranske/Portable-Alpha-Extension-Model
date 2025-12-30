@@ -53,13 +53,9 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
 
     # Prefer session-state overrides so applied suggestions persist across steps.
     total_capital = float(ss.get(_TOTAL_CAPITAL_KEY, config.total_fund_capital))
-    external_pa_capital = float(
-        ss.get(_EXTERNAL_CAPITAL_KEY, config.external_pa_capital)
-    )
+    external_pa_capital = float(ss.get(_EXTERNAL_CAPITAL_KEY, config.external_pa_capital))
     active_ext_capital = float(ss.get(_ACTIVE_CAPITAL_KEY, config.active_ext_capital))
-    internal_pa_capital = float(
-        ss.get(_INTERNAL_CAPITAL_KEY, config.internal_pa_capital)
-    )
+    internal_pa_capital = float(ss.get(_INTERNAL_CAPITAL_KEY, config.internal_pa_capital))
 
     w_beta_h = float(config.w_beta_h)
     w_alpha_h = float(config.w_alpha_h)
@@ -92,9 +88,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "N_SIMULATIONS": n_simulations,
         "N_MONTHS": n_months,
         "analysis_mode": (
-            analysis_mode.value
-            if hasattr(analysis_mode, "value")
-            else str(analysis_mode)
+            analysis_mode.value if hasattr(analysis_mode, "value") else str(analysis_mode)
         ),
         "total_fund_capital": total_capital,
         "external_pa_capital": external_pa_capital,
@@ -120,9 +114,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "reference_sigma": ref_sigma,
         "volatility_multiple": vol_mult,
         "financing_model": fm,
-        "financing_schedule_path": (
-            str(sched_path) if (fm == "schedule" and sched_path) else None
-        ),
+        "financing_schedule_path": (str(sched_path) if (fm == "schedule" and sched_path) else None),
         "financing_term_months": term_m,
     }
 
@@ -226,9 +218,7 @@ def _render_step_1_analysis_mode(config: Any) -> Any:
         AnalysisMode.VOL_MULT: "This mode stress-tests your portfolio under different volatility scenarios. Essential for risk management and extreme event preparation.",
     }
 
-    st.info(
-        f"**{selected_mode.value.title()} Mode:** {mode_descriptions[selected_mode]}"
-    )
+    st.info(f"**{selected_mode.value.title()} Mode:** {mode_descriptions[selected_mode]}")
 
     return config
 
@@ -277,9 +267,7 @@ def _render_step_2_capital(config: Any) -> Any:
 
         # Calculate remaining capital
         remaining = (
-            config.total_fund_capital
-            - config.external_pa_capital
-            - config.active_ext_capital
+            config.total_fund_capital - config.external_pa_capital - config.active_ext_capital
         )
         config.internal_pa_capital = st.number_input(
             "Internal PA Capital [$M]",
@@ -329,9 +317,7 @@ def _render_step_2_capital(config: Any) -> Any:
 
     # Validation and visualization
     total_allocated = (
-        config.external_pa_capital
-        + config.active_ext_capital
-        + config.internal_pa_capital
+        config.external_pa_capital + config.active_ext_capital + config.internal_pa_capital
     )
 
     if abs(total_allocated - config.total_fund_capital) > 0.01:
@@ -384,9 +370,7 @@ def _render_step_2_capital(config: Any) -> Any:
         fm = st.selectbox(
             "Financing model",
             options=["simple_proxy", "schedule"],
-            index=["simple_proxy", "schedule"].index(
-                ss.financing_settings["financing_model"]
-            ),
+            index=["simple_proxy", "schedule"].index(ss.financing_settings["financing_model"]),
             help="Choose how to compute margin: proxy multiple or broker schedule",
         )
         ss.financing_settings["financing_model"] = fm
@@ -419,9 +403,7 @@ def _render_step_2_capital(config: Any) -> Any:
                 reference_sigma=ref_sigma,
                 volatility_multiple=k,
                 total_capital=(
-                    config.total_fund_capital
-                    if hasattr(config, "total_fund_capital")
-                    else 1000.0
+                    config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0
                 ),
                 financing_model="simple_proxy",
             )
@@ -494,9 +476,7 @@ def _render_step_2_capital(config: Any) -> Any:
                 )
                 # Interpolated k = margin / (ref_sigma * total_capital)
                 total_cap = (
-                    config.total_fund_capital
-                    if hasattr(config, "total_fund_capital")
-                    else 1000.0
+                    config.total_fund_capital if hasattr(config, "total_fund_capital") else 1000.0
                 )
                 k_interp = margin / max(ref_sigma * total_cap, 1e-12)
                 c1, c2 = st.columns(2)
@@ -586,9 +566,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
     if st.button("Run Suggestor"):
         yaml_dict = _build_yaml_from_config(config)
         cfg = load_config(yaml_dict)
-        idx_path = (
-            Path(__file__).resolve().parents[2] / "data" / "sp500tr_fred_divyield.csv"
-        )
+        idx_path = Path(__file__).resolve().parents[2] / "data" / "sp500tr_fred_divyield.csv"
         if not idx_path.exists():
             st.error(f"Default index file missing: {idx_path}")
             return
@@ -610,9 +588,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.session_state["sleeve_suggestions"] = df
         st.session_state["sleeve_suggestion_constraints"] = constraints
 
-    constraints_used = st.session_state.get(
-        "sleeve_suggestion_constraints", constraints
-    )
+    constraints_used = st.session_state.get("sleeve_suggestion_constraints", constraints)
     st.markdown("**Constraint Summary:**")
     st.write(
         f"Max TE: {constraints_used['max_te']:.2%} | "
@@ -628,9 +604,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.warning("No feasible sleeve allocations found.")
         return
 
-    ranked = suggestions.sort_values("risk_score", ascending=True).reset_index(
-        drop=True
-    )
+    ranked = suggestions.sort_values("risk_score", ascending=True).reset_index(drop=True)
     ranked.insert(0, "rank", range(1, len(ranked) + 1))
 
     top_n = st.number_input(
@@ -800,9 +774,7 @@ def _render_step_4_correlations(config: Any) -> Any:
     """Step 4: Correlation Parameters."""
     st.subheader("Step 4: Correlation Parameters")
 
-    st.markdown(
-        "*Set correlations between different alpha sources and the market index*"
-    )
+    st.markdown("*Set correlations between different alpha sources and the market index*")
 
     col1, col2 = st.columns(2)
 
@@ -943,18 +915,12 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
         st.markdown("**Financing & Margin:**")
         fm = fs.get("financing_model", "simple_proxy")
         st.write(f"• Model: {fm}")
-        st.write(
-            f"• Reference sigma (monthly): {float(fs.get('reference_sigma', 0.01)):.4f}"
-        )
+        st.write(f"• Reference sigma (monthly): {float(fs.get('reference_sigma', 0.01)):.4f}")
         if fm == "simple_proxy":
-            st.write(
-                f"• Volatility multiple (k): {float(fs.get('volatility_multiple', 3.0)):.2f}"
-            )
+            st.write(f"• Volatility multiple (k): {float(fs.get('volatility_multiple', 3.0)):.2f}")
         else:
             st.write(f"• Term (months): {float(fs.get('term_months', 1.0)):.1f}")
-            st.write(
-                f"• Schedule file: {'set' if fs.get('schedule_path') else 'not set'}"
-            )
+            st.write(f"• Schedule file: {'set' if fs.get('schedule_path') else 'not set'}")
 
     # Diff vs last run
     if "last_wizard_config" in st.session_state:
@@ -1065,9 +1031,7 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button(
-            "🔄 Reset to Defaults", help="Reset all parameters to sensible defaults"
-        ):
+        if st.button("🔄 Reset to Defaults", help="Reset all parameters to sensible defaults"):
             mode = config.analysis_mode
             st.session_state.wizard_config = get_default_config(mode)
             st.rerun()
@@ -1135,18 +1099,10 @@ def main() -> None:
                         "analysis_mode": config_data.get("analysis_mode", "returns"),
                         "n_simulations": config_data.get("N_SIMULATIONS", 1000),
                         "n_months": config_data.get("N_MONTHS", 12),
-                        "total_fund_capital": config_data.get(
-                            "total_fund_capital", 300.0
-                        ),
-                        "external_pa_capital": config_data.get(
-                            "external_pa_capital", 100.0
-                        ),
-                        "active_ext_capital": config_data.get(
-                            "active_ext_capital", 50.0
-                        ),
-                        "internal_pa_capital": config_data.get(
-                            "internal_pa_capital", 150.0
-                        ),
+                        "total_fund_capital": config_data.get("total_fund_capital", 300.0),
+                        "external_pa_capital": config_data.get("external_pa_capital", 100.0),
+                        "active_ext_capital": config_data.get("active_ext_capital", 50.0),
+                        "internal_pa_capital": config_data.get("internal_pa_capital", 150.0),
                         "w_beta_h": config_data.get("w_beta_H", 0.5),
                         "w_alpha_h": config_data.get("w_alpha_H", 0.5),
                         "theta_extpa": config_data.get("theta_extpa", 0.5),
@@ -1169,12 +1125,8 @@ def main() -> None:
                         "internal_financing_sigma_month": config_data.get(
                             "internal_financing_sigma_month", 0.0
                         ),
-                        "internal_spike_prob": config_data.get(
-                            "internal_spike_prob", 0.0
-                        ),
-                        "internal_spike_factor": config_data.get(
-                            "internal_spike_factor", 0.0
-                        ),
+                        "internal_spike_prob": config_data.get("internal_spike_prob", 0.0),
+                        "internal_spike_factor": config_data.get("internal_spike_factor", 0.0),
                         "ext_pa_financing_mean_month": config_data.get(
                             "ext_pa_financing_mean_month", 0.0
                         ),
@@ -1182,21 +1134,15 @@ def main() -> None:
                             "ext_pa_financing_sigma_month", 0.0
                         ),
                         "ext_pa_spike_prob": config_data.get("ext_pa_spike_prob", 0.0),
-                        "ext_pa_spike_factor": config_data.get(
-                            "ext_pa_spike_factor", 0.0
-                        ),
+                        "ext_pa_spike_factor": config_data.get("ext_pa_spike_factor", 0.0),
                         "act_ext_financing_mean_month": config_data.get(
                             "act_ext_financing_mean_month", 0.0
                         ),
                         "act_ext_financing_sigma_month": config_data.get(
                             "act_ext_financing_sigma_month", 0.0
                         ),
-                        "act_ext_spike_prob": config_data.get(
-                            "act_ext_spike_prob", 0.0
-                        ),
-                        "act_ext_spike_factor": config_data.get(
-                            "act_ext_spike_factor", 0.0
-                        ),
+                        "act_ext_spike_prob": config_data.get("act_ext_spike_prob", 0.0),
+                        "act_ext_spike_factor": config_data.get("act_ext_spike_factor", 0.0),
                         "risk_metrics": config_data.get(
                             "risk_metrics", ["Return", "Risk", "ShortfallProb"]
                         ),
@@ -1333,9 +1279,7 @@ def main() -> None:
                             pass
 
                     if sim_ok:
-                        st.success(
-                            f"✅ Simulation complete! Results written to {output}"
-                        )
+                        st.success(f"✅ Simulation complete! Results written to {output}")
                         st.balloons()
 
                         # Show quick margin summary using current financing settings if available
@@ -1350,16 +1294,12 @@ def main() -> None:
                             margin_requirement = calculate_margin_requirement(
                                 reference_sigma=ref_sigma,
                                 volatility_multiple=vol_mult,
-                                total_capital=float(
-                                    yaml_data.get("total_fund_capital", 1000.0)
-                                ),
+                                total_capital=float(yaml_data.get("total_fund_capital", 1000.0)),
                                 financing_model=fm,
                                 schedule_path=Path(sched_path) if sched_path else None,
                                 term_months=term_m,
                             )
-                            st.info(
-                                f"Margin requirement: ${margin_requirement:.1f}M (model: {fm})"
-                            )
+                            st.info(f"Margin requirement: ${margin_requirement:.1f}M (model: {fm})")
                         except Exception:
                             # Non-blocking: skip margin summary if misconfigured
                             pass

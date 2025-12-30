@@ -38,9 +38,7 @@ def make(
             x=df[te_col],
             y=df[beta_col],
             mode="markers",
-            marker=dict(
-                size=20 * size / float(size.max()), color=colors, sizemode="diameter"
-            ),
+            marker=dict(size=20 * size / float(size.max()), color=colors, sizemode="diameter"),
             text=df.get("Agent", ""),
             hovertemplate="%{text}<br>TE=%{x:.2%}<br>Beta=%{y:.2f}<extra></extra>",
         )

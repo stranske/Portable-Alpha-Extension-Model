@@ -141,12 +141,8 @@ def validate_scenario_config(
     ):
         financing_model = config_data.get("financing_model", "simple_proxy")
         schedule_path_value = config_data.get("financing_schedule_path")
-        term_months = config_data.get(
-            "financing_term_months", config_data.get("term_months", 1.0)
-        )
-        margin_schedule_path = (
-            Path(schedule_path_value) if schedule_path_value else None
-        )
+        term_months = config_data.get("financing_term_months", config_data.get("term_months", 1.0))
+        margin_schedule_path = Path(schedule_path_value) if schedule_path_value else None
         try:
             capital_results = validate_capital_allocation(
                 external_pa_capital=config_data.get("external_pa_capital", 0.0),
@@ -270,11 +266,7 @@ def create_margin_buffer_display(
         )
 
     with col3:
-        utilization = (
-            (total_capital - available_buffer) / total_capital
-            if total_capital > 0
-            else 0
-        )
+        utilization = (total_capital - available_buffer) / total_capital if total_capital > 0 else 0
         st.metric(
             "Capital Utilization",
             f"{utilization:.1%}",
@@ -283,13 +275,9 @@ def create_margin_buffer_display(
 
     # Visual buffer indicator
     if buffer_ratio < 0:
-        st.error(
-            "🔴 **Capital Shortfall!** Insufficient capital for current allocation."
-        )
+        st.error("🔴 **Capital Shortfall!** Insufficient capital for current allocation.")
     elif buffer_ratio < 0.1:
-        st.warning(
-            "🟡 **Low Buffer.** Consider reducing allocations or increasing total capital."
-        )
+        st.warning("🟡 **Low Buffer.** Consider reducing allocations or increasing total capital.")
     elif buffer_ratio < 0.2:
         st.info("🟡 **Moderate Buffer.** Capital allocation is near limits.")
     else:

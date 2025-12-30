@@ -61,9 +61,7 @@ def _get_grid_cache(cache_key: str) -> dict | None:
     return None
 
 
-def _set_grid_cache(
-    cache_key: str, grid_df: pd.DataFrame, y_col: str, total_fund: float
-) -> None:
+def _set_grid_cache(cache_key: str, grid_df: pd.DataFrame, y_col: str, total_fund: float) -> None:
     entry = {
         "key": cache_key,
         "grid_df": grid_df,
@@ -136,9 +134,7 @@ def main() -> None:
                 # Frontier overlay: for each AE_leverage, pick ExtPA_frac with max Sharpe
                 try:
                     pivot = (
-                        df.pivot(
-                            index="ExtPA_frac", columns="AE_leverage", values="Sharpe"
-                        )
+                        df.pivot(index="ExtPA_frac", columns="AE_leverage", values="Sharpe")
                         .sort_index()
                         .sort_index(axis=1)
                     )
@@ -208,9 +204,7 @@ def main() -> None:
         try:
             idx_df = _read_csv(idx_file)
             # Use first numeric column as index series
-            num_cols = [
-                c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])
-            ]
+            num_cols = [c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])]
             if not num_cols:
                 st.error("No numeric column found in index CSV")
                 return
@@ -247,9 +241,7 @@ def main() -> None:
                 def _update(i: int, total: int) -> None:
                     prog.progress(i / total)
 
-                results = run_parameter_sweep_cached(
-                    cfg, index_series, int(seed), progress=_update
-                )
+                results = run_parameter_sweep_cached(cfg, index_series, int(seed), progress=_update)
                 prog.empty()
                 df_res = sweep_results_to_dataframe(results)
                 # Focus on Base agent and compute Sharpe
@@ -263,18 +255,16 @@ def main() -> None:
                 )
                 # Compute external PA dollars (mm) if total fund capital present
                 if "external_pa_capital" in base_rows.columns:
-                    base_rows["external_pa_dollars_mm"] = base_rows[
-                        "external_pa_capital"
-                    ].astype(float)
+                    base_rows["external_pa_dollars_mm"] = base_rows["external_pa_capital"].astype(
+                        float
+                    )
                 elif hasattr(base_cfg, "total_fund_capital"):
                     # Derive from theta and total fund capital when available
                     try:
                         if "theta_extpa" in base_rows.columns:
                             theta_series = base_rows["theta_extpa"].astype(float)
                         else:
-                            theta_series = pd.Series(
-                                0.0, index=base_rows.index, dtype=float
-                            )
+                            theta_series = pd.Series(0.0, index=base_rows.index, dtype=float)
                         base_rows["external_pa_dollars_mm"] = theta_series * float(
                             getattr(base_cfg, "total_fund_capital")
                         )
@@ -383,19 +373,13 @@ def main() -> None:
                 if total_fund == 0:
                     total_fund = 1.0
                 theta_val = (
-                    float(sel_y) / total_fund
-                    if y_col == "external_pa_dollars_mm"
-                    else float(sel_y)
+                    float(sel_y) / total_fund if y_col == "external_pa_dollars_mm" else float(sel_y)
                 )
-                selection_payload = build_alpha_shares_payload(
-                    float(sel_x), float(theta_val)
-                )
+                selection_payload = build_alpha_shares_payload(float(sel_x), float(theta_val))
                 if selection_payload is not None:
                     st.session_state["scenario_grid_selection"] = selection_payload
                     st.session_state["promoted_alpha_shares"] = selection_payload
-                    bump_session_token(
-                        st.session_state, "scenario_grid_promotion_token"
-                    )
+                    bump_session_token(st.session_state, "scenario_grid_promotion_token")
                     st.success(
                         "Heatmap selection captured. Open Portfolio Builder to "
                         "see the values populated."
@@ -418,11 +402,7 @@ def main() -> None:
                 options=y_vals,
                 index=0,
                 format_func=(
-                    lambda v: (
-                        f"${v:,.0f} mm"
-                        if y_col == "external_pa_dollars_mm"
-                        else f"{v:.2f}"
-                    )
+                    lambda v: (f"${v:,.0f} mm" if y_col == "external_pa_dollars_mm" else f"{v:.2f}")
                 ),
             )
             if st.button("Promote to session"):
@@ -430,13 +410,9 @@ def main() -> None:
                     st.warning("Please select both axes values before promoting.")
                     return
                 promoted_theta = (
-                    float(sel_y)
-                    if y_col != "external_pa_dollars_mm"
-                    else float(sel_y) / total_fund
+                    float(sel_y) if y_col != "external_pa_dollars_mm" else float(sel_y) / total_fund
                 )
-                promoted_selection = build_alpha_shares_payload(
-                    float(sel_x), promoted_theta
-                )
+                promoted_selection = build_alpha_shares_payload(float(sel_x), promoted_theta)
                 if promoted_selection is None:
                     st.warning("Selection could not be normalized. Try again.")
                     return
@@ -460,9 +436,7 @@ def main() -> None:
                     theta_val = None
                 if active_share_val is not None and theta_val is not None:
                     active_share_pct = (
-                        active_share_val * 100.0
-                        if active_share_val <= 1.0
-                        else active_share_val
+                        active_share_val * 100.0 if active_share_val <= 1.0 else active_share_val
                     )
                     cfg_yaml = {
                         "Number of simulations": 1000,

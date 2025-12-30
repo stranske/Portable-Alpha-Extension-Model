@@ -67,9 +67,7 @@ def run_grid(seed: int, out_dir: Path) -> None:
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Run alpha-share grid demo")
     parser.add_argument("--seed", type=int, default=123, help="Random seed")
-    parser.add_argument(
-        "--output", type=Path, default=Path("plots"), help="Output directory"
-    )
+    parser.add_argument("--output", type=Path, default=Path("plots"), help="Output directory")
     args = parser.parse_args(argv)
     args.output.mkdir(exist_ok=True)
     run_grid(args.seed, args.output)

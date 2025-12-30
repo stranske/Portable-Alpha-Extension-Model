@@ -130,9 +130,7 @@ def test_te_zero_when_no_alpha_allocation(
         (0.0, 1.1, "must be between 0 and 1"),  # alpha > 1.0
     ],
 )
-def test_invalid_share_configurations_raise_error(
-    w_beta_H, w_alpha_H, expected_error
-) -> None:
+def test_invalid_share_configurations_raise_error(w_beta_H, w_alpha_H, expected_error) -> None:
     """Test that invalid beta/alpha share combinations raise ValueError."""
     invalid_config = {
         "N_SIMULATIONS": 1,

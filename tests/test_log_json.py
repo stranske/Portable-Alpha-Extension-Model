@@ -78,9 +78,7 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
     assert run_end_payload.get("status") == "success"
 
     if shutil.which("jq"):
-        msg = subprocess.check_output(
-            ["jq", "-r", ".message"], input=first_line.encode()
-        )
+        msg = subprocess.check_output(["jq", "-r", ".message"], input=first_line.encode())
         assert msg.strip().decode() == parsed["message"]
         run_end_event = subprocess.check_output(
             ["jq", "-r", 'select(.event=="run_end") | .event', str(log_path)],

@@ -174,9 +174,7 @@ def validate_covariance_matrix_psd(
         projected_eigenvalues = np.linalg.eigvalsh(projected_matrix)
 
         max_delta = float(np.max(np.abs(projected_matrix - cov_matrix)))
-        max_eigenvalue_delta = float(
-            np.max(projected_eigenvalues - original_eigenvalues)
-        )
+        max_eigenvalue_delta = float(np.max(projected_eigenvalues - original_eigenvalues))
         original_min_eig = float(original_eigenvalues.min())
         projected_min_eig = float(projected_eigenvalues.min())
 
@@ -237,15 +235,11 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     missing = required_cols - set(df.columns)
 
     if missing:
-        raise ValueError(
-            f"Margin schedule CSV file missing required columns: {missing}"
-        )
+        raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
     df["term"] = pd.to_numeric(df["term"], errors="coerce")
     df["multiplier"] = pd.to_numeric(df["multiplier"], errors="coerce")
     if bool(df[["term", "multiplier"]].isna().any().any()):
-        raise ValueError(
-            "Margin schedule contains non-numeric or missing term/multiplier values"
-        )
+        raise ValueError("Margin schedule contains non-numeric or missing term/multiplier values")
     df = df.sort_values("term")
 
     if bool((df["term"] < 0).any()):
@@ -383,9 +377,7 @@ def validate_capital_allocation(
 
     # Provide buffer status information
     available_buffer = total_fund_capital - margin_plus_internal
-    buffer_ratio = (
-        available_buffer / total_fund_capital if total_fund_capital > 0 else 0
-    )
+    buffer_ratio = available_buffer / total_fund_capital if total_fund_capital > 0 else 0
 
     if float(buffer_ratio) < float(LOW_BUFFER_THRESHOLD):  # numeric comparison only
         severity = "warning" if buffer_ratio >= 0 else "error"

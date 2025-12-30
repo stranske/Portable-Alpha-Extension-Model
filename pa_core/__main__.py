@@ -55,9 +55,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     if return_overrides:
         if is_dataclass(cfg):
             base_data = {
-                field.name: getattr(cfg, field.name)
-                for field in fields(cfg)
-                if field.init
+                field.name: getattr(cfg, field.name) for field in fields(cfg) if field.init
             }
         else:
             base_data = cfg.model_dump()
@@ -87,9 +85,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     mu_idx = float(idx_series.mean())
     vol_regime_value = getattr(cfg, "vol_regime", "single")
     if vol_regime_value not in ("single", "two_state"):
-        raise ValueError(
-            f"vol_regime must be 'single' or 'two_state', got {vol_regime_value!r}"
-        )
+        raise ValueError(f"vol_regime must be 'single' or 'two_state', got {vol_regime_value!r}")
     vol_regime = cast(Literal["single", "two_state"], vol_regime_value)
     vol_regime_window = getattr(cfg, "vol_regime_window", 12)
     idx_sigma, _, _ = select_vol_regime_sigma(
@@ -112,9 +108,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             "covariance_shrinkage must be 'none' or 'ledoit_wolf', "
             f"got {covariance_shrinkage_value!r}"
         )
-    covariance_shrinkage = cast(
-        Literal["none", "ledoit_wolf"], covariance_shrinkage_value
-    )
+    covariance_shrinkage = cast(Literal["none", "ledoit_wolf"], covariance_shrinkage_value)
     _ = build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
