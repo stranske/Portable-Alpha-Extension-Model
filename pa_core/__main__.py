@@ -7,6 +7,7 @@ import pandas as pd
 
 from .backend import resolve_and_set_backend
 from .config import load_config
+from .validators import select_vol_regime_sigma
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
@@ -75,7 +76,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
     mu_idx = float(idx_series.mean())
-    idx_sigma = float(idx_series.std(ddof=1))
+    idx_sigma, _, _ = select_vol_regime_sigma(
+        idx_series,
+        regime=cfg.vol_regime,
+        window=cfg.vol_regime_window,
+    )
+    n_samples = int(len(idx_series))
 
     mu_H = cfg.mu_H
     sigma_H = cfg.sigma_H
@@ -95,6 +101,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         sigma_H,
         sigma_E,
         sigma_M,
+        covariance_shrinkage=cfg.covariance_shrinkage,
+        n_samples=n_samples,
     )
 
     params = {

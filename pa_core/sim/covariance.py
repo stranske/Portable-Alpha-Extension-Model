@@ -12,6 +12,19 @@ from ..schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 __all__ = ["build_cov_matrix", "nearest_psd", "build_cov_matrix_with_validation"]
 
 
+def _boost_shrinkage_for_short_samples(
+    shrinkage: float, *, n_samples: int, n_features: int
+) -> float:
+    """Boost shrinkage when sample sizes are short to limit PSD adjustments."""
+
+    min_samples = max(12, 2 * n_features)
+    if n_samples >= min_samples:
+        return shrinkage
+    ratio = n_samples / float(min_samples)
+    boosted = 1.0 - (1.0 - shrinkage) * ratio
+    return float(min(1.0, max(shrinkage, boosted)))
+
+
 def _ledoit_wolf_shrinkage_from_cov(
     cov: NDArray[np.float64], n_samples: int
 ) -> tuple[NDArray[np.float64], float]:
@@ -34,6 +47,9 @@ def _ledoit_wolf_shrinkage_from_cov(
     beta = float(xp.sum(cov**2) + xp.sum(xp.outer(diag, diag))) / float(n_samples)
     beta = min(beta, delta_norm2)
     shrinkage = 0.0 if delta_norm2 == 0.0 else beta / delta_norm2
+    shrinkage = _boost_shrinkage_for_short_samples(
+        shrinkage, n_samples=n_samples, n_features=n_features
+    )
     shrunk_cov = (1.0 - shrinkage) * cov + shrinkage * target
     return np.asarray(shrunk_cov, dtype=np.float64), float(shrinkage)
 
