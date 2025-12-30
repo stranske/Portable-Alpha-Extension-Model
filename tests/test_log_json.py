@@ -52,6 +52,8 @@ def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
     assert run_end.get("duration_seconds") is not None
     assert run_end.get("seed") == 123
     assert run_end.get("backend") == "numpy"
+    assert run_end.get("run_log") == str(log_path)
+    assert run_end.get("manifest_path") == str(manifest_path)
     assert isinstance(run_end.get("artifact_paths"), list)
     artifact_paths = run_end.get("artifact_paths") or []
     artifact_names = {Path(path).name for path in artifact_paths}

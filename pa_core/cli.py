@@ -485,6 +485,8 @@ def main(
             seed=args.seed,
             backend=run_backend,
             artifact_paths=_collect_artifacts(),
+            run_log=run_log_path,
+            manifest_path=manifest_path,
         )
 
     prev_manifest_data: dict[str, Any] | None = None
