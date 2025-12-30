@@ -85,7 +85,9 @@ class CalibrationAgent:
         if self.covariance_shrinkage == "ledoit_wolf":
             pivot = pivot.dropna()
             if pivot.empty:
-                raise ValueError("insufficient data after aligning returns for shrinkage")
+                raise ValueError(
+                    "insufficient data after aligning returns for shrinkage"
+                )
             returns = pivot.to_numpy(dtype=float)
             cov, shrinkage = _ledoit_wolf_shrinkage(returns)
             base_sigma = pd.Series(
