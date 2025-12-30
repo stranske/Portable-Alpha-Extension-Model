@@ -68,6 +68,25 @@ def main() -> None:
             min_obs = st.number_input(
                 "Min observations per id", min_value=1, value=36, step=1
             )
+            cov_shrinkage = st.selectbox(
+                "Covariance shrinkage",
+                options=["none", "ledoit_wolf"],
+                index=0,
+                help="Ledoit-Wolf shrinkage improves stability in short samples.",
+            )
+            vol_regime = st.selectbox(
+                "Volatility regime",
+                options=["single", "two_state"],
+                index=0,
+                help="Two-state uses recent window to select high/low vol.",
+            )
+            regime_window = st.number_input(
+                "Vol regime window (months)",
+                min_value=2,
+                value=12,
+                step=1,
+                help="Recent window length for two-state regime selection.",
+            )
             sheet_name = st.text_input("Excel sheet name (optional)", value="")
             na_values_str = st.text_input("NA markers (comma‑sep)", value="")
             decimal = st.text_input("Decimal separator", value=".", max_chars=1)
@@ -144,7 +163,12 @@ def main() -> None:
         ids = sorted(df["id"].unique())
         index_id = st.selectbox("Index column", ids)
         if st.button("Calibrate"):
-            calib = CalibrationAgent(min_obs=importer.min_obs)
+            calib = CalibrationAgent(
+                min_obs=importer.min_obs,
+                covariance_shrinkage=cov_shrinkage,
+                vol_regime=vol_regime,
+                vol_regime_window=int(regime_window),
+            )
             result = calib.calibrate(df, index_id)
             yfd, ypath = tempfile.mkstemp(suffix=".yaml")
             try:
@@ -156,6 +180,16 @@ def main() -> None:
                     file_name="asset_library.yaml",
                     mime="application/x-yaml",
                 )
+                if result.diagnostics is not None:
+                    st.json(
+                        {
+                            "covariance_shrinkage": result.diagnostics.covariance_shrinkage,
+                            "shrinkage_intensity": result.diagnostics.shrinkage_intensity,
+                            "vol_regime": result.diagnostics.vol_regime,
+                            "vol_regime_window": result.diagnostics.vol_regime_window,
+                            "vol_regime_state": result.diagnostics.vol_regime_state,
+                        }
+                    )
             finally:
                 try:
                     os.close(yfd)
