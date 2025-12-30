@@ -4,11 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import json
-
-import pandas as pd
-
 from collections.abc import MutableMapping
 from typing import Any
+
+import pandas as pd
 
 from pa_core.config import ModelConfig
 
@@ -43,6 +42,7 @@ def make_grid_cache_key(
         sort_keys=True,
     )
     return hashlib.sha256(payload.encode()).hexdigest()
+
 
 def bump_session_token(state: MutableMapping[str, Any], key: str) -> int:
     """Increment a session-state token used for cross-page reruns."""

@@ -387,9 +387,7 @@ def main() -> None:
                     "active_share": float(sel_x),
                     "theta_extpa": theta_val,
                 }
-                bump_session_token(
-                    st.session_state, "scenario_grid_promotion_token"
-                )
+                bump_session_token(st.session_state, "scenario_grid_promotion_token")
                 st.info(
                     "Heatmap selection captured. Open Portfolio Builder to "
                     "see the values populated."
@@ -432,9 +430,7 @@ def main() -> None:
                     "active_share": float(sel_x),
                     "theta_extpa": promoted_selection["theta_extpa"],
                 }
-                bump_session_token(
-                    st.session_state, "scenario_grid_promotion_token"
-                )
+                bump_session_token(st.session_state, "scenario_grid_promotion_token")
                 st.session_state[_GRID_PROMOTION_NOTICE_KEY] = (
                     "Selection promoted. Other pages can read "
                     "session_state['promoted_alpha_shares']."
