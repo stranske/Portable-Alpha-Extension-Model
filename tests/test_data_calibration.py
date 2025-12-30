@@ -15,6 +15,29 @@ yaml: Any = pytest.importorskip("yaml")
 # ruff: noqa: E402
 
 
+def _ledoit_wolf_shrinkage_baseline(returns: np.ndarray) -> float:
+    n_samples, n_features = returns.shape
+    if n_samples <= 1 or n_features == 0:
+        return 0.0
+
+    centered = returns - returns.mean(axis=0, keepdims=True)
+    sample_cov = (centered.T @ centered) / n_samples
+
+    mu = np.trace(sample_cov) / n_features
+    target = mu * np.eye(n_features)
+    delta = sample_cov - target
+    delta_norm2 = float(np.sum(delta**2))
+    if delta_norm2 == 0.0:
+        return 0.0
+
+    squared = centered**2
+    beta_matrix = (squared.T @ squared) / n_samples - sample_cov**2
+    beta = float(np.sum(beta_matrix)) / n_samples
+    beta = min(beta, delta_norm2)
+
+    return float(beta / delta_norm2)
+
+
 def test_calibration_wide_csv() -> None:
     path = Path("templates/asset_timeseries_wide_returns.csv")
     importer = DataImportAgent(date_col="Date", min_obs=1)
@@ -216,6 +239,33 @@ def test_calibration_ledoit_wolf_shrinkage_psd() -> None:
         corr_mat[i, j] = corr_mat[j, i] = corr.rho
     eigvals = np.linalg.eigvalsh(corr_mat)
     assert eigvals.min() >= -1e-10
+
+
+def test_calibration_ledoit_wolf_short_sample_boosts_shrinkage() -> None:
+    dates = pd.date_range("2020-01-31", periods=4, freq="ME")
+    rows = []
+    data = {
+        "IDX": [0.01, -0.02, 0.03, -0.01],
+        "A": [0.02, 0.00, -0.01, 0.03],
+        "B": [-0.01, 0.01, 0.02, -0.02],
+    }
+    for asset_id, values in data.items():
+        rows.extend(
+            {"id": asset_id, "date": date, "return": ret}
+            for date, ret in zip(dates, values, strict=True)
+        )
+    df = pd.DataFrame(rows)
+    pivot = df.pivot(index="date", columns="id", values="return")
+    baseline_shrinkage = _ledoit_wolf_shrinkage_baseline(pivot.to_numpy(dtype=float))
+
+    calib = CalibrationAgent(min_obs=1, covariance_shrinkage="ledoit_wolf")
+    result = calib.calibrate(df, index_id="IDX")
+    diag = result.diagnostics
+
+    assert diag is not None
+    assert diag.shrinkage_intensity is not None
+    if baseline_shrinkage < 0.999:
+        assert diag.shrinkage_intensity > baseline_shrinkage
 
 
 def test_calibration_two_state_vol_regime_high() -> None:
