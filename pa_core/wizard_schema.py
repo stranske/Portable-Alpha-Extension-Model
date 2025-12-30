@@ -6,7 +6,6 @@ used by portfolio managers in the guided wizard interface.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List
 
 from pydantic import BaseModel, Field
 
@@ -155,9 +154,7 @@ class WizardScenarioConfig(BaseModel):  # Minimal placeholder for UI wiring
     n_simulations: int = Field(
         default=1000, ge=100, le=10000, description="Number of Monte Carlo trials"
     )
-    n_months: int = Field(
-        default=12, ge=1, le=60, description="Months in each simulation run"
-    )
+    n_months: int = Field(default=12, ge=1, le=60, description="Months in each simulation run")
 
 
 @dataclass
@@ -198,7 +195,7 @@ class DefaultConfigView:
     rho_e_m: float
 
     # Risk metrics
-    risk_metrics: List[str]
+    risk_metrics: list[str]
 
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
@@ -257,9 +254,7 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     """
 
     # Build ModelConfig using alias names via model_validate to satisfy typing
-    base = ModelConfig.model_validate(
-        {"Number of simulations": 1, "Number of months": 1}
-    )
+    base = ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
     cfg = _make_view(base)
 
     if mode == AnalysisMode.CAPITAL:
@@ -285,9 +280,7 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     elif mode == AnalysisMode.VOL_MULT:
         # Slightly conservative vols vs. returns baseline
         returns_defaults = _make_view(
-            ModelConfig.model_validate(
-                {"Number of simulations": 1, "Number of months": 1}
-            )
+            ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
         )
         cfg.sigma_h = returns_defaults.sigma_h * 0.9
         cfg.sigma_e = returns_defaults.sigma_e * 0.9

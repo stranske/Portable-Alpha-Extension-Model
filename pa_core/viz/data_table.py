@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Union
+from typing import Any
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(df: pd.DataFrame) -> Union[Any, go.Figure]:
+def make(df: pd.DataFrame) -> Any | go.Figure:
     """Return table visualisation.
 
     If Dash is available, return a ``dash_table.DataTable`` with CSV export.

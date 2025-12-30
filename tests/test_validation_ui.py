@@ -43,9 +43,7 @@ class _FakeSidebar:
 
 
 class FakeStreamlit(ModuleType):
-    def __init__(
-        self, name: str, sidebar_values: dict[str, bool] | None = None
-    ) -> None:
+    def __init__(self, name: str, sidebar_values: dict[str, bool] | None = None) -> None:
         super().__init__(name)
         self.calls: list[tuple] = []
         self.sidebar = _FakeSidebar(self.calls, sidebar_values)
@@ -192,9 +190,7 @@ def test_validate_scenario_config_filters_and_exception(monkeypatch) -> None:
         ]
 
     monkeypatch.setattr(module, "validate_correlations", fake_validate_correlations)
-    monkeypatch.setattr(
-        module, "validate_capital_allocation", fake_validate_capital_allocation
-    )
+    monkeypatch.setattr(module, "validate_capital_allocation", fake_validate_capital_allocation)
     monkeypatch.setattr(
         module,
         "validate_simulation_parameters",

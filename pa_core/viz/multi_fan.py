@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -27,9 +27,7 @@ def make(
         months = np.arange(h)
         color = colors[idx % len(colors)]
         fig.add_trace(
-            go.Scatter(
-                x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False
-            )
+            go.Scatter(x=months, y=upper, mode="lines", line=dict(width=0), showlegend=False)
         )
         fig.add_trace(
             go.Scatter(

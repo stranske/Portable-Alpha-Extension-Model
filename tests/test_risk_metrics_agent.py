@@ -57,14 +57,10 @@ def test_risk_metrics_agent_matches_individual_functions(
     metrics = agent.run(returns)
 
     # Verify each metric matches corresponding function
-    assert metrics.cvar == pytest.approx(
-        conditional_value_at_risk(returns, confidence=0.95)
-    )
+    assert metrics.cvar == pytest.approx(conditional_value_at_risk(returns, confidence=0.95))
     assert metrics.max_drawdown == pytest.approx(max_drawdown(returns))
     assert metrics.time_under_water == pytest.approx(time_under_water(returns))
-    assert metrics.breach_probability == pytest.approx(
-        breach_probability(returns, -0.02)
-    )
+    assert metrics.breach_probability == pytest.approx(breach_probability(returns, -0.02))
     assert metrics.breach_count == breach_count(returns, -0.02)
 
 
@@ -95,10 +91,7 @@ def test_risk_metrics_agent_scaling_behavior(
     assert (
         abs(scaled_metrics.cvar) >= abs(scale_factor * base_metrics.cvar) * 0.9
     )  # Allow 10% tolerance for numerical effects
-    assert (
-        abs(scaled_metrics.max_drawdown)
-        >= abs(scale_factor * base_metrics.max_drawdown) * 0.9
-    )
+    assert abs(scaled_metrics.max_drawdown) >= abs(scale_factor * base_metrics.max_drawdown) * 0.9
 
 
 # Edge cases for problematic scenarios

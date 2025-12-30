@@ -19,9 +19,10 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime, timezone
+from collections.abc import Mapping, Sequence
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -62,7 +63,7 @@ class JsonFormatter(logging.Formatter):
 
     # type: ignore[override]
     def format(self, record: logging.LogRecord) -> str:
-        ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
+        ts = datetime.fromtimestamp(record.created, tz=UTC).isoformat()
         entry = {
             "level": record.levelname,
             "timestamp": ts,
@@ -75,13 +76,13 @@ class JsonFormatter(logging.Formatter):
 class RunTimer:
     def __init__(self) -> None:
         self._start = time.perf_counter()
-        self._start_wall = datetime.now(timezone.utc)
+        self._start_wall = datetime.now(UTC)
 
     def elapsed(self) -> float:
         return max(0.0, time.perf_counter() - self._start)
 
     def snapshot(self) -> dict[str, Any]:
-        end_wall = datetime.now(timezone.utc)
+        end_wall = datetime.now(UTC)
         return {
             "duration_seconds": self.elapsed(),
             "started_at": self._start_wall.isoformat(),
@@ -90,10 +91,10 @@ class RunTimer:
 
 
 def create_enhanced_summary(
-    returns_map: dict[str, "np.ndarray"],
+    returns_map: dict[str, np.ndarray],
     *,
     benchmark: str | None = None,
-) -> "pd.DataFrame":
+) -> pd.DataFrame:
     """Create summary table with standard breach and shortfall defaults."""
 
     # Local import to avoid heavy imports at module load
@@ -102,7 +103,7 @@ def create_enhanced_summary(
     return summary_table(returns_map, benchmark=benchmark)
 
 
-def print_enhanced_summary(summary: "pd.DataFrame") -> None:
+def print_enhanced_summary(summary: pd.DataFrame) -> None:
     """Print enhanced summary with explanations."""
     # Local imports to avoid heavy import at module load
     from rich.console import Console
@@ -134,9 +135,7 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     guidance = Text()
     guidance.append("\n💡 Interpretation Tips:\n", style="bold green")
     guidance.append("• Lower ShortfallProb is better (< 5% is typically good)\n")
-    guidance.append(
-        "• Higher AnnReturn with lower AnnVol indicates better risk-adjusted returns\n"
-    )
+    guidance.append("• Higher AnnReturn with lower AnnVol indicates better risk-adjusted returns\n")
     guidance.append("• TE shows how much each strategy deviates from the benchmark\n")
 
     console.print(guidance)
@@ -146,8 +145,8 @@ def _maybe_print_run_diff(
     *,
     current_manifest: Mapping[str, Any] | None,
     prev_manifest: Mapping[str, Any] | None,
-    current_summary: "pd.DataFrame",
-    prev_summary: "pd.DataFrame" | None,
+    current_summary: pd.DataFrame,
+    prev_summary: pd.DataFrame | None,
 ) -> None:
     if prev_manifest is None and (prev_summary is None or prev_summary.empty):
         return
@@ -213,9 +212,7 @@ class Dependencies:
         self.simulate_agents = simulate_agents
 
 
-def main(
-    argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None
-) -> None:
+def main(argv: Sequence[str] | None = None, deps: Dependencies | None = None) -> None:
     # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
     # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
     import os
@@ -231,9 +228,7 @@ def main(
         if venv_python.exists() and str(venv_python) != sys.executable:
             # Re-exec under the venv interpreter, preserving args
             args_list = list(argv) if argv is not None else sys.argv[1:]
-            os.execv(
-                str(venv_python), [str(venv_python), "-m", "pa_core.cli", *args_list]
-            )
+            os.execv(str(venv_python), [str(venv_python), "-m", "pa_core.cli", *args_list])
         # If no venv found, continue and let normal imports raise a helpful error later
 
     # Import light dependencies needed for argument parsing defaults
@@ -664,9 +659,7 @@ def main(
         idx_sel = args.suggest_apply_index
         if idx_sel is None:
             try:
-                choice = input(
-                    "Select row index to apply and continue (blank to abort): "
-                ).strip()
+                choice = input("Select row index to apply and continue (blank to abort): ").strip()
             except EOFError:
                 print("No selection provided. Aborting run.")
                 _emit_run_end()
@@ -748,9 +741,7 @@ def main(
             summary["Combination"] = f"Run{res['combination_id']}"
             summary_frames.append(summary)
         all_summary = (
-            pd.concat(summary_frames, ignore_index=True)
-            if summary_frames
-            else pd.DataFrame()
+            pd.concat(summary_frames, ignore_index=True) if summary_frames else pd.DataFrame()
         )
 
         current_manifest_data = manifest_data or {"config": raw_params}
@@ -807,9 +798,7 @@ def main(
             except (ImportError, ModuleNotFoundError) as e:
                 logger.error(f"Export packet failed due to missing dependency: {e}")
                 print(f"❌ Export packet failed due to missing dependency: {e}")
-                print(
-                    "💡 Install required packages: pip install plotly kaleido openpyxl"
-                )
+                print("💡 Install required packages: pip install plotly kaleido openpyxl")
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data issue: {e}")
                 print(f"❌ Export packet failed due to data issue: {e}")
@@ -822,19 +811,13 @@ def main(
             print("   how different parameter combinations affect outcomes.")
 
             if results:
-                sweep_df = pd.concat(
-                    [res["summary"] for res in results], ignore_index=True
-                )
+                sweep_df = pd.concat([res["summary"] for res in results], ignore_index=True)
                 base_agents = sweep_df[sweep_df["Agent"] == "Base"]
                 if not base_agents.empty and isinstance(base_agents, pd.DataFrame):
                     best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax()]
                     worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin()]
-                    print(
-                        f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn"
-                    )
-                    print(
-                        f"   📉 Worst combination: {worst_combo['AnnReturn']:.2f}% AnnReturn"
-                    )
+                    print(f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn")
+                    print(f"   📉 Worst combination: {worst_combo['AnnReturn']:.2f}% AnnReturn")
                     print(
                         f"   📊 Range: {best_combo['AnnReturn'] - worst_combo['AnnReturn']:.2f}% difference"
                     )
@@ -850,8 +833,8 @@ def main(
     mu_idx = float(idx_series.mean())
 
     def _run_single(
-        run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
-    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
+        run_cfg: ModelConfig, run_rng_returns: Any, run_fin_rngs: Any
+    ) -> tuple[dict[str, np.ndarray], pd.DataFrame, Any, Any, Any]:
         mu_H = run_cfg.mu_H
         sigma_H = run_cfg.sigma_H
         mu_E = run_cfg.mu_E
@@ -929,9 +912,7 @@ def main(
 
         # Build agents and run sim
         agents = deps.build_from_config(run_cfg)
-        returns = deps.simulate_agents(
-            agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
-        )
+        returns = deps.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
         # Build summary using wrapper (allows tests to mock this safely)
         summary = create_enhanced_summary(returns, benchmark="Base")
@@ -944,12 +925,8 @@ def main(
         from .reporting.stress_delta import build_delta_table
 
         base_rng_returns = spawn_rngs(args.seed, 1)[0]
-        base_fin_rngs = spawn_agent_rngs(
-            args.seed, ["internal", "external_pa", "active_ext"]
-        )
-        _, base_summary, _, _, _ = _run_single(
-            base_cfg, base_rng_returns, base_fin_rngs
-        )
+        base_fin_rngs = spawn_agent_rngs(args.seed, ["internal", "external_pa", "active_ext"])
+        _, base_summary, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
@@ -957,9 +934,7 @@ def main(
 
     # Optional attribution tables for downstream exports
     try:
-        inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(
-            cfg, idx_series
-        )
+        inputs_dict["_attribution_df"] = compute_sleeve_return_attribution(cfg, idx_series)
     except (AttributeError, TypeError):  # narrow exceptions required by tests
         # Fallback: aggregate total annualised return by agent if detailed attribution fails
         try:
@@ -1000,9 +975,9 @@ def main(
                 sort_by=args.tradeoff_sort,
             )
             if not trade_df.empty:
-                inputs_dict["_tradeoff_df"] = trade_df.head(
-                    max(1, args.tradeoff_top)
-                ).reset_index(drop=True)
+                inputs_dict["_tradeoff_df"] = trade_df.head(max(1, args.tradeoff_top)).reset_index(
+                    drop=True
+                )
         except Exception as e:
             # Local import to avoid heavy import at module load
             from rich.console import Console
@@ -1164,9 +1139,7 @@ def main(
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
                 deltas = simple_one_factor_deltas(base_df, scenarios, value="AnnReturn")
-                base_value = (
-                    float(base_df["AnnReturn"].iloc[0]) if not base_df.empty else 0.0
-                )
+                base_value = float(base_df["AnnReturn"].iloc[0]) if not base_df.empty else 0.0
                 records = []
                 for name, values in param_results.items():
                     minus_val = values.get("minus")
@@ -1176,9 +1149,7 @@ def main(
                     low = minus_val - base_value
                     high = plus_val - base_value
                     delta_abs = max(abs(low), abs(high))
-                    records.append(
-                        (name, base_value, minus_val, plus_val, low, high, delta_abs)
-                    )
+                    records.append((name, base_value, minus_val, plus_val, low, high, delta_abs))
                 if records:
                     sens_df = pd.DataFrame(
                         records,
@@ -1220,13 +1191,9 @@ def main(
                     )
                     for param in skipped_params:
                         print(f"   • {param}")
-                    print(
-                        "\n💡 Consider reviewing parameter ranges or model constraints."
-                    )
+                    print("\n💡 Consider reviewing parameter ranges or model constraints.")
 
-                print(
-                    f"\n✅ Sensitivity analysis completed. Evaluated {len(scenarios)} scenarios."
-                )
+                print(f"\n✅ Sensitivity analysis completed. Evaluated {len(scenarios)} scenarios.")
             else:
                 print(
                     "❌ All parameter evaluations failed. Sensitivity analysis could not be completed."
@@ -1262,17 +1229,11 @@ def main(
                     out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
                 ) as writer:
                     if base_summary_df is not None and not base_summary_df.empty:
-                        base_summary_df.to_excel(
-                            writer, sheet_name="BaseSummary", index=False
-                        )
+                        base_summary_df.to_excel(writer, sheet_name="BaseSummary", index=False)
                     if summary is not None and not summary.empty:
-                        summary.to_excel(
-                            writer, sheet_name="StressedSummary", index=False
-                        )
+                        summary.to_excel(writer, sheet_name="StressedSummary", index=False)
                     if stress_delta_df is not None and not stress_delta_df.empty:
-                        stress_delta_df.to_excel(
-                            writer, sheet_name="StressDelta", index=False
-                        )
+                        stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
             except (OSError, PermissionError, ValueError) as e:
                 logger.warning(f"Failed to append stress sheets: {e}")
         else:
@@ -1280,9 +1241,7 @@ def main(
 
     # Write reproducibility manifest for normal run
     try:
-        mw = ManifestWriter(
-            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
-        )
+        mw = ManifestWriter(Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json"))
         data_files = [args.index, args.config]
         out_path = Path(flags.save_xlsx or "Outputs.xlsx")
         if out_path.exists():
@@ -1297,17 +1256,13 @@ def main(
             previous_run=args.prev_manifest,
             run_timing=run_timer.snapshot(),
         )
-        manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
-            "manifest.json"
-        )
+        manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
     except (OSError, PermissionError, FileNotFoundError) as e:
         logger.warning(f"Failed to write manifest: {e}")
 
     manifest_data = None
     try:
-        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
-            "manifest.json"
-        )
+        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
         _record_artifact(manifest_json)
         if manifest_json.exists():
             manifest_data = json.loads(manifest_json.read_text())
@@ -1375,9 +1330,7 @@ def main(
                 # Use base filename from --output or default
                 base_name = Path(flags.save_xlsx or "committee_packet").stem
                 # Load manifest (if written) for embedding
-                manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
-                    "manifest.json"
-                )
+                manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
                 manifest_data = None
                 try:
                     if manifest_json.exists():
@@ -1391,31 +1344,27 @@ def main(
                 try:
                     # inputs_dict is a plain dict[str, object]; guard types before use
                     sens_val = inputs_dict.get("_sensitivity_df")
-                    sens_df_plot: Optional[pd.DataFrame] = (
+                    sens_df_plot: pd.DataFrame | None = (
                         sens_val if isinstance(sens_val, pd.DataFrame) else None
                     )
                     if sens_df_plot is not None and (not sens_df_plot.empty):
                         if {"Parameter", "DeltaAbs"} <= set(sens_df_plot.columns):
                             series = viz.tornado.series_from_sensitivity(sens_df_plot)
-                            figs.append(
-                                viz.tornado.make(series, title="Sensitivity Tornado")
-                            )
+                            figs.append(viz.tornado.make(series, title="Sensitivity Tornado"))
                 except Exception:
                     # Non-fatal; continue without tornado figure
                     pass
                 # Optional: Return attribution sunburst
                 try:
                     attr_val = inputs_dict.get("_attribution_df")
-                    attr_df: Optional[pd.DataFrame] = (
+                    attr_df: pd.DataFrame | None = (
                         attr_val if isinstance(attr_val, pd.DataFrame) else None
                     )
                     if attr_df is not None and (not attr_df.empty):
                         if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
                             figs.append(viz.sunburst.make(attr_df))
                 except (AttributeError, TypeError) as e:
-                    logger.debug(
-                        "Skipping sunburst figure due to data issue", exc_info=e
-                    )
+                    logger.debug("Skipping sunburst figure due to data issue", exc_info=e)
                 # Late-bind create_export_packet to allow test monkeypatching
                 from .reporting.export_packet import (
                     create_export_packet as create_export_packet_fn,
@@ -1453,9 +1402,7 @@ def main(
                 return
             except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Export packet failed due to data/config issue: {e}")
-                print(
-                    f"❌ Export packet failed due to data or configuration issue: {e}"
-                )
+                print(f"❌ Export packet failed due to data or configuration issue: {e}")
                 print("💡 Check your data inputs and configuration settings")
                 _emit_run_end()
                 return
@@ -1491,10 +1438,7 @@ def main(
             except Exception as e:
                 logger.error(f"PNG export failed: {e}")
                 msg = str(e).lower()
-                if any(
-                    term in msg
-                    for term in ("kaleido", "chrome", "chromium", "cancelled")
-                ):
+                if any(term in msg for term in ("kaleido", "chrome", "chromium", "cancelled")):
                     print("❌ PNG export failed: Kaleido or Chrome/Chromium required")
                     print(
                         "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
@@ -1530,9 +1474,7 @@ def main(
                 if sens_df is not None and not sens_df.empty:
                     if {"Parameter", "DeltaAbs"} <= set(sens_df.columns):
                         series = viz.tornado.series_from_sensitivity(sens_df)
-                        pptx_figs.append(
-                            viz.tornado.make(series, title="Sensitivity Tornado")
-                        )
+                        pptx_figs.append(viz.tornado.make(series, title="Sensitivity Tornado"))
                 viz.pptx_export.save(
                     pptx_figs,
                     str(stem.with_suffix(".pptx")),
@@ -1592,9 +1534,7 @@ def main(
             try:
                 dashboard_path = Path("dashboard/app.py")
                 if not dashboard_path.exists():
-                    raise FileNotFoundError(
-                        f"Dashboard file not found: {dashboard_path}"
-                    )
+                    raise FileNotFoundError(f"Dashboard file not found: {dashboard_path}")
 
                 subprocess.run(
                     [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
@@ -1603,15 +1543,11 @@ def main(
                 )
             except FileNotFoundError as e:
                 print(f"❌ Dashboard launch failed: {e}")
-                print(
-                    "💡 Ensure the dashboard files are present in the 'dashboard/' directory."
-                )
+                print("💡 Ensure the dashboard files are present in the 'dashboard/' directory.")
                 _emit_run_end()
                 return
             except subprocess.CalledProcessError as e:
-                logger.error(
-                    f"Dashboard launch failed with exit code {e.returncode}: {e}"
-                )
+                logger.error(f"Dashboard launch failed with exit code {e.returncode}: {e}")
                 print(f"❌ Dashboard launch failed with exit code {e.returncode}")
                 print("💡 Common solutions:")
                 print("   • Install Streamlit: pip install streamlit")

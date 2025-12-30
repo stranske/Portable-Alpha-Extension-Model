@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import io
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import plotly.graph_objects as go
 

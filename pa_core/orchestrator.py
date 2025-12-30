@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, TypeAlias
+from typing import TypeAlias
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,7 @@ class SimulatorOrchestrator:
         self.cfg = cfg
         self.idx_series = idx_series
 
-    def run(self, seed: int | None = None) -> Tuple[Dict[str, Array], pd.DataFrame]:
+    def run(self, seed: int | None = None) -> tuple[dict[str, Array], pd.DataFrame]:
         """Execute simulations and return per-agent returns and summary table."""
 
         mu_idx = float(self.idx_series.mean())

@@ -8,7 +8,7 @@ tests should use these shared utilities or rely on proper PYTHONPATH setup.
 import runpy
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -34,7 +34,7 @@ def dashboard_module_loader(project_root: Path):
             logger = module["logger"]
     """
 
-    def _load_module(module_path: str, run_name: str = "test_module") -> Dict[str, Any]:
+    def _load_module(module_path: str, run_name: str = "test_module") -> dict[str, Any]:
         """Load a dashboard module using runpy with proper path setup."""
         # Temporarily add project root to sys.path if not already there
         root_str = str(project_root)

@@ -58,9 +58,7 @@ def test_calibration_wide_csv() -> None:
 
     corr = pivot.corr()
     corr_ab = corr.loc["FUND_A", "FUND_B"]
-    pair_ab = next(
-        c for c in result.correlations if set(c.pair) == {"FUND_A", "FUND_B"}
-    )
+    pair_ab = next(c for c in result.correlations if set(c.pair) == {"FUND_A", "FUND_B"})
     assert pair_ab.rho == pytest.approx(corr_ab)
 
 
@@ -164,9 +162,7 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     path = tmp_path / "returns.csv"
     df.to_csv(path, index=False)
 
-    importer = DataImportAgent(
-        date_col="Date", frequency="daily", value_type="returns", min_obs=1
-    )
+    importer = DataImportAgent(date_col="Date", frequency="daily", value_type="returns", min_obs=1)
     out = importer.load(path)
 
     # Calculate expected monthly returns by compounding daily returns within each month
@@ -237,9 +233,7 @@ def test_import_min_obs_enforced(tmp_path: Path) -> None:
         (5, 3, False),  # More than enough - should pass
     ],
 )
-def test_import_min_obs_validation_scenarios(
-    tmp_path: Path, periods, min_obs, should_fail
-) -> None:
+def test_import_min_obs_validation_scenarios(tmp_path: Path, periods, min_obs, should_fail) -> None:
     """Test minimum observation validation with different data sizes and requirements."""
     dates = pd.date_range("2020-01-31", periods=periods, freq="ME")
     df = pd.DataFrame({"Date": dates, "A": np.arange(periods)})
@@ -288,9 +282,7 @@ def test_calibration_ledoit_wolf_shrinkage_psd() -> None:
     assert diag.covariance_shrinkage == "ledoit_wolf"
     assert 0.0 <= float(diag.shrinkage_intensity or 0.0) <= 1.0
 
-    ids = [result.index.id] + [
-        asset.id for asset in result.assets if asset.id != result.index.id
-    ]
+    ids = [result.index.id] + [asset.id for asset in result.assets if asset.id != result.index.id]
     corr_mat = np.eye(len(ids))
     id_to_idx = {asset_id: i for i, asset_id in enumerate(ids)}
     for corr in result.correlations:
@@ -395,9 +387,7 @@ def test_calibration_two_state_vol_regime_low() -> None:
         ),  # Valid sequence - should pass
     ],
 )
-def test_import_date_validation_scenarios(
-    tmp_path: Path, date_sequence, should_fail
-) -> None:
+def test_import_date_validation_scenarios(tmp_path: Path, date_sequence, should_fail) -> None:
     """Test date validation with various date sequence scenarios."""
     df = pd.DataFrame({"Date": date_sequence, "A": [0.1] * len(date_sequence)})
     path = tmp_path / f"dates_{len(date_sequence)}.csv"
@@ -428,9 +418,7 @@ def test_daily_to_monthly_robust_frequency_handling(tmp_path: Path) -> None:
     path = tmp_path / "variable_months.csv"
     df.to_csv(path, index=False)
 
-    importer = DataImportAgent(
-        date_col="Date", frequency="daily", value_type="returns", min_obs=1
-    )
+    importer = DataImportAgent(date_col="Date", frequency="daily", value_type="returns", min_obs=1)
     result = importer.load(path)
 
     # Verify we get the correct number of monthly observations
@@ -449,13 +437,9 @@ def test_daily_to_monthly_robust_frequency_handling(tmp_path: Path) -> None:
         ((1 + DAILY_RETURN) ** may_days) - 1,  # May: 31 days
     ]
 
-    expected_dates = pd.to_datetime(
-        ["2021-02-28", "2021-03-31", "2021-04-30", "2021-05-31"]
-    )
+    expected_dates = pd.to_datetime(["2021-02-28", "2021-03-31", "2021-04-30", "2021-05-31"])
 
-    for i, (expected_return, expected_date) in enumerate(
-        zip(expected_returns, expected_dates)
-    ):
+    for i, (expected_return, expected_date) in enumerate(zip(expected_returns, expected_dates)):
         assert result.iloc[i]["return"] == pytest.approx(expected_return)
         assert result.iloc[i]["date"] == expected_date
         assert result.iloc[i]["id"] == "A"
@@ -465,9 +449,5 @@ def test_daily_to_monthly_robust_frequency_handling(tmp_path: Path) -> None:
     mar_return = result.iloc[1]["return"]
     may_return = result.iloc[3]["return"]
 
-    assert (
-        feb_return != mar_return
-    )  # Different day counts should produce different returns
-    assert mar_return == pytest.approx(
-        may_return
-    )  # Same day counts should produce same returns
+    assert feb_return != mar_return  # Different day counts should produce different returns
+    assert mar_return == pytest.approx(may_return)  # Same day counts should produce same returns

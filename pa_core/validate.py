@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import sys
 import types
-from typing import Optional
 
 from pydantic import ValidationError
 
@@ -15,7 +14,7 @@ try:
     import yaml as _yaml  # type: ignore[import-untyped]
 except ImportError:  # pragma: no cover - dependency optional
     _yaml = None
-yaml: Optional[types.ModuleType] = _yaml
+yaml: types.ModuleType | None = _yaml
 
 
 def main(argv: list[str] | None = None) -> None:

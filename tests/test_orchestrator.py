@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ from pa_core.validators import TEST_TOLERANCE_EPSILON
 
 
 @pytest.fixture
-def valid_config_basic() -> Dict[str, Any]:
+def valid_config_basic() -> dict[str, Any]:
     """Basic valid configuration for standard orchestrator tests."""
     return {
         "N_SIMULATIONS": 10,
@@ -25,7 +25,7 @@ def valid_config_basic() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def valid_config_no_alpha() -> Dict[str, Any]:
+def valid_config_no_alpha() -> dict[str, Any]:
     """Valid configuration with no alpha allocation for TE=0 testing."""
     return {
         "N_SIMULATIONS": 5,
@@ -40,7 +40,7 @@ def valid_config_no_alpha() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def valid_config_reproducibility() -> Dict[str, Any]:
+def valid_config_reproducibility() -> dict[str, Any]:
     """Valid configuration for reproducibility testing."""
     return {
         "N_SIMULATIONS": 5,
@@ -130,9 +130,7 @@ def test_te_zero_when_no_alpha_allocation(
         (0.0, 1.1, "must be between 0 and 1"),  # alpha > 1.0
     ],
 )
-def test_invalid_share_configurations_raise_error(
-    w_beta_H, w_alpha_H, expected_error
-) -> None:
+def test_invalid_share_configurations_raise_error(w_beta_H, w_alpha_H, expected_error) -> None:
     """Test that invalid beta/alpha share combinations raise ValueError."""
     invalid_config = {
         "N_SIMULATIONS": 1,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 from .backend import xp
 
@@ -12,7 +12,7 @@ else:  # pragma: no cover
 __all__ = ["spawn_rngs", "spawn_agent_rngs"]
 
 
-def spawn_rngs(seed: int | None, n: int) -> List[Generator]:
+def spawn_rngs(seed: int | None, n: int) -> list[Generator]:
     """Return ``n`` independent generators derived from ``seed``.
 
     Passing ``None`` uses unpredictable entropy from the OS.
@@ -23,7 +23,7 @@ def spawn_rngs(seed: int | None, n: int) -> List[Generator]:
     return [xp.random.default_rng(s) for s in ss.spawn(n)]
 
 
-def spawn_agent_rngs(seed: int | None, agent_names: List[str]) -> Dict[str, Generator]:
+def spawn_agent_rngs(seed: int | None, agent_names: list[str]) -> dict[str, Generator]:
     """Return a dedicated RNG for each agent name derived from ``seed``."""
     if not agent_names:
         raise ValueError("agent_names must not be empty")

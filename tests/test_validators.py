@@ -94,9 +94,7 @@ class TestCovarianceMatrixValidation:
     def test_psd_projection_details(self):
         """Test that PSD projection provides detailed information."""
         # Construct a matrix that will need projection
-        cov = np.array(
-            [[1.0, 0.99], [0.99, 0.5]]
-        )  # Will have small negative eigenvalue
+        cov = np.array([[1.0, 0.99], [0.99, 0.5]])  # Will have small negative eigenvalue
         result, psd_info = validate_covariance_matrix_psd(cov)
 
         # Check that detailed info is provided
@@ -180,9 +178,7 @@ class TestCapitalAllocationValidation:
 
         # Should have warning about low buffer (< 10% threshold)
         warning_results = [r for r in results if r.severity == "warning"]
-        buffer_warnings = [
-            w for w in warning_results if "Low capital buffer" in w.message
-        ]
+        buffer_warnings = [w for w in warning_results if "Low capital buffer" in w.message]
         assert len(buffer_warnings) >= 1
 
     def test_margin_requirement_calculation(self):
@@ -330,12 +326,8 @@ class TestSimulationParameterValidation:
         assert len(errors) == 2  # Both invalid step sizes
 
         error_messages = [r.message for r in errors]
-        assert any(
-            "param1" in msg and "must be positive" in msg for msg in error_messages
-        )
-        assert any(
-            "param2" in msg and "must be positive" in msg for msg in error_messages
-        )
+        assert any("param1" in msg and "must be positive" in msg for msg in error_messages)
+        assert any("param2" in msg and "must be positive" in msg for msg in error_messages)
 
     def test_small_step_size_warning(self):
         """Test warning for very small step sizes."""

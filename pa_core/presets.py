@@ -8,9 +8,9 @@ with the index (rho).
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, Iterable
 
 import yaml
 
@@ -29,7 +29,7 @@ class PresetLibrary:
     """Manage a collection of :class:`AlphaPreset` objects."""
 
     def __init__(self, presets: Iterable[AlphaPreset] | None = None) -> None:
-        self._presets: Dict[str, AlphaPreset] = {}
+        self._presets: dict[str, AlphaPreset] = {}
         if presets:
             for p in presets:
                 self.add(p)
@@ -68,9 +68,9 @@ class PresetLibrary:
         self._presets.pop(preset_id)
 
     # Serialization helpers
-    def to_dict(self) -> Dict[str, Dict[str, float | str]]:
+    def to_dict(self) -> dict[str, dict[str, float | str]]:
         # Ensure the nested dict contains the id key as well for round-trip
-        out: Dict[str, Dict[str, float | str]] = {}
+        out: dict[str, dict[str, float | str]] = {}
         for pid, p in self._presets.items():
             d = asdict(p)
             d["id"] = p.id
@@ -78,7 +78,7 @@ class PresetLibrary:
         return out
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Dict[str, float | str]]) -> "PresetLibrary":
+    def from_dict(cls, data: dict[str, dict[str, float | str]]) -> PresetLibrary:
         presets = [
             AlphaPreset(
                 id=k,
@@ -95,7 +95,7 @@ class PresetLibrary:
         Path(path).write_text(yaml.safe_dump(self.to_dict()))
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> "PresetLibrary":
+    def from_yaml(cls, path: str | Path) -> PresetLibrary:
         data = yaml.safe_load(Path(path).read_text()) or {}
         return cls.from_dict(data)
 
@@ -103,7 +103,7 @@ class PresetLibrary:
         Path(path).write_text(json.dumps(self.to_dict()))
 
     @classmethod
-    def from_json(cls, path: str | Path) -> "PresetLibrary":
+    def from_json(cls, path: str | Path) -> PresetLibrary:
         data = json.loads(Path(path).read_text())
         return cls.from_dict(data)
 
@@ -120,17 +120,13 @@ class PresetLibrary:
         ids = [p.get("id") for p in data.values()]
         duplicate_ids = {id for id in ids if ids.count(id) > 1}
         if duplicate_ids:
-            raise ValueError(
-                f"Duplicate preset IDs found in input: {', '.join(duplicate_ids)}"
-            )
+            raise ValueError(f"Duplicate preset IDs found in input: {', '.join(duplicate_ids)}")
 
         # Validate that each preset.id matches its dictionary key
         for key, preset_data in data.items():
             preset_id = preset_data.get("id")
             if preset_id != key:
-                raise ValueError(
-                    f"Preset ID '{preset_id}' does not match its key '{key}'"
-                )
+                raise ValueError(f"Preset ID '{preset_id}' does not match its key '{key}'")
 
         self._presets = {}
         for p in data.values():
@@ -143,9 +139,7 @@ class PresetLibrary:
         for key, preset_data in data.items():
             preset_id = preset_data.get("id")
             if preset_id != key:
-                raise ValueError(
-                    f"Preset ID '{preset_id}' does not match its key '{key}'"
-                )
+                raise ValueError(f"Preset ID '{preset_id}' does not match its key '{key}'")
 
         self._presets = {}
         for p in data.values():
@@ -153,7 +147,7 @@ class PresetLibrary:
             self._presets[preset.id] = preset
 
     @property
-    def presets(self) -> Dict[str, AlphaPreset]:
+    def presets(self) -> dict[str, AlphaPreset]:
         return self._presets
 
 

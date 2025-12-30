@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import csv
 import sys
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Literal, Mapping, Sequence, cast
+from typing import Any, Literal, cast
 
 import yaml  # type: ignore[import-untyped]
 
@@ -21,7 +22,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
     data: dict[str, Any] = {}
 
     # Read CSV and convert
-    with open(csv_path, "r", encoding="utf-8") as f:
+    with open(csv_path, encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             param_name = row.get("Parameter", "")
@@ -79,9 +80,7 @@ def _load_calibration_overrides(path: str | Path) -> Mapping[str, Any]:
     return data
 
 
-def _coerce_calibration_setting(
-    value: Any, *, allowed: set[str], label: str
-) -> str | None:
+def _coerce_calibration_setting(value: Any, *, allowed: set[str], label: str) -> str | None:
     if value is None:
         return None
     value_str = str(value)
@@ -97,9 +96,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="Run simulation")
     sub.add_parser("validate", help="Validate scenario YAML")
-    calibrate_parser = sub.add_parser(
-        "calibrate", help="Calibrate asset library from returns data"
-    )
+    calibrate_parser = sub.add_parser("calibrate", help="Calibrate asset library from returns data")
     calibrate_parser.add_argument(
         "--input", required=True, help="Input CSV/XLSX file with returns or prices"
     )
@@ -141,13 +138,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     )
 
     # Add convert subparser with arguments
-    convert_parser = sub.add_parser(
-        "convert", help="Convert legacy parameters CSV to YAML"
-    )
+    convert_parser = sub.add_parser("convert", help="Convert legacy parameters CSV to YAML")
     convert_parser.add_argument("csv", help="Input parameters CSV file")
-    convert_parser.add_argument(
-        "yaml", nargs="?", help="Output YAML file (default: <input>.yml)"
-    )
+    convert_parser.add_argument("yaml", nargs="?", help="Output YAML file (default: <input>.yml)")
 
     args, remaining = parser.parse_known_args(argv)
     if args.command == "run":

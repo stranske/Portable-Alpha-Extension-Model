@@ -31,9 +31,7 @@ class RiskMetrics:
 class RiskMetricsAgent:
     """Compute CVaR, drawdown and breach metrics from return paths."""
 
-    def __init__(
-        self, *, var_conf: float = 0.95, breach_threshold: float = -0.02
-    ) -> None:
+    def __init__(self, *, var_conf: float = 0.95, breach_threshold: float = -0.02) -> None:
         self.var_conf = var_conf
         self.breach_threshold = breach_threshold
 

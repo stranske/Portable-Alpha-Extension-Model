@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, TypeAlias
+from typing import Any, TypeAlias
 
 import numpy as np
 from numpy.typing import NDArray
@@ -16,7 +16,7 @@ class AgentParams:
     capital_mm: float
     beta_share: float
     alpha_share: float
-    extra_args: Dict[str, Any] | None = None
+    extra_args: dict[str, Any] | None = None
 
 
 class Agent:

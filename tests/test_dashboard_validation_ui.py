@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import pytest
 
@@ -20,7 +20,7 @@ class _FakeColumn(_FakeContext):
 
 
 class _FakeSidebar:
-    def __init__(self, checkbox_values: List[bool], calls: List[tuple[str, Any]]):
+    def __init__(self, checkbox_values: list[bool], calls: list[tuple[str, Any]]):
         self._checkbox_values = list(checkbox_values)
         self._calls = calls
 
@@ -35,8 +35,8 @@ class _FakeSidebar:
 
 
 class FakeStreamlit:
-    def __init__(self, checkbox_values: List[bool] | None = None):
-        self.calls: List[tuple[str, Any]] = []
+    def __init__(self, checkbox_values: list[bool] | None = None):
+        self.calls: list[tuple[str, Any]] = []
         self.sidebar = _FakeSidebar(checkbox_values or [], self.calls)
 
     def success(self, message: str) -> None:
@@ -54,7 +54,7 @@ class FakeStreamlit:
     def subheader(self, message: str) -> None:
         self.calls.append(("subheader", message))
 
-    def json(self, payload: Dict[str, Any]) -> None:
+    def json(self, payload: dict[str, Any]) -> None:
         self.calls.append(("json", payload))
 
     def write(self, *args: Any, **kwargs: Any) -> None:
@@ -65,7 +65,7 @@ class FakeStreamlit:
     ) -> None:  # noqa: A002
         self.calls.append(("metric", label))
 
-    def columns(self, count: int) -> List[_FakeColumn]:
+    def columns(self, count: int) -> list[_FakeColumn]:
         self.calls.append(("columns", count))
         return [_FakeColumn() for _ in range(count)]
 
@@ -118,21 +118,19 @@ def test_create_validation_sidebar_returns_values(
 def test_validate_scenario_config_filters_warnings(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def fake_validate_correlations(_: Dict[str, float]) -> List[ValidationResult]:
+    def fake_validate_correlations(_: dict[str, float]) -> list[ValidationResult]:
         return [ValidationResult(False, "bad", "error", {})]
 
-    seen_kwargs: Dict[str, Any] = {}
+    seen_kwargs: dict[str, Any] = {}
 
-    def fake_validate_capital_allocation(**kwargs: Any) -> List[ValidationResult]:
+    def fake_validate_capital_allocation(**kwargs: Any) -> list[ValidationResult]:
         seen_kwargs.update(kwargs)
         return [ValidationResult(True, "warn", "warning", {})]
 
-    def fake_validate_simulation_parameters(**_: Any) -> List[ValidationResult]:
+    def fake_validate_simulation_parameters(**_: Any) -> list[ValidationResult]:
         return [ValidationResult(True, "info", "info", {})]
 
-    monkeypatch.setattr(
-        validation_ui, "validate_correlations", fake_validate_correlations
-    )
+    monkeypatch.setattr(validation_ui, "validate_correlations", fake_validate_correlations)
     monkeypatch.setattr(
         validation_ui, "validate_capital_allocation", fake_validate_capital_allocation
     )
@@ -202,14 +200,10 @@ def test_create_margin_buffer_display_branches(fake_st: FakeStreamlit) -> None:
 def test_validation_status_indicator() -> None:
     assert validation_ui.validation_status_indicator([]) == "✅"
     assert (
-        validation_ui.validation_status_indicator(
-            [ValidationResult(False, "bad", "error", {})]
-        )
+        validation_ui.validation_status_indicator([ValidationResult(False, "bad", "error", {})])
         == "❌"
     )
     assert (
-        validation_ui.validation_status_indicator(
-            [ValidationResult(True, "warn", "warning", {})]
-        )
+        validation_ui.validation_status_indicator([ValidationResult(True, "warn", "warning", {})])
         == "⚠️"
     )

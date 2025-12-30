@@ -17,9 +17,7 @@ def test_asset_library_calibration(monkeypatch):
     module = runpy.run_path("dashboard/pages/1_Asset_Library.py", run_name="page")
     uploaded = Uploaded(Path("templates/asset_timeseries_wide_returns.csv"))
     st_mod = module["st"]
-    monkeypatch.setattr(
-        st_mod.sidebar, "text_input", lambda *a, **k: module["_DEF_THEME"]
-    )
+    monkeypatch.setattr(st_mod.sidebar, "text_input", lambda *a, **k: module["_DEF_THEME"])
     module["main"].__globals__["apply_theme"] = lambda *a, **k: None
     monkeypatch.setattr(st_mod, "title", lambda *a, **k: None)
 
@@ -66,9 +64,7 @@ def test_asset_library_calibration(monkeypatch):
     monkeypatch.setattr(st_mod, "download_button", fake_download)
     from pa_core.data import DataImportAgent as RealImporter
 
-    module["main"].__globals__["DataImportAgent"] = lambda *a, **k: RealImporter(
-        min_obs=1
-    )
+    module["main"].__globals__["DataImportAgent"] = lambda *a, **k: RealImporter(min_obs=1)
     module["main"]()
     assert "Download Asset Library YAML" in labels
     assert "Download Presets JSON" in labels

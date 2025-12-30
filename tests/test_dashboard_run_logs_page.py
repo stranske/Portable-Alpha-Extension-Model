@@ -96,9 +96,7 @@ def test_run_logs_no_run_ids(monkeypatch, tmp_path: Path) -> None:
     with pytest.raises(_StopCalled):
         runpy.run_path(str(_page_path()))
 
-    assert any(
-        call == ("info", "No run directories available.") for call in fake_st.calls
-    )
+    assert any(call == ("info", "No run directories available.") for call in fake_st.calls)
 
 
 def test_run_logs_with_log_and_manifest(monkeypatch, tmp_path: Path) -> None:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from importlib.metadata import entry_points
-from typing import Iterable, List, Type
 
 from ..config import ModelConfig
 from .active_ext import ActiveExtensionAgent
@@ -11,7 +11,7 @@ from .internal_beta import InternalBetaAgent
 from .internal_pa import InternalPAAgent
 from .types import Agent, AgentParams
 
-_AGENT_MAP: dict[str, Type[Agent]] = {
+_AGENT_MAP: dict[str, type[Agent]] = {
     "Base": BaseAgent,
     "ExternalPA": ExternalPAAgent,
     "ActiveExt": ActiveExtensionAgent,
@@ -20,7 +20,7 @@ _AGENT_MAP: dict[str, Type[Agent]] = {
 }
 
 
-def register_agent(name: str, cls: Type[Agent]) -> None:
+def register_agent(name: str, cls: type[Agent]) -> None:
     """Register ``cls`` under ``name`` for agent construction."""
     if name in _AGENT_MAP:
         raise KeyError(f"Agent already registered: {name}")
@@ -37,9 +37,9 @@ def load_plugins() -> None:
 load_plugins()
 
 
-def build_all(params_list: Iterable[AgentParams]) -> List[Agent]:
+def build_all(params_list: Iterable[AgentParams]) -> list[Agent]:
     """Instantiate agents from a list of AgentParams."""
-    agents: List[Agent] = []
+    agents: list[Agent] = []
     for p in params_list:
         cls = _AGENT_MAP.get(p.name)
         if cls is None:
@@ -48,13 +48,11 @@ def build_all(params_list: Iterable[AgentParams]) -> List[Agent]:
     return agents
 
 
-def build_from_config(cfg: ModelConfig) -> List[Agent]:
+def build_from_config(cfg: ModelConfig) -> list[Agent]:
     """Instantiate agents based on ``ModelConfig`` values."""
     total_cap = cfg.total_fund_capital
 
-    params: list[AgentParams] = [
-        AgentParams("Base", total_cap, cfg.w_beta_H, cfg.w_alpha_H, {})
-    ]
+    params: list[AgentParams] = [AgentParams("Base", total_cap, cfg.w_beta_H, cfg.w_alpha_H, {})]
 
     if cfg.external_pa_capital > 0:
         params.append(
@@ -90,16 +88,11 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
         )
 
     leftover_beta = (
-        total_cap
-        - cfg.external_pa_capital
-        - cfg.active_ext_capital
-        - cfg.internal_pa_capital
+        total_cap - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital
     )
     if leftover_beta > 0:
         params.append(
-            AgentParams(
-                "InternalBeta", leftover_beta, leftover_beta / total_cap, 0.0, {}
-            )
+            AgentParams("InternalBeta", leftover_beta, leftover_beta / total_cap, 0.0, {})
         )
 
     return build_all(params)

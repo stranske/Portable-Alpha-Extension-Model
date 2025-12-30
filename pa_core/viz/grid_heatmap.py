@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, List, Optional
+from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ def make(
     x: str = "AE_leverage",
     y: str = "ExtPA_frac",
     z: str = "Sharpe",
-    custom_fields: Optional[Iterable[str]] = None,
+    custom_fields: Iterable[str] | None = None,
 ) -> go.Figure:
     """Return 2-D heatmap from a parameter grid.
 
@@ -33,7 +33,7 @@ def make(
 
     # Attach optional customdata for richer hover templates
     if custom_fields:
-        stacks: List[np.ndarray] = []
+        stacks: list[np.ndarray] = []
         for field in custom_fields:
             if field in df_grid.columns:
                 piv = (

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Mapping, cast
+from collections.abc import Mapping
+from typing import cast
 
 import pandas as pd
 import plotly.graph_objects as go

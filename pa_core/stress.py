@@ -7,7 +7,8 @@ liquidity squeezes or volatility regime shifts.  Presets return a new
 
 from __future__ import annotations
 
-from typing import Callable, Mapping, cast
+from collections.abc import Callable, Mapping
+from typing import cast
 
 from .config import ModelConfig
 from .validators import VOLATILITY_STRESS_MULTIPLIER

@@ -3,7 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from collections.abc import Callable, Iterator
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -26,15 +27,13 @@ from .simulations import simulate_agents
 from .validators import select_vol_regime_sigma
 
 
-def progress_bar(
-    iterable: Any, total: Optional[int] = None, desc: Optional[str] = None
-) -> Any:
+def progress_bar(iterable: Any, total: int | None = None, desc: str | None = None) -> Any:
     if _HAS_TQDM:
         return _tqdm(iterable, total=total, desc=desc)  # type: ignore[name-defined]
     return iterable
 
 
-def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]]:
+def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[dict[str, Any]]:
     """Generate parameter combinations based on ``analysis_mode``."""
     if cfg.analysis_mode == "capital":
         for ext_pct in np.arange(
@@ -52,8 +51,7 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                 yield {
                     "external_pa_capital": (ext_pa_pct / 100) * cfg.total_fund_capital,
                     "active_ext_capital": (act_pct / 100) * cfg.total_fund_capital,
-                    "internal_pa_capital": (internal_pct / 100)
-                    * cfg.total_fund_capital,
+                    "internal_pa_capital": (internal_pct / 100) * cfg.total_fund_capital,
                 }
     elif cfg.analysis_mode == "returns":
         for mu_H in np.arange(
@@ -144,9 +142,9 @@ def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
     rng_returns: np.random.Generator,
-    fin_rngs: Dict[str, np.random.Generator],
-    progress: Optional[Callable[[int, int], None]] = None,
-) -> List[Dict[str, Any]]:
+    fin_rngs: dict[str, np.random.Generator],
+    progress: Callable[[int, int], None] | None = None,
+) -> list[dict[str, Any]]:
     """Run the parameter sweep and collect results.
 
     Parameters
@@ -155,7 +153,7 @@ def run_parameter_sweep(
         Optional callback accepting ``(current, total)`` to report progress. When
         ``None``, a ``tqdm`` progress bar is displayed.
     """
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     mu_idx = float(index_series.mean())
     idx_sigma, _, _ = select_vol_regime_sigma(
@@ -273,14 +271,14 @@ def run_parameter_sweep(
 # ---------------------------------------------------------------------------
 # Cached sweep and result helpers
 
-_SWEEP_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+_SWEEP_CACHE: dict[str, list[dict[str, Any]]] = {}
 
 
 def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str:
     """Return a hash key for caching parameter sweeps."""
     cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
     # Use getattr to avoid static checker complaining about pandas.util access
-    hash_fn = getattr(pd, "util").hash_pandas_object  # type: ignore[attr-defined]
+    hash_fn = pd.util.hash_pandas_object  # type: ignore[attr-defined]
     idx_hash = hashlib.sha256(hash_fn(index_series).values.tobytes()).hexdigest()
     return hashlib.sha256((cfg_json + idx_hash + str(seed)).encode()).hexdigest()
 
@@ -289,8 +287,8 @@ def run_parameter_sweep_cached(
     cfg: ModelConfig,
     index_series: pd.Series,
     seed: int,
-    progress: Optional[Callable[[int, int], None]] = None,
-) -> List[Dict[str, Any]]:
+    progress: Callable[[int, int], None] | None = None,
+) -> list[dict[str, Any]]:
     """Run ``run_parameter_sweep`` with simple in-memory caching.
 
     The cache key is derived from the configuration, index series and seed.
@@ -307,13 +305,13 @@ def run_parameter_sweep_cached(
     return _SWEEP_CACHE[key]
 
 
-def sweep_results_to_dataframe(results: List[Dict[str, Any]]) -> pd.DataFrame:
+def sweep_results_to_dataframe(results: list[dict[str, Any]]) -> pd.DataFrame:
     """Flatten sweep results into a single DataFrame.
 
     Each combination's summary metrics are combined with its parameters and
     identifier to form one row per agent and parameter combination.
     """
-    frames: List[pd.DataFrame] = []
+    frames: list[pd.DataFrame] = []
     for res in results:
         summary = res["summary"].copy()
         for key, val in res["parameters"].items():

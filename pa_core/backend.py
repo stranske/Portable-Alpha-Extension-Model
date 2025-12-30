@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import importlib
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .config import ModelConfig
@@ -36,9 +36,7 @@ def get_backend() -> str:
     return "cupy" if xp.__name__.startswith("cupy") else "numpy"
 
 
-def resolve_and_set_backend(
-    cli_backend: Optional[str], config: Optional["ModelConfig"] = None
-) -> str:
+def resolve_and_set_backend(cli_backend: str | None, config: ModelConfig | None = None) -> str:
     """Resolve backend choice from CLI args and config, then set it.
 
     Args:

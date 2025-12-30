@@ -120,7 +120,7 @@ try:
     import sys as _sys
 
     if "pytest" in _sys.modules:
-        setattr(_builtins, "save_history", save_history)
+        _builtins.save_history = save_history
 except Exception:
     # Non-fatal; ignore if environment doesn't allow this registration
     pass

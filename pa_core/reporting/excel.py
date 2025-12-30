@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 import io
 import os
-from typing import Any, Dict, cast
+from typing import Any, cast
 
 import openpyxl
 import pandas as pd
@@ -21,9 +21,9 @@ _ONE_PX_PNG = base64.b64decode(
 
 
 def export_to_excel(
-    inputs_dict: Dict[str, Any],
+    inputs_dict: dict[str, Any],
     summary_df: pd.DataFrame,
-    raw_returns_dict: Dict[str, Any],
+    raw_returns_dict: dict[str, Any],
     filename: str = "Outputs.xlsx",
     *,
     pivot: bool = False,
@@ -57,16 +57,12 @@ def export_to_excel(
         )
         df_inputs.to_excel(writer, sheet_name="Inputs", index=False)
         summary_df = summary_df.copy()
-        summary_df["ShortfallProb"] = summary_df.get(
-            "ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
-        )
+        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         # Optional: Sensitivity sheet if provided
         sens_maybe = inputs_dict.get("_sensitivity_df")
-        sens_df: pd.DataFrame | None = (
-            sens_maybe if isinstance(sens_maybe, pd.DataFrame) else None
-        )
+        sens_df: pd.DataFrame | None = sens_maybe if isinstance(sens_maybe, pd.DataFrame) else None
         if sens_df is not None and not sens_df.empty:
             # Write a concise view
             cols = [
@@ -118,8 +114,7 @@ def export_to_excel(
             continue
         for column_cells in ws.columns:
             max_len = max(
-                len(str(cell.value)) if cell.value is not None else 0
-                for cell in column_cells
+                len(str(cell.value)) if cell.value is not None else 0 for cell in column_cells
             )
             col_idx = cast(int, column_cells[0].column)
             ws.column_dimensions[get_column_letter(col_idx)].width = max_len + 2
@@ -137,9 +132,7 @@ def export_to_excel(
                     cell.number_format = "0.00%"
 
         try:
-            img_bytes = risk_return.make(summary_df).to_image(
-                format="png", engine="kaleido"
-            )
+            img_bytes = risk_return.make(summary_df).to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
@@ -178,9 +171,7 @@ def export_to_excel(
 
     # Optional: write Attribution sheet if provided in inputs_dict
     attr_maybe = inputs_dict.get("_attribution_df")
-    attr_df: pd.DataFrame | None = (
-        attr_maybe if isinstance(attr_maybe, pd.DataFrame) else None
-    )
+    attr_df: pd.DataFrame | None = attr_maybe if isinstance(attr_maybe, pd.DataFrame) else None
     if attr_df is not None and not attr_df.empty:
         try:
             with pd.ExcelWriter(
@@ -188,9 +179,7 @@ def export_to_excel(
             ) as writer:
                 cols = [c for c in ["Agent", "Sub", "Return"] if c in attr_df.columns]
                 if cols:
-                    attr_df[cols].to_excel(
-                        writer, sheet_name="Attribution", index=False
-                    )
+                    attr_df[cols].to_excel(writer, sheet_name="Attribution", index=False)
         except Exception:
             pass
 
@@ -215,9 +204,7 @@ def export_to_excel(
 
     # Optional: write RiskAttribution sheet if provided
     risk_maybe = inputs_dict.get("_risk_attr_df")
-    risk_df: pd.DataFrame | None = (
-        risk_maybe if isinstance(risk_maybe, pd.DataFrame) else None
-    )
+    risk_df: pd.DataFrame | None = risk_maybe if isinstance(risk_maybe, pd.DataFrame) else None
     if risk_df is not None and not risk_df.empty:
         try:
             with pd.ExcelWriter(
@@ -236,9 +223,7 @@ def export_to_excel(
                     if c in risk_df.columns
                 ]
                 if cols:
-                    risk_df[cols].to_excel(
-                        writer, sheet_name="RiskAttribution", index=False
-                    )
+                    risk_df[cols].to_excel(writer, sheet_name="RiskAttribution", index=False)
         except Exception:
             pass
 
@@ -246,9 +231,7 @@ def export_to_excel(
 
     # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
     trade_maybe = inputs_dict.get("_tradeoff_df")
-    trade_df: pd.DataFrame | None = (
-        trade_maybe if isinstance(trade_maybe, pd.DataFrame) else None
-    )
+    trade_df: pd.DataFrame | None = trade_maybe if isinstance(trade_maybe, pd.DataFrame) else None
     if trade_df is not None and not trade_df.empty:
         try:
             with pd.ExcelWriter(

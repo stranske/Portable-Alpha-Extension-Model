@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -33,8 +31,8 @@ purposes in rolling quantile band plots.
 
 
 def make(
-    df_paths: Union[pd.DataFrame, np.ndarray],
-    quantiles: Tuple[float, float] = (DEFAULT_LOWER_QUANTILE, DEFAULT_UPPER_QUANTILE),
+    df_paths: pd.DataFrame | np.ndarray,
+    quantiles: tuple[float, float] = (DEFAULT_LOWER_QUANTILE, DEFAULT_UPPER_QUANTILE),
     window: int = 12,
 ) -> go.Figure:
     """Return rolling quantile band over the median path."""
@@ -46,14 +44,8 @@ def make(
     roll_high = pd.Series(median).rolling(window, min_periods=1).quantile(q_high)
     months = np.arange(arr.shape[1])
     fig = go.Figure(layout_template=theme.TEMPLATE)
-    fig.add_trace(
-        go.Scatter(x=months, y=roll_high, line=dict(width=0), showlegend=False)
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=months, y=roll_low, fill="tonexty", line=dict(width=0), name="Band"
-        )
-    )
+    fig.add_trace(go.Scatter(x=months, y=roll_high, line=dict(width=0), showlegend=False))
+    fig.add_trace(go.Scatter(x=months, y=roll_low, fill="tonexty", line=dict(width=0), name="Band"))
     fig.add_trace(go.Scatter(x=months, y=median, mode="lines", name="Median"))
     fig.update_layout(xaxis_title="Month", yaxis_title="Cumulative Return")
     return fig

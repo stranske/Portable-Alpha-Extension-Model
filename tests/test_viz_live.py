@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Any, List
+from typing import Any
 
 import plotly.graph_objects as go
 import pytest
@@ -11,16 +11,16 @@ from pa_core.viz import live
 
 
 class _FakeWebSocket:
-    def __init__(self, messages: List[str]) -> None:
+    def __init__(self, messages: list[str]) -> None:
         self._messages = iter(messages)
 
-    async def __aenter__(self) -> "_FakeWebSocket":
+    async def __aenter__(self) -> _FakeWebSocket:
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> bool:
         return False
 
-    def __aiter__(self) -> "_FakeWebSocket":
+    def __aiter__(self) -> _FakeWebSocket:
         return self
 
     async def __anext__(self) -> str:
@@ -31,7 +31,7 @@ class _FakeWebSocket:
 
 
 class _FakeWebsockets:
-    def __init__(self, messages: List[str]) -> None:
+    def __init__(self, messages: list[str]) -> None:
         self._messages = messages
         self.connected_url: str | None = None
 
