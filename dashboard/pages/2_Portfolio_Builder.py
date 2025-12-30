@@ -8,6 +8,7 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.utils import normalize_share
 from pa_core.portfolio.aggregator import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
@@ -23,8 +24,8 @@ def main() -> None:
     if "promoted_alpha_shares" in st.session_state:
         try:
             vals = st.session_state["promoted_alpha_shares"]
-            promoted_active_share = float(vals["active_share"])
-            promoted_theta = float(vals["theta_extpa"])
+            promoted_active_share = normalize_share(float(vals["active_share"]))
+            promoted_theta = normalize_share(float(vals["theta_extpa"]))
         except (TypeError, ValueError, KeyError):
             promoted_active_share = None
             promoted_theta = None

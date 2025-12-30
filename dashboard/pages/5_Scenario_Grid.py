@@ -316,7 +316,7 @@ def main() -> None:
                         else float(sel_y)
                     )
                     st.session_state["promoted_alpha_shares"] = {
-                        "active_share": float(sel_x),
+                        "active_share": float(sel_x) / 100.0,
                         "theta_extpa": theta_val,
                     }
                     st.info(
@@ -351,7 +351,7 @@ def main() -> None:
                         st.warning("Please select both axes values before promoting.")
                         return
                     st.session_state["promoted_alpha_shares"] = {
-                        "active_share": float(sel_x),
+                        "active_share": float(sel_x) / 100.0,
                         "theta_extpa": (
                             float(sel_y)
                             if y_col != "external_pa_dollars_mm"
