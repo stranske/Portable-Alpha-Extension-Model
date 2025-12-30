@@ -337,6 +337,12 @@ def main(
         help="Suggest feasible sleeve allocations before running",
     )
     parser.add_argument(
+        "--suggest-apply-index",
+        type=int,
+        default=None,
+        help="Auto-apply a suggested sleeve row index without prompting",
+    )
+    parser.add_argument(
         "--tradeoff-table",
         action="store_true",
         help="Compute sleeve trade-off table and include in Excel/packet",
@@ -566,18 +572,27 @@ def main(
             print("No feasible sleeve allocations found.")
             return
         print(suggestions.to_string(index=True))
-        choice = input(
-            "Select row index to apply and continue (blank to abort): "
-        ).strip()
-        if not choice:
-            print("Aborting run.")
-            return
-        try:
-            idx_sel = int(choice)
-            row = suggestions.iloc[idx_sel]
-        except (ValueError, IndexError):
+        idx_sel = args.suggest_apply_index
+        if idx_sel is None:
+            try:
+                choice = input(
+                    "Select row index to apply and continue (blank to abort): "
+                ).strip()
+            except EOFError:
+                print("No selection provided. Aborting run.")
+                return
+            if not choice:
+                print("Aborting run.")
+                return
+            try:
+                idx_sel = int(choice)
+            except ValueError:
+                print("Invalid selection. Aborting run.")
+                return
+        if idx_sel < 0 or idx_sel >= len(suggestions):
             print("Invalid selection. Aborting run.")
             return
+        row = suggestions.iloc[idx_sel]
         cfg = cfg.model_copy(
             update={
                 # Direct float conversion for clarity and efficiency

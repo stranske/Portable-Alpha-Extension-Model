@@ -151,6 +151,7 @@ Use these flags to enable committee-ready packets, sensitivity tornado charts, a
 | `--packet` | Generate a PPTX + Excel packet with embedded figures | off |
 | `--sensitivity` | Run one-factor sensitivity and include a tornado chart in packet/Excel | off |
 | `--suggest-sleeves` | Run constraint-aware sleeve suggestion before simulation | off |
+| `--suggest-apply-index` | Auto-apply a suggested row index without prompting | none |
 | `--tradeoff-table` | Export a ranked sleeve trade-off table | off |
 | `--tradeoff-top` | Top-N rows to include in trade-off table | `10` |
 | `--tradeoff-sort` | Column to sort trade-offs by (e.g., `risk_score`) | `risk_score` |

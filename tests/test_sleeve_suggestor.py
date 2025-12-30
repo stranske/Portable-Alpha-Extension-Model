@@ -84,6 +84,41 @@ def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
     assert out_file.exists()
 
 
+def test_cli_sleeve_suggestion_auto_apply(tmp_path, monkeypatch):
+    cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    def _fail_input(*_args):
+        raise AssertionError("input should not be called")
+
+    monkeypatch.setattr("builtins.input", _fail_input)
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--suggest-sleeves",
+            "--suggest-apply-index",
+            "0",
+            "--max-te",
+            "0.02",
+            "--max-breach",
+            "0.5",
+            "--max-cvar",
+            "0.05",
+            "--sleeve-step",
+            "0.5",
+        ]
+    )
+    assert out_file.exists()
+
+
 def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
     cfg = load_config("examples/scenarios/test_params.yml")
     cfg = cfg.model_copy(update={"N_SIMULATIONS": 2, "N_MONTHS": 2})
