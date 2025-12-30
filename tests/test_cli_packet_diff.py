@@ -63,9 +63,7 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
     viz_stub.risk_return = types.SimpleNamespace(make=lambda _df: object())
     viz_stub.sharpe_ladder = types.SimpleNamespace(make=lambda _df: object())
     monkeypatch.setitem(sys.modules, "pa_core.viz", viz_stub)
-    monkeypatch.setattr(
-        "pa_core.sweep.run_parameter_sweep", _stub_run_parameter_sweep
-    )
+    monkeypatch.setattr("pa_core.sweep.run_parameter_sweep", _stub_run_parameter_sweep)
     monkeypatch.setattr(
         "pa_core.reporting.sweep_excel.export_sweep_results",
         _stub_export_sweep_results,
