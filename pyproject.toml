@@ -1,12 +1,12 @@
 [tool.ruff]
-line-length = 88
+line-length = 100
 extend-exclude = ["archive/*"]
 
 [tool.ruff.lint]
 extend-ignore = ["E501"]
 
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
@@ -28,7 +28,7 @@ extend-exclude = '''
 [tool.isort]
 profile = "black"
 multi_line_output = 3
-line_length = 88
+line_length = 100
 known_first_party = ["pa_core", "dashboard"]
 
 [tool.mypy]
