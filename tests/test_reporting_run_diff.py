@@ -25,6 +25,9 @@ def test_build_run_diff_config_and_metrics() -> None:
     b_row = cfg_diff[cfg_diff["Parameter"] == "b"].iloc[0]
     assert b_row["Current"] == 2
     assert b_row["Previous"] == 1
+    assert b_row["Delta"] == pytest.approx(1.0)
+    c_row = cfg_diff[cfg_diff["Parameter"] == "c"].iloc[0]
+    assert c_row["Delta"] == ""
 
     assert set(metric_diff["Metric"]) == {"AnnReturn", "AnnVol"}
     ann_return = metric_diff[metric_diff["Metric"] == "AnnReturn"].iloc[0]

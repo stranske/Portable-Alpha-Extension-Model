@@ -39,6 +39,9 @@ def build_run_diff(
         DataFrames representing config diffs and metric deltas.
     """
 
+    def _is_numeric(value: Any) -> bool:
+        return pdt.is_number(value) and not isinstance(value, bool)
+
     cfg_cur = current_manifest.get("config", {}) if current_manifest else {}
     cfg_prev = previous_manifest.get("config", {}) if previous_manifest else {}
 
@@ -47,8 +50,19 @@ def build_run_diff(
         cur_val = cfg_cur.get(key)
         prev_val = cfg_prev.get(key)
         if cur_val != prev_val:
+            delta: float | str = ""
+            if _is_numeric(cur_val) and _is_numeric(prev_val):
+                try:
+                    delta = float(cur_val) - float(prev_val)
+                except (TypeError, ValueError):
+                    delta = ""
             config_records.append(
-                {"Parameter": key, "Current": cur_val, "Previous": prev_val}
+                {
+                    "Parameter": key,
+                    "Current": cur_val,
+                    "Previous": prev_val,
+                    "Delta": delta,
+                }
             )
     cfg_diff_df = pd.DataFrame(config_records)
 
