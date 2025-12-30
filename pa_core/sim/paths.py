@@ -19,6 +19,62 @@ __all__ = [
 ]
 
 
+_VALID_RETURN_DISTS = {"normal", "student_t"}
+_VALID_RETURN_COPULAS = {"gaussian", "t"}
+
+
+def _validate_return_draw_settings(
+    distribution: str, copula: str, t_df: float
+) -> None:
+    if distribution not in _VALID_RETURN_DISTS:
+        raise ValueError(f"return_distribution must be one of: {sorted(_VALID_RETURN_DISTS)}")
+    if copula not in _VALID_RETURN_COPULAS:
+        raise ValueError(f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}")
+    if distribution == "normal" and copula != "gaussian":
+        raise ValueError("return_copula must be 'gaussian' when return_distribution is 'normal'")
+    if distribution == "student_t" and t_df <= 2.0:
+        raise ValueError("return_t_df must be greater than 2 for finite variance")
+
+
+def _safe_multivariate_normal(
+    rng: Generator,
+    mean: npt.NDArray[Any],
+    cov: npt.NDArray[Any],
+    size: tuple[int, int],
+) -> npt.NDArray[Any]:
+    try:
+        return rng.multivariate_normal(mean=mean, cov=cov, size=size)
+    except np.linalg.LinAlgError:
+        return rng.multivariate_normal(
+            mean=mean,
+            cov=cov + np.eye(len(mean)) * NUMERICAL_STABILITY_EPSILON,
+            size=size,
+        )
+
+
+def _draw_student_t(
+    *,
+    rng: Generator,
+    mean: npt.NDArray[Any],
+    sigma: npt.NDArray[Any],
+    corr: npt.NDArray[Any],
+    size: tuple[int, int],
+    df: float,
+    copula: str,
+) -> npt.NDArray[Any]:
+    n_dim = mean.size
+    z = _safe_multivariate_normal(rng, np.zeros(n_dim), corr, size)
+    scale = np.sqrt((df - 2.0) / df)
+    if copula == "t":
+        chi = rng.chisquare(df, size=size)
+        denom = np.sqrt(chi / df)[..., None]
+    else:
+        chi = rng.chisquare(df, size=(*size, n_dim))
+        denom = np.sqrt(chi / df)
+    shocks = z * (scale / denom)
+    return mean + shocks * sigma
+
+
 def simulate_financing(
     T: int,
     financing_mean: float,
@@ -55,6 +111,9 @@ def prepare_mc_universe(
     mu_E: float,
     mu_M: float,
     cov_mat: npt.NDArray[Any],
+    return_distribution: str = "normal",
+    return_t_df: float = 5.0,
+    return_copula: str = "gaussian",
     seed: Optional[int] = None,
     rng: Optional[Generator] = None,
 ) -> npt.NDArray[Any]:
@@ -66,17 +125,28 @@ def prepare_mc_universe(
     if rng is None:
         rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
+    _validate_return_draw_settings(return_distribution, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
     cov = cov_mat / 12.0
-    try:
-        sims = rng.multivariate_normal(
-            mean=mean, cov=cov, size=(N_SIMULATIONS, N_MONTHS)
+    if return_distribution == "normal":
+        sims = _safe_multivariate_normal(rng, mean, cov, (N_SIMULATIONS, N_MONTHS))
+    else:
+        sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+        denom = np.outer(sigma, sigma)
+        corr = np.divide(
+            cov,
+            denom,
+            out=np.eye(cov.shape[0]),
+            where=denom != 0.0,
         )
-    except np.linalg.LinAlgError:
-        sims = rng.multivariate_normal(
+        sims = _draw_student_t(
+            rng=rng,
             mean=mean,
-            cov=cov + np.eye(4) * NUMERICAL_STABILITY_EPSILON,
+            sigma=sigma,
+            corr=corr,
             size=(N_SIMULATIONS, N_MONTHS),
+            df=return_t_df,
+            copula=return_copula,
         )
     return sims
 
@@ -93,6 +163,10 @@ def draw_joint_returns(
         rng = spawn_rngs(None, 1)[0]
     assert rng is not None
     assert rng is not None
+    distribution = params.get("return_distribution", "normal")
+    copula = params.get("return_copula", "gaussian")
+    t_df = float(params.get("return_t_df", 5.0))
+    _validate_return_draw_settings(distribution, copula, t_df)
     μ_idx = params["mu_idx_month"]
     μ_H = params["default_mu_H"]
     μ_E = params["default_mu_E"]
@@ -107,21 +181,29 @@ def draw_joint_returns(
     ρ_H_E = params["rho_H_E"]
     ρ_H_M = params["rho_H_M"]
     ρ_E_M = params["rho_E_M"]
-    Σ = np.array(
+    corr = np.array(
         [
-            [
-                σ_idx**2,
-                ρ_idx_H * σ_idx * σ_H,
-                ρ_idx_E * σ_idx * σ_E,
-                ρ_idx_M * σ_idx * σ_M,
-            ],
-            [ρ_idx_H * σ_idx * σ_H, σ_H**2, ρ_H_E * σ_H * σ_E, ρ_H_M * σ_H * σ_M],
-            [ρ_idx_E * σ_idx * σ_E, ρ_H_E * σ_H * σ_E, σ_E**2, ρ_E_M * σ_E * σ_M],
-            [ρ_idx_M * σ_idx * σ_M, ρ_H_M * σ_H * σ_M, ρ_E_M * σ_E * σ_M, σ_M**2],
+            [1.0, ρ_idx_H, ρ_idx_E, ρ_idx_M],
+            [ρ_idx_H, 1.0, ρ_H_E, ρ_H_M],
+            [ρ_idx_E, ρ_H_E, 1.0, ρ_E_M],
+            [ρ_idx_M, ρ_H_M, ρ_E_M, 1.0],
         ]
     )
     μ = np.array([μ_idx, μ_H, μ_E, μ_M])
-    sims = rng.multivariate_normal(mean=μ, cov=Σ, size=(n_sim, n_months))
+    σ = np.array([σ_idx, σ_H, σ_E, σ_M])
+    if distribution == "normal":
+        Σ = corr * (σ[:, None] * σ[None, :])
+        sims = _safe_multivariate_normal(rng, μ, Σ, (n_sim, n_months))
+    else:
+        sims = _draw_student_t(
+            rng=rng,
+            mean=μ,
+            sigma=σ,
+            corr=corr,
+            size=(n_sim, n_months),
+            df=t_df,
+            copula=copula,
+        )
     r_beta = sims[:, :, 0]
     r_H = sims[:, :, 1]
     r_E = sims[:, :, 2]

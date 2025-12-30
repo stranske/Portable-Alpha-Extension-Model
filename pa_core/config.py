@@ -56,6 +56,12 @@ class ModelConfig(BaseModel):
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
 
+    return_distribution: str = Field(
+        default="normal", alias="Return distribution"
+    )
+    return_t_df: float = Field(default=5.0, alias="Student-t df")
+    return_copula: str = Field(default="gaussian", alias="Return copula")
+
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
     active_ext_capital: float = Field(
         default=0.0, alias="Active Extension capital (mm)"
@@ -207,6 +213,24 @@ class ModelConfig(BaseModel):
 
         if "ShortfallProb" not in self.risk_metrics:
             raise ConfigError("risk_metrics must include ShortfallProb")
+        return self
+
+    @model_validator(mode="after")
+    def check_return_distribution(self) -> "ModelConfig":
+        valid_distributions = {"normal", "student_t"}
+        valid_copulas = {"gaussian", "t"}
+        if self.return_distribution not in valid_distributions:
+            raise ValueError(
+                f"return_distribution must be one of: {sorted(valid_distributions)}"
+            )
+        if self.return_copula not in valid_copulas:
+            raise ValueError(f"return_copula must be one of: {sorted(valid_copulas)}")
+        if self.return_distribution == "normal" and self.return_copula != "gaussian":
+            raise ValueError(
+                "return_copula must be 'gaussian' when return_distribution is 'normal'"
+            )
+        if self.return_distribution == "student_t" and self.return_t_df <= 2.0:
+            raise ValueError("return_t_df must be greater than 2 for finite variance")
         return self
 
     @model_validator(mode="after")
