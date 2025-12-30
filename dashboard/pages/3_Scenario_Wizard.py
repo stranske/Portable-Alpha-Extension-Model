@@ -552,7 +552,9 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
     if st.button("Run Suggestor"):
         yaml_dict = _build_yaml_from_config(config)
         cfg = load_config(yaml_dict)
-        idx_path = Path(__file__).resolve().parents[2] / "data" / "sp500tr_fred_divyield.csv"
+        idx_path = (
+            Path(__file__).resolve().parents[2] / "data" / "sp500tr_fred_divyield.csv"
+        )
         if not idx_path.exists():
             st.error(f"Default index file missing: {idx_path}")
             return
