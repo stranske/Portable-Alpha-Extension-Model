@@ -472,8 +472,8 @@ def main(
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
-    from .viz.utils import safe_to_numpy
     from .validators import select_vol_regime_sigma
+    from .viz.utils import safe_to_numpy
 
     # Initialize dependencies - use provided deps for testing or create default
     if deps is None:
