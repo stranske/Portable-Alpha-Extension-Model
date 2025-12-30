@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import logging
@@ -48,3 +49,28 @@ def test_manifest_includes_backend_and_optional_run_log(tmp_path: Path):
     obj = json.loads(out.read_text())
     assert obj.get("backend") == "numpy"
     assert obj.get("run_log", "").endswith("run.log")
+
+
+def test_manifest_records_previous_run_hash(tmp_path: Path) -> None:
+    cfg = tmp_path / "cfg.yml"
+    cfg.write_text("a: 1\n")
+    data = tmp_path / "data.csv"
+    data.write_text("x\n1\n")
+    prev = tmp_path / "prev_manifest.json"
+    prev.write_text('{"ok": true}\n')
+    out = tmp_path / "manifest.json"
+
+    expected_hash = hashlib.sha256(prev.read_bytes()).hexdigest()
+
+    mw = ManifestWriter(out)
+    mw.write(
+        config_path=cfg,
+        data_files=[data],
+        seed=7,
+        cli_args={"output": "foo.xlsx"},
+        previous_run=str(prev),
+    )
+
+    obj = json.loads(out.read_text())
+    assert obj.get("previous_run") == str(prev)
+    assert obj.get("previous_run_hash") == expected_hash

@@ -22,6 +22,7 @@ class Manifest:
     backend: str | None = None
     run_log: str | None = None
     previous_run: str | None = None
+    previous_run_hash: str | None = None
 
 
 class ManifestWriter:
@@ -61,6 +62,11 @@ class ManifestWriter:
         hashes = {
             str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()
         }
+        previous_run_hash = None
+        if previous_run:
+            prev_path = Path(previous_run)
+            if prev_path.exists():
+                previous_run_hash = self._hash_file(prev_path)
         manifest = Manifest(
             git_commit=commit,
             timestamp=datetime.now(timezone.utc).isoformat(),
@@ -71,5 +77,6 @@ class ManifestWriter:
             backend=backend,
             run_log=str(run_log) if run_log else None,
             previous_run=previous_run,
+            previous_run_hash=previous_run_hash,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))
