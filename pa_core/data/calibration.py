@@ -8,13 +8,7 @@ import numpy as np
 import pandas as pd
 import yaml  # type: ignore[import-untyped]
 
-from ..schema import (
-    CORRELATION_LOWER_BOUND,
-    CORRELATION_UPPER_BOUND,
-    Asset,
-    Correlation,
-    Index,
-)
+from ..schema import Asset, Correlation, Index
 
 MONTHS_PER_YEAR = 12
 VOLATILITY_ANNUALIZATION_FACTOR = MONTHS_PER_YEAR**0.5
@@ -105,12 +99,14 @@ class CalibrationAgent:
             denom = np.outer(sds, sds)
             with np.errstate(divide="ignore", invalid="ignore"):
                 corr_mat = np.where(denom > 0, cov / denom, 0.0)
-            corr = pd.DataFrame(corr_mat, index=pivot.columns, columns=pivot.columns)
+            corr = pd.DataFrame(
+                corr_mat, index=pivot.columns, columns=pivot.columns)
         else:
             grouped = df.groupby("id")["return"]
             mu = cast(pd.Series, grouped.mean()) * MONTHS_PER_YEAR
             base_sigma = (
-                cast(pd.Series, grouped.std(ddof=1)) * VOLATILITY_ANNUALIZATION_FACTOR
+                cast(pd.Series, grouped.std(ddof=1)) *
+                VOLATILITY_ANNUALIZATION_FACTOR
             )
             corr = pivot.corr()
             shrinkage = None
@@ -121,10 +117,12 @@ class CalibrationAgent:
         regime_window: int | None = None
         if self.vol_regime == "two_state":
             if self.vol_regime_window <= 1:
-                raise ValueError("vol_regime_window must be > 1 for two_state regime")
+                raise ValueError(
+                    "vol_regime_window must be > 1 for two_state regime")
             recent = pivot.tail(self.vol_regime_window)
             if not recent.empty:
-                recent_sigma = recent.std(ddof=1) * VOLATILITY_ANNUALIZATION_FACTOR
+                recent_sigma = recent.std(
+                    ddof=1) * VOLATILITY_ANNUALIZATION_FACTOR
                 for asset_id in base_sigma.index:
                     recent_val = float(recent_sigma.get(asset_id, np.nan))
                     base_val = float(base_sigma.get(asset_id, np.nan))
@@ -150,15 +148,11 @@ class CalibrationAgent:
         pairs: List[Correlation] = []
         ids = list(corr.columns)
         for i, a in enumerate(ids):
-            for b in ids[i + 1 :]:
-                rho = float(corr.loc[a, b])
-                if not np.isfinite(rho):
-                    rho = 0.0
-                else:
-                    rho = float(
-                        np.clip(rho, CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND)
-                    )
-                pairs.append(Correlation(pair=(a, b), rho=rho))
+            for b in ids[i + 1:]:
+                # Clamp correlation to valid bounds to handle perfect/near-perfect correlations
+                rho_raw = float(corr.loc[a, b])
+                rho_clamped = max(-0.999, min(0.999, rho_raw))
+                pairs.append(Correlation(pair=(a, b), rho=rho_clamped))
         diagnostics = CalibrationDiagnostics(
             covariance_shrinkage=self.covariance_shrinkage,
             shrinkage_intensity=shrinkage,

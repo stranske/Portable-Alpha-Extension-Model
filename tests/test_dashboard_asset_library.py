@@ -14,7 +14,8 @@ class Uploaded:
 
 
 def test_asset_library_calibration(monkeypatch):
-    module = runpy.run_path("dashboard/pages/1_Asset_Library.py", run_name="page")
+    module = runpy.run_path(
+        "dashboard/pages/1_Asset_Library.py", run_name="page")
     uploaded = Uploaded(Path("templates/asset_timeseries_wide_returns.csv"))
     st_mod = module["st"]
     monkeypatch.setattr(
@@ -32,7 +33,8 @@ def test_asset_library_calibration(monkeypatch):
     monkeypatch.setattr(st_mod, "dataframe", lambda *a, **k: None)
     monkeypatch.setattr(st_mod, "json", lambda *a, **k: None)
 
-    selects = ["SP500_TR", ""]
+    # Provide enough values for all selectbox calls (cov_shrinkage, vol_regime, index_id, del_id)
+    selects = ["none", "single", "SP500_TR", ""]
     monkeypatch.setattr(st_mod, "selectbox", lambda *a, **k: selects.pop(0))
 
     buttons = [True, False]
