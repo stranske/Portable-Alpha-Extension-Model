@@ -1,16 +1,21 @@
+from __future__ import annotations
+
 from pathlib import Path
-from unittest.mock import Mock
 
-from dashboard import cli
+import dashboard.cli as dashboard_cli
 
 
-def test_cli_main_runs_streamlit(monkeypatch):
-    run_mock = Mock()
-    monkeypatch.setattr(cli.subprocess, "run", run_mock)
+def test_dashboard_cli_runs_streamlit(monkeypatch):
+    called = {}
 
-    cli.main()
+    def _fake_run(cmd, check):
+        called["cmd"] = cmd
+        called["check"] = check
 
-    expected_path = Path(cli.__file__).with_name("app.py")
-    run_mock.assert_called_once_with(
-        ["streamlit", "run", str(expected_path)], check=True
-    )
+    monkeypatch.setattr(dashboard_cli.subprocess, "run", _fake_run)
+
+    dashboard_cli.main()
+
+    expected_app = Path(dashboard_cli.__file__).with_name("app.py")
+    assert called["cmd"] == ["streamlit", "run", str(expected_app)]
+    assert called["check"] is True
