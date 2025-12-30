@@ -48,3 +48,45 @@ def test_manifest_written(tmp_path):
     assert manifest["config"]["N_SIMULATIONS"] == 1
     assert str(cfg_path) in manifest["data_files"]
     assert manifest["backend"] == "numpy"
+
+
+def test_manifest_records_previous_run(tmp_path):
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+
+    run1_dir = tmp_path / "run1"
+    run1_dir.mkdir()
+    out_file1 = run1_dir / "out.xlsx"
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file1),
+        ]
+    )
+    manifest1 = out_file1.with_name("manifest.json")
+    assert manifest1.exists()
+
+    run2_dir = tmp_path / "run2"
+    run2_dir.mkdir()
+    out_file2 = run2_dir / "out.xlsx"
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file2),
+            "--prev-manifest",
+            str(manifest1),
+        ]
+    )
+
+    manifest2 = json.loads(out_file2.with_name("manifest.json").read_text())
+    assert manifest2["previous_run"] == str(manifest1)
