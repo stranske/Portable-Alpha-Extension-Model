@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -54,3 +56,25 @@ def test_build_cov_matrix_invalid_rho() -> None:
             sigma_E=0.2,
             sigma_M=0.2,
         )
+
+
+def test_build_cov_matrix_ledoit_wolf_shrinkage() -> None:
+    params = dict(
+        rho_idx_H=0.5,
+        rho_idx_E=0.5,
+        rho_idx_M=0.5,
+        rho_H_E=0.5,
+        rho_H_M=-0.5,
+        rho_E_M=-0.5,
+        idx_sigma=0.2,
+        sigma_H=0.2,
+        sigma_E=0.2,
+        sigma_M=0.2,
+        covariance_shrinkage="ledoit_wolf",
+        n_samples=36,
+    )
+    with warnings.catch_warnings(record=True) as captured:
+        cov = build_cov_matrix(**params)
+    assert not any(issubclass(w.category, RuntimeWarning) for w in captured)
+    eigvals = np.linalg.eigvalsh(cov)
+    assert eigvals.min() >= -1e-8

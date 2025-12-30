@@ -32,7 +32,8 @@ def test_asset_library_calibration(monkeypatch):
     monkeypatch.setattr(st_mod, "dataframe", lambda *a, **k: None)
     monkeypatch.setattr(st_mod, "json", lambda *a, **k: None)
 
-    selects = ["SP500_TR", ""]
+    # Provide enough values for all selectbox calls (cov_shrinkage, vol_regime, index_id, del_id)
+    selects = ["none", "single", "SP500_TR", ""]
     monkeypatch.setattr(st_mod, "selectbox", lambda *a, **k: selects.pop(0))
 
     buttons = [True, False]

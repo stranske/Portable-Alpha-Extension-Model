@@ -1,1 +1,0 @@
-{"changed": true, "classification": {"total": 0, "new": 0, "allowed": 0}, "timestamp": "2025-12-30T06:55:12Z", "files": ["tests/test_cli_packet_diff.py"]}
