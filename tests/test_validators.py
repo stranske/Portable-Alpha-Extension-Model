@@ -12,6 +12,7 @@ from pa_core.validators import (
     calculate_margin_requirement,
     format_validation_messages,
     load_margin_schedule,
+    select_vol_regime_sigma,
     validate_capital_allocation,
     validate_correlations,
     validate_covariance_matrix_psd,
@@ -349,3 +350,35 @@ class TestValidationFormatting:
         assert "Details:" in message
         assert "param" in message
         assert "value" in message
+
+
+class TestVolRegimeSelection:
+    """Test volatility regime selection helper."""
+
+    def test_single_regime_uses_base_sigma(self) -> None:
+        values = np.array([0.01, 0.02, -0.01, 0.03])
+        sigma, state, window = select_vol_regime_sigma(
+            values,
+            regime="single",
+            window=12,
+        )
+        assert sigma == pytest.approx(float(np.std(values, ddof=1)))
+        assert state is None
+        assert window is None
+
+    def test_two_state_regime_tracks_recent_sigma(self) -> None:
+        values = np.array([0.01, 0.01, 0.01, 0.10, -0.10, 0.12])
+        sigma, state, window = select_vol_regime_sigma(
+            values,
+            regime="two_state",
+            window=3,
+        )
+        recent = values[-3:]
+        assert sigma == pytest.approx(float(np.std(recent, ddof=1)))
+        assert state in {"high", "low"}
+        assert window == 3
+
+    def test_two_state_invalid_window_raises(self) -> None:
+        values = np.array([0.01, 0.02, 0.03])
+        with pytest.raises(ValueError, match="vol_regime_window must be > 1"):
+            select_vol_regime_sigma(values, regime="two_state", window=1)

@@ -15,6 +15,29 @@ yaml: Any = pytest.importorskip("yaml")
 # ruff: noqa: E402
 
 
+def _ledoit_wolf_shrinkage_baseline(returns: np.ndarray) -> float:
+    n_samples, n_features = returns.shape
+    if n_samples <= 1 or n_features == 0:
+        return 0.0
+
+    centered = returns - returns.mean(axis=0, keepdims=True)
+    sample_cov = (centered.T @ centered) / n_samples
+
+    mu = np.trace(sample_cov) / n_features
+    target = mu * np.eye(n_features)
+    delta = sample_cov - target
+    delta_norm2 = float(np.sum(delta**2))
+    if delta_norm2 == 0.0:
+        return 0.0
+
+    squared = centered**2
+    beta_matrix = (squared.T @ squared) / n_samples - sample_cov**2
+    beta = float(np.sum(beta_matrix)) / n_samples
+    beta = min(beta, delta_norm2)
+
+    return float(beta / delta_norm2)
+
+
 def test_calibration_wide_csv() -> None:
     path = Path("templates/asset_timeseries_wide_returns.csv")
     importer = DataImportAgent(date_col="Date", min_obs=1)
@@ -105,6 +128,33 @@ def test_import_daily_prices_to_monthly_returns(tmp_path: Path) -> None:
     assert importer_csv.metadata["value_type"] == "prices"
 
 
+def test_import_daily_prices_monthly_rule_ms(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
+    prices = (1.01) ** np.arange(len(dates))
+    df = pd.DataFrame({"Date": dates, "A": prices})
+
+    path = tmp_path / "prices.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(
+        date_col="Date",
+        frequency="daily",
+        value_type="prices",
+        monthly_rule="MS",
+        min_obs=1,
+    )
+    out = importer.load(path)
+
+    expected = pd.DataFrame(
+        {
+            "id": ["A", "A"],
+            "date": pd.to_datetime(["2020-01-01", "2020-02-01"]),
+            "return": [(1.01**30) - 1, (1.01**28) - 1],
+        }
+    )
+    assert_frame_equal(out.reset_index(drop=True), expected)
+
+
 def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
     dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
     DAILY_RETURN = 0.001  # Fixed daily return of 0.1%
@@ -129,6 +179,39 @@ def test_import_daily_returns_to_monthly_returns(tmp_path: Path) -> None:
             "return": [
                 ((1 + DAILY_RETURN) ** jan_days) - 1,
                 ((1 + DAILY_RETURN) ** feb_days) - 1,
+            ],
+        }
+    )
+    assert_frame_equal(out.reset_index(drop=True), expected)
+
+
+def test_import_daily_returns_monthly_rule_ms(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-01", "2020-02-29", freq="D")
+    daily_return = 0.001
+    returns = pd.Series(daily_return, index=dates)
+    df = pd.DataFrame({"Date": dates, "A": returns.values})
+
+    path = tmp_path / "returns.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(
+        date_col="Date",
+        frequency="daily",
+        value_type="returns",
+        monthly_rule="MS",
+        min_obs=1,
+    )
+    out = importer.load(path)
+
+    jan_days = (dates.month == 1).sum()
+    feb_days = (dates.month == 2).sum()
+    expected = pd.DataFrame(
+        {
+            "id": ["A", "A"],
+            "date": pd.to_datetime(["2020-01-01", "2020-02-01"]),
+            "return": [
+                ((1 + daily_return) ** jan_days) - 1,
+                ((1 + daily_return) ** feb_days) - 1,
             ],
         }
     )
@@ -216,6 +299,33 @@ def test_calibration_ledoit_wolf_shrinkage_psd() -> None:
         corr_mat[i, j] = corr_mat[j, i] = corr.rho
     eigvals = np.linalg.eigvalsh(corr_mat)
     assert eigvals.min() >= -1e-10
+
+
+def test_calibration_ledoit_wolf_short_sample_boosts_shrinkage() -> None:
+    dates = pd.date_range("2020-01-31", periods=4, freq="ME")
+    rows = []
+    data = {
+        "IDX": [0.01, -0.02, 0.03, -0.01],
+        "A": [0.02, 0.00, -0.01, 0.03],
+        "B": [-0.01, 0.01, 0.02, -0.02],
+    }
+    for asset_id, values in data.items():
+        rows.extend(
+            {"id": asset_id, "date": date, "return": ret}
+            for date, ret in zip(dates, values, strict=True)
+        )
+    df = pd.DataFrame(rows)
+    pivot = df.pivot(index="date", columns="id", values="return")
+    baseline_shrinkage = _ledoit_wolf_shrinkage_baseline(pivot.to_numpy(dtype=float))
+
+    calib = CalibrationAgent(min_obs=1, covariance_shrinkage="ledoit_wolf")
+    result = calib.calibrate(df, index_id="IDX")
+    diag = result.diagnostics
+
+    assert diag is not None
+    assert diag.shrinkage_intensity is not None
+    if baseline_shrinkage < 0.999:
+        assert diag.shrinkage_intensity > baseline_shrinkage
 
 
 def test_calibration_two_state_vol_regime_high() -> None:

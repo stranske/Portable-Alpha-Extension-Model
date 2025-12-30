@@ -4,7 +4,7 @@ import argparse
 import csv
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Literal, Mapping, Sequence, cast
 
 import yaml  # type: ignore[import-untyped]
 
@@ -67,6 +67,29 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
     print(f"✓ Converted {csv_path} to {yaml_path}")
 
 
+def _load_calibration_overrides(path: str | Path) -> Mapping[str, Any]:
+    """Return calibration overrides from a mapping template, if present."""
+
+    data = yaml.safe_load(Path(path).read_text())
+    if not isinstance(data, dict):
+        return {}
+    calib = data.get("calibration")
+    if isinstance(calib, dict):
+        return calib
+    return data
+
+
+def _coerce_calibration_setting(
+    value: Any, *, allowed: set[str], label: str
+) -> str | None:
+    if value is None:
+        return None
+    value_str = str(value)
+    if value_str not in allowed:
+        raise ValueError(f"{label} must be one of {sorted(allowed)}")
+    return value_str
+
+
 def main(argv: Sequence[str] | None = None) -> None:
     if argv is None:
         argv = sys.argv[1:]
@@ -101,19 +124,19 @@ def main(argv: Sequence[str] | None = None) -> None:
     calibrate_parser.add_argument(
         "--cov-shrinkage",
         choices=["none", "ledoit_wolf"],
-        default="none",
+        default=None,
         help="Covariance shrinkage mode",
     )
     calibrate_parser.add_argument(
         "--vol-regime",
         choices=["single", "two_state"],
-        default="single",
+        default=None,
         help="Volatility regime selection",
     )
     calibrate_parser.add_argument(
         "--vol-regime-window",
         type=int,
-        default=12,
+        default=None,
         help="Recent window length (months) for two-state regime",
     )
 
@@ -138,16 +161,47 @@ def main(argv: Sequence[str] | None = None) -> None:
     elif args.command == "calibrate":
         from .data import CalibrationAgent, DataImportAgent
 
+        calibration_overrides: Mapping[str, Any] = {}
         if args.mapping:
             importer = DataImportAgent.from_template(args.mapping)
+            calibration_overrides = _load_calibration_overrides(args.mapping)
         else:
             importer = DataImportAgent(min_obs=int(args.min_obs))
+        cov_shrinkage = cast(
+            Literal["none", "ledoit_wolf"] | None,
+            _coerce_calibration_setting(
+                args.cov_shrinkage or calibration_overrides.get("covariance_shrinkage"),
+                allowed={"none", "ledoit_wolf"},
+                label="covariance_shrinkage",
+            ),
+        )
+        vol_regime = cast(
+            Literal["single", "two_state"] | None,
+            _coerce_calibration_setting(
+                args.vol_regime or calibration_overrides.get("vol_regime"),
+                allowed={"single", "two_state"},
+                label="vol_regime",
+            ),
+        )
+        vol_regime_window = (
+            args.vol_regime_window
+            if args.vol_regime_window is not None
+            else calibration_overrides.get("vol_regime_window")
+        )
+        if vol_regime_window is None:
+            vol_regime_window = 12
         df = importer.load(args.input)
+        cov_shrinkage_value: Literal["none", "ledoit_wolf"] = (
+            cov_shrinkage if cov_shrinkage is not None else "none"
+        )
+        vol_regime_value: Literal["single", "two_state"] = (
+            vol_regime if vol_regime is not None else "single"
+        )
         calib = CalibrationAgent(
             min_obs=importer.min_obs,
-            covariance_shrinkage=args.cov_shrinkage,
-            vol_regime=args.vol_regime,
-            vol_regime_window=int(args.vol_regime_window),
+            covariance_shrinkage=cov_shrinkage_value,
+            vol_regime=vol_regime_value,
+            vol_regime_window=int(vol_regime_window),
         )
         result = calib.calibrate(df, index_id=args.index_id)
         calib.to_yaml(result, args.output)

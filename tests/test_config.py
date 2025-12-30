@@ -92,3 +92,19 @@ def test_csv_to_yaml_conversion(tmp_path):
     convert(csv_path, out_yaml)
     cfg = load_config(out_yaml)
     assert isinstance(cfg, ModelConfig)
+
+
+def test_load_config_with_covariance_options(tmp_path):
+    data = {
+        "N_SIMULATIONS": 1000,
+        "N_MONTHS": 6,
+        "covariance_shrinkage": "ledoit_wolf",
+        "vol_regime": "two_state",
+        "vol_regime_window": 6,
+    }
+    path = tmp_path / "conf.yaml"
+    path.write_text(yaml.safe_dump(data))
+    cfg = load_config(path)
+    assert cfg.covariance_shrinkage == "ledoit_wolf"
+    assert cfg.vol_regime == "two_state"
+    assert cfg.vol_regime_window == 6

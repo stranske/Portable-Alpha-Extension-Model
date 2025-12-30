@@ -25,6 +25,7 @@ class DataImportAgent:
         wide: bool = True,
         value_type: Literal["returns", "prices"] = "returns",
         frequency: Literal["monthly", "daily"] = "monthly",
+        monthly_rule: Literal["ME", "MS"] = "ME",
         min_obs: int = 36,
         # Optional I/O parsing controls
         sheet_name: str | int | None = None,
@@ -38,6 +39,9 @@ class DataImportAgent:
         self.wide = wide
         self.value_type = value_type
         self.frequency = frequency
+        if monthly_rule not in {"ME", "MS"}:
+            raise ValueError("monthly_rule must be 'ME' or 'MS'")
+        self.monthly_rule = monthly_rule
         self.min_obs = min_obs
         # I/O parsing options (safe defaults keep existing behavior)
         self.sheet_name = sheet_name
@@ -99,12 +103,21 @@ class DataImportAgent:
             long_df = long_df.sort_values(by=["id", "date"])
             if self.frequency == "daily":
                 wide = long_df.pivot(index="date", columns="id", values="value")
-                month_end = wide.resample("ME").last()
                 month_start = wide.resample("MS").first()
-                first = (month_start.shift(-1) / month_start - 1).iloc[:1]
-                rets = month_end.pct_change().iloc[1:]
-                returns = pd.concat([first, rets])
-                returns.index = month_end.index[: len(returns)]
+                month_end = wide.resample("ME").last()
+                if self.monthly_rule == "MS":
+                    month_start_period = month_start.copy()
+                    month_end_period = month_end.copy()
+                    month_start_period.index = month_start_period.index.to_period("M")
+                    month_end_period.index = month_end_period.index.to_period("M")
+                    returns = (month_end_period / month_start_period) - 1
+                    returns = returns.dropna(how="all")
+                    returns.index = month_start.index[: len(returns)]
+                else:
+                    first = (month_start.shift(-1) / month_start - 1).iloc[:1]
+                    rets = month_end.pct_change().iloc[1:]
+                    returns = pd.concat([first, rets])
+                    returns.index = month_end.index[: len(returns)]
                 returns = returns.melt(
                     ignore_index=False, var_name="id", value_name="return"
                 )
@@ -129,7 +142,7 @@ class DataImportAgent:
                 long_df = (
                     long_df.set_index("date")
                     .groupby("id")["return"]
-                    .apply(lambda s: (1 + s).resample("ME").prod() - 1)
+                    .apply(lambda s: (1 + s).resample(self.monthly_rule).prod() - 1)
                     .dropna()
                     .reset_index()
                 )
@@ -157,6 +170,7 @@ class DataImportAgent:
             "source_file": str(p),
             "value_type": self.value_type,
             "frequency": self.frequency,
+            "monthly_rule": self.monthly_rule,
             "wide": self.wide,
             "io": {
                 "sheet_name": self.sheet_name,
@@ -194,6 +208,7 @@ class DataImportAgent:
             "wide": self.wide,
             "value_type": self.value_type,
             "frequency": self.frequency,
+            "monthly_rule": self.monthly_rule,
             "min_obs": self.min_obs,
             # I/O options
             "sheet_name": self.sheet_name,
@@ -219,6 +234,7 @@ class DataImportAgent:
             "wide": bool,
             "value_type": str,
             "frequency": str,
+            "monthly_rule": str,
             "min_obs": int,
             # I/O options
             "sheet_name": (str | int | type(None)),
