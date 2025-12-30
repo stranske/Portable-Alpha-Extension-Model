@@ -14,6 +14,19 @@ MONTHS_PER_YEAR = 12
 VOLATILITY_ANNUALIZATION_FACTOR = MONTHS_PER_YEAR**0.5
 
 
+def _boost_shrinkage_for_short_samples(
+    shrinkage: float, *, n_samples: int, n_features: int
+) -> float:
+    """Boost shrinkage when sample sizes are short."""
+
+    min_samples = max(12, 2 * n_features)
+    if n_samples >= min_samples:
+        return float(shrinkage)
+    ratio = n_samples / float(min_samples)
+    boosted = 1.0 - (1.0 - shrinkage) * ratio
+    return float(min(1.0, max(shrinkage, boosted)))
+
+
 @dataclass
 class CalibrationDiagnostics:
     covariance_shrinkage: Literal["none", "ledoit_wolf"]
@@ -58,6 +71,9 @@ def _ledoit_wolf_shrinkage(returns: np.ndarray) -> tuple[np.ndarray, float]:
     beta = min(beta, delta_norm2)
 
     shrinkage = 0.0 if delta_norm2 == 0.0 else beta / delta_norm2
+    shrinkage = _boost_shrinkage_for_short_samples(
+        float(shrinkage), n_samples=n_samples, n_features=n_features
+    )
     shrunk_cov = (1 - shrinkage) * sample_cov + shrinkage * target
     return shrunk_cov, float(shrinkage)
 

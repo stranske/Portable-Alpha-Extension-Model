@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -69,6 +69,30 @@ This constant represents the multiplier applied to volatility parameters
 in stress test scenarios such as the 2008_vol_regime preset, where volatilities
 are increased by this factor to simulate high-volatility market conditions.
 """
+
+
+def select_vol_regime_sigma(
+    values: np.ndarray | pd.Series,
+    *,
+    regime: Literal["single", "two_state"],
+    window: int,
+) -> tuple[float, str | None, int | None]:
+    """Select volatility based on a single or two-state regime."""
+    arr = np.asarray(values, dtype=float)
+    if arr.size == 0:
+        raise ValueError("volatility series must contain data")
+    base_sigma = float(np.std(arr, ddof=1))
+    if regime == "two_state":
+        if window <= 1:
+            raise ValueError("vol_regime_window must be > 1 for two_state regime")
+        if arr.size > 1:
+            recent = arr[-window:]
+            if recent.size > 1:
+                recent_sigma = float(np.std(recent, ddof=1))
+                state = "high" if recent_sigma >= base_sigma else "low"
+                window_used = int(min(window, recent.size))
+                return recent_sigma, state, window_used
+    return base_sigma, None, None
 
 
 class ValidationResult(NamedTuple):

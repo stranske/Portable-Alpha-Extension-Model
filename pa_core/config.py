@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -97,6 +97,10 @@ class ModelConfig(BaseModel):
     rho_H_E: float = Field(default=0.10, alias="Corr In-House–Alpha-Extension")
     rho_H_M: float = Field(default=0.10, alias="Corr In-House–External")
     rho_E_M: float = Field(default=0.0, alias="Corr Alpha-Extension–External")
+
+    covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none"
+    vol_regime: Literal["single", "two_state"] = "single"
+    vol_regime_window: int = 12
 
     internal_financing_mean_month: float = Field(
         default=0.0, alias="Internal financing mean (monthly %)"
@@ -289,6 +293,12 @@ class ModelConfig(BaseModel):
         ]
         if self.analysis_mode not in valid_modes:
             raise ValueError(f"analysis_mode must be one of: {valid_modes}")
+        return self
+
+    @model_validator(mode="after")
+    def check_vol_regime_window(self) -> "ModelConfig":
+        if self.vol_regime == "two_state" and self.vol_regime_window <= 1:
+            raise ValueError("vol_regime_window must be > 1 for two_state regime")
         return self
 
     @model_validator(mode="after")
