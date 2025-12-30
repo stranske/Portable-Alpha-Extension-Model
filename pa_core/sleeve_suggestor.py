@@ -150,16 +150,19 @@ def suggest_sleeve_sizes(
             min_internal,
             max_internal,
         )
-        remaining = [combo for combo in combos if combo not in priority]
-        budget = max_evals - len(priority)
-        if budget > 0 and remaining:
-            idx = rng.choice(
-                len(remaining), size=min(budget, len(remaining)), replace=False
-            )
-            sampled = [remaining[i] for i in idx]
+        if max_evals <= len(priority):
+            combos = priority[:max_evals]
         else:
-            sampled = []
-        combos = priority + sampled
+            remaining = [combo for combo in combos if combo not in priority]
+            budget = max_evals - len(priority)
+            if budget > 0 and remaining:
+                idx = rng.choice(
+                    len(remaining), size=min(budget, len(remaining)), replace=False
+                )
+                sampled = [remaining[i] for i in idx]
+            else:
+                sampled = []
+            combos = priority + sampled
 
     records: list[dict[str, float]] = []
     for ext_cap, act_cap in combos:

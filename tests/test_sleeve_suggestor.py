@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from pa_core.cli import main
-from pa_core.config import load_config
+from pa_core.config import ModelConfig, load_config
 from pa_core.sim.metrics import summary_table
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
 
@@ -133,3 +133,40 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
     assert (df["Total_TE"] <= 1.0).all()
     assert (df["Total_BreachProb"] <= 1.0).all()
     assert (df["Total_CVaR"].abs() <= 1.0).all()
+
+
+def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    idx_series = pd.Series([0.0])
+
+    returns = {
+        "Base": np.zeros((1, 1)),
+        "ExternalPA": np.zeros((1, 1)),
+        "ActiveExt": np.zeros((1, 1)),
+        "InternalPA": np.zeros((1, 1)),
+    }
+    summary = summary_table(returns, benchmark="Base")
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def run(self, seed=None):
+            return returns, summary
+
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator
+    )
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=0.5,
+        max_evals=2,
+    )
+
+    assert len(df) == 2
