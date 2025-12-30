@@ -899,237 +899,6 @@ def main(
     # Optional sensitivity analysis (one-factor deltas on AnnReturn)
     if args.sensitivity:
         try:
-            from .sim.sensitivity import one_factor_deltas as sim_one_factor_deltas
-
-            # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
-            base_params = {
-                "mu_H": cfg.mu_H,
-                "sigma_H": cfg.sigma_H,
-                "mu_E": cfg.mu_E,
-                "sigma_E": cfg.sigma_E,
-                "mu_M": cfg.mu_M,
-                "sigma_M": cfg.sigma_M,
-                "w_beta_H": cfg.w_beta_H,
-                "w_alpha_H": cfg.w_alpha_H,
-            }
-            steps = {
-                "mu_H": 0.01,
-                "sigma_H": 0.005,
-                "mu_E": 0.01,
-                "sigma_E": 0.005,
-                "mu_M": 0.01,
-                "sigma_M": 0.005,
-                "w_beta_H": 0.05,
-                "w_alpha_H": 0.05,
-            }
-
-            def _eval(p: dict[str, float]) -> float:
-                # Copy cfg with updates
-                mod_cfg = cfg.model_copy(update=p)
-                # Recompute params and draws quickly with same RNGs
-                mu_idx_val = inputs_dict.get("mu_idx", 0.06)
-                idx_sigma_val = inputs_dict.get("sigma_idx", 0.16)
-                try:
-                    if isinstance(mu_idx_val, (float, int)):
-                        mu_idx = float(mu_idx_val)
-                    elif isinstance(mu_idx_val, str):
-                        mu_idx = float(mu_idx_val)
-                    else:
-                        mu_idx = 0.06
-                except Exception:
-                    mu_idx = 0.06
-                try:
-                    if isinstance(idx_sigma_val, (float, int)):
-                        idx_sigma = float(idx_sigma_val)
-                    elif isinstance(idx_sigma_val, str):
-                        idx_sigma = float(idx_sigma_val)
-                    else:
-                        idx_sigma = 0.16
-                except Exception:
-                    idx_sigma = 0.16
-                sigma_H = mod_cfg.sigma_H
-                sigma_E = mod_cfg.sigma_E
-                sigma_M = mod_cfg.sigma_M
-                mu_H = mod_cfg.mu_H
-                mu_E = mod_cfg.mu_E
-                mu_M = mod_cfg.mu_M
-                # Note: We rely on draw_joint_returns to rebuild the covariance from params,
-                # so we don't need to materialize the covariance matrix here.
-                params_local = {
-                    "mu_idx_month": mu_idx / 12,
-                    "default_mu_H": mu_H / 12,
-                    "default_mu_E": mu_E / 12,
-                    "default_mu_M": mu_M / 12,
-                    "idx_sigma_month": idx_sigma / 12,
-                    "default_sigma_H": sigma_H / 12,
-                    "default_sigma_E": sigma_E / 12,
-                    "default_sigma_M": sigma_M / 12,
-                    "rho_idx_H": mod_cfg.rho_idx_H,
-                    "rho_idx_E": mod_cfg.rho_idx_E,
-                    "rho_idx_M": mod_cfg.rho_idx_M,
-                    "rho_H_E": mod_cfg.rho_H_E,
-                    "rho_H_M": mod_cfg.rho_H_M,
-                    "rho_E_M": mod_cfg.rho_E_M,
-                    "return_distribution": mod_cfg.return_distribution,
-                    "return_t_df": mod_cfg.return_t_df,
-                    "return_copula": mod_cfg.return_copula,
-                    "return_distribution_idx": mod_cfg.return_distribution_idx,
-                    "return_distribution_H": mod_cfg.return_distribution_H,
-                    "return_distribution_E": mod_cfg.return_distribution_E,
-                    "return_distribution_M": mod_cfg.return_distribution_M,
-                    # financing left the same for speed
-                    "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
-                    "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
-                    "internal_spike_prob": mod_cfg.internal_spike_prob,
-                    "internal_spike_factor": mod_cfg.internal_spike_factor,
-                    "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
-                    "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
-                    "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
-                    "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
-                    "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
-                    "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
-                    "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
-                    "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
-                }
-                r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
-                    n_months=mod_cfg.N_MONTHS,
-                    n_sim=mod_cfg.N_SIMULATIONS,
-                    params=params_local,
-                    rng=rng_returns,
-                )
-                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
-                agents_l = deps.build_from_config(mod_cfg)
-                returns_l = deps.simulate_agents(
-                    agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
-                )
-                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
-                vals = summary_l.loc[summary_l["Agent"] == "Base", "AnnReturn"]
-                return float(vals.to_numpy()[0]) if not vals.empty else 0.0
-
-            sens_df = sim_one_factor_deltas(
-                params=base_params, steps=steps, evaluator=_eval
-            )
-            sens_df.attrs.update(
-                {
-                    "metric": "AnnReturn",
-                    "units": "%",
-                    "tickformat": ".2%",
-                }
-            )
-            inputs_dict["_sensitivity_df"] = sens_df
-        except ImportError as e:
-            logger.warning(f"Sensitivity analysis module not available: {e}")
-            # Local import to avoid heavy import at module load
-            from rich.console import Console
-            from rich.panel import Panel
-
-            Console().print(
-                Panel(
-                    f"[bold red]Error:[/bold red] Sensitivity analysis module not found.\n[dim]Reason: {e}[/dim]",
-                    title="Sensitivity Analysis",
-                    style="red",
-                )
-            )
-        except (KeyError, ValueError) as e:
-            logger.error(f"Sensitivity analysis configuration error: {e}")
-            # Local import to avoid heavy import at module load
-            from rich.console import Console
-            from rich.panel import Panel
-
-            Console().print(
-                Panel(
-                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to configuration error.\n[dim]Reason: {e}[/dim]\n[dim]Check parameter names and values in your configuration.[/dim]",
-                    title="Sensitivity Analysis",
-                    style="yellow",
-                )
-            )
-        except TypeError as e:
-            logger.error(f"Sensitivity analysis data type error: {e}")
-            # Local import to avoid heavy import at module load
-            from rich.console import Console
-            from rich.panel import Panel
-
-            Console().print(
-                Panel(
-                    f"[bold yellow]Warning:[/bold yellow] Sensitivity analysis failed due to data type error.\n[dim]Reason: {e}[/dim]\n[dim]Check that all parameters are numeric values.[/dim]",
-                    title="Sensitivity Analysis",
-                    style="yellow",
-                )
-            )
-
-    deps.export_to_excel(
-        inputs_dict,
-        summary,
-        raw_returns_dict,
-        filename=flags.save_xlsx or "Outputs.xlsx",
-        pivot=args.pivot,
-    )
-    if args.stress_preset:
-        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
-        if out_path.exists():
-            try:
-                with pd.ExcelWriter(
-                    out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
-                ) as writer:
-                    if base_summary_df is not None and not base_summary_df.empty:
-                        base_summary_df.to_excel(
-                            writer, sheet_name="BaseSummary", index=False
-                        )
-                    if summary is not None and not summary.empty:
-                        summary.to_excel(
-                            writer, sheet_name="StressedSummary", index=False
-                        )
-                    if stress_delta_df is not None and not stress_delta_df.empty:
-                        stress_delta_df.to_excel(
-                            writer, sheet_name="StressDelta", index=False
-                        )
-            except (OSError, PermissionError, ValueError) as e:
-                logger.warning(f"Failed to append stress sheets: {e}")
-        else:
-            logger.warning("Stress sheet export skipped; output workbook missing.")
-
-    # Write reproducibility manifest for normal run
-    try:
-        mw = ManifestWriter(
-            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
-        )
-        data_files = [args.index, args.config]
-        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
-        if out_path.exists():
-            data_files.append(str(out_path))
-        mw.write(
-            config_path=args.config,
-            data_files=data_files,
-            seed=args.seed,
-            cli_args=vars(args),
-            backend=args.backend,
-            run_log=run_log_path,
-            previous_run=args.prev_manifest,
-        )
-    except (OSError, PermissionError, FileNotFoundError) as e:
-        logger.warning(f"Failed to write manifest: {e}")
-
-    manifest_data = None
-    try:
-        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
-            "manifest.json"
-        )
-        if manifest_json.exists():
-            manifest_data = json.loads(manifest_json.read_text())
-    except (json.JSONDecodeError, FileNotFoundError, PermissionError):
-        manifest_data = None
-
-    current_manifest_data = manifest_data or {"config": raw_params}
-    _maybe_print_run_diff(
-        current_manifest=current_manifest_data,
-        prev_manifest=prev_manifest_data,
-        current_summary=summary,
-        prev_summary=prev_summary_df,
-    )
-
-    # Optional sensitivity analysis (one-factor deltas on AnnReturn)
-    if args.sensitivity:
-        try:
             from .sensitivity import one_factor_deltas as simple_one_factor_deltas
 
             print("\n🔍 Running sensitivity analysis...")
@@ -1198,12 +967,6 @@ def main(
                     rng=rng_returns,
                 )
                 # Reuse existing financing draws for speed in sensitivity.
-                # NOTE: This introduces correlation between sensitivity analysis runs,
-                # as all runs use the same random financing draws. This is intentional
-                # to isolate the effect of parameter changes and reduce noise from
-                # random variation. If independent draws are required for each run,
-                # modify this section to generate new draws per run. Interpret results
-                # accordingly, as sensitivity estimates may be affected by this choice.
                 f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
                 agents_l = deps.build_from_config(mod_cfg)
                 returns_l = deps.simulate_agents(
@@ -1363,7 +1126,76 @@ def main(
         except TypeError as e:
             logger.error(f"Sensitivity analysis data type error: {e}")
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
-            print("💡 Ensure all parameters are numeric values")
+
+    deps.export_to_excel(
+        inputs_dict,
+        summary,
+        raw_returns_dict,
+        filename=flags.save_xlsx or "Outputs.xlsx",
+        pivot=args.pivot,
+    )
+    if args.stress_preset:
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            try:
+                with pd.ExcelWriter(
+                    out_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
+                ) as writer:
+                    if base_summary_df is not None and not base_summary_df.empty:
+                        base_summary_df.to_excel(
+                            writer, sheet_name="BaseSummary", index=False
+                        )
+                    if summary is not None and not summary.empty:
+                        summary.to_excel(
+                            writer, sheet_name="StressedSummary", index=False
+                        )
+                    if stress_delta_df is not None and not stress_delta_df.empty:
+                        stress_delta_df.to_excel(
+                            writer, sheet_name="StressDelta", index=False
+                        )
+            except (OSError, PermissionError, ValueError) as e:
+                logger.warning(f"Failed to append stress sheets: {e}")
+        else:
+            logger.warning("Stress sheet export skipped; output workbook missing.")
+
+    # Write reproducibility manifest for normal run
+    try:
+        mw = ManifestWriter(
+            Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
+        )
+        data_files = [args.index, args.config]
+        out_path = Path(flags.save_xlsx or "Outputs.xlsx")
+        if out_path.exists():
+            data_files.append(str(out_path))
+        mw.write(
+            config_path=args.config,
+            data_files=data_files,
+            seed=args.seed,
+            cli_args=vars(args),
+            backend=args.backend,
+            run_log=run_log_path,
+            previous_run=args.prev_manifest,
+        )
+    except (OSError, PermissionError, FileNotFoundError) as e:
+        logger.warning(f"Failed to write manifest: {e}")
+
+    manifest_data = None
+    try:
+        manifest_json = Path(flags.save_xlsx or "Outputs.xlsx").with_name(
+            "manifest.json"
+        )
+        if manifest_json.exists():
+            manifest_data = json.loads(manifest_json.read_text())
+    except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+        manifest_data = None
+
+    current_manifest_data = manifest_data or {"config": raw_params}
+    _maybe_print_run_diff(
+        current_manifest=current_manifest_data,
+        prev_manifest=prev_manifest_data,
+        current_summary=summary,
+        prev_summary=prev_summary_df,
+    )
 
     if any(
         [
