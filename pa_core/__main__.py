@@ -85,10 +85,12 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
     mu_idx = float(idx_series.mean())
+    vol_regime = getattr(cfg, "vol_regime", "single")
+    vol_regime_window = getattr(cfg, "vol_regime_window", 12)
     idx_sigma, _, _ = select_vol_regime_sigma(
         idx_series,
-        regime=cfg.vol_regime,
-        window=cfg.vol_regime_window,
+        regime=vol_regime,
+        window=vol_regime_window,
     )
     n_samples = int(len(idx_series))
 
@@ -99,6 +101,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     mu_M = cfg.mu_M
     sigma_M = cfg.sigma_M
 
+    covariance_shrinkage = getattr(cfg, "covariance_shrinkage", "none")
     _ = build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
@@ -110,7 +113,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         sigma_H,
         sigma_E,
         sigma_M,
-        covariance_shrinkage=cfg.covariance_shrinkage,
+        covariance_shrinkage=covariance_shrinkage,
         n_samples=n_samples,
     )
 
