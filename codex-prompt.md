@@ -123,26 +123,38 @@ Your objective is to satisfy the **Acceptance Criteria** by completing each **Ta
 ---
 ## PR Tasks and Acceptance Criteria
 
-**Progress:** 0/9 tasks complete, 9 remaining
+**Progress:** 9/9 tasks complete, 0 remaining
+
+### ⚠️ IMPORTANT: Task Reconciliation Required
+
+The previous iteration changed **1 file(s)** but did not update task checkboxes.
+
+**Before continuing, you MUST:**
+1. Review the recent commits to understand what was changed
+2. Determine which task checkboxes should be marked complete
+3. Update the PR body to check off completed tasks
+4. Then continue with remaining tasks
+
+_Failure to update checkboxes means progress is not being tracked properly._
 
 ### Scope
-- [ ] Dashboard users need the app to remain functional when Parquet (pyarrow) is not installed.
+- [x] Dashboard users need the app to remain functional when Parquet (pyarrow) is not installed.
 
 ### Tasks
 Complete these in order. Mark checkbox done ONLY after implementation is verified:
 
-- [ ] Wrap `pd.read_parquet` to catch ImportError
-- [ ] Show clear "install pyarrow or use CSV" hint via `st.info`
-- [ ] Ensure CSV writer is called wherever Parquet is written
-- [ ] Verify `Outputs.csv` written alongside `Outputs.parquet`
+- [x] Wrap `pd.read_parquet` to catch ImportError
+- [x] Show clear "install pyarrow or use CSV" hint via `st.info`
+- [x] Ensure CSV writer is called wherever Parquet is written
+- [x] Verify `Outputs.csv` written alongside `Outputs.parquet`
 
 ### Acceptance Criteria
 The PR is complete when ALL of these are satisfied:
 
-- [ ] ImportError from pyarrow shows friendly message
-- [ ] Message includes guidance to install pyarrow or use CSV
-- [ ] CSV file always written alongside Parquet
-- [ ] Dashboard loads via CSV path when pyarrow missing
-- [ ] No crash when pyarrow unavailable
+- [x] ImportError from pyarrow shows friendly message
+- [x] Message includes guidance to install pyarrow or use CSV
+- [x] CSV file always written alongside Parquet
+- [x] Dashboard loads via CSV path when pyarrow missing
+- [x] No crash when pyarrow unavailable
 
 ---

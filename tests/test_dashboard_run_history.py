@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import pytest
 
@@ -43,3 +45,20 @@ def test_save_history_writes_csv_on_parquet_importerror(tmp_path, monkeypatch):
     csv_path = path.with_suffix(".csv")
     assert csv_path.exists()
     assert "Sim" in csv_path.read_text()
+
+
+def test_save_history_writes_csv_with_parquet_success(tmp_path, monkeypatch):
+    df = pd.DataFrame({"Sim": [0, 1], "Return": [0.1, 0.2]})
+    path = tmp_path / "Outputs.parquet"
+
+    def _write_parquet(self, output_path, *_args, **_kwargs):
+        Path(output_path).write_text("parquet")
+
+    monkeypatch.setattr(pd.DataFrame, "to_parquet", _write_parquet)
+
+    save_history(df, path)
+
+    assert path.exists()
+    csv_path = path.with_suffix(".csv")
+    assert csv_path.exists()
+    assert "Return" in csv_path.read_text()
