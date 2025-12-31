@@ -10,7 +10,7 @@ from pa_core.agents import (
     InternalPAAgent,
 )
 from pa_core.agents.registry import build_all, build_from_config
-from pa_core.config import ModelConfig
+from pa_core.config import ModelConfig, normalize_share
 
 
 def _mock_inputs(shape=(5, 12)):
@@ -91,8 +91,9 @@ def test_agent_math_identity():
     share_percentage = 70.0  # 70% as percentage value (converted to 0.7 decimal)
     act_p = AgentParams("ActiveExt", 100.0, 0.1, 0.0, {"active_share": share_percentage})
     act = ActiveExtensionAgent(act_p)
+    share_fraction = normalize_share(share_percentage)
     expected_act = (
-        act_p.beta_share * (r_beta - f) + (act_p.beta_share * (share_percentage / 100.0)) * r_E
+        act_p.beta_share * (r_beta - f) + (act_p.beta_share * float(share_fraction)) * r_E
     )
     np.testing.assert_allclose(act.monthly_returns(r_beta, r_E, f), expected_act)
 
@@ -127,6 +128,26 @@ def test_active_extension_zero_share_returns_pure_beta() -> None:
     out = agent.monthly_returns(r_beta, r_E, f_act)
     expected = p.beta_share * (r_beta - f_act)
     np.testing.assert_allclose(out, expected)
+
+
+def test_active_share_fraction_changes_alpha_scale() -> None:
+    r_beta = np.zeros((1, 1))
+    r_E = np.ones((1, 1))
+    f = np.zeros((1, 1))
+
+    high_share = ActiveExtensionAgent(
+        AgentParams("ActiveExt", 100.0, 1.0, 0.0, {"active_share": 0.5})
+    )
+    low_share = ActiveExtensionAgent(
+        AgentParams("ActiveExt", 100.0, 1.0, 0.0, {"active_share": 0.005})
+    )
+
+    high_out = high_share.monthly_returns(r_beta, r_E, f).item()
+    low_out = low_share.monthly_returns(r_beta, r_E, f).item()
+
+    assert high_out == pytest.approx(0.5)
+    assert low_out == pytest.approx(0.005)
+    assert high_out > low_out * 50.0
 
 
 def test_base_agent_alpha_zero_returns_pure_beta() -> None:
