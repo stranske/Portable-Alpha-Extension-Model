@@ -1,14 +1,13 @@
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import yaml
 
+from pa_core import simulations as sim_module
 from pa_core.cli import Dependencies, main
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.orchestrator import SimulatorOrchestrator
-from pa_core import simulations as sim_module
 from pa_core.sim.paths import draw_joint_returns as draw_joint_returns_impl
 
 
@@ -32,18 +31,14 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
     seed = 123
     orch_capture: dict[str, tuple[np.ndarray, ...]] = {}
 
-    def capture_orch_simulate_agents(
-        agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
-    ):
+    def capture_orch_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
         orch_capture["draws"] = (
             np.array(r_beta),
             np.array(r_H),
             np.array(r_E),
             np.array(r_M),
         )
-        return sim_module.simulate_agents(
-            agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
-        )
+        return sim_module.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
     orch_params: dict[str, object] = {}
 
@@ -56,12 +51,8 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
             n_months=n_months, n_sim=n_sim, params=params, rng=rng, shocks=shocks
         )
 
-    monkeypatch.setattr(
-        "pa_core.orchestrator.simulate_agents", capture_orch_simulate_agents
-    )
-    monkeypatch.setattr(
-        "pa_core.orchestrator.draw_joint_returns", capture_orch_draw_joint_returns
-    )
+    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", capture_orch_simulate_agents)
+    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", capture_orch_draw_joint_returns)
 
     cfg = load_config(cfg_path)
     orch = SimulatorOrchestrator(cfg, idx_series)
@@ -69,9 +60,7 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     cli_capture: dict[str, tuple[np.ndarray, ...]] = {}
 
-    def capture_cli_simulate_agents(
-        agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
-    ):
+    def capture_cli_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
         if "draws" not in cli_capture:
             cli_capture["draws"] = (
                 np.array(r_beta),
@@ -79,9 +68,7 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
                 np.array(r_E),
                 np.array(r_M),
             )
-        return sim_module.simulate_agents(
-            agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
-        )
+        return sim_module.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
     cli_params: dict[str, object] = {}
 
