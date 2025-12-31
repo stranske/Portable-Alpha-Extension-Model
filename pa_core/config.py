@@ -226,26 +226,16 @@ class ModelConfig(BaseModel):
                 return field_info.default_factory()
             return field_info.default
 
-        total_cap = float(
-            _get_value("total_fund_capital", ("Total fund capital (mm)",))
-        )
+        total_cap = float(_get_value("total_fund_capital", ("Total fund capital (mm)",)))
         w_beta = normalize_share(_get_value("w_beta_H", ("In-House beta share",)))
         w_alpha = normalize_share(_get_value("w_alpha_H", ("In-House alpha share",)))
-        theta = normalize_share(
-            _get_value("theta_extpa", ("External PA alpha fraction",))
-        )
+        theta = normalize_share(_get_value("theta_extpa", ("External PA alpha fraction",)))
         active_share = normalize_share(
             _get_value("active_share", ("Active share (%)", "Active share"))
         )
-        ext_cap = float(
-            _get_value("external_pa_capital", ("External PA capital (mm)",))
-        )
-        act_cap = float(
-            _get_value("active_ext_capital", ("Active Extension capital (mm)",))
-        )
-        int_cap = float(
-            _get_value("internal_pa_capital", ("Internal PA capital (mm)",))
-        )
+        ext_cap = float(_get_value("external_pa_capital", ("External PA capital (mm)",)))
+        act_cap = float(_get_value("active_ext_capital", ("Active Extension capital (mm)",)))
+        int_cap = float(_get_value("internal_pa_capital", ("Internal PA capital (mm)",)))
 
         w_beta = 0.0 if w_beta is None else float(w_beta)
         w_alpha = 0.0 if w_alpha is None else float(w_alpha)
