@@ -78,15 +78,11 @@ def test_sweep_seed_resets_rng_state(monkeypatch):
     for rng in fin_rngs.values():
         rng.normal(size=5)
 
-    res1 = sweep_module.run_parameter_sweep(
-        cfg, idx, rng_returns, fin_rngs, seed=123
-    )
+    res1 = sweep_module.run_parameter_sweep(cfg, idx, rng_returns, fin_rngs, seed=123)
 
     rng_returns_2 = spawn_rngs(555, 1)[0]
     fin_rngs_2 = spawn_agent_rngs(555, ["internal", "external_pa", "active_ext"])
-    res2 = sweep_module.run_parameter_sweep(
-        cfg, idx, rng_returns_2, fin_rngs_2, seed=123
-    )
+    res2 = sweep_module.run_parameter_sweep(cfg, idx, rng_returns_2, fin_rngs_2, seed=123)
 
     assert len(res1) == len(res2)
     for left, right in zip(res1, res2):

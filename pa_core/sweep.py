@@ -182,8 +182,7 @@ def run_parameter_sweep(
         base_fin_rngs = spawn_agent_rngs(seed, list(fin_rngs.keys()))
         rng_returns_state = copy.deepcopy(base_rng_returns.bit_generator.state)
         fin_rng_states = {
-            name: copy.deepcopy(base_fin_rngs[name].bit_generator.state)
-            for name in fin_rngs.keys()
+            name: copy.deepcopy(base_fin_rngs[name].bit_generator.state) for name in fin_rngs.keys()
         }
 
     iterator = enumerate(combos)
