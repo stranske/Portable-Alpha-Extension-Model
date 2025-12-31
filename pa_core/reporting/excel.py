@@ -179,9 +179,7 @@ def finalize_excel_workbook(
         os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
     ):
         summary_df = summary_df.copy()
-        summary_df["ShortfallProb"] = summary_df.get(
-            "ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
-        )
+        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         ws = wb["Summary"]
         metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
