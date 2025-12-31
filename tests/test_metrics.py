@@ -141,6 +141,15 @@ def test_breach_probability_reproducible_seed():
     assert prob == prob2
 
 
+def test_breach_probability_empty_input():
+    try:
+        breach_probability(np.array([]), -0.01)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for empty returns")
+
+
 def test_summary_table_includes_new_metrics():
     arr = np.array([[0.0, -0.03, 0.03]])
     stats = summary_table({"Base": arr})

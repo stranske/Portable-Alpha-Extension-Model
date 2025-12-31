@@ -97,6 +97,8 @@ def breach_probability(
     ignored and kept only for backward compatibility.
     """
     arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
     return float(np.mean(arr < threshold))
 
 
