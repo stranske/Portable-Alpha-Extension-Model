@@ -61,7 +61,12 @@ def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, 
 
 
 class ModelConfig(BaseModel):
-    """Validated simulation parameters."""
+    """Validated simulation parameters for the portable-alpha model.
+
+    Use ``ModelConfig`` for run settings, capital allocation, and sweep ranges.
+    Use :class:`pa_core.schema.Scenario` for index/asset inputs, correlations,
+    and sleeve definitions.
+    """
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
 

@@ -22,15 +22,29 @@ The introductory tutorials demonstrate how to implement a run, interpret these m
 
 ### Quick start
 
+#### ModelConfig vs Scenario
+
+The project uses two YAML schemas:
+
+- `ModelConfig` (`pa_core/config.py`) captures simulation settings such as run length,
+  capital allocation, and risk metrics. Use it with the CLI (`--config`) and for
+  parameter sweeps.
+- `Scenario` (`pa_core/schema.py`) captures market data: index/asset returns,
+  correlations, portfolios, and sleeve definitions. Use it with `pa validate --schema scenario`
+  or when building scenario grids/portfolios.
+
 1. **Create and validate a scenario** – draft a YAML configuration and verify the schema with `pa validate`. A minimal example is provided in `templates/scenario_example.yaml`:
 
    > **Scenario structure:**
-   > A scenario YAML file must include at least the following elements:
-   > - `analysis_mode`: One of `returns`, `capital`, `alpha_shares`, or `vol_mult` (selects the analysis type).
-   > - `ShortfallProb`: The mandatory risk metric (removing it will cause validation to fail).
-   > - Other parameters as required for your use case (see the example template for details).
+   > A scenario YAML file must include the market data inputs:
+   > - `index` with `id`, `mu`, and `sigma`.
+   > - `assets` (can be empty) plus a complete `correlations` matrix.
+   > - `portfolios` that reference the defined assets.
+   > - Optional `sleeves` that allocate capital shares across alpha sources.
    >
-   > For a full list of fields and their descriptions, see the comments in `templates/scenario_example.yaml` or refer to the [Scenario Configuration Guide](docs/ScenarioConfig.md) if available.
+   > Simulation settings such as `analysis_mode` and `risk_metrics` live in `ModelConfig`,
+   > not in `Scenario`. For a full list of fields and their descriptions, see the comments in
+   > `templates/scenario_example.yaml` or refer to the [Scenario Configuration Guide](docs/ScenarioConfig.md) if available.
    ```bash
    pa validate templates/scenario_example.yaml
    ```

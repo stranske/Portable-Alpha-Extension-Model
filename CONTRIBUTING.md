@@ -23,6 +23,8 @@ Alternative quick commands:
 ## Key files to examine
 
 - `pa_core/reporting/excel.py` - `export_to_excel()` function
+- `pa_core/config.py` - `ModelConfig` validation and load helpers
+- `pa_core/schema.py` - `Scenario` schema for market data inputs
 
 ## Helpful references
 

@@ -13,6 +13,19 @@ CORRELATION_UPPER_BOUND = 0.999
 WEIGHT_SUM_TOLERANCE = 1e-6
 
 
+def normalize_share(value: float | None) -> float | None:
+    """Normalize percentage-style inputs to a 0..1 fraction."""
+    if value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return value
+    if 1.0 < numeric <= 100.0:
+        return numeric / 100.0
+    return numeric
+
+
 class Index(BaseModel):
     id: str
     label: str | None = None
@@ -54,13 +67,40 @@ class Portfolio(BaseModel):
 
 
 class Sleeve(BaseModel):
+    """Capital and alpha share metadata for a sleeve within a Scenario."""
+
     alpha_source: str
     capital_share: float
     theta: float | None = None
     active_share: float | None = None
 
+    @field_validator("capital_share", "theta", "active_share", mode="before")
+    @classmethod
+    def _normalize_share_inputs(cls, value: float | None) -> float | None:
+        return normalize_share(value)
+
+    @model_validator(mode="after")
+    def _check_share_bounds(self) -> "Sleeve":
+        for name, value in (
+            ("capital_share", self.capital_share),
+            ("theta", self.theta),
+            ("active_share", self.active_share),
+        ):
+            if value is None:
+                continue
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"{name} must be between 0 and 1")
+        return self
+
 
 class Scenario(BaseModel):
+    """Market data and portfolio structure for a single simulation run.
+
+    Use ``Scenario`` to define index/asset inputs, correlations, and sleeves.
+    Use :class:`pa_core.config.ModelConfig` to define simulation parameters
+    such as run length, capital allocation, and risk metrics.
+    """
+
     index: Index
     assets: List[Asset] = Field(default_factory=list)
     correlations: List[Correlation] = Field(default_factory=list)

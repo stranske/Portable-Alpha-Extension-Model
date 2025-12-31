@@ -74,6 +74,39 @@ def test_sleeve_capital_share_sum() -> None:
         Scenario.model_validate(data)
 
 
+def test_sleeve_share_bounds() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [],
+        "correlations": [],
+        "portfolios": [],
+        "sleeves": {
+            "s1": {"alpha_source": "p:1", "capital_share": 120, "active_share": 0.5},
+        },
+    }
+    with pytest.raises(ValueError, match="capital_share must be between 0 and 1"):
+        Scenario.model_validate(data)
+
+
+def test_sleeve_share_normalization() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [],
+        "correlations": [],
+        "portfolios": [],
+        "sleeves": {
+            "s1": {"alpha_source": "p:1", "capital_share": 60, "theta": 50},
+            "s2": {"alpha_source": "p:2", "capital_share": 40, "active_share": 20},
+        },
+    }
+    scenario = Scenario.model_validate(data)
+    sleeves = scenario.sleeves or {}
+    assert sleeves["s1"].capital_share == pytest.approx(0.6)
+    assert sleeves["s1"].theta == pytest.approx(0.5)
+    assert sleeves["s2"].capital_share == pytest.approx(0.4)
+    assert sleeves["s2"].active_share == pytest.approx(0.2)
+
+
 def test_duplicate_asset_ids() -> None:
     data = {
         "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
