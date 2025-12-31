@@ -25,7 +25,7 @@ def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 class SimulatorOrchestrator:
-    """Run Monte Carlo simulations and compute summary metrics."""
+    """Run Monte Carlo simulations with PSD-corrected covariance inputs."""
 
     def __init__(self, cfg: ModelConfig, idx_series: pd.Series) -> None:
         self.cfg = cfg
@@ -67,9 +67,11 @@ class SimulatorOrchestrator:
         sigma_m_cov = float(sigma_vec[3])
 
         rng_returns = spawn_rngs(seed, 1)[0]
-        params = build_simulation_params(self.cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_cov)
-        params.update(
-            {
+        params = build_simulation_params(
+            self.cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma_cov,
+            return_overrides={
                 "default_sigma_H": sigma_h_cov / 12,
                 "default_sigma_E": sigma_e_cov / 12,
                 "default_sigma_M": sigma_m_cov / 12,
@@ -79,7 +81,7 @@ class SimulatorOrchestrator:
                 "rho_H_E": float(corr_mat[1, 2]),
                 "rho_H_M": float(corr_mat[1, 3]),
                 "rho_E_M": float(corr_mat[2, 3]),
-            }
+            },
         )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
