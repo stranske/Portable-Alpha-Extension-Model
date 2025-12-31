@@ -9,7 +9,7 @@ import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
 from dashboard.utils import apply_promoted_alpha_shares, normalize_share
-from pa_core.portfolio.aggregator import PortfolioAggregator
+from pa_core.portfolio import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
 
