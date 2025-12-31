@@ -175,14 +175,15 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
 
 
 def max_drawdown(returns: ArrayLike) -> float:
-    """Return the maximum drawdown of compounded wealth paths."""
+    """Return the maximum drawdown computed from compounded wealth paths."""
 
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
         raise ValueError("returns must not be empty")
     if arr.ndim == 1:
         arr = arr[None, :]
-    wealth = np.cumprod(1.0 + arr, axis=1)
+    compounded = compound(arr)
+    wealth = 1.0 + compounded
     running_max = np.maximum.accumulate(wealth, axis=1)
     drawdown = wealth / running_max - 1.0
     return float(np.min(drawdown))
