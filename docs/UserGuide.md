@@ -33,6 +33,12 @@ The project uses two YAML schemas:
   correlations, portfolios, and sleeve definitions. Use it with `pa validate --schema scenario`
   or when building scenario grids/portfolios.
 
+Each run pairs exactly one `ModelConfig` with one `Scenario`. They are intentionally
+separate: `ModelConfig` focuses on run-level assumptions and sweep ranges, while
+`Scenario` focuses on market inputs and portfolio structure. Use `ModelConfig`
+when you are tuning simulation length, financing, or sweep parameters; use
+`Scenario` when you are changing the asset universe, correlations, or sleeve mix.
+
 1. **Create and validate a scenario** – draft a YAML configuration and verify the schema with `pa validate`. A minimal example is provided in `templates/scenario_example.yaml`:
 
    > **Scenario structure:**

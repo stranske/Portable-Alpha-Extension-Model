@@ -54,7 +54,8 @@ class ModelConfig(BaseModel):
 
     Use ``ModelConfig`` for run settings, capital allocation, and sweep ranges.
     Use :class:`pa_core.schema.Scenario` for index/asset inputs, correlations,
-    and sleeve definitions.
+    and sleeve definitions. Pair with :func:`pa_core.schema.load_scenario` when
+    running a full simulation that needs both run settings and market data.
     """
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
@@ -251,6 +252,25 @@ class ModelConfig(BaseModel):
             )
         if any(dist == "student_t" for dist in resolved) and self.return_t_df <= 2.0:
             raise ValueError("return_t_df must be greater than 2 for finite variance")
+        return self
+
+    @model_validator(mode="after")
+    def check_correlations(self) -> "ModelConfig":
+        from .validators import validate_correlations
+
+        correlation_map = {
+            "rho_idx_H": self.rho_idx_H,
+            "rho_idx_E": self.rho_idx_E,
+            "rho_idx_M": self.rho_idx_M,
+            "rho_H_E": self.rho_H_E,
+            "rho_H_M": self.rho_H_M,
+            "rho_E_M": self.rho_E_M,
+        }
+        validation_results = validate_correlations(correlation_map)
+        errors = [r for r in validation_results if not r.is_valid]
+        if errors:
+            error_messages = [r.message for r in errors]
+            raise ValueError("; ".join(error_messages))
         return self
 
     @model_validator(mode="before")

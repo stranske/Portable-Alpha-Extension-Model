@@ -108,3 +108,9 @@ def test_load_config_with_covariance_options(tmp_path):
     assert cfg.covariance_shrinkage == "ledoit_wolf"
     assert cfg.vol_regime == "two_state"
     assert cfg.vol_regime_window == 6
+
+
+def test_model_config_rejects_out_of_bounds_correlations():
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "rho_idx_H": 1.5}
+    with pytest.raises(ValueError, match="outside valid range"):
+        ModelConfig(**data)

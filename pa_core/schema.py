@@ -87,7 +87,8 @@ class Scenario(BaseModel):
 
     Use ``Scenario`` to define index/asset inputs, correlations, and sleeves.
     Use :class:`pa_core.config.ModelConfig` to define simulation parameters
-    such as run length, capital allocation, and risk metrics.
+    such as run length, capital allocation, and risk metrics. Pair with
+    :func:`pa_core.config.load_config` for a full simulation setup.
     """
 
     index: Index
