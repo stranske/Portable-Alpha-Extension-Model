@@ -19,6 +19,7 @@ def normalize_share(value: float | None) -> float | None:
         numeric = float(value)
     except (TypeError, ValueError):
         return value
-    if 1.0 < numeric <= 100.0:
+    # Treat values >= 2 as percentage-style inputs; 1.x is treated as a raw share.
+    if 2.0 <= numeric <= 100.0:
         return numeric / 100.0
     return numeric

@@ -3,11 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, TypeAlias
 
-import numpy as np
-from numpy.typing import NDArray
+from ..types import ArrayLike
 
 # Explicitly declare as a type alias for Pyright
-Array: TypeAlias = NDArray[np.float64]
+Array: TypeAlias = ArrayLike
 
 
 @dataclass
