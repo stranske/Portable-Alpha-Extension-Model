@@ -88,6 +88,22 @@ def test_risk_return_make():
     fig.to_json()
 
 
+def test_risk_return_axis_labels_match_data():
+    df = pd.DataFrame(
+        {
+            "AnnReturn": [0.06, 0.03],
+            "AnnVol": [0.04, 0.02],
+            "Agent": ["A", "B"],
+            "ShortfallProb": [0.01, 0.02],
+        }
+    )
+    fig = risk_return.make(df)
+    assert list(fig.data[0].x) == df["AnnVol"].tolist()
+    assert list(fig.data[0].y) == df["AnnReturn"].tolist()
+    assert fig.layout.xaxis.title.text == "Annualized Volatility"
+    assert fig.layout.yaxis.title.text == "Annualized Return"
+
+
 def test_fan_and_dist():
     arr = np.random.normal(size=(10, 5))
     fig1 = fan.make(arr)
