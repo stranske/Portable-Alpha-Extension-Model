@@ -297,6 +297,14 @@ class TestMarginScheduleValidation:
         schedule = load_margin_schedule(path)
         assert list(schedule["term"]) == [1, 3]
 
+    def test_header_normalization_parentheses(self, tmp_path: Path):
+        """Normalize header punctuation like parentheses."""
+        csv = "Term (Months),Multiplier\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
+        assert list(schedule["term"]) == [1, 3]
+
     def test_multiplier_alias(self, tmp_path: Path):
         """Accept multipliers as a column alias."""
         csv = "term_months,multipliers\n1,2\n3,4\n"

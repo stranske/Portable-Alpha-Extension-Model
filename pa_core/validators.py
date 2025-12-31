@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from io import BytesIO, StringIO
 from pathlib import Path
+import re
 from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
@@ -246,7 +247,10 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray, IO[Any]]) -> p
         if not schedule_path.exists():
             raise FileNotFoundError(f"Margin schedule file not found: {schedule_path}")
         df = pd.read_csv(schedule_path)
-    df.columns = [str(col).strip().lstrip("\ufeff").lower().replace(" ", "_") for col in df.columns]
+    df.columns = [
+        re.sub(r"[^a-z0-9]+", "_", str(col).strip().lstrip("\ufeff").lower()).strip("_")
+        for col in df.columns
+    ]
     if "term" not in df.columns:
         if "term_months" in df.columns:
             df = df.rename(columns={"term_months": "term"})
