@@ -17,3 +17,17 @@ def test_cached_sweep_deterministic():
     assert df.shape[0] > 1
     for col in ["AnnReturn", "AnnVol", "TE"]:
         assert col in df.columns
+
+
+def test_cached_sweep_progress_callback_invoked():
+    cfg = load_config("examples/scenarios/my_first_scenario.yml")
+    idx = pd.Series([0.01, 0.02, -0.01, 0.0])
+    run_parameter_sweep_cached(cfg, idx, seed=321)
+
+    calls: list[tuple[int, int]] = []
+
+    def _progress(current: int, total: int) -> None:
+        calls.append((current, total))
+
+    results = run_parameter_sweep_cached(cfg, idx, seed=321, progress=_progress)
+    assert calls == [(len(results), len(results))]

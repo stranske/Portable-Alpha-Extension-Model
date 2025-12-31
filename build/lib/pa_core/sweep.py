@@ -23,7 +23,6 @@ from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
-from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
 from .validators import select_vol_regime_sigma
 
@@ -139,6 +138,13 @@ def _get_empty_results_dataframe() -> pd.DataFrame:
     return _EMPTY_RESULTS_DF.copy()
 
 
+def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    denom = np.outer(sigma, sigma)
+    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+    return sigma, corr
+
+
 def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
@@ -202,8 +208,11 @@ def run_parameter_sweep(
         "act_ext_spike_prob",
         "act_ext_spike_factor",
     }
+    sigma_override_keys = {"sigma_H", "sigma_E", "sigma_M"}
     reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
     reuse_financing_series = not override_keys.intersection(financing_keys)
+    if cfg.covariance_shrinkage != "none" and override_keys.intersection(sigma_override_keys):
+        reuse_return_shocks = False
 
     # Common random numbers: reset RNGs before each combination so parameter
     # changes are compared against identical random draws. When a master seed
@@ -223,7 +232,36 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
-        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        base_cov = build_cov_matrix(
+            cfg.rho_idx_H,
+            cfg.rho_idx_E,
+            cfg.rho_idx_M,
+            cfg.rho_H_E,
+            cfg.rho_H_M,
+            cfg.rho_E_M,
+            idx_sigma,
+            cfg.sigma_H,
+            cfg.sigma_E,
+            cfg.sigma_M,
+            covariance_shrinkage=cfg.covariance_shrinkage,
+            n_samples=n_samples,
+        )
+        _, base_corr = _cov_to_corr_and_sigma(base_cov)
+        shock_params = {
+            "return_distribution": cfg.return_distribution,
+            "return_t_df": cfg.return_t_df,
+            "return_copula": cfg.return_copula,
+            "return_distribution_idx": cfg.return_distribution_idx,
+            "return_distribution_H": cfg.return_distribution_H,
+            "return_distribution_E": cfg.return_distribution_E,
+            "return_distribution_M": cfg.return_distribution_M,
+            "rho_idx_H": float(base_corr[0, 1]),
+            "rho_idx_E": float(base_corr[0, 2]),
+            "rho_idx_M": float(base_corr[0, 3]),
+            "rho_H_E": float(base_corr[1, 2]),
+            "rho_H_M": float(base_corr[1, 3]),
+            "rho_E_M": float(base_corr[2, 3]),
+        }
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
@@ -235,7 +273,20 @@ def run_parameter_sweep(
 
     financing_series = None
     if reuse_financing_series:
-        financing_params = build_financing_params(cfg)
+        financing_params = {
+            "internal_financing_mean_month": cfg.internal_financing_mean_month,
+            "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
+            "internal_spike_prob": cfg.internal_spike_prob,
+            "internal_spike_factor": cfg.internal_spike_factor,
+            "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
+            "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
+            "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
+            "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
+            "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
+            "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
+            "act_ext_spike_prob": cfg.act_ext_spike_prob,
+            "act_ext_spike_factor": cfg.act_ext_spike_factor,
+        }
         fin_rngs_base: Dict[str, np.random.Generator] = {}
         for name in fin_rngs.keys():
             tmp_rng = spawn_rngs(None, 1)[0]
@@ -261,7 +312,7 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        build_cov_matrix(
+        cov = build_cov_matrix(
             mod_cfg.rho_idx_H,
             mod_cfg.rho_idx_E,
             mod_cfg.rho_idx_M,
@@ -275,7 +326,46 @@ def run_parameter_sweep(
             covariance_shrinkage=mod_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        params = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+        idx_sigma_cov = float(sigma_vec[0])
+        sigma_h_cov = float(sigma_vec[1])
+        sigma_e_cov = float(sigma_vec[2])
+        sigma_m_cov = float(sigma_vec[3])
+        params = {
+            "mu_idx_month": mu_idx / 12,
+            "default_mu_H": mod_cfg.mu_H / 12,
+            "default_mu_E": mod_cfg.mu_E / 12,
+            "default_mu_M": mod_cfg.mu_M / 12,
+            "idx_sigma_month": idx_sigma_cov / 12,
+            "default_sigma_H": sigma_h_cov / 12,
+            "default_sigma_E": sigma_e_cov / 12,
+            "default_sigma_M": sigma_m_cov / 12,
+            "rho_idx_H": float(corr_mat[0, 1]),
+            "rho_idx_E": float(corr_mat[0, 2]),
+            "rho_idx_M": float(corr_mat[0, 3]),
+            "rho_H_E": float(corr_mat[1, 2]),
+            "rho_H_M": float(corr_mat[1, 3]),
+            "rho_E_M": float(corr_mat[2, 3]),
+            "return_distribution": mod_cfg.return_distribution,
+            "return_t_df": mod_cfg.return_t_df,
+            "return_copula": mod_cfg.return_copula,
+            "return_distribution_idx": mod_cfg.return_distribution_idx,
+            "return_distribution_H": mod_cfg.return_distribution_H,
+            "return_distribution_E": mod_cfg.return_distribution_E,
+            "return_distribution_M": mod_cfg.return_distribution_M,
+            "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
+            "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
+            "internal_spike_prob": mod_cfg.internal_spike_prob,
+            "internal_spike_factor": mod_cfg.internal_spike_factor,
+            "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
+            "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
+            "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
+            "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
+            "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
+            "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
+            "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
+            "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
+        }
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,

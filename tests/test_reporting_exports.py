@@ -45,6 +45,17 @@ def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monke
     assert "ShortfallProb" in header
 
 
+def test_export_sweep_results_writes_summary_when_empty(tmp_path: Path) -> None:
+    out_path = tmp_path / "sweep_empty.xlsx"
+    export_sweep_results([], filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path)
+    assert "Summary" in wb.sheetnames
+
+    header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
+    assert "ShortfallProb" in header
+
+
 def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) -> None:
     from pa_core.reporting.export_packet import create_export_packet
 
