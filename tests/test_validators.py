@@ -221,6 +221,29 @@ class TestCapitalAllocationValidation:
         )
         assert margin == pytest.approx(0.02 * 3.0 * 1000.0)
 
+    def test_schedule_margin_drives_capital_validation(self, tmp_path: Path):
+        """Ensure schedule-based margin drives capital validation outcomes."""
+        csv = "term,multiplier\n1,10\n3,10\n"
+        schedule_path = tmp_path / "sched.csv"
+        schedule_path.write_text(csv)
+
+        results = validate_capital_allocation(
+            external_pa_capital=0.0,
+            active_ext_capital=0.0,
+            internal_pa_capital=900.0,
+            total_fund_capital=1000.0,
+            reference_sigma=0.02,
+            financing_model="schedule",
+            margin_schedule_path=schedule_path,
+            term_months=1.0,
+        )
+
+        errors = [r for r in results if not r.is_valid]
+        assert any(
+            "Margin requirement" in r.message and "exceeds total capital" in r.message
+            for r in errors
+        )
+
 
 class TestMarginScheduleValidation:
     """Tests for margin schedule loading and validation."""
