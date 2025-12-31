@@ -6,6 +6,8 @@ from typing import Any, Dict, cast
 
 import pandas as pd
 
+PREFERRED_INDEX_RETURN_COLUMNS = ("Monthly_TR", "Return")
+
 
 def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, Any]:
     """Return parameter dictionary by mapping CSV headers via ``label_map``.
@@ -64,6 +66,9 @@ def load_index_returns(path: str | Path) -> pd.Series:
 
     Validates and converts data to numeric format, handling non-numeric values
     by converting them to NaN and dropping them from the final series.
+    Column selection prefers ``Monthly_TR`` then ``Return``; otherwise the
+    second column is used when present (first column for single-column files).
+    A warning is emitted showing which column was selected and why.
 
     Raises
     ------
@@ -79,10 +84,32 @@ def load_index_returns(path: str | Path) -> pd.Series:
         df = pd.read_csv(p)
     except (pd.errors.EmptyDataError, OSError) as exc:
         raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
-    if df.shape[1] == 1:
-        raw = df.iloc[:, 0]
+
+    selected_column: str | None = None
+    selection_reason: str | None = None
+    for col in PREFERRED_INDEX_RETURN_COLUMNS:
+        if col in df.columns:
+            selected_column = col
+            selection_reason = "preferred column"
+            raw = df[col]
+            break
     else:
-        raw = df.iloc[:, 1]
+        if df.shape[1] == 0:
+            raise ValueError(f"No columns found in CSV file: {path}")
+        if df.shape[1] == 1:
+            selected_column = df.columns[0]
+            selection_reason = "single-column fallback"
+            raw = df.iloc[:, 0]
+        else:
+            selected_column = df.columns[1]
+            selection_reason = "second-column fallback"
+            raw = df.iloc[:, 1]
+
+    warnings.warn(
+        f"Selected index returns column: {selected_column} ({selection_reason})",
+        UserWarning,
+        stacklevel=2,
+    )
 
     # Convert to numeric, coerce errors to NaN, then wrap as Series to satisfy typing
     numeric = pd.to_numeric(raw, errors="coerce")

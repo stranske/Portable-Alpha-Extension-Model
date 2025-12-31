@@ -12,6 +12,7 @@ This folder contains starter templates for the Portable Alpha Extension Model.
 - `asset_timeseries_template.xlsx` - Excel template for importing asset time series
 - `asset_timeseries_wide_returns.csv` - Wide-format CSV template (columns per asset)
 - `asset_timeseries_long_returns.csv` - Long-format CSV template (Date, Id, Return columns)
+- Index return CSVs should include a `Date` column and a return column named `Monthly_TR` (preferred) or `Return`.
 
 ## Usage
 
