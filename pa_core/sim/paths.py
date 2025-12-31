@@ -356,7 +356,7 @@ def draw_financing_series(
             k,
             n_scenarios=1,
             rng=rng_local,
-        )[0]
+        )
         return np.broadcast_to(vec, (n_sim, n_months))  # type: ignore[no-any-return]
 
     f_int_mat = _sim(

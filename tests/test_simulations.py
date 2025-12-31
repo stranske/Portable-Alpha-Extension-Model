@@ -34,6 +34,22 @@ def test_simulate_financing_spikes():
     assert np.all(out > 0)
 
 
+def test_simulate_financing_varies_with_sigma():
+    out = simulate_financing(12, SYNTHETIC_DATA_MEAN, 0.5, 0.0, 2.0, seed=7)
+    assert np.std(out) > 0
+
+
+def test_simulate_financing_spike_shift():
+    n_months = 8
+    mean = 10.0
+    sigma = 0.2
+    spike_factor = 3.0
+    base = simulate_financing(n_months, mean, sigma, 0.0, spike_factor, seed=11)
+    spiked = simulate_financing(n_months, mean, sigma, 1.0, spike_factor, seed=11)
+    assert np.allclose(spiked - base, spike_factor * sigma)
+    assert np.std(spiked) > 0
+
+
 def test_simulate_agents_vectorised():
     n_sim, n_months = 4, 3
     r_beta = np.random.normal(size=(n_sim, n_months))
