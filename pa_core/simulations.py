@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import singledispatch
-from typing import Any, Iterable, Tuple
+from typing import Iterable, Tuple
 
 from .agents import (
     ActiveExtensionAgent,
