@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.config import load_config
+from pa_core.config import load_config, normalize_share
 from pa_core.orchestrator import SimulatorOrchestrator
 from pa_core.random import spawn_agent_rngs
 from pa_core.reporting.attribution import (
@@ -42,9 +42,11 @@ def test_integration_regression_active_ext_financing_export(tmp_path: Path) -> N
     active_alpha = attr_df[(attr_df["Agent"] == "ActiveExt") & (attr_df["Sub"] == "Alpha")][
         "Return"
     ]
-    # Regression guard for #1: ActiveExt alpha must be nonzero when capital and active_share > 0.
+    # Regression guard for #1: ActiveExt alpha must be present and match the configured share/capital.
     assert not active_alpha.empty
-    assert active_alpha.iloc[0] > 1e-6
+    active_share = normalize_share(cfg.active_share) or 0.0
+    expected_act_alpha = cfg.active_ext_capital / cfg.total_fund_capital * active_share * cfg.mu_E
+    assert active_alpha.iloc[0] == pytest.approx(expected_act_alpha, rel=1e-6)
 
     fin_params = {
         "internal_financing_mean_month": cfg.internal_financing_mean_month,
