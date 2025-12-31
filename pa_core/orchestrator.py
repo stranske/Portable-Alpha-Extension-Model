@@ -11,7 +11,7 @@ from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
-from .sim.params import build_financing_params, build_return_params
+from .sim.params import build_simulation_params
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .validators import select_vol_regime_sigma
@@ -53,7 +53,7 @@ class SimulatorOrchestrator:
         )
 
         rng_returns = spawn_rngs(seed, 1)[0]
-        params = build_return_params(self.cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        params = build_simulation_params(self.cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=self.cfg.N_MONTHS,
@@ -62,12 +62,11 @@ class SimulatorOrchestrator:
             rng=rng_returns,
         )
 
-        fin_params = build_financing_params(self.cfg)
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         f_int, f_ext, f_act = draw_financing_series(
             n_months=self.cfg.N_MONTHS,
             n_sim=self.cfg.N_SIMULATIONS,
-            params=fin_params,
+            params=params,
             rngs=fin_rngs,
         )
 
