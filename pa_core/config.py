@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Literal, Mapping, Optional, Union, cast
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -14,7 +14,14 @@ class ConfigError(ValueError):
     """Invalid configuration."""
 
 
-__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
+__all__ = [
+    "AgentConfig",
+    "ModelConfig",
+    "load_config",
+    "ConfigError",
+    "get_field_mappings",
+    "normalize_share",
+]
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -48,6 +55,14 @@ def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, 
             mappings[field_name] = field_name
 
     return mappings
+
+
+class AgentConfig(BaseModel):
+    name: str
+    capital: float
+    beta_share: float
+    alpha_share: float
+    extra: Dict[str, Any] = Field(default_factory=dict)
 
 
 class ModelConfig(BaseModel):
@@ -84,7 +99,7 @@ class ModelConfig(BaseModel):
     active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
-    agents: List[Dict[str, Any]] = Field(default_factory=list)
+    agents: List[AgentConfig] = Field(default_factory=list)
 
     w_beta_H: float = Field(default=0.5, alias="In-House beta share")
     w_alpha_H: float = Field(default=0.5, alias="In-House alpha share")
@@ -300,20 +315,24 @@ class ModelConfig(BaseModel):
             raise ValueError("agents must be a list of mappings")
         normalized: list[dict[str, Any]] = []
         for idx, agent in enumerate(raw_agents):
-            if not isinstance(agent, dict):
+            if isinstance(agent, AgentConfig):
+                agent_data = agent.model_dump()
+            elif isinstance(agent, Mapping):
+                agent_data = dict(agent)
+            else:
                 raise ValueError(f"agents[{idx}] must be a mapping")
-            missing = {"name", "capital", "beta_share", "alpha_share"} - agent.keys()
+            missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
             if missing:
                 raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
-            extra = agent.get("extra") or {}
+            extra = agent_data.get("extra") or {}
             if not isinstance(extra, dict):
                 raise ValueError(f"agents[{idx}].extra must be a mapping")
-            beta_share = normalize_share(agent["beta_share"])
-            alpha_share = normalize_share(agent["alpha_share"])
+            beta_share = normalize_share(agent_data["beta_share"])
+            alpha_share = normalize_share(agent_data["alpha_share"])
             normalized.append(
                 {
-                    "name": str(agent["name"]),
-                    "capital": float(agent["capital"]),
+                    "name": str(agent_data["name"]),
+                    "capital": float(agent_data["capital"]),
                     "beta_share": 0.0 if beta_share is None else float(beta_share),
                     "alpha_share": 0.0 if alpha_share is None else float(alpha_share),
                     "extra": extra,
