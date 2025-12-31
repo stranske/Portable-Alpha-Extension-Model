@@ -11,7 +11,20 @@ class ConfigError(ValueError):
     """Invalid configuration."""
 
 
-__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings"]
+__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
+
+
+def normalize_share(value: float | None) -> float | None:
+    """Normalize percentage-style inputs to a 0..1 fraction."""
+    if value is None:
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return value
+    if 1.0 < numeric <= 100.0:
+        return numeric / 100.0
+    return numeric
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -240,6 +253,21 @@ class ModelConfig(BaseModel):
         if any(dist == "student_t" for dist in resolved) and self.return_t_df <= 2.0:
             raise ValueError("return_t_df must be greater than 2 for finite variance")
         return self
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_share_inputs(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        share_fields = (
+            ("active_share", "Active share (%)"),
+            ("theta_extpa", "External PA alpha fraction"),
+        )
+        for field, alias in share_fields:
+            for key in (field, alias):
+                if key in data:
+                    data[key] = normalize_share(data[key])
+        return data
 
     @model_validator(mode="after")
     def check_shares(self) -> "ModelConfig":
