@@ -12,21 +12,23 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     Parameters
     ----------
     df_summary : pandas.DataFrame
-        Must contain Agent and either TE (tracking error) or AnnVol. For the
-        y-axis, prefer ExcessReturn and fall back to AnnReturn. TrackingErr is
-        accepted as a legacy alias for TE. ShortfallProb is optional.
+        Must contain Agent and either TE (tracking error) or AnnVol. Prefer TE
+        when it has data; fall back to TrackingErr (legacy) or AnnVol. For the
+        y-axis, prefer ExcessReturn and fall back to AnnReturn when it has
+        data. ShortfallProb is optional.
     """
     df = df_summary.copy()
     df["ShortfallProb"] = df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
     color = []
     thr = theme.THRESHOLDS
+    has_data = lambda col: col in df and df[col].notna().any()
 
-    if "TE" in df:
+    if has_data("TE"):
         x_col = "TE"
         x_label = "Tracking Error"
         x_hover = "Tracking Error"
         cap = thr.get("te_cap", 0.03)
-    elif "TrackingErr" in df:
+    elif has_data("TrackingErr"):
         df["TE"] = df["TrackingErr"]
         x_col = "TE"
         x_label = "Tracking Error"
@@ -38,7 +40,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         x_hover = "Annualized Volatility"
         cap = thr.get("vol_cap", 0.03)
 
-    if "ExcessReturn" in df:
+    if has_data("ExcessReturn"):
         y_col = "ExcessReturn"
         y_label = "Annualized Excess Return"
         y_hover = "Annualized Excess Return"
