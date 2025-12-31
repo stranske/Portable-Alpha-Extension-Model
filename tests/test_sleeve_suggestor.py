@@ -212,7 +212,14 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
     ext = np.array([[0.1, -0.1], [0.1, -0.1]])
     act = np.array([[0.05, -0.05], [0.05, -0.05]])
     intr = np.array([[0.2, -0.2], [0.2, -0.2]])
-    returns = {"Base": base, "ExternalPA": ext, "ActiveExt": act, "InternalPA": intr}
+    total = ext + act + intr
+    returns = {
+        "Base": base,
+        "ExternalPA": ext,
+        "ActiveExt": act,
+        "InternalPA": intr,
+        "Total": total,
+    }
     summary = summary_table(returns, benchmark="Base")
 
     class DummyOrchestrator:

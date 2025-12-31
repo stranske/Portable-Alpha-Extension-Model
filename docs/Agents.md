@@ -185,6 +185,9 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 **Invariants**
 - Sleeve capital shares sum to 1.0
 - Financing never applied to α component in v1
+- Agent outputs are **contribution returns** already scaled by capital shares.
+  The portfolio **Total** return is computed once as the sum of all non-benchmark
+  sleeves (all agents except `Base`); do not re-weight sleeves elsewhere.
 
 **Tests**
 - α=0 collapses to pure beta sleeve
