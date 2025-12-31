@@ -8,11 +8,10 @@ from typing import Dict, List, Tuple, cast
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from .share_utils import normalize_share
+from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 CORRELATION_LOWER_BOUND = -0.999
 CORRELATION_UPPER_BOUND = 0.999
-WEIGHT_SUM_TOLERANCE = 1e-6
 
 
 class Index(BaseModel):
@@ -50,7 +49,7 @@ class Portfolio(BaseModel):
     @model_validator(mode="after")
     def _check_weights(self) -> "Portfolio":
         total = sum(self.weights.values())
-        if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:
+        if abs(total - 1.0) > SHARE_SUM_TOLERANCE:
             raise ValueError("portfolio weights must sum to 1")
         return self
 
@@ -77,7 +76,7 @@ class Sleeve(BaseModel):
         ):
             if value is None:
                 continue
-            if not 0.0 <= value <= 1.0:
+            if not SHARE_MIN <= value <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
         return self
 
@@ -87,8 +86,10 @@ class Scenario(BaseModel):
 
     Use ``Scenario`` to define index/asset inputs, correlations, and sleeves.
     Use :class:`pa_core.config.ModelConfig` to define simulation parameters
-    such as run length, capital allocation, and risk metrics. Pair with
-    :func:`pa_core.config.load_config` for a full simulation setup.
+    such as run length, capital allocation, and risk metrics. They intentionally
+    serve different roles: ``Scenario`` supplies market inputs and portfolio
+    structure, while ``ModelConfig`` controls how the simulation runs. Pair
+    with :func:`pa_core.config.load_config` for a full simulation setup.
     """
 
     index: Index
@@ -137,7 +138,7 @@ class Scenario(BaseModel):
     def _check_sleeves(self) -> "Scenario":
         if self.sleeves:
             total = sum(s.capital_share for s in self.sleeves.values())
-            if abs(total - 1.0) > WEIGHT_SUM_TOLERANCE:
+            if abs(total - 1.0) > SHARE_SUM_TOLERANCE:
                 raise ValueError("sleeves capital_share must sum to 1")
         return self
 

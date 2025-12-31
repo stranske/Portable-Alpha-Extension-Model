@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+SHARE_MIN = 0.0
+SHARE_MAX = 1.0
+SHARE_SUM_TOLERANCE = 1e-6
+
 
 def normalize_share(value: float | None) -> float | None:
     """Normalize percentage-style inputs to a 0..1 fraction.

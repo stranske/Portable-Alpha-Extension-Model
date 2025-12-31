@@ -13,6 +13,9 @@ Version: draft-2025-08-08
 - `uv` or `pipx` preferred. Typical: `uv venv && source .venv/bin/activate && uv pip install -e .[dev]`
 - Run all checks: `./dev.sh ci`
 
+## Agent quickstart
+See `CONTRIBUTING.md` for the canonical agent setup steps under "Agent quickstart".
+
 ## Branch & PR workflow
 - Branch from `main`: `feature/<short-name>`
 - Write acceptance criteria in the PR description
@@ -23,6 +26,12 @@ Version: draft-2025-08-08
 - Ruff + Black, Mypy where annotated
 - Pydantic for config schemas
 - Prefer pure functions; keep state at edges (UI, I/O)
+
+## ModelConfig vs Scenario
+Use `pa_core/config.py` `ModelConfig` for run-level settings, parameter sweeps, and
+capital allocation. Use `pa_core/schema.py` `Scenario` for market data, portfolio
+structure, and correlation inputs. They are intentionally separate; pair one
+`ModelConfig` with one `Scenario` when running a full simulation.
 
 ## Testing
 - Unit tests for each agent

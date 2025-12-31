@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from .share_utils import normalize_share
+from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 
 class ConfigError(ValueError):
@@ -54,8 +54,11 @@ class ModelConfig(BaseModel):
 
     Use ``ModelConfig`` for run settings, capital allocation, and sweep ranges.
     Use :class:`pa_core.schema.Scenario` for index/asset inputs, correlations,
-    and sleeve definitions. Pair with :func:`pa_core.schema.load_scenario` when
-    running a full simulation that needs both run settings and market data.
+    and sleeve definitions. They intentionally serve different roles: this
+    class controls how simulations run, while ``Scenario`` supplies the market
+    data and portfolio structure. Pair with
+    :func:`pa_core.schema.load_scenario` when running a full simulation that
+    needs both run settings and market data.
     """
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
@@ -290,17 +293,16 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_shares(self) -> "ModelConfig":
-        tol = 1e-6
         for name, val in [("w_beta_H", self.w_beta_H), ("w_alpha_H", self.w_alpha_H)]:
-            if not 0.0 <= val <= 1.0:
+            if not SHARE_MIN <= val <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
-        if abs(self.w_beta_H + self.w_alpha_H - 1.0) > tol:
+        if abs(self.w_beta_H + self.w_alpha_H - 1.0) > SHARE_SUM_TOLERANCE:
             raise ValueError("w_beta_H and w_alpha_H must sum to 1")
         for name, val in [
             ("theta_extpa", self.theta_extpa),
             ("active_share", self.active_share),
         ]:
-            if not 0.0 <= val <= 1.0:
+            if not SHARE_MIN <= val <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
         return self
 
