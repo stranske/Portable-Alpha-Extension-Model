@@ -144,6 +144,8 @@ pa-make-zip --with-python --python-version 3.12.11 --output portable_windows.zip
 make portable-zip
 ```
 
+Console scripts are `pa`, `pa-dashboard`, `pa-make-zip`, and `pa-create-launchers`.
+
 See `docs/PORTABLE_ZIP_GUIDE.md` for details, including bundling the Windows embeddable Python runtime.
 
 Generate Windows `.bat` and macOS `.command` launchers for the console scripts:

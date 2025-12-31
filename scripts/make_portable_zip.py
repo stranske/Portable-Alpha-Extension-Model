@@ -189,7 +189,7 @@ def _enable_embedded_site(py_dir: Path) -> None:  # pragma: no cover - windows o
 
 def _write_launcher_bats(staging: Path) -> None:  # pragma: no cover - windows only
     launchers = {
-        "pa.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.cli %*\n',
+        "pa.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.pa %*\n',
         "pa-dashboard.bat": (
             "@echo off\n" '"%~dp0python\\python.exe" -m streamlit run dashboard\\app.py %*\n'
         ),

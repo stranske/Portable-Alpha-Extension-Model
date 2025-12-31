@@ -6,7 +6,15 @@ import sys
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, cast
 
-import yaml  # type: ignore[import-untyped]
+def _require_yaml() -> Any:
+    """Import PyYAML lazily to keep `pa --help` lightweight."""
+    try:
+        import yaml  # type: ignore[import-untyped]
+    except ImportError as exc:  # pragma: no cover - depends on environment
+        raise ImportError(
+            "PyYAML is required for this command. Install it with `pip install pyyaml`."
+        ) from exc
+    return yaml
 
 
 def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
@@ -14,6 +22,8 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
 
     # Import here to avoid circular imports
     from .config import get_field_mappings
+
+    yaml = _require_yaml()
 
     # Get the field mappings from the ModelConfig Pydantic model
     label_map = get_field_mappings()
@@ -70,6 +80,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
 def _load_calibration_overrides(path: str | Path) -> Mapping[str, Any]:
     """Return calibration overrides from a mapping template, if present."""
 
+    yaml = _require_yaml()
     data = yaml.safe_load(Path(path).read_text())
     if not isinstance(data, dict):
         return {}
