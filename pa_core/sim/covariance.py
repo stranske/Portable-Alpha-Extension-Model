@@ -161,7 +161,7 @@ def build_cov_matrix_with_validation(
     sigma_M: float,
     covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none",
     n_samples: int | None = None,
-) -> tuple[NDArray[np.float64], dict]:
+) -> tuple[NDArray[np.float64], dict[str, object]]:
     """Return PSD 4×4 covariance matrix for (Index, H, E, M) with detailed validation info.
 
     Similar to build_cov_matrix but returns additional validation information

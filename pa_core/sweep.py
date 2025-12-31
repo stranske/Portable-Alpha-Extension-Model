@@ -31,7 +31,7 @@ from .validators import select_vol_regime_sigma
 
 def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str] = None) -> Any:
     if _HAS_TQDM:
-        return _tqdm(iterable, total=total, desc=desc)  # type: ignore[name-defined]
+        return _tqdm(iterable, total=total, desc=desc)
     return iterable
 
 
@@ -393,7 +393,7 @@ def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str
     """Return a hash key for caching parameter sweeps."""
     cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
     # Use getattr to avoid static checker complaining about pandas.util access
-    hash_fn = getattr(pd, "util").hash_pandas_object  # type: ignore[attr-defined]
+    hash_fn = getattr(pd, "util").hash_pandas_object
     idx_hash = hashlib.sha256(hash_fn(index_series).values.tobytes()).hexdigest()
     return hashlib.sha256((cfg_json + idx_hash + str(seed)).encode()).hexdigest()
 

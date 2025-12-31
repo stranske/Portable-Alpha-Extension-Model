@@ -6,7 +6,7 @@ from typing import Dict, List, Literal, cast
 
 import numpy as np
 import pandas as pd
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from ..schema import Asset, Correlation, Index
 

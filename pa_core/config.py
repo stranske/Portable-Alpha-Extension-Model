@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
 import numpy as np
-import yaml  # type: ignore[import-untyped]
+import yaml
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
@@ -17,8 +17,8 @@ class ConfigError(ValueError):
 
 
 MONTHS_PER_YEAR = 12
-CANONICAL_RETURN_UNIT = "monthly"
-DEFAULT_RETURN_UNIT = "annual"
+CANONICAL_RETURN_UNIT: Literal["monthly"] = "monthly"
+DEFAULT_RETURN_UNIT: Literal["annual", "monthly"] = "annual"
 DEFAULT_MEAN_CONVERSION: Literal["simple", "geometric"] = "simple"
 
 
@@ -27,8 +27,8 @@ def annual_mean_to_monthly(
 ) -> float:
     """Convert an annual mean return to a monthly mean."""
     if method == "geometric":
-        return (1.0 + value) ** (1.0 / MONTHS_PER_YEAR) - 1.0
-    return value / MONTHS_PER_YEAR
+        return float((1.0 + value) ** (1.0 / MONTHS_PER_YEAR) - 1.0)
+    return float(value / MONTHS_PER_YEAR)
 
 
 def annual_vol_to_monthly(value: float) -> float:

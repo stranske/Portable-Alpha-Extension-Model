@@ -12,7 +12,7 @@ from .schema import load_scenario
 
 _yaml: types.ModuleType | None
 try:
-    import yaml as _yaml  # type: ignore[import-untyped]
+    import yaml as _yaml
 except ImportError:  # pragma: no cover - dependency optional
     _yaml = None
 yaml: Optional[types.ModuleType] = _yaml
