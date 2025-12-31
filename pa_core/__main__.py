@@ -18,8 +18,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
         "--backend",
-        choices=["numpy", "cupy"],
-        help="Computation backend",
+        choices=["numpy"],
+        help="Computation backend (numpy only; cupy/GPU acceleration is not available)",
     )
     parser.add_argument(
         "--seed",

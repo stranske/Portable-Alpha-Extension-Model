@@ -19,8 +19,8 @@ class TestBackendSelectionHelper:
 
     def test_resolve_backend_cli_priority(self):
         """Test that CLI argument takes priority over config."""
-        # Create a config with cupy backend
-        config_data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "backend": "cupy"}
+        # Create a config with numpy backend
+        config_data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "backend": "numpy"}
         cfg = ModelConfig(**config_data)
 
         # CLI argument should override config
@@ -33,7 +33,7 @@ class TestBackendSelectionHelper:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
-            "backend": "numpy",  # Would be cupy but we can't test that without cupy
+            "backend": "numpy",
         }
         cfg = ModelConfig(**config_data)
 
@@ -49,10 +49,9 @@ class TestBackendSelectionHelper:
         assert backend == "numpy"
         assert get_backend() == "numpy"
 
-    def test_resolve_backend_cupy_missing_error(self):
-        """Test error handling when cupy is requested but not available."""
-        # Since cupy is not installed in test environment, this should raise
-        with pytest.raises(ImportError, match="CuPy backend requested"):
+    def test_resolve_backend_unknown_error(self):
+        """Test error handling when an unknown backend is requested."""
+        with pytest.raises(ValueError, match="Only the 'numpy' backend is supported"):
             resolve_and_set_backend("cupy", None)
 
     def test_config_with_backend_field(self):
@@ -66,10 +65,10 @@ class TestBackendSelectionHelper:
         config_data = {
             "N_SIMULATIONS": 10,
             "N_MONTHS": 12,
-            "backend": "invalid_backend",
+            "backend": "cupy",
         }
 
-        with pytest.raises(ValueError, match="backend must be one of"):
+        with pytest.raises(ValueError, match=r"backend must be .*numpy"):
             ModelConfig(**config_data)
 
 

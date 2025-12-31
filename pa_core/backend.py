@@ -6,34 +6,33 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from .config import ModelConfig
 
-__all__ = ["xp", "set_backend", "get_backend", "resolve_and_set_backend"]
+SUPPORTED_BACKENDS = ("numpy",)
+BACKEND_UNAVAILABLE_DETAIL = "cupy/GPU acceleration is not available."
+BACKEND_ERROR_MESSAGE = f"Only the 'numpy' backend is supported; {BACKEND_UNAVAILABLE_DETAIL}"
+
+__all__ = [
+    "xp",
+    "set_backend",
+    "get_backend",
+    "resolve_and_set_backend",
+    "SUPPORTED_BACKENDS",
+    "BACKEND_UNAVAILABLE_DETAIL",
+]
 
 xp = importlib.import_module("numpy")
 
 
 def set_backend(name: str) -> None:
-    """Set numeric backend to 'numpy' or 'cupy'."""
+    """Set numeric backend to 'numpy'."""
     global xp
-    if name == "numpy":
-        xp = importlib.import_module("numpy")
-    elif name == "cupy":
-        try:
-            xp = importlib.import_module("cupy")
-        except (
-            ImportError,
-            ModuleNotFoundError,
-        ) as e:  # pragma: no cover - depends on optional dep
-            raise ImportError(
-                "CuPy backend requested but not installed. Install CuPy or run with "
-                "--backend numpy."
-            ) from e
-    else:
-        raise ValueError(f"Unknown backend: {name}")
+    if name != "numpy":
+        raise ValueError(BACKEND_ERROR_MESSAGE)
+    xp = importlib.import_module("numpy")
 
 
 def get_backend() -> str:
     """Return the current backend name."""
-    return "cupy" if xp.__name__.startswith("cupy") else "numpy"
+    return "numpy"
 
 
 def resolve_and_set_backend(
