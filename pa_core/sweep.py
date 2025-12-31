@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import logging
@@ -19,7 +20,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
 from .agents.registry import build_from_config
 from .config import ModelConfig, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
-from .sim import draw_financing_series, draw_joint_returns
+from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
@@ -142,6 +143,7 @@ def run_parameter_sweep(
     index_series: pd.Series,
     rng_returns: np.random.Generator,
     fin_rngs: Dict[str, np.random.Generator],
+    seed: Optional[int] = None,
     progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:
     """Run the parameter sweep and collect results.
@@ -167,11 +169,122 @@ def run_parameter_sweep(
     total = len(combos)
     logger.info("Starting parameter sweep", extra={"total_combinations": total})
 
+    override_keys: set[str] = set()
+    for overrides in combos:
+        override_keys.update(overrides.keys())
+    shock_incompatible_keys = {
+        "rho_idx_H",
+        "rho_idx_E",
+        "rho_idx_M",
+        "rho_H_E",
+        "rho_H_M",
+        "rho_E_M",
+        "return_distribution",
+        "return_t_df",
+        "return_copula",
+        "return_distribution_idx",
+        "return_distribution_H",
+        "return_distribution_E",
+        "return_distribution_M",
+    }
+    financing_keys = {
+        "internal_financing_mean_month",
+        "internal_financing_sigma_month",
+        "internal_spike_prob",
+        "internal_spike_factor",
+        "ext_pa_financing_mean_month",
+        "ext_pa_financing_sigma_month",
+        "ext_pa_spike_prob",
+        "ext_pa_spike_factor",
+        "act_ext_financing_mean_month",
+        "act_ext_financing_sigma_month",
+        "act_ext_spike_prob",
+        "act_ext_spike_factor",
+    }
+    reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
+    reuse_financing_series = not override_keys.intersection(financing_keys)
+
+    # Common random numbers: reset RNGs before each combination so parameter
+    # changes are compared against identical random draws. When a master seed
+    # is provided, derive the baseline RNG state from that seed.
+    if seed is None:
+        rng_returns_state = copy.deepcopy(rng_returns.bit_generator.state)
+        fin_rng_states = {
+            name: copy.deepcopy(rng.bit_generator.state) for name, rng in fin_rngs.items()
+        }
+    else:
+        base_rng_returns = spawn_rngs(seed, 1)[0]
+        base_fin_rngs = spawn_agent_rngs(seed, list(fin_rngs.keys()))
+        rng_returns_state = copy.deepcopy(base_rng_returns.bit_generator.state)
+        fin_rng_states = {
+            name: copy.deepcopy(base_fin_rngs[name].bit_generator.state) for name in fin_rngs.keys()
+        }
+
+    return_shocks = None
+    if reuse_return_shocks:
+        shock_params = {
+            "return_distribution": cfg.return_distribution,
+            "return_t_df": cfg.return_t_df,
+            "return_copula": cfg.return_copula,
+            "return_distribution_idx": cfg.return_distribution_idx,
+            "return_distribution_H": cfg.return_distribution_H,
+            "return_distribution_E": cfg.return_distribution_E,
+            "return_distribution_M": cfg.return_distribution_M,
+            "rho_idx_H": cfg.rho_idx_H,
+            "rho_idx_E": cfg.rho_idx_E,
+            "rho_idx_M": cfg.rho_idx_M,
+            "rho_H_E": cfg.rho_H_E,
+            "rho_H_M": cfg.rho_H_M,
+            "rho_E_M": cfg.rho_E_M,
+        }
+        rng_returns_base = spawn_rngs(None, 1)[0]
+        rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
+        return_shocks = prepare_return_shocks(
+            n_months=cfg.N_MONTHS,
+            n_sim=cfg.N_SIMULATIONS,
+            params=shock_params,
+            rng=rng_returns_base,
+        )
+
+    financing_series = None
+    if reuse_financing_series:
+        financing_params = {
+            "internal_financing_mean_month": cfg.internal_financing_mean_month,
+            "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
+            "internal_spike_prob": cfg.internal_spike_prob,
+            "internal_spike_factor": cfg.internal_spike_factor,
+            "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
+            "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
+            "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
+            "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
+            "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
+            "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
+            "act_ext_spike_prob": cfg.act_ext_spike_prob,
+            "act_ext_spike_factor": cfg.act_ext_spike_factor,
+        }
+        fin_rngs_base: Dict[str, np.random.Generator] = {}
+        for name in fin_rngs.keys():
+            tmp_rng = spawn_rngs(None, 1)[0]
+            tmp_rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])
+            fin_rngs_base[name] = tmp_rng
+        financing_series = draw_financing_series(
+            n_months=cfg.N_MONTHS,
+            n_sim=cfg.N_SIMULATIONS,
+            params=financing_params,
+            rngs=fin_rngs_base,
+        )
+
     iterator = enumerate(combos)
     if progress is None:
         iterator = enumerate(progress_bar(combos, total=total, desc="sweep"))
 
     for i, overrides in iterator:
+        if return_shocks is None:
+            rng_returns.bit_generator.state = copy.deepcopy(rng_returns_state)
+        if financing_series is None:
+            for name, rng in fin_rngs.items():
+                rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])
+
         mod_cfg = cfg.model_copy(update=overrides)
 
         build_cov_matrix(
@@ -228,14 +341,18 @@ def run_parameter_sweep(
             n_months=mod_cfg.N_MONTHS,
             n_sim=mod_cfg.N_SIMULATIONS,
             params=params,
-            rng=rng_returns,
+            rng=None if return_shocks is not None else rng_returns,
+            shocks=return_shocks,
         )
-        f_int, f_ext, f_act = draw_financing_series(
-            n_months=mod_cfg.N_MONTHS,
-            n_sim=mod_cfg.N_SIMULATIONS,
-            params=params,
-            rngs=fin_rngs,
-        )
+        if financing_series is None:
+            f_int, f_ext, f_act = draw_financing_series(
+                n_months=mod_cfg.N_MONTHS,
+                n_sim=mod_cfg.N_SIMULATIONS,
+                params=params,
+                rngs=fin_rngs,
+            )
+        else:
+            f_int, f_ext, f_act = financing_series
 
         agents = build_from_config(mod_cfg)
         returns = simulate_agents(
@@ -299,7 +416,7 @@ def run_parameter_sweep_cached(
         rng_returns = spawn_rngs(seed, 1)[0]
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         _SWEEP_CACHE[key] = run_parameter_sweep(
-            cfg, index_series, rng_returns, fin_rngs, progress=progress
+            cfg, index_series, rng_returns, fin_rngs, seed=seed, progress=progress
         )
     return _SWEEP_CACHE[key]
 

@@ -4,6 +4,7 @@ from pa_core.sim.metrics import conditional_value_at_risk
 from pa_core.sim.paths import (
     draw_joint_returns,
     prepare_mc_universe,
+    prepare_return_shocks,
     simulate_alpha_streams,
 )
 
@@ -196,3 +197,29 @@ def test_prepare_mc_universe_supports_per_series_student_t() -> None:
     normal_cvar = conditional_value_at_risk(sims[:, :, 0], confidence=0.95)
     t_cvar = conditional_value_at_risk(sims[:, :, 1], confidence=0.95)
     assert t_cvar < normal_cvar
+
+
+def test_draw_joint_returns_matches_prepared_shocks() -> None:
+    n_sim, n_months = 500, 6
+    params = _base_params()
+    rng_shocks = np.random.default_rng(123)
+    shocks = prepare_return_shocks(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng_shocks,
+    )
+    shocked = draw_joint_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        shocks=shocks,
+    )
+    repeated = draw_joint_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        shocks=shocks,
+    )
+    for left, right in zip(shocked, repeated):
+        np.testing.assert_allclose(left, right)

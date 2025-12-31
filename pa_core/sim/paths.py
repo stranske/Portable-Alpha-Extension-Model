@@ -13,6 +13,7 @@ from ..validators import NUMERICAL_STABILITY_EPSILON
 __all__ = [
     "simulate_financing",
     "prepare_mc_universe",
+    "prepare_return_shocks",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -215,18 +216,70 @@ def prepare_mc_universe(
     return sims
 
 
+def prepare_return_shocks(
+    *,
+    n_months: int,
+    n_sim: int,
+    params: Dict[str, Any],
+    rng: Optional[Generator] = None,
+) -> Dict[str, Any]:
+    """Pre-generate return shocks to reuse across parameter combinations."""
+    if rng is None:
+        rng = spawn_rngs(None, 1)[0]
+    assert rng is not None
+    distribution = params.get("return_distribution", "normal")
+    dist_overrides = (
+        params.get("return_distribution_idx"),
+        params.get("return_distribution_H"),
+        params.get("return_distribution_E"),
+        params.get("return_distribution_M"),
+    )
+    use_overrides = any(val is not None for val in dist_overrides)
+    copula = params.get("return_copula", "gaussian")
+    t_df = float(params.get("return_t_df", 5.0))
+    distributions = _resolve_return_distributions(
+        distribution, dist_overrides if use_overrides else None
+    )
+    _validate_return_draw_settings(distributions, copula, t_df)
+    ρ_idx_H = params["rho_idx_H"]
+    ρ_idx_E = params["rho_idx_E"]
+    ρ_idx_M = params["rho_idx_M"]
+    ρ_H_E = params["rho_H_E"]
+    ρ_H_M = params["rho_H_M"]
+    ρ_E_M = params["rho_E_M"]
+    corr = np.array(
+        [
+            [1.0, ρ_idx_H, ρ_idx_E, ρ_idx_M],
+            [ρ_idx_H, 1.0, ρ_H_E, ρ_H_M],
+            [ρ_idx_E, ρ_H_E, 1.0, ρ_E_M],
+            [ρ_idx_M, ρ_H_M, ρ_E_M, 1.0],
+        ]
+    )
+    z = _safe_multivariate_normal(rng, np.zeros(4), corr, (n_sim, n_months))
+    shocks: Dict[str, Any] = {
+        "z": z,
+        "distributions": distributions,
+        "copula": copula,
+        "t_df": t_df,
+        "corr": corr,
+    }
+    if any(dist == "student_t" for dist in distributions):
+        if copula == "t":
+            shocks["chi_common"] = rng.chisquare(t_df, size=(n_sim, n_months))
+        else:
+            shocks["chi_dim"] = rng.chisquare(t_df, size=(n_sim, n_months, 4))
+    return shocks
+
+
 def draw_joint_returns(
     *,
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
     rng: Optional[Generator] = None,
+    shocks: Optional[Dict[str, Any]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
-    if rng is None:
-        rng = spawn_rngs(None, 1)[0]
-    assert rng is not None
-    assert rng is not None
     distribution = params.get("return_distribution", "normal")
     dist_overrides = (
         params.get("return_distribution_idx"),
@@ -265,31 +318,83 @@ def draw_joint_returns(
     )
     μ = np.array([μ_idx, μ_H, μ_E, μ_M])
     σ = np.array([σ_idx, σ_H, σ_E, σ_M])
-    if all(dist == "normal" for dist in distributions):
-        Σ = corr * (σ[:, None] * σ[None, :])
-        sims = _safe_multivariate_normal(rng, μ, Σ, (n_sim, n_months))
-    else:
-        if all(dist == "student_t" for dist in distributions):
-            sims = _draw_student_t(
-                rng=rng,
-                mean=μ,
-                sigma=σ,
-                corr=corr,
-                size=(n_sim, n_months),
-                df=t_df,
-                copula=copula,
-            )
+    if shocks is not None:
+        if (
+            shocks.get("distributions") != distributions
+            or shocks.get("copula") != copula
+            or float(shocks.get("t_df", t_df)) != t_df
+            or not np.allclose(shocks.get("corr"), corr)
+        ):
+            raise ValueError("Return shocks are not compatible with current parameters")
+        z = shocks["z"]
+        if z.shape != (n_sim, n_months, 4):
+            raise ValueError("Return shocks have incompatible shape")
+        if all(dist == "normal" for dist in distributions):
+            sims = μ + z * σ
         else:
-            sims = _draw_mixed_returns(
-                rng=rng,
-                mean=μ,
-                sigma=σ,
-                corr=corr,
-                size=(n_sim, n_months),
-                df=t_df,
-                copula=copula,
-                distributions=distributions,
-            )
+            scale = np.sqrt((t_df - 2.0) / t_df)
+            if all(dist == "student_t" for dist in distributions):
+                if copula == "t":
+                    chi = shocks.get("chi_common")
+                    if chi is None:
+                        raise ValueError("Missing chi_common for t copula shocks")
+                    denom = np.sqrt(chi / t_df)[..., None]
+                else:
+                    chi = shocks.get("chi_dim")
+                    if chi is None:
+                        raise ValueError("Missing chi_dim for gaussian copula shocks")
+                    denom = np.sqrt(chi / t_df)
+                sims = μ + (z * (scale / denom)) * σ
+            else:
+                shocks_out = np.empty_like(z)
+                denom_common = None
+                if copula == "t":
+                    chi = shocks.get("chi_common")
+                    if chi is None:
+                        raise ValueError("Missing chi_common for t copula shocks")
+                    denom_common = np.sqrt(chi / t_df)
+                for i, dist in enumerate(distributions):
+                    if dist == "normal":
+                        shocks_out[..., i] = z[..., i]
+                    else:
+                        if copula == "t":
+                            denom = denom_common
+                        else:
+                            chi = shocks.get("chi_dim")
+                            if chi is None:
+                                raise ValueError("Missing chi_dim for gaussian copula shocks")
+                            denom = np.sqrt(chi[..., i] / t_df)
+                        shocks_out[..., i] = z[..., i] * (scale / denom)
+                sims = μ + shocks_out * σ
+    else:
+        if rng is None:
+            rng = spawn_rngs(None, 1)[0]
+        assert rng is not None
+        if all(dist == "normal" for dist in distributions):
+            Σ = corr * (σ[:, None] * σ[None, :])
+            sims = _safe_multivariate_normal(rng, μ, Σ, (n_sim, n_months))
+        else:
+            if all(dist == "student_t" for dist in distributions):
+                sims = _draw_student_t(
+                    rng=rng,
+                    mean=μ,
+                    sigma=σ,
+                    corr=corr,
+                    size=(n_sim, n_months),
+                    df=t_df,
+                    copula=copula,
+                )
+            else:
+                sims = _draw_mixed_returns(
+                    rng=rng,
+                    mean=μ,
+                    sigma=σ,
+                    corr=corr,
+                    size=(n_sim, n_months),
+                    df=t_df,
+                    copula=copula,
+                    distributions=distributions,
+                )
     r_beta = sims[:, :, 0]
     r_H = sims[:, :, 1]
     r_E = sims[:, :, 2]
