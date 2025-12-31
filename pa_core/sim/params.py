@@ -5,9 +5,7 @@ from typing import Any, Dict
 from ..config import ModelConfig
 
 
-def build_return_params(
-    cfg: ModelConfig, *, mu_idx: float, idx_sigma: float
-) -> Dict[str, Any]:
+def build_return_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) -> Dict[str, Any]:
     """Return draw parameters shared across CLI, sweep, and orchestrator."""
     return {
         "mu_idx_month": mu_idx / 12,
@@ -52,9 +50,7 @@ def build_financing_params(cfg: ModelConfig) -> Dict[str, Any]:
     }
 
 
-def build_simulation_params(
-    cfg: ModelConfig, *, mu_idx: float, idx_sigma: float
-) -> Dict[str, Any]:
+def build_simulation_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) -> Dict[str, Any]:
     """Combine return and financing parameters for simulation draws."""
     params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
     params.update(build_financing_params(cfg))

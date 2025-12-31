@@ -981,9 +981,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     n_samples=n_samples,
                 )
 
-                params_local = build_simulation_params(
-                    mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma
-                )
+                params_local = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
                 r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,

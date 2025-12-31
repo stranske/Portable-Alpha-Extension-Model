@@ -21,9 +21,9 @@ from .agents.registry import build_from_config
 from .config import ModelConfig, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
-from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
+from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
 from .validators import select_vol_regime_sigma
 

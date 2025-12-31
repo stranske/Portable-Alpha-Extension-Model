@@ -70,9 +70,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .random import spawn_agent_rngs, spawn_rngs
     from .reporting import export_to_excel
     from .sim import draw_financing_series, draw_joint_returns
-    from .sim.params import build_simulation_params
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
+    from .sim.params import build_simulation_params
     from .simulations import simulate_agents
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
