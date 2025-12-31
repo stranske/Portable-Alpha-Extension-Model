@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import re
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -216,7 +217,7 @@ def validate_covariance_matrix_psd(
     return result, psd_info
 
 
-def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFrame:
+def load_margin_schedule(path: Union[str, Path, bytes, bytearray, IO[Any]]) -> pd.DataFrame:
     """Load and validate broker margin schedule.
 
     The schedule must contain ``term`` and ``multiplier`` columns representing
@@ -227,6 +228,12 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
     """
     if isinstance(path, (bytes, bytearray)):
         df = pd.read_csv(BytesIO(path))
+    elif hasattr(path, "read"):
+        content = path.read()
+        if isinstance(content, (bytes, bytearray)):
+            df = pd.read_csv(BytesIO(content))
+        else:
+            df = pd.read_csv(StringIO(str(content)))
     elif isinstance(path, str):
         schedule_path = Path(path)
         if schedule_path.exists():
@@ -240,7 +247,10 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
         if not schedule_path.exists():
             raise FileNotFoundError(f"Margin schedule file not found: {schedule_path}")
         df = pd.read_csv(schedule_path)
-    df.columns = [str(col).strip().lstrip("\ufeff").lower().replace(" ", "_") for col in df.columns]
+    df.columns = [
+        re.sub(r"[^a-z0-9]+", "_", str(col).strip().lstrip("\ufeff").lower()).strip("_")
+        for col in df.columns
+    ]
     if "term" not in df.columns:
         if "term_months" in df.columns:
             df = df.rename(columns={"term_months": "term"})
@@ -255,10 +265,10 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
         raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
     df["term"] = pd.to_numeric(df["term"], errors="coerce")
     df["multiplier"] = pd.to_numeric(df["multiplier"], errors="coerce")
+    # Drop rows that are entirely blank to tolerate trailing blank lines in CSVs.
+    df = df.loc[~(df["term"].isna() & df["multiplier"].isna())]
     if bool(df[["term", "multiplier"]].isna().any().any()):
         raise ValueError("Margin schedule contains non-numeric or missing term/multiplier values")
-    df = df.sort_values("term")
-
     if bool((df["term"] < 0).any()):
         raise ValueError("Margin schedule terms must be non-negative")
     if bool((df["multiplier"] <= 0).any()):

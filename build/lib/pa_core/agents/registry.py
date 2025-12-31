@@ -4,6 +4,7 @@ from importlib.metadata import entry_points
 from typing import Iterable, List, Type
 
 from ..config import ModelConfig
+from ..validators import calculate_margin_requirement
 from .active_ext import ActiveExtensionAgent
 from .base import BaseAgent
 from .external_pa import ExternalPAAgent
@@ -87,12 +88,23 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
             )
         )
 
-    leftover_beta = (
-        total_cap - cfg.external_pa_capital - cfg.active_ext_capital - cfg.internal_pa_capital
+    margin_requirement = calculate_margin_requirement(
+        reference_sigma=cfg.reference_sigma,
+        volatility_multiple=cfg.volatility_multiple,
+        total_capital=total_cap,
+        financing_model=cfg.financing_model,
+        schedule_path=cfg.financing_schedule_path,
+        term_months=cfg.financing_term_months,
     )
-    if leftover_beta > 0:
+    if margin_requirement > 0:
         params.append(
-            AgentParams("InternalBeta", leftover_beta, leftover_beta / total_cap, 0.0, {})
+            AgentParams(
+                "InternalBeta",
+                margin_requirement,
+                margin_requirement / total_cap,
+                0.0,
+                {},
+            )
         )
 
     return build_all(params)
