@@ -4,12 +4,12 @@ try:  # Python 3.11+
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - fallback for <3.11
     import tomli as tomllib
-from importlib import import_module
-from importlib.metadata import PackageNotFoundError, distribution
 import os
-from pathlib import Path
 import subprocess
 import venv
+from importlib import import_module
+from importlib.metadata import PackageNotFoundError, distribution
+from pathlib import Path
 
 import pytest
 
