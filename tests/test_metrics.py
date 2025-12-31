@@ -222,6 +222,12 @@ def test_shortfall_probability_basic():
     assert prob == 0.5
 
 
+def test_shortfall_probability_rolling_window():
+    arr = np.array([0.1, -0.2, 0.05, 0.02])
+    prob = shortfall_probability(arr, threshold=-0.05, periods_per_year=2)
+    assert np.isclose(prob, 2.0 / 3.0)
+
+
 def test_shortfall_probability_horizon_threshold():
     arr = np.zeros((2, 12))
     prob = shortfall_probability(arr, threshold=-0.12, periods_per_year=12)
