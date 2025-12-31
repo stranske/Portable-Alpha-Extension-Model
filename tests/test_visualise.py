@@ -10,8 +10,8 @@ def test_visualise_alt_text(tmp_path, monkeypatch):
     summary = pd.DataFrame(
         {
             "AnnReturn": [0.05],
-            "AnnVol": [0.02],
-            "TrackingErr": [0.01],
+            "ExcessReturn": [0.01],
+            "TE": [0.01],
             "Agent": ["Base"],
             "ShortfallProb": [0.02],
         }
