@@ -203,20 +203,6 @@ def export_to_excel(
             # Non-fatal if renderer or data missing
             pass
 
-    # Optional: write Attribution sheet if provided in inputs_dict
-    attr_maybe = inputs_dict.get("_attribution_df")
-    attr_df: pd.DataFrame | None = attr_maybe if isinstance(attr_maybe, pd.DataFrame) else None
-    if attr_df is not None and not attr_df.empty:
-        try:
-            with pd.ExcelWriter(
-                filename, engine="openpyxl", mode="a", if_sheet_exists="replace"
-            ) as writer:
-                cols = [c for c in ["Agent", "Sub", "Return"] if c in attr_df.columns]
-                if cols:
-                    attr_df[cols].to_excel(writer, sheet_name="Attribution", index=False)
-        except Exception:
-            pass
-
     # Best-effort: embed sunburst image on Attribution sheet
     if "Attribution" in wb.sheetnames:
         try:
