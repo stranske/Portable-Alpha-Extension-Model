@@ -143,6 +143,7 @@ def run_parameter_sweep(
     index_series: pd.Series,
     rng_returns: np.random.Generator,
     fin_rngs: Dict[str, np.random.Generator],
+    seed: Optional[int] = None,
     progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:
     """Run the parameter sweep and collect results.
@@ -169,11 +170,21 @@ def run_parameter_sweep(
     logger.info("Starting parameter sweep", extra={"total_combinations": total})
 
     # Common random numbers: reset RNGs before each combination so parameter
-    # changes are compared against identical random draws.
-    rng_returns_state = copy.deepcopy(rng_returns.bit_generator.state)
-    fin_rng_states = {
-        name: copy.deepcopy(rng.bit_generator.state) for name, rng in fin_rngs.items()
-    }
+    # changes are compared against identical random draws. When a master seed
+    # is provided, derive the baseline RNG state from that seed.
+    if seed is None:
+        rng_returns_state = copy.deepcopy(rng_returns.bit_generator.state)
+        fin_rng_states = {
+            name: copy.deepcopy(rng.bit_generator.state) for name, rng in fin_rngs.items()
+        }
+    else:
+        base_rng_returns = spawn_rngs(seed, 1)[0]
+        base_fin_rngs = spawn_agent_rngs(seed, list(fin_rngs.keys()))
+        rng_returns_state = copy.deepcopy(base_rng_returns.bit_generator.state)
+        fin_rng_states = {
+            name: copy.deepcopy(base_fin_rngs[name].bit_generator.state)
+            for name in fin_rngs.keys()
+        }
 
     iterator = enumerate(combos)
     if progress is None:
@@ -311,7 +322,7 @@ def run_parameter_sweep_cached(
         rng_returns = spawn_rngs(seed, 1)[0]
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         _SWEEP_CACHE[key] = run_parameter_sweep(
-            cfg, index_series, rng_returns, fin_rngs, progress=progress
+            cfg, index_series, rng_returns, fin_rngs, seed=seed, progress=progress
         )
     return _SWEEP_CACHE[key]
 
