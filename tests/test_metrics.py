@@ -96,6 +96,14 @@ def test_breach_probability_single_path():
     assert np.isclose(breach_probability(arr, thr), 1.0 / 3.0)
 
 
+def test_breach_probability_ignores_path_argument():
+    arr = np.array([[0.0, -0.05, 0.01], [-0.02, 0.02, 0.03]])
+    thr = -0.01
+    expected = 2.0 / 6.0
+    assert np.isclose(breach_probability(arr, thr, path=0), expected)
+    assert np.isclose(breach_probability(arr, thr, path=1), expected)
+
+
 def test_summary_table_breach():
     arr = np.array([[0.0, -0.03, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr})

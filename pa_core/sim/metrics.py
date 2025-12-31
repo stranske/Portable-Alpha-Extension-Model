@@ -92,9 +92,9 @@ def breach_probability(
     """Return the fraction of simulation-months that breach ``threshold``.
 
     For 2D arrays shaped (paths, periods), this is the share of all simulated
-    months across all paths that fall below ``threshold``. For 1D arrays, this
-    is the share of months below the threshold. ``path`` is ignored and kept
-    only for backward compatibility.
+    months across all paths that fall below ``threshold`` (Option C). For 1D
+    arrays, this is the share of months below the threshold. ``path`` is
+    ignored and kept only for backward compatibility.
     """
     arr = np.asarray(returns, dtype=np.float64)
     return float(np.mean(arr < threshold))
