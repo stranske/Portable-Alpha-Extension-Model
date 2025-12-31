@@ -25,7 +25,12 @@ def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 
 
 class SimulatorOrchestrator:
-    """Run Monte Carlo simulations with PSD-corrected covariance inputs."""
+    """Run Monte Carlo simulations using PSD-corrected covariance inputs.
+
+    Builds a covariance matrix from configured sigmas/correlations, applies
+    PSD projection when needed, then derives implied volatilities and
+    correlations from the corrected matrix for return draws.
+    """
 
     def __init__(self, cfg: ModelConfig, idx_series: pd.Series) -> None:
         self.cfg = cfg
@@ -34,7 +39,7 @@ class SimulatorOrchestrator:
     def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
         """Execute simulations and return per-agent returns and summary table.
 
-        Uses the PSD-corrected covariance matrix to derive the implied
+        Uses the PSD-corrected covariance matrix to derive implied
         volatilities and correlations before drawing joint returns.
         """
 
