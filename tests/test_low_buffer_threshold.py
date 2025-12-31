@@ -44,8 +44,8 @@ def test_risk_return_uses_constant(cleared_thresholds):
     df = pd.DataFrame(
         {
             "AnnReturn": [0.05, 0.08, 0.12],
-            "AnnVol": [0.02, 0.04, 0.06],
-            "TrackingErr": [0.01, 0.02, 0.03],
+            "ExcessReturn": [0.01, 0.02, 0.03],
+            "TE": [0.01, 0.02, 0.03],
             "Agent": ["A", "B", "C"],
             "ShortfallProb": [
                 0.03,
