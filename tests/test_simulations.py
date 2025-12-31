@@ -63,9 +63,27 @@ def test_simulate_agents_vectorised():
         InternalBetaAgent(AgentParams("InternalBeta", 20, 1.0, 0.0, {})),
     ]
     results = simulate_agents(agents, r_beta, r_H, r_E, r_M, f, f, f)
-    assert set(results) == {"Base", "ExternalPA", "InternalBeta"}
+    assert set(results) == {"Base", "ExternalPA", "InternalBeta", "Total"}
     for arr in results.values():
         assert arr.shape == (n_sim, n_months)
+
+
+def test_total_returns_sum_weighted_sleeves():
+    n_sim, n_months = 2, 2
+    r_beta = np.full((n_sim, n_months), 0.01)
+    r_H = np.full((n_sim, n_months), 0.02)
+    r_E = np.full((n_sim, n_months), 0.03)
+    r_M = np.full((n_sim, n_months), 0.04)
+    f = np.zeros((n_sim, n_months))
+    agents = [
+        BaseAgent(AgentParams("Base", 100, 0.5, 0.5, {})),
+        ExternalPAAgent(AgentParams("ExternalPA", 200, 0.3, 0.0, {"theta_extpa": 0.5})),
+        InternalBetaAgent(AgentParams("InternalBeta", 300, 0.4, 0.0, {})),
+    ]
+    results = simulate_agents(agents, r_beta, r_H, r_E, r_M, f, f, f)
+    total = results["Total"]
+    expected = results["ExternalPA"] + results["InternalBeta"]
+    assert np.allclose(total, expected)
 
 
 def test_draw_financing_series_broadcasts_monthly_vector():

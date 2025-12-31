@@ -4,8 +4,7 @@ from typing import Iterable
 
 from numpy.typing import NDArray
 
-from ..backend import xp as np
-from .aggregator import PortfolioAggregator
+from .backend import xp as np
 
 Array = NDArray
 
@@ -31,10 +30,3 @@ def compute_total_contribution_returns(
             total = np.zeros_like(arr)
         total = total + arr
     return total
-
-
-__all__ = [
-    "PortfolioAggregator",
-    "compute_total_contribution_returns",
-    "DEFAULT_PORTFOLIO_EXCLUDES",
-]

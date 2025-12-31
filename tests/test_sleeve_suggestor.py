@@ -5,8 +5,10 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import pa_core.cli as cli_module
 from pa_core.cli import Dependencies, main
 from pa_core.config import ModelConfig, load_config
+from pa_core.data import load_index_returns
 from pa_core.sim.metrics import summary_table
 from pa_core.sleeve_suggestor import suggest_sleeve_sizes
 
@@ -212,7 +214,14 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
     ext = np.array([[0.1, -0.1], [0.1, -0.1]])
     act = np.array([[0.05, -0.05], [0.05, -0.05]])
     intr = np.array([[0.2, -0.2], [0.2, -0.2]])
-    returns = {"Base": base, "ExternalPA": ext, "ActiveExt": act, "InternalPA": intr}
+    total = ext + act + intr
+    returns = {
+        "Base": base,
+        "ExternalPA": ext,
+        "ActiveExt": act,
+        "InternalPA": intr,
+        "Total": total,
+    }
     summary = summary_table(returns, benchmark="Base")
 
     class DummyOrchestrator:
@@ -320,3 +329,86 @@ def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
     )
 
     assert df.empty
+
+
+def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
+    cfg_data = {
+        "N_SIMULATIONS": 4,
+        "N_MONTHS": 3,
+        "analysis_mode": "single_with_sensitivity",
+        "total_fund_capital": 1000.0,
+        "external_pa_capital": 500.0,
+        "active_ext_capital": 250.0,
+        "internal_pa_capital": 250.0,
+        "risk_metrics": ["ShortfallProb"],
+    }
+    cfg_path = tmp_path / "cfg.yml"
+    cfg_path.write_text(yaml.safe_dump(cfg_data))
+    idx_path = tmp_path / "index.csv"
+    idx_path.write_text("Return\n0.01\n0.02\n-0.01\n0.03\n")
+
+    cfg = load_config(cfg_path)
+    idx_series = load_index_returns(idx_path)
+
+    suggestions = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=0.25,
+        min_external=500.0,
+        max_external=500.0,
+        min_active=250.0,
+        max_active=250.0,
+        min_internal=250.0,
+        max_internal=250.0,
+        seed=123,
+    )
+    assert len(suggestions) == 1
+
+    captured: dict[str, pd.DataFrame] = {}
+    original_summary = cli_module.create_enhanced_summary
+
+    def _capture_summary(returns_map, *, benchmark=None):
+        summary = original_summary(returns_map, benchmark=benchmark)
+        captured.setdefault("summary", summary)
+        return summary
+
+    monkeypatch.setattr(cli_module, "create_enhanced_summary", _capture_summary)
+
+    deps = Dependencies(export_to_excel=lambda *_args, **_kwargs: None)
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_path),
+            "--output",
+            str(tmp_path / "out.xlsx"),
+            "--seed",
+            "123",
+            "--sensitivity",
+        ],
+        deps=deps,
+    )
+
+    summary = captured.get("summary")
+    assert isinstance(summary, pd.DataFrame)
+    row = suggestions.iloc[0]
+    for agent in ["ExternalPA", "ActiveExt", "InternalPA"]:
+        sub = summary[summary["Agent"] == agent]
+        assert not sub.empty
+        summary_row = sub.iloc[0]
+        np.testing.assert_allclose(
+            float(summary_row["TE"]),
+            float(row[f"{agent}_TE"]),
+        )
+        np.testing.assert_allclose(
+            float(summary_row["BreachProb"]),
+            float(row[f"{agent}_BreachProb"]),
+        )
+        np.testing.assert_allclose(
+            float(summary_row["CVaR"]),
+            float(row[f"{agent}_CVaR"]),
+        )

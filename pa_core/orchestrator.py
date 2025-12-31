@@ -11,7 +11,8 @@ from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
-from .sim.paths import draw_financing_series, prepare_mc_universe
+from .sim.params import build_simulation_params
+from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .validators import select_vol_regime_sigma
 
@@ -36,7 +37,7 @@ class SimulatorOrchestrator:
         )
         n_samples = int(len(self.idx_series))
 
-        cov = build_cov_matrix(
+        _ = build_cov_matrix(
             self.cfg.rho_idx_H,
             self.cfg.rho_idx_E,
             self.cfg.rho_idx_M,
@@ -52,49 +53,20 @@ class SimulatorOrchestrator:
         )
 
         rng_returns = spawn_rngs(seed, 1)[0]
-        universe = prepare_mc_universe(
-            N_SIMULATIONS=self.cfg.N_SIMULATIONS,
-            N_MONTHS=self.cfg.N_MONTHS,
-            mu_idx=mu_idx,
-            mu_H=self.cfg.mu_H,
-            mu_E=self.cfg.mu_E,
-            mu_M=self.cfg.mu_M,
-            cov_mat=cov,
-            return_distribution=self.cfg.return_distribution,
-            return_t_df=self.cfg.return_t_df,
-            return_copula=self.cfg.return_copula,
-            return_distributions=(
-                self.cfg.return_distribution_idx,
-                self.cfg.return_distribution_H,
-                self.cfg.return_distribution_E,
-                self.cfg.return_distribution_M,
-            ),
+        params = build_simulation_params(self.cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+
+        r_beta, r_H, r_E, r_M = draw_joint_returns(
+            n_months=self.cfg.N_MONTHS,
+            n_sim=self.cfg.N_SIMULATIONS,
+            params=params,
             rng=rng_returns,
         )
-        r_beta = universe[:, :, 0]
-        r_H = universe[:, :, 1]
-        r_E = universe[:, :, 2]
-        r_M = universe[:, :, 3]
 
-        fin_params = {
-            "internal_financing_mean_month": self.cfg.internal_financing_mean_month,
-            "internal_financing_sigma_month": self.cfg.internal_financing_sigma_month,
-            "internal_spike_prob": self.cfg.internal_spike_prob,
-            "internal_spike_factor": self.cfg.internal_spike_factor,
-            "ext_pa_financing_mean_month": self.cfg.ext_pa_financing_mean_month,
-            "ext_pa_financing_sigma_month": self.cfg.ext_pa_financing_sigma_month,
-            "ext_pa_spike_prob": self.cfg.ext_pa_spike_prob,
-            "ext_pa_spike_factor": self.cfg.ext_pa_spike_factor,
-            "act_ext_financing_mean_month": self.cfg.act_ext_financing_mean_month,
-            "act_ext_financing_sigma_month": self.cfg.act_ext_financing_sigma_month,
-            "act_ext_spike_prob": self.cfg.act_ext_spike_prob,
-            "act_ext_spike_factor": self.cfg.act_ext_spike_factor,
-        }
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         f_int, f_ext, f_act = draw_financing_series(
             n_months=self.cfg.N_MONTHS,
             n_sim=self.cfg.N_SIMULATIONS,
-            params=fin_params,
+            params=params,
             rngs=fin_rngs,
         )
 
