@@ -31,6 +31,8 @@ def test_load_yaml(tmp_path):
     assert cfg.active_ext_capital == 200.0
     assert cfg.internal_pa_capital == 300.0
     assert cfg.total_fund_capital == 1000.0
+    names = {agent.name for agent in cfg.agents}
+    assert {"Base", "ExternalPA", "ActiveExt", "InternalPA"} <= names
 
 
 def test_load_yaml_with_generic_agents(tmp_path):
