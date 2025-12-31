@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict
 
 import pytest
+import yaml
 
 from pa_core.config import ConfigError, load_config
 
@@ -30,6 +31,21 @@ def test_financing_model_schedule_requires_path() -> None:
 
     with pytest.raises(ValueError, match="financing_schedule_path required"):
         load_config(config_data)
+
+
+def test_financing_schedule_path_resolves_relative(tmp_path) -> None:
+    schedule_path = tmp_path / "schedule.csv"
+    schedule_path.write_text("term,multiplier\n1,2\n")
+
+    config_data = base_config()
+    config_data["financing_model"] = "schedule"
+    config_data["financing_schedule_path"] = "schedule.csv"
+
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(yaml.safe_dump(config_data))
+
+    cfg = load_config(config_path)
+    assert cfg.financing_schedule_path == schedule_path.resolve()
 
 
 def test_backend_validation_rejects_unknown_backend() -> None:

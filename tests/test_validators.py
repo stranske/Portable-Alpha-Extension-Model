@@ -221,6 +221,29 @@ class TestCapitalAllocationValidation:
         )
         assert margin == pytest.approx(0.02 * 3.0 * 1000.0)
 
+    def test_schedule_margin_drives_capital_validation(self, tmp_path: Path):
+        """Ensure schedule-based margin drives capital validation outcomes."""
+        csv = "term,multiplier\n1,10\n3,10\n"
+        schedule_path = tmp_path / "sched.csv"
+        schedule_path.write_text(csv)
+
+        results = validate_capital_allocation(
+            external_pa_capital=0.0,
+            active_ext_capital=0.0,
+            internal_pa_capital=900.0,
+            total_fund_capital=1000.0,
+            reference_sigma=0.02,
+            financing_model="schedule",
+            margin_schedule_path=schedule_path,
+            term_months=1.0,
+        )
+
+        errors = [r for r in results if not r.is_valid]
+        assert any(
+            "Margin requirement" in r.message and "exceeds total capital" in r.message
+            for r in errors
+        )
+
 
 class TestMarginScheduleValidation:
     """Tests for margin schedule loading and validation."""
@@ -265,6 +288,14 @@ class TestMarginScheduleValidation:
         schedule = load_margin_schedule(path)
         assert list(schedule["term"]) == [1, 3]
 
+    def test_multiplier_alias(self, tmp_path: Path):
+        """Accept multipliers as a column alias."""
+        csv = "term_months,multipliers\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
+        assert list(schedule["multiplier"]) == [2, 4]
+
     def test_non_numeric_term_or_multiplier(self, tmp_path: Path):
         """Reject non-numeric term or multiplier values."""
         csv = "term,multiplier\n1,2\nx,4\n"
@@ -272,6 +303,26 @@ class TestMarginScheduleValidation:
         path.write_text(csv)
         with pytest.raises(ValueError, match="non-numeric or missing"):
             load_margin_schedule(path)
+
+    def test_string_schedule_path(self, tmp_path: Path):
+        """Accept schedule path as a string."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(str(path))
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_bytes_schedule_input(self):
+        """Accept schedule CSV content as bytes."""
+        csv = b"term,multiplier\n1,2\n3,4\n"
+        schedule = load_margin_schedule(csv)
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_string_csv_input(self):
+        """Accept schedule CSV content as a string."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        schedule = load_margin_schedule(csv)
+        assert list(schedule["term"]) == [1, 3]
 
 
 class TestSimulationParameterValidation:

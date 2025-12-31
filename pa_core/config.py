@@ -365,6 +365,12 @@ def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
             data = yaml.safe_load(p.read_text())
         except yaml.YAMLError as exc:  # pragma: no cover - user input
             raise ConfigError(f"Invalid YAML in config file {p}: {exc}") from exc
+        if isinstance(data, dict):
+            schedule_path = data.get("financing_schedule_path")
+            if schedule_path:
+                schedule_path = Path(schedule_path)
+                if not schedule_path.is_absolute():
+                    data["financing_schedule_path"] = p.parent.joinpath(schedule_path).resolve()
     try:
         cfg = ModelConfig(**data)
     except ValidationError as e:  # pragma: no cover - explicit failure
