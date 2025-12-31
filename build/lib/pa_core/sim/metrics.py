@@ -83,16 +83,41 @@ def annualised_vol(returns: NDArray[npt.float64], periods_per_year: int = 12) ->
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
-def breach_probability(returns: NDArray[npt.float64], threshold: float, *, path: int = 0) -> float:
-    """Return the fraction of months below ``threshold`` in a selected path."""
+def breach_probability(
+    returns: NDArray[npt.float64],
+    threshold: float,
+    *,
+    path: int | None = None,
+    mode: str = "month",
+) -> float:
+    """Return the fraction of breaches under ``threshold`` using ``mode``.
+
+    For 2D arrays shaped (paths, periods):
+    - ``mode="month"`` reports the share of all simulated months across all
+      paths that fall below ``threshold`` (Option C).
+    - ``mode="any"`` reports the fraction of simulation paths that breach at
+      least once during the horizon (Option A).
+    - ``mode="terminal"`` reports the fraction of paths that breach in the
+      terminal month (Option B).
+    For 1D arrays, ``mode="month"`` is the share of months below the threshold,
+    while the other modes return 1.0 or 0.0 for the single path. ``path`` is
+    ignored and kept only for backward compatibility.
+    """
     arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if mode == "month":
+        return float(np.mean(arr < threshold))
+    if mode not in {"any", "terminal"}:
+        raise ValueError('mode must be one of "month", "any", or "terminal"')
     if arr.ndim == 1:
-        series = arr
-    else:
-        if not (0 <= path < arr.shape[0]):
-            raise IndexError("path index out of range")
-        series = arr[path]
-    return float(np.mean(series < threshold))
+        breached = bool(np.any(arr < threshold)) if mode == "any" else bool(arr[-1] < threshold)
+        return float(breached)
+    if mode == "any":
+        return float(np.mean(np.any(arr < threshold, axis=1)))
+    if mode == "terminal":
+        return float(np.mean(arr[:, -1] < threshold))
+    raise ValueError('mode must be one of "month", "any", or "terminal"')
 
 
 def shortfall_probability(
@@ -172,7 +197,8 @@ def summary_table(
     Parameters
     ----------
     breach_threshold:
-        Monthly return threshold for :func:`breach_probability`.  Defaults to
+        Monthly return threshold for :func:`breach_probability`, which reports
+        the share of all simulated months across paths that breach. Defaults to
         ``-0.02`` (a 2% loss).
     shortfall_threshold:
         Threshold for :func:`shortfall_probability`.  Defaults to ``-0.05``
