@@ -257,8 +257,6 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
     df["multiplier"] = pd.to_numeric(df["multiplier"], errors="coerce")
     if bool(df[["term", "multiplier"]].isna().any().any()):
         raise ValueError("Margin schedule contains non-numeric or missing term/multiplier values")
-    df = df.sort_values("term")
-
     if bool((df["term"] < 0).any()):
         raise ValueError("Margin schedule terms must be non-negative")
     if bool((df["multiplier"] <= 0).any()):
