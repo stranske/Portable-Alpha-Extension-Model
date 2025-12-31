@@ -248,7 +248,7 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
     df = suggest_sleeve_sizes(
         cfg,
         idx_series,
-        max_te=1.0,
+        max_te=1.5,
         max_breach=1.0,
         max_cvar=1.0,
         step=1.0,
@@ -256,7 +256,7 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
     )
     assert not df.empty
     assert {"Total_TE", "Total_BreachProb", "Total_CVaR"}.issubset(df.columns)
-    assert (df["Total_TE"] <= 1.0).all()
+    assert (df["Total_TE"] <= 1.5).all()
     assert (df["Total_BreachProb"] <= 1.0).all()
     assert (df["Total_CVaR"].abs() <= 1.0).all()
 

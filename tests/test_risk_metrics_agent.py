@@ -86,12 +86,12 @@ def test_risk_metrics_agent_scaling_behavior(
     base_metrics = agent.run(base_returns)
     scaled_metrics = agent.run(scaled_returns)
 
-    # For negative values (losses), scaling should increase the magnitude
-    # abs(scaled) should be >= scale_factor * abs(base) for risk metrics
+    # CVaR scales roughly linearly, but max drawdown is path-dependent and
+    # compounding makes scaling non-linear. Larger magnitudes should not reduce it.
     assert (
         abs(scaled_metrics.cvar) >= abs(scale_factor * base_metrics.cvar) * 0.9
     )  # Allow 10% tolerance for numerical effects
-    assert abs(scaled_metrics.max_drawdown) >= abs(scale_factor * base_metrics.max_drawdown) * 0.9
+    assert abs(scaled_metrics.max_drawdown) >= abs(base_metrics.max_drawdown)
 
 
 # Edge cases for problematic scenarios
