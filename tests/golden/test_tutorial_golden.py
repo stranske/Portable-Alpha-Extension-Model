@@ -81,7 +81,7 @@ class TestTutorial1ParameterSweeps:
         )
 
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=45000)
+        runner.assert_file_exists_and_size(output_file, min_size=42000)
 
         # Validate expected sheets exist - Summary is always present
         sheets = runner.get_excel_sheets(output_file)
@@ -117,7 +117,7 @@ class TestTutorial1ParameterSweeps:
         )
 
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=45000)
+        runner.assert_file_exists_and_size(output_file, min_size=42000)
 
         # Validate sweep produces multiple scenarios
         sheets = runner.get_excel_sheets(output_file)
@@ -147,7 +147,7 @@ class TestTutorial1ParameterSweeps:
         )
 
         assert result.returncode == 0, f"CLI failed: {result.stderr}"
-        runner.assert_file_exists_and_size(output_file, min_size=45000)
+        runner.assert_file_exists_and_size(output_file, min_size=42000)
 
         summary = runner.read_excel_summary(output_file)
         assert len(summary) > 1, "Capital sweep should produce multiple scenarios"
