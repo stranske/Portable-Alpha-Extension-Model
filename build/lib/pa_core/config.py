@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Literal, Optional, Union
 import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
 from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 
@@ -329,10 +330,10 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_backend(self) -> "ModelConfig":
-        valid_backends = ["numpy"]
+        valid_backends = list(SUPPORTED_BACKENDS)
         if self.backend not in valid_backends:
             raise ValueError(
-                "backend must be 'numpy' (GPU acceleration is not available in this build)"
+                f"backend must be one of: {valid_backends} ({BACKEND_UNAVAILABLE_DETAIL})"
             )
         return self
 
