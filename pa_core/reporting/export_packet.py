@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
 import pandas as pd
-from pptx import Presentation as _Presentation  # type: ignore
+from pptx import Presentation as _Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
@@ -27,6 +27,7 @@ _ONE_PX_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
     "ASsJTYQAAAAASUVORK5CYII="
 )
+RGBColorAny: Any = RGBColor  # python-pptx lacks typing for RGBColor
 
 
 def _add_title_slide(prs: Any, title: str, subtitle: str | None = None) -> None:
@@ -226,7 +227,7 @@ def create_export_packet(
     run = p.add_run()
     run.text = "Appendix: Full tables are included in the Excel workbook."
     run.font.size = Pt(14)
-    run.font.color.rgb = RGBColor(80, 80, 80)
+    run.font.color.rgb = RGBColorAny(80, 80, 80)
     p.alignment = PP_ALIGN.LEFT
 
     # Diff appendix comparing to previous run

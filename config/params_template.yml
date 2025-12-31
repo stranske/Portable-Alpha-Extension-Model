@@ -15,6 +15,10 @@ w_alpha_H: 0.5 # internal sleeve alpha weight
 theta_extpa: 0.5 # external PA alpha fraction
 active_share: 0.5 # active-extension active share fraction
 
+# Return units are annual by default and converted to monthly at config load.
+# Set return_unit: monthly if you provide monthly inputs directly.
+return_unit: annual # annual|monthly
+
 # Agent configuration (optional)
 # Use the convenience fields above or define a generic list below.
 # Mixed mode: keep convenience fields and append extra agents here.

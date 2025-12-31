@@ -77,9 +77,9 @@ class SimulatorOrchestrator:
             mu_idx=mu_idx,
             idx_sigma=idx_sigma_cov,
             return_overrides={
-                "default_sigma_H": sigma_h_cov / 12,
-                "default_sigma_E": sigma_e_cov / 12,
-                "default_sigma_M": sigma_m_cov / 12,
+                "default_sigma_H": sigma_h_cov,
+                "default_sigma_E": sigma_e_cov,
+                "default_sigma_M": sigma_m_cov,
                 "rho_idx_H": float(corr_mat[0, 1]),
                 "rho_idx_E": float(corr_mat[0, 2]),
                 "rho_idx_M": float(corr_mat[0, 3]),

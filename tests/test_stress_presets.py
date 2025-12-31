@@ -1,6 +1,6 @@
 import pytest
 
-from pa_core.config import ModelConfig
+from pa_core.config import ModelConfig, annual_mean_to_monthly
 from pa_core.stress import apply_stress_preset
 
 
@@ -45,6 +45,6 @@ def test_correlation_breakdown_overrides_rhos():
 def test_2020_gap_day_overrides_returns():
     cfg = _base_cfg()
     stressed = apply_stress_preset(cfg, "2020_gap_day")
-    assert stressed.mu_H == pytest.approx(-0.20)
-    assert stressed.mu_E == pytest.approx(-0.25)
-    assert stressed.mu_M == pytest.approx(-0.15)
+    assert stressed.mu_H == pytest.approx(annual_mean_to_monthly(-0.20))
+    assert stressed.mu_E == pytest.approx(annual_mean_to_monthly(-0.25))
+    assert stressed.mu_M == pytest.approx(annual_mean_to_monthly(-0.15))

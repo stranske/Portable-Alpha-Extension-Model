@@ -45,7 +45,7 @@ def make(
         if stacks:
             # Shape: (ny, nx, n_fields)
             customdata = np.stack(stacks, axis=-1)
-            heatmap.customdata = customdata  # type: ignore[assignment]
+            heatmap.customdata = customdata
 
     fig = go.Figure(data=heatmap, layout_template=theme.TEMPLATE)
     fig.update_layout(xaxis_title=x, yaxis_title=y)

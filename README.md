@@ -371,27 +371,33 @@ We load a historical time series of monthly total returns on the S&P 500 TR (or 
 We partition that series into:
 A reference window (e.g. 2010 – 2014) used to compute “reference volatility” σₙ.
 An analysis window (e.g. 2015 – 2020) used to compute the actual mean (μₙ) and volatility (σₙ) that drive our Monte Carlo draws.
+Unit conventions:
+All simulation parameters are stored and consumed in monthly units. Annual inputs from YAML are converted once at config load using:
+mean_month = mean_annual / 12 (or geometric: (1 + mean_annual)^(1/12) − 1),
+vol_month = vol_annual / √12,
+cov_month = cov_annual / 12.
+Financing inputs are already monthly and are not rescaled.
 Three α-streams (simulated jointly with β)
 
 In-House α (
 ):
-Mean = μ_H/12
-Vol = σ_H / √12
+Mean = μ_H (monthly, converted at config load if provided annually)
+Vol = σ_H (monthly, converted at config load if provided annually)
 Correlation ρ_{β,H} with β.
 Extension α (
 ):
-Mean = μ_E/12
-Vol = σ_E / √12
+Mean = μ_E (monthly, converted at config load if provided annually)
+Vol = σ_E (monthly, converted at config load if provided annually)
 Correlation ρ_{β,E} with β.
 External PA α (
 ):
-Mean = μ_M/12
-Vol = σ_M / √12
+Mean = μ_M (monthly, converted at config load if provided annually)
+Vol = σ_M (monthly, converted at config load if provided annually)
 Correlation ρ_{β,M} with β.
 Financing spread (
 )
 
-A month-by-month random draw around a drift (financing_mean/12) with vol (financing_vol/12) and occasional jumps of size (spike_factor × (financing_vol/12)), happening with probability spike_prob.
+A month-by-month random draw around a drift (financing_mean_month) with vol (financing_vol_month) and occasional jumps of size (spike_factor × financing_vol_month), happening with probability spike_prob.
 In each month, any bucket that holds ((r_{\beta} − f_t)) is charged that financing cost.
 Total fund capital (in millions, default = 1000)
 
@@ -443,17 +449,17 @@ We simulate, for each month (t):
 [ (r_{\beta,t},,r_{H,t},,r_{E,t},,r_{M,t}) ;\sim;\text{MVN}\bigl([\mu_{\beta},,\mu_H,,\mu_E,,\mu_M],,\Sigma\bigr), ] with
 
 (\mu_{\beta} = \mu_{\text{idx}}) (monthly mean from analysis window),
-(\mu_H = \frac{\mu_H^{(\text{annual})}}{12}),
-(\mu_E = \frac{\mu_E^{(\text{annual})}}{12}),
-(\mu_M = \frac{\mu_M^{(\text{annual})}}{12}).
+(\mu_H = \mu_H^{(\text{monthly})}),
+(\mu_E = \mu_E^{(\text{monthly})}),
+(\mu_M = \mu_M^{(\text{monthly})}).
 Covariance (\Sigma) built from:
 
 (\sigma_{\beta} = \sigma_{\text{ref}}) (monthly vol from reference window),
-(\sigma_H = \sigma_H^{(\text{annual})}/\sqrt{12}),
-(\sigma_E = \sigma_E^{(\text{annual})}/\sqrt{12}),
-(\sigma_M = \sigma_M^{(\text{annual})}/\sqrt{12}),
+(\sigma_H = \sigma_H^{(\text{monthly})}),
+(\sigma_E = \sigma_E^{(\text{monthly})}),
+(\sigma_M = \sigma_M^{(\text{monthly})}),
 Pairwise correlations (\rho_{\beta,H},,\rho_{\beta,E},,\rho_{\beta,M},,\rho_{H,E},,\dots).
-Additionally, each month we draw a financing cost: [ f_t = \frac{\text{financing_mean}}{12} + \varepsilon_t,\quad \varepsilon_t \sim \mathcal{N}\bigl(0,;(\tfrac{\text{financing_vol}}{12})^2\bigr), ] with probability (\text{spike_prob}) of a jump (=\text{spike_factor} \times \frac{\text{financing_vol}}{12}).
+Additionally, each month we draw a financing cost: [ f_t = \text{financing_mean_month} + \varepsilon_t,\quad \varepsilon_t \sim \mathcal{N}\bigl(0,;(\text{financing_vol_month})^2\bigr), ] with probability (\text{spike_prob}) of a jump (=\text{spike_factor} \times \text{financing_vol_month}).
 
 4.1. Base (All In-House) Strategy
 [ R_{\text{Base},t} = ; (r_{\beta,t} - f_t),\times,w_{\beta_H} ;+; r_{H,t},\times,w_{\alpha_H}. ] By default, (w_{\beta_H} = 0.50) and (w_{\alpha_H} = 0.50).
@@ -504,7 +510,7 @@ Margin-backing
 [ W = \sigma_{\text{ref}} \times \mathrm{sd_of_vol_mult} \times 1000. ] If (W + Z > 1000), error. Else compute [ \text{internal_cash_leftover} = 1000 - W - Z. ]
 
 Build covariance matrix (\Sigma) for ((r_{\beta}, r_H, r_E, r_M)) using
-(\sigma_{\beta} = \sigma_{\text{ref}},; \sigma_H = \frac{\sigma_H^{(\text{annual})}}{\sqrt{12}},; \sigma_E = \frac{\sigma_E^{(\text{annual})}}{\sqrt{12}},; \sigma_M = \frac{\sigma_M^{(\text{annual})}}{\sqrt{12}},)
+(\sigma_{\beta} = \sigma_{\text{ref}},; \sigma_H = \sigma_H^{(\text{monthly})},; \sigma_E = \sigma_E^{(\text{monthly})},; \sigma_M = \sigma_M^{(\text{monthly})},)
 and correlations.
 
 Monte Carlo draws:
