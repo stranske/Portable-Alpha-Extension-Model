@@ -77,8 +77,8 @@ def test_risk_return_make():
     df = pd.DataFrame(
         {
             "AnnReturn": [0.05],
-            "AnnVol": [0.02],
-            "TrackingErr": [0.01],
+            "ExcessReturn": [0.01],
+            "TE": [0.01],
             "Agent": ["Base"],
             "ShortfallProb": [0.02],
         }
@@ -92,17 +92,17 @@ def test_risk_return_axis_labels_match_data():
     df = pd.DataFrame(
         {
             "AnnReturn": [0.06, 0.03],
-            "AnnVol": [0.04, 0.02],
-            "TrackingErr": [0.12, 0.18],
+            "ExcessReturn": [0.02, 0.01],
+            "TE": [0.12, 0.18],
             "Agent": ["A", "B"],
             "ShortfallProb": [0.01, 0.02],
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["AnnVol"].tolist()
-    assert list(fig.data[0].y) == df["AnnReturn"].tolist()
-    assert fig.layout.xaxis.title.text == "Annualized Volatility"
-    assert fig.layout.yaxis.title.text == "Annualized Return"
+    assert list(fig.data[0].x) == df["TE"].tolist()
+    assert list(fig.data[0].y) == df["ExcessReturn"].tolist()
+    assert fig.layout.xaxis.title.text == "Tracking Error"
+    assert fig.layout.yaxis.title.text == "Annualized Excess Return"
 
 
 def test_fan_and_dist():
@@ -176,8 +176,8 @@ def test_html_and_corr(tmp_path):
         pd.DataFrame(
             {
                 "AnnReturn": [0.05],
-                "AnnVol": [0.02],
-                "TrackingErr": [0.01],
+                "ExcessReturn": [0.01],
+                "TE": [0.01],
                 "Agent": ["Base"],
                 "ShortfallProb": [0.02],
             }
@@ -445,6 +445,8 @@ def test_additional_visualisations(tmp_path):
             "TrackingErr": [0.02],
             "Beta": [1.0],
             "AnnReturn": [0.05],
+            "ExcessReturn": [0.02],
+            "TE": [0.02],
             "Capital": [100],
             "AnnVol": [0.02],
             "Agent": ["A"],

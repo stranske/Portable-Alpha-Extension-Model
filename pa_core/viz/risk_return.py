@@ -7,18 +7,44 @@ from . import theme
 
 
 def make(df_summary: pd.DataFrame) -> go.Figure:
-    """Return risk-return scatter plot.
+    """Return tracking-error vs excess-return scatter plot.
 
     Parameters
     ----------
     df_summary : pandas.DataFrame
-        Must contain AnnReturn, AnnVol, Agent. ShortfallProb is optional.
+        Must contain Agent and either TE/TrackingErr or AnnVol. For the y-axis,
+        prefer ExcessReturn and fall back to AnnReturn. ShortfallProb is optional.
     """
     df = df_summary.copy()
     df["ShortfallProb"] = df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
     color = []
     thr = theme.THRESHOLDS
-    vol_cap = thr.get("vol_cap", 0.03)
+
+    if "TE" in df:
+        x_col = "TE"
+        x_label = "Tracking Error"
+        x_hover = "TE"
+        cap = thr.get("te_cap", 0.03)
+    elif "TrackingErr" in df:
+        x_col = "TrackingErr"
+        x_label = "Tracking Error"
+        x_hover = "TE"
+        cap = thr.get("te_cap", 0.03)
+    else:
+        x_col = "AnnVol"
+        x_label = "Annualized Volatility"
+        x_hover = "Vol"
+        cap = thr.get("vol_cap", 0.03)
+
+    if "ExcessReturn" in df:
+        y_col = "ExcessReturn"
+        y_label = "Annualized Excess Return"
+        y_hover = "Excess Return"
+    else:
+        y_col = "AnnReturn"
+        y_label = "Annualized Return"
+        y_hover = "Return"
+
     for prob in df["ShortfallProb"].fillna(theme.DEFAULT_SHORTFALL_PROB):
         if prob <= thr.get("shortfall_green", 0.05):
             color.append("green")
@@ -30,12 +56,15 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(
         go.Scatter(
-            x=df["AnnVol"],
-            y=df["AnnReturn"],
+            x=df[x_col],
+            y=df[y_col],
             mode="markers",
             marker=dict(size=12, color=color),
             text=df["Agent"],
-            hovertemplate="%{text}<br>Vol=%{x:.2%}<br>Return=%{y:.2%}<extra></extra>",
+            hovertemplate=(
+                f"%{{text}}<br>{x_hover}=%{{x:.2%}}<br>{y_hover}=%{{y:.2%}}"
+                "<extra></extra>"
+            ),
         )
     )
 
@@ -45,19 +74,19 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         xref="x",
         yref="y",
         x0=0,
-        x1=vol_cap,
+        x1=cap,
         y0=thr.get("excess_return_floor", 0.03),
         y1=thr.get("excess_return_target", 0.05),
         fillcolor="lightgrey",
         opacity=0.3,
         line_width=0,
     )
-    fig.add_vline(x=vol_cap, line_dash="dash")
+    fig.add_vline(x=cap, line_dash="dash")
     fig.add_hline(y=thr.get("excess_return_target", 0.05), line_dash="dash")
     fig.update_layout(
         shapes=[rect],
-        xaxis_title="Annualized Volatility",
-        yaxis_title="Annualized Return",
+        xaxis_title=x_label,
+        yaxis_title=y_label,
         template=theme.TEMPLATE,
     )
     return fig
