@@ -389,6 +389,7 @@ class ModelConfig(BaseModel):
         if unit != DEFAULT_RETURN_UNIT:
             return data
         updated = dict(data)
+
         # Allow values to be supplied via field names or aliases.
         def _get_value(field: str) -> tuple[Any, list[str]]:
             field_info = cls.model_fields[field]
