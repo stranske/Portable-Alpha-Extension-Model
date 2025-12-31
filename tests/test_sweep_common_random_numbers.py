@@ -1,8 +1,8 @@
 import pandas as pd
 
+from pa_core import sweep as sweep_module
 from pa_core.config import load_config
 from pa_core.random import spawn_agent_rngs, spawn_rngs
-from pa_core import sweep as sweep_module
 
 
 def test_duplicate_combinations_share_random_draws(monkeypatch):
