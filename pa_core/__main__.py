@@ -96,11 +96,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     n_samples = int(len(idx_series))
 
-    mu_H = cfg.mu_H
     sigma_H = cfg.sigma_H
-    mu_E = cfg.mu_E
     sigma_E = cfg.sigma_E
-    mu_M = cfg.mu_M
     sigma_M = cfg.sigma_M
 
     covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
