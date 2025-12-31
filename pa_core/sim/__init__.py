@@ -4,8 +4,8 @@ from .covariance import build_cov_matrix
 from .paths import (
     draw_financing_series,
     draw_joint_returns,
-    prepare_return_shocks,
     prepare_mc_universe,
+    prepare_return_shocks,
     simulate_alpha_streams,
     simulate_financing,
 )
