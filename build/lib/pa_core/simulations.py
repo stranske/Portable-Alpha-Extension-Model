@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from functools import singledispatch
-from typing import Any, Iterable, Tuple
-
-from numpy.typing import NDArray
+from typing import Iterable, Tuple
 
 from .agents import (
     ActiveExtensionAgent,
@@ -24,6 +22,7 @@ from .sim import (
     simulate_alpha_streams,
     simulate_financing,
 )
+from .types import ArrayLike
 
 __all__ = [
     "simulate_financing",
@@ -39,60 +38,60 @@ __all__ = [
 @singledispatch
 def _resolve_streams(
     agent: Agent,
-    r_beta: NDArray[Any],
-    r_H: NDArray[Any],
-    r_E: NDArray[Any],
-    r_M: NDArray[Any],
-    f_int: NDArray[Any],
-    f_ext_pa: NDArray[Any],
-    f_act_ext: NDArray[Any],
-) -> Tuple[NDArray[Any], NDArray[Any]]:
+    r_beta: ArrayLike,
+    r_H: ArrayLike,
+    r_E: ArrayLike,
+    r_M: ArrayLike,
+    f_int: ArrayLike,
+    f_ext_pa: ArrayLike,
+    f_act_ext: ArrayLike,
+) -> Tuple[ArrayLike, ArrayLike]:
     """Return ``(alpha_stream, financing)`` for ``agent``."""
     raise TypeError(f"Unsupported agent type: {type(agent)}")
 
 
 @_resolve_streams.register
-def _(agent: BaseAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: BaseAgent, *streams: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_H, f_int
 
 
 @_resolve_streams.register
-def _(agent: ExternalPAAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: ExternalPAAgent, *streams: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_M, f_ext_pa
 
 
 @_resolve_streams.register
-def _(agent: ActiveExtensionAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: ActiveExtensionAgent, *streams: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_E, f_act_ext
 
 
 @_resolve_streams.register
-def _(agent: InternalPAAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: InternalPAAgent, *streams: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return r_H, np.zeros_like(r_beta)
 
 
 @_resolve_streams.register
-def _(agent: InternalBetaAgent, *streams: NDArray[Any]) -> Tuple[NDArray[Any], NDArray[Any]]:
+def _(agent: InternalBetaAgent, *streams: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
     return np.zeros_like(r_beta), f_int
 
 
 def simulate_agents(
     agents: Iterable[Agent],
-    r_beta: NDArray[Any],
-    r_H: NDArray[Any],
-    r_E: NDArray[Any],
-    r_M: NDArray[Any],
-    f_int: NDArray[Any],
-    f_ext_pa: NDArray[Any],
-    f_act_ext: NDArray[Any],
-) -> dict[str, NDArray[Any]]:
+    r_beta: ArrayLike,
+    r_H: ArrayLike,
+    r_E: ArrayLike,
+    r_M: ArrayLike,
+    f_int: ArrayLike,
+    f_ext_pa: ArrayLike,
+    f_act_ext: ArrayLike,
+) -> dict[str, ArrayLike]:
     """Return per-agent monthly returns using vectorised operations."""
-    results: dict[str, NDArray[Any]] = {}
+    results: dict[str, ArrayLike] = {}
     streams = (r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext)
     for agent in agents:
         alpha, financing = _resolve_streams(agent, *streams)
@@ -105,9 +104,9 @@ def simulate_agents(
 
 
 def compute_total_returns(
-    returns_map: dict[str, NDArray[Any]],
+    returns_map: dict[str, ArrayLike],
     *,
     exclude: Iterable[str] = ("Base", "Total"),
-) -> NDArray[Any] | None:
+) -> ArrayLike | None:
     """Return Total portfolio returns as the sum of contribution sleeves."""
     return compute_total_contribution_returns(returns_map, exclude=exclude)

@@ -20,7 +20,7 @@ MONTHS_PER_YEAR = 12
 CANONICAL_RETURN_UNIT = "monthly"
 CANONICAL_VOL_UNIT = "monthly"
 CANONICAL_COV_UNIT = "monthly"
-DEFAULT_MEAN_CONVERSION = "simple"
+DEFAULT_MEAN_CONVERSION: Literal["simple", "geometric"] = "simple"
 
 __all__ = [
     "ModelConfig",
@@ -46,7 +46,7 @@ def annual_mean_to_monthly(
     if method == "simple":
         return float(mean_annual) / MONTHS_PER_YEAR
     if method == "geometric":
-        return (1.0 + float(mean_annual)) ** (1.0 / MONTHS_PER_YEAR) - 1.0
+        return float((1.0 + float(mean_annual)) ** (1.0 / MONTHS_PER_YEAR) - 1.0)
     raise ValueError("method must be 'simple' or 'geometric'")
 
 
@@ -145,6 +145,7 @@ class ModelConfig(BaseModel):
         alias="Return unit",
         description="Unit for mu/sigma inputs (annual or monthly)",
     )
+    input_return_unit: Literal["annual", "monthly"] = Field(default="annual", exclude=True)
 
     mu_H: float = Field(default=0.04, alias="In-House annual return (%)")
     sigma_H: float = Field(default=0.01, alias="In-House annual vol (%)")
@@ -366,11 +367,12 @@ class ModelConfig(BaseModel):
         if not isinstance(data, dict):
             return data
         unit = data.get("return_unit") or data.get("Return unit") or "annual"
+        data = dict(data)
+        data["input_return_unit"] = unit
         if unit == CANONICAL_RETURN_UNIT:
             return data
         if unit != "annual":
             raise ValueError("return_unit must be 'annual' or 'monthly'")
-        data = dict(data)
 
         def _get_field_value(field_name: str) -> float:
             if field_name in data:

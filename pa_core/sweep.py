@@ -18,7 +18,13 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig, annual_mean_to_monthly, annual_vol_to_monthly, normalize_share
+from .config import (
+    CANONICAL_RETURN_UNIT,
+    ModelConfig,
+    annual_mean_to_monthly,
+    annual_vol_to_monthly,
+    normalize_share,
+)
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
@@ -26,6 +32,7 @@ from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
 from .types import GeneratorLike
+from .units import normalize_index_series
 from .validators import select_vol_regime_sigma
 
 
@@ -165,6 +172,10 @@ def run_parameter_sweep(
     """
     results: List[Dict[str, Any]] = []
 
+    index_series = normalize_index_series(
+        index_series,
+        getattr(cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
+    )
     mu_idx = float(index_series.mean())
     idx_sigma, _, _ = select_vol_regime_sigma(
         index_series,

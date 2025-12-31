@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 import pandas as pd
 
 from .agents.registry import build_from_config
-from .config import ModelConfig
+from .config import CANONICAL_RETURN_UNIT, ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
@@ -13,6 +13,7 @@ from .sim.params import build_simulation_params
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .types import ArrayLike
+from .units import normalize_index_series
 from .validators import select_vol_regime_sigma
 
 
@@ -26,13 +27,17 @@ class SimulatorOrchestrator:
     def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
         """Execute simulations and return per-agent returns and summary table."""
 
-        mu_idx = float(self.idx_series.mean())
-        idx_sigma, _, _ = select_vol_regime_sigma(
+        idx_series = normalize_index_series(
             self.idx_series,
+            getattr(self.cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
+        )
+        mu_idx = float(idx_series.mean())
+        idx_sigma, _, _ = select_vol_regime_sigma(
+            idx_series,
             regime=self.cfg.vol_regime,
             window=self.cfg.vol_regime_window,
         )
-        n_samples = int(len(self.idx_series))
+        n_samples = int(len(idx_series))
 
         _ = build_cov_matrix(
             self.cfg.rho_idx_H,

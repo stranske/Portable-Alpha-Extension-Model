@@ -520,7 +520,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
-    from .config import load_config
+    from .config import CANONICAL_RETURN_UNIT, load_config
 
     cfg = load_config(args.config)
     return_overrides: dict[str, float | str] = {}
@@ -561,6 +561,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
+    from .units import normalize_index_series
     from .validators import select_vol_regime_sigma
     from .viz.utils import safe_to_numpy
 
@@ -626,9 +627,13 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
-    n_samples = int(len(idx_series))
-    idx_sigma, _, _ = select_vol_regime_sigma(
+    idx_series_monthly = normalize_index_series(
         idx_series,
+        getattr(cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
+    )
+    n_samples = int(len(idx_series_monthly))
+    idx_sigma, _, _ = select_vol_regime_sigma(
+        idx_series_monthly,
         regime=cfg.vol_regime,
         window=cfg.vol_regime_window,
     )
@@ -830,7 +835,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         return
 
     # Normal single-run mode below
-    mu_idx = float(idx_series.mean())
+    mu_idx = float(idx_series_monthly.mean())
 
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any

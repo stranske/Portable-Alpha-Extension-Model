@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-from typing import Iterable
-
-from numpy.typing import NDArray
+from typing import Iterable, Mapping, TypeAlias
 
 from ..backend import xp as np
+from ..types import ArrayLike
 from .aggregator import PortfolioAggregator
 
-Array = NDArray
+Array: TypeAlias = ArrayLike
 
 DEFAULT_PORTFOLIO_EXCLUDES = ("Base", "Total")
 
 
 def compute_total_contribution_returns(
-    returns_map: dict[str, Array],
+    returns_map: Mapping[str, Array],
     *,
     exclude: Iterable[str] = DEFAULT_PORTFOLIO_EXCLUDES,
 ) -> Array | None:

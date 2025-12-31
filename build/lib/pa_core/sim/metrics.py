@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from importlib.metadata import entry_points
-from typing import Callable, Dict
+from typing import Callable, Dict, Mapping
 
-import numpy as npt
 import pandas as pd
-from numpy.typing import NDArray
 
 from ..backend import xp as np
+from ..types import ArrayLike
 
 __all__ = [
     "tracking_error",
@@ -26,10 +25,10 @@ __all__ = [
 ]
 
 
-_EXTRA_METRICS: Dict[str, Callable[[NDArray[npt.float64]], float]] = {}
+_EXTRA_METRICS: Dict[str, Callable[[ArrayLike], float]] = {}
 
 
-def register_metric(name: str, func: Callable[[NDArray[npt.float64]], float]) -> None:
+def register_metric(name: str, func: Callable[[ArrayLike], float]) -> None:
     """Register a custom risk metric for inclusion in ``summary_table``."""
     if name in _EXTRA_METRICS:
         raise KeyError(f"Metric already registered: {name}")
@@ -44,7 +43,7 @@ def _load_metric_plugins() -> None:
 _load_metric_plugins()
 
 
-def tracking_error(strategy: NDArray[npt.float64], benchmark: NDArray[npt.float64]) -> float:
+def tracking_error(strategy: ArrayLike, benchmark: ArrayLike) -> float:
     """Return the standard deviation of active returns."""
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
@@ -54,7 +53,7 @@ def tracking_error(strategy: NDArray[npt.float64], benchmark: NDArray[npt.float6
     return float(np.std(diff, ddof=1))
 
 
-def value_at_risk(returns: NDArray[npt.float64], confidence: float = 0.95) -> float:
+def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
     """Return the empirical VaR at the given confidence level."""
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
@@ -63,13 +62,13 @@ def value_at_risk(returns: NDArray[npt.float64], confidence: float = 0.95) -> fl
     return float(np.percentile(flat, percentile))
 
 
-def compound(returns: NDArray[npt.float64]) -> NDArray[npt.float64]:
+def compound(returns: ArrayLike) -> ArrayLike:
     """Return cumulative compounded returns along axis 1."""
     arr = np.asarray(returns, dtype=np.float64)
     return np.cumprod(1.0 + arr, axis=1) - 1.0  # type: ignore[no-any-return]
 
 
-def annualised_return(returns: NDArray[npt.float64], periods_per_year: int = 12) -> float:
+def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
     """Return annualised compound return from monthly series."""
     comp = compound(returns)
     total_return = comp[:, -1]
@@ -77,14 +76,14 @@ def annualised_return(returns: NDArray[npt.float64], periods_per_year: int = 12)
     return float(np.power(1.0 + np.mean(total_return), 1.0 / years) - 1.0)
 
 
-def annualised_vol(returns: NDArray[npt.float64], periods_per_year: int = 12) -> float:
+def annualised_vol(returns: ArrayLike, periods_per_year: int = 12) -> float:
     """Return annualised volatility from monthly returns."""
     arr = np.asarray(returns, dtype=np.float64)
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
 def breach_probability(
-    returns: NDArray[npt.float64],
+    returns: ArrayLike,
     threshold: float,
     *,
     path: int | None = None,
@@ -121,7 +120,7 @@ def breach_probability(
 
 
 def shortfall_probability(
-    returns: NDArray[npt.float64],
+    returns: ArrayLike,
     threshold: float = -0.05,
     *,
     compound_final: bool = True,
@@ -141,7 +140,7 @@ def shortfall_probability(
     return float(np.mean(arr < threshold))
 
 
-def breach_count(returns: NDArray[npt.float64], threshold: float, *, path: int = 0) -> int:
+def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
     """Return the number of months below ``threshold`` in a selected path."""
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -154,7 +153,7 @@ def breach_count(returns: NDArray[npt.float64], threshold: float, *, path: int =
     return int(np.sum(series < threshold))
 
 
-def conditional_value_at_risk(returns: NDArray[npt.float64], confidence: float = 0.95) -> float:
+def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
     """Return the conditional VaR (expected shortfall) at ``confidence``."""
 
     if not 0 < confidence < 1:
@@ -167,7 +166,7 @@ def conditional_value_at_risk(returns: NDArray[npt.float64], confidence: float =
     return float(np.mean(tail))
 
 
-def max_drawdown(returns: NDArray[npt.float64]) -> float:
+def max_drawdown(returns: ArrayLike) -> float:
     """Return the maximum drawdown from a series of arithmetic returns."""
 
     cumulative = np.cumsum(returns, axis=1)
@@ -176,7 +175,7 @@ def max_drawdown(returns: NDArray[npt.float64]) -> float:
     return float(np.min(drawdown))
 
 
-def time_under_water(returns: NDArray[npt.float64]) -> float:
+def time_under_water(returns: ArrayLike) -> float:
     """Return fraction of periods with negative compounded return."""
 
     comp = compound(returns)
@@ -184,7 +183,7 @@ def time_under_water(returns: NDArray[npt.float64]) -> float:
 
 
 def summary_table(
-    returns_map: dict[str, NDArray[npt.float64]],
+    returns_map: Mapping[str, ArrayLike],
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,

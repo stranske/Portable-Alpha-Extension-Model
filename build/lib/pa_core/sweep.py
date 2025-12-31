@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig, normalize_share
+from .config import ModelConfig, annual_mean_to_monthly, annual_vol_to_monthly, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
@@ -77,10 +77,10 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                         cfg.alpha_ext_vol_step_pct,
                     ):
                         yield {
-                            "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100,
-                            "mu_E": mu_E / 100,
-                            "sigma_E": sigma_E / 100,
+                            "mu_H": annual_mean_to_monthly(mu_H / 100),
+                            "sigma_H": annual_vol_to_monthly(sigma_H / 100),
+                            "mu_E": annual_mean_to_monthly(mu_E / 100),
+                            "sigma_E": annual_vol_to_monthly(sigma_E / 100),
                         }
     elif cfg.analysis_mode == "alpha_shares":
         for theta_extpa in np.arange(
@@ -138,6 +138,13 @@ _EMPTY_RESULTS_DF: pd.DataFrame = pd.DataFrame(columns=EMPTY_RESULTS_COLUMNS)
 def _get_empty_results_dataframe() -> pd.DataFrame:
     """Return a copy of the cached empty DataFrame for sweep results."""
     return _EMPTY_RESULTS_DF.copy()
+
+
+def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    denom = np.outer(sigma, sigma)
+    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+    return sigma, corr
 
 
 def run_parameter_sweep(
@@ -203,8 +210,11 @@ def run_parameter_sweep(
         "act_ext_spike_prob",
         "act_ext_spike_factor",
     }
+    sigma_override_keys = {"sigma_H", "sigma_E", "sigma_M"}
     reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
     reuse_financing_series = not override_keys.intersection(financing_keys)
+    if cfg.covariance_shrinkage != "none" and override_keys.intersection(sigma_override_keys):
+        reuse_return_shocks = False
 
     # Common random numbers: reset RNGs before each combination so parameter
     # changes are compared against identical random draws. When a master seed
@@ -224,7 +234,32 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
+        base_cov = build_cov_matrix(
+            cfg.rho_idx_H,
+            cfg.rho_idx_E,
+            cfg.rho_idx_M,
+            cfg.rho_H_E,
+            cfg.rho_H_M,
+            cfg.rho_E_M,
+            idx_sigma,
+            cfg.sigma_H,
+            cfg.sigma_E,
+            cfg.sigma_M,
+            covariance_shrinkage=cfg.covariance_shrinkage,
+            n_samples=n_samples,
+        )
+        _, base_corr = _cov_to_corr_and_sigma(base_cov)
         shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        shock_params.update(
+            {
+                "rho_idx_H": float(base_corr[0, 1]),
+                "rho_idx_E": float(base_corr[0, 2]),
+                "rho_idx_M": float(base_corr[0, 3]),
+                "rho_H_E": float(base_corr[1, 2]),
+                "rho_H_M": float(base_corr[1, 3]),
+                "rho_E_M": float(base_corr[2, 3]),
+            }
+        )
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
@@ -262,7 +297,7 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        build_cov_matrix(
+        cov = build_cov_matrix(
             mod_cfg.rho_idx_H,
             mod_cfg.rho_idx_E,
             mod_cfg.rho_idx_M,
@@ -276,7 +311,25 @@ def run_parameter_sweep(
             covariance_shrinkage=mod_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        params = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+        idx_sigma_cov = float(sigma_vec[0])
+        sigma_h_cov = float(sigma_vec[1])
+        sigma_e_cov = float(sigma_vec[2])
+        sigma_m_cov = float(sigma_vec[3])
+        params = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_cov)
+        params.update(
+            {
+                "default_sigma_H": sigma_h_cov,
+                "default_sigma_E": sigma_e_cov,
+                "default_sigma_M": sigma_m_cov,
+                "rho_idx_H": float(corr_mat[0, 1]),
+                "rho_idx_E": float(corr_mat[0, 2]),
+                "rho_idx_M": float(corr_mat[0, 3]),
+                "rho_H_E": float(corr_mat[1, 2]),
+                "rho_H_M": float(corr_mat[1, 3]),
+                "rho_E_M": float(corr_mat[2, 3]),
+            }
+        )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,
@@ -359,7 +412,10 @@ def run_parameter_sweep_cached(
         _SWEEP_CACHE[key] = run_parameter_sweep(
             cfg, index_series, rng_returns, fin_rngs, seed=seed, progress=progress
         )
-    return _SWEEP_CACHE[key]
+    results = _SWEEP_CACHE[key]
+    if progress is not None:
+        progress(len(results), len(results))
+    return results
 
 
 def sweep_results_to_dataframe(results: List[Dict[str, Any]]) -> pd.DataFrame:
