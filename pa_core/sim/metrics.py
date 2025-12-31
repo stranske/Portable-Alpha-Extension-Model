@@ -43,14 +43,19 @@ def _load_metric_plugins() -> None:
 _load_metric_plugins()
 
 
-def tracking_error(strategy: ArrayLike, benchmark: ArrayLike) -> float:
-    """Return the standard deviation of active returns."""
+def tracking_error(
+    strategy: ArrayLike,
+    benchmark: ArrayLike,
+    *,
+    periods_per_year: int = 12,
+) -> float:
+    """Return annualised tracking error from active returns."""
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
     diff = np.asarray(strategy) - np.asarray(benchmark)
     if diff.size <= 1:
         return 0.0
-    return float(np.std(diff, ddof=1))
+    return float(np.std(diff, ddof=1) * np.sqrt(periods_per_year))
 
 
 def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
@@ -123,21 +128,35 @@ def shortfall_probability(
     returns: ArrayLike,
     threshold: float = -0.05,
     *,
-    compound_final: bool = True,
+    periods_per_year: int = 12,
 ) -> float:
-    """Return the probability of compounded returns falling below ``threshold``.
+    """Return probability compounded return falls below a horizon-aware threshold.
 
-    When ``compound_final`` is ``True`` (default) the check is applied to the
-    final compounded return of each simulation path.  Otherwise each monthly
-    return is compared directly to the threshold.
+    ``threshold`` is interpreted as an annualised return hurdle. For 2D inputs,
+    the probability is computed from terminal compounded returns over the full
+    horizon. For 1D inputs, rolling windows of length ``periods_per_year`` are
+    used to estimate the shortfall frequency.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
-    if compound_final:
-        comp = compound(arr)
-        final_returns = comp[:, -1] if arr.ndim > 1 else comp[[-1]]
-        return float(np.mean(final_returns < threshold))
-    return float(np.mean(arr < threshold))
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.ndim == 1:
+        window = min(arr.shape[0], periods_per_year)
+        years = window / periods_per_year
+        horizon_threshold = float(np.power(1.0 + threshold, years) - 1.0)
+        if window == 1:
+            window_returns = arr
+        else:
+            window_returns = np.empty(arr.shape[0] - window + 1, dtype=np.float64)
+            for idx in range(window_returns.size):
+                window_returns[idx] = np.prod(1.0 + arr[idx : idx + window]) - 1.0
+        return float(np.mean(window_returns < horizon_threshold))
+    years = arr.shape[1] / periods_per_year
+    horizon_threshold = float(np.power(1.0 + threshold, years) - 1.0)
+    comp = compound(arr)
+    final_returns = comp[:, -1]
+    return float(np.mean(final_returns < horizon_threshold))
 
 
 def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
@@ -167,11 +186,19 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
 
 
 def max_drawdown(returns: ArrayLike) -> float:
-    """Return the maximum drawdown from a series of arithmetic returns."""
+    """Return the maximum drawdown computed from compounded wealth paths."""
 
-    cumulative = np.cumsum(returns, axis=1)
-    running_max = np.maximum.accumulate(cumulative, axis=1)
-    drawdown = cumulative - running_max
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.ndim == 1:
+        arr = arr[None, :]
+    compounded = compound(arr)
+    wealth = 1.0 + compounded
+    # Include the initial wealth so the first-period drop is measured correctly.
+    wealth = np.concatenate([np.ones((wealth.shape[0], 1)), wealth], axis=1)
+    running_max = np.maximum.accumulate(wealth, axis=1)
+    drawdown = wealth / running_max - 1.0
     return float(np.min(drawdown))
 
 
@@ -200,8 +227,8 @@ def summary_table(
         the share of all simulated months across paths that breach. Defaults to
         ``-0.02`` (a 2% loss).
     shortfall_threshold:
-        Threshold for :func:`shortfall_probability`.  Defaults to ``-0.05``
-        (a 5% annual loss).
+        Annualised threshold for :func:`shortfall_probability`.  Defaults to
+        ``-0.05`` (a 5% annual loss).
     """
 
     returns = returns_map
@@ -226,10 +253,18 @@ def summary_table(
         cvar = conditional_value_at_risk(arr, confidence=var_conf)
         breach = breach_probability(arr, breach_threshold)
         bcount = breach_count(arr, breach_threshold)
-        shortfall = shortfall_probability(arr, shortfall_threshold)
+        shortfall = shortfall_probability(
+            arr,
+            shortfall_threshold,
+            periods_per_year=periods_per_year,
+        )
         mdd = max_drawdown(arr)
         tuw = time_under_water(arr)
-        te = tracking_error(arr, bench_arr) if bench_arr is not None and name != benchmark else None
+        te = (
+            tracking_error(arr, bench_arr, periods_per_year=periods_per_year)
+            if bench_arr is not None and name != benchmark
+            else None
+        )
         extras = {k: fn(arr) for k, fn in _EXTRA_METRICS.items()}
         rows.append(
             {

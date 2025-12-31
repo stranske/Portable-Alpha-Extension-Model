@@ -88,9 +88,21 @@ def test_conditional_value_at_risk_monotonic():
 def test_max_drawdown_basic():
     arr = np.array([[0.01, -0.02, 0.03]])
     dd = max_drawdown(arr)
-    assert dd <= 0
+    assert np.isclose(dd, -0.02)
     pos = np.array([[0.01, 0.02, 0.03]])
     assert max_drawdown(pos) == 0.0
+
+
+def test_max_drawdown_compounded_path():
+    arr = np.array([[0.2, -0.1, -0.1]])
+    dd = max_drawdown(arr)
+    assert np.isclose(dd, -0.19)
+
+
+def test_max_drawdown_initial_drop():
+    arr = np.array([[-0.1, 0.0, 0.05]])
+    dd = max_drawdown(arr)
+    assert np.isclose(dd, -0.1)
 
 
 def test_time_under_water_basic():
@@ -208,6 +220,35 @@ def test_shortfall_probability_basic():
     arr = np.array([[0.1, -0.2], [0.05, 0.02]])
     prob = shortfall_probability(arr, threshold=-0.05)
     assert prob == 0.5
+
+
+def test_shortfall_probability_rolling_window():
+    arr = np.array([0.1, -0.2, 0.05, 0.02])
+    prob = shortfall_probability(arr, threshold=-0.05, periods_per_year=2)
+    assert np.isclose(prob, 2.0 / 3.0)
+
+
+def test_shortfall_probability_horizon_threshold():
+    arr = np.zeros((2, 12))
+    prob = shortfall_probability(arr, threshold=-0.12, periods_per_year=12)
+    assert prob == 0.0
+
+
+def test_shortfall_probability_empty_input():
+    try:
+        shortfall_probability(np.array([]), threshold=-0.05)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for empty returns")
+
+
+def test_tracking_error_annualised():
+    strat = np.array([0.02, -0.02, 0.0, 0.01])
+    bench = np.zeros_like(strat)
+    te = tracking_error(strat, bench, periods_per_year=12)
+    expected = np.std(strat, ddof=1) * np.sqrt(12)
+    assert np.isclose(te, expected)
 
 
 def test_summary_table_shortfall():
