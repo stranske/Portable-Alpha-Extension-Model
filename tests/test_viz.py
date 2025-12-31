@@ -93,6 +93,7 @@ def test_risk_return_axis_labels_match_data():
         {
             "AnnReturn": [0.06, 0.03],
             "AnnVol": [0.04, 0.02],
+            "TrackingErr": [0.12, 0.18],
             "Agent": ["A", "B"],
             "ShortfallProb": [0.01, 0.02],
         }

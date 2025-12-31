@@ -12,13 +12,13 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     Parameters
     ----------
     df_summary : pandas.DataFrame
-        Must contain AnnReturn, AnnVol, Agent, ShortfallProb.
+        Must contain AnnReturn, AnnVol, Agent. ShortfallProb is optional.
     """
     df = df_summary.copy()
     df["ShortfallProb"] = df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
     color = []
     thr = theme.THRESHOLDS
-    vol_cap = thr.get("vol_cap", thr.get("te_cap", 0.03))
+    vol_cap = thr.get("vol_cap", 0.03)
     for prob in df["ShortfallProb"].fillna(theme.DEFAULT_SHORTFALL_PROB):
         if prob <= thr.get("shortfall_green", 0.05):
             color.append("green")
