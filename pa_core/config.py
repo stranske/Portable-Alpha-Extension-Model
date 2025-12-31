@@ -6,25 +6,14 @@ from typing import Any, Dict, List, Literal, Optional, Union
 import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from .share_utils import normalize_share
+
 
 class ConfigError(ValueError):
     """Invalid configuration."""
 
 
 __all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
-
-
-def normalize_share(value: float | None) -> float | None:
-    """Normalize percentage-style inputs to a 0..1 fraction."""
-    if value is None:
-        return None
-    try:
-        numeric = float(value)
-    except (TypeError, ValueError):
-        return value
-    if 1.0 < numeric <= 100.0:
-        return numeric / 100.0
-    return numeric
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -352,6 +341,9 @@ class ModelConfig(BaseModel):
 
 def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
     """Return ``ModelConfig`` parsed from YAML dictionary or file.
+
+    See :class:`pa_core.schema.Scenario` for market data inputs that pair with
+    the simulation parameters defined here.
 
     Raises
     ------

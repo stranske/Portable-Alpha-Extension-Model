@@ -8,22 +8,11 @@ from typing import Dict, List, Tuple, cast
 import yaml
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from .share_utils import normalize_share
+
 CORRELATION_LOWER_BOUND = -0.999
 CORRELATION_UPPER_BOUND = 0.999
 WEIGHT_SUM_TOLERANCE = 1e-6
-
-
-def normalize_share(value: float | None) -> float | None:
-    """Normalize percentage-style inputs to a 0..1 fraction."""
-    if value is None:
-        return None
-    try:
-        numeric = float(value)
-    except (TypeError, ValueError):
-        return value
-    if 1.0 < numeric <= 100.0:
-        return numeric / 100.0
-    return numeric
 
 
 class Index(BaseModel):
@@ -153,6 +142,11 @@ class Scenario(BaseModel):
 
 
 def load_scenario(path: str | Path) -> Scenario:
+    """Return ``Scenario`` parsed from YAML file.
+
+    Use :class:`pa_core.config.ModelConfig` for run-level settings such as
+    simulation length, capital allocation, and risk metrics.
+    """
     data = yaml.safe_load(Path(path).read_text())
     return cast(Scenario, Scenario.model_validate(data))
 
