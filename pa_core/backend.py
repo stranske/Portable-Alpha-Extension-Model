@@ -6,7 +6,18 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from .config import ModelConfig
 
-__all__ = ["xp", "set_backend", "get_backend", "resolve_and_set_backend"]
+SUPPORTED_BACKENDS = ("numpy",)
+BACKEND_UNAVAILABLE_DETAIL = "cupy/GPU acceleration is not available."
+BACKEND_ERROR_MESSAGE = f"Only the 'numpy' backend is supported; {BACKEND_UNAVAILABLE_DETAIL}"
+
+__all__ = [
+    "xp",
+    "set_backend",
+    "get_backend",
+    "resolve_and_set_backend",
+    "SUPPORTED_BACKENDS",
+    "BACKEND_UNAVAILABLE_DETAIL",
+]
 
 xp = importlib.import_module("numpy")
 
@@ -15,9 +26,7 @@ def set_backend(name: str) -> None:
     """Set numeric backend to 'numpy'."""
     global xp
     if name != "numpy":
-        raise ValueError(
-            "Only the 'numpy' backend is supported; cupy/GPU acceleration is not available."
-        )
+        raise ValueError(BACKEND_ERROR_MESSAGE)
     xp = importlib.import_module("numpy")
 
 
