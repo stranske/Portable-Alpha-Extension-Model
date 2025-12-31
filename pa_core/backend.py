@@ -15,7 +15,9 @@ def set_backend(name: str) -> None:
     """Set numeric backend to 'numpy'."""
     global xp
     if name != "numpy":
-        raise ValueError(f"Unknown backend: {name}")
+        raise ValueError(
+            "Only the 'numpy' backend is supported; GPU acceleration is not available."
+        )
     xp = importlib.import_module("numpy")
 
 

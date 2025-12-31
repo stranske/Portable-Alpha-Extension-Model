@@ -25,6 +25,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
+from .types import GeneratorLike
 from .validators import select_vol_regime_sigma
 
 
@@ -142,8 +143,8 @@ def _get_empty_results_dataframe() -> pd.DataFrame:
 def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
-    rng_returns: np.random.Generator,
-    fin_rngs: Dict[str, np.random.Generator],
+    rng_returns: GeneratorLike,
+    fin_rngs: Dict[str, GeneratorLike],
     seed: Optional[int] = None,
     progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[Dict[str, Any]]:

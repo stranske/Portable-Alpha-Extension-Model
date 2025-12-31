@@ -51,7 +51,7 @@ class TestBackendSelectionHelper:
 
     def test_resolve_backend_unknown_error(self):
         """Test error handling when an unknown backend is requested."""
-        with pytest.raises(ValueError, match="Unknown backend"):
+        with pytest.raises(ValueError, match="Only the 'numpy' backend is supported"):
             resolve_and_set_backend("cupy", None)
 
     def test_config_with_backend_field(self):
@@ -68,7 +68,7 @@ class TestBackendSelectionHelper:
             "backend": "cupy",
         }
 
-        with pytest.raises(ValueError, match="backend must be one of"):
+        with pytest.raises(ValueError, match="backend must be 'numpy'"):
             ModelConfig(**config_data)
 
 
