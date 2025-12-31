@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Union, cast
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -223,7 +223,8 @@ class ModelConfig(BaseModel):
                     return data[key]
             field_info = cls.model_fields[field]
             if field_info.default_factory is not None:
-                return field_info.default_factory()
+                factory = cast(Callable[[], Any], field_info.default_factory)
+                return factory()
             return field_info.default
 
         total_cap = float(_get_value("total_fund_capital", ("Total fund capital (mm)",)))
