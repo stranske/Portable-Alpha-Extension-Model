@@ -194,6 +194,7 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 
 ## 9) SimulatorOrchestrator
 **Purpose:** Wire sampler, sleeves, and financing; return panel of portfolio/base returns.
+**Canonical return engine:** `pa_core.sim.paths.draw_joint_returns` (used by CLI, sweep, and orchestrator for aligned draws).
 
 **Outputs**
 - Paths for Portfolio, Base, individual sleeves
