@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from io import BytesIO, StringIO
 from pathlib import Path
-import re
 from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
