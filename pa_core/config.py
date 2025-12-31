@@ -314,7 +314,7 @@ class ModelConfig(BaseModel):
         valid_backends = ["numpy"]
         if self.backend not in valid_backends:
             raise ValueError(
-                "backend must be 'numpy' (GPU acceleration is not available in this build)"
+                "backend must be one of: ['numpy'] (GPU acceleration is not available in this build)"
             )
         return self
 
