@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from io import StringIO
 from pathlib import Path
 
 import numpy as np
@@ -330,6 +331,12 @@ class TestMarginScheduleValidation:
         """Accept schedule CSV content as a string."""
         csv = "term,multiplier\n1,2\n3,4\n"
         schedule = load_margin_schedule(csv)
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_file_like_schedule_input(self):
+        """Accept schedule CSV content as a file-like object."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        schedule = load_margin_schedule(StringIO(csv))
         assert list(schedule["term"]) == [1, 3]
 
 

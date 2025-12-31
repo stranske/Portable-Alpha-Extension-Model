@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import Any, Dict, IO, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -216,7 +216,7 @@ def validate_covariance_matrix_psd(
     return result, psd_info
 
 
-def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFrame:
+def load_margin_schedule(path: Union[str, Path, bytes, bytearray, IO[Any]]) -> pd.DataFrame:
     """Load and validate broker margin schedule.
 
     The schedule must contain ``term`` and ``multiplier`` columns representing
@@ -227,6 +227,12 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
     """
     if isinstance(path, (bytes, bytearray)):
         df = pd.read_csv(BytesIO(path))
+    elif hasattr(path, "read"):
+        content = path.read()
+        if isinstance(content, (bytes, bytearray)):
+            df = pd.read_csv(BytesIO(content))
+        else:
+            df = pd.read_csv(StringIO(str(content)))
     elif isinstance(path, str):
         schedule_path = Path(path)
         if schedule_path.exists():
