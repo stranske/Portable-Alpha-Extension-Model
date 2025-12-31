@@ -101,7 +101,7 @@ shortfall probability and tracking error in a repeatable workflow.
    exporter and dashboard insert a `ShortfallProb` column with `0.0` so legacy
    results remain compatible.
 8. Add `--seed` for reproducible draws. The CLI only supports the NumPy backend,
-   so GPU acceleration is not available. Include `--log-json` to emit a structured
+   so cupy/GPU acceleration is not available. Include `--log-json` to emit a structured
    JSONL log under `runs/<timestamp>/run.log`. The manifest (`manifest.json`)
    records the selected backend and the log path for traceability.
 9. When a seed is supplied the program uses `spawn_agent_rngs` to create

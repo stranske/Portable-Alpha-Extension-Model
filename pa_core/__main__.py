@@ -19,7 +19,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument(
         "--backend",
         choices=["numpy"],
-        help="Computation backend (numpy only; GPU acceleration is not available)",
+        help="Computation backend (numpy only; cupy/GPU acceleration is not available)",
     )
     parser.add_argument(
         "--seed",

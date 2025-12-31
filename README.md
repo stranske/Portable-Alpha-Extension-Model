@@ -187,7 +187,7 @@ Advanced usage (CLI/YAML)
 If you prefer the command line, the main entry point is ``pa_core.cli`` which exposes analysis modes, export
 options and dashboard integration:
 
-The CLI currently supports only the NumPy backend; GPU acceleration is not available.
+The CLI currently supports only the NumPy backend; cupy/GPU acceleration is not available.
 
 ```bash
 python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \

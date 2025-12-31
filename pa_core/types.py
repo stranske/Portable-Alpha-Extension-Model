@@ -25,7 +25,7 @@ class GeneratorLike(Protocol):
 
 @runtime_checkable
 class ArrayLike(Protocol):
-    """Protocol for array-likes (numpy/cupy compatible)."""
+    """Protocol for NumPy-compatible array-likes (CPU-only)."""
 
     @property
     def shape(self) -> tuple[int, ...]: ...
