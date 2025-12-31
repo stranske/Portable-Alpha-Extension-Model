@@ -29,9 +29,7 @@ def _load_installed_console_scripts() -> dict[str, str]:
     except PackageNotFoundError:  # pragma: no cover - requires installed package
         pytest.skip("Package metadata not installed.")
     return {
-        entry.name: entry.value
-        for entry in dist.entry_points
-        if entry.group == "console_scripts"
+        entry.name: entry.value for entry in dist.entry_points if entry.group == "console_scripts"
     }
 
 
