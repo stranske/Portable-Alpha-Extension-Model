@@ -65,6 +65,17 @@ def test_theta_extpa_bounds_validation() -> None:
         load_config(config_data)
 
 
+def test_share_inputs_normalize_percent_values() -> None:
+    config_data = base_config()
+    config_data["active_share"] = 50.0
+    config_data["theta_extpa"] = 80.0
+
+    cfg = load_config(config_data)
+
+    assert cfg.active_share == pytest.approx(0.5)
+    assert cfg.theta_extpa == pytest.approx(0.8)
+
+
 def test_risk_metrics_must_include_shortfallprob() -> None:
     config_data = base_config()
     config_data["risk_metrics"] = ["Return", "Risk"]
