@@ -232,9 +232,7 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
         if not schedule_path.exists():
             raise FileNotFoundError(f"Margin schedule file not found: {schedule_path}")
         df = pd.read_csv(schedule_path)
-    df.columns = [
-        str(col).strip().lstrip("\ufeff").lower().replace(" ", "_") for col in df.columns
-    ]
+    df.columns = [str(col).strip().lstrip("\ufeff").lower().replace(" ", "_") for col in df.columns]
     if "term" not in df.columns:
         if "term_months" in df.columns:
             df = df.rename(columns={"term_months": "term"})
