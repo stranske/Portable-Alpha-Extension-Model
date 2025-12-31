@@ -248,10 +248,15 @@ def run_parameter_sweep(
             covariance_shrinkage=cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        _, base_corr = _cov_to_corr_and_sigma(base_cov)
-        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
+        shock_params = build_return_params(
+            cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0])
+        )
         shock_params.update(
             {
+                "default_sigma_H": float(base_sigma[1]) / 12,
+                "default_sigma_E": float(base_sigma[2]) / 12,
+                "default_sigma_M": float(base_sigma[3]) / 12,
                 "rho_idx_H": float(base_corr[0, 1]),
                 "rho_idx_E": float(base_corr[0, 2]),
                 "rho_idx_M": float(base_corr[0, 3]),
