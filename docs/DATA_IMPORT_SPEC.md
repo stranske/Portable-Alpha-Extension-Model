@@ -7,6 +7,11 @@
 1. **Wide**: columns = Date, <Instrument1>, <Instrument2>, ...
 2. **Long**: columns = Date, Id, Return
 
+## Index return CSVs (load_index_returns)
+- Required: `Date` column plus a monthly total return column.
+- Preferred column names: `Monthly_TR`, then `Return`.
+- If neither name is present, the loader falls back to the second column and emits a warning.
+
 ## Required mappings (captured via UI)
 - frequency: daily or monthly
 - value_type: price or return

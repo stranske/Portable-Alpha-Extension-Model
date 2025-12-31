@@ -102,9 +102,9 @@ def test_load_index_returns_prefers_return_column():
 def test_load_index_returns_falls_back_to_second_column():
     """Test that the second column is used when no standard names exist."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,CustomCol\n")
-        f.write("2020-01-01,0.07\n")
-        f.write("2020-02-01,0.08\n")
+        f.write("Date,CustomCol,Other\n")
+        f.write("2020-01-01,0.07,0.99\n")
+        f.write("2020-02-01,0.08,0.88\n")
         temp_path = f.name
 
     try:
