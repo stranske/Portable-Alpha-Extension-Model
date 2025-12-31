@@ -1,0 +1,69 @@
+import numpy as np
+
+from pa_core.config import (
+    ModelConfig,
+    annual_cov_to_monthly,
+    annual_mean_to_monthly,
+    annual_vol_to_monthly,
+)
+from pa_core.sim.metrics import annualised_return
+from pa_core.sim.params import build_simulation_params
+from pa_core.sim.paths import draw_joint_returns
+
+
+def test_annual_mean_to_monthly_simple_and_geometric() -> None:
+    annual = 0.12
+    assert annual_mean_to_monthly(annual) == annual / 12.0
+    geometric = annual_mean_to_monthly(annual, method="geometric")
+    expected = (1.0 + annual) ** (1.0 / 12.0) - 1.0
+    assert np.isclose(geometric, expected)
+
+
+def test_annual_vol_to_monthly() -> None:
+    annual = 0.24
+    expected = annual / np.sqrt(12.0)
+    assert np.isclose(annual_vol_to_monthly(annual), expected)
+
+
+def test_annual_cov_to_monthly() -> None:
+    cov = np.array([[0.04, 0.01], [0.01, 0.09]])
+    expected = cov / 12.0
+    converted = annual_cov_to_monthly(cov)
+    assert np.allclose(converted, expected)
+
+
+def test_model_config_converts_once() -> None:
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, mu_H=0.12, sigma_H=0.24)
+    assert np.isclose(cfg.mu_H, annual_mean_to_monthly(0.12))
+    assert np.isclose(cfg.sigma_H, annual_vol_to_monthly(0.24))
+    assert cfg.return_unit == "monthly"
+
+    round_trip = cfg.__class__.model_validate(cfg.model_dump())
+    assert np.isclose(round_trip.mu_H, cfg.mu_H)
+    assert np.isclose(round_trip.sigma_H, cfg.sigma_H)
+
+
+def test_annual_config_round_trip_to_annual_output() -> None:
+    annual_mu = 0.12
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=12,
+        mu_H=annual_mu,
+        sigma_H=0.0,
+        mu_E=0.0,
+        sigma_E=0.0,
+        mu_M=0.0,
+        sigma_M=0.0,
+    )
+    params = build_simulation_params(cfg, mu_idx=0.0, idx_sigma=0.0)
+    r_beta, r_H, _r_E, _r_M = draw_joint_returns(
+        n_months=cfg.N_MONTHS,
+        n_sim=cfg.N_SIMULATIONS,
+        params=params,
+        rng=np.random.default_rng(123),
+    )
+    assert np.allclose(r_beta, 0.0)
+    assert np.allclose(r_H, cfg.mu_H)
+    annual_out = annualised_return(r_H, periods_per_year=12)
+    expected = (1.0 + (annual_mu / 12.0)) ** 12 - 1.0
+    assert np.isclose(annual_out, expected)

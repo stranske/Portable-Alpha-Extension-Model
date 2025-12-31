@@ -22,7 +22,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     -----
     Uses the same monthly means as the simulator:
     - Index mean estimated from the provided ``idx_series`` (sample mean)
-    - Sleeve alpha means derived from ``cfg`` annual parameters divided by 12
+    - Sleeve alpha means use monthly parameters stored in ``cfg``
     - Financing means taken directly from monthly financing parameters in ``cfg``
     """
 
@@ -38,9 +38,9 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # Monthly means
     mu_idx_m = float(pd.Series(idx_series).mean())
-    mu_H_m = float(cfg.mu_H) / 12.0
-    mu_E_m = float(cfg.mu_E) / 12.0
-    mu_M_m = float(cfg.mu_M) / 12.0
+    mu_H_m = float(cfg.mu_H)
+    mu_E_m = float(cfg.mu_E)
+    mu_M_m = float(cfg.mu_M)
 
     fin_int_m = float(cfg.internal_financing_mean_month)
     fin_ext_m = float(cfg.ext_pa_financing_mean_month)
@@ -123,7 +123,7 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     - TEApprox: sqrt(12) * stdev of (agent - index)
 
     Notes: This is a heuristic decomposition for reporting, aligned with
-    the simulator's convention of dividing annual sigma by 12 for monthly.
+    the simulator's monthly input convention.
     """
 
     total = float(cfg.total_fund_capital)
@@ -136,11 +136,11 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
-    # Monthly sigmas (follow existing convention used in simulator params)
+    # Monthly sigmas (aligned with simulator input conventions)
     idx_sigma_m = float(pd.Series(idx_series).std(ddof=1))
-    sigma_H_m = float(cfg.sigma_H) / 12.0
-    sigma_E_m = float(cfg.sigma_E) / 12.0
-    sigma_M_m = float(cfg.sigma_M) / 12.0
+    sigma_H_m = float(cfg.sigma_H)
+    sigma_E_m = float(cfg.sigma_E)
+    sigma_M_m = float(cfg.sigma_M)
 
     theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
     active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0

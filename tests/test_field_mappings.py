@@ -5,7 +5,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from pa_core.config import ModelConfig, get_field_mappings
+from pa_core.config import ModelConfig, annual_mean_to_monthly, get_field_mappings
 
 
 def test_get_field_mappings():
@@ -83,7 +83,7 @@ def test_csv_conversion_with_field_mappings():
             assert config.N_MONTHS == 12
             assert config.external_pa_capital == 500.0
             assert config.total_fund_capital == 1000.0
-            assert config.mu_H == 0.04  # Should be converted from percentage
+            assert config.mu_H == annual_mean_to_monthly(0.04)
             assert "Return" in config.risk_metrics
             assert "Risk" in config.risk_metrics
             assert "ShortfallProb" in config.risk_metrics
@@ -131,4 +131,4 @@ def test_alias_compatibility():
     assert config.N_SIMULATIONS == 100
     assert config.analysis_mode == "returns"
     assert config.external_pa_capital == 500.0
-    assert config.mu_H == 4.0  # Raw value, no percentage conversion in YAML loading
+    assert config.mu_H == annual_mean_to_monthly(4.0)

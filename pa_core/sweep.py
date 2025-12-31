@@ -18,7 +18,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig, normalize_share
+from .config import ModelConfig, annual_mean_to_monthly, annual_vol_to_monthly, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
@@ -77,10 +77,10 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                         cfg.alpha_ext_vol_step_pct,
                     ):
                         yield {
-                            "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100,
-                            "mu_E": mu_E / 100,
-                            "sigma_E": sigma_E / 100,
+                            "mu_H": annual_mean_to_monthly(mu_H / 100),
+                            "sigma_H": annual_vol_to_monthly(sigma_H / 100),
+                            "mu_E": annual_mean_to_monthly(mu_E / 100),
+                            "sigma_E": annual_vol_to_monthly(sigma_E / 100),
                         }
     elif cfg.analysis_mode == "alpha_shares":
         for theta_extpa in np.arange(
@@ -319,9 +319,9 @@ def run_parameter_sweep(
         params = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_cov)
         params.update(
             {
-                "default_sigma_H": sigma_h_cov / 12,
-                "default_sigma_E": sigma_e_cov / 12,
-                "default_sigma_M": sigma_m_cov / 12,
+                "default_sigma_H": sigma_h_cov,
+                "default_sigma_E": sigma_e_cov,
+                "default_sigma_M": sigma_m_cov,
                 "rho_idx_H": float(corr_mat[0, 1]),
                 "rho_idx_E": float(corr_mat[0, 2]),
                 "rho_idx_M": float(corr_mat[0, 3]),
