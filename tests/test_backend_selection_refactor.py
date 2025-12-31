@@ -68,7 +68,7 @@ class TestBackendSelectionHelper:
             "backend": "cupy",
         }
 
-        with pytest.raises(ValueError, match="backend must be 'numpy'"):
+        with pytest.raises(ValueError, match=r"backend must be .*numpy"):
             ModelConfig(**config_data)
 
 

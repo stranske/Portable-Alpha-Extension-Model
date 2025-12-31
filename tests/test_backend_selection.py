@@ -77,7 +77,7 @@ def test_backend_cli_numpy(tmp_path):
 
 def test_backend_config_rejects_unknown(tmp_path):
     cfg_path, idx_csv = _write_cfg(tmp_path, backend="cupy")
-    with pytest.raises(ValueError, match="backend must be 'numpy'"):
+    with pytest.raises(ValueError, match=r"backend must be .*numpy"):
         main(
             [
                 "--config",
