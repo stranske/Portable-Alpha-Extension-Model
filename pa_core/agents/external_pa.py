@@ -10,6 +10,7 @@ class ExternalPAAgent(Agent):
         theta = normalize_share(self.extra.get("theta_extpa", 0.0))
         if theta is None:
             theta = 0.0
-        return self.p.beta_share * (r_beta - financing) + (
-            self.p.beta_share * float(theta)
-        ) * alpha_stream
+        return (
+            self.p.beta_share * (r_beta - financing)
+            + (self.p.beta_share * float(theta)) * alpha_stream
+        )

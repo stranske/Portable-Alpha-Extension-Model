@@ -1106,8 +1106,7 @@ def main() -> None:
                         "internal_pa_capital": config_data.get("internal_pa_capital", 150.0),
                         "w_beta_h": config_data.get("w_beta_H", 0.5),
                         "w_alpha_h": config_data.get("w_alpha_H", 0.5),
-                        "theta_extpa": normalize_share(config_data.get("theta_extpa", 0.5))
-                        or 0.5,
+                        "theta_extpa": normalize_share(config_data.get("theta_extpa", 0.5)) or 0.5,
                         "active_share": normalize_share(config_data.get("active_share", 0.5))
                         or 0.5,
                         "mu_h": config_data.get("mu_H", 0.04),
