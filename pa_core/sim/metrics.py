@@ -89,18 +89,15 @@ def breach_probability(
     *,
     path: int | None = None,
 ) -> float:
-    """Return the fraction of simulation paths that breach ``threshold`` at any point.
+    """Return the fraction of simulation-months that breach ``threshold``.
 
-    For 2D arrays shaped (paths, periods), this is the share of paths with at
-    least one period below ``threshold``. For 1D arrays, this returns ``1.0`` if
-    any period breaches, otherwise ``0.0``. ``path`` is ignored and kept only for
-    backward compatibility.
+    For 2D arrays shaped (paths, periods), this is the share of all simulated
+    months across all paths that fall below ``threshold``. For 1D arrays, this
+    is the share of months below the threshold. ``path`` is ignored and kept
+    only for backward compatibility.
     """
     arr = np.asarray(returns, dtype=np.float64)
-    if arr.ndim == 1:
-        return float(np.any(arr < threshold))
-    breaches = np.any(arr < threshold, axis=1)
-    return float(np.mean(breaches))
+    return float(np.mean(arr < threshold))
 
 
 def shortfall_probability(
@@ -181,7 +178,7 @@ def summary_table(
     ----------
     breach_threshold:
         Monthly return threshold for :func:`breach_probability`, which reports
-        the share of paths that breach at any point in the horizon. Defaults to
+        the share of all simulated months across paths that breach. Defaults to
         ``-0.02`` (a 2% loss).
     shortfall_threshold:
         Threshold for :func:`shortfall_probability`.  Defaults to ``-0.05``

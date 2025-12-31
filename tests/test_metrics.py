@@ -87,26 +87,26 @@ def test_breach_probability_basic():
     arr = np.array([[0.0, -0.05, 0.01], [0.02, 0.01, 0.03]])
     threshold = -0.01
     prob = breach_probability(arr, threshold)
-    assert prob == 0.5
+    assert np.isclose(prob, 1.0 / 6.0)
 
 
 def test_breach_probability_single_path():
     arr = np.array([0.0, -0.05, 0.01])
     thr = -0.01
-    assert breach_probability(arr, thr) == 1.0
+    assert np.isclose(breach_probability(arr, thr), 1.0 / 3.0)
 
 
 def test_summary_table_breach():
     arr = np.array([[0.0, -0.03, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr})
     assert "BreachProb" in stats.columns
-    assert stats["BreachProb"].iloc[0] == 0.5
+    assert np.isclose(stats["BreachProb"].iloc[0], 1.0 / 6.0)
 
 
 def test_summary_table_breach_custom():
     arr = np.array([[0.0, -0.02, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)
-    assert stats["BreachProb"].iloc[0] == 0.5
+    assert np.isclose(stats["BreachProb"].iloc[0], 1.0 / 6.0)
 
 
 def test_breach_probability_path_order_invariant():
