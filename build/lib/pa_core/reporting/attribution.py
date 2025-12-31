@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import pandas as pd
 
-from ..config import ModelConfig
+from ..config import ModelConfig, normalize_share
 
 __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
 
@@ -46,8 +46,8 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     fin_ext_m = float(cfg.ext_pa_financing_mean_month)
     fin_act_m = float(cfg.act_ext_financing_mean_month)
 
-    theta_extpa = float(getattr(cfg, "theta_extpa", 0.0))
-    active_share = float(getattr(cfg, "active_share", 50.0)) / 100.0
+    theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
+    active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0
 
     def annual(x: float) -> float:
         return 12.0 * x
@@ -134,8 +134,8 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     sigma_E_m = float(cfg.sigma_E) / 12.0
     sigma_M_m = float(cfg.sigma_M) / 12.0
 
-    theta_extpa = float(getattr(cfg, "theta_extpa", 0.0))
-    active_share = float(getattr(cfg, "active_share", 50.0)) / 100.0
+    theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
+    active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0
 
     def ann_vol(x_monthly: float) -> float:
         return math.sqrt(12.0) * x_monthly

@@ -129,7 +129,7 @@ def main() -> None:
                     "Active Extension capital (mm)": float(act_cap),
                     "Internal PA capital (mm)": float(int_cap),
                     "External PA alpha fraction": float(theta),
-                    "Active share (%)": float(active_share),
+                    "Active share": float(active_share),
                 }
             )
 
