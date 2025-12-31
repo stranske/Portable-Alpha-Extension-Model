@@ -30,5 +30,10 @@ def test_portfolio_is_package_namespace():
     assert pathlib.Path(portfolio.__file__).name == "__init__.py"
 
 
+def test_portfolio_module_is_removed():
+    repo_root = pathlib.Path(__file__).resolve().parents[1]
+    assert not (repo_root / "pa_core" / "portfolio.py").exists()
+
+
 def test_portfolio_exports_defaults():
     assert "Base" in DEFAULT_PORTFOLIO_EXCLUDES
