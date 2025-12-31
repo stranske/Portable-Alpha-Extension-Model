@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, TypeAlias
+from typing import Iterable, Mapping, TypeAlias
 
-from .backend import xp as np
-from .types import ArrayLike
+from ..backend import xp as np
+from ..types import ArrayLike
 
 Array: TypeAlias = ArrayLike
 
@@ -11,7 +11,7 @@ DEFAULT_PORTFOLIO_EXCLUDES = ("Base", "Total")
 
 
 def compute_total_contribution_returns(
-    returns_map: dict[str, Array],
+    returns_map: Mapping[str, Array],
     *,
     exclude: Iterable[str] = DEFAULT_PORTFOLIO_EXCLUDES,
 ) -> Array | None:
