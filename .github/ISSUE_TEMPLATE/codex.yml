@@ -22,6 +22,16 @@ body:
       required: true
 
   - type: textarea
+    id: tasks
+    attributes:
+      label: Tasks
+      placeholder: |
+        - [ ] Task 1
+        - [ ] Task 2
+    validations:
+      required: true
+
+  - type: textarea
     id: ac
     attributes:
       label: Acceptance criteria
@@ -30,6 +40,16 @@ body:
         - [ ] Expected behavior B
     validations:
       required: true
+
+  - type: textarea
+    id: key-files
+    attributes:
+      label: Key files to examine
+      placeholder: |
+        - `path/to/file.py` - what to look for
+        - `path/to/other_file.py` - why it matters
+    validations:
+      required: false
 
   - type: textarea
     id: agent-notes
