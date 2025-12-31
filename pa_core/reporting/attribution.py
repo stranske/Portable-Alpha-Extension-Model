@@ -101,6 +101,16 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         ]
 
     df = pd.DataFrame(rows).reset_index(drop=True)
+    if not df.empty:
+        total_components = (
+            df[df["Agent"] != "Base"].groupby("Sub", as_index=False)["Return"].sum()
+        )
+        if not total_components.empty:
+            total_components["Agent"] = "Total"
+            df = pd.concat(
+                [df, total_components[["Agent", "Sub", "Return"]]],
+                ignore_index=True,
+            )
     return df
 
 
@@ -218,6 +228,44 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
                     b=w_leftover,
                     alpha_sigma=0.0,
                     rho_idx_alpha=0.0,
+                ),
+            }
+        )
+
+    if total > 0:
+        a_H = w_int * sigma_H_m
+        a_E = w_act * active_share * sigma_E_m
+        a_M = w_ext * theta_extpa * sigma_M_m
+        var_alpha = (
+            a_H * a_H
+            + a_E * a_E
+            + a_M * a_M
+            + 2.0
+            * (
+                a_H * a_E * float(cfg.rho_H_E)
+                + a_H * a_M * float(cfg.rho_H_M)
+                + a_E * a_M * float(cfg.rho_E_M)
+            )
+        )
+        alpha_sigma_total = math.sqrt(max(var_alpha, 0.0))
+        cov_idx_alpha = idx_sigma_m * (
+            a_H * float(cfg.rho_idx_H)
+            + a_E * float(cfg.rho_idx_E)
+            + a_M * float(cfg.rho_idx_M)
+        )
+        if alpha_sigma_total > 0 and idx_sigma_m > 0:
+            rho_idx_alpha_total = cov_idx_alpha / (idx_sigma_m * alpha_sigma_total)
+            rho_idx_alpha_total = max(-1.0, min(1.0, float(rho_idx_alpha_total)))
+        else:
+            rho_idx_alpha_total = 0.0
+        total_beta = w_ext + w_act + w_leftover
+        rows.append(
+            {
+                "Agent": "Total",
+                **_metrics(
+                    b=total_beta,
+                    alpha_sigma=alpha_sigma_total,
+                    rho_idx_alpha=rho_idx_alpha_total,
                 ),
             }
         )

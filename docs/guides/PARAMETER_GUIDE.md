@@ -22,6 +22,11 @@ Think of this as your asset allocation decision:
 - **Internal PA capital**: Assets managed internally for portable alpha
 - **Total fund capital**: Must equal sum of the three sleeves above
 
+**Portfolio composition semantics**:
+- Sleeve agents emit **contribution returns** already scaled by capital share.
+- The portfolio **Total** return is computed once as the sum of all non-benchmark sleeves.
+- The **Base** sleeve remains a benchmark reference and is excluded from Total.
+
 **Example Business Logic**: 
 - Large institutional fund ($300M) might allocate:
   - 50% ($150M) to internal PA (lower fees, full control)
