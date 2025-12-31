@@ -435,15 +435,12 @@ def main() -> None:
                     active_share_val = None
                     theta_val = None
                 if active_share_val is not None and theta_val is not None:
-                    active_share_pct = (
-                        active_share_val * 100.0 if active_share_val <= 1.0 else active_share_val
-                    )
                     cfg_yaml = {
                         "Number of simulations": 1000,
                         "Number of months": 12,
                         "analysis_mode": "alpha_shares",
                         "theta_extpa": theta_val,
-                        "active_share": active_share_pct,
+                        "active_share": active_share_val,
                         "risk_metrics": ["Return", "Risk", "ShortfallProb"],
                     }
                     yaml_str = yaml.safe_dump(cfg_yaml, sort_keys=False)

@@ -13,6 +13,7 @@ import yaml
 
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
+from dashboard.utils import normalize_share
 from pa_core import cli as pa_cli
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
@@ -1105,8 +1106,9 @@ def main() -> None:
                         "internal_pa_capital": config_data.get("internal_pa_capital", 150.0),
                         "w_beta_h": config_data.get("w_beta_H", 0.5),
                         "w_alpha_h": config_data.get("w_alpha_H", 0.5),
-                        "theta_extpa": config_data.get("theta_extpa", 0.5),
-                        "active_share": config_data.get("active_share", 0.5),
+                        "theta_extpa": normalize_share(config_data.get("theta_extpa", 0.5)) or 0.5,
+                        "active_share": normalize_share(config_data.get("active_share", 0.5))
+                        or 0.5,
                         "mu_h": config_data.get("mu_H", 0.04),
                         "sigma_h": config_data.get("sigma_H", 0.01),
                         "mu_e": config_data.get("mu_E", 0.05),

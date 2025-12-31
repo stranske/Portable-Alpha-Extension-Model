@@ -19,7 +19,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
-from .excel import export_to_excel
+from .excel import export_to_excel, finalize_excel_workbook
 
 __all__ = ["create_export_packet"]
 
@@ -163,6 +163,7 @@ def create_export_packet(
         cfg_diff_df, metric_diff_df = build_run_diff(manifest, prev_manifest, summary_df, prev_sum)
 
     # Excel workbook (full tables)
+    finalize_after_append = stress_delta_df is not None and not stress_delta_df.empty
     export_to_excel(
         inputs_dict,
         summary_df,
@@ -171,12 +172,14 @@ def create_export_packet(
         pivot=pivot,
         diff_config_df=cfg_diff_df,
         diff_metrics_df=metric_diff_df,
+        finalize=not finalize_after_append,
     )
     if stress_delta_df is not None and not stress_delta_df.empty:
         with pd.ExcelWriter(
             excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
         ) as writer:
             stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
+        finalize_excel_workbook(excel_path, inputs_dict, summary_df)
 
     # PowerPoint deck
     prs = _Presentation()

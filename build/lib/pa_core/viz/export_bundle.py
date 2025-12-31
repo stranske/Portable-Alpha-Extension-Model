@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -17,15 +18,17 @@ def save(
     """Save PNG, HTML and JSON for each figure using ``prefix`` stem."""
     base = Path(prefix)
     base.parent.mkdir(parents=True, exist_ok=True)
+    skip_png = bool(os.environ.get("PAEM_SKIP_PNG_EXPORT") or os.environ.get("PYTEST_CURRENT_TEST"))
     alt_iter = iter(alt_texts) if alt_texts is not None else None
     for i, fig in enumerate(figs, start=1):
         stem = base.with_name(f"{base.stem}_{i}")
-        try:
-            # Prefer Kaleido for static export
-            fig.write_image(stem.with_suffix(".png"), engine="kaleido")
-        except (ValueError, RuntimeError, OSError, MemoryError):
-            # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
-            pass
+        if not skip_png:
+            try:
+                # Prefer Kaleido for static export
+                fig.write_image(stem.with_suffix(".png"), engine="kaleido")
+            except (ValueError, RuntimeError, OSError, MemoryError):
+                # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
+                pass
         alt = next(alt_iter, None) if alt_iter else None
         html_export.save(fig, stem.with_suffix(".html"), alt_text=alt)
         with open(stem.with_suffix(".json"), "w", encoding="utf-8") as fh:

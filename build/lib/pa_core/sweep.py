@@ -17,7 +17,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig
+from .config import ModelConfig, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns
 from .sim.covariance import build_cov_matrix
@@ -91,8 +91,8 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                 cfg.active_share_step_pct,
             ):
                 yield {
-                    "theta_extpa": theta_extpa / 100,
-                    "active_share": active_share,
+                    "theta_extpa": normalize_share(theta_extpa),
+                    "active_share": normalize_share(active_share),
                 }
     elif cfg.analysis_mode == "vol_mult":
         for sd_mult in np.arange(
