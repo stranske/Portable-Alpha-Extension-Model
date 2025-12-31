@@ -89,6 +89,15 @@ class RunTimer:
         }
 
 
+def _cov_to_corr_and_sigma(cov: "np.ndarray") -> tuple["np.ndarray", "np.ndarray"]:
+    import numpy as np
+
+    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    denom = np.outer(sigma, sigma)
+    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+    return sigma, corr
+
+
 def create_enhanced_summary(
     returns_map: dict[str, "np.ndarray"],
     *,
@@ -845,7 +854,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         sigma_M = run_cfg.sigma_M
 
         # Build covariance (validates shapes)
-        _ = deps.build_cov_matrix(
+        cov = deps.build_cov_matrix(
             run_cfg.rho_idx_H,
             run_cfg.rho_idx_E,
             run_cfg.rho_idx_M,
@@ -860,7 +869,31 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             n_samples=n_samples,
         )
 
-        params = build_simulation_params(run_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        return_overrides = None
+        idx_sigma_use = idx_sigma
+        if run_cfg.covariance_shrinkage != "none":
+            sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+            idx_sigma_use = float(sigma_vec[0]) / 12
+            sigma_h_cov = float(sigma_vec[1])
+            sigma_e_cov = float(sigma_vec[2])
+            sigma_m_cov = float(sigma_vec[3])
+            return_overrides = {
+                "default_sigma_H": sigma_h_cov / 12,
+                "default_sigma_E": sigma_e_cov / 12,
+                "default_sigma_M": sigma_m_cov / 12,
+                "rho_idx_H": float(corr_mat[0, 1]),
+                "rho_idx_E": float(corr_mat[0, 2]),
+                "rho_idx_M": float(corr_mat[0, 3]),
+                "rho_H_E": float(corr_mat[1, 2]),
+                "rho_H_M": float(corr_mat[1, 3]),
+                "rho_E_M": float(corr_mat[2, 3]),
+            }
+        params = build_simulation_params(
+            run_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma_use,
+            return_overrides=return_overrides,
+        )
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
@@ -971,7 +1004,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 mod_cfg = cfg.model_copy(update=p)
 
                 # Rebuild covariance matrix with new parameters
-                deps.build_cov_matrix(
+                cov = deps.build_cov_matrix(
                     mod_cfg.rho_idx_H,
                     mod_cfg.rho_idx_E,
                     mod_cfg.rho_idx_M,
@@ -986,7 +1019,31 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     n_samples=n_samples,
                 )
 
-                params_local = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+                return_overrides = None
+                idx_sigma_use = idx_sigma
+                if mod_cfg.covariance_shrinkage != "none":
+                    sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+                    idx_sigma_use = float(sigma_vec[0]) / 12
+                    sigma_h_cov = float(sigma_vec[1])
+                    sigma_e_cov = float(sigma_vec[2])
+                    sigma_m_cov = float(sigma_vec[3])
+                    return_overrides = {
+                        "default_sigma_H": sigma_h_cov / 12,
+                        "default_sigma_E": sigma_e_cov / 12,
+                        "default_sigma_M": sigma_m_cov / 12,
+                        "rho_idx_H": float(corr_mat[0, 1]),
+                        "rho_idx_E": float(corr_mat[0, 2]),
+                        "rho_idx_M": float(corr_mat[0, 3]),
+                        "rho_H_E": float(corr_mat[1, 2]),
+                        "rho_H_M": float(corr_mat[1, 3]),
+                        "rho_E_M": float(corr_mat[2, 3]),
+                    }
+                params_local = build_simulation_params(
+                    mod_cfg,
+                    mu_idx=mu_idx,
+                    idx_sigma=idx_sigma_use,
+                    return_overrides=return_overrides,
+                )
 
                 r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,

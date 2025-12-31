@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from ..config import ModelConfig
 
@@ -50,8 +50,16 @@ def build_financing_params(cfg: ModelConfig) -> Dict[str, Any]:
     }
 
 
-def build_simulation_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) -> Dict[str, Any]:
+def build_simulation_params(
+    cfg: ModelConfig,
+    *,
+    mu_idx: float,
+    idx_sigma: float,
+    return_overrides: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     """Combine return and financing parameters for simulation draws."""
     params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+    if return_overrides:
+        params.update(return_overrides)
     params.update(build_financing_params(cfg))
     return params

@@ -76,6 +76,7 @@ STDLIB_MODULES = {
     "signal",
     "sitecustomize",
     "socket",
+    "sqlite3",
     "stat",
     "string",
     "struct",
