@@ -249,9 +249,7 @@ def run_parameter_sweep(
             n_samples=n_samples,
         )
         base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
-        shock_params = build_return_params(
-            cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0])
-        )
+        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
         shock_params.update(
             {
                 "default_sigma_H": float(base_sigma[1]) / 12,
