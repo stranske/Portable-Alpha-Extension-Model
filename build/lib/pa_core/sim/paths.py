@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 import numpy.typing as npt
-from numpy.random import Generator
 from numpy.typing import NDArray
 
 from ..backend import xp as np
 from ..random import spawn_rngs
+from ..types import GeneratorLike
 from ..validators import NUMERICAL_STABILITY_EPSILON
 
 __all__ = [
@@ -58,24 +58,27 @@ def _resolve_return_distributions(
 
 
 def _safe_multivariate_normal(
-    rng: Generator,
+    rng: GeneratorLike,
     mean: npt.NDArray[Any],
     cov: npt.NDArray[Any],
     size: tuple[int, int],
 ) -> npt.NDArray[Any]:
     try:
-        return rng.multivariate_normal(mean=mean, cov=cov, size=size)
+        return cast(npt.NDArray[Any], rng.multivariate_normal(mean=mean, cov=cov, size=size))
     except np.linalg.LinAlgError:
-        return rng.multivariate_normal(
-            mean=mean,
-            cov=cov + np.eye(len(mean)) * NUMERICAL_STABILITY_EPSILON,
-            size=size,
+        return cast(
+            npt.NDArray[Any],
+            rng.multivariate_normal(
+                mean=mean,
+                cov=cov + np.eye(len(mean)) * NUMERICAL_STABILITY_EPSILON,
+                size=size,
+            ),
         )
 
 
 def _draw_student_t(
     *,
-    rng: Generator,
+    rng: GeneratorLike,
     mean: npt.NDArray[Any],
     sigma: npt.NDArray[Any],
     corr: npt.NDArray[Any],
@@ -98,7 +101,7 @@ def _draw_student_t(
 
 def _draw_mixed_returns(
     *,
-    rng: Generator,
+    rng: GeneratorLike,
     mean: npt.NDArray[Any],
     sigma: npt.NDArray[Any],
     corr: npt.NDArray[Any],
@@ -137,7 +140,7 @@ def simulate_financing(
     *,
     seed: Optional[int] = None,
     n_scenarios: int = 1,
-    rng: Optional[Generator] = None,
+    rng: Optional[GeneratorLike] = None,
 ) -> npt.NDArray[Any]:
     """Vectorised financing spread simulation with optional spikes."""
     if T <= 0:
@@ -149,8 +152,10 @@ def simulate_financing(
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
     jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
-    out = np.clip(base + jumps, 0.0, None)
-    return out[0] if n_scenarios == 1 else out  # type: ignore[no-any-return]
+    out = cast(npt.NDArray[Any], np.clip(base + jumps, 0.0, None))
+    if n_scenarios == 1:
+        return cast(npt.NDArray[Any], out[0])
+    return out
 
 
 def prepare_mc_universe(
@@ -167,7 +172,7 @@ def prepare_mc_universe(
     return_copula: str = "gaussian",
     return_distributions: Optional[Sequence[Optional[str]]] = None,
     seed: Optional[int] = None,
-    rng: Optional[Generator] = None,
+    rng: Optional[GeneratorLike] = None,
 ) -> npt.NDArray[Any]:
     """Return stacked draws of (index, H, E, M) returns."""
     if N_SIMULATIONS <= 0 or N_MONTHS <= 0:
@@ -221,7 +226,7 @@ def prepare_return_shocks(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
-    rng: Optional[Generator] = None,
+    rng: Optional[GeneratorLike] = None,
 ) -> Dict[str, Any]:
     """Pre-generate return shocks to reuse across parameter combinations."""
     if rng is None:
@@ -276,7 +281,7 @@ def draw_joint_returns(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
-    rng: Optional[Generator] = None,
+    rng: Optional[GeneratorLike] = None,
     shocks: Optional[Dict[str, Any]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
@@ -407,8 +412,8 @@ def draw_financing_series(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
-    rng: Optional[Generator] = None,
-    rngs: Optional[Mapping[str, Generator]] = None,
+    rng: Optional[GeneratorLike] = None,
+    rngs: Optional[Mapping[str, GeneratorLike]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Return three matrices of monthly financing spreads.
 
@@ -418,26 +423,16 @@ def draw_financing_series(
     """
     if rngs is not None:
         tmp_int = rngs.get("internal")
-        if isinstance(tmp_int, Generator):
-            r_int: Generator = tmp_int
-        else:
-            r_int = spawn_rngs(None, 1)[0]
+        r_int = tmp_int if tmp_int is not None else spawn_rngs(None, 1)[0]
 
         tmp_ext = rngs.get("external_pa")
-        if isinstance(tmp_ext, Generator):
-            r_ext: Generator = tmp_ext
-        else:
-            r_ext = spawn_rngs(None, 1)[0]
+        r_ext = tmp_ext if tmp_ext is not None else spawn_rngs(None, 1)[0]
 
         tmp_act = rngs.get("active_ext")
-        if isinstance(tmp_act, Generator):
-            r_act: Generator = tmp_act
-        else:
-            r_act = spawn_rngs(None, 1)[0]
+        r_act = tmp_act if tmp_act is not None else spawn_rngs(None, 1)[0]
     else:
         if rng is None:
             rng = spawn_rngs(None, 1)[0]
-        assert isinstance(rng, Generator)
         r_int = rng
         r_ext = rng
         r_act = rng
@@ -447,7 +442,7 @@ def draw_financing_series(
         sigma_key: str,
         p_key: str,
         k_key: str,
-        rng_local: Generator,
+        rng_local: GeneratorLike,
     ) -> npt.NDArray[Any]:
         mean = params[mean_key]
         sigma = params[sigma_key]
@@ -500,7 +495,7 @@ def simulate_alpha_streams(
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
     return_distributions: Optional[Sequence[Optional[str]]] = None,
-    rng: Optional[Generator] = None,
+    rng: Optional[GeneratorLike] = None,
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     if T <= 0:

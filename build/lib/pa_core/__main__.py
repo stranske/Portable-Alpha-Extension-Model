@@ -18,8 +18,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
         "--backend",
-        choices=["numpy", "cupy"],
-        help="Computation backend",
+        choices=["numpy"],
+        help="Computation backend (numpy only; GPU acceleration is not available)",
     )
     parser.add_argument(
         "--seed",
@@ -72,6 +72,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim import draw_financing_series, draw_joint_returns
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
+    from .sim.params import build_simulation_params
     from .simulations import simulate_agents
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
@@ -95,11 +96,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     n_samples = int(len(idx_series))
 
-    mu_H = cfg.mu_H
     sigma_H = cfg.sigma_H
-    mu_E = cfg.mu_E
     sigma_E = cfg.sigma_E
-    mu_M = cfg.mu_M
     sigma_M = cfg.sigma_M
 
     covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
@@ -124,41 +122,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_samples=n_samples,
     )
 
-    params = {
-        "mu_idx_month": mu_idx / 12,
-        "default_mu_H": mu_H / 12,
-        "default_mu_E": mu_E / 12,
-        "default_mu_M": mu_M / 12,
-        "idx_sigma_month": idx_sigma / 12,
-        "default_sigma_H": sigma_H / 12,
-        "default_sigma_E": sigma_E / 12,
-        "default_sigma_M": sigma_M / 12,
-        "rho_idx_H": cfg.rho_idx_H,
-        "rho_idx_E": cfg.rho_idx_E,
-        "rho_idx_M": cfg.rho_idx_M,
-        "rho_H_E": cfg.rho_H_E,
-        "rho_H_M": cfg.rho_H_M,
-        "rho_E_M": cfg.rho_E_M,
-        "return_distribution": cfg.return_distribution,
-        "return_t_df": cfg.return_t_df,
-        "return_copula": cfg.return_copula,
-        "return_distribution_idx": cfg.return_distribution_idx,
-        "return_distribution_H": cfg.return_distribution_H,
-        "return_distribution_E": cfg.return_distribution_E,
-        "return_distribution_M": cfg.return_distribution_M,
-        "internal_financing_mean_month": cfg.internal_financing_mean_month,
-        "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
-        "internal_spike_prob": cfg.internal_spike_prob,
-        "internal_spike_factor": cfg.internal_spike_factor,
-        "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
-        "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
-        "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
-        "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
-        "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
-        "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
-        "act_ext_spike_prob": cfg.act_ext_spike_prob,
-        "act_ext_spike_factor": cfg.act_ext_spike_factor,
-    }
+    params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
     N_SIMULATIONS = cfg.N_SIMULATIONS
     N_MONTHS = cfg.N_MONTHS

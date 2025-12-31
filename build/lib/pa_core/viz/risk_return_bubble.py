@@ -35,5 +35,5 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
             hovertemplate="%{text}<br>Vol=%{x:.2%}<br>Return=%{y:.2%}<extra></extra>",
         )
     )
-    fig.update_layout(xaxis_title="Tracking Error", yaxis_title="Excess Return")
+    fig.update_layout(xaxis_title="Annualized Volatility", yaxis_title="Annualized Return")
     return fig

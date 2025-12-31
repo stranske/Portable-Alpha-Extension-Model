@@ -311,9 +311,11 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_backend(self) -> "ModelConfig":
-        valid_backends = ["numpy", "cupy"]
+        valid_backends = ["numpy"]
         if self.backend not in valid_backends:
-            raise ValueError(f"backend must be one of: {valid_backends}")
+            raise ValueError(
+                "backend must be 'numpy' (GPU acceleration is not available in this build)"
+            )
         return self
 
     @model_validator(mode="after")
