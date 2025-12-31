@@ -261,6 +261,8 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray, IO[Any]]) -> p
         raise ValueError(f"Margin schedule CSV file missing required columns: {missing}")
     df["term"] = pd.to_numeric(df["term"], errors="coerce")
     df["multiplier"] = pd.to_numeric(df["multiplier"], errors="coerce")
+    # Drop rows that are entirely blank to tolerate trailing blank lines in CSVs.
+    df = df.loc[~(df["term"].isna() & df["multiplier"].isna())]
     if bool(df[["term", "multiplier"]].isna().any().any()):
         raise ValueError("Margin schedule contains non-numeric or missing term/multiplier values")
     if bool((df["term"] < 0).any()):

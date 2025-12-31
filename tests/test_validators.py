@@ -339,6 +339,14 @@ class TestMarginScheduleValidation:
         schedule = load_margin_schedule(StringIO(csv))
         assert list(schedule["term"]) == [1, 3]
 
+    def test_blank_rows_are_ignored(self, tmp_path: Path):
+        """Ignore fully blank rows in schedule CSV."""
+        csv = "term,multiplier\n1,2\n\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
+        assert list(schedule["term"]) == [1, 3]
+
 
 class TestSimulationParameterValidation:
     """Test simulation parameter validation."""
