@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, cast
 
+
 def _require_yaml() -> Any:
     """Import PyYAML lazily to keep `pa --help` lightweight."""
     try:
