@@ -30,6 +30,7 @@ __all__ = [
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
+    "compute_total_returns",
     "simulate_agents",
 ]
 
@@ -96,4 +97,23 @@ def simulate_agents(
         alpha, financing = _resolve_streams(agent, *streams)
         results[agent.p.name] = agent.monthly_returns(r_beta, alpha, financing)
 
+    total = compute_total_returns(results)
+    if total is not None:
+        results["Total"] = total
     return results
+
+
+def compute_total_returns(
+    returns_map: dict[str, NDArray[Any]],
+    *,
+    exclude: Iterable[str] = ("Base", "Total"),
+) -> NDArray[Any] | None:
+    """Return Total portfolio returns as the sum of weighted sleeve contributions."""
+    total = None
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        if total is None:
+            total = np.zeros_like(arr)
+        total = total + arr
+    return total
