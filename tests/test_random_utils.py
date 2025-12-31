@@ -39,3 +39,12 @@ def test_spawn_agent_rngs_error():
         pass
     else:
         raise AssertionError("Expected ValueError for empty list")
+
+
+def test_spawn_agent_rngs_duplicate_names_error():
+    try:
+        spawn_agent_rngs(0, ["A", "A"])
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for duplicate names")
