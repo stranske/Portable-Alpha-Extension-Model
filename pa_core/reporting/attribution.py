@@ -102,9 +102,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     df = pd.DataFrame(rows).reset_index(drop=True)
     if not df.empty:
-        total_components = (
-            df[df["Agent"] != "Base"].groupby("Sub", as_index=False)["Return"].sum()
-        )
+        total_components = df[df["Agent"] != "Base"].groupby("Sub", as_index=False)["Return"].sum()
         if not total_components.empty:
             total_components["Agent"] = "Total"
             df = pd.concat(
@@ -249,9 +247,7 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
         )
         alpha_sigma_total = math.sqrt(max(var_alpha, 0.0))
         cov_idx_alpha = idx_sigma_m * (
-            a_H * float(cfg.rho_idx_H)
-            + a_E * float(cfg.rho_idx_E)
-            + a_M * float(cfg.rho_idx_M)
+            a_H * float(cfg.rho_idx_H) + a_E * float(cfg.rho_idx_E) + a_M * float(cfg.rho_idx_M)
         )
         if alpha_sigma_total > 0 and idx_sigma_m > 0:
             rho_idx_alpha_total = cov_idx_alpha / (idx_sigma_m * alpha_sigma_total)
