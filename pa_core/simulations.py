@@ -16,6 +16,7 @@ from .agents import (
     InternalPAAgent,
 )
 from .backend import xp as np
+from .portfolio import compute_total_contribution_returns
 from .sim import (
     draw_financing_series,
     draw_joint_returns,
@@ -108,12 +109,5 @@ def compute_total_returns(
     *,
     exclude: Iterable[str] = ("Base", "Total"),
 ) -> NDArray[Any] | None:
-    """Return Total portfolio returns as the sum of weighted sleeve contributions."""
-    total = None
-    for name, arr in returns_map.items():
-        if name in exclude:
-            continue
-        if total is None:
-            total = np.zeros_like(arr)
-        total = total + arr
-    return total
+    """Return Total portfolio returns as the sum of contribution sleeves."""
+    return compute_total_contribution_returns(returns_map, exclude=exclude)
