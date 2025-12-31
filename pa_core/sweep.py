@@ -21,6 +21,7 @@ from .agents.registry import build_from_config
 from .config import ModelConfig, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
+from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
@@ -222,21 +223,7 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
-        shock_params = {
-            "return_distribution": cfg.return_distribution,
-            "return_t_df": cfg.return_t_df,
-            "return_copula": cfg.return_copula,
-            "return_distribution_idx": cfg.return_distribution_idx,
-            "return_distribution_H": cfg.return_distribution_H,
-            "return_distribution_E": cfg.return_distribution_E,
-            "return_distribution_M": cfg.return_distribution_M,
-            "rho_idx_H": cfg.rho_idx_H,
-            "rho_idx_E": cfg.rho_idx_E,
-            "rho_idx_M": cfg.rho_idx_M,
-            "rho_H_E": cfg.rho_H_E,
-            "rho_H_M": cfg.rho_H_M,
-            "rho_E_M": cfg.rho_E_M,
-        }
+        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
@@ -248,20 +235,7 @@ def run_parameter_sweep(
 
     financing_series = None
     if reuse_financing_series:
-        financing_params = {
-            "internal_financing_mean_month": cfg.internal_financing_mean_month,
-            "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
-            "internal_spike_prob": cfg.internal_spike_prob,
-            "internal_spike_factor": cfg.internal_spike_factor,
-            "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
-            "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
-            "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
-            "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
-            "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
-            "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
-            "act_ext_spike_prob": cfg.act_ext_spike_prob,
-            "act_ext_spike_factor": cfg.act_ext_spike_factor,
-        }
+        financing_params = build_financing_params(cfg)
         fin_rngs_base: Dict[str, np.random.Generator] = {}
         for name in fin_rngs.keys():
             tmp_rng = spawn_rngs(None, 1)[0]
@@ -301,41 +275,7 @@ def run_parameter_sweep(
             covariance_shrinkage=mod_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        params = {
-            "mu_idx_month": mu_idx / 12,
-            "default_mu_H": mod_cfg.mu_H / 12,
-            "default_mu_E": mod_cfg.mu_E / 12,
-            "default_mu_M": mod_cfg.mu_M / 12,
-            "idx_sigma_month": idx_sigma / 12,
-            "default_sigma_H": mod_cfg.sigma_H / 12,
-            "default_sigma_E": mod_cfg.sigma_E / 12,
-            "default_sigma_M": mod_cfg.sigma_M / 12,
-            "rho_idx_H": mod_cfg.rho_idx_H,
-            "rho_idx_E": mod_cfg.rho_idx_E,
-            "rho_idx_M": mod_cfg.rho_idx_M,
-            "rho_H_E": mod_cfg.rho_H_E,
-            "rho_H_M": mod_cfg.rho_H_M,
-            "rho_E_M": mod_cfg.rho_E_M,
-            "return_distribution": mod_cfg.return_distribution,
-            "return_t_df": mod_cfg.return_t_df,
-            "return_copula": mod_cfg.return_copula,
-            "return_distribution_idx": mod_cfg.return_distribution_idx,
-            "return_distribution_H": mod_cfg.return_distribution_H,
-            "return_distribution_E": mod_cfg.return_distribution_E,
-            "return_distribution_M": mod_cfg.return_distribution_M,
-            "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
-            "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
-            "internal_spike_prob": mod_cfg.internal_spike_prob,
-            "internal_spike_factor": mod_cfg.internal_spike_factor,
-            "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
-            "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
-            "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
-            "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
-            "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
-            "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
-            "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
-            "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
-        }
+        params = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,

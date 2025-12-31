@@ -557,6 +557,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     )
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
+    from .sim.params import build_simulation_params
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
@@ -834,11 +835,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
     ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
-        mu_H = run_cfg.mu_H
         sigma_H = run_cfg.sigma_H
-        mu_E = run_cfg.mu_E
         sigma_E = run_cfg.sigma_E
-        mu_M = run_cfg.mu_M
         sigma_M = run_cfg.sigma_M
 
         # Build covariance (validates shapes)
@@ -857,41 +855,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             n_samples=n_samples,
         )
 
-        params = {
-            "mu_idx_month": mu_idx / 12,
-            "default_mu_H": mu_H / 12,
-            "default_mu_E": mu_E / 12,
-            "default_mu_M": mu_M / 12,
-            "idx_sigma_month": idx_sigma / 12,
-            "default_sigma_H": sigma_H / 12,
-            "default_sigma_E": sigma_E / 12,
-            "default_sigma_M": sigma_M / 12,
-            "rho_idx_H": run_cfg.rho_idx_H,
-            "rho_idx_E": run_cfg.rho_idx_E,
-            "rho_idx_M": run_cfg.rho_idx_M,
-            "rho_H_E": run_cfg.rho_H_E,
-            "rho_H_M": run_cfg.rho_H_M,
-            "rho_E_M": run_cfg.rho_E_M,
-            "return_distribution": run_cfg.return_distribution,
-            "return_t_df": run_cfg.return_t_df,
-            "return_copula": run_cfg.return_copula,
-            "return_distribution_idx": run_cfg.return_distribution_idx,
-            "return_distribution_H": run_cfg.return_distribution_H,
-            "return_distribution_E": run_cfg.return_distribution_E,
-            "return_distribution_M": run_cfg.return_distribution_M,
-            "internal_financing_mean_month": run_cfg.internal_financing_mean_month,
-            "internal_financing_sigma_month": run_cfg.internal_financing_sigma_month,
-            "internal_spike_prob": run_cfg.internal_spike_prob,
-            "internal_spike_factor": run_cfg.internal_spike_factor,
-            "ext_pa_financing_mean_month": run_cfg.ext_pa_financing_mean_month,
-            "ext_pa_financing_sigma_month": run_cfg.ext_pa_financing_sigma_month,
-            "ext_pa_spike_prob": run_cfg.ext_pa_spike_prob,
-            "ext_pa_spike_factor": run_cfg.ext_pa_spike_factor,
-            "act_ext_financing_mean_month": run_cfg.act_ext_financing_mean_month,
-            "act_ext_financing_sigma_month": run_cfg.act_ext_financing_sigma_month,
-            "act_ext_spike_prob": run_cfg.act_ext_spike_prob,
-            "act_ext_spike_factor": run_cfg.act_ext_spike_factor,
-        }
+        params = build_simulation_params(run_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
@@ -1017,41 +981,9 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     n_samples=n_samples,
                 )
 
-                params_local = {
-                    "mu_idx_month": mu_idx / 12,
-                    "default_mu_H": mod_cfg.mu_H / 12,
-                    "default_mu_E": mod_cfg.mu_E / 12,
-                    "default_mu_M": mod_cfg.mu_M / 12,
-                    "idx_sigma_month": idx_sigma / 12,
-                    "default_sigma_H": mod_cfg.sigma_H / 12,
-                    "default_sigma_E": mod_cfg.sigma_E / 12,
-                    "default_sigma_M": mod_cfg.sigma_M / 12,
-                    "rho_idx_H": mod_cfg.rho_idx_H,
-                    "rho_idx_E": mod_cfg.rho_idx_E,
-                    "rho_idx_M": mod_cfg.rho_idx_M,
-                    "rho_H_E": mod_cfg.rho_H_E,
-                    "rho_H_M": mod_cfg.rho_H_M,
-                    "rho_E_M": mod_cfg.rho_E_M,
-                    "return_distribution": mod_cfg.return_distribution,
-                    "return_t_df": mod_cfg.return_t_df,
-                    "return_copula": mod_cfg.return_copula,
-                    "return_distribution_idx": mod_cfg.return_distribution_idx,
-                    "return_distribution_H": mod_cfg.return_distribution_H,
-                    "return_distribution_E": mod_cfg.return_distribution_E,
-                    "return_distribution_M": mod_cfg.return_distribution_M,
-                    "internal_financing_mean_month": mod_cfg.internal_financing_mean_month,
-                    "internal_financing_sigma_month": mod_cfg.internal_financing_sigma_month,
-                    "internal_spike_prob": mod_cfg.internal_spike_prob,
-                    "internal_spike_factor": mod_cfg.internal_spike_factor,
-                    "ext_pa_financing_mean_month": mod_cfg.ext_pa_financing_mean_month,
-                    "ext_pa_financing_sigma_month": mod_cfg.ext_pa_financing_sigma_month,
-                    "ext_pa_spike_prob": mod_cfg.ext_pa_spike_prob,
-                    "ext_pa_spike_factor": mod_cfg.ext_pa_spike_factor,
-                    "act_ext_financing_mean_month": mod_cfg.act_ext_financing_mean_month,
-                    "act_ext_financing_sigma_month": mod_cfg.act_ext_financing_sigma_month,
-                    "act_ext_spike_prob": mod_cfg.act_ext_spike_prob,
-                    "act_ext_spike_factor": mod_cfg.act_ext_spike_factor,
-                }
+                params_local = build_simulation_params(
+                    mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma
+                )
 
                 r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,
