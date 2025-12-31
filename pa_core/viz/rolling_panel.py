@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from typing import cast
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from numpy.typing import NDArray
-from typing import cast
 from plotly.subplots import make_subplots
 
 from . import theme
