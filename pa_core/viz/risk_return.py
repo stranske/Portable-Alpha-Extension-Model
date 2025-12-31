@@ -62,8 +62,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
             marker=dict(size=12, color=color),
             text=df["Agent"],
             hovertemplate=(
-                f"%{{text}}<br>{x_hover}=%{{x:.2%}}<br>{y_hover}=%{{y:.2%}}"
-                "<extra></extra>"
+                f"%{{text}}<br>{x_hover}=%{{x:.2%}}<br>{y_hover}=%{{y:.2%}}" "<extra></extra>"
             ),
         )
     )
