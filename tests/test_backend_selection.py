@@ -74,6 +74,7 @@ def test_backend_cli_numpy(tmp_path):
     )
     assert out_file.exists()
 
+
 def test_backend_config_rejects_unknown(tmp_path):
     cfg_path, idx_csv = _write_cfg(tmp_path, backend="cupy")
     with pytest.raises(ValueError, match="backend must be one of"):
