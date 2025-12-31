@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple, TypeAlias
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
-from numpy.typing import NDArray
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
@@ -14,9 +13,8 @@ from .sim.metrics import summary_table
 from .sim.params import build_simulation_params
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
+from .types import ArrayLike
 from .validators import select_vol_regime_sigma
-
-Array: TypeAlias = NDArray[np.float64]
 
 
 class SimulatorOrchestrator:
@@ -26,7 +24,7 @@ class SimulatorOrchestrator:
         self.cfg = cfg
         self.idx_series = idx_series
 
-    def run(self, seed: int | None = None) -> Tuple[Dict[str, Array], pd.DataFrame]:
+    def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
         """Execute simulations and return per-agent returns and summary table."""
 
         mu_idx = float(self.idx_series.mean())

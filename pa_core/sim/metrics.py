@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from importlib.metadata import entry_points
-from typing import Callable, Dict
+from typing import Callable, Dict, Mapping
 
 import pandas as pd
 
@@ -183,7 +183,7 @@ def time_under_water(returns: ArrayLike) -> float:
 
 
 def summary_table(
-    returns_map: dict[str, ArrayLike],
+    returns_map: Mapping[str, ArrayLike],
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,
