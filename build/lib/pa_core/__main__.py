@@ -66,7 +66,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     # Import backend-dependent modules after setting the backend.
     from .agents.registry import build_from_config
-    from .config import CANONICAL_RETURN_UNIT
     from .data import load_index_returns
     from .random import spawn_agent_rngs, spawn_rngs
     from .reporting import export_to_excel
@@ -75,7 +74,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
     from .simulations import simulate_agents
-    from .units import normalize_index_series
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
@@ -85,22 +83,18 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
-    idx_series_monthly = normalize_index_series(
-        idx_series,
-        getattr(cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
-    )
-    mu_idx = float(idx_series_monthly.mean())
+    mu_idx = float(idx_series.mean())
     vol_regime_value = getattr(cfg, "vol_regime", "single")
     if vol_regime_value not in ("single", "two_state"):
         raise ValueError(f"vol_regime must be 'single' or 'two_state', got {vol_regime_value!r}")
     vol_regime = cast(Literal["single", "two_state"], vol_regime_value)
     vol_regime_window = getattr(cfg, "vol_regime_window", 12)
     idx_sigma, _, _ = select_vol_regime_sigma(
-        idx_series_monthly,
+        idx_series,
         regime=vol_regime,
         window=vol_regime_window,
     )
-    n_samples = int(len(idx_series_monthly))
+    n_samples = int(len(idx_series))
 
     sigma_H = cfg.sigma_H
     sigma_E = cfg.sigma_E

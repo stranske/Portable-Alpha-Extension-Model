@@ -5,14 +5,13 @@ from typing import Dict, List
 
 import pandas as pd
 
-from ..config import CANONICAL_RETURN_UNIT, ModelConfig, normalize_share
-from ..units import normalize_index_series
+from ..config import ModelConfig, normalize_share
 
 __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
 
 
 def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
-    """Compute per-agent monthly return attribution by component.
+    """Compute per-agent annual return attribution by component.
 
     Components:
     - Beta: exposure to index mean return
@@ -23,7 +22,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     -----
     Uses the same monthly means as the simulator:
     - Index mean estimated from the provided ``idx_series`` (sample mean)
-    - Sleeve alpha means use monthly parameters stored in ``cfg``
+    - Sleeve alpha means derived from ``cfg`` annual parameters divided by 12
     - Financing means taken directly from monthly financing parameters in ``cfg``
     """
 
@@ -38,14 +37,10 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
     # Monthly means
-    idx_series = normalize_index_series(
-        idx_series,
-        getattr(cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
-    )
     mu_idx_m = float(pd.Series(idx_series).mean())
-    mu_H_m = float(cfg.mu_H)
-    mu_E_m = float(cfg.mu_E)
-    mu_M_m = float(cfg.mu_M)
+    mu_H_m = float(cfg.mu_H) / 12.0
+    mu_E_m = float(cfg.mu_E) / 12.0
+    mu_M_m = float(cfg.mu_M) / 12.0
 
     fin_int_m = float(cfg.internal_financing_mean_month)
     fin_ext_m = float(cfg.ext_pa_financing_mean_month)
@@ -54,12 +49,15 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
     active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0
 
+    def annual(x: float) -> float:
+        return 12.0 * x
+
     rows: List[Dict[str, object]] = []
 
     # Base (benchmark sleeve)
-    base_beta = cfg.w_beta_H * mu_idx_m
-    base_alpha = cfg.w_alpha_H * mu_H_m
-    base_fin = -cfg.w_beta_H * fin_int_m
+    base_beta = annual(cfg.w_beta_H * mu_idx_m)
+    base_alpha = annual(cfg.w_alpha_H * mu_H_m)
+    base_fin = annual(-cfg.w_beta_H * fin_int_m)
     rows += [
         {"Agent": "Base", "Sub": "Beta", "Return": base_beta},
         {"Agent": "Base", "Sub": "Alpha", "Return": base_alpha},
@@ -68,9 +66,9 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # ExternalPA
     if w_ext > 0:
-        ext_beta = w_ext * mu_idx_m
-        ext_alpha = w_ext * theta_extpa * mu_M_m
-        ext_fin = -w_ext * fin_ext_m
+        ext_beta = annual(w_ext * mu_idx_m)
+        ext_alpha = annual(w_ext * theta_extpa * mu_M_m)
+        ext_fin = annual(-w_ext * fin_ext_m)
         rows += [
             {"Agent": "ExternalPA", "Sub": "Beta", "Return": ext_beta},
             {"Agent": "ExternalPA", "Sub": "Alpha", "Return": ext_alpha},
@@ -79,9 +77,9 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # ActiveExt
     if w_act > 0:
-        act_beta = w_act * mu_idx_m
-        act_alpha = w_act * active_share * mu_E_m
-        act_fin = -w_act * fin_act_m
+        act_beta = annual(w_act * mu_idx_m)
+        act_alpha = annual(w_act * active_share * mu_E_m)
+        act_fin = annual(-w_act * fin_act_m)
         rows += [
             {"Agent": "ActiveExt", "Sub": "Beta", "Return": act_beta},
             {"Agent": "ActiveExt", "Sub": "Alpha", "Return": act_alpha},
@@ -90,13 +88,13 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # InternalPA (pure alpha)
     if w_int > 0:
-        int_alpha = w_int * mu_H_m
+        int_alpha = annual(w_int * mu_H_m)
         rows.append({"Agent": "InternalPA", "Sub": "Alpha", "Return": int_alpha})
 
     # InternalBeta (leftover beta)
     if w_leftover > 0:
-        ib_beta = w_leftover * mu_idx_m
-        ib_fin = -w_leftover * fin_int_m
+        ib_beta = annual(w_leftover * mu_idx_m)
+        ib_fin = annual(-w_leftover * fin_int_m)
         rows += [
             {"Agent": "InternalBeta", "Sub": "Beta", "Return": ib_beta},
             {"Agent": "InternalBeta", "Sub": "Financing", "Return": ib_fin},
@@ -125,7 +123,7 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     - TEApprox: sqrt(12) * stdev of (agent - index)
 
     Notes: This is a heuristic decomposition for reporting, aligned with
-    the simulator's monthly input convention.
+    the simulator's convention of dividing annual sigma by 12 for monthly.
     """
 
     total = float(cfg.total_fund_capital)
@@ -138,15 +136,11 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
-    # Monthly sigmas (aligned with simulator input conventions)
-    idx_series = normalize_index_series(
-        idx_series,
-        getattr(cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
-    )
+    # Monthly sigmas (follow existing convention used in simulator params)
     idx_sigma_m = float(pd.Series(idx_series).std(ddof=1))
-    sigma_H_m = float(cfg.sigma_H)
-    sigma_E_m = float(cfg.sigma_E)
-    sigma_M_m = float(cfg.sigma_M)
+    sigma_H_m = float(cfg.sigma_H) / 12.0
+    sigma_E_m = float(cfg.sigma_E) / 12.0
+    sigma_M_m = float(cfg.sigma_M) / 12.0
 
     theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
     active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0

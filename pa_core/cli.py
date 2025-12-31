@@ -89,15 +89,6 @@ class RunTimer:
         }
 
 
-def _cov_to_corr_and_sigma(cov: "np.ndarray") -> tuple["np.ndarray", "np.ndarray"]:
-    import numpy as np
-
-    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-    denom = np.outer(sigma, sigma)
-    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-    return sigma, corr
-
-
 def create_enhanced_summary(
     returns_map: dict[str, "np.ndarray"],
     *,
@@ -529,7 +520,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
-    from .config import CANONICAL_RETURN_UNIT, load_config
+    from .config import load_config
 
     cfg = load_config(args.config)
     return_overrides: dict[str, float | str] = {}
@@ -570,7 +561,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
-    from .units import normalize_index_series
     from .validators import select_vol_regime_sigma
     from .viz.utils import safe_to_numpy
 
@@ -636,13 +626,9 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
-    idx_series_monthly = normalize_index_series(
-        idx_series,
-        getattr(cfg, "input_return_unit", CANONICAL_RETURN_UNIT),
-    )
-    n_samples = int(len(idx_series_monthly))
+    n_samples = int(len(idx_series))
     idx_sigma, _, _ = select_vol_regime_sigma(
-        idx_series_monthly,
+        idx_series,
         regime=cfg.vol_regime,
         window=cfg.vol_regime_window,
     )
@@ -844,7 +830,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         return
 
     # Normal single-run mode below
-    mu_idx = float(idx_series_monthly.mean())
+    mu_idx = float(idx_series.mean())
 
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
@@ -854,7 +840,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         sigma_M = run_cfg.sigma_M
 
         # Build covariance (validates shapes)
-        cov = deps.build_cov_matrix(
+        _ = deps.build_cov_matrix(
             run_cfg.rho_idx_H,
             run_cfg.rho_idx_E,
             run_cfg.rho_idx_M,
@@ -869,31 +855,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             n_samples=n_samples,
         )
 
-        return_overrides = None
-        idx_sigma_use = idx_sigma
-        if run_cfg.covariance_shrinkage != "none":
-            sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-            idx_sigma_use = float(sigma_vec[0])
-            sigma_h_cov = float(sigma_vec[1])
-            sigma_e_cov = float(sigma_vec[2])
-            sigma_m_cov = float(sigma_vec[3])
-            return_overrides = {
-                "default_sigma_H": sigma_h_cov,
-                "default_sigma_E": sigma_e_cov,
-                "default_sigma_M": sigma_m_cov,
-                "rho_idx_H": float(corr_mat[0, 1]),
-                "rho_idx_E": float(corr_mat[0, 2]),
-                "rho_idx_M": float(corr_mat[0, 3]),
-                "rho_H_E": float(corr_mat[1, 2]),
-                "rho_H_M": float(corr_mat[1, 3]),
-                "rho_E_M": float(corr_mat[2, 3]),
-            }
-        params = build_simulation_params(
-            run_cfg,
-            mu_idx=mu_idx,
-            idx_sigma=idx_sigma_use,
-            return_overrides=return_overrides,
-        )
+        params = build_simulation_params(run_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
@@ -1004,7 +966,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 mod_cfg = cfg.model_copy(update=p)
 
                 # Rebuild covariance matrix with new parameters
-                cov = deps.build_cov_matrix(
+                deps.build_cov_matrix(
                     mod_cfg.rho_idx_H,
                     mod_cfg.rho_idx_E,
                     mod_cfg.rho_idx_M,
@@ -1019,31 +981,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     n_samples=n_samples,
                 )
 
-                return_overrides = None
-                idx_sigma_use = idx_sigma
-                if mod_cfg.covariance_shrinkage != "none":
-                    sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-                    idx_sigma_use = float(sigma_vec[0])
-                    sigma_h_cov = float(sigma_vec[1])
-                    sigma_e_cov = float(sigma_vec[2])
-                    sigma_m_cov = float(sigma_vec[3])
-                    return_overrides = {
-                        "default_sigma_H": sigma_h_cov,
-                        "default_sigma_E": sigma_e_cov,
-                        "default_sigma_M": sigma_m_cov,
-                        "rho_idx_H": float(corr_mat[0, 1]),
-                        "rho_idx_E": float(corr_mat[0, 2]),
-                        "rho_idx_M": float(corr_mat[0, 3]),
-                        "rho_H_E": float(corr_mat[1, 2]),
-                        "rho_H_M": float(corr_mat[1, 3]),
-                        "rho_E_M": float(corr_mat[2, 3]),
-                    }
-                params_local = build_simulation_params(
-                    mod_cfg,
-                    mu_idx=mu_idx,
-                    idx_sigma=idx_sigma_use,
-                    return_overrides=return_overrides,
-                )
+                params_local = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
 
                 r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,

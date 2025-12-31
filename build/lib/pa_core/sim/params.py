@@ -8,14 +8,14 @@ from ..config import ModelConfig
 def build_return_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) -> Dict[str, Any]:
     """Return draw parameters shared across CLI, sweep, and orchestrator."""
     return {
-        "mu_idx_month": mu_idx,
-        "default_mu_H": cfg.mu_H,
-        "default_mu_E": cfg.mu_E,
-        "default_mu_M": cfg.mu_M,
-        "idx_sigma_month": idx_sigma,
-        "default_sigma_H": cfg.sigma_H,
-        "default_sigma_E": cfg.sigma_E,
-        "default_sigma_M": cfg.sigma_M,
+        "mu_idx_month": mu_idx / 12,
+        "default_mu_H": cfg.mu_H / 12,
+        "default_mu_E": cfg.mu_E / 12,
+        "default_mu_M": cfg.mu_M / 12,
+        "idx_sigma_month": idx_sigma / 12,
+        "default_sigma_H": cfg.sigma_H / 12,
+        "default_sigma_E": cfg.sigma_E / 12,
+        "default_sigma_M": cfg.sigma_M / 12,
         "rho_idx_H": cfg.rho_idx_H,
         "rho_idx_E": cfg.rho_idx_E,
         "rho_idx_M": cfg.rho_idx_M,

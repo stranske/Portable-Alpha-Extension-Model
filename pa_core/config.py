@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import math
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
-import numpy as np
 import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
@@ -16,50 +14,7 @@ class ConfigError(ValueError):
     """Invalid configuration."""
 
 
-MONTHS_PER_YEAR = 12
-CANONICAL_RETURN_UNIT = "monthly"
-CANONICAL_VOL_UNIT = "monthly"
-CANONICAL_COV_UNIT = "monthly"
-DEFAULT_MEAN_CONVERSION: Literal["simple", "geometric"] = "simple"
-
-__all__ = [
-    "ModelConfig",
-    "load_config",
-    "ConfigError",
-    "get_field_mappings",
-    "normalize_share",
-    "MONTHS_PER_YEAR",
-    "CANONICAL_RETURN_UNIT",
-    "CANONICAL_VOL_UNIT",
-    "CANONICAL_COV_UNIT",
-    "DEFAULT_MEAN_CONVERSION",
-    "annual_mean_to_monthly",
-    "annual_vol_to_monthly",
-    "annual_cov_to_monthly",
-]
-
-
-def annual_mean_to_monthly(
-    mean_annual: float, *, method: Literal["simple", "geometric"] = DEFAULT_MEAN_CONVERSION
-) -> float:
-    """Convert annual mean return to monthly mean using chosen convention."""
-    if method == "simple":
-        return float(mean_annual) / MONTHS_PER_YEAR
-    if method == "geometric":
-        return float((1.0 + float(mean_annual)) ** (1.0 / MONTHS_PER_YEAR) - 1.0)
-    raise ValueError("method must be 'simple' or 'geometric'")
-
-
-def annual_vol_to_monthly(vol_annual: float) -> float:
-    """Convert annual volatility to monthly volatility."""
-    return float(vol_annual) / math.sqrt(MONTHS_PER_YEAR)
-
-
-def annual_cov_to_monthly(cov_annual: Any) -> Any:
-    """Convert annual covariance (or matrix) to monthly by scaling 1/12."""
-    if isinstance(cov_annual, (int, float)):
-        return float(cov_annual) / MONTHS_PER_YEAR
-    return np.asarray(cov_annual) / MONTHS_PER_YEAR
+__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -139,13 +94,6 @@ class ModelConfig(BaseModel):
         validation_alias=AliasChoices("Active share (%)", "Active share"),
         description="Active share fraction (0..1)",
     )
-
-    return_unit: Literal["annual", "monthly"] = Field(
-        default="annual",
-        alias="Return unit",
-        description="Unit for mu/sigma inputs (annual or monthly)",
-    )
-    input_return_unit: Literal["annual", "monthly"] = Field(default="annual", exclude=True)
 
     mu_H: float = Field(default=0.04, alias="In-House annual return (%)")
     sigma_H: float = Field(default=0.01, alias="In-House annual vol (%)")
@@ -360,46 +308,6 @@ class ModelConfig(BaseModel):
             if not SHARE_MIN <= val <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
         return self
-
-    @model_validator(mode="before")
-    @classmethod
-    def convert_return_units(cls, data: Any) -> Any:
-        if not isinstance(data, dict):
-            return data
-        unit = data.get("return_unit") or data.get("Return unit") or "annual"
-        data = dict(data)
-        data["input_return_unit"] = unit
-        if unit == CANONICAL_RETURN_UNIT:
-            return data
-        if unit != "annual":
-            raise ValueError("return_unit must be 'annual' or 'monthly'")
-
-        def _get_field_value(field_name: str) -> float:
-            if field_name in data:
-                return float(data[field_name])
-            alias = cls.model_fields[field_name].alias
-            if alias and alias in data:
-                return float(data[alias])
-            return float(cls.model_fields[field_name].default)
-
-        data["mu_H"] = annual_mean_to_monthly(
-            _get_field_value("mu_H"), method=DEFAULT_MEAN_CONVERSION
-        )
-        data["mu_E"] = annual_mean_to_monthly(
-            _get_field_value("mu_E"), method=DEFAULT_MEAN_CONVERSION
-        )
-        data["mu_M"] = annual_mean_to_monthly(
-            _get_field_value("mu_M"), method=DEFAULT_MEAN_CONVERSION
-        )
-        data["sigma_H"] = annual_vol_to_monthly(_get_field_value("sigma_H"))
-        data["sigma_E"] = annual_vol_to_monthly(_get_field_value("sigma_E"))
-        data["sigma_M"] = annual_vol_to_monthly(_get_field_value("sigma_M"))
-        data["return_unit"] = CANONICAL_RETURN_UNIT
-        for field_name in ("mu_H", "mu_E", "mu_M", "sigma_H", "sigma_E", "sigma_M"):
-            alias = cls.model_fields[field_name].alias
-            if alias and alias in data:
-                data.pop(alias, None)
-        return data
 
     @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":

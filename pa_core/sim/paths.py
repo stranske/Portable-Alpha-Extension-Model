@@ -184,8 +184,8 @@ def prepare_mc_universe(
     assert rng is not None
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
-    mean = np.array([mu_idx, mu_H, mu_E, mu_M])
-    cov = cov_mat
+    mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
+    cov = cov_mat / 12.0
     if all(dist == "normal" for dist in distributions):
         sims = _safe_multivariate_normal(rng, mean, cov, (N_SIMULATIONS, N_MONTHS))
     else:

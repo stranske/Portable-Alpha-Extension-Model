@@ -234,40 +234,35 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
-        if cfg.covariance_shrinkage != "none":
-            base_cov = build_cov_matrix(
-                cfg.rho_idx_H,
-                cfg.rho_idx_E,
-                cfg.rho_idx_M,
-                cfg.rho_H_E,
-                cfg.rho_H_M,
-                cfg.rho_E_M,
-                idx_sigma,
-                cfg.sigma_H,
-                cfg.sigma_E,
-                cfg.sigma_M,
-                covariance_shrinkage=cfg.covariance_shrinkage,
-                n_samples=n_samples,
-            )
-            base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
-            shock_params = build_return_params(
-                cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]) / 12
-            )
-            shock_params.update(
-                {
-                    "default_sigma_H": float(base_sigma[1]) / 12,
-                    "default_sigma_E": float(base_sigma[2]) / 12,
-                    "default_sigma_M": float(base_sigma[3]) / 12,
-                    "rho_idx_H": float(base_corr[0, 1]),
-                    "rho_idx_E": float(base_corr[0, 2]),
-                    "rho_idx_M": float(base_corr[0, 3]),
-                    "rho_H_E": float(base_corr[1, 2]),
-                    "rho_H_M": float(base_corr[1, 3]),
-                    "rho_E_M": float(base_corr[2, 3]),
-                }
-            )
-        else:
-            shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        base_cov = build_cov_matrix(
+            cfg.rho_idx_H,
+            cfg.rho_idx_E,
+            cfg.rho_idx_M,
+            cfg.rho_H_E,
+            cfg.rho_H_M,
+            cfg.rho_E_M,
+            idx_sigma,
+            cfg.sigma_H,
+            cfg.sigma_E,
+            cfg.sigma_M,
+            covariance_shrinkage=cfg.covariance_shrinkage,
+            n_samples=n_samples,
+        )
+        base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
+        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
+        shock_params.update(
+            {
+                "default_sigma_H": float(base_sigma[1]) / 12,
+                "default_sigma_E": float(base_sigma[2]) / 12,
+                "default_sigma_M": float(base_sigma[3]) / 12,
+                "rho_idx_H": float(base_corr[0, 1]),
+                "rho_idx_E": float(base_corr[0, 2]),
+                "rho_idx_M": float(base_corr[0, 3]),
+                "rho_H_E": float(base_corr[1, 2]),
+                "rho_H_M": float(base_corr[1, 3]),
+                "rho_E_M": float(base_corr[2, 3]),
+            }
+        )
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
@@ -319,15 +314,16 @@ def run_parameter_sweep(
             covariance_shrinkage=mod_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        return_overrides = None
-        idx_sigma_use = idx_sigma
-        if mod_cfg.covariance_shrinkage != "none":
-            sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-            idx_sigma_use = float(sigma_vec[0]) / 12
-            sigma_h_cov = float(sigma_vec[1])
-            sigma_e_cov = float(sigma_vec[2])
-            sigma_m_cov = float(sigma_vec[3])
-            return_overrides = {
+        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+        idx_sigma_cov = float(sigma_vec[0])
+        sigma_h_cov = float(sigma_vec[1])
+        sigma_e_cov = float(sigma_vec[2])
+        sigma_m_cov = float(sigma_vec[3])
+        params = build_simulation_params(
+            mod_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma_cov,
+            return_overrides={
                 "default_sigma_H": sigma_h_cov / 12,
                 "default_sigma_E": sigma_e_cov / 12,
                 "default_sigma_M": sigma_m_cov / 12,
@@ -337,12 +333,7 @@ def run_parameter_sweep(
                 "rho_H_E": float(corr_mat[1, 2]),
                 "rho_H_M": float(corr_mat[1, 3]),
                 "rho_E_M": float(corr_mat[2, 3]),
-            }
-        params = build_simulation_params(
-            mod_cfg,
-            mu_idx=mu_idx,
-            idx_sigma=idx_sigma_use,
-            return_overrides=return_overrides,
+            },
         )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
