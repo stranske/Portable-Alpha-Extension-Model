@@ -1233,6 +1233,13 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                         summary.to_excel(writer, sheet_name="StressedSummary", index=False)
                     if stress_delta_df is not None and not stress_delta_df.empty:
                         stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
+                try:
+                    import openpyxl
+
+                    wb = openpyxl.load_workbook(out_path)
+                    wb.save(out_path)
+                except (OSError, PermissionError, ValueError) as e:
+                    logger.warning(f"Failed to finalize stress workbook: {e}")
             except (OSError, PermissionError, ValueError) as e:
                 logger.warning(f"Failed to append stress sheets: {e}")
         else:
