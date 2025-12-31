@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
