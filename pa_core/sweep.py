@@ -237,7 +237,7 @@ def run_parameter_sweep(
     financing_series = None
     if reuse_financing_series:
         financing_params = build_financing_params(cfg)
-        fin_rngs_base: Dict[str, np.random.Generator] = {}
+        fin_rngs_base: Dict[str, GeneratorLike] = {}
         for name in fin_rngs.keys():
             tmp_rng = spawn_rngs(None, 1)[0]
             tmp_rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])

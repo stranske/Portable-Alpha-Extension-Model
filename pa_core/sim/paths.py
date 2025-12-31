@@ -64,12 +64,15 @@ def _safe_multivariate_normal(
     size: tuple[int, int],
 ) -> npt.NDArray[Any]:
     try:
-        return rng.multivariate_normal(mean=mean, cov=cov, size=size)
+        return cast(npt.NDArray[Any], rng.multivariate_normal(mean=mean, cov=cov, size=size))
     except np.linalg.LinAlgError:
-        return rng.multivariate_normal(
-            mean=mean,
-            cov=cov + np.eye(len(mean)) * NUMERICAL_STABILITY_EPSILON,
-            size=size,
+        return cast(
+            npt.NDArray[Any],
+            rng.multivariate_normal(
+                mean=mean,
+                cov=cov + np.eye(len(mean)) * NUMERICAL_STABILITY_EPSILON,
+                size=size,
+            ),
         )
 
 
@@ -149,8 +152,10 @@ def simulate_financing(
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
     jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
-    out = np.clip(base + jumps, 0.0, None)
-    return out[0] if n_scenarios == 1 else out  # type: ignore[no-any-return]
+    out = cast(npt.NDArray[Any], np.clip(base + jumps, 0.0, None))
+    if n_scenarios == 1:
+        return cast(npt.NDArray[Any], out[0])
+    return out
 
 
 def prepare_mc_universe(
