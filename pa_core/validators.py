@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import Any, Dict, IO, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
