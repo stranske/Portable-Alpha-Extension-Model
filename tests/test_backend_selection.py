@@ -74,25 +74,9 @@ def test_backend_cli_numpy(tmp_path):
     )
     assert out_file.exists()
 
-
-def test_backend_cli_cupy_missing(tmp_path):
-    cfg_path, idx_csv = _write_cfg(tmp_path)
-    with pytest.raises(ImportError, match="CuPy backend requested"):
-        main(
-            [
-                "--config",
-                str(cfg_path),
-                "--index",
-                str(idx_csv),
-                "--backend",
-                "cupy",
-            ]
-        )
-
-
-def test_backend_config_cupy_missing(tmp_path):
+def test_backend_config_rejects_unknown(tmp_path):
     cfg_path, idx_csv = _write_cfg(tmp_path, backend="cupy")
-    with pytest.raises(ImportError, match="CuPy backend requested"):
+    with pytest.raises(ValueError, match="backend must be one of"):
         main(
             [
                 "--config",

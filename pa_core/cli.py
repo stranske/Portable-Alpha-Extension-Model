@@ -258,8 +258,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     )
     parser.add_argument(
         "--backend",
-        choices=["numpy", "cupy"],
-        help="Computation backend",
+        choices=["numpy"],
+        help="Computation backend (numpy only)",
     )
     parser.add_argument(
         "--cov-shrinkage",
