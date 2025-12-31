@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import logging
@@ -167,11 +168,22 @@ def run_parameter_sweep(
     total = len(combos)
     logger.info("Starting parameter sweep", extra={"total_combinations": total})
 
+    # Common random numbers: reset RNGs before each combination so parameter
+    # changes are compared against identical random draws.
+    rng_returns_state = copy.deepcopy(rng_returns.bit_generator.state)
+    fin_rng_states = {
+        name: copy.deepcopy(rng.bit_generator.state) for name, rng in fin_rngs.items()
+    }
+
     iterator = enumerate(combos)
     if progress is None:
         iterator = enumerate(progress_bar(combos, total=total, desc="sweep"))
 
     for i, overrides in iterator:
+        rng_returns.bit_generator.state = copy.deepcopy(rng_returns_state)
+        for name, rng in fin_rngs.items():
+            rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])
+
         mod_cfg = cfg.model_copy(update=overrides)
 
         build_cov_matrix(
