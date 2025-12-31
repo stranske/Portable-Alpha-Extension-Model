@@ -64,6 +64,9 @@ def load_index_returns(path: str | Path) -> pd.Series:
 
     Validates and converts data to numeric format, handling non-numeric values
     by converting them to NaN and dropping them from the final series.
+    Column selection prefers ``Monthly_TR`` then ``Return``; otherwise the
+    second column is used when present (first column for single-column files).
+    A warning is emitted showing which column was selected.
 
     Raises
     ------
@@ -79,10 +82,28 @@ def load_index_returns(path: str | Path) -> pd.Series:
         df = pd.read_csv(p)
     except (pd.errors.EmptyDataError, OSError) as exc:
         raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
-    if df.shape[1] == 1:
-        raw = df.iloc[:, 0]
+
+    selected_column: str | None = None
+    for col in ("Monthly_TR", "Return"):
+        if col in df.columns:
+            selected_column = col
+            raw = df[col]
+            break
     else:
-        raw = df.iloc[:, 1]
+        if df.shape[1] == 0:
+            raise ValueError(f"No columns found in CSV file: {path}")
+        if df.shape[1] == 1:
+            selected_column = df.columns[0]
+            raw = df.iloc[:, 0]
+        else:
+            selected_column = df.columns[1]
+            raw = df.iloc[:, 1]
+
+    warnings.warn(
+        f"Selected index returns column: {selected_column}",
+        UserWarning,
+        stacklevel=2,
+    )
 
     # Convert to numeric, coerce errors to NaN, then wrap as Series to satisfy typing
     numeric = pd.to_numeric(raw, errors="coerce")

@@ -67,6 +67,70 @@ def test_load_index_returns_with_text_in_numeric_columns():
         os.remove(temp_path)
 
 
+def test_load_index_returns_prefers_monthly_tr_column():
+    """Test that Monthly_TR is preferred when present."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,Return,Monthly_TR\n")
+        f.write("2020-01-01,0.01,0.02\n")
+        f.write("2020-02-01,0.03,0.04\n")
+        temp_path = f.name
+
+    try:
+        with pytest.warns(UserWarning, match="Selected index returns column: Monthly_TR"):
+            series = load_index_returns(temp_path)
+        assert series.iloc[0] == pytest.approx(0.02)
+    finally:
+        os.remove(temp_path)
+
+
+def test_load_index_returns_prefers_return_column():
+    """Test that Return is selected when Monthly_TR is absent."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,Return,Other\n")
+        f.write("2020-01-01,0.01,0.99\n")
+        f.write("2020-02-01,0.03,0.88\n")
+        temp_path = f.name
+
+    try:
+        with pytest.warns(UserWarning, match="Selected index returns column: Return"):
+            series = load_index_returns(temp_path)
+        assert series.iloc[0] == pytest.approx(0.01)
+    finally:
+        os.remove(temp_path)
+
+
+def test_load_index_returns_falls_back_to_second_column():
+    """Test that the second column is used when no standard names exist."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,CustomCol\n")
+        f.write("2020-01-01,0.07\n")
+        f.write("2020-02-01,0.08\n")
+        temp_path = f.name
+
+    try:
+        with pytest.warns(UserWarning, match="Selected index returns column: CustomCol"):
+            series = load_index_returns(temp_path)
+        assert series.iloc[0] == pytest.approx(0.07)
+    finally:
+        os.remove(temp_path)
+
+
+def test_load_index_returns_with_no_numeric_columns():
+    """Test that non-numeric data in all columns raises an error."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,Label\n")
+        f.write("2020-01-01,not_a_number\n")
+        f.write("2020-02-01,still_not_a_number\n")
+        temp_path = f.name
+
+    try:
+        with pytest.warns(UserWarning, match="Selected index returns column: Label"):
+            with pytest.raises(ValueError, match="No valid numeric data found"):
+                load_index_returns(temp_path)
+    finally:
+        os.remove(temp_path)
+
+
 def test_breach_calendar_with_non_numeric_data():
     """Test that breach_calendar handles non-numeric data gracefully."""
     # Create a DataFrame with some problematic data
