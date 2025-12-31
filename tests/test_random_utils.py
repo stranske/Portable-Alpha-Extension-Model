@@ -48,3 +48,12 @@ def test_spawn_agent_rngs_duplicate_names_error():
         pass
     else:
         raise AssertionError("Expected ValueError for duplicate names")
+
+
+def test_spawn_rngs_invalid_n_error():
+    try:
+        spawn_rngs(0, 0)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for non-positive n")
