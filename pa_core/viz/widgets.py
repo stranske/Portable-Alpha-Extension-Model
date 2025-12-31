@@ -4,6 +4,8 @@ from typing import Any, Callable
 
 import pandas as pd
 
+from . import risk_return
+
 widgets: Any | None
 display: Callable[..., Any] | None
 
@@ -18,8 +20,6 @@ except (
 ):  # pragma: no cover - ipywidgets not installed
     widgets = None
     display = None
-
-from . import risk_return
 
 
 def explore(df_summary: pd.DataFrame) -> None:
