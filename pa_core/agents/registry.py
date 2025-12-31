@@ -53,38 +53,15 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
     """Instantiate agents based on ``ModelConfig`` values."""
     total_cap = cfg.total_fund_capital
 
-    params: list[AgentParams] = [AgentParams("Base", total_cap, cfg.w_beta_H, cfg.w_alpha_H, {})]
-
-    if cfg.external_pa_capital > 0:
+    params: list[AgentParams] = []
+    for agent in cfg.agents:
         params.append(
             AgentParams(
-                "ExternalPA",
-                cfg.external_pa_capital,
-                cfg.external_pa_capital / total_cap,
-                0.0,
-                {"theta_extpa": cfg.theta_extpa},
-            )
-        )
-
-    if cfg.active_ext_capital > 0:
-        params.append(
-            AgentParams(
-                "ActiveExt",
-                cfg.active_ext_capital,
-                cfg.active_ext_capital / total_cap,
-                0.0,
-                {"active_share": cfg.active_share},
-            )
-        )
-
-    if cfg.internal_pa_capital > 0:
-        params.append(
-            AgentParams(
-                "InternalPA",
-                cfg.internal_pa_capital,
-                0.0,
-                cfg.internal_pa_capital / total_cap,
-                {},
+                agent["name"],
+                agent["capital"],
+                agent["beta_share"],
+                agent["alpha_share"],
+                agent.get("extra", {}),
             )
         )
 
@@ -96,7 +73,7 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
         schedule_path=cfg.financing_schedule_path,
         term_months=cfg.financing_term_months,
     )
-    if margin_requirement > 0:
+    if margin_requirement > 0 and not any(p.name == "InternalBeta" for p in params):
         params.append(
             AgentParams(
                 "InternalBeta",
