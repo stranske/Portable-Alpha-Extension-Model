@@ -1,0 +1,21 @@
+import numpy as np
+
+from pa_core.portfolio import compute_total_contribution_returns
+
+
+def test_compute_total_contribution_returns_excludes_base_and_total():
+    r = np.ones((2, 3))
+    returns = {
+        "Base": r * 0.1,
+        "ExternalPA": r * 0.2,
+        "InternalBeta": r * 0.3,
+        "Total": r * 9.0,
+    }
+    total = compute_total_contribution_returns(returns)
+    assert total is not None
+    assert np.allclose(total, returns["ExternalPA"] + returns["InternalBeta"])
+
+
+def test_compute_total_contribution_returns_none_when_empty():
+    returns = {"Base": np.zeros((1, 1))}
+    assert compute_total_contribution_returns(returns) is None

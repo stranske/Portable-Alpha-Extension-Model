@@ -14,27 +14,27 @@ from pa_core.reporting.stress_delta import (
 def test_build_delta_table_includes_total_row():
     base = pd.DataFrame(
         {
-            "Agent": ["Base", "ExternalPA"],
-            "AnnReturn": [0.05, 0.07],
-            "BreachCount": [1, 2],
+            "Agent": ["Base", "ExternalPA", "Total"],
+            "AnnReturn": [0.05, 0.07, 0.12],
+            "BreachCount": [1, 2, 3],
         }
     )
     stressed = pd.DataFrame(
         {
-            "Agent": ["Base", "ExternalPA"],
-            "AnnReturn": [0.02, 0.06],
-            "BreachCount": [3, 5],
+            "Agent": ["Base", "ExternalPA", "Total"],
+            "AnnReturn": [0.02, 0.06, 0.08],
+            "BreachCount": [3, 5, 5],
         }
     )
 
     delta_df = build_delta_table(base, stressed)
 
     assert "Total" in delta_df["Agent"].tolist()
-    assert "Base" not in delta_df["Agent"].tolist()
+    assert "Base" in delta_df["Agent"].tolist()
     assert delta_df["Agent"].iloc[-1] == "Total"
 
     total_row = delta_df[delta_df["Agent"] == "Total"].iloc[0]
-    assert total_row["AnnReturn"] == pytest.approx(-0.03)
+    assert total_row["AnnReturn"] == pytest.approx(-0.04)
     assert total_row["BreachCount"] == pytest.approx(2)
 
 

@@ -42,13 +42,19 @@ def build_delta_table(base_summary: pd.DataFrame, stress_summary: pd.DataFrame) 
     delta_df = pd.DataFrame(deltas)
 
     if not delta_df.empty:
-        delta_df["Agent"] = delta_df["Agent"].replace({"Base": "Total"})
-        total_rows = delta_df[delta_df["Agent"] == "Total"]
-        if not total_rows.empty:
-            delta_df = pd.concat(
-                [delta_df[delta_df["Agent"] != "Total"], total_rows],
-                ignore_index=True,
-            )
+        agents = delta_df["Agent"]
+        has_total = "Total" in agents.values
+        if not has_total and "Base" in agents.values:
+            # Legacy fallback: use Base as Total only when Total is absent.
+            delta_df["Agent"] = delta_df["Agent"].replace({"Base": "Total"})
+            has_total = True
+        if has_total:
+            total_rows = delta_df[delta_df["Agent"] == "Total"]
+            if not total_rows.empty:
+                delta_df = pd.concat(
+                    [delta_df[delta_df["Agent"] != "Total"], total_rows],
+                    ignore_index=True,
+                )
     return delta_df
 
 

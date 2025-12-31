@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from pa_core.sim.metrics import (
     annualised_return,
@@ -52,6 +53,28 @@ def test_compound_and_summary():
     assert "AnnReturn" in stats.columns
     assert np.isfinite(ann_ret)
     assert np.isfinite(ann_vol)
+
+
+def test_summary_table_adds_total_when_benchmark_present():
+    base = np.zeros((2, 3))
+    ext = np.array([[0.01, -0.01, 0.02], [0.0, 0.01, -0.02]])
+    ibeta = np.array([[0.005, 0.0, -0.005], [0.01, -0.005, 0.0]])
+    returns = {"Base": base, "ExternalPA": ext, "InternalBeta": ibeta}
+
+    stats = summary_table(returns, benchmark="Base")
+    assert "Total" in stats["Agent"].values
+
+    total = ext + ibeta
+    stats_with_total = summary_table({**returns, "Total": total}, benchmark="Base")
+
+    total_row = stats[stats["Agent"] == "Total"].iloc[0]
+    total_row_explicit = stats_with_total[stats_with_total["Agent"] == "Total"].iloc[0]
+    for col in ["AnnReturn", "AnnVol", "VaR", "CVaR", "BreachProb", "ShortfallProb", "TE"]:
+        val = total_row[col]
+        expected = total_row_explicit[col]
+        if pd.isna(val) and pd.isna(expected):
+            continue
+        assert np.isclose(float(val), float(expected))
 
 
 def test_conditional_value_at_risk_monotonic():

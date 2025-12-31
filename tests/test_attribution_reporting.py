@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 
 from pa_core.config import ModelConfig
@@ -65,6 +66,14 @@ def test_compute_sleeve_return_attribution_basic() -> None:
     assert pd.api.types.is_numeric_dtype(df["Return"])  # type: ignore[arg-type]
     assert df["Return"].abs().sum() >= 0.0
 
+    total_rows = df[df["Agent"] == "Total"]
+    assert not total_rows.empty
+    non_base = df[~df["Agent"].isin(["Base", "Total"])]
+    total_by_sub = total_rows.groupby("Sub")["Return"].sum()
+    non_base_by_sub = non_base.groupby("Sub")["Return"].sum()
+    for sub, total_val in total_by_sub.items():
+        assert np.isclose(total_val, non_base_by_sub[sub])
+
 
 def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
     cfg = ModelConfig(
@@ -121,6 +130,7 @@ def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
         "ActiveExt",
         "InternalPA",
         "InternalBeta",
+        "Total",
     }
     assert df["CorrWithIndex"].between(-1.0, 1.0).all()
     assert (df[["BetaVol", "AlphaVol", "AnnVolApprox", "TEApprox"]] >= 0).all().all()

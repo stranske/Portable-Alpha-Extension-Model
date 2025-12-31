@@ -16,6 +16,7 @@ from .agents import (
     InternalPAAgent,
 )
 from .backend import xp as np
+from .portfolio import compute_total_contribution_returns
 from .sim import (
     draw_financing_series,
     draw_joint_returns,
@@ -30,6 +31,7 @@ __all__ = [
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
+    "compute_total_returns",
     "simulate_agents",
 ]
 
@@ -96,4 +98,16 @@ def simulate_agents(
         alpha, financing = _resolve_streams(agent, *streams)
         results[agent.p.name] = agent.monthly_returns(r_beta, alpha, financing)
 
+    total = compute_total_returns(results)
+    if total is not None:
+        results["Total"] = total
     return results
+
+
+def compute_total_returns(
+    returns_map: dict[str, NDArray[Any]],
+    *,
+    exclude: Iterable[str] = ("Base", "Total"),
+) -> NDArray[Any] | None:
+    """Return Total portfolio returns as the sum of contribution sleeves."""
+    return compute_total_contribution_returns(returns_map, exclude=exclude)

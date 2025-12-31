@@ -9,7 +9,6 @@ import pandas as pd
 
 from .config import ModelConfig
 from .orchestrator import SimulatorOrchestrator
-from .sim.metrics import summary_table
 
 
 def _clamp_grid(grid: np.ndarray, min_value: float | None, max_value: float | None) -> np.ndarray:
@@ -231,21 +230,9 @@ def suggest_sleeve_sizes(
             continue
 
         total_metrics: dict[str, float] = {}
-        if "Base" in returns:
-            total_returns = np.zeros_like(returns["Base"])
-            weights = {
-                "ExternalPA": ext_cap / total if total else 0.0,
-                "ActiveExt": act_cap / total if total else 0.0,
-                "InternalPA": int_cap / total if total else 0.0,
-            }
-            for name, weight in weights.items():
-                if weight and name in returns:
-                    total_returns += weight * returns[name]
-
-            total_summary = summary_table(
-                {"Base": returns["Base"], "Total": total_returns}, benchmark="Base"
-            )
-            total_row = total_summary[total_summary["Agent"] == "Total"].iloc[0]
+        total_row = summary[summary["Agent"] == "Total"]
+        if not total_row.empty:
+            total_row = total_row.iloc[0]
             total_te = _coerce_metric(total_row["TE"])
             total_bprob = _coerce_metric(total_row["BreachProb"])
             total_cvar = _coerce_metric(total_row["CVaR"])

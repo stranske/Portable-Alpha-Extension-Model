@@ -18,6 +18,7 @@ with financing costs, then report risk/return metrics and board-ready artifacts.
 - Default to **aggregate-first** portfolio handling: compute portfolio-level μ/σ/ρ from asset-level inputs before simulation.
 - Keep the state small: simulate only [Index, Internal α, External α, Active-Ext α] unless full-path mode is explicitly requested.
 - Every run is **reproducible**: save YAML, seed, version, git SHA, and any PSD-adjusted correlation matrices.
+- Canonical return path: `pa_core.sim.paths.draw_joint_returns` with `pa_core.sim.params.build_simulation_params` shared by CLI, sweep, and orchestrator.
 
 ```
 Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► Asset Library (YAML)
@@ -185,6 +186,9 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 **Invariants**
 - Sleeve capital shares sum to 1.0
 - Financing never applied to α component in v1
+- Agent outputs are **contribution returns** already scaled by capital shares.
+  The portfolio **Total** return is computed once as the sum of all non-benchmark
+  sleeves (all agents except `Base`); do not re-weight sleeves elsewhere.
 
 **Tests**
 - α=0 collapses to pure beta sleeve
@@ -194,6 +198,8 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 
 ## 9) SimulatorOrchestrator
 **Purpose:** Wire sampler, sleeves, and financing; return panel of portfolio/base returns.
+**Canonical return engine:** `pa_core.sim.paths.draw_joint_returns` (used by CLI, sweep, and orchestrator for aligned draws).
+**Shared parameter builder:** `pa_core.sim.params.build_simulation_params` keeps return/financing inputs consistent.
 
 **Outputs**
 - Paths for Portfolio, Base, individual sleeves
