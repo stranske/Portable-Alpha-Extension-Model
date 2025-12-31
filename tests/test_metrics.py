@@ -90,10 +90,24 @@ def test_breach_probability_basic():
     assert np.isclose(prob, 1.0 / 6.0)
 
 
+def test_breach_probability_modes_multi_path():
+    arr = np.array([[0.0, -0.05, 0.01], [0.02, 0.01, 0.03]])
+    threshold = -0.01
+    assert np.isclose(breach_probability(arr, threshold, mode="any"), 0.5)
+    assert np.isclose(breach_probability(arr, threshold, mode="terminal"), 0.0)
+
+
 def test_breach_probability_single_path():
     arr = np.array([0.0, -0.05, 0.01])
     thr = -0.01
     assert np.isclose(breach_probability(arr, thr), 1.0 / 3.0)
+
+
+def test_breach_probability_modes_single_path():
+    arr = np.array([0.0, -0.05, 0.01])
+    thr = -0.01
+    assert np.isclose(breach_probability(arr, thr, mode="any"), 1.0)
+    assert np.isclose(breach_probability(arr, thr, mode="terminal"), 0.0)
 
 
 def test_breach_probability_ignores_path_argument():
@@ -148,6 +162,16 @@ def test_breach_probability_empty_input():
         pass
     else:
         raise AssertionError("Expected ValueError for empty returns")
+
+
+def test_breach_probability_invalid_mode():
+    arr = np.array([0.0, -0.05, 0.01])
+    try:
+        breach_probability(arr, -0.01, mode="nope")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for invalid mode")
 
 
 def test_summary_table_includes_new_metrics():

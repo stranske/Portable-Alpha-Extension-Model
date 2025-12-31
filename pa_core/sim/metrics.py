@@ -88,18 +88,36 @@ def breach_probability(
     threshold: float,
     *,
     path: int | None = None,
+    mode: str = "month",
 ) -> float:
-    """Return the fraction of simulation-months that breach ``threshold``.
+    """Return the fraction of breaches under ``threshold`` using ``mode``.
 
-    For 2D arrays shaped (paths, periods), this is the share of all simulated
-    months across all paths that fall below ``threshold`` (Option C). For 1D
-    arrays, this is the share of months below the threshold. ``path`` is
+    For 2D arrays shaped (paths, periods):
+    - ``mode="month"`` reports the share of all simulated months across all
+      paths that fall below ``threshold`` (Option C).
+    - ``mode="any"`` reports the fraction of simulation paths that breach at
+      least once during the horizon (Option A).
+    - ``mode="terminal"`` reports the fraction of paths that breach in the
+      terminal month (Option B).
+    For 1D arrays, ``mode="month"`` is the share of months below the threshold,
+    while the other modes return 1.0 or 0.0 for the single path. ``path`` is
     ignored and kept only for backward compatibility.
     """
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
         raise ValueError("returns must not be empty")
-    return float(np.mean(arr < threshold))
+    if mode == "month":
+        return float(np.mean(arr < threshold))
+    if mode not in {"any", "terminal"}:
+        raise ValueError('mode must be one of "month", "any", or "terminal"')
+    if arr.ndim == 1:
+        breached = bool(np.any(arr < threshold)) if mode == "any" else bool(arr[-1] < threshold)
+        return float(breached)
+    if mode == "any":
+        return float(np.mean(np.any(arr < threshold, axis=1)))
+    if mode == "terminal":
+        return float(np.mean(arr[:, -1] < threshold))
+    raise ValueError('mode must be one of "month", "any", or "terminal"')
 
 
 def shortfall_probability(
