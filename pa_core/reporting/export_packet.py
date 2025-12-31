@@ -13,6 +13,7 @@ import os
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
+import openpyxl
 import pandas as pd
 from pptx import Presentation as _Presentation  # type: ignore
 from pptx.dml.color import RGBColor
@@ -177,6 +178,8 @@ def create_export_packet(
             excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
         ) as writer:
             stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
+        wb = openpyxl.load_workbook(excel_path)
+        wb.save(excel_path)
 
     # PowerPoint deck
     prs = _Presentation()
