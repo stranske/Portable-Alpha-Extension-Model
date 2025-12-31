@@ -70,18 +70,15 @@ class SimulatorOrchestrator:
             covariance_shrinkage=self.cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-        idx_sigma_cov = float(sigma_vec[0])
-        sigma_h_cov = float(sigma_vec[1])
-        sigma_e_cov = float(sigma_vec[2])
-        sigma_m_cov = float(sigma_vec[3])
-
-        rng_returns = spawn_rngs(seed, 1)[0]
-        params = build_simulation_params(
-            self.cfg,
-            mu_idx=mu_idx,
-            idx_sigma=idx_sigma_cov,
-            return_overrides={
+        return_overrides = None
+        idx_sigma_use = idx_sigma
+        if self.cfg.covariance_shrinkage != "none":
+            sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+            idx_sigma_use = float(sigma_vec[0]) / 12
+            sigma_h_cov = float(sigma_vec[1])
+            sigma_e_cov = float(sigma_vec[2])
+            sigma_m_cov = float(sigma_vec[3])
+            return_overrides = {
                 "default_sigma_H": sigma_h_cov / 12,
                 "default_sigma_E": sigma_e_cov / 12,
                 "default_sigma_M": sigma_m_cov / 12,
@@ -91,7 +88,14 @@ class SimulatorOrchestrator:
                 "rho_H_E": float(corr_mat[1, 2]),
                 "rho_H_M": float(corr_mat[1, 3]),
                 "rho_E_M": float(corr_mat[2, 3]),
-            },
+            }
+
+        rng_returns = spawn_rngs(seed, 1)[0]
+        params = build_simulation_params(
+            self.cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma_use,
+            return_overrides=return_overrides,
         )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
