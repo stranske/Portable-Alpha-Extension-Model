@@ -635,7 +635,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
-        suggest_seed = args.seed if args.seed is not None else 0
+        suggest_seed = args.seed
         suggestions = suggest_sleeve_sizes(
             cfg,
             idx_series,
@@ -920,7 +920,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
         try:
-            suggest_seed = args.seed if args.seed is not None else 0
+            suggest_seed = args.seed
             trade_df = suggest_sleeve_sizes(
                 cfg,
                 idx_series,
