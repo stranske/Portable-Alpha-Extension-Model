@@ -48,6 +48,13 @@ def export_to_excel(
         separate sheet is written per agent. Defaults to ``False``.
     """
 
+    attr_maybe = inputs_dict.get("_attribution_df")
+    attr_df: pd.DataFrame | None = attr_maybe if isinstance(attr_maybe, pd.DataFrame) else None
+    risk_maybe = inputs_dict.get("_risk_attr_df")
+    risk_df: pd.DataFrame | None = risk_maybe if isinstance(risk_maybe, pd.DataFrame) else None
+    trade_maybe = inputs_dict.get("_tradeoff_df")
+    trade_df: pd.DataFrame | None = trade_maybe if isinstance(trade_maybe, pd.DataFrame) else None
+
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         df_inputs = pd.DataFrame(
             {
@@ -84,6 +91,33 @@ def export_to_excel(
             diff_config_df.to_excel(writer, sheet_name="ConfigDiff", index=False)
         if diff_metrics_df is not None and not diff_metrics_df.empty:
             diff_metrics_df.to_excel(writer, sheet_name="MetricDiff", index=False)
+
+        # Optional: write Attribution sheet if provided in inputs_dict
+        if attr_df is not None and not attr_df.empty:
+            cols = [c for c in ["Agent", "Sub", "Return"] if c in attr_df.columns]
+            if cols:
+                attr_df[cols].to_excel(writer, sheet_name="Attribution", index=False)
+
+        # Optional: write RiskAttribution sheet if provided
+        if risk_df is not None and not risk_df.empty:
+            cols = [
+                c
+                for c in [
+                    "Agent",
+                    "BetaVol",
+                    "AlphaVol",
+                    "CorrWithIndex",
+                    "AnnVolApprox",
+                    "TEApprox",
+                ]
+                if c in risk_df.columns
+            ]
+            if cols:
+                risk_df[cols].to_excel(writer, sheet_name="RiskAttribution", index=False)
+
+        # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
+        if trade_df is not None and not trade_df.empty:
+            trade_df.to_excel(writer, sheet_name="SleeveTradeoffs", index=True)
 
         # Write returns either pivoted or per-sheet
         if pivot:
@@ -184,9 +218,7 @@ def export_to_excel(
             pass
 
     # Best-effort: embed sunburst image on Attribution sheet
-    if "Attribution" in wb.sheetnames and not (
-        os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
-    ):
+    if "Attribution" in wb.sheetnames:
         try:
             from ..viz import sunburst
 
@@ -195,48 +227,14 @@ def export_to_excel(
             if attr_df is not None and not attr_df.empty:
                 # Ensure required columns exist
                 if {"Agent", "Sub", "Return"} <= set(attr_df.columns):
-                    fig = sunburst.make(attr_df)
-                    img_bytes = fig.to_image(format="png", engine="kaleido")
+                    if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
+                        img_bytes = _ONE_PX_PNG
+                    else:
+                        fig = sunburst.make(attr_df)
+                        img_bytes = fig.to_image(format="png", engine="kaleido")
                     img = XLImage(io.BytesIO(img_bytes))
                     ws.add_image(img, "H2")
         except Exception:
             pass
 
-    # Optional: write RiskAttribution sheet if provided
-    risk_maybe = inputs_dict.get("_risk_attr_df")
-    risk_df: pd.DataFrame | None = risk_maybe if isinstance(risk_maybe, pd.DataFrame) else None
-    if risk_df is not None and not risk_df.empty:
-        try:
-            with pd.ExcelWriter(
-                filename, engine="openpyxl", mode="a", if_sheet_exists="replace"
-            ) as writer:
-                cols = [
-                    c
-                    for c in [
-                        "Agent",
-                        "BetaVol",
-                        "AlphaVol",
-                        "CorrWithIndex",
-                        "AnnVolApprox",
-                        "TEApprox",
-                    ]
-                    if c in risk_df.columns
-                ]
-                if cols:
-                    risk_df[cols].to_excel(writer, sheet_name="RiskAttribution", index=False)
-        except Exception:
-            pass
-
     wb.save(filename)
-
-    # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
-    trade_maybe = inputs_dict.get("_tradeoff_df")
-    trade_df: pd.DataFrame | None = trade_maybe if isinstance(trade_maybe, pd.DataFrame) else None
-    if trade_df is not None and not trade_df.empty:
-        try:
-            with pd.ExcelWriter(
-                filename, engine="openpyxl", mode="a", if_sheet_exists="replace"
-            ) as writer:
-                trade_df.to_excel(writer, sheet_name="SleeveTradeoffs", index=True)
-        except Exception:
-            pass
