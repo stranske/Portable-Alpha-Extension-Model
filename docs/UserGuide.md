@@ -521,6 +521,8 @@ python -m pa_core.cli \
 ```
 
 Open `Tutorial2_Baseline.xlsx` and review `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE`. The sample template intentionally exceeds the **3%** tracking‑error budget so you can practise threshold analysis.
+`BreachProb` is the share of simulated paths that experience at least one monthly
+return below the breach threshold (default **-2%**) over the horizon.
 The baseline configuration sets tracking error close to **10%** for most agents
 so **three out of four** sleeves breach the limit. This deliberate setup shows
 how the colour‑coded thresholds highlight problems in the **Summary** sheet.
