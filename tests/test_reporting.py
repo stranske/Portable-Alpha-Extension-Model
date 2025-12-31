@@ -33,3 +33,27 @@ def test_export_to_excel_pivot(tmp_path: Path):
     ws = wb["AllReturns"]
     header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
     assert header == ["Sim", "Month", "Agent", "Return"]
+
+
+def test_export_to_excel_adds_attribution_and_risk_sheets(tmp_path: Path) -> None:
+    inputs = {
+        "_attribution_df": pd.DataFrame({"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]}),
+        "_risk_attr_df": pd.DataFrame(
+            {
+                "Agent": ["Base"],
+                "BetaVol": [0.1],
+                "AlphaVol": [0.05],
+                "CorrWithIndex": [0.8],
+                "AnnVolApprox": [0.12],
+                "TEApprox": [0.03],
+            }
+        ),
+    }
+    summary = pd.DataFrame({"Total": [0.2]})
+    raw = {"Base": pd.DataFrame([[0.1, 0.2]], columns=[0, 1])}
+    file_path = tmp_path / "with_attr.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    wb = openpyxl.load_workbook(file_path)
+    assert {"Attribution", "RiskAttribution"} <= set(wb.sheetnames)

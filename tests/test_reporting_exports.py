@@ -141,3 +141,29 @@ def test_export_to_excel_includes_tornado_snapshot(tmp_path: Path) -> None:
     assert "Sensitivity" in wb.sheetnames
     ws = wb["Sensitivity"]
     assert ws._images, "Expected tornado chart snapshot in Sensitivity sheet"
+
+
+def test_export_to_excel_includes_sunburst_snapshot(tmp_path: Path) -> None:
+    from pa_core.reporting.excel import export_to_excel
+
+    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    attr_df = pd.DataFrame({"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]})
+    risk_df = pd.DataFrame(
+        {
+            "Agent": ["Base"],
+            "BetaVol": [0.1],
+            "AlphaVol": [0.05],
+            "CorrWithIndex": [0.8],
+            "AnnVolApprox": [0.12],
+            "TEApprox": [0.03],
+        }
+    )
+    inputs = {"_attribution_df": attr_df, "_risk_attr_df": risk_df}
+    out_path = tmp_path / "outputs.xlsx"
+
+    export_to_excel(inputs, summary, {}, filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path)
+    assert {"Attribution", "RiskAttribution"} <= set(wb.sheetnames)
+    ws = wb["Attribution"]
+    assert ws._images, "Expected sunburst chart snapshot in Attribution sheet"
