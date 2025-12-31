@@ -8,6 +8,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
 
+
 class ConfigError(ValueError):
     """Invalid configuration."""
 
