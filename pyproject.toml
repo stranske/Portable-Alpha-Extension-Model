@@ -1,6 +1,6 @@
 [tool.ruff]
 line-length = 100
-extend-exclude = ["archive/*"]
+extend-exclude = ["archive/*", "build/*", "dist/*"]
 
 [tool.ruff.lint]
 extend-ignore = ["E501"]
