@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -180,6 +182,25 @@ def test_build_from_config_basic():
     names = {type(a).__name__ for a in agents}
     assert "BaseAgent" in names
     assert len(agents) >= 1
+
+
+def test_build_from_config_uses_schedule_margin(tmp_path: Path) -> None:
+    schedule_path = tmp_path / "schedule.csv"
+    schedule_path.write_text("term,multiplier\n0,2\n1,4\n2,6\n")
+
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_model="schedule",
+        financing_schedule_path=schedule_path,
+        financing_term_months=1.0,
+        reference_sigma=0.02,
+        total_fund_capital=1000.0,
+    )
+    agents = build_from_config(cfg)
+    internal_beta = next(a for a in agents if isinstance(a, InternalBetaAgent))
+    assert internal_beta.p.capital_mm == pytest.approx(80.0)
+    assert internal_beta.p.beta_share == pytest.approx(0.08)
 
 
 def test_dimension_mismatch_errors():

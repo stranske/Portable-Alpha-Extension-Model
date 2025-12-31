@@ -7,6 +7,7 @@ import yaml  # type: ignore[import-untyped]
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
+from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 
 class ConfigError(ValueError):
@@ -14,19 +15,6 @@ class ConfigError(ValueError):
 
 
 __all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
-
-
-def normalize_share(value: float | None) -> float | None:
-    """Normalize percentage-style inputs to a 0..1 fraction."""
-    if value is None:
-        return None
-    try:
-        numeric = float(value)
-    except (TypeError, ValueError):
-        return value
-    if 1.0 < numeric <= 100.0:
-        return numeric / 100.0
-    return numeric
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -63,7 +51,16 @@ def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, 
 
 
 class ModelConfig(BaseModel):
-    """Validated simulation parameters."""
+    """Validated simulation parameters for the portable-alpha model.
+
+    Use ``ModelConfig`` for run settings, capital allocation, and sweep ranges.
+    Use :class:`pa_core.schema.Scenario` for index/asset inputs, correlations,
+    and sleeve definitions. They intentionally serve different roles: this
+    class controls how simulations run, while ``Scenario`` supplies the market
+    data and portfolio structure. Pair with
+    :func:`pa_core.schema.load_scenario` when running a full simulation that
+    needs both run settings and market data.
+    """
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
 
@@ -261,12 +258,33 @@ class ModelConfig(BaseModel):
             raise ValueError("return_t_df must be greater than 2 for finite variance")
         return self
 
+    @model_validator(mode="after")
+    def check_correlations(self) -> "ModelConfig":
+        from .validators import validate_correlations
+
+        correlation_map = {
+            "rho_idx_H": self.rho_idx_H,
+            "rho_idx_E": self.rho_idx_E,
+            "rho_idx_M": self.rho_idx_M,
+            "rho_H_E": self.rho_H_E,
+            "rho_H_M": self.rho_H_M,
+            "rho_E_M": self.rho_E_M,
+        }
+        validation_results = validate_correlations(correlation_map)
+        errors = [r for r in validation_results if not r.is_valid]
+        if errors:
+            error_messages = [r.message for r in errors]
+            raise ValueError("; ".join(error_messages))
+        return self
+
     @model_validator(mode="before")
     @classmethod
     def normalize_share_inputs(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
         share_fields = {
+            "w_beta_H": ("In-House beta share",),
+            "w_alpha_H": ("In-House alpha share",),
             "active_share": ("Active share (%)", "Active share"),
             "theta_extpa": ("External PA alpha fraction",),
         }
@@ -278,17 +296,16 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_shares(self) -> "ModelConfig":
-        tol = 1e-6
         for name, val in [("w_beta_H", self.w_beta_H), ("w_alpha_H", self.w_alpha_H)]:
-            if not 0.0 <= val <= 1.0:
+            if not SHARE_MIN <= val <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
-        if abs(self.w_beta_H + self.w_alpha_H - 1.0) > tol:
+        if abs(self.w_beta_H + self.w_alpha_H - 1.0) > SHARE_SUM_TOLERANCE:
             raise ValueError("w_beta_H and w_alpha_H must sum to 1")
         for name, val in [
             ("theta_extpa", self.theta_extpa),
             ("active_share", self.active_share),
         ]:
-            if not 0.0 <= val <= 1.0:
+            if not SHARE_MIN <= val <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
         return self
 
@@ -351,6 +368,9 @@ class ModelConfig(BaseModel):
 
 def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
     """Return ``ModelConfig`` parsed from YAML dictionary or file.
+
+    See :class:`pa_core.schema.Scenario` for market data inputs that pair with
+    the simulation parameters defined here.
 
     Raises
     ------

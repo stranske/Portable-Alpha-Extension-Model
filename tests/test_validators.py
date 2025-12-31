@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from io import StringIO
 from pathlib import Path
 
 import numpy as np
@@ -264,6 +265,14 @@ class TestMarginScheduleValidation:
         with pytest.raises(ValueError, match="must not contain duplicates"):
             load_margin_schedule(path)
 
+    def test_non_monotone_terms(self, tmp_path: Path):
+        """Ensure terms must be strictly increasing in file order."""
+        csv = "term,multiplier\n3,2\n1,3\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        with pytest.raises(ValueError, match="strictly increasing"):
+            load_margin_schedule(path)
+
     def test_negative_term(self, tmp_path: Path):
         """Ensure negative terms are not allowed."""
         csv = "term,multiplier\n-1,2\n1,3\n"
@@ -283,6 +292,14 @@ class TestMarginScheduleValidation:
     def test_header_normalization(self, tmp_path: Path):
         """Normalize header casing and whitespace."""
         csv = "Term Months,Multiplier\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_header_normalization_parentheses(self, tmp_path: Path):
+        """Normalize header punctuation like parentheses."""
+        csv = "Term (Months),Multiplier\n1,2\n3,4\n"
         path = tmp_path / "sched.csv"
         path.write_text(csv)
         schedule = load_margin_schedule(path)
@@ -322,6 +339,20 @@ class TestMarginScheduleValidation:
         """Accept schedule CSV content as a string."""
         csv = "term,multiplier\n1,2\n3,4\n"
         schedule = load_margin_schedule(csv)
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_file_like_schedule_input(self):
+        """Accept schedule CSV content as a file-like object."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        schedule = load_margin_schedule(StringIO(csv))
+        assert list(schedule["term"]) == [1, 3]
+
+    def test_blank_rows_are_ignored(self, tmp_path: Path):
+        """Ignore fully blank rows in schedule CSV."""
+        csv = "term,multiplier\n1,2\n\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(path)
         assert list(schedule["term"]) == [1, 3]
 
 

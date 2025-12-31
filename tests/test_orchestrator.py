@@ -7,7 +7,8 @@ import pytest
 
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
-from pa_core.validators import TEST_TOLERANCE_EPSILON
+from pa_core.sim.metrics import tracking_error
+from pa_core.validators import TEST_TOLERANCE_EPSILON, calculate_margin_requirement
 
 # Test data fixtures for clear separation of normal vs problematic cases
 
@@ -102,20 +103,31 @@ def test_orchestrator_reproducible_seed(
     pd.testing.assert_frame_equal(sum1, sum2)
 
 
-def test_te_zero_when_no_alpha_allocation(
+def test_te_scales_with_margin_when_no_alpha_allocation(
     valid_config_no_alpha, sample_index_returns_mixed
 ) -> None:
-    """Test that tracking error is zero when no alpha allocation is configured."""
+    """Test tracking error behavior when no alpha allocation is configured."""
     cfg = load_config(valid_config_no_alpha)
     orch = SimulatorOrchestrator(cfg, sample_index_returns_mixed)
     returns, summary = orch.run(seed=0)
 
     base = returns["Base"]
     internal_beta = returns["InternalBeta"]
-    np.testing.assert_allclose(base, internal_beta)
+    margin_requirement = calculate_margin_requirement(
+        cfg.reference_sigma,
+        cfg.volatility_multiple,
+        cfg.total_fund_capital,
+        financing_model=cfg.financing_model,
+        schedule_path=cfg.financing_schedule_path,
+        term_months=cfg.financing_term_months,
+    )
+    beta_share = margin_requirement / cfg.total_fund_capital
+    expected_internal_beta = base * (beta_share / cfg.w_beta_H)
+    np.testing.assert_allclose(internal_beta, expected_internal_beta)
 
     te_val = summary.loc[summary.Agent == "InternalBeta", "TE"].iloc[0]
-    assert te_val == pytest.approx(0.0, abs=TEST_TOLERANCE_EPSILON)
+    expected_te = tracking_error(internal_beta, base)
+    assert te_val == pytest.approx(expected_te, abs=TEST_TOLERANCE_EPSILON)
 
 
 # Tests for problematic/invalid scenarios

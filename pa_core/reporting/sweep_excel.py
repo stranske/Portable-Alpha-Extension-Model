@@ -13,6 +13,22 @@ from ..viz import risk_return, theme
 
 __all__ = ["export_sweep_results"]
 
+_SUMMARY_COLUMNS = [
+    "Agent",
+    "AnnReturn",
+    "ExcessReturn",
+    "AnnVol",
+    "VaR",
+    "CVaR",
+    "MaxDD",
+    "TimeUnderWater",
+    "BreachProb",
+    "BreachCount",
+    "ShortfallProb",
+    "TE",
+    "Combination",
+]
+
 
 def export_sweep_results(results: Iterable[Dict[str, Any]], filename: str = "Sweep.xlsx") -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
@@ -35,6 +51,10 @@ def export_sweep_results(results: Iterable[Dict[str, Any]], filename: str = "Swe
             combined = pd.concat(summary_frames, ignore_index=True)
             combined.to_excel(writer, sheet_name="Summary", index=False)
             all_summary = combined
+        else:
+            empty_summary = pd.DataFrame(columns=_SUMMARY_COLUMNS)
+            empty_summary.to_excel(writer, sheet_name="Summary", index=False)
+            all_summary = empty_summary
 
     wb = openpyxl.load_workbook(filename)
     for ws in wb.worksheets:
@@ -50,6 +70,7 @@ def export_sweep_results(results: Iterable[Dict[str, Any]], filename: str = "Swe
     if (
         "Summary" in wb.sheetnames
         and all_summary is not None
+        and not all_summary.empty
         and not (os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"))
     ):
         ws = wb["Summary"]

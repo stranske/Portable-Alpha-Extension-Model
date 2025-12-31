@@ -41,6 +41,13 @@ def test_load_dict():
     assert cfg.mu_H == 0.05
 
 
+def test_model_config_normalizes_share_percentages():
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "w_beta_H": 60, "w_alpha_H": 40}
+    cfg = ModelConfig(**data)
+    assert cfg.w_beta_H == 0.6
+    assert cfg.w_alpha_H == 0.4
+
+
 def test_invalid_capital(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,  # Valid value
@@ -108,3 +115,9 @@ def test_load_config_with_covariance_options(tmp_path):
     assert cfg.covariance_shrinkage == "ledoit_wolf"
     assert cfg.vol_regime == "two_state"
     assert cfg.vol_regime_window == 6
+
+
+def test_model_config_rejects_out_of_bounds_correlations():
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "rho_idx_H": 1.5}
+    with pytest.raises(ValueError, match="outside valid range"):
+        ModelConfig(**data)
