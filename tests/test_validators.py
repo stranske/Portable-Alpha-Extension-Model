@@ -281,6 +281,14 @@ class TestMarginScheduleValidation:
         with pytest.raises(ValueError, match="non-numeric or missing"):
             load_margin_schedule(path)
 
+    def test_string_schedule_path(self, tmp_path: Path):
+        """Accept schedule path as a string."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        path = tmp_path / "sched.csv"
+        path.write_text(csv)
+        schedule = load_margin_schedule(str(path))
+        assert list(schedule["term"]) == [1, 3]
+
 
 class TestSimulationParameterValidation:
     """Test simulation parameter validation."""

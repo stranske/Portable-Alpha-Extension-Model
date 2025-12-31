@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple
+from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -215,7 +215,7 @@ def validate_covariance_matrix_psd(
     return result, psd_info
 
 
-def load_margin_schedule(path: Path) -> pd.DataFrame:
+def load_margin_schedule(path: Union[str, Path]) -> pd.DataFrame:
     """Load and validate broker margin schedule.
 
     The schedule must contain ``term`` and ``multiplier`` columns representing
@@ -224,10 +224,11 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
     ensures terms are non-negative, multipliers are positive and the term
     structure is strictly increasing to avoid interpolation ambiguities.
     """
-    if not path.exists():
-        raise FileNotFoundError(f"Margin schedule file not found: {path}")
+    schedule_path = Path(path)
+    if not schedule_path.exists():
+        raise FileNotFoundError(f"Margin schedule file not found: {schedule_path}")
 
-    df = pd.read_csv(path)
+    df = pd.read_csv(schedule_path)
     df.columns = [str(col).strip().lower().replace(" ", "_") for col in df.columns]
     if "term" not in df.columns:
         if "term_months" in df.columns:
@@ -278,7 +279,7 @@ def calculate_margin_requirement(
     *,
     financing_model: str = "simple_proxy",
     margin_schedule: Optional[pd.DataFrame] = None,
-    schedule_path: Optional[Path] = None,
+    schedule_path: Optional[Union[str, Path]] = None,
     term_months: float = 1.0,
 ) -> float:
     """Calculate margin requirement for beta backing.
@@ -312,7 +313,7 @@ def validate_capital_allocation(
     volatility_multiple: float = 3.0,
     *,
     financing_model: str = "simple_proxy",
-    margin_schedule_path: Optional[Path] = None,
+    margin_schedule_path: Optional[Union[str, Path]] = None,
     term_months: float = 1.0,
 ) -> List[ValidationResult]:
     """Validate capital allocation including margin requirements.
