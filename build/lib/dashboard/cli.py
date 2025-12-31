@@ -11,7 +11,8 @@ from pathlib import Path
 def main(argv: list[str] | None = None) -> None:
     """Launch the Streamlit dashboard."""
     if argv is None:
-        argv = sys.argv[1:]
+        # Avoid leaking pytest's own CLI args into Streamlit when called from tests.
+        argv = [] if "pytest" in sys.modules else sys.argv[1:]
     parser = argparse.ArgumentParser(description="Launch the Streamlit dashboard")
     parser.add_argument(
         "--app-path",

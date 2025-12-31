@@ -90,6 +90,7 @@ STDLIB_MODULES = {
     "unittest",
     "urllib",
     "uuid",
+    "venv",
     "warnings",
     "weakref",
     "xml",
