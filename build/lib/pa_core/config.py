@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Union, cast
+from typing import Any, Callable, Dict, List, Literal, Mapping, Optional, Union, cast
 
-import yaml  # type: ignore[import-untyped]
+import numpy as np
+import yaml
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
@@ -14,7 +16,45 @@ class ConfigError(ValueError):
     """Invalid configuration."""
 
 
-__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
+MONTHS_PER_YEAR = 12
+CANONICAL_RETURN_UNIT: Literal["monthly"] = "monthly"
+DEFAULT_RETURN_UNIT: Literal["annual", "monthly"] = "annual"
+DEFAULT_MEAN_CONVERSION: Literal["simple", "geometric"] = "simple"
+
+
+def annual_mean_to_monthly(
+    value: float, *, method: Literal["simple", "geometric"] = DEFAULT_MEAN_CONVERSION
+) -> float:
+    """Convert an annual mean return to a monthly mean."""
+    if method == "geometric":
+        return float((1.0 + value) ** (1.0 / MONTHS_PER_YEAR) - 1.0)
+    return float(value / MONTHS_PER_YEAR)
+
+
+def annual_vol_to_monthly(value: float) -> float:
+    """Convert an annual volatility to a monthly volatility."""
+    return value / math.sqrt(MONTHS_PER_YEAR)
+
+
+def annual_cov_to_monthly(cov: np.ndarray) -> np.ndarray:
+    """Convert an annual covariance matrix to monthly units."""
+    return np.asarray(cov, dtype=float) / MONTHS_PER_YEAR
+
+
+__all__ = [
+    "AgentConfig",
+    "ModelConfig",
+    "load_config",
+    "ConfigError",
+    "get_field_mappings",
+    "normalize_share",
+    "MONTHS_PER_YEAR",
+    "CANONICAL_RETURN_UNIT",
+    "DEFAULT_MEAN_CONVERSION",
+    "annual_mean_to_monthly",
+    "annual_vol_to_monthly",
+    "annual_cov_to_monthly",
+]
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -50,6 +90,14 @@ def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, 
     return mappings
 
 
+class AgentConfig(BaseModel):
+    name: str
+    capital: float
+    beta_share: float
+    alpha_share: float
+    extra: Dict[str, Any] = Field(default_factory=dict)
+
+
 class ModelConfig(BaseModel):
     """Validated simulation parameters for the portable-alpha model.
 
@@ -67,6 +115,11 @@ class ModelConfig(BaseModel):
     backend: str = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
+    return_unit: Literal["annual", "monthly"] = Field(
+        default=DEFAULT_RETURN_UNIT,
+        alias="return_unit",
+        description="Input unit for return means/volatilities.",
+    )
 
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
@@ -84,7 +137,7 @@ class ModelConfig(BaseModel):
     active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
-    agents: List[Dict[str, Any]] = Field(default_factory=list)
+    agents: List[AgentConfig] = Field(default_factory=list)
 
     w_beta_H: float = Field(default=0.5, alias="In-House beta share")
     w_alpha_H: float = Field(default=0.5, alias="In-House alpha share")
@@ -300,26 +353,67 @@ class ModelConfig(BaseModel):
             raise ValueError("agents must be a list of mappings")
         normalized: list[dict[str, Any]] = []
         for idx, agent in enumerate(raw_agents):
-            if not isinstance(agent, dict):
+            if isinstance(agent, AgentConfig):
+                agent_data = agent.model_dump()
+            elif isinstance(agent, Mapping):
+                agent_data = dict(agent)
+            else:
                 raise ValueError(f"agents[{idx}] must be a mapping")
-            missing = {"name", "capital", "beta_share", "alpha_share"} - agent.keys()
+            missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
             if missing:
                 raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
-            extra = agent.get("extra") or {}
+            extra = agent_data.get("extra") or {}
             if not isinstance(extra, dict):
                 raise ValueError(f"agents[{idx}].extra must be a mapping")
-            beta_share = normalize_share(agent["beta_share"])
-            alpha_share = normalize_share(agent["alpha_share"])
+            beta_share = normalize_share(agent_data["beta_share"])
+            alpha_share = normalize_share(agent_data["alpha_share"])
             normalized.append(
                 {
-                    "name": str(agent["name"]),
-                    "capital": float(agent["capital"]),
+                    "name": str(agent_data["name"]),
+                    "capital": float(agent_data["capital"]),
                     "beta_share": 0.0 if beta_share is None else float(beta_share),
                     "alpha_share": 0.0 if alpha_share is None else float(alpha_share),
                     "extra": extra,
                 }
             )
         return normalized
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_return_units(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        unit = data.get("return_unit", DEFAULT_RETURN_UNIT)
+        if unit == CANONICAL_RETURN_UNIT:
+            return data
+        if unit != DEFAULT_RETURN_UNIT:
+            return data
+        updated = dict(data)
+
+        # Allow values to be supplied via field names or aliases.
+        def _get_value(field: str) -> tuple[Any, list[str]]:
+            field_info = cls.model_fields[field]
+            candidates = [field]
+            alias = getattr(field_info, "alias", None)
+            if alias:
+                candidates.append(alias)
+            for key in candidates:
+                if key in updated:
+                    return updated[key], candidates
+            return field_info.default, candidates
+
+        for field in ("mu_H", "mu_E", "mu_M"):
+            value, keys = _get_value(field)
+            converted = annual_mean_to_monthly(value)
+            for key in keys:
+                updated[key] = converted
+        for field in ("sigma_H", "sigma_E", "sigma_M"):
+            value, keys = _get_value(field)
+            converted = annual_vol_to_monthly(value)
+            for key in keys:
+                updated[key] = converted
+        updated["return_unit"] = CANONICAL_RETURN_UNIT
+        return updated
 
     @model_validator(mode="after")
     def check_financing_model(self) -> "ModelConfig":

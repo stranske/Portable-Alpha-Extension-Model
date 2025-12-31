@@ -15,6 +15,7 @@ CLI flags:
 from __future__ import annotations
 
 import argparse
+import math
 import json
 import logging
 import sys
@@ -538,7 +539,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
-    from .config import load_config
+    from .config import MONTHS_PER_YEAR, annual_mean_to_monthly, load_config
 
     cfg = load_config(args.config)
     return_overrides: dict[str, float | str] = {}
@@ -650,6 +651,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         regime=cfg.vol_regime,
         window=cfg.vol_regime_window,
     )
+    idx_sigma_scale = 1.0
+    alpha_sigma_scale = 1.0
+    if cfg.return_unit_input == "annual":
+        idx_sigma_scale = 1.0 / MONTHS_PER_YEAR
+        alpha_sigma_scale = 1.0 / math.sqrt(MONTHS_PER_YEAR)
+        idx_sigma *= idx_sigma_scale
 
     # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
@@ -849,6 +856,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Normal single-run mode below
     mu_idx = float(idx_series.mean())
+    if cfg.return_unit_input == "annual":
+        mu_idx = annual_mean_to_monthly(mu_idx)
 
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
@@ -856,6 +865,10 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         sigma_H = run_cfg.sigma_H
         sigma_E = run_cfg.sigma_E
         sigma_M = run_cfg.sigma_M
+        if alpha_sigma_scale != 1.0:
+            sigma_H *= alpha_sigma_scale
+            sigma_E *= alpha_sigma_scale
+            sigma_M *= alpha_sigma_scale
 
         # Build covariance (validates shapes)
         _ = deps.build_cov_matrix(
@@ -873,7 +886,19 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             n_samples=n_samples,
         )
 
-        params = build_simulation_params(run_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        return_overrides_local: dict[str, float] | None = None
+        if alpha_sigma_scale != 1.0:
+            return_overrides_local = {
+                "default_sigma_H": run_cfg.sigma_H * alpha_sigma_scale,
+                "default_sigma_E": run_cfg.sigma_E * alpha_sigma_scale,
+                "default_sigma_M": run_cfg.sigma_M * alpha_sigma_scale,
+            }
+        params = build_simulation_params(
+            run_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma,
+            return_overrides=return_overrides_local,
+        )
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
@@ -992,14 +1017,26 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     mod_cfg.rho_H_M,
                     mod_cfg.rho_E_M,
                     idx_sigma,
-                    mod_cfg.sigma_H,
-                    mod_cfg.sigma_E,
-                    mod_cfg.sigma_M,
+                    mod_cfg.sigma_H * alpha_sigma_scale,
+                    mod_cfg.sigma_E * alpha_sigma_scale,
+                    mod_cfg.sigma_M * alpha_sigma_scale,
                     covariance_shrinkage=mod_cfg.covariance_shrinkage,
                     n_samples=n_samples,
                 )
 
-                params_local = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+                return_overrides_local: dict[str, float] | None = None
+                if alpha_sigma_scale != 1.0:
+                    return_overrides_local = {
+                        "default_sigma_H": mod_cfg.sigma_H * alpha_sigma_scale,
+                        "default_sigma_E": mod_cfg.sigma_E * alpha_sigma_scale,
+                        "default_sigma_M": mod_cfg.sigma_M * alpha_sigma_scale,
+                    }
+                params_local = build_simulation_params(
+                    mod_cfg,
+                    mu_idx=mu_idx,
+                    idx_sigma=idx_sigma,
+                    return_overrides=return_overrides_local,
+                )
 
                 r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,

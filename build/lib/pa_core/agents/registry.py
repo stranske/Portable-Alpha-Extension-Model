@@ -55,13 +55,25 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
 
     params: list[AgentParams] = []
     for agent in cfg.agents:
+        if isinstance(agent, dict):
+            name = agent["name"]
+            capital = agent["capital"]
+            beta_share = agent["beta_share"]
+            alpha_share = agent["alpha_share"]
+            extra = agent.get("extra", {})
+        else:
+            name = agent.name
+            capital = agent.capital
+            beta_share = agent.beta_share
+            alpha_share = agent.alpha_share
+            extra = agent.extra
         params.append(
             AgentParams(
-                agent["name"],
-                agent["capital"],
-                agent["beta_share"],
-                agent["alpha_share"],
-                agent.get("extra", {}),
+                name,
+                capital,
+                beta_share,
+                alpha_share,
+                extra,
             )
         )
 

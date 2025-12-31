@@ -21,7 +21,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -29,9 +29,9 @@ if sys.platform.startswith("win"):
 
     os.environ["PYTHONIOENCODING"] = "utf-8"
     if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+        sys.stdout.reconfigure(encoding="utf-8")
     if hasattr(sys.stderr, "reconfigure"):
-        sys.stderr.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
+        sys.stderr.reconfigure(encoding="utf-8")
 
 # Rich is imported lazily in functions to keep import time low
 
@@ -60,7 +60,6 @@ logger = logging.getLogger(__name__)
 class JsonFormatter(logging.Formatter):
     """Format logs as JSON lines."""
 
-    # type: ignore[override]
     def format(self, record: logging.LogRecord) -> str:
         ts = datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()
         entry = {
@@ -170,13 +169,13 @@ class Dependencies:
 
     def __init__(
         self,
-        build_from_config=None,
-        export_to_excel=None,
-        draw_financing_series=None,
-        draw_joint_returns=None,
-        build_cov_matrix=None,
-        simulate_agents=None,
-    ):
+        build_from_config: Callable[..., Any] | None = None,
+        export_to_excel: Callable[..., Any] | None = None,
+        draw_financing_series: Callable[..., Any] | None = None,
+        draw_joint_returns: Callable[..., Any] | None = None,
+        build_cov_matrix: Callable[..., Any] | None = None,
+        simulate_agents: Callable[..., Any] | None = None,
+    ) -> None:
         """Initialize dependencies with explicit function parameters.
 
         Args:
@@ -191,24 +190,43 @@ class Dependencies:
         """
         # Import defaults only when needed to avoid heavy imports at module load
         if build_from_config is None:
-            from .agents.registry import build_from_config
-        if export_to_excel is None:
-            from .reporting import export_to_excel
-        if draw_financing_series is None:
-            from .sim import draw_financing_series
-        if draw_joint_returns is None:
-            from .sim import draw_joint_returns
-        if build_cov_matrix is None:
-            from .sim.covariance import build_cov_matrix
-        if simulate_agents is None:
-            from .simulations import simulate_agents
+            from .agents.registry import build_from_config as build_from_config_impl
 
-        self.build_from_config = build_from_config
-        self.export_to_excel = export_to_excel
-        self.draw_financing_series = draw_financing_series
-        self.draw_joint_returns = draw_joint_returns
-        self.build_cov_matrix = build_cov_matrix
-        self.simulate_agents = simulate_agents
+            build_from_config = build_from_config_impl
+        if export_to_excel is None:
+            from .reporting import export_to_excel as export_to_excel_impl
+
+            export_to_excel = export_to_excel_impl
+        if draw_financing_series is None:
+            from .sim import draw_financing_series as draw_financing_series_impl
+
+            draw_financing_series = draw_financing_series_impl
+        if draw_joint_returns is None:
+            from .sim import draw_joint_returns as draw_joint_returns_impl
+
+            draw_joint_returns = draw_joint_returns_impl
+        if build_cov_matrix is None:
+            from .sim.covariance import build_cov_matrix as build_cov_matrix_impl
+
+            build_cov_matrix = build_cov_matrix_impl
+        if simulate_agents is None:
+            from .simulations import simulate_agents as simulate_agents_impl
+
+            simulate_agents = simulate_agents_impl
+
+        assert build_from_config is not None
+        assert export_to_excel is not None
+        assert draw_financing_series is not None
+        assert draw_joint_returns is not None
+        assert build_cov_matrix is not None
+        assert simulate_agents is not None
+
+        self.build_from_config: Callable[..., Any] = build_from_config
+        self.export_to_excel: Callable[..., Any] = export_to_excel
+        self.draw_financing_series: Callable[..., Any] = draw_financing_series
+        self.draw_joint_returns: Callable[..., Any] = draw_joint_returns
+        self.build_cov_matrix: Callable[..., Any] = build_cov_matrix
+        self.simulate_agents: Callable[..., Any] = simulate_agents
 
 
 def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None) -> None:
@@ -232,7 +250,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Import light dependencies needed for argument parsing defaults
     # Import pandas for runtime usage (safe after bootstrap probe above)
-    import pandas as pd  # type: ignore
+    import pandas as pd
 
     from .stress import STRESS_PRESETS
 

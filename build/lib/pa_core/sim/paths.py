@@ -184,8 +184,8 @@ def prepare_mc_universe(
     assert rng is not None
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
-    mean = np.array([mu_idx, mu_H, mu_E, mu_M]) / 12.0
-    cov = cov_mat / 12.0
+    mean = np.array([mu_idx, mu_H, mu_E, mu_M])
+    cov = cov_mat
     if all(dist == "normal" for dist in distributions):
         sims = _safe_multivariate_normal(rng, mean, cov, (N_SIMULATIONS, N_MONTHS))
     else:
@@ -457,7 +457,7 @@ def draw_financing_series(
             n_scenarios=1,
             rng=rng_local,
         )
-        return np.broadcast_to(vec, (n_sim, n_months))  # type: ignore[no-any-return]
+        return cast(npt.NDArray[Any], np.broadcast_to(vec, (n_sim, n_months)))
 
     f_int_mat = _sim(
         "internal_financing_mean_month",
@@ -509,7 +509,7 @@ def simulate_alpha_streams(
         rng = spawn_rngs(None, 1)[0]
     assert rng is not None
     if all(dist == "normal" for dist in distributions):
-        return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]  # type: ignore[no-any-return]
+        return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]
     sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
     denom = np.outer(sigma, sigma)
     corr = np.divide(
@@ -539,4 +539,4 @@ def simulate_alpha_streams(
             copula=return_copula,
             distributions=distributions,
         )
-    return sims[:, 0, :]  # type: ignore[no-any-return]
+    return sims[:, 0, :]
