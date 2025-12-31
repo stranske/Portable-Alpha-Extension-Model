@@ -76,6 +76,15 @@ def test_share_inputs_normalize_percent_values() -> None:
     assert cfg.theta_extpa == pytest.approx(0.8)
 
 
+def test_share_inputs_accept_active_share_alias() -> None:
+    config_data = base_config()
+    config_data["Active share"] = 50.0
+
+    cfg = load_config(config_data)
+
+    assert cfg.active_share == pytest.approx(0.5)
+
+
 def test_risk_metrics_must_include_shortfallprob() -> None:
     config_data = base_config()
     config_data["risk_metrics"] = ["Return", "Risk"]

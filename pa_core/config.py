@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 
 class ConfigError(ValueError):
@@ -89,7 +89,12 @@ class ModelConfig(BaseModel):
     w_beta_H: float = Field(default=0.5, alias="In-House beta share")
     w_alpha_H: float = Field(default=0.5, alias="In-House alpha share")
     theta_extpa: float = Field(default=0.5, alias="External PA alpha fraction")
-    active_share: float = Field(default=0.5, alias="Active share (%)")
+    active_share: float = Field(
+        default=0.5,
+        alias="Active share (%)",
+        validation_alias=AliasChoices("Active share (%)", "Active share"),
+        description="Active share fraction (0..1)",
+    )
 
     mu_H: float = Field(default=0.04, alias="In-House annual return (%)")
     sigma_H: float = Field(default=0.01, alias="In-House annual vol (%)")
@@ -259,12 +264,12 @@ class ModelConfig(BaseModel):
     def normalize_share_inputs(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
-        share_fields = (
-            ("active_share", "Active share (%)"),
-            ("theta_extpa", "External PA alpha fraction"),
-        )
-        for field, alias in share_fields:
-            for key in (field, alias):
+        share_fields = {
+            "active_share": ("Active share (%)", "Active share"),
+            "theta_extpa": ("External PA alpha fraction",),
+        }
+        for field, aliases in share_fields.items():
+            for key in (field, *aliases):
                 if key in data:
                     data[key] = normalize_share(data[key])
         return data
