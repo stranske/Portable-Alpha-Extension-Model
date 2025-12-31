@@ -120,7 +120,7 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     explanation.append("• AnnReturn: Annualized return (%)\n")
     explanation.append("• AnnVol: Annualized volatility (%)\n")
     explanation.append("• VaR: Value at Risk (95% confidence)\n")
-    explanation.append("• BreachProb: Probability of monthly loss > 2%\n")
+    explanation.append("• BreachProb: Share of simulated months with any loss > 2%\n")
     if "ShortfallProb" in summary.columns:
         explanation.append("• ShortfallProb: Probability of annual loss > 5%\n")
     explanation.append("• TE: Tracking Error vs benchmark\n")

@@ -84,35 +84,94 @@ def test_breach_count_basic():
 
 
 def test_breach_probability_basic():
-    arr = np.array([[0.0, -0.05, 0.01]])
+    arr = np.array([[0.0, -0.05, 0.01], [0.02, 0.01, 0.03]])
     threshold = -0.01
     prob = breach_probability(arr, threshold)
-    assert prob == 1 / 3
+    assert np.isclose(prob, 1.0 / 6.0)
 
 
-def test_breach_probability_path():
-    arr = np.array(
-        [
-            [0.0, -0.05, 0.01],
-            [0.1, -0.02, -0.03],
-        ]
-    )
+def test_breach_probability_modes_multi_path():
+    arr = np.array([[0.0, -0.05, 0.01], [0.02, 0.01, 0.03]])
+    threshold = -0.01
+    assert np.isclose(breach_probability(arr, threshold, mode="any"), 0.5)
+    assert np.isclose(breach_probability(arr, threshold, mode="terminal"), 0.0)
+
+
+def test_breach_probability_single_path():
+    arr = np.array([0.0, -0.05, 0.01])
     thr = -0.01
-    assert breach_probability(arr, thr, path=0) == 1 / 3
-    assert breach_probability(arr, thr, path=1) == 2 / 3
+    assert np.isclose(breach_probability(arr, thr), 1.0 / 3.0)
+
+
+def test_breach_probability_modes_single_path():
+    arr = np.array([0.0, -0.05, 0.01])
+    thr = -0.01
+    assert np.isclose(breach_probability(arr, thr, mode="any"), 1.0)
+    assert np.isclose(breach_probability(arr, thr, mode="terminal"), 0.0)
+
+
+def test_breach_probability_ignores_path_argument():
+    arr = np.array([[0.0, -0.05, 0.01], [-0.02, 0.02, 0.03]])
+    thr = -0.01
+    expected = 2.0 / 6.0
+    assert np.isclose(breach_probability(arr, thr, path=0), expected)
+    assert np.isclose(breach_probability(arr, thr, path=1), expected)
 
 
 def test_summary_table_breach():
-    arr = np.array([[0.0, -0.03, 0.03]])
+    arr = np.array([[0.0, -0.03, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr})
     assert "BreachProb" in stats.columns
-    assert stats["BreachProb"].iloc[0] == 1 / 3
+    assert np.isclose(stats["BreachProb"].iloc[0], 1.0 / 6.0)
 
 
 def test_summary_table_breach_custom():
-    arr = np.array([[0.0, -0.02, 0.03]])
+    arr = np.array([[0.0, -0.02, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)
-    assert stats["BreachProb"].iloc[0] == 1 / 3
+    assert np.isclose(stats["BreachProb"].iloc[0], 1.0 / 6.0)
+
+
+def test_breach_probability_path_order_invariant():
+    arr = np.array(
+        [
+            [0.0, -0.02, 0.01],
+            [0.01, 0.02, 0.03],
+            [-0.03, 0.02, 0.01],
+        ]
+    )
+    thr = -0.01
+    prob = breach_probability(arr, thr)
+    reversed_prob = breach_probability(arr[::-1], thr)
+    assert prob == reversed_prob
+
+
+def test_breach_probability_reproducible_seed():
+    rng = np.random.default_rng(123)
+    arr = rng.normal(0.0, 0.1, size=(100, 12))
+    prob = breach_probability(arr, -0.02)
+    rng = np.random.default_rng(123)
+    arr2 = rng.normal(0.0, 0.1, size=(100, 12))
+    prob2 = breach_probability(arr2, -0.02)
+    assert prob == prob2
+
+
+def test_breach_probability_empty_input():
+    try:
+        breach_probability(np.array([]), -0.01)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for empty returns")
+
+
+def test_breach_probability_invalid_mode():
+    arr = np.array([0.0, -0.05, 0.01])
+    try:
+        breach_probability(arr, -0.01, mode="nope")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Expected ValueError for invalid mode")
 
 
 def test_summary_table_includes_new_metrics():
