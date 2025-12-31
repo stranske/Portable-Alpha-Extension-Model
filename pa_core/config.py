@@ -282,6 +282,8 @@ class ModelConfig(BaseModel):
         if not isinstance(data, dict):
             return data
         share_fields = {
+            "w_beta_H": ("In-House beta share",),
+            "w_alpha_H": ("In-House alpha share",),
             "active_share": ("Active share (%)", "Active share"),
             "theta_extpa": ("External PA alpha fraction",),
         }

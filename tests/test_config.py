@@ -41,6 +41,13 @@ def test_load_dict():
     assert cfg.mu_H == 0.05
 
 
+def test_model_config_normalizes_share_percentages():
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "w_beta_H": 60, "w_alpha_H": 40}
+    cfg = ModelConfig(**data)
+    assert cfg.w_beta_H == 0.6
+    assert cfg.w_alpha_H == 0.4
+
+
 def test_invalid_capital(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,  # Valid value
