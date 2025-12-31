@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Dict, Tuple
 
 import pandas as pd
+import numpy as np
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
@@ -16,6 +17,13 @@ from .types import ArrayLike
 from .validators import select_vol_regime_sigma
 
 
+def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+    denom = np.outer(sigma, sigma)
+    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+    return sigma, corr
+
+
 class SimulatorOrchestrator:
     """Run Monte Carlo simulations and compute summary metrics."""
 
@@ -24,7 +32,11 @@ class SimulatorOrchestrator:
         self.idx_series = idx_series
 
     def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
-        """Execute simulations and return per-agent returns and summary table."""
+        """Execute simulations and return per-agent returns and summary table.
+
+        Uses the PSD-corrected covariance matrix to derive the implied
+        volatilities and correlations before drawing joint returns.
+        """
 
         mu_idx = float(self.idx_series.mean())
         idx_sigma, _, _ = select_vol_regime_sigma(
@@ -34,7 +46,7 @@ class SimulatorOrchestrator:
         )
         n_samples = int(len(self.idx_series))
 
-        _ = build_cov_matrix(
+        cov = build_cov_matrix(
             self.cfg.rho_idx_H,
             self.cfg.rho_idx_E,
             self.cfg.rho_idx_M,
@@ -48,9 +60,27 @@ class SimulatorOrchestrator:
             covariance_shrinkage=self.cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
+        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+        idx_sigma_cov = float(sigma_vec[0])
+        sigma_h_cov = float(sigma_vec[1])
+        sigma_e_cov = float(sigma_vec[2])
+        sigma_m_cov = float(sigma_vec[3])
 
         rng_returns = spawn_rngs(seed, 1)[0]
-        params = build_simulation_params(self.cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        params = build_simulation_params(self.cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_cov)
+        params.update(
+            {
+                "default_sigma_H": sigma_h_cov / 12,
+                "default_sigma_E": sigma_e_cov / 12,
+                "default_sigma_M": sigma_m_cov / 12,
+                "rho_idx_H": float(corr_mat[0, 1]),
+                "rho_idx_E": float(corr_mat[0, 2]),
+                "rho_idx_M": float(corr_mat[0, 3]),
+                "rho_H_E": float(corr_mat[1, 2]),
+                "rho_H_M": float(corr_mat[1, 3]),
+                "rho_E_M": float(corr_mat[2, 3]),
+            }
+        )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=self.cfg.N_MONTHS,
