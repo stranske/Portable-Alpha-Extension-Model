@@ -39,9 +39,9 @@ def test_integration_regression_active_ext_financing_export(tmp_path: Path) -> N
     returns, summary = SimulatorOrchestrator(cfg, idx_series).run(seed=123)
 
     attr_df = compute_sleeve_return_attribution(cfg, idx_series)
-    active_alpha = attr_df[
-        (attr_df["Agent"] == "ActiveExt") & (attr_df["Sub"] == "Alpha")
-    ]["Return"]
+    active_alpha = attr_df[(attr_df["Agent"] == "ActiveExt") & (attr_df["Sub"] == "Alpha")][
+        "Return"
+    ]
     # Regression guard for #1: ActiveExt alpha must be nonzero when capital and active_share > 0.
     assert not active_alpha.empty
     assert active_alpha.iloc[0] > 1e-6
