@@ -16,8 +16,7 @@ def _check_python() -> list[str]:
     errors: list[str] = []
     if sys.version_info < _MIN_PYTHON:
         errors.append(
-            "Python >= 3.11 is required. "
-            f"Detected {_fmt_version(sys.version_info[:3])}."
+            "Python >= 3.11 is required. " f"Detected {_fmt_version(sys.version_info[:3])}."
         )
     return errors
 
@@ -26,9 +25,7 @@ def _check_repo_root() -> list[str]:
     errors: list[str] = []
     repo_root = Path(__file__).resolve().parents[1]
     if not (repo_root / "pyproject.toml").exists():
-        errors.append(
-            "Run this script from the repository root (pyproject.toml not found)."
-        )
+        errors.append("Run this script from the repository root (pyproject.toml not found).")
     return errors
 
 
