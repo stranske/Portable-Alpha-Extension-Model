@@ -102,6 +102,14 @@ def test_console_scripts_work_in_clean_venv(tmp_path: Path) -> None:
     venv.EnvBuilder(with_pip=True).create(venv_dir)
     python = _venv_python(venv_dir)
 
+    # Install setuptools first (not included by default in Python 3.12+ venvs)
+    # This is required for --no-build-isolation to work
+    subprocess.run(
+        [str(python), "-m", "pip", "install", "--quiet", "setuptools"],
+        env={**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"},
+        check=True,
+    )
+
     subprocess.run(
         [
             str(python),
