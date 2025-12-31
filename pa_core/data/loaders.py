@@ -6,6 +6,8 @@ from typing import Any, Dict, cast
 
 import pandas as pd
 
+PREFERRED_INDEX_RETURN_COLUMNS = ("Monthly_TR", "Return")
+
 
 def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, Any]:
     """Return parameter dictionary by mapping CSV headers via ``label_map``.
@@ -84,7 +86,7 @@ def load_index_returns(path: str | Path) -> pd.Series:
         raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
 
     selected_column: str | None = None
-    for col in ("Monthly_TR", "Return"):
+    for col in PREFERRED_INDEX_RETURN_COLUMNS:
         if col in df.columns:
             selected_column = col
             raw = df[col]

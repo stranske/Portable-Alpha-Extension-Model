@@ -47,7 +47,7 @@ Power users can work directly with YAML configuration files via the command-line
 ```bash
 python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
 ```
-The index CSV should include a `Date` column and a monthly total return column named `Monthly_TR` (preferred) or `Return`.
+The index CSV should include a `Date` column and a monthly total return column named `Monthly_TR` (preferred) or `Return`; if neither exists, the loader uses the second column and emits a warning.
 
 ## Plain-English Primer
 
