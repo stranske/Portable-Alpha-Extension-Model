@@ -229,8 +229,13 @@ def load_margin_schedule(path: Path) -> pd.DataFrame:
 
     df = pd.read_csv(path)
     df.columns = [str(col).strip().lower().replace(" ", "_") for col in df.columns]
-    if "term" not in df.columns and "term_months" in df.columns:
-        df = df.rename(columns={"term_months": "term"})
+    if "term" not in df.columns:
+        if "term_months" in df.columns:
+            df = df.rename(columns={"term_months": "term"})
+        elif "term_month" in df.columns:
+            df = df.rename(columns={"term_month": "term"})
+    if "multiplier" not in df.columns and "multipliers" in df.columns:
+        df = df.rename(columns={"multipliers": "multiplier"})
     required_cols = {"term", "multiplier"}
     missing = required_cols - set(df.columns)
 
