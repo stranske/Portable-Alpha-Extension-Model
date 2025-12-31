@@ -99,6 +99,12 @@ def test_max_drawdown_compounded_path():
     assert np.isclose(dd, -0.19)
 
 
+def test_max_drawdown_initial_drop():
+    arr = np.array([[-0.1, 0.0, 0.05]])
+    dd = max_drawdown(arr)
+    assert np.isclose(dd, -0.1)
+
+
 def test_time_under_water_basic():
     arr = np.array([[0.01, -0.02, 0.01]])
     tuw = time_under_water(arr)

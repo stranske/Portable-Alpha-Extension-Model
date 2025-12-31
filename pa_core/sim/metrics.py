@@ -184,6 +184,8 @@ def max_drawdown(returns: ArrayLike) -> float:
         arr = arr[None, :]
     compounded = compound(arr)
     wealth = 1.0 + compounded
+    # Include the initial wealth so the first-period drop is measured correctly.
+    wealth = np.concatenate([np.ones((wealth.shape[0], 1)), wealth], axis=1)
     running_max = np.maximum.accumulate(wealth, axis=1)
     drawdown = wealth / running_max - 1.0
     return float(np.min(drawdown))
