@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Protocol, runtime_checkable
 
 
 class BitGeneratorLike(Protocol):
@@ -21,3 +21,14 @@ class GeneratorLike(Protocol):
     def chisquare(self, *args: Any, **kwargs: Any) -> Any: ...
 
     def multivariate_normal(self, *args: Any, **kwargs: Any) -> Any: ...
+
+
+@runtime_checkable
+class ArrayLike(Protocol):
+    """Protocol for array-likes (numpy/cupy compatible)."""
+
+    shape: tuple[int, ...]
+    ndim: int
+    size: int
+
+    def __array__(self, dtype: Any | None = ...) -> Any: ...

@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Iterable
-
-from numpy.typing import NDArray
+from typing import Iterable, TypeAlias
 
 from .backend import xp as np
+from .types import ArrayLike
 
-Array = NDArray
+Array: TypeAlias = ArrayLike
 
 DEFAULT_PORTFOLIO_EXCLUDES = ("Base", "Total")
 
