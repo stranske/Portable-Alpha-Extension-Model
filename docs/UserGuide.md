@@ -92,8 +92,9 @@ easy filtering and dashboard visualisation.
 ### Key concepts
 
 * **Risk/return trade‑off** – compare annualised return and volatility across sleeves.
-* **Funding shortfall risk** – monitor the required `ShortfallProb` metric (include it under `risk_metrics` or configuration fails).
-* **Tracking error** – check how far each sleeve deviates from the benchmark.
+* **Funding shortfall risk** – monitor the required `ShortfallProb` metric (include it under `risk_metrics` or configuration fails). It reports the share of paths whose terminal compounded return falls below the annualised threshold over the full horizon.
+* **Tracking error** – the annualised standard deviation of active returns versus the benchmark.
+* **Max drawdown** – worst peak‑to‑trough decline of the compounded wealth path.
 * **Visualisation** – explore results via the dashboard or scripts.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
 
