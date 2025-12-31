@@ -147,9 +147,7 @@ def test_export_to_excel_includes_sunburst_snapshot(tmp_path: Path) -> None:
     from pa_core.reporting.excel import export_to_excel
 
     summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
-    attr_df = pd.DataFrame(
-        {"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]}
-    )
+    attr_df = pd.DataFrame({"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]})
     inputs = {"_attribution_df": attr_df}
     out_path = tmp_path / "outputs.xlsx"
 

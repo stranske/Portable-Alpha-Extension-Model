@@ -37,9 +37,7 @@ def test_export_to_excel_pivot(tmp_path: Path):
 
 def test_export_to_excel_adds_attribution_and_risk_sheets(tmp_path: Path) -> None:
     inputs = {
-        "_attribution_df": pd.DataFrame(
-            {"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]}
-        ),
+        "_attribution_df": pd.DataFrame({"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]}),
         "_risk_attr_df": pd.DataFrame(
             {
                 "Agent": ["Base"],
