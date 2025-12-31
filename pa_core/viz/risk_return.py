@@ -21,7 +21,8 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     df["ShortfallProb"] = df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
     color = []
     thr = theme.THRESHOLDS
-    has_data = lambda col: col in df and df[col].notna().any()
+    def has_data(col: str) -> bool:
+        return col in df and df[col].notna().any()
 
     if has_data("TE"):
         x_col = "TE"
