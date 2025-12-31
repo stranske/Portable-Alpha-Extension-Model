@@ -115,6 +115,22 @@ def test_load_index_returns_falls_back_to_second_column():
         os.remove(temp_path)
 
 
+def test_load_index_returns_falls_back_to_single_column():
+    """Test that the only column is used when the CSV has one column."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("CustomReturn\n")
+        f.write("0.07\n")
+        f.write("0.08\n")
+        temp_path = f.name
+
+    try:
+        with pytest.warns(UserWarning, match="Selected index returns column: CustomReturn"):
+            series = load_index_returns(temp_path)
+        assert series.iloc[0] == pytest.approx(0.07)
+    finally:
+        os.remove(temp_path)
+
+
 def test_load_index_returns_with_no_numeric_columns():
     """Test that non-numeric data in all columns raises an error."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
