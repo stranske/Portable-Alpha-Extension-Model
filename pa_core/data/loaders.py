@@ -68,7 +68,7 @@ def load_index_returns(path: str | Path) -> pd.Series:
     by converting them to NaN and dropping them from the final series.
     Column selection prefers ``Monthly_TR`` then ``Return``; otherwise the
     second column is used when present (first column for single-column files).
-    A warning is emitted showing which column was selected.
+    A warning is emitted showing which column was selected and why.
 
     Raises
     ------
@@ -86,9 +86,11 @@ def load_index_returns(path: str | Path) -> pd.Series:
         raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
 
     selected_column: str | None = None
+    selection_reason: str | None = None
     for col in PREFERRED_INDEX_RETURN_COLUMNS:
         if col in df.columns:
             selected_column = col
+            selection_reason = "preferred column"
             raw = df[col]
             break
     else:
@@ -96,13 +98,15 @@ def load_index_returns(path: str | Path) -> pd.Series:
             raise ValueError(f"No columns found in CSV file: {path}")
         if df.shape[1] == 1:
             selected_column = df.columns[0]
+            selection_reason = "single-column fallback"
             raw = df.iloc[:, 0]
         else:
             selected_column = df.columns[1]
+            selection_reason = "second-column fallback"
             raw = df.iloc[:, 1]
 
     warnings.warn(
-        f"Selected index returns column: {selected_column}",
+        f"Selected index returns column: {selected_column} ({selection_reason})",
         UserWarning,
         stacklevel=2,
     )
