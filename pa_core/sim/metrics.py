@@ -205,9 +205,18 @@ def summary_table(
         (a 5% annual loss).
     """
 
+    returns = returns_map
+    if benchmark and "Total" not in returns_map and benchmark in returns_map:
+        from ..portfolio import compute_total_contribution_returns
+
+        total = compute_total_contribution_returns(returns_map)
+        if total is not None:
+            returns = dict(returns_map)
+            returns["Total"] = total
+
     rows = []
-    bench_arr = returns_map.get(benchmark) if benchmark else None
-    for name, arr in returns_map.items():
+    bench_arr = returns.get(benchmark) if benchmark else None
+    for name, arr in returns.items():
         ann_ret = annualised_return(arr, periods_per_year)
         ann_vol = annualised_vol(arr, periods_per_year)
         var = value_at_risk(arr, confidence=var_conf)
