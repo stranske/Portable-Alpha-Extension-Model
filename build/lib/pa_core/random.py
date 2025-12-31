@@ -27,6 +27,8 @@ def spawn_agent_rngs(seed: int | None, agent_names: List[str]) -> Dict[str, Gene
     """Return a dedicated RNG for each agent name derived from ``seed``."""
     if not agent_names:
         raise ValueError("agent_names must not be empty")
+    if len(set(agent_names)) != len(agent_names):
+        raise ValueError("agent_names must be unique")
     ss = xp.random.SeedSequence(seed)
     spawned = ss.spawn(len(agent_names))
     rngs = [xp.random.default_rng(s) for s in spawned]

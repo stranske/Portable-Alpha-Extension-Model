@@ -207,9 +207,13 @@ def summary_table(
 
     rows = []
     bench_arr = returns_map.get(benchmark) if benchmark else None
+    bench_ann_ret = (
+        annualised_return(bench_arr, periods_per_year) if bench_arr is not None else None
+    )
     for name, arr in returns_map.items():
         ann_ret = annualised_return(arr, periods_per_year)
         ann_vol = annualised_vol(arr, periods_per_year)
+        excess_return = ann_ret - bench_ann_ret if bench_ann_ret is not None else ann_ret
         var = value_at_risk(arr, confidence=var_conf)
         cvar = conditional_value_at_risk(arr, confidence=var_conf)
         breach = breach_probability(arr, breach_threshold)
@@ -223,6 +227,7 @@ def summary_table(
             {
                 "Agent": name,
                 "AnnReturn": ann_ret,
+                "ExcessReturn": excess_return,
                 "AnnVol": ann_vol,
                 "VaR": var,
                 "CVaR": cvar,

@@ -448,7 +448,10 @@ def run_parameter_sweep_cached(
         _SWEEP_CACHE[key] = run_parameter_sweep(
             cfg, index_series, rng_returns, fin_rngs, seed=seed, progress=progress
         )
-    return _SWEEP_CACHE[key]
+    results = _SWEEP_CACHE[key]
+    if progress is not None:
+        progress(len(results), len(results))
+    return results
 
 
 def sweep_results_to_dataframe(results: List[Dict[str, Any]]) -> pd.DataFrame:
