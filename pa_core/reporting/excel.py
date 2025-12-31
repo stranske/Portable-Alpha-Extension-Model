@@ -29,6 +29,7 @@ def export_to_excel(
     pivot: bool = False,
     diff_config_df: pd.DataFrame | None = None,
     diff_metrics_df: pd.DataFrame | None = None,
+    finalize: bool = True,
 ) -> None:
     """Write inputs, summary, and raw returns into an Excel workbook.
 
@@ -46,14 +47,15 @@ def export_to_excel(
         If ``True``, collapse all raw returns into a single ``AllReturns`` sheet
         in long format (``Sim``, ``Month``, ``Agent``, ``Return``). Otherwise a
         separate sheet is written per agent. Defaults to ``False``.
+    finalize : bool, optional
+        If ``True``, apply formatting and embed charts after writing sheets.
+        When appending extra sheets later, set to ``False`` and call
+        ``finalize_excel_workbook`` after the append. Defaults to ``True``.
     """
 
-    attr_maybe = inputs_dict.get("_attribution_df")
-    attr_df: pd.DataFrame | None = attr_maybe if isinstance(attr_maybe, pd.DataFrame) else None
-    risk_maybe = inputs_dict.get("_risk_attr_df")
-    risk_df: pd.DataFrame | None = risk_maybe if isinstance(risk_maybe, pd.DataFrame) else None
-    trade_maybe = inputs_dict.get("_tradeoff_df")
-    trade_df: pd.DataFrame | None = trade_maybe if isinstance(trade_maybe, pd.DataFrame) else None
+    attr_df = _optional_df(inputs_dict, "_attribution_df")
+    risk_df = _optional_df(inputs_dict, "_risk_attr_df")
+    trade_df = _optional_df(inputs_dict, "_tradeoff_df")
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         df_inputs = pd.DataFrame(
@@ -68,8 +70,7 @@ def export_to_excel(
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         # Optional: Sensitivity sheet if provided
-        sens_maybe = inputs_dict.get("_sensitivity_df")
-        sens_df: pd.DataFrame | None = sens_maybe if isinstance(sens_maybe, pd.DataFrame) else None
+        sens_df = _optional_df(inputs_dict, "_sensitivity_df")
         if sens_df is not None and not sens_df.empty:
             # Write a concise view
             cols = [
@@ -139,6 +140,27 @@ def export_to_excel(
                     safe_name = sheet_name if len(sheet_name) <= 31 else sheet_name[:31]
                     df.to_excel(writer, sheet_name=safe_name, index=True)
 
+    if finalize:
+        finalize_excel_workbook(
+            filename,
+            inputs_dict,
+            summary_df,
+        )
+
+
+def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
+    value = inputs_dict.get(key)
+    return value if isinstance(value, pd.DataFrame) else None
+
+
+def finalize_excel_workbook(
+    filename: str, inputs_dict: Dict[str, Any], summary_df: pd.DataFrame
+) -> None:
+    """Apply formatting and embed charts once all sheets are written."""
+    sens_df = _optional_df(inputs_dict, "_sensitivity_df")
+    attr_df = _optional_df(inputs_dict, "_attribution_df")
+    risk_df = _optional_df(inputs_dict, "_risk_attr_df")
+
     wb = openpyxl.load_workbook(filename)
     max_autosize_cells = 50_000
     for ws in wb.worksheets:
@@ -156,6 +178,10 @@ def export_to_excel(
     if "Summary" in wb.sheetnames and not (
         os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
     ):
+        summary_df = summary_df.copy()
+        summary_df["ShortfallProb"] = summary_df.get(
+            "ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+        )
         ws = wb["Summary"]
         metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]

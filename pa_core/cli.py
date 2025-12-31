@@ -1212,12 +1212,14 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             logger.error(f"Sensitivity analysis data type error: {e}")
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
 
+    finalize_after_append = bool(args.stress_preset)
     deps.export_to_excel(
         inputs_dict,
         summary,
         raw_returns_dict,
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
+        finalize=not finalize_after_append,
     )
     _record_artifact(flags.save_xlsx or "Outputs.xlsx")
     if args.stress_preset:
@@ -1233,15 +1235,15 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                         summary.to_excel(writer, sheet_name="StressedSummary", index=False)
                     if stress_delta_df is not None and not stress_delta_df.empty:
                         stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
-                try:
-                    import openpyxl
-
-                    wb = openpyxl.load_workbook(out_path)
-                    wb.save(out_path)
-                except (OSError, PermissionError, ValueError) as e:
-                    logger.warning(f"Failed to finalize stress workbook: {e}")
             except (OSError, PermissionError, ValueError) as e:
                 logger.warning(f"Failed to append stress sheets: {e}")
+            finally:
+                try:
+                    from .reporting.excel import finalize_excel_workbook
+
+                    finalize_excel_workbook(str(out_path), inputs_dict, summary)
+                except (OSError, PermissionError, ValueError) as e:
+                    logger.warning(f"Failed to finalize stress workbook: {e}")
         else:
             logger.warning("Stress sheet export skipped; output workbook missing.")
 
