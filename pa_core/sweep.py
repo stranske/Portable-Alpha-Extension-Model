@@ -250,14 +250,12 @@ def run_parameter_sweep(
                 n_samples=n_samples,
             )
             base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
-            shock_params = build_return_params(
-                cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]) / 12
-            )
+            shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
             shock_params.update(
                 {
-                    "default_sigma_H": float(base_sigma[1]) / 12,
-                    "default_sigma_E": float(base_sigma[2]) / 12,
-                    "default_sigma_M": float(base_sigma[3]) / 12,
+                    "default_sigma_H": float(base_sigma[1]),
+                    "default_sigma_E": float(base_sigma[2]),
+                    "default_sigma_M": float(base_sigma[3]),
                     "rho_idx_H": float(base_corr[0, 1]),
                     "rho_idx_E": float(base_corr[0, 2]),
                     "rho_idx_M": float(base_corr[0, 3]),
@@ -323,14 +321,14 @@ def run_parameter_sweep(
         idx_sigma_use = idx_sigma
         if mod_cfg.covariance_shrinkage != "none":
             sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-            idx_sigma_use = float(sigma_vec[0]) / 12
+            idx_sigma_use = float(sigma_vec[0])
             sigma_h_cov = float(sigma_vec[1])
             sigma_e_cov = float(sigma_vec[2])
             sigma_m_cov = float(sigma_vec[3])
             return_overrides = {
-                "default_sigma_H": sigma_h_cov / 12,
-                "default_sigma_E": sigma_e_cov / 12,
-                "default_sigma_M": sigma_m_cov / 12,
+                "default_sigma_H": sigma_h_cov,
+                "default_sigma_E": sigma_e_cov,
+                "default_sigma_M": sigma_m_cov,
                 "rho_idx_H": float(corr_mat[0, 1]),
                 "rho_idx_E": float(corr_mat[0, 2]),
                 "rho_idx_M": float(corr_mat[0, 3]),

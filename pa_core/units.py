@@ -4,9 +4,22 @@ from typing import Literal
 
 import pandas as pd
 
-from .config import CANONICAL_RETURN_UNIT, DEFAULT_MEAN_CONVERSION, MONTHS_PER_YEAR
+from .config import (
+    CANONICAL_RETURN_UNIT,
+    DEFAULT_MEAN_CONVERSION,
+    MONTHS_PER_YEAR,
+    annual_cov_to_monthly,
+    annual_mean_to_monthly,
+    annual_vol_to_monthly,
+)
 
-__all__ = ["convert_annual_series_to_monthly", "normalize_index_series"]
+__all__ = [
+    "convert_annual_series_to_monthly",
+    "normalize_index_series",
+    "annual_mean_to_monthly",
+    "annual_vol_to_monthly",
+    "annual_cov_to_monthly",
+]
 
 
 def convert_annual_series_to_monthly(
