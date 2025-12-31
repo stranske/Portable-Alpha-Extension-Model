@@ -159,7 +159,6 @@ def finalize_excel_workbook(
     """Apply formatting and embed charts once all sheets are written."""
     sens_df = _optional_df(inputs_dict, "_sensitivity_df")
     attr_df = _optional_df(inputs_dict, "_attribution_df")
-    risk_df = _optional_df(inputs_dict, "_risk_attr_df")
 
     wb = openpyxl.load_workbook(filename)
     max_autosize_cells = 50_000

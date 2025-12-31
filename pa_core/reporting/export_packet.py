@@ -174,7 +174,7 @@ def create_export_packet(
         diff_metrics_df=metric_diff_df,
         finalize=not finalize_after_append,
     )
-    if finalize_after_append:
+    if stress_delta_df is not None and not stress_delta_df.empty:
         with pd.ExcelWriter(
             excel_path, engine="openpyxl", mode="a", if_sheet_exists="replace"
         ) as writer:
