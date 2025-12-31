@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, Union
 
-import yaml  # type: ignore[import-untyped]
+import numpy as np
+import yaml
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
@@ -14,7 +16,44 @@ class ConfigError(ValueError):
     """Invalid configuration."""
 
 
-__all__ = ["ModelConfig", "load_config", "ConfigError", "get_field_mappings", "normalize_share"]
+MONTHS_PER_YEAR = 12
+CANONICAL_RETURN_UNIT: Literal["monthly"] = "monthly"
+DEFAULT_RETURN_UNIT: Literal["annual", "monthly"] = "annual"
+DEFAULT_MEAN_CONVERSION: Literal["simple", "geometric"] = "simple"
+
+
+def annual_mean_to_monthly(
+    value: float, *, method: Literal["simple", "geometric"] = DEFAULT_MEAN_CONVERSION
+) -> float:
+    """Convert an annual mean return to a monthly mean."""
+    if method == "geometric":
+        return float((1.0 + value) ** (1.0 / MONTHS_PER_YEAR) - 1.0)
+    return float(value / MONTHS_PER_YEAR)
+
+
+def annual_vol_to_monthly(value: float) -> float:
+    """Convert an annual volatility to a monthly volatility."""
+    return value / math.sqrt(MONTHS_PER_YEAR)
+
+
+def annual_cov_to_monthly(cov: np.ndarray) -> np.ndarray:
+    """Convert an annual covariance matrix to monthly units."""
+    return np.asarray(cov, dtype=float) / MONTHS_PER_YEAR
+
+
+__all__ = [
+    "ModelConfig",
+    "load_config",
+    "ConfigError",
+    "get_field_mappings",
+    "normalize_share",
+    "MONTHS_PER_YEAR",
+    "CANONICAL_RETURN_UNIT",
+    "DEFAULT_MEAN_CONVERSION",
+    "annual_mean_to_monthly",
+    "annual_vol_to_monthly",
+    "annual_cov_to_monthly",
+]
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -67,6 +106,11 @@ class ModelConfig(BaseModel):
     backend: str = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
+    return_unit: Literal["annual", "monthly"] = Field(
+        default=DEFAULT_RETURN_UNIT,
+        alias="return_unit",
+        description="Input unit for return means/volatilities.",
+    )
 
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
@@ -185,6 +229,34 @@ class ModelConfig(BaseModel):
         ],
         alias="risk_metrics",
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_return_units(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        unit = data.get("return_unit", DEFAULT_RETURN_UNIT)
+        if unit == CANONICAL_RETURN_UNIT:
+            return data
+        if unit != DEFAULT_RETURN_UNIT:
+            return data
+        updated = dict(data)
+        mu_defaults = {
+            "mu_H": cls.model_fields["mu_H"].default,
+            "mu_E": cls.model_fields["mu_E"].default,
+            "mu_M": cls.model_fields["mu_M"].default,
+        }
+        sigma_defaults = {
+            "sigma_H": cls.model_fields["sigma_H"].default,
+            "sigma_E": cls.model_fields["sigma_E"].default,
+            "sigma_M": cls.model_fields["sigma_M"].default,
+        }
+        for field, default in mu_defaults.items():
+            updated[field] = annual_mean_to_monthly(updated.get(field, default))
+        for field, default in sigma_defaults.items():
+            updated[field] = annual_vol_to_monthly(updated.get(field, default))
+        updated["return_unit"] = CANONICAL_RETURN_UNIT
+        return updated
 
     @model_validator(mode="after")
     def check_financing_model(self) -> "ModelConfig":

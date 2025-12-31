@@ -1,18 +1,25 @@
 from __future__ import annotations
 
+from typing import Any, Callable
+
 import pandas as pd
 
+from . import risk_return
+
+widgets: Any | None
+display: Callable[..., Any] | None
+
 try:  # pragma: no cover - optional dependency
-    import ipywidgets as widgets  # type: ignore[import-not-found]
-    from IPython.display import display  # type: ignore[import-not-found]
+    import ipywidgets as widgets
+    from IPython.display import display as display_fn
+
+    display: Callable[..., Any] | None = display_fn
 except (
     ImportError,
     ModuleNotFoundError,
 ):  # pragma: no cover - ipywidgets not installed
-    widgets = None  # type: ignore[assignment]
-    display = None  # type: ignore[assignment]
-
-from . import risk_return
+    widgets = None
+    display = None
 
 
 def explore(df_summary: pd.DataFrame) -> None:
@@ -26,7 +33,7 @@ def explore(df_summary: pd.DataFrame) -> None:
         scaled = df_summary.copy()
         scaled["AnnReturn"] *= scale
         fig = risk_return.make(scaled)
-        display(fig)  # type: ignore[no-untyped-call]
+        display(fig)
 
     slider = widgets.FloatSlider(value=1.0, min=0.5, max=1.5, step=0.1)
     widgets.interact(_update, scale=slider)

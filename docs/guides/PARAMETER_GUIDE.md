@@ -55,6 +55,7 @@ Set these based on your capital market assumptions:
 - **External annual return**: Expected alpha from external PA manager (e.g., 2-5%)
 
 **Calibration Tip**: Use historical performance or market research for realistic assumptions
+**Unit convention**: The model stores returns in monthly units. Annual inputs are converted once at config load using mean_month = mean_annual / 12 (or geometric: (1 + mean_annual)^(1/12) − 1). Set `return_unit: monthly` in your YAML if you are providing monthly values directly.
 
 Unrealistic combinations (for example extremely high expected return with very low volatility) can produce nonsensical outputs. Start with the templates in `config/` and adjust gradually.
 
@@ -64,6 +65,7 @@ Unrealistic combinations (for example extremely high expected return with very l
 - **External annual vol**: Volatility of external manager alpha (typically 1-4%)
 
 **Risk Budgeting**: Higher vol = higher expected return but more uncertainty
+**Unit convention**: Annual vols are converted once at config load using vol_month = vol_annual / √12. Covariances are scaled by 1/12 when expressed in annual units.
 
 ### 8. Correlation Matrix
 Critical for understanding diversification benefits:

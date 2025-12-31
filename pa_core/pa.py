@@ -10,7 +10,7 @@ from typing import Any, Literal, Mapping, Sequence, cast
 def _require_yaml() -> Any:
     """Import PyYAML lazily to keep `pa --help` lightweight."""
     try:
-        import yaml  # type: ignore[import-untyped]
+        import yaml
     except ImportError as exc:  # pragma: no cover - depends on environment
         raise ImportError(
             "PyYAML is required for this command. Install it with `pip install pyyaml`."

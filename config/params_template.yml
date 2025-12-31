@@ -15,6 +15,10 @@ w_alpha_H: 0.5 # internal sleeve alpha weight
 theta_extpa: 0.5 # external PA alpha fraction
 active_share: 0.5 # active-extension active share fraction
 
+# Return units are annual by default and converted to monthly at config load.
+# Set return_unit: monthly if you provide monthly inputs directly.
+return_unit: annual # annual|monthly
+
 mu_H: 0.04 # annual mean return of in-house alpha
 sigma_H: 0.01 # annual volatility of in-house alpha
 mu_E: 0.05 # annual mean return of extension alpha

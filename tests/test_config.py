@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 
-from pa_core.config import ModelConfig, load_config
+from pa_core.config import ModelConfig, annual_mean_to_monthly, load_config
 from pa_core.data.convert import convert
 
 yaml: Any = pytest.importorskip("yaml")
@@ -38,7 +38,7 @@ def test_load_dict():
     cfg = load_config(data)
     assert cfg.N_SIMULATIONS == 1000
     assert cfg.N_MONTHS == 3
-    assert cfg.mu_H == 0.05
+    assert cfg.mu_H == annual_mean_to_monthly(0.05)
 
 
 def test_model_config_normalizes_share_percentages():
