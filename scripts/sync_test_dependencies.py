@@ -12,10 +12,9 @@ import argparse
 import ast
 import re
 import sys
+import tomllib
 from pathlib import Path
 from typing import Any, cast
-
-import tomllib
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SRC_PATH = REPO_ROOT / "src"
@@ -90,7 +89,6 @@ STDLIB_MODULES = {
     "unittest",
     "urllib",
     "uuid",
-    "venv",
     "warnings",
     "weakref",
     "xml",
