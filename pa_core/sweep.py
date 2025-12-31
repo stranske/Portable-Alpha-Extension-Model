@@ -249,14 +249,16 @@ def run_parameter_sweep(
         )
         _, base_corr = _cov_to_corr_and_sigma(base_cov)
         shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
-        shock_params.update({
-            "rho_idx_H": float(base_corr[0, 1]),
-            "rho_idx_E": float(base_corr[0, 2]),
-            "rho_idx_M": float(base_corr[0, 3]),
-            "rho_H_E": float(base_corr[1, 2]),
-            "rho_H_M": float(base_corr[1, 3]),
-            "rho_E_M": float(base_corr[2, 3]),
-        })
+        shock_params.update(
+            {
+                "rho_idx_H": float(base_corr[0, 1]),
+                "rho_idx_E": float(base_corr[0, 2]),
+                "rho_idx_M": float(base_corr[0, 3]),
+                "rho_H_E": float(base_corr[1, 2]),
+                "rho_H_M": float(base_corr[1, 3]),
+                "rho_E_M": float(base_corr[2, 3]),
+            }
+        )
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
@@ -314,17 +316,19 @@ def run_parameter_sweep(
         sigma_e_cov = float(sigma_vec[2])
         sigma_m_cov = float(sigma_vec[3])
         params = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_cov)
-        params.update({
-            "default_sigma_H": sigma_h_cov / 12,
-            "default_sigma_E": sigma_e_cov / 12,
-            "default_sigma_M": sigma_m_cov / 12,
-            "rho_idx_H": float(corr_mat[0, 1]),
-            "rho_idx_E": float(corr_mat[0, 2]),
-            "rho_idx_M": float(corr_mat[0, 3]),
-            "rho_H_E": float(corr_mat[1, 2]),
-            "rho_H_M": float(corr_mat[1, 3]),
-            "rho_E_M": float(corr_mat[2, 3]),
-        })
+        params.update(
+            {
+                "default_sigma_H": sigma_h_cov / 12,
+                "default_sigma_E": sigma_e_cov / 12,
+                "default_sigma_M": sigma_m_cov / 12,
+                "rho_idx_H": float(corr_mat[0, 1]),
+                "rho_idx_E": float(corr_mat[0, 2]),
+                "rho_idx_M": float(corr_mat[0, 3]),
+                "rho_H_E": float(corr_mat[1, 2]),
+                "rho_H_M": float(corr_mat[1, 3]),
+                "rho_E_M": float(corr_mat[2, 3]),
+            }
+        )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,
