@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
@@ -227,6 +227,14 @@ def load_margin_schedule(path: Union[str, Path, bytes, bytearray]) -> pd.DataFra
     """
     if isinstance(path, (bytes, bytearray)):
         df = pd.read_csv(BytesIO(path))
+    elif isinstance(path, str):
+        schedule_path = Path(path)
+        if schedule_path.exists():
+            df = pd.read_csv(schedule_path)
+        elif "\n" in path or "\r" in path:
+            df = pd.read_csv(StringIO(path))
+        else:
+            raise FileNotFoundError(f"Margin schedule file not found: {schedule_path}")
     else:
         schedule_path = Path(path)
         if not schedule_path.exists():

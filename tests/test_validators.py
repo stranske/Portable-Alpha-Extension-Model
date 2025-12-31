@@ -295,6 +295,12 @@ class TestMarginScheduleValidation:
         schedule = load_margin_schedule(csv)
         assert list(schedule["term"]) == [1, 3]
 
+    def test_string_csv_input(self):
+        """Accept schedule CSV content as a string."""
+        csv = "term,multiplier\n1,2\n3,4\n"
+        schedule = load_margin_schedule(csv)
+        assert list(schedule["term"]) == [1, 3]
+
 
 class TestSimulationParameterValidation:
     """Test simulation parameter validation."""
