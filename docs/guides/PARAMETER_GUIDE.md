@@ -126,6 +126,18 @@ Critical for understanding diversification benefits:
 
 **Portfolio Construction Insight**: Negative or low correlations enhance Sharpe ratio
 
+### 8a. Calibration Methodology and Assumptions
+The calibration workflow estimates parameters directly from manager return histories:
+- **Mean estimation**: Per-series sample means are shrunk toward the grand mean to reduce noise in short samples.
+- **Volatility estimation**: Sample standard deviations use a small-sample bias correction (c4 adjustment).
+- **Correlation estimation**: Pairwise correlations are shrunk toward either the identity matrix or a constant-correlation target.
+- **Confidence intervals**: Mean and volatility intervals use normal/chi-square approximations; correlations use Fisher z.
+- **Missing data**: All estimates use available observations per series, and correlations are computed on overlapping data.
+
+**Data expectations**:
+- Monthly return series with a consistent date column (default: `Date`).
+- For calibration to config parameters, provide an index column plus three manager series (H/E/M) or use `--alpha-ids`.
+
 ### 9. Financing Costs (Monthly %)
 Models the cost of leverage/shorting in portable alpha:
 - **Internal financing mean (monthly %)**: Baseline borrowing cost for the internal sleeve

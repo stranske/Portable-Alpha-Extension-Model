@@ -5,7 +5,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from pa_core.config import load_config
 from pa_core.pa import main
+from pa_core.schema import load_scenario
 
 yaml = pytest.importorskip("yaml")
 
@@ -135,3 +137,40 @@ def test_pa_calibrate_mapping_cov_shrinkage(tmp_path: Path) -> None:
     asset_idx = next(row for row in payload["assets"] if row["id"] == "IDX")
     expected_sigma = pd.Series([0.01, 0.02]).std(ddof=0) * (12.0**0.5)
     assert asset_idx["sigma"] == pytest.approx(float(expected_sigma))
+
+
+def test_pa_calibrate_returns_params(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-31", periods=8, freq="ME")
+    df = pd.DataFrame(
+        {
+            "Date": dates,
+            "IDX": [0.01, 0.02, 0.03, 0.04, 0.01, -0.01, 0.02, 0.03],
+            "H": [0.02, 0.01, 0.03, 0.02, 0.01, 0.00, 0.02, 0.01],
+            "E": [0.01, 0.01, 0.02, 0.02, 0.01, 0.01, 0.02, 0.02],
+            "M": [0.03, 0.02, 0.01, 0.00, 0.02, 0.03, 0.01, 0.00],
+        }
+    )
+    csv_path = tmp_path / "managers.csv"
+    df.to_csv(csv_path, index=False)
+
+    output_path = tmp_path / "params.yml"
+    scenario_path = tmp_path / "scenario.yml"
+    main(
+        [
+            "calibrate",
+            "--returns",
+            str(csv_path),
+            "--output",
+            str(output_path),
+            "--scenario-output",
+            str(scenario_path),
+        ]
+    )
+
+    payload = yaml.safe_load(output_path.read_text())
+    assert payload["mu_H"] != 0.0
+    assert payload["sigma_E"] > 0.0
+    assert "calibration" in payload
+    load_config(output_path)
+    scenario = load_scenario(scenario_path)
+    assert scenario.index.id == "IDX"

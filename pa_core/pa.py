@@ -107,17 +107,20 @@ def main(argv: Sequence[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="Run simulation")
     sub.add_parser("validate", help="Validate scenario YAML")
-    calibrate_parser = sub.add_parser("calibrate", help="Calibrate asset library from returns data")
-    calibrate_parser.add_argument(
-        "--input", required=True, help="Input CSV/XLSX file with returns or prices"
+    calibrate_parser = sub.add_parser("calibrate", help="Calibrate parameters from returns data")
+    io_group = calibrate_parser.add_mutually_exclusive_group(required=True)
+    io_group.add_argument(
+        "--input", help="Input CSV/XLSX file with returns or prices (asset library output)"
     )
-    calibrate_parser.add_argument(
-        "--index-id", required=True, help="Asset id to use as market index"
+    io_group.add_argument(
+        "--returns",
+        help="Input CSV/XLSX file with manager returns (params output)",
     )
+    calibrate_parser.add_argument("--index-id", help="Asset id to use as market index")
     calibrate_parser.add_argument(
         "--output",
         default="asset_library.yaml",
-        help="Output asset library YAML (default: asset_library.yaml)",
+        help="Output YAML (default: asset_library.yaml)",
     )
     calibrate_parser.add_argument(
         "--mapping",
@@ -128,6 +131,45 @@ def main(argv: Sequence[str] | None = None) -> None:
         type=int,
         default=36,
         help="Minimum observations per id when no mapping template is provided",
+    )
+    calibrate_parser.add_argument(
+        "--date-col",
+        default="Date",
+        help="Date column for manager returns input (default: Date)",
+    )
+    calibrate_parser.add_argument(
+        "--alpha-ids",
+        nargs=3,
+        metavar=("H", "E", "M"),
+        help="Series ids for H/E/M alpha streams when using --returns",
+    )
+    calibrate_parser.add_argument(
+        "--mean-shrinkage",
+        type=float,
+        default=0.2,
+        help="Shrinkage intensity for means (0-1)",
+    )
+    calibrate_parser.add_argument(
+        "--corr-shrinkage",
+        type=float,
+        default=0.2,
+        help="Shrinkage intensity for correlations (0-1)",
+    )
+    calibrate_parser.add_argument(
+        "--corr-target",
+        choices=["identity", "constant"],
+        default="identity",
+        help="Correlation shrinkage target",
+    )
+    calibrate_parser.add_argument(
+        "--ci-level",
+        type=float,
+        default=0.95,
+        help="Confidence level for parameter intervals",
+    )
+    calibrate_parser.add_argument(
+        "--scenario-output",
+        help="Optional scenario YAML output from calibrated parameters",
     )
     calibrate_parser.add_argument(
         "--cov-shrinkage",
@@ -163,6 +205,63 @@ def main(argv: Sequence[str] | None = None) -> None:
 
         validate_main(list(remaining))
     elif args.command == "calibrate":
+        if args.returns:
+            import pandas as pd
+
+            from .calibration import (
+                build_calibration_report,
+                calibrate_returns,
+                infer_series_ids,
+            )
+            from .schema import save_scenario
+
+            returns_path = Path(args.returns)
+            if returns_path.suffix.lower() == ".csv":
+                raw = pd.read_csv(returns_path)
+            elif returns_path.suffix.lower() in {".xlsx", ".xls"}:
+                raw = pd.read_excel(returns_path)
+            else:
+                raise ValueError("unsupported returns file type")
+
+            if args.date_col in raw.columns:
+                raw[args.date_col] = pd.to_datetime(raw[args.date_col])
+                returns_df = raw.set_index(args.date_col)
+            else:
+                returns_df = raw.copy()
+
+            index_id, alpha_ids = infer_series_ids(
+                returns_df.columns, index_id=args.index_id, alpha_ids=args.alpha_ids
+            )
+
+            returns_result = calibrate_returns(
+                returns_df,
+                index_id=index_id,
+                mean_shrinkage=args.mean_shrinkage,
+                corr_shrinkage=args.corr_shrinkage,
+                corr_target=cast(Literal["identity", "constant"], args.corr_target),
+                confidence_level=args.ci_level,
+            )
+            alpha_map = {"H": alpha_ids[0], "E": alpha_ids[1], "M": alpha_ids[2]}
+            model_config = returns_result.to_model_config(alpha_map=alpha_map)
+            payload: dict[str, object] = {
+                "N_SIMULATIONS": 1000,
+                "N_MONTHS": 12,
+                **model_config,
+            }
+            report = build_calibration_report(returns_result, alpha_map=alpha_map)
+            payload["calibration"] = report
+
+            yaml = _require_yaml()
+            Path(args.output).write_text(
+                yaml.safe_dump(payload, sort_keys=False, default_flow_style=False)
+            )
+            if args.scenario_output:
+                save_scenario(returns_result.to_scenario(), args.scenario_output)
+            print(f"✓ Wrote calibrated parameters to {args.output}")
+            if args.scenario_output:
+                print(f"✓ Wrote scenario YAML to {args.scenario_output}")
+            return
+
         from .data import CalibrationAgent, DataImportAgent
 
         calibration_overrides: Mapping[str, Any] = {}
@@ -171,6 +270,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             calibration_overrides = _load_calibration_overrides(args.mapping)
         else:
             importer = DataImportAgent(min_obs=int(args.min_obs))
+        if args.index_id is None:
+            raise ValueError("index-id is required when using --input")
         cov_shrinkage = cast(
             Literal["none", "ledoit_wolf"] | None,
             _coerce_calibration_setting(
@@ -207,8 +308,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             vol_regime=vol_regime_value,
             vol_regime_window=int(vol_regime_window),
         )
-        result = calib.calibrate(df, index_id=args.index_id)
-        calib.to_yaml(result, args.output)
+        data_result = calib.calibrate(df, index_id=args.index_id)
+        calib.to_yaml(data_result, args.output)
         print(f"✓ Wrote asset library to {args.output}")
     else:  # convert
         # Handle convert command with its specific arguments
