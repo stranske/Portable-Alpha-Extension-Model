@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import io
 import os
-from typing import Any, Dict, Iterable
+from typing import Iterable
 
 import openpyxl
 import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
+from ..types import SweepResult
 from ..viz import risk_return, theme
 
 __all__ = ["export_sweep_results"]
@@ -30,7 +31,7 @@ _SUMMARY_COLUMNS = [
 ]
 
 
-def export_sweep_results(results: Iterable[Dict[str, Any]], filename: str = "Sweep.xlsx") -> None:
+def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.xlsx") -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
     all_summary: pd.DataFrame | None = None
 

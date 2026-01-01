@@ -25,7 +25,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
-from .types import GeneratorLike
+from .types import GeneratorLike, SweepResult
 from .units import get_index_series_unit, normalize_index_series
 from .validators import select_vol_regime_sigma
 
@@ -155,7 +155,7 @@ def run_parameter_sweep(
     fin_rngs: Dict[str, GeneratorLike],
     seed: Optional[int] = None,
     progress: Optional[Callable[[int, int], None]] = None,
-) -> List[Dict[str, Any]]:
+) -> List[SweepResult]:
     """Run the parameter sweep and collect results.
 
     Index returns are normalised to monthly units before simulation, and
@@ -167,7 +167,7 @@ def run_parameter_sweep(
         Optional callback accepting ``(current, total)`` to report progress. When
         ``None``, a ``tqdm`` progress bar is displayed.
     """
-    results: List[Dict[str, Any]] = []
+    results: List[SweepResult] = []
 
     index_series = normalize_index_series(pd.Series(index_series), get_index_series_unit())
     mu_idx = float(index_series.mean())
@@ -398,7 +398,7 @@ def run_parameter_sweep(
 # ---------------------------------------------------------------------------
 # Cached sweep and result helpers
 
-_SWEEP_CACHE: Dict[str, List[Dict[str, Any]]] = {}
+_SWEEP_CACHE: Dict[str, List[SweepResult]] = {}
 
 
 def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str:
@@ -415,7 +415,7 @@ def run_parameter_sweep_cached(
     index_series: pd.Series,
     seed: int,
     progress: Optional[Callable[[int, int], None]] = None,
-) -> List[Dict[str, Any]]:
+) -> List[SweepResult]:
     """Run ``run_parameter_sweep`` with simple in-memory caching.
 
     The cache key is derived from the configuration, index series and seed.
@@ -435,7 +435,7 @@ def run_parameter_sweep_cached(
     return results
 
 
-def sweep_results_to_dataframe(results: List[Dict[str, Any]]) -> pd.DataFrame:
+def sweep_results_to_dataframe(results: List[SweepResult]) -> pd.DataFrame:
     """Flatten sweep results into a single DataFrame.
 
     Each combination's summary metrics are combined with its parameters and
