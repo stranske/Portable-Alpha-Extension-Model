@@ -78,7 +78,10 @@ def test_load_index_returns_prefers_monthly_tr_column():
     try:
         with pytest.warns(
             UserWarning,
-            match=r"Selected index returns column: Monthly_TR \(preferred column\)",
+            match=(
+                r"Selected index returns column: Monthly_TR "
+                r"\(preferred column\); available columns:"
+            ),
         ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.02)
@@ -97,7 +100,10 @@ def test_load_index_returns_prefers_return_column():
     try:
         with pytest.warns(
             UserWarning,
-            match=r"Selected index returns column: Return \(preferred column\)",
+            match=(
+                r"Selected index returns column: Return "
+                r"\(preferred column\); available columns:"
+            ),
         ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.01)
@@ -116,7 +122,10 @@ def test_load_index_returns_falls_back_to_second_column():
     try:
         with pytest.warns(
             UserWarning,
-            match=r"Selected index returns column: CustomCol \(second-column fallback\)",
+            match=(
+                r"Selected index returns column: CustomCol "
+                r"\(second-column fallback\); available columns:"
+            ),
         ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.07)
@@ -135,7 +144,10 @@ def test_load_index_returns_falls_back_to_single_column():
     try:
         with pytest.warns(
             UserWarning,
-            match=r"Selected index returns column: CustomReturn \(single-column fallback\)",
+            match=(
+                r"Selected index returns column: CustomReturn "
+                r"\(single-column fallback\); available columns:"
+            ),
         ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.07)
@@ -154,7 +166,10 @@ def test_load_index_returns_with_no_numeric_columns():
     try:
         with pytest.warns(
             UserWarning,
-            match=r"Selected index returns column: Label \(second-column fallback\)",
+            match=(
+                r"Selected index returns column: Label "
+                r"\(second-column fallback\); available columns:"
+            ),
         ):
             with pytest.raises(ValueError, match="No valid numeric data found"):
                 load_index_returns(temp_path)

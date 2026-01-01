@@ -105,8 +105,10 @@ def load_index_returns(path: str | Path) -> pd.Series:
             selection_reason = "second-column fallback"
             raw = df.iloc[:, 1]
 
+    column_list = ", ".join(map(str, df.columns))
     warnings.warn(
-        f"Selected index returns column: {selected_column} ({selection_reason})",
+        "Selected index returns column: "
+        f"{selected_column} ({selection_reason}); available columns: {column_list}",
         UserWarning,
         stacklevel=2,
     )
