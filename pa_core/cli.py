@@ -381,6 +381,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         choices=["gaussian", "t"],
         help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
     )
+    parser.add_argument(
+        "--register",
+        action="store_true",
+        help="Register the scenario and print its scenario ID",
+    )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
     parser.add_argument(
@@ -773,6 +778,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
+    idx_series.attrs["source_path"] = str(args.index)
+
     # Handle frequency validation and resampling
     from .data.loaders import (
         FrequencyValidationError,
@@ -804,6 +811,15 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         regime=cfg.vol_regime,
         window=cfg.vol_regime_window,
     )
+
+    if args.register:
+        try:
+            from .scenario_registry import register as register_scenario
+
+            scenario_id = register_scenario(cfg, idx_series, args.seed)
+            print(f"[REGISTRY] Scenario ID: {scenario_id}")
+        except (OSError, ValueError, RuntimeError) as exc:
+            logger.warning(f"Failed to register scenario: {exc}")
 
     # Handle sleeve suggestion if requested
     if args.suggest_sleeves:
