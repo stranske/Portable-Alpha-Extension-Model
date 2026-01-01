@@ -12,10 +12,10 @@ from pa_core.contracts import (
     RUNS_DIR_NAME,
     SUMMARY_REQUIRED_COLUMNS,
     SUMMARY_SHEET_NAME,
+    manifest_path_for_output,
     validate_manifest_payload,
     validate_run_directory,
     validate_summary_frame,
-    manifest_path_for_output,
 )
 from pa_core.manifest import ManifestWriter
 from pa_core.sim.metrics import summary_table
