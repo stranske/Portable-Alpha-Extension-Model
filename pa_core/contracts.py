@@ -35,6 +35,7 @@ RUN_DIRECTORY_CONTRACT = RunDirectoryContract(
 )
 
 # Manifest contract
+MANIFEST_FORMAT = "json"
 MANIFEST_FILENAME = "manifest.json"
 MANIFEST_REQUIRED_FIELDS: Sequence[str] = (
     "git_commit",
@@ -55,12 +56,16 @@ MANIFEST_OPTIONAL_FIELDS: Sequence[str] = (
 @dataclass(frozen=True)
 class ManifestContract:
     filename: str
+    format: str
+    run_end_manifest_key: str
     required_fields: Sequence[str]
     optional_fields: Sequence[str]
 
 
 MANIFEST_CONTRACT = ManifestContract(
     filename=MANIFEST_FILENAME,
+    format=MANIFEST_FORMAT,
+    run_end_manifest_key=RUN_END_MANIFEST_PATH_KEY,
     required_fields=MANIFEST_REQUIRED_FIELDS,
     optional_fields=MANIFEST_OPTIONAL_FIELDS,
 )

@@ -6,6 +6,8 @@ from pathlib import Path
 import numpy as np
 
 from pa_core.contracts import (
+    MANIFEST_CONTRACT,
+    MANIFEST_FORMAT,
     MANIFEST_REQUIRED_FIELDS,
     RUN_END_FILENAME,
     RUN_END_MANIFEST_PATH_KEY,
@@ -38,6 +40,9 @@ def test_validate_run_directory_missing_log(tmp_path: Path) -> None:
 
 
 def test_manifest_contract_fields(tmp_path: Path) -> None:
+    assert MANIFEST_CONTRACT.filename.endswith(f".{MANIFEST_FORMAT}")
+    assert MANIFEST_CONTRACT.run_end_manifest_key == RUN_END_MANIFEST_PATH_KEY
+
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text("N_SIMULATIONS: 1\n", encoding="utf-8")
     data_path = tmp_path / "data.csv"
