@@ -49,7 +49,7 @@ The script automatically excludes common development artifacts:
 - **Python caches** (`__pycache__/`, `*.pyc`, `.pytest_cache/`)
 - **Virtual environments** (`.venv/`, `venv/`)
 - **Development tools** (`.vscode/`, `.idea/`, linter configs)
-- **Build artifacts** (`build/`, `*.egg-info/`, `htmlcov/`, `docs/_build/`)
+- **Build artifacts** (`*.egg-info/`, `htmlcov/`, `docs/_build/`)
 - **Development documentation** (testing results, codex files, debug logs)
 - **Output files** (`*.xlsx`, `plots/`, temporary files)
 - **OS files** (`.DS_Store`, `Thumbs.db`)
