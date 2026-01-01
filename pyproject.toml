@@ -89,6 +89,49 @@ dependencies = [
 # Optional extras
 parquet = ["pyarrow"]
 
+# Development dependencies
+dev = [
+    "ruff>=0.8.0",
+    "black>=23.9.1",
+    "isort>=5.13.0",
+    "mypy>=1.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov",
+    "pytest-xdist",
+    "hypothesis",
+    "pre-commit",
+    "bandit",
+    "types-PyYAML",
+    "flake8",
+    "docformatter>=1.7.0",
+]
+
+# Documentation dependencies
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+    "nbsphinx",
+]
+
+# Build dependencies
+build = [
+    "build",
+    "twine",
+]
+
+# Jupyter/notebook dependencies
+notebook = [
+    "jupyter",
+    "jupyterlab",
+    "ipywidgets",
+    "jupyter-contrib-nbextensions",
+]
+
+# All dev dependencies combined
+all = [
+    "portable-alpha-extension-model[dev,docs,build,notebook]",
+]
+
 [project.scripts]
 pa = "pa_core.pa:main"
 pa-validate = "pa_core.validate:main"

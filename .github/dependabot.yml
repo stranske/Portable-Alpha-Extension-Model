@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Python dependencies
+  # Python dependencies (pyproject.toml)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
@@ -15,6 +15,16 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
+    # Track both pyproject.toml and requirements files
+    allow:
+      - dependency-type: "all"
+    groups:
+      python-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
