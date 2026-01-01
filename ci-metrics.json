@@ -1,0 +1,89 @@
+{
+  "failures": [],
+  "generated_at": "2026-01-01T16:46:14Z",
+  "junit_path": "pytest-junit.xml",
+  "slow_tests": {
+    "items": [
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps",
+        "name": "test_alpha_shares_mode_parameter_sweep",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps::test_alpha_shares_mode_parameter_sweep",
+        "outcome": "passed",
+        "time": 5.504
+      },
+      {
+        "classname": "tests.test_entrypoints",
+        "name": "test_console_scripts_work_in_clean_venv",
+        "nodeid": "tests.test_entrypoints::test_console_scripts_work_in_clean_venv",
+        "outcome": "passed",
+        "time": 5.174
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps",
+        "name": "test_returns_mode_parameter_sweep",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps::test_returns_mode_parameter_sweep",
+        "outcome": "passed",
+        "time": 3.332
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps",
+        "name": "test_basic_scenario_single_run",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps::test_basic_scenario_single_run",
+        "outcome": "passed",
+        "time": 3.322
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial2ThresholdAnalysis",
+        "name": "test_threshold_scenario_analysis",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial2ThresholdAnalysis::test_threshold_scenario_analysis",
+        "outcome": "passed",
+        "time": 3.101
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial2ThresholdAnalysis",
+        "name": "test_aggressive_scenario",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial2ThresholdAnalysis::test_aggressive_scenario",
+        "outcome": "passed",
+        "time": 3.081
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial3Integration",
+        "name": "test_full_pipeline_with_png_export",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial3Integration::test_full_pipeline_with_png_export",
+        "outcome": "passed",
+        "time": 3.069
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial2ThresholdAnalysis",
+        "name": "test_conservative_scenario",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial2ThresholdAnalysis::test_conservative_scenario",
+        "outcome": "passed",
+        "time": 3.056
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps",
+        "name": "test_capital_mode_parameter_sweep",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps::test_capital_mode_parameter_sweep",
+        "outcome": "passed",
+        "time": 2.173
+      },
+      {
+        "classname": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps",
+        "name": "test_vol_mult_mode_parameter_sweep",
+        "nodeid": "tests.golden.test_tutorial_golden.TestTutorial1ParameterSweeps::test_vol_mult_mode_parameter_sweep",
+        "outcome": "passed",
+        "time": 1.894
+      }
+    ],
+    "limit": 15,
+    "threshold_seconds": 1.0
+  },
+  "summary": {
+    "duration_seconds": 48.084,
+    "errors": 0,
+    "failures": 0,
+    "passed": 578,
+    "skipped": 0,
+    "tests": 578
+  }
+}
