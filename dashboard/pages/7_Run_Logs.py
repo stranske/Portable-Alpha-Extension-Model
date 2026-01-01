@@ -5,10 +5,12 @@ from pathlib import Path
 
 import streamlit as st
 
+from pa_core.contracts import MANIFEST_FILENAME, RUN_LOG_FILENAME, RUNS_DIR_NAME
+
 st.set_page_config(page_title="Run Logs", page_icon="🧾")
 st.title("Run Logs 🧾")
 
-runs_dir = Path("runs")
+runs_dir = Path(RUNS_DIR_NAME)
 if not runs_dir.exists():
     st.info("No runs directory found yet. Launch a run with --log-json to create logs.")
     st.stop()
@@ -20,9 +22,9 @@ if not run_ids:
 
 selected = st.selectbox("Select a run:", run_ids)
 run_path = runs_dir / selected
-log_file = run_path / "run.log"
+log_file = run_path / RUN_LOG_FILENAME
 manifest_file = (
-    run_path.parent.parent / "manifest.json"
+    run_path.parent.parent / MANIFEST_FILENAME
 )  # fallback; manifest is written near output
 
 cols = st.columns(2)
@@ -51,7 +53,7 @@ with cols[1]:
     # This is a best-effort; the CLI writes manifest near output file.
     found_manifest = None
     # Search nearby manifests in project root
-    for cand in Path.cwd().glob("manifest.json"):
+    for cand in Path.cwd().glob(MANIFEST_FILENAME):
         found_manifest = cand
         break
     if found_manifest and found_manifest.exists():

@@ -19,6 +19,14 @@ from dashboard.app import (
     load_data,
 )
 from dashboard.glossary import tooltip
+from pa_core.contracts import (
+    SUMMARY_BREACH_PROB_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_SHEET_NAME,
+    SUMMARY_TE_COLUMN,
+    SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
+    manifest_path_for_output,
+)
 
 
 def main() -> None:
@@ -33,7 +41,7 @@ def main() -> None:
 
     # Load manifest if available for display and export embedding
     manifest_data = None
-    manifest_path = Path(xlsx).with_name("manifest.json")
+    manifest_path = manifest_path_for_output(xlsx)
     if manifest_path.exists():
         try:
             manifest_data = json.loads(manifest_path.read_text())
@@ -47,14 +55,19 @@ def main() -> None:
 
     st.subheader("Key Metrics")
     col1, col2, col3 = st.columns(3)
-    if "TrackingErr" in summary:
-        col1.metric("Tracking Error", f"{summary['TrackingErr'].mean():.2%}", help=tooltip("TE"))
-    if "CVaR" in summary:
-        col2.metric("CVaR", f"{summary['CVaR'].mean():.2%}", help=tooltip("CVaR"))
-    if "BreachProb" in summary:
+    te_column = None
+    if SUMMARY_TE_COLUMN in summary:
+        te_column = SUMMARY_TE_COLUMN
+    elif SUMMARY_TRACKING_ERROR_LEGACY_COLUMN in summary:
+        te_column = SUMMARY_TRACKING_ERROR_LEGACY_COLUMN
+    if te_column is not None:
+        col1.metric("Tracking Error", f"{summary[te_column].mean():.2%}", help=tooltip("TE"))
+    if SUMMARY_CVAR_COLUMN in summary:
+        col2.metric("CVaR", f"{summary[SUMMARY_CVAR_COLUMN].mean():.2%}", help=tooltip("CVaR"))
+    if SUMMARY_BREACH_PROB_COLUMN in summary:
         col3.metric(
             "Breach Prob",
-            f"{summary['BreachProb'].mean():.2%}",
+            f"{summary[SUMMARY_BREACH_PROB_COLUMN].mean():.2%}",
             help=tooltip("breach probability"),
         )
 
@@ -123,7 +136,7 @@ def main() -> None:
                 fig = _get_plot_fn(PLOTS["Headline"])(summary)
 
                 # Create raw returns dict for export
-                raw_returns_dict = {"Summary": summary}
+                raw_returns_dict = {SUMMARY_SHEET_NAME: summary}
 
                 # Extract inputs from summary or create minimal inputs
                 inputs_dict = {
@@ -153,7 +166,7 @@ def main() -> None:
                             else None
                         )
                         if prev_out and Path(prev_out).exists():
-                            prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
+                            prev_summary_df = pd.read_excel(prev_out, sheet_name=SUMMARY_SHEET_NAME)
                     except Exception:
                         prev_manifest_data = None
                         prev_summary_df = None

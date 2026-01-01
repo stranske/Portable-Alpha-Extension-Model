@@ -11,6 +11,11 @@ import pandas as pd
 import streamlit as st
 
 from dashboard.glossary import GLOSSARY
+from pa_core.contracts import (
+    ALL_RETURNS_SHEET_NAME,
+    DEFAULT_OUTPUT_FILENAME,
+    SUMMARY_SHEET_NAME,
+)
 
 PLOTS: dict[str, str] = {
     "Headline": "pa_core.viz.risk_return.make",
@@ -18,7 +23,7 @@ PLOTS: dict[str, str] = {
     "Path dist": "pa_core.viz.path_dist.make",
 }
 
-_DEF_XLSX = "Outputs.xlsx"
+_DEF_XLSX = DEFAULT_OUTPUT_FILENAME
 _DEF_THEME = "config_theme.yaml"
 _PARQUET_HINT = "Parquet support missing; install pyarrow or use CSV."
 
@@ -90,14 +95,14 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
 
     # 3) Excel 'AllReturns' sheet fallback
     try:
-        return pd.read_excel(xlsx, sheet_name="AllReturns")
+        return pd.read_excel(xlsx, sheet_name=ALL_RETURNS_SHEET_NAME)
     except Exception:
         return None
 
 
 @st.cache_data(ttl=600)
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
-    summary = pd.read_excel(xlsx, sheet_name="Summary")
+    summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
     # Try parquet -> csv -> Excel('AllReturns') for path-based charts
     paths = _load_paths_sidecar(xlsx)
     return summary, paths
