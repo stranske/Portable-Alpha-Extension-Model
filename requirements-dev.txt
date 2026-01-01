@@ -27,7 +27,7 @@ mypy               # Additional type checking
 types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
 isort==7.0.0      # Import sorting
-docformatter==1.7.0  # Docstring formatting
+docformatter==1.7.7  # Docstring formatting
 
 # Build and packaging dependencies
 build              # Modern Python build tool
