@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 import subprocess
-import importlib.metadata
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
