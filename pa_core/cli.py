@@ -879,9 +879,23 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             covariance_shrinkage=run_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-        denom = np.outer(sigma_vec, sigma_vec)
-        corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+        if isinstance(cov, np.ndarray) and cov.ndim == 2:
+            sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+            denom = np.outer(sigma_vec, sigma_vec)
+            corr_mat = np.divide(
+                cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0
+            )
+        else:
+            sigma_vec = np.array([idx_sigma, sigma_h, sigma_e, sigma_m], dtype=float)
+            corr_mat = np.array(
+                [
+                    [1.0, run_cfg.rho_idx_H, run_cfg.rho_idx_E, run_cfg.rho_idx_M],
+                    [run_cfg.rho_idx_H, 1.0, run_cfg.rho_H_E, run_cfg.rho_H_M],
+                    [run_cfg.rho_idx_E, run_cfg.rho_H_E, 1.0, run_cfg.rho_E_M],
+                    [run_cfg.rho_idx_M, run_cfg.rho_H_M, run_cfg.rho_E_M, 1.0],
+                ],
+                dtype=float,
+            )
         if run_cfg.return_unit_input == "annual":
             sigma_vec = sigma_vec / math.sqrt(MONTHS_PER_YEAR)
 
