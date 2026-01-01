@@ -255,8 +255,10 @@ class ModelConfig(BaseModel):
     )
 
     # Transform/validation pipeline (explicit order):
-    # 1) parse raw input -> 2) normalize units -> 3) normalize shares
-    # -> 4) compile derived fields -> 5) validate invariants (after validators below).
+    # 1) parse raw input
+    # 2) normalize units (including share normalization)
+    # 3) compile derived fields
+    # 4) validate invariants (after validators below).
     @staticmethod
     def _trace_transform(data_or_self: Any, step: str) -> None:
         if isinstance(data_or_self, dict):
@@ -265,6 +267,15 @@ class ModelConfig(BaseModel):
             debug = bool(getattr(data_or_self, "debug_transform_order", False))
         if debug:
             logger.info("ModelConfig transform: %s", step)
+
+    @classmethod
+    def _transform_pipeline(cls) -> tuple[tuple[str, Callable[[Any], Any]], ...]:
+        """Return the ordered pre-validation transform pipeline."""
+        return (
+            ("normalize_return_units", cls.normalize_return_units),
+            ("normalize_share_inputs", cls.normalize_share_inputs),
+            ("compile_agent_config", cls.compile_agent_config),
+        )
 
     @classmethod
     def compile_agent_config(cls, data: Any) -> Any:
@@ -429,15 +440,11 @@ class ModelConfig(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def apply_transform_pipeline(cls, data: Any) -> Any:
-        """Apply transforms in order: parse -> normalize units -> normalize shares -> compile."""
+        """Apply transforms in order: parse -> normalize units (incl. shares) -> compile -> validate."""
         if not isinstance(data, dict):
             return data
         cls._trace_transform(data, "parse_raw")
-        for transform in (
-            cls.normalize_return_units,
-            cls.normalize_share_inputs,
-            cls.compile_agent_config,
-        ):
+        for _, transform in cls._transform_pipeline():
             data = transform(data)
         return data
 
