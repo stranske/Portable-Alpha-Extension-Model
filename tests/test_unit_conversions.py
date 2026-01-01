@@ -10,7 +10,18 @@ from pa_core.config import (
 from pa_core.sim.metrics import annualised_return
 from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_joint_returns
-from pa_core.units import convert_annual_series_to_monthly, normalize_index_series
+from pa_core.units import (
+    convert_annual_series_to_monthly,
+    convert_mean,
+    convert_return_series,
+    convert_volatility,
+    format_unit_label,
+    get_config_unit,
+    get_index_series_unit,
+    get_summary_table_unit,
+    get_threshold_unit,
+    normalize_index_series,
+)
 
 
 def test_annual_mean_to_monthly_simple_and_geometric() -> None:
@@ -31,6 +42,30 @@ def test_convert_annual_series_to_monthly_simple_and_geometric() -> None:
     assert np.allclose(converted_geom, expected_geom)
 
 
+def test_convert_mean_round_trip_simple() -> None:
+    monthly = 0.01
+    annual = convert_mean(monthly, from_unit="monthly", to_unit="annual", method="simple")
+    assert np.isclose(annual, 0.12)
+    back = convert_mean(annual, from_unit="annual", to_unit="monthly", method="simple")
+    assert np.isclose(back, monthly)
+
+
+def test_convert_return_series_monthly_to_annual() -> None:
+    series = pd.Series([0.01, -0.02])
+    converted = convert_return_series(series, from_unit="monthly", to_unit="annual")
+    expected = series * 12.0
+    assert np.allclose(converted, expected)
+
+
+def test_convert_volatility_round_trip() -> None:
+    monthly = 0.02
+    annual = convert_volatility(monthly, from_unit="monthly", to_unit="annual")
+    expected = monthly * np.sqrt(12.0)
+    assert np.isclose(annual, expected)
+    back = convert_volatility(annual, from_unit="annual", to_unit="monthly")
+    assert np.isclose(back, monthly)
+
+
 def test_normalize_index_series_converts_when_annual() -> None:
     series = pd.Series([0.12, 0.0, -0.06])
     expected = convert_annual_series_to_monthly(series)
@@ -48,6 +83,18 @@ def test_normalize_index_series_defaults_to_monthly() -> None:
     series = pd.Series([0.01, -0.03])
     converted = normalize_index_series(series, "")
     assert np.allclose(converted, series)
+
+
+def test_unit_policy_accessors() -> None:
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    assert get_config_unit(cfg) == "monthly"
+    assert get_index_series_unit() == "monthly"
+    assert get_summary_table_unit() == "annual"
+    assert get_summary_table_unit(periods_per_year=1) == "monthly"
+    units = get_threshold_unit()
+    assert units["breach_threshold"] == "monthly"
+    assert units["shortfall_threshold"] == "annual"
+    assert format_unit_label("annual") == "annualised"
 
 
 def test_annual_vol_to_monthly() -> None:

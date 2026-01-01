@@ -93,7 +93,11 @@ def create_enhanced_summary(
     *,
     benchmark: str | None = None,
 ) -> "pd.DataFrame":
-    """Create summary table with standard breach and shortfall defaults."""
+    """Create a summary table from monthly returns with standard thresholds.
+
+    AnnReturn/AnnVol/TE are annualised from monthly returns; breach thresholds
+    apply to monthly returns and shortfall thresholds use annualised hurdles.
+    """
 
     # Local import to avoid heavy imports at module load
     from .sim.metrics import summary_table
@@ -102,27 +106,35 @@ def create_enhanced_summary(
 
 
 def print_enhanced_summary(summary: "pd.DataFrame") -> None:
-    """Print enhanced summary with explanations."""
+    """Print summary with unit-aware explanations for annualised metrics."""
     # Local imports to avoid heavy import at module load
     from rich.console import Console
     from rich.panel import Panel
     from rich.text import Text
 
     from .reporting.console import print_summary
+    from .units import format_unit_label, get_summary_table_unit, get_threshold_unit
 
     console = Console()
+    summary_unit = get_summary_table_unit()
+    unit_label = format_unit_label(summary_unit)
+    threshold_units = get_threshold_unit()
 
     # Print explanatory header
     explanation = Text()
     explanation.append("Portfolio Analysis Results\n", style="bold blue")
     explanation.append("Metrics Explanation:\n", style="bold")
-    explanation.append("• AnnReturn: Annualized return (%)\n")
-    explanation.append("• AnnVol: Annualized volatility (%)\n")
+    explanation.append(f"• AnnReturn: {unit_label} return (%)\n")
+    explanation.append(f"• AnnVol: {unit_label} volatility (%)\n")
     explanation.append("• VaR: Value at Risk (95% confidence)\n")
-    explanation.append("• BreachProb: Share of simulated months below the breach threshold\n")
+    explanation.append(
+        f"• BreachProb: Share of simulated months below the "
+        f"{threshold_units['breach_threshold']} breach threshold\n"
+    )
     if "ShortfallProb" in summary.columns:
         explanation.append(
-            "• ShortfallProb: Probability terminal compounded return is below the annualised threshold\n"
+            "• ShortfallProb: Probability terminal compounded return is below the "
+            f"{threshold_units['shortfall_threshold']} threshold\n"
         )
     if "MaxDD" in summary.columns:
         explanation.append("• MaxDD: Worst peak-to-trough decline of compounded wealth\n")
@@ -130,7 +142,7 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
         explanation.append(
             "• TimeUnderWater: Fraction of periods with compounded return below zero\n"
         )
-    explanation.append("• TE: Annualised active return volatility vs benchmark\n")
+    explanation.append(f"• TE: {unit_label} active return volatility vs benchmark\n")
 
     console.print(Panel(explanation, title="Understanding Your Results"))
 
@@ -654,6 +666,9 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
+    from .units import get_index_series_unit, normalize_index_series
+
+    idx_series = normalize_index_series(idx_series, get_index_series_unit())
     n_samples = int(len(idx_series))
     idx_sigma, _, _ = select_vol_regime_sigma(
         idx_series,
