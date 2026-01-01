@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from importlib.metadata import entry_points
 import warnings
+from importlib.metadata import entry_points
 from typing import Callable, Dict, Mapping
 
 import pandas as pd
