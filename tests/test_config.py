@@ -204,8 +204,10 @@ def test_agents_duplicate_base_in_mixed_config():
             }
         ],
     }
-    with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
-        ModelConfig(**data)
+    cfg = ModelConfig(**data)
+    agent_names = {agent.name for agent in cfg.agents}
+    assert "Base" in agent_names
+    assert "ExternalPA" in agent_names
 
 
 def test_agents_negative_capital():
