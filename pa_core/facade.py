@@ -10,6 +10,7 @@ if TYPE_CHECKING:  # pragma: no cover - type hints only
     import pandas as pd
 
     from .config import ModelConfig
+from .types import ArrayLike
 
 
 @dataclass(slots=True)
@@ -18,7 +19,7 @@ class RunArtifacts:
 
     config: "ModelConfig"
     index_series: "pd.Series"
-    returns: dict[str, "np.ndarray"]
+    returns: dict[str, ArrayLike]
     summary: "pd.DataFrame"
     inputs: dict[str, Any]
     raw_returns: dict[str, "pd.DataFrame"]
