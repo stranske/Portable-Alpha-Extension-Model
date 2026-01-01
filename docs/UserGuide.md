@@ -95,7 +95,7 @@ easy filtering and dashboard visualisation.
 * **Funding shortfall risk** – monitor the required `ShortfallProb` metric (include it under `risk_metrics` or configuration fails). It reports the share of paths whose terminal compounded return falls below the annualised threshold over the full horizon.
 * **Tracking error** – the annualised standard deviation of active returns versus the benchmark.
 * **Max drawdown** – worst peak‑to‑trough decline of the compounded wealth path.
-* **Time under water** – fraction of periods where the cumulative compounded return is below zero.
+* **Compounded return below zero fraction (Time under water)** – fraction of periods where the cumulative compounded return is below zero.
 * **Visualisation** – explore results via the dashboard or scripts.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
 

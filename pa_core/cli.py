@@ -125,6 +125,10 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
         explanation.append(
             "• ShortfallProb: Probability terminal compounded return is below the annualised threshold\n"
         )
+    if "MaxDD" in summary.columns:
+        explanation.append("• MaxDD: Worst peak-to-trough decline of compounded wealth\n")
+    if "TimeUnderWater" in summary.columns:
+        explanation.append("• TimeUnderWater: Fraction of periods with compounded return below zero\n")
     explanation.append("• TE: Annualised active return volatility vs benchmark\n")
 
     console.print(Panel(explanation, title="Understanding Your Results"))

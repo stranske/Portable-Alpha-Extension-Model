@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from importlib.metadata import entry_points
+import warnings
 from typing import Callable, Dict, Mapping
 
 import pandas as pd
@@ -69,6 +70,11 @@ def tracking_error(
     periods_per_year: int = 12,
 ) -> float:
     """Deprecated alias for :func:`active_return_volatility`."""
+    warnings.warn(
+        "tracking_error is deprecated; use active_return_volatility",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return active_return_volatility(
         strategy,
         benchmark,
@@ -184,6 +190,11 @@ def shortfall_probability(
     periods_per_year: int = 12,
 ) -> float:
     """Deprecated alias for :func:`terminal_return_below_threshold_prob`."""
+    warnings.warn(
+        "shortfall_probability is deprecated; use terminal_return_below_threshold_prob",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return terminal_return_below_threshold_prob(
         returns,
         threshold,
@@ -236,6 +247,11 @@ def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
 
 def max_drawdown(returns: ArrayLike) -> float:
     """Deprecated alias for :func:`max_cumulative_sum_drawdown`."""
+    warnings.warn(
+        "max_drawdown is deprecated; use max_cumulative_sum_drawdown",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return max_cumulative_sum_drawdown(returns)
 
 
@@ -248,6 +264,11 @@ def compounded_return_below_zero_fraction(returns: ArrayLike) -> float:
 
 def time_under_water(returns: ArrayLike) -> float:
     """Deprecated alias for :func:`compounded_return_below_zero_fraction`."""
+    warnings.warn(
+        "time_under_water is deprecated; use compounded_return_below_zero_fraction",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return compounded_return_below_zero_fraction(returns)
 
 
