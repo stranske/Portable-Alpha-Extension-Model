@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from pa_core.config import (
     ModelConfig,
@@ -6,6 +7,7 @@ from pa_core.config import (
     annual_mean_to_monthly,
     annual_vol_to_monthly,
 )
+from pa_core.units import convert_annual_series_to_monthly, normalize_index_series
 from pa_core.sim.metrics import annualised_return
 from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_joint_returns
@@ -17,6 +19,29 @@ def test_annual_mean_to_monthly_simple_and_geometric() -> None:
     geometric = annual_mean_to_monthly(annual, method="geometric")
     expected = (1.0 + annual) ** (1.0 / 12.0) - 1.0
     assert np.isclose(geometric, expected)
+
+
+def test_convert_annual_series_to_monthly_simple_and_geometric() -> None:
+    series = pd.Series([0.12, -0.06])
+    expected_simple = series / 12.0
+    assert np.allclose(convert_annual_series_to_monthly(series), expected_simple)
+
+    expected_geom = (1.0 + series) ** (1.0 / 12.0) - 1.0
+    converted_geom = convert_annual_series_to_monthly(series, method="geometric")
+    assert np.allclose(converted_geom, expected_geom)
+
+
+def test_normalize_index_series_converts_when_annual() -> None:
+    series = pd.Series([0.12, 0.0, -0.06])
+    expected = convert_annual_series_to_monthly(series)
+    converted = normalize_index_series(series, "annual")
+    assert np.allclose(converted, expected)
+
+
+def test_normalize_index_series_passthrough_monthly() -> None:
+    series = pd.Series([0.01, 0.02])
+    converted = normalize_index_series(series, "monthly")
+    assert np.allclose(converted, series)
 
 
 def test_annual_vol_to_monthly() -> None:
