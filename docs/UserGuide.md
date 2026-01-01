@@ -15,8 +15,8 @@ validates this value.
 The model is designed to help you explore three core ideas:
 
 * **Risk/return trade‑offs** – how annualised return compares with volatility.
-* **Funding shortfall probability** – the chance the portfolio falls below a required level.
-* **Tracking error** – deviation from the benchmark.
+* **Funding shortfall probability** – share of paths where the terminal compounded return falls below the annualised threshold.
+* **Tracking error** – annualised volatility of active returns versus the benchmark.
 
 The introductory tutorials demonstrate how to implement a run, interpret these metrics and visualise them so you can test each idea in a repeatable workflow.
 
@@ -95,6 +95,7 @@ easy filtering and dashboard visualisation.
 * **Funding shortfall risk** – monitor the required `ShortfallProb` metric (include it under `risk_metrics` or configuration fails). It reports the share of paths whose terminal compounded return falls below the annualised threshold over the full horizon.
 * **Tracking error** – the annualised standard deviation of active returns versus the benchmark.
 * **Max drawdown** – worst peak‑to‑trough decline of the compounded wealth path.
+* **Time under water** – fraction of periods where the cumulative compounded return is below zero.
 * **Visualisation** – explore results via the dashboard or scripts.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
 

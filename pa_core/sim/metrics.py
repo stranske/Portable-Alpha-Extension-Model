@@ -9,6 +9,7 @@ from ..backend import xp as np
 from ..types import ArrayLike
 
 __all__ = [
+    "active_return_volatility",
     "tracking_error",
     "value_at_risk",
     "compound",
@@ -17,8 +18,11 @@ __all__ = [
     "breach_probability",
     "breach_count",
     "conditional_value_at_risk",
+    "max_cumulative_sum_drawdown",
     "max_drawdown",
+    "compounded_return_below_zero_fraction",
     "time_under_water",
+    "terminal_return_below_threshold_prob",
     "shortfall_probability",
     "summary_table",
     "register_metric",
@@ -43,19 +47,33 @@ def _load_metric_plugins() -> None:
 _load_metric_plugins()
 
 
-def tracking_error(
+def active_return_volatility(
     strategy: ArrayLike,
     benchmark: ArrayLike,
     *,
     periods_per_year: int = 12,
 ) -> float:
-    """Return annualised tracking error from active returns."""
+    """Return annualised volatility of active returns (tracking error)."""
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
     diff = np.asarray(strategy) - np.asarray(benchmark)
     if diff.size <= 1:
         return 0.0
     return float(np.std(diff, ddof=1) * np.sqrt(periods_per_year))
+
+
+def tracking_error(
+    strategy: ArrayLike,
+    benchmark: ArrayLike,
+    *,
+    periods_per_year: int = 12,
+) -> float:
+    """Deprecated alias for :func:`active_return_volatility`."""
+    return active_return_volatility(
+        strategy,
+        benchmark,
+        periods_per_year=periods_per_year,
+    )
 
 
 def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
@@ -124,13 +142,13 @@ def breach_probability(
     raise ValueError('mode must be one of "month", "any", or "terminal"')
 
 
-def shortfall_probability(
+def terminal_return_below_threshold_prob(
     returns: ArrayLike,
     threshold: float = -0.05,
     *,
     periods_per_year: int = 12,
 ) -> float:
-    """Return probability compounded return falls below a horizon-aware threshold.
+    """Return probability terminal compounded return is below a horizon threshold.
 
     ``threshold`` is interpreted as an annualised return hurdle. For 2D inputs,
     the probability is computed from terminal compounded returns over the full
@@ -159,6 +177,20 @@ def shortfall_probability(
     return float(np.mean(final_returns < horizon_threshold))
 
 
+def shortfall_probability(
+    returns: ArrayLike,
+    threshold: float = -0.05,
+    *,
+    periods_per_year: int = 12,
+) -> float:
+    """Deprecated alias for :func:`terminal_return_below_threshold_prob`."""
+    return terminal_return_below_threshold_prob(
+        returns,
+        threshold,
+        periods_per_year=periods_per_year,
+    )
+
+
 def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
     """Return the number of months below ``threshold`` in a selected path."""
 
@@ -185,7 +217,7 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
     return float(np.mean(tail))
 
 
-def max_drawdown(returns: ArrayLike) -> float:
+def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
     """Return the maximum drawdown computed from compounded wealth paths."""
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -202,11 +234,21 @@ def max_drawdown(returns: ArrayLike) -> float:
     return float(np.min(drawdown))
 
 
-def time_under_water(returns: ArrayLike) -> float:
+def max_drawdown(returns: ArrayLike) -> float:
+    """Deprecated alias for :func:`max_cumulative_sum_drawdown`."""
+    return max_cumulative_sum_drawdown(returns)
+
+
+def compounded_return_below_zero_fraction(returns: ArrayLike) -> float:
     """Return fraction of periods with negative compounded return."""
 
     comp = compound(returns)
     return float(np.mean(comp < 0.0))
+
+
+def time_under_water(returns: ArrayLike) -> float:
+    """Deprecated alias for :func:`compounded_return_below_zero_fraction`."""
+    return compounded_return_below_zero_fraction(returns)
 
 
 def summary_table(
@@ -227,8 +269,8 @@ def summary_table(
         the share of all simulated months across paths that breach. Defaults to
         ``-0.02`` (a 2% loss).
     shortfall_threshold:
-        Annualised threshold for :func:`shortfall_probability`.  Defaults to
-        ``-0.05`` (a 5% annual loss).
+        Annualised threshold for :func:`terminal_return_below_threshold_prob`.
+        Defaults to ``-0.05`` (a 5% annual loss).
     """
 
     returns = returns_map
@@ -253,15 +295,15 @@ def summary_table(
         cvar = conditional_value_at_risk(arr, confidence=var_conf)
         breach = breach_probability(arr, breach_threshold)
         bcount = breach_count(arr, breach_threshold)
-        shortfall = shortfall_probability(
+        shortfall = terminal_return_below_threshold_prob(
             arr,
             shortfall_threshold,
             periods_per_year=periods_per_year,
         )
-        mdd = max_drawdown(arr)
-        tuw = time_under_water(arr)
+        mdd = max_cumulative_sum_drawdown(arr)
+        tuw = compounded_return_below_zero_fraction(arr)
         te = (
-            tracking_error(arr, bench_arr, periods_per_year=periods_per_year)
+            active_return_volatility(arr, bench_arr, periods_per_year=periods_per_year)
             if bench_arr is not None and name != benchmark
             else None
         )

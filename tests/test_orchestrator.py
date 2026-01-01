@@ -7,7 +7,7 @@ import pytest
 
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
-from pa_core.sim.metrics import tracking_error
+from pa_core.sim.metrics import active_return_volatility
 from pa_core.validators import TEST_TOLERANCE_EPSILON, calculate_margin_requirement
 
 # Test data fixtures for clear separation of normal vs problematic cases
@@ -126,7 +126,7 @@ def test_te_scales_with_margin_when_no_alpha_allocation(
     np.testing.assert_allclose(internal_beta, expected_internal_beta)
 
     te_val = summary.loc[summary.Agent == "InternalBeta", "TE"].iloc[0]
-    expected_te = tracking_error(internal_beta, base)
+    expected_te = active_return_volatility(internal_beta, base)
     assert te_val == pytest.approx(expected_te, abs=TEST_TOLERANCE_EPSILON)
 
 

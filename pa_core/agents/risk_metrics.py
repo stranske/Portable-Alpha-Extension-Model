@@ -10,8 +10,8 @@ from ..sim.metrics import (
     breach_count,
     breach_probability,
     conditional_value_at_risk,
-    max_drawdown,
-    time_under_water,
+    compounded_return_below_zero_fraction,
+    max_cumulative_sum_drawdown,
 )
 
 Array: TypeAlias = NDArray[np.float64]
@@ -22,8 +22,8 @@ class RiskMetrics:
     """Container for common risk statistics."""
 
     cvar: float
-    max_drawdown: float
-    time_under_water: float
+    max_cumulative_sum_drawdown: float
+    compounded_return_below_zero_fraction: float
     breach_probability: float
     breach_count: int
 
@@ -39,8 +39,8 @@ class RiskMetricsAgent:
         """Return risk metrics for the given return paths."""
 
         cvar = conditional_value_at_risk(returns, confidence=self.var_conf)
-        mdd = max_drawdown(returns)
-        tuw = time_under_water(returns)
+        mdd = max_cumulative_sum_drawdown(returns)
+        tuw = compounded_return_below_zero_fraction(returns)
         bprob = breach_probability(returns, self.breach_threshold)
         bcount = breach_count(returns, self.breach_threshold)
         return RiskMetrics(cvar, mdd, tuw, bprob, bcount)
