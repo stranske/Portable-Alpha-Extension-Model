@@ -554,8 +554,7 @@ class ModelConfig(BaseModel):
             duplicate_names = sorted({name for name in names if names.count(name) > 1})
             if duplicate_names:
                 errors.append(
-                    "agent names must be unique; duplicates found: "
-                    + ", ".join(duplicate_names)
+                    "agent names must be unique; duplicates found: " + ", ".join(duplicate_names)
                 )
             benchmark_count = sum(1 for name in names if name == "Base")
             if benchmark_count != 1:
