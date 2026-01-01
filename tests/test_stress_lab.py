@@ -110,9 +110,9 @@ def test_config_diff_with_stress_preset():
     expected_vol_params = {"sigma_H", "sigma_E", "sigma_M"}
 
     # Check that all expected volatility parameters are detected
-    assert expected_vol_params.issubset(diff_params), (
-        f"Missing volatility parameters: {expected_vol_params - diff_params}"
-    )
+    assert expected_vol_params.issubset(
+        diff_params
+    ), f"Missing volatility parameters: {expected_vol_params - diff_params}"
 
     # Verify the changes are correctly detected (should be 3x original values)
     diff_dict = {
