@@ -83,6 +83,29 @@ def test_correlation_shrinkage_matches_expected() -> None:
     assert pair.rho == pytest.approx(expected_rho)
 
 
+def test_correlation_shrinkage_boosts_with_fewer_pair_obs() -> None:
+    df = pd.DataFrame(
+        {
+            "IDX": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            "H": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+            "E": [1.0, 2.0, np.nan, np.nan, np.nan, np.nan],
+            "M": [1.0, 2.0, np.nan, np.nan, np.nan, np.nan],
+        }
+    )
+    result = calibrate_returns(
+        df,
+        index_id="IDX",
+        mean_shrinkage=0.0,
+        corr_shrinkage=0.2,
+        corr_target="identity",
+        annualize=False,
+    )
+
+    pair_full = next(c for c in result.correlations if set(c.pair) == {"IDX", "H"})
+    pair_sparse = next(c for c in result.correlations if set(c.pair) == {"E", "M"})
+    assert abs(pair_sparse.rho) < abs(pair_full.rho)
+
+
 def test_confidence_intervals_and_missing_data() -> None:
     df = pd.DataFrame(
         {

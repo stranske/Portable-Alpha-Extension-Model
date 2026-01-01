@@ -310,20 +310,18 @@ def calibrate_returns(
         np.fill_diagonal(target.values, 1.0)
     sample_corr = sample_corr.where(~sample_corr.isna(), target)
 
-    effective_n = int(n_obs_series.min()) if not n_obs_series.empty else 0
-    corr_boost = _boost_shrinkage_for_short_samples(
-        corr_shrinkage, n_samples=effective_n, n_features=n_features
-    )
-    corr_shrunk = (1.0 - corr_boost) * sample_corr + corr_boost * target
-    np.fill_diagonal(corr_shrunk.values, 1.0)
-
     correlations: list[CorrelationEstimate] = []
     ids = list(sample_corr.columns)
     for i, a in enumerate(ids):
         for b in ids[i + 1 :]:
             pair_returns = clean[[a, b]].dropna()
             n_pair = int(len(pair_returns))
-            rho = float(corr_shrunk.loc[a, b])
+            target_rho = float(target.loc[a, b])
+            sample_rho = float(sample_corr.loc[a, b])
+            corr_boost = _boost_shrinkage_for_short_samples(
+                corr_shrinkage, n_samples=n_pair, n_features=n_features
+            )
+            rho = (1.0 - corr_boost) * sample_rho + corr_boost * target_rho
             rho = max(-0.999, min(0.999, rho))
             ci = _corr_ci(rho, n_pair, confidence_level=confidence_level)
             correlations.append(CorrelationEstimate(pair=(a, b), rho=rho, ci=ci, n_obs=n_pair))
