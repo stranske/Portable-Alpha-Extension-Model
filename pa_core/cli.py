@@ -769,7 +769,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         cfg = apply_stress_preset(cfg, args.stress_preset)
 
     idx_series = load_index_returns(args.index)
-    idx_series.attrs["source_path"] = str(args.index)
 
     # Ensure idx_series is a pandas Series for type safety
     if isinstance(idx_series, pd.DataFrame):
@@ -778,6 +777,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+
+    idx_series.attrs["source_path"] = str(args.index)
 
     # Handle frequency validation and resampling
     from .data.loaders import (
