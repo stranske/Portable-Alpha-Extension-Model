@@ -270,11 +270,10 @@ class ModelConfig(BaseModel):
         }
         agents_provided = "agents" in data
         convenience_used = any(key in data for key in convenience_keys)
-        if agents_provided:
+        if agents_provided and not convenience_used:
             raw_agents = data.get("agents") or []
-            if not convenience_used or raw_agents:
-                data["agents"] = cls._normalize_agents(raw_agents)
-                return data
+            data["agents"] = cls._normalize_agents(raw_agents)
+            return data
 
         def _get_value(field: str, aliases: tuple[str, ...] = ()) -> Any:
             for key in (field, *aliases):
