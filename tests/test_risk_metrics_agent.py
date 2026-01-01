@@ -8,9 +8,9 @@ from pa_core.random import spawn_rngs
 from pa_core.sim.metrics import (
     breach_count,
     breach_probability,
+    compounded_return_below_zero_fraction,
     conditional_value_at_risk,
-    max_drawdown,
-    time_under_water,
+    max_cumulative_sum_drawdown,
 )
 
 # ruff: noqa: E402
@@ -58,8 +58,12 @@ def test_risk_metrics_agent_matches_individual_functions(
 
     # Verify each metric matches corresponding function
     assert metrics.cvar == pytest.approx(conditional_value_at_risk(returns, confidence=0.95))
-    assert metrics.max_drawdown == pytest.approx(max_drawdown(returns))
-    assert metrics.time_under_water == pytest.approx(time_under_water(returns))
+    assert metrics.max_cumulative_sum_drawdown == pytest.approx(
+        max_cumulative_sum_drawdown(returns)
+    )
+    assert metrics.compounded_return_below_zero_fraction == pytest.approx(
+        compounded_return_below_zero_fraction(returns)
+    )
     assert metrics.breach_probability == pytest.approx(breach_probability(returns, -0.02))
     assert metrics.breach_count == breach_count(returns, -0.02)
 
@@ -91,7 +95,9 @@ def test_risk_metrics_agent_scaling_behavior(
     assert (
         abs(scaled_metrics.cvar) >= abs(scale_factor * base_metrics.cvar) * 0.9
     )  # Allow 10% tolerance for numerical effects
-    assert abs(scaled_metrics.max_drawdown) >= abs(base_metrics.max_drawdown)
+    assert abs(scaled_metrics.max_cumulative_sum_drawdown) >= abs(
+        base_metrics.max_cumulative_sum_drawdown
+    )
 
 
 # Edge cases for problematic scenarios
@@ -118,7 +124,7 @@ def test_risk_metrics_agent_different_data_sizes(
 
     # Basic sanity checks
     assert isinstance(metrics.cvar, float)
-    assert isinstance(metrics.max_drawdown, float)
-    assert isinstance(metrics.time_under_water, float)
+    assert isinstance(metrics.max_cumulative_sum_drawdown, float)
+    assert isinstance(metrics.compounded_return_below_zero_fraction, float)
     assert isinstance(metrics.breach_probability, float)
     assert isinstance(metrics.breach_count, int)

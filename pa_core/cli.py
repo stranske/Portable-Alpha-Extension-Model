@@ -119,10 +119,18 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     explanation.append("• AnnReturn: Annualized return (%)\n")
     explanation.append("• AnnVol: Annualized volatility (%)\n")
     explanation.append("• VaR: Value at Risk (95% confidence)\n")
-    explanation.append("• BreachProb: Share of simulated months with any loss > 2%\n")
+    explanation.append("• BreachProb: Share of simulated months below the breach threshold\n")
     if "ShortfallProb" in summary.columns:
-        explanation.append("• ShortfallProb: Probability of annual loss > 5%\n")
-    explanation.append("• TE: Tracking Error vs benchmark\n")
+        explanation.append(
+            "• ShortfallProb: Probability terminal compounded return is below the annualised threshold\n"
+        )
+    if "MaxDD" in summary.columns:
+        explanation.append("• MaxDD: Worst peak-to-trough decline of compounded wealth\n")
+    if "TimeUnderWater" in summary.columns:
+        explanation.append(
+            "• TimeUnderWater: Fraction of periods with compounded return below zero\n"
+        )
+    explanation.append("• TE: Annualised active return volatility vs benchmark\n")
 
     console.print(Panel(explanation, title="Understanding Your Results"))
 
@@ -132,9 +140,11 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     # Print additional guidance
     guidance = Text()
     guidance.append("\n💡 Interpretation Tips:\n", style="bold green")
-    guidance.append("• Lower ShortfallProb is better (< 5% is typically good)\n")
+    guidance.append(
+        "• Lower ShortfallProb means fewer paths breach the terminal return threshold\n"
+    )
     guidance.append("• Higher AnnReturn with lower AnnVol indicates better risk-adjusted returns\n")
-    guidance.append("• TE shows how much each strategy deviates from the benchmark\n")
+    guidance.append("• TE shows how volatile active returns are relative to the benchmark\n")
 
     console.print(guidance)
 

@@ -15,8 +15,8 @@ validates this value.
 The model is designed to help you explore three core ideas:
 
 * **Risk/return trade‑offs** – how annualised return compares with volatility.
-* **Funding shortfall probability** – the chance the portfolio falls below a required level.
-* **Tracking error** – deviation from the benchmark.
+* **Funding shortfall probability** – share of paths where the terminal compounded return falls below the annualised threshold.
+* **Tracking error** – annualised volatility of active returns versus the benchmark.
 
 The introductory tutorials demonstrate how to implement a run, interpret these metrics and visualise them so you can test each idea in a repeatable workflow.
 
@@ -56,7 +56,7 @@ when you are tuning simulation length, financing, or sweep parameters; use
    ```
 
 2. **Run the simulation** – execute the model with a YAML config (convert legacy CSV files with `pa-convert-params`).
-3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
+3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TE`.
 4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
 Example quick run:
@@ -95,6 +95,7 @@ easy filtering and dashboard visualisation.
 * **Funding shortfall risk** – monitor the required `ShortfallProb` metric (include it under `risk_metrics` or configuration fails). It reports the share of paths whose terminal compounded return falls below the annualised threshold over the full horizon.
 * **Tracking error** – the annualised standard deviation of active returns versus the benchmark.
 * **Max drawdown** – worst peak‑to‑trough decline of the compounded wealth path.
+* **Compounded return below zero fraction (Time under water)** – fraction of periods where the cumulative compounded return is below zero.
 * **Visualisation** – explore results via the dashboard or scripts.
 * **Scenario testing** – alter capital weights or alpha assumptions to see the impact on all metrics.
 
@@ -234,7 +235,7 @@ workflow.
    - **Part 3**: Alpha Shares Mode - alpha/beta split optimization
    - **Part 4**: Vol Mult Mode - volatility stress testing
    - **Part 5**: Returns Mode - return/volatility sensitivity analysis
-2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
+2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TE` in the console and workbook.
 3. **Introductory Tutorial 3 – Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
    These first three tutorials form a quick‑start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
@@ -545,6 +546,7 @@ python -m pa_core.cli \
 ```
 
 Open `Tutorial2_Baseline.xlsx` and review `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE`. The sample template intentionally exceeds the **3%** tracking‑error budget so you can practise threshold analysis.
+`TE` is the annualised volatility of active returns (portfolio minus benchmark). `MaxDD` measures the worst peak-to-trough decline of the compounded wealth path, and `TimeUnderWater` is the fraction of periods where the compounded return is below zero. `ShortfallProb` reports the share of paths whose terminal compounded return falls below the annualised threshold over the full horizon.
 `BreachProb` is the share of all simulated months across all paths (i.e., total
 path-months) that fall below the breach threshold (default **-2%**) over the
 horizon.

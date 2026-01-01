@@ -65,7 +65,7 @@ agents:
     beta_share: 0.08
     alpha_share: 0.02
     extra:
-      tracking_error_target: 0.03
+      active_return_volatility_target: 0.03
 ```
 
 **Mixed mode example** (convenience + additional agent):
@@ -88,7 +88,7 @@ agents:
 - **In-House alpha share**: What portion seeks active return (0.5 = 50%)
 - **Note**: These should sum to 1.0 for full capital deployment
 
-**Business Logic**: Higher beta share = more benchmark tracking, lower tracking error
+**Business Logic**: Higher beta share = more benchmark tracking, lower active return volatility (tracking error)
 
 ### 4. External PA Manager Configuration  
 - **External PA alpha fraction**: How much of external manager's mandate is pure alpha vs beta

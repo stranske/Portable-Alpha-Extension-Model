@@ -214,10 +214,10 @@ Data (CSV/XLSX) ──► DataImportAgent ──► CalibrationAgent ──► A
 ## 10) RiskMetricsAgent
 **Default metrics**
 - Ann. return, vol, Sharpe
-- Tracking error vs Base
-- Shortfall probability vs threshold
+- Tracking error (annualised active return volatility) vs Base
+- Shortfall probability (terminal compounded return below annualised threshold)
 - VaR and CVaR (monthly and annualized)
-- Max drawdown and Time Under Water
+- Max drawdown (compounded wealth path) and compounded return below zero fraction (Time Under Water)
 - Policy breach counts
 
 **Tests**

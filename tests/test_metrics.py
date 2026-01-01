@@ -1,26 +1,31 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from pa_core.sim.metrics import (
+    active_return_volatility,
     annualised_return,
     annualised_vol,
     breach_count,
     breach_probability,
     compound,
+    compounded_return_below_zero_fraction,
     conditional_value_at_risk,
+    max_cumulative_sum_drawdown,
     max_drawdown,
     shortfall_probability,
     summary_table,
+    terminal_return_below_threshold_prob,
     time_under_water,
     tracking_error,
     value_at_risk,
 )
 
 
-def test_tracking_error_constant_series():
+def test_active_return_volatility_constant_series():
     strat = np.full(12, 0.05)
     bench = np.full(12, 0.05)
-    assert tracking_error(strat, bench) == 0.0
+    assert active_return_volatility(strat, bench) == 0.0
 
 
 def test_value_at_risk_constant_series():
@@ -36,7 +41,7 @@ def test_value_at_risk_extreme():
 
 def test_metrics_shape_mismatch():
     try:
-        tracking_error(np.arange(5), np.arange(6))
+        active_return_volatility(np.arange(5), np.arange(6))
     except ValueError:
         pass
     else:
@@ -85,32 +90,38 @@ def test_conditional_value_at_risk_monotonic():
     assert cvar2 <= cvar1
 
 
-def test_max_drawdown_basic():
+def test_max_cumulative_sum_drawdown_basic():
     arr = np.array([[0.01, -0.02, 0.03]])
-    dd = max_drawdown(arr)
+    dd = max_cumulative_sum_drawdown(arr)
     assert np.isclose(dd, -0.02)
     pos = np.array([[0.01, 0.02, 0.03]])
-    assert max_drawdown(pos) == 0.0
+    assert max_cumulative_sum_drawdown(pos) == 0.0
 
 
-def test_max_drawdown_compounded_path():
+def test_max_cumulative_sum_drawdown_compounded_path():
+    arr = np.array([[0.2, -0.1, -0.1]])
+    dd = max_cumulative_sum_drawdown(arr)
+    assert np.isclose(dd, -0.19)
+
+
+def test_max_drawdown_uses_compounded_path():
     arr = np.array([[0.2, -0.1, -0.1]])
     dd = max_drawdown(arr)
     assert np.isclose(dd, -0.19)
 
 
-def test_max_drawdown_initial_drop():
+def test_max_cumulative_sum_drawdown_initial_drop():
     arr = np.array([[-0.1, 0.0, 0.05]])
-    dd = max_drawdown(arr)
+    dd = max_cumulative_sum_drawdown(arr)
     assert np.isclose(dd, -0.1)
 
 
-def test_time_under_water_basic():
+def test_compounded_return_below_zero_fraction_basic():
     arr = np.array([[0.01, -0.02, 0.01]])
-    tuw = time_under_water(arr)
+    tuw = compounded_return_below_zero_fraction(arr)
     assert 0 < tuw < 1
     pos = np.array([[0.01, 0.02]])
-    assert time_under_water(pos) == 0.0
+    assert compounded_return_below_zero_fraction(pos) == 0.0
 
 
 def test_breach_count_basic():
@@ -216,37 +227,37 @@ def test_summary_table_includes_new_metrics():
         assert col in stats.columns
 
 
-def test_shortfall_probability_basic():
+def test_terminal_return_below_threshold_prob_basic():
     arr = np.array([[0.1, -0.2], [0.05, 0.02]])
-    prob = shortfall_probability(arr, threshold=-0.05)
+    prob = terminal_return_below_threshold_prob(arr, threshold=-0.05)
     assert prob == 0.5
 
 
-def test_shortfall_probability_rolling_window():
+def test_terminal_return_below_threshold_prob_rolling_window():
     arr = np.array([0.1, -0.2, 0.05, 0.02])
-    prob = shortfall_probability(arr, threshold=-0.05, periods_per_year=2)
+    prob = terminal_return_below_threshold_prob(arr, threshold=-0.05, periods_per_year=2)
     assert np.isclose(prob, 2.0 / 3.0)
 
 
-def test_shortfall_probability_horizon_threshold():
+def test_terminal_return_below_threshold_prob_horizon_threshold():
     arr = np.zeros((2, 12))
-    prob = shortfall_probability(arr, threshold=-0.12, periods_per_year=12)
+    prob = terminal_return_below_threshold_prob(arr, threshold=-0.12, periods_per_year=12)
     assert prob == 0.0
 
 
-def test_shortfall_probability_empty_input():
+def test_terminal_return_below_threshold_prob_empty_input():
     try:
-        shortfall_probability(np.array([]), threshold=-0.05)
+        terminal_return_below_threshold_prob(np.array([]), threshold=-0.05)
     except ValueError:
         pass
     else:
         raise AssertionError("Expected ValueError for empty returns")
 
 
-def test_tracking_error_annualised():
+def test_active_return_volatility_annualised():
     strat = np.array([0.02, -0.02, 0.0, 0.01])
     bench = np.zeros_like(strat)
-    te = tracking_error(strat, bench, periods_per_year=12)
+    te = active_return_volatility(strat, bench, periods_per_year=12)
     expected = np.std(strat, ddof=1) * np.sqrt(12)
     assert np.isclose(te, expected)
 
@@ -256,3 +267,15 @@ def test_summary_table_shortfall():
     stats = summary_table({"A": arr})
     assert "ShortfallProb" in stats.columns
     assert stats["ShortfallProb"].iloc[0] == 0.5
+
+
+def test_deprecated_metric_aliases_warn():
+    arr = np.array([[0.1, -0.2, 0.05]])
+    with pytest.warns(DeprecationWarning, match="tracking_error"):
+        tracking_error(np.array([0.01, 0.02]), np.array([0.0, 0.0]))
+    with pytest.warns(DeprecationWarning, match="max_drawdown"):
+        max_drawdown(arr)
+    with pytest.warns(DeprecationWarning, match="time_under_water"):
+        time_under_water(arr)
+    with pytest.warns(DeprecationWarning, match="shortfall_probability"):
+        shortfall_probability(arr, threshold=-0.05)

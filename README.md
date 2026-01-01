@@ -51,7 +51,7 @@ The index CSV should include a `Date` column and a monthly total return column n
 
 ## Plain-English Primer
 
-If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **tracking error (TE)**, and **CVaR**.
+If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **active return volatility (tracking error, TE)**, and **CVaR**.
 
 ## Development Setup
 
@@ -536,8 +536,8 @@ Compute performance metrics for each portfolio’s annual returns:
 Ann Return = sample mean.
 Ann Vol = sample standard deviation.
 VaR 95% = 5th percentile.
-Tracking Error = std of (bucket_return − index_return).
-Breach Probability = % of months (in the first sim path) where ((r_{\text{bucket},t} < -,\mathrm{buffer_multiple}\times\sigma_{\beta})).
+Tracking Error = annualised standard deviation of (bucket_return − index_return).
+Breach Probability = share of simulated months across all paths where ((r_{\text{bucket},t} < -,\mathrm{buffer_multiple}\times\sigma_{\beta})).
 Export
 
 Inputs sheet: all parameters (dates, vol caps, bucket sizes, α fractions, active share, σ_ref, W, internal cash leftover, etc.).

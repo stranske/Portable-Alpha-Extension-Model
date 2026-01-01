@@ -53,7 +53,7 @@ def test_load_yaml_with_generic_agents(tmp_path):
                 "capital": 25.0,
                 "beta_share": 0.1,
                 "alpha_share": 0.05,
-                "extra": {"tracking_error_target": 0.03},
+                "extra": {"active_return_volatility_target": 0.03},
             },
         ],
     }
