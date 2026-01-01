@@ -119,6 +119,15 @@ def _c4(n_samples: int) -> float:
     )
 
 
+def _volatility_from_sample(sample_std: float, n_obs: int) -> tuple[float, float]:
+    if n_obs < 2 or not math.isfinite(sample_std):
+        return float("nan"), float("nan")
+    sample_var = sample_std**2
+    correction = _c4(n_obs)
+    sigma = sample_std / correction if math.isfinite(correction) else sample_std
+    return sigma, sample_var
+
+
 def _chi2_ppf(p: float, df: int) -> float:
     if df <= 0:
         return float("nan")
@@ -261,13 +270,7 @@ def calibrate_returns(
         mean_value = (1.0 - mean_boost) * series_mean + mean_boost * grand_mean
 
         sample_std = float(clean[series_id].std(ddof=1))
-        if math.isnan(sample_std) or n_obs < 2:
-            sigma = float("nan")
-            sample_var = float("nan")
-        else:
-            sample_var = sample_std**2
-            correction = _c4(n_obs)
-            sigma = sample_std / correction if math.isfinite(correction) else sample_std
+        sigma, sample_var = _volatility_from_sample(sample_std, n_obs)
 
         mean_ci = _mean_ci(
             float(mean_value),
