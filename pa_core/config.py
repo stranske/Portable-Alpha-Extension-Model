@@ -603,7 +603,7 @@ class ModelConfig(BaseModel):
         names = [agent.name for agent in self.agents]
         if not names:
             errors.append("agents must include at least one agent")
-        name_to_indices = {}
+        name_to_indices: dict[str, list[int]] = {}
         for idx, name in enumerate(names):
             name_to_indices.setdefault(name, []).append(idx)
         duplicate_names = sorted({name for name in names if names.count(name) > 1})
