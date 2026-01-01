@@ -78,6 +78,46 @@ class TestEnhancedConfigValidation:
         with pytest.raises(ValueError, match="must be positive"):
             load_config(config_data)
 
+    def test_config_rejects_agent_share_sum_over_one(self):
+        """Test agent beta+alpha shares must not exceed 1."""
+        config_data = {
+            "N_SIMULATIONS": 10,
+            "N_MONTHS": 1,
+            "total_fund_capital": 100.0,
+            "agents": [
+                {
+                    "name": "Base",
+                    "capital": 100.0,
+                    "beta_share": 0.7,
+                    "alpha_share": 0.5,
+                    "extra": {},
+                }
+            ],
+        }
+
+        with pytest.raises(ValueError, match="beta_share \\+ alpha_share must be <= 1"):
+            load_config(config_data)
+
+    def test_config_rejects_agent_share_out_of_bounds(self):
+        """Test agent shares must be within 0..1."""
+        config_data = {
+            "N_SIMULATIONS": 10,
+            "N_MONTHS": 1,
+            "total_fund_capital": 100.0,
+            "agents": [
+                {
+                    "name": "Base",
+                    "capital": 100.0,
+                    "beta_share": 1.2,
+                    "alpha_share": 0.0,
+                    "extra": {},
+                }
+            ],
+        }
+
+        with pytest.raises(ValueError, match="beta_share must be between 0 and 1"):
+            load_config(config_data)
+
     def test_config_with_capital_exceeding_margin_limit(self):
         """Test that capital allocation exceeding margin limits fails."""
         config_data = {
