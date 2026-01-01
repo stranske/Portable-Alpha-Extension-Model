@@ -37,14 +37,8 @@ class SimulatorOrchestrator:
         self.cfg = cfg
         self.idx_series = normalize_index_series(pd.Series(idx_series), get_index_series_unit())
 
-    def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
-        """Execute simulations and return per-agent returns and summary table.
-
-        Uses the PSD-corrected covariance matrix to derive implied
-        volatilities and correlations before drawing joint returns. Summary
-        table metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
-        """
-
+    def draw_streams(self, seed: int | None = None) -> Tuple[ArrayLike, ...]:
+        """Draw Monte Carlo return and financing streams for the configured model."""
         mu_idx = float(self.idx_series.mean())
         idx_sigma, _, _ = select_vol_regime_sigma(
             self.idx_series,
@@ -109,7 +103,17 @@ class SimulatorOrchestrator:
             params=params,
             rngs=fin_rngs,
         )
+        return r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
 
+    def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
+        """Execute simulations and return per-agent returns and summary table.
+
+        Uses the PSD-corrected covariance matrix to derive implied
+        volatilities and correlations before drawing joint returns. Summary
+        table metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
+        """
+
+        r_beta, r_H, r_E, r_M, f_int, f_ext, f_act = self.draw_streams(seed=seed)
         agents = build_from_config(self.cfg)
         returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
         summary = summary_table(returns, benchmark="Base")

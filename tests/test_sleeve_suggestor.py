@@ -296,6 +296,49 @@ def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
     assert len(df) == 2
 
 
+def test_suggest_sleeve_sizes_reuses_cached_streams(monkeypatch):
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        total_fund_capital=100.0,
+        external_pa_capital=50.0,
+        active_ext_capital=25.0,
+        internal_pa_capital=25.0,
+    )
+    idx_series = pd.Series([0.0])
+
+    r = np.zeros((1, 1))
+    streams = (r, r, r, r, r, r, r)
+    calls = {"draw": 0}
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def draw_streams(self, seed=None):
+            calls["draw"] += 1
+            return streams
+
+        def run(self, seed=None):
+            raise AssertionError("run should not be called when streams are cached")
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=0.5,
+        max_evals=3,
+    )
+
+    assert calls["draw"] == 1
+    assert not df.empty
+
+
 def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
     idx_series = pd.Series([0.0])
@@ -412,3 +455,181 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
             float(summary_row["CVaR"]),
             float(row[f"{agent}_CVaR"]),
         )
+
+
+def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
+    per_cap = {
+        "ExternalPA": {
+            "AnnReturn": 0.03,
+            "ExcessReturn": 0.025,
+            "TE": 0.0001,
+            "BreachProb": 0.0002,
+            "CVaR": -0.0003,
+        },
+        "ActiveExt": {
+            "AnnReturn": 0.01,
+            "ExcessReturn": 0.008,
+            "TE": 0.0001,
+            "BreachProb": 0.0002,
+            "CVaR": -0.0003,
+        },
+        "InternalPA": {
+            "AnnReturn": 0.02,
+            "ExcessReturn": 0.015,
+            "TE": 0.0001,
+            "BreachProb": 0.0002,
+            "CVaR": -0.0003,
+        },
+    }
+    rows = []
+    totals = {"AnnReturn": 0.0, "ExcessReturn": 0.0, "TE": 0.0, "BreachProb": 0.0, "CVaR": 0.0}
+    for agent, capital in (
+        ("ExternalPA", cfg.external_pa_capital),
+        ("ActiveExt", cfg.active_ext_capital),
+        ("InternalPA", cfg.internal_pa_capital),
+    ):
+        metrics = {k: v * capital for k, v in per_cap[agent].items()}
+        totals = {k: totals[k] + metrics[k] for k in totals}
+        rows.append({"Agent": agent, **metrics})
+    rows.append({"Agent": "Total", **totals})
+    return pd.DataFrame(rows)
+
+
+def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
+    _ = pytest.importorskip("scipy")
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        total_fund_capital=100.0,
+        external_pa_capital=40.0,
+        active_ext_capital=30.0,
+        internal_pa_capital=30.0,
+    )
+    idx_series = pd.Series([0.0])
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def run(self, seed=None):
+            return {}, _make_linear_summary(self.cfg)
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=0.05,
+        max_breach=0.05,
+        max_cvar=0.05,
+        step=0.5,
+        min_external=0.0,
+        max_external=80.0,
+        min_active=0.0,
+        max_active=80.0,
+        min_internal=0.0,
+        max_internal=100.0,
+        optimize=True,
+        objective="total_return",
+    )
+    assert not df.empty
+    row = df.iloc[0]
+    assert row["optimizer_success"] is True
+    assert row["constraints_satisfied"] is True
+    assert row["external_pa_capital"] == pytest.approx(80.0)
+    assert row["active_ext_capital"] == pytest.approx(0.0)
+    assert row["internal_pa_capital"] == pytest.approx(20.0)
+
+    rng = np.random.default_rng(0)
+    random_scores = []
+    for _ in range(25):
+        ext = float(rng.uniform(0.0, 80.0))
+        act = float(rng.uniform(0.0, 80.0))
+        remaining = 100.0 - ext - act
+        if remaining < 0:
+            continue
+        random_scores.append(0.03 * ext + 0.02 * remaining + 0.01 * act)
+    assert row["objective_value"] >= max(random_scores)
+
+
+def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        total_fund_capital=100.0,
+        external_pa_capital=40.0,
+        active_ext_capital=30.0,
+        internal_pa_capital=30.0,
+    )
+    idx_series = pd.Series([0.0])
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def run(self, seed=None):
+            return {}, _make_linear_summary(self.cfg)
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
+    monkeypatch.setattr("pa_core.sleeve_suggestor._load_minimize", lambda: None)
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=0.05,
+        max_breach=0.05,
+        max_cvar=0.05,
+        step=0.5,
+        optimize=True,
+        objective="total_return",
+    )
+    assert not df.empty
+    assert str(df.loc[0, "optimizer_status"]).startswith("grid_fallback")
+
+
+def test_suggest_sleeve_sizes_infeasible_constraints_returns_status(monkeypatch):
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        total_fund_capital=100.0,
+        external_pa_capital=40.0,
+        active_ext_capital=30.0,
+        internal_pa_capital=30.0,
+    )
+    idx_series = pd.Series([0.0])
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def run(self, seed=None):
+            return {}, _make_linear_summary(self.cfg)
+
+    class DummyResult:
+        def __init__(self, x):
+            self.x = np.array(x, dtype=float)
+            self.success = False
+            self.message = "failed"
+
+    def _fake_minimize(fun, x0, method=None, bounds=None, constraints=None, options=None):
+        return DummyResult(x0)
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
+    monkeypatch.setattr("pa_core.sleeve_suggestor._load_minimize", lambda: _fake_minimize)
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1e-6,
+        max_breach=1e-6,
+        max_cvar=1e-6,
+        step=0.5,
+        optimize=True,
+        objective="total_return",
+    )
+    assert not df.empty
+    assert not bool(df.loc[0, "constraints_satisfied"])
+    assert str(df.loc[0, "optimizer_status"]).startswith("fallback_failed")
