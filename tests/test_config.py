@@ -208,9 +208,7 @@ def test_agents_multiple_benchmark_agents():
             },
         ],
     }
-    with pytest.raises(
-        ValueError, match="benchmark agent named 'Base' is required; found 2"
-    ):
+    with pytest.raises(ValueError, match="benchmark agent named 'Base' is required; found 2"):
         ModelConfig(**data)
 
 
