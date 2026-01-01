@@ -120,6 +120,11 @@ class ModelConfig(BaseModel):
         alias="return_unit",
         description="Input unit for return means/volatilities.",
     )
+    return_unit_input: Literal["annual", "monthly"] = Field(
+        default=DEFAULT_RETURN_UNIT,
+        exclude=True,
+        description="Original return unit provided before normalization.",
+    )
 
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
@@ -384,11 +389,12 @@ class ModelConfig(BaseModel):
         if not isinstance(data, dict):
             return data
         unit = data.get("return_unit", DEFAULT_RETURN_UNIT)
-        if unit == CANONICAL_RETURN_UNIT:
-            return data
-        if unit != DEFAULT_RETURN_UNIT:
-            return data
         updated = dict(data)
+        updated["return_unit_input"] = unit
+        if unit == CANONICAL_RETURN_UNIT:
+            return updated
+        if unit != DEFAULT_RETURN_UNIT:
+            return updated
 
         # Allow values to be supplied via field names or aliases.
         def _get_value(field: str) -> tuple[Any, list[str]]:

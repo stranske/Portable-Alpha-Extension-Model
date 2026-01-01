@@ -11,7 +11,7 @@ __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution
 
 
 def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
-    """Compute per-agent annual return attribution by component.
+    """Compute per-agent monthly return attribution by component.
 
     Components:
     - Beta: exposure to index mean return
@@ -49,15 +49,12 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
     active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0
 
-    def annual(x: float) -> float:
-        return 12.0 * x
-
     rows: List[Dict[str, object]] = []
 
     # Base (benchmark sleeve)
-    base_beta = annual(cfg.w_beta_H * mu_idx_m)
-    base_alpha = annual(cfg.w_alpha_H * mu_H_m)
-    base_fin = annual(-cfg.w_beta_H * fin_int_m)
+    base_beta = cfg.w_beta_H * mu_idx_m
+    base_alpha = cfg.w_alpha_H * mu_H_m
+    base_fin = -cfg.w_beta_H * fin_int_m
     rows += [
         {"Agent": "Base", "Sub": "Beta", "Return": base_beta},
         {"Agent": "Base", "Sub": "Alpha", "Return": base_alpha},
@@ -66,9 +63,9 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # ExternalPA
     if w_ext > 0:
-        ext_beta = annual(w_ext * mu_idx_m)
-        ext_alpha = annual(w_ext * theta_extpa * mu_M_m)
-        ext_fin = annual(-w_ext * fin_ext_m)
+        ext_beta = w_ext * mu_idx_m
+        ext_alpha = w_ext * theta_extpa * mu_M_m
+        ext_fin = -w_ext * fin_ext_m
         rows += [
             {"Agent": "ExternalPA", "Sub": "Beta", "Return": ext_beta},
             {"Agent": "ExternalPA", "Sub": "Alpha", "Return": ext_alpha},
@@ -77,9 +74,9 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # ActiveExt
     if w_act > 0:
-        act_beta = annual(w_act * mu_idx_m)
-        act_alpha = annual(w_act * active_share * mu_E_m)
-        act_fin = annual(-w_act * fin_act_m)
+        act_beta = w_act * mu_idx_m
+        act_alpha = w_act * active_share * mu_E_m
+        act_fin = -w_act * fin_act_m
         rows += [
             {"Agent": "ActiveExt", "Sub": "Beta", "Return": act_beta},
             {"Agent": "ActiveExt", "Sub": "Alpha", "Return": act_alpha},
@@ -88,13 +85,13 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # InternalPA (pure alpha)
     if w_int > 0:
-        int_alpha = annual(w_int * mu_H_m)
+        int_alpha = w_int * mu_H_m
         rows.append({"Agent": "InternalPA", "Sub": "Alpha", "Return": int_alpha})
 
     # InternalBeta (leftover beta)
     if w_leftover > 0:
-        ib_beta = annual(w_leftover * mu_idx_m)
-        ib_fin = annual(-w_leftover * fin_int_m)
+        ib_beta = w_leftover * mu_idx_m
+        ib_fin = -w_leftover * fin_int_m
         rows += [
             {"Agent": "InternalBeta", "Sub": "Beta", "Return": ib_beta},
             {"Agent": "InternalBeta", "Sub": "Financing", "Return": ib_fin},

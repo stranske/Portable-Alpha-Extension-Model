@@ -4,7 +4,6 @@ import copy
 import hashlib
 import json
 import logging
-import math
 from typing import Any, Callable, Dict, Iterator, List, Optional
 
 import numpy as np
@@ -19,7 +18,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import MONTHS_PER_YEAR, ModelConfig, annual_mean_to_monthly, normalize_share
+from .config import ModelConfig, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
@@ -167,8 +166,6 @@ def run_parameter_sweep(
     results: List[Dict[str, Any]] = []
 
     mu_idx = float(index_series.mean())
-    if cfg.return_unit_input == "annual":
-        mu_idx = annual_mean_to_monthly(mu_idx)
     idx_sigma, _, _ = select_vol_regime_sigma(
         index_series,
         regime=cfg.vol_regime,
@@ -240,11 +237,6 @@ def run_parameter_sweep(
         sigma_h = float(cfg.sigma_H)
         sigma_e = float(cfg.sigma_E)
         sigma_m = float(cfg.sigma_M)
-        if cfg.return_unit_input == "annual":
-            sigma_scale = math.sqrt(MONTHS_PER_YEAR)
-            sigma_h *= sigma_scale
-            sigma_e *= sigma_scale
-            sigma_m *= sigma_scale
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -260,8 +252,6 @@ def run_parameter_sweep(
             n_samples=n_samples,
         )
         base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
-        if cfg.return_unit_input == "annual":
-            base_sigma = base_sigma / MONTHS_PER_YEAR
         shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
         shock_params.update(
             {
@@ -316,11 +306,6 @@ def run_parameter_sweep(
         sigma_h = float(mod_cfg.sigma_H)
         sigma_e = float(mod_cfg.sigma_E)
         sigma_m = float(mod_cfg.sigma_M)
-        if cfg.return_unit_input == "annual":
-            sigma_scale = math.sqrt(MONTHS_PER_YEAR)
-            sigma_h *= sigma_scale
-            sigma_e *= sigma_scale
-            sigma_m *= sigma_scale
 
         cov = build_cov_matrix(
             mod_cfg.rho_idx_H,
@@ -337,8 +322,6 @@ def run_parameter_sweep(
             n_samples=n_samples,
         )
         sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-        if cfg.return_unit_input == "annual":
-            sigma_vec = sigma_vec / MONTHS_PER_YEAR
         idx_sigma_cov = float(sigma_vec[0])
         sigma_h_cov = float(sigma_vec[1])
         sigma_e_cov = float(sigma_vec[2])

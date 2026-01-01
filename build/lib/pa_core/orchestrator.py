@@ -51,6 +51,10 @@ class SimulatorOrchestrator:
         )
         n_samples = int(len(self.idx_series))
 
+        sigma_h = float(self.cfg.sigma_H)
+        sigma_e = float(self.cfg.sigma_E)
+        sigma_m = float(self.cfg.sigma_M)
+
         cov = build_cov_matrix(
             self.cfg.rho_idx_H,
             self.cfg.rho_idx_E,
@@ -59,9 +63,9 @@ class SimulatorOrchestrator:
             self.cfg.rho_H_M,
             self.cfg.rho_E_M,
             idx_sigma,
-            self.cfg.sigma_H,
-            self.cfg.sigma_E,
-            self.cfg.sigma_M,
+            sigma_h,
+            sigma_e,
+            sigma_m,
             covariance_shrinkage=self.cfg.covariance_shrinkage,
             n_samples=n_samples,
         )

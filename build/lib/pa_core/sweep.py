@@ -234,6 +234,9 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
+        sigma_h = float(cfg.sigma_H)
+        sigma_e = float(cfg.sigma_E)
+        sigma_m = float(cfg.sigma_M)
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -242,9 +245,9 @@ def run_parameter_sweep(
             cfg.rho_H_M,
             cfg.rho_E_M,
             idx_sigma,
-            cfg.sigma_H,
-            cfg.sigma_E,
-            cfg.sigma_M,
+            sigma_h,
+            sigma_e,
+            sigma_m,
             covariance_shrinkage=cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
@@ -300,6 +303,10 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
+        sigma_h = float(mod_cfg.sigma_H)
+        sigma_e = float(mod_cfg.sigma_E)
+        sigma_m = float(mod_cfg.sigma_M)
+
         cov = build_cov_matrix(
             mod_cfg.rho_idx_H,
             mod_cfg.rho_idx_E,
@@ -308,9 +315,9 @@ def run_parameter_sweep(
             mod_cfg.rho_H_M,
             mod_cfg.rho_E_M,
             idx_sigma,
-            mod_cfg.sigma_H,
-            mod_cfg.sigma_E,
-            mod_cfg.sigma_M,
+            sigma_h,
+            sigma_e,
+            sigma_m,
             covariance_shrinkage=mod_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )

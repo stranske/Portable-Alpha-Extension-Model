@@ -850,15 +850,14 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     # Normal single-run mode below
     mu_idx = float(idx_series.mean())
 
-    def _run_single(
-        run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
-    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
-        sigma_H = run_cfg.sigma_H
-        sigma_E = run_cfg.sigma_E
-        sigma_M = run_cfg.sigma_M
+    def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
+        import numpy as np
 
-        # Build covariance (validates shapes)
-        _ = deps.build_cov_matrix(
+        sigma_h = float(run_cfg.sigma_H)
+        sigma_e = float(run_cfg.sigma_E)
+        sigma_m = float(run_cfg.sigma_M)
+
+        cov = deps.build_cov_matrix(
             run_cfg.rho_idx_H,
             run_cfg.rho_idx_E,
             run_cfg.rho_idx_M,
@@ -866,14 +865,51 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             run_cfg.rho_H_M,
             run_cfg.rho_E_M,
             idx_sigma,
-            sigma_H,
-            sigma_E,
-            sigma_M,
+            sigma_h,
+            sigma_e,
+            sigma_m,
             covariance_shrinkage=run_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
+        if isinstance(cov, np.ndarray) and cov.ndim == 2:
+            sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+            denom = np.outer(sigma_vec, sigma_vec)
+            corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+        else:
+            sigma_vec = np.array([idx_sigma, sigma_h, sigma_e, sigma_m], dtype=float)
+            corr_mat = np.array(
+                [
+                    [1.0, run_cfg.rho_idx_H, run_cfg.rho_idx_E, run_cfg.rho_idx_M],
+                    [run_cfg.rho_idx_H, 1.0, run_cfg.rho_H_E, run_cfg.rho_H_M],
+                    [run_cfg.rho_idx_E, run_cfg.rho_H_E, 1.0, run_cfg.rho_E_M],
+                    [run_cfg.rho_idx_M, run_cfg.rho_H_M, run_cfg.rho_E_M, 1.0],
+                ],
+                dtype=float,
+            )
 
-        params = build_simulation_params(run_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+        return_overrides_local = {
+            "default_sigma_H": float(sigma_vec[1]),
+            "default_sigma_E": float(sigma_vec[2]),
+            "default_sigma_M": float(sigma_vec[3]),
+            "rho_idx_H": float(corr_mat[0, 1]),
+            "rho_idx_E": float(corr_mat[0, 2]),
+            "rho_idx_M": float(corr_mat[0, 3]),
+            "rho_H_E": float(corr_mat[1, 2]),
+            "rho_H_M": float(corr_mat[1, 3]),
+            "rho_E_M": float(corr_mat[2, 3]),
+        }
+
+        return build_simulation_params(
+            run_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=float(sigma_vec[0]),
+            return_overrides=return_overrides_local,
+        )
+
+    def _run_single(
+        run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
+    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
+        params = _build_simulation_params_for_run(run_cfg)
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
@@ -983,23 +1019,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 """Evaluate AnnReturn for Base agent given parameter overrides."""
                 mod_cfg = cfg.model_copy(update=p)
 
-                # Rebuild covariance matrix with new parameters
-                deps.build_cov_matrix(
-                    mod_cfg.rho_idx_H,
-                    mod_cfg.rho_idx_E,
-                    mod_cfg.rho_idx_M,
-                    mod_cfg.rho_H_E,
-                    mod_cfg.rho_H_M,
-                    mod_cfg.rho_E_M,
-                    idx_sigma,
-                    mod_cfg.sigma_H,
-                    mod_cfg.sigma_E,
-                    mod_cfg.sigma_M,
-                    covariance_shrinkage=mod_cfg.covariance_shrinkage,
-                    n_samples=n_samples,
-                )
-
-                params_local = build_simulation_params(mod_cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+                params_local = _build_simulation_params_for_run(mod_cfg)
 
                 r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
                     n_months=mod_cfg.N_MONTHS,

@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import pandas as pd
 
-from ..config import ModelConfig, annual_mean_to_monthly, normalize_share
+from ..config import ModelConfig, normalize_share
 
 __all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
 
@@ -38,8 +38,6 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
 
     # Monthly means
     mu_idx_m = float(pd.Series(idx_series).mean())
-    if cfg.return_unit_input == "annual":
-        mu_idx_m = annual_mean_to_monthly(mu_idx_m)
     mu_H_m = float(cfg.mu_H)
     mu_E_m = float(cfg.mu_E)
     mu_M_m = float(cfg.mu_M)

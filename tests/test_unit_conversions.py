@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from pa_core.config import (
     ModelConfig,
@@ -9,6 +10,7 @@ from pa_core.config import (
 from pa_core.sim.metrics import annualised_return
 from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_joint_returns
+from pa_core.units import convert_annual_series_to_monthly, normalize_index_series
 
 
 def test_annual_mean_to_monthly_simple_and_geometric() -> None:
@@ -17,6 +19,35 @@ def test_annual_mean_to_monthly_simple_and_geometric() -> None:
     geometric = annual_mean_to_monthly(annual, method="geometric")
     expected = (1.0 + annual) ** (1.0 / 12.0) - 1.0
     assert np.isclose(geometric, expected)
+
+
+def test_convert_annual_series_to_monthly_simple_and_geometric() -> None:
+    series = pd.Series([0.12, -0.06])
+    expected_simple = series / 12.0
+    assert np.allclose(convert_annual_series_to_monthly(series), expected_simple)
+
+    expected_geom = (1.0 + series) ** (1.0 / 12.0) - 1.0
+    converted_geom = convert_annual_series_to_monthly(series, method="geometric")
+    assert np.allclose(converted_geom, expected_geom)
+
+
+def test_normalize_index_series_converts_when_annual() -> None:
+    series = pd.Series([0.12, 0.0, -0.06])
+    expected = convert_annual_series_to_monthly(series)
+    converted = normalize_index_series(series, "annual")
+    assert np.allclose(converted, expected)
+
+
+def test_normalize_index_series_passthrough_monthly() -> None:
+    series = pd.Series([0.01, 0.02])
+    converted = normalize_index_series(series, "monthly")
+    assert np.allclose(converted, series)
+
+
+def test_normalize_index_series_defaults_to_monthly() -> None:
+    series = pd.Series([0.01, -0.03])
+    converted = normalize_index_series(series, "")
+    assert np.allclose(converted, series)
 
 
 def test_annual_vol_to_monthly() -> None:
@@ -32,6 +63,16 @@ def test_annual_cov_to_monthly() -> None:
     assert np.allclose(converted, expected)
 
 
+def test_annual_cov_matches_vol_conversion() -> None:
+    annual_vols = np.array([0.24, 0.12])
+    corr = np.array([[1.0, 0.3], [0.3, 1.0]])
+    annual_cov = np.outer(annual_vols, annual_vols) * corr
+    monthly_cov = annual_cov_to_monthly(annual_cov)
+    monthly_vols = np.array([annual_vol_to_monthly(v) for v in annual_vols])
+    expected = np.outer(monthly_vols, monthly_vols) * corr
+    assert np.allclose(monthly_cov, expected)
+
+
 def test_model_config_converts_once() -> None:
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, mu_H=0.12, sigma_H=0.24)
     assert np.isclose(cfg.mu_H, annual_mean_to_monthly(0.12))
@@ -41,6 +82,20 @@ def test_model_config_converts_once() -> None:
     round_trip = cfg.__class__.model_validate(cfg.model_dump())
     assert np.isclose(round_trip.mu_H, cfg.mu_H)
     assert np.isclose(round_trip.sigma_H, cfg.sigma_H)
+
+
+def test_model_config_monthly_passthrough() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        return_unit="monthly",
+        mu_H=0.01,
+        sigma_H=0.02,
+    )
+    assert cfg.return_unit == "monthly"
+    assert cfg.return_unit_input == "monthly"
+    assert np.isclose(cfg.mu_H, 0.01)
+    assert np.isclose(cfg.sigma_H, 0.02)
 
 
 def test_annual_config_round_trip_to_annual_output() -> None:
