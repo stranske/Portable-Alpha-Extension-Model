@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Quick environment checks for agent contributors."""
+
 from __future__ import annotations
 
 import sys
