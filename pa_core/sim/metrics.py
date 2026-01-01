@@ -122,14 +122,16 @@ def breach_probability(
 
     For 2D arrays shaped (paths, periods):
     - ``mode="month"`` reports the share of all simulated months across all
-      paths that fall below ``threshold`` (Option C).
+      paths that fall below ``threshold`` (Option C). Each month of every path
+      contributes equally, so the denominator is ``paths * periods``.
     - ``mode="any"`` reports the fraction of simulation paths that breach at
       least once during the horizon (Option A).
     - ``mode="terminal"`` reports the fraction of paths that breach in the
       terminal month (Option B).
     For 1D arrays, ``mode="month"`` is the share of months below the threshold,
     while the other modes return 1.0 or 0.0 for the single path. ``path`` is
-    ignored and kept only for backward compatibility.
+    ignored and kept only for backward compatibility with legacy callers; all
+    modes use every available path and month, never just the first path.
     """
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
@@ -156,10 +158,13 @@ def terminal_return_below_threshold_prob(
 ) -> float:
     """Return probability terminal compounded return is below a horizon threshold.
 
-    ``threshold`` is interpreted as an annualised return hurdle. For 2D inputs,
-    the probability is computed from terminal compounded returns over the full
-    horizon. For 1D inputs, rolling windows of length ``periods_per_year`` are
-    used to estimate the shortfall frequency.
+    ``threshold`` is interpreted as an annualised return hurdle. It is converted
+    to a horizon-adjusted compounded threshold via
+    ``(1 + threshold) ** years - 1`` where ``years = periods / periods_per_year``.
+    For 2D inputs, the probability is computed from terminal compounded returns
+    over the full horizon. For 1D inputs, rolling windows of length
+    ``min(periods_per_year, len(returns))`` estimate the shortfall frequency,
+    using the same annual-to-horizon conversion for each window.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -216,7 +221,14 @@ def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
 
 
 def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return the conditional VaR (expected shortfall) at ``confidence``."""
+    """Return the conditional VaR (expected shortfall) at ``confidence``.
+
+    The VaR cutoff uses the lower quantile (discrete "floor") at
+    ``1 - confidence``. The tail is defined strictly below that cutoff
+    (``returns < VaR``), so observations equal to the VaR are excluded. If the
+    strict tail is empty (for example when all observations equal the VaR), the
+    function falls back to returning the VaR itself.
+    """
 
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
