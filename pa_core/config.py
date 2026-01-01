@@ -545,6 +545,58 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def check_agents(self) -> "ModelConfig":
+        errors: list[str] = []
+        names = [agent.name for agent in self.agents]
+        if not names:
+            errors.append("agents must include exactly one benchmark agent named 'Base'")
+        else:
+            duplicate_names = sorted({name for name in names if names.count(name) > 1})
+            if duplicate_names:
+                errors.append(
+                    "agent names must be unique; duplicates found: "
+                    + ", ".join(duplicate_names)
+                )
+            benchmark_count = sum(1 for name in names if name == "Base")
+            if benchmark_count != 1:
+                errors.append(
+                    f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}"
+                )
+
+        for idx, agent in enumerate(self.agents):
+            if agent.capital < 0:
+                errors.append(
+                    f"agents[{idx}] ({agent.name}) capital must be >= 0; got {agent.capital}"
+                )
+            if not SHARE_MIN <= agent.beta_share <= SHARE_MAX:
+                errors.append(
+                    f"agents[{idx}] ({agent.name}) beta_share must be between 0 and 1; got {agent.beta_share}"
+                )
+            if not SHARE_MIN <= agent.alpha_share <= SHARE_MAX:
+                errors.append(
+                    f"agents[{idx}] ({agent.name}) alpha_share must be between 0 and 1; got {agent.alpha_share}"
+                )
+            if agent.beta_share + agent.alpha_share > SHARE_MAX + SHARE_SUM_TOLERANCE:
+                errors.append(
+                    f"agents[{idx}] ({agent.name}) beta_share + alpha_share must be <= 1; "
+                    f"got {agent.beta_share + agent.alpha_share}"
+                )
+
+        if self.agents:
+            total_agent_capital = sum(
+                agent.capital for agent in self.agents if agent.name != "Base"
+            )
+            if total_agent_capital > self.total_fund_capital + SHARE_SUM_TOLERANCE:
+                errors.append(
+                    "sum(non-benchmark agent capital) must be <= total_fund_capital; "
+                    f"got {total_agent_capital} > {self.total_fund_capital}"
+                )
+
+        if errors:
+            raise ValueError("; ".join(errors))
+        return self
+
+    @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":
         valid_modes = [
             "capital",

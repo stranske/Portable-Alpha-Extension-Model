@@ -18,7 +18,7 @@ def convert(csv_path: str | Path, yaml_path: str | Path) -> None:
 
     raw = load_parameters(csv_path, label_map)
     cfg = load_config(raw)
-    Path(yaml_path).write_text(yaml.safe_dump(cfg.model_dump()))
+    Path(yaml_path).write_text(yaml.safe_dump(cfg.model_dump(exclude={"agents"})))
 
 
 def main(argv: Sequence[str] | None = None) -> None:

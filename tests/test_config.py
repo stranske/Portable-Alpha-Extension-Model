@@ -71,7 +71,7 @@ def test_load_yaml_with_mixed_agents(tmp_path):
         "external_pa_capital": 100.0,
         "active_ext_capital": 50.0,
         "internal_pa_capital": 150.0,
-        "total_fund_capital": 300.0,
+        "total_fund_capital": 325.0,
         "agents": [
             {
                 "name": "CustomSleeve",
@@ -121,6 +121,136 @@ def test_invalid_capital(tmp_path):
         pass
     else:
         raise AssertionError("Expected validation failure")
+
+
+def test_agents_missing_benchmark():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "CustomSleeve",
+                "capital": 10.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.2,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
+        ModelConfig(**data)
+
+
+def test_agents_duplicate_names():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 80.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "Base",
+                "capital": 10.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    }
+    with pytest.raises(ValueError, match="agent names must be unique"):
+        ModelConfig(**data)
+
+
+def test_agents_negative_capital():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": -1.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="capital must be >= 0"):
+        ModelConfig(**data)
+
+
+def test_agents_share_bounds():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 1.2,
+                "alpha_share": 0.0,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="beta_share must be between 0 and 1"):
+        ModelConfig(**data)
+
+
+def test_agents_share_sum_limit():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 0.7,
+                "alpha_share": 0.5,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="beta_share \\+ alpha_share must be <= 1"):
+        ModelConfig(**data)
+
+
+def test_agents_total_capital_exceeds_fund():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 150.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    }
+    with pytest.raises(
+        ValueError, match="sum\\(non-benchmark agent capital\\) must be <= total_fund_capital"
+    ):
+        ModelConfig(**data)
 
 
 def test_template_yaml_loads():
