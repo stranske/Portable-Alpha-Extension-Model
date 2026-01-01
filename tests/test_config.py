@@ -220,6 +220,33 @@ def test_agents_duplicate_names():
         ModelConfig(**data)
 
 
+def test_agents_duplicate_names_include_indices():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 80.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "Base",
+                "capital": 10.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    }
+    with pytest.raises(ValueError) as excinfo:
+        ModelConfig(**data)
+    assert "Base (indices [0, 1])" in str(excinfo.value)
+
+
 def test_agents_multiple_benchmark_agents():
     data = {
         "N_SIMULATIONS": 1,
