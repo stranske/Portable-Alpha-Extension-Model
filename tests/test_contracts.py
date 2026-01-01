@@ -13,6 +13,7 @@ from pa_core.contracts import (
     RUN_END_MANIFEST_PATH_KEY,
     RUN_LOG_FILENAME,
     RUNS_DIR_NAME,
+    SUMMARY_COLUMN_TYPES,
     SUMMARY_REQUIRED_COLUMNS,
     SUMMARY_SHEET_NAME,
     manifest_path_for_output,
@@ -86,4 +87,5 @@ def test_summary_contract_matches_summary_table() -> None:
     assert validate_summary_frame(summary)
     for col in SUMMARY_REQUIRED_COLUMNS:
         assert col in summary.columns
+    assert set(SUMMARY_COLUMN_TYPES.keys()) == set(SUMMARY_REQUIRED_COLUMNS)
     assert SUMMARY_SHEET_NAME == "Summary"

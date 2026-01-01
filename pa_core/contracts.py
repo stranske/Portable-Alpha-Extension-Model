@@ -106,6 +106,20 @@ SUMMARY_REQUIRED_COLUMNS: Sequence[str] = (
 SUMMARY_NUMERIC_COLUMNS: Sequence[str] = tuple(
     col for col in SUMMARY_REQUIRED_COLUMNS if col != SUMMARY_AGENT_COLUMN
 )
+SUMMARY_COLUMN_TYPES: Mapping[str, str] = {
+    SUMMARY_AGENT_COLUMN: "string",
+    SUMMARY_ANN_RETURN_COLUMN: "number",
+    SUMMARY_EXCESS_RETURN_COLUMN: "number",
+    SUMMARY_ANN_VOL_COLUMN: "number",
+    SUMMARY_VAR_COLUMN: "number",
+    SUMMARY_CVAR_COLUMN: "number",
+    SUMMARY_MAX_DD_COLUMN: "number",
+    SUMMARY_TIME_UNDER_WATER_COLUMN: "number",
+    SUMMARY_BREACH_PROB_COLUMN: "number",
+    SUMMARY_BREACH_COUNT_COLUMN: "number",
+    SUMMARY_SHORTFALL_PROB_COLUMN: "number",
+    SUMMARY_TE_COLUMN: "number",
+}
 
 
 class RunDirectoryPaths(TypedDict):
@@ -143,6 +157,7 @@ class SummaryContract:
     default_output_filename: str
     required_columns: Sequence[str]
     numeric_columns: Sequence[str]
+    column_types: Mapping[str, str]
     agent_column: str
     te_column: str
     tracking_error_legacy_column: str
@@ -156,6 +171,7 @@ SUMMARY_CONTRACT = SummaryContract(
     default_output_filename=DEFAULT_OUTPUT_FILENAME,
     required_columns=SUMMARY_REQUIRED_COLUMNS,
     numeric_columns=SUMMARY_NUMERIC_COLUMNS,
+    column_types=SUMMARY_COLUMN_TYPES,
     agent_column=SUMMARY_AGENT_COLUMN,
     te_column=SUMMARY_TE_COLUMN,
     tracking_error_legacy_column=SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
@@ -230,10 +246,15 @@ def validate_manifest_payload(payload: Mapping[str, Any]) -> bool:
 def validate_summary_frame(summary_df: pd.DataFrame) -> bool:
     if not all(col in summary_df.columns for col in SUMMARY_REQUIRED_COLUMNS):
         return False
-    if SUMMARY_AGENT_COLUMN in summary_df.columns:
-        if not pd.api.types.is_string_dtype(summary_df[SUMMARY_AGENT_COLUMN]):
+    for col, expected in SUMMARY_COLUMN_TYPES.items():
+        if col not in summary_df.columns:
             return False
-    for col in SUMMARY_NUMERIC_COLUMNS:
-        if col in summary_df.columns and not pd.api.types.is_numeric_dtype(summary_df[col]):
+        if expected == "string":
+            if not pd.api.types.is_string_dtype(summary_df[col]):
+                return False
+        elif expected == "number":
+            if not pd.api.types.is_numeric_dtype(summary_df[col]):
+                return False
+        else:
             return False
     return True

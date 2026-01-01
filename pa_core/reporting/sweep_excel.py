@@ -9,26 +9,13 @@ import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
+from ..contracts import SUMMARY_REQUIRED_COLUMNS
 from ..types import SweepResult
 from ..viz import risk_return, theme
 
 __all__ = ["export_sweep_results"]
 
-_SUMMARY_COLUMNS = [
-    "Agent",
-    "AnnReturn",
-    "ExcessReturn",
-    "AnnVol",
-    "VaR",
-    "CVaR",
-    "MaxDD",
-    "TimeUnderWater",
-    "BreachProb",
-    "BreachCount",
-    "ShortfallProb",
-    "TE",
-    "Combination",
-]
+_SUMMARY_COLUMNS = [*SUMMARY_REQUIRED_COLUMNS, "Combination"]
 
 
 def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.xlsx") -> None:
