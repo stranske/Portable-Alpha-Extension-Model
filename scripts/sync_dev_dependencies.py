@@ -13,7 +13,6 @@ Usage:
     python sync_dev_dependencies.py --check           # Verify versions match
     python sync_dev_dependencies.py --apply           # Update pyproject.toml
     python sync_dev_dependencies.py --apply --create-if-missing  # Create dev deps if missing
-    python sync_dev_dependencies.py --apply  # Syncs requirements.lock automatically if it exists
 """
 
 from __future__ import annotations
