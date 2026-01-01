@@ -91,7 +91,11 @@ class RunTimer:
 
 
 def _read_config_snapshot(path: str | Path) -> str:
-    return Path(path).read_text()
+    try:
+        return Path(path).read_text()
+    except (FileNotFoundError, OSError, PermissionError):
+        logger.debug("Unable to read config snapshot from %s", path)
+        return ""
 
 
 def _hash_index_series(index_series: "pd.Series") -> str:
