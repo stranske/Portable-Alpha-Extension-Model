@@ -105,10 +105,16 @@ class RunArtifactBundle:
             return False
 
         bundle_meta = json.loads(meta_path.read_text())
+        hashes_meta = bundle_meta.get("hashes")
+        if not isinstance(hashes_meta, dict):
+            return False
+        if "config" not in hashes_meta or "outputs" not in hashes_meta:
+            return False
+
         config_path = self.root / bundle_meta["config_path"]
         if not config_path.exists():
             return False
-        if self._hash_file(config_path) != bundle_meta["hashes"]["config"]:
+        if self._hash_file(config_path) != hashes_meta["config"]:
             return False
 
         manifest_path = bundle_meta.get("manifest_path")
@@ -116,18 +122,22 @@ class RunArtifactBundle:
             manifest_file = self.root / manifest_path
             if not manifest_file.exists():
                 return False
-            expected_manifest_hash = bundle_meta["hashes"].get("manifest")
+            expected_manifest_hash = hashes_meta.get("manifest")
+            if not expected_manifest_hash:
+                return False
             if expected_manifest_hash and self._hash_file(manifest_file) != expected_manifest_hash:
                 return False
 
         outputs_meta: Mapping[str, str] = bundle_meta.get("outputs", {})
-        output_hashes: Mapping[str, str] = bundle_meta.get("hashes", {}).get("outputs", {})
+        output_hashes: Mapping[str, str] = hashes_meta.get("outputs", {})
         for name, relpath in outputs_meta.items():
             output_path = self.root / relpath
             if not output_path.exists():
                 return False
             expected_hash = output_hashes.get(name)
-            if expected_hash and self._hash_file(output_path) != expected_hash:
+            if not expected_hash:
+                return False
+            if self._hash_file(output_path) != expected_hash:
                 return False
 
         return True
