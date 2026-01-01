@@ -7,10 +7,10 @@ from pa_core.config import (
     annual_mean_to_monthly,
     annual_vol_to_monthly,
 )
-from pa_core.units import convert_annual_series_to_monthly, normalize_index_series
 from pa_core.sim.metrics import annualised_return
 from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_joint_returns
+from pa_core.units import convert_annual_series_to_monthly, normalize_index_series
 
 
 def test_annual_mean_to_monthly_simple_and_geometric() -> None:
