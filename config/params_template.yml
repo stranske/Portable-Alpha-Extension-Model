@@ -19,6 +19,22 @@ active_share: 0.5 # active-extension active share fraction
 # Set return_unit: monthly if you provide monthly inputs directly.
 return_unit: annual # annual|monthly
 
+# Agent configuration (optional)
+# Use the convenience fields above or define a generic list below.
+# Mixed mode: keep convenience fields and append extra agents here.
+# agents:
+#   - name: Base
+#     capital: 300.0
+#     beta_share: 0.5
+#     alpha_share: 0.5
+#     extra: {}
+#   - name: CustomSleeve
+#     capital: 25.0
+#     beta_share: 0.08
+#     alpha_share: 0.02
+#     extra:
+#       tracking_error_target: 0.03
+
 mu_H: 0.04 # annual mean return of in-house alpha
 sigma_H: 0.01 # annual volatility of in-house alpha
 mu_E: 0.05 # annual mean return of extension alpha

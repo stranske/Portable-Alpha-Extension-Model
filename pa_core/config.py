@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Callable, Dict, List, Literal, Mapping, Optional, Union, cast
 
 import numpy as np
 import yaml
@@ -42,6 +42,7 @@ def annual_cov_to_monthly(cov: np.ndarray) -> np.ndarray:
 
 
 __all__ = [
+    "AgentConfig",
     "ModelConfig",
     "load_config",
     "ConfigError",
@@ -89,6 +90,14 @@ def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, 
     return mappings
 
 
+class AgentConfig(BaseModel):
+    name: str
+    capital: float
+    beta_share: float
+    alpha_share: float
+    extra: Dict[str, Any] = Field(default_factory=dict)
+
+
 class ModelConfig(BaseModel):
     """Validated simulation parameters for the portable-alpha model.
 
@@ -111,6 +120,11 @@ class ModelConfig(BaseModel):
         alias="return_unit",
         description="Input unit for return means/volatilities.",
     )
+    return_unit_input: Literal["annual", "monthly"] = Field(
+        default=DEFAULT_RETURN_UNIT,
+        exclude=True,
+        description="Original return unit provided before normalization.",
+    )
 
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
@@ -128,6 +142,7 @@ class ModelConfig(BaseModel):
     active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
+    agents: List[AgentConfig] = Field(default_factory=list)
 
     w_beta_H: float = Field(default=0.5, alias="In-House beta share")
     w_alpha_H: float = Field(default=0.5, alias="In-House alpha share")
@@ -232,29 +247,177 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
+    def compile_agent_config(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        convenience_keys = {
+            "external_pa_capital",
+            "active_ext_capital",
+            "internal_pa_capital",
+            "w_beta_H",
+            "w_alpha_H",
+            "theta_extpa",
+            "active_share",
+            "External PA capital (mm)",
+            "Active Extension capital (mm)",
+            "Internal PA capital (mm)",
+            "In-House beta share",
+            "In-House alpha share",
+            "External PA alpha fraction",
+            "Active share (%)",
+            "Active share",
+        }
+        agents_provided = "agents" in data
+        convenience_used = any(key in data for key in convenience_keys)
+        if agents_provided and not convenience_used:
+            raw_agents = data.get("agents") or []
+            data["agents"] = cls._normalize_agents(raw_agents)
+            return data
+
+        def _get_value(field: str, aliases: tuple[str, ...] = ()) -> Any:
+            for key in (field, *aliases):
+                if key in data:
+                    return data[key]
+            field_info = cls.model_fields[field]
+            if field_info.default_factory is not None:
+                factory = cast(Callable[[], Any], field_info.default_factory)
+                return factory()
+            return field_info.default
+
+        total_cap = float(_get_value("total_fund_capital", ("Total fund capital (mm)",)))
+        w_beta = normalize_share(_get_value("w_beta_H", ("In-House beta share",)))
+        w_alpha = normalize_share(_get_value("w_alpha_H", ("In-House alpha share",)))
+        theta = normalize_share(_get_value("theta_extpa", ("External PA alpha fraction",)))
+        active_share = normalize_share(
+            _get_value("active_share", ("Active share (%)", "Active share"))
+        )
+        ext_cap = float(_get_value("external_pa_capital", ("External PA capital (mm)",)))
+        act_cap = float(_get_value("active_ext_capital", ("Active Extension capital (mm)",)))
+        int_cap = float(_get_value("internal_pa_capital", ("Internal PA capital (mm)",)))
+
+        w_beta = 0.0 if w_beta is None else float(w_beta)
+        w_alpha = 0.0 if w_alpha is None else float(w_alpha)
+        theta = 0.0 if theta is None else float(theta)
+        active_share = 0.0 if active_share is None else float(active_share)
+
+        compiled: list[dict[str, Any]] = [
+            {
+                "name": "Base",
+                "capital": total_cap,
+                "beta_share": w_beta,
+                "alpha_share": w_alpha,
+                "extra": {},
+            }
+        ]
+
+        if ext_cap > 0:
+            compiled.append(
+                {
+                    "name": "ExternalPA",
+                    "capital": ext_cap,
+                    "beta_share": ext_cap / total_cap,
+                    "alpha_share": 0.0,
+                    "extra": {"theta_extpa": theta},
+                }
+            )
+
+        if act_cap > 0:
+            compiled.append(
+                {
+                    "name": "ActiveExt",
+                    "capital": act_cap,
+                    "beta_share": act_cap / total_cap,
+                    "alpha_share": 0.0,
+                    "extra": {"active_share": active_share},
+                }
+            )
+
+        if int_cap > 0:
+            compiled.append(
+                {
+                    "name": "InternalPA",
+                    "capital": int_cap,
+                    "beta_share": 0.0,
+                    "alpha_share": int_cap / total_cap,
+                    "extra": {},
+                }
+            )
+
+        existing_agents = data.get("agents") or []
+        if agents_provided:
+            compiled.extend(list(existing_agents))
+        data["agents"] = cls._normalize_agents(compiled)
+        return data
+
+    @staticmethod
+    def _normalize_agents(raw_agents: Any) -> list[dict[str, Any]]:
+        if raw_agents is None:
+            return []
+        if not isinstance(raw_agents, list):
+            raise ValueError("agents must be a list of mappings")
+        normalized: list[dict[str, Any]] = []
+        for idx, agent in enumerate(raw_agents):
+            if isinstance(agent, AgentConfig):
+                agent_data = agent.model_dump()
+            elif isinstance(agent, Mapping):
+                agent_data = dict(agent)
+            else:
+                raise ValueError(f"agents[{idx}] must be a mapping")
+            missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
+            if missing:
+                raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
+            extra = agent_data.get("extra") or {}
+            if not isinstance(extra, dict):
+                raise ValueError(f"agents[{idx}].extra must be a mapping")
+            beta_share = normalize_share(agent_data["beta_share"])
+            alpha_share = normalize_share(agent_data["alpha_share"])
+            normalized.append(
+                {
+                    "name": str(agent_data["name"]),
+                    "capital": float(agent_data["capital"]),
+                    "beta_share": 0.0 if beta_share is None else float(beta_share),
+                    "alpha_share": 0.0 if alpha_share is None else float(alpha_share),
+                    "extra": extra,
+                }
+            )
+        return normalized
+
+    @model_validator(mode="before")
+    @classmethod
     def normalize_return_units(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
         unit = data.get("return_unit", DEFAULT_RETURN_UNIT)
-        if unit == CANONICAL_RETURN_UNIT:
-            return data
-        if unit != DEFAULT_RETURN_UNIT:
-            return data
         updated = dict(data)
-        mu_defaults = {
-            "mu_H": cls.model_fields["mu_H"].default,
-            "mu_E": cls.model_fields["mu_E"].default,
-            "mu_M": cls.model_fields["mu_M"].default,
-        }
-        sigma_defaults = {
-            "sigma_H": cls.model_fields["sigma_H"].default,
-            "sigma_E": cls.model_fields["sigma_E"].default,
-            "sigma_M": cls.model_fields["sigma_M"].default,
-        }
-        for field, default in mu_defaults.items():
-            updated[field] = annual_mean_to_monthly(updated.get(field, default))
-        for field, default in sigma_defaults.items():
-            updated[field] = annual_vol_to_monthly(updated.get(field, default))
+        updated["return_unit_input"] = unit
+        if unit == CANONICAL_RETURN_UNIT:
+            return updated
+        if unit != DEFAULT_RETURN_UNIT:
+            return updated
+
+        # Allow values to be supplied via field names or aliases.
+        def _get_value(field: str) -> tuple[Any, list[str]]:
+            field_info = cls.model_fields[field]
+            candidates = [field]
+            alias = getattr(field_info, "alias", None)
+            if alias:
+                candidates.append(alias)
+            for key in candidates:
+                if key in updated:
+                    return updated[key], candidates
+            return field_info.default, candidates
+
+        for field in ("mu_H", "mu_E", "mu_M"):
+            value, keys = _get_value(field)
+            converted = annual_mean_to_monthly(value)
+            for key in keys:
+                updated[key] = converted
+        for field in ("sigma_H", "sigma_E", "sigma_M"):
+            value, keys = _get_value(field)
+            converted = annual_vol_to_monthly(value)
+            for key in keys:
+                updated[key] = converted
         updated["return_unit"] = CANONICAL_RETURN_UNIT
         return updated
 

@@ -906,15 +906,43 @@ This produces a folder of charts for every scenario in the sweep so you can comp
 
 1. Create a new class under `pa_core/agents/` that subclasses `BaseAgent` and implement `monthly_returns` to return an `(n_sim, n_months)` array.
 2. Register the class in `_AGENT_MAP` inside `pa_core/agents/registry.py`.
-3. **Extend the configuration** – add a field to `ModelConfig` so capital can be allocated via YAML/CSV:
-   ```python
-   class ModelConfig(BaseModel):
-       my_agent_capital: float = 0.0
+3. **Convenience fields still work** – you can keep the legacy capital/share fields without defining `agents`:
+   ```yaml
+   external_pa_capital: 100.0
+   active_ext_capital: 50.0
+   internal_pa_capital: 150.0
+   total_fund_capital: 300.0
+   w_beta_H: 0.5
+   w_alpha_H: 0.5
+   theta_extpa: 0.5
+   active_share: 0.5
    ```
-   Update `build_from_config` in `pa_core/agents/registry.py` to create an `AgentParams` entry when `my_agent_capital` is positive.
-4. Include `my_agent_capital` in your configuration template and set the amount you want to allocate.
+4. **Extend the configuration** – add your agent entry to the `agents` list in YAML. Each entry uses `{name, capital, beta_share, alpha_share, extra}`:
+   ```yaml
+   agents:
+     - name: MyAgent
+       capital: 25.0
+       beta_share: 0.08
+       alpha_share: 0.02
+       extra:
+         my_agent_param: 0.5
+   ```
+5. (Optional) Keep the convenience fields for the core sleeves and append your custom agent in mixed mode:
+   ```yaml
+   external_pa_capital: 100.0
+   active_ext_capital: 50.0
+   internal_pa_capital: 150.0
+   total_fund_capital: 300.0
 
-5. Run the CLI again and the sleeve will automatically appear in the outputs.
+   agents:
+     - name: MyAgent
+       capital: 25.0
+       beta_share: 0.08
+       alpha_share: 0.02
+       extra: {}
+   ```
+
+6. Run the CLI again and the sleeve will automatically appear in the outputs.
 
 ```python
 # pa_core/agents/my_agent.py
@@ -926,7 +954,7 @@ class MyAgent(BaseAgent):
         return r_beta + alpha_stream - financing
 ```
 
-6. **Run a parameter sweep** – create a CSV file `custom_agent_sweep.csv`
+7. **Run a parameter sweep** – create a CSV file `custom_agent_sweep.csv`
    with a `my_agent_capital` column listing the allocations you wish to
    test. Execute the CLI in capital mode to iterate over each row:
 
@@ -941,7 +969,7 @@ python -m pa_core.cli \
   --output MyAgentSweep.xlsx
 ```
 
-7. **Visualise the results** – load `MyAgentSweep.xlsx` in the dashboard
+8. **Visualise the results** – load `MyAgentSweep.xlsx` in the dashboard
    or build charts manually:
 
 ```python

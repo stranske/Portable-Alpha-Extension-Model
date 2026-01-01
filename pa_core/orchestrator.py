@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import math
 from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
 
 from .agents.registry import build_from_config
-from .config import ModelConfig
+from .config import MONTHS_PER_YEAR, ModelConfig, annual_mean_to_monthly
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
@@ -44,12 +45,23 @@ class SimulatorOrchestrator:
         """
 
         mu_idx = float(self.idx_series.mean())
+        if self.cfg.return_unit_input == "annual":
+            mu_idx = annual_mean_to_monthly(mu_idx)
         idx_sigma, _, _ = select_vol_regime_sigma(
             self.idx_series,
             regime=self.cfg.vol_regime,
             window=self.cfg.vol_regime_window,
         )
         n_samples = int(len(self.idx_series))
+
+        sigma_h = float(self.cfg.sigma_H)
+        sigma_e = float(self.cfg.sigma_E)
+        sigma_m = float(self.cfg.sigma_M)
+        if self.cfg.return_unit_input == "annual":
+            sigma_scale = math.sqrt(MONTHS_PER_YEAR)
+            sigma_h *= sigma_scale
+            sigma_e *= sigma_scale
+            sigma_m *= sigma_scale
 
         cov = build_cov_matrix(
             self.cfg.rho_idx_H,
@@ -59,13 +71,15 @@ class SimulatorOrchestrator:
             self.cfg.rho_H_M,
             self.cfg.rho_E_M,
             idx_sigma,
-            self.cfg.sigma_H,
-            self.cfg.sigma_E,
-            self.cfg.sigma_M,
+            sigma_h,
+            sigma_e,
+            sigma_m,
             covariance_shrinkage=self.cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
         sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+        if self.cfg.return_unit_input == "annual":
+            sigma_vec = sigma_vec / MONTHS_PER_YEAR
         idx_sigma_cov = float(sigma_vec[0])
         sigma_h_cov = float(sigma_vec[1])
         sigma_e_cov = float(sigma_vec[2])

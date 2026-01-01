@@ -1,0 +1,37 @@
+# Example YAML configuration using the generic agents list
+# Values shown are illustrative defaults. Adjust as needed.
+
+N_SIMULATIONS: 1000
+N_MONTHS: 12
+
+total_fund_capital: 300.0
+
+agents:
+  - name: Base
+    capital: 300.0
+    beta_share: 0.5
+    alpha_share: 0.5
+    extra: {}
+  - name: ExternalPA
+    capital: 100.0
+    beta_share: 0.3333333333
+    alpha_share: 0.0
+    extra:
+      theta_extpa: 0.5
+  - name: ActiveExt
+    capital: 50.0
+    beta_share: 0.1666666667
+    alpha_share: 0.0
+    extra:
+      active_share: 0.5
+  - name: InternalPA
+    capital: 150.0
+    beta_share: 0.0
+    alpha_share: 0.5
+    extra: {}
+  - name: CustomSleeve
+    capital: 25.0
+    beta_share: 0.08
+    alpha_share: 0.02
+    extra:
+      tracking_error_target: 0.03

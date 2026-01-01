@@ -31,6 +31,62 @@ def test_load_yaml(tmp_path):
     assert cfg.active_ext_capital == 200.0
     assert cfg.internal_pa_capital == 300.0
     assert cfg.total_fund_capital == 1000.0
+    names = {agent.name for agent in cfg.agents}
+    assert {"Base", "ExternalPA", "ActiveExt", "InternalPA"} <= names
+
+
+def test_load_yaml_with_generic_agents(tmp_path):
+    data = {
+        "N_SIMULATIONS": 1000,
+        "N_MONTHS": 6,
+        "total_fund_capital": 300.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 300.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 25.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.05,
+                "extra": {"tracking_error_target": 0.03},
+            },
+        ],
+    }
+    path = tmp_path / "agents.yaml"
+    path.write_text(yaml.safe_dump(data))
+    cfg = load_config(path)
+    assert len(cfg.agents) == 2
+    assert {agent.name for agent in cfg.agents} == {"Base", "CustomSleeve"}
+
+
+def test_load_yaml_with_mixed_agents(tmp_path):
+    data = {
+        "N_SIMULATIONS": 1000,
+        "N_MONTHS": 6,
+        "external_pa_capital": 100.0,
+        "active_ext_capital": 50.0,
+        "internal_pa_capital": 150.0,
+        "total_fund_capital": 300.0,
+        "agents": [
+            {
+                "name": "CustomSleeve",
+                "capital": 25.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.05,
+                "extra": {},
+            }
+        ],
+    }
+    path = tmp_path / "mixed_agents.yaml"
+    path.write_text(yaml.safe_dump(data))
+    cfg = load_config(path)
+    names = {agent.name for agent in cfg.agents}
+    assert {"Base", "ExternalPA", "ActiveExt", "InternalPA", "CustomSleeve"} <= names
 
 
 def test_load_dict():

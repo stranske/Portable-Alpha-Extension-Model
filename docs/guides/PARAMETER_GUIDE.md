@@ -33,6 +33,56 @@ Think of this as your asset allocation decision:
   - 33% ($100M) to external PA (access to specialized alpha)
   - 17% ($50M) to active extension (tactical opportunities)
 
+### 2a. Agent Configuration Modes
+Portable Alpha supports three ways to define sleeves in YAML:
+
+1. **Convenience fields (default)** - Use the capital and share fields above. This keeps compatibility with existing templates.
+2. **Generic agents list** - Provide an explicit `agents` list with entries shaped like `{name, capital, beta_share, alpha_share, extra}`.
+3. **Mixed mode** - Keep convenience fields and add extra agents via `agents` (useful for custom plugins).
+
+**Convenience example** (legacy fields):
+```yaml
+external_pa_capital: 100.0
+active_ext_capital: 50.0
+internal_pa_capital: 150.0
+total_fund_capital: 300.0
+w_beta_H: 0.5
+w_alpha_H: 0.5
+theta_extpa: 0.5
+active_share: 0.5
+```
+
+**Generic list example** (see `config/params_agents_generic.yml` for a full sample):
+```yaml
+agents:
+  - name: Base
+    capital: 300.0
+    beta_share: 0.5
+    alpha_share: 0.5
+    extra: {}
+  - name: CustomSleeve
+    capital: 25.0
+    beta_share: 0.08
+    alpha_share: 0.02
+    extra:
+      tracking_error_target: 0.03
+```
+
+**Mixed mode example** (convenience + additional agent):
+```yaml
+external_pa_capital: 100.0
+active_ext_capital: 50.0
+internal_pa_capital: 150.0
+total_fund_capital: 300.0
+
+agents:
+  - name: CustomSleeve
+    capital: 25.0
+    beta_share: 0.08
+    alpha_share: 0.02
+    extra: {}
+```
+
 ### 3. Internal PA Sleeve Configuration
 - **In-House beta share**: What portion of internal capital tracks the benchmark (0.5 = 50%)
 - **In-House alpha share**: What portion seeks active return (0.5 = 50%)

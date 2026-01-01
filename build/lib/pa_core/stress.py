@@ -7,9 +7,9 @@ liquidity squeezes or volatility regime shifts.  Presets return a new
 
 from __future__ import annotations
 
-from typing import Callable, Mapping, cast
+from typing import Callable, Mapping
 
-from .config import ModelConfig
+from .config import ModelConfig, annual_mean_to_monthly
 from .validators import VOLATILITY_STRESS_MULTIPLIER
 
 Preset = Mapping[str, float | Callable[[ModelConfig], float]]
@@ -48,9 +48,9 @@ STRESS_PRESETS: dict[str, Preset] = {
         "sigma_M": lambda cfg: cfg.sigma_M * VOLATILITY_STRESS_MULTIPLIER,
     },
     "2020_gap_day": {
-        "mu_H": -0.20,
-        "mu_E": -0.25,
-        "mu_M": -0.15,
+        "mu_H": annual_mean_to_monthly(-0.20),
+        "mu_E": annual_mean_to_monthly(-0.25),
+        "mu_M": annual_mean_to_monthly(-0.15),
     },
 }
 
@@ -82,7 +82,7 @@ def apply_stress_preset(cfg: ModelConfig, name: str) -> ModelConfig:
     preset_key = _normalize_preset_name(name)
     preset = STRESS_PRESETS[preset_key]
     updates = {k: (v(cfg) if callable(v) else v) for k, v in preset.items()}
-    return cast(ModelConfig, cfg.model_copy(update=updates))
+    return cfg.model_copy(update=updates)
 
 
 __all__ = ["STRESS_PRESETS", "STRESS_PRESET_LABELS", "apply_stress_preset"]

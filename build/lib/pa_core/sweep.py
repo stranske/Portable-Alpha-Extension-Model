@@ -31,7 +31,7 @@ from .validators import select_vol_regime_sigma
 
 def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str] = None) -> Any:
     if _HAS_TQDM:
-        return _tqdm(iterable, total=total, desc=desc)  # type: ignore[name-defined]
+        return _tqdm(iterable, total=total, desc=desc)
     return iterable
 
 
@@ -252,9 +252,9 @@ def run_parameter_sweep(
         shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
         shock_params.update(
             {
-                "default_sigma_H": float(base_sigma[1]) / 12,
-                "default_sigma_E": float(base_sigma[2]) / 12,
-                "default_sigma_M": float(base_sigma[3]) / 12,
+                "default_sigma_H": float(base_sigma[1]),
+                "default_sigma_E": float(base_sigma[2]),
+                "default_sigma_M": float(base_sigma[3]),
                 "rho_idx_H": float(base_corr[0, 1]),
                 "rho_idx_E": float(base_corr[0, 2]),
                 "rho_idx_M": float(base_corr[0, 3]),
@@ -324,9 +324,9 @@ def run_parameter_sweep(
             mu_idx=mu_idx,
             idx_sigma=idx_sigma_cov,
             return_overrides={
-                "default_sigma_H": sigma_h_cov / 12,
-                "default_sigma_E": sigma_e_cov / 12,
-                "default_sigma_M": sigma_m_cov / 12,
+                "default_sigma_H": sigma_h_cov,
+                "default_sigma_E": sigma_e_cov,
+                "default_sigma_M": sigma_m_cov,
                 "rho_idx_H": float(corr_mat[0, 1]),
                 "rho_idx_E": float(corr_mat[0, 2]),
                 "rho_idx_M": float(corr_mat[0, 3]),
@@ -393,7 +393,7 @@ def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str
     """Return a hash key for caching parameter sweeps."""
     cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
     # Use getattr to avoid static checker complaining about pandas.util access
-    hash_fn = getattr(pd, "util").hash_pandas_object  # type: ignore[attr-defined]
+    hash_fn = getattr(pd, "util").hash_pandas_object
     idx_hash = hashlib.sha256(hash_fn(index_series).values.tobytes()).hexdigest()
     return hashlib.sha256((cfg_json + idx_hash + str(seed)).encode()).hexdigest()
 

@@ -30,31 +30,56 @@ Register the class in `pa_core/agents/registry.py` by adding it to `_AGENT_MAP`.
 
 ### Step 2 – Extend the configuration
 
-Add a capital field to `ModelConfig` and modify `build_from_config` so the agent is created automatically:
+The configuration now supports three modes. Use whichever best fits your workflow:
 
-```python
-class ModelConfig(BaseModel):
-    my_agent_capital: float = 0.0
+1. **Convenience fields (legacy)** - Keep the existing capital/share fields.
+2. **Generic agents list** - Define explicit agents with `{name, capital, beta_share, alpha_share, extra}`.
+3. **Mixed mode** - Keep convenience fields for core sleeves and append custom agents.
 
-def build_from_config(cfg: ModelConfig) -> list[Agent]:
-    params = [
-        AgentParams("Base", cfg.total_fund_capital, cfg.w_beta_H, cfg.w_alpha_H, {})
-    ]
-    if cfg.my_agent_capital > 0:
-        params.append(
-            AgentParams(
-                "MyAgent",
-                cfg.my_agent_capital,
-                cfg.my_agent_capital / cfg.total_fund_capital,
-                0.0,
-                {},
-            )
-        )
-    # existing sleeves here ...
-    return build_all(params)
+**Convenience example** (legacy fields):
+```yaml
+external_pa_capital: 100.0
+active_ext_capital: 50.0
+internal_pa_capital: 150.0
+total_fund_capital: 300.0
+w_beta_H: 0.5
+w_alpha_H: 0.5
+theta_extpa: 0.5
+active_share: 0.5
 ```
 
-Include `my_agent_capital` in your YAML or CSV template so the CLI knows how much to allocate. When the value is positive the new agent automatically appears in the outputs.
+**Generic list example** (see `config/params_agents_generic.yml` for a full sample):
+```yaml
+agents:
+  - name: Base
+    capital: 300.0
+    beta_share: 0.5
+    alpha_share: 0.5
+    extra: {}
+  - name: MyAgent
+    capital: 25.0
+    beta_share: 0.08
+    alpha_share: 0.02
+    extra:
+      my_agent_param: 0.5
+```
+
+**Mixed mode example** (convenience + additional agent):
+```yaml
+external_pa_capital: 100.0
+active_ext_capital: 50.0
+internal_pa_capital: 150.0
+total_fund_capital: 300.0
+
+agents:
+  - name: MyAgent
+    capital: 25.0
+    beta_share: 0.08
+    alpha_share: 0.02
+    extra: {}
+```
+
+When the YAML includes your agent entry, the registry will instantiate it automatically if it is registered in `_AGENT_MAP`.
 
 ### Step 3 – Run a parameter sweep
 

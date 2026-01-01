@@ -40,9 +40,12 @@ def _config_diff(base: ModelConfig, stressed: ModelConfig) -> pd.DataFrame:
     """Return DataFrame of parameters that differ between two configs."""
     base_d = base.model_dump()
     stress_d = stressed.model_dump()
+    ignore_keys = {"agents"}
     rows = []
     # Check all keys from both configurations to catch removed parameters
     for key in sorted(set(base_d.keys()) | set(stress_d.keys())):
+        if key in ignore_keys:
+            continue
         b_val = base_d.get(key)
         s_val = stress_d.get(key)
         if b_val != s_val:
