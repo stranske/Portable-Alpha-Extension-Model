@@ -359,6 +359,7 @@ def _grid_sleeve_sizes(
                         break
 
     records: list[dict[str, float]] = []
+
     def _maybe_record(ext_cap: float, act_cap: float) -> None:
         int_cap = total - ext_cap - act_cap
 
