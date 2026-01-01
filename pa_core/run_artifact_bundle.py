@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Mapping
-
 import hashlib
 import json
 import shutil
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Mapping
 
 
 @dataclass(slots=True)
@@ -61,9 +60,7 @@ class RunArtifactBundle:
             "config_path": str(config_path.relative_to(root)),
             "index_hash": self.artifact.index_hash,
             "seed": self.artifact.seed,
-            "manifest_path": (
-                str(manifest_path.relative_to(root)) if manifest_path else None
-            ),
+            "manifest_path": (str(manifest_path.relative_to(root)) if manifest_path else None),
             "outputs": outputs_map,
             "hashes": {
                 "config": self._hash_file(config_path),
@@ -88,9 +85,7 @@ class RunArtifactBundle:
         if manifest_path:
             manifest_data = json.loads((root / manifest_path).read_text())
 
-        outputs = {
-            name: str(root / relpath) for name, relpath in bundle_meta["outputs"].items()
-        }
+        outputs = {name: str(root / relpath) for name, relpath in bundle_meta["outputs"].items()}
 
         artifact = RunArtifact(
             config=config_text,
