@@ -24,8 +24,7 @@ from .excel import export_to_excel, finalize_excel_workbook
 __all__ = ["create_export_packet"]
 
 _ONE_PX_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-    "ASsJTYQAAAAASUVORK5CYII="
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
 )
 RGBColorAny: Any = RGBColor  # python-pptx lacks typing for RGBColor
 

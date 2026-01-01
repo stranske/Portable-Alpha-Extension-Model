@@ -156,6 +156,26 @@ def test_agents_missing_benchmark():
         ModelConfig(**data)
 
 
+def test_agents_missing_benchmark_lists_existing_names():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "CustomSleeve",
+                "capital": 10.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.2,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError) as excinfo:
+        ModelConfig(**data)
+    assert "Existing agents: CustomSleeve." in str(excinfo.value)
+
+
 def test_agents_missing_benchmark_without_convenience_fields():
     data = {
         "N_SIMULATIONS": 1,
@@ -169,6 +189,17 @@ def test_agents_missing_benchmark_without_convenience_fields():
                 "extra": {},
             }
         ],
+    }
+    with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
+        ModelConfig(**data)
+
+
+def test_agents_empty_list_missing_benchmark():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [],
     }
     with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
         ModelConfig(**data)
@@ -198,6 +229,33 @@ def test_agents_duplicate_names():
     }
     with pytest.raises(ValueError, match="agent names must be unique"):
         ModelConfig(**data)
+
+
+def test_agents_duplicate_names_include_indices():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 80.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "Base",
+                "capital": 10.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    }
+    with pytest.raises(ValueError) as excinfo:
+        ModelConfig(**data)
+    assert "Base (indices [0, 1])" in str(excinfo.value)
 
 
 def test_agents_multiple_benchmark_agents():
@@ -318,6 +376,25 @@ def test_agents_share_sum_limit():
                 "capital": 100.0,
                 "beta_share": 0.7,
                 "alpha_share": 0.5,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="beta_share \\+ alpha_share must be <= 1"):
+        ModelConfig(**data)
+
+
+def test_agents_share_sum_limit_percentage_inputs():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 60,
+                "alpha_share": 50,
                 "extra": {},
             }
         ],

@@ -603,15 +603,29 @@ class ModelConfig(BaseModel):
         names = [agent.name for agent in self.agents]
         if not names:
             errors.append("agents must include at least one agent")
+        name_to_indices: dict[str, list[int]] = {}
+        for idx, name in enumerate(names):
+            name_to_indices.setdefault(name, []).append(idx)
         duplicate_names = sorted({name for name in names if names.count(name) > 1})
         if duplicate_names:
-            errors.append(
-                "agent names must be unique; duplicates found: " + ", ".join(duplicate_names)
+            duplicate_detail = ", ".join(
+                f"{name} (indices {name_to_indices[name]})" for name in duplicate_names
             )
+            errors.append("agent names must be unique; duplicates found: " + duplicate_detail)
         benchmark_count = sum(1 for name in names if name == "Base")
         if benchmark_count != 1:
+            base_indices = name_to_indices.get("Base", [])
+            extra_hint = ""
+            if benchmark_count == 0:
+                extra_hint = " Add an agent with name 'Base' to the agents list."
+                if names:
+                    existing_names = ", ".join(sorted(set(names)))
+                    extra_hint += f" Existing agents: {existing_names}."
+            else:
+                extra_hint = f" Found Base at indices {base_indices}; remove duplicates."
             errors.append(
-                f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}"
+                f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}."
+                f"{extra_hint}"
             )
 
         for idx, agent in enumerate(self.agents):
@@ -630,7 +644,8 @@ class ModelConfig(BaseModel):
             if agent.beta_share + agent.alpha_share > SHARE_MAX + SHARE_SUM_TOLERANCE:
                 errors.append(
                     f"agents[{idx}] ({agent.name}) beta_share + alpha_share must be <= 1; "
-                    f"got {agent.beta_share + agent.alpha_share}"
+                    f"got {agent.beta_share + agent.alpha_share}. "
+                    "Reduce beta_share or alpha_share so the total is <= 1."
                 )
 
         if self.agents:
@@ -640,7 +655,8 @@ class ModelConfig(BaseModel):
             if total_agent_capital > self.total_fund_capital + SHARE_SUM_TOLERANCE:
                 errors.append(
                     "sum(non-benchmark agent capital) must be <= total_fund_capital; "
-                    f"got {total_agent_capital} > {self.total_fund_capital}"
+                    f"got {total_agent_capital} > {self.total_fund_capital}. "
+                    "Benchmark capital is treated as the total fund capital."
                 )
 
         if errors:
