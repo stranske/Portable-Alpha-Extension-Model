@@ -34,4 +34,4 @@ agents:
     beta_share: 0.08
     alpha_share: 0.02
     extra:
-      tracking_error_target: 0.03
+      active_return_volatility_target: 0.03

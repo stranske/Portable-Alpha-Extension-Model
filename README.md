@@ -51,7 +51,7 @@ The index CSV should include a `Date` column and a monthly total return column n
 
 ## Plain-English Primer
 
-If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **tracking error (TE)**, and **CVaR**.
+If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **active return volatility (tracking error, TE)**, and **CVaR**.
 
 ## Development Setup
 

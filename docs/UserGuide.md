@@ -546,6 +546,7 @@ python -m pa_core.cli \
 ```
 
 Open `Tutorial2_Baseline.xlsx` and review `AnnReturn`, `AnnVol`, `VaR`, `BreachProb`, `ShortfallProb` and `TE`. The sample template intentionally exceeds the **3%** tracking‑error budget so you can practise threshold analysis.
+`TE` is the annualised volatility of active returns (portfolio minus benchmark). `MaxDD` measures the worst peak-to-trough decline of the compounded wealth path, and `TimeUnderWater` is the fraction of periods where the compounded return is below zero. `ShortfallProb` reports the share of paths whose terminal compounded return falls below the annualised threshold over the full horizon.
 `BreachProb` is the share of all simulated months across all paths (i.e., total
 path-months) that fall below the breach threshold (default **-2%**) over the
 horizon.

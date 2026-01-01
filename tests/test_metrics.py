@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from pa_core.sim.metrics import (
     active_return_volatility,
@@ -12,8 +13,11 @@ from pa_core.sim.metrics import (
     conditional_value_at_risk,
     max_cumulative_sum_drawdown,
     max_drawdown,
+    shortfall_probability,
     summary_table,
     terminal_return_below_threshold_prob,
+    time_under_water,
+    tracking_error,
     value_at_risk,
 )
 
@@ -263,3 +267,15 @@ def test_summary_table_shortfall():
     stats = summary_table({"A": arr})
     assert "ShortfallProb" in stats.columns
     assert stats["ShortfallProb"].iloc[0] == 0.5
+
+
+def test_deprecated_metric_aliases_warn():
+    arr = np.array([[0.1, -0.2, 0.05]])
+    with pytest.warns(DeprecationWarning, match="tracking_error"):
+        tracking_error(np.array([0.01, 0.02]), np.array([0.0, 0.0]))
+    with pytest.warns(DeprecationWarning, match="max_drawdown"):
+        max_drawdown(arr)
+    with pytest.warns(DeprecationWarning, match="time_under_water"):
+        time_under_water(arr)
+    with pytest.warns(DeprecationWarning, match="shortfall_probability"):
+        shortfall_probability(arr, threshold=-0.05)

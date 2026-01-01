@@ -33,7 +33,7 @@ return_unit: annual # annual|monthly
 #     beta_share: 0.08
 #     alpha_share: 0.02
 #     extra:
-#       tracking_error_target: 0.03
+#       active_return_volatility_target: 0.03
 
 mu_H: 0.04 # annual mean return of in-house alpha
 sigma_H: 0.01 # annual volatility of in-house alpha
