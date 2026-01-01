@@ -17,7 +17,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import math
 import sys
 import time
 from datetime import datetime, timezone
@@ -539,7 +538,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
-    from .config import MONTHS_PER_YEAR, annual_mean_to_monthly, load_config
+    from .config import load_config
 
     cfg = load_config(args.config)
     return_overrides: dict[str, float | str] = {}
@@ -850,8 +849,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     # Normal single-run mode below
     mu_idx = float(idx_series.mean())
-    if cfg.return_unit_input == "annual":
-        mu_idx = annual_mean_to_monthly(mu_idx)
 
     def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
         import numpy as np
@@ -859,11 +856,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         sigma_h = float(run_cfg.sigma_H)
         sigma_e = float(run_cfg.sigma_E)
         sigma_m = float(run_cfg.sigma_M)
-        if run_cfg.return_unit_input == "annual":
-            sigma_scale = math.sqrt(MONTHS_PER_YEAR)
-            sigma_h *= sigma_scale
-            sigma_e *= sigma_scale
-            sigma_m *= sigma_scale
 
         cov = deps.build_cov_matrix(
             run_cfg.rho_idx_H,
@@ -894,8 +886,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 ],
                 dtype=float,
             )
-        if run_cfg.return_unit_input == "annual":
-            sigma_vec = sigma_vec / math.sqrt(MONTHS_PER_YEAR)
 
         return_overrides_local = {
             "default_sigma_H": float(sigma_vec[1]),
