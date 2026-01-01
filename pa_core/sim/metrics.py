@@ -130,7 +130,8 @@ def breach_probability(
       terminal month (Option B).
     For 1D arrays, ``mode="month"`` is the share of months below the threshold,
     while the other modes return 1.0 or 0.0 for the single path. ``path`` is
-    ignored and kept only for backward compatibility.
+    ignored and kept only for backward compatibility with legacy callers; all
+    modes use every available path and month, never just the first path.
     """
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
@@ -162,8 +163,8 @@ def terminal_return_below_threshold_prob(
     ``(1 + threshold) ** years - 1`` where ``years = periods / periods_per_year``.
     For 2D inputs, the probability is computed from terminal compounded returns
     over the full horizon. For 1D inputs, rolling windows of length
-    ``min(periods_per_year, len(returns))`` are used to estimate the shortfall
-    frequency, using the same annual-to-horizon conversion.
+    ``min(periods_per_year, len(returns))`` estimate the shortfall frequency,
+    using the same annual-to-horizon conversion for each window.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -224,8 +225,9 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
 
     The VaR cutoff uses the lower quantile (discrete "floor") at
     ``1 - confidence``. The tail is defined strictly below that cutoff
-    (``returns < VaR``). If the strict tail is empty (for example when all
-    observations equal the VaR), the function falls back to returning the VaR.
+    (``returns < VaR``), so observations equal to the VaR are excluded. If the
+    strict tail is empty (for example when all observations equal the VaR), the
+    function falls back to returning the VaR itself.
     """
 
     if not 0 < confidence < 1:
