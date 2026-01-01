@@ -611,9 +611,7 @@ class ModelConfig(BaseModel):
             duplicate_detail = ", ".join(
                 f"{name} (indices {name_to_indices[name]})" for name in duplicate_names
             )
-            errors.append(
-                "agent names must be unique; duplicates found: " + duplicate_detail
-            )
+            errors.append("agent names must be unique; duplicates found: " + duplicate_detail)
         benchmark_count = sum(1 for name in names if name == "Base")
         if benchmark_count != 1:
             base_indices = name_to_indices.get("Base", [])
