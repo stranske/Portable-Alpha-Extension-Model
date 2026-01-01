@@ -221,7 +221,21 @@ def calibrate_returns(
     n_obs_series = clean.count()
     sample_means = clean.mean()
     grand_mean_series = sample_means.dropna()
-    grand_mean = float(grand_mean_series.mean()) if not grand_mean_series.empty else float("nan")
+    if grand_mean_series.empty:
+        grand_mean = float("nan")
+    else:
+        weights = n_obs_series.reindex(grand_mean_series.index).astype(float)
+        valid_weights = weights.where(weights > 0.0)
+        mask = valid_weights.notna()
+        if not mask.any():
+            grand_mean = float(grand_mean_series.mean())
+        else:
+            grand_mean = float(
+                np.average(
+                    grand_mean_series[mask].to_numpy(),
+                    weights=valid_weights[mask].to_numpy(),
+                )
+            )
 
     mean_shrinkage = float(mean_shrinkage)
     corr_shrinkage = float(corr_shrinkage)
