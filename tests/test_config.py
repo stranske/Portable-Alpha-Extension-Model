@@ -156,6 +156,26 @@ def test_agents_missing_benchmark():
         ModelConfig(**data)
 
 
+def test_agents_missing_benchmark_lists_existing_names():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "CustomSleeve",
+                "capital": 10.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.2,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError) as excinfo:
+        ModelConfig(**data)
+    assert "Existing agents: CustomSleeve." in str(excinfo.value)
+
+
 def test_agents_missing_benchmark_without_convenience_fields():
     data = {
         "N_SIMULATIONS": 1,

@@ -618,6 +618,9 @@ class ModelConfig(BaseModel):
             extra_hint = ""
             if benchmark_count == 0:
                 extra_hint = " Add an agent with name 'Base' to the agents list."
+                if names:
+                    existing_names = ", ".join(sorted(set(names)))
+                    extra_hint += f" Existing agents: {existing_names}."
             else:
                 extra_hint = f" Found Base at indices {base_indices}; remove duplicates."
             errors.append(
