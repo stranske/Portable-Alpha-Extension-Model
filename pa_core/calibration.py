@@ -220,7 +220,8 @@ def calibrate_returns(
 
     n_obs_series = clean.count()
     sample_means = clean.mean()
-    grand_mean = float(sample_means.mean())
+    grand_mean_series = sample_means.dropna()
+    grand_mean = float(grand_mean_series.mean()) if not grand_mean_series.empty else float("nan")
 
     mean_shrinkage = float(mean_shrinkage)
     corr_shrinkage = float(corr_shrinkage)
@@ -240,7 +241,10 @@ def calibrate_returns(
         mean_boost = _boost_shrinkage_for_short_samples(
             mean_shrinkage, n_samples=n_obs, n_features=n_features
         )
-        mean_value = (1.0 - mean_boost) * sample_means[series_id] + mean_boost * grand_mean
+        series_mean = float(sample_means[series_id])
+        if not math.isfinite(series_mean):
+            series_mean = grand_mean
+        mean_value = (1.0 - mean_boost) * series_mean + mean_boost * grand_mean
 
         sample_std = float(clean[series_id].std(ddof=1))
         if math.isnan(sample_std) or n_obs < 2:

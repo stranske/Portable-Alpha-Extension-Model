@@ -109,6 +109,27 @@ def test_confidence_intervals_and_missing_data() -> None:
     assert pair.ci is not None
 
 
+def test_missing_series_mean_uses_grand_mean() -> None:
+    df = pd.DataFrame(
+        {
+            "IDX": [0.01, 0.02, 0.03, 0.04],
+            "H": [np.nan, np.nan, np.nan, np.nan],
+            "E": [0.00, 0.01, 0.01, 0.02],
+            "M": [0.03, 0.03, 0.02, 0.01],
+        }
+    )
+    result = calibrate_returns(
+        df,
+        index_id="IDX",
+        mean_shrinkage=0.3,
+        corr_shrinkage=0.0,
+        annualize=False,
+    )
+    sample_means = df.mean()
+    grand_mean = float(sample_means.dropna().mean())
+    assert result.series["H"].mean == pytest.approx(grand_mean)
+
+
 def test_model_config_and_scenario_conversion() -> None:
     df = pd.DataFrame(
         {
