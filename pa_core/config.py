@@ -603,15 +603,28 @@ class ModelConfig(BaseModel):
         names = [agent.name for agent in self.agents]
         if not names:
             errors.append("agents must include at least one agent")
+        name_to_indices = {}
+        for idx, name in enumerate(names):
+            name_to_indices.setdefault(name, []).append(idx)
         duplicate_names = sorted({name for name in names if names.count(name) > 1})
         if duplicate_names:
+            duplicate_detail = ", ".join(
+                f"{name} (indices {name_to_indices[name]})" for name in duplicate_names
+            )
             errors.append(
-                "agent names must be unique; duplicates found: " + ", ".join(duplicate_names)
+                "agent names must be unique; duplicates found: " + duplicate_detail
             )
         benchmark_count = sum(1 for name in names if name == "Base")
         if benchmark_count != 1:
+            base_indices = name_to_indices.get("Base", [])
+            extra_hint = ""
+            if benchmark_count == 0:
+                extra_hint = " Add an agent with name 'Base' to the agents list."
+            else:
+                extra_hint = f" Found Base at indices {base_indices}; remove duplicates."
             errors.append(
-                f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}"
+                f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}."
+                f"{extra_hint}"
             )
 
         for idx, agent in enumerate(self.agents):
