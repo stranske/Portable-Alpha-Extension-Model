@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Sequence, TypedDict
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
     import numpy as np
@@ -28,13 +28,21 @@ class RunArtifacts:
     manifest: Mapping[str, Any] | None = None
 
 
+class SweepResult(TypedDict):
+    """Standardized outputs from a single sweep combination."""
+
+    combination_id: int
+    parameters: Mapping[str, Any]
+    summary: "pd.DataFrame"
+
+
 @dataclass(slots=True)
 class SweepArtifacts:
     """Standardized outputs from a parameter sweep run."""
 
     config: "ModelConfig"
     index_series: "pd.Series"
-    results: Sequence[Mapping[str, Any]]
+    results: Sequence[SweepResult]
     summary: "pd.DataFrame"
     inputs: dict[str, Any]
     manifest: Mapping[str, Any] | None = None
