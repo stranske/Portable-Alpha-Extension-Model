@@ -6,7 +6,10 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping, List
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 REGISTRY_DIRNAME = ".pa_registry"
 SCENARIO_ID_LEN = 12
@@ -45,7 +48,7 @@ def _ensure_registry_dir() -> Path:
 
 def _normalize_config(config: Any) -> Mapping[str, Any]:
     if hasattr(config, "model_dump"):
-        return config.model_dump()
+        return dict(config.model_dump())
     if isinstance(config, Mapping):
         return dict(config)
     raise TypeError("config must be a mapping or pydantic model")
@@ -169,12 +172,12 @@ def get(scenario_id: str) -> Scenario:
     return Scenario(**data)
 
 
-def list() -> list[ScenarioSummary]:
+def list() -> List[ScenarioSummary]:
     """Return summaries for registered scenarios."""
     registry_dir = _registry_dir()
     if not registry_dir.exists():
         return []
-    summaries: list[ScenarioSummary] = []
+    summaries: List[ScenarioSummary] = []
     for path in sorted(registry_dir.glob("*.json")):
         try:
             data = json.loads(path.read_text())
