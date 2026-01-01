@@ -147,19 +147,19 @@ def normalize_index_series(idx_series: pd.Series, input_unit: str) -> pd.Series:
 
 
 def get_config_unit(cfg: object | None = None) -> Unit:
-    """Return the unit used by config parameters after normalization."""
+    """Return the unit for config return parameters after normalization (monthly)."""
     if cfg is None:
         return CANONICAL_RETURN_UNIT
     return _coerce_unit(getattr(cfg, "return_unit", CANONICAL_RETURN_UNIT))
 
 
 def get_index_series_unit() -> Unit:
-    """Return the expected unit for index return series (always monthly)."""
+    """Return the expected unit for index return series (monthly)."""
     return CANONICAL_RETURN_UNIT
 
 
 def get_threshold_unit() -> Mapping[str, Unit]:
-    """Return the units for breach and shortfall thresholds."""
+    """Return units for thresholds (breach monthly, shortfall annual compounded)."""
     return {
         "breach_threshold": "monthly",
         "shortfall_threshold": "annual",
@@ -167,5 +167,5 @@ def get_threshold_unit() -> Mapping[str, Unit]:
 
 
 def get_summary_table_unit() -> Unit:
-    """Return the unit used for annualised summary metrics (annual)."""
+    """Return the unit for summary table return/vol/TE outputs (annualised)."""
     return "annual"
