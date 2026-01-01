@@ -19,6 +19,15 @@ from dashboard.utils import (
     make_grid_cache_key,
 )
 from pa_core.config import ModelConfig
+from pa_core.contracts import (
+    SUMMARY_AGENT_COLUMN,
+    SUMMARY_ANN_RETURN_COLUMN,
+    SUMMARY_ANN_VOL_COLUMN,
+    SUMMARY_BREACH_PROB_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_SHORTFALL_PROB_COLUMN,
+    SUMMARY_TE_COLUMN,
+)
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
 
@@ -28,12 +37,12 @@ _GRID_CACHE_KEY = "scenario_grid_cache"
 _GRID_PROMOTION_NOTICE_KEY = "scenario_grid_promotion_notice"
 _GRID_CACHE_LIMIT = 3
 _EXTRA_METRICS = [
-    "AnnReturn",
-    "AnnVol",
-    "TE",
-    "CVaR",
-    "BreachProb",
-    "ShortfallProb",
+    SUMMARY_ANN_RETURN_COLUMN,
+    SUMMARY_ANN_VOL_COLUMN,
+    SUMMARY_TE_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_BREACH_PROB_COLUMN,
+    SUMMARY_SHORTFALL_PROB_COLUMN,
 ]
 
 
@@ -245,12 +254,16 @@ def main() -> None:
                 prog.empty()
                 df_res = sweep_results_to_dataframe(results)
                 # Focus on Base agent and compute Sharpe
-                base_rows = df_res[df_res["Agent"] == "Base"].copy()
+                base_rows = df_res[df_res[SUMMARY_AGENT_COLUMN] == "Base"].copy()
                 if base_rows.empty:
                     st.warning("No base agent rows found in results.")
                     return
                 base_rows["Sharpe"] = base_rows.apply(
-                    lambda r: (r["AnnReturn"] / r["AnnVol"]) if r["AnnVol"] else 0.0,
+                    lambda r: (
+                        (r[SUMMARY_ANN_RETURN_COLUMN] / r[SUMMARY_ANN_VOL_COLUMN])
+                        if r[SUMMARY_ANN_VOL_COLUMN]
+                        else 0.0
+                    ),
                     axis=1,
                 )
                 # Compute external PA dollars (mm) if total fund capital present
@@ -317,18 +330,8 @@ def main() -> None:
                 ),
                 "Sharpe=%{z:.2f}",
             ]
-            # Map extra field labels
-            field_map = {
-                "AnnReturn": "AnnReturn",
-                "AnnVol": "AnnVol",
-                "TE": "TE",
-                "CVaR": "CVaR",
-                "BreachProb": "BreachProb",
-                "ShortfallProb": "ShortfallProb",
-            }
             for i, field in enumerate(extra_cols):
-                label = field_map.get(field, field)
-                hover_lines.append(f"{label}=%{{customdata[{i}]}}")
+                hover_lines.append(f"{field}=%{{customdata[{i}]}}")
             try:
                 fig2.update_traces(hovertemplate="<br>".join(hover_lines))
             except Exception:
