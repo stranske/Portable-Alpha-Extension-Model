@@ -30,21 +30,21 @@ def _clamp_grid(grid: np.ndarray, min_value: float | None, max_value: float | No
     return grid[(grid >= min_val) & (grid <= max_val)]
 
 
+def _internal_cap_ok(value: float, min_internal: float | None, max_internal: float | None) -> bool:
+    if min_internal is not None and value < min_internal:
+        return False
+    if max_internal is not None and value > max_internal:
+        return False
+    return True
+
+
 def _pick_priority_combos(
-    combos: Sequence[tuple[float, float]],
     ext_grid: Iterable[float],
     act_grid: Iterable[float],
     total: float,
     min_internal: float | None,
     max_internal: float | None,
 ) -> list[tuple[float, float]]:
-    def internal_ok(value: float) -> bool:
-        if min_internal is not None and value < min_internal:
-            return False
-        if max_internal is not None and value > max_internal:
-            return False
-        return True
-
     ext_vals = sorted(set(ext_grid))
     act_vals = sorted(set(act_grid))
     if not ext_vals or not act_vals:
@@ -62,16 +62,30 @@ def _pick_priority_combos(
     act_mid = min(act_vals, key=lambda v: abs(v - target))
     candidates.append((ext_mid, act_mid))
 
-    picked = []
+    picked: list[tuple[float, float]] = []
     for ext_cap, act_cap in candidates:
         int_cap = total - ext_cap - act_cap
         if int_cap < 0:
             continue
-        if not internal_ok(int_cap):
+        if not _internal_cap_ok(int_cap, min_internal, max_internal):
             continue
-        if (ext_cap, act_cap) in combos and (ext_cap, act_cap) not in picked:
+        if (ext_cap, act_cap) not in picked:
             picked.append((ext_cap, act_cap))
     return picked
+
+
+def _count_valid_combos(ext_vals: np.ndarray, act_vals: np.ndarray, total: float) -> int:
+    if ext_vals.size == 0 or act_vals.size == 0:
+        return 0
+    count = 0
+    min_act = float(act_vals[0])
+    for ext in ext_vals:
+        max_act = total - float(ext)
+        if max_act < min_act:
+            continue
+        idx = int(np.searchsorted(act_vals, max_act, side="right"))
+        count += idx
+    return count
 
 
 def _coerce_metric(value: object) -> float | None:
@@ -246,32 +260,76 @@ def _grid_sleeve_sizes(
     if ext_grid.size == 0 or act_grid.size == 0:
         return pd.DataFrame()
 
-    combos = [
-        (ext_cap, act_cap)
-        for ext_cap, act_cap in itertools.product(ext_grid, act_grid)
-        if (total - ext_cap - act_cap) >= 0
-    ]
-    if max_evals is not None and len(combos) > max_evals:
-        rng = np.random.default_rng(seed)
-        priority = _pick_priority_combos(
-            combos,
-            ext_grid,
-            act_grid,
-            total,
-            min_internal,
-            max_internal,
-        )
-        if max_evals <= len(priority):
-            combos = priority[:max_evals]
+    combos: list[tuple[float, float]]
+    if max_evals is None:
+        combos = [
+            (float(ext_cap), float(act_cap))
+            for ext_cap, act_cap in itertools.product(ext_grid, act_grid)
+            if (total - ext_cap - act_cap) >= 0
+        ]
+    else:
+        ext_vals = np.asarray(ext_grid, dtype=float)
+        act_vals = np.asarray(act_grid, dtype=float)
+        max_valid = _count_valid_combos(ext_vals, act_vals, total)
+        if max_valid <= max_evals:
+            combos = []
+            for ext_cap in ext_vals:
+                max_act = total - float(ext_cap)
+                if max_act < act_vals[0]:
+                    continue
+                idx = int(np.searchsorted(act_vals, max_act, side="right"))
+                for act_cap in act_vals[:idx]:
+                    combos.append((float(ext_cap), float(act_cap)))
         else:
-            remaining = [combo for combo in combos if combo not in priority]
-            budget = max_evals - len(priority)
-            if budget > 0 and remaining:
-                idx = rng.choice(len(remaining), size=min(budget, len(remaining)), replace=False)
-                sampled = [remaining[i] for i in idx]
+            rng = np.random.default_rng(seed)
+            priority = _pick_priority_combos(
+                ext_vals,
+                act_vals,
+                total,
+                min_internal,
+                max_internal,
+            )
+            if max_evals <= len(priority):
+                combos = list(priority[:max_evals])
+                seen = set(combos)
             else:
-                sampled = []
-            combos = priority + sampled
+                combos = list(priority)
+                seen = set(combos)
+            attempts = 0
+            max_attempts = max(1, max_evals) * 50
+            while len(combos) < max_evals and attempts < max_attempts:
+                attempts += 1
+                ext_cap = float(ext_vals[rng.integers(0, len(ext_vals))])
+                act_cap = float(act_vals[rng.integers(0, len(act_vals))])
+                internal = total - ext_cap - act_cap
+                if internal < 0:
+                    continue
+                if not _internal_cap_ok(internal, min_internal, max_internal):
+                    continue
+                pair = (ext_cap, act_cap)
+                if pair in seen:
+                    continue
+                seen.add(pair)
+                combos.append(pair)
+            if len(combos) < max_evals:
+                for ext_cap in ext_vals:
+                    max_act = total - float(ext_cap)
+                    if max_act < act_vals[0]:
+                        continue
+                    idx = int(np.searchsorted(act_vals, max_act, side="right"))
+                    for act_cap in act_vals[:idx]:
+                        pair = (float(ext_cap), float(act_cap))
+                        internal = total - pair[0] - pair[1]
+                        if not _internal_cap_ok(internal, min_internal, max_internal):
+                            continue
+                        if pair in seen:
+                            continue
+                        seen.add(pair)
+                        combos.append(pair)
+                        if len(combos) >= max_evals:
+                            break
+                    if len(combos) >= max_evals:
+                        break
 
     records: list[dict[str, float]] = []
     for ext_cap, act_cap in combos:
