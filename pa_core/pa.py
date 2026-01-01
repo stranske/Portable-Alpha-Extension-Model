@@ -233,7 +233,7 @@ def main(argv: Sequence[str] | None = None) -> None:
                 returns_df.columns, index_id=args.index_id, alpha_ids=args.alpha_ids
             )
 
-            result = calibrate_returns(
+            returns_result = calibrate_returns(
                 returns_df,
                 index_id=index_id,
                 mean_shrinkage=args.mean_shrinkage,
@@ -242,12 +242,13 @@ def main(argv: Sequence[str] | None = None) -> None:
                 confidence_level=args.ci_level,
             )
             alpha_map = {"H": alpha_ids[0], "E": alpha_ids[1], "M": alpha_ids[2]}
-            payload = {
+            model_config = returns_result.to_model_config(alpha_map=alpha_map)
+            payload: dict[str, object] = {
                 "N_SIMULATIONS": 1000,
                 "N_MONTHS": 12,
+                **model_config,
             }
-            payload.update(result.to_model_config(alpha_map=alpha_map))
-            report = build_calibration_report(result, alpha_map=alpha_map)
+            report = build_calibration_report(returns_result, alpha_map=alpha_map)
             payload["calibration"] = report
 
             yaml = _require_yaml()
@@ -255,7 +256,7 @@ def main(argv: Sequence[str] | None = None) -> None:
                 yaml.safe_dump(payload, sort_keys=False, default_flow_style=False)
             )
             if args.scenario_output:
-                save_scenario(result.to_scenario(), args.scenario_output)
+                save_scenario(returns_result.to_scenario(), args.scenario_output)
             print(f"✓ Wrote calibrated parameters to {args.output}")
             if args.scenario_output:
                 print(f"✓ Wrote scenario YAML to {args.scenario_output}")
@@ -307,8 +308,8 @@ def main(argv: Sequence[str] | None = None) -> None:
             vol_regime=vol_regime_value,
             vol_regime_window=int(vol_regime_window),
         )
-        result = calib.calibrate(df, index_id=args.index_id)
-        calib.to_yaml(result, args.output)
+        data_result = calib.calibrate(df, index_id=args.index_id)
+        calib.to_yaml(data_result, args.output)
         print(f"✓ Wrote asset library to {args.output}")
     else:  # convert
         # Handle convert command with its specific arguments
