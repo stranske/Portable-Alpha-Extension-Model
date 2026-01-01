@@ -47,7 +47,7 @@ jobs:
     name: Codespace Config
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Validate devcontainer.json
         run: |
           python -m json.tool .devcontainer/devcontainer.json > /dev/null
@@ -69,7 +69,7 @@ jobs:
     # depend on Python CI passing and can run in parallel for faster feedback.
     # If integration tests fail, the summary job will still catch it.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
