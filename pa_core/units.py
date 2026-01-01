@@ -15,7 +15,7 @@ Policy summary
 
 from __future__ import annotations
 
-from typing import Literal, Mapping
+from typing import Literal, Mapping, cast
 
 import numpy as np
 import pandas as pd
@@ -69,7 +69,7 @@ def convert_annual_series_to_monthly(
 def _coerce_unit(unit: str) -> Unit:
     if unit not in ("annual", "monthly"):
         raise ValueError(f"unit must be 'annual' or 'monthly', got {unit!r}")
-    return unit
+    return cast(Unit, unit)
 
 
 def format_unit_label(unit: Unit) -> str:
