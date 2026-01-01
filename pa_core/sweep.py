@@ -158,6 +158,9 @@ def run_parameter_sweep(
 ) -> List[Dict[str, Any]]:
     """Run the parameter sweep and collect results.
 
+    Index returns are normalised to monthly units before simulation, and
+    summary metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
+
     Parameters
     ----------
     progress:

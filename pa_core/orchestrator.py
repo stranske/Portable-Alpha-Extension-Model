@@ -41,7 +41,8 @@ class SimulatorOrchestrator:
         """Execute simulations and return per-agent returns and summary table.
 
         Uses the PSD-corrected covariance matrix to derive implied
-        volatilities and correlations before drawing joint returns.
+        volatilities and correlations before drawing joint returns. Summary
+        table metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
         """
 
         mu_idx = float(self.idx_series.mean())

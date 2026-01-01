@@ -93,7 +93,11 @@ def create_enhanced_summary(
     *,
     benchmark: str | None = None,
 ) -> "pd.DataFrame":
-    """Create summary table with standard breach and shortfall defaults."""
+    """Create a summary table from monthly returns with standard thresholds.
+
+    AnnReturn/AnnVol/TE are annualised from monthly returns; breach thresholds
+    apply to monthly returns and shortfall thresholds use annualised hurdles.
+    """
 
     # Local import to avoid heavy imports at module load
     from .sim.metrics import summary_table
@@ -102,7 +106,7 @@ def create_enhanced_summary(
 
 
 def print_enhanced_summary(summary: "pd.DataFrame") -> None:
-    """Print enhanced summary with explanations."""
+    """Print summary with unit-aware explanations for annualised metrics."""
     # Local imports to avoid heavy import at module load
     from rich.console import Console
     from rich.panel import Panel
