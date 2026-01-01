@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 from collections.abc import Callable
 from numbers import Real
-from typing import Any, Iterable, Literal, Protocol, Sequence, cast
+from typing import Iterable, Literal, Protocol, Sequence, cast
 
 import numpy as np
 import pandas as pd
