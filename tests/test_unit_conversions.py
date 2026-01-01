@@ -32,6 +32,16 @@ def test_annual_cov_to_monthly() -> None:
     assert np.allclose(converted, expected)
 
 
+def test_annual_cov_matches_vol_conversion() -> None:
+    annual_vols = np.array([0.24, 0.12])
+    corr = np.array([[1.0, 0.3], [0.3, 1.0]])
+    annual_cov = np.outer(annual_vols, annual_vols) * corr
+    monthly_cov = annual_cov_to_monthly(annual_cov)
+    monthly_vols = np.array([annual_vol_to_monthly(v) for v in annual_vols])
+    expected = np.outer(monthly_vols, monthly_vols) * corr
+    assert np.allclose(monthly_cov, expected)
+
+
 def test_model_config_converts_once() -> None:
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, mu_H=0.12, sigma_H=0.24)
     assert np.isclose(cfg.mu_H, annual_mean_to_monthly(0.12))
