@@ -36,6 +36,10 @@ TOOL_MAPPING: dict[str, tuple[str, ...]] = {
     "COVERAGE_VERSION": ("coverage",),
     "DOCFORMATTER_VERSION": ("docformatter",),
     "HYPOTHESIS_VERSION": ("hypothesis",),
+    "PYYAML_VERSION": ("pyyaml", "PyYAML"),
+    "PYDANTIC_VERSION": ("pydantic",),
+    "PYDANTIC_CORE_VERSION": ("pydantic-core",),
+    "JSONSCHEMA_VERSION": ("jsonschema",),
 }
 
 
