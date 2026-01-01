@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Mapping, Protocol, TypedDict, runtime_checkable
+
+if TYPE_CHECKING:  # pragma: no cover - type hints only
+    import pandas as pd
 
 
 class BitGeneratorLike(Protocol):
@@ -48,3 +51,11 @@ class ArrayLike(Protocol):
     def __le__(self, other: Any) -> ArrayLike: ...
     def __gt__(self, other: Any) -> ArrayLike: ...
     def __ge__(self, other: Any) -> ArrayLike: ...
+
+
+class SweepResult(TypedDict):
+    """Standardized outputs from a single sweep combination."""
+
+    combination_id: int
+    parameters: Mapping[str, Any]
+    summary: "pd.DataFrame"

@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Mapping, Sequence, TypedDict
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
     import numpy as np
     import pandas as pd
 
     from .config import ModelConfig
-from .types import ArrayLike
+from .types import ArrayLike, SweepResult
 
 
 @dataclass(slots=True)
@@ -26,14 +26,6 @@ class RunArtifacts:
     stress_delta: "pd.DataFrame | None" = None
     base_summary: "pd.DataFrame | None" = None
     manifest: Mapping[str, Any] | None = None
-
-
-class SweepResult(TypedDict):
-    """Standardized outputs from a single sweep combination."""
-
-    combination_id: int
-    parameters: Mapping[str, Any]
-    summary: "pd.DataFrame"
 
 
 @dataclass(slots=True)
