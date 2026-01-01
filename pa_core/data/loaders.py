@@ -33,16 +33,20 @@ def infer_index_frequency(dates: pd.Series) -> str:
     date_values = date_values.sort_values()
     if date_values.duplicated().any():
         return "irregular"
-    inferred = pd.infer_freq(date_values)
-    if inferred:
-        if inferred in FREQUENCY_ALIASES:
-            return FREQUENCY_ALIASES[inferred]
-        if inferred.startswith("W"):
-            return "weekly"
-        if inferred.startswith("Q") or inferred.startswith("BQ"):
-            return "quarterly"
-        if inferred.startswith("M") or inferred.startswith("BM"):
-            return "monthly"
+    if len(date_values) >= 3:
+        try:
+            inferred = pd.infer_freq(date_values)
+        except ValueError:
+            inferred = None
+        if inferred:
+            if inferred in FREQUENCY_ALIASES:
+                return FREQUENCY_ALIASES[inferred]
+            if inferred.startswith("W"):
+                return "weekly"
+            if inferred.startswith("Q") or inferred.startswith("BQ"):
+                return "quarterly"
+            if inferred.startswith("M") or inferred.startswith("BM"):
+                return "monthly"
     deltas = date_values.diff().dropna()
     if (deltas.dt.days == 1).all():
         return "daily"
