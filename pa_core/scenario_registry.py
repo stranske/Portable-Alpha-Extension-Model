@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import importlib.metadata
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -99,7 +100,10 @@ def _get_code_version() -> str:
             ["git", "rev-parse", "HEAD"], cwd=repo_root, text=True
         ).strip()
     except (subprocess.CalledProcessError, FileNotFoundError, OSError):
-        return "unknown"
+        try:
+            return importlib.metadata.version("portable-alpha-extension-model")
+        except importlib.metadata.PackageNotFoundError:
+            return "unknown"
 
 
 def _build_scenario_hash(

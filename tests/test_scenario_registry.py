@@ -33,6 +33,22 @@ def test_compute_scenario_id_is_deterministic(
     assert scenario_id != different_cfg_id
 
 
+def test_compute_scenario_id_includes_code_version(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    index_path = tmp_path / "index.csv"
+    _write_index_csv(index_path)
+
+    monkeypatch.setattr(registry, "_get_code_version", lambda: "version-a")
+    scenario_id_a = registry.compute_scenario_id(cfg, index_path, seed=123)
+
+    monkeypatch.setattr(registry, "_get_code_version", lambda: "version-b")
+    scenario_id_b = registry.compute_scenario_id(cfg, index_path, seed=123)
+
+    assert scenario_id_a != scenario_id_b
+
+
 def test_register_get_list(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(registry, "_get_code_version", lambda: "test-version")
