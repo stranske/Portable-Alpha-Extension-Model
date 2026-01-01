@@ -1240,7 +1240,7 @@ Notes
 
 ## Constraint‑aware Sleeve Suggestor & Trade‑off Table
 
-The sleeve suggestor proposes feasible ExternalPA / ActiveExt / InternalPA capital combinations that satisfy risk constraints. It uses a simple grid search (no black‑box optimiser) and can be run interactively or in summary mode.
+The sleeve suggestor proposes feasible ExternalPA / ActiveExt / InternalPA capital combinations that satisfy risk constraints. By default it uses a grid search, but you can enable an optimizer (requires SciPy) that uses a coarse convex surrogate to target higher‑return allocations, with automatic fallback to the grid if the optimizer fails.
 
 Interactive suggest‑and‑apply flow:
 
@@ -1249,6 +1249,7 @@ python -m pa_core.cli \
    --config config/params_template.yml \
    --index sp500tr_fred_divyield.csv \
    --suggest-sleeves \
+   --optimize \
    --max-te 0.03 \
    --max-breach 0.05 \
    --max-cvar 0.04 \
@@ -1258,6 +1259,7 @@ python -m pa_core.cli \
 
 - The CLI prints a ranked table of feasible combinations and prompts you to select a row to apply and continue with the run.
 - Optional bounds per sleeve (mm capital): `--min-external/--max-external/--min-active/--max-active/--min-internal/--max-internal`.
+- `--optimize-objective` switches the optimization target (`total_return` or `excess_return`).
 
 Export a trade‑off table without interactive selection and include it in the workbook (sheet: `SleeveTradeoffs`):
 
@@ -1274,6 +1276,7 @@ python -m pa_core.cli \
 Tips
 - `risk_score` is a simple composite: TE + BreachProb + |CVaR| (lower is better). You can sort by any column with `--tradeoff-sort`.
 - For finer grids reduce `--sleeve-step`. The search auto‑caps evaluations to avoid exponential explosion.
+- The optimizer uses a linearized surrogate of risk metrics; the final allocation is re‑evaluated with full simulations, and infeasible results trigger a grid fallback.
 - Combine `--tradeoff-table` with `--packet` to include the results in the PPTX deck alongside the summary and charts.
 
 ## Financing schedule configuration

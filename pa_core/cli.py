@@ -435,6 +435,17 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         default=0.25,
         help="Grid step size for sleeve suggestions",
     )
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Use optimizer for sleeve suggestions (falls back to grid if unavailable)",
+    )
+    parser.add_argument(
+        "--optimize-objective",
+        choices=["total_return", "excess_return"],
+        default="total_return",
+        help="Objective for sleeve optimization",
+    )
     # Optional sleeve bounds (in capital mm units)
     parser.add_argument(
         "--min-external",
@@ -693,11 +704,19 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             min_internal=args.min_internal,
             max_internal=args.max_internal,
             seed=suggest_seed,
+            optimize=args.optimize,
+            objective=args.optimize_objective,
         )
         if suggestions.empty:
             print("No feasible sleeve allocations found.")
             _emit_run_end()
             return
+        if "optimizer_status" in suggestions.columns:
+            status = str(suggestions.loc[0, "optimizer_status"])
+            if status.startswith("grid_fallback"):
+                print(f"Optimizer unavailable; using grid fallback ({status}).")
+            elif status.startswith("fallback_failed"):
+                print(f"Optimizer failed without grid fallback ({status}).")
         print(suggestions.to_string(index=True))
         idx_sel = args.suggest_apply_index
         if idx_sel is None:
