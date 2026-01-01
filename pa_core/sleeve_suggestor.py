@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import itertools
 from collections.abc import Callable
 from numbers import Real
 from typing import Iterable, Literal, Protocol, Sequence, cast
@@ -294,14 +293,8 @@ def _grid_sleeve_sizes(
     if ext_grid.size == 0 or act_grid.size == 0:
         return pd.DataFrame()
 
-    combos: list[tuple[float, float]]
-    if max_evals is None:
-        combos = [
-            (float(ext_cap), float(act_cap))
-            for ext_cap, act_cap in itertools.product(ext_grid, act_grid)
-            if (total - ext_cap - act_cap) >= 0
-        ]
-    else:
+    combos: list[tuple[float, float]] | None = None
+    if max_evals is not None:
         ext_vals = np.asarray(ext_grid, dtype=float)
         act_vals = np.asarray(act_grid, dtype=float)
         max_valid = _count_valid_combos(ext_vals, act_vals, total)
@@ -366,22 +359,22 @@ def _grid_sleeve_sizes(
                         break
 
     records: list[dict[str, float]] = []
-    for ext_cap, act_cap in combos:
+    def _maybe_record(ext_cap: float, act_cap: float) -> None:
         int_cap = total - ext_cap - act_cap
 
         # Bounds filtering (if provided)
         if min_external is not None and ext_cap < min_external:
-            continue
+            return
         if max_external is not None and ext_cap > max_external:
-            continue
+            return
         if min_active is not None and act_cap < min_active:
-            continue
+            return
         if max_active is not None and act_cap > max_active:
-            continue
+            return
         if min_internal is not None and int_cap < min_internal:
-            continue
+            return
         if max_internal is not None and int_cap > max_internal:
-            continue
+            return
 
         evaluated = _evaluate_allocation(
             cfg,
@@ -398,7 +391,7 @@ def _grid_sleeve_sizes(
             stream_cache=stream_cache,
         )
         if evaluated is None:
-            continue
+            return
         metrics, meets, objective_value = evaluated
         if meets:
             record = {
@@ -411,6 +404,19 @@ def _grid_sleeve_sizes(
                 record["objective_value"] = float(objective_value)
             record["risk_score"] = _risk_score(metrics, constraint_scope)
             records.append(record)
+
+    if combos is None:
+        for ext_cap in ext_grid:
+            max_act = total - float(ext_cap)
+            if max_act < act_grid[0]:
+                continue
+            for act_cap in act_grid:
+                if float(act_cap) > max_act:
+                    break
+                _maybe_record(float(ext_cap), float(act_cap))
+    else:
+        for ext_cap, act_cap in combos:
+            _maybe_record(ext_cap, act_cap)
     df = pd.DataFrame.from_records(records)
     if not df.empty and sort_by in df.columns:
         ascending = sort_by != "objective_value"
