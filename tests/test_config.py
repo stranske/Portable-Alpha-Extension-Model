@@ -248,6 +248,25 @@ def test_agents_share_bounds():
         ModelConfig(**data)
 
 
+def test_agents_alpha_share_bounds():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 0.0,
+                "alpha_share": 1.1,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="alpha_share must be between 0 and 1"):
+        ModelConfig(**data)
+
+
 def test_agents_share_sum_limit():
     data = {
         "N_SIMULATIONS": 1,
@@ -264,6 +283,34 @@ def test_agents_share_sum_limit():
         ],
     }
     with pytest.raises(ValueError, match="beta_share \\+ alpha_share must be <= 1"):
+        ModelConfig(**data)
+
+
+def test_agents_share_sum_limit_non_benchmark():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 10.0,
+                "beta_share": 0.8,
+                "alpha_share": 0.3,
+                "extra": {},
+            },
+        ],
+    }
+    with pytest.raises(
+        ValueError, match="CustomSleeve.*beta_share \\+ alpha_share must be <= 1"
+    ):
         ModelConfig(**data)
 
 
