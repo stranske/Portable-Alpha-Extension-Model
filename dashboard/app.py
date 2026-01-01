@@ -28,6 +28,17 @@ _DEF_THEME = "config_theme.yaml"
 _PARQUET_HINT = "Parquet support missing; install pyarrow or use CSV."
 
 
+def _cache_data(ttl: int):
+    """Fallback wrapper when Streamlit cache decorators are unavailable."""
+    cache_fn = getattr(st, "cache_data", None)
+    if cache_fn is None:
+        def _decorator(func):
+            return func
+
+        return _decorator
+    return cache_fn(ttl=ttl)
+
+
 def _show_parquet_hint() -> None:
     st.info(_PARQUET_HINT)
 
@@ -100,7 +111,7 @@ def _load_paths_sidecar(xlsx: str) -> pd.DataFrame | None:
         return None
 
 
-@st.cache_data(ttl=600)
+@_cache_data(ttl=600)
 def load_data(xlsx: str) -> tuple[pd.DataFrame, pd.DataFrame | None]:
     summary = pd.read_excel(xlsx, sheet_name=SUMMARY_SHEET_NAME)
     # Try parquet -> csv -> Excel('AllReturns') for path-based charts

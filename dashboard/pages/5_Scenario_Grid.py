@@ -19,6 +19,14 @@ from dashboard.utils import (
     make_grid_cache_key,
 )
 from pa_core.config import ModelConfig
+from pa_core.contracts import (
+    SUMMARY_ANN_RETURN_COLUMN,
+    SUMMARY_ANN_VOL_COLUMN,
+    SUMMARY_BREACH_PROB_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_SHORTFALL_PROB_COLUMN,
+    SUMMARY_TE_COLUMN,
+)
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
 
@@ -28,12 +36,12 @@ _GRID_CACHE_KEY = "scenario_grid_cache"
 _GRID_PROMOTION_NOTICE_KEY = "scenario_grid_promotion_notice"
 _GRID_CACHE_LIMIT = 3
 _EXTRA_METRICS = [
-    "AnnReturn",
-    "AnnVol",
-    "TE",
-    "CVaR",
-    "BreachProb",
-    "ShortfallProb",
+    SUMMARY_ANN_RETURN_COLUMN,
+    SUMMARY_ANN_VOL_COLUMN,
+    SUMMARY_TE_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_BREACH_PROB_COLUMN,
+    SUMMARY_SHORTFALL_PROB_COLUMN,
 ]
 
 
@@ -317,18 +325,8 @@ def main() -> None:
                 ),
                 "Sharpe=%{z:.2f}",
             ]
-            # Map extra field labels
-            field_map = {
-                "AnnReturn": "AnnReturn",
-                "AnnVol": "AnnVol",
-                "TE": "TE",
-                "CVaR": "CVaR",
-                "BreachProb": "BreachProb",
-                "ShortfallProb": "ShortfallProb",
-            }
             for i, field in enumerate(extra_cols):
-                label = field_map.get(field, field)
-                hover_lines.append(f"{label}=%{{customdata[{i}]}}")
+                hover_lines.append(f"{field}=%{{customdata[{i}]}}")
             try:
                 fig2.update_traces(hovertemplate="<br>".join(hover_lines))
             except Exception:

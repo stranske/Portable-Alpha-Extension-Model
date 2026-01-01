@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Mapping, Sequence, TypedDict
+from typing import Any, Mapping, Pattern, Sequence, TypedDict
 
 import pandas as pd
 
@@ -14,6 +14,22 @@ RUN_LOG_FILENAME = "run.log"
 RUN_END_FILENAME = "run_end.json"
 RUN_DIRECTORY_REQUIRED_FILES: Sequence[str] = (RUN_LOG_FILENAME,)
 RUN_DIRECTORY_OPTIONAL_FILES: Sequence[str] = (RUN_END_FILENAME,)
+
+# Explicit run directory contract for dashboard and validation usage.
+@dataclass(frozen=True)
+class RunDirectoryContract:
+    runs_dir_name: str
+    run_id_pattern: Pattern[str]
+    required_files: Sequence[str]
+    optional_files: Sequence[str]
+
+
+RUN_DIRECTORY_CONTRACT = RunDirectoryContract(
+    runs_dir_name=RUNS_DIR_NAME,
+    run_id_pattern=RUN_ID_PATTERN,
+    required_files=RUN_DIRECTORY_REQUIRED_FILES,
+    optional_files=RUN_DIRECTORY_OPTIONAL_FILES,
+)
 
 # Manifest contract
 MANIFEST_FILENAME = "manifest.json"
@@ -32,29 +48,51 @@ MANIFEST_OPTIONAL_FIELDS: Sequence[str] = (
     "run_timing",
 )
 
+
+@dataclass(frozen=True)
+class ManifestContract:
+    filename: str
+    required_fields: Sequence[str]
+    optional_fields: Sequence[str]
+
+
+MANIFEST_CONTRACT = ManifestContract(
+    filename=MANIFEST_FILENAME,
+    required_fields=MANIFEST_REQUIRED_FIELDS,
+    optional_fields=MANIFEST_OPTIONAL_FIELDS,
+)
+
 # Summary contract
 SUMMARY_SHEET_NAME = "Summary"
 ALL_RETURNS_SHEET_NAME = "AllReturns"
 DEFAULT_OUTPUT_FILENAME = "Outputs.xlsx"
 
 SUMMARY_AGENT_COLUMN = "Agent"
+SUMMARY_ANN_RETURN_COLUMN = "AnnReturn"
+SUMMARY_EXCESS_RETURN_COLUMN = "ExcessReturn"
+SUMMARY_ANN_VOL_COLUMN = "AnnVol"
+SUMMARY_VAR_COLUMN = "VaR"
 SUMMARY_TE_COLUMN = "TE"
 SUMMARY_TRACKING_ERROR_LEGACY_COLUMN = "TrackingErr"
 SUMMARY_CVAR_COLUMN = "CVaR"
 SUMMARY_BREACH_PROB_COLUMN = "BreachProb"
+SUMMARY_MAX_DD_COLUMN = "MaxDD"
+SUMMARY_TIME_UNDER_WATER_COLUMN = "TimeUnderWater"
+SUMMARY_BREACH_COUNT_COLUMN = "BreachCount"
+SUMMARY_SHORTFALL_PROB_COLUMN = "ShortfallProb"
 
 SUMMARY_REQUIRED_COLUMNS: Sequence[str] = (
     SUMMARY_AGENT_COLUMN,
-    "AnnReturn",
-    "ExcessReturn",
-    "AnnVol",
-    "VaR",
+    SUMMARY_ANN_RETURN_COLUMN,
+    SUMMARY_EXCESS_RETURN_COLUMN,
+    SUMMARY_ANN_VOL_COLUMN,
+    SUMMARY_VAR_COLUMN,
     SUMMARY_CVAR_COLUMN,
-    "MaxDD",
-    "TimeUnderWater",
+    SUMMARY_MAX_DD_COLUMN,
+    SUMMARY_TIME_UNDER_WATER_COLUMN,
     SUMMARY_BREACH_PROB_COLUMN,
-    "BreachCount",
-    "ShortfallProb",
+    SUMMARY_BREACH_COUNT_COLUMN,
+    SUMMARY_SHORTFALL_PROB_COLUMN,
     SUMMARY_TE_COLUMN,
 )
 SUMMARY_NUMERIC_COLUMNS: Sequence[str] = tuple(
@@ -88,6 +126,34 @@ class RunDirectoryLayout:
     path: Path
     log_path: Path
     run_end_path: Path
+
+
+@dataclass(frozen=True)
+class SummaryContract:
+    sheet_name: str
+    all_returns_sheet_name: str
+    default_output_filename: str
+    required_columns: Sequence[str]
+    numeric_columns: Sequence[str]
+    agent_column: str
+    te_column: str
+    tracking_error_legacy_column: str
+    cvar_column: str
+    breach_prob_column: str
+
+
+SUMMARY_CONTRACT = SummaryContract(
+    sheet_name=SUMMARY_SHEET_NAME,
+    all_returns_sheet_name=ALL_RETURNS_SHEET_NAME,
+    default_output_filename=DEFAULT_OUTPUT_FILENAME,
+    required_columns=SUMMARY_REQUIRED_COLUMNS,
+    numeric_columns=SUMMARY_NUMERIC_COLUMNS,
+    agent_column=SUMMARY_AGENT_COLUMN,
+    te_column=SUMMARY_TE_COLUMN,
+    tracking_error_legacy_column=SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
+    cvar_column=SUMMARY_CVAR_COLUMN,
+    breach_prob_column=SUMMARY_BREACH_PROB_COLUMN,
+)
 
 
 def run_directory_layout(path: str | Path) -> RunDirectoryLayout:
