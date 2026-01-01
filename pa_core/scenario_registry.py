@@ -6,7 +6,7 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, List
+from typing import TYPE_CHECKING, Any, List, Mapping
 
 if TYPE_CHECKING:
     import pandas as pd
