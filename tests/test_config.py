@@ -384,6 +384,25 @@ def test_agents_share_sum_limit():
         ModelConfig(**data)
 
 
+def test_agents_share_sum_limit_percentage_inputs():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 60,
+                "alpha_share": 50,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="beta_share \\+ alpha_share must be <= 1"):
+        ModelConfig(**data)
+
+
 def test_agents_share_sum_limit_non_benchmark():
     data = {
         "N_SIMULATIONS": 1,

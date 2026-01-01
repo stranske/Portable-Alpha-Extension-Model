@@ -644,7 +644,8 @@ class ModelConfig(BaseModel):
             if agent.beta_share + agent.alpha_share > SHARE_MAX + SHARE_SUM_TOLERANCE:
                 errors.append(
                     f"agents[{idx}] ({agent.name}) beta_share + alpha_share must be <= 1; "
-                    f"got {agent.beta_share + agent.alpha_share}"
+                    f"got {agent.beta_share + agent.alpha_share}. "
+                    "Reduce beta_share or alpha_share so the total is <= 1."
                 )
 
         if self.agents:
@@ -654,7 +655,8 @@ class ModelConfig(BaseModel):
             if total_agent_capital > self.total_fund_capital + SHARE_SUM_TOLERANCE:
                 errors.append(
                     "sum(non-benchmark agent capital) must be <= total_fund_capital; "
-                    f"got {total_agent_capital} > {self.total_fund_capital}"
+                    f"got {total_agent_capital} > {self.total_fund_capital}. "
+                    "Benchmark capital is treated as the total fund capital."
                 )
 
         if errors:
