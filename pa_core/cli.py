@@ -109,20 +109,28 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     from rich.text import Text
 
     from .reporting.console import print_summary
+    from .units import format_unit_label, get_summary_table_unit, get_threshold_unit
 
     console = Console()
+    summary_unit = get_summary_table_unit()
+    unit_label = format_unit_label(summary_unit)
+    threshold_units = get_threshold_unit()
 
     # Print explanatory header
     explanation = Text()
     explanation.append("Portfolio Analysis Results\n", style="bold blue")
     explanation.append("Metrics Explanation:\n", style="bold")
-    explanation.append("• AnnReturn: Annualized return (%)\n")
-    explanation.append("• AnnVol: Annualized volatility (%)\n")
+    explanation.append(f"• AnnReturn: {unit_label} return (%)\n")
+    explanation.append(f"• AnnVol: {unit_label} volatility (%)\n")
     explanation.append("• VaR: Value at Risk (95% confidence)\n")
-    explanation.append("• BreachProb: Share of simulated months below the breach threshold\n")
+    explanation.append(
+        f"• BreachProb: Share of simulated months below the "
+        f"{threshold_units['breach_threshold']} breach threshold\n"
+    )
     if "ShortfallProb" in summary.columns:
         explanation.append(
-            "• ShortfallProb: Probability terminal compounded return is below the annualised threshold\n"
+            "• ShortfallProb: Probability terminal compounded return is below the "
+            f"{threshold_units['shortfall_threshold']} threshold\n"
         )
     if "MaxDD" in summary.columns:
         explanation.append("• MaxDD: Worst peak-to-trough decline of compounded wealth\n")
@@ -130,7 +138,7 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
         explanation.append(
             "• TimeUnderWater: Fraction of periods with compounded return below zero\n"
         )
-    explanation.append("• TE: Annualised active return volatility vs benchmark\n")
+    explanation.append(f"• TE: {unit_label} active return volatility vs benchmark\n")
 
     console.print(Panel(explanation, title="Understanding Your Results"))
 

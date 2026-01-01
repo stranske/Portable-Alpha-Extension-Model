@@ -8,6 +8,7 @@ import pandas as pd
 
 from ..backend import xp as np
 from ..types import ArrayLike
+from ..units import DEFAULT_BREACH_THRESHOLD, DEFAULT_SHORTFALL_THRESHOLD
 
 __all__ = [
     "active_return_volatility",
@@ -277,8 +278,8 @@ def summary_table(
     *,
     periods_per_year: int = 12,
     var_conf: float = 0.95,
-    breach_threshold: float = -0.02,
-    shortfall_threshold: float = -0.05,
+    breach_threshold: float = DEFAULT_BREACH_THRESHOLD,
+    shortfall_threshold: float = DEFAULT_SHORTFALL_THRESHOLD,
     benchmark: str | None = None,
 ) -> pd.DataFrame:
     """Return a summary DataFrame of key metrics for each agent.
@@ -288,10 +289,10 @@ def summary_table(
     breach_threshold:
         Monthly return threshold for :func:`breach_probability`, which reports
         the share of all simulated months across paths that breach. Defaults to
-        ``-0.02`` (a 2% loss).
+        the module-level default in :mod:`pa_core.units`.
     shortfall_threshold:
         Annualised threshold for :func:`terminal_return_below_threshold_prob`.
-        Defaults to ``-0.05`` (a 5% annual loss).
+        Defaults to the module-level default in :mod:`pa_core.units`.
     """
 
     returns = returns_map
