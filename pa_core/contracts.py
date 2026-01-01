@@ -15,6 +15,7 @@ RUN_END_FILENAME = "run_end.json"
 RUN_DIRECTORY_REQUIRED_FILES: Sequence[str] = (RUN_LOG_FILENAME,)
 RUN_DIRECTORY_OPTIONAL_FILES: Sequence[str] = (RUN_END_FILENAME,)
 
+
 # Explicit run directory contract for dashboard and validation usage.
 @dataclass(frozen=True)
 class RunDirectoryContract:

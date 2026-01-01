@@ -32,6 +32,7 @@ def _cache_data(ttl: int):
     """Fallback wrapper when Streamlit cache decorators are unavailable."""
     cache_fn = getattr(st, "cache_data", None)
     if cache_fn is None:
+
         def _decorator(func):
             return func
 
