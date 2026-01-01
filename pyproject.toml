@@ -26,7 +26,7 @@ extend-exclude = '''
 '''
 
 [tool.isort]
-profile = "black"
+profile = "black>=25.12.0"
 multi_line_output = 3
 line_length = 100
 known_first_party = ["pa_core", "dashboard"]
@@ -91,19 +91,19 @@ parquet = ["pyarrow"]
 
 # Development dependencies
 dev = [
-    "ruff>=0.8.0",
-    "black>=23.9.1",
-    "isort>=5.13.0",
-    "mypy>=1.0.0",
-    "pytest>=7.0.0",
-    "pytest-cov",
-    "pytest-xdist",
-    "hypothesis",
+    "ruff>=0.14.10",
+    "black>=25.12.0",
+    "isort>=7.0.0",
+    "mypy>=1.19.1",
+    "pytest>=9.0.2",
+    "pytest>=9.0.2",
+    "pytest>=9.0.2",
+    "hypothesis>=6.115.1",
     "pre-commit",
     "bandit",
     "types-PyYAML",
     "flake8",
-    "docformatter>=1.7.0",
+    "docformatter>=1.7.7",
 ]
 
 # Documentation dependencies
