@@ -662,6 +662,9 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
+    from .units import get_index_series_unit, normalize_index_series
+
+    idx_series = normalize_index_series(idx_series, get_index_series_unit())
     n_samples = int(len(idx_series))
     idx_sigma, _, _ = select_vol_regime_sigma(
         idx_series,

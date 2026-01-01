@@ -14,6 +14,7 @@ from .sim.params import build_simulation_params
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .types import ArrayLike
+from .units import get_index_series_unit, normalize_index_series
 from .validators import select_vol_regime_sigma
 
 
@@ -34,7 +35,7 @@ class SimulatorOrchestrator:
 
     def __init__(self, cfg: ModelConfig, idx_series: pd.Series) -> None:
         self.cfg = cfg
-        self.idx_series = idx_series
+        self.idx_series = normalize_index_series(pd.Series(idx_series), get_index_series_unit())
 
     def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
         """Execute simulations and return per-agent returns and summary table.

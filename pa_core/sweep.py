@@ -26,6 +26,7 @@ from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
 from .types import GeneratorLike
+from .units import get_index_series_unit, normalize_index_series
 from .validators import select_vol_regime_sigma
 
 
@@ -165,6 +166,7 @@ def run_parameter_sweep(
     """
     results: List[Dict[str, Any]] = []
 
+    index_series = normalize_index_series(pd.Series(index_series), get_index_series_unit())
     mu_idx = float(index_series.mean())
     idx_sigma, _, _ = select_vol_regime_sigma(
         index_series,

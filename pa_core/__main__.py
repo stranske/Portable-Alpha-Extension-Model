@@ -74,6 +74,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
     from .simulations import simulate_agents
+    from .units import get_index_series_unit, normalize_index_series
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
@@ -83,6 +84,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     raw_params = cfg.model_dump()
     idx_series = load_index_returns(args.index)
+    idx_series = normalize_index_series(idx_series, get_index_series_unit())
     mu_idx = float(idx_series.mean())
     vol_regime_value = getattr(cfg, "vol_regime", "single")
     if vol_regime_value not in ("single", "two_state"):

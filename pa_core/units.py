@@ -154,7 +154,7 @@ def get_config_unit(cfg: object | None = None) -> Unit:
 
 
 def get_index_series_unit() -> Unit:
-    """Return the expected unit for index return series."""
+    """Return the expected unit for index return series (always monthly)."""
     return CANONICAL_RETURN_UNIT
 
 
@@ -167,5 +167,5 @@ def get_threshold_unit() -> Mapping[str, Unit]:
 
 
 def get_summary_table_unit() -> Unit:
-    """Return the unit used for annualised summary metrics."""
+    """Return the unit used for annualised summary metrics (annual)."""
     return "annual"
