@@ -118,6 +118,29 @@ shortfall probability and tracking error in a repeatable workflow.
 4. **Review defaults** – core correlations and volatilities are locked in `pa_core/config.py` (e.g. `rho_E_M` defaults to `0.0`). Override them in your parameter file only when testing different assumptions.
 5. Set the **Analysis mode** in your parameter file to `returns`, `capital`, `alpha_shares` or `vol_mult`. The templates default to `returns`.
 6. The index CSV must contain a `Date` column and a monthly total return column. The loader prefers `Monthly_TR`, then `Return`; otherwise it uses the second column and emits a warning.
+
+### Index Data Frequency
+
+The simulation engine expects **monthly** return data. The CLI automatically detects the frequency of your index data and validates it:
+
+- **Monthly data**: Passes validation and runs normally.
+- **Daily/Weekly data**: Validation fails by default. Use `--resample monthly` to automatically compound returns to monthly frequency.
+- **Quarterly data**: Not directly supported; convert to monthly externally or use finer-grained source data.
+
+Example with resampling:
+```bash
+python -m pa_core.cli \
+  --config config/params_template.yml \
+  --index daily_returns.csv \
+  --resample monthly \
+  --output Results.xlsx
+```
+
+If you need to override auto-detection (e.g., for irregular data), use `--index-frequency`:
+```bash
+python -m pa_core.cli --config config.yml --index data.csv --index-frequency monthly
+```
+
 7. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
    Older output files that predate this requirement will still load—both the Excel
    exporter and dashboard insert a `ShortfallProb` column with `0.0` so legacy
