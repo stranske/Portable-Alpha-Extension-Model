@@ -98,6 +98,19 @@ def test_load_dict():
     assert cfg.mu_H == annual_mean_to_monthly(0.05)
 
 
+def test_model_config_minimal_inputs_use_defaults():
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1}
+    cfg = ModelConfig(**data)
+    assert cfg.total_fund_capital == 1000.0
+    assert cfg.external_pa_capital == 0.0
+    assert cfg.active_ext_capital == 0.0
+    assert cfg.internal_pa_capital == 0.0
+    assert cfg.w_beta_H == pytest.approx(0.5)
+    assert cfg.w_alpha_H == pytest.approx(0.5)
+    assert cfg.mu_H == annual_mean_to_monthly(0.04)
+    assert cfg.agents and cfg.agents[0].name == "Base"
+
+
 def test_model_config_normalizes_share_percentages():
     data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "w_beta_H": 60, "w_alpha_H": 40}
     cfg = ModelConfig(**data)
