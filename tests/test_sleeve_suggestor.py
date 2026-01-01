@@ -296,6 +296,49 @@ def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
     assert len(df) == 2
 
 
+def test_suggest_sleeve_sizes_reuses_cached_streams(monkeypatch):
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        total_fund_capital=100.0,
+        external_pa_capital=50.0,
+        active_ext_capital=25.0,
+        internal_pa_capital=25.0,
+    )
+    idx_series = pd.Series([0.0])
+
+    r = np.zeros((1, 1))
+    streams = (r, r, r, r, r, r, r)
+    calls = {"draw": 0}
+
+    class DummyOrchestrator:
+        def __init__(self, cfg, idx_series):
+            self.cfg = cfg
+            self.idx_series = idx_series
+
+        def draw_streams(self, seed=None):
+            calls["draw"] += 1
+            return streams
+
+        def run(self, seed=None):
+            raise AssertionError("run should not be called when streams are cached")
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
+
+    df = suggest_sleeve_sizes(
+        cfg,
+        idx_series,
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        step=0.5,
+        max_evals=3,
+    )
+
+    assert calls["draw"] == 1
+    assert not df.empty
+
+
 def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
     idx_series = pd.Series([0.0])

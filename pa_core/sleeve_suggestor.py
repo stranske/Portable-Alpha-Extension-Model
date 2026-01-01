@@ -8,11 +8,32 @@ from typing import Iterable, Literal, Protocol, Sequence, cast
 import numpy as np
 import pandas as pd
 
+from .agents.registry import build_from_config
 from .config import ModelConfig
 from .orchestrator import SimulatorOrchestrator
+from .sim.metrics import summary_table
+from .simulations import simulate_agents
 
 SLEEVE_AGENTS = ("ExternalPA", "ActiveExt", "InternalPA")
 SUPPORTED_OBJECTIVES = ("total_return", "excess_return")
+_StreamTuple = tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+
+
+class _StreamCache:
+    def __init__(self, cfg: ModelConfig, idx_series: pd.Series, seed: int | None) -> None:
+        self._cfg = cfg
+        self._idx_series = idx_series
+        self._seed = seed
+        self._streams: _StreamTuple | None = None
+
+    def get(self) -> _StreamTuple | None:
+        if self._streams is None:
+            orch = SimulatorOrchestrator(self._cfg, self._idx_series)
+            draw_streams = getattr(orch, "draw_streams", None)
+            if draw_streams is None:
+                return None
+            self._streams = draw_streams(seed=self._seed)
+        return self._streams
 
 
 class _MinimizeResult(Protocol):
@@ -202,6 +223,7 @@ def _evaluate_allocation(
     constraint_scope: Literal["sleeves", "total", "both"],
     seed: int | None,
     objective: str | None = None,
+    stream_cache: _StreamCache | None = None,
 ) -> tuple[dict[str, float], bool, float | None] | None:
     test_cfg = cfg.model_copy(
         update={
@@ -210,8 +232,17 @@ def _evaluate_allocation(
             "internal_pa_capital": float(int_cap),
         }
     )
-    orch = SimulatorOrchestrator(test_cfg, idx_series)
-    _, summary = orch.run(seed=seed)
+    if stream_cache is None:
+        streams = None
+    else:
+        streams = stream_cache.get()
+    if streams is None:
+        orch = SimulatorOrchestrator(test_cfg, idx_series)
+        _, summary = orch.run(seed=seed)
+    else:
+        agents = build_from_config(test_cfg)
+        returns = simulate_agents(agents, *streams)
+        summary = summary_table(returns, benchmark="Base")
     result = _extract_metrics(
         summary,
         max_te=max_te,
@@ -247,6 +278,7 @@ def _grid_sleeve_sizes(
     max_evals: int | None,
     constraint_scope: Literal["sleeves", "total", "both"],
     objective: str | None = None,
+    stream_cache: _StreamCache | None = None,
 ) -> pd.DataFrame:
     if step <= 0:
         raise ValueError("step must be positive")
@@ -361,6 +393,7 @@ def _grid_sleeve_sizes(
             constraint_scope=constraint_scope,
             seed=seed,
             objective=objective,
+            stream_cache=stream_cache,
         )
         if evaluated is None:
             continue
@@ -404,9 +437,19 @@ def _build_linear_surrogates(
     idx_series: pd.Series,
     *,
     seed: int | None,
+    stream_cache: _StreamCache | None = None,
 ) -> dict[str, dict[str, float]] | None:
-    orch = SimulatorOrchestrator(cfg, idx_series)
-    _, summary = orch.run(seed=seed)
+    if stream_cache is None:
+        streams = None
+    else:
+        streams = stream_cache.get()
+    if streams is None:
+        orch = SimulatorOrchestrator(cfg, idx_series)
+        _, summary = orch.run(seed=seed)
+    else:
+        agents = build_from_config(cfg)
+        returns = simulate_agents(agents, *streams)
+        summary = summary_table(returns, benchmark="Base")
     total = cfg.total_fund_capital
     slopes: dict[str, dict[str, float]] = {}
     for agent, capital in (
@@ -487,12 +530,13 @@ def _optimize_sleeve_sizes(
     constraint_scope: Literal["sleeves", "total", "both"],
     objective: str,
     maxiter: int,
+    stream_cache: _StreamCache | None = None,
 ) -> tuple[pd.DataFrame | None, str]:
     minimize = _load_minimize()
     if minimize is None:
         return None, "missing_scipy"
 
-    slopes = _build_linear_surrogates(cfg, idx_series, seed=seed)
+    slopes = _build_linear_surrogates(cfg, idx_series, seed=seed, stream_cache=stream_cache)
     if slopes is None:
         return None, "missing_metrics"
 
@@ -580,6 +624,7 @@ def _optimize_sleeve_sizes(
         constraint_scope=constraint_scope,
         seed=seed,
         objective=objective,
+        stream_cache=stream_cache,
     )
     if evaluated is None:
         return None, "invalid_metrics"
@@ -665,6 +710,8 @@ def suggest_sleeve_sizes(
     if constraint_scope not in {"sleeves", "total", "both"}:
         raise ValueError("constraint_scope must be one of: sleeves, total, both")
 
+    stream_cache = _StreamCache(cfg, idx_series, seed)
+
     if optimize:
         opt_df, status = _optimize_sleeve_sizes(
             cfg,
@@ -682,6 +729,7 @@ def suggest_sleeve_sizes(
             constraint_scope=constraint_scope,
             objective=objective,
             maxiter=optimizer_maxiter,
+            stream_cache=stream_cache,
         )
         if opt_df is not None:
             meets = bool(opt_df.loc[0, "constraints_satisfied"])
@@ -705,6 +753,7 @@ def suggest_sleeve_sizes(
             max_evals=max_evals,
             constraint_scope=constraint_scope,
             objective=objective,
+            stream_cache=stream_cache,
         )
         if grid_df.empty:
             if opt_df is None:
@@ -736,4 +785,5 @@ def suggest_sleeve_sizes(
         max_evals=max_evals,
         constraint_scope=constraint_scope,
         objective=None,
+        stream_cache=stream_cache,
     )
