@@ -308,9 +308,7 @@ def test_agents_share_sum_limit_non_benchmark():
             },
         ],
     }
-    with pytest.raises(
-        ValueError, match="CustomSleeve.*beta_share \\+ alpha_share must be <= 1"
-    ):
+    with pytest.raises(ValueError, match="CustomSleeve.*beta_share \\+ alpha_share must be <= 1"):
         ModelConfig(**data)
 
 
