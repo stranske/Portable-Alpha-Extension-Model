@@ -207,7 +207,7 @@ def test_build_from_config_generic_agents():
                 "beta_share": 0.2,
                 "alpha_share": 0.3,
                 "extra": {"note": "ok"},
-            }
+            },
         ],
     )
     agents = build_from_config(cfg)
