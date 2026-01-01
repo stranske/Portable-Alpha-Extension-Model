@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 from statistics import NormalDist
 from typing import Iterable, Literal, Mapping, Sequence
 
@@ -57,9 +57,7 @@ class CalibrationResult:
             for asset_id, stats in self.series.items()
             if asset_id != self.index_id
         ]
-        correlations = [
-            Correlation(pair=corr.pair, rho=corr.rho) for corr in self.correlations
-        ]
+        correlations = [Correlation(pair=corr.pair, rho=corr.rho) for corr in self.correlations]
         return Scenario(
             index=Index(
                 id=self.index_id,
@@ -330,9 +328,7 @@ def build_calibration_report(
     for series_id, stats in result.series.items():
         series_payload[series_id] = {
             "n_obs": stats.n_obs,
-            "mean_ci": (
-                [stats.mean_ci.lower, stats.mean_ci.upper] if stats.mean_ci else None
-            ),
+            "mean_ci": ([stats.mean_ci.lower, stats.mean_ci.upper] if stats.mean_ci else None),
             "volatility_ci": (
                 [stats.volatility_ci.lower, stats.volatility_ci.upper]
                 if stats.volatility_ci

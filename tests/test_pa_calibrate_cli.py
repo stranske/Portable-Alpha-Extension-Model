@@ -5,9 +5,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from pa_core.config import load_config
 from pa_core.pa import main
 from pa_core.schema import load_scenario
-from pa_core.config import load_config
 
 yaml = pytest.importorskip("yaml")
 

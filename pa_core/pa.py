@@ -116,9 +116,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         "--returns",
         help="Input CSV/XLSX file with manager returns (params output)",
     )
-    calibrate_parser.add_argument(
-        "--index-id", help="Asset id to use as market index"
-    )
+    calibrate_parser.add_argument("--index-id", help="Asset id to use as market index")
     calibrate_parser.add_argument(
         "--output",
         default="asset_library.yaml",
