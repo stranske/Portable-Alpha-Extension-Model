@@ -254,11 +254,9 @@ class ModelConfig(BaseModel):
         description="Log transform execution order when true.",
     )
 
-    # Transform/validation pipeline (Pydantic order):
-    # 1) parse raw input -> 2) normalize units -> 3) normalize shares
-    # 4) compile derived fields -> 5) validate invariants (after validators below, in order).
-    # Pydantic executes "before" validators in reverse definition order, so the
-    # definitions below are intentionally ordered bottom-up to match the pipeline.
+    # Transform/validation pipeline (explicit order):
+    # 1) parse raw input -> 2) normalize units/shares -> 3) compile derived fields
+    # -> 4) validate invariants (after validators below, in order).
     @staticmethod
     def _trace_transform(data_or_self: Any, step: str) -> None:
         if isinstance(data_or_self, dict):
@@ -268,7 +266,6 @@ class ModelConfig(BaseModel):
         if debug:
             logger.info("ModelConfig transform: %s", step)
 
-    @model_validator(mode="before")
     @classmethod
     def compile_agent_config(cls, data: Any) -> Any:
         if not isinstance(data, dict):
@@ -374,7 +371,6 @@ class ModelConfig(BaseModel):
         data["agents"] = cls._normalize_agents(compiled)
         return data
 
-    @model_validator(mode="before")
     @classmethod
     def normalize_share_inputs(cls, data: Any) -> Any:
         if not isinstance(data, dict):
@@ -392,7 +388,6 @@ class ModelConfig(BaseModel):
                     data[key] = normalize_share(data[key])
         return data
 
-    @model_validator(mode="before")
     @classmethod
     def normalize_return_units(cls, data: Any) -> Any:
         if not isinstance(data, dict):
@@ -430,6 +425,16 @@ class ModelConfig(BaseModel):
                 updated[key] = converted
         updated["return_unit"] = CANONICAL_RETURN_UNIT
         return updated
+
+    @model_validator(mode="before")
+    @classmethod
+    def apply_transform_pipeline(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        data = cls.normalize_return_units(data)
+        data = cls.normalize_share_inputs(data)
+        data = cls.compile_agent_config(data)
+        return data
 
     @staticmethod
     def _normalize_agents(raw_agents: Any) -> list[dict[str, Any]]:
