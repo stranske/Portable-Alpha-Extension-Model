@@ -97,6 +97,29 @@ def test_run_artifact_bundle_verify_fails_on_config_change(tmp_path) -> None:
     assert not loaded.verify()
 
 
+def test_run_artifact_bundle_verify_fails_on_manifest_change(tmp_path) -> None:
+    config_text = "config: value\n"
+    output_file = tmp_path / "results.txt"
+    output_file.write_text("ok")
+
+    artifact = RunArtifact(
+        config=config_text,
+        index_hash="idx123",
+        seed=7,
+        manifest={"seed": 7},
+        outputs={"results.txt": str(output_file)},
+    )
+    bundle = RunArtifactBundle(artifact)
+    bundle_path = tmp_path / "bundle"
+    bundle.save(bundle_path)
+
+    mutated_manifest = bundle_path / "manifest.json"
+    mutated_manifest.write_text(json.dumps({"seed": 9}, indent=2))
+
+    loaded = RunArtifactBundle.load(bundle_path)
+    assert not loaded.verify()
+
+
 def test_run_artifact_bundle_verify_fails_on_missing_hash(tmp_path) -> None:
     config_text = "config: value\n"
     output_file = tmp_path / "results.txt"
