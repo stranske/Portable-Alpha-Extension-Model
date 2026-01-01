@@ -347,7 +347,17 @@ class ModelConfig(BaseModel):
         existing_agents = data.get("agents") or []
         if agents_provided:
             compiled.extend(list(existing_agents))
-        data["agents"] = cls._normalize_agents(compiled)
+        normalized = cls._normalize_agents(compiled)
+        deduped: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        for agent in reversed(normalized):
+            name = agent["name"]
+            if name in seen:
+                continue
+            seen.add(name)
+            deduped.append(agent)
+        deduped.reverse()
+        data["agents"] = deduped
         return data
 
     @staticmethod
@@ -549,13 +559,27 @@ class ModelConfig(BaseModel):
         errors: list[str] = []
         names = [agent.name for agent in self.agents]
         if not names:
-            errors.append("agents must include exactly one benchmark agent named 'Base'")
-        else:
-            duplicate_names = sorted({name for name in names if names.count(name) > 1})
-            if duplicate_names:
-                errors.append(
-                    "agent names must be unique; duplicates found: " + ", ".join(duplicate_names)
-                )
+            errors.append("agents must include at least one agent")
+        duplicate_names = sorted({name for name in names if names.count(name) > 1})
+        if duplicate_names:
+            errors.append(
+                "agent names must be unique; duplicates found: " + ", ".join(duplicate_names)
+            )
+        require_base = "agents" not in self.model_fields_set
+        require_base = require_base or bool(
+            {
+                "total_fund_capital",
+                "external_pa_capital",
+                "active_ext_capital",
+                "internal_pa_capital",
+                "w_beta_H",
+                "w_alpha_H",
+                "theta_extpa",
+                "active_share",
+            }
+            & self.model_fields_set
+        )
+        if require_base:
             benchmark_count = sum(1 for name in names if name == "Base")
             if benchmark_count != 1:
                 errors.append(
