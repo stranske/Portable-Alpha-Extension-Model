@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 
 REGISTRY_DIRNAME = ".pa_registry"
 SCENARIO_ID_LEN = 12
+SCENARIO_ID_FORMAT = "sha256(config + index_hash + code_version + seed)"
 
 
 @dataclass(frozen=True)
@@ -111,18 +112,27 @@ def _build_scenario_hash(
     series, index_path = _prepare_index_series(index)
     index_hash = _hash_index_series(series)
     code_version = _get_code_version()
-    payload = {
+    payload = _scenario_id_payload(config_data, index_hash, code_version, seed)
+    digest = hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
+    return digest, index_hash, code_version, config_data, series, index_path
+
+
+def _scenario_id_payload(
+    config_data: Mapping[str, Any],
+    index_hash: str,
+    code_version: str,
+    seed: int | None,
+) -> Mapping[str, Any]:
+    return {
         "config": config_data,
         "index_hash": index_hash,
         "code_version": code_version,
         "seed": seed,
     }
-    digest = hashlib.sha256(_canonical_json(payload).encode("utf-8")).hexdigest()
-    return digest, index_hash, code_version, config_data, series, index_path
 
 
 def compute_scenario_id(config: Any, index_path: str | Path, seed: int | None) -> str:
-    """Return short scenario id: sha256(config + index_hash + code_version + seed)."""
+    """Return short scenario id using SCENARIO_ID_FORMAT."""
     digest, _, _, _, _, _ = _build_scenario_hash(
         config=config,
         index=index_path,
