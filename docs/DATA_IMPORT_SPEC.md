@@ -11,6 +11,7 @@
 - Required: `Date` column plus a monthly total return column.
 - Preferred column names: `Monthly_TR`, then `Return`.
 - If neither name is present, the loader falls back to the second column and emits a warning.
+- To avoid warnings, label the return column as `Monthly_TR` in new files.
 
 ## Required mappings (captured via UI)
 - frequency: daily or monthly

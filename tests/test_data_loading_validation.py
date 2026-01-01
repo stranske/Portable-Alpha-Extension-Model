@@ -124,7 +124,9 @@ def test_load_index_returns_falls_back_to_second_column():
             UserWarning,
             match=(
                 r"Selected index returns column: CustomCol "
-                r"\(second-column fallback\)\. Available columns: \["
+                r"\(second-column fallback\)\. Available columns: "
+                r"\[Date, CustomCol, Other\]\. Preferred columns: "
+                r"\[Monthly_TR, Return\]\."
             ),
         ):
             series = load_index_returns(temp_path)
