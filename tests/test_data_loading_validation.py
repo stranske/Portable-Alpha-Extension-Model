@@ -211,8 +211,7 @@ def test_rolling_panel_with_malformed_data():
         assert fig is not None
     except Exception as e:
         # Should handle numeric issues gracefully
-        assert "cannot convert" in str(
-            e).lower() or "invalid" in str(e).lower()
+        assert "cannot convert" in str(e).lower() or "invalid" in str(e).lower()
 
 
 # ==================== Frequency Detection and Validation Tests ====================
@@ -358,8 +357,7 @@ class TestFrequencyValidationError:
         """Test that error message includes resample hint."""
         from pa_core.data.loaders import FrequencyValidationError
 
-        error = FrequencyValidationError(
-            "daily", "monthly", resample_hint=True)
+        error = FrequencyValidationError("daily", "monthly", resample_hint=True)
         assert "daily" in str(error)
         assert "monthly" in str(error)
         assert "--resample" in str(error)
@@ -368,8 +366,7 @@ class TestFrequencyValidationError:
         """Test that error message can exclude resample hint."""
         from pa_core.data.loaders import FrequencyValidationError
 
-        error = FrequencyValidationError(
-            "quarterly", "monthly", resample_hint=False)
+        error = FrequencyValidationError("quarterly", "monthly", resample_hint=False)
         assert "quarterly" in str(error)
         assert "monthly" in str(error)
         assert "--resample" not in str(error)

@@ -48,7 +48,9 @@ def infer_index_frequency(dates: pd.Series | pd.DatetimeIndex) -> str:
         date_values = dates
     elif isinstance(dates, pd.Series):
         # If Series has DatetimeIndex and non-datetime values, use the index
-        if isinstance(dates.index, pd.DatetimeIndex) and not pd.api.types.is_datetime64_any_dtype(dates):
+        if isinstance(dates.index, pd.DatetimeIndex) and not pd.api.types.is_datetime64_any_dtype(
+            dates
+        ):
             date_values = dates.index
         else:
             # Series of datetime values
@@ -103,9 +105,7 @@ class FrequencyValidationError(ValueError):
         self.detected = detected
         self.expected = expected
         hint = f" Use --resample {expected} to convert." if resample_hint else ""
-        super().__init__(
-            f"Expected {expected} data, got {detected}.{hint}"
-        )
+        super().__init__(f"Expected {expected} data, got {detected}.{hint}")
 
 
 def validate_frequency(
@@ -182,8 +182,7 @@ def resample_to_monthly(series: pd.Series) -> pd.Series:
 
     # For returns data, compound within each month: (1+r1)*(1+r2)*...-1
     # This preserves the total return over the period
-    monthly = series.resample("ME").apply(
-        lambda x: (1 + x).prod() - 1 if len(x) > 0 else 0.0)
+    monthly = series.resample("ME").apply(lambda x: (1 + x).prod() - 1 if len(x) > 0 else 0.0)
     monthly = monthly.dropna()
 
     # Preserve attrs and update frequency
