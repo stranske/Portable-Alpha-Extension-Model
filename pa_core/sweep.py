@@ -261,7 +261,7 @@ def run_parameter_sweep(
         )
         base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
         if cfg.return_unit_input == "annual":
-            base_sigma = base_sigma / MONTHS_PER_YEAR
+            base_sigma = base_sigma / math.sqrt(MONTHS_PER_YEAR)
         shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
         shock_params.update(
             {
@@ -338,7 +338,7 @@ def run_parameter_sweep(
         )
         sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
         if cfg.return_unit_input == "annual":
-            sigma_vec = sigma_vec / MONTHS_PER_YEAR
+            sigma_vec = sigma_vec / math.sqrt(MONTHS_PER_YEAR)
         idx_sigma_cov = float(sigma_vec[0])
         sigma_h_cov = float(sigma_vec[1])
         sigma_e_cov = float(sigma_vec[2])

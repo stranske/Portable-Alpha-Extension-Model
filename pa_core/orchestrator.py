@@ -79,7 +79,7 @@ class SimulatorOrchestrator:
         )
         sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
         if self.cfg.return_unit_input == "annual":
-            sigma_vec = sigma_vec / MONTHS_PER_YEAR
+            sigma_vec = sigma_vec / math.sqrt(MONTHS_PER_YEAR)
         idx_sigma_cov = float(sigma_vec[0])
         sigma_h_cov = float(sigma_vec[1])
         sigma_e_cov = float(sigma_vec[2])

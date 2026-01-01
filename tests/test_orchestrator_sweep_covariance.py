@@ -111,11 +111,12 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
     denom = np.outer(sigma_vec, sigma_vec)
     corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
 
+    scale = np.sqrt(12.0)
     expected = {
-        "idx_sigma_month": sigma_vec[0] / 12,
-        "default_sigma_H": sigma_vec[1] / 12,
-        "default_sigma_E": sigma_vec[2] / 12,
-        "default_sigma_M": sigma_vec[3] / 12,
+        "idx_sigma_month": sigma_vec[0] / scale,
+        "default_sigma_H": sigma_vec[1] / scale,
+        "default_sigma_E": sigma_vec[2] / scale,
+        "default_sigma_M": sigma_vec[3] / scale,
         "rho_idx_H": float(corr_mat[0, 1]),
         "rho_idx_E": float(corr_mat[0, 2]),
         "rho_idx_M": float(corr_mat[0, 3]),
