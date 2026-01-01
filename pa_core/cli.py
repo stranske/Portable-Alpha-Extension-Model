@@ -882,9 +882,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         if isinstance(cov, np.ndarray) and cov.ndim == 2:
             sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
             denom = np.outer(sigma_vec, sigma_vec)
-            corr_mat = np.divide(
-                cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0
-            )
+            corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
         else:
             sigma_vec = np.array([idx_sigma, sigma_h, sigma_e, sigma_m], dtype=float)
             corr_mat = np.array(
