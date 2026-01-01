@@ -197,6 +197,7 @@ def test_model_config_logs_transform_order(caplog: pytest.LogCaptureFixture) -> 
     ]
 
     assert steps == [
+        "parse_raw",
         "normalize_return_units",
         "normalize_share_inputs",
         "compile_agent_config",

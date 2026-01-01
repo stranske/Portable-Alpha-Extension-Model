@@ -255,8 +255,8 @@ class ModelConfig(BaseModel):
     )
 
     # Transform/validation pipeline (explicit order):
-    # 1) parse raw input -> 2) normalize units/shares -> 3) compile derived fields
-    # -> 4) validate invariants (after validators below, in order).
+    # 1) parse raw input -> 2) normalize units -> 3) normalize shares
+    # -> 4) compile derived fields -> 5) validate invariants (after validators below).
     @staticmethod
     def _trace_transform(data_or_self: Any, step: str) -> None:
         if isinstance(data_or_self, dict):
@@ -429,11 +429,16 @@ class ModelConfig(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def apply_transform_pipeline(cls, data: Any) -> Any:
+        """Apply transforms in order: parse -> normalize units -> normalize shares -> compile."""
         if not isinstance(data, dict):
             return data
-        data = cls.normalize_return_units(data)
-        data = cls.normalize_share_inputs(data)
-        data = cls.compile_agent_config(data)
+        cls._trace_transform(data, "parse_raw")
+        for transform in (
+            cls.normalize_return_units,
+            cls.normalize_share_inputs,
+            cls.compile_agent_config,
+        ):
+            data = transform(data)
         return data
 
     @staticmethod
