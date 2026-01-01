@@ -18,7 +18,7 @@ xlsxwriter         # already implied in reporting/
 tomli; python_version<'3.11'
 
 # Development dependencies
-black==23.9.1      # Code formatting
+black==25.12.0      # Code formatting
 pre-commit         # Git hooks
 pytest-cov         # Test coverage
 pytest-xdist       # Parallel testing
