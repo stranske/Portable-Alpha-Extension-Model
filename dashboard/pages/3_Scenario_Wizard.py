@@ -156,11 +156,11 @@ def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
     for i, (col, step_name) in enumerate(zip(cols, steps)):
         with col:
             if i + 1 < current_step:
-                st.success(f"✅ {i+1}. {step_name}")
+                st.success(f"✅ {i + 1}. {step_name}")
             elif i + 1 == current_step:
-                st.info(f"📍 {i+1}. {step_name}")
+                st.info(f"📍 {i + 1}. {step_name}")
             else:
-                st.write(f"⭕ {i+1}. {step_name}")
+                st.write(f"⭕ {i + 1}. {step_name}")
 
 
 def _render_step_1_analysis_mode(config: Any) -> Any:
@@ -890,13 +890,13 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
         total_capital = config.total_fund_capital
         st.write(f"• Total Fund: ${total_capital:.1f}M")
         st.write(
-            f"• External PA: ${config.external_pa_capital:.1f}M ({config.external_pa_capital/total_capital:.1%})"
+            f"• External PA: ${config.external_pa_capital:.1f}M ({config.external_pa_capital / total_capital:.1%})"
         )
         st.write(
-            f"• Active Extension: ${config.active_ext_capital:.1f}M ({config.active_ext_capital/total_capital:.1%})"
+            f"• Active Extension: ${config.active_ext_capital:.1f}M ({config.active_ext_capital / total_capital:.1%})"
         )
         st.write(
-            f"• Internal PA: ${config.internal_pa_capital:.1f}M ({config.internal_pa_capital/total_capital:.1%})"
+            f"• Internal PA: ${config.internal_pa_capital:.1f}M ({config.internal_pa_capital / total_capital:.1%})"
         )
 
     with col2:
