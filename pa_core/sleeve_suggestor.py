@@ -16,7 +16,9 @@ from .simulations import simulate_agents
 
 SLEEVE_AGENTS = ("ExternalPA", "ActiveExt", "InternalPA")
 SUPPORTED_OBJECTIVES = ("total_return", "excess_return")
-_StreamTuple = tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+_StreamTuple = tuple[
+    np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray
+]
 
 
 class _StreamCache:
