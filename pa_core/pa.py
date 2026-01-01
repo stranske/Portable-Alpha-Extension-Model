@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import sys
 from pathlib import Path
 from typing import Any, Literal, Mapping, Sequence, cast
@@ -107,6 +108,11 @@ def main(argv: Sequence[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="Run simulation")
     sub.add_parser("validate", help="Validate scenario YAML")
+    registry_parser = sub.add_parser("registry", help="Manage scenario registry")
+    registry_sub = registry_parser.add_subparsers(dest="registry_cmd", required=True)
+    registry_sub.add_parser("list", help="List registered scenarios")
+    registry_get = registry_sub.add_parser("get", help="Show scenario details")
+    registry_get.add_argument("scenario_id", help="Scenario ID to retrieve")
     calibrate_parser = sub.add_parser("calibrate", help="Calibrate parameters from returns data")
     io_group = calibrate_parser.add_mutually_exclusive_group(required=True)
     io_group.add_argument(
@@ -204,6 +210,24 @@ def main(argv: Sequence[str] | None = None) -> None:
         from .validate import main as validate_main
 
         validate_main(list(remaining))
+    elif args.command == "registry":
+        from .scenario_registry import get as get_scenario
+        from .scenario_registry import list as list_scenarios
+
+        if args.registry_cmd == "list":
+            summaries = list_scenarios()
+            if not summaries:
+                print("No registered scenarios.")
+            else:
+                for summary in summaries:
+                    seed = "none" if summary.seed is None else summary.seed
+                    print(
+                        f"{summary.scenario_id}\t{summary.created_at}\t"
+                        f"seed={seed}\tcode={summary.code_version}"
+                    )
+        elif args.registry_cmd == "get":
+            scenario = get_scenario(args.scenario_id)
+            print(json.dumps(scenario.__dict__, indent=2))
     elif args.command == "calibrate":
         if args.returns:
             import pandas as pd
