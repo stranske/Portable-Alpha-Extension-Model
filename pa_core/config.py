@@ -346,7 +346,11 @@ class ModelConfig(BaseModel):
 
         existing_agents = data.get("agents") or []
         if agents_provided:
-            compiled.extend(list(existing_agents))
+            normalized_existing = cls._normalize_agents(existing_agents)
+            existing_names = {agent["name"] for agent in normalized_existing}
+            compiled = [
+                agent for agent in compiled if agent["name"] not in existing_names
+            ] + normalized_existing
         normalized = cls._normalize_agents(compiled)
         data["agents"] = normalized
         return data
