@@ -194,6 +194,17 @@ def test_agents_missing_benchmark_without_convenience_fields():
         ModelConfig(**data)
 
 
+def test_agents_empty_list_missing_benchmark():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [],
+    }
+    with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
+        ModelConfig(**data)
+
+
 def test_agents_duplicate_names():
     data = {
         "N_SIMULATIONS": 1,
