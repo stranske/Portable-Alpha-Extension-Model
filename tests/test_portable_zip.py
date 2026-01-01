@@ -15,6 +15,7 @@ def test_should_exclude_basic_patterns(tmp_path: Path) -> None:
     (root / ".git").mkdir()
     (root / ".venv").mkdir()
     (root / "__pycache__").mkdir()
+    (root / "build").mkdir()
     (root / "notes.ipynb").write_text("{}")
     (root / "keep.py").write_text("print('x')")
 
@@ -24,6 +25,7 @@ def test_should_exclude_basic_patterns(tmp_path: Path) -> None:
     assert should_exclude_path(root / ".git", root, excludes)
     assert should_exclude_path(root / ".venv", root, excludes)
     assert should_exclude_path(root / "__pycache__", root, excludes)
+    assert should_exclude_path(root / "build", root, excludes)
     # Excluded file patterns
     assert should_exclude_path(root / "notes.ipynb", root, excludes)
     # Non-excluded source file
