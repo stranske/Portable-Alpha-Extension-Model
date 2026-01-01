@@ -80,7 +80,7 @@ def test_load_index_returns_prefers_monthly_tr_column():
             UserWarning,
             match=(
                 r"Selected index returns column: Monthly_TR "
-                r"\(preferred column\); available columns:"
+                r"\(preferred column\)\. Available columns: \["
             ),
         ):
             series = load_index_returns(temp_path)
@@ -102,7 +102,7 @@ def test_load_index_returns_prefers_return_column():
             UserWarning,
             match=(
                 r"Selected index returns column: Return "
-                r"\(preferred column\); available columns:"
+                r"\(preferred column\)\. Available columns: \["
             ),
         ):
             series = load_index_returns(temp_path)
@@ -124,7 +124,7 @@ def test_load_index_returns_falls_back_to_second_column():
             UserWarning,
             match=(
                 r"Selected index returns column: CustomCol "
-                r"\(second-column fallback\); available columns:"
+                r"\(second-column fallback\)\. Available columns: \["
             ),
         ):
             series = load_index_returns(temp_path)
@@ -146,7 +146,7 @@ def test_load_index_returns_falls_back_to_single_column():
             UserWarning,
             match=(
                 r"Selected index returns column: CustomReturn "
-                r"\(single-column fallback\); available columns:"
+                r"\(single-column fallback\)\. Available columns: \["
             ),
         ):
             series = load_index_returns(temp_path)
@@ -168,7 +168,7 @@ def test_load_index_returns_with_no_numeric_columns():
             UserWarning,
             match=(
                 r"Selected index returns column: Label "
-                r"\(second-column fallback\); available columns:"
+                r"\(second-column fallback\)\. Available columns: \["
             ),
         ):
             with pytest.raises(ValueError, match="No valid numeric data found"):

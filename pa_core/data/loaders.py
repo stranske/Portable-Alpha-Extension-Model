@@ -110,8 +110,9 @@ def load_index_returns(path: str | Path) -> pd.Series:
     preferred_list = ", ".join(PREFERRED_INDEX_RETURN_COLUMNS)
     warnings.warn(
         "Selected index returns column: "
-        f"{selected_column} ({selection_reason}); available columns: {column_list}; "
-        f"preferred columns: {preferred_list}",
+        f"{selected_column} ({selection_reason}). "
+        f"Available columns: [{column_list}]. "
+        f"Preferred columns: [{preferred_list}].",
         UserWarning,
         stacklevel=2,
     )
