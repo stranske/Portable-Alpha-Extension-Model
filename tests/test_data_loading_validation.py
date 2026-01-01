@@ -76,7 +76,13 @@ def test_load_index_returns_prefers_monthly_tr_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(UserWarning, match="Selected index returns column: Monthly_TR"):
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"Selected index returns column: Monthly_TR "
+                r"\(preferred column\)\. Available columns: \["
+            ),
+        ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.02)
     finally:
@@ -92,7 +98,13 @@ def test_load_index_returns_prefers_return_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(UserWarning, match="Selected index returns column: Return"):
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"Selected index returns column: Return "
+                r"\(preferred column\)\. Available columns: \["
+            ),
+        ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.01)
     finally:
@@ -108,7 +120,15 @@ def test_load_index_returns_falls_back_to_second_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(UserWarning, match="Selected index returns column: CustomCol"):
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"Selected index returns column: CustomCol "
+                r"\(second-column fallback\)\. Available columns: "
+                r"\[Date, CustomCol, Other\]\. Preferred columns: "
+                r"\[Monthly_TR, Return\]\."
+            ),
+        ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.07)
     finally:
@@ -124,7 +144,13 @@ def test_load_index_returns_falls_back_to_single_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(UserWarning, match="Selected index returns column: CustomReturn"):
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"Selected index returns column: CustomReturn "
+                r"\(single-column fallback\)\. Available columns: \["
+            ),
+        ):
             series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.07)
     finally:
@@ -140,7 +166,13 @@ def test_load_index_returns_with_no_numeric_columns():
         temp_path = f.name
 
     try:
-        with pytest.warns(UserWarning, match="Selected index returns column: Label"):
+        with pytest.warns(
+            UserWarning,
+            match=(
+                r"Selected index returns column: Label "
+                r"\(second-column fallback\)\. Available columns: \["
+            ),
+        ):
             with pytest.raises(ValueError, match="No valid numeric data found"):
                 load_index_returns(temp_path)
     finally:
