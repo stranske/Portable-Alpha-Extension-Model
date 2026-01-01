@@ -109,3 +109,4 @@ residual-trend-history.ndjson
 # --- Temporary Build Artifacts ---
 .autofix-venv/
 .workflows-lib
+build/
