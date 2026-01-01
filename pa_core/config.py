@@ -347,6 +347,12 @@ class ModelConfig(BaseModel):
         existing_agents = data.get("agents") or []
         if agents_provided:
             normalized_existing = cls._normalize_agents(existing_agents)
+            if convenience_used and any(
+                agent["name"] == "Base" for agent in normalized_existing
+            ):
+                raise ValueError(
+                    "benchmark agent named 'Base' must not be provided when using convenience fields"
+                )
             existing_names = {agent["name"] for agent in normalized_existing}
             compiled = [
                 agent for agent in compiled if agent["name"] not in existing_names
