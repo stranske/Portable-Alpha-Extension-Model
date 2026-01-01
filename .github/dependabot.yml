@@ -6,6 +6,8 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
+      time: "09:00"
+      timezone: "America/New_York"
     open-pull-requests-limit: 10
     reviewers:
       - "stranske"
@@ -15,9 +17,21 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
-    # Track both pyproject.toml and requirements files
-    allow:
-      - dependency-type: "all"
+    # Ignore dev tools - these are synced from stranske/Workflows via maint-52
+    # Updates flow: Workflows (Dependabot) -> autofix-versions.env -> consumer repos
+    ignore:
+      - dependency-name: "ruff"
+      - dependency-name: "black"
+      - dependency-name: "mypy"
+      - dependency-name: "pytest"
+      - dependency-name: "pytest-cov"
+      - dependency-name: "pytest-xdist"
+      - dependency-name: "isort"
+      - dependency-name: "docformatter"
+      - dependency-name: "coverage"
+      - dependency-name: "hypothesis"
+    # Group all non-ignored dependencies together for minor/patch updates
+    # NOTE: No overlapping groups - using single pattern to avoid Dependabot errors
     groups:
       python-minor:
         patterns:
