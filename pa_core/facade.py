@@ -1,9 +1,32 @@
-"""Facade types for CLI and programmatic run entrypoints."""
+"""Facade types for CLI and programmatic run entrypoints.
+
+This module provides a clean programmatic API for running simulations,
+decoupling business logic from CLI argument parsing. It enables:
+
+- Direct programmatic access to simulations without CLI
+- Standardized artifact types for consistent outputs
+- Type-safe configuration with clear interfaces
+
+Example Usage::
+
+    from pa_core.config import load_config
+    from pa_core.facade import run_single, export, RunOptions
+
+    config = load_config("config.yml")
+    index_series = pd.read_csv("index.csv")["returns"]
+
+    # Run simulation
+    artifacts = run_single(config, index_series, RunOptions(seed=42))
+
+    # Export results
+    export(artifacts, "results.xlsx")
+"""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Mapping, Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
     import numpy as np
@@ -15,7 +38,19 @@ from .types import ArrayLike, SweepResult
 
 @dataclass(slots=True)
 class RunArtifacts:
-    """Standardized outputs from a single simulation run."""
+    """Standardized outputs from a single simulation run.
+
+    Attributes:
+        config: The resolved configuration used for the simulation.
+        index_series: The benchmark index returns series.
+        returns: Dictionary mapping agent names to return arrays.
+        summary: DataFrame with summary statistics per agent.
+        inputs: Dictionary of input parameters used.
+        raw_returns: Dictionary mapping agent names to DataFrames of returns.
+        stress_delta: Optional DataFrame with stress scenario deltas.
+        base_summary: Optional DataFrame with base scenario summary (for stress comparisons).
+        manifest: Optional metadata dictionary for reproducibility tracking.
+    """
 
     config: "ModelConfig"
     index_series: "pd.Series"
@@ -30,7 +65,16 @@ class RunArtifacts:
 
 @dataclass(slots=True)
 class SweepArtifacts:
-    """Standardized outputs from a parameter sweep run."""
+    """Standardized outputs from a parameter sweep run.
+
+    Attributes:
+        config: The resolved configuration used for the sweep.
+        index_series: The benchmark index returns series.
+        results: Sequence of SweepResult dictionaries, one per parameter combination.
+        summary: Consolidated DataFrame with all sweep results.
+        inputs: Dictionary of input parameters used.
+        manifest: Optional metadata dictionary for reproducibility tracking.
+    """
 
     config: "ModelConfig"
     index_series: "pd.Series"
@@ -42,14 +86,45 @@ class SweepArtifacts:
 
 @dataclass(slots=True)
 class RunOptions:
-    """Configuration overrides for programmatic run entrypoints."""
+    """Configuration overrides for programmatic run entrypoints.
+
+    Attributes:
+        seed: Random seed for reproducible simulations. If None, uses non-deterministic RNG.
+        backend: Computation backend selection (currently only "numpy" supported).
+        config_overrides: Dictionary of config parameter overrides to apply.
+    """
 
     seed: int | None = None
     backend: str | None = None
     config_overrides: Mapping[str, Any] | None = None
 
 
+@dataclass(slots=True)
+class ExportOptions:
+    """Configuration options for exporting artifacts.
+
+    Attributes:
+        pivot: If True, write all returns in a single long-format sheet.
+        include_sensitivity: If True, include sensitivity analysis in exports.
+        include_charts: If True, embed charts in Excel output.
+        alt_text: Alt text for accessibility in exported charts.
+    """
+
+    pivot: bool = False
+    include_sensitivity: bool = False
+    include_charts: bool = True
+    alt_text: str | None = None
+
+
 def _cov_to_corr_and_sigma(cov: "np.ndarray") -> tuple["np.ndarray", "np.ndarray"]:
+    """Convert covariance matrix to correlation matrix and volatility vector.
+
+    Args:
+        cov: Covariance matrix (n x n).
+
+    Returns:
+        Tuple of (sigma_vector, correlation_matrix).
+    """
     import numpy as np
 
     sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
@@ -63,7 +138,44 @@ def run_single(
     index_series: "pd.Series",
     options: RunOptions | None = None,
 ) -> RunArtifacts:
-    """Run a single simulation with optional overrides and return artifacts."""
+    """Run a single simulation with optional overrides and return artifacts.
+
+    This is the primary programmatic entrypoint for running a single portfolio
+    simulation without using the CLI. It handles all setup including backend
+    resolution, RNG initialization, and parameter building.
+
+    Args:
+        config: Model configuration specifying simulation parameters.
+        index_series: Benchmark index returns as a pandas Series.
+        options: Optional RunOptions with seed, backend, and config overrides.
+
+    Returns:
+        RunArtifacts containing simulation results, summary statistics,
+        and metadata for export or further analysis.
+
+    Raises:
+        ValueError: If index_series cannot be converted to a pandas Series.
+
+    Example::
+
+        from pa_core.config import load_config
+        from pa_core.facade import run_single, RunOptions
+
+        cfg = load_config("config.yml")
+        idx = pd.read_csv("index.csv")["returns"]
+
+        # Basic run
+        artifacts = run_single(cfg, idx)
+
+        # With seed for reproducibility
+        artifacts = run_single(cfg, idx, RunOptions(seed=42))
+
+        # With config overrides
+        artifacts = run_single(cfg, idx, RunOptions(
+            seed=42,
+            config_overrides={"N_SIMULATIONS": 1000}
+        ))
+    """
 
     import pandas as pd
 
@@ -175,7 +287,46 @@ def run_sweep(
     sweep_params: Mapping[str, Any] | None = None,
     options: RunOptions | None = None,
 ) -> SweepArtifacts:
-    """Run a parameter sweep with optional overrides and return artifacts."""
+    """Run a parameter sweep with optional overrides and return artifacts.
+
+    Executes simulations across a grid of parameter combinations defined by
+    the analysis_mode in the configuration. Supports capital allocation sweeps,
+    return parameter sweeps, alpha share sweeps, and volatility multiplier sweeps.
+
+    Args:
+        config: Model configuration specifying base simulation parameters.
+        index_series: Benchmark index returns as a pandas Series.
+        sweep_params: Optional dictionary of sweep-specific parameter overrides
+            (e.g., analysis_mode, sweep ranges, step sizes).
+        options: Optional RunOptions with seed, backend, and config overrides.
+
+    Returns:
+        SweepArtifacts containing results for each parameter combination,
+        consolidated summary DataFrame, and metadata.
+
+    Raises:
+        ValueError: If index_series cannot be converted to a pandas Series.
+
+    Example::
+
+        from pa_core.config import load_config
+        from pa_core.facade import run_sweep, RunOptions
+
+        cfg = load_config("config.yml")
+        idx = pd.read_csv("index.csv")["returns"]
+
+        # Run volatility multiplier sweep
+        sweep_params = {
+            "analysis_mode": "vol_mult",
+            "sd_multiple_min": 0.5,
+            "sd_multiple_max": 2.0,
+            "sd_multiple_step": 0.25,
+        }
+        artifacts = run_sweep(cfg, idx, sweep_params, RunOptions(seed=42))
+
+        # Access consolidated results
+        print(artifacts.summary)
+    """
 
     import pandas as pd
 
@@ -219,3 +370,69 @@ def run_sweep(
         summary=summary,
         inputs=inputs,
     )
+
+
+def export(
+    artifacts: Union[RunArtifacts, SweepArtifacts],
+    output_path: str | Path,
+    options: ExportOptions | None = None,
+) -> Path:
+    """Export simulation artifacts to an output file.
+
+    Writes simulation results to Excel format with configurable options
+    for chart embedding, pivoting, and sensitivity analysis inclusion.
+
+    Args:
+        artifacts: RunArtifacts or SweepArtifacts from a simulation run.
+        output_path: Destination file path (typically .xlsx extension).
+        options: Optional ExportOptions controlling export behavior.
+
+    Returns:
+        Path to the created output file.
+
+    Raises:
+        ValueError: If artifacts type is not recognized.
+        OSError: If output file cannot be written.
+
+    Example::
+
+        from pa_core.facade import run_single, export, ExportOptions
+
+        artifacts = run_single(config, index_series)
+
+        # Basic export
+        export(artifacts, "results.xlsx")
+
+        # Export with options
+        export(artifacts, "results.xlsx", ExportOptions(
+            pivot=True,
+            include_charts=True,
+            alt_text="Portfolio simulation results"
+        ))
+    """
+    from pathlib import Path as PathLib
+
+    from .reporting import export_to_excel
+    from .reporting.sweep_excel import export_sweep_results
+
+    export_opts = options or ExportOptions()
+    output = PathLib(output_path)
+
+    if isinstance(artifacts, RunArtifacts):
+        # Prepare inputs dict with optional internal DataFrames
+        inputs_dict: dict[str, Any] = dict(artifacts.inputs)
+
+        export_to_excel(
+            inputs_dict,
+            artifacts.summary,
+            artifacts.raw_returns,
+            filename=str(output),
+            pivot=export_opts.pivot,
+            finalize=True,
+        )
+    elif isinstance(artifacts, SweepArtifacts):
+        export_sweep_results(artifacts.results, filename=str(output))
+    else:
+        raise ValueError(f"Unsupported artifacts type: {type(artifacts)}")
+
+    return output
