@@ -56,7 +56,7 @@ when you are tuning simulation length, financing, or sweep parameters; use
    ```
 
 2. **Run the simulation** – execute the model with a YAML config (convert legacy CSV files with `pa-convert-params`).
-3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TrackingErr`.
+3. **Interpret the metrics** – review the summary table and check `ShortfallProb` and `TE`.
 4. **Visualise the results** – launch the dashboard or use `scripts/visualise.py`.
 
 Example quick run:
@@ -235,7 +235,7 @@ workflow.
    - **Part 3**: Alpha Shares Mode - alpha/beta split optimization
    - **Part 4**: Vol Mult Mode - volatility stress testing
    - **Part 5**: Returns Mode - return/volatility sensitivity analysis
-2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TrackingErr` in the console and workbook.
+2. **Introductory Tutorial 2 – Interpret the Metrics** – review `AnnReturn`, `AnnVol`, `ShortfallProb` and `TE` in the console and workbook.
 3. **Introductory Tutorial 3 – Visualise the Results** – launch the dashboard or notebook to explore the risk‑return scatter, funding fan and return distribution.
    These first three tutorials form a quick‑start sequence for testing the core ideas.
 4. **Export Charts** – save PNG, PDF, PPTX, HTML or GIF figures directly from the CLI.
