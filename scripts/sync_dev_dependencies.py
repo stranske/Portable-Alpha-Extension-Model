@@ -383,7 +383,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--lockfile",
         action="store_true",
-        help="Force lockfile sync even if requirements.lock doesn't exist (no-op)",
+        help="Force lockfile sync even when requirements.lock doesn't exist (defaults to true if requirements.lock exists)",
     )
     parser.add_argument(
         "--pin-file",
