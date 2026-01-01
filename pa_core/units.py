@@ -17,8 +17,8 @@ from __future__ import annotations
 
 from typing import Literal, Mapping
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from .config import (
     CANONICAL_RETURN_UNIT,
