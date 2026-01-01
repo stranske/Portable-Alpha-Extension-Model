@@ -68,7 +68,8 @@ def load_index_returns(path: str | Path) -> pd.Series:
     by converting them to NaN and dropping them from the final series.
     Column selection prefers ``Monthly_TR`` then ``Return``; otherwise the
     second column is used when present (first column for single-column files).
-    A warning is emitted showing which column was selected and why.
+    A warning is emitted showing which column was selected, the reason, and
+    the available/preferred columns.
 
     Raises
     ------
@@ -106,9 +107,11 @@ def load_index_returns(path: str | Path) -> pd.Series:
             raw = df.iloc[:, 1]
 
     column_list = ", ".join(map(str, df.columns))
+    preferred_list = ", ".join(PREFERRED_INDEX_RETURN_COLUMNS)
     warnings.warn(
         "Selected index returns column: "
-        f"{selected_column} ({selection_reason}); available columns: {column_list}",
+        f"{selected_column} ({selection_reason}); available columns: {column_list}; "
+        f"preferred columns: {preferred_list}",
         UserWarning,
         stacklevel=2,
     )
