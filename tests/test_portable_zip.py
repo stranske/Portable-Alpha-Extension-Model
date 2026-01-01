@@ -15,6 +15,7 @@ def test_should_exclude_basic_patterns(tmp_path: Path) -> None:
     (root / ".git").mkdir()
     (root / ".venv").mkdir()
     (root / "__pycache__").mkdir()
+    (root / "build").mkdir()
     (root / "notes.ipynb").write_text("{}")
     (root / "keep.py").write_text("print('x')")
 
@@ -24,6 +25,7 @@ def test_should_exclude_basic_patterns(tmp_path: Path) -> None:
     assert should_exclude_path(root / ".git", root, excludes)
     assert should_exclude_path(root / ".venv", root, excludes)
     assert should_exclude_path(root / "__pycache__", root, excludes)
+    assert should_exclude_path(root / "build", root, excludes)
     # Excluded file patterns
     assert should_exclude_path(root / "notes.ipynb", root, excludes)
     # Non-excluded source file
@@ -36,6 +38,9 @@ def test_create_filtered_zip_includes_and_excludes(tmp_path: Path) -> None:
     (root / "pa_core").mkdir()
     (root / "pa_core" / "__init__.py").write_text("")
     (root / "pa_core" / "mod.py").write_text("x=1")
+    (root / "build").mkdir()
+    (root / "build" / "lib").mkdir()
+    (root / "build" / "lib" / "stale.py").write_text("x=2")
     (root / ".git").mkdir()
     (root / "scratch.log").write_text("debug")
 
@@ -49,4 +54,5 @@ def test_create_filtered_zip_includes_and_excludes(tmp_path: Path) -> None:
     assert "pa_core/mod.py" in names
     # Excluded items
     assert ".git/" not in names
+    assert "build/lib/stale.py" not in names
     assert "scratch.log" not in names
