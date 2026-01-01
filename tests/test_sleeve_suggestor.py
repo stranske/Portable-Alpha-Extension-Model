@@ -416,9 +416,27 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
 
 def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
     per_cap = {
-        "ExternalPA": {"AnnReturn": 0.03, "ExcessReturn": 0.025, "TE": 0.0001, "BreachProb": 0.0002, "CVaR": -0.0003},
-        "ActiveExt": {"AnnReturn": 0.01, "ExcessReturn": 0.008, "TE": 0.0001, "BreachProb": 0.0002, "CVaR": -0.0003},
-        "InternalPA": {"AnnReturn": 0.02, "ExcessReturn": 0.015, "TE": 0.0001, "BreachProb": 0.0002, "CVaR": -0.0003},
+        "ExternalPA": {
+            "AnnReturn": 0.03,
+            "ExcessReturn": 0.025,
+            "TE": 0.0001,
+            "BreachProb": 0.0002,
+            "CVaR": -0.0003,
+        },
+        "ActiveExt": {
+            "AnnReturn": 0.01,
+            "ExcessReturn": 0.008,
+            "TE": 0.0001,
+            "BreachProb": 0.0002,
+            "CVaR": -0.0003,
+        },
+        "InternalPA": {
+            "AnnReturn": 0.02,
+            "ExcessReturn": 0.015,
+            "TE": 0.0001,
+            "BreachProb": 0.0002,
+            "CVaR": -0.0003,
+        },
     }
     rows = []
     totals = {"AnnReturn": 0.0, "ExcessReturn": 0.0, "TE": 0.0, "BreachProb": 0.0, "CVaR": 0.0}

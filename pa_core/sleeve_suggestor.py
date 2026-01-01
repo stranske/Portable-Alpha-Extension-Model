@@ -355,7 +355,13 @@ def _build_linear_surrogates(
         cvar = _coerce_metric(row["CVaR"])
         ann_return = _coerce_metric(row["AnnReturn"])
         excess_return = _coerce_metric(row["ExcessReturn"])
-        if te is None or bprob is None or cvar is None or ann_return is None or excess_return is None:
+        if (
+            te is None
+            or bprob is None
+            or cvar is None
+            or ann_return is None
+            or excess_return is None
+        ):
             return None
         slopes[agent] = {
             "TE": _metric_slope(te, capital, total=total) or 0.0,
@@ -466,12 +472,8 @@ def _optimize_sleeve_sizes(
                 }
             )
 
-    constraints.append(
-        {"type": "ineq", "fun": lambda x, mn=min_int: internal_cap(x) - mn}
-    )
-    constraints.append(
-        {"type": "ineq", "fun": lambda x, mx=max_int: mx - internal_cap(x)}
-    )
+    constraints.append({"type": "ineq", "fun": lambda x, mn=min_int: internal_cap(x) - mn})
+    constraints.append({"type": "ineq", "fun": lambda x, mx=max_int: mx - internal_cap(x)})
 
     if objective not in SUPPORTED_OBJECTIVES:
         return None, "invalid_objective"
