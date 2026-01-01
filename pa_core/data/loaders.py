@@ -8,6 +8,56 @@ import pandas as pd
 
 PREFERRED_INDEX_RETURN_COLUMNS = ("Monthly_TR", "Return")
 
+FREQUENCY_ALIASES = {
+    "D": "daily",
+    "B": "daily",
+    "W": "weekly",
+    "M": "monthly",
+    "MS": "monthly",
+    "BM": "monthly",
+    "BMS": "monthly",
+    "Q": "quarterly",
+    "QS": "quarterly",
+    "BQ": "quarterly",
+    "BQS": "quarterly",
+}
+
+
+def infer_index_frequency(dates: pd.Series) -> str:
+    """Infer date frequency from a series of timestamps."""
+    if len(dates) < 2:
+        return "unknown"
+    date_values = pd.to_datetime(dates, errors="coerce")
+    if date_values.isna().any():
+        return "irregular"
+    date_values = date_values.sort_values()
+    if date_values.duplicated().any():
+        return "irregular"
+    inferred = pd.infer_freq(date_values)
+    if inferred:
+        if inferred in FREQUENCY_ALIASES:
+            return FREQUENCY_ALIASES[inferred]
+        if inferred.startswith("W"):
+            return "weekly"
+        if inferred.startswith("Q") or inferred.startswith("BQ"):
+            return "quarterly"
+        if inferred.startswith("M") or inferred.startswith("BM"):
+            return "monthly"
+    deltas = date_values.diff().dropna()
+    if (deltas.dt.days == 1).all():
+        return "daily"
+    if (deltas.dt.days == 7).all():
+        return "weekly"
+    month_periods = date_values.dt.to_period("M")
+    month_steps = month_periods.astype(int).diff().dropna()
+    if (month_steps == 1).all():
+        return "monthly"
+    quarter_periods = date_values.dt.to_period("Q")
+    quarter_steps = quarter_periods.astype(int).diff().dropna()
+    if (quarter_steps == 1).all():
+        return "quarterly"
+    return "irregular"
+
 
 def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, Any]:
     """Return parameter dictionary by mapping CSV headers via ``label_map``.
@@ -65,7 +115,9 @@ def load_index_returns(path: str | Path) -> pd.Series:
     """Load index returns from a CSV file and return as Series.
 
     Validates and converts data to numeric format, handling non-numeric values
-    by converting them to NaN and dropping them from the final series.
+    by converting them to NaN and dropping them from the final series. When a
+    Date column is present, the inferred frequency is stored on
+    ``series.attrs["frequency"]``.
     Column selection prefers ``Monthly_TR`` then ``Return``; otherwise the
     second column is used when present (first column for single-column files).
     A warning is emitted showing which column was selected, the reason, and
@@ -117,9 +169,22 @@ def load_index_returns(path: str | Path) -> pd.Series:
         stacklevel=2,
     )
 
-    # Convert to numeric, coerce errors to NaN, then wrap as Series to satisfy typing
+    date_column: str | None = None
+    for candidate in ("Date", "date"):
+        if candidate in df.columns:
+            date_column = candidate
+            break
+
     numeric = pd.to_numeric(raw, errors="coerce")
-    series = pd.Series(numeric).dropna()
+    if date_column:
+        dates = pd.to_datetime(df[date_column], errors="coerce")
+        data = pd.DataFrame({"date": dates, "value": numeric})
+        data = data.dropna(subset=["value", "date"])
+        series = pd.Series(data["value"].to_numpy(), index=data["date"])
+        series.attrs["frequency"] = infer_index_frequency(data["date"])
+    else:
+        series = pd.Series(numeric).dropna()
+        series.attrs["frequency"] = "unknown"
 
     if len(series) == 0:
         raise ValueError(f"No valid numeric data found in CSV file: {path}")
