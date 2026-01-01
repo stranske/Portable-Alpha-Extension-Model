@@ -8,8 +8,8 @@ from pa_core.random import spawn_rngs
 from pa_core.sim.metrics import (
     breach_count,
     breach_probability,
-    conditional_value_at_risk,
     compounded_return_below_zero_fraction,
+    conditional_value_at_risk,
     max_cumulative_sum_drawdown,
 )
 

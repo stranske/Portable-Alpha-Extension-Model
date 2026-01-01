@@ -9,8 +9,8 @@ from numpy.typing import NDArray
 from ..sim.metrics import (
     breach_count,
     breach_probability,
-    conditional_value_at_risk,
     compounded_return_below_zero_fraction,
+    conditional_value_at_risk,
     max_cumulative_sum_drawdown,
 )
 
