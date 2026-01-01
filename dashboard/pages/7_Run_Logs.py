@@ -5,7 +5,13 @@ from pathlib import Path
 
 import streamlit as st
 
-from pa_core.contracts import MANIFEST_FILENAME, RUN_LOG_FILENAME, RUNS_DIR_NAME
+from pa_core.contracts import (
+    MANIFEST_FILENAME,
+    RUN_END_FILENAME,
+    RUN_LOG_FILENAME,
+    RUNS_DIR_NAME,
+    manifest_path_from_run_end,
+)
 
 st.set_page_config(page_title="Run Logs", page_icon="🧾")
 st.title("Run Logs 🧾")
@@ -23,9 +29,7 @@ if not run_ids:
 selected = st.selectbox("Select a run:", run_ids)
 run_path = runs_dir / selected
 log_file = run_path / RUN_LOG_FILENAME
-manifest_file = (
-    run_path.parent.parent / MANIFEST_FILENAME
-)  # fallback; manifest is written near output
+run_end_file = run_path / RUN_END_FILENAME
 
 cols = st.columns(2)
 with cols[0]:
@@ -49,19 +53,19 @@ with cols[0]:
 
 with cols[1]:
     st.subheader("Manifest link")
-    # Try to find a manifest.json referenced by log path in project root
-    # This is a best-effort; the CLI writes manifest near output file.
-    found_manifest = None
-    # Search nearby manifests in project root
-    for cand in Path.cwd().glob(MANIFEST_FILENAME):
-        found_manifest = cand
-        break
-    if found_manifest and found_manifest.exists():
+    # Prefer manifest path recorded in run_end.json for this run.
+    found_manifest = manifest_path_from_run_end(run_end_file)
+    if found_manifest is None or not found_manifest.exists():
+        # Fallback: search nearby manifests in project root.
+        for cand in Path.cwd().glob(MANIFEST_FILENAME):
+            found_manifest = cand
+            break
+    if found_manifest is not None and found_manifest.exists():
         try:
             data = json.loads(found_manifest.read_text())
-            st.write("manifest.json (project root)")
+            st.write(found_manifest.name)
             st.code(json.dumps(data, indent=2), language="json")
         except Exception as e:
             st.error(f"Failed to read manifest: {e}")
     else:
-        st.info("Manifest not found near project root. Check the run's output directory.")
+        st.info("Manifest not found. Check the run's output directory.")

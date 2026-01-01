@@ -8,10 +8,12 @@ import numpy as np
 from pa_core.contracts import (
     MANIFEST_REQUIRED_FIELDS,
     RUN_END_FILENAME,
+    RUN_END_MANIFEST_PATH_KEY,
     RUN_LOG_FILENAME,
     RUNS_DIR_NAME,
     SUMMARY_REQUIRED_COLUMNS,
     SUMMARY_SHEET_NAME,
+    manifest_path_from_run_end,
     manifest_path_for_output,
     validate_manifest_payload,
     validate_run_directory,
@@ -59,6 +61,15 @@ def test_manifest_contract_fields(tmp_path: Path) -> None:
 
 def test_manifest_path_for_output() -> None:
     assert manifest_path_for_output("Outputs.xlsx").name == "manifest.json"
+
+
+def test_manifest_path_from_run_end(tmp_path: Path) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    run_end_path = tmp_path / RUN_END_FILENAME
+    run_end_path.write_text(
+        json.dumps({RUN_END_MANIFEST_PATH_KEY: str(manifest_path)}), encoding="utf-8"
+    )
+    assert manifest_path_from_run_end(run_end_path) == manifest_path
 
 
 def test_summary_contract_matches_summary_table() -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,6 +13,7 @@ RUNS_DIR_NAME = "runs"
 RUN_ID_PATTERN = re.compile(r"^\d{8}T\d{6}Z$")
 RUN_LOG_FILENAME = "run.log"
 RUN_END_FILENAME = "run_end.json"
+RUN_END_MANIFEST_PATH_KEY = "manifest_path"
 RUN_DIRECTORY_REQUIRED_FILES: Sequence[str] = (RUN_LOG_FILENAME,)
 RUN_DIRECTORY_OPTIONAL_FILES: Sequence[str] = (RUN_END_FILENAME,)
 
@@ -200,6 +202,20 @@ def validate_run_directory(path: str | Path) -> bool:
 
 def manifest_path_for_output(output_path: str | Path) -> Path:
     return Path(output_path).with_name(MANIFEST_FILENAME)
+
+
+def manifest_path_from_run_end(run_end_path: str | Path) -> Path | None:
+    path = Path(run_end_path)
+    if not path.exists() or not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+    manifest_path = payload.get(RUN_END_MANIFEST_PATH_KEY)
+    if not isinstance(manifest_path, str) or not manifest_path:
+        return None
+    return Path(manifest_path)
 
 
 def validate_manifest_payload(payload: Mapping[str, Any]) -> bool:
