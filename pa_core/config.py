@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import math
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Mapping, Optional, Union, cast
@@ -55,6 +56,8 @@ __all__ = [
     "annual_vol_to_monthly",
     "annual_cov_to_monthly",
 ]
+
+logger = logging.getLogger(__name__)
 
 
 def get_field_mappings(model_class: type[BaseModel] | None = None) -> Dict[str, str]:
@@ -245,11 +248,32 @@ class ModelConfig(BaseModel):
         alias="risk_metrics",
     )
 
+    debug_transform_order: bool = Field(
+        default=False,
+        exclude=True,
+        description="Log transform execution order when true.",
+    )
+
+    # Transform/validation pipeline (Pydantic order):
+    # 1) parse raw input -> 2) normalize units -> 3) normalize shares
+    # 4) compile derived fields -> 5) validate invariants (after validators below, in order).
+    # Pydantic executes "before" validators in reverse definition order, so the
+    # definitions below are intentionally ordered bottom-up to match the pipeline.
+    @staticmethod
+    def _trace_transform(data_or_self: Any, step: str) -> None:
+        if isinstance(data_or_self, dict):
+            debug = bool(data_or_self.get("debug_transform_order", False))
+        else:
+            debug = bool(getattr(data_or_self, "debug_transform_order", False))
+        if debug:
+            logger.info("ModelConfig transform: %s", step)
+
     @model_validator(mode="before")
     @classmethod
     def compile_agent_config(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
+        cls._trace_transform(data, "compile_agent_config")
 
         convenience_keys = {
             "external_pa_capital",
@@ -350,44 +374,30 @@ class ModelConfig(BaseModel):
         data["agents"] = cls._normalize_agents(compiled)
         return data
 
-    @staticmethod
-    def _normalize_agents(raw_agents: Any) -> list[dict[str, Any]]:
-        if raw_agents is None:
-            return []
-        if not isinstance(raw_agents, list):
-            raise ValueError("agents must be a list of mappings")
-        normalized: list[dict[str, Any]] = []
-        for idx, agent in enumerate(raw_agents):
-            if isinstance(agent, AgentConfig):
-                agent_data = agent.model_dump()
-            elif isinstance(agent, Mapping):
-                agent_data = dict(agent)
-            else:
-                raise ValueError(f"agents[{idx}] must be a mapping")
-            missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
-            if missing:
-                raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
-            extra = agent_data.get("extra") or {}
-            if not isinstance(extra, dict):
-                raise ValueError(f"agents[{idx}].extra must be a mapping")
-            beta_share = normalize_share(agent_data["beta_share"])
-            alpha_share = normalize_share(agent_data["alpha_share"])
-            normalized.append(
-                {
-                    "name": str(agent_data["name"]),
-                    "capital": float(agent_data["capital"]),
-                    "beta_share": 0.0 if beta_share is None else float(beta_share),
-                    "alpha_share": 0.0 if alpha_share is None else float(alpha_share),
-                    "extra": extra,
-                }
-            )
-        return normalized
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_share_inputs(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        cls._trace_transform(data, "normalize_share_inputs")
+        share_fields = {
+            "w_beta_H": ("In-House beta share",),
+            "w_alpha_H": ("In-House alpha share",),
+            "active_share": ("Active share (%)", "Active share"),
+            "theta_extpa": ("External PA alpha fraction",),
+        }
+        for field, aliases in share_fields.items():
+            for key in (field, *aliases):
+                if key in data:
+                    data[key] = normalize_share(data[key])
+        return data
 
     @model_validator(mode="before")
     @classmethod
     def normalize_return_units(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
+        cls._trace_transform(data, "normalize_return_units")
         unit = data.get("return_unit", DEFAULT_RETURN_UNIT)
         updated = dict(data)
         updated["return_unit_input"] = unit
@@ -421,8 +431,42 @@ class ModelConfig(BaseModel):
         updated["return_unit"] = CANONICAL_RETURN_UNIT
         return updated
 
+    @staticmethod
+    def _normalize_agents(raw_agents: Any) -> list[dict[str, Any]]:
+        if raw_agents is None:
+            return []
+        if not isinstance(raw_agents, list):
+            raise ValueError("agents must be a list of mappings")
+        normalized: list[dict[str, Any]] = []
+        for idx, agent in enumerate(raw_agents):
+            if isinstance(agent, AgentConfig):
+                agent_data = agent.model_dump()
+            elif isinstance(agent, Mapping):
+                agent_data = dict(agent)
+            else:
+                raise ValueError(f"agents[{idx}] must be a mapping")
+            missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
+            if missing:
+                raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
+            extra = agent_data.get("extra") or {}
+            if not isinstance(extra, dict):
+                raise ValueError(f"agents[{idx}].extra must be a mapping")
+            beta_share = normalize_share(agent_data["beta_share"])
+            alpha_share = normalize_share(agent_data["alpha_share"])
+            normalized.append(
+                {
+                    "name": str(agent_data["name"]),
+                    "capital": float(agent_data["capital"]),
+                    "beta_share": 0.0 if beta_share is None else float(beta_share),
+                    "alpha_share": 0.0 if alpha_share is None else float(alpha_share),
+                    "extra": extra,
+                }
+            )
+        return normalized
+
     @model_validator(mode="after")
     def check_financing_model(self) -> "ModelConfig":
+        self._trace_transform(self, "check_financing_model")
         valid = {"simple_proxy", "schedule"}
         if self.financing_model not in valid:
             raise ValueError(f"financing_model must be one of: {sorted(valid)}")
@@ -432,6 +476,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
+        self._trace_transform(self, "check_capital")
         from .validators import validate_capital_allocation
 
         cap_sum = self.external_pa_capital + self.active_ext_capital + self.internal_pa_capital
@@ -463,6 +508,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_return_distribution(self) -> "ModelConfig":
+        self._trace_transform(self, "check_return_distribution")
         valid_distributions = {"normal", "student_t"}
         valid_copulas = {"gaussian", "t"}
         if self.return_distribution not in valid_distributions:
@@ -495,6 +541,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_correlations(self) -> "ModelConfig":
+        self._trace_transform(self, "check_correlations")
         from .validators import validate_correlations
 
         correlation_map = {
@@ -512,25 +559,9 @@ class ModelConfig(BaseModel):
             raise ValueError("; ".join(error_messages))
         return self
 
-    @model_validator(mode="before")
-    @classmethod
-    def normalize_share_inputs(cls, data: Any) -> Any:
-        if not isinstance(data, dict):
-            return data
-        share_fields = {
-            "w_beta_H": ("In-House beta share",),
-            "w_alpha_H": ("In-House alpha share",),
-            "active_share": ("Active share (%)", "Active share"),
-            "theta_extpa": ("External PA alpha fraction",),
-        }
-        for field, aliases in share_fields.items():
-            for key in (field, *aliases):
-                if key in data:
-                    data[key] = normalize_share(data[key])
-        return data
-
     @model_validator(mode="after")
     def check_shares(self) -> "ModelConfig":
+        self._trace_transform(self, "check_shares")
         for name, val in [("w_beta_H", self.w_beta_H), ("w_alpha_H", self.w_alpha_H)]:
             if not SHARE_MIN <= val <= SHARE_MAX:
                 raise ValueError(f"{name} must be between 0 and 1")
@@ -546,6 +577,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_analysis_mode(self) -> "ModelConfig":
+        self._trace_transform(self, "check_analysis_mode")
         valid_modes = [
             "capital",
             "returns",
@@ -559,12 +591,14 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_vol_regime_window(self) -> "ModelConfig":
+        self._trace_transform(self, "check_vol_regime_window")
         if self.vol_regime == "two_state" and self.vol_regime_window <= 1:
             raise ValueError("vol_regime_window must be > 1 for two_state regime")
         return self
 
     @model_validator(mode="after")
     def check_backend(self) -> "ModelConfig":
+        self._trace_transform(self, "check_backend")
         valid_backends = list(SUPPORTED_BACKENDS)
         if self.backend not in valid_backends:
             raise ValueError(
@@ -574,6 +608,7 @@ class ModelConfig(BaseModel):
 
     @model_validator(mode="after")
     def check_simulation_params(self) -> "ModelConfig":
+        self._trace_transform(self, "check_simulation_params")
         from .validators import validate_simulation_parameters
 
         # Collect step sizes for validation

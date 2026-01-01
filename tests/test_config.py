@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
@@ -177,3 +178,35 @@ def test_model_config_rejects_out_of_bounds_correlations():
     data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "rho_idx_H": 1.5}
     with pytest.raises(ValueError, match="outside valid range"):
         ModelConfig(**data)
+
+
+def test_model_config_logs_transform_order(caplog: pytest.LogCaptureFixture) -> None:
+    data = {
+        "N_SIMULATIONS": 1000,
+        "N_MONTHS": 12,
+        "debug_transform_order": True,
+    }
+    with caplog.at_level(logging.INFO, logger="pa_core.config"):
+        ModelConfig(**data)
+
+    steps = [
+        record.getMessage().split(": ", 1)[1]
+        for record in caplog.records
+        if record.name == "pa_core.config"
+        and record.getMessage().startswith("ModelConfig transform: ")
+    ]
+
+    assert steps == [
+        "normalize_return_units",
+        "normalize_share_inputs",
+        "compile_agent_config",
+        "check_financing_model",
+        "check_capital",
+        "check_return_distribution",
+        "check_correlations",
+        "check_shares",
+        "check_analysis_mode",
+        "check_vol_regime_window",
+        "check_backend",
+        "check_simulation_params",
+    ]
