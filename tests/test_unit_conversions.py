@@ -90,6 +90,7 @@ def test_unit_policy_accessors() -> None:
     assert get_config_unit(cfg) == "monthly"
     assert get_index_series_unit() == "monthly"
     assert get_summary_table_unit() == "annual"
+    assert get_summary_table_unit(periods_per_year=1) == "monthly"
     units = get_threshold_unit()
     assert units["breach_threshold"] == "monthly"
     assert units["shortfall_threshold"] == "annual"

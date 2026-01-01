@@ -62,7 +62,10 @@ def convert_annual_series_to_monthly(
     *,
     method: Literal["simple", "geometric"] = DEFAULT_MEAN_CONVERSION,
 ) -> pd.Series:
-    """Convert an annualized return series to monthly returns."""
+    """Convert an annualized return series to monthly returns.
+
+    ``series`` is expressed in annual units; the returned series is monthly.
+    """
     if method == "geometric":
         return (1.0 + series) ** (1.0 / MONTHS_PER_YEAR) - 1.0
     return series / MONTHS_PER_YEAR
@@ -86,7 +89,7 @@ def convert_mean(
     to_unit: Unit,
     method: Literal["simple", "geometric"] = DEFAULT_MEAN_CONVERSION,
 ) -> float:
-    """Convert a mean return between annual and monthly units."""
+    """Convert a mean return from ``from_unit`` to ``to_unit``."""
     from_unit = _coerce_unit(from_unit)
     to_unit = _coerce_unit(to_unit)
     if from_unit == to_unit:
@@ -99,7 +102,7 @@ def convert_mean(
 
 
 def convert_volatility(value: float, *, from_unit: Unit, to_unit: Unit) -> float:
-    """Convert a volatility between annual and monthly units."""
+    """Convert a volatility from ``from_unit`` to ``to_unit``."""
     from_unit = _coerce_unit(from_unit)
     to_unit = _coerce_unit(to_unit)
     if from_unit == to_unit:
@@ -110,7 +113,7 @@ def convert_volatility(value: float, *, from_unit: Unit, to_unit: Unit) -> float
 
 
 def convert_covariance(cov: object, *, from_unit: Unit, to_unit: Unit) -> np.ndarray:
-    """Convert a covariance matrix between annual and monthly units."""
+    """Convert a covariance matrix from ``from_unit`` to ``to_unit``."""
     from_unit = _coerce_unit(from_unit)
     to_unit = _coerce_unit(to_unit)
     if from_unit == to_unit:
@@ -127,7 +130,7 @@ def convert_return_series(
     to_unit: Unit,
     method: Literal["simple", "geometric"] = DEFAULT_MEAN_CONVERSION,
 ) -> pd.Series:
-    """Convert a return series between annual and monthly units."""
+    """Convert a return series from ``from_unit`` to ``to_unit``."""
     from_unit = _coerce_unit(from_unit)
     to_unit = _coerce_unit(to_unit)
     if from_unit == to_unit:
@@ -140,7 +143,7 @@ def convert_return_series(
 
 
 def normalize_index_series(idx_series: pd.Series, input_unit: str) -> pd.Series:
-    """Return a monthly index series based on the configured input unit."""
+    """Return a monthly index series given an ``input_unit`` label."""
     unit = input_unit or CANONICAL_RETURN_UNIT
     series = pd.Series(idx_series)
     if unit == "annual":
@@ -168,9 +171,12 @@ def get_threshold_unit() -> Mapping[str, Unit]:
     }
 
 
-def get_summary_table_unit() -> Unit:
+def get_summary_table_unit(periods_per_year: int | None = None) -> Unit:
     """Return the unit for summary table AnnReturn/AnnVol/TE outputs.
 
-    Summary tables are always annualised regardless of ``return_unit`` inputs.
+    Summary tables are annualised regardless of ``return_unit`` inputs. When
+    ``periods_per_year`` is 1, the outputs are effectively monthly.
     """
+    if periods_per_year == 1:
+        return "monthly"
     return SUMMARY_TABLE_UNIT
