@@ -348,16 +348,7 @@ class ModelConfig(BaseModel):
         if agents_provided:
             compiled.extend(list(existing_agents))
         normalized = cls._normalize_agents(compiled)
-        deduped: list[dict[str, Any]] = []
-        seen: set[str] = set()
-        for agent in reversed(normalized):
-            name = agent["name"]
-            if name in seen:
-                continue
-            seen.add(name)
-            deduped.append(agent)
-        deduped.reverse()
-        data["agents"] = deduped
+        data["agents"] = normalized
         return data
 
     @staticmethod

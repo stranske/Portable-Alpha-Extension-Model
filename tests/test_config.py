@@ -186,6 +186,28 @@ def test_agents_duplicate_names():
         ModelConfig(**data)
 
 
+def test_agents_duplicate_base_in_mixed_config():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "external_pa_capital": 10.0,
+        "w_beta_H": 0.6,
+        "w_alpha_H": 0.4,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
+        ModelConfig(**data)
+
+
 def test_agents_negative_capital():
     data = {
         "N_SIMULATIONS": 1,
