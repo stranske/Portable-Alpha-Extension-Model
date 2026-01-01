@@ -298,6 +298,18 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument("--config", required=True, help="YAML config file")
     parser.add_argument("--index", required=True, help="Index returns CSV")
+    parser.add_argument(
+        "--index-frequency",
+        choices=["daily", "weekly", "monthly", "quarterly"],
+        default=None,
+        help="Explicitly declare index data frequency (skips auto-detection)",
+    )
+    parser.add_argument(
+        "--resample",
+        choices=["monthly"],
+        default=None,
+        help="Resample index data to target frequency (e.g., daily->monthly)",
+    )
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
         "--bundle",
@@ -760,6 +772,27 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             raise ValueError("Index data must be convertible to pandas Series")
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
+
+    # Handle frequency validation and resampling
+    from .data.loaders import (
+        FrequencyValidationError,
+        resample_to_monthly,
+        validate_frequency,
+    )
+
+    # If user explicitly declared frequency, store it in attrs
+    if args.index_frequency:
+        idx_series.attrs["frequency"] = args.index_frequency
+
+    # Resample if requested
+    if args.resample:
+        idx_series = resample_to_monthly(idx_series)
+
+    # Validate frequency (defaults to monthly, raises if mismatch)
+    try:
+        validate_frequency(idx_series, expected="monthly", strict=True)
+    except FrequencyValidationError as e:
+        raise SystemExit(f"Error: {e}") from None
 
     from .units import get_index_series_unit, normalize_index_series
 
