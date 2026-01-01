@@ -175,3 +175,55 @@ def run_single(
         inputs=inputs,
         raw_returns=raw_returns,
     )
+
+
+def run_sweep(
+    config: "ModelConfig",
+    index_series: "pd.Series",
+    sweep_params: Mapping[str, Any] | None = None,
+    options: RunOptions | None = None,
+) -> SweepArtifacts:
+    """Run a parameter sweep with optional overrides and return artifacts."""
+
+    import pandas as pd
+
+    from .backend import resolve_and_set_backend
+    from .random import spawn_agent_rngs, spawn_rngs
+    from .sweep import run_parameter_sweep, sweep_results_to_dataframe
+
+    run_options = options or RunOptions()
+    updates: dict[str, Any] = {}
+    if run_options.config_overrides:
+        updates.update(run_options.config_overrides)
+    if sweep_params:
+        updates.update(sweep_params)
+    run_cfg = config.model_copy(update=updates) if updates else config
+    resolve_and_set_backend(run_options.backend, run_cfg)
+
+    idx_series = index_series
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+
+    rng_returns = spawn_rngs(run_options.seed, 1)[0]
+    fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
+    results = run_parameter_sweep(
+        run_cfg,
+        idx_series,
+        rng_returns,
+        fin_rngs,
+        seed=run_options.seed,
+    )
+    summary = sweep_results_to_dataframe(results)
+    inputs = run_cfg.model_dump()
+
+    return SweepArtifacts(
+        config=run_cfg,
+        index_series=idx_series,
+        results=results,
+        summary=summary,
+        inputs=inputs,
+    )
