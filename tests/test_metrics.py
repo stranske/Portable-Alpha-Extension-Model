@@ -11,6 +11,7 @@ from pa_core.sim.metrics import (
     compounded_return_below_zero_fraction,
     conditional_value_at_risk,
     max_cumulative_sum_drawdown,
+    max_drawdown,
     summary_table,
     terminal_return_below_threshold_prob,
     value_at_risk,
@@ -96,6 +97,12 @@ def test_max_cumulative_sum_drawdown_basic():
 def test_max_cumulative_sum_drawdown_compounded_path():
     arr = np.array([[0.2, -0.1, -0.1]])
     dd = max_cumulative_sum_drawdown(arr)
+    assert np.isclose(dd, -0.19)
+
+
+def test_max_drawdown_uses_compounded_path():
+    arr = np.array([[0.2, -0.1, -0.1]])
+    dd = max_drawdown(arr)
     assert np.isclose(dd, -0.19)
 
 
