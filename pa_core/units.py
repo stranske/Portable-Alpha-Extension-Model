@@ -33,10 +33,12 @@ Unit = Literal["annual", "monthly"]
 
 DEFAULT_BREACH_THRESHOLD = -0.02
 DEFAULT_SHORTFALL_THRESHOLD = -0.05
+SUMMARY_TABLE_UNIT: Unit = "annual"
 
 __all__ = [
     "DEFAULT_BREACH_THRESHOLD",
     "DEFAULT_SHORTFALL_THRESHOLD",
+    "SUMMARY_TABLE_UNIT",
     "Unit",
     "convert_annual_series_to_monthly",
     "convert_covariance",
@@ -167,5 +169,8 @@ def get_threshold_unit() -> Mapping[str, Unit]:
 
 
 def get_summary_table_unit() -> Unit:
-    """Return the unit for summary table return/vol/TE outputs (annualised)."""
-    return "annual"
+    """Return the unit for summary table AnnReturn/AnnVol/TE outputs.
+
+    Summary tables are always annualised regardless of ``return_unit`` inputs.
+    """
+    return SUMMARY_TABLE_UNIT

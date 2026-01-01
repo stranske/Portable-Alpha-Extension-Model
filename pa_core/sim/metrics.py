@@ -288,7 +288,7 @@ def summary_table(
     ----------
     returns_map:
         Mapping of agent name to monthly return series (shape: paths x months).
-        Annualised metrics in the output are computed using ``periods_per_year``.
+        AnnReturn, AnnVol, and TE outputs are annualised using ``periods_per_year``.
     breach_threshold:
         Monthly return threshold for :func:`breach_probability`, which reports
         the share of all simulated months across paths that breach. Defaults to
