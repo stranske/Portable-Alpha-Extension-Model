@@ -72,6 +72,7 @@ def get_default_excludes() -> Set[str]:
         "user_testing_issues.md",
         "codex.patch",
         # Build artifacts and outputs
+        "build",
         "docs/_build",
         "plots",
         "*.xlsx",
