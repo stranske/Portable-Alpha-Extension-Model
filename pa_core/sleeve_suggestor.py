@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import itertools
+from collections.abc import Callable
 from numbers import Real
-from typing import Iterable, Literal, Sequence
+from typing import Any, Iterable, Literal, Protocol, Sequence, cast
 
 import numpy as np
 import pandas as pd
@@ -12,6 +13,15 @@ from .orchestrator import SimulatorOrchestrator
 
 SLEEVE_AGENTS = ("ExternalPA", "ActiveExt", "InternalPA")
 SUPPORTED_OBJECTIVES = ("total_return", "excess_return")
+
+
+class _MinimizeResult(Protocol):
+    x: np.ndarray
+    success: bool
+    message: object
+
+
+_MinimizeFunc = Callable[..., _MinimizeResult]
 
 
 def _clamp_grid(grid: np.ndarray, min_value: float | None, max_value: float | None) -> np.ndarray:
@@ -315,12 +325,12 @@ def _grid_sleeve_sizes(
     return df
 
 
-def _load_minimize():
+def _load_minimize() -> _MinimizeFunc | None:
     try:
         from scipy.optimize import minimize
     except ImportError:
         return None
-    return minimize
+    return cast(_MinimizeFunc, minimize)
 
 
 def _metric_slope(metric: float | None, capital: float, *, total: float) -> float | None:
@@ -516,7 +526,7 @@ def _optimize_sleeve_sizes(
     if evaluated is None:
         return None, "invalid_metrics"
     metrics, meets, objective_value = evaluated
-    record = {
+    record: dict[str, object] = {
         "external_pa_capital": float(ext_cap),
         "active_ext_capital": float(act_cap),
         "internal_pa_capital": float(int_cap),
