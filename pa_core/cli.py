@@ -9,12 +9,14 @@ CLI flags:
     --gif                  Animated export of monthly paths
     --alt-text TEXT        Alt text for HTML/PPTX exports
     --packet               Committee-ready export packet (PPTX + Excel)
+    --bundle PATH          Write run artifact bundle directory
     --dashboard            Launch Streamlit dashboard after run
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import sys
@@ -86,6 +88,19 @@ class RunTimer:
             "started_at": self._start_wall.isoformat(),
             "ended_at": end_wall.isoformat(),
         }
+
+
+def _read_config_snapshot(path: str | Path) -> str:
+    return Path(path).read_text()
+
+
+def _hash_index_series(index_series: "pd.Series") -> str:
+    import pandas as pd
+
+    hasher = hashlib.sha256()
+    hashed = pd.util.hash_pandas_object(index_series, index=True).to_numpy()
+    hasher.update(hashed.tobytes())
+    return hasher.hexdigest()
 
 
 def create_enhanced_summary(
@@ -281,6 +296,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
+        "--bundle",
+        default=None,
+        help="Write run artifact bundle directory (opt-in)",
+    )
+    parser.add_argument(
         "--mode",
         choices=["capital", "returns", "alpha_shares", "vol_mult"],
         default="returns",
@@ -475,6 +495,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     run_id: str | None = None
     artifact_candidates: list[Path] = []
     manifest_path: Path | None = None
+    config_snapshot = _read_config_snapshot(args.config)
 
     def _record_artifact(path: str | Path | None) -> None:
         if not path:
@@ -494,6 +515,65 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     seen.add(value)
                     collected.append(value)
         return collected
+
+    def _resolve_path(path: str | Path | None) -> Path | None:
+        if path is None:
+            return None
+        try:
+            return Path(path).resolve()
+        except OSError:
+            return Path(path)
+
+    def _output_key_for_path(path: Path) -> str:
+        try:
+            return str(path.relative_to(Path.cwd()))
+        except ValueError:
+            return path.name
+
+    def _build_outputs_map(paths: Sequence[str]) -> dict[str, str]:
+        outputs: dict[str, str] = {}
+        collisions: dict[str, int] = {}
+        skip_paths = {
+            p for p in (_resolve_path(args.config), _resolve_path(manifest_path)) if p is not None
+        }
+        for value in paths:
+            path = Path(value)
+            try:
+                resolved = path.resolve()
+            except OSError:
+                resolved = path
+            if resolved in skip_paths:
+                continue
+            key = _output_key_for_path(path)
+            if key in outputs:
+                count = collisions.get(key, 1) + 1
+                collisions[key] = count
+                key = f"{path.stem}_{count}{path.suffix}"
+            outputs[key] = str(path)
+        return outputs
+
+    def _maybe_write_bundle(
+        *,
+        index_hash: str,
+        manifest_data: Mapping[str, Any] | None,
+    ) -> None:
+        if not args.bundle:
+            return
+        try:
+            from .run_artifact_bundle import RunArtifact, RunArtifactBundle
+
+            outputs = _build_outputs_map(_collect_artifacts())
+            artifact = RunArtifact(
+                config=config_snapshot,
+                index_hash=index_hash,
+                seed=args.seed,
+                manifest=manifest_data,
+                outputs=outputs,
+            )
+            bundle = RunArtifactBundle(artifact)
+            bundle.save(args.bundle)
+        except (ImportError, ModuleNotFoundError, OSError, PermissionError, ValueError) as exc:
+            logger.warning(f"Failed to write artifact bundle: {exc}")
 
     def _finalize_manifest_timing(
         snapshot: dict[str, Any] | None = None,
@@ -669,6 +749,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .units import get_index_series_unit, normalize_index_series
 
     idx_series = normalize_index_series(idx_series, get_index_series_unit())
+    index_hash = _hash_index_series(idx_series) if args.bundle else ""
     n_samples = int(len(idx_series))
     idx_sigma, _, _ = select_vol_regime_sigma(
         idx_series,
@@ -869,6 +950,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             else:
                 print("   ❌ No sweep results available")
 
+        _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
         _emit_run_end()
         return
 
@@ -1569,6 +1651,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 _emit_run_end()
                 return
 
+    _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
     _emit_run_end()
 
 
