@@ -44,6 +44,12 @@ def test_normalize_index_series_passthrough_monthly() -> None:
     assert np.allclose(converted, series)
 
 
+def test_normalize_index_series_defaults_to_monthly() -> None:
+    series = pd.Series([0.01, -0.03])
+    converted = normalize_index_series(series, "")
+    assert np.allclose(converted, series)
+
+
 def test_annual_vol_to_monthly() -> None:
     annual = 0.24
     expected = annual / np.sqrt(12.0)
@@ -76,6 +82,20 @@ def test_model_config_converts_once() -> None:
     round_trip = cfg.__class__.model_validate(cfg.model_dump())
     assert np.isclose(round_trip.mu_H, cfg.mu_H)
     assert np.isclose(round_trip.sigma_H, cfg.sigma_H)
+
+
+def test_model_config_monthly_passthrough() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        return_unit="monthly",
+        mu_H=0.01,
+        sigma_H=0.02,
+    )
+    assert cfg.return_unit == "monthly"
+    assert cfg.return_unit_input == "monthly"
+    assert np.isclose(cfg.mu_H, 0.01)
+    assert np.isclose(cfg.sigma_H, 0.02)
 
 
 def test_annual_config_round_trip_to_annual_output() -> None:
