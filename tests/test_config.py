@@ -186,6 +186,34 @@ def test_agents_duplicate_names():
         ModelConfig(**data)
 
 
+def test_agents_multiple_benchmark_agents():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "total_fund_capital": 100.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 80.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "Base",
+                "capital": 10.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    }
+    with pytest.raises(
+        ValueError, match="benchmark agent named 'Base' is required; found 2"
+    ):
+        ModelConfig(**data)
+
+
 def test_agents_duplicate_base_in_mixed_config():
     data = {
         "N_SIMULATIONS": 1,
