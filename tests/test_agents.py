@@ -195,18 +195,25 @@ def test_build_from_config_generic_agents():
         N_MONTHS=1,
         agents=[
             {
+                "name": "Base",
+                "capital": 100.0,
+                "beta_share": 0.7,
+                "alpha_share": 0.3,
+                "extra": {},
+            },
+            {
                 "name": "DummyConfig",
                 "capital": 100.0,
                 "beta_share": 0.2,
                 "alpha_share": 0.3,
                 "extra": {"note": "ok"},
-            }
+            },
         ],
     )
     agents = build_from_config(cfg)
     names = {type(a).__name__ for a in agents}
     assert "DummyConfigAgent" in names
-    assert "BaseAgent" not in names
+    assert "BaseAgent" in names
 
 
 def test_build_from_config_mixed_agents():
