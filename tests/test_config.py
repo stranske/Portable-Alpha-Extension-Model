@@ -142,6 +142,24 @@ def test_agents_missing_benchmark():
         ModelConfig(**data)
 
 
+def test_agents_missing_benchmark_without_convenience_fields():
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "agents": [
+            {
+                "name": "CustomSleeve",
+                "capital": 10.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.2,
+                "extra": {},
+            }
+        ],
+    }
+    with pytest.raises(ValueError, match="benchmark agent named 'Base'"):
+        ModelConfig(**data)
+
+
 def test_agents_duplicate_names():
     data = {
         "N_SIMULATIONS": 1,

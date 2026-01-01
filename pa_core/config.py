@@ -565,26 +565,11 @@ class ModelConfig(BaseModel):
             errors.append(
                 "agent names must be unique; duplicates found: " + ", ".join(duplicate_names)
             )
-        require_base = "agents" not in self.model_fields_set
-        require_base = require_base or bool(
-            {
-                "total_fund_capital",
-                "external_pa_capital",
-                "active_ext_capital",
-                "internal_pa_capital",
-                "w_beta_H",
-                "w_alpha_H",
-                "theta_extpa",
-                "active_share",
-            }
-            & self.model_fields_set
-        )
-        if require_base:
-            benchmark_count = sum(1 for name in names if name == "Base")
-            if benchmark_count != 1:
-                errors.append(
-                    f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}"
-                )
+        benchmark_count = sum(1 for name in names if name == "Base")
+        if benchmark_count != 1:
+            errors.append(
+                f"exactly one benchmark agent named 'Base' is required; found {benchmark_count}"
+            )
 
         for idx, agent in enumerate(self.agents):
             if agent.capital < 0:
