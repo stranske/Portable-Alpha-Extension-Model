@@ -538,6 +538,7 @@ def test_model_config_logs_transform_order(caplog: pytest.LogCaptureFixture) -> 
         "check_capital",
         "check_return_distribution",
         "check_correlations",
+        "check_correlation_repairs",
         "check_shares",
         "check_analysis_mode",
         "check_vol_regime_window",
