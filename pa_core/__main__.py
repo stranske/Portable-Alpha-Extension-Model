@@ -28,6 +28,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         help="Random seed for reproducible simulations",
     )
     parser.add_argument(
+        "--legacy-agent-rng",
+        action="store_true",
+        help="Use legacy order-dependent agent RNG streams (defaults to stable name-based streams)",
+    )
+    parser.add_argument(
         "--return-distribution",
         choices=["normal", "student_t"],
         help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
@@ -67,7 +72,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     # Import backend-dependent modules after setting the backend.
     from .agents.registry import build_from_config
     from .data import load_index_returns
-    from .random import spawn_agent_rngs, spawn_rngs
+    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .reporting import export_to_excel
     from .sim import draw_financing_series, draw_joint_returns
     from .sim.covariance import build_cov_matrix
@@ -77,9 +82,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .units import get_index_series_unit, normalize_index_series
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
-    fin_rngs = spawn_agent_rngs(
+    fin_agent_names = ["internal", "external_pa", "active_ext"]
+    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         args.seed,
-        ["internal", "external_pa", "active_ext"],
+        fin_agent_names,
+        legacy_order=args.legacy_agent_rng,
     )
 
     raw_params = cfg.model_dump()
@@ -150,4 +157,5 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     summary = summary_table(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)
+    metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
+    export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output, metadata=metadata)

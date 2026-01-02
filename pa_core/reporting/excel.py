@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import base64
 import io
+import json
 import os
-from typing import Any, Dict, cast
+from typing import Any, Dict, Mapping, cast
 
 import openpyxl
 import pandas as pd
@@ -28,6 +29,7 @@ def export_to_excel(
     pivot: bool = False,
     diff_config_df: pd.DataFrame | None = None,
     diff_metrics_df: pd.DataFrame | None = None,
+    metadata: Mapping[str, Any] | None = None,
     finalize: bool = True,
 ) -> None:
     """Write inputs, summary, and raw returns into an Excel workbook.
@@ -46,6 +48,8 @@ def export_to_excel(
         If ``True``, collapse all raw returns into a single ``AllReturns`` sheet
         in long format (``Sim``, ``Month``, ``Agent``, ``Return``). Otherwise a
         separate sheet is written per agent. Defaults to ``False``.
+    metadata : Mapping[str, Any], optional
+        Optional metadata key-value pairs to include in a ``Metadata`` sheet.
     finalize : bool, optional
         If ``True``, apply formatting and embed charts after writing sheets.
         When appending extra sheets later, set to ``False`` and call
@@ -64,6 +68,14 @@ def export_to_excel(
             }
         )
         df_inputs.to_excel(writer, sheet_name="Inputs", index=False)
+        if metadata:
+            meta_df = pd.DataFrame(
+                {
+                    "Key": list(metadata.keys()),
+                    "Value": [_serialize_metadata_value(v) for v in metadata.values()],
+                }
+            )
+            meta_df.to_excel(writer, sheet_name="Metadata", index=False)
         summary_df = summary_df.copy()
         summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
@@ -150,6 +162,12 @@ def export_to_excel(
 def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
     value = inputs_dict.get(key)
     return value if isinstance(value, pd.DataFrame) else None
+
+
+def _serialize_metadata_value(value: Any) -> Any:
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, sort_keys=True)
+    return value
 
 
 def finalize_excel_workbook(

@@ -153,7 +153,13 @@ python -m pa_core.cli --config config.yml --index data.csv --index-frequency mon
    for traceability.
 9. When a seed is supplied the program uses `spawn_agent_rngs` to create
    deterministic random-number generators per sleeve so results are fully
-   repeatable.
+   repeatable. Substream IDs are derived from a stable hash of
+   `seed + agent_name` (agent names are sorted first), so reordering sleeves
+   or adding new ones will not change existing streams. Keep agent names
+   stable; renaming a sleeve changes its RNG stream. Use
+   `--legacy-agent-rng` to restore the older order-dependent behavior.
+   The output workbook includes `rng_seed` and `substream_ids` in the
+   `Metadata` sheet.
 10. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
 11. Run `python -m pa_core.cli --help` at any time to view all command-line options.
 12. Include `--dashboard` to open an interactive Streamlit view after the run completes. Example:

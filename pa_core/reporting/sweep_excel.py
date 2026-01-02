@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import io
+import json
 import os
-from typing import Iterable
+from typing import Any, Iterable, Mapping
 
 import openpyxl
 import pandas as pd
@@ -18,11 +19,24 @@ __all__ = ["export_sweep_results"]
 _SUMMARY_COLUMNS = [*SUMMARY_REQUIRED_COLUMNS, "Combination"]
 
 
-def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.xlsx") -> None:
+def export_sweep_results(
+    results: Iterable[SweepResult],
+    filename: str = "Sweep.xlsx",
+    *,
+    metadata: Mapping[str, Any] | None = None,
+) -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
     all_summary: pd.DataFrame | None = None
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+        if metadata:
+            meta_df = pd.DataFrame(
+                {
+                    "Key": list(metadata.keys()),
+                    "Value": [_serialize_metadata_value(v) for v in metadata.values()],
+                }
+            )
+            meta_df.to_excel(writer, sheet_name="Metadata", index=False)
         summary_frames = []
         for res in results:
             sheet = f"Run{res['combination_id']}"
@@ -79,3 +93,9 @@ def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.
             pass
 
     wb.save(filename)
+
+
+def _serialize_metadata_value(value: Any) -> Any:
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, sort_keys=True)
+    return value

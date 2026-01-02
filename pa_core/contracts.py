@@ -50,6 +50,7 @@ MANIFEST_OPTIONAL_FIELDS: Sequence[str] = (
     "run_log",
     "previous_run",
     "run_timing",
+    "substream_ids",
 )
 
 

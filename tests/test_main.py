@@ -77,8 +77,10 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     def fake_spawn_rngs(seed: int | None, n: int) -> list[object]:
         return [object() for _ in range(n)]
 
-    def fake_spawn_agent_rngs(seed: int | None, names: list[str]) -> dict[str, object]:
-        return {name: object() for name in names}
+    def fake_spawn_agent_rngs_with_ids(
+        seed: int | None, names: list[str], **_kwargs
+    ) -> tuple[dict[str, object], dict[str, str]]:
+        return {name: object() for name in names}, {name: "substream" for name in names}
 
     def fake_draw_joint_returns(
         **_: Any,
@@ -108,6 +110,7 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         summary: str,
         raw_returns: Dict[str, pd.DataFrame],
         filename: str,
+        **_kwargs: Any,
     ) -> None:
         export_calls["inputs"] = inputs
         export_calls["summary"] = summary
@@ -119,7 +122,7 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("pa_core.agents.registry.build_from_config", fake_build_from_config)
     monkeypatch.setattr("pa_core.data.load_index_returns", fake_load_index_returns)
     monkeypatch.setattr("pa_core.random.spawn_rngs", fake_spawn_rngs)
-    monkeypatch.setattr("pa_core.random.spawn_agent_rngs", fake_spawn_agent_rngs)
+    monkeypatch.setattr("pa_core.random.spawn_agent_rngs_with_ids", fake_spawn_agent_rngs_with_ids)
     monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
     monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
     monkeypatch.setattr("pa_core.sim.covariance.build_cov_matrix", fake_build_cov_matrix)

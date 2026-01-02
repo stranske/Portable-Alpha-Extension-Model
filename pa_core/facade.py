@@ -92,11 +92,13 @@ class RunOptions:
         seed: Random seed for reproducible simulations. If None, uses non-deterministic RNG.
         backend: Computation backend selection (currently only "numpy" supported).
         config_overrides: Dictionary of config parameter overrides to apply.
+        legacy_agent_rng: Use order-dependent agent RNG streams for backward compatibility.
     """
 
     seed: int | None = None
     backend: str | None = None
     config_overrides: Mapping[str, Any] | None = None
+    legacy_agent_rng: bool = False
 
 
 @dataclass(slots=True)
@@ -257,7 +259,11 @@ def run_single(
         params=params,
         rng=rng_returns,
     )
-    fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
+    fin_rngs = spawn_agent_rngs(
+        run_options.seed,
+        ["internal", "external_pa", "active_ext"],
+        legacy_order=run_options.legacy_agent_rng,
+    )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=run_cfg.N_MONTHS,
         n_sim=run_cfg.N_SIMULATIONS,
@@ -352,7 +358,11 @@ def run_sweep(
         raise ValueError("Index data must be a pandas Series")
 
     rng_returns = spawn_rngs(run_options.seed, 1)[0]
-    fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
+    fin_rngs = spawn_agent_rngs(
+        run_options.seed,
+        ["internal", "external_pa", "active_ext"],
+        legacy_order=run_options.legacy_agent_rng,
+    )
     results = run_parameter_sweep(
         run_cfg,
         idx_series,
@@ -421,6 +431,12 @@ def export(
     if isinstance(artifacts, RunArtifacts):
         # Prepare inputs dict with optional internal DataFrames
         inputs_dict: dict[str, Any] = dict(artifacts.inputs)
+        metadata = None
+        if artifacts.manifest is not None:
+            metadata = {
+                "rng_seed": artifacts.manifest.get("seed"),
+                "substream_ids": artifacts.manifest.get("substream_ids"),
+            }
 
         export_to_excel(
             inputs_dict,
@@ -428,10 +444,17 @@ def export(
             artifacts.raw_returns,
             filename=str(output),
             pivot=export_opts.pivot,
+            metadata=metadata,
             finalize=True,
         )
     elif isinstance(artifacts, SweepArtifacts):
-        export_sweep_results(artifacts.results, filename=str(output))
+        metadata = None
+        if artifacts.manifest is not None:
+            metadata = {
+                "rng_seed": artifacts.manifest.get("seed"),
+                "substream_ids": artifacts.manifest.get("substream_ids"),
+            }
+        export_sweep_results(artifacts.results, filename=str(output), metadata=metadata)
     else:
         raise ValueError(f"Unsupported artifacts type: {type(artifacts)}")
 
