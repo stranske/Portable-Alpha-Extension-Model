@@ -42,6 +42,7 @@ def test_compute_sleeve_return_attribution_basic() -> None:
             "Active Ext monthly spike prob": 0.0,
             "Active Ext spike multiplier": 0.0,
             "Analysis mode": "returns",
+            "financing_mode": "broadcast",
         }
     )
     # Synthetic monthly index series with 1% mean
@@ -107,6 +108,7 @@ def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
             "Active Ext monthly spike prob": 0.0,
             "Active Ext spike multiplier": 0.0,
             "Analysis mode": "returns",
+            "financing_mode": "broadcast",
         }
     )
     idx_series = pd.Series([0.01, 0.02, 0.0, -0.01, 0.03])

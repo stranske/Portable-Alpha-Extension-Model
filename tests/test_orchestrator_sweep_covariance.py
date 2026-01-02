@@ -79,6 +79,7 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
         {
             "N_SIMULATIONS": 5,
             "N_MONTHS": 2,
+            "financing_mode": "broadcast",
             "analysis_mode": "returns",
             "risk_metrics": ["terminal_ShortfallProb"],
             "covariance_shrinkage": "ledoit_wolf",

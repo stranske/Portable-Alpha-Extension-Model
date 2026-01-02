@@ -264,7 +264,7 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
 
 
 def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     idx_series = pd.Series([0.0])
 
     returns = {
@@ -302,6 +302,7 @@ def test_suggest_sleeve_sizes_reuses_cached_streams(monkeypatch):
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         total_fund_capital=100.0,
         external_pa_capital=50.0,
         active_ext_capital=25.0,
@@ -342,7 +343,7 @@ def test_suggest_sleeve_sizes_reuses_cached_streams(monkeypatch):
 
 
 def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     idx_series = pd.Series([0.0])
 
     returns = {
@@ -380,6 +381,7 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
     cfg_data = {
         "N_SIMULATIONS": 4,
         "N_MONTHS": 3,
+        "financing_mode": "broadcast",
         "analysis_mode": "single_with_sensitivity",
         "total_fund_capital": 1000.0,
         "external_pa_capital": 500.0,
@@ -508,6 +510,7 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         total_fund_capital=100.0,
         external_pa_capital=40.0,
         active_ext_capital=30.0,
@@ -565,6 +568,7 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         total_fund_capital=100.0,
         external_pa_capital=40.0,
         active_ext_capital=30.0,
@@ -601,6 +605,7 @@ def test_suggest_sleeve_sizes_infeasible_constraints_returns_status(monkeypatch)
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         total_fund_capital=100.0,
         external_pa_capital=40.0,
         active_ext_capital=30.0,

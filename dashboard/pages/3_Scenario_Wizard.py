@@ -84,6 +84,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     vol_mult = float(fs.get("volatility_multiple", 3.0))
     term_m = float(fs.get("term_months", 1.0))
     sched_path = fs.get("schedule_path")
+    financing_mode = ss.get("financing_mode", "broadcast")
 
     yaml_dict: Dict[str, Any] = {
         "N_SIMULATIONS": n_simulations,
@@ -91,6 +92,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "analysis_mode": (
             analysis_mode.value if hasattr(analysis_mode, "value") else str(analysis_mode)
         ),
+        "financing_mode": financing_mode,
         "total_fund_capital": total_capital,
         "external_pa_capital": external_pa_capital,
         "active_ext_capital": active_ext_capital,

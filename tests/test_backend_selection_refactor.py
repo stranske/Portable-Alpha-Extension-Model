@@ -20,7 +20,12 @@ class TestBackendSelectionHelper:
     def test_resolve_backend_cli_priority(self):
         """Test that CLI argument takes priority over config."""
         # Create a config with numpy backend
-        config_data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "backend": "numpy"}
+        config_data = {
+            "N_SIMULATIONS": 1,
+            "N_MONTHS": 1,
+            "financing_mode": "broadcast",
+            "backend": "numpy",
+        }
         cfg = ModelConfig(**config_data)
 
         # CLI argument should override config
@@ -33,6 +38,7 @@ class TestBackendSelectionHelper:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
+            "financing_mode": "broadcast",
             "backend": "numpy",
         }
         cfg = ModelConfig(**config_data)
@@ -56,7 +62,12 @@ class TestBackendSelectionHelper:
 
     def test_config_with_backend_field(self):
         """Test that ModelConfig accepts backend field."""
-        config_data = {"N_SIMULATIONS": 10, "N_MONTHS": 12, "backend": "numpy"}
+        config_data = {
+            "N_SIMULATIONS": 10,
+            "N_MONTHS": 12,
+            "financing_mode": "broadcast",
+            "backend": "numpy",
+        }
         cfg = ModelConfig(**config_data)
         assert cfg.backend == "numpy"
 
@@ -65,6 +76,7 @@ class TestBackendSelectionHelper:
         config_data = {
             "N_SIMULATIONS": 10,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "backend": "cupy",
         }
 
@@ -112,6 +124,7 @@ class TestBackendSelectionIntegration:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
+            "financing_mode": "broadcast",
             "backend": "numpy",
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
@@ -129,6 +142,7 @@ class TestBackendSelectionIntegration:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
+            "financing_mode": "broadcast",
             "backend": "numpy",  # Config has one value
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }

@@ -3,6 +3,7 @@
 
 N_SIMULATIONS: 1000  # number of Monte Carlo trials
 N_MONTHS: 12         # months in each simulation run
+financing_mode: broadcast  # broadcast|per_path
 
 analysis_mode: returns  # capital|returns|alpha_shares|vol_mult
 external_pa_capital: 100.0   # external portable alpha capital ($mm)

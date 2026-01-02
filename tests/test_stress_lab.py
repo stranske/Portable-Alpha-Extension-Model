@@ -31,6 +31,7 @@ def test_config_diff_function():
         {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "total_fund_capital": 1000.0,
             "external_pa_capital": 200.0,
             "internal_pa_capital": 200.0,
@@ -45,6 +46,7 @@ def test_config_diff_function():
         {
             "N_SIMULATIONS": 2000,  # Changed
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "total_fund_capital": 1000.0,
             "external_pa_capital": 400.0,  # Changed
             "internal_pa_capital": 200.0,
@@ -89,6 +91,7 @@ def test_config_diff_with_stress_preset():
         {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "total_fund_capital": 1000.0,
             "external_pa_capital": 200.0,
             "internal_pa_capital": 200.0,
@@ -138,6 +141,7 @@ def test_config_diff_empty_when_identical():
     config_data = {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "total_fund_capital": 1000.0,
         "external_pa_capital": 200.0,
         "internal_pa_capital": 200.0,
@@ -166,6 +170,7 @@ def test_config_diff_detects_all_key_differences():
         {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "total_fund_capital": 1000.0,
             "external_pa_capital": 200.0,
             "internal_pa_capital": 200.0,
@@ -180,6 +185,7 @@ def test_config_diff_detects_all_key_differences():
         {
             "N_SIMULATIONS": 2000,  # Changed value
             "N_MONTHS": 6,  # Changed value
+            "financing_mode": "broadcast",
             "total_fund_capital": 1000.0,
             "external_pa_capital": 200.0,
             "internal_pa_capital": 200.0,

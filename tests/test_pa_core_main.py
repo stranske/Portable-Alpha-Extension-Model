@@ -34,6 +34,7 @@ def _base_config_data() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 3,
+        "financing_mode": "broadcast",
         "mu_H": 0.04,
         "sigma_H": 0.01,
         "mu_E": 0.05,

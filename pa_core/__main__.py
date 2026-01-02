@@ -14,7 +14,14 @@ from .validators import select_vol_regime_sigma
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
-    parser.add_argument("--config", required=True, help="YAML config file")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help=(
+            "YAML config file (set financing_mode to broadcast for shared paths or "
+            "per_path for independent draws)"
+        ),
+    )
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument("--output", default="Outputs.xlsx", help="Output workbook")
     parser.add_argument(
@@ -172,6 +179,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
+        financing_mode=cfg.financing_mode,
         rngs=fin_rngs,
     )
 

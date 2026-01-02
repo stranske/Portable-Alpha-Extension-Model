@@ -1,5 +1,6 @@
 N_MONTHS: 12
 N_SIMULATIONS: 1000
+financing_mode: broadcast
 act_ext_financing_mean_month: 0.0
 act_ext_financing_sigma_month: 0.0
 act_ext_spike_factor: 0.0

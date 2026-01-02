@@ -15,6 +15,7 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
     cfg_data = {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 3,
+        "financing_mode": "broadcast",
         "return_unit": "annual",
         "analysis_mode": "returns",
         "in_house_return_min_pct": 2.0,
@@ -109,6 +110,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     cfg_data_single = {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "return_unit": "annual",
         "analysis_mode": "single_with_sensitivity",
     }
@@ -118,6 +120,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     cfg_data_sweep = {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "return_unit": "annual",
         "analysis_mode": "returns",
         "in_house_return_min_pct": 1.0,

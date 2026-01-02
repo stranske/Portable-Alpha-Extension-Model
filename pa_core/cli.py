@@ -301,7 +301,14 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .stress import STRESS_PRESETS
 
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
-    parser.add_argument("--config", required=True, help="YAML config file")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help=(
+            "YAML config file (set financing_mode to broadcast for shared paths or "
+            "per_path for independent draws)"
+        ),
+    )
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument(
         "--index-frequency",
@@ -1114,6 +1121,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             n_months=N_MONTHS,
             n_sim=N_SIMULATIONS,
             params=params,
+            financing_mode=run_cfg.financing_mode,
             rngs=run_fin_rngs,
         )
 

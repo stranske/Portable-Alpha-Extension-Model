@@ -5,7 +5,7 @@ from pa_core.stress import apply_stress_preset
 
 
 def _base_cfg() -> ModelConfig:
-    return ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    return ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
 
 
 def test_liquidity_squeeze_overrides_financing():

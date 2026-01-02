@@ -96,6 +96,7 @@ class SimulatorOrchestrator:
             n_months=self.cfg.N_MONTHS,
             n_sim=self.cfg.N_SIMULATIONS,
             params=params,
+            financing_mode=self.cfg.financing_mode,
             rngs=fin_rngs,
         )
         return r_beta, r_H, r_E, r_M, f_int, f_ext, f_act

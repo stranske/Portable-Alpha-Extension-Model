@@ -132,7 +132,13 @@ def test_draw_financing_series_broadcasts_monthly_vector():
         act_ext_spike_factor=0.0,
     )
     rng = np.random.default_rng(17)
-    f_int, f_ext, f_act = draw_financing_series(n_months=6, n_sim=3, params=params, rng=rng)
+    f_int, f_ext, f_act = draw_financing_series(
+        n_months=6,
+        n_sim=3,
+        params=params,
+        financing_mode="broadcast",
+        rng=rng,
+    )
     for mat in (f_int, f_ext, f_act):
         assert mat.shape == (3, 6)
         assert np.allclose(mat[0], mat[1])
@@ -156,8 +162,50 @@ def test_draw_financing_series_rngs():
         act_ext_spike_factor=0.0,
     )
     rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
-    out1 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs)
+    out1 = draw_financing_series(
+        n_months=3,
+        n_sim=2,
+        params=params,
+        financing_mode="broadcast",
+        rngs=rngs,
+    )
     rngs2 = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
-    out2 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs2)
+    out2 = draw_financing_series(
+        n_months=3,
+        n_sim=2,
+        params=params,
+        financing_mode="broadcast",
+        rngs=rngs2,
+    )
     for a, b in zip(out1, out2):
         assert np.allclose(a, b)
+
+
+def test_draw_financing_series_per_path_varies_by_simulation():
+    params = {
+        "internal_financing_mean_month": 0.01,
+        "internal_financing_sigma_month": 0.05,
+        "internal_spike_prob": 0.0,
+        "internal_spike_factor": 0.0,
+        "ext_pa_financing_mean_month": 0.01,
+        "ext_pa_financing_sigma_month": 0.05,
+        "ext_pa_spike_prob": 0.0,
+        "ext_pa_spike_factor": 0.0,
+        "act_ext_financing_mean_month": 0.01,
+        "act_ext_financing_sigma_month": 0.05,
+        "act_ext_spike_prob": 0.0,
+        "act_ext_spike_factor": 0.0,
+    }
+    rng = np.random.default_rng(42)
+    f_int, f_ext, f_act = draw_financing_series(
+        n_months=48,
+        n_sim=3,
+        params=params,
+        financing_mode="per_path",
+        rng=rng,
+    )
+    for mat in (f_int, f_ext, f_act):
+        assert mat.shape == (3, 48)
+        assert not np.allclose(mat[0], mat[1])
+        corr = np.corrcoef(mat[0], mat[1])[0, 1]
+        assert corr < 0.99

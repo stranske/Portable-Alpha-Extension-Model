@@ -255,7 +255,9 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     """
 
     # Build ModelConfig using alias names via model_validate to satisfy typing
-    base = ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+    base = ModelConfig.model_validate(
+        {"Number of simulations": 1, "Number of months": 1, "financing_mode": "broadcast"}
+    )
     cfg = _make_view(base)
 
     if mode == AnalysisMode.CAPITAL:

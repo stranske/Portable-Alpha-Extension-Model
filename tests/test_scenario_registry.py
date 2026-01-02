@@ -16,7 +16,7 @@ def test_compute_scenario_id_is_deterministic(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(registry, "_get_code_version", lambda: "test-version")
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     index_path = tmp_path / "index.csv"
     _write_index_csv(index_path)
 
@@ -36,7 +36,7 @@ def test_compute_scenario_id_is_deterministic(
 def test_compute_scenario_id_includes_code_version(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     index_path = tmp_path / "index.csv"
     _write_index_csv(index_path)
 
@@ -52,7 +52,7 @@ def test_compute_scenario_id_includes_code_version(
 def test_register_get_list(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(registry, "_get_code_version", lambda: "test-version")
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     index_path = tmp_path / "index.csv"
     _write_index_csv(index_path)
 

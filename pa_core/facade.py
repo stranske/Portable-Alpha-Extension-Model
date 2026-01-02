@@ -260,6 +260,7 @@ def run_single(
         n_months=run_cfg.N_MONTHS,
         n_sim=run_cfg.N_SIMULATIONS,
         params=params,
+        financing_mode=run_cfg.financing_mode,
         rngs=fin_rngs,
     )
 
