@@ -23,6 +23,7 @@ def test_sensitivity_flag_added():
             """
 N_SIMULATIONS: 100
 N_MONTHS: 12
+financing_mode: broadcast
 analysis_mode: returns
 external_pa_capital: 100.0
 active_ext_capital: 50.0
@@ -110,6 +111,7 @@ def test_sensitivity_analysis_execution():
             """
 N_SIMULATIONS: 100
 N_MONTHS: 12
+financing_mode: broadcast
 analysis_mode: returns
 external_pa_capital: 100.0
 active_ext_capital: 50.0
@@ -198,6 +200,7 @@ def test_sensitivity_sets_tornado_deltas(monkeypatch, tmp_path):
         """
 N_SIMULATIONS: 100
 N_MONTHS: 12
+financing_mode: broadcast
 analysis_mode: returns
 external_pa_capital: 100.0
 active_ext_capital: 50.0
@@ -305,6 +308,7 @@ def test_sensitivity_analysis_error_logging():
             """
 N_SIMULATIONS: 100
 N_MONTHS: 12
+financing_mode: broadcast
 analysis_mode: returns
 external_pa_capital: 100.0
 active_ext_capital: 50.0

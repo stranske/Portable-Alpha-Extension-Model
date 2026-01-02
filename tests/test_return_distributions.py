@@ -19,6 +19,7 @@ def _base_params() -> dict[str, Any]:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         return_unit="monthly",
         mu_H=0.003,
         sigma_H=0.03,

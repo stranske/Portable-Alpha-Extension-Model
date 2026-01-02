@@ -51,6 +51,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     analysis_mode = config.analysis_mode
     n_simulations = int(config.n_simulations)
     n_months = int(config.n_months)
+    financing_mode = config.financing_mode
 
     # Prefer session-state overrides so applied suggestions persist across steps.
     total_capital = float(ss.get(_TOTAL_CAPITAL_KEY, config.total_fund_capital))
@@ -91,6 +92,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "analysis_mode": (
             analysis_mode.value if hasattr(analysis_mode, "value") else str(analysis_mode)
         ),
+        "financing_mode": financing_mode,
         "total_fund_capital": total_capital,
         "external_pa_capital": external_pa_capital,
         "active_ext_capital": active_ext_capital,

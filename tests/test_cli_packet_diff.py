@@ -17,6 +17,7 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 1,
+                "financing_mode": "broadcast",
                 "analysis_mode": "returns",
             }
         )
@@ -105,6 +106,7 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 2,
+                "financing_mode": "broadcast",
                 "analysis_mode": "single_with_sensitivity",
             }
         )
@@ -187,6 +189,7 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 2,
+                "financing_mode": "broadcast",
                 "analysis_mode": "single_with_sensitivity",
             }
         )

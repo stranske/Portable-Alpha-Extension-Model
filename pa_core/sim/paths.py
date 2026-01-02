@@ -11,6 +11,7 @@ from ..backend import xp as np
 from ..random import spawn_rngs
 from ..types import GeneratorLike
 from ..validators import NUMERICAL_STABILITY_EPSILON
+from .financing import draw_financing_series, simulate_financing
 from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
 
 __all__ = [
@@ -18,7 +19,6 @@ __all__ = [
     "prepare_mc_universe",
     "prepare_return_shocks",
     "draw_returns",
-    "draw_financing",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -241,33 +241,6 @@ def _assert_canonical_params(params: Mapping[str, Any]) -> None:
     marker = params.get(CANONICAL_PARAMS_MARKER)
     if marker != CANONICAL_PARAMS_VERSION:
         raise ValueError("params must be created by build_simulation_params()")
-
-
-def simulate_financing(
-    T: int,
-    financing_mean: float,
-    financing_sigma: float,
-    spike_prob: float,
-    spike_factor: float,
-    *,
-    seed: Optional[int] = None,
-    n_scenarios: int = 1,
-    rng: Optional[GeneratorLike] = None,
-) -> npt.NDArray[Any]:
-    """Vectorised financing spread simulation with optional spikes."""
-    if T <= 0:
-        raise ValueError("T must be positive")
-    if n_scenarios <= 0:
-        raise ValueError("n_scenarios must be positive")
-    if rng is None:
-        rng = spawn_rngs(seed, 1)[0]
-    assert rng is not None
-    base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
-    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
-    out = cast(npt.NDArray[Any], np.clip(base + jumps, 0.0, None))
-    if n_scenarios == 1:
-        return cast(npt.NDArray[Any], out[0])
-    return out
 
 
 def prepare_mc_universe(
@@ -515,101 +488,6 @@ def draw_joint_returns(
         params=params,
         rng=rng,
         shocks=shocks,
-    )
-
-
-def draw_financing(
-    *,
-    n_months: int,
-    n_sim: int,
-    params: Dict[str, Any],
-    rng: Optional[GeneratorLike] = None,
-    rngs: Optional[Mapping[str, GeneratorLike]] = None,
-) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
-    """Return three matrices of monthly financing spreads.
-
-    ``rngs`` may provide dedicated generators for each sleeve under the keys
-    ``"internal"``, ``"external_pa"``, and ``"active_ext"``. If not supplied,
-    ``rng`` will be used for all sleeves.
-    """
-    _assert_canonical_params(params)
-    if rngs is not None:
-        tmp_int = rngs.get("internal")
-        r_int = tmp_int if tmp_int is not None else spawn_rngs(None, 1)[0]
-
-        tmp_ext = rngs.get("external_pa")
-        r_ext = tmp_ext if tmp_ext is not None else spawn_rngs(None, 1)[0]
-
-        tmp_act = rngs.get("active_ext")
-        r_act = tmp_act if tmp_act is not None else spawn_rngs(None, 1)[0]
-    else:
-        if rng is None:
-            rng = spawn_rngs(None, 1)[0]
-        r_int = rng
-        r_ext = rng
-        r_act = rng
-
-    def _sim(
-        mean_key: str,
-        sigma_key: str,
-        p_key: str,
-        k_key: str,
-        rng_local: GeneratorLike,
-    ) -> npt.NDArray[Any]:
-        mean = params[mean_key]
-        sigma = params[sigma_key]
-        p = params[p_key]
-        k = params[k_key]
-        vec = simulate_financing(
-            n_months,
-            mean,
-            sigma,
-            p,
-            k,
-            n_scenarios=1,
-            rng=rng_local,
-        )
-        return cast(npt.NDArray[Any], np.broadcast_to(vec, (n_sim, n_months)))
-
-    f_int_mat = _sim(
-        "internal_financing_mean_month",
-        "internal_financing_sigma_month",
-        "internal_spike_prob",
-        "internal_spike_factor",
-        r_int,
-    )
-    f_ext_pa_mat = _sim(
-        "ext_pa_financing_mean_month",
-        "ext_pa_financing_sigma_month",
-        "ext_pa_spike_prob",
-        "ext_pa_spike_factor",
-        r_ext,
-    )
-    f_act_ext_mat = _sim(
-        "act_ext_financing_mean_month",
-        "act_ext_financing_sigma_month",
-        "act_ext_spike_prob",
-        "act_ext_spike_factor",
-        r_act,
-    )
-    return f_int_mat, f_ext_pa_mat, f_act_ext_mat
-
-
-def draw_financing_series(
-    *,
-    n_months: int,
-    n_sim: int,
-    params: Dict[str, Any],
-    rng: Optional[GeneratorLike] = None,
-    rngs: Optional[Mapping[str, GeneratorLike]] = None,
-) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
-    """Backward-compatible wrapper for draw_financing."""
-    return draw_financing(
-        n_months=n_months,
-        n_sim=n_sim,
-        params=params,
-        rng=rng,
-        rngs=rngs,
     )
 
 

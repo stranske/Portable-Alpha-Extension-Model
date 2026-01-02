@@ -270,6 +270,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             payload: dict[str, object] = {
                 "N_SIMULATIONS": 1000,
                 "N_MONTHS": 12,
+                "financing_mode": "broadcast",
                 **model_config,
             }
             report = build_calibration_report(returns_result, alpha_map=alpha_map)

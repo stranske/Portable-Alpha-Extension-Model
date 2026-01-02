@@ -39,6 +39,7 @@ def test_make_grid_cache_key_stable() -> None:
             "Number of simulations": 1000,
             "Number of months": 12,
             "analysis_mode": "alpha_shares",
+            "financing_mode": "broadcast",
         }
     )
     idx = pd.Series([0.01, 0.02, 0.03])
@@ -53,6 +54,7 @@ def test_make_grid_cache_key_changes_with_axis() -> None:
             "Number of simulations": 1000,
             "Number of months": 12,
             "analysis_mode": "alpha_shares",
+            "financing_mode": "broadcast",
         }
     )
     idx = pd.Series([0.01, 0.02, 0.03])

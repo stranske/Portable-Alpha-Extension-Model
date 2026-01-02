@@ -54,6 +54,7 @@ def test_csv_conversion_with_field_mappings():
         writer.writerow(["Analysis mode", "returns"])
         writer.writerow(["Number of simulations", "100"])
         writer.writerow(["Number of months", "12"])
+        writer.writerow(["financing_mode", "broadcast"])
         writer.writerow(["External PA capital (mm)", "500.0"])
         writer.writerow(["Total fund capital (mm)", "1000.0"])
         writer.writerow(["In-House annual return (%)", "4.0"])
@@ -101,6 +102,7 @@ def test_legacy_compatibility():
     config_data = {
         "N_SIMULATIONS": 100,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "analysis_mode": "returns",
         "external_pa_capital": 500.0,
         "mu_H": 0.04,
@@ -121,6 +123,7 @@ def test_alias_compatibility():
     config_data = {
         "Number of simulations": 100,
         "Number of months": 12,
+        "financing_mode": "broadcast",
         "Analysis mode": "returns",
         "External PA capital (mm)": 500.0,
         "In-House annual return (%)": 4.0,  # Should NOT be converted as percentage here

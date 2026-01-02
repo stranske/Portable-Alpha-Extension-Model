@@ -44,6 +44,7 @@ class DummyConfig:
     act_ext_financing_sigma_month: float = 0.01
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 1.0
+    financing_mode: str = "broadcast"
     N_SIMULATIONS: int = 2
     N_MONTHS: int = 3
 

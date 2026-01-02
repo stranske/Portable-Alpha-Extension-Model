@@ -20,6 +20,7 @@ def test_load_yaml(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,  # Valid value
         "N_MONTHS": 6,
+        "financing_mode": "broadcast",
         "mu_H": 0.04,
         "sigma_H": 0.01,
         "external_pa_capital": 100.0,
@@ -45,6 +46,7 @@ def test_load_yaml_with_generic_agents(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 6,
+        "financing_mode": "broadcast",
         "total_fund_capital": 300.0,
         "agents": [
             {
@@ -74,6 +76,7 @@ def test_load_yaml_with_mixed_agents(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 6,
+        "financing_mode": "broadcast",
         "external_pa_capital": 100.0,
         "active_ext_capital": 50.0,
         "internal_pa_capital": 150.0,
@@ -96,7 +99,12 @@ def test_load_yaml_with_mixed_agents(tmp_path):
 
 
 def test_load_dict():
-    data = {"N_SIMULATIONS": 1000, "N_MONTHS": 3, "mu_H": 0.05}  # Valid N_SIMULATIONS
+    data = {
+        "N_SIMULATIONS": 1000,
+        "N_MONTHS": 3,
+        "financing_mode": "broadcast",
+        "mu_H": 0.05,
+    }
     cfg = load_config(data)
     assert cfg.N_SIMULATIONS == 1000
     assert cfg.N_MONTHS == 3
@@ -107,6 +115,7 @@ def test_model_config_explicit_annual_return_fields() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         mu_H_annual=0.12,
         sigma_H_annual=0.24,
     )
@@ -118,6 +127,7 @@ def test_model_config_explicit_monthly_return_fields() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         mu_H_monthly=0.01,
         sigma_H_monthly=0.02,
     )
@@ -127,7 +137,12 @@ def test_model_config_explicit_monthly_return_fields() -> None:
 
 
 def test_model_config_warns_on_legacy_return_fields() -> None:
-    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "mu_H": 0.05}
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "financing_mode": "broadcast",
+        "mu_H": 0.05,
+    }
     with pytest.warns(DeprecationWarning, match="mu_H"):
         ModelConfig(**data)
 
@@ -136,6 +151,7 @@ def test_model_config_rejects_mixed_explicit_units() -> None:
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "mu_H_annual": 0.05,
         "sigma_H_monthly": 0.02,
     }
@@ -147,6 +163,7 @@ def test_model_config_rejects_explicit_unit_mismatch() -> None:
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "return_unit": "monthly",
         "mu_H_annual": 0.05,
     }
@@ -155,7 +172,7 @@ def test_model_config_rejects_explicit_unit_mismatch() -> None:
 
 
 def test_model_config_minimal_inputs_use_defaults():
-    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1}
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg = ModelConfig(**data)
     assert cfg.total_fund_capital == 1000.0
     assert cfg.external_pa_capital == 0.0
@@ -168,7 +185,13 @@ def test_model_config_minimal_inputs_use_defaults():
 
 
 def test_model_config_normalizes_share_percentages():
-    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "w_beta_H": 60, "w_alpha_H": 40}
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "financing_mode": "broadcast",
+        "w_beta_H": 60,
+        "w_alpha_H": 40,
+    }
     cfg = ModelConfig(**data)
     assert cfg.w_beta_H == 0.6
     assert cfg.w_alpha_H == 0.4
@@ -178,6 +201,7 @@ def test_invalid_capital(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,  # Valid value
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "external_pa_capital": 800.0,
         "active_ext_capital": 800.0,
         "internal_pa_capital": 800.0,
@@ -197,6 +221,7 @@ def test_agents_missing_benchmark():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -216,6 +241,7 @@ def test_agents_missing_benchmark_lists_existing_names():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -236,6 +262,7 @@ def test_agents_missing_benchmark_without_convenience_fields():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "agents": [
             {
                 "name": "CustomSleeve",
@@ -254,6 +281,7 @@ def test_agents_empty_list_missing_benchmark():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [],
     }
@@ -265,6 +293,7 @@ def test_agents_duplicate_names():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -291,6 +320,7 @@ def test_agents_duplicate_names_include_indices():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -318,6 +348,7 @@ def test_agents_multiple_benchmark_agents():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -344,6 +375,7 @@ def test_agents_duplicate_base_in_mixed_config():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "external_pa_capital": 10.0,
         "w_beta_H": 0.6,
@@ -368,6 +400,7 @@ def test_agents_negative_capital():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -387,6 +420,7 @@ def test_agents_share_bounds():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -406,6 +440,7 @@ def test_agents_alpha_share_bounds():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -425,6 +460,7 @@ def test_agents_share_sum_limit():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -444,6 +480,7 @@ def test_agents_share_sum_limit_percentage_inputs():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -463,6 +500,7 @@ def test_agents_share_sum_limit_non_benchmark():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -489,6 +527,7 @@ def test_agents_total_capital_exceeds_fund():
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "total_fund_capital": 100.0,
         "agents": [
             {
@@ -532,6 +571,7 @@ def test_csv_to_yaml_conversion(tmp_path):
         Parameter,Value
         Number of simulations,1000
         Number of months,6
+        financing_mode,broadcast
         In-House annual return (%),4.0
         In-House annual vol (%),1.0
         External PA capital (mm),100.0
@@ -551,6 +591,7 @@ def test_load_config_with_covariance_options(tmp_path):
     data = {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 6,
+        "financing_mode": "broadcast",
         "covariance_shrinkage": "ledoit_wolf",
         "vol_regime": "two_state",
         "vol_regime_window": 6,
@@ -564,7 +605,12 @@ def test_load_config_with_covariance_options(tmp_path):
 
 
 def test_model_config_rejects_out_of_bounds_correlations():
-    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "rho_idx_H": 1.5}
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "financing_mode": "broadcast",
+        "rho_idx_H": 1.5,
+    }
     with pytest.raises(ValueError, match="outside valid range"):
         ModelConfig(**data)
 
@@ -573,6 +619,7 @@ def test_model_config_logs_transform_order(caplog: pytest.LogCaptureFixture) -> 
     data = {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "debug_transform_order": True,
     }
     with caplog.at_level(logging.INFO, logger="pa_core.config"):

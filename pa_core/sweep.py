@@ -311,6 +311,7 @@ def run_parameter_sweep(
             n_months=cfg.N_MONTHS,
             n_sim=cfg.N_SIMULATIONS,
             params=financing_params,
+            financing_mode=cfg.financing_mode,
             rngs=fin_rngs_base,
         )
 
@@ -378,6 +379,7 @@ def run_parameter_sweep(
                 n_months=mod_cfg.N_MONTHS,
                 n_sim=mod_cfg.N_SIMULATIONS,
                 params=params,
+                financing_mode=mod_cfg.financing_mode,
                 rngs=fin_rngs,
             )
         else:

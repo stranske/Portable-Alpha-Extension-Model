@@ -9,7 +9,9 @@ from pa_core.cli import main
 
 def test_cli_overrides_return_distribution(tmp_path: Path) -> None:
     cfg_path = tmp_path / "cfg.yml"
-    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1}))
+    cfg_path.write_text(
+        yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"})
+    )
     idx_path = tmp_path / "index.csv"
     idx_path.write_text("Return\n0.01\n0.02\n")
     out_path = tmp_path / "out.xlsx"

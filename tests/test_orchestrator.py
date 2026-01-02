@@ -19,6 +19,7 @@ def valid_config_basic() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 10,
         "N_MONTHS": 5,
+        "financing_mode": "broadcast",
         "w_beta_H": 0.6,
         "w_alpha_H": 0.4,
         "risk_metrics": ["terminal_ShortfallProb"],
@@ -31,6 +32,7 @@ def valid_config_no_alpha() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 5,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "w_beta_H": 1.0,
         "w_alpha_H": 0.0,
         "external_pa_capital": 0.0,
@@ -46,6 +48,7 @@ def valid_config_reproducibility() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 5,
         "N_MONTHS": 6,
+        "financing_mode": "broadcast",
         "w_beta_H": 0.6,
         "w_alpha_H": 0.4,
         "risk_metrics": ["terminal_ShortfallProb"],
@@ -147,6 +150,7 @@ def test_invalid_share_configurations_raise_error(w_beta_H, w_alpha_H, expected_
     invalid_config = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "w_beta_H": w_beta_H,
         "w_alpha_H": w_alpha_H,
         "risk_metrics": ["terminal_ShortfallProb"],

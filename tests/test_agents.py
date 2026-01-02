@@ -181,7 +181,7 @@ def test_internal_pa_no_alpha_returns_zero() -> None:
 
 
 def test_build_from_config_basic():
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     agents = build_from_config(cfg)
     names = {type(a).__name__ for a in agents}
     assert "BaseAgent" in names
@@ -193,6 +193,7 @@ def test_build_from_config_generic_agents():
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         agents=[
             {
                 "name": "Base",
@@ -221,6 +222,7 @@ def test_build_from_config_mixed_agents():
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         total_fund_capital=1000.0,
         external_pa_capital=200.0,
         agents=[
@@ -247,6 +249,7 @@ def test_build_from_config_uses_schedule_margin(tmp_path: Path) -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         financing_model="schedule",
         financing_schedule_path=schedule_path,
         financing_term_months=1.0,

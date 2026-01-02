@@ -15,6 +15,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "external_pa_capital": 200.0,
             "active_ext_capital": 300.0,
             "internal_pa_capital": 400.0,
@@ -42,6 +43,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 50,  # Too low
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
             "analysis_mode": "returns",
             # Add required step sizes
@@ -63,6 +65,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
             "analysis_mode": "returns",
             "external_step_size_pct": 0.0,  # Invalid - must be positive
@@ -83,6 +86,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 10,
             "N_MONTHS": 1,
+            "financing_mode": "broadcast",
             "total_fund_capital": 100.0,
             "agents": [
                 {
@@ -103,6 +107,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 10,
             "N_MONTHS": 1,
+            "financing_mode": "broadcast",
             "total_fund_capital": 100.0,
             "agents": [
                 {
@@ -123,6 +128,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "external_pa_capital": 100.0,
             "active_ext_capital": 100.0,
             "internal_pa_capital": 700.0,  # Total = 900 < 1000, but margin + internal > 1000

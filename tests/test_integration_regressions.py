@@ -62,6 +62,7 @@ def test_integration_regression_active_ext_financing_export(tmp_path: Path) -> N
         n_months=cfg.N_MONTHS,
         n_sim=cfg.N_SIMULATIONS,
         params=fin_params,
+        financing_mode=cfg.financing_mode,
         rngs=fin_rngs,
     )
     # Regression guard for #2: sigma > 0 should produce month-to-month variation.
