@@ -22,7 +22,9 @@ def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monke
     results = [
         {
             "combination_id": 1,
-            "summary": pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1]}),
+            "summary": pd.DataFrame(
+                {"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1]}
+            ),
         }
     ]
 

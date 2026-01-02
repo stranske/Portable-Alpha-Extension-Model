@@ -182,7 +182,9 @@ def test_export_packet_diff_appendix():
 
 def test_export_packet_includes_stress_delta():
     summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
-    stress_delta = pd.DataFrame({"Agent": ["Total"], "terminal_AnnReturn": [-0.03], "monthly_AnnVol": [0.02]})
+    stress_delta = pd.DataFrame(
+        {"Agent": ["Total"], "terminal_AnnReturn": [-0.03], "monthly_AnnVol": [0.02]}
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:

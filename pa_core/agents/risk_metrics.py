@@ -9,8 +9,8 @@ from numpy.typing import NDArray
 from ..sim.metrics import (
     breach_count,
     breach_probability,
-    cvar_monthly,
     compounded_return_below_zero_fraction,
+    cvar_monthly,
     max_cumulative_sum_drawdown,
 )
 from ..units import DEFAULT_BREACH_THRESHOLD

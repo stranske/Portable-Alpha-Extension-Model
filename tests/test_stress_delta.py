@@ -39,8 +39,12 @@ def test_build_delta_table_includes_total_row():
 
 
 def test_build_stress_workbook_contains_expected_sheets():
-    base = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_BreachCountPath0": [1]})
-    stressed = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.02], "monthly_BreachCountPath0": [3]})
+    base = pd.DataFrame(
+        {"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_BreachCountPath0": [1]}
+    )
+    stressed = pd.DataFrame(
+        {"Agent": ["Base"], "terminal_AnnReturn": [0.02], "monthly_BreachCountPath0": [3]}
+    )
     delta_df = build_delta_table(base, stressed)
     config_diff = pd.DataFrame({"Parameter": ["mu_H"], "Base": [0.01], "Stressed": [0]})
 
@@ -55,7 +59,12 @@ def test_build_stress_workbook_contains_expected_sheets():
 
 def test_format_delta_table_text_adds_signs():
     delta_df = pd.DataFrame(
-        {"Agent": ["Total"], "terminal_AnnReturn": [-0.03], "monthly_AnnVol": [0.01], "monthly_BreachCountPath0": [2]}
+        {
+            "Agent": ["Total"],
+            "terminal_AnnReturn": [-0.03],
+            "monthly_AnnVol": [0.01],
+            "monthly_BreachCountPath0": [2],
+        }
     )
     formatted = format_delta_table_text(delta_df)
 

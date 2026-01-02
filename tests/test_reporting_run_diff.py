@@ -10,8 +10,12 @@ def test_build_run_diff_config_and_metrics() -> None:
     current_manifest = {"config": {"a": 1, "b": 2}}
     previous_manifest = {"config": {"a": 1, "b": 1, "c": 3}}
 
-    current_summary = pd.DataFrame({"terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1], "Label": ["current"]})
-    previous_summary = pd.DataFrame({"terminal_AnnReturn": [0.04], "monthly_AnnVol": [0.12], "Label": ["previous"]})
+    current_summary = pd.DataFrame(
+        {"terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1], "Label": ["current"]}
+    )
+    previous_summary = pd.DataFrame(
+        {"terminal_AnnReturn": [0.04], "monthly_AnnVol": [0.12], "Label": ["previous"]}
+    )
 
     cfg_diff, metric_diff = build_run_diff(
         current_manifest, previous_manifest, current_summary, previous_summary

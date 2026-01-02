@@ -157,9 +157,7 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
             f"{threshold_units['shortfall_threshold']} threshold\n"
         )
     if "monthly_MaxDD" in summary.columns:
-        explanation.append(
-            "• monthly_MaxDD: Worst peak-to-trough decline of compounded wealth\n"
-        )
+        explanation.append("• monthly_MaxDD: Worst peak-to-trough decline of compounded wealth\n")
     if "monthly_TimeUnderWater" in summary.columns:
         explanation.append(
             "• monthly_TimeUnderWater: Fraction of periods with compounded return below zero\n"
@@ -1307,7 +1305,9 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
                 deltas = simple_one_factor_deltas(base_df, scenarios, value="terminal_AnnReturn")
-                base_value = float(base_df["terminal_AnnReturn"].iloc[0]) if not base_df.empty else 0.0
+                base_value = (
+                    float(base_df["terminal_AnnReturn"].iloc[0]) if not base_df.empty else 0.0
+                )
                 records = []
                 for name, values in param_results.items():
                     minus_val = values.get("minus")

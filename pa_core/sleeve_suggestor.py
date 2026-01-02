@@ -573,7 +573,11 @@ def _optimize_sleeve_sizes(
     constraints: list[dict[str, object]] = []
     for agent in SLEEVE_AGENTS:
         if constraint_scope in {"sleeves", "both"}:
-            for metric, limit in (("monthly_TE", max_te), ("monthly_BreachProb", max_breach), ("monthly_CVaR", max_cvar)):
+            for metric, limit in (
+                ("monthly_TE", max_te),
+                ("monthly_BreachProb", max_breach),
+                ("monthly_CVaR", max_cvar),
+            ):
                 slope = slopes[agent].get(metric)
                 constraints.append(
                     {
@@ -584,7 +588,11 @@ def _optimize_sleeve_sizes(
                 )
 
     if constraint_scope in {"total", "both"}:
-        for metric, limit in (("monthly_TE", max_te), ("monthly_BreachProb", max_breach), ("monthly_CVaR", max_cvar)):
+        for metric, limit in (
+            ("monthly_TE", max_te),
+            ("monthly_BreachProb", max_breach),
+            ("monthly_CVaR", max_cvar),
+        ):
             constraints.append(
                 {
                     "type": "ineq",

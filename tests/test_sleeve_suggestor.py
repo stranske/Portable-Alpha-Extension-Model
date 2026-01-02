@@ -484,7 +484,13 @@ def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
         },
     }
     rows = []
-    totals = {"terminal_AnnReturn": 0.0, "terminal_ExcessReturn": 0.0, "monthly_TE": 0.0, "monthly_BreachProb": 0.0, "monthly_CVaR": 0.0}
+    totals = {
+        "terminal_AnnReturn": 0.0,
+        "terminal_ExcessReturn": 0.0,
+        "monthly_TE": 0.0,
+        "monthly_BreachProb": 0.0,
+        "monthly_CVaR": 0.0,
+    }
     for agent, capital in (
         ("ExternalPA", cfg.external_pa_capital),
         ("ActiveExt", cfg.active_ext_capital),

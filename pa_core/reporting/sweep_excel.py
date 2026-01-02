@@ -44,7 +44,9 @@ def export_sweep_results(
             if not isinstance(summary_obj, pd.DataFrame):
                 continue
             summary = summary_obj.copy()
-            summary["terminal_ShortfallProb"] = summary.get("terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+            summary["terminal_ShortfallProb"] = summary.get(
+                "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+            )
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)

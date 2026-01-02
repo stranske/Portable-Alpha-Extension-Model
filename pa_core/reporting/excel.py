@@ -77,7 +77,9 @@ def export_to_excel(
             )
             meta_df.to_excel(writer, sheet_name="Metadata", index=False)
         summary_df = summary_df.copy()
-        summary_df["terminal_ShortfallProb"] = summary_df.get("terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+        summary_df["terminal_ShortfallProb"] = summary_df.get(
+            "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+        )
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         # Optional: Sensitivity sheet if provided
@@ -200,7 +202,9 @@ def finalize_excel_workbook(
         os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
     ):
         summary_df = summary_df.copy()
-        summary_df["terminal_ShortfallProb"] = summary_df.get("terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+        summary_df["terminal_ShortfallProb"] = summary_df.get(
+            "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+        )
         ws = wb["Summary"]
         metrics = {
             "terminal_AnnReturn",
