@@ -83,15 +83,11 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                         cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct,
                         cfg.alpha_ext_vol_step_pct,
                     ):
-                        mu_H_val = convert_mean(
-                            mu_H / 100.0, from_unit="annual", to_unit="monthly"
-                        )
+                        mu_H_val = convert_mean(mu_H / 100.0, from_unit="annual", to_unit="monthly")
                         sigma_H_val = convert_volatility(
                             sigma_H / 100.0, from_unit="annual", to_unit="monthly"
                         )
-                        mu_E_val = convert_mean(
-                            mu_E / 100.0, from_unit="annual", to_unit="monthly"
-                        )
+                        mu_E_val = convert_mean(mu_E / 100.0, from_unit="annual", to_unit="monthly")
                         sigma_E_val = convert_volatility(
                             sigma_E / 100.0, from_unit="annual", to_unit="monthly"
                         )
