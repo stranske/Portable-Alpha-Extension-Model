@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pa_core.sim.metrics import conditional_value_at_risk
 from pa_core.sim.paths import (
@@ -223,3 +224,59 @@ def test_draw_joint_returns_matches_prepared_shocks() -> None:
     )
     for left, right in zip(shocked, repeated):
         np.testing.assert_allclose(left, right)
+
+
+def test_draw_joint_returns_passes_through_valid_correlation() -> None:
+    params = _base_params()
+    rng = np.random.default_rng(1234)
+    draw_joint_returns(
+        n_months=3,
+        n_sim=10,
+        params=params,
+        rng=rng,
+    )
+    info = params.get("_correlation_repair_info")
+    assert isinstance(info, dict)
+    assert info["repair_applied"] is False
+    assert info["method"] == "none"
+
+
+def test_draw_joint_returns_rejects_out_of_range_correlations() -> None:
+    params = _base_params()
+    params["rho_idx_H"] = 1.25
+    rng = np.random.default_rng(42)
+    with pytest.raises(ValueError, match="within \\[-1, 1\\]"):
+        draw_joint_returns(
+            n_months=2,
+            n_sim=5,
+            params=params,
+            rng=rng,
+        )
+
+
+def test_draw_joint_returns_repairs_non_psd_correlation() -> None:
+    params = _base_params()
+    params.update(
+        {
+            "rho_idx_H": 0.9,
+            "rho_idx_E": 0.9,
+            "rho_idx_M": 0.0,
+            "rho_H_E": -0.9,
+            "rho_H_M": 0.0,
+            "rho_E_M": 0.0,
+            "correlation_repair_mode": "warn_fix",
+        }
+    )
+    rng = np.random.default_rng(7)
+    draw_joint_returns(
+        n_months=4,
+        n_sim=8,
+        params=params,
+        rng=rng,
+    )
+    info = params.get("_correlation_repair_info")
+    assert isinstance(info, dict)
+    assert info["repair_applied"] is True
+    assert "eigen_clip" in info["method"]
+    assert info["min_eigenvalue_before"] < 0.0
+    assert info["min_eigenvalue_after"] >= -1e-10

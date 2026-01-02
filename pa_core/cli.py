@@ -1087,7 +1087,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
-    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
+    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any, dict[str, object] | None]:
         params = _build_simulation_params_for_run(run_cfg)
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
@@ -1099,6 +1099,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             params=params,
             rng=run_rng_returns,
         )
+        corr_repair_info = params.get("_correlation_repair_info")
         f_int, f_ext, f_act = deps.draw_financing_series(
             n_months=N_MONTHS,
             n_sim=N_SIMULATIONS,
@@ -1112,9 +1113,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
         # Build summary using wrapper (allows tests to mock this safely)
         summary = create_enhanced_summary(returns, benchmark="Base")
-        return returns, summary, f_int, f_ext, f_act
+        return returns, summary, f_int, f_ext, f_act, corr_repair_info
 
-    returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
+    returns, summary, f_int, f_ext, f_act, corr_repair_info = _run_single(
+        cfg, rng_returns, fin_rngs
+    )
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
@@ -1122,10 +1125,13 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
         base_rng_returns = spawn_rngs(args.seed, 1)[0]
         base_fin_rngs = spawn_agent_rngs(args.seed, ["internal", "external_pa", "active_ext"])
-        _, base_summary, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
+        _, base_summary, _, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
+    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
+        inputs_dict["correlation_repair_applied"] = True
+        inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
 
     # Optional attribution tables for downstream exports
