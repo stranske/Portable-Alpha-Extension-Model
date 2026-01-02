@@ -178,6 +178,11 @@ def finalize_excel_workbook(
     attr_df = _optional_df(inputs_dict, "_attribution_df")
 
     wb = openpyxl.load_workbook(filename)
+    if inputs_dict.get("correlation_repair_applied"):
+        existing = wb.properties.keywords or ""
+        tag = "correlation_repair_applied=true"
+        if tag not in existing:
+            wb.properties.keywords = f"{existing}; {tag}".strip("; ")
     max_autosize_cells = 50_000
     for ws in wb.worksheets:
         ws.freeze_panes = "A2"

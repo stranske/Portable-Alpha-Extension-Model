@@ -23,6 +23,8 @@ class DummyConfig:
     rho_H_E: float = 0.4
     rho_H_M: float = 0.5
     rho_E_M: float = 0.6
+    correlation_repair_mode: str = "warn_fix"
+    correlation_repair_shrinkage: float = 0.0
     return_distribution: str = "normal"
     return_t_df: float = 8.0
     return_copula: str = "gaussian"
