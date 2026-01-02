@@ -164,6 +164,7 @@ class DefaultConfigView:
     analysis_mode: AnalysisMode
     n_simulations: int
     n_months: int
+    financing_mode: str
 
     # Capital allocation
     external_pa_capital: float
@@ -217,6 +218,7 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         analysis_mode=AnalysisMode(m.analysis_mode),
         n_simulations=m.N_SIMULATIONS,
         n_months=m.N_MONTHS,
+        financing_mode=m.financing_mode,
         # Capital allocation
         external_pa_capital=m.external_pa_capital,
         active_ext_capital=m.active_ext_capital,

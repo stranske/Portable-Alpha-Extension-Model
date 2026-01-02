@@ -14,6 +14,7 @@ class TestWizardConfigConsistency:
             "analysis_mode",
             "n_simulations",
             "n_months",
+            "financing_mode",
             "total_fund_capital",
             "external_pa_capital",
             "active_ext_capital",
@@ -71,6 +72,7 @@ class TestWizardConfigConsistency:
         # Test that default values from ModelConfig are preserved in DefaultConfigView
         # (except where intentionally modified for specific analysis modes)
         assert default_view.total_fund_capital == model_config.total_fund_capital
+        assert default_view.financing_mode == model_config.financing_mode
         assert default_view.w_beta_h == model_config.w_beta_H
         assert default_view.w_alpha_h == model_config.w_alpha_H
         assert default_view.theta_extpa == model_config.theta_extpa

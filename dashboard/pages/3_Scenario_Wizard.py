@@ -51,6 +51,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     analysis_mode = config.analysis_mode
     n_simulations = int(config.n_simulations)
     n_months = int(config.n_months)
+    financing_mode = config.financing_mode
 
     # Prefer session-state overrides so applied suggestions persist across steps.
     total_capital = float(ss.get(_TOTAL_CAPITAL_KEY, config.total_fund_capital))
@@ -84,7 +85,6 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     vol_mult = float(fs.get("volatility_multiple", 3.0))
     term_m = float(fs.get("term_months", 1.0))
     sched_path = fs.get("schedule_path")
-    financing_mode = ss.get("financing_mode", "broadcast")
 
     yaml_dict: Dict[str, Any] = {
         "N_SIMULATIONS": n_simulations,
