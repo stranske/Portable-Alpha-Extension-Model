@@ -1031,6 +1031,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
         import numpy as np
+
         from .units import normalize_return_inputs
 
         return_inputs = normalize_return_inputs(run_cfg)
