@@ -66,9 +66,7 @@ def test_risk_metrics_agent_matches_individual_functions(
     assert metrics.monthly_compounded_return_below_zero_fraction == pytest.approx(
         compounded_return_below_zero_fraction(returns)
     )
-    assert metrics.monthly_breach_probability == pytest.approx(
-        breach_probability(returns, -0.02)
-    )
+    assert metrics.monthly_breach_probability == pytest.approx(breach_probability(returns, -0.02))
     assert metrics.monthly_breach_count_path0 == breach_count(returns, -0.02)
 
 
