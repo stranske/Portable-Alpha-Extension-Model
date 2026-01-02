@@ -246,7 +246,7 @@ class ModelConfig(BaseModel):
     financing_mode: Literal["broadcast", "per_path"] = Field(
         default="broadcast",
         description=(
-            "Financing draw mode. broadcast reuses one monthly financing vector across "
+            "Financing draw mode. broadcast reuses one financing vector across "
             "all simulations; per_path draws independent financing paths per scenario."
         ),
     )
