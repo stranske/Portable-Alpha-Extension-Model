@@ -19,6 +19,36 @@ _ONE_PX_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
 )
 
+_LEGACY_SUMMARY_COLUMN_MAP = {
+    "AnnReturn": "terminal_AnnReturn",
+    "ExcessReturn": "terminal_ExcessReturn",
+    "AnnVol": "monthly_AnnVol",
+    "VaR": "monthly_VaR",
+    "CVaR": "monthly_CVaR",
+    "TerminalCVaR": "terminal_CVaR",
+    "MaxDD": "monthly_MaxDD",
+    "TimeUnderWater": "monthly_TimeUnderWater",
+    "BreachProb": "monthly_BreachProb",
+    "BreachCount": "monthly_BreachCountPath0",
+    "BreachCountPath0": "monthly_BreachCountPath0",
+    "ShortfallProb": "terminal_ShortfallProb",
+    "TrackingErr": "monthly_TE",
+    "TE": "monthly_TE",
+}
+
+
+def normalize_summary_columns(summary_df: pd.DataFrame) -> pd.DataFrame:
+    """Return a copy of summary columns normalized to monthly_/terminal_ prefixes."""
+    if summary_df.empty:
+        return summary_df
+    rename: dict[str, str] = {}
+    for old, new in _LEGACY_SUMMARY_COLUMN_MAP.items():
+        if old in summary_df.columns and new not in summary_df.columns:
+            rename[old] = new
+    if not rename:
+        return summary_df
+    return summary_df.rename(columns=rename)
+
 
 def export_to_excel(
     inputs_dict: Dict[str, Any],
@@ -76,7 +106,7 @@ def export_to_excel(
                 }
             )
             meta_df.to_excel(writer, sheet_name="Metadata", index=False)
-        summary_df = summary_df.copy()
+        summary_df = normalize_summary_columns(summary_df.copy())
         summary_df["terminal_ShortfallProb"] = summary_df.get(
             "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
         )
@@ -176,6 +206,7 @@ def finalize_excel_workbook(
     filename: str, inputs_dict: Dict[str, Any], summary_df: pd.DataFrame
 ) -> None:
     """Apply formatting and embed charts once all sheets are written."""
+    summary_df = normalize_summary_columns(summary_df.copy())
     sens_df = _optional_df(inputs_dict, "_sensitivity_df")
     attr_df = _optional_df(inputs_dict, "_attribution_df")
 

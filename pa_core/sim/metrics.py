@@ -57,7 +57,11 @@ def active_return_volatility(
     *,
     periods_per_year: int = 12,
 ) -> float:
-    """Return annualised volatility of monthly active returns (tracking error)."""
+    """Return annualised volatility of monthly active returns (tracking error).
+
+    The volatility is computed over all monthly draws (and all paths when 2D),
+    then annualised using ``periods_per_year``.
+    """
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
     diff = np.asarray(strategy) - np.asarray(benchmark)
@@ -86,7 +90,11 @@ def tracking_error(
 
 
 def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return monthly VaR from all monthly draws at the given confidence level."""
+    """Return monthly VaR from all monthly draws at the given confidence level.
+
+    The VaR is computed on the flattened draws (paths x months), so each month
+    of each path is weighted equally.
+    """
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
     flat = np.asarray(returns).reshape(-1)
@@ -95,13 +103,17 @@ def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
 
 
 def compound(returns: ArrayLike) -> ArrayLike:
-    """Return cumulative compounded returns along axis 1."""
+    """Return cumulative compounded returns along axis 1 (per-path time series)."""
     arr = np.asarray(returns, dtype=np.float64)
     return np.cumprod(1.0 + arr, axis=1) - 1.0  # type: ignore[no-any-return]
 
 
 def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
-    """Return annualised compound return from terminal compounded outcomes."""
+    """Return annualised compound return from terminal compounded outcomes.
+
+    Each path contributes one terminal compounded return, which is averaged
+    before annualising.
+    """
     comp = compound(returns)
     total_return = comp[:, -1]
     years = returns.shape[1] / periods_per_year
@@ -109,7 +121,11 @@ def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
 
 
 def annualised_vol(returns: ArrayLike, periods_per_year: int = 12) -> float:
-    """Return annualised volatility from monthly returns."""
+    """Return annualised volatility from monthly returns.
+
+    The volatility is computed over all monthly draws (paths x months) and then
+    annualised.
+    """
     arr = np.asarray(returns, dtype=np.float64)
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
@@ -213,8 +229,8 @@ def shortfall_probability(
 def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
     """Return the number of months below ``threshold`` in a selected path.
 
-    This is a path-specific diagnostic (defaulting to path 0), not an average
-    across simulations.
+    This is a path-specific diagnostic (defaulting to path 0). It does not
+    average across simulations.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -235,6 +251,9 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
     (``returns < VaR``), so observations equal to the VaR are excluded. If the
     strict tail is empty (for example when all observations equal the VaR), the
     function falls back to returning the VaR itself.
+
+    The function operates on the flattened input array. For monthly returns
+    this corresponds to CVaR across all monthly draws.
     """
 
     if not 0 < confidence < 1:
@@ -248,14 +267,17 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
 
 
 def cvar_monthly(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return monthly CVaR computed over all monthly draws."""
+    """Return monthly CVaR computed over all monthly draws (paths x months)."""
     return conditional_value_at_risk(returns, confidence=confidence)
 
 
 def cvar_terminal(
     returns: ArrayLike, confidence: float = 0.95, *, periods_per_year: int = 12
 ) -> float:
-    """Return terminal CVaR computed from horizon compounded outcomes."""
+    """Return terminal CVaR computed from horizon compounded outcomes.
+
+    The CVaR is computed over one terminal compounded return per path.
+    """
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
         raise ValueError("returns must not be empty")
@@ -267,7 +289,11 @@ def cvar_terminal(
 
 
 def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
-    """Return the worst drawdown observed over the full compounded horizon."""
+    """Return the worst drawdown observed over the full compounded horizon.
+
+    Drawdowns are computed on compounded wealth paths, and the minimum drawdown
+    across all paths and periods is returned.
+    """
 
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
@@ -294,7 +320,10 @@ def max_drawdown(returns: ArrayLike) -> float:
 
 
 def compounded_return_below_zero_fraction(returns: ArrayLike) -> float:
-    """Return fraction of monthly periods with negative compounded return."""
+    """Return fraction of monthly periods with negative compounded return.
+
+    The fraction is computed over all (path, month) compounded outcomes.
+    """
 
     comp = compound(returns)
     return float(np.mean(comp < 0.0))

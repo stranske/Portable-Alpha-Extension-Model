@@ -13,6 +13,7 @@ from openpyxl.utils import get_column_letter
 from ..contracts import SUMMARY_REQUIRED_COLUMNS
 from ..types import SweepResult
 from ..viz import risk_return, theme
+from .excel import normalize_summary_columns
 
 __all__ = ["export_sweep_results"]
 
@@ -43,7 +44,7 @@ def export_sweep_results(
             summary_obj = res["summary"]
             if not isinstance(summary_obj, pd.DataFrame):
                 continue
-            summary = summary_obj.copy()
+            summary = normalize_summary_columns(summary_obj.copy())
             summary["terminal_ShortfallProb"] = summary.get(
                 "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
             )
