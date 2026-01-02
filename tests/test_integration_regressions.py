@@ -14,7 +14,9 @@ from pa_core.reporting.attribution import (
     compute_sleeve_risk_attribution,
 )
 from pa_core.reporting.excel import export_to_excel
+from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_financing_series
+from pa_core.validators import select_vol_regime_sigma
 
 openpyxl = pytest.importorskip("openpyxl")
 yaml = pytest.importorskip("yaml")
@@ -48,20 +50,13 @@ def test_integration_regression_active_ext_financing_export(tmp_path: Path) -> N
     expected_act_alpha = cfg.active_ext_capital / cfg.total_fund_capital * active_share * cfg.mu_E
     assert active_alpha.iloc[0] == pytest.approx(expected_act_alpha, rel=1e-6)
 
-    fin_params = {
-        "internal_financing_mean_month": cfg.internal_financing_mean_month,
-        "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
-        "internal_spike_prob": cfg.internal_spike_prob,
-        "internal_spike_factor": cfg.internal_spike_factor,
-        "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
-        "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
-        "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
-        "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
-        "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
-        "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
-        "act_ext_spike_prob": cfg.act_ext_spike_prob,
-        "act_ext_spike_factor": cfg.act_ext_spike_factor,
-    }
+    mu_idx = float(idx_series.mean())
+    idx_sigma, _, _ = select_vol_regime_sigma(
+        idx_series,
+        regime=cfg.vol_regime,
+        window=cfg.vol_regime_window,
+    )
+    fin_params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
     fin_rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
     _f_int, _f_ext, f_act = draw_financing_series(
         n_months=cfg.N_MONTHS,

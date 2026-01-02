@@ -23,7 +23,7 @@ from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
-from .sim.params import build_financing_params, build_return_params, build_simulation_params
+from .sim.params import build_simulation_params
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
 from .units import get_index_series_unit, normalize_index_series
@@ -257,9 +257,11 @@ def run_parameter_sweep(
             n_samples=n_samples,
         )
         base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
-        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
-        shock_params.update(
-            {
+        shock_params = build_simulation_params(
+            cfg,
+            mu_idx=mu_idx,
+            idx_sigma=float(base_sigma[0]),
+            return_overrides={
                 "default_sigma_H": float(base_sigma[1]),
                 "default_sigma_E": float(base_sigma[2]),
                 "default_sigma_M": float(base_sigma[3]),
@@ -269,7 +271,7 @@ def run_parameter_sweep(
                 "rho_H_E": float(base_corr[1, 2]),
                 "rho_H_M": float(base_corr[1, 3]),
                 "rho_E_M": float(base_corr[2, 3]),
-            }
+            },
         )
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
@@ -282,7 +284,8 @@ def run_parameter_sweep(
 
     financing_series = None
     if reuse_financing_series:
-        financing_params = build_financing_params(cfg)
+        idx_sigma_fin = float(base_sigma[0]) if reuse_return_shocks else float(idx_sigma)
+        financing_params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_fin)
         fin_rngs_base: Dict[str, GeneratorLike] = {}
         for name in fin_rngs.keys():
             tmp_rng = spawn_rngs(None, 1)[0]

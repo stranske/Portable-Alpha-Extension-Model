@@ -4,6 +4,9 @@ from typing import Any, Dict, Optional
 
 from ..config import ModelConfig
 
+CANONICAL_PARAMS_MARKER = "__pa_sim_params__"
+CANONICAL_PARAMS_VERSION = "build_simulation_params_v1"
+
 
 def build_return_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) -> Dict[str, Any]:
     """Return draw parameters shared across CLI, sweep, and orchestrator."""
@@ -62,4 +65,5 @@ def build_simulation_params(
     if return_overrides:
         params.update(return_overrides)
     params.update(build_financing_params(cfg))
+    params[CANONICAL_PARAMS_MARKER] = CANONICAL_PARAMS_VERSION
     return params

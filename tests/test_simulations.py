@@ -1,11 +1,41 @@
 import numpy as np
 
 from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
+from pa_core.config import ModelConfig
 from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
+from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_financing_series
 from pa_core.simulations import simulate_agents, simulate_financing
 from pa_core.validators import SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD
+
+
+def _build_financing_params(**updates: float) -> dict[str, float | str | None]:
+    base_cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        return_unit="monthly",
+        mu_H=0.0,
+        sigma_H=0.0,
+        mu_E=0.0,
+        sigma_E=0.0,
+        mu_M=0.0,
+        sigma_M=0.0,
+        internal_financing_mean_month=0.0,
+        internal_financing_sigma_month=0.0,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.0,
+        ext_pa_financing_sigma_month=0.0,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.0,
+        act_ext_financing_sigma_month=0.0,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
+    cfg = base_cfg.model_copy(update=updates)
+    return build_simulation_params(cfg, mu_idx=0.0, idx_sigma=0.0)
 
 
 def test_build_cov_matrix_shape():
@@ -87,20 +117,20 @@ def test_total_returns_sum_weighted_sleeves():
 
 
 def test_draw_financing_series_broadcasts_monthly_vector():
-    params = {
-        "internal_financing_mean_month": 0.02,
-        "internal_financing_sigma_month": 0.05,
-        "internal_spike_prob": 0.0,
-        "internal_spike_factor": 0.0,
-        "ext_pa_financing_mean_month": 0.02,
-        "ext_pa_financing_sigma_month": 0.05,
-        "ext_pa_spike_prob": 0.0,
-        "ext_pa_spike_factor": 0.0,
-        "act_ext_financing_mean_month": 0.02,
-        "act_ext_financing_sigma_month": 0.05,
-        "act_ext_spike_prob": 0.0,
-        "act_ext_spike_factor": 0.0,
-    }
+    params = _build_financing_params(
+        internal_financing_mean_month=0.02,
+        internal_financing_sigma_month=0.05,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.02,
+        ext_pa_financing_sigma_month=0.05,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.02,
+        act_ext_financing_sigma_month=0.05,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
     rng = np.random.default_rng(17)
     f_int, f_ext, f_act = draw_financing_series(n_months=6, n_sim=3, params=params, rng=rng)
     for mat in (f_int, f_ext, f_act):
@@ -111,20 +141,20 @@ def test_draw_financing_series_broadcasts_monthly_vector():
 
 
 def test_draw_financing_series_rngs():
-    params = {
-        "internal_financing_mean_month": 0.0,
-        "internal_financing_sigma_month": 0.01,
-        "internal_spike_prob": 0.0,
-        "internal_spike_factor": 0.0,
-        "ext_pa_financing_mean_month": 0.0,
-        "ext_pa_financing_sigma_month": 0.01,
-        "ext_pa_spike_prob": 0.0,
-        "ext_pa_spike_factor": 0.0,
-        "act_ext_financing_mean_month": 0.0,
-        "act_ext_financing_sigma_month": 0.01,
-        "act_ext_spike_prob": 0.0,
-        "act_ext_spike_factor": 0.0,
-    }
+    params = _build_financing_params(
+        internal_financing_mean_month=0.0,
+        internal_financing_sigma_month=0.01,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.0,
+        ext_pa_financing_sigma_month=0.01,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.0,
+        act_ext_financing_sigma_month=0.01,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
     rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
     out1 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs)
     rngs2 = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
