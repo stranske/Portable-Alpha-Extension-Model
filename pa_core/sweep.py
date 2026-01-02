@@ -26,7 +26,13 @@ from .sim.metrics import summary_table
 from .sim.params import build_simulation_params
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
-from .units import get_index_series_unit, normalize_index_series
+from .units import (
+    convert_mean,
+    convert_volatility,
+    get_index_series_unit,
+    normalize_index_series,
+    normalize_return_inputs,
+)
 from .validators import select_vol_regime_sigma
 
 
@@ -77,11 +83,19 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                         cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct,
                         cfg.alpha_ext_vol_step_pct,
                     ):
+                        mu_H_val = convert_mean(mu_H / 100.0, from_unit="annual", to_unit="monthly")
+                        sigma_H_val = convert_volatility(
+                            sigma_H / 100.0, from_unit="annual", to_unit="monthly"
+                        )
+                        mu_E_val = convert_mean(mu_E / 100.0, from_unit="annual", to_unit="monthly")
+                        sigma_E_val = convert_volatility(
+                            sigma_E / 100.0, from_unit="annual", to_unit="monthly"
+                        )
                         yield {
-                            "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100,
-                            "mu_E": mu_E / 100,
-                            "sigma_E": sigma_E / 100,
+                            "mu_H": mu_H_val,
+                            "sigma_H": sigma_H_val,
+                            "mu_E": mu_E_val,
+                            "sigma_E": sigma_E_val,
                         }
     elif cfg.analysis_mode == "alpha_shares":
         for theta_extpa in np.arange(
@@ -239,9 +253,10 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
-        sigma_h = float(cfg.sigma_H)
-        sigma_e = float(cfg.sigma_E)
-        sigma_m = float(cfg.sigma_M)
+        return_inputs = normalize_return_inputs(cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -311,9 +326,10 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        sigma_h = float(mod_cfg.sigma_H)
-        sigma_e = float(mod_cfg.sigma_E)
-        sigma_m = float(mod_cfg.sigma_M)
+        return_inputs = normalize_return_inputs(mod_cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
 
         cov = build_cov_matrix(
             mod_cfg.rho_idx_H,

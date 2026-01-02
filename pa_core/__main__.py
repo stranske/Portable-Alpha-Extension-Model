@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import fields, is_dataclass
 from typing import Literal, Optional, Sequence, cast
 
@@ -74,7 +75,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
     from .simulations import simulate_agents
-    from .units import get_index_series_unit, normalize_index_series
+    from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
@@ -98,9 +99,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     n_samples = int(len(idx_series))
 
-    sigma_H = cfg.sigma_H
-    sigma_E = cfg.sigma_E
-    sigma_M = cfg.sigma_M
+    return_inputs = normalize_return_inputs(cfg)
+    sigma_H = return_inputs["sigma_H"]
+    sigma_E = return_inputs["sigma_E"]
+    sigma_M = return_inputs["sigma_M"]
 
     covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
     if covariance_shrinkage_value not in ("none", "ledoit_wolf"):
@@ -135,6 +137,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         params=params,
         rng=rng_returns,
     )
+    corr_repair_info = params.get("_correlation_repair_info")
     f_int, f_ext, f_act = draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
@@ -149,5 +152,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     summary = summary_table(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
+    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
+        inputs_dict["correlation_repair_applied"] = True
+        inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)

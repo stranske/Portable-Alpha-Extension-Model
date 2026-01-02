@@ -14,7 +14,7 @@ from .sim.params import build_simulation_params
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .types import ArrayLike
-from .units import get_index_series_unit, normalize_index_series
+from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 from .validators import select_vol_regime_sigma
 
 
@@ -47,9 +47,10 @@ class SimulatorOrchestrator:
         )
         n_samples = int(len(self.idx_series))
 
-        sigma_h = float(self.cfg.sigma_H)
-        sigma_e = float(self.cfg.sigma_E)
-        sigma_m = float(self.cfg.sigma_M)
+        return_inputs = normalize_return_inputs(self.cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
 
         cov = build_cov_matrix(
             self.cfg.rho_idx_H,

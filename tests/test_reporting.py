@@ -57,3 +57,15 @@ def test_export_to_excel_adds_attribution_and_risk_sheets(tmp_path: Path) -> Non
 
     wb = openpyxl.load_workbook(file_path)
     assert {"Attribution", "RiskAttribution"} <= set(wb.sheetnames)
+
+
+def test_export_to_excel_sets_correlation_repair_metadata(tmp_path: Path) -> None:
+    inputs = {"correlation_repair_applied": True}
+    summary = pd.DataFrame({"Total": [0.2]})
+    raw = {"Base": pd.DataFrame([[0.1, 0.2]], columns=[0, 1])}
+    file_path = tmp_path / "repair.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    wb = openpyxl.load_workbook(file_path)
+    assert "correlation_repair_applied=true" in (wb.properties.keywords or "")

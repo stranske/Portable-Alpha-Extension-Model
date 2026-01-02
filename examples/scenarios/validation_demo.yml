@@ -17,12 +17,12 @@ rho_H_M: 0.10
 rho_E_M: 0.0
 
 # Other required parameters
-mu_H: 0.04
-sigma_H: 0.01
-mu_E: 0.05
-sigma_E: 0.02
-mu_M: 0.03
-sigma_M: 0.02
+mu_H_annual: 0.04
+sigma_H_annual: 0.01
+mu_E_annual: 0.05
+sigma_E_annual: 0.02
+mu_M_annual: 0.03
+sigma_M_annual: 0.02
 
 risk_metrics:
   - Return
