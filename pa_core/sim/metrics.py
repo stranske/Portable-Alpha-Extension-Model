@@ -78,7 +78,7 @@ def tracking_error(
     *,
     periods_per_year: int = 12,
 ) -> float:
-    """Deprecated alias for :func:`active_return_volatility`."""
+    """Deprecated alias for :func:`active_return_volatility` (monthly-draw metric)."""
     warnings.warn(
         "tracking_error is deprecated; use active_return_volatility",
         DeprecationWarning,
@@ -222,7 +222,7 @@ def shortfall_probability(
     *,
     periods_per_year: int = 12,
 ) -> float:
-    """Deprecated alias for :func:`terminal_return_below_threshold_prob`."""
+    """Deprecated alias for :func:`terminal_return_below_threshold_prob` (terminal metric)."""
     warnings.warn(
         "shortfall_probability is deprecated; use terminal_return_below_threshold_prob",
         DeprecationWarning,
@@ -337,7 +337,7 @@ def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
 
 
 def max_drawdown(returns: ArrayLike) -> float:
-    """Deprecated alias for :func:`max_cumulative_sum_drawdown`."""
+    """Deprecated alias for :func:`max_cumulative_sum_drawdown` (monthly-path metric)."""
     warnings.warn(
         "max_drawdown is deprecated; use max_cumulative_sum_drawdown",
         DeprecationWarning,
@@ -358,7 +358,7 @@ def compounded_return_below_zero_fraction(returns: ArrayLike) -> float:
 
 
 def time_under_water(returns: ArrayLike) -> float:
-    """Deprecated alias for :func:`compounded_return_below_zero_fraction`."""
+    """Deprecated alias for :func:`compounded_return_below_zero_fraction` (monthly-draw metric)."""
     warnings.warn(
         "time_under_water is deprecated; use compounded_return_below_zero_fraction",
         DeprecationWarning,
