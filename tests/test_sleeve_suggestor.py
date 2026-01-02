@@ -134,7 +134,7 @@ def test_cli_sleeve_suggestion_applies_to_inputs(tmp_path, monkeypatch):
         "external_pa_capital": 100.0,
         "active_ext_capital": 50.0,
         "internal_pa_capital": 150.0,
-        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
@@ -255,10 +255,12 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
         constraint_scope="total",
     )
     assert not df.empty
-    assert {"Total_TE", "Total_BreachProb", "Total_CVaR"}.issubset(df.columns)
-    assert (df["Total_TE"] <= 1.5).all()
-    assert (df["Total_BreachProb"] <= 1.0).all()
-    assert (df["Total_CVaR"].abs() <= 1.0).all()
+    assert {"Total_monthly_TE", "Total_monthly_BreachProb", "Total_monthly_CVaR"}.issubset(
+        df.columns
+    )
+    assert (df["Total_monthly_TE"] <= 1.5).all()
+    assert (df["Total_monthly_BreachProb"] <= 1.0).all()
+    assert (df["Total_monthly_CVaR"].abs() <= 1.0).all()
 
 
 def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
@@ -350,7 +352,7 @@ def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
         "InternalPA": np.zeros((1, 1)),
     }
     summary = summary_table(returns, benchmark="Base")
-    summary.loc[summary["Agent"] == "ExternalPA", "TE"] = np.nan
+    summary.loc[summary["Agent"] == "ExternalPA", "monthly_TE"] = np.nan
 
     class DummyOrchestrator:
         def __init__(self, cfg, idx_series):
@@ -383,7 +385,7 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
         "external_pa_capital": 500.0,
         "active_ext_capital": 250.0,
         "internal_pa_capital": 250.0,
-        "risk_metrics": ["ShortfallProb"],
+        "risk_metrics": ["terminal_ShortfallProb"],
     }
     cfg_path = tmp_path / "cfg.yml"
     cfg_path.write_text(yaml.safe_dump(cfg_data))
@@ -444,45 +446,51 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
         assert not sub.empty
         summary_row = sub.iloc[0]
         np.testing.assert_allclose(
-            float(summary_row["TE"]),
-            float(row[f"{agent}_TE"]),
+            float(summary_row["monthly_TE"]),
+            float(row[f"{agent}_monthly_TE"]),
         )
         np.testing.assert_allclose(
-            float(summary_row["BreachProb"]),
-            float(row[f"{agent}_BreachProb"]),
+            float(summary_row["monthly_BreachProb"]),
+            float(row[f"{agent}_monthly_BreachProb"]),
         )
         np.testing.assert_allclose(
-            float(summary_row["CVaR"]),
-            float(row[f"{agent}_CVaR"]),
+            float(summary_row["monthly_CVaR"]),
+            float(row[f"{agent}_monthly_CVaR"]),
         )
 
 
 def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
     per_cap = {
         "ExternalPA": {
-            "AnnReturn": 0.03,
-            "ExcessReturn": 0.025,
-            "TE": 0.0001,
-            "BreachProb": 0.0002,
-            "CVaR": -0.0003,
+            "terminal_AnnReturn": 0.03,
+            "terminal_ExcessReturn": 0.025,
+            "monthly_TE": 0.0001,
+            "monthly_BreachProb": 0.0002,
+            "monthly_CVaR": -0.0003,
         },
         "ActiveExt": {
-            "AnnReturn": 0.01,
-            "ExcessReturn": 0.008,
-            "TE": 0.0001,
-            "BreachProb": 0.0002,
-            "CVaR": -0.0003,
+            "terminal_AnnReturn": 0.01,
+            "terminal_ExcessReturn": 0.008,
+            "monthly_TE": 0.0001,
+            "monthly_BreachProb": 0.0002,
+            "monthly_CVaR": -0.0003,
         },
         "InternalPA": {
-            "AnnReturn": 0.02,
-            "ExcessReturn": 0.015,
-            "TE": 0.0001,
-            "BreachProb": 0.0002,
-            "CVaR": -0.0003,
+            "terminal_AnnReturn": 0.02,
+            "terminal_ExcessReturn": 0.015,
+            "monthly_TE": 0.0001,
+            "monthly_BreachProb": 0.0002,
+            "monthly_CVaR": -0.0003,
         },
     }
     rows = []
-    totals = {"AnnReturn": 0.0, "ExcessReturn": 0.0, "TE": 0.0, "BreachProb": 0.0, "CVaR": 0.0}
+    totals = {
+        "terminal_AnnReturn": 0.0,
+        "terminal_ExcessReturn": 0.0,
+        "monthly_TE": 0.0,
+        "monthly_BreachProb": 0.0,
+        "monthly_CVaR": 0.0,
+    }
     for agent, capital in (
         ("ExternalPA", cfg.external_pa_capital),
         ("ActiveExt", cfg.active_ext_capital),

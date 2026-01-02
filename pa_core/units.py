@@ -9,8 +9,8 @@ Policy summary
   unit does not apply to the index series.
 - Breach thresholds compare monthly returns; shortfall thresholds compare an
   annualised compounded return hurdle.
-- Summary tables report annualised return/volatility/TE; probabilities and
-  counts are unitless.
+- Summary tables report annualised terminal_AnnReturn/monthly_AnnVol/monthly_TE;
+  probabilities and counts are unitless.
 """
 
 from __future__ import annotations
@@ -238,7 +238,7 @@ def get_threshold_unit() -> Mapping[str, Unit]:
 
 
 def get_summary_table_unit(periods_per_year: int | None = None) -> Unit:
-    """Return the unit for summary table AnnReturn/AnnVol/TE outputs.
+    """Return the unit for summary table terminal_AnnReturn/monthly_AnnVol/monthly_TE outputs.
 
     Summary tables are annualised regardless of ``return_unit`` inputs. When
     ``periods_per_year`` is 1, the outputs are effectively monthly.

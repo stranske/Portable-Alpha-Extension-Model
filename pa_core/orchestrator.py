@@ -105,7 +105,8 @@ class SimulatorOrchestrator:
 
         Uses the PSD-corrected covariance matrix to derive implied
         volatilities and correlations before drawing joint returns. Summary
-        table metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
+        table metrics (terminal_AnnReturn/monthly_AnnVol/monthly_TE) are annualised
+        from monthly returns.
         """
 
         r_beta, r_H, r_E, r_M, f_int, f_ext, f_act = self.draw_streams(seed=seed)

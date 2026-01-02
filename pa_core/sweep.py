@@ -137,16 +137,17 @@ logger = logging.getLogger(__name__)
 EMPTY_RESULTS_COLUMNS: pd.Index = pd.Index(
     [
         "Agent",
-        "AnnReturn",
-        "AnnVol",
-        "VaR",
-        "CVaR",
-        "MaxDD",
-        "TimeUnderWater",
-        "BreachProb",
-        "BreachCount",
-        "ShortfallProb",
-        "TE",
+        "terminal_AnnReturn",
+        "monthly_AnnVol",
+        "monthly_VaR",
+        "monthly_CVaR",
+        "terminal_CVaR",
+        "monthly_MaxDD",
+        "monthly_TimeUnderWater",
+        "monthly_BreachProb",
+        "monthly_BreachCountPath0",
+        "terminal_ShortfallProb",
+        "monthly_TE",
         "combination_id",
     ],
     dtype="object",
@@ -170,7 +171,8 @@ def run_parameter_sweep(
     """Run the parameter sweep and collect results.
 
     Index returns are normalised to monthly units before simulation, and
-    summary metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
+    summary metrics (terminal_AnnReturn/monthly_AnnVol/monthly_TE) are annualised
+    from monthly returns.
 
     Parameters
     ----------

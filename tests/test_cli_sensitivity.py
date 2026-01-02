@@ -77,7 +77,7 @@ sigma_M: 0.01
             mock_build_agents.return_value = []
             mock_simulate.return_value = {"Base": [[0.01, 0.02, 0.01]]}
             mock_summary.return_value = pd.DataFrame(
-                {"Agent": ["Base"], "AnnReturn": [8.5], "AnnVol": [12.0]}
+                {"Agent": ["Base"], "terminal_AnnReturn": [8.5], "monthly_AnnVol": [12.0]}
             )
 
             # Test that --sensitivity flag doesn't cause parser error
@@ -159,7 +159,7 @@ sigma_M: 0.01
         ):
             # Mock simulation results
             mock_summary.return_value = pd.DataFrame(
-                {"Agent": ["Base"], "AnnReturn": [8.5], "AnnVol": [12.0]}
+                {"Agent": ["Base"], "terminal_AnnReturn": [8.5], "monthly_AnnVol": [12.0]}
             )
 
             mock_build_agents.return_value = []
@@ -261,7 +261,7 @@ sigma_M: 0.01
     monkeypatch.setattr(
         "pa_core.cli.create_enhanced_summary",
         lambda *_args, **_kwargs: pd.DataFrame(
-            {"Agent": ["Base"], "AnnReturn": [0.05], "AnnVol": [0.1]}
+            {"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1]}
         ),
     )
 
@@ -354,7 +354,7 @@ sigma_M: 0.01
         ):
             # Mock main simulation to return valid results
             mock_summary.return_value = pd.DataFrame(
-                {"Agent": ["Base"], "AnnReturn": [8.5], "AnnVol": [12.0]}
+                {"Agent": ["Base"], "terminal_AnnReturn": [8.5], "monthly_AnnVol": [12.0]}
             )
 
             # Mock one of the evaluation steps to raise an exception

@@ -22,7 +22,9 @@ def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monke
     results = [
         {
             "combination_id": 1,
-            "summary": pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05], "AnnVol": [0.1]}),
+            "summary": pd.DataFrame(
+                {"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1]}
+            ),
         }
     ]
 
@@ -41,7 +43,7 @@ def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monke
         assert wb[name].freeze_panes == "A2"
 
     header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
-    assert "ShortfallProb" in header
+    assert "terminal_ShortfallProb" in header
 
 
 def test_export_sweep_results_writes_summary_when_empty(tmp_path: Path) -> None:
@@ -52,13 +54,13 @@ def test_export_sweep_results_writes_summary_when_empty(tmp_path: Path) -> None:
     assert "Summary" in wb.sheetnames
 
     header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
-    assert "ShortfallProb" in header
+    assert "terminal_ShortfallProb" in header
 
 
 def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) -> None:
     from pa_core.reporting.export_packet import create_export_packet
 
-    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
     raw_returns = {"Base": pd.DataFrame([[0.01, 0.02]], columns=[0, 1])}
     inputs = {"foo": 1}
 
@@ -95,7 +97,7 @@ def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) ->
 def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
     from pa_core.reporting.export_packet import create_export_packet
 
-    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
     raw_returns = {"Base": pd.DataFrame([[0.01, 0.02]], columns=[0, 1])}
     sens_df = pd.DataFrame(
         {
@@ -108,7 +110,7 @@ def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
             "DeltaAbs": [0.01],
         }
     )
-    sens_df.attrs.update({"metric": "AnnReturn", "units": "%", "tickformat": ".2%"})
+    sens_df.attrs.update({"metric": "terminal_AnnReturn", "units": "%", "tickformat": ".2%"})
     inputs = {"_sensitivity_df": sens_df}
 
     class _Fig:
@@ -129,7 +131,7 @@ def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
 def test_export_to_excel_includes_tornado_snapshot(tmp_path: Path) -> None:
     from pa_core.reporting.excel import export_to_excel
 
-    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
     sens_df = pd.DataFrame(
         {
             "Parameter": ["mu_H", "sigma_H"],
@@ -141,7 +143,7 @@ def test_export_to_excel_includes_tornado_snapshot(tmp_path: Path) -> None:
             "DeltaAbs": [0.01, 0.005],
         }
     )
-    sens_df.attrs.update({"metric": "AnnReturn", "units": "%", "tickformat": ".2%"})
+    sens_df.attrs.update({"metric": "terminal_AnnReturn", "units": "%", "tickformat": ".2%"})
     inputs = {"_sensitivity_df": sens_df}
     out_path = tmp_path / "outputs.xlsx"
 
@@ -156,7 +158,7 @@ def test_export_to_excel_includes_tornado_snapshot(tmp_path: Path) -> None:
 def test_export_to_excel_includes_sunburst_snapshot(tmp_path: Path) -> None:
     from pa_core.reporting.excel import export_to_excel
 
-    summary = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05]})
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
     attr_df = pd.DataFrame({"Agent": ["Base"], "Sub": ["Core"], "Return": [0.01]})
     risk_df = pd.DataFrame(
         {

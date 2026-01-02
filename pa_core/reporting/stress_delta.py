@@ -8,15 +8,16 @@ import pandas as pd
 import pandas.api.types as pdt
 
 _PCT_COLUMNS = {
-    "AnnReturn",
-    "AnnVol",
-    "VaR",
-    "CVaR",
-    "MaxDD",
-    "TimeUnderWater",
-    "BreachProb",
-    "ShortfallProb",
-    "TE",
+    "terminal_AnnReturn",
+    "monthly_AnnVol",
+    "monthly_VaR",
+    "monthly_CVaR",
+    "terminal_CVaR",
+    "monthly_MaxDD",
+    "monthly_TimeUnderWater",
+    "monthly_BreachProb",
+    "terminal_ShortfallProb",
+    "monthly_TE",
 }
 
 

@@ -511,7 +511,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             key="sleeve_max_breach",
         )
         st.number_input(
-            "Max CVaR",
+            "Max monthly_CVaR",
             min_value=0.0,
             value=st.session_state.get("sleeve_max_cvar", 0.05),
             step=0.01,
@@ -594,7 +594,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
     st.write(
         f"Max TE: {constraints_used['max_te']:.2%} | "
         f"Max Breach: {constraints_used['max_breach']:.2%} | "
-        f"Max CVaR: {constraints_used['max_cvar']:.2%} | "
+        f"Max monthly_CVaR: {constraints_used['max_cvar']:.2%} | "
         f"Scope: {scope_labels.get(constraints_used['constraint_scope'], constraints_used['constraint_scope'])}"
     )
 
@@ -622,18 +622,18 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         "active_ext_capital",
         "internal_pa_capital",
         "risk_score",
-        "ExternalPA_TE",
-        "ExternalPA_BreachProb",
-        "ExternalPA_CVaR",
-        "ActiveExt_TE",
-        "ActiveExt_BreachProb",
-        "ActiveExt_CVaR",
-        "InternalPA_TE",
-        "InternalPA_BreachProb",
-        "InternalPA_CVaR",
-        "Total_TE",
-        "Total_BreachProb",
-        "Total_CVaR",
+        "ExternalPA_monthly_TE",
+        "ExternalPA_monthly_BreachProb",
+        "ExternalPA_monthly_CVaR",
+        "ActiveExt_monthly_TE",
+        "ActiveExt_monthly_BreachProb",
+        "ActiveExt_monthly_CVaR",
+        "InternalPA_monthly_TE",
+        "InternalPA_monthly_BreachProb",
+        "InternalPA_monthly_CVaR",
+        "Total_monthly_TE",
+        "Total_monthly_BreachProb",
+        "Total_monthly_CVaR",
     ]
     display_cols = [col for col in preferred_cols if col in ranked.columns]
     tradeoff_table = ranked.loc[:, display_cols].head(int(top_n))
@@ -1146,7 +1146,7 @@ def main() -> None:
                         "act_ext_spike_prob": config_data.get("act_ext_spike_prob", 0.0),
                         "act_ext_spike_factor": config_data.get("act_ext_spike_factor", 0.0),
                         "risk_metrics": config_data.get(
-                            "risk_metrics", ["Return", "Risk", "ShortfallProb"]
+                            "risk_metrics", ["Return", "Risk", "terminal_ShortfallProb"]
                         ),
                     }
                 )

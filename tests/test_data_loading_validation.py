@@ -186,7 +186,7 @@ def test_breach_calendar_with_non_numeric_data():
         {
             "Month": [1, 2, 3],
             "TrackingErr": [0.01, 0.02, "invalid"],  # Contains string
-            "ShortfallProb": [0.05, 0.1, 0.15],
+            "terminal_ShortfallProb": [0.05, 0.1, 0.15],
         }
     )
 

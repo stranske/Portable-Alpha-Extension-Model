@@ -15,15 +15,15 @@ def test_build_delta_table_includes_total_row():
     base = pd.DataFrame(
         {
             "Agent": ["Base", "ExternalPA", "Total"],
-            "AnnReturn": [0.05, 0.07, 0.12],
-            "BreachCount": [1, 2, 3],
+            "terminal_AnnReturn": [0.05, 0.07, 0.12],
+            "monthly_BreachCountPath0": [1, 2, 3],
         }
     )
     stressed = pd.DataFrame(
         {
             "Agent": ["Base", "ExternalPA", "Total"],
-            "AnnReturn": [0.02, 0.06, 0.08],
-            "BreachCount": [3, 5, 5],
+            "terminal_AnnReturn": [0.02, 0.06, 0.08],
+            "monthly_BreachCountPath0": [3, 5, 5],
         }
     )
 
@@ -34,13 +34,17 @@ def test_build_delta_table_includes_total_row():
     assert delta_df["Agent"].iloc[-1] == "Total"
 
     total_row = delta_df[delta_df["Agent"] == "Total"].iloc[0]
-    assert total_row["AnnReturn"] == pytest.approx(-0.04)
-    assert total_row["BreachCount"] == pytest.approx(2)
+    assert total_row["terminal_AnnReturn"] == pytest.approx(-0.04)
+    assert total_row["monthly_BreachCountPath0"] == pytest.approx(2)
 
 
 def test_build_stress_workbook_contains_expected_sheets():
-    base = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.05], "BreachCount": [1]})
-    stressed = pd.DataFrame({"Agent": ["Base"], "AnnReturn": [0.02], "BreachCount": [3]})
+    base = pd.DataFrame(
+        {"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_BreachCountPath0": [1]}
+    )
+    stressed = pd.DataFrame(
+        {"Agent": ["Base"], "terminal_AnnReturn": [0.02], "monthly_BreachCountPath0": [3]}
+    )
     delta_df = build_delta_table(base, stressed)
     config_diff = pd.DataFrame({"Parameter": ["mu_H"], "Base": [0.01], "Stressed": [0]})
 
@@ -55,10 +59,15 @@ def test_build_stress_workbook_contains_expected_sheets():
 
 def test_format_delta_table_text_adds_signs():
     delta_df = pd.DataFrame(
-        {"Agent": ["Total"], "AnnReturn": [-0.03], "AnnVol": [0.01], "BreachCount": [2]}
+        {
+            "Agent": ["Total"],
+            "terminal_AnnReturn": [-0.03],
+            "monthly_AnnVol": [0.01],
+            "monthly_BreachCountPath0": [2],
+        }
     )
     formatted = format_delta_table_text(delta_df)
 
-    assert formatted.loc[0, "AnnReturn"] == "-3.00%"
-    assert formatted.loc[0, "AnnVol"] == "+1.00%"
-    assert formatted.loc[0, "BreachCount"] == "+2.0000"
+    assert formatted.loc[0, "terminal_AnnReturn"] == "-3.00%"
+    assert formatted.loc[0, "monthly_AnnVol"] == "+1.00%"
+    assert formatted.loc[0, "monthly_BreachCountPath0"] == "+2.0000"

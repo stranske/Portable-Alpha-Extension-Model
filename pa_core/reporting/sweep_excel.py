@@ -13,6 +13,7 @@ from openpyxl.utils import get_column_letter
 from ..contracts import SUMMARY_REQUIRED_COLUMNS
 from ..types import SweepResult
 from ..viz import risk_return, theme
+from .excel import normalize_summary_columns
 
 __all__ = ["export_sweep_results"]
 
@@ -43,8 +44,10 @@ def export_sweep_results(
             summary_obj = res["summary"]
             if not isinstance(summary_obj, pd.DataFrame):
                 continue
-            summary = summary_obj.copy()
-            summary["ShortfallProb"] = summary.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+            summary = normalize_summary_columns(summary_obj.copy())
+            summary["terminal_ShortfallProb"] = summary.get(
+                "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+            )
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)
@@ -76,7 +79,15 @@ def export_sweep_results(
         and not (os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"))
     ):
         ws = wb["Summary"]
-        metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
+        metrics = {
+            "terminal_AnnReturn",
+            "monthly_AnnVol",
+            "monthly_VaR",
+            "monthly_CVaR",
+            "terminal_CVaR",
+            "monthly_BreachProb",
+            "monthly_TE",
+        }
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
         for idx, col_name in enumerate(header, 1):
             if col_name in metrics:

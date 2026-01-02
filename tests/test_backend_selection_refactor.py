@@ -80,7 +80,7 @@ class TestBackendSelectionIntegration:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
         if backend:
             config_data["backend"] = backend
@@ -113,7 +113,7 @@ class TestBackendSelectionIntegration:
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
             "backend": "numpy",
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
         cfg = ModelConfig(**config_data)
 
@@ -130,7 +130,7 @@ class TestBackendSelectionIntegration:
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
             "backend": "numpy",  # Config has one value
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
         cfg = ModelConfig(**config_data)
 

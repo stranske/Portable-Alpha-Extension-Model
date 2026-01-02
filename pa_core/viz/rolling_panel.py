@@ -56,7 +56,7 @@ def make(df_paths: pd.DataFrame | np.ndarray, window: int = 12) -> go.Figure:
         subplot_titles=("Drawdown", "Tracking Error", "Sharpe"),
     )
     fig.add_trace(go.Scatter(x=months, y=dd, name="Drawdown"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=months, y=te, name="TE"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=months, y=te, name="monthly_TE"), row=2, col=1)
     fig.add_trace(go.Scatter(x=months, y=sr, name="Sharpe"), row=3, col=1)
     fig.update_layout(template=theme.TEMPLATE, xaxis_title="Month", height=600)
     return fig

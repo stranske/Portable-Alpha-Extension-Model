@@ -37,7 +37,7 @@ def test_config_diff_function():
             "active_ext_capital": 200.0,
             "external_alpha_frac": 0.5,
             "active_share": 0.5,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
     )
 
@@ -51,7 +51,7 @@ def test_config_diff_function():
             "active_ext_capital": 0.0,  # Changed
             "external_alpha_frac": 0.5,
             "active_share": 0.5,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
     )
 
@@ -95,7 +95,7 @@ def test_config_diff_with_stress_preset():
             "active_ext_capital": 200.0,
             "external_alpha_frac": 0.5,
             "active_share": 0.5,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
     )
 
@@ -144,7 +144,7 @@ def test_config_diff_empty_when_identical():
         "active_ext_capital": 200.0,
         "external_alpha_frac": 0.5,
         "active_share": 0.5,
-        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
 
     base_cfg = ModelConfig.model_validate(config_data)
@@ -172,7 +172,7 @@ def test_config_diff_detects_all_key_differences():
             "active_ext_capital": 200.0,
             "external_alpha_frac": 0.5,
             "active_share": 0.5,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
     )
 
@@ -186,7 +186,7 @@ def test_config_diff_detects_all_key_differences():
             "active_ext_capital": 200.0,
             "external_alpha_frac": 0.5,
             "active_share": 0.5,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
     )
 

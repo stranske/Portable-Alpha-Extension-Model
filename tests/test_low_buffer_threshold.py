@@ -43,11 +43,11 @@ def test_risk_return_uses_constant(cleared_thresholds):
     # Create test data with shortfall probabilities
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.05, 0.08, 0.12],
-            "ExcessReturn": [0.01, 0.02, 0.03],
-            "TE": [0.01, 0.02, 0.03],
+            "terminal_AnnReturn": [0.05, 0.08, 0.12],
+            "terminal_ExcessReturn": [0.01, 0.02, 0.03],
+            "monthly_TE": [0.01, 0.02, 0.03],
             "Agent": ["A", "B", "C"],
-            "ShortfallProb": [
+            "terminal_ShortfallProb": [
                 0.03,
                 0.08,
                 0.15,
@@ -69,7 +69,7 @@ def test_beta_scatter_uses_constant(cleared_thresholds):
             "Beta": [0.95, 1.0, 1.05],
             "Capital": [100, 200, 300],
             "Agent": ["A", "B", "C"],
-            "ShortfallProb": [0.03, 0.08, 0.15],
+            "terminal_ShortfallProb": [0.03, 0.08, 0.15],
         }
     )
 
@@ -84,7 +84,7 @@ def test_breach_calendar_uses_constant(cleared_thresholds):
         {
             "Month": [1, 2, 3],
             "TrackingErr": [0.02, 0.04, 0.01],
-            "ShortfallProb": [0.08, 0.15, 0.03],
+            "terminal_ShortfallProb": [0.08, 0.15, 0.03],
         }
     )
 
@@ -98,10 +98,10 @@ def test_te_cvar_scatter_uses_constant(cleared_thresholds):
     df = pd.DataFrame(
         {
             "TrackingErr": [0.01, 0.02, 0.03],
-            "CVaR": [0.05, 0.08, 0.12],
+            "monthly_CVaR": [0.05, 0.08, 0.12],
             "Capital": [100, 200, 300],
             "Agent": ["A", "B", "C"],
-            "ShortfallProb": [0.03, 0.08, 0.15],
+            "terminal_ShortfallProb": [0.03, 0.08, 0.15],
         }
     )
 
@@ -114,11 +114,11 @@ def test_risk_return_bubble_uses_constant(cleared_thresholds):
     """Test that risk_return_bubble visualization uses the LOW_BUFFER_THRESHOLD constant."""
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.05, 0.08, 0.12],
-            "AnnVol": [0.02, 0.04, 0.06],
+            "terminal_AnnReturn": [0.05, 0.08, 0.12],
+            "monthly_AnnVol": [0.02, 0.04, 0.06],
             "Capital": [100, 200, 300],
             "Agent": ["A", "B", "C"],
-            "ShortfallProb": [0.03, 0.08, 0.15],
+            "terminal_ShortfallProb": [0.03, 0.08, 0.15],
         }
     )
 

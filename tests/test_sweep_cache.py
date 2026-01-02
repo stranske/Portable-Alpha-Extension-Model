@@ -15,7 +15,7 @@ def test_cached_sweep_deterministic():
     df = sweep_results_to_dataframe(res1)
     # expect multiple scenarios and standard metrics
     assert df.shape[0] > 1
-    for col in ["AnnReturn", "AnnVol", "TE"]:
+    for col in ["terminal_AnnReturn", "monthly_AnnVol", "monthly_TE"]:
         assert col in df.columns
 
 
