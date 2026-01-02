@@ -7,6 +7,7 @@ from pa_core.sim.metrics import (
     annualised_return,
     annualised_vol,
     breach_count,
+    breach_count_path0,
     breach_probability,
     compound,
     compounded_return_below_zero_fraction,
@@ -170,7 +171,7 @@ def test_compounded_return_below_zero_fraction_basic():
 
 def test_breach_count_basic():
     arr = np.array([[0.0, -0.05, 0.01]])
-    assert breach_count(arr, -0.01) == 1
+    assert breach_count_path0(arr, -0.01) == 1
 
 
 def test_breach_probability_basic():
@@ -329,3 +330,5 @@ def test_deprecated_metric_aliases_warn():
         time_under_water(arr)
     with pytest.warns(DeprecationWarning, match="shortfall_probability"):
         shortfall_probability(arr, threshold=-0.05)
+    with pytest.warns(DeprecationWarning, match="breach_count"):
+        breach_count(arr, threshold=-0.05)

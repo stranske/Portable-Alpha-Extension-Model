@@ -20,6 +20,7 @@ __all__ = [
     "annualised_return",
     "annualised_vol",
     "breach_probability",
+    "breach_count_path0",
     "breach_count",
     "conditional_value_at_risk",
     "max_cumulative_sum_drawdown",
@@ -226,11 +227,12 @@ def shortfall_probability(
     )
 
 
-def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
-    """Return the number of months below ``threshold`` in a selected path.
+def breach_count_path0(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
+    """Return the number of monthly breaches below ``threshold`` for one path.
 
     This is a path-specific diagnostic (defaulting to path 0). It does not
-    average across simulations.
+    average across simulations and should not be interpreted as an expected
+    breach count.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -241,6 +243,16 @@ def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
             raise IndexError("path index out of range")
         series = arr[path]
     return int(np.sum(series < threshold))
+
+
+def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
+    """Deprecated alias for :func:`breach_count_path0`."""
+    warnings.warn(
+        "breach_count is deprecated; use breach_count_path0",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return breach_count_path0(returns, threshold, path=path)
 
 
 def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
@@ -291,8 +303,8 @@ def cvar_terminal(
 def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
     """Return the worst drawdown observed over the full compounded horizon.
 
-    Drawdowns are computed on compounded wealth paths, and the minimum drawdown
-    across all paths and periods is returned.
+    Drawdowns are computed on compounded monthly wealth paths, and the minimum
+    drawdown across all paths and periods is returned (monthly-path semantics).
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -391,7 +403,7 @@ def summary_table(
         cvar_month = cvar_monthly(arr, confidence=var_conf)
         cvar_term = cvar_terminal(arr, confidence=var_conf, periods_per_year=periods_per_year)
         breach = breach_probability(arr, breach_threshold)
-        bcount = breach_count(arr, breach_threshold)
+        bcount = breach_count_path0(arr, breach_threshold)
         shortfall = terminal_return_below_threshold_prob(
             arr,
             shortfall_threshold,

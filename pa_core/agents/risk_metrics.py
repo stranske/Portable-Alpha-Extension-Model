@@ -7,7 +7,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..sim.metrics import (
-    breach_count,
+    breach_count_path0,
     breach_probability,
     compounded_return_below_zero_fraction,
     cvar_monthly,
@@ -45,7 +45,7 @@ class RiskMetricsAgent:
         mdd = max_cumulative_sum_drawdown(returns)
         tuw = compounded_return_below_zero_fraction(returns)
         bprob = breach_probability(returns, self.breach_threshold)
-        bcount = breach_count(returns, self.breach_threshold)
+        bcount = breach_count_path0(returns, self.breach_threshold)
         return RiskMetrics(
             monthly_cvar=cvar,
             monthly_max_cumulative_sum_drawdown=mdd,

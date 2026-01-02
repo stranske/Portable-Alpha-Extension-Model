@@ -6,7 +6,7 @@ import pytest
 from pa_core.agents.risk_metrics import RiskMetricsAgent
 from pa_core.random import spawn_rngs
 from pa_core.sim.metrics import (
-    breach_count,
+    breach_count_path0,
     breach_probability,
     compounded_return_below_zero_fraction,
     conditional_value_at_risk,
@@ -67,7 +67,7 @@ def test_risk_metrics_agent_matches_individual_functions(
         compounded_return_below_zero_fraction(returns)
     )
     assert metrics.monthly_breach_probability == pytest.approx(breach_probability(returns, -0.02))
-    assert metrics.monthly_breach_count_path0 == breach_count(returns, -0.02)
+    assert metrics.monthly_breach_count_path0 == breach_count_path0(returns, -0.02)
 
 
 # Test for scaling behavior - parametrized for multiple scaling factors
