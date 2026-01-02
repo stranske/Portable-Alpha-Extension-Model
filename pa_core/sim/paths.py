@@ -17,6 +17,8 @@ __all__ = [
     "simulate_financing",
     "prepare_mc_universe",
     "prepare_return_shocks",
+    "draw_returns",
+    "draw_financing",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -379,7 +381,7 @@ def prepare_return_shocks(
     return shocks
 
 
-def draw_joint_returns(
+def draw_returns(
     *,
     n_months: int,
     n_sim: int,
@@ -498,7 +500,25 @@ def draw_joint_returns(
     return r_beta, r_H, r_E, r_M
 
 
-def draw_financing_series(
+def draw_joint_returns(
+    *,
+    n_months: int,
+    n_sim: int,
+    params: Dict[str, Any],
+    rng: Optional[GeneratorLike] = None,
+    shocks: Optional[Dict[str, Any]] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
+    """Backward-compatible wrapper for draw_returns."""
+    return draw_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng,
+        shocks=shocks,
+    )
+
+
+def draw_financing(
     *,
     n_months: int,
     n_sim: int,
@@ -573,6 +593,24 @@ def draw_financing_series(
         r_act,
     )
     return f_int_mat, f_ext_pa_mat, f_act_ext_mat
+
+
+def draw_financing_series(
+    *,
+    n_months: int,
+    n_sim: int,
+    params: Dict[str, Any],
+    rng: Optional[GeneratorLike] = None,
+    rngs: Optional[Mapping[str, GeneratorLike]] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
+    """Backward-compatible wrapper for draw_financing."""
+    return draw_financing(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng,
+        rngs=rngs,
+    )
 
 
 def simulate_alpha_streams(

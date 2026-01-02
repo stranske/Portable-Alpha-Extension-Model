@@ -2,8 +2,10 @@
 
 from .covariance import build_cov_matrix
 from .paths import (
+    draw_financing,
     draw_financing_series,
     draw_joint_returns,
+    draw_returns,
     prepare_mc_universe,
     prepare_return_shocks,
     simulate_alpha_streams,
@@ -15,6 +17,8 @@ __all__ = [
     "prepare_mc_universe",
     "build_cov_matrix",
     "prepare_return_shocks",
+    "draw_returns",
+    "draw_financing",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",

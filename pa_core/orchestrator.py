@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 
-import numpy as np
 import pandas as pd
 
 from .agents.registry import build_from_config
@@ -10,19 +9,16 @@ from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
-from .sim.params import build_simulation_params
+from .sim.params import (
+    build_covariance_return_overrides,
+    build_params,
+    resolve_covariance_inputs,
+)
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .types import ArrayLike
 from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 from .validators import select_vol_regime_sigma
-
-
-def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-    denom = np.outer(sigma, sigma)
-    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-    return sigma, corr
 
 
 class SimulatorOrchestrator:
@@ -66,28 +62,26 @@ class SimulatorOrchestrator:
             covariance_shrinkage=self.cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-        idx_sigma_cov = float(sigma_vec[0])
-        sigma_h_cov = float(sigma_vec[1])
-        sigma_e_cov = float(sigma_vec[2])
-        sigma_m_cov = float(sigma_vec[3])
+        sigma_vec, corr_mat = resolve_covariance_inputs(
+            cov,
+            idx_sigma=idx_sigma,
+            sigma_h=sigma_h,
+            sigma_e=sigma_e,
+            sigma_m=sigma_m,
+            rho_idx_H=self.cfg.rho_idx_H,
+            rho_idx_E=self.cfg.rho_idx_E,
+            rho_idx_M=self.cfg.rho_idx_M,
+            rho_H_E=self.cfg.rho_H_E,
+            rho_H_M=self.cfg.rho_H_M,
+            rho_E_M=self.cfg.rho_E_M,
+        )
 
         rng_returns = spawn_rngs(seed, 1)[0]
-        params = build_simulation_params(
+        params = build_params(
             self.cfg,
             mu_idx=mu_idx,
-            idx_sigma=idx_sigma_cov,
-            return_overrides={
-                "default_sigma_H": sigma_h_cov,
-                "default_sigma_E": sigma_e_cov,
-                "default_sigma_M": sigma_m_cov,
-                "rho_idx_H": float(corr_mat[0, 1]),
-                "rho_idx_E": float(corr_mat[0, 2]),
-                "rho_idx_M": float(corr_mat[0, 3]),
-                "rho_H_E": float(corr_mat[1, 2]),
-                "rho_H_M": float(corr_mat[1, 3]),
-                "rho_E_M": float(corr_mat[2, 3]),
-            },
+            idx_sigma=float(sigma_vec[0]),
+            return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
         )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
