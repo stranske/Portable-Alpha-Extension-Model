@@ -1,27 +1,35 @@
-"""Monte-Carlo path helpers."""
-
 from __future__ import annotations
 
-from typing import Any, Dict, Mapping, Optional, Sequence
+import logging
+import warnings
+from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
-import numpy as np
+import numpy.typing as npt
 from numpy.typing import NDArray
-from scipy import stats as sp_stats
 
+from ..backend import xp as np
+from ..random import spawn_rngs
+from ..types import GeneratorLike
+from ..validators import NUMERICAL_STABILITY_EPSILON
+from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
 from .financing import draw_financing_series, simulate_financing
 
-GeneratorLike = np.random.Generator
-
 __all__ = [
+    "simulate_financing",
     "prepare_mc_universe",
     "prepare_return_shocks",
     "draw_returns",
     "draw_joint_returns",
-    "draw_financing",
     "draw_financing_series",
-    "simulate_financing",
     "simulate_alpha_streams",
 ]
+
+
+_VALID_RETURN_DISTS = {"normal", "student_t"}
+_VALID_RETURN_COPULAS = {"gaussian", "t"}
+_CORR_VALIDATION_TOL = 1e-8
+
+logger = logging.getLogger(__name__)
 
 def _validate_return_draw_settings(
     distribution: str | Sequence[str], copula: str, t_df: float
@@ -300,6 +308,7 @@ def prepare_mc_universe(
             )
     return sims
 
+
 def prepare_return_shocks(
     *,
     n_months: int,
@@ -341,6 +350,7 @@ def prepare_return_shocks(
         else:
             shocks["chi_dim"] = rng.chisquare(t_df, size=(n_sim, n_months, 4))
     return shocks
+
 
 def draw_returns(
     *,
@@ -459,6 +469,8 @@ def draw_returns(
     r_E = sims[:, :, 2]
     r_M = sims[:, :, 3]
     return r_beta, r_H, r_E, r_M
+
+
 def draw_joint_returns(
     *,
     n_months: int,
@@ -475,6 +487,8 @@ def draw_joint_returns(
         rng=rng,
         shocks=shocks,
     )
+
+
 def simulate_alpha_streams(
     T: int,
     cov: npt.NDArray[Any],
