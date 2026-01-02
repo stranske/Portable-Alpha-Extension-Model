@@ -26,13 +26,13 @@ def test_financing_model_rejects_unknown_value() -> None:
         load_config(config_data)
 
 
-def test_financing_mode_has_default() -> None:
-    """financing_mode should have a default value for backward compatibility."""
+def test_financing_mode_is_required() -> None:
+    """financing_mode should be explicitly configured."""
     config_data = base_config()
     config_data.pop("financing_mode")
 
-    cfg = load_config(config_data)
-    assert cfg.financing_mode == "broadcast"
+    with pytest.raises(ValueError, match="financing_mode"):
+        load_config(config_data)
 
 
 def test_financing_model_schedule_requires_path() -> None:

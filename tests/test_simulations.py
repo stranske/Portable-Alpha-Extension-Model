@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
 from pa_core.config import ModelConfig
@@ -14,6 +15,7 @@ def _build_financing_params(**updates: float) -> dict[str, float | str | None]:
     base_cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         return_unit="monthly",
         mu_H=0.0,
         sigma_H=0.0,
@@ -209,3 +211,43 @@ def test_draw_financing_series_per_path_varies_by_simulation():
         assert not np.allclose(mat[0], mat[1])
         corr = np.corrcoef(mat[0], mat[1])[0, 1]
         assert corr < 0.99
+
+
+def test_financing_mode_correlation_structure():
+    params = _build_financing_params(
+        internal_financing_mean_month=0.01,
+        internal_financing_sigma_month=0.05,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.01,
+        ext_pa_financing_sigma_month=0.05,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.01,
+        act_ext_financing_sigma_month=0.05,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
+
+    rng = np.random.default_rng(123)
+    f_int_broadcast, _, _ = draw_financing_series(
+        n_months=120,
+        n_sim=2,
+        params=params,
+        financing_mode="broadcast",
+        rng=rng,
+    )
+    assert np.std(f_int_broadcast[0]) > 0
+    corr_broadcast = np.corrcoef(f_int_broadcast[0], f_int_broadcast[1])[0, 1]
+    assert corr_broadcast == pytest.approx(1.0)
+
+    rng = np.random.default_rng(123)
+    f_int_per_path, _, _ = draw_financing_series(
+        n_months=240,
+        n_sim=2,
+        params=params,
+        financing_mode="per_path",
+        rng=rng,
+    )
+    corr_per_path = np.corrcoef(f_int_per_path[0], f_int_per_path[1])[0, 1]
+    assert abs(corr_per_path) < 0.3

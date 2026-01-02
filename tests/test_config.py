@@ -115,6 +115,7 @@ def test_model_config_explicit_annual_return_fields() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         mu_H_annual=0.12,
         sigma_H_annual=0.24,
     )
@@ -126,6 +127,7 @@ def test_model_config_explicit_monthly_return_fields() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         mu_H_monthly=0.01,
         sigma_H_monthly=0.02,
     )
@@ -135,7 +137,12 @@ def test_model_config_explicit_monthly_return_fields() -> None:
 
 
 def test_model_config_warns_on_legacy_return_fields() -> None:
-    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "mu_H": 0.05}
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "financing_mode": "broadcast",
+        "mu_H": 0.05,
+    }
     with pytest.warns(DeprecationWarning, match="mu_H"):
         ModelConfig(**data)
 
@@ -144,6 +151,7 @@ def test_model_config_rejects_mixed_explicit_units() -> None:
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "mu_H_annual": 0.05,
         "sigma_H_monthly": 0.02,
     }
@@ -155,6 +163,7 @@ def test_model_config_rejects_explicit_unit_mismatch() -> None:
     data = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "return_unit": "monthly",
         "mu_H_annual": 0.05,
     }

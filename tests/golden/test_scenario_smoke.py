@@ -23,6 +23,7 @@ def test_scenario_golden() -> None:
         {
             "N_SIMULATIONS": 500,
             "N_MONTHS": 120,
+            "financing_mode": "broadcast",
             "w_beta_H": 0.6,
             "w_alpha_H": 0.4,
             "risk_metrics": ["terminal_ShortfallProb"],

@@ -92,6 +92,7 @@ class TestBackendSelectionIntegration:
         config_data = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
+            "financing_mode": "broadcast",
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
         if backend:

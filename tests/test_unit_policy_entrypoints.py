@@ -225,6 +225,7 @@ def test_sweep_return_overrides_convert_to_monthly(monkeypatch) -> None:
         {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 2,
+            "financing_mode": "broadcast",
             "return_unit": "annual",
             "analysis_mode": "returns",
             "in_house_return_min_pct": 2.0,
