@@ -80,7 +80,7 @@ act_ext_spike_factor: 0.0 # active extension financing spike size multiplier
 risk_metrics:
   - Return
   - Risk
-  - ShortfallProb
+  - terminal_ShortfallProb
 # Financing model configuration
 # simple_proxy: uses reference_sigma × volatility_multiple × total_fund_capital
 # schedule: interpolates from a broker margin schedule CSV (term,multiplier)

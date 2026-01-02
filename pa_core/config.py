@@ -285,7 +285,7 @@ class ModelConfig(BaseModel):
         default_factory=lambda: [
             "Return",
             "Risk",
-            "ShortfallProb",
+            "terminal_ShortfallProb",
         ],
         alias="risk_metrics",
     )
@@ -624,8 +624,8 @@ class ModelConfig(BaseModel):
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
 
-        if "ShortfallProb" not in self.risk_metrics:
-            raise ConfigError("risk_metrics must include ShortfallProb")
+        if "terminal_ShortfallProb" not in self.risk_metrics:
+            raise ConfigError("risk_metrics must include terminal_ShortfallProb")
         return self
 
     @model_validator(mode="after")
@@ -864,6 +864,6 @@ def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
         cfg = ModelConfig(**data)
     except ValidationError as e:  # pragma: no cover - explicit failure
         raise ValueError(str(e)) from e
-    if "ShortfallProb" not in cfg.risk_metrics:
-        raise ConfigError("risk_metrics must include ShortfallProb")
+    if "terminal_ShortfallProb" not in cfg.risk_metrics:
+        raise ConfigError("risk_metrics must include terminal_ShortfallProb")
     return cfg

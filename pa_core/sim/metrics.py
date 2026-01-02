@@ -14,6 +14,8 @@ __all__ = [
     "active_return_volatility",
     "tracking_error",
     "value_at_risk",
+    "cvar_monthly",
+    "cvar_terminal",
     "compound",
     "annualised_return",
     "annualised_vol",
@@ -55,7 +57,7 @@ def active_return_volatility(
     *,
     periods_per_year: int = 12,
 ) -> float:
-    """Return annualised volatility of active returns (tracking error)."""
+    """Return annualised volatility of monthly active returns (tracking error)."""
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
     diff = np.asarray(strategy) - np.asarray(benchmark)
@@ -84,7 +86,7 @@ def tracking_error(
 
 
 def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return the empirical VaR at the given confidence level."""
+    """Return monthly VaR from all monthly draws at the given confidence level."""
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
     flat = np.asarray(returns).reshape(-1)
@@ -99,7 +101,7 @@ def compound(returns: ArrayLike) -> ArrayLike:
 
 
 def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
-    """Return annualised compound return from monthly series."""
+    """Return annualised compound return from terminal compounded outcomes."""
     comp = compound(returns)
     total_return = comp[:, -1]
     years = returns.shape[1] / periods_per_year
@@ -209,7 +211,11 @@ def shortfall_probability(
 
 
 def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
-    """Return the number of months below ``threshold`` in a selected path."""
+    """Return the number of months below ``threshold`` in a selected path.
+
+    This is a path-specific diagnostic (defaulting to path 0), not an average
+    across simulations.
+    """
 
     arr = np.asarray(returns, dtype=np.float64)
     if arr.ndim == 1:
@@ -222,7 +228,7 @@ def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
 
 
 def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return the conditional VaR (expected shortfall) at ``confidence``.
+    """Return monthly conditional VaR (expected shortfall) at ``confidence``.
 
     The VaR cutoff uses the lower quantile (discrete "floor") at
     ``1 - confidence``. The tail is defined strictly below that cutoff
@@ -241,8 +247,27 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
     return float(np.mean(tail))
 
 
+def cvar_monthly(returns: ArrayLike, confidence: float = 0.95) -> float:
+    """Return monthly CVaR computed over all monthly draws."""
+    return conditional_value_at_risk(returns, confidence=confidence)
+
+
+def cvar_terminal(
+    returns: ArrayLike, confidence: float = 0.95, *, periods_per_year: int = 12
+) -> float:
+    """Return terminal CVaR computed from horizon compounded outcomes."""
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.ndim == 1:
+        terminal = compound(arr[None, :])[:, -1]
+    else:
+        terminal = compound(arr)[:, -1]
+    return conditional_value_at_risk(terminal, confidence=confidence)
+
+
 def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
-    """Return the maximum drawdown computed from compounded wealth paths."""
+    """Return the worst drawdown observed over the full compounded horizon."""
 
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
@@ -269,7 +294,7 @@ def max_drawdown(returns: ArrayLike) -> float:
 
 
 def compounded_return_below_zero_fraction(returns: ArrayLike) -> float:
-    """Return fraction of periods with negative compounded return."""
+    """Return fraction of monthly periods with negative compounded return."""
 
     comp = compound(returns)
     return float(np.mean(comp < 0.0))
@@ -296,11 +321,16 @@ def summary_table(
 ) -> pd.DataFrame:
     """Return a summary DataFrame of key metrics for each agent.
 
+    Output columns are prefixed with ``monthly_`` when computed from the full
+    distribution of monthly draws, and ``terminal_`` when computed from
+    terminal compounded outcomes.
+
     Parameters
     ----------
     returns_map:
         Mapping of agent name to monthly return series (shape: paths x months).
-        AnnReturn, AnnVol, and TE outputs are annualised using ``periods_per_year``.
+        terminal_AnnReturn, monthly_AnnVol, and monthly_TE outputs are annualised
+        using ``periods_per_year``.
     breach_threshold:
         Monthly return threshold for :func:`breach_probability`, which reports
         the share of all simulated months across paths that breach. Defaults to
@@ -329,7 +359,8 @@ def summary_table(
         ann_vol = annualised_vol(arr, periods_per_year)
         excess_return = ann_ret - bench_ann_ret if bench_ann_ret is not None else ann_ret
         var = value_at_risk(arr, confidence=var_conf)
-        cvar = conditional_value_at_risk(arr, confidence=var_conf)
+        cvar_month = cvar_monthly(arr, confidence=var_conf)
+        cvar_term = cvar_terminal(arr, confidence=var_conf, periods_per_year=periods_per_year)
         breach = breach_probability(arr, breach_threshold)
         bcount = breach_count(arr, breach_threshold)
         shortfall = terminal_return_below_threshold_prob(
@@ -348,17 +379,18 @@ def summary_table(
         rows.append(
             {
                 "Agent": name,
-                "AnnReturn": ann_ret,
-                "ExcessReturn": excess_return,
-                "AnnVol": ann_vol,
-                "VaR": var,
-                "CVaR": cvar,
-                "MaxDD": mdd,
-                "TimeUnderWater": tuw,
-                "BreachProb": breach,
-                "BreachCount": bcount,
-                "ShortfallProb": shortfall,
-                "TE": te,
+                "terminal_AnnReturn": ann_ret,
+                "terminal_ExcessReturn": excess_return,
+                "monthly_AnnVol": ann_vol,
+                "monthly_VaR": var,
+                "monthly_CVaR": cvar_month,
+                "terminal_CVaR": cvar_term,
+                "monthly_MaxDD": mdd,
+                "monthly_TimeUnderWater": tuw,
+                "monthly_BreachProb": breach,
+                "monthly_BreachCountPath0": bcount,
+                "terminal_ShortfallProb": shortfall,
+                "monthly_TE": te,
                 **extras,
             }
         )

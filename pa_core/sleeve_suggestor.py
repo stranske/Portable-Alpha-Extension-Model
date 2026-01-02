@@ -130,7 +130,7 @@ def _coerce_metric(value: object) -> float | None:
 def _objective_from_summary(summary: pd.DataFrame, objective: str) -> float | None:
     if objective not in SUPPORTED_OBJECTIVES:
         raise ValueError(f"objective must be one of: {', '.join(SUPPORTED_OBJECTIVES)}")
-    column = "AnnReturn" if objective == "total_return" else "ExcessReturn"
+    column = "terminal_AnnReturn" if objective == "total_return" else "terminal_ExcessReturn"
     total_row = summary[summary["Agent"] == "Total"]
     if not total_row.empty:
         return _coerce_metric(total_row.iloc[0][column])
@@ -151,13 +151,13 @@ def _risk_score(metrics: dict[str, float], constraint_scope: str) -> float:
     score = 0.0
     if constraint_scope in {"sleeves", "both"}:
         for ag in SLEEVE_AGENTS:
-            score += metrics.get(f"{ag}_TE", 0.0)
-            score += metrics.get(f"{ag}_BreachProb", 0.0)
-            score += abs(metrics.get(f"{ag}_CVaR", 0.0))
+            score += metrics.get(f"{ag}_monthly_TE", 0.0)
+            score += metrics.get(f"{ag}_monthly_BreachProb", 0.0)
+            score += abs(metrics.get(f"{ag}_monthly_CVaR", 0.0))
     if constraint_scope in {"total", "both"}:
-        score += metrics.get("Total_TE", 0.0)
-        score += metrics.get("Total_BreachProb", 0.0)
-        score += abs(metrics.get("Total_CVaR", 0.0))
+        score += metrics.get("Total_monthly_TE", 0.0)
+        score += metrics.get("Total_monthly_BreachProb", 0.0)
+        score += abs(metrics.get("Total_monthly_CVaR", 0.0))
     return score
 
 
@@ -176,14 +176,14 @@ def _extract_metrics(
         if sub.empty:
             continue
         row = sub.iloc[0]
-        te = _coerce_metric(row["TE"])
-        bprob = _coerce_metric(row["BreachProb"])
-        cvar = _coerce_metric(row["CVaR"])
+        te = _coerce_metric(row["monthly_TE"])
+        bprob = _coerce_metric(row["monthly_BreachProb"])
+        cvar = _coerce_metric(row["monthly_CVaR"])
         if te is None or bprob is None or cvar is None:
             return None
-        metrics[f"{agent}_TE"] = float(te)
-        metrics[f"{agent}_BreachProb"] = float(bprob)
-        metrics[f"{agent}_CVaR"] = float(cvar)
+        metrics[f"{agent}_monthly_TE"] = float(te)
+        metrics[f"{agent}_monthly_BreachProb"] = float(bprob)
+        metrics[f"{agent}_monthly_CVaR"] = float(cvar)
         if constraint_scope in {"sleeves", "both"} and (
             te > max_te or bprob > max_breach or abs(cvar) > max_cvar
         ):
@@ -192,16 +192,16 @@ def _extract_metrics(
     total_row = summary[summary["Agent"] == "Total"]
     if not total_row.empty:
         total_row = total_row.iloc[0]
-        total_te = _coerce_metric(total_row["TE"])
-        total_bprob = _coerce_metric(total_row["BreachProb"])
-        total_cvar = _coerce_metric(total_row["CVaR"])
+        total_te = _coerce_metric(total_row["monthly_TE"])
+        total_bprob = _coerce_metric(total_row["monthly_BreachProb"])
+        total_cvar = _coerce_metric(total_row["monthly_CVaR"])
         if total_te is None or total_bprob is None or total_cvar is None:
             return None
         metrics.update(
             {
-                "Total_TE": float(total_te),
-                "Total_BreachProb": float(total_bprob),
-                "Total_CVaR": float(total_cvar),
+                "Total_monthly_TE": float(total_te),
+                "Total_monthly_BreachProb": float(total_bprob),
+                "Total_monthly_CVaR": float(total_cvar),
             }
         )
         if constraint_scope in {"total", "both"} and (
@@ -470,11 +470,11 @@ def _build_linear_surrogates(
         if sub.empty:
             return None
         row = sub.iloc[0]
-        te = _coerce_metric(row["TE"])
-        bprob = _coerce_metric(row["BreachProb"])
-        cvar = _coerce_metric(row["CVaR"])
-        ann_return = _coerce_metric(row["AnnReturn"])
-        excess_return = _coerce_metric(row["ExcessReturn"])
+        te = _coerce_metric(row["monthly_TE"])
+        bprob = _coerce_metric(row["monthly_BreachProb"])
+        cvar = _coerce_metric(row["monthly_CVaR"])
+        ann_return = _coerce_metric(row["terminal_AnnReturn"])
+        excess_return = _coerce_metric(row["terminal_ExcessReturn"])
         if (
             te is None
             or bprob is None
@@ -484,11 +484,11 @@ def _build_linear_surrogates(
         ):
             return None
         slopes[agent] = {
-            "TE": _metric_slope(te, capital, total=total) or 0.0,
-            "BreachProb": _metric_slope(bprob, capital, total=total) or 0.0,
-            "CVaR": _metric_slope(abs(cvar), capital, total=total) or 0.0,
-            "AnnReturn": _metric_slope(ann_return, capital, total=total) or 0.0,
-            "ExcessReturn": _metric_slope(excess_return, capital, total=total) or 0.0,
+            "monthly_TE": _metric_slope(te, capital, total=total) or 0.0,
+            "monthly_BreachProb": _metric_slope(bprob, capital, total=total) or 0.0,
+            "monthly_CVaR": _metric_slope(abs(cvar), capital, total=total) or 0.0,
+            "terminal_AnnReturn": _metric_slope(ann_return, capital, total=total) or 0.0,
+            "terminal_ExcessReturn": _metric_slope(excess_return, capital, total=total) or 0.0,
         }
     return slopes
 
@@ -573,7 +573,7 @@ def _optimize_sleeve_sizes(
     constraints: list[dict[str, object]] = []
     for agent in SLEEVE_AGENTS:
         if constraint_scope in {"sleeves", "both"}:
-            for metric, limit in (("TE", max_te), ("BreachProb", max_breach), ("CVaR", max_cvar)):
+            for metric, limit in (("monthly_TE", max_te), ("monthly_BreachProb", max_breach), ("monthly_CVaR", max_cvar)):
                 slope = slopes[agent].get(metric)
                 constraints.append(
                     {
@@ -584,7 +584,7 @@ def _optimize_sleeve_sizes(
                 )
 
     if constraint_scope in {"total", "both"}:
-        for metric, limit in (("TE", max_te), ("BreachProb", max_breach), ("CVaR", max_cvar)):
+        for metric, limit in (("monthly_TE", max_te), ("monthly_BreachProb", max_breach), ("monthly_CVaR", max_cvar)):
             constraints.append(
                 {
                     "type": "ineq",
@@ -602,7 +602,7 @@ def _optimize_sleeve_sizes(
     def objective_fn(x: np.ndarray) -> float:
         ext, act = float(x[0]), float(x[1])
         internal = internal_cap(x)
-        key = "AnnReturn" if objective == "total_return" else "ExcessReturn"
+        key = "terminal_AnnReturn" if objective == "total_return" else "terminal_ExcessReturn"
         total_return = (
             slopes["ExternalPA"][key] * ext
             + slopes["ActiveExt"][key] * act
@@ -696,7 +696,7 @@ def suggest_sleeve_sizes(
     max_breach:
         Maximum allowed breach probability per sleeve.
     max_cvar:
-        Absolute CVaR cap per sleeve.
+        Absolute monthly_CVaR cap per sleeve.
     step:
         Grid step as a fraction of ``total_fund_capital``.
     seed:

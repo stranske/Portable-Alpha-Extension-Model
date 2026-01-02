@@ -76,11 +76,11 @@ from pa_core.viz import (
 def test_risk_return_make():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.05],
-            "ExcessReturn": [0.01],
-            "TE": [0.01],
+            "terminal_AnnReturn": [0.05],
+            "terminal_ExcessReturn": [0.01],
+            "monthly_TE": [0.01],
             "Agent": ["Base"],
-            "ShortfallProb": [0.02],
+            "terminal_ShortfallProb": [0.02],
         }
     )
     fig = risk_return.make(df)
@@ -91,16 +91,16 @@ def test_risk_return_make():
 def test_risk_return_axis_labels_match_data():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.06, 0.03],
-            "ExcessReturn": [0.02, 0.01],
-            "TE": [0.12, 0.18],
+            "terminal_AnnReturn": [0.06, 0.03],
+            "terminal_ExcessReturn": [0.02, 0.01],
+            "monthly_TE": [0.12, 0.18],
             "Agent": ["A", "B"],
-            "ShortfallProb": [0.01, 0.02],
+            "terminal_ShortfallProb": [0.01, 0.02],
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["TE"].tolist()
-    assert list(fig.data[0].y) == df["ExcessReturn"].tolist()
+    assert list(fig.data[0].x) == df["monthly_TE"].tolist()
+    assert list(fig.data[0].y) == df["terminal_ExcessReturn"].tolist()
     assert fig.layout.xaxis.title.text == "Tracking Error"
     assert fig.layout.yaxis.title.text == "Annualized Excess Return"
 
@@ -108,15 +108,15 @@ def test_risk_return_axis_labels_match_data():
 def test_risk_return_axis_labels_match_vol_and_return():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.06, 0.03],
-            "AnnVol": [0.12, 0.18],
+            "terminal_AnnReturn": [0.06, 0.03],
+            "monthly_AnnVol": [0.12, 0.18],
             "Agent": ["A", "B"],
-            "ShortfallProb": [0.01, 0.02],
+            "terminal_ShortfallProb": [0.01, 0.02],
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["AnnVol"].tolist()
-    assert list(fig.data[0].y) == df["AnnReturn"].tolist()
+    assert list(fig.data[0].x) == df["monthly_AnnVol"].tolist()
+    assert list(fig.data[0].y) == df["terminal_AnnReturn"].tolist()
     assert fig.layout.xaxis.title.text == "Annualized Volatility"
     assert fig.layout.yaxis.title.text == "Annualized Return"
 
@@ -124,15 +124,15 @@ def test_risk_return_axis_labels_match_vol_and_return():
 def test_risk_return_falls_back_to_vol_when_te_empty():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.06, 0.03],
-            "AnnVol": [0.12, 0.18],
-            "TE": [pd.NA, pd.NA],
+            "terminal_AnnReturn": [0.06, 0.03],
+            "monthly_AnnVol": [0.12, 0.18],
+            "monthly_TE": [pd.NA, pd.NA],
             "Agent": ["A", "B"],
-            "ShortfallProb": [0.01, 0.02],
+            "terminal_ShortfallProb": [0.01, 0.02],
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["AnnVol"].tolist()
+    assert list(fig.data[0].x) == df["monthly_AnnVol"].tolist()
     assert fig.layout.xaxis.title.text == "Annualized Volatility"
 
 
@@ -149,8 +149,8 @@ def test_fan_and_dist():
 def test_sharpe_ladder():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.05, 0.03],
-            "AnnVol": [0.02, 0.04],
+            "terminal_AnnReturn": [0.05, 0.03],
+            "monthly_AnnVol": [0.02, 0.04],
             "Agent": ["A", "B"],
         }
     )
@@ -206,11 +206,11 @@ def test_html_and_corr(tmp_path):
     fig = risk_return.make(
         pd.DataFrame(
             {
-                "AnnReturn": [0.05],
-                "ExcessReturn": [0.01],
-                "TE": [0.01],
+                "terminal_AnnReturn": [0.05],
+                "terminal_ExcessReturn": [0.01],
+                "monthly_TE": [0.01],
                 "Agent": ["Base"],
-                "ShortfallProb": [0.02],
+                "terminal_ShortfallProb": [0.02],
             }
         )
     )
@@ -270,11 +270,11 @@ def test_data_table_and_scenario_viewer_and_heatmap():
 def test_panel_make():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.05, 0.04],
-            "AnnVol": [0.02, 0.03],
+            "terminal_AnnReturn": [0.05, 0.04],
+            "monthly_AnnVol": [0.02, 0.03],
             "TrackingErr": [0.01, 0.015],
             "Agent": ["A", "B"],
-            "ShortfallProb": [0.02, 0.03],
+            "terminal_ShortfallProb": [0.02, 0.03],
         }
     )
     fig = panel.make(df)
@@ -313,7 +313,7 @@ def test_new_viz_helpers():
 
     metrics = pd.DataFrame(
         {
-            "TE": [0.02, 0.03],
+            "monthly_TE": [0.02, 0.03],
             "ER": [0.05, 0.06],
         },
         index=["Scenario1", "Scenario2"],
@@ -326,11 +326,11 @@ def test_new_viz_helpers():
 def test_extra_viz_helpers():
     df = pd.DataFrame(
         {
-            "AnnReturn": [0.05, 0.04],
-            "AnnVol": [0.02, 0.03],
+            "terminal_AnnReturn": [0.05, 0.04],
+            "monthly_AnnVol": [0.02, 0.03],
             "TrackingErr": [0.01, 0.015],
             "Capital": [100, 200],
-            "ShortfallProb": [0.02, 0.03],
+            "terminal_ShortfallProb": [0.02, 0.03],
         }
     )
     bubble_fig = risk_return_bubble.make(df)
@@ -346,14 +346,14 @@ def test_extra_viz_helpers():
         {
             "Month": [0, 1, 2],
             "TrackingErr": [0.02, 0.04, 0.01],
-            "ShortfallProb": [0.01, 0.15, 0.02],
+            "terminal_ShortfallProb": [0.01, 0.15, 0.02],
         }
     )
     breach_fig = breach_calendar.make(summary)
     assert isinstance(breach_fig, go.Figure)
     breach_fig.to_json()
 
-    sm_fig = scatter_matrix.make(df[["AnnReturn", "AnnVol", "TrackingErr"]])
+    sm_fig = scatter_matrix.make(df[["terminal_AnnReturn", "monthly_AnnVol", "TrackingErr"]])
     assert isinstance(sm_fig, go.Figure)
     sm_fig.to_json()
 
@@ -361,7 +361,7 @@ def test_extra_viz_helpers():
     assert isinstance(moments_fig, go.Figure)
     moments_fig.to_json()
 
-    pc_fig = parallel_coords.make(df[["AnnReturn", "AnnVol", "TrackingErr"]])
+    pc_fig = parallel_coords.make(df[["terminal_AnnReturn", "monthly_AnnVol", "TrackingErr"]])
     assert isinstance(pc_fig, go.Figure)
     pc_fig.to_json()
 
@@ -388,7 +388,7 @@ def test_additional_new_viz_helpers():
             "TrackingErr": [0.02, 0.03],
             "Beta": [1.1, 0.9],
             "Capital": [100, 200],
-            "ShortfallProb": [0.01, 0.2],
+            "terminal_ShortfallProb": [0.01, 0.2],
             "Agent": ["A", "B"],
         }
     )
@@ -419,7 +419,7 @@ def test_te_cvar_scatter_and_quantile_fan():
     df = pd.DataFrame(
         {
             "TrackingErr": [0.02, 0.03],
-            "CVaR": [0.05, 0.04],
+            "monthly_CVaR": [0.05, 0.04],
             "Agent": ["A", "B"],
         }
     )
@@ -475,11 +475,11 @@ def test_additional_visualisations(tmp_path):
         {
             "TrackingErr": [0.02],
             "Beta": [1.0],
-            "AnnReturn": [0.05],
-            "ExcessReturn": [0.02],
-            "TE": [0.02],
+            "terminal_AnnReturn": [0.05],
+            "terminal_ExcessReturn": [0.02],
+            "monthly_TE": [0.02],
             "Capital": [100],
-            "AnnVol": [0.02],
+            "monthly_AnnVol": [0.02],
             "Agent": ["A"],
         }
     )
@@ -488,7 +488,7 @@ def test_additional_visualisations(tmp_path):
     arr = np.random.normal(size=(5, 4))
     assert isinstance(boxplot.make(arr), go.Figure)
 
-    fig1 = risk_return.make(df.assign(ShortfallProb=[0.01]))
+    fig1 = risk_return.make(df.assign(terminal_ShortfallProb=[0.01]))
     fig2 = sharpe_ladder.make(df)
     cross = crossfilter.make([fig1, fig2], df)
     assert isinstance(cross, go.Figure)

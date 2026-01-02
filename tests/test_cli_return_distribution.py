@@ -28,7 +28,7 @@ def test_cli_overrides_return_distribution(tmp_path: Path) -> None:
         mock_build_agents.return_value = []
         mock_simulate.return_value = {"Base": [[0.01]]}
         mock_summary.return_value = pd.DataFrame(
-            {"Agent": ["Base"], "AnnReturn": [0.1], "AnnVol": [0.1]}
+            {"Agent": ["Base"], "terminal_AnnReturn": [0.1], "monthly_AnnVol": [0.1]}
         )
 
         main(

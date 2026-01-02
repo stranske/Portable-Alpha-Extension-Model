@@ -77,7 +77,7 @@ def export_to_excel(
             )
             meta_df.to_excel(writer, sheet_name="Metadata", index=False)
         summary_df = summary_df.copy()
-        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+        summary_df["terminal_ShortfallProb"] = summary_df.get("terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
 
         # Optional: Sensitivity sheet if provided
@@ -200,9 +200,17 @@ def finalize_excel_workbook(
         os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST")
     ):
         summary_df = summary_df.copy()
-        summary_df["ShortfallProb"] = summary_df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+        summary_df["terminal_ShortfallProb"] = summary_df.get("terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
         ws = wb["Summary"]
-        metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
+        metrics = {
+            "terminal_AnnReturn",
+            "monthly_AnnVol",
+            "monthly_VaR",
+            "monthly_CVaR",
+            "terminal_CVaR",
+            "monthly_BreachProb",
+            "monthly_TE",
+        }
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
         for idx, col_name in enumerate(header, 1):
             if col_name in metrics:
@@ -215,7 +223,7 @@ def finalize_excel_workbook(
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
-            # Some tests pass a minimal summary without expected columns like 'Agent' or 'AnnVol'; skip chart.
+            # Some tests pass a minimal summary without expected columns like 'Agent' or 'monthly_AnnVol'; skip chart.
             pass
 
     # Best-effort: embed tornado image on Sensitivity sheet

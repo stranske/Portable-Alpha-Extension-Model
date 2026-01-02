@@ -139,7 +139,7 @@ class RiskMetric(str, Enum):
 
     RETURN = "Return"
     RISK = "Risk"
-    SHORTFALL_PROB = "ShortfallProb"
+    SHORTFALL_PROB = "terminal_ShortfallProb"
 
 
 class WizardScenarioConfig(BaseModel):  # Minimal placeholder for UI wiring

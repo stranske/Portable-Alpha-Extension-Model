@@ -25,7 +25,14 @@ from pa_core.viz import grid_heatmap, grid_panel
 METRICS = (
     ModelConfig.METRICS
     if hasattr(ModelConfig, "METRICS")
-    else ["AnnReturn", "AnnVol", "TE", "CVaR", "BreachProb"]
+    else [
+        "terminal_AnnReturn",
+        "monthly_AnnVol",
+        "monthly_TE",
+        "monthly_CVaR",
+        "terminal_CVaR",
+        "monthly_BreachProb",
+    ]
 )
 
 

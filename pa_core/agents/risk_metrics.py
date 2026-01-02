@@ -9,8 +9,8 @@ from numpy.typing import NDArray
 from ..sim.metrics import (
     breach_count,
     breach_probability,
+    cvar_monthly,
     compounded_return_below_zero_fraction,
-    conditional_value_at_risk,
     max_cumulative_sum_drawdown,
 )
 from ..units import DEFAULT_BREACH_THRESHOLD
@@ -30,7 +30,7 @@ class RiskMetrics:
 
 
 class RiskMetricsAgent:
-    """Compute CVaR, drawdown and breach metrics from return paths."""
+    """Compute monthly CVaR, drawdown, and breach metrics from return paths."""
 
     def __init__(
         self, *, var_conf: float = 0.95, breach_threshold: float = DEFAULT_BREACH_THRESHOLD
@@ -39,9 +39,9 @@ class RiskMetricsAgent:
         self.breach_threshold = breach_threshold
 
     def run(self, returns: Array) -> RiskMetrics:
-        """Return risk metrics for the given return paths."""
+        """Return monthly risk metrics for the given return paths."""
 
-        cvar = conditional_value_at_risk(returns, confidence=self.var_conf)
+        cvar = cvar_monthly(returns, confidence=self.var_conf)
         mdd = max_cumulative_sum_drawdown(returns)
         tuw = compounded_return_below_zero_fraction(returns)
         bprob = breach_probability(returns, self.breach_threshold)

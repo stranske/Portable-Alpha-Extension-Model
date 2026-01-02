@@ -46,7 +46,7 @@ class TestBackendCLIIntegration:
         cfg = {
             "N_SIMULATIONS": 1,
             "N_MONTHS": 1,
-            "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+            "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
             "in_house_return_min_pct": 2.0,
             "in_house_return_max_pct": 2.0,
             "in_house_return_step_pct": 1.0,

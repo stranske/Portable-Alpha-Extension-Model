@@ -27,7 +27,7 @@ sigma_M_annual: 0.02
 risk_metrics:
   - Return
   - Risk
-  - ShortfallProb
+  - terminal_ShortfallProb
 
 analysis_mode: returns
 

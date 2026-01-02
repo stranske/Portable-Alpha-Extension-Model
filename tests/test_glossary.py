@@ -1,6 +1,6 @@
 from dashboard.glossary import GLOSSARY, tooltip
 
-TERMS = ["active share", "buffer multiple", "breach probability", "TE", "CVaR"]
+TERMS = ["active share", "buffer multiple", "breach probability", "monthly_TE", "monthly_CVaR"]
 
 
 def test_glossary_terms_present() -> None:

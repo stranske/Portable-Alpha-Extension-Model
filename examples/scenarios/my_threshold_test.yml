@@ -47,4 +47,4 @@ act_ext_spike_factor: 0.0           # active extension financing spike size mult
 risk_metrics:
   - Return
   - Risk
-  - ShortfallProb
+  - terminal_ShortfallProb

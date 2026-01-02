@@ -25,9 +25,9 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
     prev_summary = pd.DataFrame(
         {
             "Agent": ["Base"],
-            "AnnReturn": [0.05],
-            "AnnVol": [0.12],
-            "ShortfallProb": [0.1],
+            "terminal_AnnReturn": [0.05],
+            "monthly_AnnVol": [0.12],
+            "terminal_ShortfallProb": [0.1],
         }
     )
     prev_output = tmp_path / "prev.xlsx"
@@ -44,9 +44,9 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
         summary = pd.DataFrame(
             {
                 "Agent": ["Base"],
-                "AnnReturn": [0.06],
-                "AnnVol": [0.11],
-                "ShortfallProb": [0.08],
+                "terminal_AnnReturn": [0.06],
+                "monthly_AnnVol": [0.11],
+                "terminal_ShortfallProb": [0.08],
             }
         )
         return [{"summary": summary, "combination_id": 1}]

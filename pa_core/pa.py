@@ -72,7 +72,7 @@ def _convert_csv_to_yaml(csv_path: str, yaml_path: str) -> None:
 
     # Add default risk_metrics if not present
     if "risk_metrics" not in data:
-        data["risk_metrics"] = ["Return", "Risk", "ShortfallProb"]
+        data["risk_metrics"] = ["Return", "Risk", "terminal_ShortfallProb"]
 
     # Write YAML
     Path(yaml_path).write_text(yaml.safe_dump(data, default_flow_style=False))

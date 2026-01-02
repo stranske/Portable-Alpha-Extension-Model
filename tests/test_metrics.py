@@ -8,6 +8,7 @@ from pa_core.sim.metrics import (
     annualised_vol,
     breach_count,
     breach_probability,
+    cvar_terminal,
     compound,
     compounded_return_below_zero_fraction,
     conditional_value_at_risk,
@@ -20,6 +21,7 @@ from pa_core.sim.metrics import (
     tracking_error,
     value_at_risk,
 )
+from pa_core.sim.paths import prepare_mc_universe
 
 
 def test_active_return_volatility_constant_series():
@@ -55,7 +57,7 @@ def test_compound_and_summary():
     ann_ret = annualised_return(arr)
     ann_vol = annualised_vol(arr)
     stats = summary_table({"Base": arr})
-    assert "AnnReturn" in stats.columns
+    assert "terminal_AnnReturn" in stats.columns
     assert np.isfinite(ann_ret)
     assert np.isfinite(ann_vol)
 
@@ -74,7 +76,16 @@ def test_summary_table_adds_total_when_benchmark_present():
 
     total_row = stats[stats["Agent"] == "Total"].iloc[0]
     total_row_explicit = stats_with_total[stats_with_total["Agent"] == "Total"].iloc[0]
-    for col in ["AnnReturn", "AnnVol", "VaR", "CVaR", "BreachProb", "ShortfallProb", "TE"]:
+    for col in [
+        "terminal_AnnReturn",
+        "monthly_AnnVol",
+        "monthly_VaR",
+        "monthly_CVaR",
+        "terminal_CVaR",
+        "monthly_BreachProb",
+        "terminal_ShortfallProb",
+        "monthly_TE",
+    ]:
         val = total_row[col]
         expected = total_row_explicit[col]
         if pd.isna(val) and pd.isna(expected):
@@ -88,6 +99,39 @@ def test_conditional_value_at_risk_monotonic():
     cvar1 = conditional_value_at_risk(arr1, 0.95)
     cvar2 = conditional_value_at_risk(arr2, 0.95)
     assert cvar2 <= cvar1
+
+
+def test_terminal_cvar_worsens_with_heavier_tails_t_copula():
+    cov = np.eye(4) * (0.03**2)
+    low_df = prepare_mc_universe(
+        N_SIMULATIONS=3000,
+        N_MONTHS=24,
+        mu_idx=0.0,
+        mu_H=0.0,
+        mu_E=0.0,
+        mu_M=0.0,
+        cov_mat=cov,
+        return_distribution="student_t",
+        return_t_df=4.0,
+        return_copula="t",
+        seed=123,
+    )
+    high_df = prepare_mc_universe(
+        N_SIMULATIONS=3000,
+        N_MONTHS=24,
+        mu_idx=0.0,
+        mu_H=0.0,
+        mu_E=0.0,
+        mu_M=0.0,
+        cov_mat=cov,
+        return_distribution="student_t",
+        return_t_df=30.0,
+        return_copula="t",
+        seed=123,
+    )
+    low_tail_cvar = cvar_terminal(low_df[:, :, 0], confidence=0.95)
+    high_tail_cvar = cvar_terminal(high_df[:, :, 0], confidence=0.95)
+    assert low_tail_cvar <= high_tail_cvar
 
 
 def test_max_cumulative_sum_drawdown_basic():
@@ -167,14 +211,14 @@ def test_breach_probability_ignores_path_argument():
 def test_summary_table_breach():
     arr = np.array([[0.0, -0.03, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr})
-    assert "BreachProb" in stats.columns
-    assert np.isclose(stats["BreachProb"].iloc[0], 1.0 / 6.0)
+    assert "monthly_BreachProb" in stats.columns
+    assert np.isclose(stats["monthly_BreachProb"].iloc[0], 1.0 / 6.0)
 
 
 def test_summary_table_breach_custom():
     arr = np.array([[0.0, -0.02, 0.03], [0.01, 0.02, 0.03]])
     stats = summary_table({"Base": arr}, breach_threshold=-0.01)
-    assert np.isclose(stats["BreachProb"].iloc[0], 1.0 / 6.0)
+    assert np.isclose(stats["monthly_BreachProb"].iloc[0], 1.0 / 6.0)
 
 
 def test_breach_probability_path_order_invariant():
@@ -223,7 +267,13 @@ def test_breach_probability_invalid_mode():
 def test_summary_table_includes_new_metrics():
     arr = np.array([[0.0, -0.03, 0.03]])
     stats = summary_table({"Base": arr})
-    for col in {"CVaR", "MaxDD", "TimeUnderWater", "BreachCount"}:
+    for col in {
+        "monthly_CVaR",
+        "terminal_CVaR",
+        "monthly_MaxDD",
+        "monthly_TimeUnderWater",
+        "monthly_BreachCountPath0",
+    }:
         assert col in stats.columns
 
 
@@ -265,8 +315,8 @@ def test_active_return_volatility_annualised():
 def test_summary_table_shortfall():
     arr = np.array([[0.1, -0.2], [0.05, 0.02]])
     stats = summary_table({"A": arr})
-    assert "ShortfallProb" in stats.columns
-    assert stats["ShortfallProb"].iloc[0] == 0.5
+    assert "terminal_ShortfallProb" in stats.columns
+    assert stats["terminal_ShortfallProb"].iloc[0] == 0.5
 
 
 def test_deprecated_metric_aliases_warn():

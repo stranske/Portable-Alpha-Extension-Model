@@ -40,7 +40,7 @@ def test_breach_probability_consistent_across_callers() -> None:
     metrics = agent.run(arr)
     table = summary_table({"A": arr}, breach_threshold=threshold)
     assert metrics.breach_probability == pytest.approx(expected)
-    assert float(table.loc[0, "BreachProb"]) == pytest.approx(expected)
+    assert float(table.loc[0, "monthly_BreachProb"]) == pytest.approx(expected)
 
 
 def test_shortfall_threshold_annual_to_horizon_adjustment() -> None:

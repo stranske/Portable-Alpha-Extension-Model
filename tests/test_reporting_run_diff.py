@@ -10,8 +10,8 @@ def test_build_run_diff_config_and_metrics() -> None:
     current_manifest = {"config": {"a": 1, "b": 2}}
     previous_manifest = {"config": {"a": 1, "b": 1, "c": 3}}
 
-    current_summary = pd.DataFrame({"AnnReturn": [0.05], "AnnVol": [0.1], "Label": ["current"]})
-    previous_summary = pd.DataFrame({"AnnReturn": [0.04], "AnnVol": [0.12], "Label": ["previous"]})
+    current_summary = pd.DataFrame({"terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1], "Label": ["current"]})
+    previous_summary = pd.DataFrame({"terminal_AnnReturn": [0.04], "monthly_AnnVol": [0.12], "Label": ["previous"]})
 
     cfg_diff, metric_diff = build_run_diff(
         current_manifest, previous_manifest, current_summary, previous_summary
@@ -25,8 +25,8 @@ def test_build_run_diff_config_and_metrics() -> None:
     c_row = cfg_diff[cfg_diff["Parameter"] == "c"].iloc[0]
     assert c_row["Delta"] == ""
 
-    assert set(metric_diff["Metric"]) == {"AnnReturn", "AnnVol"}
-    ann_return = metric_diff[metric_diff["Metric"] == "AnnReturn"].iloc[0]
+    assert set(metric_diff["Metric"]) == {"terminal_AnnReturn", "monthly_AnnVol"}
+    ann_return = metric_diff[metric_diff["Metric"] == "terminal_AnnReturn"].iloc[0]
     assert ann_return["Delta"] == pytest.approx(0.01)
 
 
@@ -42,15 +42,15 @@ def test_build_run_diff_aligns_by_agent() -> None:
     current_summary = pd.DataFrame(
         {
             "Agent": ["Base", "Alt"],
-            "AnnReturn": [0.05, 0.03],
-            "AnnVol": [0.1, 0.2],
+            "terminal_AnnReturn": [0.05, 0.03],
+            "monthly_AnnVol": [0.1, 0.2],
         }
     )
     previous_summary = pd.DataFrame(
         {
             "Agent": ["Base", "Alt"],
-            "AnnReturn": [0.04, 0.02],
-            "AnnVol": [0.11, 0.19],
+            "terminal_AnnReturn": [0.04, 0.02],
+            "monthly_AnnVol": [0.11, 0.19],
         }
     )
 
@@ -58,7 +58,7 @@ def test_build_run_diff_aligns_by_agent() -> None:
 
     assert "Agent" in metric_diff.columns
     base_rows = metric_diff[metric_diff["Agent"] == "Base"]
-    assert set(base_rows["Metric"]) >= {"AnnReturn", "AnnVol"}
+    assert set(base_rows["Metric"]) >= {"terminal_AnnReturn", "monthly_AnnVol"}
 
 
 def test_build_run_diff_aligns_by_combination_and_agent() -> None:
@@ -66,16 +66,16 @@ def test_build_run_diff_aligns_by_combination_and_agent() -> None:
         {
             "Agent": ["Base", "Base"],
             "Combination": ["Run1", "Run2"],
-            "AnnReturn": [0.05, 0.04],
-            "AnnVol": [0.1, 0.12],
+            "terminal_AnnReturn": [0.05, 0.04],
+            "monthly_AnnVol": [0.1, 0.12],
         }
     )
     previous_summary = pd.DataFrame(
         {
             "Agent": ["Base", "Base"],
             "Combination": ["Run1", "Run2"],
-            "AnnReturn": [0.045, 0.035],
-            "AnnVol": [0.11, 0.115],
+            "terminal_AnnReturn": [0.045, 0.035],
+            "monthly_AnnVol": [0.11, 0.115],
         }
     )
 
@@ -92,21 +92,21 @@ def test_build_run_diff_handles_object_numeric_columns() -> None:
     current_summary = pd.DataFrame(
         {
             "Agent": ["Base", "Alt"],
-            "AnnReturn": [0.05, 0.03],
-            "TE": [None, 0.2],
+            "terminal_AnnReturn": [0.05, 0.03],
+            "monthly_TE": [None, 0.2],
         }
     )
     previous_summary = pd.DataFrame(
         {
             "Agent": ["Base", "Alt"],
-            "AnnReturn": [0.04, 0.02],
-            "TE": [None, 0.25],
+            "terminal_AnnReturn": [0.04, 0.02],
+            "monthly_TE": [None, 0.25],
         }
     )
 
     _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
 
-    te_rows = metric_diff[metric_diff["Metric"] == "TE"]
+    te_rows = metric_diff[metric_diff["Metric"] == "monthly_TE"]
     assert not te_rows.empty
     alt_te = te_rows[te_rows["Agent"] == "Alt"].iloc[0]
     assert alt_te["Delta"] == pytest.approx(-0.05)
@@ -116,22 +116,22 @@ def test_build_run_diff_parses_percent_strings() -> None:
     current_summary = pd.DataFrame(
         {
             "Agent": ["Base"],
-            "AnnReturn": ["5.0%"],
-            "AnnVol": ["10%"],
+            "terminal_AnnReturn": ["5.0%"],
+            "monthly_AnnVol": ["10%"],
         }
     )
     previous_summary = pd.DataFrame(
         {
             "Agent": ["Base"],
-            "AnnReturn": ["4.0%"],
-            "AnnVol": ["12%"],
+            "terminal_AnnReturn": ["4.0%"],
+            "monthly_AnnVol": ["12%"],
         }
     )
 
     _, metric_diff = build_run_diff({}, {}, current_summary, previous_summary)
 
-    ann_return = metric_diff[metric_diff["Metric"] == "AnnReturn"].iloc[0]
-    ann_vol = metric_diff[metric_diff["Metric"] == "AnnVol"].iloc[0]
+    ann_return = metric_diff[metric_diff["Metric"] == "terminal_AnnReturn"].iloc[0]
+    ann_vol = metric_diff[metric_diff["Metric"] == "monthly_AnnVol"].iloc[0]
     assert ann_return["Delta"] == pytest.approx(0.01)
     assert ann_vol["Delta"] == pytest.approx(-0.02)
 
@@ -139,7 +139,7 @@ def test_build_run_diff_parses_percent_strings() -> None:
 def test_build_run_diff_handles_numeric_string_config() -> None:
     current_manifest = {"config": {"alpha": "5", "beta": "10%"}}
     previous_manifest = {"config": {"alpha": "2", "beta": "8%"}}
-    summary = pd.DataFrame({"AnnReturn": [0.05]})
+    summary = pd.DataFrame({"terminal_AnnReturn": [0.05]})
 
     cfg_diff, _ = build_run_diff(current_manifest, previous_manifest, summary, summary)
 
