@@ -16,6 +16,13 @@ def test_run_single_returns_artifacts() -> None:
     assert not artifacts.summary.empty
     assert artifacts.config.N_SIMULATIONS == 2
     assert set(artifacts.returns) == set(artifacts.raw_returns)
+    assert artifacts.manifest is not None
+    assert artifacts.manifest["seed"] == 123
+    assert set(artifacts.manifest["substream_ids"]) == {
+        "internal",
+        "external_pa",
+        "active_ext",
+    }
 
 
 def test_run_single_applies_config_overrides() -> None:
