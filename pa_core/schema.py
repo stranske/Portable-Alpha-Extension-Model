@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import Counter
 from itertools import combinations
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, cast
 
 import yaml
 from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
@@ -222,7 +222,7 @@ def export_schema_definitions(schema: str = "all") -> dict[str, Any]:
     payload: dict[str, Any] = {"models": {}}
     for model in models:
         payload["models"][model.__name__] = {
-            "fields": _export_model_fields(model),
+            "fields": _export_model_fields(cast(type[BaseModel], model)),
         }
     return payload
 
