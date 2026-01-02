@@ -7,7 +7,9 @@ import pytest
 from scripts import ci_metrics
 
 
-def test_resolve_junit_path_prefers_explicit_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_junit_path_prefers_explicit_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.chdir(tmp_path)
     junit_path = tmp_path / "pytest-junit.xml"
     junit_path.write_text("<testsuite></testsuite>", encoding="utf-8")
