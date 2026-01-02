@@ -73,7 +73,11 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim import draw_financing_series, draw_joint_returns
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
-    from .sim.params import build_simulation_params
+    from .sim.params import (
+        build_covariance_return_overrides,
+        build_params,
+        resolve_covariance_inputs,
+    )
     from .simulations import simulate_agents
     from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 
@@ -111,7 +115,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             f"got {covariance_shrinkage_value!r}"
         )
     covariance_shrinkage = cast(Literal["none", "ledoit_wolf"], covariance_shrinkage_value)
-    _ = build_cov_matrix(
+    cov = build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
         cfg.rho_idx_M,
@@ -126,7 +130,26 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_samples=n_samples,
     )
 
-    params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+    sigma_vec, corr_mat = resolve_covariance_inputs(
+        cov,
+        idx_sigma=idx_sigma,
+        sigma_h=sigma_H,
+        sigma_e=sigma_E,
+        sigma_m=sigma_M,
+        rho_idx_H=cfg.rho_idx_H,
+        rho_idx_E=cfg.rho_idx_E,
+        rho_idx_M=cfg.rho_idx_M,
+        rho_H_E=cfg.rho_H_E,
+        rho_H_M=cfg.rho_H_M,
+        rho_E_M=cfg.rho_E_M,
+    )
+
+    params = build_params(
+        cfg,
+        mu_idx=mu_idx,
+        idx_sigma=float(sigma_vec[0]),
+        return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
+    )
 
     N_SIMULATIONS = cfg.N_SIMULATIONS
     N_MONTHS = cfg.N_MONTHS

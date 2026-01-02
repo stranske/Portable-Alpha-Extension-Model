@@ -1,7 +1,11 @@
+from typing import Any
+
 import numpy as np
 import pytest
 
+from pa_core.config import ModelConfig
 from pa_core.sim.metrics import conditional_value_at_risk
+from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import (
     _validate_correlation_matrix,
     draw_joint_returns,
@@ -11,26 +15,28 @@ from pa_core.sim.paths import (
 )
 
 
-def _base_params() -> dict[str, float | str]:
-    return {
-        "mu_idx_month": 0.004,
-        "default_mu_H": 0.003,
-        "default_mu_E": 0.0045,
-        "default_mu_M": 0.0035,
-        "idx_sigma_month": 0.02,
-        "default_sigma_H": 0.03,
-        "default_sigma_E": 0.025,
-        "default_sigma_M": 0.02,
-        "rho_idx_H": 0.2,
-        "rho_idx_E": 0.1,
-        "rho_idx_M": 0.05,
-        "rho_H_E": 0.12,
-        "rho_H_M": 0.08,
-        "rho_E_M": 0.07,
-        "return_distribution": "normal",
-        "return_t_df": 6.0,
-        "return_copula": "gaussian",
-    }
+def _base_params() -> dict[str, Any]:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        return_unit="monthly",
+        mu_H=0.003,
+        sigma_H=0.03,
+        mu_E=0.0045,
+        sigma_E=0.025,
+        mu_M=0.0035,
+        sigma_M=0.02,
+        rho_idx_H=0.2,
+        rho_idx_E=0.1,
+        rho_idx_M=0.05,
+        rho_H_E=0.12,
+        rho_H_M=0.08,
+        rho_E_M=0.07,
+        return_distribution="normal",
+        return_t_df=6.0,
+        return_copula="gaussian",
+    )
+    return build_simulation_params(cfg, mu_idx=0.004, idx_sigma=0.02)
 
 
 def _build_cov(params: dict[str, float | str]) -> np.ndarray:
@@ -182,20 +188,21 @@ def test_prepare_mc_universe_supports_per_series_student_t() -> None:
     sigma = 0.02
     cov = np.diag([sigma**2, sigma**2, sigma**2, sigma**2])
     rng = np.random.default_rng(2024)
-    sims = prepare_mc_universe(
-        N_SIMULATIONS=n_sim,
-        N_MONTHS=n_months,
-        mu_idx=0.0,
-        mu_H=0.0,
-        mu_E=0.0,
-        mu_M=0.0,
-        cov_mat=cov,
-        return_distribution="normal",
-        return_t_df=6.0,
-        return_copula="gaussian",
-        return_distributions=("normal", "student_t", "normal", "normal"),
-        rng=rng,
-    )
+    with pytest.warns(DeprecationWarning, match="prepare_mc_universe is deprecated"):
+        sims = prepare_mc_universe(
+            N_SIMULATIONS=n_sim,
+            N_MONTHS=n_months,
+            mu_idx=0.0,
+            mu_H=0.0,
+            mu_E=0.0,
+            mu_M=0.0,
+            cov_mat=cov,
+            return_distribution="normal",
+            return_t_df=6.0,
+            return_copula="gaussian",
+            return_distributions=("normal", "student_t", "normal", "normal"),
+            rng=rng,
+        )
     normal_cvar = conditional_value_at_risk(sims[:, :, 0], confidence=0.95)
     t_cvar = conditional_value_at_risk(sims[:, :, 1], confidence=0.95)
     assert t_cvar < normal_cvar

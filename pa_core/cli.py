@@ -709,7 +709,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     )
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
-    from .sim.params import build_simulation_params
+    from .sim.params import (
+        build_covariance_return_overrides,
+        build_params,
+        resolve_covariance_inputs,
+    )
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
@@ -1030,8 +1034,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     mu_idx = float(idx_series.mean())
 
     def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
-        import numpy as np
-
         from .units import normalize_return_inputs
 
         return_inputs = normalize_return_inputs(run_cfg)
@@ -1053,35 +1055,22 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             covariance_shrinkage=run_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        if isinstance(cov, np.ndarray) and cov.ndim == 2:
-            sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-            denom = np.outer(sigma_vec, sigma_vec)
-            corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-        else:
-            sigma_vec = np.array([idx_sigma, sigma_h, sigma_e, sigma_m], dtype=float)
-            corr_mat = np.array(
-                [
-                    [1.0, run_cfg.rho_idx_H, run_cfg.rho_idx_E, run_cfg.rho_idx_M],
-                    [run_cfg.rho_idx_H, 1.0, run_cfg.rho_H_E, run_cfg.rho_H_M],
-                    [run_cfg.rho_idx_E, run_cfg.rho_H_E, 1.0, run_cfg.rho_E_M],
-                    [run_cfg.rho_idx_M, run_cfg.rho_H_M, run_cfg.rho_E_M, 1.0],
-                ],
-                dtype=float,
-            )
+        sigma_vec, corr_mat = resolve_covariance_inputs(
+            cov,
+            idx_sigma=idx_sigma,
+            sigma_h=sigma_h,
+            sigma_e=sigma_e,
+            sigma_m=sigma_m,
+            rho_idx_H=run_cfg.rho_idx_H,
+            rho_idx_E=run_cfg.rho_idx_E,
+            rho_idx_M=run_cfg.rho_idx_M,
+            rho_H_E=run_cfg.rho_H_E,
+            rho_H_M=run_cfg.rho_H_M,
+            rho_E_M=run_cfg.rho_E_M,
+        )
+        return_overrides_local = build_covariance_return_overrides(sigma_vec, corr_mat)
 
-        return_overrides_local = {
-            "default_sigma_H": float(sigma_vec[1]),
-            "default_sigma_E": float(sigma_vec[2]),
-            "default_sigma_M": float(sigma_vec[3]),
-            "rho_idx_H": float(corr_mat[0, 1]),
-            "rho_idx_E": float(corr_mat[0, 2]),
-            "rho_idx_M": float(corr_mat[0, 3]),
-            "rho_H_E": float(corr_mat[1, 2]),
-            "rho_H_M": float(corr_mat[1, 3]),
-            "rho_E_M": float(corr_mat[2, 3]),
-        }
-
-        return build_simulation_params(
+        return build_params(
             run_cfg,
             mu_idx=mu_idx,
             idx_sigma=float(sigma_vec[0]),

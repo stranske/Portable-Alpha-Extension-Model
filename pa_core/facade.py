@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
-    import numpy as np
     import pandas as pd
 
     from .config import ModelConfig
@@ -117,23 +116,6 @@ class ExportOptions:
     alt_text: str | None = None
 
 
-def _cov_to_corr_and_sigma(cov: "np.ndarray") -> tuple["np.ndarray", "np.ndarray"]:
-    """Convert covariance matrix to correlation matrix and volatility vector.
-
-    Args:
-        cov: Covariance matrix (n x n).
-
-    Returns:
-        Tuple of (sigma_vector, correlation_matrix).
-    """
-    import numpy as np
-
-    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-    denom = np.outer(sigma, sigma)
-    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-    return sigma, corr
-
-
 def run_single(
     config: "ModelConfig",
     index_series: "pd.Series",
@@ -186,7 +168,11 @@ def run_single(
     from .sim import draw_financing_series, draw_joint_returns
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
-    from .sim.params import build_simulation_params
+    from .sim.params import (
+        build_covariance_return_overrides,
+        build_params,
+        resolve_covariance_inputs,
+    )
     from .simulations import simulate_agents
     from .units import normalize_return_inputs
     from .validators import select_vol_regime_sigma
@@ -234,23 +220,25 @@ def run_single(
         covariance_shrinkage=run_cfg.covariance_shrinkage,
         n_samples=n_samples,
     )
-    sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+    sigma_vec, corr_mat = resolve_covariance_inputs(
+        cov,
+        idx_sigma=idx_sigma,
+        sigma_h=sigma_h,
+        sigma_e=sigma_e,
+        sigma_m=sigma_m,
+        rho_idx_H=run_cfg.rho_idx_H,
+        rho_idx_E=run_cfg.rho_idx_E,
+        rho_idx_M=run_cfg.rho_idx_M,
+        rho_H_E=run_cfg.rho_H_E,
+        rho_H_M=run_cfg.rho_H_M,
+        rho_E_M=run_cfg.rho_E_M,
+    )
 
-    params = build_simulation_params(
+    params = build_params(
         run_cfg,
         mu_idx=mu_idx,
         idx_sigma=float(sigma_vec[0]),
-        return_overrides={
-            "default_sigma_H": float(sigma_vec[1]),
-            "default_sigma_E": float(sigma_vec[2]),
-            "default_sigma_M": float(sigma_vec[3]),
-            "rho_idx_H": float(corr_mat[0, 1]),
-            "rho_idx_E": float(corr_mat[0, 2]),
-            "rho_idx_M": float(corr_mat[0, 3]),
-            "rho_H_E": float(corr_mat[1, 2]),
-            "rho_H_M": float(corr_mat[1, 3]),
-            "rho_E_M": float(corr_mat[2, 3]),
-        },
+        return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
     )
 
     rng_returns = spawn_rngs(run_options.seed, 1)[0]

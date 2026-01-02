@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 import numpy.typing as npt
@@ -10,11 +11,14 @@ from ..backend import xp as np
 from ..random import spawn_rngs
 from ..types import GeneratorLike
 from ..validators import NUMERICAL_STABILITY_EPSILON
+from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
 
 __all__ = [
     "simulate_financing",
     "prepare_mc_universe",
     "prepare_return_shocks",
+    "draw_returns",
+    "draw_financing",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -233,6 +237,12 @@ def _draw_mixed_returns(
     return cast(npt.NDArray[Any], mean + shocks * sigma)
 
 
+def _assert_canonical_params(params: Mapping[str, Any]) -> None:
+    marker = params.get(CANONICAL_PARAMS_MARKER)
+    if marker != CANONICAL_PARAMS_VERSION:
+        raise ValueError("params must be created by build_simulation_params()")
+
+
 def simulate_financing(
     T: int,
     financing_mean: float,
@@ -277,6 +287,11 @@ def prepare_mc_universe(
     rng: Optional[GeneratorLike] = None,
 ) -> npt.NDArray[Any]:
     """Return stacked draws of (index, H, E, M) returns."""
+    warnings.warn(
+        "prepare_mc_universe is deprecated; use draw_joint_returns instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if N_SIMULATIONS <= 0 or N_MONTHS <= 0:
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
     if cov_mat.shape != (4, 4):
@@ -366,7 +381,7 @@ def prepare_return_shocks(
     return shocks
 
 
-def draw_joint_returns(
+def draw_returns(
     *,
     n_months: int,
     n_sim: int,
@@ -375,6 +390,7 @@ def draw_joint_returns(
     shocks: Optional[Dict[str, Any]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
+    _assert_canonical_params(params)
     distribution = params.get("return_distribution", "normal")
     dist_overrides = (
         params.get("return_distribution_idx"),
@@ -484,7 +500,25 @@ def draw_joint_returns(
     return r_beta, r_H, r_E, r_M
 
 
-def draw_financing_series(
+def draw_joint_returns(
+    *,
+    n_months: int,
+    n_sim: int,
+    params: Dict[str, Any],
+    rng: Optional[GeneratorLike] = None,
+    shocks: Optional[Dict[str, Any]] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
+    """Backward-compatible wrapper for draw_returns."""
+    return draw_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng,
+        shocks=shocks,
+    )
+
+
+def draw_financing(
     *,
     n_months: int,
     n_sim: int,
@@ -498,6 +532,7 @@ def draw_financing_series(
     ``"internal"``, ``"external_pa"``, and ``"active_ext"``. If not supplied,
     ``rng`` will be used for all sleeves.
     """
+    _assert_canonical_params(params)
     if rngs is not None:
         tmp_int = rngs.get("internal")
         r_int = tmp_int if tmp_int is not None else spawn_rngs(None, 1)[0]
@@ -558,6 +593,24 @@ def draw_financing_series(
         r_act,
     )
     return f_int_mat, f_ext_pa_mat, f_act_ext_mat
+
+
+def draw_financing_series(
+    *,
+    n_months: int,
+    n_sim: int,
+    params: Dict[str, Any],
+    rng: Optional[GeneratorLike] = None,
+    rngs: Optional[Mapping[str, GeneratorLike]] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
+    """Backward-compatible wrapper for draw_financing."""
+    return draw_financing(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng,
+        rngs=rngs,
+    )
 
 
 def simulate_alpha_streams(
