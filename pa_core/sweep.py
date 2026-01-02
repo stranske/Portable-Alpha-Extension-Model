@@ -26,7 +26,13 @@ from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
-from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
+from .units import (
+    convert_mean,
+    convert_volatility,
+    get_index_series_unit,
+    normalize_index_series,
+    normalize_return_inputs,
+)
 from .validators import select_vol_regime_sigma
 
 
@@ -77,11 +83,23 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                         cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct,
                         cfg.alpha_ext_vol_step_pct,
                     ):
+                        mu_H_val = convert_mean(
+                            mu_H / 100.0, from_unit="annual", to_unit="monthly"
+                        )
+                        sigma_H_val = convert_volatility(
+                            sigma_H / 100.0, from_unit="annual", to_unit="monthly"
+                        )
+                        mu_E_val = convert_mean(
+                            mu_E / 100.0, from_unit="annual", to_unit="monthly"
+                        )
+                        sigma_E_val = convert_volatility(
+                            sigma_E / 100.0, from_unit="annual", to_unit="monthly"
+                        )
                         yield {
-                            "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100,
-                            "mu_E": mu_E / 100,
-                            "sigma_E": sigma_E / 100,
+                            "mu_H": mu_H_val,
+                            "sigma_H": sigma_H_val,
+                            "mu_E": mu_E_val,
+                            "sigma_E": sigma_E_val,
                         }
     elif cfg.analysis_mode == "alpha_shares":
         for theta_extpa in np.arange(
