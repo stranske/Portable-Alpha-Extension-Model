@@ -61,7 +61,8 @@ def active_return_volatility(
     """Return annualised volatility of monthly active returns (tracking error).
 
     The volatility is computed over all monthly draws (and all paths when 2D),
-    then annualised using ``periods_per_year``.
+    then annualised using ``periods_per_year``. This is a monthly-draw metric,
+    not a terminal outcome metric.
     """
     if strategy.shape != benchmark.shape:
         raise ValueError("shape mismatch")
@@ -94,7 +95,8 @@ def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
     """Return monthly VaR from all monthly draws at the given confidence level.
 
     The VaR is computed on the flattened draws (paths x months), so each month
-    of each path is weighted equally.
+    of each path is weighted equally. This is a monthly-draw metric, not a
+    terminal outcome metric.
     """
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
@@ -104,7 +106,10 @@ def value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> float:
 
 
 def compound(returns: ArrayLike) -> ArrayLike:
-    """Return cumulative compounded returns along axis 1 (per-path time series)."""
+    """Return cumulative compounded returns along axis 1 (per-path time series).
+
+    Each path is compounded across months; no cross-path aggregation is done.
+    """
     arr = np.asarray(returns, dtype=np.float64)
     return np.cumprod(1.0 + arr, axis=1) - 1.0  # type: ignore[no-any-return]
 
@@ -113,7 +118,7 @@ def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
     """Return annualised compound return from terminal compounded outcomes.
 
     Each path contributes one terminal compounded return, which is averaged
-    before annualising.
+    before annualising. This is a terminal-outcome metric.
     """
     comp = compound(returns)
     total_return = comp[:, -1]
@@ -125,7 +130,7 @@ def annualised_vol(returns: ArrayLike, periods_per_year: int = 12) -> float:
     """Return annualised volatility from monthly returns.
 
     The volatility is computed over all monthly draws (paths x months) and then
-    annualised.
+    annualised. This is a monthly-draw metric.
     """
     arr = np.asarray(returns, dtype=np.float64)
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
@@ -151,7 +156,9 @@ def breach_probability(
     For 1D arrays, ``mode="month"`` is the share of months below the threshold,
     while the other modes return 1.0 or 0.0 for the single path. ``path`` is
     ignored and kept only for backward compatibility with legacy callers; all
-    modes use every available path and month, never just the first path.
+    modes use every available path and month, never just the first path. The
+    "month" mode is a monthly-draw metric, while "any" and "terminal" are
+    terminal-path metrics.
     """
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
@@ -184,7 +191,8 @@ def terminal_return_below_threshold_prob(
     For 2D inputs, the probability is computed from terminal compounded returns
     over the full horizon. For 1D inputs, rolling windows of length
     ``min(periods_per_year, len(returns))`` estimate the shortfall frequency,
-    using the same annual-to-horizon conversion for each window.
+    using the same annual-to-horizon conversion for each window. This is a
+    terminal-outcome metric.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -232,7 +240,8 @@ def breach_count_path0(returns: ArrayLike, threshold: float, *, path: int = 0) -
 
     This is a path-specific diagnostic (defaulting to path 0). It does not
     average across simulations and should not be interpreted as an expected
-    breach count.
+    breach count across paths. It is intentionally a path 0 only metric unless
+    ``path`` is overridden.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -246,9 +255,9 @@ def breach_count_path0(returns: ArrayLike, threshold: float, *, path: int = 0) -
 
 
 def breach_count(returns: ArrayLike, threshold: float, *, path: int = 0) -> int:
-    """Deprecated alias for :func:`breach_count_path0`."""
+    """Deprecated alias for :func:`breach_count_path0` (path 0 only)."""
     warnings.warn(
-        "breach_count is deprecated; use breach_count_path0",
+        "breach_count is deprecated; use breach_count_path0 (path 0 only)",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -265,7 +274,8 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
     function falls back to returning the VaR itself.
 
     The function operates on the flattened input array. For monthly returns
-    this corresponds to CVaR across all monthly draws.
+    this corresponds to CVaR across all monthly draws. This is a monthly-draw
+    metric, not a terminal outcome metric.
     """
 
     if not 0 < confidence < 1:
@@ -279,7 +289,10 @@ def conditional_value_at_risk(returns: ArrayLike, confidence: float = 0.95) -> f
 
 
 def cvar_monthly(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return monthly CVaR computed over all monthly draws (paths x months)."""
+    """Return monthly CVaR computed over all monthly draws (paths x months).
+
+    Each month of every path contributes equally; this is not a terminal CVaR.
+    """
     return conditional_value_at_risk(returns, confidence=confidence)
 
 
@@ -288,7 +301,8 @@ def cvar_terminal(
 ) -> float:
     """Return terminal CVaR computed from horizon compounded outcomes.
 
-    The CVaR is computed over one terminal compounded return per path.
+    The CVaR is computed over one terminal compounded return per path. This is
+    a terminal-outcome metric (one draw per path).
     """
     arr = np.asarray(returns, dtype=np.float64)
     if arr.size == 0:
@@ -305,6 +319,7 @@ def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
 
     Drawdowns are computed on compounded monthly wealth paths, and the minimum
     drawdown across all paths and periods is returned (monthly-path semantics).
+    This is a monthly-path metric, not a terminal-only metric.
     """
 
     arr = np.asarray(returns, dtype=np.float64)
@@ -334,7 +349,8 @@ def max_drawdown(returns: ArrayLike) -> float:
 def compounded_return_below_zero_fraction(returns: ArrayLike) -> float:
     """Return fraction of monthly periods with negative compounded return.
 
-    The fraction is computed over all (path, month) compounded outcomes.
+    The fraction is computed over all (path, month) compounded outcomes, so
+    each monthly draw is weighted equally.
     """
 
     comp = compound(returns)
@@ -379,6 +395,11 @@ def summary_table(
     shortfall_threshold:
         Annualised threshold for :func:`terminal_return_below_threshold_prob`.
         Defaults to the module-level default in :mod:`pa_core.units`.
+
+    Notes
+    -----
+    ``monthly_BreachCountPath0`` is a path 0 diagnostic count (not a cross-path
+    expectation) and is included for debugging parity with legacy outputs.
     """
 
     returns = returns_map

@@ -20,7 +20,11 @@ Array: TypeAlias = NDArray[np.float64]
 
 @dataclass
 class RiskMetrics:
-    """Container for monthly risk statistics derived from return paths."""
+    """Container for monthly risk statistics derived from return paths.
+
+    All fields are monthly-draw metrics; ``monthly_breach_count_path0`` is a
+    path-0-only diagnostic count.
+    """
 
     monthly_cvar: float
     monthly_max_cumulative_sum_drawdown: float
