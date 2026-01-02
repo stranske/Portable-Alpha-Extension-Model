@@ -30,7 +30,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
-    import numpy as np
     import pandas as pd
 
     from .config import ModelConfig

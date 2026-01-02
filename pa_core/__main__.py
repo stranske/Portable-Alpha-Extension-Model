@@ -5,7 +5,6 @@ import json
 from dataclasses import fields, is_dataclass
 from typing import Literal, Optional, Sequence, cast
 
-import numpy as np
 import pandas as pd
 
 from .backend import resolve_and_set_backend
