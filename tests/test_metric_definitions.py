@@ -39,7 +39,7 @@ def test_breach_probability_consistent_across_callers() -> None:
     agent = RiskMetricsAgent(breach_threshold=threshold)
     metrics = agent.run(arr)
     table = summary_table({"A": arr}, breach_threshold=threshold)
-    assert metrics.breach_probability == pytest.approx(expected)
+    assert metrics.monthly_breach_probability == pytest.approx(expected)
     assert float(table.loc[0, "monthly_BreachProb"]) == pytest.approx(expected)
 
 

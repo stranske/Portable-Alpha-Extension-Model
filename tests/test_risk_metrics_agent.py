@@ -57,15 +57,19 @@ def test_risk_metrics_agent_matches_individual_functions(
     metrics = agent.run(returns)
 
     # Verify each metric matches corresponding function
-    assert metrics.cvar == pytest.approx(conditional_value_at_risk(returns, confidence=0.95))
-    assert metrics.max_cumulative_sum_drawdown == pytest.approx(
+    assert metrics.monthly_cvar == pytest.approx(
+        conditional_value_at_risk(returns, confidence=0.95)
+    )
+    assert metrics.monthly_max_cumulative_sum_drawdown == pytest.approx(
         max_cumulative_sum_drawdown(returns)
     )
-    assert metrics.compounded_return_below_zero_fraction == pytest.approx(
+    assert metrics.monthly_compounded_return_below_zero_fraction == pytest.approx(
         compounded_return_below_zero_fraction(returns)
     )
-    assert metrics.breach_probability == pytest.approx(breach_probability(returns, -0.02))
-    assert metrics.breach_count == breach_count(returns, -0.02)
+    assert metrics.monthly_breach_probability == pytest.approx(
+        breach_probability(returns, -0.02)
+    )
+    assert metrics.monthly_breach_count_path0 == breach_count(returns, -0.02)
 
 
 # Test for scaling behavior - parametrized for multiple scaling factors
@@ -93,10 +97,10 @@ def test_risk_metrics_agent_scaling_behavior(
     # CVaR scales roughly linearly, but max drawdown is path-dependent and
     # compounding makes scaling non-linear. Larger magnitudes should not reduce it.
     assert (
-        abs(scaled_metrics.cvar) >= abs(scale_factor * base_metrics.cvar) * 0.9
+        abs(scaled_metrics.monthly_cvar) >= abs(scale_factor * base_metrics.monthly_cvar) * 0.9
     )  # Allow 10% tolerance for numerical effects
-    assert abs(scaled_metrics.max_cumulative_sum_drawdown) >= abs(
-        base_metrics.max_cumulative_sum_drawdown
+    assert abs(scaled_metrics.monthly_max_cumulative_sum_drawdown) >= abs(
+        base_metrics.monthly_max_cumulative_sum_drawdown
     )
 
 
@@ -123,8 +127,8 @@ def test_risk_metrics_agent_different_data_sizes(
     metrics = agent.run(returns)
 
     # Basic sanity checks
-    assert isinstance(metrics.cvar, float)
-    assert isinstance(metrics.max_cumulative_sum_drawdown, float)
-    assert isinstance(metrics.compounded_return_below_zero_fraction, float)
-    assert isinstance(metrics.breach_probability, float)
-    assert isinstance(metrics.breach_count, int)
+    assert isinstance(metrics.monthly_cvar, float)
+    assert isinstance(metrics.monthly_max_cumulative_sum_drawdown, float)
+    assert isinstance(metrics.monthly_compounded_return_below_zero_fraction, float)
+    assert isinstance(metrics.monthly_breach_probability, float)
+    assert isinstance(metrics.monthly_breach_count_path0, int)

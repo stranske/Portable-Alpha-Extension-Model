@@ -20,13 +20,13 @@ Array: TypeAlias = NDArray[np.float64]
 
 @dataclass
 class RiskMetrics:
-    """Container for common risk statistics."""
+    """Container for monthly risk statistics derived from return paths."""
 
-    cvar: float
-    max_cumulative_sum_drawdown: float
-    compounded_return_below_zero_fraction: float
-    breach_probability: float
-    breach_count: int
+    monthly_cvar: float
+    monthly_max_cumulative_sum_drawdown: float
+    monthly_compounded_return_below_zero_fraction: float
+    monthly_breach_probability: float
+    monthly_breach_count_path0: int
 
 
 class RiskMetricsAgent:
@@ -46,4 +46,10 @@ class RiskMetricsAgent:
         tuw = compounded_return_below_zero_fraction(returns)
         bprob = breach_probability(returns, self.breach_threshold)
         bcount = breach_count(returns, self.breach_threshold)
-        return RiskMetrics(cvar, mdd, tuw, bprob, bcount)
+        return RiskMetrics(
+            monthly_cvar=cvar,
+            monthly_max_cumulative_sum_drawdown=mdd,
+            monthly_compounded_return_below_zero_fraction=tuw,
+            monthly_breach_probability=bprob,
+            monthly_breach_count_path0=bcount,
+        )
