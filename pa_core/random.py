@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import hashlib
-from typing import Dict, List, Sequence
+from typing import TYPE_CHECKING, Dict, List, Sequence
 
 from .backend import xp
 from .types import GeneratorLike
+
+if TYPE_CHECKING:
+    import numpy as np
 
 __all__ = [
     "spawn_rngs",
@@ -96,7 +99,7 @@ def _stable_substream_id(base_entropy: int, agent_name: str) -> str:
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
-def _legacy_substream_id(seed_sequence: xp.random.SeedSequence) -> str:
+def _legacy_substream_id(seed_sequence: "np.random.SeedSequence") -> str:
     token = f"legacy|{seed_sequence.entropy}|{seed_sequence.spawn_key}"
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
