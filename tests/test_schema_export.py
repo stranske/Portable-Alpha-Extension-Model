@@ -1,4 +1,6 @@
-from pa_core.schema import export_schema_definitions
+from pathlib import Path
+
+from pa_core.schema import export_schema_definitions, generate_schema_templates
 
 
 def test_export_schema_includes_aliases() -> None:
@@ -7,3 +9,21 @@ def test_export_schema_includes_aliases() -> None:
     fields = model["fields"]
     assert fields["N_SIMULATIONS"]["alias"] == "Number of simulations"
     assert "Active share" in fields["active_share"]["aliases"]
+
+
+def test_templates_match_schema(tmp_path: Path) -> None:
+    generate_schema_templates(tmp_path)
+    template_dir = Path("templates")
+    template_files = [
+        "parameters_template.csv",
+        "params_template.yaml",
+        "scenario_template.yaml",
+        "scenario_example.yaml",
+    ]
+    for filename in template_files:
+        generated = (tmp_path / filename).read_text()
+        committed = (template_dir / filename).read_text()
+        assert generated == committed, (
+            f"{filename} template drift detected; re-run "
+            "`python -m pa_core.schema --generate-templates`."
+        )
