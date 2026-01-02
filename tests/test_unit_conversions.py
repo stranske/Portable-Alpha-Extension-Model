@@ -50,6 +50,13 @@ def test_convert_mean_round_trip_simple() -> None:
     assert np.isclose(back, monthly)
 
 
+def test_convert_mean_annual_point05_to_monthly() -> None:
+    annual = 0.05
+    expected = annual / 12.0
+    monthly = convert_mean(annual, from_unit="annual", to_unit="monthly", method="simple")
+    assert np.isclose(monthly, expected)
+
+
 def test_convert_return_series_monthly_to_annual() -> None:
     series = pd.Series([0.01, -0.02])
     converted = convert_return_series(series, from_unit="monthly", to_unit="annual")

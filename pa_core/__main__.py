@@ -75,7 +75,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
     from .simulations import simulate_agents
-    from .units import get_index_series_unit, normalize_index_series
+    from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
     fin_rngs = spawn_agent_rngs(
@@ -99,9 +99,10 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     n_samples = int(len(idx_series))
 
-    sigma_H = cfg.sigma_H
-    sigma_E = cfg.sigma_E
-    sigma_M = cfg.sigma_M
+    return_inputs = normalize_return_inputs(cfg)
+    sigma_H = return_inputs["sigma_H"]
+    sigma_E = return_inputs["sigma_E"]
+    sigma_M = return_inputs["sigma_M"]
 
     covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
     if covariance_shrinkage_value not in ("none", "ledoit_wolf"):

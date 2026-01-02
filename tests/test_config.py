@@ -5,7 +5,12 @@ from typing import Any
 
 import pytest
 
-from pa_core.config import ModelConfig, annual_mean_to_monthly, load_config
+from pa_core.config import (
+    ModelConfig,
+    annual_mean_to_monthly,
+    annual_vol_to_monthly,
+    load_config,
+)
 from pa_core.data.convert import convert
 
 yaml: Any = pytest.importorskip("yaml")
@@ -96,6 +101,57 @@ def test_load_dict():
     assert cfg.N_SIMULATIONS == 1000
     assert cfg.N_MONTHS == 3
     assert cfg.mu_H == annual_mean_to_monthly(0.05)
+
+
+def test_model_config_explicit_annual_return_fields() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        mu_H_annual=0.12,
+        sigma_H_annual=0.24,
+    )
+    assert cfg.mu_H == annual_mean_to_monthly(0.12)
+    assert cfg.sigma_H == annual_vol_to_monthly(0.24)
+
+
+def test_model_config_explicit_monthly_return_fields() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        mu_H_monthly=0.01,
+        sigma_H_monthly=0.02,
+    )
+    assert cfg.return_unit_input == "monthly"
+    assert cfg.mu_H == 0.01
+    assert cfg.sigma_H == 0.02
+
+
+def test_model_config_warns_on_legacy_return_fields() -> None:
+    data = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "mu_H": 0.05}
+    with pytest.warns(DeprecationWarning, match="mu_H"):
+        ModelConfig(**data)
+
+
+def test_model_config_rejects_mixed_explicit_units() -> None:
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "mu_H_annual": 0.05,
+        "sigma_H_monthly": 0.02,
+    }
+    with pytest.raises(ValueError, match="Conflicting return units"):
+        ModelConfig(**data)
+
+
+def test_model_config_rejects_explicit_unit_mismatch() -> None:
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "return_unit": "monthly",
+        "mu_H_annual": 0.05,
+    }
+    with pytest.raises(ValueError, match="return_unit conflicts"):
+        ModelConfig(**data)
 
 
 def test_model_config_minimal_inputs_use_defaults():

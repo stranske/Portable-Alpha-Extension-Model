@@ -1032,9 +1032,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
         import numpy as np
 
-        sigma_h = float(run_cfg.sigma_H)
-        sigma_e = float(run_cfg.sigma_E)
-        sigma_m = float(run_cfg.sigma_M)
+        from .units import normalize_return_inputs
+
+        return_inputs = normalize_return_inputs(run_cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
 
         cov = deps.build_cov_matrix(
             run_cfg.rho_idx_H,
