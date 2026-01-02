@@ -31,6 +31,8 @@ External annual vol (%): 0.02
 "Corr In-House\u2013Alpha-Extension": 0.1
 "Corr In-House\u2013External": 0.1
 "Corr Alpha-Extension\u2013External": 0.0
+correlation_repair_mode: warn_fix
+correlation_repair_shrinkage: 0.0
 covariance_shrinkage: none
 vol_regime: single
 vol_regime_window: 12
@@ -78,4 +80,4 @@ financing_term_months: 1.0
 risk_metrics:
 - Return
 - Risk
-- ShortfallProb
+- terminal_ShortfallProb

@@ -32,6 +32,8 @@ Corr index–External,0.0
 Corr In-House–Alpha-Extension,0.1
 Corr In-House–External,0.1
 Corr Alpha-Extension–External,0.0
+correlation_repair_mode,warn_fix
+correlation_repair_shrinkage,0.0
 covariance_shrinkage,none
 vol_regime,single
 vol_regime_window,12
@@ -76,4 +78,4 @@ volatility_multiple,3.0
 financing_model,simple_proxy
 financing_schedule_path,
 financing_term_months,1.0
-risk_metrics,Return;Risk;ShortfallProb
+risk_metrics,Return;Risk;terminal_ShortfallProb
