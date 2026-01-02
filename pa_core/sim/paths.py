@@ -125,8 +125,7 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
     if min_eig_before < -_CORR_VALIDATION_TOL:
         if repair_mode == "error":
             raise ValueError(
-                "Correlation matrix is not PSD; "
-                f"min eigenvalue {min_eig_before:.3e}."
+                "Correlation matrix is not PSD; " f"min eigenvalue {min_eig_before:.3e}."
             )
         repaired = _project_to_near_psd_correlation(corr_work)
         applied_steps.append("eigen_clip")
