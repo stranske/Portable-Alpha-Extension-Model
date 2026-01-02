@@ -236,9 +236,9 @@ def test_multiple_params(arg1: str, tmp_path: Path, arg2: int):
 
         try:
             result = _check_tmp_path_usage_with_ast(temp_file)
-            assert (
-                result == expected
-            ), f"Test case {i + 1} failed: expected {expected}, got {result}"
+            assert result == expected, (
+                f"Test case {i + 1} failed: expected {expected}, got {result}"
+            )
         finally:
             temp_file.unlink()
 
