@@ -5,6 +5,7 @@ import json
 from dataclasses import fields, is_dataclass
 from typing import Literal, Optional, Sequence, cast
 
+import numpy as np
 import pandas as pd
 
 from .backend import resolve_and_set_backend
@@ -111,7 +112,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
             f"got {covariance_shrinkage_value!r}"
         )
     covariance_shrinkage = cast(Literal["none", "ledoit_wolf"], covariance_shrinkage_value)
-    _ = build_cov_matrix(
+    cov = build_cov_matrix(
         cfg.rho_idx_H,
         cfg.rho_idx_E,
         cfg.rho_idx_M,
@@ -126,7 +127,38 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         n_samples=n_samples,
     )
 
-    params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+    if isinstance(cov, np.ndarray) and cov.ndim == 2:
+        sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+        denom = np.outer(sigma_vec, sigma_vec)
+        corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
+    else:
+        sigma_vec = np.array([idx_sigma, sigma_H, sigma_E, sigma_M], dtype=float)
+        corr_mat = np.array(
+            [
+                [1.0, cfg.rho_idx_H, cfg.rho_idx_E, cfg.rho_idx_M],
+                [cfg.rho_idx_H, 1.0, cfg.rho_H_E, cfg.rho_H_M],
+                [cfg.rho_idx_E, cfg.rho_H_E, 1.0, cfg.rho_E_M],
+                [cfg.rho_idx_M, cfg.rho_H_M, cfg.rho_E_M, 1.0],
+            ],
+            dtype=float,
+        )
+
+    params = build_simulation_params(
+        cfg,
+        mu_idx=mu_idx,
+        idx_sigma=float(sigma_vec[0]),
+        return_overrides={
+            "default_sigma_H": float(sigma_vec[1]),
+            "default_sigma_E": float(sigma_vec[2]),
+            "default_sigma_M": float(sigma_vec[3]),
+            "rho_idx_H": float(corr_mat[0, 1]),
+            "rho_idx_E": float(corr_mat[0, 2]),
+            "rho_idx_M": float(corr_mat[0, 3]),
+            "rho_H_E": float(corr_mat[1, 2]),
+            "rho_H_M": float(corr_mat[1, 3]),
+            "rho_E_M": float(corr_mat[2, 3]),
+        },
+    )
 
     N_SIMULATIONS = cfg.N_SIMULATIONS
     N_MONTHS = cfg.N_MONTHS
