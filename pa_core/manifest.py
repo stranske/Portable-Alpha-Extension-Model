@@ -16,6 +16,7 @@ class Manifest:
     git_commit: str
     timestamp: str
     seed: int | None
+    substream_ids: Mapping[str, str] | None
     config: Mapping[str, Any]
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
@@ -44,6 +45,7 @@ class ManifestWriter:
         config_path: str | Path,
         data_files: Sequence[str | Path],
         seed: int | None,
+        substream_ids: Mapping[str, str] | None = None,
         cli_args: Mapping[str, Any],
         backend: str | None = None,
         run_log: str | Path | None = None,
@@ -66,6 +68,7 @@ class ManifestWriter:
             git_commit=commit,
             timestamp=datetime.now(timezone.utc).isoformat(),
             seed=seed,
+            substream_ids=dict(substream_ids) if substream_ids is not None else None,
             config=cfg,
             data_files=hashes,
             cli_args=dict(cli_args),

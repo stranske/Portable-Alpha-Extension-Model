@@ -162,6 +162,13 @@ def create_export_packet(
         prev_sum = prev_summary_df if prev_summary_df is not None else pd.DataFrame()
         cfg_diff_df, metric_diff_df = build_run_diff(manifest, prev_manifest, summary_df, prev_sum)
 
+    metadata = None
+    if manifest is not None:
+        metadata = {
+            "rng_seed": manifest.get("seed"),
+            "substream_ids": manifest.get("substream_ids"),
+        }
+
     # Excel workbook (full tables)
     finalize_after_append = stress_delta_df is not None and not stress_delta_df.empty
     export_to_excel(
@@ -172,6 +179,7 @@ def create_export_packet(
         pivot=pivot,
         diff_config_df=cfg_diff_df,
         diff_metrics_df=metric_diff_df,
+        metadata=metadata,
         finalize=not finalize_after_append,
     )
     if stress_delta_df is not None and not stress_delta_df.empty:

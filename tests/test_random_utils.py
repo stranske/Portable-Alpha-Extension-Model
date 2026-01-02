@@ -1,6 +1,6 @@
 import numpy as np
 
-from pa_core.random import spawn_agent_rngs, spawn_rngs
+from pa_core.random import derive_agent_substream_ids, spawn_agent_rngs, spawn_rngs
 
 
 def test_spawn_rngs_reproducible():
@@ -32,6 +32,32 @@ def test_spawn_agent_rngs_reproducible():
     assert np.allclose(vals_b, rngs2["B"].normal(size=3))
 
 
+def test_spawn_agent_rngs_order_independent():
+    names_a = ["A", "B", "C"]
+    names_b = ["C", "A", "B"]
+    rngs_a = spawn_agent_rngs(123, names_a)
+    rngs_b = spawn_agent_rngs(123, names_b)
+    for name in names_a:
+        assert np.allclose(rngs_a[name].normal(size=5), rngs_b[name].normal(size=5))
+
+
+def test_spawn_agent_rngs_adding_sleeve_stable():
+    base_names = ["A", "B"]
+    extended_names = ["B", "C", "A"]
+    rngs_base = spawn_agent_rngs(321, base_names)
+    rngs_ext = spawn_agent_rngs(321, extended_names)
+    for name in base_names:
+        assert np.allclose(rngs_base[name].normal(size=5), rngs_ext[name].normal(size=5))
+
+
+def test_spawn_agent_rngs_legacy_order_dependent():
+    names_a = ["A", "B"]
+    names_b = ["B", "A"]
+    rngs_a = spawn_agent_rngs(99, names_a, legacy_order=True)
+    rngs_b = spawn_agent_rngs(99, names_b, legacy_order=True)
+    assert not np.allclose(rngs_a["A"].normal(size=8), rngs_b["A"].normal(size=8))
+
+
 def test_spawn_agent_rngs_error():
     try:
         spawn_agent_rngs(0, [])
@@ -57,3 +83,14 @@ def test_spawn_rngs_invalid_n_error():
         pass
     else:
         raise AssertionError("Expected ValueError for non-positive n")
+
+
+def test_seed_none_substream_ids_do_not_collide(monkeypatch):
+    def fake_base_entropy(_seed):
+        return 0
+
+    monkeypatch.setattr("pa_core.random._base_entropy", fake_base_entropy)
+    names = ["A"]
+    ids_none = derive_agent_substream_ids(None, names)
+    ids_seed = derive_agent_substream_ids(0, names)
+    assert ids_none["A"] != ids_seed["A"]

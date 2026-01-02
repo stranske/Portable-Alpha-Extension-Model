@@ -51,7 +51,7 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
         )
         return [{"summary": summary, "combination_id": 1}]
 
-    def _stub_export_sweep_results(_results, filename="Sweep.xlsx"):
+    def _stub_export_sweep_results(_results, filename="Sweep.xlsx", **_kwargs):
         Path(filename).write_text("stub")
 
     captured: dict[str, object] = {}

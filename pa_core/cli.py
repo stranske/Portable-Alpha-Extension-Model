@@ -367,6 +367,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         help="Random seed for reproducible simulations",
     )
     parser.add_argument(
+        "--legacy-agent-rng",
+        action="store_true",
+        help="Use legacy order-dependent agent RNG streams (defaults to stable name-based streams)",
+    )
+    parser.add_argument(
         "--return-distribution",
         choices=["normal", "student_t"],
         help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
@@ -702,7 +707,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .data import load_index_returns
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
-    from .random import spawn_agent_rngs, spawn_rngs
+    from .random import spawn_agent_rngs, spawn_agent_rngs_with_ids, spawn_rngs
     from .reporting.attribution import (
         compute_sleeve_return_attribution,
         compute_sleeve_risk_attribution,
@@ -760,9 +765,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             logger.warning(f"Failed to set up JSON logging: {e}")
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
-    fin_rngs = spawn_agent_rngs(
+    fin_agent_names = ["internal", "external_pa", "active_ext"]
+    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         args.seed,
-        ["internal", "external_pa", "active_ext"],
+        fin_agent_names,
+        legacy_order=args.legacy_agent_rng,
     )
 
     if args.mode is not None:
@@ -905,7 +912,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     ):
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
-        export_sweep_results(results, filename=args.output)
+        sweep_metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
+        export_sweep_results(results, filename=args.output, metadata=sweep_metadata)
         _record_artifact(args.output)
 
         # Write reproducibility manifest
@@ -918,6 +926,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             config_path=args.config,
             data_files=data_files,
             seed=args.seed,
+            substream_ids=substream_ids,
             cli_args=vars(args),
             backend=args.backend,
             run_log=run_log_path,
@@ -1116,7 +1125,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         from .reporting.stress_delta import build_delta_table
 
         base_rng_returns = spawn_rngs(args.seed, 1)[0]
-        base_fin_rngs = spawn_agent_rngs(args.seed, ["internal", "external_pa", "active_ext"])
+        base_fin_rngs = spawn_agent_rngs(
+            args.seed,
+            fin_agent_names,
+            legacy_order=args.legacy_agent_rng,
+        )
         _, base_summary, _, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
@@ -1357,6 +1370,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             logger.error(f"Sensitivity analysis data type error: {e}")
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
 
+    metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
     finalize_after_append = bool(args.stress_preset)
     deps.export_to_excel(
         inputs_dict,
@@ -1365,6 +1379,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
         finalize=not finalize_after_append,
+        metadata=metadata,
     )
     _record_artifact(flags.save_xlsx or "Outputs.xlsx")
     if args.stress_preset:
@@ -1403,6 +1418,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             config_path=args.config,
             data_files=data_files,
             seed=args.seed,
+            substream_ids=substream_ids,
             cli_args=vars(args),
             backend=args.backend,
             run_log=run_log_path,
