@@ -138,7 +138,7 @@ def test_load_config_missing_required_field_raises_value_error() -> None:
     config_data = {
         "N_SIMULATIONS": 1000,
         "analysis_mode": "returns",
-"risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
 
     with pytest.raises(ValueError, match="Number of months"):

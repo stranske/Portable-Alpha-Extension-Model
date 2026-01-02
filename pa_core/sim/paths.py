@@ -11,8 +11,8 @@ from ..backend import xp as np
 from ..random import spawn_rngs
 from ..types import GeneratorLike
 from ..validators import NUMERICAL_STABILITY_EPSILON
-from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
 from .financing import draw_financing_series, simulate_financing
+from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
 
 __all__ = [
     "simulate_financing",
@@ -30,6 +30,7 @@ _VALID_RETURN_COPULAS = {"gaussian", "t"}
 _CORR_VALIDATION_TOL = 1e-8
 
 logger = logging.getLogger(__name__)
+
 
 def _validate_return_draw_settings(
     distribution: str | Sequence[str], copula: str, t_df: float
@@ -240,6 +241,7 @@ def _assert_canonical_params(params: Mapping[str, Any]) -> None:
     marker = params.get(CANONICAL_PARAMS_MARKER)
     if marker != CANONICAL_PARAMS_VERSION:
         raise ValueError("params must be created by build_simulation_params()")
+
 
 def prepare_mc_universe(
     *,
