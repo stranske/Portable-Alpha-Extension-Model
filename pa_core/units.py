@@ -24,6 +24,7 @@ from .config import (
     CANONICAL_RETURN_UNIT,
     DEFAULT_MEAN_CONVERSION,
     MONTHS_PER_YEAR,
+    ModelConfig,
     annual_cov_to_monthly,
     annual_mean_to_monthly,
     annual_vol_to_monthly,
@@ -49,6 +50,7 @@ __all__ = [
     "format_unit_label",
     "get_config_unit",
     "get_index_series_unit",
+    "normalize_return_inputs",
     "get_summary_table_unit",
     "get_threshold_unit",
     "normalize_index_series",
@@ -64,11 +66,23 @@ CONFIG_TIME_HORIZON_FIELDS: dict[str, str] = {
     "return_unit": "annual_or_monthly",
     "return_unit_input": "annual_or_monthly",
     "mu_H": "return_unit_input",
+    "mu_H_annual": "annual",
+    "mu_H_monthly": "monthly",
     "sigma_H": "return_unit_input",
+    "sigma_H_annual": "annual",
+    "sigma_H_monthly": "monthly",
     "mu_E": "return_unit_input",
+    "mu_E_annual": "annual",
+    "mu_E_monthly": "monthly",
     "sigma_E": "return_unit_input",
+    "sigma_E_annual": "annual",
+    "sigma_E_monthly": "monthly",
     "mu_M": "return_unit_input",
+    "mu_M_annual": "annual",
+    "mu_M_monthly": "monthly",
     "sigma_M": "return_unit_input",
+    "sigma_M_annual": "annual",
+    "sigma_M_monthly": "monthly",
     "in_house_return_min_pct": "annual",
     "in_house_return_max_pct": "annual",
     "in_house_return_step_pct": "annual",
@@ -200,6 +214,19 @@ def get_config_unit(cfg: object | None = None) -> Unit:
 def get_index_series_unit() -> Unit:
     """Return the expected unit for index return series (monthly)."""
     return CANONICAL_RETURN_UNIT
+
+
+def normalize_return_inputs(cfg: ModelConfig) -> dict[str, float]:
+    """Return monthly return inputs derived from ``cfg``."""
+    unit = get_config_unit(cfg)
+    return {
+        "mu_H": convert_mean(cfg.mu_H, from_unit=unit, to_unit="monthly"),
+        "mu_E": convert_mean(cfg.mu_E, from_unit=unit, to_unit="monthly"),
+        "mu_M": convert_mean(cfg.mu_M, from_unit=unit, to_unit="monthly"),
+        "sigma_H": convert_volatility(cfg.sigma_H, from_unit=unit, to_unit="monthly"),
+        "sigma_E": convert_volatility(cfg.sigma_E, from_unit=unit, to_unit="monthly"),
+        "sigma_M": convert_volatility(cfg.sigma_M, from_unit=unit, to_unit="monthly"),
+    }
 
 
 def get_threshold_unit() -> Mapping[str, Unit]:

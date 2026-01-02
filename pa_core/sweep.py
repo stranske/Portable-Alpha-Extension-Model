@@ -26,7 +26,7 @@ from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
-from .units import get_index_series_unit, normalize_index_series
+from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 from .validators import select_vol_regime_sigma
 
 
@@ -239,9 +239,10 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
-        sigma_h = float(cfg.sigma_H)
-        sigma_e = float(cfg.sigma_E)
-        sigma_m = float(cfg.sigma_M)
+        return_inputs = normalize_return_inputs(cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -308,9 +309,10 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        sigma_h = float(mod_cfg.sigma_H)
-        sigma_e = float(mod_cfg.sigma_E)
-        sigma_m = float(mod_cfg.sigma_M)
+        return_inputs = normalize_return_inputs(mod_cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
 
         cov = build_cov_matrix(
             mod_cfg.rho_idx_H,

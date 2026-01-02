@@ -3,19 +3,27 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from ..config import ModelConfig
+from ..units import (
+    convert_mean,
+    convert_volatility,
+    get_index_series_unit,
+    normalize_return_inputs,
+)
 
 
 def build_return_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) -> Dict[str, Any]:
     """Return draw parameters shared across CLI, sweep, and orchestrator."""
+    return_inputs = normalize_return_inputs(cfg)
+    index_unit = get_index_series_unit()
     return {
-        "mu_idx_month": mu_idx,
-        "default_mu_H": cfg.mu_H,
-        "default_mu_E": cfg.mu_E,
-        "default_mu_M": cfg.mu_M,
-        "idx_sigma_month": idx_sigma,
-        "default_sigma_H": cfg.sigma_H,
-        "default_sigma_E": cfg.sigma_E,
-        "default_sigma_M": cfg.sigma_M,
+        "mu_idx_month": convert_mean(mu_idx, from_unit=index_unit, to_unit="monthly"),
+        "default_mu_H": return_inputs["mu_H"],
+        "default_mu_E": return_inputs["mu_E"],
+        "default_mu_M": return_inputs["mu_M"],
+        "idx_sigma_month": convert_volatility(idx_sigma, from_unit=index_unit, to_unit="monthly"),
+        "default_sigma_H": return_inputs["sigma_H"],
+        "default_sigma_E": return_inputs["sigma_E"],
+        "default_sigma_M": return_inputs["sigma_M"],
         "rho_idx_H": cfg.rho_idx_H,
         "rho_idx_E": cfg.rho_idx_E,
         "rho_idx_M": cfg.rho_idx_M,

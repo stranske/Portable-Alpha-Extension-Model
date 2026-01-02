@@ -187,6 +187,7 @@ def run_single(
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
     from .simulations import simulate_agents
+    from .units import normalize_return_inputs
     from .validators import select_vol_regime_sigma
 
     run_options = options or RunOptions()
@@ -213,9 +214,10 @@ def run_single(
     )
     n_samples = int(len(idx_series))
 
-    sigma_h = float(run_cfg.sigma_H)
-    sigma_e = float(run_cfg.sigma_E)
-    sigma_m = float(run_cfg.sigma_M)
+    return_inputs = normalize_return_inputs(run_cfg)
+    sigma_h = float(return_inputs["sigma_H"])
+    sigma_e = float(return_inputs["sigma_E"])
+    sigma_m = float(return_inputs["sigma_M"])
 
     cov = build_cov_matrix(
         run_cfg.rho_idx_H,
