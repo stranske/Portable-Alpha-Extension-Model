@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 import numpy.typing as npt
@@ -22,6 +23,9 @@ __all__ = [
 
 _VALID_RETURN_DISTS = {"normal", "student_t"}
 _VALID_RETURN_COPULAS = {"gaussian", "t"}
+_CORR_VALIDATION_TOL = 1e-8
+
+logger = logging.getLogger(__name__)
 
 
 def _validate_return_draw_settings(
@@ -55,6 +59,104 @@ def _resolve_return_distributions(
         overrides[2] or base,
         overrides[3] or base,
     )
+
+
+def _validate_correlation_matrix(corr: NDArray[Any]) -> None:
+    if not np.all(np.isfinite(corr)):
+        raise ValueError("Correlation matrix contains non-finite values")
+    min_val = float(np.min(corr))
+    max_val = float(np.max(corr))
+    if min_val < -1.0 - _CORR_VALIDATION_TOL or max_val > 1.0 + _CORR_VALIDATION_TOL:
+        raise ValueError(
+            "Correlation matrix values must be within [-1, 1]"
+            f"; min={min_val:.3f}, max={max_val:.3f}"
+        )
+    diag = np.diag(corr)
+    if not np.allclose(diag, 1.0, atol=_CORR_VALIDATION_TOL):
+        idx = int(np.argmax(np.abs(diag - 1.0)))
+        raise ValueError(f"Correlation matrix diagonal must be 1; idx {idx} has {diag[idx]:.6f}")
+
+
+def _project_to_near_psd_correlation(corr: NDArray[Any]) -> NDArray[Any]:
+    sym = 0.5 * (corr + corr.T)
+    eigvals, eigvecs = np.linalg.eigh(sym)
+    eigvals_clipped = np.clip(eigvals, 0.0, None)
+    psd = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
+    psd = 0.5 * (psd + psd.T)
+    diag = np.sqrt(np.clip(np.diag(psd), 0.0, None))
+    if np.any(diag <= 0.0):
+        raise ValueError("Correlation repair failed; non-positive diagonal after projection")
+    denom = diag[:, None] * diag[None, :]
+    repaired = np.divide(psd, denom, out=np.eye(psd.shape[0]), where=denom != 0.0)
+    repaired = 0.5 * (repaired + repaired.T)
+    np.fill_diagonal(repaired, 1.0)
+    return cast(NDArray[Any], repaired)
+
+
+def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], dict[str, Any]]:
+    corr = np.array(
+        [
+            [1.0, params["rho_idx_H"], params["rho_idx_E"], params["rho_idx_M"]],
+            [params["rho_idx_H"], 1.0, params["rho_H_E"], params["rho_H_M"]],
+            [params["rho_idx_E"], params["rho_H_E"], 1.0, params["rho_E_M"]],
+            [params["rho_idx_M"], params["rho_H_M"], params["rho_E_M"], 1.0],
+        ],
+        dtype=float,
+    )
+    corr = 0.5 * (corr + corr.T)
+    _validate_correlation_matrix(corr)
+
+    repair_mode = params.get("correlation_repair_mode", "warn_fix")
+    if repair_mode not in {"error", "warn_fix"}:
+        raise ValueError("correlation_repair_mode must be 'error' or 'warn_fix'")
+    shrinkage = float(params.get("correlation_repair_shrinkage", 0.0) or 0.0)
+    if not 0.0 <= shrinkage <= 1.0:
+        raise ValueError("correlation_repair_shrinkage must be between 0 and 1")
+
+    corr_work = corr
+    applied_steps: list[str] = []
+    if shrinkage > 0.0:
+        corr_work = (1.0 - shrinkage) * corr_work + shrinkage * np.eye(corr.shape[0])
+        applied_steps.append("shrinkage")
+
+    eigvals_before = np.linalg.eigvalsh(corr_work)
+    min_eig_before = float(eigvals_before.min())
+    repaired = corr_work
+    if min_eig_before < -_CORR_VALIDATION_TOL:
+        if repair_mode == "error":
+            raise ValueError(
+                "Correlation matrix is not PSD; " f"min eigenvalue {min_eig_before:.3e}."
+            )
+        repaired = _project_to_near_psd_correlation(corr_work)
+        applied_steps.append("eigen_clip")
+    eigvals_after = np.linalg.eigvalsh(repaired)
+    min_eig_after = float(eigvals_after.min())
+    max_delta = float(np.max(np.abs(repaired - corr)))
+    repair_applied = bool(applied_steps)
+
+    info = {
+        "repair_applied": repair_applied,
+        "repair_mode": repair_mode,
+        "method": "none" if not applied_steps else "+".join(applied_steps),
+        "shrinkage": shrinkage,
+        "min_eigenvalue_before": min_eig_before,
+        "min_eigenvalue_after": min_eig_after,
+        "max_abs_delta": max_delta,
+    }
+    params["_correlation_repair_info"] = info
+
+    if repair_applied:
+        logger.warning(
+            "Correlation repair applied: mode=%s, method=%s, shrinkage=%.3f, "
+            "min_eig_before=%.3e, min_eig_after=%.3e, max_abs_delta=%.3e",
+            repair_mode,
+            info["method"],
+            shrinkage,
+            min_eig_before,
+            min_eig_after,
+            max_delta,
+        )
+    return repaired, info
 
 
 def _safe_multivariate_normal(
@@ -246,20 +348,7 @@ def prepare_return_shocks(
         distribution, dist_overrides if use_overrides else None
     )
     _validate_return_draw_settings(distributions, copula, t_df)
-    ρ_idx_H = params["rho_idx_H"]
-    ρ_idx_E = params["rho_idx_E"]
-    ρ_idx_M = params["rho_idx_M"]
-    ρ_H_E = params["rho_H_E"]
-    ρ_H_M = params["rho_H_M"]
-    ρ_E_M = params["rho_E_M"]
-    corr = np.array(
-        [
-            [1.0, ρ_idx_H, ρ_idx_E, ρ_idx_M],
-            [ρ_idx_H, 1.0, ρ_H_E, ρ_H_M],
-            [ρ_idx_E, ρ_H_E, 1.0, ρ_E_M],
-            [ρ_idx_M, ρ_H_M, ρ_E_M, 1.0],
-        ]
-    )
+    corr, repair_info = _resolve_correlation_matrix(params)
     z = _safe_multivariate_normal(rng, np.zeros(4), corr, (n_sim, n_months))
     shocks: Dict[str, Any] = {
         "z": z,
@@ -267,6 +356,7 @@ def prepare_return_shocks(
         "copula": copula,
         "t_df": t_df,
         "corr": corr,
+        "corr_repair_info": repair_info,
     }
     if any(dist == "student_t" for dist in distributions):
         if copula == "t":
@@ -307,20 +397,7 @@ def draw_joint_returns(
     σ_H = params["default_sigma_H"]
     σ_E = params["default_sigma_E"]
     σ_M = params["default_sigma_M"]
-    ρ_idx_H = params["rho_idx_H"]
-    ρ_idx_E = params["rho_idx_E"]
-    ρ_idx_M = params["rho_idx_M"]
-    ρ_H_E = params["rho_H_E"]
-    ρ_H_M = params["rho_H_M"]
-    ρ_E_M = params["rho_E_M"]
-    corr = np.array(
-        [
-            [1.0, ρ_idx_H, ρ_idx_E, ρ_idx_M],
-            [ρ_idx_H, 1.0, ρ_H_E, ρ_H_M],
-            [ρ_idx_E, ρ_H_E, 1.0, ρ_E_M],
-            [ρ_idx_M, ρ_H_M, ρ_E_M, 1.0],
-        ]
-    )
+    corr, _ = _resolve_correlation_matrix(params)
     μ = np.array([μ_idx, μ_H, μ_E, μ_M])
     σ = np.array([σ_idx, σ_H, σ_E, σ_M])
     if shocks is not None:

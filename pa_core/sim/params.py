@@ -22,6 +22,8 @@ def build_return_params(cfg: ModelConfig, *, mu_idx: float, idx_sigma: float) ->
         "rho_H_E": cfg.rho_H_E,
         "rho_H_M": cfg.rho_H_M,
         "rho_E_M": cfg.rho_E_M,
+        "correlation_repair_mode": cfg.correlation_repair_mode,
+        "correlation_repair_shrinkage": cfg.correlation_repair_shrinkage,
         "return_distribution": cfg.return_distribution,
         "return_t_df": cfg.return_t_df,
         "return_copula": cfg.return_copula,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from dataclasses import fields, is_dataclass
 from typing import Literal, Optional, Sequence, cast
 
@@ -135,6 +136,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         params=params,
         rng=rng_returns,
     )
+    corr_repair_info = params.get("_correlation_repair_info")
     f_int, f_ext, f_act = draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
@@ -149,5 +151,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
 
     summary = summary_table(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
+    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
+        inputs_dict["correlation_repair_applied"] = True
+        inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)

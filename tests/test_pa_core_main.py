@@ -46,6 +46,8 @@ def _base_config_data() -> Dict[str, Any]:
         "rho_H_E": 0.1,
         "rho_H_M": 0.1,
         "rho_E_M": 0.0,
+        "correlation_repair_mode": "warn_fix",
+        "correlation_repair_shrinkage": 0.0,
         "return_distribution": "normal",
         "return_t_df": 5.0,
         "return_copula": "gaussian",

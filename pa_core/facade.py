@@ -24,6 +24,7 @@ Example Usage::
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
@@ -257,6 +258,7 @@ def run_single(
         params=params,
         rng=rng_returns,
     )
+    corr_repair_info = params.get("_correlation_repair_info")
     fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
     f_int, f_ext, f_act = draw_financing_series(
         n_months=run_cfg.N_MONTHS,
@@ -270,6 +272,9 @@ def run_single(
     summary = summary_table(returns, benchmark="Base")
     raw_returns = {name: pd.DataFrame(data) for name, data in returns.items()}
     inputs = run_cfg.model_dump()
+    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
+        inputs["correlation_repair_applied"] = True
+        inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
 
     return RunArtifacts(
         config=run_cfg,

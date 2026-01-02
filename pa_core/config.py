@@ -171,6 +171,9 @@ class ModelConfig(BaseModel):
     rho_H_M: float = Field(default=0.10, alias="Corr In-House–External")
     rho_E_M: float = Field(default=0.0, alias="Corr Alpha-Extension–External")
 
+    correlation_repair_mode: Literal["error", "warn_fix"] = "warn_fix"
+    correlation_repair_shrinkage: float = Field(default=0.0)
+
     covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none"
     vol_regime: Literal["single", "two_state"] = "single"
     vol_regime_window: int = 12
@@ -579,6 +582,13 @@ class ModelConfig(BaseModel):
         if errors:
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
+        return self
+
+    @model_validator(mode="after")
+    def check_correlation_repairs(self) -> "ModelConfig":
+        self._trace_transform(self, "check_correlation_repairs")
+        if not 0.0 <= self.correlation_repair_shrinkage <= 1.0:
+            raise ValueError("correlation_repair_shrinkage must be between 0 and 1")
         return self
 
     @model_validator(mode="after")
