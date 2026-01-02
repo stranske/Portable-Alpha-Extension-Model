@@ -90,7 +90,7 @@ def _project_to_near_psd_correlation(corr: NDArray[Any]) -> NDArray[Any]:
     repaired = np.divide(psd, denom, out=np.eye(psd.shape[0]), where=denom != 0.0)
     repaired = 0.5 * (repaired + repaired.T)
     np.fill_diagonal(repaired, 1.0)
-    return repaired
+    return cast(NDArray[Any], repaired)
 
 
 def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], dict[str, Any]]:

@@ -3,6 +3,7 @@ import pytest
 
 from pa_core.sim.metrics import conditional_value_at_risk
 from pa_core.sim.paths import (
+    _validate_correlation_matrix,
     draw_joint_returns,
     prepare_mc_universe,
     prepare_return_shocks,
@@ -252,6 +253,13 @@ def test_draw_joint_returns_rejects_out_of_range_correlations() -> None:
             params=params,
             rng=rng,
         )
+
+
+def test_validate_correlation_matrix_rejects_bad_diagonal() -> None:
+    corr = np.eye(3)
+    corr[1, 1] = 0.9
+    with pytest.raises(ValueError, match="diagonal must be 1"):
+        _validate_correlation_matrix(corr)
 
 
 def test_draw_joint_returns_repairs_non_psd_correlation() -> None:
