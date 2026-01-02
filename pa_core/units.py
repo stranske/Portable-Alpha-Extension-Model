@@ -36,6 +36,7 @@ DEFAULT_SHORTFALL_THRESHOLD = -0.05
 SUMMARY_TABLE_UNIT: Unit = "annual"
 
 __all__ = [
+    "CONFIG_TIME_HORIZON_FIELDS",
     "DEFAULT_BREACH_THRESHOLD",
     "DEFAULT_SHORTFALL_THRESHOLD",
     "SUMMARY_TABLE_UNIT",
@@ -55,6 +56,44 @@ __all__ = [
     "annual_vol_to_monthly",
     "annual_cov_to_monthly",
 ]
+
+# Audit list of config fields whose meaning depends on time horizon.
+# Units are expressed as: annual, monthly, months, or return_unit_input.
+CONFIG_TIME_HORIZON_FIELDS: dict[str, str] = {
+    "N_MONTHS": "months",
+    "return_unit": "annual_or_monthly",
+    "return_unit_input": "annual_or_monthly",
+    "mu_H": "return_unit_input",
+    "sigma_H": "return_unit_input",
+    "mu_E": "return_unit_input",
+    "sigma_E": "return_unit_input",
+    "mu_M": "return_unit_input",
+    "sigma_M": "return_unit_input",
+    "in_house_return_min_pct": "annual",
+    "in_house_return_max_pct": "annual",
+    "in_house_return_step_pct": "annual",
+    "in_house_vol_min_pct": "annual",
+    "in_house_vol_max_pct": "annual",
+    "in_house_vol_step_pct": "annual",
+    "alpha_ext_return_min_pct": "annual",
+    "alpha_ext_return_max_pct": "annual",
+    "alpha_ext_return_step_pct": "annual",
+    "alpha_ext_vol_min_pct": "annual",
+    "alpha_ext_vol_max_pct": "annual",
+    "alpha_ext_vol_step_pct": "annual",
+    "internal_financing_mean_month": "monthly",
+    "internal_financing_sigma_month": "monthly",
+    "internal_spike_prob": "monthly",
+    "ext_pa_financing_mean_month": "monthly",
+    "ext_pa_financing_sigma_month": "monthly",
+    "ext_pa_spike_prob": "monthly",
+    "act_ext_financing_mean_month": "monthly",
+    "act_ext_financing_sigma_month": "monthly",
+    "act_ext_spike_prob": "monthly",
+    "vol_regime_window": "months",
+    "reference_sigma": "monthly",
+    "financing_term_months": "months",
+}
 
 
 def convert_annual_series_to_monthly(
