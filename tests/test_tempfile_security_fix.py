@@ -115,9 +115,9 @@ def test_temp_files_auto_cleanup_on_exception():
             if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
         ]
 
-        assert len(suspicious_files) == 0, (
-            f"Temporary files left behind after exception: {suspicious_files}"
-        )
+        assert (
+            len(suspicious_files) == 0
+        ), f"Temporary files left behind after exception: {suspicious_files}"
 
 
 def test_no_delete_false_in_codebase():
