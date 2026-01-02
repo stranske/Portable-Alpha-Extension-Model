@@ -112,8 +112,10 @@ def main() -> int:
     classification_flag = _truthy(classification_env)
     classification_out = Path(os.environ.get("CLASSIFICATION_OUT", _DEFAULT_CLASSIFICATION))
 
-    if not junit_path.is_file():
-        print(f"JUnit report not found: {junit_path}", file=sys.stderr)
+    try:
+        junit_path = ci_metrics.resolve_junit_path(junit_path)
+    except FileNotFoundError as exc:
+        print(str(exc), file=sys.stderr)
         return 1
 
     try:

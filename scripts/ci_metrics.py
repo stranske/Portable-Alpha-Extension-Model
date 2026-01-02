@@ -41,6 +41,17 @@ def _tag_name(node: ET.Element) -> str:
     return tag
 
 
+def resolve_junit_path(junit_path: Path) -> Path:
+    """Resolve the JUnit XML path, falling back to a workspace search."""
+    if junit_path.is_file():
+        return junit_path
+    candidates = [path for path in Path(".").rglob(junit_path.name) if path.is_file()]
+    if candidates:
+        candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
+        return candidates[0]
+    raise FileNotFoundError(f"JUnit report not found: {junit_path}")
+
+
 def _parse_int(value: str | None, env_name: str, default: int) -> int:
     if value is None or value == "":
         return default
@@ -191,8 +202,7 @@ def build_metrics(
     top_n: int = _DEFAULT_TOP_N,
     min_seconds: float = _DEFAULT_MIN_SECONDS,
 ) -> dict[str, Any]:
-    if not junit_path.is_file():
-        raise FileNotFoundError(f"JUnit report not found: {junit_path}")
+    junit_path = resolve_junit_path(junit_path)
 
     try:
         root = ET.parse(junit_path).getroot()
