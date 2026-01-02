@@ -72,17 +72,17 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
 
         # Verify first call (pip bootstrap) uses list of arguments
         first_call_args = calls[0][0][0]  # First positional argument of first call
-        assert isinstance(
-            first_call_args, list
-        ), "subprocess.run should be called with list of arguments"
+        assert isinstance(first_call_args, list), (
+            "subprocess.run should be called with list of arguments"
+        )
         assert len(first_call_args) == 2, "Pip bootstrap should have 2 arguments"
         assert first_call_args[1].endswith("get-pip.py"), "Second arg should be get-pip.py path"
 
         # Verify second call (pip install) uses list of arguments
         second_call_args = calls[1][0][0]  # First positional argument of second call
-        assert isinstance(
-            second_call_args, list
-        ), "subprocess.run should be called with list of arguments"
+        assert isinstance(second_call_args, list), (
+            "subprocess.run should be called with list of arguments"
+        )
         assert len(second_call_args) >= 5, "Pip install should have multiple arguments"
         assert "-m" in second_call_args, "Should use python -m pip"
         assert "pip" in second_call_args, "Should call pip"
