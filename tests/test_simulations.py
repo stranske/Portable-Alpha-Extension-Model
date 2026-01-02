@@ -230,24 +230,26 @@ def test_financing_mode_correlation_structure():
     )
 
     rng = np.random.default_rng(123)
-    f_int_broadcast, _, _ = draw_financing_series(
+    f_int_broadcast, f_ext_broadcast, f_act_broadcast = draw_financing_series(
         n_months=120,
         n_sim=2,
         params=params,
         financing_mode="broadcast",
         rng=rng,
     )
-    assert np.std(f_int_broadcast[0]) > 0
-    corr_broadcast = np.corrcoef(f_int_broadcast[0], f_int_broadcast[1])[0, 1]
-    assert corr_broadcast == pytest.approx(1.0)
+    for mat in (f_int_broadcast, f_ext_broadcast, f_act_broadcast):
+        assert np.std(mat[0]) > 0
+        corr_broadcast = np.corrcoef(mat[0], mat[1])[0, 1]
+        assert corr_broadcast == pytest.approx(1.0)
 
     rng = np.random.default_rng(123)
-    f_int_per_path, _, _ = draw_financing_series(
+    f_int_per_path, f_ext_per_path, f_act_per_path = draw_financing_series(
         n_months=240,
         n_sim=2,
         params=params,
         financing_mode="per_path",
         rng=rng,
     )
-    corr_per_path = np.corrcoef(f_int_per_path[0], f_int_per_path[1])[0, 1]
-    assert abs(corr_per_path) < 0.3
+    for mat in (f_int_per_path, f_ext_per_path, f_act_per_path):
+        corr_per_path = np.corrcoef(mat[0], mat[1])[0, 1]
+        assert abs(corr_per_path) < 0.3
