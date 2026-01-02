@@ -70,10 +70,11 @@ def _build_agent_substreams(
         return rngs, substream_ids
 
     base_entropy = _base_entropy(seed)
+    seed_token = _seed_token(seed, base_entropy)
     rngs = {}
     substream_ids = {}
     for name in names:
-        sub_id = _stable_substream_id(base_entropy, name)
+        sub_id = _stable_substream_id(seed_token, name)
         rngs[name] = xp.random.default_rng(xp.random.SeedSequence(_entropy_from_id(sub_id)))
         substream_ids[name] = sub_id
     return rngs, substream_ids
@@ -94,8 +95,12 @@ def _base_entropy(seed: int | None) -> int:
     return int(xp.random.SeedSequence(seed).entropy)
 
 
-def _stable_substream_id(base_entropy: int, agent_name: str) -> str:
-    token = f"pa-core-rng-v1|{base_entropy}|{agent_name}"
+def _seed_token(seed: int | None, base_entropy: int) -> str:
+    return str(seed if seed is not None else base_entropy)
+
+
+def _stable_substream_id(seed_token: str, agent_name: str) -> str:
+    token = f"pa-core-rng-v1|{seed_token}|{agent_name}"
     return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
