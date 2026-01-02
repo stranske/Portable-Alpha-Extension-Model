@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from pa_core.config import ModelConfig
-from pa_core.sim.params import build_simulation_params
 from pa_core.sim.metrics import conditional_value_at_risk
+from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import (
     _validate_correlation_matrix,
     draw_joint_returns,

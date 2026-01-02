@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Mapping, Optional, Sequence, cast
 import warnings
+from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 import numpy.typing as npt
 from numpy.typing import NDArray
