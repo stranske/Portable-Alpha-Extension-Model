@@ -239,12 +239,12 @@ def test_no_function_attribute_caching_antipattern():
         function_name._cache = pd.DataFrame()
     """
     # The function should not have any cache attributes attached to it
-    assert not hasattr(test_export_packet_handles_empty_data, "_empty_summary_cache"), (
-        "Function should not have cache attributes attached"
-    )
-    assert not hasattr(test_export_packet_handles_empty_data, "_cache"), (
-        "Function should not have generic cache attributes"
-    )
+    assert not hasattr(
+        test_export_packet_handles_empty_data, "_empty_summary_cache"
+    ), "Function should not have cache attributes attached"
+    assert not hasattr(
+        test_export_packet_handles_empty_data, "_cache"
+    ), "Function should not have generic cache attributes"
 
     # Instead, we should use the module-level pattern
     assert "_EMPTY_DATAFRAME" in globals(), "Should use module-level cached variable"
