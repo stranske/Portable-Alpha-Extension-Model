@@ -1,6 +1,6 @@
 import numpy as np
 
-from pa_core.random import spawn_agent_rngs, spawn_rngs
+from pa_core.random import derive_agent_substream_ids, spawn_agent_rngs, spawn_rngs
 
 
 def test_spawn_rngs_reproducible():
@@ -83,3 +83,14 @@ def test_spawn_rngs_invalid_n_error():
         pass
     else:
         raise AssertionError("Expected ValueError for non-positive n")
+
+
+def test_seed_none_substream_ids_do_not_collide(monkeypatch):
+    def fake_base_entropy(_seed):
+        return 0
+
+    monkeypatch.setattr("pa_core.random._base_entropy", fake_base_entropy)
+    names = ["A"]
+    ids_none = derive_agent_substream_ids(None, names)
+    ids_seed = derive_agent_substream_ids(0, names)
+    assert ids_none["A"] != ids_seed["A"]

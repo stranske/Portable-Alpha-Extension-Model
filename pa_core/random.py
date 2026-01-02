@@ -96,7 +96,9 @@ def _base_entropy(seed: int | None) -> int:
 
 
 def _seed_token(seed: int | None, base_entropy: int) -> str:
-    return str(seed if seed is not None else base_entropy)
+    if seed is None:
+        return f"none|{base_entropy}"
+    return str(seed)
 
 
 def _stable_substream_id(seed_token: str, agent_name: str) -> str:
