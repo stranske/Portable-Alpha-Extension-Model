@@ -43,6 +43,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 50,  # Too low
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
             "analysis_mode": "returns",
             # Add required step sizes
@@ -64,6 +65,7 @@ class TestEnhancedConfigValidation:
         config_data = {
             "N_SIMULATIONS": 1000,
             "N_MONTHS": 12,
+            "financing_mode": "broadcast",
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
             "analysis_mode": "returns",
             "external_step_size_pct": 0.0,  # Invalid - must be positive

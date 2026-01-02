@@ -58,7 +58,7 @@ def test_suggest_sleeve_sizes_respects_bounds():
 
 
 def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
-    cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1}
+    cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
@@ -89,7 +89,7 @@ def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
 
 
 def test_cli_sleeve_suggestion_auto_apply(tmp_path, monkeypatch):
-    cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1}
+    cfg = {"N_SIMULATIONS": 10, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
@@ -129,6 +129,7 @@ def test_cli_sleeve_suggestion_applies_to_inputs(tmp_path, monkeypatch):
     cfg = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "analysis_mode": "single_with_sensitivity",
         "total_fund_capital": 300.0,
         "external_pa_capital": 100.0,

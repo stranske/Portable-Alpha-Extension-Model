@@ -283,7 +283,13 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     elif mode == AnalysisMode.VOL_MULT:
         # Slightly conservative vols vs. returns baseline
         returns_defaults = _make_view(
-            ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+            ModelConfig.model_validate(
+                {
+                    "Number of simulations": 1,
+                    "Number of months": 1,
+                    "financing_mode": "broadcast",
+                }
+            )
         )
         cfg.sigma_h = returns_defaults.sigma_h * 0.9
         cfg.sigma_e = returns_defaults.sigma_e * 0.9
