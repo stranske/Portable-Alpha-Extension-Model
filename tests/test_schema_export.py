@@ -1,6 +1,10 @@
 from pathlib import Path
 
-from pa_core.schema import export_schema_definitions, generate_schema_templates
+from pa_core.schema import (
+    export_schema_definitions,
+    generate_parameter_dictionary,
+    generate_schema_templates,
+)
 
 
 def test_export_schema_includes_aliases() -> None:
@@ -27,3 +31,14 @@ def test_templates_match_schema(tmp_path: Path) -> None:
             f"{filename} template drift detected; re-run "
             "`python -m pa_core.schema --generate-templates`."
         )
+
+
+def test_parameter_dictionary_matches_schema(tmp_path: Path) -> None:
+    output_path = tmp_path / "PARAMETER_DICTIONARY.md"
+    generate_parameter_dictionary(output_path, schema="config")
+    committed = Path("docs/guides/PARAMETER_DICTIONARY.md").read_text()
+    generated = output_path.read_text()
+    assert generated == committed, (
+        "Parameter dictionary drift detected; re-run "
+        "`python -m pa_core.schema --generate-parameter-dictionary`."
+    )
