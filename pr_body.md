@@ -18,7 +18,7 @@ Stress testing is ad-hoc - users manually adjust parameters to simulate stress s
 - [ ] Identify which sleeve drove each breach
 - [x] Create stress comparison output (baseline vs stressed side-by-side)
 - [x] Add stress summary dashboard widget
-- [ ] Document preset scenarios in user guide
+- [x] Document preset scenarios in user guide
 
 #### Acceptance criteria
 - [ ] At least 5 preset stress scenarios available (e.g., rate shock, equity crash, correlation spike)
