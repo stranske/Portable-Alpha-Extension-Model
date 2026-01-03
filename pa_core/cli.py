@@ -721,6 +721,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .manifest import ManifestWriter
     from .random import spawn_agent_rngs, spawn_agent_rngs_with_ids, spawn_rngs
     from .reporting.attribution import (
+        compute_sleeve_cvar_contribution,
         compute_sleeve_return_attribution,
         compute_sleeve_return_contribution,
         compute_sleeve_risk_attribution,
@@ -1175,7 +1176,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 [{"Agent": "", "Sub": "", "Return": 0.0}]
             ).head(0)
     try:
-        inputs_dict["_sleeve_attribution_df"] = compute_sleeve_return_contribution(returns)
+        sleeve_attr = compute_sleeve_return_contribution(returns)
+        cvar_attr = compute_sleeve_cvar_contribution(returns)
+        if not cvar_attr.empty:
+            sleeve_attr = sleeve_attr.merge(cvar_attr, on="Agent", how="outer")
+        inputs_dict["_sleeve_attribution_df"] = sleeve_attr
     except (AttributeError, ValueError, TypeError, KeyError) as e:
         logger.debug(f"Sleeve attribution unavailable: {e}")
     try:

@@ -145,7 +145,11 @@ def export_to_excel(
 
         # Optional: write sleeve attribution sheet if provided
         if sleeve_attr_df is not None and not sleeve_attr_df.empty:
-            cols = [c for c in ["Agent", "ReturnContribution"] if c in sleeve_attr_df.columns]
+            cols = [
+                c
+                for c in ["Agent", "ReturnContribution", "CVaRContribution"]
+                if c in sleeve_attr_df.columns
+            ]
             if cols:
                 sleeve_attr_df[cols].to_excel(writer, sheet_name="sleeve_attribution", index=False)
 

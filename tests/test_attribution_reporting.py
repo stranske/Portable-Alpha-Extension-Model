@@ -5,6 +5,7 @@ import pandas as pd
 
 from pa_core.config import ModelConfig
 from pa_core.reporting.attribution import (
+    compute_sleeve_cvar_contribution,
     compute_sleeve_return_attribution,
     compute_sleeve_return_contribution,
     compute_sleeve_risk_attribution,
@@ -153,3 +154,19 @@ def test_compute_sleeve_return_contribution_sums_to_total() -> None:
     sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["ReturnContribution"].sum()
     assert np.isclose(total, sleeves)
     assert np.isclose(total, 0.24)
+
+
+def test_compute_sleeve_cvar_contribution_sums_to_total() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[-0.02, 0.01], [-0.02, 0.01]]),
+        "ActiveExt": np.array([[-0.01, 0.02], [-0.01, 0.02]]),
+        "Base": np.array([[0.0, 0.0], [0.0, 0.0]]),
+    }
+
+    df = compute_sleeve_cvar_contribution(returns_map, confidence=0.5)
+
+    assert {"Agent", "CVaRContribution"} <= set(df.columns)
+    total = float(df.loc[df["Agent"] == "Total", "CVaRContribution"].iloc[0])
+    sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["CVaRContribution"].sum()
+    assert np.isclose(total, sleeves)
+    assert np.isclose(total, -0.03)

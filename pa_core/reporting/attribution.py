@@ -13,6 +13,7 @@ from ..types import ArrayLike
 __all__ = [
     "compute_sleeve_return_attribution",
     "compute_sleeve_return_contribution",
+    "compute_sleeve_cvar_contribution",
     "compute_sleeve_risk_attribution",
 ]
 
@@ -150,6 +151,50 @@ def compute_sleeve_return_contribution(
         if total_value is None:
             total_value = contributions_sum
         rows.append({"Agent": "Total", "ReturnContribution": total_value})
+
+    return pd.DataFrame(rows)
+
+
+def compute_sleeve_cvar_contribution(
+    returns_map: Mapping[str, ArrayLike],
+    *,
+    confidence: float = 0.95,
+    exclude: tuple[str, ...] = ("Base", "Total"),
+) -> pd.DataFrame:
+    """Compute per-sleeve marginal CVaR contributions for the portfolio.
+
+    Uses the conditional expectation of sleeve returns in the portfolio tail,
+    so contributions sum to the portfolio CVaR (Euler decomposition).
+    """
+    total_returns = compute_total_contribution_returns(returns_map, exclude=exclude)
+    if total_returns is None:
+        return pd.DataFrame(columns=["Agent", "CVaRContribution"])
+
+    total_arr = np.asarray(total_returns, dtype=float).reshape(-1)
+    if total_arr.size == 0:
+        return pd.DataFrame(columns=["Agent", "CVaRContribution"])
+
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must be between 0 and 1")
+
+    var_cutoff = float(np.quantile(total_arr, 1 - confidence, method="lower"))
+    tail_mask = total_arr < var_cutoff
+    if not bool(np.any(tail_mask)):
+        tail_mask = total_arr <= var_cutoff
+    if not bool(np.any(tail_mask)):
+        tail_mask = np.ones_like(total_arr, dtype=bool)
+
+    rows: List[Dict[str, object]] = []
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        sleeve_arr = np.asarray(arr, dtype=float).reshape(-1)
+        contribution = float(np.mean(sleeve_arr[tail_mask])) if sleeve_arr.size else 0.0
+        rows.append({"Agent": name, "CVaRContribution": contribution})
+
+    if rows:
+        total_cvar = float(np.mean(total_arr[tail_mask]))
+        rows.append({"Agent": "Total", "CVaRContribution": total_cvar})
 
     return pd.DataFrame(rows)
 

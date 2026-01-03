@@ -14,11 +14,11 @@ Portfolio-level metrics are useful but dont answer "which sleeve is driving my r
 This enables informed sleeve allocation decisions and risk budgeting.
 
 #### Tasks
-- [ ] Implement return attribution: sleeve contribution to total portfolio return
-- [ ] Implement TE attribution: sleeve contribution to tracking error (using covariance decomposition)
+- [x] Implement return attribution: sleeve contribution to total portfolio return
+- [x] Implement TE attribution: sleeve contribution to tracking error (using covariance decomposition)
 - [ ] Implement marginal CVaR: how much each sleeve contributes to portfolio tail risk
-- [ ] Create attribution output table in workbook with per-sleeve breakdown
-- [ ] Add visualization for attribution pie/bar charts
+- [x] Create attribution output table in workbook with per-sleeve breakdown
+- [x] Add visualization for attribution pie/bar charts
 - [ ] Document attribution methodology in user guide
 
 #### Acceptance criteria
