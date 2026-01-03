@@ -113,6 +113,25 @@ class AgentConfig(BaseModel):
     extra: Dict[str, Any] = Field(default_factory=dict)
 
 
+class RegimeConfig(BaseModel):
+    """Configuration for a single regime in a regime-switching model."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    idx_sigma_multiplier: float = 1.0
+    sigma_H: Optional[float] = None
+    sigma_E: Optional[float] = None
+    sigma_M: Optional[float] = None
+    rho_idx_H: Optional[float] = None
+    rho_idx_E: Optional[float] = None
+    rho_idx_M: Optional[float] = None
+    rho_H_E: Optional[float] = None
+    rho_H_M: Optional[float] = None
+    rho_E_M: Optional[float] = None
+
+
+
 class ModelConfig(BaseModel):
     """Validated simulation parameters for the portable-alpha model.
 
@@ -287,6 +306,16 @@ class ModelConfig(BaseModel):
     financing_model: str = "simple_proxy"  # or "schedule"
     financing_schedule_path: Optional[Path] = None
     financing_term_months: float = 1.0
+
+    # Regime-switching configuration
+    regimes: Optional[List["RegimeConfig"]] = Field(
+        default=None,
+        description="List of regime configurations for regime-switching models.",
+    )
+    regime_start: Optional[str] = Field(
+        default=None,
+        description="Initial regime name for regime-switching simulations.",
+    )
 
     risk_metrics: List[str] = Field(
         default_factory=lambda: [

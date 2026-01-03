@@ -430,7 +430,7 @@ def _dump_payload(payload: dict[str, Any], fmt: str) -> str:
 
         return json.dumps(payload, indent=2, sort_keys=True)
     if fmt == "yaml":
-        return yaml.safe_dump(payload, sort_keys=True)
+        return str(yaml.safe_dump(payload, sort_keys=True))
     raise ValueError(f"Unsupported export format: {fmt}")
 
 
