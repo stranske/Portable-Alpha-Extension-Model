@@ -15,6 +15,11 @@ from .sim.params import (
     resolve_covariance_inputs,
 )
 from .sim.paths import draw_financing_series, draw_joint_returns
+from .sim.regimes import (
+    build_regime_draw_params,
+    resolve_regime_start,
+    simulate_regime_paths,
+)
 from .simulations import simulate_agents
 from .types import ArrayLike
 from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
@@ -76,7 +81,7 @@ class SimulatorOrchestrator:
             rho_E_M=self.cfg.rho_E_M,
         )
 
-        rng_returns = spawn_rngs(seed, 1)[0]
+        rng_returns, rng_regime = spawn_rngs(seed, 2)
         params = build_params(
             self.cfg,
             mu_idx=mu_idx,
@@ -84,11 +89,32 @@ class SimulatorOrchestrator:
             return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
         )
 
+        regime_params = None
+        regime_paths = None
+        if self.cfg.regimes is not None:
+            if self.cfg.regime_transition is None:
+                raise ValueError("regime_transition is required when regimes are specified")
+            regime_params, _labels = build_regime_draw_params(
+                self.cfg,
+                mu_idx=mu_idx,
+                idx_sigma=idx_sigma,
+                n_samples=n_samples,
+            )
+            regime_paths = simulate_regime_paths(
+                n_sim=self.cfg.N_SIMULATIONS,
+                n_months=self.cfg.N_MONTHS,
+                transition=self.cfg.regime_transition,
+                start_state=resolve_regime_start(self.cfg),
+                rng=rng_regime,
+            )
+
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=self.cfg.N_MONTHS,
             n_sim=self.cfg.N_SIMULATIONS,
             params=params,
             rng=rng_returns,
+            regime_paths=regime_paths,
+            regime_params=regime_params,
         )
 
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])

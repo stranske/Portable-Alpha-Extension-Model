@@ -739,6 +739,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         build_params,
         resolve_covariance_inputs,
     )
+    from .sim.regimes import (
+        apply_regime_labels,
+        build_regime_draw_params,
+        resolve_regime_start,
+        simulate_regime_paths,
+    )
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
@@ -784,7 +790,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
-    rng_returns = spawn_rngs(args.seed, 1)[0]
+    rng_returns, rng_regime = spawn_rngs(args.seed, 2)
     fin_agent_names = ["internal", "external_pa", "active_ext"]
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         args.seed,
@@ -1112,18 +1118,51 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         )
 
     def _run_single(
-        run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
-    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any, dict[str, object] | None]:
+        run_cfg: "ModelConfig",
+        run_rng_returns: Any,
+        run_fin_rngs: Any,
+        run_rng_regime: Any,
+    ) -> tuple[
+        dict[str, "np.ndarray"],
+        "pd.DataFrame",
+        Any,
+        Any,
+        Any,
+        dict[str, object] | None,
+        Any | None,
+    ]:
         params = _build_simulation_params_for_run(run_cfg)
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
 
+        regime_params = None
+        regime_paths = None
+        regime_labels = None
+        if run_cfg.regimes is not None:
+            if run_cfg.regime_transition is None:
+                raise ValueError("regime_transition is required when regimes are specified")
+            regime_params, labels = build_regime_draw_params(
+                run_cfg,
+                mu_idx=mu_idx,
+                idx_sigma=idx_sigma,
+                n_samples=n_samples,
+            )
+            regime_paths = simulate_regime_paths(
+                n_sim=N_SIMULATIONS,
+                n_months=N_MONTHS,
+                transition=run_cfg.regime_transition,
+                start_state=resolve_regime_start(run_cfg),
+                rng=run_rng_regime,
+            )
+            regime_labels = apply_regime_labels(regime_paths, labels)
         r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
             n_months=N_MONTHS,
             n_sim=N_SIMULATIONS,
             params=params,
             rng=run_rng_returns,
+            regime_paths=regime_paths,
+            regime_params=regime_params,
         )
         corr_repair_info = params.get("_correlation_repair_info")
         f_int, f_ext, f_act = deps.draw_financing_series(
@@ -1140,23 +1179,25 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
         # Build summary using wrapper (allows tests to mock this safely)
         summary = create_enhanced_summary(returns, benchmark="Base")
-        return returns, summary, f_int, f_ext, f_act, corr_repair_info
+        return returns, summary, f_int, f_ext, f_act, corr_repair_info, regime_labels
 
-    returns, summary, f_int, f_ext, f_act, corr_repair_info = _run_single(
-        cfg, rng_returns, fin_rngs
+    returns, summary, f_int, f_ext, f_act, corr_repair_info, regime_labels = _run_single(
+        cfg, rng_returns, fin_rngs, rng_regime
     )
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
         from .reporting.stress_delta import build_delta_table
 
-        base_rng_returns = spawn_rngs(args.seed, 1)[0]
+        base_rng_returns, base_rng_regime = spawn_rngs(args.seed, 2)
         base_fin_rngs = spawn_agent_rngs(
             args.seed,
             fin_agent_names,
             legacy_order=args.legacy_agent_rng,
         )
-        _, base_summary, _, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
+        _, base_summary, _, _, _, _, _ = _run_single(
+            base_cfg, base_rng_returns, base_fin_rngs, base_rng_regime
+        )
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
@@ -1164,6 +1205,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         inputs_dict["correlation_repair_applied"] = True
         inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
+    if regime_labels is not None:
+        raw_returns_dict["Regime"] = pd.DataFrame(regime_labels)
 
     # Optional attribution tables for downstream exports
     try:

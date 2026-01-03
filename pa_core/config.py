@@ -113,6 +113,24 @@ class AgentConfig(BaseModel):
     extra: Dict[str, Any] = Field(default_factory=dict)
 
 
+class RegimeConfig(BaseModel):
+    """Configuration for a single regime in a regime-switching model."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    idx_sigma_multiplier: float = 1.0
+    sigma_H: Optional[float] = None
+    sigma_E: Optional[float] = None
+    sigma_M: Optional[float] = None
+    rho_idx_H: Optional[float] = None
+    rho_idx_E: Optional[float] = None
+    rho_idx_M: Optional[float] = None
+    rho_H_E: Optional[float] = None
+    rho_H_M: Optional[float] = None
+    rho_E_M: Optional[float] = None
+
+
 class ModelConfig(BaseModel):
     """Validated simulation parameters for the portable-alpha model.
 
@@ -287,6 +305,20 @@ class ModelConfig(BaseModel):
     financing_model: str = "simple_proxy"  # or "schedule"
     financing_schedule_path: Optional[Path] = None
     financing_term_months: float = 1.0
+
+    # Regime-switching configuration
+    regimes: Optional[List["RegimeConfig"]] = Field(
+        default=None,
+        description="List of regime configurations for regime-switching models.",
+    )
+    regime_start: Optional[str] = Field(
+        default=None,
+        description="Initial regime name for regime-switching simulations.",
+    )
+    regime_transition: Optional[List[List[float]]] = Field(
+        default=None,
+        description="Markov transition matrix for regime switching (n_regimes x n_regimes).",
+    )
 
     risk_metrics: List[str] = Field(
         default_factory=lambda: [
@@ -686,6 +718,41 @@ class ModelConfig(BaseModel):
         if errors:
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
+        return self
+
+    @model_validator(mode="after")
+    def check_regimes(self) -> "ModelConfig":
+        self._trace_transform(self, "check_regimes")
+        if self.regimes is None:
+            if self.regime_transition is not None:
+                raise ValueError("regime_transition requires regimes")
+            if self.regime_start is not None:
+                raise ValueError("regime_start requires regimes")
+            return self
+
+        if not self.regimes:
+            raise ValueError("regimes must include at least one regime")
+        names = [regime.name for regime in self.regimes]
+        duplicate_names = sorted({name for name in names if names.count(name) > 1})
+        if duplicate_names:
+            raise ValueError(f"regime names must be unique; duplicates found: {duplicate_names}")
+        if self.regime_transition is None:
+            raise ValueError("regime_transition is required when regimes are specified")
+
+        n_regimes = len(self.regimes)
+        transition = self.regime_transition
+        if len(transition) != n_regimes or any(len(row) != n_regimes for row in transition):
+            raise ValueError("regime_transition must be a square matrix matching regimes length")
+
+        for row_idx, row in enumerate(transition):
+            row_sum = float(sum(row))
+            if any(prob < 0.0 or prob > 1.0 for prob in row):
+                raise ValueError(f"regime_transition[{row_idx}] values must be between 0 and 1")
+            if not math.isclose(row_sum, 1.0, abs_tol=1e-6):
+                raise ValueError(f"regime_transition[{row_idx}] must sum to 1")
+
+        if self.regime_start is not None and self.regime_start not in names:
+            raise ValueError("regime_start must match a regime name")
         return self
 
     @model_validator(mode="after")

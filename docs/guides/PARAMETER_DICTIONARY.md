@@ -98,4 +98,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `financing_model` | `financing_model` | `<class 'str'>` | no | `simple_proxy` |  |
 | `financing_schedule_path` | `financing_schedule_path` | `Optional[pathlib.Path]` | no | `None` |  |
 | `financing_term_months` | `financing_term_months` | `<class 'float'>` | no | `1.0` |  |
+| `regimes` | `regimes` | `Optional[List[pa_core.config.RegimeConfig]]` | no | `None` | List of regime configurations for regime-switching models. |
+| `regime_start` | `regime_start` | `Optional[str]` | no | `None` | Initial regime name for regime-switching simulations. |
+| `regime_transition` | `regime_transition` | `Optional[List[List[float]]]` | no | `None` | Markov transition matrix for regime switching (n_regimes x n_regimes). |
 | `risk_metrics` | `risk_metrics` | `List[str]` | no | `default_factory: <lambda>` |  |

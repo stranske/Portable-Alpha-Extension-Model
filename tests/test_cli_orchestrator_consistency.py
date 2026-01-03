@@ -43,7 +43,9 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     orch_params: dict[str, object] = {}
 
-    def capture_orch_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def capture_orch_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         if "params" not in orch_params:
             orch_params["params"] = dict(params)
             if rng is not None:
@@ -73,7 +75,9 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     cli_params: dict[str, object] = {}
 
-    def capture_cli_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def capture_cli_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         if "params" not in cli_params:
             cli_params["params"] = dict(params)
             if rng is not None:

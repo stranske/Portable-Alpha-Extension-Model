@@ -61,12 +61,16 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
     orch_params: dict[str, object] = {}
     sweep_params: dict[str, object] = {}
 
-    def capture_orch_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def capture_orch_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         orch_params["params"] = dict(params)
         zeros = np.zeros((n_months, n_sim))
         return zeros, zeros, zeros, zeros
 
-    def capture_sweep_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def capture_sweep_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         if "params" not in sweep_params:
             sweep_params["params"] = dict(params)
         zeros = np.zeros((n_months, n_sim))

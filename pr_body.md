@@ -1,32 +1,33 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #932
+> **Source:** Issue #930
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-The sleeve suggester currently optimizes for a single objective. Real portfolio construction requires multi-objective optimization:
-- Maximize expected return
-- Subject to: TE constraint, CVaR constraint, breach probability constraint, shortfall constraint
-- Visualize the efficient frontier across these dimensions
+Volatility regime selection already exists in concept, but its not first-class. Markets behave differently in calm vs stressed periods:
+- Correlations spike during stress (diversification fails when needed most)
+- Volatility clusters and mean-reverts
+- Tail events are more likely during regime transitions
+
+Making regime switching first-class enables realistic stress testing and scenario analysis.
 
 #### Tasks
-- [x] Define multi-objective optimization problem structure
-- [x] Implement constraint-aware optimization (TE, CVaR, breach, shortfall bounds)
-- [x] Generate efficient frontier across return vs risk trade-off
-- [x] Identify Pareto-optimal sleeve combinations
-- [x] Create frontier visualization with constraint boundaries
-- [x] Add interactive frontier exploration in dashboard
-- [x] Export frontier points to workbook
+- [x] Define regime config structure: regimes with per-regime params
+- [x] Implement regime-specific covariance matrices
+- [x] Implement regime-specific correlation matrices
+- [x] Add regime transition probability matrix
+- [x] Integrate regime state into return generation
+- [x] Add regime indicator to output (which regime was active each month)
+- [x] Create preset regime configs (e.g., 2008 crisis, COVID shock)
 
 #### Acceptance criteria
-- [x] Optimizer respects all specified constraints
-- [x] Frontier shows return vs TE trade-off with CVaR as color dimension
-- [x] Infeasible regions (constraint violations) are clearly marked
-- [x] At least 20 frontier points generated for smooth curve
-- [x] Dashboard allows clicking frontier points to see sleeve weights
-- [x] Unit tests verify constraint satisfaction for all frontier points
-- [x] ruff check and mypy pass
+- [ ] Configs can specify multiple regimes with different vol/corr parameters
+- [ ] Simulations switch regimes according to transition probabilities
+- [x] Output includes regime state time series
+- [x] Stressed regime produces higher correlations and volatility (configurable)
+- [x] Unit tests verify regime switching logic and distributional properties
+- [ ] ruff check and mypy pass
 
 <!-- auto-status-summary:end -->

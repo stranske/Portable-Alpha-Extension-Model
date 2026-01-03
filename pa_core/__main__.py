@@ -90,10 +90,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         build_params,
         resolve_covariance_inputs,
     )
+    from .sim.regimes import (
+        apply_regime_labels,
+        build_regime_draw_params,
+        resolve_regime_start,
+        simulate_regime_paths,
+    )
     from .simulations import simulate_agents
     from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 
-    rng_returns = spawn_rngs(args.seed, 1)[0]
+    rng_returns, rng_regime = spawn_rngs(args.seed, 2)
     fin_agent_names = ["internal", "external_pa", "active_ext"]
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         args.seed,
@@ -168,11 +174,34 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     N_SIMULATIONS = cfg.N_SIMULATIONS
     N_MONTHS = cfg.N_MONTHS
 
+    regime_params = None
+    regime_paths = None
+    regime_labels = None
+    if cfg.regimes is not None:
+        if cfg.regime_transition is None:
+            raise ValueError("regime_transition is required when regimes are specified")
+        regime_params, labels = build_regime_draw_params(
+            cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma,
+            n_samples=n_samples,
+        )
+        regime_paths = simulate_regime_paths(
+            n_sim=N_SIMULATIONS,
+            n_months=N_MONTHS,
+            transition=cfg.regime_transition,
+            start_state=resolve_regime_start(cfg),
+            rng=rng_regime,
+        )
+        regime_labels = apply_regime_labels(regime_paths, labels)
+
     r_beta, r_H, r_E, r_M = draw_joint_returns(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
         params=params,
         rng=rng_returns,
+        regime_paths=regime_paths,
+        regime_params=regime_params,
     )
     corr_repair_info = params.get("_correlation_repair_info")
     f_int, f_ext, f_act = draw_financing_series(
@@ -194,5 +223,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         inputs_dict["correlation_repair_applied"] = True
         inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
+    if regime_labels is not None:
+        raw_returns_dict["Regime"] = pd.DataFrame(regime_labels)
     metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output, metadata=metadata)

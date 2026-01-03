@@ -68,6 +68,9 @@ def _base_config_data() -> Dict[str, Any]:
         "act_ext_financing_sigma_month": 0.0,
         "act_ext_spike_prob": 0.0,
         "act_ext_spike_factor": 0.0,
+        "regimes": None,
+        "regime_start": None,
+        "regime_transition": None,
     }
 
 
@@ -80,7 +83,7 @@ def _patch_main_dependencies(monkeypatch):
 
     def fake_spawn_rngs(seed: int | None, count: int):
         calls["spawn_rngs"] = (seed, count)
-        return ["rng"]
+        return [f"rng-{idx}" for idx in range(count)]
 
     def fake_spawn_agent_rngs_with_ids(seed: int | None, names, **_kwargs):
         calls["spawn_agent_rngs_with_ids"] = (seed, list(names))

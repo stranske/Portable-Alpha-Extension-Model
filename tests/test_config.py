@@ -604,6 +604,57 @@ def test_load_config_with_covariance_options(tmp_path):
     assert cfg.vol_regime_window == 6
 
 
+def test_load_config_with_regimes(tmp_path):
+    data = {
+        "N_SIMULATIONS": 500,
+        "N_MONTHS": 12,
+        "financing_mode": "broadcast",
+        "return_unit": "monthly",
+        "sigma_H": 0.02,
+        "sigma_E": 0.02,
+        "sigma_M": 0.02,
+        "rho_H_E": 0.1,
+        "regimes": [
+            {"name": "calm"},
+            {"name": "stress", "sigma_H": 0.05, "rho_H_E": 0.8},
+        ],
+        "regime_transition": [[0.9, 0.1], [0.2, 0.8]],
+        "regime_start": "calm",
+    }
+    path = tmp_path / "conf.yaml"
+    path.write_text(yaml.safe_dump(data))
+    cfg = load_config(path)
+    assert cfg.regimes is not None
+    assert [regime.name for regime in cfg.regimes] == ["calm", "stress"]
+    assert cfg.regimes[1].sigma_H == 0.05
+    assert cfg.regimes[1].rho_H_E == 0.8
+
+
+def test_model_config_rejects_invalid_regime_transition():
+    data = {
+        "N_SIMULATIONS": 100,
+        "N_MONTHS": 12,
+        "financing_mode": "broadcast",
+        "regimes": [{"name": "calm"}],
+        "regime_transition": [[0.9, 0.1]],
+    }
+    with pytest.raises(ValueError, match="square matrix"):
+        ModelConfig(**data)
+
+
+def test_model_config_rejects_unknown_regime_start():
+    data = {
+        "N_SIMULATIONS": 100,
+        "N_MONTHS": 12,
+        "financing_mode": "broadcast",
+        "regimes": [{"name": "calm"}, {"name": "stress"}],
+        "regime_transition": [[0.9, 0.1], [0.2, 0.8]],
+        "regime_start": "unknown",
+    }
+    with pytest.raises(ValueError, match="regime_start must match a regime name"):
+        ModelConfig(**data)
+
+
 def test_model_config_rejects_out_of_bounds_correlations():
     data = {
         "N_SIMULATIONS": 1,
@@ -641,6 +692,7 @@ def test_model_config_logs_transform_order(caplog: pytest.LogCaptureFixture) -> 
         "check_capital",
         "check_return_distribution",
         "check_correlations",
+        "check_regimes",
         "check_correlation_repairs",
         "check_shares",
         "check_analysis_mode",
