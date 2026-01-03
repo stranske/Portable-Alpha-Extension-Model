@@ -24,6 +24,7 @@ from .sim import draw_financing_series, draw_joint_returns, prepare_return_shock
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .sim.params import build_financing_params, build_return_params, build_simulation_params
+from .sim.regimes import build_regime_draw_params, resolve_regime_start, simulate_regime_paths
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
 from .units import get_index_series_unit, normalize_index_series
@@ -177,6 +178,17 @@ def run_parameter_sweep(
         window=cfg.vol_regime_window,
     )
     n_samples = int(len(index_series))
+    regime_paths = None
+    if cfg.regimes is not None:
+        regime_rng = spawn_rngs(seed, 1)[0]
+        start_state = resolve_regime_start(cfg)
+        regime_paths = simulate_regime_paths(
+            n_sim=cfg.N_SIMULATIONS,
+            n_months=cfg.N_MONTHS,
+            transition=cfg.regime_transition or [],
+            start_state=start_state,
+            rng=regime_rng,
+        )
 
     # Pre-compute combinations for progress tracking
     combos = list(generate_parameter_combinations(cfg))
@@ -219,6 +231,8 @@ def run_parameter_sweep(
     reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
     reuse_financing_series = not override_keys.intersection(financing_keys)
     if cfg.covariance_shrinkage != "none" and override_keys.intersection(sigma_override_keys):
+        reuse_return_shocks = False
+    if cfg.regimes is not None:
         reuse_return_shocks = False
 
     # Common random numbers: reset RNGs before each combination so parameter
@@ -308,53 +322,70 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        sigma_h = float(mod_cfg.sigma_H)
-        sigma_e = float(mod_cfg.sigma_E)
-        sigma_m = float(mod_cfg.sigma_M)
+        if mod_cfg.regimes is not None and regime_paths is not None:
+            regime_params, _ = build_regime_draw_params(
+                mod_cfg,
+                mu_idx=mu_idx,
+                idx_sigma=idx_sigma,
+                n_samples=n_samples,
+            )
+            params = regime_params[0]
+            r_beta, r_H, r_E, r_M = draw_joint_returns(
+                n_months=mod_cfg.N_MONTHS,
+                n_sim=mod_cfg.N_SIMULATIONS,
+                params=params,
+                rng=rng_returns,
+                regime_paths=regime_paths,
+                regime_params=regime_params,
+            )
+        else:
+            sigma_h = float(mod_cfg.sigma_H)
+            sigma_e = float(mod_cfg.sigma_E)
+            sigma_m = float(mod_cfg.sigma_M)
 
-        cov = build_cov_matrix(
-            mod_cfg.rho_idx_H,
-            mod_cfg.rho_idx_E,
-            mod_cfg.rho_idx_M,
-            mod_cfg.rho_H_E,
-            mod_cfg.rho_H_M,
-            mod_cfg.rho_E_M,
-            idx_sigma,
-            sigma_h,
-            sigma_e,
-            sigma_m,
-            covariance_shrinkage=mod_cfg.covariance_shrinkage,
-            n_samples=n_samples,
-        )
-        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-        idx_sigma_cov = float(sigma_vec[0])
-        sigma_h_cov = float(sigma_vec[1])
-        sigma_e_cov = float(sigma_vec[2])
-        sigma_m_cov = float(sigma_vec[3])
-        params = build_simulation_params(
-            mod_cfg,
-            mu_idx=mu_idx,
-            idx_sigma=idx_sigma_cov,
-            return_overrides={
-                "default_sigma_H": sigma_h_cov,
-                "default_sigma_E": sigma_e_cov,
-                "default_sigma_M": sigma_m_cov,
-                "rho_idx_H": float(corr_mat[0, 1]),
-                "rho_idx_E": float(corr_mat[0, 2]),
-                "rho_idx_M": float(corr_mat[0, 3]),
-                "rho_H_E": float(corr_mat[1, 2]),
-                "rho_H_M": float(corr_mat[1, 3]),
-                "rho_E_M": float(corr_mat[2, 3]),
-            },
-        )
+            cov = build_cov_matrix(
+                mod_cfg.rho_idx_H,
+                mod_cfg.rho_idx_E,
+                mod_cfg.rho_idx_M,
+                mod_cfg.rho_H_E,
+                mod_cfg.rho_H_M,
+                mod_cfg.rho_E_M,
+                idx_sigma,
+                sigma_h,
+                sigma_e,
+                sigma_m,
+                covariance_shrinkage=mod_cfg.covariance_shrinkage,
+                n_samples=n_samples,
+            )
+            sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+            idx_sigma_cov = float(sigma_vec[0])
+            sigma_h_cov = float(sigma_vec[1])
+            sigma_e_cov = float(sigma_vec[2])
+            sigma_m_cov = float(sigma_vec[3])
+            params = build_simulation_params(
+                mod_cfg,
+                mu_idx=mu_idx,
+                idx_sigma=idx_sigma_cov,
+                return_overrides={
+                    "default_sigma_H": sigma_h_cov,
+                    "default_sigma_E": sigma_e_cov,
+                    "default_sigma_M": sigma_m_cov,
+                    "rho_idx_H": float(corr_mat[0, 1]),
+                    "rho_idx_E": float(corr_mat[0, 2]),
+                    "rho_idx_M": float(corr_mat[0, 3]),
+                    "rho_H_E": float(corr_mat[1, 2]),
+                    "rho_H_M": float(corr_mat[1, 3]),
+                    "rho_E_M": float(corr_mat[2, 3]),
+                },
+            )
 
-        r_beta, r_H, r_E, r_M = draw_joint_returns(
-            n_months=mod_cfg.N_MONTHS,
-            n_sim=mod_cfg.N_SIMULATIONS,
-            params=params,
-            rng=None if return_shocks is not None else rng_returns,
-            shocks=return_shocks,
-        )
+            r_beta, r_H, r_E, r_M = draw_joint_returns(
+                n_months=mod_cfg.N_MONTHS,
+                n_sim=mod_cfg.N_SIMULATIONS,
+                params=params,
+                rng=None if return_shocks is not None else rng_returns,
+                shocks=return_shocks,
+            )
         if financing_series is None:
             f_int, f_ext, f_act = draw_financing_series(
                 n_months=mod_cfg.N_MONTHS,

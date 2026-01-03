@@ -276,7 +276,19 @@ def prepare_return_shocks(
     return shocks
 
 
-def draw_joint_returns(
+def _distribution_signature(params: Dict[str, Any]) -> tuple[Any, ...]:
+    return (
+        params.get("return_distribution", "normal"),
+        params.get("return_distribution_idx"),
+        params.get("return_distribution_H"),
+        params.get("return_distribution_E"),
+        params.get("return_distribution_M"),
+        params.get("return_copula", "gaussian"),
+        float(params.get("return_t_df", 5.0)),
+    )
+
+
+def _draw_joint_returns_single(
     *,
     n_months: int,
     n_sim: int,
@@ -404,6 +416,62 @@ def draw_joint_returns(
     r_H = sims[:, :, 1]
     r_E = sims[:, :, 2]
     r_M = sims[:, :, 3]
+    return r_beta, r_H, r_E, r_M
+
+
+def draw_joint_returns(
+    *,
+    n_months: int,
+    n_sim: int,
+    params: Dict[str, Any],
+    rng: Optional[GeneratorLike] = None,
+    shocks: Optional[Dict[str, Any]] = None,
+    regime_paths: Optional[npt.NDArray[Any]] = None,
+    regime_params: Optional[Sequence[Dict[str, Any]]] = None,
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
+    """Vectorised draw of monthly returns for (beta, H, E, M)."""
+    if regime_params is None:
+        return _draw_joint_returns_single(
+            n_months=n_months,
+            n_sim=n_sim,
+            params=params,
+            rng=rng,
+            shocks=shocks,
+        )
+
+    if regime_paths is None:
+        raise ValueError("regime_paths is required when regime_params is provided")
+    if shocks is not None:
+        raise ValueError("return shocks are not compatible with regime switching")
+    if len(regime_params) == 0:
+        raise ValueError("regime_params must contain at least one regime")
+
+    if regime_paths.shape != (n_sim, n_months):
+        raise ValueError("regime_paths has incompatible shape")
+
+    signature = _distribution_signature(regime_params[0])
+    for idx, regime in enumerate(regime_params[1:], start=1):
+        if _distribution_signature(regime) != signature:
+            raise ValueError(f"regime_params[{idx}] has inconsistent return distribution settings")
+
+    r_beta = np.empty((n_sim, n_months))
+    r_H = np.empty((n_sim, n_months))
+    r_E = np.empty((n_sim, n_months))
+    r_M = np.empty((n_sim, n_months))
+    for regime_idx, regime in enumerate(regime_params):
+        r_beta_r, r_H_r, r_E_r, r_M_r = _draw_joint_returns_single(
+            n_months=n_months,
+            n_sim=n_sim,
+            params=regime,
+            rng=rng,
+        )
+        mask = regime_paths == regime_idx
+        if not np.any(mask):
+            continue
+        r_beta[mask] = r_beta_r[mask]
+        r_H[mask] = r_H_r[mask]
+        r_E[mask] = r_E_r[mask]
+        r_M[mask] = r_M_r[mask]
     return r_beta, r_H, r_E, r_M
 
 

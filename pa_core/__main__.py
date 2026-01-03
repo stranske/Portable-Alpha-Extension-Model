@@ -73,10 +73,19 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
+    from .sim.regimes import (
+        apply_regime_labels,
+        build_regime_draw_params,
+        resolve_regime_start,
+        simulate_regime_paths,
+    )
     from .simulations import simulate_agents
     from .units import get_index_series_unit, normalize_index_series
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
+    rng_regime = None
+    if cfg.regimes is not None:
+        rng_regime, rng_returns = spawn_rngs(args.seed, 2)
     fin_rngs = spawn_agent_rngs(
         args.seed,
         ["internal", "external_pa", "active_ext"],
@@ -98,43 +107,70 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     n_samples = int(len(idx_series))
 
-    sigma_H = cfg.sigma_H
-    sigma_E = cfg.sigma_E
-    sigma_M = cfg.sigma_M
-
-    covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
-    if covariance_shrinkage_value not in ("none", "ledoit_wolf"):
-        raise ValueError(
-            "covariance_shrinkage must be 'none' or 'ledoit_wolf', "
-            f"got {covariance_shrinkage_value!r}"
-        )
-    covariance_shrinkage = cast(Literal["none", "ledoit_wolf"], covariance_shrinkage_value)
-    _ = build_cov_matrix(
-        cfg.rho_idx_H,
-        cfg.rho_idx_E,
-        cfg.rho_idx_M,
-        cfg.rho_H_E,
-        cfg.rho_H_M,
-        cfg.rho_E_M,
-        idx_sigma,
-        sigma_H,
-        sigma_E,
-        sigma_M,
-        covariance_shrinkage=covariance_shrinkage,
-        n_samples=n_samples,
-    )
-
-    params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
-
     N_SIMULATIONS = cfg.N_SIMULATIONS
     N_MONTHS = cfg.N_MONTHS
 
-    r_beta, r_H, r_E, r_M = draw_joint_returns(
-        n_months=N_MONTHS,
-        n_sim=N_SIMULATIONS,
-        params=params,
-        rng=rng_returns,
-    )
+    regime_states = None
+    if cfg.regimes is not None:
+        regime_params, regime_labels = build_regime_draw_params(
+            cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma,
+            n_samples=n_samples,
+        )
+        start_state = resolve_regime_start(cfg)
+        regime_paths = simulate_regime_paths(
+            n_sim=N_SIMULATIONS,
+            n_months=N_MONTHS,
+            transition=cfg.regime_transition or [],
+            start_state=start_state,
+            rng=rng_regime,
+        )
+        params = regime_params[0]
+        r_beta, r_H, r_E, r_M = draw_joint_returns(
+            n_months=N_MONTHS,
+            n_sim=N_SIMULATIONS,
+            params=params,
+            rng=rng_returns,
+            regime_paths=regime_paths,
+            regime_params=regime_params,
+        )
+        regime_states = pd.DataFrame(apply_regime_labels(regime_paths, regime_labels))
+    else:
+        sigma_H = cfg.sigma_H
+        sigma_E = cfg.sigma_E
+        sigma_M = cfg.sigma_M
+
+        covariance_shrinkage_value = getattr(cfg, "covariance_shrinkage", "none")
+        if covariance_shrinkage_value not in ("none", "ledoit_wolf"):
+            raise ValueError(
+                "covariance_shrinkage must be 'none' or 'ledoit_wolf', "
+                f"got {covariance_shrinkage_value!r}"
+            )
+        covariance_shrinkage = cast(Literal["none", "ledoit_wolf"], covariance_shrinkage_value)
+        _ = build_cov_matrix(
+            cfg.rho_idx_H,
+            cfg.rho_idx_E,
+            cfg.rho_idx_M,
+            cfg.rho_H_E,
+            cfg.rho_H_M,
+            cfg.rho_E_M,
+            idx_sigma,
+            sigma_H,
+            sigma_E,
+            sigma_M,
+            covariance_shrinkage=covariance_shrinkage,
+            n_samples=n_samples,
+        )
+
+        params = build_simulation_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
+
+        r_beta, r_H, r_E, r_M = draw_joint_returns(
+            n_months=N_MONTHS,
+            n_sim=N_SIMULATIONS,
+            params=params,
+            rng=rng_returns,
+        )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=N_MONTHS,
         n_sim=N_SIMULATIONS,
@@ -150,4 +186,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     summary = summary_table(returns, benchmark="Base")
     inputs_dict = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
+    if regime_states is not None:
+        raw_returns_dict["RegimeState"] = regime_states
     export_to_excel(inputs_dict, summary, raw_returns_dict, filename=args.output)

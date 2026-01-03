@@ -755,18 +755,21 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
-    rng_returns = spawn_rngs(args.seed, 1)[0]
-    fin_rngs = spawn_agent_rngs(
-        args.seed,
-        ["internal", "external_pa", "active_ext"],
-    )
-
     if args.mode is not None:
         cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     base_cfg = cfg
     if args.stress_preset:
         base_cfg = cfg
         cfg = apply_stress_preset(cfg, args.stress_preset)
+
+    rng_returns = spawn_rngs(args.seed, 1)[0]
+    rng_regime = None
+    if cfg.regimes is not None:
+        rng_regime, rng_returns = spawn_rngs(args.seed, 2)
+    fin_rngs = spawn_agent_rngs(
+        args.seed,
+        ["internal", "external_pa", "active_ext"],
+    )
 
     idx_series = load_index_returns(args.index)
 
@@ -1086,19 +1089,57 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         )
 
     def _run_single(
-        run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
-    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
-        params = _build_simulation_params_for_run(run_cfg)
-
+        run_cfg: "ModelConfig",
+        run_rng_returns: Any,
+        run_fin_rngs: Any,
+        run_rng_regime: Any | None = None,
+    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any, "pd.DataFrame | None"]:
+        regime_states = None
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
         N_MONTHS = run_cfg.N_MONTHS
+        if run_cfg.regimes is not None:
+            from .sim.regimes import (
+                apply_regime_labels,
+                build_regime_draw_params,
+                resolve_regime_start,
+                simulate_regime_paths,
+            )
 
-        r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
-            n_months=N_MONTHS,
-            n_sim=N_SIMULATIONS,
-            params=params,
-            rng=run_rng_returns,
-        )
+            if run_rng_regime is None:
+                run_rng_regime, run_rng_returns = spawn_rngs(args.seed, 2)
+            regime_params, regime_labels = build_regime_draw_params(
+                run_cfg,
+                mu_idx=mu_idx,
+                idx_sigma=idx_sigma,
+                n_samples=n_samples,
+            )
+            start_state = resolve_regime_start(run_cfg)
+            regime_paths = simulate_regime_paths(
+                n_sim=run_cfg.N_SIMULATIONS,
+                n_months=run_cfg.N_MONTHS,
+                transition=run_cfg.regime_transition or [],
+                start_state=start_state,
+                rng=run_rng_regime,
+            )
+            params = regime_params[0]
+            r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
+                n_months=run_cfg.N_MONTHS,
+                n_sim=run_cfg.N_SIMULATIONS,
+                params=params,
+                rng=run_rng_returns,
+                regime_paths=regime_paths,
+                regime_params=regime_params,
+            )
+            regime_states = pd.DataFrame(apply_regime_labels(regime_paths, regime_labels))
+        else:
+            params = _build_simulation_params_for_run(run_cfg)
+
+            r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
+                n_months=N_MONTHS,
+                n_sim=N_SIMULATIONS,
+                params=params,
+                rng=run_rng_returns,
+            )
         f_int, f_ext, f_act = deps.draw_financing_series(
             n_months=N_MONTHS,
             n_sim=N_SIMULATIONS,
@@ -1112,21 +1153,33 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
         # Build summary using wrapper (allows tests to mock this safely)
         summary = create_enhanced_summary(returns, benchmark="Base")
-        return returns, summary, f_int, f_ext, f_act
+        return returns, summary, f_int, f_ext, f_act, regime_states
 
-    returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
+    returns, summary, f_int, f_ext, f_act, regime_states = _run_single(
+        cfg,
+        rng_returns,
+        fin_rngs,
+        rng_regime,
+    )
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
         from .reporting.stress_delta import build_delta_table
 
+        base_rng_regime = None
         base_rng_returns = spawn_rngs(args.seed, 1)[0]
+        if base_cfg.regimes is not None:
+            base_rng_regime, base_rng_returns = spawn_rngs(args.seed, 2)
         base_fin_rngs = spawn_agent_rngs(args.seed, ["internal", "external_pa", "active_ext"])
-        _, base_summary, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
+        _, base_summary, _, _, _, _ = _run_single(
+            base_cfg, base_rng_returns, base_fin_rngs, base_rng_regime
+        )
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
+    if regime_states is not None:
+        raw_returns_dict["RegimeState"] = regime_states
 
     # Optional attribution tables for downstream exports
     try:

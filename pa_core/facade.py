@@ -50,6 +50,7 @@ class RunArtifacts:
         stress_delta: Optional DataFrame with stress scenario deltas.
         base_summary: Optional DataFrame with base scenario summary (for stress comparisons).
         manifest: Optional metadata dictionary for reproducibility tracking.
+        regime_states: Optional DataFrame of regime labels per simulation/month.
     """
 
     config: "ModelConfig"
@@ -61,6 +62,7 @@ class RunArtifacts:
     stress_delta: "pd.DataFrame | None" = None
     base_summary: "pd.DataFrame | None" = None
     manifest: Mapping[str, Any] | None = None
+    regime_states: "pd.DataFrame | None" = None
 
 
 @dataclass(slots=True)
@@ -186,6 +188,12 @@ def run_single(
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
     from .sim.params import build_simulation_params
+    from .sim.regimes import (
+        apply_regime_labels,
+        build_regime_draw_params,
+        resolve_regime_start,
+        simulate_regime_paths,
+    )
     from .simulations import simulate_agents
     from .validators import select_vol_regime_sigma
 
@@ -213,50 +221,80 @@ def run_single(
     )
     n_samples = int(len(idx_series))
 
-    sigma_h = float(run_cfg.sigma_H)
-    sigma_e = float(run_cfg.sigma_E)
-    sigma_m = float(run_cfg.sigma_M)
+    regime_paths = None
+    regime_labels = None
+    regime_states = None
 
-    cov = build_cov_matrix(
-        run_cfg.rho_idx_H,
-        run_cfg.rho_idx_E,
-        run_cfg.rho_idx_M,
-        run_cfg.rho_H_E,
-        run_cfg.rho_H_M,
-        run_cfg.rho_E_M,
-        idx_sigma,
-        sigma_h,
-        sigma_e,
-        sigma_m,
-        covariance_shrinkage=run_cfg.covariance_shrinkage,
-        n_samples=n_samples,
-    )
-    sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+    if run_cfg.regimes is not None:
+        rng_regime, rng_returns = spawn_rngs(run_options.seed, 2)
+        regime_params, regime_labels = build_regime_draw_params(
+            run_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma,
+            n_samples=n_samples,
+        )
+        start_state = resolve_regime_start(run_cfg)
+        regime_paths = simulate_regime_paths(
+            n_sim=run_cfg.N_SIMULATIONS,
+            n_months=run_cfg.N_MONTHS,
+            transition=run_cfg.regime_transition or [],
+            start_state=start_state,
+            rng=rng_regime,
+        )
+        r_beta, r_H, r_E, r_M = draw_joint_returns(
+            n_months=run_cfg.N_MONTHS,
+            n_sim=run_cfg.N_SIMULATIONS,
+            params=regime_params[0],
+            rng=rng_returns,
+            regime_paths=regime_paths,
+            regime_params=regime_params,
+        )
+        regime_states = pd.DataFrame(apply_regime_labels(regime_paths, regime_labels))
+    else:
+        sigma_h = float(run_cfg.sigma_H)
+        sigma_e = float(run_cfg.sigma_E)
+        sigma_m = float(run_cfg.sigma_M)
 
-    params = build_simulation_params(
-        run_cfg,
-        mu_idx=mu_idx,
-        idx_sigma=float(sigma_vec[0]),
-        return_overrides={
-            "default_sigma_H": float(sigma_vec[1]),
-            "default_sigma_E": float(sigma_vec[2]),
-            "default_sigma_M": float(sigma_vec[3]),
-            "rho_idx_H": float(corr_mat[0, 1]),
-            "rho_idx_E": float(corr_mat[0, 2]),
-            "rho_idx_M": float(corr_mat[0, 3]),
-            "rho_H_E": float(corr_mat[1, 2]),
-            "rho_H_M": float(corr_mat[1, 3]),
-            "rho_E_M": float(corr_mat[2, 3]),
-        },
-    )
+        cov = build_cov_matrix(
+            run_cfg.rho_idx_H,
+            run_cfg.rho_idx_E,
+            run_cfg.rho_idx_M,
+            run_cfg.rho_H_E,
+            run_cfg.rho_H_M,
+            run_cfg.rho_E_M,
+            idx_sigma,
+            sigma_h,
+            sigma_e,
+            sigma_m,
+            covariance_shrinkage=run_cfg.covariance_shrinkage,
+            n_samples=n_samples,
+        )
+        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
 
-    rng_returns = spawn_rngs(run_options.seed, 1)[0]
-    r_beta, r_H, r_E, r_M = draw_joint_returns(
-        n_months=run_cfg.N_MONTHS,
-        n_sim=run_cfg.N_SIMULATIONS,
-        params=params,
-        rng=rng_returns,
-    )
+        params = build_simulation_params(
+            run_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=float(sigma_vec[0]),
+            return_overrides={
+                "default_sigma_H": float(sigma_vec[1]),
+                "default_sigma_E": float(sigma_vec[2]),
+                "default_sigma_M": float(sigma_vec[3]),
+                "rho_idx_H": float(corr_mat[0, 1]),
+                "rho_idx_E": float(corr_mat[0, 2]),
+                "rho_idx_M": float(corr_mat[0, 3]),
+                "rho_H_E": float(corr_mat[1, 2]),
+                "rho_H_M": float(corr_mat[1, 3]),
+                "rho_E_M": float(corr_mat[2, 3]),
+            },
+        )
+
+        rng_returns = spawn_rngs(run_options.seed, 1)[0]
+        r_beta, r_H, r_E, r_M = draw_joint_returns(
+            n_months=run_cfg.N_MONTHS,
+            n_sim=run_cfg.N_SIMULATIONS,
+            params=params,
+            rng=rng_returns,
+        )
     fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
     f_int, f_ext, f_act = draw_financing_series(
         n_months=run_cfg.N_MONTHS,
@@ -269,6 +307,8 @@ def run_single(
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
     summary = summary_table(returns, benchmark="Base")
     raw_returns = {name: pd.DataFrame(data) for name, data in returns.items()}
+    if regime_states is not None:
+        raw_returns["RegimeState"] = regime_states
     inputs = run_cfg.model_dump()
 
     return RunArtifacts(
@@ -278,6 +318,7 @@ def run_single(
         summary=summary,
         inputs=inputs,
         raw_returns=raw_returns,
+        regime_states=regime_states,
     )
 
 

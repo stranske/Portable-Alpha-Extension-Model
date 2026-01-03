@@ -9,6 +9,7 @@ from .paths import (
     simulate_alpha_streams,
     simulate_financing,
 )
+from .regimes import apply_regime_labels, build_regime_draw_params, resolve_regime_start, simulate_regime_paths
 
 __all__ = [
     "simulate_financing",
@@ -18,4 +19,8 @@ __all__ = [
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
+    "apply_regime_labels",
+    "build_regime_draw_params",
+    "resolve_regime_start",
+    "simulate_regime_paths",
 ]

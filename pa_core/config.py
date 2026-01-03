@@ -44,6 +44,7 @@ def annual_cov_to_monthly(cov: np.ndarray) -> np.ndarray:
 
 __all__ = [
     "AgentConfig",
+    "RegimeConfig",
     "ModelConfig",
     "load_config",
     "ConfigError",
@@ -99,6 +100,22 @@ class AgentConfig(BaseModel):
     beta_share: float
     alpha_share: float
     extra: Dict[str, Any] = Field(default_factory=dict)
+
+
+class RegimeConfig(BaseModel):
+    """Per-regime overrides for volatility and correlation parameters."""
+
+    name: str
+    idx_sigma_multiplier: float = Field(default=1.0, gt=0.0)
+    sigma_H: float | None = Field(default=None, gt=0.0)
+    sigma_E: float | None = Field(default=None, gt=0.0)
+    sigma_M: float | None = Field(default=None, gt=0.0)
+    rho_idx_H: float | None = None
+    rho_idx_E: float | None = None
+    rho_idx_M: float | None = None
+    rho_H_E: float | None = None
+    rho_H_M: float | None = None
+    rho_E_M: float | None = None
 
 
 class ModelConfig(BaseModel):
@@ -174,6 +191,9 @@ class ModelConfig(BaseModel):
     covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none"
     vol_regime: Literal["single", "two_state"] = "single"
     vol_regime_window: int = 12
+    regimes: List[RegimeConfig] | None = None
+    regime_transition: List[List[float]] | None = None
+    regime_start: str | None = None
 
     internal_financing_mean_month: float = Field(
         default=0.0, alias="Internal financing mean (monthly %)"
@@ -579,6 +599,62 @@ class ModelConfig(BaseModel):
         if errors:
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
+        return self
+
+    @model_validator(mode="after")
+    def check_regimes(self) -> "ModelConfig":
+        self._trace_transform(self, "check_regimes")
+        if self.regimes is None:
+            if self.regime_transition is not None or self.regime_start is not None:
+                raise ValueError("regimes must be provided when regime_transition is set")
+            return self
+
+        if not self.regimes:
+            raise ValueError("regimes must contain at least one regime")
+
+        names = [regime.name for regime in self.regimes]
+        if len(set(names)) != len(names):
+            raise ValueError("regime names must be unique")
+
+        if self.regime_transition is None:
+            raise ValueError("regime_transition required when regimes are provided")
+
+        n_regimes = len(self.regimes)
+        if len(self.regime_transition) != n_regimes or any(
+            len(row) != n_regimes for row in self.regime_transition
+        ):
+            raise ValueError("regime_transition must be a square matrix matching regimes")
+
+        for idx, row in enumerate(self.regime_transition):
+            if any(prob < 0.0 or prob > 1.0 for prob in row):
+                raise ValueError("regime_transition probabilities must be between 0 and 1")
+            total = float(sum(row))
+            if abs(total - 1.0) > 1e-6:
+                raise ValueError(f"regime_transition row {idx} must sum to 1")
+
+        if self.regime_start is not None and self.regime_start not in names:
+            raise ValueError("regime_start must match a regime name")
+
+        from .validators import validate_correlations
+
+        for regime in self.regimes:
+            correlations = {
+                name: float(value)
+                for name, value in (
+                    ("rho_idx_H", regime.rho_idx_H),
+                    ("rho_idx_E", regime.rho_idx_E),
+                    ("rho_idx_M", regime.rho_idx_M),
+                    ("rho_H_E", regime.rho_H_E),
+                    ("rho_H_M", regime.rho_H_M),
+                    ("rho_E_M", regime.rho_E_M),
+                )
+                if value is not None
+            }
+            if correlations:
+                results = validate_correlations(correlations)
+                errors = [r.message for r in results if not r.is_valid]
+                if errors:
+                    raise ValueError("; ".join(errors))
         return self
 
     @model_validator(mode="after")
