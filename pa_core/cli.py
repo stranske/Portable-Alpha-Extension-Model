@@ -1178,6 +1178,21 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     except (AttributeError, ValueError, TypeError, KeyError) as e:
         logger.debug(f"Risk attribution unavailable: {e}")
     print_enhanced_summary(summary)
+    try:
+        from .reporting.constraints import build_constraint_report
+        from .reporting.console import print_constraint_report
+
+        constraint_report = build_constraint_report(
+            summary,
+            max_te=args.max_te,
+            max_breach=args.max_breach,
+            max_cvar=args.max_cvar,
+        )
+        inputs_dict["_constraint_report_df"] = constraint_report
+        if args.stress_preset:
+            print_constraint_report(constraint_report)
+    except (AttributeError, KeyError, TypeError, ValueError) as e:
+        logger.debug(f"Constraint report unavailable: {e}")
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
         try:
