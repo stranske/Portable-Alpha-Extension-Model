@@ -1267,6 +1267,63 @@ Notes
 - The tornado bars are sourced from the absolute delta column (DeltaAbs) produced by the sensitivity analysis.
 - The attribution table decomposes annual return into Beta, Alpha and Financing contributions per sleeve; a risk‑attribution table (volatility and TE approximations) is added when available.
 
+## Sleeve Attribution Methodology
+
+The attribution module (`pa_core/reporting/attribution.py`) provides three complementary decompositions to answer "which sleeve is driving my results?"
+
+### Return Contribution
+
+**Function**: `compute_sleeve_return_contribution()`
+
+Each sleeve's return contribution is computed as its arithmetic mean monthly return scaled to annual:
+
+$$\text{Contribution}_i = \bar{r}_i \times 12$$
+
+where $\bar{r}_i$ is the mean monthly return for sleeve $i$. Contributions sum to the total portfolio return within floating-point tolerance, enabling users to see which sleeves add or subtract value.
+
+### Return Attribution (Component Breakdown)
+
+**Function**: `compute_sleeve_return_attribution()`
+
+For detailed analysis, each sleeve's return is further decomposed into:
+- **Beta**: Exposure to index return ($w_i \times \mu_{\text{idx}}$)
+- **Alpha**: Exposure to sleeve-specific alpha stream ($w_i \times \theta_i \times \mu_{\alpha}$)
+- **Financing**: Financing drag on beta portion ($-w_i \times \mu_{\text{fin}}$)
+
+This allows users to understand not just which sleeves contribute, but *how* they contribute (market exposure vs. skill vs. cost).
+
+### Tracking Error Attribution
+
+**Function**: `compute_sleeve_risk_attribution()`
+
+TE attribution uses covariance-based decomposition. For each sleeve with beta exposure $b$ and alpha volatility $\sigma_\alpha$:
+
+$$\text{Var}(R_i - I) = (b-1)^2 \sigma_I^2 + \sigma_\alpha^2 + 2(b-1)\rho_{I,\alpha}\sigma_I\sigma_\alpha$$
+
+The annualized TE approximation is $\sqrt{12} \times \sqrt{\text{Var}(R_i - I)}$.
+
+Additional metrics reported:
+- **BetaVol**: $\sqrt{12} \times |b| \times \sigma_I$ (beta contribution to volatility)
+- **AlphaVol**: $\sqrt{12} \times \sigma_\alpha$ (alpha contribution to volatility)
+- **CorrWithIndex**: Correlation of sleeve return with index
+
+### CVaR Contribution (Euler Decomposition)
+
+**Function**: `compute_sleeve_cvar_contribution()`
+
+Marginal CVaR uses the Euler decomposition property: the conditional expectation of each sleeve's return in the portfolio tail:
+
+$$\text{CVaR}_i = E[r_i \mid R_{\text{portfolio}} < \text{VaR}]$$
+
+By construction, sleeve CVaR contributions sum exactly to the portfolio CVaR, satisfying the Euler homogeneity property. This answers "how much does each sleeve contribute to tail risk?"
+
+### Output Formats
+
+Attribution results are available in:
+1. **Excel workbook**: `sleeve_attribution` sheet with per-sleeve breakdown
+2. **Sunburst chart**: Visual decomposition via `pa_core.viz.sunburst`
+3. **CLI output**: `--attribution` flag adds attribution tables to console output
+
 ## Constraint‑aware Sleeve Suggestor & Trade‑off Table
 
 The sleeve suggestor proposes feasible ExternalPA / ActiveExt / InternalPA capital combinations that satisfy risk constraints. By default it uses a grid search, but you can enable an optimizer (requires SciPy) that uses a coarse convex surrogate to target higher‑return allocations, with automatic fallback to the grid if the optimizer fails.
