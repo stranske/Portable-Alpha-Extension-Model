@@ -4,13 +4,13 @@ import numpy as np
 import pandas as pd
 
 from pa_core.config import ModelConfig
-from pa_core.sim.metrics import conditional_value_at_risk
 from pa_core.reporting.attribution import (
     compute_sleeve_cvar_contribution,
     compute_sleeve_return_attribution,
     compute_sleeve_return_contribution,
     compute_sleeve_risk_attribution,
 )
+from pa_core.sim.metrics import conditional_value_at_risk
 
 
 def test_compute_sleeve_return_attribution_basic() -> None:
