@@ -41,7 +41,9 @@ def compute_gap() -> dict[str, list[str]]:
     }
 
 
-def _format_lines(gap: dict[str, list[str]], *, model_fields: Iterable[str], yaml_keys: Iterable[str]) -> str:
+def _format_lines(
+    gap: dict[str, list[str]], *, model_fields: Iterable[str], yaml_keys: Iterable[str]
+) -> str:
     model_fields = list(model_fields)
     yaml_keys = list(yaml_keys)
     lines = [
