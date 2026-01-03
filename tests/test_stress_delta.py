@@ -47,14 +47,35 @@ def test_build_stress_workbook_contains_expected_sheets():
     )
     delta_df = build_delta_table(base, stressed)
     config_diff = pd.DataFrame({"Parameter": ["mu_H"], "Base": [0.01], "Stressed": [0]})
+    base_breaches = pd.DataFrame(
+        {
+            "Constraint": ["Tracking error"],
+            "Agent": ["Total"],
+            "Metric": ["monthly_TE"],
+            "Limit": [0.02],
+            "Value": [0.05],
+            "Breach": [0.03],
+            "Driver": ["ExternalPA"],
+        }
+    )
+    stress_breaches = base_breaches.copy()
 
-    data = build_stress_workbook(base, stressed, delta_df, config_diff)
+    data = build_stress_workbook(
+        base,
+        stressed,
+        delta_df,
+        config_diff,
+        base_breaches,
+        stress_breaches,
+    )
     wb = openpyxl.load_workbook(io.BytesIO(data))
 
     assert "BaseSummary" in wb.sheetnames
     assert "StressedSummary" in wb.sheetnames
     assert "Delta" in wb.sheetnames
     assert "ConfigDiff" in wb.sheetnames
+    assert "BaseBreaches" in wb.sheetnames
+    assert "StressedBreaches" in wb.sheetnames
 
 
 def test_format_delta_table_text_adds_signs():
