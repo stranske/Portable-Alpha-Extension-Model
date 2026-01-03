@@ -504,6 +504,28 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 **Key Insight**: Vol mult mode reveals how robust your strategy is to changing market volatility.
 
+#### Stress Presets (Quick Scenarios)
+
+For quick, repeatable stress tests you can apply predefined presets that override
+the base configuration without building a full sweep. These presets are available
+via the CLI (`--stress-preset`) and in the dashboard Stress Lab page.
+
+Available presets:
+- **liquidity_squeeze**: Higher financing spikes and jump probabilities.
+- **correlation_breakdown**: Force correlations toward 0.95.
+- **2008_vol_regime**: Triple sleeve volatilities using the stress multiplier.
+- **2020_gap_day**: Deep negative return shock across sleeves.
+- **rate_shock**: Higher financing means and volatility.
+
+Example CLI run:
+```bash
+python -m pa_core.cli \
+  --config config/params_template.yml \
+  --index sp500tr_fred_divyield.csv \
+  --stress-preset 2008_vol_regime \
+  --output StressPreset_2008.xlsx
+```
+
 #### Part 5: Returns Mode - Sensitivity Analysis
 
 **Objective**: Explore how different return and volatility assumptions affect outcomes.

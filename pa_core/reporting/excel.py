@@ -90,6 +90,7 @@ def export_to_excel(
     sleeve_attr_df = _optional_df(inputs_dict, "_sleeve_attribution_df")
     risk_df = _optional_df(inputs_dict, "_risk_attr_df")
     trade_df = _optional_df(inputs_dict, "_tradeoff_df")
+    constraint_df = _optional_df(inputs_dict, "_constraint_report_df")
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         df_inputs = pd.DataFrame(
@@ -173,6 +174,8 @@ def export_to_excel(
         # Optional: write Sleeve Trade-offs sheet if provided in inputs_dict
         if trade_df is not None and not trade_df.empty:
             trade_df.to_excel(writer, sheet_name="SleeveTradeoffs", index=True)
+        if constraint_df is not None and not constraint_df.empty:
+            constraint_df.to_excel(writer, sheet_name="ConstraintBreaches", index=False)
 
         # Write returns either pivoted or per-sheet
         if pivot:

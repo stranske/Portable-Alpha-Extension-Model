@@ -20,6 +20,7 @@ STRESS_PRESET_LABELS: dict[str, str] = {
     "correlation_breakdown": "Correlation breakdown",
     "2008_vol_regime": "2008-like vol regime",
     "2020_gap_day": "2020 gap day",
+    "rate_shock": "Rate shock",
 }
 
 
@@ -52,6 +53,14 @@ STRESS_PRESETS: dict[str, Preset] = {
         "mu_H": convert_mean(-0.20, from_unit="annual", to_unit="monthly"),
         "mu_E": convert_mean(-0.25, from_unit="annual", to_unit="monthly"),
         "mu_M": convert_mean(-0.15, from_unit="annual", to_unit="monthly"),
+    },
+    "rate_shock": {
+        "internal_financing_mean_month": 0.012,
+        "internal_financing_sigma_month": 0.03,
+        "ext_pa_financing_mean_month": 0.014,
+        "ext_pa_financing_sigma_month": 0.03,
+        "act_ext_financing_mean_month": 0.015,
+        "act_ext_financing_sigma_month": 0.035,
     },
 }
 

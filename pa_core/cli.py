@@ -1188,6 +1188,31 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     except (AttributeError, ValueError, TypeError, KeyError) as e:
         logger.debug(f"Risk attribution unavailable: {e}")
     print_enhanced_summary(summary)
+    base_constraints_report: pd.DataFrame | None = None
+    stress_constraints_report: pd.DataFrame | None = None
+    try:
+        from .reporting.console import print_constraint_report
+        from .reporting.constraints import build_constraint_report
+
+        constraint_report = build_constraint_report(
+            summary,
+            max_te=args.max_te,
+            max_breach=args.max_breach,
+            max_cvar=args.max_cvar,
+        )
+        inputs_dict["_constraint_report_df"] = constraint_report
+        if args.stress_preset:
+            stress_constraints_report = constraint_report
+            if base_summary_df is not None and not base_summary_df.empty:
+                base_constraints_report = build_constraint_report(
+                    base_summary_df,
+                    max_te=args.max_te,
+                    max_breach=args.max_breach,
+                    max_cvar=args.max_cvar,
+                )
+            print_constraint_report(constraint_report)
+    except (AttributeError, KeyError, TypeError, ValueError) as e:
+        logger.debug(f"Constraint report unavailable: {e}")
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
         try:
@@ -1424,6 +1449,17 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                         summary.to_excel(writer, sheet_name="StressedSummary", index=False)
                     if stress_delta_df is not None and not stress_delta_df.empty:
                         stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
+                    if base_constraints_report is not None and not base_constraints_report.empty:
+                        base_constraints_report.to_excel(
+                            writer, sheet_name="BaseBreaches", index=False
+                        )
+                    if (
+                        stress_constraints_report is not None
+                        and not stress_constraints_report.empty
+                    ):
+                        stress_constraints_report.to_excel(
+                            writer, sheet_name="StressedBreaches", index=False
+                        )
             except (OSError, PermissionError, ValueError) as e:
                 logger.warning(f"Failed to append stress sheets: {e}")
             finally:
