@@ -18,10 +18,10 @@ def create_test_data():
     """Create test data for export packet tests."""
     summary_df = pd.DataFrame(
         {
-            "AnnReturn": [0.05, 0.07, 0.06],
-            "AnnVol": [0.12, 0.15, 0.13],
-            "ShortfallProb": [0.1, 0.15, 0.12],
-            "VaR": [0.08, 0.12, 0.10],
+            "terminal_AnnReturn": [0.05, 0.07, 0.06],
+            "monthly_AnnVol": [0.12, 0.15, 0.13],
+            "terminal_ShortfallProb": [0.1, 0.15, 0.12],
+            "monthly_VaR": [0.08, 0.12, 0.10],
         }
     )
 
@@ -32,8 +32,8 @@ def create_test_data():
     # Create a simple test figure
     fig = go.Figure()
     fig.add_scatter(
-        x=summary_df["AnnVol"],
-        y=summary_df["AnnReturn"],
+        x=summary_df["monthly_AnnVol"],
+        y=summary_df["terminal_AnnReturn"],
         mode="markers",
         name="Risk-Return",
     )
@@ -137,7 +137,7 @@ def test_export_packet_diff_appendix():
     summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
 
     prev_summary = summary_df.copy()
-    prev_summary["AnnReturn"] = prev_summary["AnnReturn"] + 0.01
+    prev_summary["terminal_AnnReturn"] = prev_summary["terminal_AnnReturn"] + 0.01
     prev_manifest = {"config": {"N_SIMULATIONS": 500}}
     curr_manifest = {"config": {"N_SIMULATIONS": 1000}}
 
@@ -182,7 +182,9 @@ def test_export_packet_diff_appendix():
 
 def test_export_packet_includes_stress_delta():
     summary_df, raw_returns_dict, inputs_dict, fig = create_test_data()
-    stress_delta = pd.DataFrame({"Agent": ["Total"], "AnnReturn": [-0.03], "AnnVol": [0.02]})
+    stress_delta = pd.DataFrame(
+        {"Agent": ["Total"], "terminal_AnnReturn": [-0.03], "monthly_AnnVol": [0.02]}
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         try:

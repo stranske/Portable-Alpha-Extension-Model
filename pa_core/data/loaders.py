@@ -210,7 +210,7 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
     if not p.exists():
         raise FileNotFoundError(f"Parameter file not found: {p}")
     try:
-        df = pd.read_csv(p)
+        df = pd.read_csv(p, comment="#")
     except (pd.errors.EmptyDataError, OSError) as exc:
         raise ValueError(f"Failed to read parameter CSV: {exc}") from exc
     data: Dict[str, Any] = {}

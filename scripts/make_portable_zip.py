@@ -192,7 +192,7 @@ def _write_launcher_bats(staging: Path) -> None:  # pragma: no cover - windows o
     launchers = {
         "pa.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.pa %*\n',
         "pa-dashboard.bat": (
-            "@echo off\n" '"%~dp0python\\python.exe" -m streamlit run dashboard\\app.py %*\n'
+            '@echo off\n"%~dp0python\\python.exe" -m streamlit run dashboard\\app.py %*\n'
         ),
         "pa-validate.bat": '@echo off\n"%~dp0python\\python.exe" -m pa_core.validate %*\n',
         "pa-convert-params.bat": (

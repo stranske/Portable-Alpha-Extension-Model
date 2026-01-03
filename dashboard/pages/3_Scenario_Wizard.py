@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict
 
+import pandas as pd
 import streamlit as st
 import yaml
 
@@ -17,8 +18,9 @@ from dashboard.utils import normalize_share
 from pa_core import cli as pa_cli
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
-from pa_core.sleeve_suggestor import suggest_sleeve_sizes
+from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
+from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard_schema import (
     AnalysisMode,
     DefaultConfigView,
@@ -51,6 +53,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     analysis_mode = config.analysis_mode
     n_simulations = int(config.n_simulations)
     n_months = int(config.n_months)
+    financing_mode = config.financing_mode
 
     # Prefer session-state overrides so applied suggestions persist across steps.
     total_capital = float(ss.get(_TOTAL_CAPITAL_KEY, config.total_fund_capital))
@@ -91,6 +94,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "analysis_mode": (
             analysis_mode.value if hasattr(analysis_mode, "value") else str(analysis_mode)
         ),
+        "financing_mode": financing_mode,
         "total_fund_capital": total_capital,
         "external_pa_capital": external_pa_capital,
         "active_ext_capital": active_ext_capital,
@@ -511,12 +515,21 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             key="sleeve_max_breach",
         )
         st.number_input(
-            "Max CVaR",
+            "Max monthly_CVaR",
             min_value=0.0,
             value=st.session_state.get("sleeve_max_cvar", 0.05),
             step=0.01,
             format="%.2f",
             key="sleeve_max_cvar",
+        )
+        st.number_input(
+            "Max Terminal Shortfall Probability",
+            min_value=0.0,
+            max_value=1.0,
+            value=st.session_state.get("sleeve_max_shortfall", 0.05),
+            step=0.05,
+            format="%.2f",
+            key="sleeve_max_shortfall",
         )
 
     with col2:
@@ -559,6 +572,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         "max_te": float(st.session_state["sleeve_max_te"]),
         "max_breach": float(st.session_state["sleeve_max_breach"]),
         "max_cvar": float(st.session_state["sleeve_max_cvar"]),
+        "max_shortfall": float(st.session_state["sleeve_max_shortfall"]),
         "step": float(st.session_state["sleeve_step"]),
         "max_evals": int(st.session_state["sleeve_max_evals"]),
         "constraint_scope": st.session_state["sleeve_constraint_scope"],
@@ -581,6 +595,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             max_te=constraints["max_te"],
             max_breach=constraints["max_breach"],
             max_cvar=constraints["max_cvar"],
+            max_shortfall=constraints["max_shortfall"],
             step=constraints["step"],
             max_evals=constraints["max_evals"],
             constraint_scope=constraints["constraint_scope"],
@@ -588,13 +603,31 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         )
         st.session_state["sleeve_suggestions"] = df
         st.session_state["sleeve_suggestion_constraints"] = constraints
+        try:
+            frontier_df = generate_sleeve_frontier(
+                cfg,
+                idx_series,
+                max_te=constraints["max_te"],
+                max_breach=constraints["max_breach"],
+                max_cvar=constraints["max_cvar"],
+                max_shortfall=constraints["max_shortfall"],
+                step=constraints["step"],
+                max_evals=constraints["max_evals"],
+                constraint_scope=constraints["constraint_scope"],
+                seed=suggest_seed,
+            )
+            st.session_state["sleeve_frontier"] = frontier_df
+        except Exception as exc:
+            st.session_state["sleeve_frontier"] = pd.DataFrame()
+            st.error(f"Frontier computation failed: {exc}")
 
     constraints_used = st.session_state.get("sleeve_suggestion_constraints", constraints)
     st.markdown("**Constraint Summary:**")
     st.write(
         f"Max TE: {constraints_used['max_te']:.2%} | "
         f"Max Breach: {constraints_used['max_breach']:.2%} | "
-        f"Max CVaR: {constraints_used['max_cvar']:.2%} | "
+        f"Max monthly_CVaR: {constraints_used['max_cvar']:.2%} | "
+        f"Max Shortfall: {constraints_used['max_shortfall']:.2%} | "
         f"Scope: {scope_labels.get(constraints_used['constraint_scope'], constraints_used['constraint_scope'])}"
     )
 
@@ -622,22 +655,41 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         "active_ext_capital",
         "internal_pa_capital",
         "risk_score",
-        "ExternalPA_TE",
-        "ExternalPA_BreachProb",
-        "ExternalPA_CVaR",
-        "ActiveExt_TE",
-        "ActiveExt_BreachProb",
-        "ActiveExt_CVaR",
-        "InternalPA_TE",
-        "InternalPA_BreachProb",
-        "InternalPA_CVaR",
-        "Total_TE",
-        "Total_BreachProb",
-        "Total_CVaR",
+        "ExternalPA_monthly_TE",
+        "ExternalPA_monthly_BreachProb",
+        "ExternalPA_monthly_CVaR",
+        "ExternalPA_terminal_ShortfallProb",
+        "ActiveExt_monthly_TE",
+        "ActiveExt_monthly_BreachProb",
+        "ActiveExt_monthly_CVaR",
+        "ActiveExt_terminal_ShortfallProb",
+        "InternalPA_monthly_TE",
+        "InternalPA_monthly_BreachProb",
+        "InternalPA_monthly_CVaR",
+        "InternalPA_terminal_ShortfallProb",
+        "Total_monthly_TE",
+        "Total_monthly_BreachProb",
+        "Total_monthly_CVaR",
+        "Total_terminal_ShortfallProb",
     ]
     display_cols = [col for col in preferred_cols if col in ranked.columns]
     tradeoff_table = ranked.loc[:, display_cols].head(int(top_n))
     st.dataframe(tradeoff_table, use_container_width=True)
+
+    frontier_df = st.session_state.get("sleeve_frontier")
+    if isinstance(frontier_df, pd.DataFrame) and not frontier_df.empty:
+        st.subheader("Efficient Frontier")
+        st.caption("Return vs tracking error with CVaR shading; infeasible points are marked.")
+        fig = frontier_viz.make(
+            frontier_df,
+            max_te=constraints_used["max_te"],
+            max_cvar=constraints_used["max_cvar"],
+            max_breach=constraints_used["max_breach"],
+            max_shortfall=constraints_used["max_shortfall"],
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Run the suggestor to populate the frontier visualization.")
 
     selected_rank = st.number_input(
         "Select rank to apply",
@@ -1146,7 +1198,7 @@ def main() -> None:
                         "act_ext_spike_prob": config_data.get("act_ext_spike_prob", 0.0),
                         "act_ext_spike_factor": config_data.get("act_ext_spike_factor", 0.0),
                         "risk_metrics": config_data.get(
-                            "risk_metrics", ["Return", "Risk", "ShortfallProb"]
+                            "risk_metrics", ["Return", "Risk", "terminal_ShortfallProb"]
                         ),
                     }
                 )

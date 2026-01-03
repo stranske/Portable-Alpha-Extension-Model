@@ -1,5 +1,6 @@
 N_MONTHS: 12
 N_SIMULATIONS: 1000
+financing_mode: broadcast
 act_ext_financing_mean_month: 0.0
 act_ext_financing_sigma_month: 0.0
 act_ext_spike_factor: 0.0
@@ -37,9 +38,9 @@ internal_pa_capital: 150.0
 internal_spike_factor: 0.0
 internal_spike_prob: 0.0
 max_external_combined_pct: 30.0
-mu_E: 0.05
-mu_H: 0.04
-mu_M: 0.03
+mu_E_annual: 0.05
+mu_H_annual: 0.04
+mu_M_annual: 0.03
 rho_E_M: 0.0
 rho_H_E: 0.1
 rho_H_M: 0.1
@@ -49,13 +50,13 @@ rho_idx_M: 0.0
 risk_metrics:
 - Return
 - Risk
-- ShortfallProb
+- terminal_ShortfallProb
 sd_multiple_max: 4.0
 sd_multiple_min: 2.0
 sd_multiple_step: 0.25
-sigma_E: 0.02
-sigma_H: 0.01
-sigma_M: 0.02
+sigma_E_annual: 0.02
+sigma_H_annual: 0.01
+sigma_M_annual: 0.02
 theta_extpa: 0.5
 total_fund_capital: 300.0
 w_alpha_H: 0.5

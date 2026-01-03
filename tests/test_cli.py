@@ -7,7 +7,7 @@ from pa_core.run_artifact_bundle import RunArtifactBundle
 
 
 def test_main_with_yaml(tmp_path):
-    cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1}
+    cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
@@ -26,7 +26,7 @@ def test_main_with_yaml(tmp_path):
 
 
 def test_main_with_png(tmp_path, monkeypatch):
-    cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1}
+    cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
@@ -47,7 +47,7 @@ def test_main_with_png(tmp_path, monkeypatch):
 
 
 def test_main_with_bundle(tmp_path):
-    cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1}
+    cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_text = yaml.safe_dump(cfg)
     cfg_path.write_text(cfg_text)

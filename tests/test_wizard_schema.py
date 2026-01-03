@@ -54,7 +54,7 @@ class TestRiskMetric:
 
     def test_risk_metric_values(self):
         """Test that all expected risk metric values exist."""
-        expected_values = ["Return", "Risk", "ShortfallProb"]
+        expected_values = ["Return", "Risk", "terminal_ShortfallProb"]
         actual_values = [metric.value for metric in RiskMetric]
         assert set(actual_values) == set(expected_values)
 

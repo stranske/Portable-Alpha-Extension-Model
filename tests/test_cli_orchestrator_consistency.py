@@ -15,10 +15,11 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
     cfg_data = {
         "N_SIMULATIONS": 4,
         "N_MONTHS": 3,
+        "financing_mode": "broadcast",
         "analysis_mode": "single_with_sensitivity",
         "w_beta_H": 0.6,
         "w_alpha_H": 0.4,
-        "risk_metrics": ["ShortfallProb"],
+        "risk_metrics": ["terminal_ShortfallProb"],
     }
     cfg_path = tmp_path / "cfg.yml"
     cfg_path.write_text(yaml.safe_dump(cfg_data))

@@ -3,6 +3,7 @@
 
 N_SIMULATIONS: 1000
 N_MONTHS: 12
+financing_mode: broadcast
 
 external_pa_capital: 200.0   # high external allocation
 active_ext_capital: 150.0    # high active extension

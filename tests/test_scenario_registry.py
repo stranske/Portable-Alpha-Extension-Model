@@ -9,14 +9,14 @@ from pa_core.config import ModelConfig
 
 
 def _write_index_csv(path: Path) -> None:
-    path.write_text("Date,Monthly_TR\n" "2020-01-31,0.01\n" "2020-02-29,0.02\n" "2020-03-31,0.03\n")
+    path.write_text("Date,Monthly_TR\n2020-01-31,0.01\n2020-02-29,0.02\n2020-03-31,0.03\n")
 
 
 def test_compute_scenario_id_is_deterministic(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(registry, "_get_code_version", lambda: "test-version")
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     index_path = tmp_path / "index.csv"
     _write_index_csv(index_path)
 
@@ -36,7 +36,7 @@ def test_compute_scenario_id_is_deterministic(
 def test_compute_scenario_id_includes_code_version(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     index_path = tmp_path / "index.csv"
     _write_index_csv(index_path)
 
@@ -52,7 +52,7 @@ def test_compute_scenario_id_includes_code_version(
 def test_register_get_list(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(registry, "_get_code_version", lambda: "test-version")
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     index_path = tmp_path / "index.csv"
     _write_index_csv(index_path)
 

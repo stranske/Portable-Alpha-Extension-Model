@@ -114,8 +114,9 @@ def create_enhanced_summary(
 ) -> "pd.DataFrame":
     """Create a summary table from monthly returns with standard thresholds.
 
-    AnnReturn/AnnVol/TE are annualised from monthly returns; breach thresholds
-    apply to monthly returns and shortfall thresholds use annualised hurdles.
+    terminal_AnnReturn/monthly_AnnVol/monthly_TE are annualised from monthly
+    returns; breach thresholds apply to monthly returns and shortfall thresholds
+    use annualised hurdles.
     """
 
     # Local import to avoid heavy imports at module load
@@ -143,25 +144,25 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     explanation = Text()
     explanation.append("Portfolio Analysis Results\n", style="bold blue")
     explanation.append("Metrics Explanation:\n", style="bold")
-    explanation.append(f"• AnnReturn: {unit_label} return (%)\n")
-    explanation.append(f"• AnnVol: {unit_label} volatility (%)\n")
-    explanation.append("• VaR: Value at Risk (95% confidence)\n")
+    explanation.append(f"• terminal_AnnReturn: {unit_label} return (%)\n")
+    explanation.append(f"• monthly_AnnVol: {unit_label} volatility (%)\n")
+    explanation.append("• monthly_VaR: Value at Risk (95% confidence)\n")
     explanation.append(
-        f"• BreachProb: Share of simulated months below the "
+        f"• monthly_BreachProb: Share of simulated months below the "
         f"{threshold_units['breach_threshold']} breach threshold\n"
     )
-    if "ShortfallProb" in summary.columns:
+    if "terminal_ShortfallProb" in summary.columns:
         explanation.append(
-            "• ShortfallProb: Probability terminal compounded return is below the "
+            "• terminal_ShortfallProb: Probability terminal compounded return is below the "
             f"{threshold_units['shortfall_threshold']} threshold\n"
         )
-    if "MaxDD" in summary.columns:
-        explanation.append("• MaxDD: Worst peak-to-trough decline of compounded wealth\n")
-    if "TimeUnderWater" in summary.columns:
+    if "monthly_MaxDD" in summary.columns:
+        explanation.append("• monthly_MaxDD: Worst peak-to-trough decline of compounded wealth\n")
+    if "monthly_TimeUnderWater" in summary.columns:
         explanation.append(
-            "• TimeUnderWater: Fraction of periods with compounded return below zero\n"
+            "• monthly_TimeUnderWater: Fraction of periods with compounded return below zero\n"
         )
-    explanation.append(f"• TE: {unit_label} active return volatility vs benchmark\n")
+    explanation.append(f"• monthly_TE: {unit_label} active return volatility vs benchmark\n")
 
     console.print(Panel(explanation, title="Understanding Your Results"))
 
@@ -172,10 +173,14 @@ def print_enhanced_summary(summary: "pd.DataFrame") -> None:
     guidance = Text()
     guidance.append("\n💡 Interpretation Tips:\n", style="bold green")
     guidance.append(
-        "• Lower ShortfallProb means fewer paths breach the terminal return threshold\n"
+        "• Lower terminal_ShortfallProb means fewer paths breach the terminal return threshold\n"
     )
-    guidance.append("• Higher AnnReturn with lower AnnVol indicates better risk-adjusted returns\n")
-    guidance.append("• TE shows how volatile active returns are relative to the benchmark\n")
+    guidance.append(
+        "• Higher terminal_AnnReturn with lower monthly_AnnVol indicates better risk-adjusted returns\n"
+    )
+    guidance.append(
+        "• monthly_TE shows how volatile active returns are relative to the benchmark\n"
+    )
 
     console.print(guidance)
 
@@ -296,7 +301,14 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .stress import STRESS_PRESETS
 
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
-    parser.add_argument("--config", required=True, help="YAML config file")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help=(
+            "YAML config file (set financing_mode to broadcast for shared paths or "
+            "per_path for independent draws)"
+        ),
+    )
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument(
         "--index-frequency",
@@ -365,6 +377,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         type=int,
         default=None,
         help="Random seed for reproducible simulations",
+    )
+    parser.add_argument(
+        "--legacy-agent-rng",
+        action="store_true",
+        help="Use legacy order-dependent agent RNG streams (defaults to stable name-based streams)",
     )
     parser.add_argument(
         "--return-distribution",
@@ -450,7 +467,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         "--tradeoff-sort",
         type=str,
         default="risk_score",
-        help="Column to sort trade-off table by (e.g., risk_score, ExternalPA_TE)",
+        help="Column to sort trade-off table by (e.g., risk_score, ExternalPA_monthly_TE)",
     )
     parser.add_argument(
         "--max-te",
@@ -468,7 +485,13 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         "--max-cvar",
         type=float,
         default=0.03,
-        help="Maximum CVaR for sleeve suggestions",
+        help="Maximum monthly_CVaR for sleeve suggestions",
+    )
+    parser.add_argument(
+        "--max-shortfall",
+        type=float,
+        default=1.0,
+        help="Maximum terminal shortfall probability for sleeve suggestions",
     )
     parser.add_argument(
         "--sleeve-step",
@@ -702,14 +725,20 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     from .data import load_index_returns
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
-    from .random import spawn_agent_rngs, spawn_rngs
+    from .random import spawn_agent_rngs, spawn_agent_rngs_with_ids, spawn_rngs
     from .reporting.attribution import (
+        compute_sleeve_cvar_contribution,
         compute_sleeve_return_attribution,
+        compute_sleeve_return_contribution,
         compute_sleeve_risk_attribution,
     )
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
-    from .sim.params import build_simulation_params
+    from .sim.params import (
+        build_covariance_return_overrides,
+        build_params,
+        resolve_covariance_inputs,
+    )
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
@@ -756,9 +785,11 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             logger.warning(f"Failed to set up JSON logging: {e}")
 
     rng_returns = spawn_rngs(args.seed, 1)[0]
-    fin_rngs = spawn_agent_rngs(
+    fin_agent_names = ["internal", "external_pa", "active_ext"]
+    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         args.seed,
-        ["internal", "external_pa", "active_ext"],
+        fin_agent_names,
+        legacy_order=args.legacy_agent_rng,
     )
 
     if args.mode is not None:
@@ -830,6 +861,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             max_te=args.max_te,
             max_breach=args.max_breach,
             max_cvar=args.max_cvar,
+            max_shortfall=args.max_shortfall,
             step=args.sleeve_step,
             min_external=args.min_external,
             max_external=args.max_external,
@@ -901,7 +933,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     ):
         # Parameter sweep mode
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
-        export_sweep_results(results, filename=args.output)
+        sweep_metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
+        export_sweep_results(results, filename=args.output, metadata=sweep_metadata)
         _record_artifact(args.output)
 
         # Write reproducibility manifest
@@ -914,6 +947,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             config_path=args.config,
             data_files=data_files,
             seed=args.seed,
+            substream_ids=substream_ids,
             cli_args=vars(args),
             backend=args.backend,
             run_log=run_log_path,
@@ -933,7 +967,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         summary_frames = []
         for res in results:
             summary = res["summary"].copy()
-            summary["ShortfallProb"] = summary.get("ShortfallProb", 0.0)
+            summary["terminal_ShortfallProb"] = summary.get("terminal_ShortfallProb", 0.0)
             summary["Combination"] = f"Run{res['combination_id']}"
             summary_frames.append(summary)
         all_summary = (
@@ -959,7 +993,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     )
 
                     # Create visualization from consolidated summary
-                    if "ShortfallProb" in all_summary.columns:
+                    if "terminal_ShortfallProb" in all_summary.columns:
                         fig = viz.risk_return.make(all_summary)
                     else:
                         fig = viz.sharpe_ladder.make(all_summary)
@@ -1010,12 +1044,16 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 sweep_df = pd.concat([res["summary"] for res in results], ignore_index=True)
                 base_agents = sweep_df[sweep_df["Agent"] == "Base"]
                 if not base_agents.empty and isinstance(base_agents, pd.DataFrame):
-                    best_combo = base_agents.loc[base_agents["AnnReturn"].idxmax()]
-                    worst_combo = base_agents.loc[base_agents["AnnReturn"].idxmin()]
-                    print(f"   📈 Best combination: {best_combo['AnnReturn']:.2f}% AnnReturn")
-                    print(f"   📉 Worst combination: {worst_combo['AnnReturn']:.2f}% AnnReturn")
+                    best_combo = base_agents.loc[base_agents["terminal_AnnReturn"].idxmax()]
+                    worst_combo = base_agents.loc[base_agents["terminal_AnnReturn"].idxmin()]
                     print(
-                        f"   📊 Range: {best_combo['AnnReturn'] - worst_combo['AnnReturn']:.2f}% difference"
+                        f"   📈 Best combination: {best_combo['terminal_AnnReturn']:.2f}% terminal_AnnReturn"
+                    )
+                    print(
+                        f"   📉 Worst combination: {worst_combo['terminal_AnnReturn']:.2f}% terminal_AnnReturn"
+                    )
+                    print(
+                        f"   📊 Range: {best_combo['terminal_AnnReturn'] - worst_combo['terminal_AnnReturn']:.2f}% difference"
                     )
                 else:
                     print("   ⚠️  No Base agent results found in sweep")
@@ -1030,11 +1068,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     mu_idx = float(idx_series.mean())
 
     def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
-        import numpy as np
+        from .units import normalize_return_inputs
 
-        sigma_h = float(run_cfg.sigma_H)
-        sigma_e = float(run_cfg.sigma_E)
-        sigma_m = float(run_cfg.sigma_M)
+        return_inputs = normalize_return_inputs(run_cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
 
         cov = deps.build_cov_matrix(
             run_cfg.rho_idx_H,
@@ -1050,35 +1089,22 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             covariance_shrinkage=run_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        if isinstance(cov, np.ndarray) and cov.ndim == 2:
-            sigma_vec = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-            denom = np.outer(sigma_vec, sigma_vec)
-            corr_mat = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-        else:
-            sigma_vec = np.array([idx_sigma, sigma_h, sigma_e, sigma_m], dtype=float)
-            corr_mat = np.array(
-                [
-                    [1.0, run_cfg.rho_idx_H, run_cfg.rho_idx_E, run_cfg.rho_idx_M],
-                    [run_cfg.rho_idx_H, 1.0, run_cfg.rho_H_E, run_cfg.rho_H_M],
-                    [run_cfg.rho_idx_E, run_cfg.rho_H_E, 1.0, run_cfg.rho_E_M],
-                    [run_cfg.rho_idx_M, run_cfg.rho_H_M, run_cfg.rho_E_M, 1.0],
-                ],
-                dtype=float,
-            )
+        sigma_vec, corr_mat = resolve_covariance_inputs(
+            cov,
+            idx_sigma=idx_sigma,
+            sigma_h=sigma_h,
+            sigma_e=sigma_e,
+            sigma_m=sigma_m,
+            rho_idx_H=run_cfg.rho_idx_H,
+            rho_idx_E=run_cfg.rho_idx_E,
+            rho_idx_M=run_cfg.rho_idx_M,
+            rho_H_E=run_cfg.rho_H_E,
+            rho_H_M=run_cfg.rho_H_M,
+            rho_E_M=run_cfg.rho_E_M,
+        )
+        return_overrides_local = build_covariance_return_overrides(sigma_vec, corr_mat)
 
-        return_overrides_local = {
-            "default_sigma_H": float(sigma_vec[1]),
-            "default_sigma_E": float(sigma_vec[2]),
-            "default_sigma_M": float(sigma_vec[3]),
-            "rho_idx_H": float(corr_mat[0, 1]),
-            "rho_idx_E": float(corr_mat[0, 2]),
-            "rho_idx_M": float(corr_mat[0, 3]),
-            "rho_H_E": float(corr_mat[1, 2]),
-            "rho_H_M": float(corr_mat[1, 3]),
-            "rho_E_M": float(corr_mat[2, 3]),
-        }
-
-        return build_simulation_params(
+        return build_params(
             run_cfg,
             mu_idx=mu_idx,
             idx_sigma=float(sigma_vec[0]),
@@ -1087,7 +1113,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     def _run_single(
         run_cfg: "ModelConfig", run_rng_returns: Any, run_fin_rngs: Any
-    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any]:
+    ) -> tuple[dict[str, "np.ndarray"], "pd.DataFrame", Any, Any, Any, dict[str, object] | None]:
         params = _build_simulation_params_for_run(run_cfg)
 
         N_SIMULATIONS = run_cfg.N_SIMULATIONS
@@ -1099,10 +1125,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             params=params,
             rng=run_rng_returns,
         )
+        corr_repair_info = params.get("_correlation_repair_info")
         f_int, f_ext, f_act = deps.draw_financing_series(
             n_months=N_MONTHS,
             n_sim=N_SIMULATIONS,
             params=params,
+            financing_mode=run_cfg.financing_mode,
             rngs=run_fin_rngs,
         )
 
@@ -1112,20 +1140,29 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
         # Build summary using wrapper (allows tests to mock this safely)
         summary = create_enhanced_summary(returns, benchmark="Base")
-        return returns, summary, f_int, f_ext, f_act
+        return returns, summary, f_int, f_ext, f_act, corr_repair_info
 
-    returns, summary, f_int, f_ext, f_act = _run_single(cfg, rng_returns, fin_rngs)
+    returns, summary, f_int, f_ext, f_act, corr_repair_info = _run_single(
+        cfg, rng_returns, fin_rngs
+    )
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
         from .reporting.stress_delta import build_delta_table
 
         base_rng_returns = spawn_rngs(args.seed, 1)[0]
-        base_fin_rngs = spawn_agent_rngs(args.seed, ["internal", "external_pa", "active_ext"])
-        _, base_summary, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
+        base_fin_rngs = spawn_agent_rngs(
+            args.seed,
+            fin_agent_names,
+            legacy_order=args.legacy_agent_rng,
+        )
+        _, base_summary, _, _, _, _ = _run_single(base_cfg, base_rng_returns, base_fin_rngs)
         base_summary_df = base_summary
         stress_delta_df = build_delta_table(base_summary, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
+    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
+        inputs_dict["correlation_repair_applied"] = True
+        inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
     raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
 
     # Optional attribution tables for downstream exports
@@ -1146,10 +1183,43 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 [{"Agent": "", "Sub": "", "Return": 0.0}]
             ).head(0)
     try:
+        sleeve_attr = compute_sleeve_return_contribution(returns)
+        cvar_attr = compute_sleeve_cvar_contribution(returns)
+        if not cvar_attr.empty:
+            sleeve_attr = sleeve_attr.merge(cvar_attr, on="Agent", how="outer")
+        inputs_dict["_sleeve_attribution_df"] = sleeve_attr
+    except (AttributeError, ValueError, TypeError, KeyError) as e:
+        logger.debug(f"Sleeve attribution unavailable: {e}")
+    try:
         inputs_dict["_risk_attr_df"] = compute_sleeve_risk_attribution(cfg, idx_series)
     except (AttributeError, ValueError, TypeError, KeyError) as e:
         logger.debug(f"Risk attribution unavailable: {e}")
     print_enhanced_summary(summary)
+    base_constraints_report: pd.DataFrame | None = None
+    stress_constraints_report: pd.DataFrame | None = None
+    try:
+        from .reporting.console import print_constraint_report
+        from .reporting.constraints import build_constraint_report
+
+        constraint_report = build_constraint_report(
+            summary,
+            max_te=args.max_te,
+            max_breach=args.max_breach,
+            max_cvar=args.max_cvar,
+        )
+        inputs_dict["_constraint_report_df"] = constraint_report
+        if args.stress_preset:
+            stress_constraints_report = constraint_report
+            if base_summary_df is not None and not base_summary_df.empty:
+                base_constraints_report = build_constraint_report(
+                    base_summary_df,
+                    max_te=args.max_te,
+                    max_breach=args.max_breach,
+                    max_cvar=args.max_cvar,
+                )
+            print_constraint_report(constraint_report)
+    except (AttributeError, KeyError, TypeError, ValueError) as e:
+        logger.debug(f"Constraint report unavailable: {e}")
     # Optional: compute trade-off table (non-interactive) and attach for export
     if args.tradeoff_table:
         try:
@@ -1160,6 +1230,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 max_te=args.max_te,
                 max_breach=args.max_breach,
                 max_cvar=args.max_cvar,
+                max_shortfall=args.max_shortfall,
                 step=args.sleeve_step,
                 min_external=args.min_external,
                 max_external=args.max_external,
@@ -1186,16 +1257,16 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     style="yellow",
                 )
             )
-    # Optional sensitivity analysis (one-factor deltas on AnnReturn)
+    # Optional sensitivity analysis (one-factor deltas on terminal_AnnReturn)
     if args.sensitivity:
         try:
             from .sensitivity import one_factor_deltas as simple_one_factor_deltas
 
             print("\n🔍 Running sensitivity analysis...")
 
-            # Build a simple evaluator: change a single param, re-run summary AnnReturn for Base
+            # Build a simple evaluator: change a single param, re-run summary terminal_AnnReturn for Base
             def _eval(p: dict[str, float]) -> float:
-                """Evaluate AnnReturn for Base agent given parameter overrides."""
+                """Evaluate terminal_AnnReturn for Base agent given parameter overrides."""
                 mod_cfg = cfg.model_copy(update=p)
 
                 params_local = _build_simulation_params_for_run(mod_cfg)
@@ -1215,7 +1286,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 summary_l = create_enhanced_summary(returns_l, benchmark="Base")
                 base_row = summary_l[summary_l["Agent"] == "Base"]
                 if isinstance(base_row, pd.DataFrame) and not base_row.empty:
-                    return float(base_row["AnnReturn"].iloc[0])
+                    return float(base_row["terminal_AnnReturn"].iloc[0])
                 return 0.0
 
             # Define parameter perturbations to test (±5% relative changes)
@@ -1241,7 +1312,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 try:
                     pos_value = base_value * 1.05
                     pos_result = _eval({param_name: pos_value})
-                    scenarios[pos_key] = pd.DataFrame({"AnnReturn": [pos_result]})
+                    scenarios[pos_key] = pd.DataFrame({"terminal_AnnReturn": [pos_result]})
                     param_results[param_name]["plus"] = pos_result
                 except (ValueError, ZeroDivisionError) as e:
                     failed_params.append(f"{pos_key}: Configuration error: {str(e)}")
@@ -1263,7 +1334,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 try:
                     neg_value = base_value * 0.95
                     neg_result = _eval({param_name: neg_value})
-                    scenarios[neg_key] = pd.DataFrame({"AnnReturn": [neg_result]})
+                    scenarios[neg_key] = pd.DataFrame({"terminal_AnnReturn": [neg_result]})
                     param_results[param_name]["minus"] = neg_result
                 except (ValueError, ZeroDivisionError) as e:
                     failed_params.append(f"{neg_key}: Configuration error: {str(e)}")
@@ -1281,11 +1352,13 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     print(f"⚠️  Parameter evaluation failed for {neg_key}: {e}")
 
             if scenarios:
-                base_df = summary[summary["Agent"] == "Base"][["AnnReturn"]]
+                base_df = summary[summary["Agent"] == "Base"][["terminal_AnnReturn"]]
                 if not isinstance(base_df, pd.DataFrame):
                     base_df = pd.DataFrame(base_df)
-                deltas = simple_one_factor_deltas(base_df, scenarios, value="AnnReturn")
-                base_value = float(base_df["AnnReturn"].iloc[0]) if not base_df.empty else 0.0
+                deltas = simple_one_factor_deltas(base_df, scenarios, value="terminal_AnnReturn")
+                base_value = (
+                    float(base_df["terminal_AnnReturn"].iloc[0]) if not base_df.empty else 0.0
+                )
                 records = []
                 for name, values in param_results.items():
                     minus_val = values.get("minus")
@@ -1318,7 +1391,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                     sens_df.reset_index(drop=True, inplace=True)
                     sens_df.attrs.update(
                         {
-                            "metric": "AnnReturn",
+                            "metric": "terminal_AnnReturn",
                             "units": "%",
                             "tickformat": ".2%",
                         }
@@ -1359,6 +1432,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             logger.error(f"Sensitivity analysis data type error: {e}")
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
 
+    metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
     finalize_after_append = bool(args.stress_preset)
     deps.export_to_excel(
         inputs_dict,
@@ -1367,6 +1441,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         filename=flags.save_xlsx or "Outputs.xlsx",
         pivot=args.pivot,
         finalize=not finalize_after_append,
+        metadata=metadata,
     )
     _record_artifact(flags.save_xlsx or "Outputs.xlsx")
     if args.stress_preset:
@@ -1382,6 +1457,17 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                         summary.to_excel(writer, sheet_name="StressedSummary", index=False)
                     if stress_delta_df is not None and not stress_delta_df.empty:
                         stress_delta_df.to_excel(writer, sheet_name="StressDelta", index=False)
+                    if base_constraints_report is not None and not base_constraints_report.empty:
+                        base_constraints_report.to_excel(
+                            writer, sheet_name="BaseBreaches", index=False
+                        )
+                    if (
+                        stress_constraints_report is not None
+                        and not stress_constraints_report.empty
+                    ):
+                        stress_constraints_report.to_excel(
+                            writer, sheet_name="StressedBreaches", index=False
+                        )
             except (OSError, PermissionError, ValueError) as e:
                 logger.warning(f"Failed to append stress sheets: {e}")
             finally:
@@ -1405,6 +1491,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             config_path=args.config,
             data_files=data_files,
             seed=args.seed,
+            substream_ids=substream_ids,
             cli_args=vars(args),
             backend=args.backend,
             run_log=run_log_path,
@@ -1461,7 +1548,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         plots = Path("plots")
         plots.mkdir(exist_ok=True)
         # Guard summary type for static checkers
-        if isinstance(summary, pd.DataFrame) and ("ShortfallProb" in summary.columns):
+        if isinstance(summary, pd.DataFrame) and ("terminal_ShortfallProb" in summary.columns):
             fig = viz.risk_return.make(summary)
         else:
             fig = viz.sharpe_ladder.make(summary)

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import io
+import json
 import os
-from typing import Iterable
+from typing import Any, Iterable, Mapping
 
 import openpyxl
 import pandas as pd
@@ -12,25 +13,41 @@ from openpyxl.utils import get_column_letter
 from ..contracts import SUMMARY_REQUIRED_COLUMNS
 from ..types import SweepResult
 from ..viz import risk_return, theme
+from .excel import normalize_summary_columns
 
 __all__ = ["export_sweep_results"]
 
 _SUMMARY_COLUMNS = [*SUMMARY_REQUIRED_COLUMNS, "Combination"]
 
 
-def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.xlsx") -> None:
+def export_sweep_results(
+    results: Iterable[SweepResult],
+    filename: str = "Sweep.xlsx",
+    *,
+    metadata: Mapping[str, Any] | None = None,
+) -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
     all_summary: pd.DataFrame | None = None
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+        if metadata:
+            meta_df = pd.DataFrame(
+                {
+                    "Key": list(metadata.keys()),
+                    "Value": [_serialize_metadata_value(v) for v in metadata.values()],
+                }
+            )
+            meta_df.to_excel(writer, sheet_name="Metadata", index=False)
         summary_frames = []
         for res in results:
             sheet = f"Run{res['combination_id']}"
             summary_obj = res["summary"]
             if not isinstance(summary_obj, pd.DataFrame):
                 continue
-            summary = summary_obj.copy()
-            summary["ShortfallProb"] = summary.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+            summary = normalize_summary_columns(summary_obj.copy())
+            summary["terminal_ShortfallProb"] = summary.get(
+                "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+            )
             summary.to_excel(writer, sheet_name=sheet, index=False)
             summary["Combination"] = sheet
             summary_frames.append(summary)
@@ -62,7 +79,15 @@ def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.
         and not (os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"))
     ):
         ws = wb["Summary"]
-        metrics = {"AnnReturn", "AnnVol", "VaR", "BreachProb", "TE"}
+        metrics = {
+            "terminal_AnnReturn",
+            "monthly_AnnVol",
+            "monthly_VaR",
+            "monthly_CVaR",
+            "terminal_CVaR",
+            "monthly_BreachProb",
+            "monthly_TE",
+        }
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
         for idx, col_name in enumerate(header, 1):
             if col_name in metrics:
@@ -79,3 +104,9 @@ def export_sweep_results(results: Iterable[SweepResult], filename: str = "Sweep.
             pass
 
     wb.save(filename)
+
+
+def _serialize_metadata_value(value: Any) -> Any:
+    if isinstance(value, (dict, list, tuple)):
+        return json.dumps(value, sort_keys=True)
+    return value

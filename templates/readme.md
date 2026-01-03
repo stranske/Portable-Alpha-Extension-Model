@@ -7,6 +7,11 @@ This folder contains starter templates for the Portable Alpha Extension Model.
 - `scenario_example.yaml` - Minimal scenario example for quick testing
 - `scenario_template.yaml` - Full template with index, assets, correlations, and sleeve configuration
 
+## Config Templates
+
+- `params_template.yaml` - YAML parameter template generated from the schema
+- `parameters_template.csv` - CSV parameter template generated from the schema (legacy format)
+
 ## Data Import Templates
 
 - `asset_timeseries_template.xlsx` - Excel template for importing asset time series

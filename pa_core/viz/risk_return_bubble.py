@@ -12,8 +12,8 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
     color = []
     thr = theme.THRESHOLDS
     probs = (
-        df["ShortfallProb"]
-        if "ShortfallProb" in df
+        df["terminal_ShortfallProb"]
+        if "terminal_ShortfallProb" in df
         else pd.Series(theme.DEFAULT_SHORTFALL_PROB, index=df.index)
     )
     for prob in probs.fillna(theme.DEFAULT_SHORTFALL_PROB):
@@ -27,8 +27,8 @@ def make(df_summary: pd.DataFrame, *, size_col: str = "Capital") -> go.Figure:
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_trace(
         go.Scatter(
-            x=df["AnnVol"],
-            y=df["AnnReturn"],
+            x=df["monthly_AnnVol"],
+            y=df["terminal_AnnReturn"],
             mode="markers",
             marker=dict(size=20 * size / float(size.max()), color=color, sizemode="diameter"),
             text=df.get("Agent", ""),

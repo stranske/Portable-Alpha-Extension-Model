@@ -34,6 +34,7 @@ def _base_config_data() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 3,
+        "financing_mode": "broadcast",
         "mu_H": 0.04,
         "sigma_H": 0.01,
         "mu_E": 0.05,
@@ -46,6 +47,8 @@ def _base_config_data() -> Dict[str, Any]:
         "rho_H_E": 0.1,
         "rho_H_M": 0.1,
         "rho_E_M": 0.0,
+        "correlation_repair_mode": "warn_fix",
+        "correlation_repair_shrinkage": 0.0,
         "return_distribution": "normal",
         "return_t_df": 5.0,
         "return_copula": "gaussian",
@@ -79,9 +82,9 @@ def _patch_main_dependencies(monkeypatch):
         calls["spawn_rngs"] = (seed, count)
         return ["rng"]
 
-    def fake_spawn_agent_rngs(seed: int | None, names):
-        calls["spawn_agent_rngs"] = (seed, list(names))
-        return {"internal": "rng-int"}
+    def fake_spawn_agent_rngs_with_ids(seed: int | None, names, **_kwargs):
+        calls["spawn_agent_rngs_with_ids"] = (seed, list(names))
+        return {"internal": "rng-int"}, {"internal": "substream"}
 
     def fake_build_cov_matrix(*args, **kwargs):
         calls["cov_matrix"] = {"args": args, "kwargs": kwargs}
@@ -107,7 +110,7 @@ def _patch_main_dependencies(monkeypatch):
         calls["summary_table"] = (returns, benchmark)
         return "summary"
 
-    def fake_export_to_excel(inputs_dict, summary, raw_returns_dict, filename):
+    def fake_export_to_excel(inputs_dict, summary, raw_returns_dict, filename, **_kwargs):
         calls["export_to_excel"] = {
             "inputs": inputs_dict,
             "summary": summary,
@@ -117,7 +120,7 @@ def _patch_main_dependencies(monkeypatch):
 
     monkeypatch.setattr(data_module, "load_index_returns", fake_load_index_returns)
     monkeypatch.setattr(random_module, "spawn_rngs", fake_spawn_rngs)
-    monkeypatch.setattr(random_module, "spawn_agent_rngs", fake_spawn_agent_rngs)
+    monkeypatch.setattr(random_module, "spawn_agent_rngs_with_ids", fake_spawn_agent_rngs_with_ids)
     monkeypatch.setattr(covariance_module, "build_cov_matrix", fake_build_cov_matrix)
     monkeypatch.setattr(sim_module, "draw_joint_returns", fake_draw_joint_returns)
     monkeypatch.setattr(sim_module, "draw_financing_series", fake_draw_financing_series)

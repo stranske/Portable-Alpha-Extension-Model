@@ -31,7 +31,7 @@ def explore(df_summary: pd.DataFrame) -> None:
 
     def _update(scale: float) -> None:
         scaled = df_summary.copy()
-        scaled["AnnReturn"] *= scale
+        scaled["terminal_AnnReturn"] *= scale
         fig = risk_return.make(scaled)
         display(fig)
 

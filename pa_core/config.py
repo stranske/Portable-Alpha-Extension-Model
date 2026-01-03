@@ -2,8 +2,20 @@ from __future__ import annotations
 
 import logging
 import math
+import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Mapping, Optional, Union, cast
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    List,
+    Literal,
+    Mapping,
+    Optional,
+    Union,
+    cast,
+)
 
 import numpy as np
 import yaml
@@ -115,6 +127,33 @@ class ModelConfig(BaseModel):
 
     model_config = ConfigDict(populate_by_name=True, frozen=True)
 
+    _RETURN_UNIT_EXPLICIT_KEYS: ClassVar[dict[str, dict[str, tuple[str, ...]]]] = {
+        "mu_H": {
+            "annual": ("mu_H_annual", "In-House annual return (%)"),
+            "monthly": ("mu_H_monthly",),
+        },
+        "sigma_H": {
+            "annual": ("sigma_H_annual", "In-House annual vol (%)"),
+            "monthly": ("sigma_H_monthly",),
+        },
+        "mu_E": {
+            "annual": ("mu_E_annual", "Alpha-Extension annual return (%)"),
+            "monthly": ("mu_E_monthly",),
+        },
+        "sigma_E": {
+            "annual": ("sigma_E_annual", "Alpha-Extension annual vol (%)"),
+            "monthly": ("sigma_E_monthly",),
+        },
+        "mu_M": {
+            "annual": ("mu_M_annual", "External annual return (%)"),
+            "monthly": ("mu_M_monthly",),
+        },
+        "sigma_M": {
+            "annual": ("sigma_M_annual", "External annual vol (%)"),
+            "monthly": ("sigma_M_monthly",),
+        },
+    }
+
     backend: str = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
@@ -171,6 +210,9 @@ class ModelConfig(BaseModel):
     rho_H_M: float = Field(default=0.10, alias="Corr In-House–External")
     rho_E_M: float = Field(default=0.0, alias="Corr Alpha-Extension–External")
 
+    correlation_repair_mode: Literal["error", "warn_fix"] = "warn_fix"
+    correlation_repair_shrinkage: float = Field(default=0.0)
+
     covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none"
     vol_regime: Literal["single", "two_state"] = "single"
     vol_regime_window: int = 12
@@ -201,6 +243,13 @@ class ModelConfig(BaseModel):
     )
     act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
     act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
+    financing_mode: Literal["broadcast", "per_path"] = Field(
+        ...,
+        description=(
+            "Financing draw mode. broadcast reuses one financing vector across "
+            "all simulations; per_path draws independent financing paths per scenario."
+        ),
+    )
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
@@ -243,7 +292,7 @@ class ModelConfig(BaseModel):
         default_factory=lambda: [
             "Return",
             "Risk",
-            "ShortfallProb",
+            "terminal_ShortfallProb",
         ],
         alias="risk_metrics",
     )
@@ -276,6 +325,48 @@ class ModelConfig(BaseModel):
             ("normalize_share_inputs", cls.normalize_share_inputs),
             ("compile_agent_config", cls.compile_agent_config),
         )
+
+    @classmethod
+    def _apply_explicit_return_units(
+        cls, data: dict[str, Any]
+    ) -> tuple[dict[str, Any], str | None, list[str]]:
+        raw_keys = set(data)
+        updated = dict(data)
+        explicit_unit: str | None = None
+        explicit_fields: set[str] = set()
+        legacy_fields: list[str] = []
+
+        for field, unit_keys in cls._RETURN_UNIT_EXPLICIT_KEYS.items():
+            annual_keys = [key for key in unit_keys["annual"] if key in updated]
+            monthly_keys = [key for key in unit_keys["monthly"] if key in updated]
+            if annual_keys and monthly_keys:
+                raise ValueError(
+                    f"Ambiguous return unit for {field}: provide only annual or monthly values."
+                )
+            if len(annual_keys) > 1 or len(monthly_keys) > 1:
+                raise ValueError(
+                    f"Ambiguous return unit for {field}: multiple keys provided for the same unit."
+                )
+            if annual_keys or monthly_keys:
+                unit = "annual" if annual_keys else "monthly"
+                if explicit_unit and explicit_unit != unit:
+                    raise ValueError(
+                        "Conflicting return units provided across return inputs. "
+                        "Use a single unit for mu/sigma inputs."
+                    )
+                explicit_unit = unit
+                key = (annual_keys or monthly_keys)[0]
+                if field in raw_keys:
+                    raise ValueError(
+                        f"Ambiguous return unit for {field}: do not mix {field} with {key}."
+                    )
+                updated[field] = updated[key]
+                del updated[key]
+                explicit_fields.add(field)
+            if field in raw_keys and field not in explicit_fields:
+                legacy_fields.append(field)
+
+        return updated, explicit_unit, legacy_fields
 
     @classmethod
     def compile_agent_config(cls, data: Any) -> Any:
@@ -409,9 +500,25 @@ class ModelConfig(BaseModel):
         if not isinstance(data, dict):
             return data
         cls._trace_transform(data, "normalize_return_units")
-        unit = data.get("return_unit", DEFAULT_RETURN_UNIT)
-        updated = dict(data)
+        updated, explicit_unit, legacy_fields = cls._apply_explicit_return_units(data)
+        unit = explicit_unit or updated.get("return_unit", DEFAULT_RETURN_UNIT)
+        if explicit_unit and "return_unit" in updated and updated["return_unit"] != explicit_unit:
+            raise ValueError(
+                "return_unit conflicts with explicitly unit-tagged return inputs. "
+                "Align return_unit with the explicit mu/sigma unit or remove return_unit."
+            )
         updated["return_unit_input"] = unit
+        if "return_unit" not in updated:
+            updated["return_unit"] = unit
+        if legacy_fields:
+            warning_fields = ", ".join(sorted(legacy_fields))
+            warnings.warn(
+                "Ambiguous return inputs detected for legacy fields: "
+                f"{warning_fields}. Use explicit keys like mu_H_annual or mu_H_monthly. "
+                "Legacy field names will be deprecated.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
         if unit == CANONICAL_RETURN_UNIT:
             return updated
         if unit != DEFAULT_RETURN_UNIT:
@@ -524,8 +631,8 @@ class ModelConfig(BaseModel):
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
 
-        if "ShortfallProb" not in self.risk_metrics:
-            raise ConfigError("risk_metrics must include ShortfallProb")
+        if "terminal_ShortfallProb" not in self.risk_metrics:
+            raise ConfigError("risk_metrics must include terminal_ShortfallProb")
         return self
 
     @model_validator(mode="after")
@@ -579,6 +686,13 @@ class ModelConfig(BaseModel):
         if errors:
             error_messages = [r.message for r in errors]
             raise ValueError("; ".join(error_messages))
+        return self
+
+    @model_validator(mode="after")
+    def check_correlation_repairs(self) -> "ModelConfig":
+        self._trace_transform(self, "check_correlation_repairs")
+        if not 0.0 <= self.correlation_repair_shrinkage <= 1.0:
+            raise ValueError("correlation_repair_shrinkage must be between 0 and 1")
         return self
 
     @model_validator(mode="after")
@@ -757,6 +871,6 @@ def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
         cfg = ModelConfig(**data)
     except ValidationError as e:  # pragma: no cover - explicit failure
         raise ValueError(str(e)) from e
-    if "ShortfallProb" not in cfg.risk_metrics:
-        raise ConfigError("risk_metrics must include ShortfallProb")
+    if "terminal_ShortfallProb" not in cfg.risk_metrics:
+        raise ConfigError("risk_metrics must include terminal_ShortfallProb")
     return cfg

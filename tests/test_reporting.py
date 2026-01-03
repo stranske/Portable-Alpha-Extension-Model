@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from typing import Any
 
@@ -57,3 +58,33 @@ def test_export_to_excel_adds_attribution_and_risk_sheets(tmp_path: Path) -> Non
 
     wb = openpyxl.load_workbook(file_path)
     assert {"Attribution", "RiskAttribution"} <= set(wb.sheetnames)
+
+
+def test_export_to_excel_sets_correlation_repair_metadata(tmp_path: Path) -> None:
+    inputs = {"correlation_repair_applied": True}
+    summary = pd.DataFrame({"Total": [0.2]})
+    raw = {"Base": pd.DataFrame([[0.1, 0.2]], columns=[0, 1])}
+    file_path = tmp_path / "repair.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    wb = openpyxl.load_workbook(file_path)
+    assert "correlation_repair_applied=true" in (wb.properties.keywords or "")
+
+
+def test_export_to_excel_writes_rng_metadata_sheet(tmp_path: Path) -> None:
+    inputs = {"a": 1}
+    summary = pd.DataFrame({"Total": [0.2]})
+    raw = {"Base": pd.DataFrame([[0.1, 0.2]], columns=[0, 1])}
+    metadata = {"rng_seed": 123, "substream_ids": {"Base": "abc123"}}
+    file_path = tmp_path / "meta.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path), metadata=metadata)
+
+    wb = openpyxl.load_workbook(file_path)
+    assert "Metadata" in wb.sheetnames
+    ws = wb["Metadata"]
+    rows = list(ws.iter_rows(min_row=2, values_only=True))
+    meta_map = {key: value for key, value in rows}
+    assert meta_map["rng_seed"] == 123
+    assert meta_map["substream_ids"] == json.dumps(metadata["substream_ids"], sort_keys=True)

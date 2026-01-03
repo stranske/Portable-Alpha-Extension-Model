@@ -15,6 +15,7 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
     cfg_data = {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 3,
+        "financing_mode": "broadcast",
         "return_unit": "annual",
         "analysis_mode": "returns",
         "in_house_return_min_pct": 2.0,
@@ -109,6 +110,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     cfg_data_single = {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "return_unit": "annual",
         "analysis_mode": "single_with_sensitivity",
     }
@@ -118,6 +120,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     cfg_data_sweep = {
         "N_SIMULATIONS": 2,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "return_unit": "annual",
         "analysis_mode": "returns",
         "in_house_return_min_pct": 1.0,
@@ -165,7 +168,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
 
     _, summary = SimulatorOrchestrator(cfg, idx_series).run(seed=1)
     base_row = summary[summary["Agent"] == "Base"].iloc[0]
-    assert np.isclose(base_row["AnnReturn"], expected_ann)
+    assert np.isclose(base_row["terminal_AnnReturn"], expected_ann)
 
     monkeypatch.setattr("pa_core.sweep.draw_joint_returns", fake_draw_joint_returns)
     monkeypatch.setattr("pa_core.sweep.draw_financing_series", fake_draw_financing_series)
@@ -175,7 +178,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     fin_rngs = spawn_agent_rngs(1, ["internal", "external_pa", "active_ext"])
     results = run_parameter_sweep(cfg_sweep, idx_series, rng_returns, fin_rngs)
     sweep_row = results[0]["summary"][results[0]["summary"]["Agent"] == "Base"].iloc[0]
-    assert np.isclose(sweep_row["AnnReturn"], expected_ann)
+    assert np.isclose(sweep_row["terminal_AnnReturn"], expected_ann)
 
     captured: dict[str, object] = {}
 
@@ -214,4 +217,57 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     )
     cli_summary = captured["summary"]
     base_row = cli_summary[cli_summary["Agent"] == "Base"].iloc[0]
-    assert np.isclose(base_row["AnnReturn"], expected_ann)
+    assert np.isclose(base_row["terminal_AnnReturn"], expected_ann)
+
+
+def test_sweep_return_overrides_convert_to_monthly(monkeypatch) -> None:
+    cfg = load_config(
+        {
+            "N_SIMULATIONS": 1,
+            "N_MONTHS": 2,
+            "financing_mode": "broadcast",
+            "return_unit": "annual",
+            "analysis_mode": "returns",
+            "in_house_return_min_pct": 2.0,
+            "in_house_return_max_pct": 2.0,
+            "in_house_return_step_pct": 1.0,
+            "in_house_vol_min_pct": 1.0,
+            "in_house_vol_max_pct": 1.0,
+            "in_house_vol_step_pct": 1.0,
+            "alpha_ext_return_min_pct": 1.0,
+            "alpha_ext_return_max_pct": 1.0,
+            "alpha_ext_return_step_pct": 1.0,
+            "alpha_ext_vol_min_pct": 2.0,
+            "alpha_ext_vol_max_pct": 2.0,
+            "alpha_ext_vol_step_pct": 1.0,
+        }
+    )
+    idx_series = pd.Series([0.0, 0.0])
+
+    params_capture: dict[str, dict[str, object]] = {}
+
+    def fake_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+        params_capture["params"] = dict(params)
+        zeros = np.zeros((n_sim, n_months))
+        return zeros, zeros, zeros, zeros
+
+    def fake_draw_financing_series(*, n_months, n_sim, **_kwargs):
+        zeros = np.zeros((n_sim, n_months))
+        return zeros, zeros, zeros
+
+    def fake_simulate_agents(*_args, **_kwargs):
+        return {"Base": np.zeros((1, 2))}
+
+    monkeypatch.setattr("pa_core.sweep.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sweep.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.sweep.simulate_agents", fake_simulate_agents)
+
+    rng_returns = spawn_rngs(7, 1)[0]
+    fin_rngs = spawn_agent_rngs(7, ["internal", "external_pa", "active_ext"])
+    run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+
+    params = params_capture["params"]
+    assert np.isclose(params["default_mu_H"], 0.02 / 12.0)
+    assert np.isclose(params["default_sigma_H"], 0.01 / np.sqrt(12.0))
+    assert np.isclose(params["default_mu_E"], 0.01 / 12.0)
+    assert np.isclose(params["default_sigma_E"], 0.02 / np.sqrt(12.0))

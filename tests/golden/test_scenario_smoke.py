@@ -13,8 +13,8 @@ from pa_core.orchestrator import SimulatorOrchestrator
 INDEX_SERIES_PATTERN = [0.01, -0.005, 0.008, 0.012, -0.003, 0.006]
 
 EXPECTED = {
-    "AnnReturn": 0.050591712901722374,
-    "AnnVol": 0.014185540196625414,
+    "terminal_AnnReturn": 0.050591712901722374,
+    "monthly_AnnVol": 0.014185540196625414,
 }
 
 
@@ -23,9 +23,10 @@ def test_scenario_golden() -> None:
         {
             "N_SIMULATIONS": 500,
             "N_MONTHS": 120,
+            "financing_mode": "broadcast",
             "w_beta_H": 0.6,
             "w_alpha_H": 0.4,
-            "risk_metrics": ["ShortfallProb"],
+            "risk_metrics": ["terminal_ShortfallProb"],
         }
     )
     idx = pd.Series(INDEX_SERIES_PATTERN * 20)

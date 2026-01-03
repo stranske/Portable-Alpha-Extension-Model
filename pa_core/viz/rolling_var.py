@@ -20,6 +20,6 @@ def make(
         var[t] = np.quantile(cum, 1 - alpha)
     months = np.arange(n_months)
     fig = go.Figure(layout_template=theme.TEMPLATE)
-    fig.add_trace(go.Scatter(x=months, y=var, mode="lines", name="VaR"))
-    fig.update_layout(xaxis_title="Month", yaxis_title="VaR")
+    fig.add_trace(go.Scatter(x=months, y=var, mode="lines", name="monthly_VaR"))
+    fig.update_layout(xaxis_title="Month", yaxis_title="monthly_VaR")
     return fig

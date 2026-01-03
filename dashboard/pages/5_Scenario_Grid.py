@@ -444,7 +444,7 @@ def main() -> None:
                         "analysis_mode": "alpha_shares",
                         "theta_extpa": theta_val,
                         "active_share": active_share_val,
-                        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+                        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
                     }
                     yaml_str = yaml.safe_dump(cfg_yaml, sort_keys=False)
                     st.download_button(
