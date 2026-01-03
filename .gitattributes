@@ -1,3 +1,8 @@
 *.ipynb filter=nbstripout
 *.zpln filter=nbstripout
 *.ipynb diff=ipynb
+
+# Prevent merge conflicts on PR-specific files
+# Each branch has its own pr_body.md content; always keep ours during merge
+pr_body.md merge=ours
+

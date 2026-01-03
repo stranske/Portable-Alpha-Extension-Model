@@ -488,6 +488,12 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         help="Maximum monthly_CVaR for sleeve suggestions",
     )
     parser.add_argument(
+        "--max-shortfall",
+        type=float,
+        default=1.0,
+        help="Maximum terminal shortfall probability for sleeve suggestions",
+    )
+    parser.add_argument(
         "--sleeve-step",
         type=float,
         default=0.25,
@@ -855,6 +861,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             max_te=args.max_te,
             max_breach=args.max_breach,
             max_cvar=args.max_cvar,
+            max_shortfall=args.max_shortfall,
             step=args.sleeve_step,
             min_external=args.min_external,
             max_external=args.max_external,
@@ -1223,6 +1230,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                 max_te=args.max_te,
                 max_breach=args.max_breach,
                 max_cvar=args.max_cvar,
+                max_shortfall=args.max_shortfall,
                 step=args.sleeve_step,
                 min_external=args.min_external,
                 max_external=args.max_external,
