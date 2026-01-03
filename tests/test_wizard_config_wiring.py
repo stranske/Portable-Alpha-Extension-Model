@@ -3,7 +3,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from pa_core.wizard_schema import AnalysisMode, get_default_config
+from pa_core.wizard_schema import AnalysisMode, RiskMetric, get_default_config
 
 
 def _load_build_yaml() -> tuple[callable, dict]:
@@ -136,5 +136,20 @@ def test_build_yaml_dict_alias_matches_from_config() -> None:
         config = get_default_config(AnalysisMode.RETURNS)
 
         assert build_yaml_dict(config) == build_yaml(config)
+    finally:
+        st.session_state.clear()
+
+
+def test_build_yaml_serializes_risk_metric_enums() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml, _module = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        config.risk_metrics = [RiskMetric.RETURN, RiskMetric.RISK, RiskMetric.SHORTFALL_PROB]
+
+        yaml_dict = build_yaml(config)
+
+        assert yaml_dict["risk_metrics"] == ["Return", "Risk", "terminal_ShortfallProb"]
     finally:
         st.session_state.clear()

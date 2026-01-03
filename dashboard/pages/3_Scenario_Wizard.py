@@ -38,6 +38,31 @@ _THETA_EXTPA_KEY = "wizard_theta_extpa"
 _ACTIVE_SHARE_KEY = "wizard_active_share"
 
 
+def _normalize_risk_metric_defaults(metrics: list[Any]) -> list[RiskMetric]:
+    """Coerce serialized metrics into RiskMetric enums for Streamlit defaults."""
+    normalized: list[RiskMetric] = []
+    for metric in metrics:
+        if isinstance(metric, RiskMetric):
+            normalized.append(metric)
+            continue
+        try:
+            normalized.append(RiskMetric(str(metric)))
+        except ValueError:
+            continue
+    return normalized or list(RiskMetric)
+
+
+def _serialize_risk_metrics(metrics: list[Any]) -> list[str]:
+    """Serialize RiskMetric enums back into ModelConfig-friendly strings."""
+    serialized: list[str] = []
+    for metric in metrics:
+        if isinstance(metric, RiskMetric):
+            serialized.append(metric.value)
+        else:
+            serialized.append(str(metric))
+    return serialized
+
+
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     """Construct a YAML-compatible dict for ModelConfig from the wizard state.
 
@@ -80,7 +105,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     rho_h_m = float(config.rho_h_m)
     rho_e_m = float(config.rho_e_m)
 
-    risk_metrics = config.risk_metrics
+    risk_metrics = _serialize_risk_metrics(config.risk_metrics)
 
     fm = fs.get("financing_model", "simple_proxy")
     ref_sigma = float(fs.get("reference_sigma", 0.01))
@@ -812,15 +837,16 @@ def _render_step_3_returns_risk(config: Any) -> Any:
         RiskMetric.SHORTFALL_PROB: "Shortfall Probability - Risk of underperformance",
     }
 
+    default_metrics = _normalize_risk_metric_defaults(config.risk_metrics)
     selected_metrics = st.multiselect(
         "Select Risk Metrics",
         options=list(metric_options.keys()),
-        default=config.risk_metrics,
+        default=default_metrics,
         format_func=lambda x: metric_options[x],
         help="Choose which risk metrics to calculate and display",
     )
 
-    config.risk_metrics = selected_metrics
+    config.risk_metrics = _serialize_risk_metrics(selected_metrics)
 
     st.markdown("---")
     _render_sleeve_suggestor(config)
