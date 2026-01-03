@@ -209,7 +209,9 @@ def _extract_metrics(
         metrics[f"{agent}_monthly_CVaR"] = float(cvar)
         metrics[f"{agent}_terminal_ShortfallProb"] = float(shortfall)
         if include_returns:
+            assert ann_return is not None
             metrics[f"{agent}_terminal_AnnReturn"] = float(ann_return)
+            assert excess_return is not None
             metrics[f"{agent}_terminal_ExcessReturn"] = float(excess_return)
         if constraint_scope in {"sleeves", "both"} and (
             te > max_te or bprob > max_breach or abs(cvar) > max_cvar or shortfall > max_shortfall
@@ -242,7 +244,9 @@ def _extract_metrics(
             }
         )
         if include_returns:
+            assert total_ann_return is not None
             metrics["Total_terminal_AnnReturn"] = float(total_ann_return)
+            assert total_excess_return is not None
             metrics["Total_terminal_ExcessReturn"] = float(total_excess_return)
         if constraint_scope in {"total", "both"} and (
             total_te > max_te
