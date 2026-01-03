@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from pa_core.config import ModelConfig
 from pa_core.reporting.attribution import (
@@ -189,3 +190,13 @@ def test_compute_sleeve_cvar_contribution_matches_portfolio_cvar() -> None:
 
     assert np.isclose(sleeves, expected_total)
     assert np.isclose(total, expected_total)
+
+
+def test_compute_sleeve_cvar_contribution_rejects_shape_mismatch() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[-0.01, 0.02], [-0.01, 0.02]]),
+        "ActiveExt": np.array([[-0.02, 0.01, 0.0], [-0.02, 0.01, 0.0]]),
+    }
+
+    with pytest.raises(ValueError, match="shape"):
+        compute_sleeve_cvar_contribution(returns_map, confidence=0.5)

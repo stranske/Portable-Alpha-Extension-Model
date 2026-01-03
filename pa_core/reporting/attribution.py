@@ -18,6 +18,18 @@ __all__ = [
 ]
 
 
+def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, "np.ndarray"]:
+    """Return (VaR cutoff, tail mask) matching CVaR strict-tail semantics."""
+    flat = np.asarray(total_arr, dtype=float).reshape(-1)
+    var_cutoff = float(np.quantile(flat, 1 - confidence, method="lower"))
+    tail_mask = flat < var_cutoff
+    if not bool(np.any(tail_mask)):
+        tail_mask = flat <= var_cutoff
+    if not bool(np.any(tail_mask)):
+        tail_mask = np.ones_like(flat, dtype=bool)
+    return var_cutoff, tail_mask
+
+
 def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
     """Compute per-agent monthly return attribution by component.
 
@@ -166,6 +178,18 @@ def compute_sleeve_cvar_contribution(
     Uses the conditional expectation of sleeve returns in the portfolio tail,
     so contributions sum to the portfolio CVaR (Euler decomposition).
     """
+    expected_size = None
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        arr_np = np.asarray(arr, dtype=float)
+        if arr_np.size == 0:
+            continue
+        if expected_size is None:
+            expected_size = arr_np.size
+        elif arr_np.size != expected_size:
+            raise ValueError("sleeve returns must match total returns shape")
+
     total_returns = compute_total_contribution_returns(returns_map, exclude=exclude)
     if total_returns is None:
         return pd.DataFrame(columns=["Agent", "CVaRContribution"])
@@ -177,12 +201,7 @@ def compute_sleeve_cvar_contribution(
     if not 0 < confidence < 1:
         raise ValueError("confidence must be between 0 and 1")
 
-    var_cutoff = float(np.quantile(total_arr, 1 - confidence, method="lower"))
-    tail_mask = total_arr < var_cutoff
-    if not bool(np.any(tail_mask)):
-        tail_mask = total_arr <= var_cutoff
-    if not bool(np.any(tail_mask)):
-        tail_mask = np.ones_like(total_arr, dtype=bool)
+    _, tail_mask = _cvar_tail_mask(total_arr, confidence)
 
     rows: List[Dict[str, object]] = []
     for name, arr in returns_map.items():
