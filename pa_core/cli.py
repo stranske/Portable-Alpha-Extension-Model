@@ -1179,8 +1179,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         logger.debug(f"Risk attribution unavailable: {e}")
     print_enhanced_summary(summary)
     try:
-        from .reporting.constraints import build_constraint_report
         from .reporting.console import print_constraint_report
+        from .reporting.constraints import build_constraint_report
 
         constraint_report = build_constraint_report(
             summary,
