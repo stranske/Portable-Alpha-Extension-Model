@@ -154,10 +154,12 @@ def _risk_score(metrics: dict[str, float], constraint_scope: str) -> float:
             score += metrics.get(f"{ag}_monthly_TE", 0.0)
             score += metrics.get(f"{ag}_monthly_BreachProb", 0.0)
             score += abs(metrics.get(f"{ag}_monthly_CVaR", 0.0))
+            score += metrics.get(f"{ag}_terminal_ShortfallProb", 0.0)
     if constraint_scope in {"total", "both"}:
         score += metrics.get("Total_monthly_TE", 0.0)
         score += metrics.get("Total_monthly_BreachProb", 0.0)
         score += abs(metrics.get("Total_monthly_CVaR", 0.0))
+        score += metrics.get("Total_terminal_ShortfallProb", 0.0)
     return score
 
 
@@ -167,6 +169,7 @@ def _extract_metrics(
     max_te: float,
     max_breach: float,
     max_cvar: float,
+    max_shortfall: float,
     constraint_scope: Literal["sleeves", "total", "both"],
 ) -> tuple[dict[str, float], bool] | None:
     meets = True
@@ -179,13 +182,18 @@ def _extract_metrics(
         te = _coerce_metric(row["monthly_TE"])
         bprob = _coerce_metric(row["monthly_BreachProb"])
         cvar = _coerce_metric(row["monthly_CVaR"])
-        if te is None or bprob is None or cvar is None:
+        shortfall = _coerce_metric(row["terminal_ShortfallProb"])
+        if te is None or bprob is None or cvar is None or shortfall is None:
             return None
         metrics[f"{agent}_monthly_TE"] = float(te)
         metrics[f"{agent}_monthly_BreachProb"] = float(bprob)
         metrics[f"{agent}_monthly_CVaR"] = float(cvar)
+        metrics[f"{agent}_terminal_ShortfallProb"] = float(shortfall)
         if constraint_scope in {"sleeves", "both"} and (
-            te > max_te or bprob > max_breach or abs(cvar) > max_cvar
+            te > max_te
+            or bprob > max_breach
+            or abs(cvar) > max_cvar
+            or shortfall > max_shortfall
         ):
             meets = False
 
@@ -195,17 +203,27 @@ def _extract_metrics(
         total_te = _coerce_metric(total_row["monthly_TE"])
         total_bprob = _coerce_metric(total_row["monthly_BreachProb"])
         total_cvar = _coerce_metric(total_row["monthly_CVaR"])
-        if total_te is None or total_bprob is None or total_cvar is None:
+        total_shortfall = _coerce_metric(total_row["terminal_ShortfallProb"])
+        if (
+            total_te is None
+            or total_bprob is None
+            or total_cvar is None
+            or total_shortfall is None
+        ):
             return None
         metrics.update(
             {
                 "Total_monthly_TE": float(total_te),
                 "Total_monthly_BreachProb": float(total_bprob),
                 "Total_monthly_CVaR": float(total_cvar),
+                "Total_terminal_ShortfallProb": float(total_shortfall),
             }
         )
         if constraint_scope in {"total", "both"} and (
-            total_te > max_te or total_bprob > max_breach or abs(total_cvar) > max_cvar
+            total_te > max_te
+            or total_bprob > max_breach
+            or abs(total_cvar) > max_cvar
+            or total_shortfall > max_shortfall
         ):
             meets = False
     return metrics, meets
@@ -221,6 +239,7 @@ def _evaluate_allocation(
     max_te: float,
     max_breach: float,
     max_cvar: float,
+    max_shortfall: float,
     constraint_scope: Literal["sleeves", "total", "both"],
     seed: int | None,
     objective: str | None = None,
@@ -249,6 +268,7 @@ def _evaluate_allocation(
         max_te=max_te,
         max_breach=max_breach,
         max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
         constraint_scope=constraint_scope,
     )
     if result is None:
@@ -267,6 +287,7 @@ def _grid_sleeve_sizes(
     max_te: float,
     max_breach: float,
     max_cvar: float,
+    max_shortfall: float,
     step: float,
     min_external: float | None,
     max_external: float | None,
@@ -386,6 +407,7 @@ def _grid_sleeve_sizes(
             max_te=max_te,
             max_breach=max_breach,
             max_cvar=max_cvar,
+            max_shortfall=max_shortfall,
             constraint_scope=constraint_scope,
             seed=seed,
             objective=objective,
@@ -473,12 +495,14 @@ def _build_linear_surrogates(
         te = _coerce_metric(row["monthly_TE"])
         bprob = _coerce_metric(row["monthly_BreachProb"])
         cvar = _coerce_metric(row["monthly_CVaR"])
+        shortfall = _coerce_metric(row["terminal_ShortfallProb"])
         ann_return = _coerce_metric(row["terminal_AnnReturn"])
         excess_return = _coerce_metric(row["terminal_ExcessReturn"])
         if (
             te is None
             or bprob is None
             or cvar is None
+            or shortfall is None
             or ann_return is None
             or excess_return is None
         ):
@@ -487,6 +511,7 @@ def _build_linear_surrogates(
             "monthly_TE": _metric_slope(te, capital, total=total) or 0.0,
             "monthly_BreachProb": _metric_slope(bprob, capital, total=total) or 0.0,
             "monthly_CVaR": _metric_slope(abs(cvar), capital, total=total) or 0.0,
+            "terminal_ShortfallProb": _metric_slope(shortfall, capital, total=total) or 0.0,
             "terminal_AnnReturn": _metric_slope(ann_return, capital, total=total) or 0.0,
             "terminal_ExcessReturn": _metric_slope(excess_return, capital, total=total) or 0.0,
         }
@@ -529,6 +554,7 @@ def _optimize_sleeve_sizes(
     max_te: float,
     max_breach: float,
     max_cvar: float,
+    max_shortfall: float,
     min_external: float | None,
     max_external: float | None,
     min_active: float | None,
@@ -577,6 +603,7 @@ def _optimize_sleeve_sizes(
                 ("monthly_TE", max_te),
                 ("monthly_BreachProb", max_breach),
                 ("monthly_CVaR", max_cvar),
+                ("terminal_ShortfallProb", max_shortfall),
             ):
                 slope = slopes[agent].get(metric)
                 constraints.append(
@@ -592,6 +619,7 @@ def _optimize_sleeve_sizes(
             ("monthly_TE", max_te),
             ("monthly_BreachProb", max_breach),
             ("monthly_CVaR", max_cvar),
+            ("terminal_ShortfallProb", max_shortfall),
         ):
             constraints.append(
                 {
@@ -638,6 +666,7 @@ def _optimize_sleeve_sizes(
         max_te=max_te,
         max_breach=max_breach,
         max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
         constraint_scope=constraint_scope,
         seed=seed,
         objective=objective,
@@ -670,6 +699,7 @@ def suggest_sleeve_sizes(
     max_te: float,
     max_breach: float,
     max_cvar: float,
+    max_shortfall: float,
     step: float = 0.25,
     min_external: float | None = None,
     max_external: float | None = None,
@@ -705,6 +735,8 @@ def suggest_sleeve_sizes(
         Maximum allowed breach probability per sleeve.
     max_cvar:
         Absolute monthly_CVaR cap per sleeve.
+    max_shortfall:
+        Maximum terminal shortfall probability per sleeve.
     step:
         Grid step as a fraction of ``total_fund_capital``.
     seed:
@@ -736,6 +768,7 @@ def suggest_sleeve_sizes(
             max_te=max_te,
             max_breach=max_breach,
             max_cvar=max_cvar,
+            max_shortfall=max_shortfall,
             min_external=min_external,
             max_external=max_external,
             min_active=min_active,
@@ -758,6 +791,7 @@ def suggest_sleeve_sizes(
             max_te=max_te,
             max_breach=max_breach,
             max_cvar=max_cvar,
+            max_shortfall=max_shortfall,
             step=step,
             min_external=min_external,
             max_external=max_external,
@@ -790,6 +824,7 @@ def suggest_sleeve_sizes(
         max_te=max_te,
         max_breach=max_breach,
         max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
         step=step,
         min_external=min_external,
         max_external=max_external,

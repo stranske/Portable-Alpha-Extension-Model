@@ -520,6 +520,15 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             format="%.2f",
             key="sleeve_max_cvar",
         )
+        st.number_input(
+            "Max Terminal Shortfall Probability",
+            min_value=0.0,
+            max_value=1.0,
+            value=st.session_state.get("sleeve_max_shortfall", 0.05),
+            step=0.05,
+            format="%.2f",
+            key="sleeve_max_shortfall",
+        )
 
     with col2:
         st.number_input(
@@ -561,6 +570,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         "max_te": float(st.session_state["sleeve_max_te"]),
         "max_breach": float(st.session_state["sleeve_max_breach"]),
         "max_cvar": float(st.session_state["sleeve_max_cvar"]),
+        "max_shortfall": float(st.session_state["sleeve_max_shortfall"]),
         "step": float(st.session_state["sleeve_step"]),
         "max_evals": int(st.session_state["sleeve_max_evals"]),
         "constraint_scope": st.session_state["sleeve_constraint_scope"],
@@ -583,6 +593,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             max_te=constraints["max_te"],
             max_breach=constraints["max_breach"],
             max_cvar=constraints["max_cvar"],
+            max_shortfall=constraints["max_shortfall"],
             step=constraints["step"],
             max_evals=constraints["max_evals"],
             constraint_scope=constraints["constraint_scope"],
@@ -597,6 +608,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         f"Max TE: {constraints_used['max_te']:.2%} | "
         f"Max Breach: {constraints_used['max_breach']:.2%} | "
         f"Max monthly_CVaR: {constraints_used['max_cvar']:.2%} | "
+        f"Max Shortfall: {constraints_used['max_shortfall']:.2%} | "
         f"Scope: {scope_labels.get(constraints_used['constraint_scope'], constraints_used['constraint_scope'])}"
     )
 
@@ -627,15 +639,19 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         "ExternalPA_monthly_TE",
         "ExternalPA_monthly_BreachProb",
         "ExternalPA_monthly_CVaR",
+        "ExternalPA_terminal_ShortfallProb",
         "ActiveExt_monthly_TE",
         "ActiveExt_monthly_BreachProb",
         "ActiveExt_monthly_CVaR",
+        "ActiveExt_terminal_ShortfallProb",
         "InternalPA_monthly_TE",
         "InternalPA_monthly_BreachProb",
         "InternalPA_monthly_CVaR",
+        "InternalPA_terminal_ShortfallProb",
         "Total_monthly_TE",
         "Total_monthly_BreachProb",
         "Total_monthly_CVaR",
+        "Total_terminal_ShortfallProb",
     ]
     display_cols = [col for col in preferred_cols if col in ranked.columns]
     tradeoff_table = ranked.loc[:, display_cols].head(int(top_n))
