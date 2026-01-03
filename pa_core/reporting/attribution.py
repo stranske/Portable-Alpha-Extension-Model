@@ -128,6 +128,7 @@ def compute_sleeve_return_contribution(
     they sum to the total portfolio return within floating-point tolerance.
     """
     rows: List[Dict[str, object]] = []
+    contributions_sum = 0.0
     total_returns = compute_total_contribution_returns(returns_map, exclude=exclude)
     total_value = None
     if total_returns is not None:
@@ -142,11 +143,12 @@ def compute_sleeve_return_contribution(
             contribution = 0.0
         else:
             contribution = float(arr_np.mean() * periods_per_year)
+        contributions_sum += contribution
         rows.append({"Agent": name, "ReturnContribution": contribution})
 
     if rows:
         if total_value is None:
-            total_value = float(sum(row["ReturnContribution"] for row in rows))
+            total_value = contributions_sum
         rows.append({"Agent": "Total", "ReturnContribution": total_value})
 
     return pd.DataFrame(rows)
