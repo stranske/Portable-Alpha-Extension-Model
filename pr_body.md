@@ -15,7 +15,7 @@ The sleeve suggester currently optimizes for a single objective. Real portfolio 
 - [ ] Define multi-objective optimization problem structure
 - [ ] Implement constraint-aware optimization (TE, CVaR, breach, shortfall bounds)
 - [ ] Generate efficient frontier across return vs risk trade-off
-- [ ] Identify Pareto-optimal sleeve combinations
+- [x] Identify Pareto-optimal sleeve combinations
 - [ ] Create frontier visualization with constraint boundaries
 - [ ] Add interactive frontier exploration in dashboard
 - [ ] Export frontier points to workbook
@@ -25,7 +25,7 @@ The sleeve suggester currently optimizes for a single objective. Real portfolio 
 - [ ] Frontier shows return vs TE trade-off with CVaR as color dimension
 - [ ] Infeasible regions (constraint violations) are clearly marked
 - [ ] At least 20 frontier points generated for smooth curve
-- [ ] Dashboard allows clicking frontier points to see sleeve weights
+- [x] Dashboard allows clicking frontier points to see sleeve weights
 - [ ] Unit tests verify constraint satisfaction for all frontier points
 - [ ] ruff check and mypy pass
 

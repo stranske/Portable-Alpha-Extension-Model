@@ -9,6 +9,12 @@ import pandas as pd
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
+from .multi_objective import (
+    ConstraintScope,
+    MetricName,
+    MultiObjectiveProblem,
+    build_sleeve_multi_objective_problem,
+)
 from .orchestrator import SimulatorOrchestrator
 from .sim.metrics import summary_table
 from .simulations import simulate_agents
@@ -44,6 +50,14 @@ class _MinimizeResult(Protocol):
 
 
 _MinimizeFunc = Callable[..., _MinimizeResult]
+_METRIC_SUFFIXES: dict[MetricName, str] = {
+    "AnnReturn": "terminal_AnnReturn",
+    "ExcessReturn": "terminal_ExcessReturn",
+    "TE": "monthly_TE",
+    "BreachProb": "monthly_BreachProb",
+    "CVaR": "monthly_CVaR",
+    "ShortfallProb": "terminal_ShortfallProb",
+}
 
 
 def _clamp_grid(grid: np.ndarray, min_value: float | None, max_value: float | None) -> np.ndarray:
@@ -171,6 +185,7 @@ def _extract_metrics(
     max_cvar: float,
     max_shortfall: float,
     constraint_scope: Literal["sleeves", "total", "both"],
+    include_returns: bool = False,
 ) -> tuple[dict[str, float], bool] | None:
     meets = True
     metrics: dict[str, float] = {}
@@ -185,10 +200,17 @@ def _extract_metrics(
         shortfall = _coerce_metric(row["terminal_ShortfallProb"])
         if te is None or bprob is None or cvar is None or shortfall is None:
             return None
+        ann_return = _coerce_metric(row["terminal_AnnReturn"]) if include_returns else None
+        excess_return = _coerce_metric(row["terminal_ExcessReturn"]) if include_returns else None
+        if include_returns and (ann_return is None or excess_return is None):
+            return None
         metrics[f"{agent}_monthly_TE"] = float(te)
         metrics[f"{agent}_monthly_BreachProb"] = float(bprob)
         metrics[f"{agent}_monthly_CVaR"] = float(cvar)
         metrics[f"{agent}_terminal_ShortfallProb"] = float(shortfall)
+        if include_returns:
+            metrics[f"{agent}_terminal_AnnReturn"] = float(ann_return)
+            metrics[f"{agent}_terminal_ExcessReturn"] = float(excess_return)
         if constraint_scope in {"sleeves", "both"} and (
             te > max_te or bprob > max_breach or abs(cvar) > max_cvar or shortfall > max_shortfall
         ):
@@ -203,6 +225,14 @@ def _extract_metrics(
         total_shortfall = _coerce_metric(total_row["terminal_ShortfallProb"])
         if total_te is None or total_bprob is None or total_cvar is None or total_shortfall is None:
             return None
+        total_ann_return = (
+            _coerce_metric(total_row["terminal_AnnReturn"]) if include_returns else None
+        )
+        total_excess_return = (
+            _coerce_metric(total_row["terminal_ExcessReturn"]) if include_returns else None
+        )
+        if include_returns and (total_ann_return is None or total_excess_return is None):
+            return None
         metrics.update(
             {
                 "Total_monthly_TE": float(total_te),
@@ -211,6 +241,9 @@ def _extract_metrics(
                 "Total_terminal_ShortfallProb": float(total_shortfall),
             }
         )
+        if include_returns:
+            metrics["Total_terminal_AnnReturn"] = float(total_ann_return)
+            metrics["Total_terminal_ExcessReturn"] = float(total_excess_return)
         if constraint_scope in {"total", "both"} and (
             total_te > max_te
             or total_bprob > max_breach
@@ -236,6 +269,7 @@ def _evaluate_allocation(
     seed: int | None,
     objective: str | None = None,
     stream_cache: _StreamCache | None = None,
+    include_returns: bool = False,
 ) -> tuple[dict[str, float], bool, float | None] | None:
     test_cfg = cfg.model_copy(
         update={
@@ -262,6 +296,7 @@ def _evaluate_allocation(
         max_cvar=max_cvar,
         max_shortfall=max_shortfall,
         constraint_scope=constraint_scope,
+        include_returns=include_returns,
     )
     if result is None:
         return None
@@ -831,3 +866,278 @@ def suggest_sleeve_sizes(
         objective=None,
         stream_cache=stream_cache,
     )
+
+
+def _metric_key(agent: str, metric: MetricName) -> str:
+    suffix = _METRIC_SUFFIXES[metric]
+    return f"{agent}_{suffix}"
+
+
+def _metric_value(metrics: dict[str, float], agent: str, metric: MetricName) -> float | None:
+    value = metrics.get(_metric_key(agent, metric))
+    if value is None:
+        return None
+    return float(value)
+
+
+def _constraint_agents(scope: ConstraintScope) -> tuple[str, ...]:
+    if scope == "total":
+        return ("Total",)
+    if scope == "both":
+        return ("Total",) + SLEEVE_AGENTS
+    return SLEEVE_AGENTS
+
+
+def _evaluate_problem_constraints(
+    metrics: dict[str, float],
+    problem: MultiObjectiveProblem,
+) -> tuple[bool, int]:
+    breaches = 0
+    ok = True
+    for constraint in problem.constraints:
+        for agent in _constraint_agents(constraint.scope):
+            value = _metric_value(metrics, agent, constraint.metric)
+            if value is None:
+                breaches += 1
+                ok = False
+                continue
+            metric_val = abs(value) if constraint.absolute else value
+            if metric_val > constraint.limit:
+                breaches += 1
+                ok = False
+    return ok, breaches
+
+
+def _select_frontier_indices(
+    df: pd.DataFrame,
+    *,
+    return_col: str,
+    risk_col: str,
+    min_points: int,
+) -> list[int]:
+    if min_points <= 0:
+        return []
+    feasible = df[df["constraints_satisfied"]].dropna(subset=[return_col, risk_col])
+    if feasible.empty:
+        return []
+    if len(feasible) <= min_points:
+        return list(feasible.index)
+    risk_min = float(feasible[risk_col].min())
+    risk_max = float(feasible[risk_col].max())
+    picks: list[int] = []
+    if risk_min == risk_max:
+        top = feasible.sort_values(return_col, ascending=False)
+        return list(top.head(min_points).index)
+    bins = np.linspace(risk_min, risk_max, min_points + 1)
+    for i in range(min_points):
+        lower = bins[i]
+        upper = bins[i + 1]
+        in_bin = feasible[(feasible[risk_col] >= lower) & (feasible[risk_col] <= upper)]
+        if in_bin.empty:
+            continue
+        best = in_bin.sort_values(return_col, ascending=False).iloc[0]
+        picks.append(int(best.name))
+    if len(picks) < min_points:
+        remaining = feasible.drop(index=picks, errors="ignore").sort_values(return_col, ascending=False)
+        picks.extend([int(idx) for idx in remaining.head(min_points - len(picks)).index])
+    return picks
+
+
+def generate_sleeve_frontier(
+    cfg: ModelConfig,
+    idx_series: pd.Series,
+    *,
+    max_te: float,
+    max_breach: float,
+    max_cvar: float,
+    max_shortfall: float,
+    step: float = 0.25,
+    min_external: float | None = None,
+    max_external: float | None = None,
+    min_active: float | None = None,
+    max_active: float | None = None,
+    min_internal: float | None = None,
+    max_internal: float | None = None,
+    seed: int | None = None,
+    max_evals: int | None = 800,
+    constraint_scope: Literal["sleeves", "total", "both"] = "sleeves",
+    return_metric: MetricName = "AnnReturn",
+    risk_metric: MetricName = "TE",
+    min_frontier_points: int = 20,
+) -> pd.DataFrame:
+    """Evaluate sleeve allocations and mark efficient-frontier points."""
+    if risk_metric != "TE":
+        raise ValueError("risk_metric must be TE for sleeve frontier generation")
+    problem = build_sleeve_multi_objective_problem(
+        return_metric=return_metric,
+        max_te=max_te,
+        max_breach=max_breach,
+        max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
+        constraint_scope=constraint_scope,
+    )
+    if step <= 0:
+        raise ValueError("step must be positive")
+
+    total = cfg.total_fund_capital
+    step_size = total * step
+    grid = np.arange(0.0, total + 1e-9, step_size)
+    ext_grid = _clamp_grid(grid, min_external, max_external)
+    act_grid = _clamp_grid(grid, min_active, max_active)
+    if ext_grid.size == 0 or act_grid.size == 0:
+        return pd.DataFrame()
+
+    combos: list[tuple[float, float]] | None = None
+    if max_evals is not None:
+        ext_vals = np.asarray(ext_grid, dtype=float)
+        act_vals = np.asarray(act_grid, dtype=float)
+        max_valid = _count_valid_combos(ext_vals, act_vals, total)
+        if max_valid <= max_evals:
+            combos = []
+            for ext_cap in ext_vals:
+                max_act = total - float(ext_cap)
+                if max_act < act_vals[0]:
+                    continue
+                idx = int(np.searchsorted(act_vals, max_act, side="right"))
+                for act_cap in act_vals[:idx]:
+                    combos.append((float(ext_cap), float(act_cap)))
+        else:
+            rng = np.random.default_rng(seed)
+            priority = _pick_priority_combos(
+                ext_vals,
+                act_vals,
+                total,
+                min_internal,
+                max_internal,
+            )
+            if max_evals <= len(priority):
+                combos = list(priority[:max_evals])
+                seen = set(combos)
+            else:
+                combos = list(priority)
+                seen = set(combos)
+            attempts = 0
+            max_attempts = max(1, max_evals) * 50
+            while len(combos) < max_evals and attempts < max_attempts:
+                attempts += 1
+                ext_cap = float(ext_vals[rng.integers(0, len(ext_vals))])
+                act_cap = float(act_vals[rng.integers(0, len(act_vals))])
+                internal = total - ext_cap - act_cap
+                if internal < 0:
+                    continue
+                if not _internal_cap_ok(internal, min_internal, max_internal):
+                    continue
+                pair = (ext_cap, act_cap)
+                if pair in seen:
+                    continue
+                seen.add(pair)
+                combos.append(pair)
+            if len(combos) < max_evals:
+                for ext_cap in ext_vals:
+                    max_act = total - float(ext_cap)
+                    if max_act < act_vals[0]:
+                        continue
+                    idx = int(np.searchsorted(act_vals, max_act, side="right"))
+                    for act_cap in act_vals[:idx]:
+                        pair = (float(ext_cap), float(act_cap))
+                        internal = total - pair[0] - pair[1]
+                        if not _internal_cap_ok(internal, min_internal, max_internal):
+                            continue
+                        if pair in seen:
+                            continue
+                        seen.add(pair)
+                        combos.append(pair)
+                        if len(combos) >= max_evals:
+                            break
+                    if len(combos) >= max_evals:
+                        break
+
+    stream_cache = _StreamCache(cfg, idx_series, seed)
+    records: list[dict[str, float]] = []
+
+    def _maybe_record(ext_cap: float, act_cap: float) -> None:
+        int_cap = total - ext_cap - act_cap
+        if min_external is not None and ext_cap < min_external:
+            return
+        if max_external is not None and ext_cap > max_external:
+            return
+        if min_active is not None and act_cap < min_active:
+            return
+        if max_active is not None and act_cap > max_active:
+            return
+        if min_internal is not None and int_cap < min_internal:
+            return
+        if max_internal is not None and int_cap > max_internal:
+            return
+
+        evaluated = _evaluate_allocation(
+            cfg,
+            idx_series,
+            ext_cap=ext_cap,
+            act_cap=act_cap,
+            int_cap=int_cap,
+            max_te=max_te,
+            max_breach=max_breach,
+            max_cvar=max_cvar,
+            max_shortfall=max_shortfall,
+            constraint_scope=constraint_scope,
+            seed=seed,
+            stream_cache=stream_cache,
+            include_returns=True,
+        )
+        if evaluated is None:
+            return
+        metrics, _meets, _ = evaluated
+        constraints_ok, breaches = _evaluate_problem_constraints(metrics, problem)
+        record = {
+            "external_pa_capital": float(ext_cap),
+            "active_ext_capital": float(act_cap),
+            "internal_pa_capital": float(int_cap),
+            "constraints_satisfied": bool(constraints_ok),
+            "constraint_breaches": int(breaches),
+        }
+        record.update(metrics)
+        total_return = _metric_value(metrics, "Total", return_metric)
+        total_te = _metric_value(metrics, "Total", risk_metric)
+        total_cvar = _metric_value(metrics, "Total", "CVaR")
+        if total_return is not None:
+            record["frontier_return"] = float(total_return)
+        if total_te is not None:
+            record["frontier_risk"] = float(total_te)
+        if total_cvar is not None:
+            record["frontier_cvar"] = float(abs(total_cvar))
+        records.append(record)
+
+    if combos is None:
+        for ext_cap in ext_grid:
+            max_act = total - float(ext_cap)
+            if max_act < act_grid[0]:
+                continue
+            for act_cap in act_grid:
+                if float(act_cap) > max_act:
+                    break
+                _maybe_record(float(ext_cap), float(act_cap))
+    else:
+        for ext_cap, act_cap in combos:
+            _maybe_record(ext_cap, act_cap)
+
+    df = pd.DataFrame.from_records(records)
+    if df.empty:
+        return df
+
+    return_col = "frontier_return"
+    risk_col = "frontier_risk"
+    if return_col not in df.columns or risk_col not in df.columns:
+        df["is_frontier"] = False
+        return df
+
+    picks = _select_frontier_indices(
+        df,
+        return_col=return_col,
+        risk_col=risk_col,
+        min_points=min_frontier_points,
+    )
+    df["is_frontier"] = False
+    if picks:
+        df.loc[picks, "is_frontier"] = True
+    return df
