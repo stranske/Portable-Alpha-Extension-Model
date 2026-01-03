@@ -179,3 +179,22 @@ def test_export_to_excel_includes_sunburst_snapshot(tmp_path: Path) -> None:
     assert {"Attribution", "RiskAttribution"} <= set(wb.sheetnames)
     ws = wb["Attribution"]
     assert ws._images, "Expected sunburst chart snapshot in Attribution sheet"
+
+
+def test_export_to_excel_includes_sleeve_attribution_sheet(tmp_path: Path) -> None:
+    from pa_core.reporting.excel import export_to_excel
+
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
+    sleeve_attr = pd.DataFrame(
+        {
+            "Agent": ["ExternalPA", "ActiveExt", "Total"],
+            "ReturnContribution": [0.12, 0.08, 0.2],
+        }
+    )
+    inputs = {"_sleeve_attribution_df": sleeve_attr}
+    out_path = tmp_path / "outputs.xlsx"
+
+    export_to_excel(inputs, summary, {}, filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path)
+    assert "sleeve_attribution" in wb.sheetnames

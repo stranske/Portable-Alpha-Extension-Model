@@ -87,6 +87,7 @@ def export_to_excel(
     """
 
     attr_df = _optional_df(inputs_dict, "_attribution_df")
+    sleeve_attr_df = _optional_df(inputs_dict, "_sleeve_attribution_df")
     risk_df = _optional_df(inputs_dict, "_risk_attr_df")
     trade_df = _optional_df(inputs_dict, "_tradeoff_df")
 
@@ -141,6 +142,18 @@ def export_to_excel(
             cols = [c for c in ["Agent", "Sub", "Return"] if c in attr_df.columns]
             if cols:
                 attr_df[cols].to_excel(writer, sheet_name="Attribution", index=False)
+
+        # Optional: write sleeve attribution sheet if provided
+        if sleeve_attr_df is not None and not sleeve_attr_df.empty:
+            cols = [
+                c
+                for c in ["Agent", "ReturnContribution"]
+                if c in sleeve_attr_df.columns
+            ]
+            if cols:
+                sleeve_attr_df[cols].to_excel(
+                    writer, sheet_name="sleeve_attribution", index=False
+                )
 
         # Optional: write RiskAttribution sheet if provided
         if risk_df is not None and not risk_df.empty:
