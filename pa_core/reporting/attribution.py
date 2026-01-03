@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Mapping
+from typing import Any, Dict, List, Mapping
+
+from numpy.typing import NDArray
 
 import pandas as pd
 
@@ -18,7 +20,7 @@ __all__ = [
 ]
 
 
-def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, "np.ndarray"]:
+def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, NDArray[Any]]:
     """Return (VaR cutoff, tail mask) matching CVaR strict-tail semantics."""
     flat = np.asarray(total_arr, dtype=float).reshape(-1)
     var_cutoff = float(np.quantile(flat, 1 - confidence, method="lower"))
