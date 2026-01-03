@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from pa_core.config import ModelConfig
+from pa_core.sim.metrics import conditional_value_at_risk
 from pa_core.reporting.attribution import (
     compute_sleeve_cvar_contribution,
     compute_sleeve_return_attribution,
@@ -170,3 +171,21 @@ def test_compute_sleeve_cvar_contribution_sums_to_total() -> None:
     sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["CVaRContribution"].sum()
     assert np.isclose(total, sleeves)
     assert np.isclose(total, -0.03)
+
+
+def test_compute_sleeve_cvar_contribution_matches_portfolio_cvar() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[-0.05, 0.02, 0.01], [-0.03, 0.01, 0.0]]),
+        "ActiveExt": np.array([[-0.02, 0.01, 0.0], [-0.01, 0.02, 0.01]]),
+        "Base": np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+    }
+
+    df = compute_sleeve_cvar_contribution(returns_map, confidence=0.5)
+
+    total_returns = returns_map["ExternalPA"] + returns_map["ActiveExt"]
+    expected_total = conditional_value_at_risk(total_returns, confidence=0.5)
+    sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["CVaRContribution"].sum()
+    total = float(df.loc[df["Agent"] == "Total", "CVaRContribution"].iloc[0])
+
+    assert np.isclose(sleeves, expected_total)
+    assert np.isclose(total, expected_total)
