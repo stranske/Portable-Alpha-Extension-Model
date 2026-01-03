@@ -12,17 +12,17 @@ Stress testing is ad-hoc - users manually adjust parameters to simulate stress s
 - Ability to compare baseline vs stressed outcomes
 
 #### Tasks
-- [ ] Create stress preset library with named scenarios
-- [ ] Implement stress application function that modifies base config
-- [ ] Add constraint failure detection and reporting
+- [x] Create stress preset library with named scenarios
+- [x] Implement stress application function that modifies base config
+- [x] Add constraint failure detection and reporting
 - [ ] Identify which sleeve drove each breach
-- [ ] Create stress comparison output (baseline vs stressed side-by-side)
-- [ ] Add stress summary dashboard widget
+- [x] Create stress comparison output (baseline vs stressed side-by-side)
+- [x] Add stress summary dashboard widget
 - [ ] Document preset scenarios in user guide
 
 #### Acceptance criteria
 - [ ] At least 5 preset stress scenarios available (e.g., rate shock, equity crash, correlation spike)
-- [ ] Stress output clearly shows which constraints failed
+- [x] Stress output clearly shows which constraints failed
 - [ ] Per-sleeve breach attribution is included
 - [ ] Comparison table shows baseline vs stressed metrics
 - [x] Unit tests verify stress presets produce expected metric changes
