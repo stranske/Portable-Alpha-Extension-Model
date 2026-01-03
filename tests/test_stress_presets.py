@@ -48,3 +48,11 @@ def test_2020_gap_day_overrides_returns():
     assert stressed.mu_H == pytest.approx(annual_mean_to_monthly(-0.20))
     assert stressed.mu_E == pytest.approx(annual_mean_to_monthly(-0.25))
     assert stressed.mu_M == pytest.approx(annual_mean_to_monthly(-0.15))
+
+
+def test_rate_shock_overrides_financing_means():
+    cfg = _base_cfg()
+    stressed = apply_stress_preset(cfg, "rate_shock")
+    assert stressed.internal_financing_mean_month == pytest.approx(0.012)
+    assert stressed.ext_pa_financing_mean_month == pytest.approx(0.014)
+    assert stressed.act_ext_financing_mean_month == pytest.approx(0.015)
