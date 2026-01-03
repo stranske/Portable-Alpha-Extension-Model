@@ -190,10 +190,7 @@ def _extract_metrics(
         metrics[f"{agent}_monthly_CVaR"] = float(cvar)
         metrics[f"{agent}_terminal_ShortfallProb"] = float(shortfall)
         if constraint_scope in {"sleeves", "both"} and (
-            te > max_te
-            or bprob > max_breach
-            or abs(cvar) > max_cvar
-            or shortfall > max_shortfall
+            te > max_te or bprob > max_breach or abs(cvar) > max_cvar or shortfall > max_shortfall
         ):
             meets = False
 
@@ -204,12 +201,7 @@ def _extract_metrics(
         total_bprob = _coerce_metric(total_row["monthly_BreachProb"])
         total_cvar = _coerce_metric(total_row["monthly_CVaR"])
         total_shortfall = _coerce_metric(total_row["terminal_ShortfallProb"])
-        if (
-            total_te is None
-            or total_bprob is None
-            or total_cvar is None
-            or total_shortfall is None
-        ):
+        if total_te is None or total_bprob is None or total_cvar is None or total_shortfall is None:
             return None
         metrics.update(
             {
