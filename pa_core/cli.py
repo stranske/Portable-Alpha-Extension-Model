@@ -1443,7 +1443,10 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
                         base_constraints_report.to_excel(
                             writer, sheet_name="BaseBreaches", index=False
                         )
-                    if stress_constraints_report is not None and not stress_constraints_report.empty:
+                    if (
+                        stress_constraints_report is not None
+                        and not stress_constraints_report.empty
+                    ):
                         stress_constraints_report.to_excel(
                             writer, sheet_name="StressedBreaches", index=False
                         )
