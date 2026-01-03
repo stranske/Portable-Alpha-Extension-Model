@@ -8,6 +8,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict
 
+import pandas as pd
 import streamlit as st
 import yaml
 
@@ -17,7 +18,8 @@ from dashboard.utils import normalize_share
 from pa_core import cli as pa_cli
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
-from pa_core.sleeve_suggestor import suggest_sleeve_sizes
+from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
+from pa_core.viz import frontier as frontier_viz
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.wizard_schema import (
     AnalysisMode,
@@ -601,6 +603,23 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         )
         st.session_state["sleeve_suggestions"] = df
         st.session_state["sleeve_suggestion_constraints"] = constraints
+        try:
+            frontier_df = generate_sleeve_frontier(
+                cfg,
+                idx_series,
+                max_te=constraints["max_te"],
+                max_breach=constraints["max_breach"],
+                max_cvar=constraints["max_cvar"],
+                max_shortfall=constraints["max_shortfall"],
+                step=constraints["step"],
+                max_evals=constraints["max_evals"],
+                constraint_scope=constraints["constraint_scope"],
+                seed=suggest_seed,
+            )
+            st.session_state["sleeve_frontier"] = frontier_df
+        except Exception as exc:
+            st.session_state["sleeve_frontier"] = pd.DataFrame()
+            st.error(f"Frontier computation failed: {exc}")
 
     constraints_used = st.session_state.get("sleeve_suggestion_constraints", constraints)
     st.markdown("**Constraint Summary:**")
@@ -656,6 +675,21 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
     display_cols = [col for col in preferred_cols if col in ranked.columns]
     tradeoff_table = ranked.loc[:, display_cols].head(int(top_n))
     st.dataframe(tradeoff_table, use_container_width=True)
+
+    frontier_df = st.session_state.get("sleeve_frontier")
+    if isinstance(frontier_df, pd.DataFrame) and not frontier_df.empty:
+        st.subheader("Efficient Frontier")
+        st.caption("Return vs tracking error with CVaR shading; infeasible points are marked.")
+        fig = frontier_viz.make(
+            frontier_df,
+            max_te=constraints_used["max_te"],
+            max_cvar=constraints_used["max_cvar"],
+            max_breach=constraints_used["max_breach"],
+            max_shortfall=constraints_used["max_shortfall"],
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Run the suggestor to populate the frontier visualization.")
 
     selected_rank = st.number_input(
         "Select rank to apply",
