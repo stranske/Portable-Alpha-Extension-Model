@@ -6,6 +6,7 @@ import pandas as pd
 from pa_core.config import ModelConfig
 from pa_core.reporting.attribution import (
     compute_sleeve_return_attribution,
+    compute_sleeve_return_contribution,
     compute_sleeve_risk_attribution,
 )
 
@@ -136,3 +137,19 @@ def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
     }
     assert df["CorrWithIndex"].between(-1.0, 1.0).all()
     assert (df[["BetaVol", "AlphaVol", "AnnVolApprox", "TEApprox"]] >= 0).all().all()
+
+
+def test_compute_sleeve_return_contribution_sums_to_total() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[0.01, 0.02], [0.01, 0.02]]),
+        "ActiveExt": np.array([[0.0, 0.01], [0.0, 0.01]]),
+        "Base": np.array([[0.005, 0.005], [0.005, 0.005]]),
+    }
+
+    df = compute_sleeve_return_contribution(returns_map, periods_per_year=12)
+
+    assert {"Agent", "ReturnContribution"} <= set(df.columns)
+    total = float(df.loc[df["Agent"] == "Total", "ReturnContribution"].iloc[0])
+    sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["ReturnContribution"].sum()
+    assert np.isclose(total, sleeves)
+    assert np.isclose(total, 0.24)

@@ -1,13 +1,20 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List
+from typing import Dict, List, Mapping
 
 import pandas as pd
 
+from ..backend import xp as np
 from ..config import ModelConfig, normalize_share
+from ..portfolio import compute_total_contribution_returns
+from ..types import ArrayLike
 
-__all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
+__all__ = [
+    "compute_sleeve_return_attribution",
+    "compute_sleeve_return_contribution",
+    "compute_sleeve_risk_attribution",
+]
 
 
 def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
@@ -107,6 +114,42 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
                 ignore_index=True,
             )
     return df
+
+
+def compute_sleeve_return_contribution(
+    returns_map: Mapping[str, ArrayLike],
+    *,
+    periods_per_year: int = 12,
+    exclude: tuple[str, ...] = ("Base", "Total"),
+) -> pd.DataFrame:
+    """Compute per-sleeve return contribution to the total portfolio return.
+
+    Contributions are arithmetic (mean monthly return * periods per year), so
+    they sum to the total portfolio return within floating-point tolerance.
+    """
+    rows: List[Dict[str, object]] = []
+    total_returns = compute_total_contribution_returns(returns_map, exclude=exclude)
+    total_value = None
+    if total_returns is not None:
+        total_arr = np.asarray(total_returns, dtype=float)
+        total_value = float(total_arr.mean() * periods_per_year)
+
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        arr_np = np.asarray(arr, dtype=float)
+        if arr_np.size == 0:
+            contribution = 0.0
+        else:
+            contribution = float(arr_np.mean() * periods_per_year)
+        rows.append({"Agent": name, "ReturnContribution": contribution})
+
+    if rows:
+        if total_value is None:
+            total_value = float(sum(row["ReturnContribution"] for row in rows))
+        rows.append({"Agent": "Total", "ReturnContribution": total_value})
+
+    return pd.DataFrame(rows)
 
 
 def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
