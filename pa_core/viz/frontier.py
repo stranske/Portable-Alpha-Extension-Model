@@ -68,7 +68,7 @@ def make(
 
     if not feasible.empty:
         cvar_feasible = cvar.loc[feasible.index]
-        colorbar = dict(title="Monthly CVaR")
+        colorbar: dict[str, object] = dict(title="Monthly CVaR")
         if max_cvar is not None:
             colorbar = dict(
                 title="Monthly CVaR",
