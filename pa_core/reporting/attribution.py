@@ -3,9 +3,8 @@ from __future__ import annotations
 import math
 from typing import Any, Dict, List, Mapping
 
-from numpy.typing import NDArray
-
 import pandas as pd
+from numpy.typing import NDArray
 
 from ..backend import xp as np
 from ..config import ModelConfig, normalize_share
