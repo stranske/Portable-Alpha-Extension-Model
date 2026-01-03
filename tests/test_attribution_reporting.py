@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from pa_core.config import ModelConfig
 from pa_core.reporting.attribution import (
+    compute_sleeve_cvar_contribution,
     compute_sleeve_return_attribution,
+    compute_sleeve_return_contribution,
     compute_sleeve_risk_attribution,
 )
+from pa_core.sim.metrics import conditional_value_at_risk
 
 
 def test_compute_sleeve_return_attribution_basic() -> None:
@@ -42,6 +46,7 @@ def test_compute_sleeve_return_attribution_basic() -> None:
             "Active Ext monthly spike prob": 0.0,
             "Active Ext spike multiplier": 0.0,
             "Analysis mode": "returns",
+            "financing_mode": "broadcast",
         }
     )
     # Synthetic monthly index series with 1% mean
@@ -107,6 +112,7 @@ def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
             "Active Ext monthly spike prob": 0.0,
             "Active Ext spike multiplier": 0.0,
             "Analysis mode": "returns",
+            "financing_mode": "broadcast",
         }
     )
     idx_series = pd.Series([0.01, 0.02, 0.0, -0.01, 0.03])
@@ -134,3 +140,63 @@ def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
     }
     assert df["CorrWithIndex"].between(-1.0, 1.0).all()
     assert (df[["BetaVol", "AlphaVol", "AnnVolApprox", "TEApprox"]] >= 0).all().all()
+
+
+def test_compute_sleeve_return_contribution_sums_to_total() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[0.01, 0.02], [0.01, 0.02]]),
+        "ActiveExt": np.array([[0.0, 0.01], [0.0, 0.01]]),
+        "Base": np.array([[0.005, 0.005], [0.005, 0.005]]),
+    }
+
+    df = compute_sleeve_return_contribution(returns_map, periods_per_year=12)
+
+    assert {"Agent", "ReturnContribution"} <= set(df.columns)
+    total = float(df.loc[df["Agent"] == "Total", "ReturnContribution"].iloc[0])
+    sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["ReturnContribution"].sum()
+    assert np.isclose(total, sleeves)
+    assert np.isclose(total, 0.24)
+
+
+def test_compute_sleeve_cvar_contribution_sums_to_total() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[-0.02, 0.01], [-0.02, 0.01]]),
+        "ActiveExt": np.array([[-0.01, 0.02], [-0.01, 0.02]]),
+        "Base": np.array([[0.0, 0.0], [0.0, 0.0]]),
+    }
+
+    df = compute_sleeve_cvar_contribution(returns_map, confidence=0.5)
+
+    assert {"Agent", "CVaRContribution"} <= set(df.columns)
+    total = float(df.loc[df["Agent"] == "Total", "CVaRContribution"].iloc[0])
+    sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["CVaRContribution"].sum()
+    assert np.isclose(total, sleeves)
+    assert np.isclose(total, -0.03)
+
+
+def test_compute_sleeve_cvar_contribution_matches_portfolio_cvar() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[-0.05, 0.02, 0.01], [-0.03, 0.01, 0.0]]),
+        "ActiveExt": np.array([[-0.02, 0.01, 0.0], [-0.01, 0.02, 0.01]]),
+        "Base": np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]),
+    }
+
+    df = compute_sleeve_cvar_contribution(returns_map, confidence=0.5)
+
+    total_returns = returns_map["ExternalPA"] + returns_map["ActiveExt"]
+    expected_total = conditional_value_at_risk(total_returns, confidence=0.5)
+    sleeves = df[df["Agent"].isin(["ExternalPA", "ActiveExt"])]["CVaRContribution"].sum()
+    total = float(df.loc[df["Agent"] == "Total", "CVaRContribution"].iloc[0])
+
+    assert np.isclose(sleeves, expected_total)
+    assert np.isclose(total, expected_total)
+
+
+def test_compute_sleeve_cvar_contribution_rejects_shape_mismatch() -> None:
+    returns_map = {
+        "ExternalPA": np.array([[-0.01, 0.02], [-0.01, 0.02]]),
+        "ActiveExt": np.array([[-0.02, 0.01, 0.0], [-0.02, 0.01, 0.0]]),
+    }
+
+    with pytest.raises(ValueError, match="shape"):
+        compute_sleeve_cvar_contribution(returns_map, confidence=0.5)

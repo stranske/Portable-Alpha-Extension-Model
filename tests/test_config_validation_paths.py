@@ -12,8 +12,9 @@ def base_config() -> Dict[str, object]:
     return {
         "N_SIMULATIONS": 1000,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "analysis_mode": "returns",
-        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
 
 
@@ -22,6 +23,15 @@ def test_financing_model_rejects_unknown_value() -> None:
     config_data["financing_model"] = "invalid"
 
     with pytest.raises(ValueError, match="financing_model must be one of"):
+        load_config(config_data)
+
+
+def test_financing_mode_is_required() -> None:
+    """financing_mode should be explicitly configured."""
+    config_data = base_config()
+    config_data.pop("financing_mode")
+
+    with pytest.raises(ValueError, match="financing_mode"):
         load_config(config_data)
 
 
@@ -101,11 +111,11 @@ def test_share_inputs_accept_active_share_alias() -> None:
     assert cfg.active_share == pytest.approx(0.5)
 
 
-def test_risk_metrics_must_include_shortfallprob() -> None:
+def test_risk_metrics_must_include_terminal_shortfallprob() -> None:
     config_data = base_config()
     config_data["risk_metrics"] = ["Return", "Risk"]
 
-    with pytest.raises(ValueError, match="risk_metrics must include ShortfallProb"):
+    with pytest.raises(ValueError, match="risk_metrics must include terminal_ShortfallProb"):
         load_config(config_data)
 
 
@@ -128,7 +138,7 @@ def test_load_config_missing_required_field_raises_value_error() -> None:
     config_data = {
         "N_SIMULATIONS": 1000,
         "analysis_mode": "returns",
-        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
 
     with pytest.raises(ValueError, match="Number of months"):

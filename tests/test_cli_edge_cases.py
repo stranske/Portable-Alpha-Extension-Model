@@ -6,7 +6,7 @@ from pa_core.config import ModelConfig
 
 
 def _minimal_config() -> ModelConfig:
-    return ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    return ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
 
 
 def _mock_monthly_series(values=None) -> pd.Series:

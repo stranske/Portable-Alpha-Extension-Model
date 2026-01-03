@@ -24,12 +24,12 @@ Example Usage::
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
-    import numpy as np
     import pandas as pd
 
     from .config import ModelConfig
@@ -92,11 +92,13 @@ class RunOptions:
         seed: Random seed for reproducible simulations. If None, uses non-deterministic RNG.
         backend: Computation backend selection (currently only "numpy" supported).
         config_overrides: Dictionary of config parameter overrides to apply.
+        legacy_agent_rng: Use order-dependent agent RNG streams for backward compatibility.
     """
 
     seed: int | None = None
     backend: str | None = None
     config_overrides: Mapping[str, Any] | None = None
+    legacy_agent_rng: bool = False
 
 
 @dataclass(slots=True)
@@ -114,23 +116,6 @@ class ExportOptions:
     include_sensitivity: bool = False
     include_charts: bool = True
     alt_text: str | None = None
-
-
-def _cov_to_corr_and_sigma(cov: "np.ndarray") -> tuple["np.ndarray", "np.ndarray"]:
-    """Convert covariance matrix to correlation matrix and volatility vector.
-
-    Args:
-        cov: Covariance matrix (n x n).
-
-    Returns:
-        Tuple of (sigma_vector, correlation_matrix).
-    """
-    import numpy as np
-
-    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-    denom = np.outer(sigma, sigma)
-    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-    return sigma, corr
 
 
 def run_single(
@@ -181,12 +166,17 @@ def run_single(
 
     from .agents.registry import build_from_config
     from .backend import resolve_and_set_backend
-    from .random import spawn_agent_rngs, spawn_rngs
+    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .sim import draw_financing_series, draw_joint_returns
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
-    from .sim.params import build_simulation_params
+    from .sim.params import (
+        build_covariance_return_overrides,
+        build_params,
+        resolve_covariance_inputs,
+    )
     from .simulations import simulate_agents
+    from .units import normalize_return_inputs
     from .validators import select_vol_regime_sigma
 
     run_options = options or RunOptions()
@@ -213,9 +203,10 @@ def run_single(
     )
     n_samples = int(len(idx_series))
 
-    sigma_h = float(run_cfg.sigma_H)
-    sigma_e = float(run_cfg.sigma_E)
-    sigma_m = float(run_cfg.sigma_M)
+    return_inputs = normalize_return_inputs(run_cfg)
+    sigma_h = float(return_inputs["sigma_H"])
+    sigma_e = float(return_inputs["sigma_E"])
+    sigma_m = float(return_inputs["sigma_M"])
 
     cov = build_cov_matrix(
         run_cfg.rho_idx_H,
@@ -231,23 +222,25 @@ def run_single(
         covariance_shrinkage=run_cfg.covariance_shrinkage,
         n_samples=n_samples,
     )
-    sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
+    sigma_vec, corr_mat = resolve_covariance_inputs(
+        cov,
+        idx_sigma=idx_sigma,
+        sigma_h=sigma_h,
+        sigma_e=sigma_e,
+        sigma_m=sigma_m,
+        rho_idx_H=run_cfg.rho_idx_H,
+        rho_idx_E=run_cfg.rho_idx_E,
+        rho_idx_M=run_cfg.rho_idx_M,
+        rho_H_E=run_cfg.rho_H_E,
+        rho_H_M=run_cfg.rho_H_M,
+        rho_E_M=run_cfg.rho_E_M,
+    )
 
-    params = build_simulation_params(
+    params = build_params(
         run_cfg,
         mu_idx=mu_idx,
         idx_sigma=float(sigma_vec[0]),
-        return_overrides={
-            "default_sigma_H": float(sigma_vec[1]),
-            "default_sigma_E": float(sigma_vec[2]),
-            "default_sigma_M": float(sigma_vec[3]),
-            "rho_idx_H": float(corr_mat[0, 1]),
-            "rho_idx_E": float(corr_mat[0, 2]),
-            "rho_idx_M": float(corr_mat[0, 3]),
-            "rho_H_E": float(corr_mat[1, 2]),
-            "rho_H_M": float(corr_mat[1, 3]),
-            "rho_E_M": float(corr_mat[2, 3]),
-        },
+        return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
     )
 
     rng_returns = spawn_rngs(run_options.seed, 1)[0]
@@ -257,11 +250,17 @@ def run_single(
         params=params,
         rng=rng_returns,
     )
-    fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
+    corr_repair_info = params.get("_correlation_repair_info")
+    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
+        run_options.seed,
+        ["internal", "external_pa", "active_ext"],
+        legacy_order=run_options.legacy_agent_rng,
+    )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=run_cfg.N_MONTHS,
         n_sim=run_cfg.N_SIMULATIONS,
         params=params,
+        financing_mode=run_cfg.financing_mode,
         rngs=fin_rngs,
     )
 
@@ -270,6 +269,14 @@ def run_single(
     summary = summary_table(returns, benchmark="Base")
     raw_returns = {name: pd.DataFrame(data) for name, data in returns.items()}
     inputs = run_cfg.model_dump()
+    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
+        inputs["correlation_repair_applied"] = True
+        inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
+
+    manifest = {
+        "seed": run_options.seed,
+        "substream_ids": substream_ids,
+    }
 
     return RunArtifacts(
         config=run_cfg,
@@ -278,6 +285,7 @@ def run_single(
         summary=summary,
         inputs=inputs,
         raw_returns=raw_returns,
+        manifest=manifest,
     )
 
 
@@ -331,7 +339,7 @@ def run_sweep(
     import pandas as pd
 
     from .backend import resolve_and_set_backend
-    from .random import spawn_agent_rngs, spawn_rngs
+    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .sweep import run_parameter_sweep, sweep_results_to_dataframe
 
     run_options = options or RunOptions()
@@ -352,7 +360,11 @@ def run_sweep(
         raise ValueError("Index data must be a pandas Series")
 
     rng_returns = spawn_rngs(run_options.seed, 1)[0]
-    fin_rngs = spawn_agent_rngs(run_options.seed, ["internal", "external_pa", "active_ext"])
+    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
+        run_options.seed,
+        ["internal", "external_pa", "active_ext"],
+        legacy_order=run_options.legacy_agent_rng,
+    )
     results = run_parameter_sweep(
         run_cfg,
         idx_series,
@@ -363,12 +375,18 @@ def run_sweep(
     summary = sweep_results_to_dataframe(results)
     inputs = run_cfg.model_dump()
 
+    manifest = {
+        "seed": run_options.seed,
+        "substream_ids": substream_ids,
+    }
+
     return SweepArtifacts(
         config=run_cfg,
         index_series=idx_series,
         results=results,
         summary=summary,
         inputs=inputs,
+        manifest=manifest,
     )
 
 
@@ -421,6 +439,12 @@ def export(
     if isinstance(artifacts, RunArtifacts):
         # Prepare inputs dict with optional internal DataFrames
         inputs_dict: dict[str, Any] = dict(artifacts.inputs)
+        metadata = None
+        if artifacts.manifest is not None:
+            metadata = {
+                "rng_seed": artifacts.manifest.get("seed"),
+                "substream_ids": artifacts.manifest.get("substream_ids"),
+            }
 
         export_to_excel(
             inputs_dict,
@@ -428,10 +452,17 @@ def export(
             artifacts.raw_returns,
             filename=str(output),
             pivot=export_opts.pivot,
+            metadata=metadata,
             finalize=True,
         )
     elif isinstance(artifacts, SweepArtifacts):
-        export_sweep_results(artifacts.results, filename=str(output))
+        metadata = None
+        if artifacts.manifest is not None:
+            metadata = {
+                "rng_seed": artifacts.manifest.get("seed"),
+                "substream_ids": artifacts.manifest.get("substream_ids"),
+            }
+        export_sweep_results(artifacts.results, filename=str(output), metadata=metadata)
     else:
         raise ValueError(f"Unsupported artifacts type: {type(artifacts)}")
 

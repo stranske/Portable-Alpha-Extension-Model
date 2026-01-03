@@ -16,7 +16,7 @@ def make(
     """Return scatter of tracking error vs beta exposure."""
     df = df_summary.copy()
     thr = theme.THRESHOLDS
-    probs = df.get("ShortfallProb")
+    probs = df.get("terminal_ShortfallProb")
     probs = (
         probs.fillna(theme.DEFAULT_SHORTFALL_PROB)
         if probs is not None

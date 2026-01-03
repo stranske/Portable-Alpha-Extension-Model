@@ -6,7 +6,7 @@ import pandas as pd
 from rich.console import Console
 from rich.table import Table
 
-__all__ = ["print_summary", "print_run_diff"]
+__all__ = ["print_summary", "print_run_diff", "print_constraint_report"]
 
 
 def print_summary(summary: pd.DataFrame | Mapping[str, float]) -> None:
@@ -93,3 +93,17 @@ def print_run_diff(
         printed = True
     if not printed:
         console.print("No changes detected vs previous run.")
+
+
+def print_constraint_report(report_df: pd.DataFrame) -> None:
+    """Pretty-print constraint breaches using Rich."""
+    console = Console()
+    if report_df is None or report_df.empty:
+        console.print("No constraint breaches detected.")
+        return
+    table = Table(title="Constraint Breaches", show_header=True, header_style="bold red")
+    for col in report_df.columns:
+        table.add_column(str(col))
+    for row in report_df.itertuples(index=False):
+        table.add_row(*[_format_cell(value, col) for col, value in zip(report_df.columns, row)])
+    console.print(table)

@@ -139,7 +139,7 @@ class RiskMetric(str, Enum):
 
     RETURN = "Return"
     RISK = "Risk"
-    SHORTFALL_PROB = "ShortfallProb"
+    SHORTFALL_PROB = "terminal_ShortfallProb"
 
 
 class WizardScenarioConfig(BaseModel):  # Minimal placeholder for UI wiring
@@ -164,6 +164,7 @@ class DefaultConfigView:
     analysis_mode: AnalysisMode
     n_simulations: int
     n_months: int
+    financing_mode: str
 
     # Capital allocation
     external_pa_capital: float
@@ -217,6 +218,7 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         analysis_mode=AnalysisMode(m.analysis_mode),
         n_simulations=m.N_SIMULATIONS,
         n_months=m.N_MONTHS,
+        financing_mode=m.financing_mode,
         # Capital allocation
         external_pa_capital=m.external_pa_capital,
         active_ext_capital=m.active_ext_capital,
@@ -255,7 +257,9 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     """
 
     # Build ModelConfig using alias names via model_validate to satisfy typing
-    base = ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+    base = ModelConfig.model_validate(
+        {"Number of simulations": 1, "Number of months": 1, "financing_mode": "broadcast"}
+    )
     cfg = _make_view(base)
 
     if mode == AnalysisMode.CAPITAL:
@@ -281,7 +285,13 @@ def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     elif mode == AnalysisMode.VOL_MULT:
         # Slightly conservative vols vs. returns baseline
         returns_defaults = _make_view(
-            ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+            ModelConfig.model_validate(
+                {
+                    "Number of simulations": 1,
+                    "Number of months": 1,
+                    "financing_mode": "broadcast",
+                }
+            )
         )
         cfg.sigma_h = returns_defaults.sigma_h * 0.9
         cfg.sigma_e = returns_defaults.sigma_e * 0.9

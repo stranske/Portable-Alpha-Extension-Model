@@ -16,15 +16,15 @@ def test_one_factor_deltas():
 
 
 def test_one_factor_deltas_with_ann_return():
-    """Test sensitivity analysis with AnnReturn column."""
-    base = pd.DataFrame({"AnnReturn": [8.5]})
+    """Test sensitivity analysis with terminal_AnnReturn column."""
+    base = pd.DataFrame({"terminal_AnnReturn": [8.5]})
     scenarios = {
-        "mu_H_+5%": pd.DataFrame({"AnnReturn": [9.0]}),
-        "mu_H_-5%": pd.DataFrame({"AnnReturn": [8.0]}),
-        "sigma_H_+5%": pd.DataFrame({"AnnReturn": [8.3]}),
-        "sigma_H_-5%": pd.DataFrame({"AnnReturn": [8.7]}),
+        "mu_H_+5%": pd.DataFrame({"terminal_AnnReturn": [9.0]}),
+        "mu_H_-5%": pd.DataFrame({"terminal_AnnReturn": [8.0]}),
+        "sigma_H_+5%": pd.DataFrame({"terminal_AnnReturn": [8.3]}),
+        "sigma_H_-5%": pd.DataFrame({"terminal_AnnReturn": [8.7]}),
     }
-    deltas = sensitivity.one_factor_deltas(base, scenarios, value="AnnReturn")
+    deltas = sensitivity.one_factor_deltas(base, scenarios, value="terminal_AnnReturn")
 
     # Check that deltas are computed correctly
     assert pytest.approx(deltas["mu_H_+5%"], rel=1e-6) == 0.5
@@ -38,19 +38,19 @@ def test_one_factor_deltas_with_ann_return():
 
 
 def test_one_factor_deltas_orders_ties():
-    base = pd.DataFrame({"AnnReturn": [1.0]})
+    base = pd.DataFrame({"terminal_AnnReturn": [1.0]})
     scenarios = {
-        "beta": pd.DataFrame({"AnnReturn": [1.1]}),
-        "alpha": pd.DataFrame({"AnnReturn": [1.1]}),
-        "gamma": pd.DataFrame({"AnnReturn": [1.05]}),
+        "beta": pd.DataFrame({"terminal_AnnReturn": [1.1]}),
+        "alpha": pd.DataFrame({"terminal_AnnReturn": [1.1]}),
+        "gamma": pd.DataFrame({"terminal_AnnReturn": [1.05]}),
     }
-    deltas = sensitivity.one_factor_deltas(base, scenarios, value="AnnReturn")
+    deltas = sensitivity.one_factor_deltas(base, scenarios, value="terminal_AnnReturn")
     assert list(deltas.index) == ["alpha", "beta", "gamma"]
 
 
 def test_one_factor_deltas_missing_column():
     """Test error handling for missing columns."""
-    base = pd.DataFrame({"AnnReturn": [8.5]})
+    base = pd.DataFrame({"terminal_AnnReturn": [8.5]})
     scenarios = {
         "mu_H_+5%": pd.DataFrame({"WrongColumn": [9.0]}),
     }
@@ -58,5 +58,5 @@ def test_one_factor_deltas_missing_column():
     with pytest.raises(KeyError, match="WrongColumn column missing"):
         sensitivity.one_factor_deltas(base, scenarios, value="WrongColumn")
 
-    with pytest.raises(KeyError, match="AnnReturn column missing from scenario"):
-        sensitivity.one_factor_deltas(base, scenarios, value="AnnReturn")
+    with pytest.raises(KeyError, match="terminal_AnnReturn column missing from scenario"):
+        sensitivity.one_factor_deltas(base, scenarios, value="terminal_AnnReturn")

@@ -153,7 +153,13 @@ python -m pa_core.cli --config config.yml --index data.csv --index-frequency mon
    for traceability.
 9. When a seed is supplied the program uses `spawn_agent_rngs` to create
    deterministic random-number generators per sleeve so results are fully
-   repeatable.
+   repeatable. Substream IDs are derived from a stable hash of
+   `seed + agent_name` (agent names are sorted first), so reordering sleeves
+   or adding new ones will not change existing streams. Keep agent names
+   stable; renaming a sleeve changes its RNG stream. Use
+   `--legacy-agent-rng` to restore the older order-dependent behavior.
+   The output workbook includes `rng_seed` and `substream_ids` in the
+   `Metadata` sheet.
 10. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
 11. Run `python -m pa_core.cli --help` at any time to view all command-line options.
 12. Include `--dashboard` to open an interactive Streamlit view after the run completes. Example:
@@ -497,6 +503,28 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 3. **Evaluate resilience**: See how your strategy performs in low, normal, and high volatility environments.
 
 **Key Insight**: Vol mult mode reveals how robust your strategy is to changing market volatility.
+
+#### Stress Presets (Quick Scenarios)
+
+For quick, repeatable stress tests you can apply predefined presets that override
+the base configuration without building a full sweep. These presets are available
+via the CLI (`--stress-preset`) and in the dashboard Stress Lab page.
+
+Available presets:
+- **liquidity_squeeze**: Higher financing spikes and jump probabilities.
+- **correlation_breakdown**: Force correlations toward 0.95.
+- **2008_vol_regime**: Triple sleeve volatilities using the stress multiplier.
+- **2020_gap_day**: Deep negative return shock across sleeves.
+- **rate_shock**: Higher financing means and volatility.
+
+Example CLI run:
+```bash
+python -m pa_core.cli \
+  --config config/params_template.yml \
+  --index sp500tr_fred_divyield.csv \
+  --stress-preset 2008_vol_regime \
+  --output StressPreset_2008.xlsx
+```
 
 #### Part 5: Returns Mode - Sensitivity Analysis
 
@@ -1260,6 +1288,63 @@ Notes
 - Static PPTX/PNG/PDF exports require a renderer (Chromium/Chrome + kaleido). If missing, the CLI prints an actionable error.
 - The tornado bars are sourced from the absolute delta column (DeltaAbs) produced by the sensitivity analysis.
 - The attribution table decomposes annual return into Beta, Alpha and Financing contributions per sleeve; a risk‑attribution table (volatility and TE approximations) is added when available.
+
+## Sleeve Attribution Methodology
+
+The attribution module (`pa_core/reporting/attribution.py`) provides three complementary decompositions to answer "which sleeve is driving my results?"
+
+### Return Contribution
+
+**Function**: `compute_sleeve_return_contribution()`
+
+Each sleeve's return contribution is computed as its arithmetic mean monthly return scaled to annual:
+
+$$\text{Contribution}_i = \bar{r}_i \times 12$$
+
+where $\bar{r}_i$ is the mean monthly return for sleeve $i$. Contributions sum to the total portfolio return within floating-point tolerance, enabling users to see which sleeves add or subtract value.
+
+### Return Attribution (Component Breakdown)
+
+**Function**: `compute_sleeve_return_attribution()`
+
+For detailed analysis, each sleeve's return is further decomposed into:
+- **Beta**: Exposure to index return ($w_i \times \mu_{\text{idx}}$)
+- **Alpha**: Exposure to sleeve-specific alpha stream ($w_i \times \theta_i \times \mu_{\alpha}$)
+- **Financing**: Financing drag on beta portion ($-w_i \times \mu_{\text{fin}}$)
+
+This allows users to understand not just which sleeves contribute, but *how* they contribute (market exposure vs. skill vs. cost).
+
+### Tracking Error Attribution
+
+**Function**: `compute_sleeve_risk_attribution()`
+
+TE attribution uses covariance-based decomposition. For each sleeve with beta exposure $b$ and alpha volatility $\sigma_\alpha$:
+
+$$\text{Var}(R_i - I) = (b-1)^2 \sigma_I^2 + \sigma_\alpha^2 + 2(b-1)\rho_{I,\alpha}\sigma_I\sigma_\alpha$$
+
+The annualized TE approximation is $\sqrt{12} \times \sqrt{\text{Var}(R_i - I)}$.
+
+Additional metrics reported:
+- **BetaVol**: $\sqrt{12} \times |b| \times \sigma_I$ (beta contribution to volatility)
+- **AlphaVol**: $\sqrt{12} \times \sigma_\alpha$ (alpha contribution to volatility)
+- **CorrWithIndex**: Correlation of sleeve return with index
+
+### CVaR Contribution (Euler Decomposition)
+
+**Function**: `compute_sleeve_cvar_contribution()`
+
+Marginal CVaR uses the Euler decomposition property: the conditional expectation of each sleeve's return in the portfolio tail:
+
+$$\text{CVaR}_i = E[r_i \mid R_{\text{portfolio}} < \text{VaR}]$$
+
+By construction, sleeve CVaR contributions sum exactly to the portfolio CVaR, satisfying the Euler homogeneity property. This answers "how much does each sleeve contribute to tail risk?"
+
+### Output Formats
+
+Attribution results are available in:
+1. **Excel workbook**: `sleeve_attribution` sheet with per-sleeve breakdown
+2. **Sunburst chart**: Visual decomposition via `pa_core.viz.sunburst`
+3. **CLI output**: `--attribution` flag adds attribution tables to console output
 
 ## Constraint‑aware Sleeve Suggestor & Trade‑off Table
 

@@ -19,9 +19,10 @@ def valid_config_basic() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 10,
         "N_MONTHS": 5,
+        "financing_mode": "broadcast",
         "w_beta_H": 0.6,
         "w_alpha_H": 0.4,
-        "risk_metrics": ["ShortfallProb"],
+        "risk_metrics": ["terminal_ShortfallProb"],
     }
 
 
@@ -31,12 +32,13 @@ def valid_config_no_alpha() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 5,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "w_beta_H": 1.0,
         "w_alpha_H": 0.0,
         "external_pa_capital": 0.0,
         "active_ext_capital": 0.0,
         "internal_pa_capital": 0.0,
-        "risk_metrics": ["ShortfallProb"],
+        "risk_metrics": ["terminal_ShortfallProb"],
     }
 
 
@@ -46,9 +48,10 @@ def valid_config_reproducibility() -> Dict[str, Any]:
     return {
         "N_SIMULATIONS": 5,
         "N_MONTHS": 6,
+        "financing_mode": "broadcast",
         "w_beta_H": 0.6,
         "w_alpha_H": 0.4,
-        "risk_metrics": ["ShortfallProb"],
+        "risk_metrics": ["terminal_ShortfallProb"],
     }
 
 
@@ -82,7 +85,7 @@ def test_orchestrator_runs_with_valid_config(
     returns, summary = orch.run(seed=0)
 
     assert "Base" in returns
-    assert "AnnReturn" in summary.columns
+    assert "terminal_AnnReturn" in summary.columns
 
 
 def test_orchestrator_reproducible_seed(
@@ -125,7 +128,7 @@ def test_te_scales_with_margin_when_no_alpha_allocation(
     expected_internal_beta = base * (beta_share / cfg.w_beta_H)
     np.testing.assert_allclose(internal_beta, expected_internal_beta)
 
-    te_val = summary.loc[summary.Agent == "InternalBeta", "TE"].iloc[0]
+    te_val = summary.loc[summary.Agent == "InternalBeta", "monthly_TE"].iloc[0]
     expected_te = active_return_volatility(internal_beta, base)
     assert te_val == pytest.approx(expected_te, abs=TEST_TOLERANCE_EPSILON)
 
@@ -147,9 +150,10 @@ def test_invalid_share_configurations_raise_error(w_beta_H, w_alpha_H, expected_
     invalid_config = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "w_beta_H": w_beta_H,
         "w_alpha_H": w_alpha_H,
-        "risk_metrics": ["ShortfallProb"],
+        "risk_metrics": ["terminal_ShortfallProb"],
     }
 
     with pytest.raises(ValueError, match=expected_error):

@@ -26,6 +26,15 @@ Alternative quick commands:
 - `pa_core/config.py` - `ModelConfig` validation and load helpers
 - `pa_core/schema.py` - `Scenario` schema for market data inputs
 
+## Schema aliasing conventions
+
+- Use `Field(alias=...)` for human-readable parameter names and keep aliases stable.
+- When renaming aliases, add `validation_alias` or `AliasChoices` to preserve backward compatibility.
+- Regenerate schema-derived artifacts after alias changes:
+  - `python -m pa_core.schema --generate-templates`
+  - `python -m pa_core.schema --generate-parameter-dictionary`
+- Avoid changing capitalization/punctuation in aliases unless deprecations are documented.
+
 ## Helpful references
 
 - `docs/INSTRUCTIONS_FOR_CODEX.md` for workflow expectations and test guidance.

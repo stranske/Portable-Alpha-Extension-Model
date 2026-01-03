@@ -74,6 +74,7 @@ def test_validate_cli_config(tmp_path: Path) -> None:
         """
 N_SIMULATIONS: 1
 N_MONTHS: 1
+financing_mode: broadcast
 mu_H: 0.04
 sigma_H: 0.01
 """,

@@ -37,16 +37,17 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
         return pd.DataFrame(
             {
                 "Agent": ["Base"],
-                "AnnReturn": [0.0],
-                "AnnVol": [0.0],
-                "VaR": [0.0],
-                "CVaR": [0.0],
-                "MaxDD": [0.0],
-                "TimeUnderWater": [0.0],
-                "BreachProb": [0.0],
-                "BreachCount": [0.0],
-                "ShortfallProb": [0.0],
-                "TE": [0.0],
+                "terminal_AnnReturn": [0.0],
+                "monthly_AnnVol": [0.0],
+                "monthly_VaR": [0.0],
+                "monthly_CVaR": [0.0],
+                "terminal_CVaR": [0.0],
+                "monthly_MaxDD": [0.0],
+                "monthly_TimeUnderWater": [0.0],
+                "monthly_BreachProb": [0.0],
+                "monthly_BreachCountPath0": [0.0],
+                "terminal_ShortfallProb": [0.0],
+                "monthly_TE": [0.0],
             }
         )
 
@@ -78,8 +79,9 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
         {
             "N_SIMULATIONS": 5,
             "N_MONTHS": 2,
+            "financing_mode": "broadcast",
             "analysis_mode": "returns",
-            "risk_metrics": ["ShortfallProb"],
+            "risk_metrics": ["terminal_ShortfallProb"],
             "covariance_shrinkage": "ledoit_wolf",
             "in_house_return_min_pct": 2.0,
             "in_house_return_max_pct": 2.0,

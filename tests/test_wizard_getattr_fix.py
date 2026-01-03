@@ -14,6 +14,7 @@ class TestWizardConfigConsistency:
             "analysis_mode",
             "n_simulations",
             "n_months",
+            "financing_mode",
             "total_fund_capital",
             "external_pa_capital",
             "active_ext_capital",
@@ -58,7 +59,11 @@ class TestWizardConfigConsistency:
         """Test that DefaultConfigView values are consistent with ModelConfig defaults where applicable."""
         # Create a base ModelConfig with minimal required fields
         model_config = ModelConfig.model_validate(
-            {"Number of simulations": 1000, "Number of months": 12}
+            {
+                "Number of simulations": 1000,
+                "Number of months": 12,
+                "financing_mode": "broadcast",
+            }
         )
 
         # Get equivalent DefaultConfigView
@@ -67,6 +72,7 @@ class TestWizardConfigConsistency:
         # Test that default values from ModelConfig are preserved in DefaultConfigView
         # (except where intentionally modified for specific analysis modes)
         assert default_view.total_fund_capital == model_config.total_fund_capital
+        assert default_view.financing_mode == model_config.financing_mode
         assert default_view.w_beta_h == model_config.w_beta_H
         assert default_view.w_alpha_h == model_config.w_alpha_H
         assert default_view.theta_extpa == model_config.theta_extpa
@@ -100,7 +106,9 @@ class TestWizardConfigConsistency:
         # Test VOL_MULT mode has conservative volatilities
         vol_config = get_default_config(AnalysisMode.VOL_MULT)
         # Should be 90% of base model volatilities
-        base_model = ModelConfig.model_validate({"Number of simulations": 1, "Number of months": 1})
+        base_model = ModelConfig.model_validate(
+            {"Number of simulations": 1, "Number of months": 1, "financing_mode": "broadcast"}
+        )
         assert abs(vol_config.sigma_h - base_model.sigma_H * 0.9) < 1e-10
         assert abs(vol_config.sigma_e - base_model.sigma_E * 0.9) < 1e-10
         assert abs(vol_config.sigma_m - base_model.sigma_M * 0.9) < 1e-10

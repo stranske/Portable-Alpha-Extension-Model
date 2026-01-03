@@ -20,8 +20,8 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     short_cap = theme.THRESHOLDS.get("shortfall_amber", theme.LOW_BUFFER_THRESHOLD)
     te_vals_raw = df["TrackingErr"] if "TrackingErr" in df else pd.Series(0.0, index=df.index)
     short_vals_raw = (
-        df["ShortfallProb"]
-        if "ShortfallProb" in df
+        df["terminal_ShortfallProb"]
+        if "terminal_ShortfallProb" in df
         else pd.Series(theme.DEFAULT_SHORTFALL_PROB, index=df.index)
     )
 
@@ -35,7 +35,7 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     short_breach = (short_vals > short_cap).astype(float)
     z = np.vstack([safe_to_numpy(te_breach), safe_to_numpy(short_breach)])
     fig = go.Figure(
-        data=go.Heatmap(z=z, x=months, y=["TE", "Shortfall"]),
+        data=go.Heatmap(z=z, x=months, y=["monthly_TE", "Shortfall"]),
         layout_template=theme.TEMPLATE,
     )
     fig.update_layout(xaxis_title="Month", yaxis_title="Metric")

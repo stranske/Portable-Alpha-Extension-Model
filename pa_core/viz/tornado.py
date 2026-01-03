@@ -57,7 +57,7 @@ def make(
 
     # Ensure numeric dtype for plotting
     series = series.astype(float)
-    series_metric = metric or series.attrs.get("metric", "AnnReturn")
+    series_metric = metric or series.attrs.get("metric", "terminal_AnnReturn")
     series_units = units or series.attrs.get("units", "%")
     if tickformat is None:
         tickformat = series.attrs.get("tickformat")

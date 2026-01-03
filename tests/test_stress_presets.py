@@ -1,11 +1,11 @@
 import pytest
 
 from pa_core.config import ModelConfig, annual_mean_to_monthly
-from pa_core.stress import apply_stress_preset
+from pa_core.stress import STRESS_PRESETS, apply_stress_preset
 
 
 def _base_cfg() -> ModelConfig:
-    return ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    return ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
 
 
 def test_liquidity_squeeze_overrides_financing():
@@ -48,3 +48,15 @@ def test_2020_gap_day_overrides_returns():
     assert stressed.mu_H == pytest.approx(annual_mean_to_monthly(-0.20))
     assert stressed.mu_E == pytest.approx(annual_mean_to_monthly(-0.25))
     assert stressed.mu_M == pytest.approx(annual_mean_to_monthly(-0.15))
+
+
+def test_rate_shock_overrides_financing_means():
+    cfg = _base_cfg()
+    stressed = apply_stress_preset(cfg, "rate_shock")
+    assert stressed.internal_financing_mean_month == pytest.approx(0.012)
+    assert stressed.ext_pa_financing_mean_month == pytest.approx(0.014)
+    assert stressed.act_ext_financing_mean_month == pytest.approx(0.015)
+
+
+def test_stress_preset_library_has_minimum_count():
+    assert len(STRESS_PRESETS) >= 5

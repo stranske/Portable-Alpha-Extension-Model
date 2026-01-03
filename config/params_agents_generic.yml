@@ -5,6 +5,7 @@ N_SIMULATIONS: 1000
 N_MONTHS: 12
 
 total_fund_capital: 300.0
+financing_mode: broadcast # broadcast|per_path (broadcast shares one path across sims)
 
 agents:
   - name: Base

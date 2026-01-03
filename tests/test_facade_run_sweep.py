@@ -23,6 +23,13 @@ def test_run_sweep_returns_artifacts() -> None:
     assert len(artifacts.results) == 1
     assert "combination_id" in artifacts.summary.columns
     assert "sigma_H" in artifacts.summary.columns
+    assert artifacts.manifest is not None
+    assert artifacts.manifest["seed"] == 123
+    assert set(artifacts.manifest["substream_ids"]) == {
+        "internal",
+        "external_pa",
+        "active_ext",
+    }
 
 
 def test_run_sweep_applies_config_overrides() -> None:

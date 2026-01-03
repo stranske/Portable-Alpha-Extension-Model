@@ -17,6 +17,7 @@ import streamlit as st
 from dashboard.app import _DEF_THEME, apply_theme
 from pa_core.config import ModelConfig
 from pa_core.orchestrator import SimulatorOrchestrator
+from pa_core.reporting.constraints import build_constraint_report
 from pa_core.reporting.stress_delta import (
     build_delta_table,
     build_stress_workbook,
@@ -111,6 +112,14 @@ def main() -> None:
         "Active share", min_value=0.0, max_value=1.0, value=0.5, step=0.05
     )
 
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("**Constraint limits**")
+    max_te = st.sidebar.number_input("Max tracking error", value=0.02, step=0.005, format="%.3f")
+    max_breach = st.sidebar.number_input(
+        "Max breach probability", value=0.5, step=0.05, format="%.2f"
+    )
+    max_cvar = st.sidebar.number_input("Max monthly CVaR", value=0.05, step=0.01, format="%.3f")
+
     preset_names = sorted(STRESS_PRESETS.keys())
     preset = st.selectbox(
         "Stress preset",
@@ -154,6 +163,33 @@ def main() -> None:
                 st.markdown("**Stressed**")
                 st.dataframe(stress_summary)
 
+            st.subheader("Constraint breaches (Base vs Stressed)")
+            base_constraints = build_constraint_report(
+                base_summary,
+                max_te=float(max_te),
+                max_breach=float(max_breach),
+                max_cvar=float(max_cvar),
+            )
+            stress_constraints = build_constraint_report(
+                stress_summary,
+                max_te=float(max_te),
+                max_breach=float(max_breach),
+                max_cvar=float(max_cvar),
+            )
+            breach_col1, breach_col2 = st.columns(2)
+            with breach_col1:
+                st.markdown("**Base**")
+                if base_constraints.empty:
+                    st.info("No base constraint breaches.")
+                else:
+                    st.dataframe(base_constraints)
+            with breach_col2:
+                st.markdown("**Stressed**")
+                if stress_constraints.empty:
+                    st.info("No stressed constraint breaches.")
+                else:
+                    st.dataframe(stress_constraints)
+
             st.subheader("Delta (Stressed - Base)")
             delta_df = build_delta_table(base_summary, stress_summary)
             if delta_df.empty:
@@ -176,7 +212,14 @@ def main() -> None:
                 "config_diff.csv",
                 "text/csv",
             )
-            stress_workbook = build_stress_workbook(base_summary, stress_summary, delta_df, diff_df)
+            stress_workbook = build_stress_workbook(
+                base_summary,
+                stress_summary,
+                delta_df,
+                diff_df,
+                base_constraints,
+                stress_constraints,
+            )
             st.download_button(
                 "Download stress results (Excel)",
                 stress_workbook,

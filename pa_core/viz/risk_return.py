@@ -12,46 +12,47 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
     Parameters
     ----------
     df_summary : pandas.DataFrame
-        Must contain Agent and either TE (tracking error) or AnnVol. Prefer TE
-        when it has data; fall back to TrackingErr (legacy) or AnnVol. For the
-        y-axis, prefer ExcessReturn and fall back to AnnReturn when it has
-        data. ShortfallProb is optional.
+        Must contain Agent and either monthly_TE (tracking error) or
+        monthly_AnnVol. Prefer monthly_TE when it has data; fall back to
+        TrackingErr (legacy) or monthly_AnnVol. For the y-axis, prefer
+        terminal_ExcessReturn and fall back to terminal_AnnReturn when it has
+        data. terminal_ShortfallProb is optional.
     """
     df = df_summary.copy()
-    df["ShortfallProb"] = df.get("ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
+    df["terminal_ShortfallProb"] = df.get("terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB)
     color = []
     thr = theme.THRESHOLDS
 
     def has_data(col: str) -> bool:
         return col in df and df[col].notna().any()
 
-    if has_data("TE"):
-        x_col = "TE"
+    if has_data("monthly_TE"):
+        x_col = "monthly_TE"
         x_label = "Tracking Error"
         x_hover = "Tracking Error"
         cap = thr.get("te_cap", 0.03)
     elif has_data("TrackingErr"):
-        df["TE"] = df["TrackingErr"]
-        x_col = "TE"
+        df["monthly_TE"] = df["TrackingErr"]
+        x_col = "monthly_TE"
         x_label = "Tracking Error"
         x_hover = "Tracking Error"
         cap = thr.get("te_cap", 0.03)
     else:
-        x_col = "AnnVol"
+        x_col = "monthly_AnnVol"
         x_label = "Annualized Volatility"
         x_hover = "Annualized Volatility"
         cap = thr.get("vol_cap", 0.03)
 
-    if has_data("ExcessReturn"):
-        y_col = "ExcessReturn"
+    if has_data("terminal_ExcessReturn"):
+        y_col = "terminal_ExcessReturn"
         y_label = "Annualized Excess Return"
         y_hover = "Annualized Excess Return"
     else:
-        y_col = "AnnReturn"
+        y_col = "terminal_AnnReturn"
         y_label = "Annualized Return"
         y_hover = "Annualized Return"
 
-    for prob in df["ShortfallProb"].fillna(theme.DEFAULT_SHORTFALL_PROB):
+    for prob in df["terminal_ShortfallProb"].fillna(theme.DEFAULT_SHORTFALL_PROB):
         if prob <= thr.get("shortfall_green", 0.05):
             color.append("green")
         elif prob <= thr.get("shortfall_amber", theme.LOW_BUFFER_THRESHOLD):

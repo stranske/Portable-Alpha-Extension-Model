@@ -12,7 +12,7 @@ yaml: Any = pytest.importorskip("yaml")
 
 
 def test_log_json_creates_file_and_manifest(tmp_path, monkeypatch):
-    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1}
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"

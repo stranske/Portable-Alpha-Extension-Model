@@ -23,10 +23,20 @@ from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
-from .sim.params import build_financing_params, build_return_params, build_simulation_params
+from .sim.params import (
+    build_covariance_return_overrides,
+    build_params,
+    resolve_covariance_inputs,
+)
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
-from .units import get_index_series_unit, normalize_index_series
+from .units import (
+    convert_mean,
+    convert_volatility,
+    get_index_series_unit,
+    normalize_index_series,
+    normalize_return_inputs,
+)
 from .validators import select_vol_regime_sigma
 
 
@@ -77,11 +87,19 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
                         cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct,
                         cfg.alpha_ext_vol_step_pct,
                     ):
+                        mu_H_val = convert_mean(mu_H / 100.0, from_unit="annual", to_unit="monthly")
+                        sigma_H_val = convert_volatility(
+                            sigma_H / 100.0, from_unit="annual", to_unit="monthly"
+                        )
+                        mu_E_val = convert_mean(mu_E / 100.0, from_unit="annual", to_unit="monthly")
+                        sigma_E_val = convert_volatility(
+                            sigma_E / 100.0, from_unit="annual", to_unit="monthly"
+                        )
                         yield {
-                            "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100,
-                            "mu_E": mu_E / 100,
-                            "sigma_E": sigma_E / 100,
+                            "mu_H": mu_H_val,
+                            "sigma_H": sigma_H_val,
+                            "mu_E": mu_E_val,
+                            "sigma_E": sigma_E_val,
                         }
     elif cfg.analysis_mode == "alpha_shares":
         for theta_extpa in np.arange(
@@ -119,16 +137,17 @@ logger = logging.getLogger(__name__)
 EMPTY_RESULTS_COLUMNS: pd.Index = pd.Index(
     [
         "Agent",
-        "AnnReturn",
-        "AnnVol",
-        "VaR",
-        "CVaR",
-        "MaxDD",
-        "TimeUnderWater",
-        "BreachProb",
-        "BreachCount",
-        "ShortfallProb",
-        "TE",
+        "terminal_AnnReturn",
+        "monthly_AnnVol",
+        "monthly_VaR",
+        "monthly_CVaR",
+        "terminal_CVaR",
+        "monthly_MaxDD",
+        "monthly_TimeUnderWater",
+        "monthly_BreachProb",
+        "monthly_BreachCountPath0",
+        "terminal_ShortfallProb",
+        "monthly_TE",
         "combination_id",
     ],
     dtype="object",
@@ -139,13 +158,6 @@ _EMPTY_RESULTS_DF: pd.DataFrame = pd.DataFrame(columns=EMPTY_RESULTS_COLUMNS)
 def _get_empty_results_dataframe() -> pd.DataFrame:
     """Return a copy of the cached empty DataFrame for sweep results."""
     return _EMPTY_RESULTS_DF.copy()
-
-
-def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-    denom = np.outer(sigma, sigma)
-    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-    return sigma, corr
 
 
 def run_parameter_sweep(
@@ -159,7 +171,8 @@ def run_parameter_sweep(
     """Run the parameter sweep and collect results.
 
     Index returns are normalised to monthly units before simulation, and
-    summary metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
+    summary metrics (terminal_AnnReturn/monthly_AnnVol/monthly_TE) are annualised
+    from monthly returns.
 
     Parameters
     ----------
@@ -239,9 +252,10 @@ def run_parameter_sweep(
 
     return_shocks = None
     if reuse_return_shocks:
-        sigma_h = float(cfg.sigma_H)
-        sigma_e = float(cfg.sigma_E)
-        sigma_m = float(cfg.sigma_M)
+        return_inputs = normalize_return_inputs(cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -256,20 +270,24 @@ def run_parameter_sweep(
             covariance_shrinkage=cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        base_sigma, base_corr = _cov_to_corr_and_sigma(base_cov)
-        shock_params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=float(base_sigma[0]))
-        shock_params.update(
-            {
-                "default_sigma_H": float(base_sigma[1]),
-                "default_sigma_E": float(base_sigma[2]),
-                "default_sigma_M": float(base_sigma[3]),
-                "rho_idx_H": float(base_corr[0, 1]),
-                "rho_idx_E": float(base_corr[0, 2]),
-                "rho_idx_M": float(base_corr[0, 3]),
-                "rho_H_E": float(base_corr[1, 2]),
-                "rho_H_M": float(base_corr[1, 3]),
-                "rho_E_M": float(base_corr[2, 3]),
-            }
+        base_sigma, base_corr = resolve_covariance_inputs(
+            base_cov,
+            idx_sigma=idx_sigma,
+            sigma_h=sigma_h,
+            sigma_e=sigma_e,
+            sigma_m=sigma_m,
+            rho_idx_H=cfg.rho_idx_H,
+            rho_idx_E=cfg.rho_idx_E,
+            rho_idx_M=cfg.rho_idx_M,
+            rho_H_E=cfg.rho_H_E,
+            rho_H_M=cfg.rho_H_M,
+            rho_E_M=cfg.rho_E_M,
+        )
+        shock_params = build_params(
+            cfg,
+            mu_idx=mu_idx,
+            idx_sigma=float(base_sigma[0]),
+            return_overrides=build_covariance_return_overrides(base_sigma, base_corr),
         )
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
@@ -282,7 +300,8 @@ def run_parameter_sweep(
 
     financing_series = None
     if reuse_financing_series:
-        financing_params = build_financing_params(cfg)
+        idx_sigma_fin = float(base_sigma[0]) if reuse_return_shocks else float(idx_sigma)
+        financing_params = build_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_fin)
         fin_rngs_base: Dict[str, GeneratorLike] = {}
         for name in fin_rngs.keys():
             tmp_rng = spawn_rngs(None, 1)[0]
@@ -292,6 +311,7 @@ def run_parameter_sweep(
             n_months=cfg.N_MONTHS,
             n_sim=cfg.N_SIMULATIONS,
             params=financing_params,
+            financing_mode=cfg.financing_mode,
             rngs=fin_rngs_base,
         )
 
@@ -308,9 +328,10 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        sigma_h = float(mod_cfg.sigma_H)
-        sigma_e = float(mod_cfg.sigma_E)
-        sigma_m = float(mod_cfg.sigma_M)
+        return_inputs = normalize_return_inputs(mod_cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
 
         cov = build_cov_matrix(
             mod_cfg.rho_idx_H,
@@ -326,26 +347,24 @@ def run_parameter_sweep(
             covariance_shrinkage=mod_cfg.covariance_shrinkage,
             n_samples=n_samples,
         )
-        sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-        idx_sigma_cov = float(sigma_vec[0])
-        sigma_h_cov = float(sigma_vec[1])
-        sigma_e_cov = float(sigma_vec[2])
-        sigma_m_cov = float(sigma_vec[3])
-        params = build_simulation_params(
+        sigma_vec, corr_mat = resolve_covariance_inputs(
+            cov,
+            idx_sigma=idx_sigma,
+            sigma_h=sigma_h,
+            sigma_e=sigma_e,
+            sigma_m=sigma_m,
+            rho_idx_H=mod_cfg.rho_idx_H,
+            rho_idx_E=mod_cfg.rho_idx_E,
+            rho_idx_M=mod_cfg.rho_idx_M,
+            rho_H_E=mod_cfg.rho_H_E,
+            rho_H_M=mod_cfg.rho_H_M,
+            rho_E_M=mod_cfg.rho_E_M,
+        )
+        params = build_params(
             mod_cfg,
             mu_idx=mu_idx,
-            idx_sigma=idx_sigma_cov,
-            return_overrides={
-                "default_sigma_H": sigma_h_cov,
-                "default_sigma_E": sigma_e_cov,
-                "default_sigma_M": sigma_m_cov,
-                "rho_idx_H": float(corr_mat[0, 1]),
-                "rho_idx_E": float(corr_mat[0, 2]),
-                "rho_idx_M": float(corr_mat[0, 3]),
-                "rho_H_E": float(corr_mat[1, 2]),
-                "rho_H_M": float(corr_mat[1, 3]),
-                "rho_E_M": float(corr_mat[2, 3]),
-            },
+            idx_sigma=float(sigma_vec[0]),
+            return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
         )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
@@ -360,6 +379,7 @@ def run_parameter_sweep(
                 n_months=mod_cfg.N_MONTHS,
                 n_sim=mod_cfg.N_SIMULATIONS,
                 params=params,
+                financing_mode=mod_cfg.financing_mode,
                 rngs=fin_rngs,
             )
         else:

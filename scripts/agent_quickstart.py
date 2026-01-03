@@ -16,9 +16,7 @@ def _fmt_version(version: tuple[int, int, int]) -> str:
 def _check_python() -> list[str]:
     errors: list[str] = []
     if sys.version_info < _MIN_PYTHON:
-        errors.append(
-            "Python >= 3.11 is required. " f"Detected {_fmt_version(sys.version_info[:3])}."
-        )
+        errors.append(f"Python >= 3.11 is required. Detected {_fmt_version(sys.version_info[:3])}.")
     return errors
 
 

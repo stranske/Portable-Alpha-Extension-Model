@@ -9,7 +9,7 @@ from . import theme
 def make(df_summary: pd.DataFrame) -> go.Figure:
     """Return bar chart of Sharpe ratio sorted descending."""
     df = df_summary.copy()
-    df["Sharpe"] = df["AnnReturn"] / df["AnnVol"].replace(0, pd.NA)
+    df["Sharpe"] = df["terminal_AnnReturn"] / df["monthly_AnnVol"].replace(0, pd.NA)
     df = df.sort_values("Sharpe", ascending=False)
     fig = go.Figure(layout_template=theme.TEMPLATE)
     fig.add_bar(x=df["Agent"], y=df["Sharpe"])
