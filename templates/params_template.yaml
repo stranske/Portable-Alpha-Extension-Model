@@ -48,6 +48,7 @@ Active Ext financing mean (monthly %): 0.0
 Active Ext financing vol (monthly %): 0.0
 Active Ext monthly spike prob: 0.0
 Active Ext spike multiplier: 0.0
+financing_mode: broadcast
 Analysis mode: returns
 max_external_combined_pct: 30.0
 external_step_size_pct: 5.0
