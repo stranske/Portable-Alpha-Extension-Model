@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+import warnings
 from typing import Any, Dict, Mapping, Optional, Sequence, cast
 
 import numpy.typing as npt
@@ -9,11 +11,14 @@ from ..backend import xp as np
 from ..random import spawn_rngs
 from ..types import GeneratorLike
 from ..validators import NUMERICAL_STABILITY_EPSILON
+from .financing import draw_financing_series, simulate_financing
+from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
 
 __all__ = [
     "simulate_financing",
     "prepare_mc_universe",
     "prepare_return_shocks",
+    "draw_returns",
     "draw_joint_returns",
     "draw_financing_series",
     "simulate_alpha_streams",
@@ -22,6 +27,9 @@ __all__ = [
 
 _VALID_RETURN_DISTS = {"normal", "student_t"}
 _VALID_RETURN_COPULAS = {"gaussian", "t"}
+_CORR_VALIDATION_TOL = 1e-8
+
+logger = logging.getLogger(__name__)
 
 
 def _validate_return_draw_settings(
@@ -55,6 +63,104 @@ def _resolve_return_distributions(
         overrides[2] or base,
         overrides[3] or base,
     )
+
+
+def _validate_correlation_matrix(corr: NDArray[Any]) -> None:
+    if not np.all(np.isfinite(corr)):
+        raise ValueError("Correlation matrix contains non-finite values")
+    min_val = float(np.min(corr))
+    max_val = float(np.max(corr))
+    if min_val < -1.0 - _CORR_VALIDATION_TOL or max_val > 1.0 + _CORR_VALIDATION_TOL:
+        raise ValueError(
+            "Correlation matrix values must be within [-1, 1]"
+            f"; min={min_val:.3f}, max={max_val:.3f}"
+        )
+    diag = np.diag(corr)
+    if not np.allclose(diag, 1.0, atol=_CORR_VALIDATION_TOL):
+        idx = int(np.argmax(np.abs(diag - 1.0)))
+        raise ValueError(f"Correlation matrix diagonal must be 1; idx {idx} has {diag[idx]:.6f}")
+
+
+def _project_to_near_psd_correlation(corr: NDArray[Any]) -> NDArray[Any]:
+    sym = 0.5 * (corr + corr.T)
+    eigvals, eigvecs = np.linalg.eigh(sym)
+    eigvals_clipped = np.clip(eigvals, 0.0, None)
+    psd = eigvecs @ np.diag(eigvals_clipped) @ eigvecs.T
+    psd = 0.5 * (psd + psd.T)
+    diag = np.sqrt(np.clip(np.diag(psd), 0.0, None))
+    if np.any(diag <= 0.0):
+        raise ValueError("Correlation repair failed; non-positive diagonal after projection")
+    denom = diag[:, None] * diag[None, :]
+    repaired = np.divide(psd, denom, out=np.eye(psd.shape[0]), where=denom != 0.0)
+    repaired = 0.5 * (repaired + repaired.T)
+    np.fill_diagonal(repaired, 1.0)
+    return cast(NDArray[Any], repaired)
+
+
+def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], dict[str, Any]]:
+    corr = np.array(
+        [
+            [1.0, params["rho_idx_H"], params["rho_idx_E"], params["rho_idx_M"]],
+            [params["rho_idx_H"], 1.0, params["rho_H_E"], params["rho_H_M"]],
+            [params["rho_idx_E"], params["rho_H_E"], 1.0, params["rho_E_M"]],
+            [params["rho_idx_M"], params["rho_H_M"], params["rho_E_M"], 1.0],
+        ],
+        dtype=float,
+    )
+    corr = 0.5 * (corr + corr.T)
+    _validate_correlation_matrix(corr)
+
+    repair_mode = params.get("correlation_repair_mode", "warn_fix")
+    if repair_mode not in {"error", "warn_fix"}:
+        raise ValueError("correlation_repair_mode must be 'error' or 'warn_fix'")
+    shrinkage = float(params.get("correlation_repair_shrinkage", 0.0) or 0.0)
+    if not 0.0 <= shrinkage <= 1.0:
+        raise ValueError("correlation_repair_shrinkage must be between 0 and 1")
+
+    corr_work = corr
+    applied_steps: list[str] = []
+    if shrinkage > 0.0:
+        corr_work = (1.0 - shrinkage) * corr_work + shrinkage * np.eye(corr.shape[0])
+        applied_steps.append("shrinkage")
+
+    eigvals_before = np.linalg.eigvalsh(corr_work)
+    min_eig_before = float(eigvals_before.min())
+    repaired = corr_work
+    if min_eig_before < -_CORR_VALIDATION_TOL:
+        if repair_mode == "error":
+            raise ValueError(
+                "Correlation matrix is not PSD; " f"min eigenvalue {min_eig_before:.3e}."
+            )
+        repaired = _project_to_near_psd_correlation(corr_work)
+        applied_steps.append("eigen_clip")
+    eigvals_after = np.linalg.eigvalsh(repaired)
+    min_eig_after = float(eigvals_after.min())
+    max_delta = float(np.max(np.abs(repaired - corr)))
+    repair_applied = bool(applied_steps)
+
+    info = {
+        "repair_applied": repair_applied,
+        "repair_mode": repair_mode,
+        "method": "none" if not applied_steps else "+".join(applied_steps),
+        "shrinkage": shrinkage,
+        "min_eigenvalue_before": min_eig_before,
+        "min_eigenvalue_after": min_eig_after,
+        "max_abs_delta": max_delta,
+    }
+    params["_correlation_repair_info"] = info
+
+    if repair_applied:
+        logger.warning(
+            "Correlation repair applied: mode=%s, method=%s, shrinkage=%.3f, "
+            "min_eig_before=%.3e, min_eig_after=%.3e, max_abs_delta=%.3e",
+            repair_mode,
+            info["method"],
+            shrinkage,
+            min_eig_before,
+            min_eig_after,
+            max_delta,
+        )
+    return repaired, info
 
 
 def _safe_multivariate_normal(
@@ -131,31 +237,10 @@ def _draw_mixed_returns(
     return cast(npt.NDArray[Any], mean + shocks * sigma)
 
 
-def simulate_financing(
-    T: int,
-    financing_mean: float,
-    financing_sigma: float,
-    spike_prob: float,
-    spike_factor: float,
-    *,
-    seed: Optional[int] = None,
-    n_scenarios: int = 1,
-    rng: Optional[GeneratorLike] = None,
-) -> npt.NDArray[Any]:
-    """Vectorised financing spread simulation with optional spikes."""
-    if T <= 0:
-        raise ValueError("T must be positive")
-    if n_scenarios <= 0:
-        raise ValueError("n_scenarios must be positive")
-    if rng is None:
-        rng = spawn_rngs(seed, 1)[0]
-    assert rng is not None
-    base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
-    jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
-    out = cast(npt.NDArray[Any], np.clip(base + jumps, 0.0, None))
-    if n_scenarios == 1:
-        return cast(npt.NDArray[Any], out[0])
-    return out
+def _assert_canonical_params(params: Mapping[str, Any]) -> None:
+    marker = params.get(CANONICAL_PARAMS_MARKER)
+    if marker != CANONICAL_PARAMS_VERSION:
+        raise ValueError("params must be created by build_simulation_params()")
 
 
 def prepare_mc_universe(
@@ -175,6 +260,11 @@ def prepare_mc_universe(
     rng: Optional[GeneratorLike] = None,
 ) -> npt.NDArray[Any]:
     """Return stacked draws of (index, H, E, M) returns."""
+    warnings.warn(
+        "prepare_mc_universe is deprecated; use draw_joint_returns instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if N_SIMULATIONS <= 0 or N_MONTHS <= 0:
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
     if cov_mat.shape != (4, 4):
@@ -246,20 +336,7 @@ def prepare_return_shocks(
         distribution, dist_overrides if use_overrides else None
     )
     _validate_return_draw_settings(distributions, copula, t_df)
-    ρ_idx_H = params["rho_idx_H"]
-    ρ_idx_E = params["rho_idx_E"]
-    ρ_idx_M = params["rho_idx_M"]
-    ρ_H_E = params["rho_H_E"]
-    ρ_H_M = params["rho_H_M"]
-    ρ_E_M = params["rho_E_M"]
-    corr = np.array(
-        [
-            [1.0, ρ_idx_H, ρ_idx_E, ρ_idx_M],
-            [ρ_idx_H, 1.0, ρ_H_E, ρ_H_M],
-            [ρ_idx_E, ρ_H_E, 1.0, ρ_E_M],
-            [ρ_idx_M, ρ_H_M, ρ_E_M, 1.0],
-        ]
-    )
+    corr, repair_info = _resolve_correlation_matrix(params)
     z = _safe_multivariate_normal(rng, np.zeros(4), corr, (n_sim, n_months))
     shocks: Dict[str, Any] = {
         "z": z,
@@ -267,6 +344,7 @@ def prepare_return_shocks(
         "copula": copula,
         "t_df": t_df,
         "corr": corr,
+        "corr_repair_info": repair_info,
     }
     if any(dist == "student_t" for dist in distributions):
         if copula == "t":
@@ -276,19 +354,7 @@ def prepare_return_shocks(
     return shocks
 
 
-def _distribution_signature(params: Dict[str, Any]) -> tuple[Any, ...]:
-    return (
-        params.get("return_distribution", "normal"),
-        params.get("return_distribution_idx"),
-        params.get("return_distribution_H"),
-        params.get("return_distribution_E"),
-        params.get("return_distribution_M"),
-        params.get("return_copula", "gaussian"),
-        float(params.get("return_t_df", 5.0)),
-    )
-
-
-def _draw_joint_returns_single(
+def draw_returns(
     *,
     n_months: int,
     n_sim: int,
@@ -297,6 +363,7 @@ def _draw_joint_returns_single(
     shocks: Optional[Dict[str, Any]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M)."""
+    _assert_canonical_params(params)
     distribution = params.get("return_distribution", "normal")
     dist_overrides = (
         params.get("return_distribution_idx"),
@@ -319,20 +386,7 @@ def _draw_joint_returns_single(
     σ_H = params["default_sigma_H"]
     σ_E = params["default_sigma_E"]
     σ_M = params["default_sigma_M"]
-    ρ_idx_H = params["rho_idx_H"]
-    ρ_idx_E = params["rho_idx_E"]
-    ρ_idx_M = params["rho_idx_M"]
-    ρ_H_E = params["rho_H_E"]
-    ρ_H_M = params["rho_H_M"]
-    ρ_E_M = params["rho_E_M"]
-    corr = np.array(
-        [
-            [1.0, ρ_idx_H, ρ_idx_E, ρ_idx_M],
-            [ρ_idx_H, 1.0, ρ_H_E, ρ_H_M],
-            [ρ_idx_E, ρ_H_E, 1.0, ρ_E_M],
-            [ρ_idx_M, ρ_H_M, ρ_E_M, 1.0],
-        ]
-    )
+    corr, _ = _resolve_correlation_matrix(params)
     μ = np.array([μ_idx, μ_H, μ_E, μ_M])
     σ = np.array([σ_idx, σ_H, σ_E, σ_M])
     if shocks is not None:
@@ -426,129 +480,15 @@ def draw_joint_returns(
     params: Dict[str, Any],
     rng: Optional[GeneratorLike] = None,
     shocks: Optional[Dict[str, Any]] = None,
-    regime_paths: Optional[npt.NDArray[Any]] = None,
-    regime_params: Optional[Sequence[Dict[str, Any]]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
-    """Vectorised draw of monthly returns for (beta, H, E, M)."""
-    if regime_params is None:
-        return _draw_joint_returns_single(
-            n_months=n_months,
-            n_sim=n_sim,
-            params=params,
-            rng=rng,
-            shocks=shocks,
-        )
-
-    if regime_paths is None:
-        raise ValueError("regime_paths is required when regime_params is provided")
-    if shocks is not None:
-        raise ValueError("return shocks are not compatible with regime switching")
-    if len(regime_params) == 0:
-        raise ValueError("regime_params must contain at least one regime")
-
-    if regime_paths.shape != (n_sim, n_months):
-        raise ValueError("regime_paths has incompatible shape")
-
-    signature = _distribution_signature(regime_params[0])
-    for idx, regime in enumerate(regime_params[1:], start=1):
-        if _distribution_signature(regime) != signature:
-            raise ValueError(f"regime_params[{idx}] has inconsistent return distribution settings")
-
-    r_beta = np.empty((n_sim, n_months))
-    r_H = np.empty((n_sim, n_months))
-    r_E = np.empty((n_sim, n_months))
-    r_M = np.empty((n_sim, n_months))
-    for regime_idx, regime in enumerate(regime_params):
-        r_beta_r, r_H_r, r_E_r, r_M_r = _draw_joint_returns_single(
-            n_months=n_months,
-            n_sim=n_sim,
-            params=regime,
-            rng=rng,
-        )
-        mask = regime_paths == regime_idx
-        if not np.any(mask):
-            continue
-        r_beta[mask] = r_beta_r[mask]
-        r_H[mask] = r_H_r[mask]
-        r_E[mask] = r_E_r[mask]
-        r_M[mask] = r_M_r[mask]
-    return r_beta, r_H, r_E, r_M
-
-
-def draw_financing_series(
-    *,
-    n_months: int,
-    n_sim: int,
-    params: Dict[str, Any],
-    rng: Optional[GeneratorLike] = None,
-    rngs: Optional[Mapping[str, GeneratorLike]] = None,
-) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
-    """Return three matrices of monthly financing spreads.
-
-    ``rngs`` may provide dedicated generators for each sleeve under the keys
-    ``"internal"``, ``"external_pa"``, and ``"active_ext"``. If not supplied,
-    ``rng`` will be used for all sleeves.
-    """
-    if rngs is not None:
-        tmp_int = rngs.get("internal")
-        r_int = tmp_int if tmp_int is not None else spawn_rngs(None, 1)[0]
-
-        tmp_ext = rngs.get("external_pa")
-        r_ext = tmp_ext if tmp_ext is not None else spawn_rngs(None, 1)[0]
-
-        tmp_act = rngs.get("active_ext")
-        r_act = tmp_act if tmp_act is not None else spawn_rngs(None, 1)[0]
-    else:
-        if rng is None:
-            rng = spawn_rngs(None, 1)[0]
-        r_int = rng
-        r_ext = rng
-        r_act = rng
-
-    def _sim(
-        mean_key: str,
-        sigma_key: str,
-        p_key: str,
-        k_key: str,
-        rng_local: GeneratorLike,
-    ) -> npt.NDArray[Any]:
-        mean = params[mean_key]
-        sigma = params[sigma_key]
-        p = params[p_key]
-        k = params[k_key]
-        vec = simulate_financing(
-            n_months,
-            mean,
-            sigma,
-            p,
-            k,
-            n_scenarios=1,
-            rng=rng_local,
-        )
-        return cast(npt.NDArray[Any], np.broadcast_to(vec, (n_sim, n_months)))
-
-    f_int_mat = _sim(
-        "internal_financing_mean_month",
-        "internal_financing_sigma_month",
-        "internal_spike_prob",
-        "internal_spike_factor",
-        r_int,
+    """Backward-compatible wrapper for draw_returns."""
+    return draw_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=rng,
+        shocks=shocks,
     )
-    f_ext_pa_mat = _sim(
-        "ext_pa_financing_mean_month",
-        "ext_pa_financing_sigma_month",
-        "ext_pa_spike_prob",
-        "ext_pa_spike_factor",
-        r_ext,
-    )
-    f_act_ext_mat = _sim(
-        "act_ext_financing_mean_month",
-        "act_ext_financing_sigma_month",
-        "act_ext_spike_prob",
-        "act_ext_spike_factor",
-        r_act,
-    )
-    return f_int_mat, f_ext_pa_mat, f_act_ext_mat
 
 
 def simulate_alpha_streams(

@@ -1,11 +1,43 @@
 import numpy as np
+import pytest
 
 from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
+from pa_core.config import ModelConfig
 from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
+from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_financing_series
 from pa_core.simulations import simulate_agents, simulate_financing
 from pa_core.validators import SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD
+
+
+def _build_financing_params(**updates: float) -> dict[str, float | str | None]:
+    base_cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        return_unit="monthly",
+        mu_H=0.0,
+        sigma_H=0.0,
+        mu_E=0.0,
+        sigma_E=0.0,
+        mu_M=0.0,
+        sigma_M=0.0,
+        internal_financing_mean_month=0.0,
+        internal_financing_sigma_month=0.0,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.0,
+        ext_pa_financing_sigma_month=0.0,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.0,
+        act_ext_financing_sigma_month=0.0,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
+    cfg = base_cfg.model_copy(update=updates)
+    return build_simulation_params(cfg, mu_idx=0.0, idx_sigma=0.0)
 
 
 def test_build_cov_matrix_shape():
@@ -87,22 +119,28 @@ def test_total_returns_sum_weighted_sleeves():
 
 
 def test_draw_financing_series_broadcasts_monthly_vector():
-    params = {
-        "internal_financing_mean_month": 0.02,
-        "internal_financing_sigma_month": 0.05,
-        "internal_spike_prob": 0.0,
-        "internal_spike_factor": 0.0,
-        "ext_pa_financing_mean_month": 0.02,
-        "ext_pa_financing_sigma_month": 0.05,
-        "ext_pa_spike_prob": 0.0,
-        "ext_pa_spike_factor": 0.0,
-        "act_ext_financing_mean_month": 0.02,
-        "act_ext_financing_sigma_month": 0.05,
-        "act_ext_spike_prob": 0.0,
-        "act_ext_spike_factor": 0.0,
-    }
+    params = _build_financing_params(
+        internal_financing_mean_month=0.02,
+        internal_financing_sigma_month=0.05,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.02,
+        ext_pa_financing_sigma_month=0.05,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.02,
+        act_ext_financing_sigma_month=0.05,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
     rng = np.random.default_rng(17)
-    f_int, f_ext, f_act = draw_financing_series(n_months=6, n_sim=3, params=params, rng=rng)
+    f_int, f_ext, f_act = draw_financing_series(
+        n_months=6,
+        n_sim=3,
+        params=params,
+        financing_mode="broadcast",
+        rng=rng,
+    )
     for mat in (f_int, f_ext, f_act):
         assert mat.shape == (3, 6)
         assert np.allclose(mat[0], mat[1])
@@ -111,23 +149,107 @@ def test_draw_financing_series_broadcasts_monthly_vector():
 
 
 def test_draw_financing_series_rngs():
+    params = _build_financing_params(
+        internal_financing_mean_month=0.0,
+        internal_financing_sigma_month=0.01,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.0,
+        ext_pa_financing_sigma_month=0.01,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.0,
+        act_ext_financing_sigma_month=0.01,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
+    rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
+    out1 = draw_financing_series(
+        n_months=3,
+        n_sim=2,
+        params=params,
+        financing_mode="broadcast",
+        rngs=rngs,
+    )
+    rngs2 = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
+    out2 = draw_financing_series(
+        n_months=3,
+        n_sim=2,
+        params=params,
+        financing_mode="broadcast",
+        rngs=rngs2,
+    )
+    for a, b in zip(out1, out2):
+        assert np.allclose(a, b)
+
+
+def test_draw_financing_series_per_path_varies_by_simulation():
     params = {
-        "internal_financing_mean_month": 0.0,
-        "internal_financing_sigma_month": 0.01,
+        "internal_financing_mean_month": 0.01,
+        "internal_financing_sigma_month": 0.05,
         "internal_spike_prob": 0.0,
         "internal_spike_factor": 0.0,
-        "ext_pa_financing_mean_month": 0.0,
-        "ext_pa_financing_sigma_month": 0.01,
+        "ext_pa_financing_mean_month": 0.01,
+        "ext_pa_financing_sigma_month": 0.05,
         "ext_pa_spike_prob": 0.0,
         "ext_pa_spike_factor": 0.0,
-        "act_ext_financing_mean_month": 0.0,
-        "act_ext_financing_sigma_month": 0.01,
+        "act_ext_financing_mean_month": 0.01,
+        "act_ext_financing_sigma_month": 0.05,
         "act_ext_spike_prob": 0.0,
         "act_ext_spike_factor": 0.0,
     }
-    rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
-    out1 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs)
-    rngs2 = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
-    out2 = draw_financing_series(n_months=3, n_sim=2, params=params, rngs=rngs2)
-    for a, b in zip(out1, out2):
-        assert np.allclose(a, b)
+    rng = np.random.default_rng(42)
+    f_int, f_ext, f_act = draw_financing_series(
+        n_months=48,
+        n_sim=3,
+        params=params,
+        financing_mode="per_path",
+        rng=rng,
+    )
+    for mat in (f_int, f_ext, f_act):
+        assert mat.shape == (3, 48)
+        assert not np.allclose(mat[0], mat[1])
+        corr = np.corrcoef(mat[0], mat[1])[0, 1]
+        assert corr < 0.99
+
+
+def test_financing_mode_correlation_structure():
+    params = _build_financing_params(
+        internal_financing_mean_month=0.01,
+        internal_financing_sigma_month=0.05,
+        internal_spike_prob=0.0,
+        internal_spike_factor=0.0,
+        ext_pa_financing_mean_month=0.01,
+        ext_pa_financing_sigma_month=0.05,
+        ext_pa_spike_prob=0.0,
+        ext_pa_spike_factor=0.0,
+        act_ext_financing_mean_month=0.01,
+        act_ext_financing_sigma_month=0.05,
+        act_ext_spike_prob=0.0,
+        act_ext_spike_factor=0.0,
+    )
+
+    rng = np.random.default_rng(123)
+    f_int_broadcast, f_ext_broadcast, f_act_broadcast = draw_financing_series(
+        n_months=120,
+        n_sim=2,
+        params=params,
+        financing_mode="broadcast",
+        rng=rng,
+    )
+    for mat in (f_int_broadcast, f_ext_broadcast, f_act_broadcast):
+        assert np.std(mat[0]) > 0
+        corr_broadcast = np.corrcoef(mat[0], mat[1])[0, 1]
+        assert corr_broadcast == pytest.approx(1.0)
+
+    rng = np.random.default_rng(123)
+    f_int_per_path, f_ext_per_path, f_act_per_path = draw_financing_series(
+        n_months=240,
+        n_sim=2,
+        params=params,
+        financing_mode="per_path",
+        rng=rng,
+    )
+    for mat in (f_int_per_path, f_ext_per_path, f_act_per_path):
+        corr_per_path = np.corrcoef(mat[0], mat[1])[0, 1]
+        assert abs(corr_per_path) < 0.3

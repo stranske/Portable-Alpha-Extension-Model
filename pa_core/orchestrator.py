@@ -2,28 +2,23 @@ from __future__ import annotations
 
 from typing import Dict, Tuple
 
-import numpy as np
 import pandas as pd
 
 from .agents.registry import build_from_config
 from .config import ModelConfig
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim.covariance import build_cov_matrix
-from .sim.regimes import build_regime_draw_params, resolve_regime_start, simulate_regime_paths
 from .sim.metrics import summary_table
-from .sim.params import build_simulation_params
+from .sim.params import (
+    build_covariance_return_overrides,
+    build_params,
+    resolve_covariance_inputs,
+)
 from .sim.paths import draw_financing_series, draw_joint_returns
 from .simulations import simulate_agents
 from .types import ArrayLike
-from .units import get_index_series_unit, normalize_index_series
+from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
 from .validators import select_vol_regime_sigma
-
-
-def _cov_to_corr_and_sigma(cov: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
-    denom = np.outer(sigma, sigma)
-    corr = np.divide(cov, denom, out=np.eye(cov.shape[0]), where=denom != 0.0)
-    return sigma, corr
 
 
 class SimulatorOrchestrator:
@@ -37,8 +32,6 @@ class SimulatorOrchestrator:
     def __init__(self, cfg: ModelConfig, idx_series: pd.Series) -> None:
         self.cfg = cfg
         self.idx_series = normalize_index_series(pd.Series(idx_series), get_index_series_unit())
-        self._regime_paths: np.ndarray | None = None
-        self._regime_labels: list[str] | None = None
 
     def draw_streams(self, seed: int | None = None) -> Tuple[ArrayLike, ...]:
         """Draw Monte Carlo return and financing streams for the configured model."""
@@ -50,92 +43,60 @@ class SimulatorOrchestrator:
         )
         n_samples = int(len(self.idx_series))
 
+        return_inputs = normalize_return_inputs(self.cfg)
+        sigma_h = float(return_inputs["sigma_H"])
+        sigma_e = float(return_inputs["sigma_E"])
+        sigma_m = float(return_inputs["sigma_M"])
+
+        cov = build_cov_matrix(
+            self.cfg.rho_idx_H,
+            self.cfg.rho_idx_E,
+            self.cfg.rho_idx_M,
+            self.cfg.rho_H_E,
+            self.cfg.rho_H_M,
+            self.cfg.rho_E_M,
+            idx_sigma,
+            sigma_h,
+            sigma_e,
+            sigma_m,
+            covariance_shrinkage=self.cfg.covariance_shrinkage,
+            n_samples=n_samples,
+        )
+        sigma_vec, corr_mat = resolve_covariance_inputs(
+            cov,
+            idx_sigma=idx_sigma,
+            sigma_h=sigma_h,
+            sigma_e=sigma_e,
+            sigma_m=sigma_m,
+            rho_idx_H=self.cfg.rho_idx_H,
+            rho_idx_E=self.cfg.rho_idx_E,
+            rho_idx_M=self.cfg.rho_idx_M,
+            rho_H_E=self.cfg.rho_H_E,
+            rho_H_M=self.cfg.rho_H_M,
+            rho_E_M=self.cfg.rho_E_M,
+        )
+
         rng_returns = spawn_rngs(seed, 1)[0]
-        regime_paths: np.ndarray | None = None
-        regime_labels: list[str] | None = None
+        params = build_params(
+            self.cfg,
+            mu_idx=mu_idx,
+            idx_sigma=float(sigma_vec[0]),
+            return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
+        )
 
-        if self.cfg.regimes is not None:
-            rng_regime, rng_returns = spawn_rngs(seed, 2)
-            regime_params, regime_labels = build_regime_draw_params(
-                self.cfg,
-                mu_idx=mu_idx,
-                idx_sigma=idx_sigma,
-                n_samples=n_samples,
-            )
-            start_state = resolve_regime_start(self.cfg)
-            regime_paths = simulate_regime_paths(
-                n_sim=self.cfg.N_SIMULATIONS,
-                n_months=self.cfg.N_MONTHS,
-                transition=self.cfg.regime_transition or [],
-                start_state=start_state,
-                rng=rng_regime,
-            )
-            params = regime_params[0]
-            r_beta, r_H, r_E, r_M = draw_joint_returns(
-                n_months=self.cfg.N_MONTHS,
-                n_sim=self.cfg.N_SIMULATIONS,
-                params=params,
-                rng=rng_returns,
-                regime_paths=regime_paths,
-                regime_params=regime_params,
-            )
-        else:
-            sigma_h = float(self.cfg.sigma_H)
-            sigma_e = float(self.cfg.sigma_E)
-            sigma_m = float(self.cfg.sigma_M)
-
-            cov = build_cov_matrix(
-                self.cfg.rho_idx_H,
-                self.cfg.rho_idx_E,
-                self.cfg.rho_idx_M,
-                self.cfg.rho_H_E,
-                self.cfg.rho_H_M,
-                self.cfg.rho_E_M,
-                idx_sigma,
-                sigma_h,
-                sigma_e,
-                sigma_m,
-                covariance_shrinkage=self.cfg.covariance_shrinkage,
-                n_samples=n_samples,
-            )
-            sigma_vec, corr_mat = _cov_to_corr_and_sigma(cov)
-            idx_sigma_cov = float(sigma_vec[0])
-            sigma_h_cov = float(sigma_vec[1])
-            sigma_e_cov = float(sigma_vec[2])
-            sigma_m_cov = float(sigma_vec[3])
-
-            params = build_simulation_params(
-                self.cfg,
-                mu_idx=mu_idx,
-                idx_sigma=idx_sigma_cov,
-                return_overrides={
-                    "default_sigma_H": sigma_h_cov,
-                    "default_sigma_E": sigma_e_cov,
-                    "default_sigma_M": sigma_m_cov,
-                    "rho_idx_H": float(corr_mat[0, 1]),
-                    "rho_idx_E": float(corr_mat[0, 2]),
-                    "rho_idx_M": float(corr_mat[0, 3]),
-                    "rho_H_E": float(corr_mat[1, 2]),
-                    "rho_H_M": float(corr_mat[1, 3]),
-                    "rho_E_M": float(corr_mat[2, 3]),
-                },
-            )
-
-            r_beta, r_H, r_E, r_M = draw_joint_returns(
-                n_months=self.cfg.N_MONTHS,
-                n_sim=self.cfg.N_SIMULATIONS,
-                params=params,
-                rng=rng_returns,
-            )
-
-        self._regime_paths = regime_paths
-        self._regime_labels = regime_labels
+        r_beta, r_H, r_E, r_M = draw_joint_returns(
+            n_months=self.cfg.N_MONTHS,
+            n_sim=self.cfg.N_SIMULATIONS,
+            params=params,
+            rng=rng_returns,
+        )
 
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         f_int, f_ext, f_act = draw_financing_series(
             n_months=self.cfg.N_MONTHS,
             n_sim=self.cfg.N_SIMULATIONS,
             params=params,
+            financing_mode=self.cfg.financing_mode,
             rngs=fin_rngs,
         )
         return r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
@@ -145,7 +106,8 @@ class SimulatorOrchestrator:
 
         Uses the PSD-corrected covariance matrix to derive implied
         volatilities and correlations before drawing joint returns. Summary
-        table metrics (AnnReturn/AnnVol/TE) are annualised from monthly returns.
+        table metrics (terminal_AnnReturn/monthly_AnnVol/monthly_TE) are annualised
+        from monthly returns.
         """
 
         r_beta, r_H, r_E, r_M, f_int, f_ext, f_act = self.draw_streams(seed=seed)

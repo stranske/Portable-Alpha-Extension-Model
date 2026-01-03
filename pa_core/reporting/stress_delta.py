@@ -8,15 +8,16 @@ import pandas as pd
 import pandas.api.types as pdt
 
 _PCT_COLUMNS = {
-    "AnnReturn",
-    "AnnVol",
-    "VaR",
-    "CVaR",
-    "MaxDD",
-    "TimeUnderWater",
-    "BreachProb",
-    "ShortfallProb",
-    "TE",
+    "terminal_AnnReturn",
+    "monthly_AnnVol",
+    "monthly_VaR",
+    "monthly_CVaR",
+    "terminal_CVaR",
+    "monthly_MaxDD",
+    "monthly_TimeUnderWater",
+    "monthly_BreachProb",
+    "terminal_ShortfallProb",
+    "monthly_TE",
 }
 
 
@@ -91,6 +92,8 @@ def build_stress_workbook(
     stress_summary: pd.DataFrame,
     delta_df: pd.DataFrame,
     config_diff_df: pd.DataFrame | None = None,
+    base_constraints_df: pd.DataFrame | None = None,
+    stress_constraints_df: pd.DataFrame | None = None,
 ) -> bytes:
     """Return an Excel workbook with base, stressed, and delta summaries."""
     buffer = io.BytesIO()
@@ -101,5 +104,9 @@ def build_stress_workbook(
             delta_df.to_excel(writer, sheet_name="Delta", index=False)
         if config_diff_df is not None and not config_diff_df.empty:
             config_diff_df.to_excel(writer, sheet_name="ConfigDiff", index=False)
+        if base_constraints_df is not None and not base_constraints_df.empty:
+            base_constraints_df.to_excel(writer, sheet_name="BaseBreaches", index=False)
+        if stress_constraints_df is not None and not stress_constraints_df.empty:
+            stress_constraints_df.to_excel(writer, sheet_name="StressedBreaches", index=False)
     buffer.seek(0)
     return buffer.read()

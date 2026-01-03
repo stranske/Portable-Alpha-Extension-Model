@@ -3,6 +3,7 @@
 
 N_SIMULATIONS: 1000
 N_MONTHS: 12
+financing_mode: broadcast
 
 external_pa_capital: 50.0    # reduced external PA
 active_ext_capital: 25.0     # minimal active extension

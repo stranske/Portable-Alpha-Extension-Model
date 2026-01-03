@@ -35,12 +35,12 @@ return_unit: annual # annual|monthly
 #     extra:
 #       active_return_volatility_target: 0.03
 
-mu_H: 0.04 # annual mean return of in-house alpha
-sigma_H: 0.01 # annual volatility of in-house alpha
-mu_E: 0.05 # annual mean return of extension alpha
-sigma_E: 0.02 # annual volatility of extension alpha
-mu_M: 0.03 # annual mean return of external PA alpha
-sigma_M: 0.02 # annual volatility of external PA alpha
+mu_H_annual: 0.04 # annual mean return of in-house alpha
+sigma_H_annual: 0.01 # annual volatility of in-house alpha
+mu_E_annual: 0.05 # annual mean return of extension alpha
+sigma_E_annual: 0.02 # annual volatility of extension alpha
+mu_M_annual: 0.03 # annual mean return of external PA alpha
+sigma_M_annual: 0.02 # annual volatility of external PA alpha
 
 rho_idx_H: 0.05 # correlation index vs in-house
 rho_idx_E: 0.00 # correlation index vs extension
@@ -76,11 +76,12 @@ act_ext_financing_mean_month: 0.0 # active extension financing mean per month
 act_ext_financing_sigma_month: 0.0 # active extension financing volatility per month
 act_ext_spike_prob: 0.0 # active extension financing spike probability
 act_ext_spike_factor: 0.0 # active extension financing spike size multiplier
+financing_mode: broadcast # broadcast|per_path (broadcast shares one path across sims)
 
 risk_metrics:
   - Return
   - Risk
-  - ShortfallProb
+  - terminal_ShortfallProb
 # Financing model configuration
 # simple_proxy: uses reference_sigma × volatility_multiple × total_fund_capital
 # schedule: interpolates from a broker margin schedule CSV (term,multiplier)

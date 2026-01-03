@@ -7,14 +7,15 @@ import pandas as pd
 import pandas.api.types as pdt
 
 _HEADLINE_METRICS = (
-    "AnnReturn",
-    "AnnVol",
-    "VaR",
-    "CVaR",
-    "MaxDD",
-    "ShortfallProb",
-    "BreachProb",
-    "TE",
+    "terminal_AnnReturn",
+    "monthly_AnnVol",
+    "monthly_VaR",
+    "monthly_CVaR",
+    "terminal_CVaR",
+    "monthly_MaxDD",
+    "terminal_ShortfallProb",
+    "monthly_BreachProb",
+    "monthly_TE",
 )
 _ID_COLUMNS = ("Agent", "Combination", "Label")
 

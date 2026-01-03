@@ -9,7 +9,8 @@ from __future__ import annotations
 
 from typing import Callable, Mapping
 
-from .config import ModelConfig, annual_mean_to_monthly
+from .config import ModelConfig
+from .units import convert_mean
 from .validators import VOLATILITY_STRESS_MULTIPLIER
 
 Preset = Mapping[str, float | Callable[[ModelConfig], float]]
@@ -19,6 +20,7 @@ STRESS_PRESET_LABELS: dict[str, str] = {
     "correlation_breakdown": "Correlation breakdown",
     "2008_vol_regime": "2008-like vol regime",
     "2020_gap_day": "2020 gap day",
+    "rate_shock": "Rate shock",
 }
 
 
@@ -48,9 +50,17 @@ STRESS_PRESETS: dict[str, Preset] = {
         "sigma_M": lambda cfg: cfg.sigma_M * VOLATILITY_STRESS_MULTIPLIER,
     },
     "2020_gap_day": {
-        "mu_H": annual_mean_to_monthly(-0.20),
-        "mu_E": annual_mean_to_monthly(-0.25),
-        "mu_M": annual_mean_to_monthly(-0.15),
+        "mu_H": convert_mean(-0.20, from_unit="annual", to_unit="monthly"),
+        "mu_E": convert_mean(-0.25, from_unit="annual", to_unit="monthly"),
+        "mu_M": convert_mean(-0.15, from_unit="annual", to_unit="monthly"),
+    },
+    "rate_shock": {
+        "internal_financing_mean_month": 0.012,
+        "internal_financing_sigma_month": 0.03,
+        "ext_pa_financing_mean_month": 0.014,
+        "ext_pa_financing_sigma_month": 0.03,
+        "act_ext_financing_mean_month": 0.015,
+        "act_ext_financing_sigma_month": 0.035,
     },
 }
 

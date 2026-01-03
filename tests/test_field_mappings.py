@@ -54,10 +54,11 @@ def test_csv_conversion_with_field_mappings():
         writer.writerow(["Analysis mode", "returns"])
         writer.writerow(["Number of simulations", "100"])
         writer.writerow(["Number of months", "12"])
+        writer.writerow(["financing_mode", "broadcast"])
         writer.writerow(["External PA capital (mm)", "500.0"])
         writer.writerow(["Total fund capital (mm)", "1000.0"])
         writer.writerow(["In-House annual return (%)", "4.0"])
-        writer.writerow(["risk_metrics", "Return;Risk;ShortfallProb"])
+        writer.writerow(["risk_metrics", "Return;Risk;terminal_ShortfallProb"])
         csv_path = f.name
 
     try:
@@ -86,7 +87,7 @@ def test_csv_conversion_with_field_mappings():
             assert config.mu_H == annual_mean_to_monthly(0.04)
             assert "Return" in config.risk_metrics
             assert "Risk" in config.risk_metrics
-            assert "ShortfallProb" in config.risk_metrics
+            assert "terminal_ShortfallProb" in config.risk_metrics
         finally:
             os.remove(yaml_path)
     finally:
@@ -101,10 +102,11 @@ def test_legacy_compatibility():
     config_data = {
         "N_SIMULATIONS": 100,
         "N_MONTHS": 12,
+        "financing_mode": "broadcast",
         "analysis_mode": "returns",
         "external_pa_capital": 500.0,
         "mu_H": 0.04,
-        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
 
     config = load_config(config_data)
@@ -121,10 +123,11 @@ def test_alias_compatibility():
     config_data = {
         "Number of simulations": 100,
         "Number of months": 12,
+        "financing_mode": "broadcast",
         "Analysis mode": "returns",
         "External PA capital (mm)": 500.0,
         "In-House annual return (%)": 4.0,  # Should NOT be converted as percentage here
-        "risk_metrics": ["Return", "Risk", "ShortfallProb"],
+        "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
     }
 
     config = load_config(config_data)

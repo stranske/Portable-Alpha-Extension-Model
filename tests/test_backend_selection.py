@@ -22,7 +22,7 @@ def _fast_sweep(monkeypatch):
     def _stub_run_parameter_sweep(*_args, **_kwargs):
         return []
 
-    def _stub_export_sweep_results(_results, filename="Sweep.xlsx"):
+    def _stub_export_sweep_results(_results, filename="Sweep.xlsx", **_kwargs):
         Path(filename).write_text("")
 
     monkeypatch.setattr("pa_core.sweep.run_parameter_sweep", _stub_run_parameter_sweep)
@@ -36,6 +36,7 @@ def _write_cfg(tmp_path, backend=None):
     cfg = {
         "N_SIMULATIONS": 1,
         "N_MONTHS": 1,
+        "financing_mode": "broadcast",
         "in_house_return_min_pct": 2.0,
         "in_house_return_max_pct": 2.0,
         "in_house_return_step_pct": 1.0,

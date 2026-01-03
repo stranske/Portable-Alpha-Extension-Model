@@ -6,7 +6,7 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Volatility regime selection already exists in concept, but its not first-class. Markets behave differently in calm vs stressed periods:
+Volatility regime selection already exists in concept, but it's not first-class. Markets behave differently in calm vs stressed periods:
 - Correlations spike during stress (diversification fails when needed most)
 - Volatility clusters and mean-reverts
 - Tail events are more likely during regime transitions

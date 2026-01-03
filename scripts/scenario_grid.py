@@ -25,7 +25,14 @@ from pa_core.viz import grid_heatmap, grid_panel
 METRICS = (
     ModelConfig.METRICS
     if hasattr(ModelConfig, "METRICS")
-    else ["AnnReturn", "AnnVol", "TE", "CVaR", "BreachProb"]
+    else [
+        "terminal_AnnReturn",
+        "monthly_AnnVol",
+        "monthly_TE",
+        "monthly_CVaR",
+        "terminal_CVaR",
+        "monthly_BreachProb",
+    ]
 )
 
 
@@ -34,6 +41,7 @@ def run_grid(seed: int, out_dir: Path) -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=500,
         N_MONTHS=12,
+        financing_mode="broadcast",
         external_pa_capital=50.0,
         active_ext_capital=0.0,
         internal_pa_capital=950.0,

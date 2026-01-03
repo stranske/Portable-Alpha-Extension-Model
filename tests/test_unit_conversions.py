@@ -50,6 +50,13 @@ def test_convert_mean_round_trip_simple() -> None:
     assert np.isclose(back, monthly)
 
 
+def test_convert_mean_annual_point05_to_monthly() -> None:
+    annual = 0.05
+    expected = annual / 12.0
+    monthly = convert_mean(annual, from_unit="annual", to_unit="monthly", method="simple")
+    assert np.isclose(monthly, expected)
+
+
 def test_convert_return_series_monthly_to_annual() -> None:
     series = pd.Series([0.01, -0.02])
     converted = convert_return_series(series, from_unit="monthly", to_unit="annual")
@@ -86,7 +93,7 @@ def test_normalize_index_series_defaults_to_monthly() -> None:
 
 
 def test_unit_policy_accessors() -> None:
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1)
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     assert get_config_unit(cfg) == "monthly"
     assert get_index_series_unit() == "monthly"
     assert get_summary_table_unit() == "annual"
@@ -121,7 +128,13 @@ def test_annual_cov_matches_vol_conversion() -> None:
 
 
 def test_model_config_converts_once() -> None:
-    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, mu_H=0.12, sigma_H=0.24)
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        mu_H=0.12,
+        sigma_H=0.24,
+    )
     assert np.isclose(cfg.mu_H, annual_mean_to_monthly(0.12))
     assert np.isclose(cfg.sigma_H, annual_vol_to_monthly(0.24))
     assert cfg.return_unit == "monthly"
@@ -135,6 +148,7 @@ def test_model_config_monthly_passthrough() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
+        financing_mode="broadcast",
         return_unit="monthly",
         mu_H=0.01,
         sigma_H=0.02,
@@ -150,6 +164,7 @@ def test_annual_config_round_trip_to_annual_output() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=12,
+        financing_mode="broadcast",
         mu_H=annual_mu,
         sigma_H=0.0,
         mu_E=0.0,

@@ -59,7 +59,7 @@ TEMPLATE = go.layout.Template(
     )
 )
 
-# Default value for missing ShortfallProb in visualizations and exports
+# Default value for missing terminal_ShortfallProb in visualizations and exports
 DEFAULT_SHORTFALL_PROB = 0.0
 
 # Map agent class -> category name used for consistent colours

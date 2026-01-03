@@ -9,11 +9,11 @@ from scripts.visualise import main
 def test_visualise_alt_text(tmp_path, monkeypatch):
     summary = pd.DataFrame(
         {
-            "AnnReturn": [0.05],
-            "ExcessReturn": [0.01],
-            "TE": [0.01],
+            "terminal_AnnReturn": [0.05],
+            "terminal_ExcessReturn": [0.01],
+            "monthly_TE": [0.01],
             "Agent": ["Base"],
-            "ShortfallProb": [0.02],
+            "terminal_ShortfallProb": [0.02],
         }
     )
     xlsx = tmp_path / "out.xlsx"

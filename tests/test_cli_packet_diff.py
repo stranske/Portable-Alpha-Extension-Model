@@ -17,6 +17,7 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 1,
+                "financing_mode": "broadcast",
                 "analysis_mode": "returns",
             }
         )
@@ -25,9 +26,9 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
     prev_summary = pd.DataFrame(
         {
             "Agent": ["Base"],
-            "AnnReturn": [0.05],
-            "AnnVol": [0.12],
-            "ShortfallProb": [0.1],
+            "terminal_AnnReturn": [0.05],
+            "monthly_AnnVol": [0.12],
+            "terminal_ShortfallProb": [0.1],
         }
     )
     prev_output = tmp_path / "prev.xlsx"
@@ -44,14 +45,14 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
         summary = pd.DataFrame(
             {
                 "Agent": ["Base"],
-                "AnnReturn": [0.06],
-                "AnnVol": [0.11],
-                "ShortfallProb": [0.08],
+                "terminal_AnnReturn": [0.06],
+                "monthly_AnnVol": [0.11],
+                "terminal_ShortfallProb": [0.08],
             }
         )
         return [{"summary": summary, "combination_id": 1}]
 
-    def _stub_export_sweep_results(_results, filename="Sweep.xlsx"):
+    def _stub_export_sweep_results(_results, filename="Sweep.xlsx", **_kwargs):
         Path(filename).write_text("stub")
 
     captured: dict[str, object] = {}
@@ -63,7 +64,11 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
     viz_stub = types.ModuleType("pa_core.viz")
     viz_stub.risk_return = types.SimpleNamespace(make=lambda _df: object())
     viz_stub.sharpe_ladder = types.SimpleNamespace(make=lambda _df: object())
+    viz_stub.theme = types.SimpleNamespace(DEFAULT_SHORTFALL_PROB=0.1)
+    viz_utils_stub = types.ModuleType("pa_core.viz.utils")
+    viz_utils_stub.safe_to_numpy = lambda x: x
     monkeypatch.setitem(sys.modules, "pa_core.viz", viz_stub)
+    monkeypatch.setitem(sys.modules, "pa_core.viz.utils", viz_utils_stub)
     monkeypatch.setattr("pa_core.sweep.run_parameter_sweep", _stub_run_parameter_sweep)
     monkeypatch.setattr(
         "pa_core.reporting.sweep_excel.export_sweep_results",
@@ -105,6 +110,7 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 2,
+                "financing_mode": "broadcast",
                 "analysis_mode": "single_with_sensitivity",
             }
         )
@@ -125,7 +131,11 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
     viz_stub.risk_return = types.SimpleNamespace(make=lambda _df: fig)
     viz_stub.sharpe_ladder = types.SimpleNamespace(make=lambda _df: fig)
     viz_stub.sunburst = types.SimpleNamespace(make=lambda _df: fig)
+    viz_stub.theme = types.SimpleNamespace(DEFAULT_SHORTFALL_PROB=0.1)
+    viz_utils_stub = types.ModuleType("pa_core.viz.utils")
+    viz_utils_stub.safe_to_numpy = lambda x: x
     monkeypatch.setitem(sys.modules, "pa_core.viz", viz_stub)
+    monkeypatch.setitem(sys.modules, "pa_core.viz.utils", viz_utils_stub)
     monkeypatch.setattr(
         "pa_core.reporting.export_packet.create_export_packet",
         _stub_create_export_packet,
@@ -187,6 +197,7 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
             {
                 "N_SIMULATIONS": 1,
                 "N_MONTHS": 2,
+                "financing_mode": "broadcast",
                 "analysis_mode": "single_with_sensitivity",
             }
         )
@@ -223,6 +234,31 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
     out_file = tmp_path / "out.xlsx"
 
+    summaries = [
+        pd.DataFrame(
+            {
+                "Agent": ["ExternalPA", "ActiveExt", "InternalPA", "Total"],
+                "monthly_TE": [0.05, 0.01, 0.02, 0.04],
+                "monthly_BreachProb": [0.02, 0.06, 0.01, 0.07],
+                "monthly_CVaR": [0.02, 0.025, 0.01, 0.04],
+            }
+        ),
+        pd.DataFrame(
+            {
+                "Agent": ["ExternalPA", "ActiveExt", "InternalPA", "Total"],
+                "monthly_TE": [0.06, 0.02, 0.03, 0.05],
+                "monthly_BreachProb": [0.03, 0.08, 0.02, 0.09],
+                "monthly_CVaR": [0.025, 0.03, 0.02, 0.05],
+            }
+        ),
+    ]
+    call_idx = {"count": 0}
+
+    def _stub_create_enhanced_summary(_returns_map, *, benchmark=None):
+        idx = call_idx["count"]
+        call_idx["count"] += 1
+        return summaries[min(idx, len(summaries) - 1)]
+
     monkeypatch.setattr(
         "pa_core.sim.sensitivity.one_factor_deltas",
         lambda *_args, **_kwargs: pd.DataFrame(),
@@ -230,6 +266,10 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     monkeypatch.setattr(
         "pa_core.sensitivity.one_factor_deltas",
         lambda *_args, **_kwargs: pd.DataFrame(),
+    )
+    monkeypatch.setattr(
+        "pa_core.cli.create_enhanced_summary",
+        _stub_create_enhanced_summary,
     )
 
     main(
@@ -250,6 +290,10 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     stress_sheet = pd.read_excel(out_file, sheet_name="StressDelta")
     base_sheet = pd.read_excel(out_file, sheet_name="BaseSummary")
     stressed_sheet = pd.read_excel(out_file, sheet_name="StressedSummary")
+    base_breaches = pd.read_excel(out_file, sheet_name="BaseBreaches")
+    stressed_breaches = pd.read_excel(out_file, sheet_name="StressedBreaches")
     assert "Agent" in stress_sheet.columns
     assert "Agent" in base_sheet.columns
     assert "Agent" in stressed_sheet.columns
+    assert "Driver" in base_breaches.columns
+    assert "Driver" in stressed_breaches.columns

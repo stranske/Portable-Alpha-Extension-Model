@@ -61,9 +61,15 @@ def main() -> None:
     elif SUMMARY_TRACKING_ERROR_LEGACY_COLUMN in summary:
         te_column = SUMMARY_TRACKING_ERROR_LEGACY_COLUMN
     if te_column is not None:
-        col1.metric("Tracking Error", f"{summary[te_column].mean():.2%}", help=tooltip("TE"))
+        col1.metric(
+            "Tracking Error", f"{summary[te_column].mean():.2%}", help=tooltip("monthly_TE")
+        )
     if SUMMARY_CVAR_COLUMN in summary:
-        col2.metric("CVaR", f"{summary[SUMMARY_CVAR_COLUMN].mean():.2%}", help=tooltip("CVaR"))
+        col2.metric(
+            "monthly_CVaR",
+            f"{summary[SUMMARY_CVAR_COLUMN].mean():.2%}",
+            help=tooltip("monthly_CVaR"),
+        )
     if SUMMARY_BREACH_PROB_COLUMN in summary:
         col3.metric(
             "Breach Prob",

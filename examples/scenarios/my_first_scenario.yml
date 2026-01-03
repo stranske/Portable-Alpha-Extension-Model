@@ -3,6 +3,7 @@
 
 N_SIMULATIONS: 1000  # number of Monte Carlo trials
 N_MONTHS: 12         # months in each simulation run
+financing_mode: broadcast  # broadcast|per_path
 
 analysis_mode: returns  # capital|returns|alpha_shares|vol_mult
 external_pa_capital: 100.0   # external portable alpha capital ($mm)
@@ -17,12 +18,12 @@ active_share: 0.5  # active-extension active share fraction
 
 return_unit: annual  # annual inputs converted to monthly at config load
 
-mu_H: 0.04     # annual mean return of in-house alpha
-sigma_H: 0.01  # annual volatility of in-house alpha
-mu_E: 0.05     # annual mean return of extension alpha
-sigma_E: 0.02  # annual volatility of extension alpha
-mu_M: 0.03     # annual mean return of external PA alpha
-sigma_M: 0.02  # annual volatility of external PA alpha
+mu_H_annual: 0.04     # annual mean return of in-house alpha
+sigma_H_annual: 0.01  # annual volatility of in-house alpha
+mu_E_annual: 0.05     # annual mean return of extension alpha
+sigma_E_annual: 0.02  # annual volatility of extension alpha
+mu_M_annual: 0.03     # annual mean return of external PA alpha
+sigma_M_annual: 0.02  # annual volatility of external PA alpha
 
 rho_idx_H: 0.05  # correlation index vs in-house
 rho_idx_E: 0.00  # correlation index vs extension
@@ -49,4 +50,4 @@ act_ext_spike_factor: 0.0           # active extension financing spike size mult
 risk_metrics:
   - Return
   - Risk
-  - ShortfallProb
+  - terminal_ShortfallProb
