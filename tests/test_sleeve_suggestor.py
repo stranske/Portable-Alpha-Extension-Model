@@ -570,8 +570,8 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
     )
     assert not df.empty
     row = df.iloc[0]
-    assert row["optimizer_success"] is True
-    assert row["constraints_satisfied"] is True
+    assert row["optimizer_success"] == True
+    assert row["constraints_satisfied"] == True
     assert row["external_pa_capital"] == pytest.approx(80.0)
     assert row["active_ext_capital"] == pytest.approx(0.0)
     assert row["internal_pa_capital"] == pytest.approx(20.0)

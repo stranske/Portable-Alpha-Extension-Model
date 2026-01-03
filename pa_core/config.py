@@ -315,6 +315,10 @@ class ModelConfig(BaseModel):
         default=None,
         description="Initial regime name for regime-switching simulations.",
     )
+    regime_transition: Optional[List[List[float]]] = Field(
+        default=None,
+        description="Markov transition matrix for regime switching (n_regimes x n_regimes).",
+    )
 
     risk_metrics: List[str] = Field(
         default_factory=lambda: [

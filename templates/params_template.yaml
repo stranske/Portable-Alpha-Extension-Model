@@ -78,6 +78,9 @@ volatility_multiple: 3.0
 financing_model: simple_proxy
 financing_schedule_path: null
 financing_term_months: 1.0
+regimes: null
+regime_start: null
+regime_transition: null
 risk_metrics:
 - Return
 - Risk

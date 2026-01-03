@@ -27,6 +27,7 @@ def test_regime_switching_increases_corr_and_vol() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=2000,
         N_MONTHS=24,
+        financing_mode="broadcast",
         return_unit="monthly",
         sigma_H=0.02,
         sigma_E=0.02,
