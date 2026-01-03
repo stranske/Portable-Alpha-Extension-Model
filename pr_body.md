@@ -1,33 +1,28 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #930
+> **Source:** Issue #956
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Volatility regime selection already exists in concept, but its not first-class. Markets behave differently in calm vs stressed periods:
-- Correlations spike during stress (diversification fails when needed most)
-- Volatility clusters and mean-reverts
-- Tail events are more likely during regime transitions
-
-Making regime switching first-class enables realistic stress testing and scenario analysis.
+_Scope section missing from source issue._
 
 #### Tasks
-- [x] Define regime config structure: regimes with per-regime params
-- [x] Implement regime-specific covariance matrices
-- [x] Implement regime-specific correlation matrices
-- [x] Add regime transition probability matrix
-- [x] Integrate regime state into return generation
-- [x] Add regime indicator to output (which regime was active each month)
-- [x] Create preset regime configs (e.g., 2008 crisis, COVID shock)
+- [ ] Tasks section missing from source issue.
 
 #### Acceptance criteria
-- [ ] Configs can specify multiple regimes with different vol/corr parameters
-- [ ] Simulations switch regimes according to transition probabilities
-- [x] Output includes regime state time series
-- [x] Stressed regime produces higher correlations and volatility (configurable)
-- [x] Unit tests verify regime switching logic and distributional properties
-- [ ] ruff check and mypy pass
+- [x] `tests/test_wizard_config_wiring.py` tests all `_build_yaml_dict()` mappings
+- [x] All 25+ wizard settings have explicit test coverage
+- [x] Settings effectiveness script validates output changes
+- [x] CI runs wiring tests on PR
+- [x] Documentation lists all wired settings
+## Related Issues
+- [ ] - #957 Gap analysis of ModelConfig fields without UI exposure
+## References
+- [x] - TMP settings wiring: stranske/Trend_Model_Project#3994
+- [ ] - TMP wiring fix: stranske/Trend_Model_Project#4027
+- [x] - `_build_yaml_dict()`: dashboard/pages/3_Scenario_Wizard.py:42
+- [ ] - `DefaultConfigView`: pa_core/wizard_schema.py:162
 
 <!-- auto-status-summary:end -->

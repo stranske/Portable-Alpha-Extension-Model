@@ -8,6 +8,39 @@ This model simulates a **three-sleeve portable alpha strategy**:
 
 ## Parameter Explanation by Category
 
+### Wizard Wiring Reference (YAML output)
+The Scenario Wizard writes these settings into its YAML preview/export:
+- `N_SIMULATIONS`
+- `N_MONTHS`
+- `analysis_mode`
+- `financing_mode`
+- `total_fund_capital`
+- `external_pa_capital`
+- `active_ext_capital`
+- `internal_pa_capital`
+- `w_beta_H`
+- `w_alpha_H`
+- `theta_extpa`
+- `active_share`
+- `mu_H`
+- `mu_E`
+- `mu_M`
+- `sigma_H`
+- `sigma_E`
+- `sigma_M`
+- `rho_idx_H`
+- `rho_idx_E`
+- `rho_idx_M`
+- `rho_H_E`
+- `rho_H_M`
+- `rho_E_M`
+- `risk_metrics`
+- `reference_sigma`
+- `volatility_multiple`
+- `financing_model`
+- `financing_schedule_path`
+- `financing_term_months`
+
 ### 1. Simulation Settings
 - **Number of simulations**: Monte Carlo trials (1000+ recommended for stable results)
 - **Number of months**: Time horizon for each simulation (12 = 1 year)
