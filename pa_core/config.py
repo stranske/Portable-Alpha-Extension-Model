@@ -131,7 +131,6 @@ class RegimeConfig(BaseModel):
     rho_E_M: Optional[float] = None
 
 
-
 class ModelConfig(BaseModel):
     """Validated simulation parameters for the portable-alpha model.
 
