@@ -721,6 +721,41 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def check_regimes(self) -> "ModelConfig":
+        self._trace_transform(self, "check_regimes")
+        if self.regimes is None:
+            if self.regime_transition is not None:
+                raise ValueError("regime_transition requires regimes")
+            if self.regime_start is not None:
+                raise ValueError("regime_start requires regimes")
+            return self
+
+        if not self.regimes:
+            raise ValueError("regimes must include at least one regime")
+        names = [regime.name for regime in self.regimes]
+        duplicate_names = sorted({name for name in names if names.count(name) > 1})
+        if duplicate_names:
+            raise ValueError(f"regime names must be unique; duplicates found: {duplicate_names}")
+        if self.regime_transition is None:
+            raise ValueError("regime_transition is required when regimes are specified")
+
+        n_regimes = len(self.regimes)
+        transition = self.regime_transition
+        if len(transition) != n_regimes or any(len(row) != n_regimes for row in transition):
+            raise ValueError("regime_transition must be a square matrix matching regimes length")
+
+        for row_idx, row in enumerate(transition):
+            row_sum = float(sum(row))
+            if any(prob < 0.0 or prob > 1.0 for prob in row):
+                raise ValueError(f"regime_transition[{row_idx}] values must be between 0 and 1")
+            if not math.isclose(row_sum, 1.0, abs_tol=1e-6):
+                raise ValueError(f"regime_transition[{row_idx}] must sum to 1")
+
+        if self.regime_start is not None and self.regime_start not in names:
+            raise ValueError("regime_start must match a regime name")
+        return self
+
+    @model_validator(mode="after")
     def check_correlation_repairs(self) -> "ModelConfig":
         self._trace_transform(self, "check_correlation_repairs")
         if not 0.0 <= self.correlation_repair_shrinkage <= 1.0:

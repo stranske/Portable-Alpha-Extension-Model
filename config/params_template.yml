@@ -53,6 +53,35 @@ covariance_shrinkage: none # none|ledoit_wolf
 vol_regime: single # single|two_state
 vol_regime_window: 12 # recent window length (months) for two_state
 
+# Optional regime-switching configuration
+# regimes:
+#   - name: calm
+#     idx_sigma_multiplier: 1.0
+#     sigma_H: 0.01
+#     sigma_E: 0.02
+#     sigma_M: 0.02
+#     rho_idx_H: 0.05
+#     rho_idx_E: 0.0
+#     rho_idx_M: 0.0
+#     rho_H_E: 0.1
+#     rho_H_M: 0.1
+#     rho_E_M: 0.0
+#   - name: stress
+#     idx_sigma_multiplier: 2.0
+#     sigma_H: 0.05
+#     sigma_E: 0.05
+#     sigma_M: 0.05
+#     rho_idx_H: 0.8
+#     rho_idx_E: 0.8
+#     rho_idx_M: 0.8
+#     rho_H_E: 0.85
+#     rho_H_M: 0.85
+#     rho_E_M: 0.85
+# regime_transition:
+#   - [0.9, 0.1]
+#   - [0.2, 0.8]
+# regime_start: calm
+
 return_distribution: normal # normal | student_t (student_t adds heavier tails and runtime)
 return_t_df: 5.0 # degrees of freedom for Student-t (lower df => heavier tails)
 return_copula: gaussian # gaussian | t (t-copula adds tail dependence and runtime)

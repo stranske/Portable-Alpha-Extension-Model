@@ -23,6 +23,21 @@ def test_simulate_regime_paths_alternates() -> None:
     assert paths.tolist() == [[0, 1, 0, 1]]
 
 
+def test_simulate_regime_paths_respects_transition_probabilities() -> None:
+    rng = spawn_rngs(42, 1)[0]
+    transition = [[0.25, 0.75], [0.1, 0.9]]
+    paths = simulate_regime_paths(
+        n_sim=5000,
+        n_months=2,
+        transition=transition,
+        start_state=0,
+        rng=rng,
+    )
+    next_states = paths[:, 1]
+    prob_to_state_1 = float((next_states == 1).mean())
+    assert abs(prob_to_state_1 - 0.75) < 0.03
+
+
 def test_regime_switching_increases_corr_and_vol() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=2000,
