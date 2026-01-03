@@ -1,32 +1,32 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #948
+> **Source:** Issue #932
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Portfolio-level metrics are useful but dont answer "which sleeve is driving my results?" Users need:
-- **Contribution to return**: Which sleeves add/subtract from total return
-- **Contribution to tracking error**: Which sleeves drive deviation from benchmark
-- **Contribution to tail risk**: Marginal CVaR contribution per sleeve
-
-This enables informed sleeve allocation decisions and risk budgeting.
+The sleeve suggester currently optimizes for a single objective. Real portfolio construction requires multi-objective optimization:
+- Maximize expected return
+- Subject to: TE constraint, CVaR constraint, breach probability constraint, shortfall constraint
+- Visualize the efficient frontier across these dimensions
 
 #### Tasks
-- [x] Implement return attribution: sleeve contribution to total portfolio return
-- [x] Implement TE attribution: sleeve contribution to tracking error (using covariance decomposition)
-- [x] Implement marginal CVaR: how much each sleeve contributes to portfolio tail risk
-- [x] Create attribution output table in workbook with per-sleeve breakdown
-- [x] Add visualization for attribution pie/bar charts
-- [x] Document attribution methodology in user guide
+- [x] Define multi-objective optimization problem structure
+- [x] Implement constraint-aware optimization (TE, CVaR, breach, shortfall bounds)
+- [x] Generate efficient frontier across return vs risk trade-off
+- [x] Identify Pareto-optimal sleeve combinations
+- [x] Create frontier visualization with constraint boundaries
+- [x] Add interactive frontier exploration in dashboard
+- [x] Export frontier points to workbook
 
 #### Acceptance criteria
-- [x] Return contributions sum to total portfolio return (within floating point tolerance)
-- [x] TE contributions are computed using proper covariance-based decomposition
-- [x] Marginal CVaR contributions sum to total CVaR (Euler decomposition property)
-- [x] Output workbook includes `sleeve_attribution` sheet
-- [x] Unit tests verify attribution math with known analytical cases
-- [x] `ruff check` and `mypy` pass
+- [x] Optimizer respects all specified constraints
+- [x] Frontier shows return vs TE trade-off with CVaR as color dimension
+- [x] Infeasible regions (constraint violations) are clearly marked
+- [x] At least 20 frontier points generated for smooth curve
+- [x] Dashboard allows clicking frontier points to see sleeve weights
+- [x] Unit tests verify constraint satisfaction for all frontier points
+- [x] ruff check and mypy pass
 
 <!-- auto-status-summary:end -->

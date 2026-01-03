@@ -25,6 +25,7 @@ def test_suggest_sleeve_sizes_returns_feasible():
         max_te=0.02,
         max_breach=0.5,
         max_cvar=0.05,
+        max_shortfall=0.5,
         step=0.5,
         seed=1,
     )
@@ -43,18 +44,21 @@ def test_suggest_sleeve_sizes_respects_bounds():
     max_te = 0.02
     max_breach = 0.5
     max_cvar = 0.05
+    max_shortfall = 0.5
     df = suggest_sleeve_sizes(
         cfg,
         idx_series,
         max_te=max_te,
         max_breach=max_breach,
         max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
         step=0.5,
         seed=1,
     )
     assert (df.filter(regex="_TE").fillna(0) <= max_te).all().all()
     assert (df.filter(regex="_BreachProb").fillna(0) <= max_breach).all().all()
     assert (df.filter(regex="_CVaR").fillna(0).abs() <= max_cvar).all().all()
+    assert (df.filter(regex="_ShortfallProb").fillna(0) <= max_shortfall).all().all()
 
 
 def test_cli_sleeve_suggestion(tmp_path, monkeypatch):
@@ -241,6 +245,7 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
         max_te=0.0,
         max_breach=1.0,
         max_cvar=1.0,
+        max_shortfall=1.0,
         step=1.0,
         constraint_scope="total",
     )
@@ -252,16 +257,21 @@ def test_suggest_sleeve_sizes_total_constraints(monkeypatch):
         max_te=1.5,
         max_breach=1.0,
         max_cvar=1.0,
+        max_shortfall=1.0,
         step=1.0,
         constraint_scope="total",
     )
     assert not df.empty
-    assert {"Total_monthly_TE", "Total_monthly_BreachProb", "Total_monthly_CVaR"}.issubset(
-        df.columns
-    )
+    assert {
+        "Total_monthly_TE",
+        "Total_monthly_BreachProb",
+        "Total_monthly_CVaR",
+        "Total_terminal_ShortfallProb",
+    }.issubset(df.columns)
     assert (df["Total_monthly_TE"] <= 1.5).all()
     assert (df["Total_monthly_BreachProb"] <= 1.0).all()
     assert (df["Total_monthly_CVaR"].abs() <= 1.0).all()
+    assert (df["Total_terminal_ShortfallProb"] <= 1.0).all()
 
 
 def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
@@ -292,6 +302,7 @@ def test_suggest_sleeve_sizes_caps_max_evals(monkeypatch):
         max_te=1.0,
         max_breach=1.0,
         max_cvar=1.0,
+        max_shortfall=1.0,
         step=0.5,
         max_evals=2,
     )
@@ -335,6 +346,7 @@ def test_suggest_sleeve_sizes_reuses_cached_streams(monkeypatch):
         max_te=1.0,
         max_breach=1.0,
         max_cvar=1.0,
+        max_shortfall=1.0,
         step=0.5,
         max_evals=3,
     )
@@ -372,6 +384,7 @@ def test_suggest_sleeve_sizes_skips_invalid_metrics(monkeypatch):
         max_te=1.0,
         max_breach=1.0,
         max_cvar=1.0,
+        max_shortfall=1.0,
         step=1.0,
     )
 
@@ -404,6 +417,7 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
         max_te=1.0,
         max_breach=1.0,
         max_cvar=1.0,
+        max_shortfall=1.0,
         step=0.25,
         min_external=500.0,
         max_external=500.0,
@@ -460,6 +474,10 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
             float(summary_row["monthly_CVaR"]),
             float(row[f"{agent}_monthly_CVaR"]),
         )
+        np.testing.assert_allclose(
+            float(summary_row["terminal_ShortfallProb"]),
+            float(row[f"{agent}_terminal_ShortfallProb"]),
+        )
 
 
 def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
@@ -470,6 +488,7 @@ def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
             "monthly_TE": 0.0001,
             "monthly_BreachProb": 0.0002,
             "monthly_CVaR": -0.0003,
+            "terminal_ShortfallProb": 0.0004,
         },
         "ActiveExt": {
             "terminal_AnnReturn": 0.01,
@@ -477,6 +496,7 @@ def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
             "monthly_TE": 0.0001,
             "monthly_BreachProb": 0.0002,
             "monthly_CVaR": -0.0003,
+            "terminal_ShortfallProb": 0.0004,
         },
         "InternalPA": {
             "terminal_AnnReturn": 0.02,
@@ -484,6 +504,7 @@ def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
             "monthly_TE": 0.0001,
             "monthly_BreachProb": 0.0002,
             "monthly_CVaR": -0.0003,
+            "terminal_ShortfallProb": 0.0004,
         },
     }
     rows = []
@@ -493,6 +514,7 @@ def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
         "monthly_TE": 0.0,
         "monthly_BreachProb": 0.0,
         "monthly_CVaR": 0.0,
+        "terminal_ShortfallProb": 0.0,
     }
     for agent, capital in (
         ("ExternalPA", cfg.external_pa_capital),
@@ -535,6 +557,7 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
         max_te=0.05,
         max_breach=0.05,
         max_cvar=0.05,
+        max_shortfall=0.05,
         step=0.5,
         min_external=0.0,
         max_external=80.0,
@@ -594,6 +617,7 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
         max_te=0.05,
         max_breach=0.05,
         max_cvar=0.05,
+        max_shortfall=0.05,
         step=0.5,
         optimize=True,
         objective="total_return",
@@ -640,6 +664,7 @@ def test_suggest_sleeve_sizes_infeasible_constraints_returns_status(monkeypatch)
         max_te=1e-6,
         max_breach=1e-6,
         max_cvar=1e-6,
+        max_shortfall=1e-6,
         step=0.5,
         optimize=True,
         objective="total_return",
