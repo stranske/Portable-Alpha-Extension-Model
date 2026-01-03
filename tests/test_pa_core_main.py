@@ -68,6 +68,9 @@ def _base_config_data() -> Dict[str, Any]:
         "act_ext_financing_sigma_month": 0.0,
         "act_ext_spike_prob": 0.0,
         "act_ext_spike_factor": 0.0,
+        "regimes": None,
+        "regime_start": None,
+        "regime_transition": None,
     }
 
 

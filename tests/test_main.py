@@ -45,6 +45,9 @@ class DummyConfig:
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 1.0
     financing_mode: str = "broadcast"
+    regimes: Any = None
+    regime_start: Any = None
+    regime_transition: Any = None
     N_SIMULATIONS: int = 2
     N_MONTHS: int = 3
 
