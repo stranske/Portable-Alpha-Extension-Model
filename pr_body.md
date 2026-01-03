@@ -1,31 +1,32 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #947
+> **Source:** Issue #948
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Stress testing is ad-hoc - users manually adjust parameters to simulate stress scenarios. Need:
-- Consistent stress presets that are reusable and documented
-- Clear reporting of what broke under stress (which constraint failed, which sleeve drove breaches)
-- Ability to compare baseline vs stressed outcomes
+Portfolio-level metrics are useful but dont answer "which sleeve is driving my results?" Users need:
+- **Contribution to return**: Which sleeves add/subtract from total return
+- **Contribution to tracking error**: Which sleeves drive deviation from benchmark
+- **Contribution to tail risk**: Marginal CVaR contribution per sleeve
+
+This enables informed sleeve allocation decisions and risk budgeting.
 
 #### Tasks
-- [x] Create stress preset library with named scenarios
-- [x] Implement stress application function that modifies base config
-- [x] Add constraint failure detection and reporting
-- [ ] Identify which sleeve drove each breach
-- [x] Create stress comparison output (baseline vs stressed side-by-side)
-- [x] Add stress summary dashboard widget
-- [x] Document preset scenarios in user guide
+- [x] Implement return attribution: sleeve contribution to total portfolio return
+- [x] Implement TE attribution: sleeve contribution to tracking error (using covariance decomposition)
+- [x] Implement marginal CVaR: how much each sleeve contributes to portfolio tail risk
+- [x] Create attribution output table in workbook with per-sleeve breakdown
+- [x] Add visualization for attribution pie/bar charts
+- [x] Document attribution methodology in user guide
 
 #### Acceptance criteria
-- [ ] At least 5 preset stress scenarios available (e.g., rate shock, equity crash, correlation spike)
-- [x] Stress output clearly shows which constraints failed
-- [x] Per-sleeve breach attribution is included
-- [ ] Comparison table shows baseline vs stressed metrics
-- [x] Unit tests verify stress presets produce expected metric changes
-- [ ] ruff check and mypy pass
+- [x] Return contributions sum to total portfolio return (within floating point tolerance)
+- [x] TE contributions are computed using proper covariance-based decomposition
+- [x] Marginal CVaR contributions sum to total CVaR (Euler decomposition property)
+- [x] Output workbook includes `sleeve_attribution` sheet
+- [x] Unit tests verify attribution math with known analytical cases
+- [x] `ruff check` and `mypy` pass
 
 <!-- auto-status-summary:end -->

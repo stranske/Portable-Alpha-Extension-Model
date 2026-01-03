@@ -1,13 +1,34 @@
 from __future__ import annotations
 
 import math
-from typing import Dict, List
+from typing import Any, Dict, List, Mapping
 
 import pandas as pd
+from numpy.typing import NDArray
 
+from ..backend import xp as np
 from ..config import ModelConfig, normalize_share
+from ..portfolio import compute_total_contribution_returns
+from ..types import ArrayLike
 
-__all__ = ["compute_sleeve_return_attribution", "compute_sleeve_risk_attribution"]
+__all__ = [
+    "compute_sleeve_return_attribution",
+    "compute_sleeve_return_contribution",
+    "compute_sleeve_cvar_contribution",
+    "compute_sleeve_risk_attribution",
+]
+
+
+def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, NDArray[Any]]:
+    """Return (VaR cutoff, tail mask) matching CVaR strict-tail semantics."""
+    flat = np.asarray(total_arr, dtype=float).reshape(-1)
+    var_cutoff = float(np.quantile(flat, 1 - confidence, method="lower"))
+    tail_mask = flat < var_cutoff
+    if not bool(np.any(tail_mask)):
+        tail_mask = flat <= var_cutoff
+    if not bool(np.any(tail_mask)):
+        tail_mask = np.ones_like(flat, dtype=bool)
+    return var_cutoff, tail_mask
 
 
 def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
@@ -107,6 +128,95 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
                 ignore_index=True,
             )
     return df
+
+
+def compute_sleeve_return_contribution(
+    returns_map: Mapping[str, ArrayLike],
+    *,
+    periods_per_year: int = 12,
+    exclude: tuple[str, ...] = ("Base", "Total"),
+) -> pd.DataFrame:
+    """Compute per-sleeve return contribution to the total portfolio return.
+
+    Contributions are arithmetic (mean monthly return * periods per year), so
+    they sum to the total portfolio return within floating-point tolerance.
+    """
+    rows: List[Dict[str, object]] = []
+    contributions_sum = 0.0
+    total_returns = compute_total_contribution_returns(returns_map, exclude=exclude)
+    total_value = None
+    if total_returns is not None:
+        total_arr = np.asarray(total_returns, dtype=float)
+        total_value = float(total_arr.mean() * periods_per_year)
+
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        arr_np = np.asarray(arr, dtype=float)
+        if arr_np.size == 0:
+            contribution = 0.0
+        else:
+            contribution = float(arr_np.mean() * periods_per_year)
+        contributions_sum += contribution
+        rows.append({"Agent": name, "ReturnContribution": contribution})
+
+    if rows:
+        if total_value is None:
+            total_value = contributions_sum
+        rows.append({"Agent": "Total", "ReturnContribution": total_value})
+
+    return pd.DataFrame(rows)
+
+
+def compute_sleeve_cvar_contribution(
+    returns_map: Mapping[str, ArrayLike],
+    *,
+    confidence: float = 0.95,
+    exclude: tuple[str, ...] = ("Base", "Total"),
+) -> pd.DataFrame:
+    """Compute per-sleeve marginal CVaR contributions for the portfolio.
+
+    Uses the conditional expectation of sleeve returns in the portfolio tail,
+    so contributions sum to the portfolio CVaR (Euler decomposition).
+    """
+    expected_size = None
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        arr_np = np.asarray(arr, dtype=float)
+        if arr_np.size == 0:
+            continue
+        if expected_size is None:
+            expected_size = arr_np.size
+        elif arr_np.size != expected_size:
+            raise ValueError("sleeve returns must match total returns shape")
+
+    total_returns = compute_total_contribution_returns(returns_map, exclude=exclude)
+    if total_returns is None:
+        return pd.DataFrame(columns=["Agent", "CVaRContribution"])
+
+    total_arr = np.asarray(total_returns, dtype=float).reshape(-1)
+    if total_arr.size == 0:
+        return pd.DataFrame(columns=["Agent", "CVaRContribution"])
+
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must be between 0 and 1")
+
+    _, tail_mask = _cvar_tail_mask(total_arr, confidence)
+
+    rows: List[Dict[str, object]] = []
+    for name, arr in returns_map.items():
+        if name in exclude:
+            continue
+        sleeve_arr = np.asarray(arr, dtype=float).reshape(-1)
+        contribution = float(np.mean(sleeve_arr[tail_mask])) if sleeve_arr.size else 0.0
+        rows.append({"Agent": name, "CVaRContribution": contribution})
+
+    if rows:
+        total_cvar = float(np.mean(total_arr[tail_mask]))
+        rows.append({"Agent": "Total", "CVaRContribution": total_cvar})
+
+    return pd.DataFrame(rows)
 
 
 def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> pd.DataFrame:
