@@ -40,7 +40,9 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
     idx_series = pd.Series(idx_values)
     expected_mu = float(idx_series.mean())
 
-    def fake_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def fake_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         params_capture["params"] = dict(params)
         zeros = np.zeros((n_sim, n_months))
         return zeros, zeros, zeros, zeros
@@ -74,7 +76,9 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
 
     cli_params: dict[str, object] = {}
 
-    def capture_cli_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def capture_cli_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         cli_params.update(dict(params))
         zeros = np.zeros((n_sim, n_months))
         return zeros, zeros, zeros, zeros
@@ -148,7 +152,9 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     expected_ann = (1.0 + monthly_return) ** 12 - 1.0
     returns_map = {"Base": np.full((2, 12), monthly_return)}
 
-    def fake_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def fake_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         zeros = np.zeros((n_sim, n_months))
         return zeros, zeros, zeros, zeros
 
@@ -246,7 +252,9 @@ def test_sweep_return_overrides_convert_to_monthly(monkeypatch) -> None:
 
     params_capture: dict[str, dict[str, object]] = {}
 
-    def fake_draw_joint_returns(*, n_months, n_sim, params, rng=None, shocks=None):
+    def fake_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
         params_capture["params"] = dict(params)
         zeros = np.zeros((n_sim, n_months))
         return zeros, zeros, zeros, zeros

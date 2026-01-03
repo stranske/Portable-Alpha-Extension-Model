@@ -175,6 +175,12 @@ def run_single(
         build_params,
         resolve_covariance_inputs,
     )
+    from .sim.regimes import (
+        apply_regime_labels,
+        build_regime_draw_params,
+        resolve_regime_start,
+        simulate_regime_paths,
+    )
     from .simulations import simulate_agents
     from .units import normalize_return_inputs
     from .validators import select_vol_regime_sigma
@@ -243,12 +249,34 @@ def run_single(
         return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
     )
 
-    rng_returns = spawn_rngs(run_options.seed, 1)[0]
+    rng_returns, rng_regime = spawn_rngs(run_options.seed, 2)
+    regime_params = None
+    regime_paths = None
+    regime_labels = None
+    if run_cfg.regimes is not None:
+        if run_cfg.regime_transition is None:
+            raise ValueError("regime_transition is required when regimes are specified")
+        regime_params, labels = build_regime_draw_params(
+            run_cfg,
+            mu_idx=mu_idx,
+            idx_sigma=idx_sigma,
+            n_samples=n_samples,
+        )
+        regime_paths = simulate_regime_paths(
+            n_sim=run_cfg.N_SIMULATIONS,
+            n_months=run_cfg.N_MONTHS,
+            transition=run_cfg.regime_transition,
+            start_state=resolve_regime_start(run_cfg),
+            rng=rng_regime,
+        )
+        regime_labels = apply_regime_labels(regime_paths, labels)
     r_beta, r_H, r_E, r_M = draw_joint_returns(
         n_months=run_cfg.N_MONTHS,
         n_sim=run_cfg.N_SIMULATIONS,
         params=params,
         rng=rng_returns,
+        regime_paths=regime_paths,
+        regime_params=regime_params,
     )
     corr_repair_info = params.get("_correlation_repair_info")
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
@@ -268,6 +296,8 @@ def run_single(
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
     summary = summary_table(returns, benchmark="Base")
     raw_returns = {name: pd.DataFrame(data) for name, data in returns.items()}
+    if regime_labels is not None:
+        raw_returns["Regime"] = pd.DataFrame(regime_labels)
     inputs = run_cfg.model_dump()
     if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
         inputs["correlation_repair_applied"] = True

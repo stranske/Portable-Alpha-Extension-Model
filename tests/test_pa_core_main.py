@@ -80,7 +80,7 @@ def _patch_main_dependencies(monkeypatch):
 
     def fake_spawn_rngs(seed: int | None, count: int):
         calls["spawn_rngs"] = (seed, count)
-        return ["rng"]
+        return [f"rng-{idx}" for idx in range(count)]
 
     def fake_spawn_agent_rngs_with_ids(seed: int | None, names, **_kwargs):
         calls["spawn_agent_rngs_with_ids"] = (seed, list(names))
