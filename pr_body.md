@@ -15,16 +15,16 @@ Stress testing is ad-hoc - users manually adjust parameters to simulate stress s
 - [x] Create stress preset library with named scenarios
 - [x] Implement stress application function that modifies base config
 - [x] Add constraint failure detection and reporting
-- [ ] Identify which sleeve drove each breach
+- [x] Identify which sleeve drove each breach
 - [x] Create stress comparison output (baseline vs stressed side-by-side)
 - [x] Add stress summary dashboard widget
-- [ ] Document preset scenarios in user guide
+- [x] Document preset scenarios in user guide
 
 #### Acceptance criteria
-- [ ] At least 5 preset stress scenarios available (e.g., rate shock, equity crash, correlation spike)
+- [x] At least 5 preset stress scenarios available (e.g., rate shock, equity crash, correlation spike)
 - [x] Stress output clearly shows which constraints failed
-- [ ] Per-sleeve breach attribution is included
-- [ ] Comparison table shows baseline vs stressed metrics
+- [x] Per-sleeve breach attribution is included
+- [x] Comparison table shows baseline vs stressed metrics
 - [x] Unit tests verify stress presets produce expected metric changes
 - [ ] ruff check and mypy pass
 

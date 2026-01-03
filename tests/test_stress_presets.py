@@ -1,7 +1,7 @@
 import pytest
 
 from pa_core.config import ModelConfig, annual_mean_to_monthly
-from pa_core.stress import apply_stress_preset
+from pa_core.stress import STRESS_PRESETS, apply_stress_preset
 
 
 def _base_cfg() -> ModelConfig:
@@ -56,3 +56,7 @@ def test_rate_shock_overrides_financing_means():
     assert stressed.internal_financing_mean_month == pytest.approx(0.012)
     assert stressed.ext_pa_financing_mean_month == pytest.approx(0.014)
     assert stressed.act_ext_financing_mean_month == pytest.approx(0.015)
+
+
+def test_stress_preset_library_has_minimum_count():
+    assert len(STRESS_PRESETS) >= 5
