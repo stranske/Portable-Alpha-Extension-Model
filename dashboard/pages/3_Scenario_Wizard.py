@@ -19,8 +19,8 @@ from pa_core import cli as pa_cli
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
-from pa_core.viz import frontier as frontier_viz
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
+from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard_schema import (
     AnalysisMode,
     DefaultConfigView,
