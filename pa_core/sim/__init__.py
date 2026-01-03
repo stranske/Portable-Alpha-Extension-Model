@@ -9,7 +9,12 @@ from .paths import (
     prepare_return_shocks,
     simulate_alpha_streams,
 )
-from .regimes import apply_regime_labels, build_regime_draw_params, resolve_regime_start, simulate_regime_paths
+from .regimes import (
+    apply_regime_labels,
+    build_regime_draw_params,
+    resolve_regime_start,
+    simulate_regime_paths,
+)
 
 # Backward-compatible alias for draw_financing_series
 draw_financing = draw_financing_series

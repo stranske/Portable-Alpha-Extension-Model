@@ -132,9 +132,7 @@ def simulate_regime_paths(
     return cast(npt.NDArray[Any], paths)
 
 
-def apply_regime_labels(
-    paths: npt.NDArray[Any], labels: Sequence[str]
-) -> npt.NDArray[Any]:
+def apply_regime_labels(paths: npt.NDArray[Any], labels: Sequence[str]) -> npt.NDArray[Any]:
     label_array = np.asarray(labels, dtype=object)
     return cast(npt.NDArray[Any], label_array[paths])
 
