@@ -938,7 +938,9 @@ def _select_frontier_indices(
         best = in_bin.sort_values(return_col, ascending=False).iloc[0]
         picks.append(int(best.name))
     if len(picks) < min_points:
-        remaining = feasible.drop(index=picks, errors="ignore").sort_values(return_col, ascending=False)
+        remaining = feasible.drop(index=picks, errors="ignore").sort_values(
+            return_col, ascending=False
+        )
         picks.extend([int(idx) for idx in remaining.head(min_points - len(picks)).index])
     return picks
 
