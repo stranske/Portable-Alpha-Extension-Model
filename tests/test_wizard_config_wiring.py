@@ -125,3 +125,16 @@ def test_build_yaml_includes_schedule_path() -> None:
         assert yaml_dict["financing_term_months"] == 4.0
     finally:
         st.session_state.clear()
+
+
+def test_build_yaml_dict_alias_matches_from_config() -> None:
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        build_yaml = module["_build_yaml_from_config"]
+        build_yaml_dict = module["_build_yaml_dict"]
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        assert build_yaml_dict(config) == build_yaml(config)
+    finally:
+        st.session_state.clear()

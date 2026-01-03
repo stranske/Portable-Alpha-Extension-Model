@@ -126,6 +126,11 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     return yaml_dict
 
 
+def _build_yaml_dict(config: DefaultConfigView) -> Dict[str, Any]:
+    """Backward-compatible alias for _build_yaml_from_config()."""
+    return _build_yaml_from_config(config)
+
+
 def _validate_yaml_dict(yaml_dict: Dict[str, Any]) -> None:
     """Validate using core ModelConfig; raises on error."""
     load_config(yaml_dict)

@@ -14,7 +14,7 @@ _Scope section missing from source issue._
 #### Acceptance criteria
 - [x] `tests/test_wizard_config_wiring.py` tests all `_build_yaml_dict()` mappings
 - [x] All 25+ wizard settings have explicit test coverage
-- [ ] Settings effectiveness script validates output changes
+- [x] Settings effectiveness script validates output changes
 - [x] CI runs wiring tests on PR
 - [x] Documentation lists all wired settings
 ## Related Issues
@@ -22,7 +22,7 @@ _Scope section missing from source issue._
 ## References
 - [x] - TMP settings wiring: stranske/Trend_Model_Project#3994
 - [ ] - TMP wiring fix: stranske/Trend_Model_Project#4027
-- [ ] - `_build_yaml_dict()`: dashboard/pages/3_Scenario_Wizard.py:42
+- [x] - `_build_yaml_dict()`: dashboard/pages/3_Scenario_Wizard.py:42
 - [ ] - `DefaultConfigView`: pa_core/wizard_schema.py:162
 
 <!-- auto-status-summary:end -->
