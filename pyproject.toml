@@ -92,8 +92,8 @@ parquet = ["pyarrow"]
 # Development dependencies
 dev = [
     "ruff>=0.14.10",
-    "black>=24.4.2",
-    "isort>=5.13.2",
+    "black>=25.12.0",
+    "isort>=7.0.0",
     "mypy>=1.19.1",
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
