@@ -92,11 +92,12 @@ distlib==0.4.0
     # via virtualenv
 docformatter==1.7.7
     # via portable-alpha-extension-model (pyproject.toml)
-docutils==0.22.4
+docutils==0.21.2
     # via
     #   nbsphinx
     #   readme-renderer
     #   sphinx
+    #   sphinx-rtd-theme
 et-xmlfile==2.0.0
     # via openpyxl
 execnet==2.1.2
@@ -513,6 +514,8 @@ rich==14.2.0
     #   bandit
     #   twine
 roman-numerals==4.1.0
+    # via roman-numerals-py
+roman-numerals-py==4.1.0
     # via sphinx
 rpds-py==0.30.0
     # via
@@ -542,12 +545,13 @@ sortedcontainers==2.4.0
     # via hypothesis
 soupsieve==2.8.1
     # via beautifulsoup4
-sphinx==9.1.0
+sphinx==8.2.3
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   nbsphinx
     #   sphinx-rtd-theme
-sphinx-rtd-theme==0.5.1
+    #   sphinxcontrib-jquery
+sphinx-rtd-theme==3.0.2
     # via portable-alpha-extension-model (pyproject.toml)
 sphinxcontrib-applehelp==2.0.0
     # via sphinx
@@ -555,6 +559,8 @@ sphinxcontrib-devhelp==2.0.0
     # via sphinx
 sphinxcontrib-htmlhelp==2.1.0
     # via sphinx
+sphinxcontrib-jquery==4.1
+    # via sphinx-rtd-theme
 sphinxcontrib-jsmath==1.0.1
     # via sphinx
 sphinxcontrib-qthelp==2.0.0

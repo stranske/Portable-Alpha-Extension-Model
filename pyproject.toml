@@ -109,7 +109,7 @@ dev = [
 # Documentation dependencies
 docs = [
     "sphinx",
-    "sphinx-rtd-theme",
+    "sphinx-rtd-theme>=2.0",
     "nbsphinx",
 ]
 
@@ -127,10 +127,8 @@ notebook = [
     "jupyter-contrib-nbextensions",
 ]
 
-# All dev dependencies combined
-all = [
-    "portable-alpha-extension-model[dev,docs,build,notebook]",
-]
+# All dev dependencies combined - when using --extra all, all extras are already included
+all = []
 
 [project.scripts]
 pa = "pa_core.pa:main"
