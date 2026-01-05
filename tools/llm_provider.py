@@ -20,6 +20,8 @@ import logging
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Type
+from typing import Type
 
 logger = logging.getLogger(__name__)
 
@@ -546,7 +548,7 @@ def get_llm_provider(force_provider: str | None = None) -> LLMProvider:
     """
     # Force a specific provider for testing
     if force_provider:
-        provider_map = {
+        provider_map: dict[str, Type[GitHubModelsProvider] | Type[OpenAIProvider] | Type[RegexFallbackProvider]] = {
             "github-models": GitHubModelsProvider,
             "openai": OpenAIProvider,
             "regex-fallback": RegexFallbackProvider,
