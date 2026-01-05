@@ -21,7 +21,7 @@ def _split_spec(raw: str) -> tuple[str, str | None]:
         entry, condition = entry.split(";", 1)
         entry = entry.strip()
         condition = condition.strip()
-    
+
     for operator in _OPERATORS:
         if operator in entry:
             name, _ = entry.split(operator, 1)
@@ -33,13 +33,13 @@ def _is_applicable_condition(condition: str | None, current_python: tuple[int, i
     """Check if a conditional marker applies to the current Python version."""
     if condition is None:
         return True
-    
+
     # Handle python_version conditions - be flexible with quote matching
     match = re.search(r'python_version\s*([<>=!]+)\s*["\']?(\d+\.\d+)', condition)
     if match:
         operator, version_str = match.groups()
         required_version = tuple(map(int, version_str.split(".")))
-        
+
         # For < operator, if current Python is >= the version, this dep won't be in lock
         if operator in ("<", "<="):
             # tomli; python_version < "3.11" means it's only for < 3.11
@@ -50,7 +50,7 @@ def _is_applicable_condition(condition: str | None, current_python: tuple[int, i
         elif operator in (">", ">="):
             if current_python < required_version:
                 return False
-    
+
     return True
 
 
