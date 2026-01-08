@@ -104,7 +104,8 @@ class Scenario(BaseModel):
     @model_validator(mode="after")
     def _check_assets_and_portfolios(self) -> "Scenario":
         asset_ids = [a.id for a in self.assets]
-        if self.index.id in asset_ids:
+        asset_id_set = set(asset_ids)
+        if self.index.id in asset_id_set:
             raise ValueError(ASSET_INDEX_CONFLICT_ERROR.format(index_id=self.index.id))
         dup_assets = [i for i, c in Counter(asset_ids).items() if c > 1]
         if dup_assets:
@@ -125,6 +126,7 @@ class Scenario(BaseModel):
     @model_validator(mode="after")
     def _check_correlations(self) -> "Scenario":
         ids = [self.index.id] + [a.id for a in self.assets]
+        ids = list(dict.fromkeys(ids))
         expected = {tuple(sorted(p)) for p in combinations(ids, 2)}
         pairs = [tuple(sorted(c.pair)) for c in self.correlations]
         dupes = [p for p, count in Counter(pairs).items() if count > 1]
