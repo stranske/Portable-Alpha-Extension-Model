@@ -135,7 +135,7 @@ def test_compute_sleeve_risk_attribution_outputs_metrics() -> None:
         "ExternalPA",
         "ActiveExt",
         "InternalPA",
-        "InternalBeta",
+        "ResidualBeta",
         "Total",
     }
     assert df["CorrWithIndex"].between(-1.0, 1.0).all()

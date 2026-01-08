@@ -56,6 +56,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
+    residual_label = "ResidualBeta"
 
     # Monthly means
     mu_idx_m = float(pd.Series(idx_series).mean())
@@ -109,13 +110,13 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         int_alpha = w_int * mu_H_m
         rows.append({"Agent": "InternalPA", "Sub": "Alpha", "Return": int_alpha})
 
-    # InternalBeta (leftover beta)
+    # Residual beta allocation for attribution; not the InternalBeta margin agent.
     if w_leftover > 0:
         ib_beta = w_leftover * mu_idx_m
         ib_fin = -w_leftover * fin_int_m
         rows += [
-            {"Agent": "InternalBeta", "Sub": "Beta", "Return": ib_beta},
-            {"Agent": "InternalBeta", "Sub": "Financing", "Return": ib_fin},
+            {"Agent": residual_label, "Sub": "Beta", "Return": ib_beta},
+            {"Agent": residual_label, "Sub": "Financing", "Return": ib_fin},
         ]
 
     df = pd.DataFrame(rows).reset_index(drop=True)
@@ -243,6 +244,8 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
+    residual_label = "ResidualBeta"
+
     # Monthly sigmas (follow existing convention used in simulator params)
     idx_sigma_m = float(pd.Series(idx_series).std(ddof=1))
     sigma_H_m = float(cfg.sigma_H)
@@ -324,11 +327,11 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
                 ),
             }
         )
-    # InternalBeta (leftover)
+    # Residual beta allocation for attribution; not the InternalBeta margin agent.
     if w_leftover > 0:
         rows.append(
             {
-                "Agent": "InternalBeta",
+                "Agent": residual_label,
                 **_metrics(
                     b=w_leftover,
                     alpha_sigma=0.0,

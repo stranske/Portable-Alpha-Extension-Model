@@ -1314,6 +1314,8 @@ For detailed analysis, each sleeve's return is further decomposed into:
 
 This allows users to understand not just which sleeves contribute, but *how* they contribute (market exposure vs. skill vs. cost).
 
+Attribution uses a **ResidualBeta** sleeve for any leftover capital after ExternalPA, ActiveExt, and InternalPA allocations. This is distinct from the simulation's **InternalBeta** agent, which represents margin-backed capital injected when margin requirements are non-zero.
+
 ### Tracking Error Attribution
 
 **Function**: `compute_sleeve_risk_attribution()`
