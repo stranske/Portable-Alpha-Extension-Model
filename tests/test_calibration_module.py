@@ -179,6 +179,21 @@ def test_model_config_and_scenario_conversion() -> None:
     assert {asset.id for asset in scenario.assets} == {"H", "E", "M"}
 
 
+def test_to_scenario_excludes_index_with_nonleading_column() -> None:
+    df = pd.DataFrame(
+        {
+            "A": [0.01, 0.02, 0.03, 0.02],
+            "IDX": [0.02, 0.01, 0.01, 0.03],
+            "B": [0.03, 0.01, 0.02, 0.02],
+        }
+    )
+    result = calibrate_returns(df, index_id="IDX", annualize=False)
+
+    scenario = result.to_scenario()
+    assert scenario.index.id == "IDX"
+    assert [asset.id for asset in scenario.assets] == ["A", "B"]
+
+
 def test_to_scenario_excludes_index_from_assets() -> None:
     series = {
         "IDX": SeriesEstimate(

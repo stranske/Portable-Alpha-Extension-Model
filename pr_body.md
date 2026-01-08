@@ -9,19 +9,20 @@
 Align index/asset validation across static asset definitions, runtime schema checks, and calibration scenario generation so the index never appears in assets and correlations avoid duplicate pairs.
 
 #### Tasks
-- [x] Define validation logic for rejecting index ID in assets.
-- [x] Implement the validation in the `Scenario` model.
-- [x] Write unit tests for the new validation.
-- [x] Modify `CalibrationResult.to_scenario()` to filter out the index.
-- [x] Define scope for: Write unit tests to ensure the index is not included in the assets list.
-- [x] Implement focused slice for: Write unit tests to ensure the index is not included in the assets list.
-- [x] Validate focused slice for: Write unit tests to ensure the index is not included in the assets list.
-- [x] Document the expected relationship between index and assets.
+- [x] Add unit tests in `tests/test_calibration_module.py` to verify that when assets include index.id, the Scenario validation function raises a ValueError with the message 'Assets must not include index.id'.
+- [x] Modify `pa_core/schema.py` to raise a ValueError with the message 'Assets must not include index.id' when assets contain index.id.
+- [x] Expand unit tests for `CalibrationResult.to_scenario()` in `tests/test_calibration_module.py` to cover edge cases including absence of index, single and multiple occurrences, and different orderings.
+- [x] Update `docs/UserGuide.md` to explain the relationship between 'index' and 'assets', detailing the behavior of Scenario validation and `CalibrationResult.to_scenario()`, with examples.
+- [ ] Review and update the CI workflow configuration in `pr-00-gate.yml` to ensure it triggers the complete test suite, including new tests. (needs-human)
 
 #### Acceptance criteria
-- [x] `Scenario` raises `ValidationError` with message `assets must not include index id 'IDX'` when `index.id` appears in assets.
-- [x] `CalibrationResult.to_scenario()` never emits assets containing the index (e.g., series `IDX/A` yields assets `["A"]`).
-- [x] Correlation validation rejects missing, duplicate, or extra pairs so each unique id combination appears exactly once.
+- [x] The Scenario validation function raises a ValueError with the exact message 'Assets must not include index.id' when 'index.id' is present in assets.
+- [x] The `pa_core/schema.py` raises a ValueError with the message 'Assets must not include index.id' when assets contain index.id.
+- [x] `CalibrationResult.to_scenario()` returns a scenario object whose assets do not include any entry for index in all test cases.
+- [x] The `docs/UserGuide.md` includes a section explaining the relationship between 'index' and 'assets', detailing the behavior of Scenario validation and `CalibrationResult.to_scenario()`, with examples.
+- [ ] The CI workflow configuration in `pr-00-gate.yml` triggers the complete test suite, including new tests. (needs-human)
+#### Notes
+- needs-human: Updating `.github/workflows/pr-00-gate.yml` is blocked by repo policy; please apply the workflow change in a high-privilege run.
 ## Related Issues
 - [ ] _Not provided._
 ## References
