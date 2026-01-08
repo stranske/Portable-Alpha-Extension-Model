@@ -44,7 +44,8 @@ when you are tuning simulation length, financing, or sweep parameters; use
    > **Scenario structure:**
    > A scenario YAML file must include the market data inputs:
    > - `index` with `id`, `mu`, and `sigma`.
-   > - `assets` (can be empty) plus a complete `correlations` matrix.
+   > - `assets` (can be empty) plus a complete `correlations` matrix. Asset ids must exclude the index id.
+   > - `correlations` must include one pair per unique index/asset combination; missing, duplicate, or extra pairs are rejected.
    > - `portfolios` that reference the defined assets.
    > - Optional `sleeves` that allocate capital shares across alpha sources.
    >

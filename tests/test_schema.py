@@ -3,8 +3,14 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
-from pa_core.schema import Scenario, load_scenario, save_scenario
+from pa_core.schema import (
+    ASSET_INDEX_CONFLICT_ERROR,
+    Scenario,
+    load_scenario,
+    save_scenario,
+)
 
 # ruff: noqa: E402
 
@@ -45,6 +51,16 @@ def test_missing_rho() -> None:
         Scenario.model_validate(data)
 
 
+def test_index_only_allows_empty_correlations() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [],
+        "correlations": [],
+        "portfolios": [],
+    }
+    Scenario.model_validate(data)
+
+
 def test_duplicate_correlations() -> None:
     data = {
         "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
@@ -52,6 +68,20 @@ def test_duplicate_correlations() -> None:
         "correlations": [
             {"pair": ["IDX", "A"], "rho": 0.1},
             {"pair": ["A", "IDX"], "rho": 0.1},
+        ],
+        "portfolios": [],
+    }
+    with pytest.raises(ValueError, match="duplicate"):
+        Scenario.model_validate(data)
+
+
+def test_duplicate_correlations_same_order() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [
+            {"pair": ["IDX", "A"], "rho": 0.1},
+            {"pair": ["IDX", "A"], "rho": 0.1},
         ],
         "portfolios": [],
     }
@@ -158,3 +188,32 @@ def test_extra_correlations() -> None:
     }
     with pytest.raises(ValueError, match="unexpected correlations"):
         Scenario.model_validate(data)
+
+
+def test_self_pair_correlation_is_unexpected() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [
+            {"pair": ["IDX", "A"], "rho": 0.1},
+            {"pair": ["A", "A"], "rho": 0.0},
+        ],
+        "portfolios": [],
+    }
+    with pytest.raises(ValueError, match="unexpected correlations"):
+        Scenario.model_validate(data)
+
+
+def test_scenario_rejects_index_in_assets() -> None:
+    expected = ASSET_INDEX_CONFLICT_ERROR.format(index_id="IDX")
+    with pytest.raises(ValidationError) as excinfo:
+        Scenario.model_validate(
+            {
+                "index": {"id": "IDX", "mu": 0.05, "sigma": 0.1},
+                "assets": [{"id": "IDX", "mu": 0.04, "sigma": 0.08}],
+                "correlations": [{"pair": ["IDX", "IDX"], "rho": 0.0}],
+            }
+        )
+    errors = excinfo.value.errors()
+    assert errors[0]["msg"] == f"Value error, {expected}"
+    assert errors[0]["type"] == "value_error"
