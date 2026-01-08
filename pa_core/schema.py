@@ -103,6 +103,8 @@ class Scenario(BaseModel):
     @model_validator(mode="after")
     def _check_assets_and_portfolios(self) -> "Scenario":
         asset_ids = [a.id for a in self.assets]
+        if self.index.id in asset_ids:
+            raise ValueError(f"assets must not include index id {self.index.id!r}")
         dup_assets = [i for i, c in Counter(asset_ids).items() if c > 1]
         if dup_assets:
             raise ValueError(f"duplicate asset ids: {sorted(dup_assets)}")

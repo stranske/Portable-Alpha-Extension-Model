@@ -52,10 +52,15 @@ class CalibrationResult:
         index = self.series.get(self.index_id)
         if index is None:
             raise ValueError("index_id not found in series estimates")
+        asset_ids = [asset_id for asset_id in self.series if asset_id != self.index_id]
         assets = [
-            Asset(id=asset_id, label=asset_id, mu=stats.mean, sigma=stats.volatility)
-            for asset_id, stats in self.series.items()
-            if asset_id != self.index_id
+            Asset(
+                id=asset_id,
+                label=asset_id,
+                mu=self.series[asset_id].mean,
+                sigma=self.series[asset_id].volatility,
+            )
+            for asset_id in asset_ids
         ]
         correlations = [Correlation(pair=corr.pair, rho=corr.rho) for corr in self.correlations]
         return Scenario(
