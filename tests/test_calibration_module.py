@@ -7,12 +7,12 @@ import pandas as pd
 import pytest
 
 from pa_core.calibration import (
-    _boost_shrinkage_for_short_samples,
-    _c4,
     CalibrationResult,
-    calibrate_returns,
     CorrelationEstimate,
     SeriesEstimate,
+    _boost_shrinkage_for_short_samples,
+    _c4,
+    calibrate_returns,
 )
 
 
