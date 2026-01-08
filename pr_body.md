@@ -6,23 +6,23 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-_Scope section missing from source issue._
+Clarify that `InternalBeta` in simulation refers to margin-backed capital, while attribution uses a residual sleeve, and document naming rules to prevent term collisions.
 
 #### Tasks
-- [ ] Tasks section missing from source issue.
+- [x] Document the distinction for simulation InternalBeta.
+- [x] Document the distinction for attribution InternalBeta.
+- [x] Consider renaming attribution InternalBeta to `ResidualBeta`.
+- [x] Consider renaming attribution InternalBeta to `UnexplainedBeta`.
+- [x] Add inline comments in both files explaining the semantic difference.
+- [x] Update any user-facing documentation that references InternalBeta.
 
 #### Acceptance criteria
-- [x] `tests/test_wizard_config_wiring.py` tests all `_build_yaml_dict()` mappings
-- [x] All 25+ wizard settings have explicit test coverage
-- [x] Settings effectiveness script validates output changes
-- [x] CI runs wiring tests on PR
-- [x] Documentation lists all wired settings
+- [x] Define specific criteria for what constitutes a term collision, such as 'terms must have distinct meanings in the context of the codebase'.
+- [x] Documentation must include examples and clear definitions of both concepts.
+- [x] Code comments in `registry.py` and `attribution.py` explain the distinction.
 ## Related Issues
-- [ ] - #957 Gap analysis of ModelConfig fields without UI exposure
+- [ ] _Not provided._
 ## References
-- [x] - TMP settings wiring: stranske/Trend_Model_Project#3994
-- [ ] - TMP wiring fix: stranske/Trend_Model_Project#4027
-- [x] - `_build_yaml_dict()`: dashboard/pages/3_Scenario_Wizard.py:42
-- [ ] - `DefaultConfigView`: pa_core/wizard_schema.py:162
+- [ ] _Not provided._
 
 <!-- auto-status-summary:end -->
