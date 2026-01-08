@@ -217,3 +217,4 @@ def test_scenario_rejects_index_in_assets() -> None:
         )
     errors = excinfo.value.errors()
     assert errors[0]["msg"] == f"Value error, {expected}"
+    assert errors[0]["type"] == "value_error"

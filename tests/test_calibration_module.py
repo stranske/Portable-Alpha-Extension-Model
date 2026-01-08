@@ -210,3 +210,29 @@ def test_to_scenario_excludes_index_from_assets() -> None:
     scenario = result.to_scenario()
     assert scenario.index.id == "IDX"
     assert [asset.id for asset in scenario.assets] == ["A"]
+
+
+def test_to_scenario_index_only_assets_empty() -> None:
+    series = {
+        "IDX": SeriesEstimate(
+            mean=0.01,
+            volatility=0.02,
+            mean_ci=None,
+            volatility_ci=None,
+            n_obs=12,
+        ),
+    }
+    result = CalibrationResult(
+        index_id="IDX",
+        series=series,
+        correlations=[],
+        corr_target="identity",
+        mean_shrinkage=0.0,
+        corr_shrinkage=0.0,
+        confidence_level=0.95,
+        annualize=False,
+    )
+
+    scenario = result.to_scenario()
+    assert scenario.index.id == "IDX"
+    assert scenario.assets == []
