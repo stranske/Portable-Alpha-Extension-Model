@@ -54,6 +54,16 @@ def test_missing_rho() -> None:
         Scenario.model_validate(data)
 
 
+def test_index_only_allows_empty_correlations() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [],
+        "correlations": [],
+        "portfolios": [],
+    }
+    Scenario.model_validate(data)
+
+
 def test_duplicate_correlations() -> None:
     data = {
         "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
@@ -176,6 +186,20 @@ def test_extra_correlations() -> None:
         "correlations": [
             {"pair": ["IDX", "A"], "rho": 0.1},
             {"pair": ["IDX", "B"], "rho": 0.2},
+        ],
+        "portfolios": [],
+    }
+    with pytest.raises(ValueError, match="unexpected correlations"):
+        Scenario.model_validate(data)
+
+
+def test_self_pair_correlation_is_unexpected() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [
+            {"pair": ["IDX", "A"], "rho": 0.1},
+            {"pair": ["A", "A"], "rho": 0.0},
         ],
         "portfolios": [],
     }
