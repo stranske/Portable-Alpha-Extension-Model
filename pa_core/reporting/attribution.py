@@ -18,6 +18,8 @@ __all__ = [
     "compute_sleeve_risk_attribution",
 ]
 
+RESIDUAL_BETA_LABEL = "ResidualBeta"
+
 
 def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, NDArray[Any]]:
     """Return (VaR cutoff, tail mask) matching CVaR strict-tail semantics."""
@@ -56,7 +58,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
-    residual_label = "ResidualBeta"
+    residual_label = RESIDUAL_BETA_LABEL
 
     # Monthly means
     mu_idx_m = float(pd.Series(idx_series).mean())
@@ -110,7 +112,8 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         int_alpha = w_int * mu_H_m
         rows.append({"Agent": "InternalPA", "Sub": "Alpha", "Return": int_alpha})
 
-    # Residual beta allocation for attribution; not the InternalBeta margin agent.
+    # Attribution leftover beta (ResidualBeta) is not the simulation InternalBeta margin agent;
+    # see docs/UserGuide.md "Sleeve Attribution Methodology" for InternalBeta vs UnexplainedBeta.
     if w_leftover > 0:
         ib_beta = w_leftover * mu_idx_m
         ib_fin = -w_leftover * fin_int_m
@@ -244,7 +247,7 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
-    residual_label = "ResidualBeta"
+    residual_label = RESIDUAL_BETA_LABEL
 
     # Monthly sigmas (follow existing convention used in simulator params)
     idx_sigma_m = float(pd.Series(idx_series).std(ddof=1))
@@ -327,7 +330,8 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
                 ),
             }
         )
-    # Residual beta allocation for attribution; not the InternalBeta margin agent.
+    # Attribution leftover beta (ResidualBeta) is not the simulation InternalBeta margin agent;
+    # see docs/UserGuide.md "Sleeve Attribution Methodology" for InternalBeta vs UnexplainedBeta.
     if w_leftover > 0:
         rows.append(
             {
