@@ -68,6 +68,20 @@ def test_duplicate_correlations() -> None:
         Scenario.model_validate(data)
 
 
+def test_duplicate_correlations_same_order() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [{"id": "A", "mu": 0.05, "sigma": 0.1}],
+        "correlations": [
+            {"pair": ["IDX", "A"], "rho": 0.1},
+            {"pair": ["IDX", "A"], "rho": 0.1},
+        ],
+        "portfolios": [],
+    }
+    with pytest.raises(ValueError, match="duplicate"):
+        Scenario.model_validate(data)
+
+
 def test_sleeve_capital_share_sum() -> None:
     data = {
         "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
