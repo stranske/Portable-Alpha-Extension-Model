@@ -66,6 +66,7 @@ def test_compute_sleeve_return_attribution_basic() -> None:
     assert (df["Agent"] == "ExternalPA").any()
     assert (df["Agent"] == "ActiveExt").any()
     assert (df["Agent"] == "InternalPA").any()
+    assert (df["Agent"] == "ResidualBeta").any()
 
     # Returns are numeric and finite
     assert pd.api.types.is_numeric_dtype(df["Return"])  # type: ignore[arg-type]

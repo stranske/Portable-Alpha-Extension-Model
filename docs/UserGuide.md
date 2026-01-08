@@ -1316,6 +1316,14 @@ This allows users to understand not just which sleeves contribute, but *how* the
 
 Attribution uses a **ResidualBeta** sleeve for any leftover capital after ExternalPA, ActiveExt, and InternalPA allocations. This is distinct from the simulation's **InternalBeta** agent, which represents margin-backed capital injected when margin requirements are non-zero.
 
+Naming criteria (term collision): a term collision exists when the same label is used for different concepts in the codebase, with different inputs or accounting, such that a report reader could not tell which meaning is intended. Collisions must be resolved by renaming the attribution label or by explicitly documenting the distinction.
+
+**Simulation InternalBeta (margin-backed capital)**: created only when `margin_requirement > 0`, and capitalized with that margin amount. Example: if `total_fund_capital = 500` and `margin_requirement = 25`, the simulator injects an InternalBeta agent with 25 of capital and reports its beta/financing returns.
+
+**Attribution ResidualBeta (leftover allocation)**: computed as the leftover capital after ExternalPA, ActiveExt, and InternalPA allocations, and used only to balance attribution math. Example: with `total_fund_capital = 500`, `ExternalPA = 100`, `ActiveExt = 100`, and `InternalPA = 50`, the residual allocation is `250` and is labeled ResidualBeta in attribution tables.
+
+We use **ResidualBeta** (not **UnexplainedBeta**) to emphasize that the attribution sleeve is a mechanical leftover allocation, not a statement about unexplained performance.
+
 ### Tracking Error Attribution
 
 **Function**: `compute_sleeve_risk_attribution()`
