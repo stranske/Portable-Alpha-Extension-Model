@@ -18,6 +18,8 @@ __all__ = [
     "compute_sleeve_risk_attribution",
 ]
 
+RESIDUAL_BETA_LABEL = "ResidualBeta"
+
 
 def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, NDArray[Any]]:
     """Return (VaR cutoff, tail mask) matching CVaR strict-tail semantics."""
@@ -56,7 +58,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         0.0,
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
-    residual_label = "ResidualBeta"
+    residual_label = RESIDUAL_BETA_LABEL
 
     # Monthly means
     mu_idx_m = float(pd.Series(idx_series).mean())
@@ -245,7 +247,7 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
     )
     w_leftover = float(leftover_beta) / total if total > 0 else 0.0
 
-    residual_label = "ResidualBeta"
+    residual_label = RESIDUAL_BETA_LABEL
 
     # Monthly sigmas (follow existing convention used in simulator params)
     idx_sigma_m = float(pd.Series(idx_series).std(ddof=1))
