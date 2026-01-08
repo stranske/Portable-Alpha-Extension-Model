@@ -52,6 +52,33 @@ when you are tuning simulation length, financing, or sweep parameters; use
    > Simulation settings such as `analysis_mode` and `risk_metrics` live in `ModelConfig`,
    > not in `Scenario`. For a full list of fields and their descriptions, see the comments in
    > `templates/scenario_example.yaml` or refer to the [Scenario Configuration Guide](docs/ScenarioConfig.md) if available.
+
+   **Index vs assets**
+   - `index.id` represents the benchmark series; it must be unique and must not appear in `assets`.
+   - Scenario validation raises `ValueError` with the message `Assets must not include index.id` if any asset uses the index id.
+   - `CalibrationResult.to_scenario()` always builds `Scenario.assets` from the calibrated series excluding `index_id`, regardless of series ordering.
+
+   Example (invalid because the asset id matches `index.id`):
+
+   ```yaml
+   index:
+     id: IDX
+     mu: 0.05
+     sigma: 0.10
+   assets:
+     - id: IDX
+       mu: 0.04
+       sigma: 0.08
+   ```
+
+   Example (calibration output only keeps non-index assets):
+
+   ```python
+   result = calibrate_returns(df, index_id="IDX", annualize=False)
+   scenario = result.to_scenario()
+   # scenario.index.id == "IDX"
+   # scenario.assets contain only non-index series ids
+   ```
    ```bash
    pa validate templates/scenario_example.yaml
    ```
