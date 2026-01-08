@@ -7,9 +7,6 @@ from pydantic import ValidationError
 
 from pa_core.schema import (
     ASSET_INDEX_CONFLICT_ERROR,
-    Asset,
-    Correlation,
-    Index,
     Scenario,
     load_scenario,
     save_scenario,
