@@ -14,6 +14,7 @@ from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_sh
 
 CORRELATION_LOWER_BOUND = -0.999
 CORRELATION_UPPER_BOUND = 0.999
+ASSET_INDEX_CONFLICT_ERROR = "assets must not include index id {index_id!r}"
 
 
 class Index(BaseModel):
@@ -104,7 +105,7 @@ class Scenario(BaseModel):
     def _check_assets_and_portfolios(self) -> "Scenario":
         asset_ids = [a.id for a in self.assets]
         if self.index.id in asset_ids:
-            raise ValueError(f"assets must not include index id {self.index.id!r}")
+            raise ValueError(ASSET_INDEX_CONFLICT_ERROR.format(index_id=self.index.id))
         dup_assets = [i for i, c in Counter(asset_ids).items() if c > 1]
         if dup_assets:
             raise ValueError(f"duplicate asset ids: {sorted(dup_assets)}")

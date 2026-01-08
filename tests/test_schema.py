@@ -5,7 +5,15 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from pa_core.schema import Asset, Correlation, Index, Scenario, load_scenario, save_scenario
+from pa_core.schema import (
+    ASSET_INDEX_CONFLICT_ERROR,
+    Asset,
+    Correlation,
+    Index,
+    Scenario,
+    load_scenario,
+    save_scenario,
+)
 
 # ruff: noqa: E402
 
@@ -162,9 +170,12 @@ def test_extra_correlations() -> None:
 
 
 def test_scenario_rejects_index_in_assets() -> None:
-    with pytest.raises(ValidationError, match="assets must not include index id"):
+    expected = ASSET_INDEX_CONFLICT_ERROR.format(index_id="IDX")
+    with pytest.raises(ValidationError) as excinfo:
         Scenario(
             index=Index(id="IDX", mu=0.05, sigma=0.1),
             assets=[Asset(id="IDX", mu=0.04, sigma=0.08)],
             correlations=[Correlation(pair=("IDX", "IDX"), rho=0.0)],
         )
+    errors = excinfo.value.errors()
+    assert errors[0]["msg"] == f"Value error, {expected}"
