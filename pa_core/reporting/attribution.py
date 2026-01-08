@@ -110,7 +110,8 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
         int_alpha = w_int * mu_H_m
         rows.append({"Agent": "InternalPA", "Sub": "Alpha", "Return": int_alpha})
 
-    # Residual beta allocation for attribution; not the InternalBeta margin agent.
+    # Attribution leftover beta (ResidualBeta) is not the simulation InternalBeta margin agent;
+    # see docs/UserGuide.md "Sleeve Attribution Methodology" for InternalBeta vs UnexplainedBeta.
     if w_leftover > 0:
         ib_beta = w_leftover * mu_idx_m
         ib_fin = -w_leftover * fin_int_m
@@ -327,7 +328,8 @@ def compute_sleeve_risk_attribution(cfg: ModelConfig, idx_series: pd.Series) -> 
                 ),
             }
         )
-    # Residual beta allocation for attribution; not the InternalBeta margin agent.
+    # Attribution leftover beta (ResidualBeta) is not the simulation InternalBeta margin agent;
+    # see docs/UserGuide.md "Sleeve Attribution Methodology" for InternalBeta vs UnexplainedBeta.
     if w_leftover > 0:
         rows.append(
             {

@@ -85,7 +85,8 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
         schedule_path=cfg.financing_schedule_path,
         term_months=cfg.financing_term_months,
     )
-    # InternalBeta here represents margin-backed capital, not attribution residuals.
+    # InternalBeta here represents margin-backed capital, not attribution leftovers
+    # (see docs/UserGuide.md "Sleeve Attribution Methodology" for InternalBeta vs UnexplainedBeta).
     if margin_requirement > 0 and not any(p.name == "InternalBeta" for p in params):
         params.append(
             AgentParams(
