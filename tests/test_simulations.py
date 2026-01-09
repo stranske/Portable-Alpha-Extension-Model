@@ -1,8 +1,10 @@
 import numpy as np
+import pandas as pd
 import pytest
 
 from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
 from pa_core.config import ModelConfig
+from pa_core.facade import RunOptions, run_single
 from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
 from pa_core.sim.params import build_simulation_params
@@ -84,11 +86,12 @@ def test_simulate_financing_spike_shift():
 
 def test_simulate_agents_vectorised():
     n_sim, n_months = 4, 3
-    r_beta = np.random.normal(size=(n_sim, n_months))
-    r_H = np.random.normal(size=(n_sim, n_months))
-    r_E = np.random.normal(size=(n_sim, n_months))
-    r_M = np.random.normal(size=(n_sim, n_months))
-    f = np.abs(np.random.normal(size=(n_sim, n_months))) * 0.01
+    rng = np.random.default_rng(0)
+    r_beta = rng.normal(size=(n_sim, n_months))
+    r_H = rng.normal(size=(n_sim, n_months))
+    r_E = rng.normal(size=(n_sim, n_months))
+    r_M = rng.normal(size=(n_sim, n_months))
+    f = np.abs(rng.normal(size=(n_sim, n_months))) * 0.01
     agents = [
         BaseAgent(AgentParams("Base", 100, 0.5, 0.5, {})),
         ExternalPAAgent(AgentParams("ExternalPA", 80, 0.2, 0.0, {})),
@@ -253,3 +256,38 @@ def test_financing_mode_correlation_structure():
     for mat in (f_int_per_path, f_ext_per_path, f_act_per_path):
         corr_per_path = np.corrcoef(mat[0], mat[1])[0, 1]
         assert abs(corr_per_path) < 0.3
+
+
+def test_run_single_is_deterministic_for_seed() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=6,
+        N_MONTHS=6,
+        financing_mode="broadcast",
+        return_unit="monthly",
+        mu_H=0.0,
+        sigma_H=0.01,
+        mu_E=0.0,
+        sigma_E=0.01,
+        mu_M=0.0,
+        sigma_M=0.01,
+        rho_idx_H=0.1,
+        rho_idx_E=0.05,
+        rho_idx_M=0.05,
+        rho_H_E=0.1,
+        rho_H_M=0.1,
+        rho_E_M=0.1,
+    )
+    idx = pd.Series([0.01, -0.02, 0.015, 0.0, 0.005, -0.01])
+
+    artifacts_a = run_single(cfg, idx, RunOptions(seed=123))
+    artifacts_b = run_single(cfg, idx, RunOptions(seed=123))
+    artifacts_c = run_single(cfg, idx, RunOptions(seed=999))
+
+    assert artifacts_a.returns.keys() == artifacts_b.returns.keys()
+    for name, values in artifacts_a.returns.items():
+        assert np.allclose(values, artifacts_b.returns[name])
+
+    assert any(
+        not np.allclose(values, artifacts_c.returns[name])
+        for name, values in artifacts_a.returns.items()
+    )

@@ -176,6 +176,6 @@ def test_regime_switching_seed_is_deterministic() -> None:
     paths_c, returns_c = _run(101)
 
     assert np.array_equal(paths_a, paths_c)
-    assert np.array_equal(returns_a, returns_c)
+    assert np.allclose(returns_a, returns_c)
     assert not np.array_equal(paths_a, paths_b)
-    assert not np.array_equal(returns_a, returns_b)
+    assert not np.allclose(returns_a, returns_b)

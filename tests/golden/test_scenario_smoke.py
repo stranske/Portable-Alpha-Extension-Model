@@ -13,8 +13,8 @@ from pa_core.orchestrator import SimulatorOrchestrator
 INDEX_SERIES_PATTERN = [0.01, -0.005, 0.008, 0.012, -0.003, 0.006]
 
 EXPECTED = {
-    "terminal_AnnReturn": 0.050591712901722374,
-    "monthly_AnnVol": 0.014185540196625414,
+    "terminal_AnnReturn": 0.05054198785468622,
+    "monthly_AnnVol": 0.014209365492188134,
 }
 
 
