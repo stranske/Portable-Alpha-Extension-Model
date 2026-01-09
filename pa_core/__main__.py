@@ -4,7 +4,6 @@ import argparse
 from dataclasses import fields, is_dataclass
 from typing import Literal, Optional, Sequence, cast
 
-
 from .backend import get_backend
 from .config import load_config
 from .data import load_index_returns
