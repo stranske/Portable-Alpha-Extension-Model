@@ -78,6 +78,7 @@ def test_non_canonical_cli_emits_warning_without_output(monkeypatch, capsys, tmp
     cfg = DummyConfig()
     _patch_cli_run(monkeypatch, cfg)
 
+    # Capture warnings explicitly so deprecations remain on the warnings channel even if output routing changes.
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         pa_cli.main(
@@ -94,6 +95,7 @@ def test_non_canonical_cli_emits_warning_without_output(monkeypatch, capsys, tmp
 
     captured = capsys.readouterr()
     assert any(isinstance(entry.message, DeprecationWarning) for entry in caught)
+    # Deprecation messaging should not leak into stdout/stderr even if the warning sink changes later.
     assert "deprecated" not in captured.out.lower()
     assert "deprecated" not in captured.err.lower()
 
@@ -118,6 +120,7 @@ def test_non_canonical_module_emits_warning_without_output(monkeypatch, capsys) 
     monkeypatch.setattr(pa_module, "export", fake_export)
     monkeypatch.setattr(pa_module, "get_backend", lambda: "numpy")
 
+    # Warnings are captured via the warnings module to make deprecation reporting explicit.
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")
         pa_module.main(
@@ -133,6 +136,7 @@ def test_non_canonical_module_emits_warning_without_output(monkeypatch, capsys) 
 
     captured = capsys.readouterr()
     assert any(isinstance(entry.message, DeprecationWarning) for entry in caught)
+    # Keep stdout/stderr clean so future output refactors don't surface deprecation text.
     assert "deprecated" not in captured.out.lower()
     assert "deprecated" not in captured.err.lower()
 

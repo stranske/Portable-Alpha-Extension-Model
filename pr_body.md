@@ -6,19 +6,21 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Isolate per-run RNG usage across simulations and regime switching, with deterministic tests for seeded runs.
+Align CLI warnings, outputs, and documentation with current deprecation behavior and delegation flow.
 
 #### Tasks
-- [x] Modify `pa_core/sim/paths.py` to replace module-level RNG usage with a local `np.random.Generator` instance. Update functions to accept a generator parameter if necessary.
-- [x] Refactor `pa_core/sim/regimes.py` to eliminate module-level RNG usage by using a per-run `np.random.Generator` instance. Pass the generator as a parameter or instantiate one within the simulation run.
-- [x] Update `pa_core/facade.py` to instantiate a new `np.random.Generator` at the start of each simulation run and ensure it is passed to all downstream functions.
-- [x] Review and update existing tests in `tests/test_simulations.py` to explicitly validate RNG isolation by checking that simulations with the same seed produce identical results and those with different seeds produce different results.
+- [x] Refactor the tests in `tests/test_cli_commands.py` to extract expected stdout/stderr outputs into reference constants or golden files, then compare test output against these references.
+- [x] Update tests in `tests/test_deprecation_warnings.py` to include commentary on the usage of the Python warnings module and prepare for future changes in output mechanisms.
+- [ ] Add inline comments in `pa_core/__main__.py` and `pa_core/cli.py` to clearly document how CLI argument parsing and delegation work.
+- [ ] Review and update documentation in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` to reflect the current implementation details.
+- [ ] Refactor output comparisons in `tests/test_main.py` and `tests/test_pa_core_main.py` to use stored expected output files or constants rather than inline hardcoded strings.
 
 #### Acceptance criteria
-- [x] All functions in `pa_core/sim/paths.py` that previously used module-level RNG now accept an `np.random.Generator` instance as a parameter or create one locally.
-- [x] All functions in `pa_core/sim/regimes.py` that previously used module-level RNG now accept an `np.random.Generator` instance as a parameter or create one locally.
-- [x] A new `np.random.Generator` is instantiated at the start of each simulation run in `pa_core/facade.py` and passed to all downstream functions.
-- [x] Tests in `tests/test_simulations.py` validate that simulations with the same seed produce identical results and those with different seeds produce different results.
+- [x] Unit tests in `tests/test_cli_commands.py` must compare CLI command outputs (stdout, stderr) and exit codes against predefined constants or golden files.
+- [x] Unit tests in `tests/test_deprecation_warnings.py` must verify that deprecation warnings are emitted using the Python warnings module and do not appear in stdout or stderr.
+- [ ] Inline comments in `pa_core/__main__.py` and `pa_core/cli.py` must clearly document the CLI argument parsing and delegation process.
+- [ ] Documentation in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` must include detailed explanations of the delegation process, deprecation warning behavior, and any changes to argument parsing or exit codes.
+- [ ] Unit tests in `tests/test_main.py` and `tests/test_pa_core_main.py` must use stored expected output files or constants for stdout and stderr comparisons.
 ## Related Issues
 - [ ] _Not provided._
 ## References
