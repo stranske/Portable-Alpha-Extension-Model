@@ -286,6 +286,7 @@ def main(
     import sys
     import warnings
 
+    # `pa run` delegates here with emit_deprecation_warning=False; legacy entrypoints warn.
     if emit_deprecation_warning:
         warnings.warn(
             "Direct use of pa_core.cli is deprecated; use `pa run` instead.",
@@ -312,6 +313,7 @@ def main(
 
     from .stress import STRESS_PRESETS
 
+    # Argument parsing stays centralized here to preserve documented flags/output behavior.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",

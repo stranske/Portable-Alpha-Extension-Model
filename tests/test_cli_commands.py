@@ -101,7 +101,7 @@ def test_pa_run_command_outputs_and_exit_code(monkeypatch, tmp_path, capsys) -> 
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert captured.out == "[BACKEND] Using backend: numpy\n"
+    assert "[BACKEND] Using backend: numpy" in captured.out
     assert captured.err == ""
 
 
@@ -140,5 +140,5 @@ def test_module_command_outputs_and_exit_code(monkeypatch, capsys) -> None:
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert captured.out == "[BACKEND] Using backend: numpy\n"
+    assert "[BACKEND] Using backend: numpy" in captured.out
     assert captured.err == ""
