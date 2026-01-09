@@ -252,7 +252,10 @@ def run_single(
         return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
     )
 
-    rng_returns, rng_regime = spawn_rngs(run_options.seed, 2)
+    base_rng = spawn_rngs(run_options.seed, 1)[0]
+    child_seeds = base_rng.integers(0, 2**32, size=2, dtype="uint32")
+    rng_returns = spawn_rngs(int(child_seeds[0]), 1)[0]
+    rng_regime = spawn_rngs(int(child_seeds[1]), 1)[0]
     regime_params = None
     regime_paths = None
     regime_labels = None
@@ -392,7 +395,9 @@ def run_sweep(
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
-    rng_returns = spawn_rngs(run_options.seed, 1)[0]
+    base_rng = spawn_rngs(run_options.seed, 1)[0]
+    child_seed = int(base_rng.integers(0, 2**32, dtype="uint32"))
+    rng_returns = spawn_rngs(child_seed, 1)[0]
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         run_options.seed,
         ["internal", "external_pa", "active_ext"],
