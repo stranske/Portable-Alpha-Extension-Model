@@ -23,7 +23,7 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
     def fake_build_cov_matrix(*_args, **_kwargs):
         return cov
 
-    monkeypatch.setattr("pa_core.orchestrator.build_cov_matrix", fake_build_cov_matrix)
+    monkeypatch.setattr("pa_core.sim.covariance.build_cov_matrix", fake_build_cov_matrix)
     monkeypatch.setattr("pa_core.sweep.build_cov_matrix", fake_build_cov_matrix)
 
     def fake_draw_financing_series(*, n_months, n_sim, **_kwargs):
@@ -51,11 +51,11 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
             }
         )
 
-    monkeypatch.setattr("pa_core.orchestrator.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
     monkeypatch.setattr("pa_core.sweep.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
     monkeypatch.setattr("pa_core.sweep.simulate_agents", fake_simulate_agents)
-    monkeypatch.setattr("pa_core.orchestrator.summary_table", fake_summary_table)
+    monkeypatch.setattr("pa_core.sim.metrics.summary_table", fake_summary_table)
     monkeypatch.setattr("pa_core.sweep.summary_table", fake_summary_table)
 
     orch_params: dict[str, object] = {}
@@ -76,7 +76,7 @@ def test_orchestrator_and_sweep_use_covariance_implied_params(monkeypatch) -> No
         zeros = np.zeros((n_months, n_sim))
         return zeros, zeros, zeros, zeros
 
-    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", capture_orch_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", capture_orch_draw_joint_returns)
     monkeypatch.setattr("pa_core.sweep.draw_joint_returns", capture_sweep_draw_joint_returns)
 
     cfg = load_config(

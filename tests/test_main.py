@@ -45,6 +45,9 @@ class DummyConfig:
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 1.0
     financing_mode: str = "broadcast"
+    vol_regime: str = "single"
+    vol_regime_window: int = 12
+    covariance_shrinkage: str = "none"
     regimes: Any = None
     regime_start: Any = None
     regime_transition: Any = None
@@ -59,20 +62,19 @@ class DummyConfig:
     @classmethod
     def model_validate(cls, data: Dict[str, Any]) -> "DummyConfig":
         cls.last_validated = dict(data)
-        return cls(**data)
+        # Filter out ClassVar fields that shouldn't be passed to __init__
+        # Explicitly exclude 'last_validated' which is a ClassVar
+        init_data = {
+            k: v for k, v in data.items() if k in cls.__dataclass_fields__ and k != "last_validated"
+        }
+        return cls(**init_data)
 
 
 def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     export_calls: Dict[str, Any] = {}
-    backend_calls: Dict[str, Any] = {}
 
     def fake_load_config(_: str) -> DummyConfig:
         return DummyConfig()
-
-    def fake_resolve_and_set_backend(choice: str | None, cfg: DummyConfig) -> str:
-        backend_calls["choice"] = choice
-        backend_calls["cfg"] = cfg
-        return "numpy"
 
     def fake_build_from_config(cfg: DummyConfig) -> Dict[str, str]:
         return {"agent": "stub"}
@@ -80,8 +82,24 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     def fake_load_index_returns(_: str) -> pd.Series:
         return pd.Series([0.01, 0.02, 0.03])
 
-    def fake_spawn_rngs(seed: int | None, n: int) -> list[object]:
-        return [object() for _ in range(n)]
+    class FakeRNG:
+        """Mock RNG with integers method for seedable regime switching."""
+
+        def __init__(self, seed: int | None = None):
+            self._seed = seed
+            self._counter = 0
+
+        def integers(
+            self, low: int, high: int, size: int | None = None, dtype: str = "int64"
+        ) -> int | np.ndarray:
+            """Mock integers method that returns deterministic values."""
+            self._counter += 1
+            if size is None:
+                return low + (self._counter % (high - low))
+            return np.array([low + ((self._counter + i) % (high - low)) for i in range(size)])
+
+    def fake_spawn_rngs(seed: int | None, n: int) -> list[FakeRNG]:
+        return [FakeRNG(seed) for _ in range(n)]
 
     def fake_spawn_agent_rngs_with_ids(
         seed: int | None, names: list[str], **_kwargs
@@ -124,7 +142,6 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         export_calls["filename"] = filename
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
     monkeypatch.setattr("pa_core.agents.registry.build_from_config", fake_build_from_config)
     monkeypatch.setattr("pa_core.data.load_index_returns", fake_load_index_returns)
     monkeypatch.setattr("pa_core.random.spawn_rngs", fake_spawn_rngs)
@@ -162,7 +179,6 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         ]
     )
 
-    assert backend_calls["choice"] == "numpy"
     assert DummyConfig.last_validated is not None
     assert DummyConfig.last_validated["return_distribution"] == "student_t"
     assert DummyConfig.last_validated["return_t_df"] == 5.5

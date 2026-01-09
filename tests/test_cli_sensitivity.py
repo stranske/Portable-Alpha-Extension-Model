@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.cli import Dependencies, main
+from pa_core.cli import main
 
 
 def test_sensitivity_flag_added():
@@ -64,13 +64,13 @@ sigma_M: 0.01
 
         # Mock the expensive parts of the simulation
         with (
-            patch("pa_core.cli.draw_joint_returns") as mock_draws,
-            patch("pa_core.cli.simulate_agents") as mock_simulate,
-            patch("pa_core.cli.create_enhanced_summary") as mock_summary,
-            patch("pa_core.cli.export_to_excel"),
-            patch("pa_core.cli.build_from_config") as mock_build_agents,
-            patch("pa_core.cli.build_cov_matrix"),
-            patch("pa_core.cli.draw_financing_series") as mock_financing,
+            patch("pa_core.sim.draw_joint_returns") as mock_draws,
+            patch("pa_core.sim.draw_financing_series") as mock_financing,
+            patch("pa_core.simulations.simulate_agents") as mock_simulate,
+            patch("pa_core.sim.metrics.summary_table") as mock_summary,
+            patch("pa_core.reporting.export_to_excel"),
+            patch("pa_core.agents.registry.build_from_config") as mock_build_agents,
+            patch("pa_core.sim.covariance.build_cov_matrix") as mock_build_cov,
         ):
             # Mock the simulation properly
             mock_draws.return_value = ([], [], [], [])  # r_beta, r_H, r_E, r_M
@@ -80,6 +80,7 @@ sigma_M: 0.01
             mock_summary.return_value = pd.DataFrame(
                 {"Agent": ["Base"], "terminal_AnnReturn": [8.5], "monthly_AnnVol": [12.0]}
             )
+            mock_build_cov.return_value = np.eye(4)
 
             # Test that --sensitivity flag doesn't cause parser error
             try:
@@ -151,12 +152,12 @@ sigma_M: 0.01
         index_data.to_csv(index_file, index=False)
 
         with (
-            patch("pa_core.cli.draw_joint_returns") as mock_draws,
-            patch("pa_core.cli.simulate_agents") as mock_simulate,
-            patch("pa_core.cli.create_enhanced_summary") as mock_summary,
-            patch("pa_core.cli.export_to_excel"),
-            patch("pa_core.cli.build_from_config") as mock_build_agents,
-            patch("pa_core.cli.build_cov_matrix"),
+            patch("pa_core.sim.draw_joint_returns") as mock_draws,
+            patch("pa_core.simulations.simulate_agents") as mock_simulate,
+            patch("pa_core.sim.metrics.summary_table") as mock_summary,
+            patch("pa_core.reporting.export_to_excel"),
+            patch("pa_core.agents.registry.build_from_config") as mock_build_agents,
+            patch("pa_core.sim.covariance.build_cov_matrix") as mock_build_cov,
             patch("builtins.print") as mock_print,
         ):
             # Mock simulation results
@@ -167,6 +168,7 @@ sigma_M: 0.01
             mock_build_agents.return_value = []
             mock_simulate.return_value = {"Base": [[0.01, 0.02, 0.01]]}
             mock_draws.return_value = ([], [], [], [])
+            mock_build_cov.return_value = np.eye(4)
 
             main(
                 [
@@ -243,26 +245,35 @@ sigma_M: 0.01
     def _stub_export_to_excel(inputs_dict, *_args, **_kwargs):
         captured["inputs_dict"] = inputs_dict
 
-    deps = Dependencies(
-        build_from_config=lambda _cfg: object(),
-        export_to_excel=_stub_export_to_excel,
-        draw_financing_series=lambda *_args, **_kwargs: (
-            np.zeros((1, 2)),
-            np.zeros((1, 2)),
-            np.zeros((1, 2)),
-        ),
-        draw_joint_returns=lambda *_args, **_kwargs: (
-            np.zeros((1, 2)),
-            np.zeros((1, 2)),
-            np.zeros((1, 2)),
-            np.zeros((1, 2)),
-        ),
-        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
-        simulate_agents=lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
-    )
-
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", _stub_export_to_excel)
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", lambda _cfg: object())
     monkeypatch.setattr(
-        "pa_core.cli.create_enhanced_summary",
+        "pa_core.sim.draw_financing_series",
+        lambda *_args, **_kwargs: (
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+        ),
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.draw_joint_returns",
+        lambda *_args, **_kwargs: (
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+            np.zeros((1, 2)),
+        ),
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.covariance.build_cov_matrix",
+        lambda *_args, **_kwargs: np.zeros((4, 4)),
+    )
+    monkeypatch.setattr(
+        "pa_core.simulations.simulate_agents",
+        lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.metrics.summary_table",
         lambda *_args, **_kwargs: pd.DataFrame(
             {"Agent": ["Base"], "terminal_AnnReturn": [0.05], "monthly_AnnVol": [0.1]}
         ),
@@ -277,8 +288,7 @@ sigma_M: 0.01
             "--output",
             str(output_file),
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
 
     inputs_dict = captured.get("inputs_dict")
@@ -348,12 +358,13 @@ sigma_M: 0.01
         index_data.to_csv(index_file, index=False)
 
         with (
-            patch("pa_core.cli.create_enhanced_summary") as mock_summary,
-            patch("pa_core.cli.export_to_excel"),
-            patch("pa_core.cli.build_from_config") as mock_build_agents,
-            patch("pa_core.cli.draw_joint_returns") as mock_draws,
-            patch("pa_core.cli.simulate_agents") as mock_simulate,
-            patch("pa_core.cli.build_cov_matrix"),
+            patch("pa_core.sim.metrics.summary_table") as mock_summary,
+            patch("pa_core.reporting.export_to_excel"),
+            patch("pa_core.agents.registry.build_from_config") as mock_build_agents,
+            patch("pa_core.sim.draw_joint_returns") as mock_draws,
+            patch("pa_core.sim.draw_financing_series") as mock_financing,
+            patch("pa_core.simulations.simulate_agents") as mock_simulate,
+            patch("pa_core.sim.covariance.build_cov_matrix") as mock_build_cov,
             patch("builtins.print") as mock_print,
         ):
             # Mock main simulation to return valid results
@@ -375,6 +386,8 @@ sigma_M: 0.01
             mock_simulate.side_effect = side_effect_simulate
             mock_build_agents.return_value = []
             mock_draws.return_value = ([], [], [], [])
+            mock_financing.return_value = ([], [], [])
+            mock_build_cov.return_value = np.eye(4)
 
             main(
                 [

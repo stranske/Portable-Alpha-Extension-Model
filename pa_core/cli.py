@@ -23,7 +23,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence, cast
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -41,7 +41,6 @@ if TYPE_CHECKING:
     import numpy as np
     import pandas as pd
 
-    from .config import ModelConfig
 
 # Intentionally avoid heavy imports at module import time. Required modules are
 # imported lazily inside functions after environment bootstrap.
@@ -696,36 +695,36 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
     from .config import load_config
+    from .facade import RunOptions, apply_run_options
 
     cfg = load_config(args.config)
-    return_overrides: dict[str, float | str] = {}
-    if args.return_distribution is not None:
-        return_overrides["return_distribution"] = args.return_distribution
-    if args.return_t_df is not None:
-        return_overrides["return_t_df"] = args.return_t_df
-    if args.return_copula is not None:
-        return_overrides["return_copula"] = args.return_copula
-    if return_overrides:
-        cfg = cfg.__class__.model_validate({**cfg.model_dump(), **return_overrides})
+    run_options = RunOptions(
+        seed=args.seed,
+        backend=args.backend,
+        legacy_agent_rng=args.legacy_agent_rng,
+        return_distribution=args.return_distribution,
+        return_t_df=args.return_t_df,
+        return_copula=args.return_copula,
+        covariance_shrinkage=args.cov_shrinkage,
+        vol_regime=args.vol_regime,
+        vol_regime_window=args.vol_regime_window,
+        analysis_mode=args.mode,
+    )
+    cfg = apply_run_options(cfg, run_options)
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
     run_backend = backend_choice
-
-    if args.cov_shrinkage is not None:
-        cfg = cfg.model_copy(update={"covariance_shrinkage": args.cov_shrinkage})
-    if args.vol_regime is not None:
-        cfg = cfg.model_copy(update={"vol_regime": args.vol_regime})
-    if args.vol_regime_window is not None:
-        cfg = cfg.model_copy(update={"vol_regime_window": args.vol_regime_window})
+    run_options.backend = backend_choice
 
     # Echo backend selection at start
     print(f"[BACKEND] Using backend: {backend_choice}")
 
     from .data import load_index_returns
+    from .facade import run_single
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
-    from .random import spawn_agent_rngs, spawn_agent_rngs_with_ids, spawn_rngs
+    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .reporting.attribution import (
         compute_sleeve_cvar_contribution,
         compute_sleeve_return_attribution,
@@ -734,21 +733,9 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     )
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
-    from .sim.params import (
-        build_covariance_return_overrides,
-        build_params,
-        resolve_covariance_inputs,
-    )
-    from .sim.regimes import (
-        apply_regime_labels,
-        build_regime_draw_params,
-        resolve_regime_start,
-        simulate_regime_paths,
-    )
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
-    from .validators import select_vol_regime_sigma
     from .viz.utils import safe_to_numpy
 
     # Initialize dependencies - use provided deps for testing or create default
@@ -790,16 +777,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
-    rng_returns, rng_regime = spawn_rngs(args.seed, 2)
-    fin_agent_names = ["internal", "external_pa", "active_ext"]
-    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
-        args.seed,
-        fin_agent_names,
-        legacy_order=args.legacy_agent_rng,
-    )
-
-    if args.mode is not None:
-        cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     base_cfg = cfg
     if args.stress_preset:
         base_cfg = cfg
@@ -842,12 +819,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
 
     idx_series = normalize_index_series(idx_series, get_index_series_unit())
     index_hash = _hash_index_series(idx_series) if args.bundle else ""
-    n_samples = int(len(idx_series))
-    idx_sigma, _, _ = select_vol_regime_sigma(
-        idx_series,
-        regime=cfg.vol_regime,
-        window=cfg.vol_regime_window,
-    )
 
     if args.register:
         try:
@@ -933,11 +904,20 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
     raw_params = cfg.model_dump()
 
+    substream_ids: dict[str, str] | None = None
+
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]
         and not args.sensitivity
     ):
         # Parameter sweep mode
+        rng_returns = spawn_rngs(args.seed, 1)[0]
+        fin_agent_names = ["internal", "external_pa", "active_ext"]
+        fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
+            args.seed,
+            fin_agent_names,
+            legacy_order=args.legacy_agent_rng,
+        )
         results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
         sweep_metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
         export_sweep_results(results, filename=args.output, metadata=sweep_metadata)
@@ -1071,142 +1051,24 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         return
 
     # Normal single-run mode below
-    mu_idx = float(idx_series.mean())
-
-    def _build_simulation_params_for_run(run_cfg: "ModelConfig") -> dict[str, Any]:
-        from .units import normalize_return_inputs
-
-        return_inputs = normalize_return_inputs(run_cfg)
-        sigma_h = float(return_inputs["sigma_H"])
-        sigma_e = float(return_inputs["sigma_E"])
-        sigma_m = float(return_inputs["sigma_M"])
-
-        cov = deps.build_cov_matrix(
-            run_cfg.rho_idx_H,
-            run_cfg.rho_idx_E,
-            run_cfg.rho_idx_M,
-            run_cfg.rho_H_E,
-            run_cfg.rho_H_M,
-            run_cfg.rho_E_M,
-            idx_sigma,
-            sigma_h,
-            sigma_e,
-            sigma_m,
-            covariance_shrinkage=run_cfg.covariance_shrinkage,
-            n_samples=n_samples,
-        )
-        sigma_vec, corr_mat = resolve_covariance_inputs(
-            cov,
-            idx_sigma=idx_sigma,
-            sigma_h=sigma_h,
-            sigma_e=sigma_e,
-            sigma_m=sigma_m,
-            rho_idx_H=run_cfg.rho_idx_H,
-            rho_idx_E=run_cfg.rho_idx_E,
-            rho_idx_M=run_cfg.rho_idx_M,
-            rho_H_E=run_cfg.rho_H_E,
-            rho_H_M=run_cfg.rho_H_M,
-            rho_E_M=run_cfg.rho_E_M,
-        )
-        return_overrides_local = build_covariance_return_overrides(sigma_vec, corr_mat)
-
-        return build_params(
-            run_cfg,
-            mu_idx=mu_idx,
-            idx_sigma=float(sigma_vec[0]),
-            return_overrides=return_overrides_local,
-        )
-
-    def _run_single(
-        run_cfg: "ModelConfig",
-        run_rng_returns: Any,
-        run_fin_rngs: Any,
-        run_rng_regime: Any,
-    ) -> tuple[
-        dict[str, "np.ndarray"],
-        "pd.DataFrame",
-        Any,
-        Any,
-        Any,
-        dict[str, object] | None,
-        Any | None,
-    ]:
-        params = _build_simulation_params_for_run(run_cfg)
-
-        N_SIMULATIONS = run_cfg.N_SIMULATIONS
-        N_MONTHS = run_cfg.N_MONTHS
-
-        regime_params = None
-        regime_paths = None
-        regime_labels = None
-        if run_cfg.regimes is not None:
-            if run_cfg.regime_transition is None:
-                raise ValueError("regime_transition is required when regimes are specified")
-            regime_params, labels = build_regime_draw_params(
-                run_cfg,
-                mu_idx=mu_idx,
-                idx_sigma=idx_sigma,
-                n_samples=n_samples,
-            )
-            regime_paths = simulate_regime_paths(
-                n_sim=N_SIMULATIONS,
-                n_months=N_MONTHS,
-                transition=run_cfg.regime_transition,
-                start_state=resolve_regime_start(run_cfg),
-                rng=run_rng_regime,
-            )
-            regime_labels = apply_regime_labels(regime_paths, labels)
-        r_beta, r_H, r_E, r_M = deps.draw_joint_returns(
-            n_months=N_MONTHS,
-            n_sim=N_SIMULATIONS,
-            params=params,
-            rng=run_rng_returns,
-            regime_paths=regime_paths,
-            regime_params=regime_params,
-        )
-        corr_repair_info = params.get("_correlation_repair_info")
-        f_int, f_ext, f_act = deps.draw_financing_series(
-            n_months=N_MONTHS,
-            n_sim=N_SIMULATIONS,
-            params=params,
-            financing_mode=run_cfg.financing_mode,
-            rngs=run_fin_rngs,
-        )
-
-        # Build agents and run sim
-        agents = deps.build_from_config(run_cfg)
-        returns = deps.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
-
-        # Build summary using wrapper (allows tests to mock this safely)
-        summary = create_enhanced_summary(returns, benchmark="Base")
-        return returns, summary, f_int, f_ext, f_act, corr_repair_info, regime_labels
-
-    returns, summary, f_int, f_ext, f_act, corr_repair_info, regime_labels = _run_single(
-        cfg, rng_returns, fin_rngs, rng_regime
-    )
+    run_artifacts = run_single(cfg, idx_series, run_options)
+    returns = run_artifacts.returns
+    summary = run_artifacts.summary
+    run_manifest: dict[str, Any] = dict(run_artifacts.manifest or {})
+    substream_ids = cast(dict[str, str] | None, run_manifest.get("substream_ids"))
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
         from .reporting.stress_delta import build_delta_table
 
-        base_rng_returns, base_rng_regime = spawn_rngs(args.seed, 2)
-        base_fin_rngs = spawn_agent_rngs(
-            args.seed,
-            fin_agent_names,
-            legacy_order=args.legacy_agent_rng,
-        )
-        _, base_summary, _, _, _, _, _ = _run_single(
-            base_cfg, base_rng_returns, base_fin_rngs, base_rng_regime
-        )
-        base_summary_df = base_summary
-        stress_delta_df = build_delta_table(base_summary, summary)
+        base_artifacts = run_single(base_cfg, idx_series, run_options)
+        base_summary_df = base_artifacts.summary
+        stress_delta_df = build_delta_table(base_summary_df, summary)
     inputs_dict: dict[str, object] = {k: raw_params.get(k, "") for k in raw_params}
-    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
-        inputs_dict["correlation_repair_applied"] = True
-        inputs_dict["correlation_repair_details"] = json.dumps(corr_repair_info)
-    raw_returns_dict = {k: pd.DataFrame(v) for k, v in returns.items()}
-    if regime_labels is not None:
-        raw_returns_dict["Regime"] = pd.DataFrame(regime_labels)
+    for key in ("correlation_repair_applied", "correlation_repair_details"):
+        if key in run_artifacts.inputs:
+            inputs_dict[key] = run_artifacts.inputs[key]
+    raw_returns_dict = dict(run_artifacts.raw_returns)
 
     # Optional attribution tables for downstream exports
     try:
@@ -1216,7 +1078,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         try:
             rows: list[dict[str, object]] = []
             for agent, arr in returns.items():
-                mean_month = float(arr.mean())
+                mean_month = float(np.asarray(arr).mean())
                 ann = 12.0 * mean_month
                 rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
             inputs_dict["_attribution_df"] = pd.DataFrame(rows)
@@ -1311,22 +1173,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             def _eval(p: dict[str, float]) -> float:
                 """Evaluate terminal_AnnReturn for Base agent given parameter overrides."""
                 mod_cfg = cfg.model_copy(update=p)
-
-                params_local = _build_simulation_params_for_run(mod_cfg)
-
-                r_beta_l, r_H_l, r_E_l, r_M_l = deps.draw_joint_returns(
-                    n_months=mod_cfg.N_MONTHS,
-                    n_sim=mod_cfg.N_SIMULATIONS,
-                    params=params_local,
-                    rng=rng_returns,
-                )
-                # Reuse existing financing draws for speed in sensitivity.
-                f_int_l, f_ext_l, f_act_l = f_int, f_ext, f_act
-                agents_l = deps.build_from_config(mod_cfg)
-                returns_l = deps.simulate_agents(
-                    agents_l, r_beta_l, r_H_l, r_E_l, r_M_l, f_int_l, f_ext_l, f_act_l
-                )
-                summary_l = create_enhanced_summary(returns_l, benchmark="Base")
+                mod_artifacts = run_single(mod_cfg, idx_series, run_options)
+                summary_l = mod_artifacts.summary
                 base_row = summary_l[summary_l["Agent"] == "Base"]
                 if isinstance(base_row, pd.DataFrame) and not base_row.empty:
                     return float(base_row["terminal_AnnReturn"].iloc[0])
@@ -1475,7 +1323,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
             logger.error(f"Sensitivity analysis data type error: {e}")
             print(f"❌ Sensitivity analysis failed due to data type error: {e}")
 
-    metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
+    metadata = {"rng_seed": run_manifest.get("seed", args.seed), "substream_ids": substream_ids}
     finalize_after_append = bool(args.stress_preset)
     deps.export_to_excel(
         inputs_dict,

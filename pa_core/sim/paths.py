@@ -359,10 +359,14 @@ def draw_returns(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
+    seed: Optional[int] = None,
     rng: Optional[GeneratorLike] = None,
     shocks: Optional[Dict[str, Any]] = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
-    """Vectorised draw of monthly returns for (beta, H, E, M)."""
+    """Vectorised draw of monthly returns for (beta, H, E, M).
+
+    ``seed`` is used to create a per-run generator when ``rng`` is not supplied.
+    """
     _assert_canonical_params(params)
     distribution = params.get("return_distribution", "normal")
     dist_overrides = (
@@ -439,7 +443,7 @@ def draw_returns(
                 sims = μ + shocks_out * σ
     else:
         if rng is None:
-            rng = spawn_rngs(None, 1)[0]
+            rng = spawn_rngs(seed, 1)[0]
         assert rng is not None
         if all(dist == "normal" for dist in distributions):
             Σ = corr * (σ[:, None] * σ[None, :])
@@ -491,6 +495,7 @@ def draw_joint_returns(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
+    seed: Optional[int] = None,
     rng: Optional[GeneratorLike] = None,
     shocks: Optional[Dict[str, Any]] = None,
     regime_paths: Optional[npt.NDArray[Any]] = None,
@@ -501,11 +506,14 @@ def draw_joint_returns(
     When ``regime_params`` is provided, returns are drawn from regime-specific
     parameters based on ``regime_paths``.
     """
+    if rng is None and seed is not None:
+        rng = spawn_rngs(seed, 1)[0]
     if regime_params is None:
         return draw_returns(
             n_months=n_months,
             n_sim=n_sim,
             params=params,
+            seed=seed,
             rng=rng,
             shocks=shocks,
         )
@@ -534,6 +542,7 @@ def draw_joint_returns(
             n_months=n_months,
             n_sim=n_sim,
             params=regime,
+            seed=seed,
             rng=rng,
         )
         mask = regime_paths == regime_idx

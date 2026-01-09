@@ -6,26 +6,45 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Align index/asset validation across static asset definitions, runtime schema checks, and calibration scenario generation so the index never appears in assets and correlations avoid duplicate pairs.
+Reduce duplicated pipeline logic across entrypoints by making `pa_core/facade.py` the canonical pipeline and delegating entrypoints to it.
 
 #### Tasks
-- [x] Add unit tests in `tests/test_calibration_module.py` to verify that when assets include index.id, the Scenario validation function raises a ValueError with the message 'Assets must not include index.id'.
-- [x] Modify `pa_core/schema.py` to raise a ValueError with the message 'Assets must not include index.id' when assets contain index.id.
-- [x] Expand unit tests for `CalibrationResult.to_scenario()` in `tests/test_calibration_module.py` to cover edge cases including absence of index, single and multiple occurrences, and different orderings.
-- [x] Update `docs/UserGuide.md` to explain the relationship between 'index' and 'assets', detailing the behavior of Scenario validation and `CalibrationResult.to_scenario()`, with examples.
-- [ ] Review and update the CI workflow configuration in `pr-00-gate.yml` to ensure it triggers the complete test suite, including new tests. (needs-human)
+- [x] Audit all four files to map which pipeline stages are duplicated
+- [x] Designate `facade.py` as the canonical pipeline implementation
+- [x] Define scope for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [x] Implement focused slice for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [x] Validate focused slice for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [x] Define scope for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [x] Implement focused slice for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [x] Validate focused slice for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [x] Define scope for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
+- [x] Implement focused slice for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
+- [x] Validate focused slice for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Add deprecation warnings for direct use of non-canonical entry points
 
 #### Acceptance criteria
-- [x] The Scenario validation function raises a ValueError with the exact message 'Assets must not include index.id' when 'index.id' is present in assets.
-- [x] The `pa_core/schema.py` raises a ValueError with the message 'Assets must not include index.id' when assets contain index.id.
-- [x] `CalibrationResult.to_scenario()` returns a scenario object whose assets do not include any entry for index in all test cases.
-- [x] The `docs/UserGuide.md` includes a section explaining the relationship between 'index' and 'assets', detailing the behavior of Scenario validation and `CalibrationResult.to_scenario()`, with examples.
-- [ ] The CI workflow configuration in `pr-00-gate.yml` triggers the complete test suite, including new tests. (needs-human)
-#### Notes
-- needs-human: Updating `.github/workflows/pr-00-gate.yml` is blocked by repo policy; please apply the workflow change in a high-privilege run.
+- [ ] All entry points ultimately call the same pipeline implementation
+- [ ] No duplicated pipeline stage logic across files
+- [ ] Existing CLI commands should produce the same output and behavior as before the refactor
+- [ ] Unit tests should be created or updated to ensure all entry points are tested
 ## Related Issues
 - [ ] _Not provided._
 ## References
 - [ ] _Not provided._
+
+## Notes
+- _None._
 
 <!-- auto-status-summary:end -->

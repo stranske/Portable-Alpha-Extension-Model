@@ -6,6 +6,7 @@ decoupling business logic from CLI argument parsing. It enables:
 - Direct programmatic access to simulations without CLI
 - Standardized artifact types for consistent outputs
 - Type-safe configuration with clear interfaces
+- The canonical pipeline implementation used by all entrypoints
 
 Example Usage::
 
@@ -34,6 +35,8 @@ if TYPE_CHECKING:  # pragma: no cover - type hints only
 
     from .config import ModelConfig
 from .types import ArrayLike, SweepResult
+
+CANONICAL_PIPELINE = "pa_core.facade"
 
 
 @dataclass(slots=True)
@@ -93,12 +96,61 @@ class RunOptions:
         backend: Computation backend selection (currently only "numpy" supported).
         config_overrides: Dictionary of config parameter overrides to apply.
         legacy_agent_rng: Use order-dependent agent RNG streams for backward compatibility.
+        return_distribution: Override return distribution ("normal" or "student_t").
+        return_t_df: Override Student-t degrees of freedom (requires student_t).
+        return_copula: Override return copula ("gaussian" or "t").
+        covariance_shrinkage: Covariance shrinkage mode override.
+        vol_regime: Volatility regime selection override.
+        vol_regime_window: Window length for two-state volatility regime.
+        analysis_mode: Parameter sweep analysis mode override.
     """
 
     seed: int | None = None
     backend: str | None = None
     config_overrides: Mapping[str, Any] | None = None
     legacy_agent_rng: bool = False
+    return_distribution: str | None = None
+    return_t_df: float | None = None
+    return_copula: str | None = None
+    covariance_shrinkage: str | None = None
+    vol_regime: str | None = None
+    vol_regime_window: int | None = None
+    analysis_mode: str | None = None
+
+
+def apply_run_options(
+    config: "ModelConfig",
+    options: RunOptions | None = None,
+    sweep_params: Mapping[str, Any] | None = None,
+) -> "ModelConfig":
+    """Return config updated with RunOptions and optional sweep params."""
+
+    run_options = options or RunOptions()
+    overrides: dict[str, Any] = dict(run_options.config_overrides or {})
+
+    if run_options.return_distribution is not None:
+        overrides["return_distribution"] = run_options.return_distribution
+    if run_options.return_t_df is not None:
+        overrides["return_t_df"] = run_options.return_t_df
+    if run_options.return_copula is not None:
+        overrides["return_copula"] = run_options.return_copula
+    if run_options.covariance_shrinkage is not None:
+        overrides["covariance_shrinkage"] = run_options.covariance_shrinkage
+    if run_options.vol_regime is not None:
+        overrides["vol_regime"] = run_options.vol_regime
+    if run_options.vol_regime_window is not None:
+        overrides["vol_regime_window"] = run_options.vol_regime_window
+    if run_options.analysis_mode is not None:
+        overrides["analysis_mode"] = run_options.analysis_mode
+    if sweep_params:
+        overrides.update(sweep_params)
+
+    if not overrides:
+        return config
+
+    data = config.model_dump()
+    data.update(overrides)
+    return config.__class__.model_validate(data)
 
 
 @dataclass(slots=True)
@@ -186,11 +238,7 @@ def run_single(
     from .validators import select_vol_regime_sigma
 
     run_options = options or RunOptions()
-    run_cfg = (
-        config.model_copy(update=dict(run_options.config_overrides))
-        if run_options.config_overrides
-        else config
-    )
+    run_cfg = apply_run_options(config, run_options)
     resolve_and_set_backend(run_options.backend, run_cfg)
 
     idx_series = index_series
@@ -249,7 +297,10 @@ def run_single(
         return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
     )
 
-    rng_returns, rng_regime = spawn_rngs(run_options.seed, 2)
+    base_rng = spawn_rngs(run_options.seed, 1)[0]
+    child_seeds = base_rng.integers(0, 2**32, size=2, dtype="uint32")
+    rng_returns = spawn_rngs(int(child_seeds[0]), 1)[0]
+    rng_regime = spawn_rngs(int(child_seeds[1]), 1)[0]
     regime_params = None
     regime_paths = None
     regime_labels = None
@@ -373,12 +424,7 @@ def run_sweep(
     from .sweep import run_parameter_sweep, sweep_results_to_dataframe
 
     run_options = options or RunOptions()
-    updates: dict[str, Any] = {}
-    if run_options.config_overrides:
-        updates.update(run_options.config_overrides)
-    if sweep_params:
-        updates.update(sweep_params)
-    run_cfg = config.model_copy(update=updates) if updates else config
+    run_cfg = apply_run_options(config, run_options, sweep_params)
     resolve_and_set_backend(run_options.backend, run_cfg)
 
     idx_series = index_series
@@ -389,7 +435,9 @@ def run_sweep(
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
-    rng_returns = spawn_rngs(run_options.seed, 1)[0]
+    base_rng = spawn_rngs(run_options.seed, 1)[0]
+    child_seed = int(base_rng.integers(0, 2**32, dtype="uint32"))
+    rng_returns = spawn_rngs(child_seed, 1)[0]
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
         run_options.seed,
         ["internal", "external_pa", "active_ext"],
