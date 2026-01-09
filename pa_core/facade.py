@@ -419,8 +419,8 @@ def run_sweep(
     import pandas as pd
 
     from .backend import resolve_and_set_backend
-    from .sweep import run_parameter_sweep, sweep_results_to_dataframe
     from .sim.simulation_initialization import initialize_sweep_rngs
+    from .sweep import run_parameter_sweep, sweep_results_to_dataframe
 
     run_options = options or RunOptions()
     run_cfg = apply_run_options(config, run_options, sweep_params)
