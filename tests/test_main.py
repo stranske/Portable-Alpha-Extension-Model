@@ -79,17 +79,20 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
 
     class FakeRNG:
         """Mock RNG with integers method for seedable regime switching."""
+
         def __init__(self, seed: int | None = None):
             self._seed = seed
             self._counter = 0
-            
-        def integers(self, low: int, high: int, size: int | None = None, dtype: str = "int64") -> int | np.ndarray:
+
+        def integers(
+            self, low: int, high: int, size: int | None = None, dtype: str = "int64"
+        ) -> int | np.ndarray:
             """Mock integers method that returns deterministic values."""
             self._counter += 1
             if size is None:
                 return low + (self._counter % (high - low))
             return np.array([low + ((self._counter + i) % (high - low)) for i in range(size)])
-    
+
     def fake_spawn_rngs(seed: int | None, n: int) -> list[FakeRNG]:
         return [FakeRNG(seed) for _ in range(n)]
 
