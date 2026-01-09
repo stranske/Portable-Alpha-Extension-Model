@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import argparse
 from typing import Optional, Sequence
+from typing import Literal, cast
 
 from .backend import get_backend
 from .config import load_config
 from .data import load_index_returns
 from .facade import RunOptions, export, run_single
 from .units import get_index_series_unit, normalize_index_series
+from .validators import select_vol_regime_sigma
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
@@ -58,6 +60,18 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     cfg = load_config(args.config)
     idx_series = load_index_returns(args.index)
     idx_series = normalize_index_series(idx_series, get_index_series_unit())
+
+    # Validate vol_regime before passing to run_single
+    vol_regime_value = getattr(cfg, "vol_regime", "single")
+    if vol_regime_value not in ("single", "two_state"):
+        raise ValueError(f"vol_regime must be 'single' or 'two_state', got {vol_regime_value!r}")
+    vol_regime = cast(Literal["single", "two_state"], vol_regime_value)
+    vol_regime_window = getattr(cfg, "vol_regime_window", 12)
+    select_vol_regime_sigma(
+        idx_series,
+        regime=vol_regime,
+        window=vol_regime_window,
+    )
 
     options = RunOptions(
         seed=args.seed,
