@@ -62,7 +62,12 @@ class DummyConfig:
     @classmethod
     def model_validate(cls, data: Dict[str, Any]) -> "DummyConfig":
         cls.last_validated = dict(data)
-        return cls(**data)
+        # Filter out ClassVar fields that shouldn't be passed to __init__
+        # Explicitly exclude 'last_validated' which is a ClassVar
+        init_data = {
+            k: v for k, v in data.items() if k in cls.__dataclass_fields__ and k != "last_validated"
+        }
+        return cls(**init_data)
 
 
 def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
