@@ -68,7 +68,9 @@ def _patch_cli_run(monkeypatch, cfg: DummyConfig) -> None:
         "pa_core.reporting.attribution.compute_sleeve_risk_attribution",
         lambda *_: pd.DataFrame(),
     )
-    monkeypatch.setattr("pa_core.reporting.constraints.build_constraint_report", lambda *_: pd.DataFrame())
+    monkeypatch.setattr(
+        "pa_core.reporting.constraints.build_constraint_report", lambda *_: pd.DataFrame()
+    )
     monkeypatch.setattr("pa_core.reporting.console.print_constraint_report", lambda *_: None)
 
 
