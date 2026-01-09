@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict
+from typing import Any, ClassVar, Dict, get_origin
 
 import numpy as np
 import pandas as pd
@@ -63,7 +63,11 @@ class DummyConfig:
     def model_validate(cls, data: Dict[str, Any]) -> "DummyConfig":
         cls.last_validated = dict(data)
         # Filter out ClassVar fields that shouldn't be passed to __init__
-        init_data = {k: v for k, v in data.items() if k in cls.__dataclass_fields__}
+        init_data = {
+            k: v for k, v in data.items()
+            if k in cls.__dataclass_fields__
+            and get_origin(cls.__dataclass_fields__[k].type) is not ClassVar
+        }
         return cls(**init_data)
 
 
