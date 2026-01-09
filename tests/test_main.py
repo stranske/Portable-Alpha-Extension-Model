@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, get_origin
+from typing import Any, ClassVar, Dict
 
 import numpy as np
 import pandas as pd
@@ -65,9 +65,7 @@ class DummyConfig:
         # Filter out ClassVar fields that shouldn't be passed to __init__
         # Explicitly exclude 'last_validated' which is a ClassVar
         init_data = {
-            k: v
-            for k, v in data.items()
-            if k in cls.__dataclass_fields__ and k != "last_validated"
+            k: v for k, v in data.items() if k in cls.__dataclass_fields__ and k != "last_validated"
         }
         return cls(**init_data)
 
