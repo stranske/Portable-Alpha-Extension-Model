@@ -316,11 +316,12 @@ def prepare_return_shocks(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
+    seed: Optional[int] = None,
     rng: Optional[GeneratorLike] = None,
 ) -> Dict[str, Any]:
     """Pre-generate return shocks to reuse across parameter combinations."""
     if rng is None:
-        rng = spawn_rngs(None, 1)[0]
+        rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
     distribution = params.get("return_distribution", "normal")
     dist_overrides = (
@@ -567,6 +568,7 @@ def simulate_alpha_streams(
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
     return_distributions: Optional[Sequence[Optional[str]]] = None,
+    seed: Optional[int] = None,
     rng: Optional[GeneratorLike] = None,
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
@@ -578,7 +580,7 @@ def simulate_alpha_streams(
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
     if rng is None:
-        rng = spawn_rngs(None, 1)[0]
+        rng = spawn_rngs(seed, 1)[0]
     assert rng is not None
     if all(dist == "normal" for dist in distributions):
         return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]

@@ -7,6 +7,7 @@ import numpy.typing as npt
 from ..backend import xp as np
 from ..config import ModelConfig
 from ..random import spawn_rngs
+from ..types import GeneratorLike
 from .covariance import build_cov_matrix
 from .params import build_simulation_params
 
@@ -104,7 +105,7 @@ def simulate_regime_paths(
     transition: Sequence[Sequence[float]],
     start_state: int,
     seed: int | None = None,
-    rng: Any | None = None,
+    rng: GeneratorLike | None = None,
 ) -> npt.NDArray[Any]:
     """Simulate regime paths using a Markov transition matrix.
 

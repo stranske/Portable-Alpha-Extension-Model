@@ -3,8 +3,8 @@ import pandas as pd
 import pytest
 
 from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
-from pa_core.config import ModelConfig
-from pa_core.facade import RunOptions, run_single
+from pa_core.config import ModelConfig, load_config
+from pa_core.facade import RunOptions, run_single, run_sweep
 from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
 from pa_core.sim.params import build_simulation_params
@@ -291,3 +291,23 @@ def test_run_single_is_deterministic_for_seed() -> None:
         not np.allclose(values, artifacts_b.returns[name])
         for name, values in artifacts_a.returns.items()
     )
+
+
+def test_run_sweep_is_deterministic_for_seed() -> None:
+    cfg = load_config("examples/scenarios/my_first_scenario.yml").model_copy(
+        update={"N_SIMULATIONS": 2, "N_MONTHS": 3}
+    )
+    idx = pd.Series([0.01, -0.02, 0.015])
+    sweep_params = {
+        "analysis_mode": "vol_mult",
+        "sd_multiple_min": 1.0,
+        "sd_multiple_max": 1.0,
+        "sd_multiple_step": 1.0,
+    }
+
+    artifacts_a = run_sweep(cfg, idx, sweep_params, RunOptions(seed=123))
+    artifacts_b = run_sweep(cfg, idx, sweep_params, RunOptions(seed=999))
+    artifacts_c = run_sweep(cfg, idx, sweep_params, RunOptions(seed=123))
+
+    pd.testing.assert_frame_equal(artifacts_a.summary, artifacts_c.summary)
+    assert not artifacts_a.summary.equals(artifacts_b.summary)
