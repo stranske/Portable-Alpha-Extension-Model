@@ -71,7 +71,6 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     def fake_load_config(_: str) -> DummyConfig:
         return DummyConfig()
 
-
     def fake_build_from_config(cfg: DummyConfig) -> Dict[str, str]:
         return {"agent": "stub"}
 
