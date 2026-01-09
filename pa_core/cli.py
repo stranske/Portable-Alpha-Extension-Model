@@ -23,7 +23,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence, cast
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -907,6 +907,8 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
     raw_params = cfg.model_dump()
 
+    substream_ids: dict[str, str] | None = None
+
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]
         and not args.sensitivity
@@ -1061,7 +1063,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     returns = run_artifacts.returns
     summary = run_artifacts.summary
     run_manifest: dict[str, Any] = dict(run_artifacts.manifest or {})
-    substream_ids = run_manifest.get("substream_ids")
+    substream_ids = cast(dict[str, str] | None, run_manifest.get("substream_ids"))
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
     if args.stress_preset:
