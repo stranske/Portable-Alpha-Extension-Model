@@ -6,39 +6,19 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Reduce duplicated pipeline logic across entrypoints by making `pa_core/facade.py` the canonical pipeline and delegating entrypoints to it.
+Isolate per-run RNG usage across simulations and regime switching, with deterministic tests for seeded runs.
 
 #### Tasks
-- [x] Audit all four files to map which pipeline stages are duplicated
-- [x] Designate `facade.py` as the canonical pipeline implementation
-- [x] Define scope for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
-- [x] Implement focused slice for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
-- [x] Validate focused slice for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
-- [x] Define scope for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
-- [x] Implement focused slice for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
-- [x] Validate focused slice for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
-- [x] Define scope for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
-- [x] Implement focused slice for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
-- [x] Validate focused slice for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
-- [ ] Define scope for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
-- [ ] Implement focused slice for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
-- [ ] Validate focused slice for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
-- [ ] Define scope for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
-- [ ] Implement focused slice for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
-- [ ] Validate focused slice for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
-- [ ] Define scope for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
-- [ ] Implement focused slice for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
-- [ ] Validate focused slice for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
-- [ ] Define scope for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
-- [ ] Implement focused slice for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
-- [ ] Validate focused slice for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
-- [ ] Add deprecation warnings for direct use of non-canonical entry points
+- [x] Modify `pa_core/sim/paths.py` to replace module-level RNG usage with a local `np.random.Generator` instance. Update functions to accept a generator parameter if necessary.
+- [x] Refactor `pa_core/sim/regimes.py` to eliminate module-level RNG usage by using a per-run `np.random.Generator` instance. Pass the generator as a parameter or instantiate one within the simulation run.
+- [x] Update `pa_core/facade.py` to instantiate a new `np.random.Generator` at the start of each simulation run and ensure it is passed to all downstream functions.
+- [x] Review and update existing tests in `tests/test_simulations.py` to explicitly validate RNG isolation by checking that simulations with the same seed produce identical results and those with different seeds produce different results.
 
 #### Acceptance criteria
-- [ ] All entry points ultimately call the same pipeline implementation
-- [ ] No duplicated pipeline stage logic across files
-- [ ] Existing CLI commands should produce the same output and behavior as before the refactor
-- [ ] Unit tests should be created or updated to ensure all entry points are tested
+- [x] All functions in `pa_core/sim/paths.py` that previously used module-level RNG now accept an `np.random.Generator` instance as a parameter or create one locally.
+- [x] All functions in `pa_core/sim/regimes.py` that previously used module-level RNG now accept an `np.random.Generator` instance as a parameter or create one locally.
+- [x] A new `np.random.Generator` is instantiated at the start of each simulation run in `pa_core/facade.py` and passed to all downstream functions.
+- [x] Tests in `tests/test_simulations.py` validate that simulations with the same seed produce identical results and those with different seeds produce different results.
 ## Related Issues
 - [ ] _Not provided._
 ## References

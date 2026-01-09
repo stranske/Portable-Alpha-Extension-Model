@@ -298,9 +298,10 @@ def run_single(
     )
 
     base_rng = spawn_rngs(run_options.seed, 1)[0]
-    child_seeds = base_rng.integers(0, 2**32, size=2, dtype="uint32")
+    child_seeds = base_rng.integers(0, 2**32, size=3, dtype="uint32")
     rng_returns = spawn_rngs(int(child_seeds[0]), 1)[0]
     rng_regime = spawn_rngs(int(child_seeds[1]), 1)[0]
+    fin_seed = int(child_seeds[2])
     regime_params = None
     regime_paths = None
     regime_labels = None
@@ -331,7 +332,7 @@ def run_single(
     )
     corr_repair_info = params.get("_correlation_repair_info")
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
-        run_options.seed,
+        fin_seed,
         ["internal", "external_pa", "active_ext"],
         legacy_order=run_options.legacy_agent_rng,
     )
@@ -439,7 +440,7 @@ def run_sweep(
     child_seed = int(base_rng.integers(0, 2**32, dtype="uint32"))
     rng_returns = spawn_rngs(child_seed, 1)[0]
     fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
-        run_options.seed,
+        child_seed,
         ["internal", "external_pa", "active_ext"],
         legacy_order=run_options.legacy_agent_rng,
     )
@@ -448,7 +449,7 @@ def run_sweep(
         idx_series,
         rng_returns,
         fin_rngs,
-        seed=run_options.seed,
+        seed=child_seed,
     )
     summary = sweep_results_to_dataframe(results)
     inputs = run_cfg.model_dump()
