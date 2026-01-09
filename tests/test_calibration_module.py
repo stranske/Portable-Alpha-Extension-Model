@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections import OrderedDict
 from itertools import combinations
 from typing import Mapping
 
@@ -228,6 +229,63 @@ def test_to_scenario_excludes_index_from_assets() -> None:
     scenario = result.to_scenario()
     assert scenario.index.id == "IDX"
     assert [asset.id for asset in scenario.assets] == ["A"]
+
+
+def test_to_scenario_excludes_index_with_ordered_series() -> None:
+    series = OrderedDict(
+        [
+            (
+                "A",
+                SeriesEstimate(
+                    mean=0.02,
+                    volatility=0.03,
+                    mean_ci=None,
+                    volatility_ci=None,
+                    n_obs=12,
+                ),
+            ),
+            (
+                "IDX",
+                SeriesEstimate(
+                    mean=0.01,
+                    volatility=0.02,
+                    mean_ci=None,
+                    volatility_ci=None,
+                    n_obs=12,
+                ),
+            ),
+            (
+                "B",
+                SeriesEstimate(
+                    mean=0.03,
+                    volatility=0.04,
+                    mean_ci=None,
+                    volatility_ci=None,
+                    n_obs=12,
+                ),
+            ),
+        ]
+    )
+    correlations = [
+        CorrelationEstimate(pair=("IDX", "A"), rho=0.4, ci=None, n_obs=12),
+        CorrelationEstimate(pair=("IDX", "B"), rho=0.3, ci=None, n_obs=12),
+        CorrelationEstimate(pair=("A", "B"), rho=0.2, ci=None, n_obs=12),
+    ]
+    result = CalibrationResult(
+        index_id="IDX",
+        series=series,
+        correlations=correlations,
+        corr_target="identity",
+        mean_shrinkage=0.0,
+        corr_shrinkage=0.0,
+        confidence_level=0.95,
+        annualize=False,
+    )
+
+    scenario = result.to_scenario()
+    assert scenario.index.id == "IDX"
+    assert [asset.id for asset in scenario.assets] == ["A", "B"]
+    assert all(asset.id != "IDX" for asset in scenario.assets)
 
 
 def test_to_scenario_index_only_assets_empty() -> None:
