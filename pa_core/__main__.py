@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import fields, is_dataclass
-from typing import Literal, Optional, Sequence, cast
+from typing import Optional, Sequence
 
 from .backend import get_backend
 from .config import load_config
 from .data import load_index_returns
 from .facade import RunOptions, export, run_single
 from .units import get_index_series_unit, normalize_index_series
-from .validators import select_vol_regime_sigma
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
@@ -58,39 +56,16 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
-    return_overrides: dict[str, float | str] = {}
-    if args.return_distribution is not None:
-        return_overrides["return_distribution"] = args.return_distribution
-    if args.return_t_df is not None:
-        return_overrides["return_t_df"] = args.return_t_df
-    if args.return_copula is not None:
-        return_overrides["return_copula"] = args.return_copula
-    if return_overrides:
-        if is_dataclass(cfg):
-            base_data = {
-                field.name: getattr(cfg, field.name) for field in fields(cfg) if field.init
-            }
-        else:
-            base_data = cfg.model_dump()
-        cfg = cfg.__class__.model_validate({**base_data, **return_overrides})
     idx_series = load_index_returns(args.index)
     idx_series = normalize_index_series(idx_series, get_index_series_unit())
-
-    vol_regime_value = getattr(cfg, "vol_regime", "single")
-    if vol_regime_value not in ("single", "two_state"):
-        raise ValueError(f"vol_regime must be 'single' or 'two_state', got {vol_regime_value!r}")
-    vol_regime = cast(Literal["single", "two_state"], vol_regime_value)
-    vol_regime_window = getattr(cfg, "vol_regime_window", 12)
-    select_vol_regime_sigma(
-        idx_series,
-        regime=vol_regime,
-        window=vol_regime_window,
-    )
 
     options = RunOptions(
         seed=args.seed,
         backend=args.backend,
         legacy_agent_rng=args.legacy_agent_rng,
+        return_distribution=args.return_distribution,
+        return_t_df=args.return_t_df,
+        return_copula=args.return_copula,
     )
     artifacts = run_single(cfg, idx_series, options)
     print(f"[BACKEND] Using backend: {get_backend()}")

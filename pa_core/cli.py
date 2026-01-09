@@ -695,34 +695,33 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
     from .config import load_config
+    from .facade import RunOptions, apply_run_options
 
     cfg = load_config(args.config)
-    return_overrides: dict[str, float | str] = {}
-    if args.return_distribution is not None:
-        return_overrides["return_distribution"] = args.return_distribution
-    if args.return_t_df is not None:
-        return_overrides["return_t_df"] = args.return_t_df
-    if args.return_copula is not None:
-        return_overrides["return_copula"] = args.return_copula
-    if return_overrides:
-        cfg = cfg.__class__.model_validate({**cfg.model_dump(), **return_overrides})
+    run_options = RunOptions(
+        seed=args.seed,
+        backend=args.backend,
+        legacy_agent_rng=args.legacy_agent_rng,
+        return_distribution=args.return_distribution,
+        return_t_df=args.return_t_df,
+        return_copula=args.return_copula,
+        covariance_shrinkage=args.cov_shrinkage,
+        vol_regime=args.vol_regime,
+        vol_regime_window=args.vol_regime_window,
+        analysis_mode=args.mode,
+    )
+    cfg = apply_run_options(cfg, run_options)
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
     run_backend = backend_choice
-
-    if args.cov_shrinkage is not None:
-        cfg = cfg.model_copy(update={"covariance_shrinkage": args.cov_shrinkage})
-    if args.vol_regime is not None:
-        cfg = cfg.model_copy(update={"vol_regime": args.vol_regime})
-    if args.vol_regime_window is not None:
-        cfg = cfg.model_copy(update={"vol_regime_window": args.vol_regime_window})
+    run_options.backend = backend_choice
 
     # Echo backend selection at start
     print(f"[BACKEND] Using backend: {backend_choice}")
 
     from .data import load_index_returns
-    from .facade import RunOptions, run_single
+    from .facade import run_single
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
     from .random import spawn_agent_rngs_with_ids, spawn_rngs
@@ -778,8 +777,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
 
-    if args.mode is not None:
-        cfg = cfg.model_copy(update={"analysis_mode": args.mode})
     base_cfg = cfg
     if args.stress_preset:
         base_cfg = cfg
@@ -1054,11 +1051,6 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         return
 
     # Normal single-run mode below
-    run_options = RunOptions(
-        seed=args.seed,
-        backend=args.backend,
-        legacy_agent_rng=args.legacy_agent_rng,
-    )
     run_artifacts = run_single(cfg, idx_series, run_options)
     returns = run_artifacts.returns
     summary = run_artifacts.summary
