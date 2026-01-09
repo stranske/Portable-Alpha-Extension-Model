@@ -4,7 +4,7 @@ import copy
 import hashlib
 import json
 import logging
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional
 
 import numpy as np
 import pandas as pd
@@ -164,7 +164,7 @@ def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
     rng_returns: GeneratorLike,
-    fin_rngs: Dict[str, GeneratorLike],
+    fin_rngs: Mapping[str, GeneratorLike],
     seed: Optional[int] = None,
     progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[SweepResult]:

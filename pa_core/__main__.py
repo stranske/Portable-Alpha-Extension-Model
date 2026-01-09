@@ -13,12 +13,13 @@ from .validators import select_vol_regime_sigma
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
+    # Legacy entry point for `python -m pa_core`; warn and keep args aligned with `pa run`.
     warnings.warn(
         "Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.",
         DeprecationWarning,
         stacklevel=2,
     )
-    # Parse CLI args here and map them into the facade run/export calls below.
+    # Keep legacy argument parsing stable for backward compatibility with documented behavior.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -80,6 +81,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         window=vol_regime_window,
     )
 
+    # Mirror the run options used by the canonical CLI to keep outputs consistent.
     options = RunOptions(
         seed=args.seed,
         backend=args.backend,

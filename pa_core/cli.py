@@ -286,6 +286,7 @@ def main(
     import sys
     import warnings
 
+    # `pa run` delegates here with emit_deprecation_warning=False; legacy entrypoints warn.
     if emit_deprecation_warning:
         warnings.warn(
             "Direct use of pa_core.cli is deprecated; use `pa run` instead.",
@@ -312,7 +313,7 @@ def main(
 
     from .stress import STRESS_PRESETS
 
-    # Parse CLI arguments first; parsed values drive all downstream delegation.
+    # Argument parsing stays centralized here to preserve documented flags/output behavior.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -740,7 +741,6 @@ def main(
     from .facade import run_single
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
-    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .reporting.attribution import (
         compute_sleeve_cvar_contribution,
         compute_sleeve_return_attribution,
@@ -749,6 +749,7 @@ def main(
     )
     from .reporting.sweep_excel import export_sweep_results
     from .run_flags import RunFlags
+    from .sim.simulation_initialization import initialize_sweep_rngs
     from .sleeve_suggestor import suggest_sleeve_sizes
     from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
@@ -920,7 +921,7 @@ def main(
     # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
     raw_params = cfg.model_dump()
 
-    substream_ids: dict[str, str] | None = None
+    substream_ids: Mapping[str, str] | None = None
 
     # Delegation: parameter sweep mode routes to run_parameter_sweep + export.
     if (
@@ -928,14 +929,22 @@ def main(
         and not args.sensitivity
     ):
         # Parameter sweep mode
-        rng_returns = spawn_rngs(args.seed, 1)[0]
         fin_agent_names = ["internal", "external_pa", "active_ext"]
-        fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
+        rng_bundle = initialize_sweep_rngs(
             args.seed,
-            fin_agent_names,
-            legacy_order=args.legacy_agent_rng,
+            legacy_agent_rng=args.legacy_agent_rng,
+            financing_agents=fin_agent_names,
         )
-        results = run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs)
+        rng_returns = rng_bundle.rng_returns
+        fin_rngs = rng_bundle.rngs_financing
+        substream_ids = rng_bundle.substream_ids
+        results = run_parameter_sweep(
+            cfg,
+            idx_series,
+            rng_returns,
+            fin_rngs,
+            seed=rng_bundle.seed,
+        )
         sweep_metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
         export_sweep_results(results, filename=args.output, metadata=sweep_metadata)
         _record_artifact(args.output)

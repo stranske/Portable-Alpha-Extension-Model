@@ -311,3 +311,53 @@ def test_run_sweep_is_deterministic_for_seed() -> None:
 
     pd.testing.assert_frame_equal(artifacts_a.summary, artifacts_c.summary)
     assert not artifacts_a.summary.equals(artifacts_b.summary)
+
+
+def test_run_single_ignores_global_rng_state() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=4,
+        N_MONTHS=4,
+        financing_mode="broadcast",
+        return_unit="monthly",
+        mu_H=0.0,
+        sigma_H=0.01,
+        mu_E=0.0,
+        sigma_E=0.01,
+        mu_M=0.0,
+        sigma_M=0.01,
+        rho_idx_H=0.1,
+        rho_idx_E=0.05,
+        rho_idx_M=0.05,
+        rho_H_E=0.1,
+        rho_H_M=0.1,
+        rho_E_M=0.1,
+    )
+    idx = pd.Series([0.01, -0.02, 0.015, 0.0])
+    artifacts_a = run_single(cfg, idx, RunOptions(seed=123))
+
+    np.random.seed(999)
+    _ = np.random.random(1000)
+
+    artifacts_b = run_single(cfg, idx, RunOptions(seed=123))
+    for name, values in artifacts_a.returns.items():
+        assert np.allclose(values, artifacts_b.returns[name])
+
+
+def test_run_sweep_ignores_global_rng_state() -> None:
+    cfg = load_config("examples/scenarios/my_first_scenario.yml").model_copy(
+        update={"N_SIMULATIONS": 2, "N_MONTHS": 3}
+    )
+    idx = pd.Series([0.01, -0.02, 0.015])
+    sweep_params = {
+        "analysis_mode": "vol_mult",
+        "sd_multiple_min": 1.0,
+        "sd_multiple_max": 1.0,
+        "sd_multiple_step": 1.0,
+    }
+
+    artifacts_a = run_sweep(cfg, idx, sweep_params, RunOptions(seed=123))
+    np.random.seed(444)
+    _ = np.random.random(500)
+    artifacts_b = run_sweep(cfg, idx, sweep_params, RunOptions(seed=123))
+
+    pd.testing.assert_frame_equal(artifacts_a.summary, artifacts_b.summary)
