@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 import pa_core.cli as cli_module
-from pa_core.cli import Dependencies, main
+from pa_core.cli import main
 from pa_core.config import ModelConfig, load_config
 from pa_core.data import load_index_returns
 from pa_core.sim.metrics import summary_table
@@ -169,22 +169,32 @@ def test_cli_sleeve_suggestion_applies_to_inputs(tmp_path, monkeypatch):
     def _export_to_excel(inputs_dict, _summary, _raw_returns_dict, **_kwargs):
         captured["inputs_dict"] = inputs_dict
 
-    deps = Dependencies(
-        build_from_config=lambda _cfg: object(),
-        export_to_excel=_export_to_excel,
-        draw_financing_series=lambda *_args, **_kwargs: (
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", lambda _cfg: object())
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", _export_to_excel)
+    monkeypatch.setattr(
+        "pa_core.sim.draw_financing_series",
+        lambda *_args, **_kwargs: (
             np.zeros((1, 1)),
             np.zeros((1, 1)),
             np.zeros((1, 1)),
         ),
-        draw_joint_returns=lambda *_args, **_kwargs: (
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.draw_joint_returns",
+        lambda *_args, **_kwargs: (
             np.zeros((1, 1)),
             np.zeros((1, 1)),
             np.zeros((1, 1)),
             np.zeros((1, 1)),
         ),
-        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
-        simulate_agents=lambda *_args, **_kwargs: {"Base": np.zeros((1, 1))},
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.covariance.build_cov_matrix",
+        lambda *_args, **_kwargs: np.zeros((4, 4)),
+    )
+    monkeypatch.setattr(
+        "pa_core.simulations.simulate_agents",
+        lambda *_args, **_kwargs: {"Base": np.zeros((1, 1))},
     )
 
     main(
@@ -199,8 +209,7 @@ def test_cli_sleeve_suggestion_applies_to_inputs(tmp_path, monkeypatch):
             "--suggest-apply-index",
             "0",
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
 
     inputs = captured.get("inputs_dict")
@@ -430,16 +439,12 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
     assert len(suggestions) == 1
 
     captured: dict[str, pd.DataFrame] = {}
-    original_summary = cli_module.create_enhanced_summary
 
-    def _capture_summary(returns_map, *, benchmark=None):
-        summary = original_summary(returns_map, benchmark=benchmark)
-        captured.setdefault("summary", summary)
-        return summary
+    def _capture_summary(summary_df):
+        captured.setdefault("summary", summary_df)
 
-    monkeypatch.setattr(cli_module, "create_enhanced_summary", _capture_summary)
-
-    deps = Dependencies(export_to_excel=lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(cli_module, "print_enhanced_summary", _capture_summary)
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", lambda *_args, **_kwargs: None)
     main(
         [
             "--config",
@@ -452,7 +457,6 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
             "123",
             "--sensitivity",
         ],
-        deps=deps,
     )
 
     summary = captured.get("summary")

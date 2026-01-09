@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from pa_core.cli import Dependencies, main
+from pa_core.cli import main
 
 
 def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
@@ -145,22 +145,32 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
         lambda *_args, **_kwargs: pd.DataFrame(),
     )
 
-    deps = Dependencies(
-        build_from_config=lambda _cfg: object(),
-        export_to_excel=lambda *_args, **_kwargs: None,
-        draw_financing_series=lambda *_args, **_kwargs: (
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", lambda _cfg: object())
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        "pa_core.sim.draw_financing_series",
+        lambda *_args, **_kwargs: (
             np.zeros((1, 2)),
             np.zeros((1, 2)),
             np.zeros((1, 2)),
         ),
-        draw_joint_returns=lambda *_args, **_kwargs: (
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.draw_joint_returns",
+        lambda *_args, **_kwargs: (
             np.zeros((1, 2)),
             np.zeros((1, 2)),
             np.zeros((1, 2)),
             np.zeros((1, 2)),
         ),
-        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
-        simulate_agents=lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.covariance.build_cov_matrix",
+        lambda *_args, **_kwargs: np.zeros((4, 4)),
+    )
+    monkeypatch.setattr(
+        "pa_core.simulations.simulate_agents",
+        lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
     )
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -179,8 +189,7 @@ def test_packet_includes_stress_delta(monkeypatch, tmp_path):
             "liquidity_squeeze",
             "--packet",
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
 
     assert "stress_delta_df" in captured
@@ -212,22 +221,32 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     ):
         summary.to_excel(filename, sheet_name="Summary", index=False)
 
-    deps = Dependencies(
-        build_from_config=lambda _cfg: object(),
-        export_to_excel=_stub_export_to_excel,
-        draw_financing_series=lambda *_args, **_kwargs: (
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", _stub_export_to_excel)
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", lambda _cfg: object())
+    monkeypatch.setattr(
+        "pa_core.sim.draw_financing_series",
+        lambda *_args, **_kwargs: (
             np.zeros((1, 2)),
             np.zeros((1, 2)),
             np.zeros((1, 2)),
         ),
-        draw_joint_returns=lambda *_args, **_kwargs: (
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.draw_joint_returns",
+        lambda *_args, **_kwargs: (
             np.zeros((1, 2)),
             np.zeros((1, 2)),
             np.zeros((1, 2)),
             np.zeros((1, 2)),
         ),
-        build_cov_matrix=lambda *_args, **_kwargs: np.zeros((4, 4)),
-        simulate_agents=lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
+    )
+    monkeypatch.setattr(
+        "pa_core.sim.covariance.build_cov_matrix",
+        lambda *_args, **_kwargs: np.zeros((4, 4)),
+    )
+    monkeypatch.setattr(
+        "pa_core.simulations.simulate_agents",
+        lambda *_args, **_kwargs: {"Base": np.array([[0.01, 0.02]])},
     )
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -254,7 +273,7 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     ]
     call_idx = {"count": 0}
 
-    def _stub_create_enhanced_summary(_returns_map, *, benchmark=None):
+    def _stub_summary_table(_returns_map, *, benchmark=None):
         idx = call_idx["count"]
         call_idx["count"] += 1
         return summaries[min(idx, len(summaries) - 1)]
@@ -267,10 +286,7 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
         "pa_core.sensitivity.one_factor_deltas",
         lambda *_args, **_kwargs: pd.DataFrame(),
     )
-    monkeypatch.setattr(
-        "pa_core.cli.create_enhanced_summary",
-        _stub_create_enhanced_summary,
-    )
+    monkeypatch.setattr("pa_core.sim.metrics.summary_table", _stub_summary_table)
 
     main(
         [
@@ -283,8 +299,7 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
             "--stress-preset",
             "liquidity_squeeze",
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
 
     stress_sheet = pd.read_excel(out_file, sheet_name="StressDelta")

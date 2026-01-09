@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest.mock import patch
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -17,13 +18,13 @@ def test_cli_overrides_return_distribution(tmp_path: Path) -> None:
     out_path = tmp_path / "out.xlsx"
 
     with (
-        patch("pa_core.cli.draw_joint_returns") as mock_draws,
-        patch("pa_core.cli.draw_financing_series") as mock_financing,
-        patch("pa_core.cli.simulate_agents") as mock_simulate,
-        patch("pa_core.cli.create_enhanced_summary") as mock_summary,
-        patch("pa_core.cli.export_to_excel"),
-        patch("pa_core.cli.build_from_config") as mock_build_agents,
-        patch("pa_core.cli.build_cov_matrix"),
+        patch("pa_core.sim.draw_joint_returns") as mock_draws,
+        patch("pa_core.sim.draw_financing_series") as mock_financing,
+        patch("pa_core.simulations.simulate_agents") as mock_simulate,
+        patch("pa_core.sim.metrics.summary_table") as mock_summary,
+        patch("pa_core.reporting.export_to_excel"),
+        patch("pa_core.agents.registry.build_from_config") as mock_build_agents,
+        patch("pa_core.sim.covariance.build_cov_matrix") as mock_build_cov,
     ):
         mock_draws.return_value = ([], [], [], [])
         mock_financing.return_value = ([], [], [])
@@ -32,6 +33,7 @@ def test_cli_overrides_return_distribution(tmp_path: Path) -> None:
         mock_summary.return_value = pd.DataFrame(
             {"Agent": ["Base"], "terminal_AnnReturn": [0.1], "monthly_AnnVol": [0.1]}
         )
+        mock_build_cov.return_value = np.eye(4)
 
         main(
             [

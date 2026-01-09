@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from pa_core.cli import Dependencies, main
+from pa_core.cli import main
 from pa_core.config import load_config
 from pa_core.orchestrator import SimulatorOrchestrator
 from pa_core.random import spawn_agent_rngs, spawn_rngs
@@ -55,9 +55,9 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
         return {"Base": np.zeros((2, 3))}
 
     params_capture: dict[str, dict[str, object]] = {}
-    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", fake_draw_joint_returns)
-    monkeypatch.setattr("pa_core.orchestrator.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
 
     cfg = load_config(cfg_path)
     orch = SimulatorOrchestrator(cfg, idx_series)
@@ -86,12 +86,12 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
     def noop_export(*_args, **_kwargs) -> None:
         return None
 
-    deps = Dependencies(
-        draw_joint_returns=capture_cli_draw_joint_returns,
-        draw_financing_series=fake_draw_financing_series,
-        simulate_agents=fake_simulate_agents,
-        export_to_excel=noop_export,
-    )
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", capture_cli_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", lambda _cfg: [])
+    monkeypatch.setattr("pa_core.sim.covariance.build_cov_matrix", lambda *_a, **_k: np.eye(4))
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", noop_export)
 
     main(
         [
@@ -104,8 +104,7 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
             "--seed",
             "7",
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
     assert cli_params["mu_idx_month"] == expected_mu
 
@@ -168,9 +167,9 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     cfg = load_config(cfg_single_path)
     cfg_sweep = load_config(cfg_sweep_path)
 
-    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", fake_draw_joint_returns)
-    monkeypatch.setattr("pa_core.orchestrator.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
 
     _, summary = SimulatorOrchestrator(cfg, idx_series).run(seed=1)
     base_row = summary[summary["Agent"] == "Base"].iloc[0]
@@ -199,13 +198,12 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
 
     monkeypatch.setattr("pa_core.cli.print_enhanced_summary", capture_summary)
 
-    deps = Dependencies(
-        draw_joint_returns=fake_draw_joint_returns,
-        draw_financing_series=fake_draw_financing_series,
-        simulate_agents=fake_simulate_agents,
-        export_to_excel=noop_export,
-        build_from_config=fake_build_from_config,
-    )
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", fake_build_from_config)
+    monkeypatch.setattr("pa_core.sim.covariance.build_cov_matrix", lambda *_a, **_k: np.eye(4))
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", noop_export)
 
     main(
         [
@@ -218,8 +216,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
             "--seed",
             "1",
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
     cli_summary = captured["summary"]
     base_row = cli_summary[cli_summary["Agent"] == "Base"].iloc[0]

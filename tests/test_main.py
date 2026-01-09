@@ -45,6 +45,9 @@ class DummyConfig:
     act_ext_spike_prob: float = 0.0
     act_ext_spike_factor: float = 1.0
     financing_mode: str = "broadcast"
+    vol_regime: str = "single"
+    vol_regime_window: int = 12
+    covariance_shrinkage: str = "none"
     regimes: Any = None
     regime_start: Any = None
     regime_transition: Any = None
@@ -64,15 +67,9 @@ class DummyConfig:
 
 def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     export_calls: Dict[str, Any] = {}
-    backend_calls: Dict[str, Any] = {}
 
     def fake_load_config(_: str) -> DummyConfig:
         return DummyConfig()
-
-    def fake_resolve_and_set_backend(choice: str | None, cfg: DummyConfig) -> str:
-        backend_calls["choice"] = choice
-        backend_calls["cfg"] = cfg
-        return "numpy"
 
     def fake_build_from_config(cfg: DummyConfig) -> Dict[str, str]:
         return {"agent": "stub"}
@@ -124,7 +121,6 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         export_calls["filename"] = filename
 
     monkeypatch.setattr(pa_main, "load_config", fake_load_config)
-    monkeypatch.setattr(pa_main, "resolve_and_set_backend", fake_resolve_and_set_backend)
     monkeypatch.setattr("pa_core.agents.registry.build_from_config", fake_build_from_config)
     monkeypatch.setattr("pa_core.data.load_index_returns", fake_load_index_returns)
     monkeypatch.setattr("pa_core.random.spawn_rngs", fake_spawn_rngs)
@@ -162,7 +158,6 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
         ]
     )
 
-    assert backend_calls["choice"] == "numpy"
     assert DummyConfig.last_validated is not None
     assert DummyConfig.last_validated["return_distribution"] == "student_t"
     assert DummyConfig.last_validated["return_t_df"] == 5.5

@@ -6,26 +6,45 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Clarify InternalBeta vs UnexplainedBeta usage and ensure attribution naming and CI gate validation are handled consistently.
+Reduce duplicated pipeline logic across entrypoints by making `pa_core/facade.py` the canonical pipeline and delegating entrypoints to it.
 
 #### Tasks
-- [x] Review and update inline comments in `pa_core/reporting/attribution.py` and `registry.py` to clearly explain the difference between InternalBeta and UnexplainedBeta, including direct references to the documentation.
-- [x] Enhance the documentation in `docs/UserGuide.md` by adding specific, concrete examples for both InternalBeta and UnexplainedBeta. Ensure that each term is accompanied by a standalone definition that clearly demonstrates how it differs from the other term.
-- [x] Audit the codebase to verify if the term renaming from InternalBeta to UnexplainedBeta has been fully or partially implemented. Update all instances to consistently reflect the new term if the renaming is to be completed.
-- [ ] Wait for and validate the results from the CI gate workflow `pr-00-gate.yml`. Add a check or logging mechanism to confirm that queued CI jobs are completed before finalizing the merge.
+- [x] Audit all four files to map which pipeline stages are duplicated
+- [x] Designate `facade.py` as the canonical pipeline implementation
+- [x] Define scope for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [x] Implement focused slice for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [x] Validate focused slice for: Refactor `__main__.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [x] Define scope for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [x] Implement focused slice for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [x] Validate focused slice for: Refactor `__main__.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [x] Define scope for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
+- [x] Implement focused slice for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
+- [x] Validate focused slice for: Refactor `cli.py` to delegate to `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `cli.py` to delegate to `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `cli.py` to delegate to `facade.export()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `orchestrator.py` to call `facade.run_single()` (verify: confirm completion in repo)
+- [ ] Define scope for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Implement focused slice for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Validate focused slice for: Refactor `orchestrator.py` to call `facade.run_sweep()` (verify: confirm completion in repo)
+- [ ] Add deprecation warnings for direct use of non-canonical entry points
 
 #### Acceptance criteria
-- [x] All inline comments in `pa_core/reporting/attribution.py` and `registry.py` must clearly explain the difference between InternalBeta and UnexplainedBeta, with direct references to the documentation.
-- [x] The `docs/UserGuide.md` file must include at least one concrete example and a clear, standalone definition for each term (InternalBeta and UnexplainedBeta) that distinguishes their functionality and usage.
-- [x] All instances of InternalBeta in the codebase must be updated to UnexplainedBeta if the renaming is to be completed, ensuring consistent terminology.
-- [ ] The CI gate workflow `pr-00-gate.yml` must log completion of all queued CI jobs before allowing a merge.
+- [ ] All entry points ultimately call the same pipeline implementation
+- [ ] No duplicated pipeline stage logic across files
+- [ ] Existing CLI commands should produce the same output and behavior as before the refactor
+- [ ] Unit tests should be created or updated to ensure all entry points are tested
 ## Related Issues
-- [x] #1040
-- [x] #958
+- [ ] _Not provided._
 ## References
 - [ ] _Not provided._
 
 ## Notes
-- needs-human: Update `.github/workflows/pr-00-gate.yml` to log completion of queued CI jobs before merge; requires `agent-high-privilege`.
+- _None._
 
 <!-- auto-status-summary:end -->
