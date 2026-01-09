@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+from collections import OrderedDict
+from itertools import combinations
 from typing import Mapping
 
 import numpy as np
 import pandas as pd
 import pytest
+from pydantic import ValidationError
 
 from pa_core.calibration import (
     CalibrationResult,
@@ -14,6 +17,7 @@ from pa_core.calibration import (
     _c4,
     calibrate_returns,
 )
+from pa_core.schema import Scenario
 
 
 def test_mean_shrinkage_moves_toward_grand_mean() -> None:
@@ -176,6 +180,21 @@ def test_model_config_and_scenario_conversion() -> None:
     assert {asset.id for asset in scenario.assets} == {"H", "E", "M"}
 
 
+def test_to_scenario_excludes_index_with_nonleading_column() -> None:
+    df = pd.DataFrame(
+        {
+            "A": [0.01, 0.02, 0.03, 0.02],
+            "IDX": [0.02, 0.01, 0.01, 0.03],
+            "B": [0.03, 0.01, 0.02, 0.02],
+        }
+    )
+    result = calibrate_returns(df, index_id="IDX", annualize=False)
+
+    scenario = result.to_scenario()
+    assert scenario.index.id == "IDX"
+    assert [asset.id for asset in scenario.assets] == ["A", "B"]
+
+
 def test_to_scenario_excludes_index_from_assets() -> None:
     series = {
         "IDX": SeriesEstimate(
@@ -212,6 +231,63 @@ def test_to_scenario_excludes_index_from_assets() -> None:
     assert [asset.id for asset in scenario.assets] == ["A"]
 
 
+def test_to_scenario_excludes_index_with_ordered_series() -> None:
+    series = OrderedDict(
+        [
+            (
+                "A",
+                SeriesEstimate(
+                    mean=0.02,
+                    volatility=0.03,
+                    mean_ci=None,
+                    volatility_ci=None,
+                    n_obs=12,
+                ),
+            ),
+            (
+                "IDX",
+                SeriesEstimate(
+                    mean=0.01,
+                    volatility=0.02,
+                    mean_ci=None,
+                    volatility_ci=None,
+                    n_obs=12,
+                ),
+            ),
+            (
+                "B",
+                SeriesEstimate(
+                    mean=0.03,
+                    volatility=0.04,
+                    mean_ci=None,
+                    volatility_ci=None,
+                    n_obs=12,
+                ),
+            ),
+        ]
+    )
+    correlations = [
+        CorrelationEstimate(pair=("IDX", "A"), rho=0.4, ci=None, n_obs=12),
+        CorrelationEstimate(pair=("IDX", "B"), rho=0.3, ci=None, n_obs=12),
+        CorrelationEstimate(pair=("A", "B"), rho=0.2, ci=None, n_obs=12),
+    ]
+    result = CalibrationResult(
+        index_id="IDX",
+        series=series,
+        correlations=correlations,
+        corr_target="identity",
+        mean_shrinkage=0.0,
+        corr_shrinkage=0.0,
+        confidence_level=0.95,
+        annualize=False,
+    )
+
+    scenario = result.to_scenario()
+    assert scenario.index.id == "IDX"
+    assert [asset.id for asset in scenario.assets] == ["A", "B"]
+    assert all(asset.id != "IDX" for asset in scenario.assets)
+
+
 def test_to_scenario_index_only_assets_empty() -> None:
     series = {
         "IDX": SeriesEstimate(
@@ -236,3 +312,82 @@ def test_to_scenario_index_only_assets_empty() -> None:
     scenario = result.to_scenario()
     assert scenario.index.id == "IDX"
     assert scenario.assets == []
+
+
+def test_scenario_validation_rejects_index_in_assets() -> None:
+    with pytest.raises(ValidationError) as excinfo:
+        Scenario.model_validate(
+            {
+                "index": {"id": "IDX", "mu": 0.05, "sigma": 0.1},
+                "assets": [{"id": "IDX", "mu": 0.04, "sigma": 0.08}],
+                "correlations": [],
+            }
+        )
+    errors = excinfo.value.errors()
+    assert errors[0]["msg"] == "Value error, Assets must not include index.id"
+    assert errors[0]["type"] == "value_error"
+
+
+def test_to_scenario_raises_when_index_missing() -> None:
+    series = {
+        "A": SeriesEstimate(
+            mean=0.02,
+            volatility=0.03,
+            mean_ci=None,
+            volatility_ci=None,
+            n_obs=12,
+        ),
+    }
+    result = CalibrationResult(
+        index_id="IDX",
+        series=series,
+        correlations=[],
+        corr_target="identity",
+        mean_shrinkage=0.0,
+        corr_shrinkage=0.0,
+        confidence_level=0.95,
+        annualize=False,
+    )
+
+    with pytest.raises(ValueError, match="index_id not found in series estimates"):
+        result.to_scenario()
+
+
+@pytest.mark.parametrize(
+    ("ordered_ids", "expected_assets"),
+    [
+        (["IDX", "A"], ["A"]),
+        (["A", "IDX"], ["A"]),
+        (["A", "IDX", "B"], ["A", "B"]),
+        (["B", "A", "IDX", "C"], ["B", "A", "C"]),
+    ],
+)
+def test_to_scenario_excludes_index_across_orderings(
+    ordered_ids: list[str], expected_assets: list[str]
+) -> None:
+    series: dict[str, SeriesEstimate] = {}
+    for offset, series_id in enumerate(ordered_ids):
+        series[series_id] = SeriesEstimate(
+            mean=0.01 + 0.01 * offset,
+            volatility=0.02 + 0.01 * offset,
+            mean_ci=None,
+            volatility_ci=None,
+            n_obs=12,
+        )
+    correlations = [
+        CorrelationEstimate(pair=pair, rho=0.1, ci=None, n_obs=12)
+        for pair in combinations(ordered_ids, 2)
+    ]
+    result = CalibrationResult(
+        index_id="IDX",
+        series=series,
+        correlations=correlations,
+        corr_target="identity",
+        mean_shrinkage=0.0,
+        corr_shrinkage=0.0,
+        confidence_level=0.95,
+        annualize=False,
+    )
+
+    scenario = result.to_scenario()
+    assert [asset.id for asset in scenario.assets] == expected_assets

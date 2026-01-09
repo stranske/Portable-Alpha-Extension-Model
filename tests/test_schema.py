@@ -205,7 +205,7 @@ def test_self_pair_correlation_is_unexpected() -> None:
 
 
 def test_scenario_rejects_index_in_assets() -> None:
-    expected = ASSET_INDEX_CONFLICT_ERROR.format(index_id="IDX")
+    expected = ASSET_INDEX_CONFLICT_ERROR
     with pytest.raises(ValidationError) as excinfo:
         Scenario.model_validate(
             {
