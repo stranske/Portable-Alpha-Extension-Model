@@ -18,6 +18,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         DeprecationWarning,
         stacklevel=2,
     )
+    # Parse CLI args here and map them into the facade run/export calls below.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -60,6 +61,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         choices=["gaussian", "t"],
         help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
     )
+    # argparse returns a Namespace of parsed values for the downstream facade.
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
@@ -86,6 +88,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         return_t_df=args.return_t_df,
         return_copula=args.return_copula,
     )
+    # Delegate the simulation to the facade, then pass artifacts to export.
     artifacts = run_single(cfg, idx_series, options)
     print(f"[BACKEND] Using backend: {get_backend()}")
     export(artifacts, args.output)
