@@ -110,3 +110,72 @@ def test_regime_switching_increases_corr_and_vol() -> None:
 
     assert stress_corr > calm_corr
     assert stress_vol > calm_vol
+
+
+def test_regime_switching_seed_is_deterministic() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=128,
+        N_MONTHS=12,
+        financing_mode="broadcast",
+        return_unit="monthly",
+        sigma_H=0.02,
+        sigma_E=0.02,
+        sigma_M=0.02,
+        rho_idx_H=0.1,
+        rho_idx_E=0.1,
+        rho_idx_M=0.1,
+        rho_H_E=0.2,
+        rho_H_M=0.2,
+        rho_E_M=0.2,
+        regimes=[
+            RegimeConfig(name="calm"),
+            RegimeConfig(
+                name="stress",
+                idx_sigma_multiplier=1.5,
+                sigma_H=0.04,
+                sigma_E=0.04,
+                sigma_M=0.04,
+                rho_idx_H=0.7,
+                rho_idx_E=0.7,
+                rho_idx_M=0.7,
+                rho_H_E=0.75,
+                rho_H_M=0.75,
+                rho_E_M=0.75,
+            ),
+        ],
+        regime_transition=[[0.8, 0.2], [0.2, 0.8]],
+        regime_start="calm",
+    )
+    params, _labels = build_regime_draw_params(
+        cfg,
+        mu_idx=0.0,
+        idx_sigma=0.015,
+        n_samples=120,
+    )
+
+    def _run(seed: int) -> tuple[np.ndarray, np.ndarray]:
+        paths = simulate_regime_paths(
+            n_sim=cfg.N_SIMULATIONS,
+            n_months=cfg.N_MONTHS,
+            transition=cfg.regime_transition or [],
+            start_state=resolve_regime_start(cfg),
+            seed=seed,
+        )
+        _r_beta, r_H, r_E, _r_M = draw_joint_returns(
+            n_months=cfg.N_MONTHS,
+            n_sim=cfg.N_SIMULATIONS,
+            params=params[0],
+            seed=seed + 1,
+            regime_paths=paths,
+            regime_params=params,
+        )
+        return paths, np.stack([r_H, r_E])
+
+    paths_a, returns_a = _run(101)
+    paths_b, returns_b = _run(202)
+    paths_c, returns_c = _run(101)
+
+    assert np.array_equal(paths_a, paths_c)
+    assert np.array_equal(returns_a, returns_c)
+    assert not np.array_equal(paths_a, paths_b)
+    assert not np.array_equal(returns_a, returns_b)
