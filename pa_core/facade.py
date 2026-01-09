@@ -6,6 +6,7 @@ decoupling business logic from CLI argument parsing. It enables:
 - Direct programmatic access to simulations without CLI
 - Standardized artifact types for consistent outputs
 - Type-safe configuration with clear interfaces
+- The canonical pipeline implementation used by all entrypoints
 
 Example Usage::
 
@@ -34,6 +35,8 @@ if TYPE_CHECKING:  # pragma: no cover - type hints only
 
     from .config import ModelConfig
 from .types import ArrayLike, SweepResult
+
+CANONICAL_PIPELINE = "pa_core.facade"
 
 
 @dataclass(slots=True)
