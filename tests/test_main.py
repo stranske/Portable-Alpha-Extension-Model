@@ -64,7 +64,8 @@ class DummyConfig:
         cls.last_validated = dict(data)
         # Filter out ClassVar fields that shouldn't be passed to __init__
         init_data = {
-            k: v for k, v in data.items()
+            k: v
+            for k, v in data.items()
             if k in cls.__dataclass_fields__
             and get_origin(cls.__dataclass_fields__[k].type) is not ClassVar
         }
