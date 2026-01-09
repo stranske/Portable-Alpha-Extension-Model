@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import argparse
-from typing import Optional, Sequence
-from typing import Literal, cast
+from typing import Literal, Optional, Sequence, cast
 
 from .backend import get_backend
 from .config import load_config
