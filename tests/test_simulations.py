@@ -280,14 +280,14 @@ def test_run_single_is_deterministic_for_seed() -> None:
     idx = pd.Series([0.01, -0.02, 0.015, 0.0, 0.005, -0.01])
 
     artifacts_a = run_single(cfg, idx, RunOptions(seed=123))
-    artifacts_b = run_single(cfg, idx, RunOptions(seed=123))
-    artifacts_c = run_single(cfg, idx, RunOptions(seed=999))
+    artifacts_b = run_single(cfg, idx, RunOptions(seed=999))
+    artifacts_c = run_single(cfg, idx, RunOptions(seed=123))
 
-    assert artifacts_a.returns.keys() == artifacts_b.returns.keys()
+    assert artifacts_a.returns.keys() == artifacts_c.returns.keys()
     for name, values in artifacts_a.returns.items():
-        assert np.allclose(values, artifacts_b.returns[name])
+        assert np.allclose(values, artifacts_c.returns[name])
 
     assert any(
-        not np.allclose(values, artifacts_c.returns[name])
+        not np.allclose(values, artifacts_b.returns[name])
         for name, values in artifacts_a.returns.items()
     )
