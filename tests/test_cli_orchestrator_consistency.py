@@ -31,42 +31,23 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     seed = 123
     orch_capture: dict[str, tuple[np.ndarray, ...]] = {}
-
-    def capture_orch_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
-        orch_capture["draws"] = (
-            np.array(r_beta),
-            np.array(r_H),
-            np.array(r_E),
-            np.array(r_M),
-        )
-        return sim_module.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
-
-    orch_params: dict[str, object] = {}
-
-    def capture_orch_draw_joint_returns(
-        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
-    ):
-        if "params" not in orch_params:
-            orch_params["params"] = dict(params)
-            if rng is not None:
-                orch_params["rng_state"] = rng.bit_generator.state
-        return draw_joint_returns_impl(
-            n_months=n_months, n_sim=n_sim, params=params, rng=rng, shocks=shocks
-        )
-
-    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", capture_orch_simulate_agents)
-    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", capture_orch_draw_joint_returns)
-
-    cfg = load_config(cfg_path)
-    orch = SimulatorOrchestrator(cfg, idx_series)
-    orch.run(seed=seed)
-
     cli_capture: dict[str, tuple[np.ndarray, ...]] = {}
+    orch_params: dict[str, object] = {}
+    cli_params: dict[str, object] = {}
+    run_phase = {"mode": "orch"}
 
     original_simulate_agents = sim_module.simulate_agents
 
-    def capture_cli_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
-        if "draws" not in cli_capture:
+    def capture_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
+        if run_phase["mode"] == "orch":
+            if "draws" not in orch_capture:
+                orch_capture["draws"] = (
+                    np.array(r_beta),
+                    np.array(r_H),
+                    np.array(r_E),
+                    np.array(r_M),
+                )
+        elif "draws" not in cli_capture:
             cli_capture["draws"] = (
                 np.array(r_beta),
                 np.array(r_H),
@@ -75,25 +56,30 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
             )
         return original_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
-    cli_params: dict[str, object] = {}
-
-    def capture_cli_draw_joint_returns(
+    def capture_draw_joint_returns(
         *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
     ):
-        if "params" not in cli_params:
-            cli_params["params"] = dict(params)
+        target = orch_params if run_phase["mode"] == "orch" else cli_params
+        if "params" not in target:
+            target["params"] = dict(params)
             if rng is not None:
-                cli_params["rng_state"] = rng.bit_generator.state
+                target["rng_state"] = rng.bit_generator.state
         return draw_joint_returns_impl(
             n_months=n_months, n_sim=n_sim, params=params, rng=rng, shocks=shocks
         )
+
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", capture_simulate_agents)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", capture_draw_joint_returns)
+
+    cfg = load_config(cfg_path)
+    orch = SimulatorOrchestrator(cfg, idx_series)
+    orch.run(seed=seed)
 
     def noop_export(*_args, **_kwargs) -> None:
         return None
 
     monkeypatch.setattr("pa_core.reporting.export_to_excel", noop_export)
-    monkeypatch.setattr("pa_core.simulations.simulate_agents", capture_cli_simulate_agents)
-    monkeypatch.setattr("pa_core.sim.draw_joint_returns", capture_cli_draw_joint_returns)
+    run_phase["mode"] = "cli"
 
     main(
         [

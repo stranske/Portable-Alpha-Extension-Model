@@ -55,9 +55,9 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
         return {"Base": np.zeros((2, 3))}
 
     params_capture: dict[str, dict[str, object]] = {}
-    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", fake_draw_joint_returns)
-    monkeypatch.setattr("pa_core.orchestrator.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
 
     cfg = load_config(cfg_path)
     orch = SimulatorOrchestrator(cfg, idx_series)
@@ -167,9 +167,9 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
     cfg = load_config(cfg_single_path)
     cfg_sweep = load_config(cfg_sweep_path)
 
-    monkeypatch.setattr("pa_core.orchestrator.draw_joint_returns", fake_draw_joint_returns)
-    monkeypatch.setattr("pa_core.orchestrator.draw_financing_series", fake_draw_financing_series)
-    monkeypatch.setattr("pa_core.orchestrator.simulate_agents", fake_simulate_agents)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sim.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
 
     _, summary = SimulatorOrchestrator(cfg, idx_series).run(seed=1)
     base_row = summary[summary["Agent"] == "Base"].iloc[0]

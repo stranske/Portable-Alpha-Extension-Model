@@ -1,29 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
+from typing import Dict, Mapping, Sequence, Tuple
 
 import pandas as pd
 
-from .agents.registry import build_from_config
 from .config import ModelConfig
-from .random import spawn_agent_rngs, spawn_rngs
-from .sim.covariance import build_cov_matrix
-from .sim.metrics import summary_table
-from .sim.params import (
-    build_covariance_return_overrides,
-    build_params,
-    resolve_covariance_inputs,
-)
-from .sim.paths import draw_financing_series, draw_joint_returns
-from .sim.regimes import (
-    build_regime_draw_params,
-    resolve_regime_start,
-    simulate_regime_paths,
-)
-from .simulations import simulate_agents
-from .types import ArrayLike
-from .units import get_index_series_unit, normalize_index_series, normalize_return_inputs
-from .validators import select_vol_regime_sigma
+from .facade import RunOptions, run_single, run_sweep
+from .types import ArrayLike, SweepResult
+from .units import get_index_series_unit, normalize_index_series
 
 
 class SimulatorOrchestrator:
@@ -38,95 +22,6 @@ class SimulatorOrchestrator:
         self.cfg = cfg
         self.idx_series = normalize_index_series(pd.Series(idx_series), get_index_series_unit())
 
-    def draw_streams(self, seed: int | None = None) -> Tuple[ArrayLike, ...]:
-        """Draw Monte Carlo return and financing streams for the configured model."""
-        mu_idx = float(self.idx_series.mean())
-        idx_sigma, _, _ = select_vol_regime_sigma(
-            self.idx_series,
-            regime=self.cfg.vol_regime,
-            window=self.cfg.vol_regime_window,
-        )
-        n_samples = int(len(self.idx_series))
-
-        return_inputs = normalize_return_inputs(self.cfg)
-        sigma_h = float(return_inputs["sigma_H"])
-        sigma_e = float(return_inputs["sigma_E"])
-        sigma_m = float(return_inputs["sigma_M"])
-
-        cov = build_cov_matrix(
-            self.cfg.rho_idx_H,
-            self.cfg.rho_idx_E,
-            self.cfg.rho_idx_M,
-            self.cfg.rho_H_E,
-            self.cfg.rho_H_M,
-            self.cfg.rho_E_M,
-            idx_sigma,
-            sigma_h,
-            sigma_e,
-            sigma_m,
-            covariance_shrinkage=self.cfg.covariance_shrinkage,
-            n_samples=n_samples,
-        )
-        sigma_vec, corr_mat = resolve_covariance_inputs(
-            cov,
-            idx_sigma=idx_sigma,
-            sigma_h=sigma_h,
-            sigma_e=sigma_e,
-            sigma_m=sigma_m,
-            rho_idx_H=self.cfg.rho_idx_H,
-            rho_idx_E=self.cfg.rho_idx_E,
-            rho_idx_M=self.cfg.rho_idx_M,
-            rho_H_E=self.cfg.rho_H_E,
-            rho_H_M=self.cfg.rho_H_M,
-            rho_E_M=self.cfg.rho_E_M,
-        )
-
-        rng_returns, rng_regime = spawn_rngs(seed, 2)
-        params = build_params(
-            self.cfg,
-            mu_idx=mu_idx,
-            idx_sigma=float(sigma_vec[0]),
-            return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
-        )
-
-        regime_params = None
-        regime_paths = None
-        if self.cfg.regimes is not None:
-            if self.cfg.regime_transition is None:
-                raise ValueError("regime_transition is required when regimes are specified")
-            regime_params, _labels = build_regime_draw_params(
-                self.cfg,
-                mu_idx=mu_idx,
-                idx_sigma=idx_sigma,
-                n_samples=n_samples,
-            )
-            regime_paths = simulate_regime_paths(
-                n_sim=self.cfg.N_SIMULATIONS,
-                n_months=self.cfg.N_MONTHS,
-                transition=self.cfg.regime_transition,
-                start_state=resolve_regime_start(self.cfg),
-                rng=rng_regime,
-            )
-
-        r_beta, r_H, r_E, r_M = draw_joint_returns(
-            n_months=self.cfg.N_MONTHS,
-            n_sim=self.cfg.N_SIMULATIONS,
-            params=params,
-            rng=rng_returns,
-            regime_paths=regime_paths,
-            regime_params=regime_params,
-        )
-
-        fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
-        f_int, f_ext, f_act = draw_financing_series(
-            n_months=self.cfg.N_MONTHS,
-            n_sim=self.cfg.N_SIMULATIONS,
-            params=params,
-            financing_mode=self.cfg.financing_mode,
-            rngs=fin_rngs,
-        )
-        return r_beta, r_H, r_E, r_M, f_int, f_ext, f_act
-
     def run(self, seed: int | None = None) -> Tuple[Dict[str, ArrayLike], pd.DataFrame]:
         """Execute simulations and return per-agent returns and summary table.
 
@@ -136,8 +31,19 @@ class SimulatorOrchestrator:
         from monthly returns.
         """
 
-        r_beta, r_H, r_E, r_M, f_int, f_ext, f_act = self.draw_streams(seed=seed)
-        agents = build_from_config(self.cfg)
-        returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
-        summary = summary_table(returns, benchmark="Base")
-        return returns, summary
+        artifacts = run_single(self.cfg, self.idx_series, RunOptions(seed=seed))
+        return artifacts.returns, artifacts.summary
+
+    def run_sweep(
+        self,
+        sweep_params: Mapping[str, object] | None = None,
+        seed: int | None = None,
+    ) -> Tuple[Sequence[SweepResult], pd.DataFrame]:
+        """Execute a parameter sweep and return results plus consolidated summary."""
+        artifacts = run_sweep(
+            self.cfg,
+            self.idx_series,
+            sweep_params,
+            RunOptions(seed=seed),
+        )
+        return artifacts.results, artifacts.summary
