@@ -96,7 +96,7 @@ def _patch_main_dependencies(monkeypatch):
     return calls
 
 
-def test_main_applies_overrides_and_exports(monkeypatch) -> None:
+def test_main_applies_overrides_and_exports(monkeypatch, capsys) -> None:
     cfg = FakeConfig(**_base_config_data())
     calls = _patch_main_dependencies(monkeypatch)
 
@@ -126,6 +126,7 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
             "t",
         ]
     )
+    captured = capsys.readouterr()
 
     assert calls["load_config"] == "config.yaml"
     run_call = calls["run_single"]
@@ -137,6 +138,8 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
     assert run_call["options"].seed == 123
     assert run_call["options"].backend == "numpy"
     assert calls["export"]["output_path"] == "out.xlsx"
+    assert captured.out == "[BACKEND] Using backend: numpy\n"
+    assert captured.err == ""
 
 
 def test_main_without_overrides(monkeypatch) -> None:
