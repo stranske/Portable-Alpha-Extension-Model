@@ -14,18 +14,24 @@ CLI entrypoints stay consistent and regression-safe.
 - `export`: shared export helper for artifact bundles.
 
 ## Delegation from CLI
-- `pa run` delegates to `pa_core.cli.main`.
+- `pa` executes `pa_core.pa:main` and routes `pa run` to `pa_core.cli.main`.
 - `pa_core.cli.main` builds `RunOptions` and calls `run_single` from
-  `pa_core.facade`.
-- `python -m pa_core` remains available but is deprecated in favor of `pa run`.
+  `pa_core.facade` after parsing the full set of simulation flags.
+- `python -m pa_core` executes `pa_core.__main__`, which parses a smaller
+  argument set and delegates directly to `run_single` and `export`.
+- `python -m pa_core.cli` runs the full simulation CLI but is deprecated in
+  favor of `pa run`.
 
 ## Deprecation Warning Behavior
 Non-canonical invocation paths emit `DeprecationWarning` via the Python
 warnings system. These warnings do not appear in stdout/stderr by default.
-Users can surface them explicitly with `-Wd` or warning filters.
+`pa run` suppresses the warning by calling `pa_core.cli.main` with
+`emit_deprecation_warning=False`. Users can surface warnings explicitly with
+`-Wd` or warning filters.
 
 ## Argument Parsing and Exit Codes
 The facade layer does not parse CLI arguments. Argument parsing lives in CLI
 entrypoints (`pa_core.cli` and `pa_core.__main__`). Errors raised there surface
 as non-zero exit codes (typically via `SystemExit`), while successful runs
-return exit code `0`.
+return exit code `0`. Facade functions themselves return artifacts and do not
+emit warnings or write to stdout/stderr.

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 import pa_core.__main__ as pa_main
+from expected_cli_outputs import EMPTY_STDERR, MAIN_BACKEND_STDOUT
 
 
 class FakeConfig:
@@ -138,8 +139,8 @@ def test_main_applies_overrides_and_exports(monkeypatch, capsys) -> None:
     assert run_call["options"].seed == 123
     assert run_call["options"].backend == "numpy"
     assert calls["export"]["output_path"] == "out.xlsx"
-    assert captured.out == "[BACKEND] Using backend: numpy\n"
-    assert captured.err == ""
+    assert captured.out == MAIN_BACKEND_STDOUT
+    assert captured.err == EMPTY_STDERR
 
 
 def test_main_without_overrides(monkeypatch) -> None:
