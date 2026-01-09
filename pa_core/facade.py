@@ -218,7 +218,6 @@ def run_single(
 
     from .agents.registry import build_from_config
     from .backend import resolve_and_set_backend
-    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .sim import draw_financing_series, draw_joint_returns
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
@@ -233,6 +232,7 @@ def run_single(
         resolve_regime_start,
         simulate_regime_paths,
     )
+    from .sim.simulation_initialization import initialize_run_rngs
     from .simulations import simulate_agents
     from .units import normalize_return_inputs
     from .validators import select_vol_regime_sigma
@@ -297,11 +297,14 @@ def run_single(
         return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
     )
 
-    base_rng = spawn_rngs(run_options.seed, 1)[0]
-    child_seeds = base_rng.integers(0, 2**32, size=3, dtype="uint32")
-    rng_returns = spawn_rngs(int(child_seeds[0]), 1)[0]
-    rng_regime = spawn_rngs(int(child_seeds[1]), 1)[0]
-    fin_seed = int(child_seeds[2])
+    rng_bundle = initialize_run_rngs(
+        run_options.seed,
+        legacy_agent_rng=run_options.legacy_agent_rng,
+    )
+    rng_returns = rng_bundle.rng_returns
+    rng_regime = rng_bundle.rng_regime
+    fin_rngs = rng_bundle.rngs_financing
+    substream_ids = rng_bundle.substream_ids
     regime_params = None
     regime_paths = None
     regime_labels = None
@@ -331,11 +334,6 @@ def run_single(
         regime_params=regime_params,
     )
     corr_repair_info = params.get("_correlation_repair_info")
-    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
-        fin_seed,
-        ["internal", "external_pa", "active_ext"],
-        legacy_order=run_options.legacy_agent_rng,
-    )
     f_int, f_ext, f_act = draw_financing_series(
         n_months=run_cfg.N_MONTHS,
         n_sim=run_cfg.N_SIMULATIONS,
@@ -421,8 +419,8 @@ def run_sweep(
     import pandas as pd
 
     from .backend import resolve_and_set_backend
-    from .random import spawn_agent_rngs_with_ids, spawn_rngs
     from .sweep import run_parameter_sweep, sweep_results_to_dataframe
+    from .sim.simulation_initialization import initialize_sweep_rngs
 
     run_options = options or RunOptions()
     run_cfg = apply_run_options(config, run_options, sweep_params)
@@ -436,14 +434,14 @@ def run_sweep(
     elif not isinstance(idx_series, pd.Series):
         raise ValueError("Index data must be a pandas Series")
 
-    base_rng = spawn_rngs(run_options.seed, 1)[0]
-    child_seed = int(base_rng.integers(0, 2**32, dtype="uint32"))
-    rng_returns = spawn_rngs(child_seed, 1)[0]
-    fin_rngs, substream_ids = spawn_agent_rngs_with_ids(
-        child_seed,
-        ["internal", "external_pa", "active_ext"],
-        legacy_order=run_options.legacy_agent_rng,
+    rng_bundle = initialize_sweep_rngs(
+        run_options.seed,
+        legacy_agent_rng=run_options.legacy_agent_rng,
     )
+    rng_returns = rng_bundle.rng_returns
+    fin_rngs = rng_bundle.rngs_financing
+    substream_ids = rng_bundle.substream_ids
+    child_seed = rng_bundle.seed
     results = run_parameter_sweep(
         run_cfg,
         idx_series,
