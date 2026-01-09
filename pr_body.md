@@ -9,16 +9,16 @@
 Isolate per-run RNG usage across simulations and regime switching, with deterministic tests for seeded runs.
 
 #### Tasks
-- [x] Modify `pa_core/sim/paths.py` to replace module-level RNG usage with a local `np.random.Generator` instance. Update functions to accept a generator parameter if necessary.
-- [x] Refactor `pa_core/sim/regimes.py` to eliminate module-level RNG usage by using a per-run `np.random.Generator` instance. Pass the generator as a parameter or instantiate one within the simulation run.
-- [x] Update `pa_core/facade.py` to instantiate a new `np.random.Generator` at the start of each simulation run and ensure it is passed to all downstream functions.
-- [x] Review and update existing tests in `tests/test_simulations.py` to explicitly validate RNG isolation by checking that simulations with the same seed produce identical results and those with different seeds produce different results.
+- [x] Audit `pa_core/facade.py`, `pa_core/sim/paths.py`, and `pa_core/sim/regimes.py` to identify and replace any direct usage of global RNG functions with `np.random.Generator` instances.
+- [x] Modify functions in `pa_core/facade.py`, `pa_core/sim/paths.py`, and `pa_core/sim/regimes.py` to accept an `np.random.Generator` parameter or instantiate a local generator using a deterministic seed when necessary.
+- [x] Update the simulation initialization module to create a new, seeded `np.random.Generator` at the start of each simulation run and pass it to all downstream functions.
+- [x] Enhance tests in `tests/test_simulations.py` to include cases that perturb the global RNG state and verify that simulation outcomes remain consistent when supplied the same seed.
 
 #### Acceptance criteria
-- [x] All functions in `pa_core/sim/paths.py` that previously used module-level RNG now accept an `np.random.Generator` instance as a parameter or create one locally.
-- [x] All functions in `pa_core/sim/regimes.py` that previously used module-level RNG now accept an `np.random.Generator` instance as a parameter or create one locally.
-- [x] A new `np.random.Generator` is instantiated at the start of each simulation run in `pa_core/facade.py` and passed to all downstream functions.
-- [x] Tests in `tests/test_simulations.py` validate that simulations with the same seed produce identical results and those with different seeds produce different results.
+- [x] All functions in `pa_core/facade.py`, `pa_core/sim/paths.py`, and `pa_core/sim/regimes.py` use an `np.random.Generator` instance for random number generation.
+- [x] Functions in `pa_core/facade.py`, `pa_core/sim/paths.py`, and `pa_core/sim/regimes.py` accept an `np.random.Generator` parameter or instantiate one locally with a deterministic seed.
+- [x] A new `np.random.Generator` is instantiated at the start of each simulation run in `simulation_initialization.py` using a provided seed.
+- [x] Tests in `tests/test_simulations.py` confirm that simulations with the same seed produce identical results, different seeds produce different results, and changes to the global RNG state do not affect results.
 ## Related Issues
 - [ ] _Not provided._
 ## References
