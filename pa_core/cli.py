@@ -1060,7 +1060,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
     run_artifacts = run_single(cfg, idx_series, run_options)
     returns = run_artifacts.returns
     summary = run_artifacts.summary
-    run_manifest = run_artifacts.manifest or {}
+    run_manifest: dict[str, Any] = dict(run_artifacts.manifest or {})
     substream_ids = run_manifest.get("substream_ids")
     stress_delta_df = None
     base_summary_df: pd.DataFrame | None = None
@@ -1084,7 +1084,7 @@ def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = No
         try:
             rows: list[dict[str, object]] = []
             for agent, arr in returns.items():
-                mean_month = float(arr.mean())
+                mean_month = float(np.asarray(arr).mean())
                 ann = 12.0 * mean_month
                 rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
             inputs_dict["_attribution_df"] = pd.DataFrame(rows)
