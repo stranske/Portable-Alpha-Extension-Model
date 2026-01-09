@@ -917,7 +917,7 @@ def main(
     # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
     raw_params = cfg.model_dump()
 
-    substream_ids: dict[str, str] | None = None
+    substream_ids: Mapping[str, str] | None = None
 
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]
