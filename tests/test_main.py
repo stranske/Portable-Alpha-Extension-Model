@@ -66,13 +66,23 @@ class DummyConfig:
         init_data = {}
         for k, v in data.items():
             if k not in cls.__dataclass_fields__:
+                # Data key not in dataclass fields - skip it
                 continue
             field = cls.__dataclass_fields__[k]
             origin = get_origin(field.type)
             # Skip ClassVar fields - they cannot be passed to __init__
             if origin is ClassVar:
+                # This is a ClassVar, skip it
                 continue
             init_data[k] = v
+        # Debug: check if last_validated is somehow in init_data
+        if "last_validated" in init_data:
+            raise RuntimeError(
+                f"BUG: last_validated in init_data! "
+                f"Field type: {cls.__dataclass_fields__['last_validated'].type}, "
+                f"get_origin: {get_origin(cls.__dataclass_fields__['last_validated'].type)}, "
+                f"ClassVar: {ClassVar}"
+            )
         return cls(**init_data)
 
 
