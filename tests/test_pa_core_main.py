@@ -129,9 +129,11 @@ def test_main_applies_overrides_and_exports(monkeypatch) -> None:
 
     assert calls["load_config"] == "config.yaml"
     run_call = calls["run_single"]
-    assert run_call["config"].return_distribution == "student_t"
-    assert run_call["config"].return_t_df == 7.0
-    assert run_call["config"].return_copula == "t"
+    # Options should contain overrides; config passed to run_single is original
+    assert run_call["config"] is cfg
+    assert run_call["options"].return_distribution == "student_t"
+    assert run_call["options"].return_t_df == 7.0
+    assert run_call["options"].return_copula == "t"
     assert run_call["options"].seed == 123
     assert run_call["options"].backend == "numpy"
     assert calls["export"]["output_path"] == "out.xlsx"
