@@ -8,11 +8,11 @@ import numpy.typing as npt
 from numpy.typing import NDArray
 
 from ..backend import xp as np
-from ..random import spawn_rngs
 from ..types import GeneratorLike
 from ..validators import NUMERICAL_STABILITY_EPSILON
 from .financing import draw_financing_series, simulate_financing
 from .params import CANONICAL_PARAMS_MARKER, CANONICAL_PARAMS_VERSION
+from .simulation_initialization import ensure_rng
 
 __all__ = [
     "simulate_financing",
@@ -269,9 +269,7 @@ def prepare_mc_universe(
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
     if cov_mat.shape != (4, 4):
         raise ValueError("cov_mat must be 4×4 and ordered as [idx, H, E, M]")
-    if rng is None:
-        rng = spawn_rngs(seed, 1)[0]
-    assert rng is not None
+    rng = ensure_rng(seed, rng)
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M])
@@ -320,9 +318,7 @@ def prepare_return_shocks(
     rng: Optional[GeneratorLike] = None,
 ) -> Dict[str, Any]:
     """Pre-generate return shocks to reuse across parameter combinations."""
-    if rng is None:
-        rng = spawn_rngs(seed, 1)[0]
-    assert rng is not None
+    rng = ensure_rng(seed, rng)
     distribution = params.get("return_distribution", "normal")
     dist_overrides = (
         params.get("return_distribution_idx"),
@@ -443,9 +439,7 @@ def draw_returns(
                         shocks_out[..., i] = z[..., i] * (scale / denom)
                 sims = μ + shocks_out * σ
     else:
-        if rng is None:
-            rng = spawn_rngs(seed, 1)[0]
-        assert rng is not None
+        rng = ensure_rng(seed, rng)
         if all(dist == "normal" for dist in distributions):
             Σ = corr * (σ[:, None] * σ[None, :])
             sims = _safe_multivariate_normal(rng, μ, Σ, (n_sim, n_months))
@@ -507,8 +501,7 @@ def draw_joint_returns(
     When ``regime_params`` is provided, returns are drawn from regime-specific
     parameters based on ``regime_paths``.
     """
-    if rng is None and seed is not None:
-        rng = spawn_rngs(seed, 1)[0]
+    rng = ensure_rng(seed, rng)
     if regime_params is None:
         return draw_returns(
             n_months=n_months,
@@ -579,9 +572,7 @@ def simulate_alpha_streams(
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
     _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
-    if rng is None:
-        rng = spawn_rngs(seed, 1)[0]
-    assert rng is not None
+    rng = ensure_rng(seed, rng)
     if all(dist == "normal" for dist in distributions):
         return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]
     sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))

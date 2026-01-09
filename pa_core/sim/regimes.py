@@ -6,10 +6,10 @@ import numpy.typing as npt
 
 from ..backend import xp as np
 from ..config import ModelConfig
-from ..random import spawn_rngs
 from ..types import GeneratorLike
 from .covariance import build_cov_matrix
 from .params import build_simulation_params
+from .simulation_initialization import ensure_rng
 
 
 def _cov_to_corr_and_sigma(cov: npt.NDArray[Any]) -> tuple[npt.NDArray[Any], npt.NDArray[Any]]:
@@ -119,8 +119,7 @@ def simulate_regime_paths(
     n_regimes = int(transition_mat.shape[0])
     if not 0 <= start_state < n_regimes:
         raise ValueError("start_state must be within regime index range")
-    if rng is None:
-        rng = spawn_rngs(seed, 1)[0]
+    rng = ensure_rng(seed, rng)
 
     paths = np.empty((n_sim, n_months), dtype=int)
     paths[:, 0] = start_state
