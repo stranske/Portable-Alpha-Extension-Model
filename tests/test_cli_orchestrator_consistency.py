@@ -4,7 +4,7 @@ import numpy as np
 import yaml
 
 from pa_core import simulations as sim_module
-from pa_core.cli import Dependencies, main
+from pa_core.cli import main
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.orchestrator import SimulatorOrchestrator
@@ -63,6 +63,8 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     cli_capture: dict[str, tuple[np.ndarray, ...]] = {}
 
+    original_simulate_agents = sim_module.simulate_agents
+
     def capture_cli_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
         if "draws" not in cli_capture:
             cli_capture["draws"] = (
@@ -71,7 +73,7 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
                 np.array(r_E),
                 np.array(r_M),
             )
-        return sim_module.simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
+        return original_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
 
     cli_params: dict[str, object] = {}
 
@@ -89,11 +91,9 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
     def noop_export(*_args, **_kwargs) -> None:
         return None
 
-    deps = Dependencies(
-        simulate_agents=capture_cli_simulate_agents,
-        export_to_excel=noop_export,
-        draw_joint_returns=capture_cli_draw_joint_returns,
-    )
+    monkeypatch.setattr("pa_core.reporting.export_to_excel", noop_export)
+    monkeypatch.setattr("pa_core.simulations.simulate_agents", capture_cli_simulate_agents)
+    monkeypatch.setattr("pa_core.sim.draw_joint_returns", capture_cli_draw_joint_returns)
 
     main(
         [
@@ -106,8 +106,7 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
             "--seed",
             str(seed),
             "--sensitivity",
-        ],
-        deps=deps,
+        ]
     )
 
     assert "draws" in orch_capture
