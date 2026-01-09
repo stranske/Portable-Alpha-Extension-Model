@@ -103,9 +103,13 @@ def simulate_regime_paths(
     n_months: int,
     transition: Sequence[Sequence[float]],
     start_state: int,
+    seed: int | None = None,
     rng: Any | None = None,
 ) -> npt.NDArray[Any]:
-    """Simulate regime paths using a Markov transition matrix."""
+    """Simulate regime paths using a Markov transition matrix.
+
+    ``seed`` is used to create a per-run generator when ``rng`` is not supplied.
+    """
     if n_sim <= 0 or n_months <= 0:
         raise ValueError("n_sim and n_months must be positive")
     transition_mat = np.asarray(transition, dtype=float)
@@ -115,7 +119,7 @@ def simulate_regime_paths(
     if not 0 <= start_state < n_regimes:
         raise ValueError("start_state must be within regime index range")
     if rng is None:
-        rng = spawn_rngs(None, 1)[0]
+        rng = spawn_rngs(seed, 1)[0]
 
     paths = np.empty((n_sim, n_months), dtype=int)
     paths[:, 0] = start_state
