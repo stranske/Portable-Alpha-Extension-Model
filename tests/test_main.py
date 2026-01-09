@@ -70,7 +70,7 @@ class DummyConfig:
         return cls(**init_data)
 
 
-def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
+def test_main_applies_overrides_and_exports(monkeypatch, tmp_path, capsys) -> None:
     export_calls: Dict[str, Any] = {}
 
     def fake_load_config(_: str) -> DummyConfig:
@@ -152,6 +152,7 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     monkeypatch.setattr("pa_core.simulations.simulate_agents", fake_simulate_agents)
     monkeypatch.setattr("pa_core.sim.metrics.summary_table", fake_summary_table)
     monkeypatch.setattr("pa_core.reporting.export_to_excel", fake_export_to_excel)
+    monkeypatch.setattr(pa_main, "get_backend", lambda: "numpy")
 
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text("stub: true\n")
@@ -178,6 +179,7 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
             "t",
         ]
     )
+    captured = capsys.readouterr()
 
     assert DummyConfig.last_validated is not None
     assert DummyConfig.last_validated["return_distribution"] == "student_t"
@@ -187,3 +189,5 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path) -> None:
     assert export_calls["filename"] == "Outputs.xlsx"
     assert export_calls["inputs"]["return_distribution"] == "student_t"
     assert "Base" in export_calls["raw_returns"]
+    assert captured.out == "[BACKEND] Using backend: numpy\n"
+    assert captured.err == ""

@@ -274,11 +274,24 @@ class Dependencies:
         self.simulate_agents: Callable[..., Any] = simulate_agents
 
 
-def main(argv: Optional[Sequence[str]] = None, deps: Optional[Dependencies] = None) -> None:
+def main(
+    argv: Optional[Sequence[str]] = None,
+    deps: Optional[Dependencies] = None,
+    *,
+    emit_deprecation_warning: bool = True,
+) -> None:
     # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
     # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
     import os
     import sys
+    import warnings
+
+    if emit_deprecation_warning:
+        warnings.warn(
+            "Direct use of pa_core.cli is deprecated; use `pa run` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     try:  # quick probe for required heavy deps in subprocess execution
         import numpy as _np  # noqa: F401

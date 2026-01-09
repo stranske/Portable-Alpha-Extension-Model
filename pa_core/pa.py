@@ -205,7 +205,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     if args.command == "run":
         from .cli import main as run_main
 
-        run_main(list(remaining))
+        run_main(list(remaining), emit_deprecation_warning=False)
     elif args.command == "validate":
         from .validate import main as validate_main
 

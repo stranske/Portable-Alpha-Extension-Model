@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import warnings
 from typing import Literal, Optional, Sequence, cast
 
 from .backend import get_backend
@@ -12,6 +13,11 @@ from .validators import select_vol_regime_sigma
 
 
 def main(argv: Optional[Sequence[str]] = None) -> None:
+    warnings.warn(
+        "Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
