@@ -25,6 +25,8 @@ class GeneratorLike(Protocol):
 
     def multivariate_normal(self, *args: Any, **kwargs: Any) -> Any: ...
 
+    def integers(self, *args: Any, **kwargs: Any) -> Any: ...
+
 
 @runtime_checkable
 class ArrayLike(Protocol):
