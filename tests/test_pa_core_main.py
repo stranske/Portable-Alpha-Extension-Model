@@ -4,9 +4,9 @@ from typing import Any, Dict
 
 import pandas as pd
 import pytest
+from expected_cli_outputs import EMPTY_STDERR, MAIN_BACKEND_STDOUT
 
 import pa_core.__main__ as pa_main
-from expected_cli_outputs import EMPTY_STDERR, MAIN_BACKEND_STDOUT
 
 
 class FakeConfig:
