@@ -77,13 +77,21 @@ def _patch_cli_run(monkeypatch, cfg: DummyConfig) -> None:
     monkeypatch.setattr("pa_core.reporting.console.print_constraint_report", lambda *_: None)
 
 
+def _assert_deprecation_warning_captured(caught: list[warnings.WarningMessage], captured) -> None:
+    assert caught, "Expected a deprecation warning captured by warnings module."
+    assert any(isinstance(entry.message, DeprecationWarning) for entry in caught)
+    # Deprecation warnings must not leak to stdout/stderr via logging or print.
+    assert "deprecated" not in captured.out.lower()
+    assert "deprecated" not in captured.err.lower()
+
+
 def test_non_canonical_cli_emits_warning_without_output(monkeypatch, capsys, tmp_path) -> None:
     cfg = DummyConfig()
     _patch_cli_run(monkeypatch, cfg)
 
     # Capture DeprecationWarning via warnings module to enforce the documented mechanism.
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         pa_cli.main(
             [
                 "--config",
@@ -96,12 +104,7 @@ def test_non_canonical_cli_emits_warning_without_output(monkeypatch, capsys, tmp
             emit_deprecation_warning=True,
         )
 
-    captured = capsys.readouterr()
-    assert caught, "Expected a deprecation warning captured by warnings module."
-    assert any(isinstance(entry.message, DeprecationWarning) for entry in caught)
-    # Deprecation warnings must not leak to stdout/stderr via logging or print.
-    assert "deprecated" not in captured.out.lower()
-    assert "deprecated" not in captured.err.lower()
+    _assert_deprecation_warning_captured(caught, capsys.readouterr())
 
 
 def test_non_canonical_module_emits_warning_without_output(monkeypatch, capsys) -> None:
@@ -126,7 +129,7 @@ def test_non_canonical_module_emits_warning_without_output(monkeypatch, capsys) 
 
     # Capture DeprecationWarning via warnings module to enforce the documented mechanism.
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         pa_module.main(
             [
                 "--config",
@@ -138,12 +141,7 @@ def test_non_canonical_module_emits_warning_without_output(monkeypatch, capsys) 
             ]
         )
 
-    captured = capsys.readouterr()
-    assert caught, "Expected a deprecation warning captured by warnings module."
-    assert any(isinstance(entry.message, DeprecationWarning) for entry in caught)
-    # Deprecation warnings must not leak to stdout/stderr via logging or print.
-    assert "deprecated" not in captured.out.lower()
-    assert "deprecated" not in captured.err.lower()
+    _assert_deprecation_warning_captured(caught, capsys.readouterr())
 
 
 def test_canonical_pa_run_has_no_warning(monkeypatch, capsys, tmp_path) -> None:
@@ -152,7 +150,7 @@ def test_canonical_pa_run_has_no_warning(monkeypatch, capsys, tmp_path) -> None:
 
     # Canonical `pa run` path should not emit deprecation warnings at all.
     with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
+        warnings.simplefilter("always", DeprecationWarning)
         pa_entry.main(
             [
                 "run",
