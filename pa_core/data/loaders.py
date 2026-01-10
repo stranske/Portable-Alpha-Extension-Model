@@ -322,9 +322,7 @@ def load_index_returns(path: str | Path, *, date_format: str | None = None) -> p
         if dates.isna().any():
             bad_values = df.loc[dates.isna(), date_column].head(3).tolist()
             format_hint = f" using format '{date_format}'" if date_format else ""
-            raise ValueError(
-                f"Failed to parse dates{format_hint}; invalid values: {bad_values}"
-            )
+            raise ValueError(f"Failed to parse dates{format_hint}; invalid values: {bad_values}")
         data = pd.DataFrame({"date": dates, "value": numeric})
         data = data.dropna(subset=["value", "date"])
         series = pd.Series(data["value"].to_numpy(), index=data["date"])
