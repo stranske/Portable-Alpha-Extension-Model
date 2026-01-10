@@ -276,9 +276,7 @@ def load_index_returns(path: str | Path, *, date_format: str | None = None) -> p
     if primary_column in df.columns:
         raw = df[primary_column]
     else:
-        fallback_columns = [
-            col for col in PREFERRED_INDEX_RETURN_COLUMNS[1:] if col in df.columns
-        ]
+        fallback_columns = [col for col in PREFERRED_INDEX_RETURN_COLUMNS[1:] if col in df.columns]
         if df.shape[1] == 0:
             raise ValueError(f"No columns found in CSV file: {path}")
         column_list = ", ".join(map(str, df.columns))
