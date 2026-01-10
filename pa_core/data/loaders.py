@@ -252,10 +252,8 @@ def load_index_returns(path: str | Path, *, date_format: str | None = None) -> p
     by converting them to NaN and dropping them from the final series. When a
     Date column is present, the inferred frequency is stored on
     ``series.attrs["frequency"]``.
-    Column selection prefers ``Monthly_TR`` then ``Return`` and raises a
-    ValueError when neither column is present.
-    A warning is emitted showing which column was selected and the
-    available/preferred columns.
+    Column selection requires ``Monthly_TR`` and raises a ValueError if it is
+    missing, including when a fallback column like ``Return`` is present.
     If ``date_format`` is provided, dates are parsed strictly using that
     format.
 
@@ -274,34 +272,28 @@ def load_index_returns(path: str | Path, *, date_format: str | None = None) -> p
     except (pd.errors.EmptyDataError, OSError) as exc:
         raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
 
-    selected_column: str | None = None
-    selection_reason: str | None = None
-    for col in PREFERRED_INDEX_RETURN_COLUMNS:
-        if col in df.columns:
-            selected_column = col
-            selection_reason = "preferred column"
-            raw = df[col]
-            break
-    if selected_column is None:
+    primary_column = PREFERRED_INDEX_RETURN_COLUMNS[0]
+    if primary_column in df.columns:
+        raw = df[primary_column]
+    else:
+        fallback_columns = [
+            col for col in PREFERRED_INDEX_RETURN_COLUMNS[1:] if col in df.columns
+        ]
         if df.shape[1] == 0:
             raise ValueError(f"No columns found in CSV file: {path}")
         column_list = ", ".join(map(str, df.columns))
         preferred_list = ", ".join(PREFERRED_INDEX_RETURN_COLUMNS)
+        if fallback_columns:
+            fallback_list = ", ".join(fallback_columns)
+            raise ValueError(
+                f"Expected index returns column '{primary_column}', but found "
+                f"[{fallback_list}]. Available columns: [{column_list}]. "
+                f"Preferred columns: [{preferred_list}]."
+            )
         raise ValueError(
             "Expected index returns column to be one of "
             f"[{preferred_list}]. Available columns: [{column_list}]."
         )
-
-    column_list = ", ".join(map(str, df.columns))
-    preferred_list = ", ".join(PREFERRED_INDEX_RETURN_COLUMNS)
-    warnings.warn(
-        "Selected index returns column: "
-        f"{selected_column} ({selection_reason}). "
-        f"Available columns: [{column_list}]. "
-        f"Preferred columns: [{preferred_list}].",
-        UserWarning,
-        stacklevel=2,
-    )
 
     date_column: str | None = None
     for candidate in ("Date", "date"):

@@ -9,8 +9,8 @@
 
 ## Index return CSVs (load_index_returns)
 - Required: `Date` column plus a monthly total return column.
-- Required return column name: `Monthly_TR` (preferred) or `Return`.
-- If neither name is present, the loader raises a ValueError listing expected and available columns.
+- Required return column name: `Monthly_TR`.
+- If the name is missing, the loader raises a ValueError listing expected and available columns.
 - Dates are parsed from `Date` (case-sensitive). Provide an explicit date format when needed.
 
 ## Required mappings (captured via UI)
