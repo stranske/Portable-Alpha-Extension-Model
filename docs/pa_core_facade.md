@@ -23,6 +23,9 @@ CLI entrypoints stay consistent and regression-safe.
   aligned with the canonical CLI.
 - `python -m pa_core.cli` uses the same run parser as `pa run`, but is treated as
   legacy and emits a deprecation warning by default.
+- Expected stdout/stderr lines asserted by CLI tests are centralized in
+  `tests/expected_cli_outputs.py`; when CLI output changes, update those
+  constants alongside any facade or parser adjustments.
 
 ## Deprecation Warning Behavior
 Non-canonical invocation paths emit `DeprecationWarning` via the Python
