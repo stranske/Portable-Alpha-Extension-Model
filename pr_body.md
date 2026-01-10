@@ -6,19 +6,19 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Align CLI warnings, outputs, and documentation with current deprecation behavior and delegation flow.
+Follow-up to align CLI expectations, inline documentation, and reference artifacts after PR #1082.
 
 #### Tasks
-- [x] Modify `tests/test_deprecation_warnings.py` to verify that deprecation warnings are captured using the warnings module and assert that these warnings do not appear in stdout or stderr.
-- [x] Refactor `tests/test_cli_commands.py` and `tests/test_main.py` to replace inline hardcoded expected output strings with references to constants in `tests/expected_cli_outputs.py` or golden files.
-- [x] Update `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` to include detailed explanations of the CLI delegation process, deprecation warning behavior, argument parsing changes, and exit code definitions.
-- [x] Enhance inline comments in `pa_core/__main__.py` and `pa_core/cli.py` to document the CLI argument parsing and delegation process, including references to external expected outputs.
+- [x] Refactor `tests/test_main.py` to replace all hard-coded expected CLI outputs with references to constants defined in `tests/expected_cli_outputs.py` or designated golden files.
+- [x] Review and update `tests/expected_cli_outputs.py` to include constants for every expected CLI output used in `tests/test_main.py`.
+- [x] Add inline comments in `pa_core/__main__.py` and `pa_core/cli.py` that reference external expected output artifacts and document the CLI argument parsing and delegation process.
+- [x] Cross-check the updates in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` to ensure they align with the code changes and test refactoring.
 
 #### Acceptance criteria
-- [x] Deprecation warnings are captured using the Python warnings module and do not appear in stdout or stderr during test execution.
-- [x] All assertions in `tests/test_cli_commands.py` and `tests/test_main.py` use constants from `tests/expected_cli_outputs.py` or golden files for output comparison.
-- [x] Documentation in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` includes detailed explanations of CLI delegation, deprecation warnings, argument parsing changes, and exit code definitions.
-- [x] Inline comments in `pa_core/__main__.py` and `pa_core/cli.py` clearly document the CLI argument parsing and delegation process, including references to external expected outputs.
+- [x] All assertions in `tests/test_main.py` use constants from `tests/expected_cli_outputs.py` or designated golden files for output comparison.
+- [x] The file `tests/expected_cli_outputs.py` contains constants for all expected CLI outputs used in `tests/test_main.py`.
+- [x] Inline comments in `pa_core/__main__.py` and `pa_core/cli.py` explicitly reference external expected output artifacts and document the CLI argument parsing and delegation process.
+- [x] The documentation in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` aligns with the code changes and test refactoring.
 ## Related Issues
 - [ ] _Not provided._
 ## References

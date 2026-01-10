@@ -315,8 +315,9 @@ def main(
 
     from .stress import STRESS_PRESETS
 
-    # Argument parsing stays centralized here to preserve documented flags/output behavior
-    # and align with external expected outputs asserted in tests/expected_cli_outputs.py.
+    # Argument parsing stays centralized here to preserve documented flags/output behavior.
+    # This parser is the canonical run surface referenced by docs and expected output fixtures
+    # (tests/expected_cli_outputs.py and golden files).
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -716,7 +717,7 @@ def main(
     from .config import load_config
     from .facade import RunOptions, apply_run_options
 
-    # Load config + translate CLI flags into RunOptions before delegating execution.
+    # Translate CLI flags into RunOptions before delegating execution to the facade.
     cfg = load_config(args.config)
     run_options = RunOptions(
         seed=args.seed,
@@ -737,7 +738,7 @@ def main(
     run_backend = backend_choice
     run_options.backend = backend_choice
 
-    # Echo backend selection at start
+    # Echo backend selection at start (asserted in tests/expected_cli_outputs.py).
     print(f"[BACKEND] Using backend: {backend_choice}")
 
     from .data import load_index_returns
