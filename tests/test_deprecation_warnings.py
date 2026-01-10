@@ -77,9 +77,7 @@ def _patch_cli_run(monkeypatch, cfg: DummyConfig) -> None:
     monkeypatch.setattr("pa_core.reporting.console.print_constraint_report", lambda *_: None)
 
 
-def _assert_deprecation_warning_captured(
-    caught: list[warnings.WarningMessage], captured
-) -> None:
+def _assert_deprecation_warning_captured(caught: list[warnings.WarningMessage], captured) -> None:
     assert caught, "Expected a deprecation warning captured by warnings module."
     assert any(isinstance(entry.message, DeprecationWarning) for entry in caught)
     # Deprecation warnings must not leak to stdout/stderr via logging or print.
