@@ -54,7 +54,7 @@ lint-fix:
 	$(PY) -m ruff check pa_core --fix
 
 typecheck:
-	$(PY) -m pyright
+	$(PY) -m mypy pa_core
 
 ci: lint typecheck test
 

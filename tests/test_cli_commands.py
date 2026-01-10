@@ -10,6 +10,9 @@ import pa_core.__main__ as pa_module
 import pa_core.pa as pa_entry
 from pa_core.facade import RunArtifacts
 
+EXPECTED_BACKEND_STDOUT = "[BACKEND] Using backend: numpy\n"
+EXPECTED_STDERR_EMPTY = ""
+
 
 @dataclass
 class DummyConfig:
@@ -101,8 +104,8 @@ def test_pa_run_command_outputs_and_exit_code(monkeypatch, tmp_path, capsys) -> 
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "[BACKEND] Using backend: numpy" in captured.out
-    assert captured.err == ""
+    assert captured.out == EXPECTED_BACKEND_STDOUT
+    assert captured.err == EXPECTED_STDERR_EMPTY
 
 
 def test_module_command_outputs_and_exit_code(monkeypatch, capsys) -> None:
@@ -140,5 +143,5 @@ def test_module_command_outputs_and_exit_code(monkeypatch, capsys) -> None:
 
     captured = capsys.readouterr()
     assert exit_code == 0
-    assert "[BACKEND] Using backend: numpy" in captured.out
-    assert captured.err == ""
+    assert captured.out == EXPECTED_BACKEND_STDOUT
+    assert captured.err == EXPECTED_STDERR_EMPTY

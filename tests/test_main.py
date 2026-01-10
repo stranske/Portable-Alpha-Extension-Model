@@ -5,6 +5,7 @@ from typing import Any, ClassVar, Dict
 
 import numpy as np
 import pandas as pd
+from expected_cli_outputs import EMPTY_STDERR, MAIN_BACKEND_STDOUT
 
 import pa_core.__main__ as pa_main
 
@@ -189,5 +190,5 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path, capsys) -> No
     assert export_calls["filename"] == "Outputs.xlsx"
     assert export_calls["inputs"]["return_distribution"] == "student_t"
     assert "Base" in export_calls["raw_returns"]
-    assert captured.out == "[BACKEND] Using backend: numpy\n"
-    assert captured.err == ""
+    assert captured.out == MAIN_BACKEND_STDOUT
+    assert captured.err == EMPTY_STDERR

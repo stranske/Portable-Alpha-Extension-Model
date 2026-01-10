@@ -555,6 +555,7 @@ def main(
         default=None,
         help="Maximum InternalPA capital (mm)",
     )
+    # argparse returns a Namespace that we thread through run options + mode routing.
     args = parser.parse_args(argv)
 
     run_timer = RunTimer()
@@ -712,6 +713,7 @@ def main(
     from .config import load_config
     from .facade import RunOptions, apply_run_options
 
+    # Load config + translate CLI flags into RunOptions before delegating execution.
     cfg = load_config(args.config)
     run_options = RunOptions(
         seed=args.seed,
@@ -921,6 +923,7 @@ def main(
 
     substream_ids: Mapping[str, str] | None = None
 
+    # Delegation: parameter sweep mode routes to run_parameter_sweep + export.
     if (
         cfg.analysis_mode in ["capital", "returns", "alpha_shares", "vol_mult"]
         and not args.sensitivity
@@ -1073,7 +1076,7 @@ def main(
         _emit_run_end()
         return
 
-    # Normal single-run mode below
+    # Normal single-run mode below delegates to run_single + optional exports.
     run_artifacts = run_single(cfg, idx_series, run_options)
     returns = run_artifacts.returns
     summary = run_artifacts.summary
