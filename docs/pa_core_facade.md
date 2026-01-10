@@ -27,6 +27,32 @@ CLI entrypoints stay consistent and regression-safe.
   `tests/expected_cli_outputs.py`; when CLI output changes, update those
   constants alongside any facade or parser adjustments.
 
+## Centralized Expected CLI Outputs
+CLI output expectations are defined once in `tests/expected_cli_outputs.py` and
+referenced by test assertions in `tests/test_main.py`. Centralizing the strings
+keeps regression checks readable and ensures all entry points (`pa run`,
+`python -m pa_core.cli`, and legacy `python -m pa_core`) are held to the same
+output contract.
+
+Example test usage:
+
+```python
+from tests.expected_cli_outputs import BACKEND_USING_NUMPY_LINE
+
+stdout = result.stdout.strip()
+assert BACKEND_USING_NUMPY_LINE in stdout
+```
+
+## Inline Comment Updates for Parsing/Delegation
+The CLI entry points now carry explicit inline comments that connect argument
+parsing to the facade delegation path and call out the expected output fixtures.
+When adjusting parsing or output sequencing, update:
+
+- `pa_core/cli.py` to keep the canonical argparse surface and output order aligned
+  with `tests/expected_cli_outputs.py`.
+- `pa_core/__main__.py` to keep the legacy parser synchronized with shared flags
+  and ensure delegated output lines still match the constants file.
+
 ## Deprecation Warning Behavior
 Non-canonical invocation paths emit `DeprecationWarning` via the Python
 warnings system. These warnings do not appear in stdout/stderr by default
