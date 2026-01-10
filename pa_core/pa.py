@@ -1,3 +1,9 @@
+"""Console entrypoint for the `pa` command.
+
+Parses only the top-level subcommand and forwards run flags to `pa_core.cli.main`,
+leaving full run argument parsing to the canonical CLI implementation.
+"""
+
 from __future__ import annotations
 
 import argparse
