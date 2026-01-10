@@ -4,7 +4,8 @@
 The CLI provides the supported entrypoint for running simulations and related workflows.
 Use the `pa` console script for canonical invocation. Direct module execution
 (`python -m pa_core` or `python -m pa_core.cli`) is deprecated and emits
-`DeprecationWarning` (ignored by default by Python) without printing to stdout/stderr.
+`DeprecationWarning` via the Python warnings system (ignored by default by Python);
+the warning itself does not print to stdout/stderr unless warnings are enabled.
 
 ## Canonical Commands
 - `pa run --config config.yaml --index index.csv --output Outputs.xlsx`
