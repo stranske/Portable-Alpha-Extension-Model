@@ -5,9 +5,9 @@ from typing import Any, ClassVar, Dict
 
 import numpy as np
 import pandas as pd
-from expected_cli_outputs import MAIN_BACKEND_STDERR, MAIN_BACKEND_STDOUT
 
 import pa_core.__main__ as pa_main
+from tests.expected_cli_outputs import MAIN_BACKEND_STDERR, MAIN_BACKEND_STDOUT
 
 
 @dataclass
