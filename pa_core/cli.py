@@ -287,6 +287,8 @@ def main(
     import warnings
 
     # `pa run` delegates here with emit_deprecation_warning=False; legacy entrypoints warn.
+    # Output strings from this entry point are validated in tests/expected_cli_outputs.py
+    # and golden tests, so argument parsing/output ordering should stay stable.
     if emit_deprecation_warning:
         warnings.warn(
             "Direct use of pa_core.cli is deprecated; use `pa run` instead.",
@@ -313,7 +315,8 @@ def main(
 
     from .stress import STRESS_PRESETS
 
-    # Argument parsing stays centralized here to preserve documented flags/output behavior.
+    # Argument parsing stays centralized here to preserve documented flags/output behavior
+    # and align with external expected outputs asserted in tests/expected_cli_outputs.py.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",

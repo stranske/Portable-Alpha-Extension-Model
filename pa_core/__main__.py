@@ -19,7 +19,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         DeprecationWarning,
         stacklevel=2,
     )
-    # Keep legacy argument parsing stable for backward compatibility with documented behavior.
+    # Keep legacy argument parsing stable for backward compatibility with documented behavior and
+    # to mirror `pa run` flags/output expectations captured in tests/expected_cli_outputs.py.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -92,5 +93,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     # Delegate the simulation to the facade, then pass artifacts to export.
     artifacts = run_single(cfg, idx_series, options)
+    # Output line is asserted by CLI tests that reference tests/expected_cli_outputs.py.
     print(f"[BACKEND] Using backend: {get_backend()}")
     export(artifacts, args.output)
