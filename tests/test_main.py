@@ -158,7 +158,7 @@ def test_main_applies_overrides_and_exports(monkeypatch, tmp_path, capsys) -> No
     cfg_path = tmp_path / "config.yaml"
     cfg_path.write_text("stub: true\n")
     idx_path = tmp_path / "index.csv"
-    idx_path.write_text("date,return\n2020-01-01,0.01\n")
+    idx_path.write_text("Date,Monthly_TR\n2020-01-01,0.01\n")
 
     pa_main.main(
         [

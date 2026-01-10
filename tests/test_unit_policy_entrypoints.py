@@ -36,7 +36,7 @@ def test_entrypoints_keep_index_series_monthly(tmp_path: Path, monkeypatch) -> N
 
     idx_values = [0.12, 0.0, -0.06, 0.12]
     idx_path = tmp_path / "index.csv"
-    idx_path.write_text("Return\n" + "\n".join(str(val) for val in idx_values))
+    idx_path.write_text("Monthly_TR\n" + "\n".join(str(val) for val in idx_values))
     idx_series = pd.Series(idx_values)
     expected_mu = float(idx_series.mean())
 
@@ -144,7 +144,7 @@ def test_entrypoints_summary_table_annualised(tmp_path: Path, monkeypatch) -> No
 
     idx_values = [0.01] * 12
     idx_path = tmp_path / "index.csv"
-    idx_path.write_text("Return\n" + "\n".join(str(val) for val in idx_values))
+    idx_path.write_text("Monthly_TR\n" + "\n".join(str(val) for val in idx_values))
     idx_series = pd.Series(idx_values)
 
     monthly_return = 0.01

@@ -46,7 +46,7 @@ sigma_M: 0.01
         index_data = pd.DataFrame(
             {
                 "Date": pd.date_range("2020-01-01", periods=10, freq="ME"),
-                "Return": [
+                "Monthly_TR": [
                     0.01,
                     -0.02,
                     0.03,
@@ -135,7 +135,7 @@ sigma_M: 0.01
         index_data = pd.DataFrame(
             {
                 "Date": pd.date_range("2020-01-01", periods=10, freq="ME"),
-                "Return": [
+                "Monthly_TR": [
                     0.01,
                     -0.02,
                     0.03,
@@ -224,7 +224,7 @@ sigma_M: 0.01
     index_data = pd.DataFrame(
         {
             "Date": pd.date_range("2020-01-01", periods=10, freq="ME"),
-            "Return": [
+            "Monthly_TR": [
                 0.01,
                 -0.02,
                 0.03,
@@ -341,7 +341,7 @@ sigma_M: 0.01
         index_data = pd.DataFrame(
             {
                 "Date": pd.date_range("2020-01-01", periods=10, freq="ME"),
-                "Return": [
+                "Monthly_TR": [
                     0.01,
                     -0.02,
                     0.03,

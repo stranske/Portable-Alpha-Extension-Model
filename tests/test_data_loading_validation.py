@@ -15,7 +15,7 @@ def test_load_index_returns_with_malformed_data():
     """Test that load_index_returns handles malformed CSV data gracefully."""
     # Create a malformed CSV with non-numeric data
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,Return\n")
+        f.write("Date,Monthly_TR\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,invalid_number\n")  # This should cause issues
         f.write("2020-03-01,0.03\n")
@@ -36,7 +36,7 @@ def test_load_index_returns_with_malformed_data():
 def test_load_index_returns_with_empty_data():
     """Test that load_index_returns handles empty CSV files gracefully."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,Return\n")  # Header only, no data
+        f.write("Date,Monthly_TR\n")  # Header only, no data
         temp_path = f.name
 
     try:
@@ -50,7 +50,7 @@ def test_load_index_returns_with_empty_data():
 def test_load_index_returns_with_text_in_numeric_columns():
     """Test handling of mixed data types in numeric columns."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,Return\n")
+        f.write("Date,Monthly_TR\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,N/A\n")  # Common CSV format for missing data
         f.write("2020-03-01,0.03\n")
@@ -76,21 +76,14 @@ def test_load_index_returns_prefers_monthly_tr_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(
-            UserWarning,
-            match=(
-                r"Selected index returns column: Monthly_TR "
-                r"\(preferred column\)\. Available columns: \["
-            ),
-        ):
-            series = load_index_returns(temp_path)
+        series = load_index_returns(temp_path)
         assert series.iloc[0] == pytest.approx(0.02)
     finally:
         os.remove(temp_path)
 
 
-def test_load_index_returns_prefers_return_column():
-    """Test that Return is selected when Monthly_TR is absent."""
+def test_load_index_returns_rejects_return_column():
+    """Test that Return-only columns raise an error."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
         f.write("Date,Return,Other\n")
         f.write("2020-01-01,0.01,0.99\n")
@@ -98,21 +91,21 @@ def test_load_index_returns_prefers_return_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(
-            UserWarning,
+        with pytest.raises(
+            ValueError,
             match=(
-                r"Selected index returns column: Return "
-                r"\(preferred column\)\. Available columns: \["
+                r"Expected index returns column 'Monthly_TR', but found "
+                r"\[Return\]\. Available columns: \[Date, Return, Other\]\. "
+                r"Preferred columns: \[Monthly_TR, Return\]\."
             ),
         ):
-            series = load_index_returns(temp_path)
-        assert series.iloc[0] == pytest.approx(0.01)
+            load_index_returns(temp_path)
     finally:
         os.remove(temp_path)
 
 
 def test_load_index_returns_falls_back_to_second_column():
-    """Test that the second column is used when no standard names exist."""
+    """Test that missing preferred columns raises an error with available columns."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
         f.write("Date,CustomCol,Other\n")
         f.write("2020-01-01,0.07,0.99\n")
@@ -120,23 +113,21 @@ def test_load_index_returns_falls_back_to_second_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(
-            UserWarning,
+        with pytest.raises(
+            ValueError,
             match=(
-                r"Selected index returns column: CustomCol "
-                r"\(second-column fallback\)\. Available columns: "
-                r"\[Date, CustomCol, Other\]\. Preferred columns: "
-                r"\[Monthly_TR, Return\]\."
+                r"Expected index returns column to be one of "
+                r"\[Monthly_TR, Return\]\. Available columns: "
+                r"\[Date, CustomCol, Other\]\."
             ),
         ):
-            series = load_index_returns(temp_path)
-        assert series.iloc[0] == pytest.approx(0.07)
+            load_index_returns(temp_path)
     finally:
         os.remove(temp_path)
 
 
 def test_load_index_returns_falls_back_to_single_column():
-    """Test that the only column is used when the CSV has one column."""
+    """Test that a single-column CSV without preferred names raises an error."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
         f.write("CustomReturn\n")
         f.write("0.07\n")
@@ -144,15 +135,14 @@ def test_load_index_returns_falls_back_to_single_column():
         temp_path = f.name
 
     try:
-        with pytest.warns(
-            UserWarning,
+        with pytest.raises(
+            ValueError,
             match=(
-                r"Selected index returns column: CustomReturn "
-                r"\(single-column fallback\)\. Available columns: \["
+                r"Expected index returns column to be one of "
+                r"\[Monthly_TR, Return\]\. Available columns: \[CustomReturn\]\."
             ),
         ):
-            series = load_index_returns(temp_path)
-        assert series.iloc[0] == pytest.approx(0.07)
+            load_index_returns(temp_path)
     finally:
         os.remove(temp_path)
 
@@ -160,21 +150,47 @@ def test_load_index_returns_falls_back_to_single_column():
 def test_load_index_returns_with_no_numeric_columns():
     """Test that non-numeric data in all columns raises an error."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,Label\n")
+        f.write("Date,Monthly_TR\n")
         f.write("2020-01-01,not_a_number\n")
         f.write("2020-02-01,still_not_a_number\n")
         temp_path = f.name
 
     try:
-        with pytest.warns(
-            UserWarning,
-            match=(
-                r"Selected index returns column: Label "
-                r"\(second-column fallback\)\. Available columns: \["
-            ),
+        with pytest.raises(ValueError, match="No valid numeric data found"):
+            load_index_returns(temp_path)
+    finally:
+        os.remove(temp_path)
+
+
+def test_load_index_returns_sorts_unsorted_dates():
+    """Test that dates are sorted after parsing."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,Monthly_TR\n")
+        f.write("2020-02-01,0.02\n")
+        f.write("2020-01-01,0.01\n")
+        temp_path = f.name
+
+    try:
+        series = load_index_returns(temp_path)
+        assert series.index.is_monotonic_increasing
+        assert series.iloc[0] == pytest.approx(0.01)
+    finally:
+        os.remove(temp_path)
+
+
+def test_load_index_returns_with_invalid_date_format():
+    """Test that invalid date formats raise a clear error."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,Monthly_TR\n")
+        f.write("01/02/2020,0.01\n")
+        temp_path = f.name
+
+    try:
+        with pytest.raises(
+            ValueError,
+            match=r"Failed to parse dates with format '%Y-%m-%d'",
         ):
-            with pytest.raises(ValueError, match="No valid numeric data found"):
-                load_index_returns(temp_path)
+            load_index_returns(temp_path, date_format="%Y-%m-%d")
     finally:
         os.remove(temp_path)
 

@@ -245,17 +245,17 @@ def load_parameters(path: str | Path, label_map: Dict[str, str]) -> Dict[str, An
     return data
 
 
-def load_index_returns(path: str | Path) -> pd.Series:
+def load_index_returns(path: str | Path, *, date_format: str | None = None) -> pd.Series:
     """Load index returns from a CSV file and return as Series.
 
     Validates and converts data to numeric format, handling non-numeric values
     by converting them to NaN and dropping them from the final series. When a
     Date column is present, the inferred frequency is stored on
     ``series.attrs["frequency"]``.
-    Column selection prefers ``Monthly_TR`` then ``Return``; otherwise the
-    second column is used when present (first column for single-column files).
-    A warning is emitted showing which column was selected, the reason, and
-    the available/preferred columns.
+    Column selection requires ``Monthly_TR`` and raises a ValueError if it is
+    missing, including when a fallback column like ``Return`` is present.
+    If ``date_format`` is provided, dates are parsed strictly using that
+    format.
 
     Raises
     ------
@@ -272,36 +272,26 @@ def load_index_returns(path: str | Path) -> pd.Series:
     except (pd.errors.EmptyDataError, OSError) as exc:
         raise ValueError(f"Failed to read index returns CSV: {exc}") from exc
 
-    selected_column: str | None = None
-    selection_reason: str | None = None
-    for col in PREFERRED_INDEX_RETURN_COLUMNS:
-        if col in df.columns:
-            selected_column = col
-            selection_reason = "preferred column"
-            raw = df[col]
-            break
+    primary_column = PREFERRED_INDEX_RETURN_COLUMNS[0]
+    if primary_column in df.columns:
+        raw = df[primary_column]
     else:
+        fallback_columns = [col for col in PREFERRED_INDEX_RETURN_COLUMNS[1:] if col in df.columns]
         if df.shape[1] == 0:
             raise ValueError(f"No columns found in CSV file: {path}")
-        if df.shape[1] == 1:
-            selected_column = df.columns[0]
-            selection_reason = "single-column fallback"
-            raw = df.iloc[:, 0]
-        else:
-            selected_column = df.columns[1]
-            selection_reason = "second-column fallback"
-            raw = df.iloc[:, 1]
-
-    column_list = ", ".join(map(str, df.columns))
-    preferred_list = ", ".join(PREFERRED_INDEX_RETURN_COLUMNS)
-    warnings.warn(
-        "Selected index returns column: "
-        f"{selected_column} ({selection_reason}). "
-        f"Available columns: [{column_list}]. "
-        f"Preferred columns: [{preferred_list}].",
-        UserWarning,
-        stacklevel=2,
-    )
+        column_list = ", ".join(map(str, df.columns))
+        preferred_list = ", ".join(PREFERRED_INDEX_RETURN_COLUMNS)
+        if fallback_columns:
+            fallback_list = ", ".join(fallback_columns)
+            raise ValueError(
+                f"Expected index returns column '{primary_column}', but found "
+                f"[{fallback_list}]. Available columns: [{column_list}]. "
+                f"Preferred columns: [{preferred_list}]."
+            )
+        raise ValueError(
+            "Expected index returns column to be one of "
+            f"[{preferred_list}]. Available columns: [{column_list}]."
+        )
 
     date_column: str | None = None
     for candidate in ("Date", "date"):
@@ -311,12 +301,29 @@ def load_index_returns(path: str | Path) -> pd.Series:
 
     numeric = pd.to_numeric(raw, errors="coerce")
     if date_column:
-        dates = pd.to_datetime(df[date_column], errors="coerce")
+        try:
+            if date_format:
+                dates = pd.to_datetime(df[date_column], format=date_format, errors="raise")
+            else:
+                dates = pd.to_datetime(df[date_column], errors="coerce")
+        except (ValueError, TypeError) as exc:
+            format_hint = f" with format '{date_format}'" if date_format else ""
+            raise ValueError(f"Failed to parse dates{format_hint}: {exc}") from exc
+        if dates.isna().any():
+            bad_values = df.loc[dates.isna(), date_column].head(3).tolist()
+            format_hint = f" using format '{date_format}'" if date_format else ""
+            raise ValueError(f"Failed to parse dates{format_hint}; invalid values: {bad_values}")
         data = pd.DataFrame({"date": dates, "value": numeric})
-        data = data.dropna(subset=["value", "date"])
+        data = data.dropna(subset=["value", "date"]).sort_values("date")
         series = pd.Series(data["value"].to_numpy(), index=data["date"])
         series.attrs["frequency"] = infer_index_frequency(data["date"])
+        series = series.sort_index()
     else:
+        if date_format:
+            column_list = ", ".join(map(str, df.columns))
+            raise ValueError(
+                f"Date format provided but no Date column found. Available columns: [{column_list}]."
+            )
         series = pd.Series(numeric).dropna()
         series.attrs["frequency"] = "unknown"
 

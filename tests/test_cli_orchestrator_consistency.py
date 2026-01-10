@@ -26,7 +26,7 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     idx_values = [0.01, 0.02, 0.015, 0.03, 0.005, 0.025]
     idx_path = tmp_path / "index.csv"
-    idx_path.write_text("Return\n" + "\n".join(str(val) for val in idx_values))
+    idx_path.write_text("Monthly_TR\n" + "\n".join(str(val) for val in idx_values))
     idx_series = load_index_returns(idx_path)
 
     seed = 123
