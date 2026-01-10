@@ -317,7 +317,8 @@ def main(
 
     # Argument parsing stays centralized here to preserve documented flags/output behavior.
     # This parser is the canonical run surface referenced by docs and expected output fixtures
-    # (tests/expected_cli_outputs.py and golden files).
+    # (tests/expected_cli_outputs.py and golden files), so any stdout/stderr expectations remain
+    # consistent with pa_core.__main__ and pa run usage.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -559,7 +560,8 @@ def main(
         default=None,
         help="Maximum InternalPA capital (mm)",
     )
-    # argparse returns a Namespace that we thread through run options + mode routing.
+    # argparse returns a Namespace; we translate it into RunOptions/mode routing so the CLI
+    # delegates to facade run/export helpers without duplicating simulation logic.
     args = parser.parse_args(argv)
 
     run_timer = RunTimer()
