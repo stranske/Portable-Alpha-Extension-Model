@@ -20,7 +20,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         stacklevel=2,
     )
     # Keep legacy argument parsing stable for backward compatibility with documented behavior and
-    # to mirror `pa run` flags/output expectations captured in tests/expected_cli_outputs.py.
+    # to mirror `pa run` flags/output expectations captured in tests/expected_cli_outputs.py (and
+    # any golden output fixtures that mirror CLI stdout/stderr).
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
         "--config",
@@ -63,7 +64,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         choices=["gaussian", "t"],
         help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
     )
-    # argparse returns a Namespace of parsed values for the downstream facade.
+    # argparse returns a Namespace of parsed values for the facade pipeline.
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
@@ -82,7 +83,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         window=vol_regime_window,
     )
 
-    # Mirror the run options used by the canonical CLI to keep outputs consistent.
+    # Delegate through the same facade path as `pa run` to keep outputs aligned with
+    # external expected-output artifacts (tests/expected_cli_outputs.py, golden files).
     options = RunOptions(
         seed=args.seed,
         backend=args.backend,
