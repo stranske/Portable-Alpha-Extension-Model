@@ -99,7 +99,7 @@ def test_save_history_falls_back_to_csv_on_parquet_error(tmp_path, monkeypatch):
 
 def test_load_history_uses_csv_when_parquet_unavailable(tmp_path, monkeypatch):
     csv_path = tmp_path / "Outputs.csv"
-    csv_path.write_text("Sim,Monthly_TR\n0,0.1\n0,0.3\n1,0.2\n")
+    csv_path.write_text("Sim,Return\n0,0.1\n0,0.3\n1,0.2\n")
 
     def _raise(*_args, **_kwargs):
         raise RuntimeError("parquet read error")
