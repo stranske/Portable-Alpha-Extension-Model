@@ -14,7 +14,7 @@ def test_cli_overrides_return_distribution(tmp_path: Path) -> None:
         yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"})
     )
     idx_path = tmp_path / "index.csv"
-    idx_path.write_text("Return\n0.01\n0.02\n")
+    idx_path.write_text("Monthly_TR\n0.01\n0.02\n")
     out_path = tmp_path / "out.xlsx"
 
     with (

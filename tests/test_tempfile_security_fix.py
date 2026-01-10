@@ -24,7 +24,7 @@ def test_load_index_returns_leaves_no_temp_files():
 
     # Create a simple CSV file and test loading
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,Return\n")
+        f.write("Date,Monthly_TR\n")
         f.write("2020-01-01,0.01\n")
         f.write("2020-02-01,0.02\n")
         f.write("2020-03-01,0.03\n")
@@ -93,7 +93,7 @@ def test_temp_files_auto_cleanup_on_exception():
 
         # Create a test file
         with open(csv_path, "w") as f:
-            f.write("Date,Return\n")
+            f.write("Date,Monthly_TR\n")
             f.write("2020-01-01,invalid_data\n")  # This might cause issues
 
         try:

@@ -415,7 +415,7 @@ def test_sleeve_suggestor_matches_cli_summary(tmp_path, monkeypatch):
     cfg_path = tmp_path / "cfg.yml"
     cfg_path.write_text(yaml.safe_dump(cfg_data))
     idx_path = tmp_path / "index.csv"
-    idx_path.write_text("Return\n0.01\n0.02\n-0.01\n0.03\n")
+    idx_path.write_text("Monthly_TR\n0.01\n0.02\n-0.01\n0.03\n")
 
     cfg = load_config(cfg_path)
     idx_series = load_index_returns(idx_path)
