@@ -4,6 +4,7 @@ import copy
 import hashlib
 import json
 import logging
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional
 
 import numpy as np
@@ -132,6 +133,45 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class SweepRunner:
+    """Execute parameter sweeps with a lightweight wrapper around sweep helpers."""
+
+    config: ModelConfig
+    index_series: pd.Series | pd.DataFrame
+    seed: Optional[int] = None
+    legacy_agent_rng: bool = False
+    progress: Optional[Callable[[int, int], None]] = None
+
+    def iter_combinations(self) -> Iterator[Dict[str, Any]]:
+        return generate_parameter_combinations(self.config)
+
+    def run(self) -> List[SweepResult]:
+        from .sim.simulation_initialization import initialize_sweep_rngs
+
+        idx_series = self.index_series
+        if isinstance(idx_series, pd.DataFrame):
+            idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            try:
+                idx_series = pd.Series(idx_series)
+            except Exception as exc:
+                raise ValueError("Index data must be convertible to pandas Series") from exc
+
+        rng_bundle = initialize_sweep_rngs(
+            self.seed,
+            legacy_agent_rng=self.legacy_agent_rng,
+        )
+        return run_parameter_sweep(
+            self.config,
+            idx_series,
+            rng_bundle.rng_returns,
+            rng_bundle.rngs_financing,
+            seed=rng_bundle.seed,
+            progress=self.progress,
+        )
 
 """Module-level cached empty DataFrame used for sweep results shape."""
 EMPTY_RESULTS_COLUMNS: pd.Index = pd.Index(
@@ -478,4 +518,5 @@ __all__ = [
     "run_parameter_sweep",
     "run_parameter_sweep_cached",
     "sweep_results_to_dataframe",
+    "SweepRunner",
 ]
