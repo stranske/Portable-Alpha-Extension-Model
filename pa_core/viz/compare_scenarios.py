@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping, cast
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from numpy.typing import NDArray
 
 from ..sim import metrics
 from . import risk_return, theme, utils
@@ -102,7 +103,7 @@ def _extract_label(item: Any, idx: int) -> str:
     return f"Scenario {idx + 1}"
 
 
-def _extract_returns(item: Any) -> np.ndarray:
+def _extract_returns(item: Any) -> NDArray[np.float64]:
     raw_returns = None
     returns = None
     if isinstance(item, Mapping):
@@ -119,7 +120,7 @@ def _extract_returns(item: Any) -> np.ndarray:
     raise TypeError("Each scenario must provide returns or raw_returns for distributions")
 
 
-def _coerce_returns(data: Any) -> np.ndarray:
+def _coerce_returns(data: Any) -> NDArray[np.float64]:
     values = data
     if isinstance(data, Mapping):
         key = _select_returns_key(data)
@@ -160,7 +161,7 @@ def _pick_column(df: pd.DataFrame, labels: Mapping[str, str], name: str) -> str:
     raise KeyError(f"No {name} column found in scenario comparison data")
 
 
-def _make_return_distribution(dist_rows: list[tuple[str, np.ndarray]]) -> go.Figure:
+def _make_return_distribution(dist_rows: list[tuple[str, NDArray[np.float64]]]) -> go.Figure:
     terminal_sets = []
     for label, arr in dist_rows:
         terminal = _terminal_compounded_returns(arr)
@@ -229,36 +230,37 @@ def _make_risk_metric_bars(compare_df: pd.DataFrame) -> go.Figure:
     return fig
 
 
-def _terminal_compounded_returns(arr: np.ndarray) -> np.ndarray:
+def _terminal_compounded_returns(arr: NDArray[np.float64]) -> NDArray[np.float64]:
     data = np.asarray(arr, dtype=np.float64)
     if data.ndim == 1:
         data = data.reshape(1, -1)
     if data.size == 0:
         raise ValueError("Return series is empty")
-    terminal = metrics.compound(data)[:, -1]
+    terminal = np.asarray(metrics.compound(data), dtype=np.float64)[:, -1]
     terminal = terminal[np.isfinite(terminal)]
     if terminal.size == 0:
         raise ValueError("Return series has no finite values")
-    return terminal
+    return cast(NDArray[np.float64], terminal)
 
 
-def _kde_density(samples: np.ndarray, grid: np.ndarray) -> np.ndarray:
+def _kde_density(samples: NDArray[np.float64], grid: NDArray[np.float64]) -> NDArray[np.float64]:
     data = _downsample(samples)
     if data.size < 2:
-        return np.zeros_like(grid)
+        return cast(NDArray[np.float64], np.zeros_like(grid))
     std = np.std(data, ddof=1)
     if std == 0:
-        return np.zeros_like(grid)
+        return cast(NDArray[np.float64], np.zeros_like(grid))
     bandwidth = 1.06 * std * data.size ** (-0.2)
     if bandwidth <= 0:
-        return np.zeros_like(grid)
+        return cast(NDArray[np.float64], np.zeros_like(grid))
     diffs = (grid[:, None] - data[None, :]) / bandwidth
     density = np.exp(-0.5 * diffs**2)
-    return np.mean(density, axis=1) / (bandwidth * np.sqrt(2 * np.pi))
+    mean_density = np.mean(density, axis=1) / (bandwidth * np.sqrt(2 * np.pi))
+    return cast(NDArray[np.float64], mean_density)
 
 
-def _downsample(samples: np.ndarray, max_samples: int = 5000) -> np.ndarray:
+def _downsample(samples: NDArray[np.float64], max_samples: int = 5000) -> NDArray[np.float64]:
     if samples.size <= max_samples:
         return samples
     idx = np.linspace(0, samples.size - 1, max_samples).astype(int)
-    return samples[idx]
+    return cast(NDArray[np.float64], samples[idx])
