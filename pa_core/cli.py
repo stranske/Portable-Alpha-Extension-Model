@@ -288,8 +288,9 @@ def main(
 
     # `pa run` delegates here with emit_deprecation_warning=False; legacy entrypoints warn.
     # Output strings from this entry point are validated in tests/expected_cli_outputs.py
-    # and golden tests, so argument parsing/output ordering should stay stable across all
-    # invocation paths (pa run, pa_core.cli, and legacy __main__).
+    # (for example MAIN_BACKEND_STDOUT) and golden tests, so argument parsing/output
+    # ordering should stay stable across all invocation paths (pa run, pa_core.cli,
+    # and legacy __main__).
     if emit_deprecation_warning:
         warnings.warn(
             "Direct use of pa_core.cli is deprecated; use `pa run` instead.",
@@ -318,8 +319,9 @@ def main(
 
     # Argument parsing stays centralized here to preserve documented flags/output behavior.
     # This parser is the canonical run surface referenced by docs and expected output fixtures
-    # (tests/expected_cli_outputs.py and golden files), so any stdout/stderr expectations remain
-    # consistent with pa_core.__main__ and pa run usage. The downstream flow is:
+    # (tests/expected_cli_outputs.py such as MAIN_BACKEND_STDOUT and golden files), so any
+    # stdout/stderr expectations remain consistent with pa_core.__main__ and pa run usage.
+    # The downstream flow is:
     # argparse Namespace -> RunOptions -> apply_run_options -> resolve backend -> run_single.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
     parser.add_argument(
@@ -744,7 +746,7 @@ def main(
     run_backend = backend_choice
     run_options.backend = backend_choice
 
-    # Echo backend selection at start (asserted in tests/expected_cli_outputs.py).
+    # Echo backend selection at start (asserted in tests/expected_cli_outputs.py::MAIN_BACKEND_STDOUT).
     print(f"[BACKEND] Using backend: {backend_choice}")
 
     from .data import load_index_returns

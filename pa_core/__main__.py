@@ -20,8 +20,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         stacklevel=2,
     )
     # Keep legacy argument parsing stable for backward compatibility with documented behavior and
-    # to mirror `pa run` flags/output expectations captured in tests/expected_cli_outputs.py (and
-    # any golden output fixtures that mirror CLI stdout/stderr). This parser is intentionally
+    # to mirror `pa run` flags/output expectations captured in tests/expected_cli_outputs.py (for
+    # example MAIN_BACKEND_STDOUT) and any golden output fixtures. This parser is intentionally
     # smaller than pa_core.cli.main, but shared flags must remain consistent so the legacy entry
     # point emits the same anchored lines asserted by CLI tests.
     parser = argparse.ArgumentParser(description="Portable Alpha simulation")
@@ -68,7 +68,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     # argparse returns a Namespace; translate parsed flags into RunOptions so this legacy entry
     # point delegates through the same facade pipeline as `pa run`, keeping output and behavior
-    # aligned with constants in tests/expected_cli_outputs.py.
+    # aligned with constants in tests/expected_cli_outputs.py (e.g., MAIN_BACKEND_STDOUT).
     args = parser.parse_args(argv)
 
     cfg = load_config(args.config)
@@ -99,6 +99,6 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     )
     # Delegate the simulation to the facade, then pass artifacts to export.
     artifacts = run_single(cfg, idx_series, options)
-    # Output line is asserted by CLI tests that reference tests/expected_cli_outputs.py.
+    # Output line is asserted by CLI tests via tests/expected_cli_outputs.py::MAIN_BACKEND_STDOUT.
     print(f"[BACKEND] Using backend: {get_backend()}")
     export(artifacts, args.output)
