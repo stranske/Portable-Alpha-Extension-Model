@@ -347,17 +347,22 @@ def test_compare_scenarios_plots():
             "terminal_ShortfallProb": [0.03],
         }
     )
+    returns_a = {"Total": np.array([[0.01, 0.02, -0.01], [0.015, -0.005, 0.03]])}
+    returns_b = {"Total": np.array([[0.005, 0.01, 0.0], [0.02, 0.01, -0.015]])}
     figs = compare_scenarios(
         [
-            {"summary": summary_a, "label": "Scenario A"},
-            {"summary": summary_b, "label": "Scenario B"},
+            {"summary": summary_a, "label": "Scenario A", "returns": returns_a},
+            {"summary": summary_b, "label": "Scenario B", "returns": returns_b},
         ]
     )
-    assert set(figs) == {"risk_return", "cvar_return"}
+    assert set(figs) == {"risk_return", "cvar_return", "return_distribution"}
     assert isinstance(figs["risk_return"], go.Figure)
     assert isinstance(figs["cvar_return"], go.Figure)
+    assert isinstance(figs["return_distribution"], go.Figure)
+    assert figs["return_distribution"].data
     figs["risk_return"].to_json()
     figs["cvar_return"].to_json()
+    figs["return_distribution"].to_json()
 
 
 def test_extra_viz_helpers():
