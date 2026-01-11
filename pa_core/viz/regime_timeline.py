@@ -9,7 +9,9 @@ import plotly.graph_objects as go
 from . import theme
 
 
-def make(regime_labels: pd.DataFrame | np.ndarray, label_order: Sequence[object] | None = None) -> go.Figure:
+def make(
+    regime_labels: pd.DataFrame | np.ndarray, label_order: Sequence[object] | None = None
+) -> go.Figure:
     """Return stacked area chart of regime probabilities over time."""
     df = _coerce_regime_df(regime_labels)
     labels = _resolve_label_order(df, label_order)

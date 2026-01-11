@@ -5,8 +5,8 @@ from typing import Any, Iterable, Mapping, cast
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 from numpy.typing import NDArray
+from plotly.subplots import make_subplots
 
 from ..sim import metrics
 from . import regime_timeline, risk_return, theme, utils
