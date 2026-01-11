@@ -28,6 +28,7 @@ from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .sim.params import (
     build_covariance_return_overrides,
+    build_financing_params,
     build_params,
     resolve_covariance_inputs,
 )
@@ -366,6 +367,8 @@ def run_parameter_sweep(
         "rho_H_E",
         "rho_H_M",
         "rho_E_M",
+        "correlation_repair_mode",
+        "correlation_repair_shrinkage",
         "return_distribution",
         "return_t_df",
         "return_copula",
@@ -387,12 +390,40 @@ def run_parameter_sweep(
         "act_ext_financing_sigma_month",
         "act_ext_spike_prob",
         "act_ext_spike_factor",
+        "financing_mode",
     }
     sigma_override_keys = {"sigma_H", "sigma_E", "sigma_M"}
+    return_param_keys = {
+        "return_unit",
+        "mu_H",
+        "mu_E",
+        "mu_M",
+        "sigma_H",
+        "sigma_E",
+        "sigma_M",
+        "rho_idx_H",
+        "rho_idx_E",
+        "rho_idx_M",
+        "rho_H_E",
+        "rho_H_M",
+        "rho_E_M",
+        "correlation_repair_mode",
+        "correlation_repair_shrinkage",
+        "return_distribution",
+        "return_t_df",
+        "return_copula",
+        "return_distribution_idx",
+        "return_distribution_H",
+        "return_distribution_E",
+        "return_distribution_M",
+        "covariance_shrinkage",
+    }
     reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
     reuse_financing_series = not override_keys.intersection(financing_keys)
     if cfg.covariance_shrinkage != "none" and override_keys.intersection(sigma_override_keys):
         reuse_return_shocks = False
+    returns_static = not override_keys.intersection(return_param_keys)
+    financing_static = not override_keys.intersection(financing_keys)
 
     # Common random numbers: reset RNGs before each combination so parameter
     # changes are compared against identical random draws. When a master seed
@@ -410,12 +441,14 @@ def run_parameter_sweep(
             name: copy.deepcopy(base_fin_rngs[name].bit_generator.state) for name in fin_rngs.keys()
         }
 
-    return_shocks = None
-    if reuse_return_shocks:
-        return_inputs = normalize_return_inputs(cfg)
-        sigma_h = float(return_inputs["sigma_H"])
-        sigma_e = float(return_inputs["sigma_E"])
-        sigma_m = float(return_inputs["sigma_M"])
+    base_sigma = None
+    base_corr = None
+    base_params = None
+    if returns_static or reuse_return_shocks:
+        base_return_inputs = normalize_return_inputs(cfg)
+        sigma_h = float(base_return_inputs["sigma_H"])
+        sigma_e = float(base_return_inputs["sigma_E"])
+        sigma_m = float(base_return_inputs["sigma_M"])
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -443,18 +476,23 @@ def run_parameter_sweep(
             rho_H_M=cfg.rho_H_M,
             rho_E_M=cfg.rho_E_M,
         )
-        shock_params = build_params(
+        base_params = build_params(
             cfg,
             mu_idx=mu_idx,
             idx_sigma=float(base_sigma[0]),
             return_overrides=build_covariance_return_overrides(base_sigma, base_corr),
         )
+
+    return_shocks = None
+    if reuse_return_shocks:
+        if base_params is None:
+            raise RuntimeError("Base parameters are required to prepare return shocks")
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
             n_months=cfg.N_MONTHS,
             n_sim=cfg.N_SIMULATIONS,
-            params=shock_params,
+            params=base_params,
             rng=rng_returns_base,
         )
 
@@ -489,44 +527,53 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        return_inputs = normalize_return_inputs(mod_cfg)
-        sigma_h = float(return_inputs["sigma_H"])
-        sigma_e = float(return_inputs["sigma_E"])
-        sigma_m = float(return_inputs["sigma_M"])
+        if returns_static:
+            if base_params is None:
+                raise RuntimeError("Base parameters are required for static return sweeps")
+            if financing_static:
+                params = base_params
+            else:
+                params = dict(base_params)
+                params.update(build_financing_params(mod_cfg))
+        else:
+            return_inputs = normalize_return_inputs(mod_cfg)
+            sigma_h = float(return_inputs["sigma_H"])
+            sigma_e = float(return_inputs["sigma_E"])
+            sigma_m = float(return_inputs["sigma_M"])
 
-        cov = build_cov_matrix(
-            mod_cfg.rho_idx_H,
-            mod_cfg.rho_idx_E,
-            mod_cfg.rho_idx_M,
-            mod_cfg.rho_H_E,
-            mod_cfg.rho_H_M,
-            mod_cfg.rho_E_M,
-            idx_sigma,
-            sigma_h,
-            sigma_e,
-            sigma_m,
-            covariance_shrinkage=mod_cfg.covariance_shrinkage,
-            n_samples=n_samples,
-        )
-        sigma_vec, corr_mat = resolve_covariance_inputs(
-            cov,
-            idx_sigma=idx_sigma,
-            sigma_h=sigma_h,
-            sigma_e=sigma_e,
-            sigma_m=sigma_m,
-            rho_idx_H=mod_cfg.rho_idx_H,
-            rho_idx_E=mod_cfg.rho_idx_E,
-            rho_idx_M=mod_cfg.rho_idx_M,
-            rho_H_E=mod_cfg.rho_H_E,
-            rho_H_M=mod_cfg.rho_H_M,
-            rho_E_M=mod_cfg.rho_E_M,
-        )
-        params = build_params(
-            mod_cfg,
-            mu_idx=mu_idx,
-            idx_sigma=float(sigma_vec[0]),
-            return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
-        )
+            cov = build_cov_matrix(
+                mod_cfg.rho_idx_H,
+                mod_cfg.rho_idx_E,
+                mod_cfg.rho_idx_M,
+                mod_cfg.rho_H_E,
+                mod_cfg.rho_H_M,
+                mod_cfg.rho_E_M,
+                idx_sigma,
+                sigma_h,
+                sigma_e,
+                sigma_m,
+                covariance_shrinkage=mod_cfg.covariance_shrinkage,
+                n_samples=n_samples,
+            )
+            sigma_vec, corr_mat = resolve_covariance_inputs(
+                cov,
+                idx_sigma=idx_sigma,
+                sigma_h=sigma_h,
+                sigma_e=sigma_e,
+                sigma_m=sigma_m,
+                rho_idx_H=mod_cfg.rho_idx_H,
+                rho_idx_E=mod_cfg.rho_idx_E,
+                rho_idx_M=mod_cfg.rho_idx_M,
+                rho_H_E=mod_cfg.rho_H_E,
+                rho_H_M=mod_cfg.rho_H_M,
+                rho_E_M=mod_cfg.rho_E_M,
+            )
+            params = build_params(
+                mod_cfg,
+                mu_idx=mu_idx,
+                idx_sigma=float(sigma_vec[0]),
+                return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
+            )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,
