@@ -77,6 +77,7 @@ from . import (
     weighted_stack,
     widgets,
 )
+from .compare_scenarios import compare_scenarios
 
 __all__ = [
     "theme",
@@ -101,6 +102,7 @@ __all__ = [
     "grid_heatmap",
     "capital_treemap",
     "corr_network",
+    "compare_scenarios",
     "beta_heatmap",
     "panel",
     "violin",

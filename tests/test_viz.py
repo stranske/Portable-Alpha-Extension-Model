@@ -14,6 +14,7 @@ from pa_core.viz import (
     category_pie,
     corr_heatmap,
     corr_network,
+    compare_scenarios,
     crossfilter,
     dashboard_templates,
     data_quality,
@@ -322,6 +323,41 @@ def test_new_viz_helpers():
     assert isinstance(radar_fig, go.Figure)
     radar_fig.to_json()
 
+
+def test_compare_scenarios_plots():
+    summary_a = pd.DataFrame(
+        {
+            "Agent": ["Total"],
+            "terminal_AnnReturn": [0.06],
+            "terminal_ExcessReturn": [0.02],
+            "monthly_AnnVol": [0.12],
+            "monthly_TE": [0.04],
+            "monthly_CVaR": [-0.08],
+            "terminal_ShortfallProb": [0.02],
+        }
+    )
+    summary_b = pd.DataFrame(
+        {
+            "Agent": ["Base"],
+            "terminal_AnnReturn": [0.04],
+            "terminal_ExcessReturn": [0.015],
+            "monthly_AnnVol": [0.1],
+            "monthly_TE": [0.03],
+            "monthly_CVaR": [-0.06],
+            "terminal_ShortfallProb": [0.03],
+        }
+    )
+    figs = compare_scenarios(
+        [
+            {"summary": summary_a, "label": "Scenario A"},
+            {"summary": summary_b, "label": "Scenario B"},
+        ]
+    )
+    assert set(figs) == {"risk_return", "cvar_return"}
+    assert isinstance(figs["risk_return"], go.Figure)
+    assert isinstance(figs["cvar_return"], go.Figure)
+    figs["risk_return"].to_json()
+    figs["cvar_return"].to_json()
 
 def test_extra_viz_helpers():
     df = pd.DataFrame(
