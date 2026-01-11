@@ -173,6 +173,7 @@ class SweepRunner:
             progress=self.progress,
         )
 
+
 """Module-level cached empty DataFrame used for sweep results shape."""
 EMPTY_RESULTS_COLUMNS: pd.Index = pd.Index(
     [
