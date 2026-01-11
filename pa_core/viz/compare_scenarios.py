@@ -5,10 +5,11 @@ from typing import Any, Iterable, Mapping, cast
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from numpy.typing import NDArray
 
 from ..sim import metrics
-from . import risk_return, theme, utils
+from . import regime_timeline, risk_return, theme, utils
 
 _RETURN_LABELS = {
     "terminal_ExcessReturn": "Annualized Excess Return",
@@ -33,15 +34,19 @@ def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
 
     rows = []
     dist_rows = []
+    regime_rows: list[tuple[str, pd.DataFrame]] = []
     for idx, item in enumerate(scenarios):
         summary = _extract_summary(item)
         label = _extract_label(item, idx)
         returns = _extract_returns(item)
+        regimes = _extract_regime_labels(item)
         row = _select_summary_row(summary)
         row_dict = row.to_dict()
         row_dict["Agent"] = label
         rows.append(row_dict)
         dist_rows.append((label, returns))
+        if regimes is not None:
+            regime_rows.append((label, regimes))
 
     compare_df = pd.DataFrame(rows)
     risk_fig = risk_return.make(compare_df)
@@ -71,12 +76,15 @@ def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
     return_dist_fig = _make_return_distribution(dist_rows)
     risk_metrics_fig = _make_risk_metric_bars(compare_df)
 
-    return {
+    output = {
         "risk_return": risk_fig,
         "cvar_return": cvar_fig,
         "return_distribution": return_dist_fig,
         "risk_metrics": risk_metrics_fig,
     }
+    if regime_rows:
+        output["regime_timeline"] = _make_regime_timeline(regime_rows)
+    return output
 
 
 def _extract_summary(item: Any) -> pd.DataFrame:
@@ -118,6 +126,28 @@ def _extract_returns(item: Any) -> NDArray[np.float64]:
     if returns is not None:
         return _coerce_returns(returns)
     raise TypeError("Each scenario must provide returns or raw_returns for distributions")
+
+
+def _extract_regime_labels(item: Any) -> pd.DataFrame | None:
+    raw_returns = None
+    regime_labels = None
+    if isinstance(item, Mapping):
+        raw_returns = item.get("raw_returns")
+        regime_labels = item.get("regime_labels")
+    else:
+        raw_returns = getattr(item, "raw_returns", None)
+        regime_labels = getattr(item, "regime_labels", None)
+
+    if isinstance(regime_labels, pd.DataFrame):
+        return regime_labels
+    if regime_labels is not None:
+        return pd.DataFrame(regime_labels)
+    if isinstance(raw_returns, Mapping) and "Regime" in raw_returns:
+        regimes = raw_returns["Regime"]
+        if isinstance(regimes, pd.DataFrame):
+            return regimes
+        return pd.DataFrame(regimes)
+    return None
 
 
 def _coerce_returns(data: Any) -> NDArray[np.float64]:
@@ -227,6 +257,25 @@ def _make_risk_metric_bars(compare_df: pd.DataFrame) -> go.Figure:
         yaxis_title="Value",
         yaxis_tickformat=".2%",
     )
+    return fig
+
+
+def _make_regime_timeline(regime_rows: list[tuple[str, pd.DataFrame]]) -> go.Figure:
+    fig = make_subplots(
+        rows=len(regime_rows),
+        cols=1,
+        shared_xaxes=True,
+        subplot_titles=[label for label, _ in regime_rows],
+    )
+    for row_idx, (_label, regimes) in enumerate(regime_rows, start=1):
+        subfig = regime_timeline.make(regimes)
+        for trace in subfig.data:
+            if getattr(trace, "stackgroup", None):
+                trace.stackgroup = f"regime-{row_idx}"
+            fig.add_trace(trace, row=row_idx, col=1)
+        fig.update_yaxes(title_text="Regime Probability", tickformat=".0%", row=row_idx, col=1)
+    fig.update_xaxes(title_text="Month", row=len(regime_rows), col=1)
+    fig.update_layout(template=theme.TEMPLATE)
     return fig
 
 

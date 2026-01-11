@@ -51,6 +51,7 @@ from pa_core.viz import (
     quantile_fan,
     radar,
     rank_table,
+    regime_timeline,
     risk_return,
     risk_return_bubble,
     rolling_corr_heatmap,
@@ -323,6 +324,16 @@ def test_new_viz_helpers():
     assert isinstance(radar_fig, go.Figure)
     radar_fig.to_json()
 
+    regimes = pd.DataFrame(
+        [
+            ["calm", "calm", "stress"],
+            ["calm", "stress", "stress"],
+        ]
+    )
+    regime_fig = regime_timeline.make(regimes)
+    assert isinstance(regime_fig, go.Figure)
+    regime_fig.to_json()
+
 
 def test_compare_scenarios_plots():
     summary_a = pd.DataFrame(
@@ -353,10 +364,23 @@ def test_compare_scenarios_plots():
     )
     returns_a = {"Total": np.array([[0.01, 0.02, -0.01], [0.015, -0.005, 0.03]])}
     returns_b = {"Total": np.array([[0.005, 0.01, 0.0], [0.02, 0.01, -0.015]])}
+    regime_df = pd.DataFrame([["calm", "stress", "calm"], ["calm", "calm", "stress"]])
+    raw_returns_a = {"Total": pd.DataFrame(returns_a["Total"]), "Regime": regime_df}
+    raw_returns_b = {"Total": pd.DataFrame(returns_b["Total"]), "Regime": regime_df}
     figs = compare_scenarios(
         [
-            {"summary": summary_a, "label": "Scenario A", "returns": returns_a},
-            {"summary": summary_b, "label": "Scenario B", "returns": returns_b},
+            {
+                "summary": summary_a,
+                "label": "Scenario A",
+                "returns": returns_a,
+                "raw_returns": raw_returns_a,
+            },
+            {
+                "summary": summary_b,
+                "label": "Scenario B",
+                "returns": returns_b,
+                "raw_returns": raw_returns_b,
+            },
         ]
     )
     assert set(figs) == {
@@ -364,16 +388,19 @@ def test_compare_scenarios_plots():
         "cvar_return",
         "return_distribution",
         "risk_metrics",
+        "regime_timeline",
     }
     assert isinstance(figs["risk_return"], go.Figure)
     assert isinstance(figs["cvar_return"], go.Figure)
     assert isinstance(figs["return_distribution"], go.Figure)
     assert isinstance(figs["risk_metrics"], go.Figure)
+    assert isinstance(figs["regime_timeline"], go.Figure)
     assert figs["return_distribution"].data
     figs["risk_return"].to_json()
     figs["cvar_return"].to_json()
     figs["return_distribution"].to_json()
     figs["risk_metrics"].to_json()
+    figs["regime_timeline"].to_json()
 
 
 def test_extra_viz_helpers():
