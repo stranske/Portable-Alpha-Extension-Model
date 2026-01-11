@@ -67,9 +67,7 @@ def test_sleeve_index_corr() -> None:
     w = np.array([0.6, 0.4])
     cov = np.array([[0.04, 0.25 * 0.2 * 0.1], [0.25 * 0.2 * 0.1, 0.01]])
     sleeve_sigma = float(np.sqrt(w @ cov @ w))
-    cov_sleeve_index = (
-        0.6 * 0.5 * 0.2 * index_sigma + 0.4 * -0.2 * 0.1 * index_sigma
-    )
+    cov_sleeve_index = 0.6 * 0.5 * 0.2 * index_sigma + 0.4 * -0.2 * 0.1 * index_sigma
     expected = cov_sleeve_index / (sleeve_sigma * index_sigma)
     assert agg.sleeve_index_corr(weights, index_sigma) == pytest.approx(expected)
 

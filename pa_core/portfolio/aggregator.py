@@ -89,5 +89,7 @@ class PortfolioAggregator:
         cov_sleeve_index = 0.0
         for asset_id in self.ids:
             rho = self._rho_map[tuple(sorted((self._index_id, asset_id)))]
-            cov_sleeve_index += weights.get(asset_id, 0.0) * rho * index_sigma * self._sigma[asset_id]
+            cov_sleeve_index += (
+                weights.get(asset_id, 0.0) * rho * index_sigma * self._sigma[asset_id]
+            )
         return cov_sleeve_index / (sleeve_sigma * index_sigma)
