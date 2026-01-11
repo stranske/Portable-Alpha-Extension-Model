@@ -12,8 +12,11 @@ from ..validators import validate_covariance_matrix_psd
 class PortfolioAggregator:
     """Aggregate asset parameters into sleeve-level stats.
 
-    Correlations should produce a positive semidefinite covariance matrix. If they
-    do not, the covariance is projected to the nearest PSD matrix with a warning.
+    Correlations should be in [-1, 1] and produce a positive semidefinite
+    covariance matrix; missing asset pairs default to 0.0 correlation. If the
+    covariance is not PSD, it is projected to the nearest PSD matrix with a
+    warning. Index correlations should include exactly one non-asset id if
+    sleeve_index_corr() is used.
     """
 
     def __init__(self, assets: list[Asset], correlations: list[Correlation]) -> None:
@@ -70,6 +73,8 @@ class PortfolioAggregator:
         """Return correlation between a sleeve and the benchmark index.
 
         Correlations must include index-to-asset pairs for all sleeve assets.
+        index_sigma is the benchmark volatility; if it or the sleeve volatility
+        is zero, the correlation is defined as 0.0.
         """
         if self._index_id is None:
             if not self._index_ids:
