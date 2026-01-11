@@ -127,8 +127,12 @@ def main(argv: Sequence[str] | None = None) -> None:
     sweep_parser = sub.add_parser("sweep", help="Run parameter sweep from sweep configuration")
     sweep_parser.add_argument("--config", required=True, help="Sweep YAML configuration")
     sweep_parser.add_argument("--index", help="Index returns CSV (optional if set in config)")
-    sweep_parser.add_argument("--output", default=None, help="Output workbook (default: Sweep.xlsx)")
-    sweep_parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
+    sweep_parser.add_argument(
+        "--output", default=None, help="Output workbook (default: Sweep.xlsx)"
+    )
+    sweep_parser.add_argument(
+        "--seed", type=int, default=None, help="Random seed for reproducibility"
+    )
     sweep_parser.add_argument(
         "--backend",
         choices=["numpy"],

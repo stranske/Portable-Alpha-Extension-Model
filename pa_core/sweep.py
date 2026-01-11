@@ -20,8 +20,8 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .contracts import SUMMARY_NUMERIC_COLUMNS
 from .config import ModelConfig, SweepConfig, SweepParameter, normalize_share
+from .contracts import SUMMARY_NUMERIC_COLUMNS
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
@@ -68,7 +68,9 @@ def _estimate_total_combinations(cfg: ModelConfig) -> int:
         return int(total)
 
     if cfg.analysis_mode == "capital":
-        n = _count_range(0.0, float(cfg.max_external_combined_pct), float(cfg.external_step_size_pct))
+        n = _count_range(
+            0.0, float(cfg.max_external_combined_pct), float(cfg.external_step_size_pct)
+        )
         return int(n * (n + 1) / 2)
     if cfg.analysis_mode == "returns":
         return int(
@@ -107,7 +109,9 @@ def _estimate_total_combinations(cfg: ModelConfig) -> int:
             )
         )
     if cfg.analysis_mode == "vol_mult":
-        return _count_range(float(cfg.sd_multiple_min), float(cfg.sd_multiple_max), float(cfg.sd_multiple_step))
+        return _count_range(
+            float(cfg.sd_multiple_min), float(cfg.sd_multiple_max), float(cfg.sd_multiple_step)
+        )
     raise ValueError(f"Unsupported analysis mode: {cfg.analysis_mode}")
 
 
