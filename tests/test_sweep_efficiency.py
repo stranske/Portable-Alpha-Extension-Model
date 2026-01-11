@@ -30,9 +30,7 @@ def test_sweep_reuses_base_covariance_for_static_returns(monkeypatch) -> None:
         },
     ]
 
-    monkeypatch.setattr(
-        sweep_module, "generate_parameter_combinations", lambda _cfg: iter(combos)
-    )
+    monkeypatch.setattr(sweep_module, "generate_parameter_combinations", lambda _cfg: iter(combos))
 
     cov_calls = {"count": 0}
     real_build_cov = sweep_module.build_cov_matrix
@@ -64,8 +62,6 @@ def test_sweep_reuses_base_covariance_for_static_returns(monkeypatch) -> None:
 
     rng_returns = spawn_rngs(123, 1)[0]
     fin_rngs = spawn_agent_rngs(123, ["internal", "external_pa", "active_ext"])
-    sweep_module.run_parameter_sweep(
-        cfg, idx, rng_returns, fin_rngs, progress=lambda *_args: None
-    )
+    sweep_module.run_parameter_sweep(cfg, idx, rng_returns, fin_rngs, progress=lambda *_args: None)
 
     assert cov_calls["count"] == 1
