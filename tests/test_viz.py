@@ -332,7 +332,9 @@ def test_compare_scenarios_plots():
             "terminal_ExcessReturn": [0.02],
             "monthly_AnnVol": [0.12],
             "monthly_TE": [0.04],
+            "monthly_VaR": [-0.05],
             "monthly_CVaR": [-0.08],
+            "monthly_MaxDD": [-0.12],
             "terminal_ShortfallProb": [0.02],
         }
     )
@@ -343,7 +345,9 @@ def test_compare_scenarios_plots():
             "terminal_ExcessReturn": [0.015],
             "monthly_AnnVol": [0.1],
             "monthly_TE": [0.03],
+            "monthly_VaR": [-0.04],
             "monthly_CVaR": [-0.06],
+            "monthly_MaxDD": [-0.1],
             "terminal_ShortfallProb": [0.03],
         }
     )
@@ -355,14 +359,21 @@ def test_compare_scenarios_plots():
             {"summary": summary_b, "label": "Scenario B", "returns": returns_b},
         ]
     )
-    assert set(figs) == {"risk_return", "cvar_return", "return_distribution"}
+    assert set(figs) == {
+        "risk_return",
+        "cvar_return",
+        "return_distribution",
+        "risk_metrics",
+    }
     assert isinstance(figs["risk_return"], go.Figure)
     assert isinstance(figs["cvar_return"], go.Figure)
     assert isinstance(figs["return_distribution"], go.Figure)
+    assert isinstance(figs["risk_metrics"], go.Figure)
     assert figs["return_distribution"].data
     figs["risk_return"].to_json()
     figs["cvar_return"].to_json()
     figs["return_distribution"].to_json()
+    figs["risk_metrics"].to_json()
 
 
 def test_extra_viz_helpers():

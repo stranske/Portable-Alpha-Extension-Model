@@ -17,6 +17,11 @@ _CVAR_LABELS = {
     "monthly_CVaR": "Monthly CVaR",
     "terminal_CVaR": "Terminal CVaR",
 }
+_RISK_METRICS = {
+    "monthly_VaR": "Monthly VaR",
+    "monthly_CVaR": "Monthly CVaR",
+    "monthly_MaxDD": "Max Drawdown",
+}
 
 
 def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
@@ -63,11 +68,13 @@ def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
     )
 
     return_dist_fig = _make_return_distribution(dist_rows)
+    risk_metrics_fig = _make_risk_metric_bars(compare_df)
 
     return {
         "risk_return": risk_fig,
         "cvar_return": cvar_fig,
         "return_distribution": return_dist_fig,
+        "risk_metrics": risk_metrics_fig,
     }
 
 
@@ -194,6 +201,30 @@ def _make_return_distribution(dist_rows: list[tuple[str, np.ndarray]]) -> go.Fig
         xaxis_title="Terminal Compounded Return",
         yaxis_title="Density",
         barmode="overlay",
+    )
+    return fig
+
+
+def _make_risk_metric_bars(compare_df: pd.DataFrame) -> go.Figure:
+    missing = [col for col in _RISK_METRICS if col not in compare_df.columns]
+    if missing:
+        raise KeyError(f"Missing risk metric columns: {', '.join(missing)}")
+    fig = go.Figure(layout_template=theme.TEMPLATE)
+    metric_labels = [_RISK_METRICS[col] for col in _RISK_METRICS]
+    for _, row in compare_df.iterrows():
+        fig.add_trace(
+            go.Bar(
+                name=row["Agent"],
+                x=metric_labels,
+                y=[row[col] for col in _RISK_METRICS],
+                hovertemplate="%{fullData.name}<br>%{x}=%{y:.2%}<extra></extra>",
+            )
+        )
+    fig.update_layout(
+        barmode="group",
+        xaxis_title="Risk Metric",
+        yaxis_title="Value",
+        yaxis_tickformat=".2%",
     )
     return fig
 
