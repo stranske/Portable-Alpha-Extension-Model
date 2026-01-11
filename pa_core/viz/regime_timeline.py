@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence
+from typing import Iterable, Sequence, cast
 
 import numpy as np
 import pandas as pd
@@ -65,7 +65,7 @@ def _resolve_label_order(df: pd.DataFrame, label_order: Sequence[object] | None)
 def _resolve_x_values(df: pd.DataFrame) -> Iterable[object]:
     if df.columns is None or len(df.columns) == 0:
         return range(df.shape[1])
-    return df.columns
+    return cast(Iterable[object], df.columns)
 
 
 def _regime_probabilities(df: pd.DataFrame, labels: Sequence[object]) -> dict[object, np.ndarray]:

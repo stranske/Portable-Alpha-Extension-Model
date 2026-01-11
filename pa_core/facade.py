@@ -569,6 +569,7 @@ def export(
             else output.parent / f"{output.stem}_viz"
         )
         viz_dir.mkdir(parents=True, exist_ok=True)
+        scenarios: list[Any]
         if isinstance(artifacts, RunArtifacts):
             scenarios = [
                 {
