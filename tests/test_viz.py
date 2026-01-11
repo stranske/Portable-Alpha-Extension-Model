@@ -12,9 +12,9 @@ from pa_core.viz import (
     breach_calendar,
     capital_treemap,
     category_pie,
+    compare_scenarios,
     corr_heatmap,
     corr_network,
-    compare_scenarios,
     crossfilter,
     dashboard_templates,
     data_quality,
@@ -358,6 +358,7 @@ def test_compare_scenarios_plots():
     assert isinstance(figs["cvar_return"], go.Figure)
     figs["risk_return"].to_json()
     figs["cvar_return"].to_json()
+
 
 def test_extra_viz_helpers():
     df = pd.DataFrame(
