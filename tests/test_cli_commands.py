@@ -5,6 +5,7 @@ from typing import Any, Callable
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 from expected_cli_outputs import EMPTY_STDERR, MAIN_BACKEND_STDOUT
 
 import pa_core.__main__ as pa_module
@@ -104,6 +105,40 @@ def test_pa_run_command_outputs_and_exit_code(monkeypatch, tmp_path, capsys) -> 
     assert exit_code == 0
     assert captured.out == MAIN_BACKEND_STDOUT
     assert captured.err == EMPTY_STDERR
+
+
+def test_pa_run_compare_viz_exports_html(monkeypatch, tmp_path) -> None:
+    cfg = DummyConfig()
+    _patch_cli_run(monkeypatch, cfg)
+
+    captured: dict[str, bool] = {}
+
+    def fake_compare_scenarios(_results, *, include_returns=True):
+        captured["include_returns"] = include_returns
+        return {"risk_return": go.Figure()}
+
+    monkeypatch.setattr("pa_core.viz.compare_scenarios", fake_compare_scenarios)
+
+    out_path = tmp_path / "out.xlsx"
+    exit_code = _exit_code(
+        lambda: pa_entry.main(
+            [
+                "run",
+                "--config",
+                "cfg.yaml",
+                "--index",
+                "idx.csv",
+                "--output",
+                str(out_path),
+                "--compare-viz",
+            ]
+        )
+    )
+
+    assert exit_code == 0
+    assert captured["include_returns"] is True
+    viz_dir = tmp_path / "out_viz"
+    assert (viz_dir / "risk_return.html").exists()
 
 
 def test_module_command_outputs_and_exit_code(monkeypatch, capsys) -> None:

@@ -162,12 +162,18 @@ class ExportOptions:
         include_sensitivity: If True, include sensitivity analysis in exports.
         include_charts: If True, embed charts in Excel output.
         alt_text: Alt text for accessibility in exported charts.
+        include_visualizations: If True, generate comparison visualizations.
+        viz_output_dir: Optional directory for visualization HTML output.
+        show_visualizations: If True, display visualizations interactively.
     """
 
     pivot: bool = False
     include_sensitivity: bool = False
     include_charts: bool = True
     alt_text: str | None = None
+    include_visualizations: bool = False
+    viz_output_dir: str | Path | None = None
+    show_visualizations: bool = False
 
 
 def run_single(
@@ -504,6 +510,12 @@ def export(
             include_charts=True,
             alt_text="Portfolio simulation results"
         ))
+
+        # Export with visualization bundle
+        export(artifacts, "results.xlsx", ExportOptions(
+            include_visualizations=True,
+            viz_output_dir="results_viz"
+        ))
     """
     from pathlib import Path as PathLib
 
@@ -542,5 +554,41 @@ def export(
         export_sweep_results(artifacts.results, filename=str(output), metadata=metadata)
     else:
         raise ValueError(f"Unsupported artifacts type: {type(artifacts)}")
+
+    if (
+        export_opts.include_visualizations
+        or export_opts.viz_output_dir is not None
+        or export_opts.show_visualizations
+    ):
+        from . import viz
+        from .viz import html_export
+
+        viz_dir = (
+            PathLib(export_opts.viz_output_dir)
+            if export_opts.viz_output_dir is not None
+            else output.parent / f"{output.stem}_viz"
+        )
+        viz_dir.mkdir(parents=True, exist_ok=True)
+        scenarios: list[Any]
+        if isinstance(artifacts, RunArtifacts):
+            scenarios = [
+                {
+                    "summary": artifacts.summary,
+                    "raw_returns": artifacts.raw_returns,
+                    "label": "Run",
+                }
+            ]
+            include_returns = True
+        else:
+            scenarios = list(artifacts.results)
+            include_returns = False
+        figs = viz.compare_scenarios(scenarios, include_returns=include_returns)
+        for name, fig in figs.items():
+            alt_text = None
+            if export_opts.alt_text:
+                alt_text = f"{export_opts.alt_text} ({name.replace('_', ' ')})"
+            html_export.save(fig, viz_dir / f"{name}.html", alt_text=alt_text)
+            if export_opts.show_visualizations:
+                fig.show()
 
     return output

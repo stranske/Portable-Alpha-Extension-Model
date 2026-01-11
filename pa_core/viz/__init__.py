@@ -51,6 +51,7 @@ from . import (
     quantile_fan,
     radar,
     rank_table,
+    regime_timeline,
     risk_return,
     risk_return_bubble,
     rolling_corr_heatmap,
@@ -77,6 +78,7 @@ from . import (
     weighted_stack,
     widgets,
 )
+from .compare_scenarios import compare_scenarios
 
 __all__ = [
     "theme",
@@ -101,6 +103,7 @@ __all__ = [
     "grid_heatmap",
     "capital_treemap",
     "corr_network",
+    "compare_scenarios",
     "beta_heatmap",
     "panel",
     "violin",
@@ -147,6 +150,7 @@ __all__ = [
     "pdf_report",
     "quantile_band",
     "rank_table",
+    "regime_timeline",
     "scenario_play",
     "seasonality_heatmap",
     "spark_matrix",
