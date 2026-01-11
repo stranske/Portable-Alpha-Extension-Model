@@ -98,6 +98,16 @@ def _load_calibration_overrides(path: str | Path) -> Mapping[str, Any]:
     return data
 
 
+def _load_sweep_io_defaults(path: str | Path) -> tuple[str | None, str | None]:
+    yaml = _require_yaml()
+    raw = yaml.safe_load(Path(path).read_text())
+    if not isinstance(raw, dict):
+        return None, None
+    index_path = raw.get("index") or raw.get("index_path") or raw.get("index_file")
+    output_path = raw.get("output") or raw.get("output_path") or raw.get("output_file")
+    return index_path, output_path
+
+
 def _coerce_calibration_setting(value: Any, *, allowed: set[str], label: str) -> str | None:
     if value is None:
         return None
@@ -114,6 +124,52 @@ def main(argv: Sequence[str] | None = None) -> None:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("run", help="Run simulation")
     sub.add_parser("validate", help="Validate scenario YAML")
+    sweep_parser = sub.add_parser("sweep", help="Run parameter sweep from sweep configuration")
+    sweep_parser.add_argument("--config", required=True, help="Sweep YAML configuration")
+    sweep_parser.add_argument("--index", help="Index returns CSV (optional if set in config)")
+    sweep_parser.add_argument("--output", default=None, help="Output workbook (default: Sweep.xlsx)")
+    sweep_parser.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
+    sweep_parser.add_argument(
+        "--backend",
+        choices=["numpy"],
+        help="Computation backend (numpy only; cupy/GPU acceleration is not available)",
+    )
+    sweep_parser.add_argument(
+        "--legacy-agent-rng",
+        action="store_true",
+        help="Use legacy order-dependent agent RNG streams (defaults to stable name-based streams)",
+    )
+    sweep_parser.add_argument(
+        "--return-distribution",
+        choices=["normal", "student_t"],
+        help="Override return distribution (normal or student_t). student_t adds heavier tails and more compute",
+    )
+    sweep_parser.add_argument(
+        "--return-t-df",
+        type=float,
+        help="Override Student-t degrees of freedom (requires student_t; lower df => heavier tails)",
+    )
+    sweep_parser.add_argument(
+        "--return-copula",
+        choices=["gaussian", "t"],
+        help="Override return copula (gaussian or t). t adds tail dependence and extra compute",
+    )
+    sweep_parser.add_argument(
+        "--covariance-shrinkage",
+        choices=["none", "ledoit_wolf"],
+        help="Override covariance shrinkage mode (none or ledoit_wolf)",
+    )
+    sweep_parser.add_argument(
+        "--vol-regime",
+        choices=["single", "two_state"],
+        help="Volatility regime selection override",
+    )
+    sweep_parser.add_argument(
+        "--vol-regime-window",
+        type=int,
+        default=None,
+        help="Recent window length (months) for two-state regime",
+    )
     registry_parser = sub.add_parser("registry", help="Manage scenario registry")
     registry_sub = registry_parser.add_subparsers(dest="registry_cmd", required=True)
     registry_sub.add_parser("list", help="List registered scenarios")
@@ -216,6 +272,52 @@ def main(argv: Sequence[str] | None = None) -> None:
         from .validate import main as validate_main
 
         validate_main(list(remaining))
+    elif args.command == "sweep":
+        from .backend import get_backend, resolve_and_set_backend
+        from .config import load_config
+        from .data import load_index_returns
+        from .facade import RunOptions, apply_run_options
+        from .reporting.sweep_excel import export_sweep_results
+        from .sweep import SweepRunner
+        from .units import get_index_series_unit, normalize_index_series
+
+        config_index, config_output = _load_sweep_io_defaults(args.config)
+        index_path = args.index or config_index
+        if not index_path:
+            raise ValueError("index path is required (pass --index or set index in config)")
+        output_path = args.output or config_output or "Sweep.xlsx"
+
+        cfg = load_config(args.config)
+        cfg = apply_run_options(
+            cfg,
+            RunOptions(
+                seed=args.seed,
+                legacy_agent_rng=args.legacy_agent_rng,
+                return_distribution=args.return_distribution,
+                return_t_df=args.return_t_df,
+                return_copula=args.return_copula,
+                covariance_shrinkage=args.covariance_shrinkage,
+                vol_regime=args.vol_regime,
+                vol_regime_window=args.vol_regime_window,
+            ),
+        )
+
+        resolve_and_set_backend(args.backend)
+        idx_series = load_index_returns(index_path)
+        idx_series = normalize_index_series(idx_series, get_index_series_unit())
+
+        runner = SweepRunner(
+            cfg,
+            idx_series,
+            seed=args.seed,
+            legacy_agent_rng=args.legacy_agent_rng,
+        )
+        results = runner.run()
+        metadata: dict[str, Any] = {"rng_seed": args.seed}
+        if runner.substream_ids:
+            metadata["substream_ids"] = runner.substream_ids
+        export_sweep_results(results, filename=output_path, metadata=metadata)
+        print(f"[BACKEND] Using backend: {get_backend()}")
     elif args.command == "registry":
         from .scenario_registry import get as get_scenario
         from .scenario_registry import list as list_scenarios

@@ -6,7 +6,7 @@ import json
 import logging
 from dataclasses import dataclass
 from itertools import product
-from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -20,6 +20,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
+from .contracts import SUMMARY_NUMERIC_COLUMNS
 from .config import ModelConfig, SweepConfig, SweepParameter, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
@@ -46,6 +47,82 @@ def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str]
     if _HAS_TQDM:
         return _tqdm(iterable, total=total, desc=desc)
     return iterable
+
+
+def _count_range(start: float, stop: float, step: float) -> int:
+    values = np.arange(start, stop + step, step)
+    return int(len(values))
+
+
+def _estimate_total_combinations(cfg: ModelConfig) -> int:
+    if cfg.sweep is not None:
+        if cfg.sweep.method == "random":
+            return int(cfg.sweep.samples or 0)
+        total = 1
+        for param in cfg.sweep.parameters.values():
+            if param.values is not None:
+                count = len(param.values)
+            else:
+                count = _count_range(float(param.min), float(param.max), float(param.step))
+            total *= count
+        return int(total)
+
+    if cfg.analysis_mode == "capital":
+        n = _count_range(0.0, float(cfg.max_external_combined_pct), float(cfg.external_step_size_pct))
+        return int(n * (n + 1) / 2)
+    if cfg.analysis_mode == "returns":
+        return int(
+            _count_range(
+                float(cfg.in_house_return_min_pct),
+                float(cfg.in_house_return_max_pct),
+                float(cfg.in_house_return_step_pct),
+            )
+            * _count_range(
+                float(cfg.in_house_vol_min_pct),
+                float(cfg.in_house_vol_max_pct),
+                float(cfg.in_house_vol_step_pct),
+            )
+            * _count_range(
+                float(cfg.alpha_ext_return_min_pct),
+                float(cfg.alpha_ext_return_max_pct),
+                float(cfg.alpha_ext_return_step_pct),
+            )
+            * _count_range(
+                float(cfg.alpha_ext_vol_min_pct),
+                float(cfg.alpha_ext_vol_max_pct),
+                float(cfg.alpha_ext_vol_step_pct),
+            )
+        )
+    if cfg.analysis_mode == "alpha_shares":
+        return int(
+            _count_range(
+                float(cfg.external_pa_alpha_min_pct),
+                float(cfg.external_pa_alpha_max_pct),
+                float(cfg.external_pa_alpha_step_pct),
+            )
+            * _count_range(
+                float(cfg.active_share_min_pct),
+                float(cfg.active_share_max_pct),
+                float(cfg.active_share_step_pct),
+            )
+        )
+    if cfg.analysis_mode == "vol_mult":
+        return _count_range(float(cfg.sd_multiple_min), float(cfg.sd_multiple_max), float(cfg.sd_multiple_step))
+    raise ValueError(f"Unsupported analysis mode: {cfg.analysis_mode}")
+
+
+def _override_keys_for_config(cfg: ModelConfig) -> set[str]:
+    if cfg.sweep is not None:
+        return set(cfg.sweep.parameters.keys())
+    if cfg.analysis_mode == "capital":
+        return {"external_pa_capital", "active_ext_capital", "internal_pa_capital"}
+    if cfg.analysis_mode == "returns":
+        return {"mu_H", "sigma_H", "mu_E", "sigma_E"}
+    if cfg.analysis_mode == "alpha_shares":
+        return {"theta_extpa", "active_share"}
+    if cfg.analysis_mode == "vol_mult":
+        return {"sigma_H", "sigma_E", "sigma_M"}
+    return set()
 
 
 def _iter_sweep_grid(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
@@ -184,6 +261,7 @@ class SweepRunner:
     seed: Optional[int] = None
     legacy_agent_rng: bool = False
     progress: Optional[Callable[[int, int], None]] = None
+    substream_ids: Mapping[str, str] | None = None
 
     def iter_combinations(self) -> Iterator[Dict[str, Any]]:
         return generate_parameter_combinations(self.config)
@@ -204,6 +282,7 @@ class SweepRunner:
             self.seed,
             legacy_agent_rng=self.legacy_agent_rng,
         )
+        self.substream_ids = rng_bundle.substream_ids
         return run_parameter_sweep(
             self.config,
             idx_series,
@@ -272,14 +351,10 @@ def run_parameter_sweep(
     )
     n_samples = int(len(index_series))
 
-    # Pre-compute combinations for progress tracking
-    combos = list(generate_parameter_combinations(cfg))
-    total = len(combos)
+    total = _estimate_total_combinations(cfg)
     logger.info("Starting parameter sweep", extra={"total_combinations": total})
 
-    override_keys: set[str] = set()
-    for overrides in combos:
-        override_keys.update(overrides.keys())
+    override_keys = _override_keys_for_config(cfg)
     shock_incompatible_keys = {
         "rho_idx_H",
         "rho_idx_E",
@@ -396,9 +471,10 @@ def run_parameter_sweep(
             rngs=fin_rngs_base,
         )
 
-    iterator = enumerate(combos)
+    combos_iter: Any = generate_parameter_combinations(cfg)
     if progress is None:
-        iterator = enumerate(progress_bar(combos, total=total, desc="sweep"))
+        combos_iter = progress_bar(combos_iter, total=total, desc="sweep")
+    iterator = enumerate(combos_iter)
 
     for i, overrides in iterator:
         if return_shocks is None:
@@ -554,10 +630,51 @@ def sweep_results_to_dataframe(results: List[SweepResult]) -> pd.DataFrame:
     return _get_empty_results_dataframe()
 
 
+def aggregate_sweep_results(
+    results: Sequence[SweepResult],
+    *,
+    percentiles: Sequence[float] = (0.1, 0.5, 0.9),
+) -> pd.DataFrame:
+    """Aggregate sweep summary metrics across combinations."""
+    df = sweep_results_to_dataframe(list(results))
+    percentiles = tuple(percentiles)
+    if any(p < 0 or p > 1 for p in percentiles):
+        raise ValueError("percentiles must be between 0 and 1")
+    columns = ["Agent", "Metric", "Mean", "Std"]
+    columns += [f"P{int(round(p * 100))}" for p in percentiles]
+    if df.empty or "Agent" not in df.columns:
+        return pd.DataFrame(columns=columns)
+
+    metrics = [col for col in SUMMARY_NUMERIC_COLUMNS if col in df.columns]
+    if not metrics:
+        return pd.DataFrame(columns=columns)
+
+    rows: list[dict[str, float | str]] = []
+    grouped = df.groupby("Agent", dropna=False)
+    for agent, group in grouped:
+        for metric in metrics:
+            values = pd.to_numeric(group[metric], errors="coerce").dropna()
+            if values.empty:
+                continue
+            entry: dict[str, float | str] = {
+                "Agent": str(agent),
+                "Metric": metric,
+                "Mean": float(values.mean()),
+                "Std": float(values.std(ddof=1)),
+            }
+            for pct in percentiles:
+                entry[f"P{int(round(pct * 100))}"] = float(values.quantile(pct))
+            rows.append(entry)
+    if not rows:
+        return pd.DataFrame(columns=columns)
+    return pd.DataFrame(rows)
+
+
 __all__ = [
     "generate_parameter_combinations",
     "run_parameter_sweep",
     "run_parameter_sweep_cached",
     "sweep_results_to_dataframe",
+    "aggregate_sweep_results",
     "SweepRunner",
 ]

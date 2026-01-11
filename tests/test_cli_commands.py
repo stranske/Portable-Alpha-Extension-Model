@@ -141,6 +141,59 @@ def test_pa_run_compare_viz_exports_html(monkeypatch, tmp_path) -> None:
     assert (viz_dir / "risk_return.html").exists()
 
 
+def test_pa_sweep_command_exports_results(monkeypatch, tmp_path) -> None:
+    captured: dict[str, object] = {}
+
+    class DummySweepRunner:
+        def __init__(self, cfg, idx_series, seed=None, legacy_agent_rng=False) -> None:
+            captured["cfg"] = cfg
+            captured["idx_series"] = idx_series
+            captured["seed"] = seed
+            self.substream_ids = {"internal": "a", "external_pa": "b", "active_ext": "c"}
+
+        def run(self) -> list[dict[str, object]]:
+            return [
+                {
+                    "combination_id": 0,
+                    "parameters": {},
+                    "summary": pd.DataFrame({"Agent": ["Base"]}),
+                }
+            ]
+
+    def fake_export(results, filename, metadata=None) -> None:
+        captured["results"] = results
+        captured["filename"] = filename
+        captured["metadata"] = metadata
+
+    monkeypatch.setattr("pa_core.sweep.SweepRunner", DummySweepRunner)
+    monkeypatch.setattr("pa_core.data.load_index_returns", lambda *_: _make_index_series())
+    monkeypatch.setattr("pa_core.units.normalize_index_series", lambda series, *_: series)
+    monkeypatch.setattr("pa_core.backend.resolve_and_set_backend", lambda *_: "numpy")
+    monkeypatch.setattr("pa_core.backend.get_backend", lambda: "numpy")
+    monkeypatch.setattr("pa_core.reporting.sweep_excel.export_sweep_results", fake_export)
+
+    out_path = tmp_path / "sweep.xlsx"
+    exit_code = _exit_code(
+        lambda: pa_entry.main(
+            [
+                "sweep",
+                "--config",
+                "examples/scenarios/my_first_scenario.yml",
+                "--index",
+                "idx.csv",
+                "--output",
+                str(out_path),
+                "--seed",
+                "123",
+            ]
+        )
+    )
+
+    assert exit_code == 0
+    assert captured["filename"] == str(out_path)
+    assert captured["metadata"]["rng_seed"] == 123
+
+
 def test_module_command_outputs_and_exit_code(monkeypatch, capsys) -> None:
     def fake_load_config(_: str) -> DummyConfig:
         return DummyConfig()
