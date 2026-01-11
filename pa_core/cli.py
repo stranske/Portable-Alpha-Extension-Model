@@ -6,6 +6,7 @@ Streamlit dashboard after a run.
 CLI flags:
     --png / --pdf / --pptx  Static exports (can be combined)
     --html                 Save interactive HTML
+    --compare-viz          Save scenario comparison visuals to HTML
     --gif                  Animated export of monthly paths
     --alt-text TEXT        Alt text for HTML/PPTX exports
     --packet               Committee-ready export packet (PPTX + Excel)
@@ -435,6 +436,11 @@ def main(
     )
     parser.add_argument("--html", action="store_true", help="Export HTML chart")
     parser.add_argument(
+        "--compare-viz",
+        action="store_true",
+        help="Export scenario comparison visualizations to HTML",
+    )
+    parser.add_argument(
         "--gif",
         action="store_true",
         help="Export GIF animation of monthly paths",
@@ -582,6 +588,30 @@ def main(
         if not path:
             return
         artifact_candidates.append(Path(path))
+
+    def _compare_viz_dir(output_path: str | Path) -> Path:
+        output = Path(output_path)
+        return output.parent / f"{output.stem}_viz"
+
+    def _export_compare_viz(
+        scenarios: Sequence[Any],
+        *,
+        output_path: str | Path,
+        include_returns: bool,
+        alt_text: str | None,
+    ) -> Path:
+        from . import viz
+        from .viz import html_export
+
+        viz_dir = _compare_viz_dir(output_path)
+        viz_dir.mkdir(parents=True, exist_ok=True)
+        figs = viz.compare_scenarios(scenarios, include_returns=include_returns)
+        for name, fig in figs.items():
+            label = f"{alt_text} ({name.replace('_', ' ')})" if alt_text else None
+            target = viz_dir / f"{name}.html"
+            html_export.save(fig, target, alt_text=label)
+            _record_artifact(target)
+        return viz_dir
 
     def _current_duration() -> float:
         return run_timer.elapsed()
@@ -1005,6 +1035,19 @@ def main(
             current_summary=all_summary,
             prev_summary=prev_summary_df,
         )
+
+        if args.compare_viz:
+            try:
+                viz_dir = _export_compare_viz(
+                    results,
+                    output_path=args.output,
+                    include_returns=False,
+                    alt_text=args.alt_text,
+                )
+                print(f"✅ Scenario comparison visuals saved to {viz_dir}")
+            except (KeyError, TypeError, ValueError) as e:
+                logger.error(f"Comparison visualization failed: {e}")
+                print(f"❌ Comparison visualization failed: {e}")
 
         # Handle packet export for parameter sweep mode
         if flags.packet:
@@ -1447,6 +1490,25 @@ def main(
         current_summary=summary,
         prev_summary=prev_summary_df,
     )
+
+    if args.compare_viz:
+        try:
+            viz_dir = _export_compare_viz(
+                [
+                    {
+                        "summary": summary,
+                        "raw_returns": raw_returns_dict,
+                        "label": "Run",
+                    }
+                ],
+                output_path=flags.save_xlsx or "Outputs.xlsx",
+                include_returns=True,
+                alt_text=args.alt_text,
+            )
+            print(f"✅ Scenario comparison visuals saved to {viz_dir}")
+        except (KeyError, TypeError, ValueError) as e:
+            logger.error(f"Comparison visualization failed: {e}")
+            print(f"❌ Comparison visualization failed: {e}")
 
     if any(
         [

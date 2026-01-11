@@ -28,15 +28,15 @@ Complete these in order. Mark checkbox done ONLY after implementation is verifie
 - [x] Create `pa_core/viz/` module structure
 - [x] Implement scenario comparison plots (matplotlib/plotly)
 - [x] Add return distribution comparison (histogram, density)
-- [ ] Add risk metric bar charts (VaR, CVaR, max drawdown)
-- [ ] Add regime timeline visualization
-- [ ] Integrate with existing `export()` workflow
-- [ ] Add CLI flag for generating visualizations
+- [x] Add risk metric bar charts (VaR, CVaR, max drawdown)
+- [x] Add regime timeline visualization
+- [x] Integrate with existing `export()` workflow
+- [x] Add CLI flag for generating visualizations
 
 ### Acceptance Criteria
 The PR is complete when ALL of these are satisfied:
 
 - [x] `pa_core.viz.compare_scenarios(results_list)` produces comparison plots
-- [ ] Plots can be saved to file or displayed interactively
+- [x] Plots can be saved to file or displayed interactively
 - [ ] Documentation includes visualization examples
 - [x] Unit tests verify plot generation without display

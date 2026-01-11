@@ -70,6 +70,20 @@ def test_export_with_options(run_artifacts, tmp_path: Path) -> None:
     assert output_file.exists()
 
 
+def test_export_with_visualizations(run_artifacts, tmp_path: Path) -> None:
+    """Test exporting visualization HTML files alongside Excel output."""
+    output_file = tmp_path / "output_with_viz.xlsx"
+    viz_dir = tmp_path / "viz"
+    options = ExportOptions(include_visualizations=True, viz_output_dir=viz_dir)
+
+    result = export(run_artifacts, output_file, options)
+
+    assert result == output_file
+    assert output_file.exists()
+    for name in ("risk_return", "cvar_return", "return_distribution", "risk_metrics"):
+        assert (viz_dir / f"{name}.html").exists()
+
+
 def test_export_invalid_artifacts(tmp_path: Path) -> None:
     """Test that export raises ValueError for invalid artifacts type."""
     output_file = tmp_path / "invalid.xlsx"

@@ -26,7 +26,11 @@ _RISK_METRICS = {
 }
 
 
-def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
+def compare_scenarios(
+    results_list: Iterable[Any],
+    *,
+    include_returns: bool = True,
+) -> dict[str, go.Figure]:
     """Return comparison plots for a list of scenario results."""
     scenarios = list(results_list)
     if not scenarios:
@@ -38,13 +42,14 @@ def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
     for idx, item in enumerate(scenarios):
         summary = _extract_summary(item)
         label = _extract_label(item, idx)
-        returns = _extract_returns(item)
         regimes = _extract_regime_labels(item)
         row = _select_summary_row(summary)
         row_dict = row.to_dict()
         row_dict["Agent"] = label
         rows.append(row_dict)
-        dist_rows.append((label, returns))
+        if include_returns:
+            returns = _extract_returns(item)
+            dist_rows.append((label, returns))
         if regimes is not None:
             regime_rows.append((label, regimes))
 
@@ -73,15 +78,13 @@ def compare_scenarios(results_list: Iterable[Any]) -> dict[str, go.Figure]:
         template=theme.TEMPLATE,
     )
 
-    return_dist_fig = _make_return_distribution(dist_rows)
-    risk_metrics_fig = _make_risk_metric_bars(compare_df)
-
     output = {
         "risk_return": risk_fig,
         "cvar_return": cvar_fig,
-        "return_distribution": return_dist_fig,
-        "risk_metrics": risk_metrics_fig,
     }
+    if include_returns:
+        output["return_distribution"] = _make_return_distribution(dist_rows)
+    output["risk_metrics"] = _make_risk_metric_bars(compare_df)
     if regime_rows:
         output["regime_timeline"] = _make_regime_timeline(regime_rows)
     return output
