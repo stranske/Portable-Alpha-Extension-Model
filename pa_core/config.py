@@ -56,6 +56,8 @@ def annual_cov_to_monthly(cov: np.ndarray) -> np.ndarray:
 
 __all__ = [
     "AgentConfig",
+    "SweepConfig",
+    "SweepParameter",
     "ModelConfig",
     "load_config",
     "ConfigError",
@@ -129,6 +131,61 @@ class RegimeConfig(BaseModel):
     rho_H_E: Optional[float] = None
     rho_H_M: Optional[float] = None
     rho_E_M: Optional[float] = None
+
+
+class SweepParameter(BaseModel):
+    """Sweep parameter definition for grid or random sampling."""
+
+    model_config = ConfigDict(frozen=True)
+
+    values: Optional[List[float]] = None
+    min: Optional[float] = None
+    max: Optional[float] = None
+    step: Optional[float] = None
+
+    @model_validator(mode="after")
+    def check_values(self) -> "SweepParameter":
+        if self.values is None and (self.min is None or self.max is None):
+            raise ValueError("SweepParameter requires values or min/max bounds.")
+        if self.values is not None and (
+            self.min is not None or self.max is not None or self.step is not None
+        ):
+            raise ValueError("SweepParameter cannot mix values with min/max/step.")
+        if self.values is not None and not self.values:
+            raise ValueError("SweepParameter values must be non-empty.")
+        if self.min is not None and self.max is not None and self.min > self.max:
+            raise ValueError("SweepParameter min must be <= max.")
+        if self.step is not None and self.step <= 0:
+            raise ValueError("SweepParameter step must be positive.")
+        return self
+
+
+class SweepConfig(BaseModel):
+    """Sweep configuration specifying sampling method and parameter ranges."""
+
+    model_config = ConfigDict(frozen=True)
+
+    method: Literal["grid", "random"] = "grid"
+    parameters: Dict[str, SweepParameter]
+    samples: Optional[int] = None
+    seed: Optional[int] = None
+
+    @model_validator(mode="after")
+    def check_config(self) -> "SweepConfig":
+        if not self.parameters:
+            raise ValueError("SweepConfig.parameters must not be empty.")
+        if self.method == "grid":
+            if self.samples is not None:
+                raise ValueError("SweepConfig.samples is only supported for random sampling.")
+            for name, param in self.parameters.items():
+                if param.values is None and param.step is None:
+                    raise ValueError(
+                        f"SweepConfig grid sampling requires step for parameter '{name}'."
+                    )
+        elif self.method == "random":
+            if self.samples is None or self.samples <= 0:
+                raise ValueError("SweepConfig.samples must be positive for random sampling.")
+        return self
 
 
 class ModelConfig(BaseModel):
@@ -271,6 +328,10 @@ class ModelConfig(BaseModel):
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
+    sweep: Optional[SweepConfig] = Field(
+        default=None,
+        description="Optional sweep configuration for custom parameter sampling.",
+    )
 
     max_external_combined_pct: float = 30.0
     external_step_size_pct: float = 5.0

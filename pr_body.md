@@ -6,19 +6,21 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Follow-up to align CLI expectations, inline documentation, and reference artifacts after PR #1082.
+Understanding how results change with input parameters requires running many scenarios manually. Automated parameter sweeps would enable systematic sensitivity analysis, identification of critical parameters, and optimal parameter selection.
 
 #### Tasks
-- [x] Refactor `tests/test_main.py` to replace all hard-coded expected CLI outputs with references to constants defined in `tests/expected_cli_outputs.py` or designated golden files.
-- [x] Review and update `tests/expected_cli_outputs.py` to include constants for every expected CLI output used in `tests/test_main.py`.
-- [x] Add inline comments in `pa_core/__main__.py` and `pa_core/cli.py` that reference external expected output artifacts and document the CLI argument parsing and delegation process.
-- [x] Cross-check the updates in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` to ensure they align with the code changes and test refactoring.
+- [x] Define sweep configuration schema (parameter ranges, grid/random sampling)
+- [x] Implement `SweepRunner` class to execute parameter combinations
+- [x] Add result aggregation (mean, std, percentiles across sweep)
+- [x] Create summary report generator for sweeps
+- [x] Add CLI support: `pa sweep --config sweep.yml`
+- [x] Document sweep configuration format
 
 #### Acceptance criteria
-- [x] All assertions in `tests/test_main.py` use constants from `tests/expected_cli_outputs.py` or designated golden files for output comparison.
-- [x] The file `tests/expected_cli_outputs.py` contains constants for all expected CLI outputs used in `tests/test_main.py`.
-- [x] Inline comments in `pa_core/__main__.py` and `pa_core/cli.py` explicitly reference external expected output artifacts and document the CLI argument parsing and delegation process.
-- [x] The documentation in `docs/cli_usage_guide.md` and `docs/pa_core_facade.md` aligns with the code changes and test refactoring.
+- [x] Sweep config specifies parameters, ranges, and sampling method
+- [x] `SweepRunner` executes all combinations efficiently
+- [x] Summary statistics are computed across sweep results
+- [x] CLI enables sweep execution without code changes
 ## Related Issues
 - [ ] _Not provided._
 ## References

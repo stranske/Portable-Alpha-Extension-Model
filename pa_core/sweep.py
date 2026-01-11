@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass
+from itertools import product
 from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional
 
 import numpy as np
@@ -19,7 +20,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig, normalize_share
+from .config import ModelConfig, SweepConfig, SweepParameter, normalize_share
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
@@ -47,8 +48,47 @@ def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str]
     return iterable
 
 
+def _iter_sweep_grid(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
+    names: List[str] = []
+    values: List[List[float]] = []
+    for name, param in sweep.parameters.items():
+        if param.values is not None:
+            param_values = list(param.values)
+        else:
+            param_values = list(np.arange(param.min, param.max + param.step, param.step))
+        names.append(name)
+        values.append(param_values)
+
+    for combo in product(*values):
+        yield dict(zip(names, combo))
+
+
+def _sample_sweep_value(param: SweepParameter, rng: np.random.Generator) -> float:
+    if param.values is not None:
+        return float(rng.choice(param.values))
+    if param.step is not None:
+        grid = np.arange(param.min, param.max + param.step, param.step)
+        return float(rng.choice(grid))
+    return float(rng.uniform(param.min, param.max))
+
+
+def _iter_sweep_random(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
+    rng = np.random.default_rng(sweep.seed)
+    for _ in range(sweep.samples or 0):
+        combo: Dict[str, Any] = {}
+        for name, param in sweep.parameters.items():
+            combo[name] = _sample_sweep_value(param, rng)
+        yield combo
+
+
 def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]]:
     """Generate parameter combinations based on ``analysis_mode``."""
+    if cfg.sweep is not None:
+        if cfg.sweep.method == "grid":
+            yield from _iter_sweep_grid(cfg.sweep)
+            return
+        yield from _iter_sweep_random(cfg.sweep)
+        return
     if cfg.analysis_mode == "capital":
         for ext_pct in np.arange(
             0,
