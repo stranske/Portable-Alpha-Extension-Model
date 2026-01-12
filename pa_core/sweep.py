@@ -64,6 +64,7 @@ def _estimate_total_combinations(cfg: ModelConfig) -> int:
             if param.values is not None:
                 count = len(param.values)
             else:
+                assert param.min is not None and param.max is not None and param.step is not None
                 count = _count_range(float(param.min), float(param.max), float(param.step))
             total *= count
         return int(total)
@@ -137,6 +138,7 @@ def _iter_sweep_grid(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
         if param.values is not None:
             param_values = list(param.values)
         else:
+            assert param.min is not None and param.max is not None and param.step is not None
             param_values = list(np.arange(param.min, param.max + param.step, param.step))
         names.append(name)
         values.append(param_values)
@@ -149,8 +151,10 @@ def _sample_sweep_value(param: SweepParameter, rng: np.random.Generator) -> floa
     if param.values is not None:
         return float(rng.choice(param.values))
     if param.step is not None:
+        assert param.min is not None and param.max is not None
         grid = np.arange(param.min, param.max + param.step, param.step)
         return float(rng.choice(grid))
+    assert param.min is not None and param.max is not None
     return float(rng.uniform(param.min, param.max))
 
 
@@ -498,7 +502,7 @@ def run_parameter_sweep(
 
     financing_series = None
     if reuse_financing_series:
-        idx_sigma_fin = float(base_sigma[0]) if reuse_return_shocks else float(idx_sigma)
+        idx_sigma_fin = float(base_sigma[0]) if base_sigma is not None else float(idx_sigma)
         financing_params = build_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_fin)
         fin_rngs_base: Dict[str, GeneratorLike] = {}
         for name in fin_rngs.keys():
@@ -672,7 +676,8 @@ def sweep_results_to_dataframe(results: List[SweepResult]) -> pd.DataFrame:
     frames: List[pd.DataFrame] = []
     for res in results:
         summary = res["summary"].copy()
-        for key, val in res["parameters"].items():
+        parameters = res.get("parameters", {})
+        for key, val in parameters.items():
             summary[key] = val
         summary["combination_id"] = res["combination_id"]
         frames.append(summary)

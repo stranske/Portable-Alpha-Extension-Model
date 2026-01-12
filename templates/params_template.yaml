@@ -50,6 +50,7 @@ Active Ext monthly spike prob: 0.0
 Active Ext spike multiplier: 0.0
 financing_mode: broadcast
 Analysis mode: returns
+sweep: null
 max_external_combined_pct: 30.0
 external_step_size_pct: 5.0
 in_house_return_min_pct: 2.0
