@@ -45,6 +45,33 @@ function normalise(value) {
   return String(value ?? '').trim();
 }
 
+function resolveAuthSource(env = process.env) {
+  const keepaliveId = normalise(env.KEEPALIVE_APP_ID);
+  const keepaliveKey = normalise(env.KEEPALIVE_APP_PRIVATE_KEY);
+  if (keepaliveId || keepaliveKey) {
+    return keepaliveId && keepaliveKey ? 'KEEPALIVE_APP' : 'KEEPALIVE_APP (partial)';
+  }
+
+  const ghId = normalise(env.GH_APP_ID);
+  const ghKey = normalise(env.GH_APP_PRIVATE_KEY);
+  if (ghId || ghKey) {
+    return ghId && ghKey ? 'GH_APP' : 'GH_APP (partial)';
+  }
+
+  const workflowsId = normalise(env.WORKFLOWS_APP_ID);
+  const workflowsKey = normalise(env.WORKFLOWS_APP_PRIVATE_KEY);
+  if (workflowsId || workflowsKey) {
+    return workflowsId && workflowsKey ? 'WORKFLOWS_APP' : 'WORKFLOWS_APP (partial)';
+  }
+
+  const codexAuth = normalise(env.CODEX_AUTH_JSON);
+  if (codexAuth) {
+    return 'CODEX_AUTH_JSON';
+  }
+
+  return 'missing';
+}
+
 function resolvePromptRouting({ scenario, mode, action, reason } = {}) {
   const resolvedMode = resolvePromptMode({ scenario, mode, action, reason });
   return PROMPT_ROUTES[resolvedMode] || PROMPT_ROUTES.normal;
@@ -1771,6 +1798,7 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
   const actionReason = waitLikeAction
     ? (baseReason || summaryReason)
     : (summaryReason || baseReason);
+  const authSource = resolveAuthSource(process.env);
 
   const summaryLines = [
     '<!-- keepalive-loop-summary -->',
@@ -1796,6 +1824,7 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     `| Timeout | ${formatTimeoutMinutes(timeoutStatus.resolvedMinutes)} min (${timeoutStatus.source || 'default'}) |`,
     `| Keepalive | ${keepaliveEnabled ? '✅ enabled' : '❌ disabled'} |`,
     `| Autofix | ${autofixEnabled ? '✅ enabled' : '❌ disabled'} |`,
+    `| Auth source | ${authSource} |`,
   ];
 
   const timeoutUsage = formatTimeoutUsage({

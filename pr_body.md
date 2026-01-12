@@ -6,27 +6,20 @@
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Understanding how results change with input parameters requires running many scenarios manually. Automated parameter sweeps would enable systematic sensitivity analysis, identification of critical parameters, and optimal parameter selection.
+Keepalive workflows should use the dedicated GitHub App pool and fall back to PATs when app rate limits are low.
 
 #### Tasks
-- [x] Define sweep configuration schema (parameter ranges, grid/random sampling)
-- [x] Implement `SweepRunner` class to execute parameter combinations
-- [x] Add result aggregation (mean, std, percentiles across sweep)
-- [x] Create summary report generator for sweeps
-- [x] Add CLI support: `pa sweep --config sweep.yml`
-- [x] Document sweep configuration format
+- [ ] Switch from `WORKFLOWS_APP` to `KEEPALIVE_APP` (dedicated rate limit pool)
+- [x] Add PAT fallback when app rate limit is low
 
 #### Acceptance criteria
-- [x] Sweep config specifies parameters, ranges, and sampling method
-- [x] `SweepRunner` executes all combinations efficiently
-- [x] Summary statistics are computed across sweep results
-- [x] CLI enables sweep execution without code changes
+- [ ] Switch from `WORKFLOWS_APP` to `GH_APP`
 ## Related Issues
 - [ ] _Not provided._
 ## References
 - [ ] _Not provided._
 
 ## Notes
-- _None._
+- needs-human: update `.github/workflows/agents-keepalive-loop.yml` to use `KEEPALIVE_APP_ID`/`KEEPALIVE_APP_PRIVATE_KEY` (and align acceptance target with `GH_APP_ID`/`GH_APP_PRIVATE_KEY`) in the preflight/env blocks.
 
 <!-- auto-status-summary:end -->
