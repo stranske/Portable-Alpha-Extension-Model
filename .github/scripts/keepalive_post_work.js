@@ -2,6 +2,7 @@
 
 const { setTimeout: sleep } = require('timers/promises');
 const { createKeepaliveStateManager } = require('./keepalive_state.js');
+const { maybeUsePatFallback } = require('./api-helpers');
 
 const AGENT_LABEL_PREFIX = 'agent:';
 const MERGE_METHODS = new Set(['merge', 'squash', 'rebase']);
@@ -784,6 +785,10 @@ async function attemptUpdateBranchViaApi({
 }
 
 async function runKeepalivePostWork({ core, github, context, env = process.env }) {
+  const fallback = await maybeUsePatFallback({ github, core, env });
+  if (fallback?.client) {
+    github = fallback.client;
+  }
   const summaryHelper = buildSummaryRecorder(core?.summary);
   const record = summaryHelper.record;
   const remediationNotes = [];

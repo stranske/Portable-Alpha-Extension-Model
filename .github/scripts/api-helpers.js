@@ -123,6 +123,58 @@ function log(core, level, message) {
   }
 }
 
+function normaliseToken(value) {
+  return String(value ?? '').trim();
+}
+
+function resolvePatToken(env = process.env) {
+  const candidates = [
+    env.KEEPALIVE_PAT,
+    env.AGENTS_AUTOMATION_PAT,
+    env.ACTIONS_BOT_PAT,
+    env.SERVICE_BOT_PAT,
+    env.OWNER_PR_PAT,
+    env.CODEX_PAT,
+  ];
+  for (const candidate of candidates) {
+    const token = normaliseToken(candidate);
+    if (token) {
+      return token;
+    }
+  }
+  return '';
+}
+
+async function maybeUsePatFallback({ github, core = null, env = process.env, threshold = RATE_LIMIT_THRESHOLD }) {
+  const token = resolvePatToken(env);
+  if (!token) {
+    return { client: github, usedFallback: false, reason: 'no-pat' };
+  }
+  if (!github?.rest?.rateLimit?.get) {
+    log(core, 'warning', 'Rate limit API unavailable; skipping PAT fallback.');
+    return { client: github, usedFallback: false, reason: 'rate-limit-unavailable' };
+  }
+
+  const status = await checkRateLimitStatus(github, { threshold, core });
+  if (status.safe) {
+    return { client: github, usedFallback: false, reason: 'rate-ok', status };
+  }
+
+  const FallbackOctokit = github?.constructor;
+  if (!FallbackOctokit) {
+    log(core, 'warning', 'Octokit constructor unavailable; skipping PAT fallback.');
+    return { client: github, usedFallback: false, reason: 'no-octokit', status };
+  }
+
+  const fallbackClient = new FallbackOctokit({ auth: token });
+  log(
+    core,
+    'warning',
+    `Switching to PAT fallback client due to low rate limit (${status.remaining}/${status.limit}).`
+  );
+  return { client: fallbackClient, usedFallback: true, reason: 'pat-fallback', status };
+}
+
 /**
  * Wrapper for github.paginate with exponential backoff on rate limit errors
  *
@@ -317,6 +369,8 @@ module.exports = {
   sleep,
   extractRateLimitReset,
   calculateWaitUntilReset,
+  resolvePatToken,
+  maybeUsePatFallback,
 
   // Main utilities
   paginateWithBackoff,
