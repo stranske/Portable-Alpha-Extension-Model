@@ -61,7 +61,7 @@ function resolveAuthSource(env = process.env) {
   const workflowsId = normalise(env.WORKFLOWS_APP_ID);
   const workflowsKey = normalise(env.WORKFLOWS_APP_PRIVATE_KEY);
   if (workflowsId || workflowsKey) {
-    return workflowsId && workflowsKey ? 'WORKFLOWS_APP' : 'WORKFLOWS_APP (partial)';
+    return workflowsId && workflowsKey ? 'WORKFLOWS_APP (legacy)' : 'WORKFLOWS_APP (partial, legacy)';
   }
 
   const codexAuth = normalise(env.CODEX_AUTH_JSON);
@@ -1799,6 +1799,9 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     ? (baseReason || summaryReason)
     : (summaryReason || baseReason);
   const authSource = resolveAuthSource(process.env);
+  const authNote = authSource.includes('WORKFLOWS_APP')
+    ? 'WORKFLOWS_APP is legacy; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY.'
+    : '';
 
   const summaryLines = [
     '<!-- keepalive-loop-summary -->',
@@ -1825,6 +1828,7 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     `| Keepalive | ${keepaliveEnabled ? '✅ enabled' : '❌ disabled'} |`,
     `| Autofix | ${autofixEnabled ? '✅ enabled' : '❌ disabled'} |`,
     `| Auth source | ${authSource} |`,
+    ...(authNote ? [`| Auth note | ${authNote} |`] : []),
   ];
 
   const timeoutUsage = formatTimeoutUsage({
