@@ -171,7 +171,10 @@ function maybeUseAppTokenOverride({ github, core = null, env = process.env }) {
     return { client: github, usedOverride: false, reason: 'no-octokit' };
   }
   const overrideClient = new OverrideOctokit({ auth: token });
-  log(core, 'info', `Using ${source} for keepalive GitHub client.`);
+  const isLegacy = source === 'WORKFLOWS_APP_TOKEN';
+  const level = isLegacy ? 'warning' : 'info';
+  const suffix = isLegacy ? ' (legacy; prefer KEEPALIVE_APP_TOKEN)' : '';
+  log(core, level, `Using ${source} for keepalive GitHub client${suffix}.`);
   return { client: overrideClient, usedOverride: true, reason: 'app-token', source };
 }
 

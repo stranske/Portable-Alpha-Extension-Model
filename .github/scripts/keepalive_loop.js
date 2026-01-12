@@ -46,6 +46,21 @@ function normalise(value) {
 }
 
 function resolveAuthSource(env = process.env) {
+  const keepaliveToken = normalise(env.KEEPALIVE_APP_TOKEN);
+  if (keepaliveToken) {
+    return 'KEEPALIVE_APP_TOKEN';
+  }
+
+  const ghToken = normalise(env.GH_APP_TOKEN);
+  if (ghToken) {
+    return 'GH_APP_TOKEN';
+  }
+
+  const workflowsToken = normalise(env.WORKFLOWS_APP_TOKEN);
+  if (workflowsToken) {
+    return 'WORKFLOWS_APP_TOKEN (legacy)';
+  }
+
   const keepaliveId = normalise(env.KEEPALIVE_APP_ID);
   const keepaliveKey = normalise(env.KEEPALIVE_APP_PRIVATE_KEY);
   if (keepaliveId || keepaliveKey) {
