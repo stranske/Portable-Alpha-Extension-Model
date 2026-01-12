@@ -145,6 +145,36 @@ function resolvePatToken(env = process.env) {
   return '';
 }
 
+function resolveAppToken(env = process.env) {
+  const candidates = [
+    { token: env.KEEPALIVE_APP_TOKEN, source: 'KEEPALIVE_APP_TOKEN' },
+    { token: env.GH_APP_TOKEN, source: 'GH_APP_TOKEN' },
+    { token: env.WORKFLOWS_APP_TOKEN, source: 'WORKFLOWS_APP_TOKEN' },
+  ];
+  for (const candidate of candidates) {
+    const token = normaliseToken(candidate.token);
+    if (token) {
+      return { token, source: candidate.source };
+    }
+  }
+  return { token: '', source: '' };
+}
+
+function maybeUseAppTokenOverride({ github, core = null, env = process.env }) {
+  const { token, source } = resolveAppToken(env);
+  if (!token) {
+    return { client: github, usedOverride: false, reason: 'no-app-token' };
+  }
+  const OverrideOctokit = github?.constructor;
+  if (!OverrideOctokit) {
+    log(core, 'warning', 'Octokit constructor unavailable; skipping app token override.');
+    return { client: github, usedOverride: false, reason: 'no-octokit' };
+  }
+  const overrideClient = new OverrideOctokit({ auth: token });
+  log(core, 'info', `Using ${source} for keepalive GitHub client.`);
+  return { client: overrideClient, usedOverride: true, reason: 'app-token', source };
+}
+
 async function maybeUsePatFallback({ github, core = null, env = process.env, threshold = RATE_LIMIT_THRESHOLD }) {
   const token = resolvePatToken(env);
   if (!token) {
@@ -369,7 +399,9 @@ module.exports = {
   sleep,
   extractRateLimitReset,
   calculateWaitUntilReset,
+  resolveAppToken,
   resolvePatToken,
+  maybeUseAppTokenOverride,
   maybeUsePatFallback,
 
   // Main utilities

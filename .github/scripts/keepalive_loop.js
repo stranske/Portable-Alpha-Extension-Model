@@ -10,7 +10,7 @@ const { classifyError, ERROR_CATEGORIES } = require('./error_classifier');
 const { formatFailureComment } = require('./failure_comment_formatter');
 const { detectConflicts } = require('./conflict_detector');
 const { parseTimeoutConfig } = require('./timeout_config');
-const { maybeUsePatFallback } = require('./api-helpers');
+const { maybeUseAppTokenOverride, maybeUsePatFallback } = require('./api-helpers');
 
 const ATTEMPT_HISTORY_LIMIT = 5;
 const ATTEMPTED_TASK_LIMIT = 6;
@@ -1290,6 +1290,10 @@ async function detectRateLimitCancellation({ github, context, runId, core }) {
 }
 
 async function evaluateKeepaliveLoop({ github, context, core, payload: overridePayload, overridePrNumber, forceRetry }) {
+  const appOverride = maybeUseAppTokenOverride({ github, core, env: process.env });
+  if (appOverride?.client) {
+    github = appOverride.client;
+  }
   const fallback = await maybeUsePatFallback({ github, core, env: process.env });
   if (fallback?.client) {
     github = fallback.client;
