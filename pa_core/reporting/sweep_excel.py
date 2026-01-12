@@ -11,6 +11,7 @@ from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
 from ..contracts import SUMMARY_REQUIRED_COLUMNS
+from ..sweep import aggregate_sweep_results
 from ..types import SweepResult
 from ..viz import risk_return, theme
 from .excel import normalize_summary_columns
@@ -28,6 +29,7 @@ def export_sweep_results(
 ) -> None:
     """Write sweep results to an Excel workbook with one sheet per combination."""
     all_summary: pd.DataFrame | None = None
+    results_list = list(results)
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         if metadata:
@@ -39,7 +41,7 @@ def export_sweep_results(
             )
             meta_df.to_excel(writer, sheet_name="Metadata", index=False)
         summary_frames = []
-        for res in results:
+        for res in results_list:
             sheet = f"Run{res['combination_id']}"
             summary_obj = res["summary"]
             if not isinstance(summary_obj, pd.DataFrame):
@@ -60,6 +62,9 @@ def export_sweep_results(
             empty_summary = pd.DataFrame(columns=_SUMMARY_COLUMNS)
             empty_summary.to_excel(writer, sheet_name="Summary", index=False)
             all_summary = empty_summary
+
+        stats_df = aggregate_sweep_results(results_list)
+        stats_df.to_excel(writer, sheet_name="SummaryStats", index=False)
 
     wb = openpyxl.load_workbook(filename)
     for ws in wb.worksheets:

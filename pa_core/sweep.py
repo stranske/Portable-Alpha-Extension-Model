@@ -4,7 +4,9 @@ import copy
 import hashlib
 import json
 import logging
-from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional
+from dataclasses import dataclass
+from itertools import product
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -18,13 +20,15 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig, normalize_share
+from .config import ModelConfig, SweepConfig, SweepParameter, normalize_share
+from .contracts import SUMMARY_NUMERIC_COLUMNS
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import draw_financing_series, draw_joint_returns, prepare_return_shocks
 from .sim.covariance import build_cov_matrix
 from .sim.metrics import summary_table
 from .sim.params import (
     build_covariance_return_overrides,
+    build_financing_params,
     build_params,
     resolve_covariance_inputs,
 )
@@ -46,8 +50,131 @@ def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str]
     return iterable
 
 
+def _count_range(start: float, stop: float, step: float) -> int:
+    values = np.arange(start, stop + step, step)
+    return int(len(values))
+
+
+def _estimate_total_combinations(cfg: ModelConfig) -> int:
+    if cfg.sweep is not None:
+        if cfg.sweep.method == "random":
+            return int(cfg.sweep.samples or 0)
+        total = 1
+        for param in cfg.sweep.parameters.values():
+            if param.values is not None:
+                count = len(param.values)
+            else:
+                assert param.min is not None and param.max is not None and param.step is not None
+                count = _count_range(float(param.min), float(param.max), float(param.step))
+            total *= count
+        return int(total)
+
+    if cfg.analysis_mode == "capital":
+        n = _count_range(
+            0.0, float(cfg.max_external_combined_pct), float(cfg.external_step_size_pct)
+        )
+        return int(n * (n + 1) / 2)
+    if cfg.analysis_mode == "returns":
+        return int(
+            _count_range(
+                float(cfg.in_house_return_min_pct),
+                float(cfg.in_house_return_max_pct),
+                float(cfg.in_house_return_step_pct),
+            )
+            * _count_range(
+                float(cfg.in_house_vol_min_pct),
+                float(cfg.in_house_vol_max_pct),
+                float(cfg.in_house_vol_step_pct),
+            )
+            * _count_range(
+                float(cfg.alpha_ext_return_min_pct),
+                float(cfg.alpha_ext_return_max_pct),
+                float(cfg.alpha_ext_return_step_pct),
+            )
+            * _count_range(
+                float(cfg.alpha_ext_vol_min_pct),
+                float(cfg.alpha_ext_vol_max_pct),
+                float(cfg.alpha_ext_vol_step_pct),
+            )
+        )
+    if cfg.analysis_mode == "alpha_shares":
+        return int(
+            _count_range(
+                float(cfg.external_pa_alpha_min_pct),
+                float(cfg.external_pa_alpha_max_pct),
+                float(cfg.external_pa_alpha_step_pct),
+            )
+            * _count_range(
+                float(cfg.active_share_min_pct),
+                float(cfg.active_share_max_pct),
+                float(cfg.active_share_step_pct),
+            )
+        )
+    if cfg.analysis_mode == "vol_mult":
+        return _count_range(
+            float(cfg.sd_multiple_min), float(cfg.sd_multiple_max), float(cfg.sd_multiple_step)
+        )
+    raise ValueError(f"Unsupported analysis mode: {cfg.analysis_mode}")
+
+
+def _override_keys_for_config(cfg: ModelConfig) -> set[str]:
+    if cfg.sweep is not None:
+        return set(cfg.sweep.parameters.keys())
+    if cfg.analysis_mode == "capital":
+        return {"external_pa_capital", "active_ext_capital", "internal_pa_capital"}
+    if cfg.analysis_mode == "returns":
+        return {"mu_H", "sigma_H", "mu_E", "sigma_E"}
+    if cfg.analysis_mode == "alpha_shares":
+        return {"theta_extpa", "active_share"}
+    if cfg.analysis_mode == "vol_mult":
+        return {"sigma_H", "sigma_E", "sigma_M"}
+    return set()
+
+
+def _iter_sweep_grid(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
+    names: List[str] = []
+    values: List[List[float]] = []
+    for name, param in sweep.parameters.items():
+        if param.values is not None:
+            param_values = list(param.values)
+        else:
+            assert param.min is not None and param.max is not None and param.step is not None
+            param_values = list(np.arange(param.min, param.max + param.step, param.step))
+        names.append(name)
+        values.append(param_values)
+
+    for combo in product(*values):
+        yield dict(zip(names, combo))
+
+
+def _sample_sweep_value(param: SweepParameter, rng: np.random.Generator) -> float:
+    if param.values is not None:
+        return float(rng.choice(param.values))
+    if param.step is not None:
+        assert param.min is not None and param.max is not None
+        grid = np.arange(param.min, param.max + param.step, param.step)
+        return float(rng.choice(grid))
+    assert param.min is not None and param.max is not None
+    return float(rng.uniform(param.min, param.max))
+
+
+def _iter_sweep_random(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
+    rng = np.random.default_rng(sweep.seed)
+    for _ in range(sweep.samples or 0):
+        combo: Dict[str, Any] = {}
+        for name, param in sweep.parameters.items():
+            combo[name] = _sample_sweep_value(param, rng)
+        yield combo
+
+
 def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]]:
     """Generate parameter combinations based on ``analysis_mode``."""
+    if cfg.sweep is not None:
+        if cfg.sweep.method == "grid":
+            yield from _iter_sweep_grid(cfg.sweep)
+            return
+        yield from _iter_sweep_random(cfg.sweep)
+        return
     if cfg.analysis_mode == "capital":
         for ext_pct in np.arange(
             0,
@@ -133,6 +260,48 @@ def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]
 
 logger = logging.getLogger(__name__)
 
+
+@dataclass(slots=True)
+class SweepRunner:
+    """Execute parameter sweeps with a lightweight wrapper around sweep helpers."""
+
+    config: ModelConfig
+    index_series: pd.Series | pd.DataFrame
+    seed: Optional[int] = None
+    legacy_agent_rng: bool = False
+    progress: Optional[Callable[[int, int], None]] = None
+    substream_ids: Mapping[str, str] | None = None
+
+    def iter_combinations(self) -> Iterator[Dict[str, Any]]:
+        return generate_parameter_combinations(self.config)
+
+    def run(self) -> List[SweepResult]:
+        from .sim.simulation_initialization import initialize_sweep_rngs
+
+        idx_series = self.index_series
+        if isinstance(idx_series, pd.DataFrame):
+            idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            try:
+                idx_series = pd.Series(idx_series)
+            except Exception as exc:
+                raise ValueError("Index data must be convertible to pandas Series") from exc
+
+        rng_bundle = initialize_sweep_rngs(
+            self.seed,
+            legacy_agent_rng=self.legacy_agent_rng,
+        )
+        self.substream_ids = rng_bundle.substream_ids
+        return run_parameter_sweep(
+            self.config,
+            idx_series,
+            rng_bundle.rng_returns,
+            rng_bundle.rngs_financing,
+            seed=rng_bundle.seed,
+            progress=self.progress,
+        )
+
+
 """Module-level cached empty DataFrame used for sweep results shape."""
 EMPTY_RESULTS_COLUMNS: pd.Index = pd.Index(
     [
@@ -191,14 +360,10 @@ def run_parameter_sweep(
     )
     n_samples = int(len(index_series))
 
-    # Pre-compute combinations for progress tracking
-    combos = list(generate_parameter_combinations(cfg))
-    total = len(combos)
+    total = _estimate_total_combinations(cfg)
     logger.info("Starting parameter sweep", extra={"total_combinations": total})
 
-    override_keys: set[str] = set()
-    for overrides in combos:
-        override_keys.update(overrides.keys())
+    override_keys = _override_keys_for_config(cfg)
     shock_incompatible_keys = {
         "rho_idx_H",
         "rho_idx_E",
@@ -206,6 +371,8 @@ def run_parameter_sweep(
         "rho_H_E",
         "rho_H_M",
         "rho_E_M",
+        "correlation_repair_mode",
+        "correlation_repair_shrinkage",
         "return_distribution",
         "return_t_df",
         "return_copula",
@@ -227,12 +394,40 @@ def run_parameter_sweep(
         "act_ext_financing_sigma_month",
         "act_ext_spike_prob",
         "act_ext_spike_factor",
+        "financing_mode",
     }
     sigma_override_keys = {"sigma_H", "sigma_E", "sigma_M"}
+    return_param_keys = {
+        "return_unit",
+        "mu_H",
+        "mu_E",
+        "mu_M",
+        "sigma_H",
+        "sigma_E",
+        "sigma_M",
+        "rho_idx_H",
+        "rho_idx_E",
+        "rho_idx_M",
+        "rho_H_E",
+        "rho_H_M",
+        "rho_E_M",
+        "correlation_repair_mode",
+        "correlation_repair_shrinkage",
+        "return_distribution",
+        "return_t_df",
+        "return_copula",
+        "return_distribution_idx",
+        "return_distribution_H",
+        "return_distribution_E",
+        "return_distribution_M",
+        "covariance_shrinkage",
+    }
     reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
     reuse_financing_series = not override_keys.intersection(financing_keys)
     if cfg.covariance_shrinkage != "none" and override_keys.intersection(sigma_override_keys):
         reuse_return_shocks = False
+    returns_static = not override_keys.intersection(return_param_keys)
+    financing_static = not override_keys.intersection(financing_keys)
 
     # Common random numbers: reset RNGs before each combination so parameter
     # changes are compared against identical random draws. When a master seed
@@ -250,12 +445,14 @@ def run_parameter_sweep(
             name: copy.deepcopy(base_fin_rngs[name].bit_generator.state) for name in fin_rngs.keys()
         }
 
-    return_shocks = None
-    if reuse_return_shocks:
-        return_inputs = normalize_return_inputs(cfg)
-        sigma_h = float(return_inputs["sigma_H"])
-        sigma_e = float(return_inputs["sigma_E"])
-        sigma_m = float(return_inputs["sigma_M"])
+    base_sigma = None
+    base_corr = None
+    base_params = None
+    if returns_static or reuse_return_shocks:
+        base_return_inputs = normalize_return_inputs(cfg)
+        sigma_h = float(base_return_inputs["sigma_H"])
+        sigma_e = float(base_return_inputs["sigma_E"])
+        sigma_m = float(base_return_inputs["sigma_M"])
         base_cov = build_cov_matrix(
             cfg.rho_idx_H,
             cfg.rho_idx_E,
@@ -283,24 +480,29 @@ def run_parameter_sweep(
             rho_H_M=cfg.rho_H_M,
             rho_E_M=cfg.rho_E_M,
         )
-        shock_params = build_params(
+        base_params = build_params(
             cfg,
             mu_idx=mu_idx,
             idx_sigma=float(base_sigma[0]),
             return_overrides=build_covariance_return_overrides(base_sigma, base_corr),
         )
+
+    return_shocks = None
+    if reuse_return_shocks:
+        if base_params is None:
+            raise RuntimeError("Base parameters are required to prepare return shocks")
         rng_returns_base = spawn_rngs(None, 1)[0]
         rng_returns_base.bit_generator.state = copy.deepcopy(rng_returns_state)
         return_shocks = prepare_return_shocks(
             n_months=cfg.N_MONTHS,
             n_sim=cfg.N_SIMULATIONS,
-            params=shock_params,
+            params=base_params,
             rng=rng_returns_base,
         )
 
     financing_series = None
     if reuse_financing_series:
-        idx_sigma_fin = float(base_sigma[0]) if reuse_return_shocks else float(idx_sigma)
+        idx_sigma_fin = float(base_sigma[0]) if base_sigma is not None else float(idx_sigma)
         financing_params = build_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma_fin)
         fin_rngs_base: Dict[str, GeneratorLike] = {}
         for name in fin_rngs.keys():
@@ -315,9 +517,10 @@ def run_parameter_sweep(
             rngs=fin_rngs_base,
         )
 
-    iterator = enumerate(combos)
+    combos_iter: Any = generate_parameter_combinations(cfg)
     if progress is None:
-        iterator = enumerate(progress_bar(combos, total=total, desc="sweep"))
+        combos_iter = progress_bar(combos_iter, total=total, desc="sweep")
+    iterator = enumerate(combos_iter)
 
     for i, overrides in iterator:
         if return_shocks is None:
@@ -328,44 +531,53 @@ def run_parameter_sweep(
 
         mod_cfg = cfg.model_copy(update=overrides)
 
-        return_inputs = normalize_return_inputs(mod_cfg)
-        sigma_h = float(return_inputs["sigma_H"])
-        sigma_e = float(return_inputs["sigma_E"])
-        sigma_m = float(return_inputs["sigma_M"])
+        if returns_static:
+            if base_params is None:
+                raise RuntimeError("Base parameters are required for static return sweeps")
+            if financing_static:
+                params = base_params
+            else:
+                params = dict(base_params)
+                params.update(build_financing_params(mod_cfg))
+        else:
+            return_inputs = normalize_return_inputs(mod_cfg)
+            sigma_h = float(return_inputs["sigma_H"])
+            sigma_e = float(return_inputs["sigma_E"])
+            sigma_m = float(return_inputs["sigma_M"])
 
-        cov = build_cov_matrix(
-            mod_cfg.rho_idx_H,
-            mod_cfg.rho_idx_E,
-            mod_cfg.rho_idx_M,
-            mod_cfg.rho_H_E,
-            mod_cfg.rho_H_M,
-            mod_cfg.rho_E_M,
-            idx_sigma,
-            sigma_h,
-            sigma_e,
-            sigma_m,
-            covariance_shrinkage=mod_cfg.covariance_shrinkage,
-            n_samples=n_samples,
-        )
-        sigma_vec, corr_mat = resolve_covariance_inputs(
-            cov,
-            idx_sigma=idx_sigma,
-            sigma_h=sigma_h,
-            sigma_e=sigma_e,
-            sigma_m=sigma_m,
-            rho_idx_H=mod_cfg.rho_idx_H,
-            rho_idx_E=mod_cfg.rho_idx_E,
-            rho_idx_M=mod_cfg.rho_idx_M,
-            rho_H_E=mod_cfg.rho_H_E,
-            rho_H_M=mod_cfg.rho_H_M,
-            rho_E_M=mod_cfg.rho_E_M,
-        )
-        params = build_params(
-            mod_cfg,
-            mu_idx=mu_idx,
-            idx_sigma=float(sigma_vec[0]),
-            return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
-        )
+            cov = build_cov_matrix(
+                mod_cfg.rho_idx_H,
+                mod_cfg.rho_idx_E,
+                mod_cfg.rho_idx_M,
+                mod_cfg.rho_H_E,
+                mod_cfg.rho_H_M,
+                mod_cfg.rho_E_M,
+                idx_sigma,
+                sigma_h,
+                sigma_e,
+                sigma_m,
+                covariance_shrinkage=mod_cfg.covariance_shrinkage,
+                n_samples=n_samples,
+            )
+            sigma_vec, corr_mat = resolve_covariance_inputs(
+                cov,
+                idx_sigma=idx_sigma,
+                sigma_h=sigma_h,
+                sigma_e=sigma_e,
+                sigma_m=sigma_m,
+                rho_idx_H=mod_cfg.rho_idx_H,
+                rho_idx_E=mod_cfg.rho_idx_E,
+                rho_idx_M=mod_cfg.rho_idx_M,
+                rho_H_E=mod_cfg.rho_H_E,
+                rho_H_M=mod_cfg.rho_H_M,
+                rho_E_M=mod_cfg.rho_E_M,
+            )
+            params = build_params(
+                mod_cfg,
+                mu_idx=mu_idx,
+                idx_sigma=float(sigma_vec[0]),
+                return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
+            )
 
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,
@@ -464,7 +676,8 @@ def sweep_results_to_dataframe(results: List[SweepResult]) -> pd.DataFrame:
     frames: List[pd.DataFrame] = []
     for res in results:
         summary = res["summary"].copy()
-        for key, val in res["parameters"].items():
+        parameters = res.get("parameters", {})
+        for key, val in parameters.items():
             summary[key] = val
         summary["combination_id"] = res["combination_id"]
         frames.append(summary)
@@ -473,9 +686,51 @@ def sweep_results_to_dataframe(results: List[SweepResult]) -> pd.DataFrame:
     return _get_empty_results_dataframe()
 
 
+def aggregate_sweep_results(
+    results: Sequence[SweepResult],
+    *,
+    percentiles: Sequence[float] = (0.1, 0.5, 0.9),
+) -> pd.DataFrame:
+    """Aggregate sweep summary metrics across combinations."""
+    df = sweep_results_to_dataframe(list(results))
+    percentiles = tuple(percentiles)
+    if any(p < 0 or p > 1 for p in percentiles):
+        raise ValueError("percentiles must be between 0 and 1")
+    columns = ["Agent", "Metric", "Mean", "Std"]
+    columns += [f"P{int(round(p * 100))}" for p in percentiles]
+    if df.empty or "Agent" not in df.columns:
+        return pd.DataFrame(columns=columns)
+
+    metrics = [col for col in SUMMARY_NUMERIC_COLUMNS if col in df.columns]
+    if not metrics:
+        return pd.DataFrame(columns=columns)
+
+    rows: list[dict[str, float | str]] = []
+    grouped = df.groupby("Agent", dropna=False)
+    for agent, group in grouped:
+        for metric in metrics:
+            values = pd.to_numeric(group[metric], errors="coerce").dropna()
+            if values.empty:
+                continue
+            entry: dict[str, float | str] = {
+                "Agent": str(agent),
+                "Metric": metric,
+                "Mean": float(values.mean()),
+                "Std": float(values.std(ddof=1)),
+            }
+            for pct in percentiles:
+                entry[f"P{int(round(pct * 100))}"] = float(values.quantile(pct))
+            rows.append(entry)
+    if not rows:
+        return pd.DataFrame(columns=columns)
+    return pd.DataFrame(rows)
+
+
 __all__ = [
     "generate_parameter_combinations",
     "run_parameter_sweep",
     "run_parameter_sweep_cached",
     "sweep_results_to_dataframe",
+    "aggregate_sweep_results",
+    "SweepRunner",
 ]
