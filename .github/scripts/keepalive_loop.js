@@ -1833,9 +1833,14 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     ? (baseReason || summaryReason)
     : (summaryReason || baseReason);
   const authSource = resolveAuthSource(process.env);
-  const authNote = authSource.includes('legacy')
-    ? 'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).'
-    : '';
+  let authNote = '';
+  if (authSource.includes('legacy')) {
+    authNote =
+      'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).';
+  } else if (authSource.startsWith('GH_APP')) {
+    authNote =
+      'GH_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY for the dedicated keepalive app pool.';
+  }
 
   const summaryLines = [
     '<!-- keepalive-loop-summary -->',

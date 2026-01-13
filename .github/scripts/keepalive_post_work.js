@@ -814,6 +814,17 @@ async function runKeepalivePostWork({ core, github, context, env = process.env }
       'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).'
     );
   }
+  const keepaliveToken = normalise(env.KEEPALIVE_APP_TOKEN);
+  const keepaliveId = normalise(env.KEEPALIVE_APP_ID);
+  const keepaliveKey = normalise(env.KEEPALIVE_APP_PRIVATE_KEY);
+  const ghToken = normalise(env.GH_APP_TOKEN);
+  const ghId = normalise(env.GH_APP_ID);
+  const ghKey = normalise(env.GH_APP_PRIVATE_KEY);
+  if (!keepaliveToken && !keepaliveId && !keepaliveKey && (ghToken || ghId || ghKey)) {
+    noteRemediation(
+      'GH_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY for the dedicated keepalive app pool.'
+    );
+  }
 
   const trace = normalise(env.TRACE);
   const round = normalise(env.ROUND);
