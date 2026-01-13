@@ -1840,6 +1840,9 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
   } else if (authSource.startsWith('GH_APP')) {
     authNote =
       'GH_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY for the dedicated keepalive app pool.';
+  } else if (authSource.startsWith('KEEPALIVE_APP (partial')) {
+    authNote =
+      'KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY are partially set; provide both (or KEEPALIVE_APP_TOKEN) for the dedicated keepalive app pool.';
   }
 
   const summaryLines = [

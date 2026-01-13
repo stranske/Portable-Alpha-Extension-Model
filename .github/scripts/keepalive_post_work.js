@@ -820,6 +820,11 @@ async function runKeepalivePostWork({ core, github, context, env = process.env }
   const ghToken = normalise(env.GH_APP_TOKEN);
   const ghId = normalise(env.GH_APP_ID);
   const ghKey = normalise(env.GH_APP_PRIVATE_KEY);
+  if (!keepaliveToken && Boolean(keepaliveId) !== Boolean(keepaliveKey)) {
+    noteRemediation(
+      'KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY are partially set; provide both (or KEEPALIVE_APP_TOKEN) for the dedicated keepalive app pool.'
+    );
+  }
   if (!keepaliveToken && !keepaliveId && !keepaliveKey && (ghToken || ghId || ghKey)) {
     noteRemediation(
       'GH_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY for the dedicated keepalive app pool.'
