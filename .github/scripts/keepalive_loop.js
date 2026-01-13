@@ -58,7 +58,7 @@ function resolveAuthSource(env = process.env) {
 
   const workflowsToken = normalise(env.WORKFLOWS_APP_TOKEN);
   if (workflowsToken) {
-    return 'WORKFLOWS_APP_TOKEN (legacy)';
+    return 'KEEPALIVE_APP_TOKEN (legacy via WORKFLOWS_APP_TOKEN)';
   }
 
   const keepaliveId = normalise(env.KEEPALIVE_APP_ID);
@@ -76,7 +76,9 @@ function resolveAuthSource(env = process.env) {
   const workflowsId = normalise(env.WORKFLOWS_APP_ID);
   const workflowsKey = normalise(env.WORKFLOWS_APP_PRIVATE_KEY);
   if (workflowsId || workflowsKey) {
-    return workflowsId && workflowsKey ? 'WORKFLOWS_APP (legacy)' : 'WORKFLOWS_APP (partial, legacy)';
+    return workflowsId && workflowsKey
+      ? 'KEEPALIVE_APP (legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)'
+      : 'KEEPALIVE_APP (partial, legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)';
   }
 
   const codexAuth = normalise(env.CODEX_AUTH_JSON);
@@ -1818,8 +1820,8 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     ? (baseReason || summaryReason)
     : (summaryReason || baseReason);
   const authSource = resolveAuthSource(process.env);
-  const authNote = authSource.includes('WORKFLOWS_APP')
-    ? 'WORKFLOWS_APP is legacy; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY.'
+  const authNote = authSource.includes('legacy')
+    ? 'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).'
     : '';
 
   const summaryLines = [

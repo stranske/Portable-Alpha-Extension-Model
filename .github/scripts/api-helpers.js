@@ -146,17 +146,24 @@ function resolvePatToken(env = process.env) {
 }
 
 function resolveAppToken(env = process.env) {
-  const candidates = [
-    { token: env.KEEPALIVE_APP_TOKEN, source: 'KEEPALIVE_APP_TOKEN' },
-    { token: env.GH_APP_TOKEN, source: 'GH_APP_TOKEN' },
-    { token: env.WORKFLOWS_APP_TOKEN, source: 'WORKFLOWS_APP_TOKEN' },
-  ];
-  for (const candidate of candidates) {
-    const token = normaliseToken(candidate.token);
-    if (token) {
-      return { token, source: candidate.source };
-    }
+  const keepaliveToken = normaliseToken(env.KEEPALIVE_APP_TOKEN);
+  if (keepaliveToken) {
+    return { token: keepaliveToken, source: 'KEEPALIVE_APP_TOKEN' };
   }
+
+  const ghToken = normaliseToken(env.GH_APP_TOKEN);
+  if (ghToken) {
+    return { token: ghToken, source: 'GH_APP_TOKEN' };
+  }
+
+  const workflowsToken = normaliseToken(env.WORKFLOWS_APP_TOKEN);
+  if (workflowsToken) {
+    return {
+      token: workflowsToken,
+      source: 'KEEPALIVE_APP_TOKEN (legacy alias via WORKFLOWS_APP_TOKEN)',
+    };
+  }
+
   return { token: '', source: '' };
 }
 
@@ -171,10 +178,9 @@ function maybeUseAppTokenOverride({ github, core = null, env = process.env }) {
     return { client: github, usedOverride: false, reason: 'no-octokit' };
   }
   const overrideClient = new OverrideOctokit({ auth: token });
-  const isLegacy = source === 'WORKFLOWS_APP_TOKEN';
+  const isLegacy = source.includes('legacy');
   const level = isLegacy ? 'warning' : 'info';
-  const suffix = isLegacy ? ' (legacy; prefer KEEPALIVE_APP_TOKEN)' : '';
-  log(core, level, `Using ${source} for keepalive GitHub client${suffix}.`);
+  log(core, level, `Using ${source} for keepalive GitHub client.`);
   return { client: overrideClient, usedOverride: true, reason: 'app-token', source };
 }
 
