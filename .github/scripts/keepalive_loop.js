@@ -1582,6 +1582,7 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     if (core) core.info('No PR number available for summary update.');
     return;
   }
+  applyKeepaliveAppEnvAliases(process.env, core);
 
   const gateConclusion = normalise(inputs.gateConclusion || inputs.gate_conclusion);
   const action = normalise(inputs.action);
