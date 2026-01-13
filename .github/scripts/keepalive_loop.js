@@ -62,17 +62,23 @@ function parseLegacyFlags(value) {
 }
 
 function resolveAuthSource(env = process.env) {
-  applyKeepaliveAppEnvAliases(env);
+  const keepaliveAlias = applyKeepaliveAppEnvAliases(env);
   const legacyAlias = normalise(env.KEEPALIVE_APP_LEGACY_ALIAS);
   const legacyFlags = parseLegacyFlags(legacyAlias);
   const legacyTokenAlias = legacyFlags.has('token');
   const legacyIdKeyAlias = legacyFlags.has('id-key');
+  const legacyPresent =
+    keepaliveAlias?.legacyTokenPresent || keepaliveAlias?.legacyIdKeyPresent;
 
   const keepaliveToken = normalise(env.KEEPALIVE_APP_TOKEN);
   if (keepaliveToken) {
-    return legacyTokenAlias
-      ? 'KEEPALIVE_APP_TOKEN (legacy alias via WORKFLOWS_APP_TOKEN)'
-      : 'KEEPALIVE_APP_TOKEN';
+    if (legacyTokenAlias) {
+      return 'KEEPALIVE_APP_TOKEN (legacy alias via WORKFLOWS_APP_TOKEN)';
+    }
+    if (legacyPresent) {
+      return 'KEEPALIVE_APP_TOKEN (legacy env present)';
+    }
+    return 'KEEPALIVE_APP_TOKEN';
   }
 
   const ghToken = normalise(env.GH_APP_TOKEN);
@@ -87,6 +93,11 @@ function resolveAuthSource(env = process.env) {
       return keepaliveId && keepaliveKey
         ? 'KEEPALIVE_APP (legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)'
         : 'KEEPALIVE_APP (partial, legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)';
+    }
+    if (legacyPresent) {
+      return keepaliveId && keepaliveKey
+        ? 'KEEPALIVE_APP (legacy env present)'
+        : 'KEEPALIVE_APP (partial, legacy env present)';
     }
     return keepaliveId && keepaliveKey ? 'KEEPALIVE_APP' : 'KEEPALIVE_APP (partial)';
   }
