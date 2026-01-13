@@ -10,7 +10,11 @@ const { classifyError, ERROR_CATEGORIES } = require('./error_classifier');
 const { formatFailureComment } = require('./failure_comment_formatter');
 const { detectConflicts } = require('./conflict_detector');
 const { parseTimeoutConfig } = require('./timeout_config');
-const { maybeUseAppTokenOverride, maybeUsePatFallback } = require('./api-helpers');
+const {
+  applyKeepaliveAppEnvAliases,
+  maybeUseAppTokenOverride,
+  maybeUsePatFallback,
+} = require('./api-helpers');
 
 const ATTEMPT_HISTORY_LIMIT = 5;
 const ATTEMPTED_TASK_LIMIT = 6;
@@ -46,9 +50,23 @@ function normalise(value) {
 }
 
 function resolveAuthSource(env = process.env) {
+  const legacyAlias = normalise(env.KEEPALIVE_APP_LEGACY_ALIAS);
+  const legacyFlags = legacyAlias
+    ? new Set(
+        legacyAlias
+          .split(',')
+          .map((entry) => normalise(entry))
+          .filter(Boolean)
+      )
+    : new Set();
+  const legacyTokenAlias = legacyFlags.has('token');
+  const legacyIdKeyAlias = legacyFlags.has('id-key');
+
   const keepaliveToken = normalise(env.KEEPALIVE_APP_TOKEN);
   if (keepaliveToken) {
-    return 'KEEPALIVE_APP_TOKEN';
+    return legacyTokenAlias
+      ? 'KEEPALIVE_APP_TOKEN (legacy alias via WORKFLOWS_APP_TOKEN)'
+      : 'KEEPALIVE_APP_TOKEN';
   }
 
   const ghToken = normalise(env.GH_APP_TOKEN);
@@ -64,6 +82,11 @@ function resolveAuthSource(env = process.env) {
   const keepaliveId = normalise(env.KEEPALIVE_APP_ID);
   const keepaliveKey = normalise(env.KEEPALIVE_APP_PRIVATE_KEY);
   if (keepaliveId || keepaliveKey) {
+    if (legacyIdKeyAlias) {
+      return keepaliveId && keepaliveKey
+        ? 'KEEPALIVE_APP (legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)'
+        : 'KEEPALIVE_APP (partial, legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)';
+    }
     return keepaliveId && keepaliveKey ? 'KEEPALIVE_APP' : 'KEEPALIVE_APP (partial)';
   }
 
@@ -1307,6 +1330,7 @@ async function detectRateLimitCancellation({ github, context, runId, core }) {
 }
 
 async function evaluateKeepaliveLoop({ github, context, core, payload: overridePayload, overridePrNumber, forceRetry }) {
+  applyKeepaliveAppEnvAliases(process.env, core);
   const appOverride = maybeUseAppTokenOverride({ github, core, env: process.env });
   if (appOverride?.client) {
     github = appOverride.client;

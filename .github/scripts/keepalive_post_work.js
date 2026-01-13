@@ -2,7 +2,11 @@
 
 const { setTimeout: sleep } = require('timers/promises');
 const { createKeepaliveStateManager } = require('./keepalive_state.js');
-const { maybeUseAppTokenOverride, maybeUsePatFallback } = require('./api-helpers');
+const {
+  applyKeepaliveAppEnvAliases,
+  maybeUseAppTokenOverride,
+  maybeUsePatFallback,
+} = require('./api-helpers');
 
 const AGENT_LABEL_PREFIX = 'agent:';
 const MERGE_METHODS = new Set(['merge', 'squash', 'rebase']);
@@ -785,6 +789,7 @@ async function attemptUpdateBranchViaApi({
 }
 
 async function runKeepalivePostWork({ core, github, context, env = process.env }) {
+  applyKeepaliveAppEnvAliases(env, core);
   const appOverride = maybeUseAppTokenOverride({ github, core, env });
   if (appOverride?.client) {
     github = appOverride.client;

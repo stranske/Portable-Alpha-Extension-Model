@@ -127,6 +127,56 @@ function normaliseToken(value) {
   return String(value ?? '').trim();
 }
 
+const KEEPALIVE_APP_LEGACY_ENV = 'KEEPALIVE_APP_LEGACY_ALIAS';
+let warnedLegacyAlias = false;
+
+function applyKeepaliveAppEnvAliases(env = process.env, core = null) {
+  if (!env) {
+    return { legacyToken: false, legacyIdKey: false };
+  }
+
+  let legacyToken = false;
+  let legacyIdKey = false;
+
+  const keepaliveToken = normaliseToken(env.KEEPALIVE_APP_TOKEN);
+  const workflowsToken = normaliseToken(env.WORKFLOWS_APP_TOKEN);
+  if (!keepaliveToken && workflowsToken) {
+    env.KEEPALIVE_APP_TOKEN = workflowsToken;
+    legacyToken = true;
+  }
+
+  const keepaliveId = normaliseToken(env.KEEPALIVE_APP_ID);
+  const workflowsId = normaliseToken(env.WORKFLOWS_APP_ID);
+  if (!keepaliveId && workflowsId) {
+    env.KEEPALIVE_APP_ID = workflowsId;
+    legacyIdKey = true;
+  }
+
+  const keepaliveKey = normaliseToken(env.KEEPALIVE_APP_PRIVATE_KEY);
+  const workflowsKey = normaliseToken(env.WORKFLOWS_APP_PRIVATE_KEY);
+  if (!keepaliveKey && workflowsKey) {
+    env.KEEPALIVE_APP_PRIVATE_KEY = workflowsKey;
+    legacyIdKey = true;
+  }
+
+  if (legacyToken || legacyIdKey) {
+    const flags = [];
+    if (legacyToken) {
+      flags.push('token');
+    }
+    if (legacyIdKey) {
+      flags.push('id-key');
+    }
+    env[KEEPALIVE_APP_LEGACY_ENV] = flags.join(',');
+    if (!warnedLegacyAlias) {
+      log(core, 'warning', 'Legacy WORKFLOWS_APP env detected; prefer KEEPALIVE_APP_* settings.');
+      warnedLegacyAlias = true;
+    }
+  }
+
+  return { legacyToken, legacyIdKey };
+}
+
 function resolvePatToken(env = process.env) {
   const candidates = [
     env.KEEPALIVE_PAT,
@@ -145,10 +195,16 @@ function resolvePatToken(env = process.env) {
   return '';
 }
 
-function resolveAppToken(env = process.env) {
+function resolveAppToken(env = process.env, core = null) {
+  const { legacyToken } = applyKeepaliveAppEnvAliases(env, core);
   const keepaliveToken = normaliseToken(env.KEEPALIVE_APP_TOKEN);
   if (keepaliveToken) {
-    return { token: keepaliveToken, source: 'KEEPALIVE_APP_TOKEN' };
+    return {
+      token: keepaliveToken,
+      source: legacyToken
+        ? 'KEEPALIVE_APP_TOKEN (legacy alias via WORKFLOWS_APP_TOKEN)'
+        : 'KEEPALIVE_APP_TOKEN',
+    };
   }
 
   const ghToken = normaliseToken(env.GH_APP_TOKEN);
@@ -156,19 +212,11 @@ function resolveAppToken(env = process.env) {
     return { token: ghToken, source: 'GH_APP_TOKEN' };
   }
 
-  const workflowsToken = normaliseToken(env.WORKFLOWS_APP_TOKEN);
-  if (workflowsToken) {
-    return {
-      token: workflowsToken,
-      source: 'KEEPALIVE_APP_TOKEN (legacy alias via WORKFLOWS_APP_TOKEN)',
-    };
-  }
-
   return { token: '', source: '' };
 }
 
 function maybeUseAppTokenOverride({ github, core = null, env = process.env }) {
-  const { token, source } = resolveAppToken(env);
+  const { token, source } = resolveAppToken(env, core);
   if (!token) {
     return { client: github, usedOverride: false, reason: 'no-app-token' };
   }
@@ -408,6 +456,7 @@ module.exports = {
   sleep,
   extractRateLimitReset,
   calculateWaitUntilReset,
+  applyKeepaliveAppEnvAliases,
   resolveAppToken,
   resolvePatToken,
   maybeUseAppTokenOverride,
