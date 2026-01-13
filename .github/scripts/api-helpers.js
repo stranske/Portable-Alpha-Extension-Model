@@ -147,17 +147,19 @@ function applyKeepaliveAppEnvAliases(env = process.env, core = null) {
   const workflowsKey = normaliseToken(env.WORKFLOWS_APP_PRIVATE_KEY);
   const legacyTokenPresent = Boolean(workflowsToken);
   const legacyIdKeyPresent = Boolean(workflowsId || workflowsKey);
-  const keepaliveConfigured = Boolean(keepaliveToken || keepaliveId || keepaliveKey);
+  const keepaliveHasToken = Boolean(keepaliveToken);
+  const keepaliveHasIdKey = Boolean(keepaliveId && keepaliveKey);
+  const keepaliveConfigured = keepaliveHasToken || keepaliveHasIdKey;
   if (!keepaliveConfigured) {
-    if (workflowsToken) {
+    if (!keepaliveToken && workflowsToken) {
       env.KEEPALIVE_APP_TOKEN = workflowsToken;
       legacyToken = true;
     }
-    if (workflowsId) {
+    if (!keepaliveId && workflowsId) {
       env.KEEPALIVE_APP_ID = workflowsId;
       legacyIdKey = true;
     }
-    if (workflowsKey) {
+    if (!keepaliveKey && workflowsKey) {
       env.KEEPALIVE_APP_PRIVATE_KEY = workflowsKey;
       legacyIdKey = true;
     }
