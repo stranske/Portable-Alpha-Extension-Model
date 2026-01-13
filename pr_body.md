@@ -21,7 +21,7 @@ Keepalive workflows should use the dedicated GitHub App pool and fall back to PA
 
 ## Notes
 - needs-human: update `.github/workflows/agents-keepalive-loop.yml` to use `KEEPALIVE_APP_ID`/`KEEPALIVE_APP_PRIVATE_KEY` (and align acceptance target with `GH_APP_ID`/`GH_APP_PRIVATE_KEY`) in the preflight/env blocks.
-- reviewed: keepalive scripts now alias legacy WORKFLOWS_APP env to KEEPALIVE_APP; task checkboxes unchanged until workflow env updates land.
+- reviewed: keepalive scripts now normalize legacy WORKFLOWS_APP env into KEEPALIVE_APP and report auth sources without direct WORKFLOWS_APP lookups.
 - reconciled: no additional tasks completed yet; workflow env update still blocks the remaining switch.
 
 <!-- auto-status-summary:end -->

@@ -50,6 +50,7 @@ function normalise(value) {
 }
 
 function resolveAuthSource(env = process.env) {
+  applyKeepaliveAppEnvAliases(env);
   const legacyAlias = normalise(env.KEEPALIVE_APP_LEGACY_ALIAS);
   const legacyFlags = legacyAlias
     ? new Set(
@@ -74,11 +75,6 @@ function resolveAuthSource(env = process.env) {
     return 'GH_APP_TOKEN';
   }
 
-  const workflowsToken = normalise(env.WORKFLOWS_APP_TOKEN);
-  if (workflowsToken) {
-    return 'KEEPALIVE_APP_TOKEN (legacy via WORKFLOWS_APP_TOKEN)';
-  }
-
   const keepaliveId = normalise(env.KEEPALIVE_APP_ID);
   const keepaliveKey = normalise(env.KEEPALIVE_APP_PRIVATE_KEY);
   if (keepaliveId || keepaliveKey) {
@@ -94,14 +90,6 @@ function resolveAuthSource(env = process.env) {
   const ghKey = normalise(env.GH_APP_PRIVATE_KEY);
   if (ghId || ghKey) {
     return ghId && ghKey ? 'GH_APP' : 'GH_APP (partial)';
-  }
-
-  const workflowsId = normalise(env.WORKFLOWS_APP_ID);
-  const workflowsKey = normalise(env.WORKFLOWS_APP_PRIVATE_KEY);
-  if (workflowsId || workflowsKey) {
-    return workflowsId && workflowsKey
-      ? 'KEEPALIVE_APP (legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)'
-      : 'KEEPALIVE_APP (partial, legacy via WORKFLOWS_APP_ID/PRIVATE_KEY)';
   }
 
   const codexAuth = normalise(env.CODEX_AUTH_JSON);
