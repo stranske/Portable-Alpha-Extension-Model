@@ -26,5 +26,6 @@ Keepalive workflows should use the dedicated GitHub App pool and fall back to PA
 - reviewed: keepalive summaries now flag partial KEEPALIVE_APP credential configuration.
 - reviewed: keepalive scripts now flag legacy WORKFLOWS_APP env presence even when KEEPALIVE_APP credentials are set.
 - reconciled: reviewed recent keepalive auth changes; task checkboxes remain accurate and workflow env update still blocks the remaining switch.
+- reviewed: keepalive app aliasing now only falls back to WORKFLOWS_APP when no KEEPALIVE_APP credentials are set.
 
 <!-- auto-status-summary:end -->

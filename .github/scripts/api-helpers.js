@@ -140,26 +140,27 @@ function applyKeepaliveAppEnvAliases(env = process.env, core = null) {
   let legacyIdKey = false;
 
   const keepaliveToken = normaliseToken(env.KEEPALIVE_APP_TOKEN);
+  const keepaliveId = normaliseToken(env.KEEPALIVE_APP_ID);
+  const keepaliveKey = normaliseToken(env.KEEPALIVE_APP_PRIVATE_KEY);
   const workflowsToken = normaliseToken(env.WORKFLOWS_APP_TOKEN);
   const workflowsId = normaliseToken(env.WORKFLOWS_APP_ID);
   const workflowsKey = normaliseToken(env.WORKFLOWS_APP_PRIVATE_KEY);
   const legacyTokenPresent = Boolean(workflowsToken);
   const legacyIdKeyPresent = Boolean(workflowsId || workflowsKey);
-  if (!keepaliveToken && workflowsToken) {
-    env.KEEPALIVE_APP_TOKEN = workflowsToken;
-    legacyToken = true;
-  }
-
-  const keepaliveId = normaliseToken(env.KEEPALIVE_APP_ID);
-  if (!keepaliveId && workflowsId) {
-    env.KEEPALIVE_APP_ID = workflowsId;
-    legacyIdKey = true;
-  }
-
-  const keepaliveKey = normaliseToken(env.KEEPALIVE_APP_PRIVATE_KEY);
-  if (!keepaliveKey && workflowsKey) {
-    env.KEEPALIVE_APP_PRIVATE_KEY = workflowsKey;
-    legacyIdKey = true;
+  const keepaliveConfigured = Boolean(keepaliveToken || keepaliveId || keepaliveKey);
+  if (!keepaliveConfigured) {
+    if (workflowsToken) {
+      env.KEEPALIVE_APP_TOKEN = workflowsToken;
+      legacyToken = true;
+    }
+    if (workflowsId) {
+      env.KEEPALIVE_APP_ID = workflowsId;
+      legacyIdKey = true;
+    }
+    if (workflowsKey) {
+      env.KEEPALIVE_APP_PRIVATE_KEY = workflowsKey;
+      legacyIdKey = true;
+    }
   }
 
   if (legacyTokenPresent || legacyIdKeyPresent) {
