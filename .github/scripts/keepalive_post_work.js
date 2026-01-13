@@ -809,7 +809,12 @@ async function runKeepalivePostWork({ core, github, context, env = process.env }
     }
     remediationNotes.push(value);
   };
-  if (keepaliveAlias?.legacyToken || keepaliveAlias?.legacyIdKey) {
+  const legacyPresent =
+    keepaliveAlias?.legacyTokenPresent ||
+    keepaliveAlias?.legacyIdKeyPresent ||
+    keepaliveAlias?.legacyToken ||
+    keepaliveAlias?.legacyIdKey;
+  if (legacyPresent) {
     noteRemediation(
       'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).'
     );

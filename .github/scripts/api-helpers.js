@@ -128,6 +128,7 @@ function normaliseToken(value) {
 }
 
 const KEEPALIVE_APP_LEGACY_ENV = 'KEEPALIVE_APP_LEGACY_ALIAS';
+const KEEPALIVE_APP_LEGACY_PRESENT_ENV = 'KEEPALIVE_APP_LEGACY_PRESENT';
 let warnedLegacyAlias = false;
 
 function applyKeepaliveAppEnvAliases(env = process.env, core = null) {
@@ -140,23 +141,36 @@ function applyKeepaliveAppEnvAliases(env = process.env, core = null) {
 
   const keepaliveToken = normaliseToken(env.KEEPALIVE_APP_TOKEN);
   const workflowsToken = normaliseToken(env.WORKFLOWS_APP_TOKEN);
+  const workflowsId = normaliseToken(env.WORKFLOWS_APP_ID);
+  const workflowsKey = normaliseToken(env.WORKFLOWS_APP_PRIVATE_KEY);
+  const legacyTokenPresent = Boolean(workflowsToken);
+  const legacyIdKeyPresent = Boolean(workflowsId || workflowsKey);
   if (!keepaliveToken && workflowsToken) {
     env.KEEPALIVE_APP_TOKEN = workflowsToken;
     legacyToken = true;
   }
 
   const keepaliveId = normaliseToken(env.KEEPALIVE_APP_ID);
-  const workflowsId = normaliseToken(env.WORKFLOWS_APP_ID);
   if (!keepaliveId && workflowsId) {
     env.KEEPALIVE_APP_ID = workflowsId;
     legacyIdKey = true;
   }
 
   const keepaliveKey = normaliseToken(env.KEEPALIVE_APP_PRIVATE_KEY);
-  const workflowsKey = normaliseToken(env.WORKFLOWS_APP_PRIVATE_KEY);
   if (!keepaliveKey && workflowsKey) {
     env.KEEPALIVE_APP_PRIVATE_KEY = workflowsKey;
     legacyIdKey = true;
+  }
+
+  if (legacyTokenPresent || legacyIdKeyPresent) {
+    const presentFlags = [];
+    if (legacyTokenPresent) {
+      presentFlags.push('token');
+    }
+    if (legacyIdKeyPresent) {
+      presentFlags.push('id-key');
+    }
+    env[KEEPALIVE_APP_LEGACY_PRESENT_ENV] = presentFlags.join(',');
   }
 
   if (legacyToken || legacyIdKey) {
@@ -168,13 +182,13 @@ function applyKeepaliveAppEnvAliases(env = process.env, core = null) {
       flags.push('id-key');
     }
     env[KEEPALIVE_APP_LEGACY_ENV] = flags.join(',');
-    if (!warnedLegacyAlias) {
-      log(core, 'warning', 'Legacy WORKFLOWS_APP env detected; prefer KEEPALIVE_APP_* settings.');
-      warnedLegacyAlias = true;
-    }
+  }
+  if ((legacyTokenPresent || legacyIdKeyPresent) && !warnedLegacyAlias) {
+    log(core, 'warning', 'Legacy WORKFLOWS_APP env detected; prefer KEEPALIVE_APP_* settings.');
+    warnedLegacyAlias = true;
   }
 
-  return { legacyToken, legacyIdKey };
+  return { legacyToken, legacyIdKey, legacyTokenPresent, legacyIdKeyPresent };
 }
 
 function resolvePatToken(env = process.env) {

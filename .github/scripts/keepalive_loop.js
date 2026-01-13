@@ -49,17 +49,22 @@ function normalise(value) {
   return String(value ?? '').trim();
 }
 
-function resolveAuthSource(env = process.env) {
-  applyKeepaliveAppEnvAliases(env);
-  const legacyAlias = normalise(env.KEEPALIVE_APP_LEGACY_ALIAS);
-  const legacyFlags = legacyAlias
+function parseLegacyFlags(value) {
+  const raw = normalise(value);
+  return raw
     ? new Set(
-        legacyAlias
+        raw
           .split(',')
           .map((entry) => normalise(entry))
           .filter(Boolean)
       )
     : new Set();
+}
+
+function resolveAuthSource(env = process.env) {
+  applyKeepaliveAppEnvAliases(env);
+  const legacyAlias = normalise(env.KEEPALIVE_APP_LEGACY_ALIAS);
+  const legacyFlags = parseLegacyFlags(legacyAlias);
   const legacyTokenAlias = legacyFlags.has('token');
   const legacyIdKeyAlias = legacyFlags.has('id-key');
 
@@ -1833,8 +1838,12 @@ async function updateKeepaliveLoopSummary({ github, context, core, inputs }) {
     ? (baseReason || summaryReason)
     : (summaryReason || baseReason);
   const authSource = resolveAuthSource(process.env);
+  const legacyEnvFlags = parseLegacyFlags(
+    process.env.KEEPALIVE_APP_LEGACY_PRESENT || process.env.KEEPALIVE_APP_LEGACY_ALIAS
+  );
+  const hasLegacyEnv = legacyEnvFlags.size > 0;
   let authNote = '';
-  if (authSource.includes('legacy')) {
+  if (hasLegacyEnv) {
     authNote =
       'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).';
   } else if (authSource.startsWith('GH_APP')) {
