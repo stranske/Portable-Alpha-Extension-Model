@@ -789,7 +789,7 @@ async function attemptUpdateBranchViaApi({
 }
 
 async function runKeepalivePostWork({ core, github, context, env = process.env }) {
-  applyKeepaliveAppEnvAliases(env, core);
+  const keepaliveAlias = applyKeepaliveAppEnvAliases(env, core);
   const appOverride = maybeUseAppTokenOverride({ github, core, env });
   if (appOverride?.client) {
     github = appOverride.client;
@@ -809,6 +809,11 @@ async function runKeepalivePostWork({ core, github, context, env = process.env }
     }
     remediationNotes.push(value);
   };
+  if (keepaliveAlias?.legacyToken || keepaliveAlias?.legacyIdKey) {
+    noteRemediation(
+      'Legacy WORKFLOWS_APP env detected; update workflow env to KEEPALIVE_APP_ID/KEEPALIVE_APP_PRIVATE_KEY (or GH_APP_ID/GH_APP_PRIVATE_KEY).'
+    );
+  }
 
   const trace = normalise(env.TRACE);
   const round = normalise(env.ROUND);
