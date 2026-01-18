@@ -5,13 +5,15 @@ from __future__ import annotations
 import re
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
-from .portfolio.constraints import COMMON_CONSTRAINTS, PortfolioConstraints
 from .schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
+
+if TYPE_CHECKING:
+    from .portfolio.constraints import PortfolioConstraints
 
 # Module-level constants for validation thresholds
 #
@@ -105,6 +107,38 @@ class ValidationResult(NamedTuple):
     message: str
     severity: str  # 'error', 'warning', 'info'
     details: Dict[str, Any] = {}
+    suggestion: str | None = None
+
+
+def _weight_bounds_suggestion(
+    asset_id: str, weight: float, min_weight: float, max_weight: float
+) -> str:
+    if weight < min_weight:
+        return (
+            f"increase {asset_id} weight to at least {min_weight:.4f} "
+            "or remove the asset"
+        )
+    if weight > max_weight:
+        return f"reduce {asset_id} weight to {max_weight:.4f} or less"
+    return "adjust weights to fit the bounds"
+
+
+def _leverage_suggestion(gross_leverage: float, max_leverage: float) -> str:
+    if gross_leverage <= 0:
+        return "review weights for invalid values"
+    scale = max_leverage / gross_leverage
+    return f"scale all weights by {scale:.4f} to target gross leverage <= {max_leverage:.4f}"
+
+
+def _concentration_suggestion(asset_id: str, max_limit: float) -> str:
+    return f"reduce {asset_id} weight to {max_limit:.4f} or less"
+
+
+def _top_n_suggestion(top_n: int, excess: float, max_limit: float) -> str:
+    return (
+        f"reduce the top {top_n} weights by {excess:.4f} total "
+        f"to reach <= {max_limit:.4f}"
+    )
 
 
 def validate_portfolio_constraints(
@@ -113,6 +147,8 @@ def validate_portfolio_constraints(
     constraints: PortfolioConstraints | None = None,
 ) -> List[ValidationResult]:
     """Validate portfolio weights against common constraint definitions."""
+    from .portfolio.constraints import COMMON_CONSTRAINTS
+
     active_constraints = constraints or COMMON_CONSTRAINTS
     results: List[ValidationResult] = []
 
@@ -120,46 +156,66 @@ def validate_portfolio_constraints(
     max_weight = active_constraints.weight_bounds.max_weight
     for asset_id, weight in weights.items():
         if weight < min_weight or weight > max_weight:
+            suggestion = _weight_bounds_suggestion(
+                asset_id, weight, min_weight, max_weight
+            )
             results.append(
                 ValidationResult(
                     is_valid=False,
                     message=(
                         f"portfolio weight for {asset_id} must be between "
-                        f"{min_weight} and {max_weight}"
+                        f"{min_weight} and {max_weight}; suggestion: {suggestion}"
                     ),
                     severity="error",
-                    details={"asset": asset_id, "weight": weight},
+                    details={
+                        "asset": asset_id,
+                        "weight": weight,
+                        "suggestion": suggestion,
+                    },
+                    suggestion=suggestion,
                 )
             )
 
     gross_leverage = sum(abs(weight) for weight in weights.values())
     max_leverage = active_constraints.leverage.max_gross_leverage
     if gross_leverage > max_leverage:
+        suggestion = _leverage_suggestion(gross_leverage, max_leverage)
         results.append(
             ValidationResult(
                 is_valid=False,
                 message=(
                     f"portfolio gross leverage must be <= {max_leverage} "
-                    f"(got {gross_leverage:.4f})"
+                    f"(got {gross_leverage:.4f}); suggestion: {suggestion}"
                 ),
                 severity="error",
-                details={"gross_leverage": gross_leverage},
+                details={
+                    "gross_leverage": gross_leverage,
+                    "suggestion": suggestion,
+                },
+                suggestion=suggestion,
             )
         )
 
     if weights:
-        max_single_weight = max(weights.values())
+        max_asset_id = max(weights, key=weights.get)
+        max_single_weight = weights[max_asset_id]
         max_single_limit = active_constraints.concentration.max_single_weight
         if max_single_weight > max_single_limit:
+            suggestion = _concentration_suggestion(max_asset_id, max_single_limit)
             results.append(
                 ValidationResult(
                     is_valid=False,
                     message=(
-                        f"portfolio max weight must be <= {max_single_limit} "
-                        f"(got {max_single_weight:.4f})"
+                        f"portfolio max weight for {max_asset_id} must be <= {max_single_limit} "
+                        f"(got {max_single_weight:.4f}); suggestion: {suggestion}"
                     ),
                     severity="error",
-                    details={"max_weight": max_single_weight},
+                    details={
+                        "asset": max_asset_id,
+                        "max_weight": max_single_weight,
+                        "suggestion": suggestion,
+                    },
+                    suggestion=suggestion,
                 )
             )
 
@@ -169,15 +225,23 @@ def validate_portfolio_constraints(
             top_total = sum(top_weights)
             max_top_n = active_constraints.concentration.max_top_n_weight
             if top_total > max_top_n:
+                excess = top_total - max_top_n
+                suggestion = _top_n_suggestion(top_n, excess, max_top_n)
                 results.append(
                     ValidationResult(
                         is_valid=False,
                         message=(
                             f"portfolio top {top_n} weight must be <= {max_top_n} "
-                            f"(got {top_total:.4f})"
+                            f"(got {top_total:.4f}); suggestion: {suggestion}"
                         ),
                         severity="error",
-                        details={"top_n": top_n, "top_n_weight": top_total},
+                        details={
+                            "top_n": top_n,
+                            "top_n_weight": top_total,
+                            "suggestion": suggestion,
+                            "excess": excess,
+                        },
+                        suggestion=suggestion,
                     )
                 )
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .aggregator import PortfolioAggregator
+from typing import TYPE_CHECKING
+
 from .constraints import (
     COMMON_CONCENTRATION,
     COMMON_CONSTRAINTS,
@@ -12,6 +13,9 @@ from .constraints import (
     WeightBoundsConstraint,
 )
 from .core import DEFAULT_PORTFOLIO_EXCLUDES, compute_total_contribution_returns
+
+if TYPE_CHECKING:
+    from .aggregator import PortfolioAggregator
 
 __all__ = [
     "COMMON_CONCENTRATION",
@@ -26,3 +30,11 @@ __all__ = [
     "compute_total_contribution_returns",
     "DEFAULT_PORTFOLIO_EXCLUDES",
 ]
+
+
+def __getattr__(name: str) -> object:
+    if name == "PortfolioAggregator":
+        from .aggregator import PortfolioAggregator
+
+        return PortfolioAggregator
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
