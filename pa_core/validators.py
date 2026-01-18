@@ -240,6 +240,19 @@ def validate_portfolio_constraints(
     return results
 
 
+class ConstraintValidator:
+    """Validate portfolio weights against common constraints."""
+
+    def __init__(self, constraints: PortfolioConstraints | None = None) -> None:
+        self._constraints = constraints
+
+    @property
+    def constraints(self) -> PortfolioConstraints | None:
+        return self._constraints
+
+    def validate(self, weights: Dict[str, float]) -> List[ValidationResult]:
+        return validate_portfolio_constraints(weights, constraints=self._constraints)
+
 class PSDProjectionInfo(NamedTuple):
     """Information about PSD projection."""
 

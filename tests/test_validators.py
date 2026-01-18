@@ -9,6 +9,7 @@ import numpy as np
 import pytest
 
 from pa_core.validators import (
+    ConstraintValidator,
     ValidationResult,
     calculate_margin_requirement,
     format_validation_messages,
@@ -261,6 +262,22 @@ class TestPortfolioConstraintSuggestions:
         message = next(r.message for r in results if "portfolio gross leverage" in r.message)
         assert "suggestion:" in message
         assert "scale all weights" in message
+
+
+class TestConstraintValidator:
+    """Test ConstraintValidator wrapper."""
+
+    def test_constraint_validator_reports_weight_bounds(self) -> None:
+        validator = ConstraintValidator()
+        results = validator.validate({"A": 1.2})
+        messages = [result.message for result in results if not result.is_valid]
+        assert any("portfolio weight for A" in message for message in messages)
+
+    def test_constraint_validator_reports_leverage(self) -> None:
+        validator = ConstraintValidator()
+        results = validator.validate({"A": 0.7, "B": 0.6})
+        messages = [result.message for result in results if not result.is_valid]
+        assert any("portfolio gross leverage" in message for message in messages)
 
 
 class TestMarginScheduleValidation:
