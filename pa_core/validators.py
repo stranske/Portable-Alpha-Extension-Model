@@ -253,6 +253,7 @@ class ConstraintValidator:
     def validate(self, weights: Dict[str, float]) -> List[ValidationResult]:
         return validate_portfolio_constraints(weights, constraints=self._constraints)
 
+
 class PSDProjectionInfo(NamedTuple):
     """Information about PSD projection."""
 
