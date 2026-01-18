@@ -10,6 +10,7 @@ import yaml
 from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
 from pydantic_core import PydanticUndefined
 
+from .portfolio.constraints import PortfolioConstraints
 from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 CORRELATION_LOWER_BOUND = -0.999
@@ -48,12 +49,22 @@ class Correlation(BaseModel):
 class Portfolio(BaseModel):
     id: str
     weights: Dict[str, float]
+    constraints: PortfolioConstraints | None = None
 
     @model_validator(mode="after")
     def _check_weights(self) -> "Portfolio":
         total = sum(self.weights.values())
         if abs(total - 1.0) > SHARE_SUM_TOLERANCE:
             raise ValueError("portfolio weights must sum to 1")
+        if self.constraints is not None:
+            from .validators import validate_portfolio_constraints
+
+            results = validate_portfolio_constraints(
+                self.weights, constraints=self.constraints
+            )
+            errors = [result for result in results if not result.is_valid]
+            if errors:
+                raise ValueError("; ".join(result.message for result in errors))
         return self
 
 

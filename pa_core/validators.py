@@ -10,6 +10,7 @@ from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Un
 import numpy as np
 import pandas as pd
 
+from .portfolio.constraints import COMMON_CONSTRAINTS, PortfolioConstraints
 from .schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 
 # Module-level constants for validation thresholds
@@ -104,6 +105,83 @@ class ValidationResult(NamedTuple):
     message: str
     severity: str  # 'error', 'warning', 'info'
     details: Dict[str, Any] = {}
+
+
+def validate_portfolio_constraints(
+    weights: Dict[str, float],
+    *,
+    constraints: PortfolioConstraints | None = None,
+) -> List[ValidationResult]:
+    """Validate portfolio weights against common constraint definitions."""
+    active_constraints = constraints or COMMON_CONSTRAINTS
+    results: List[ValidationResult] = []
+
+    min_weight = active_constraints.weight_bounds.min_weight
+    max_weight = active_constraints.weight_bounds.max_weight
+    for asset_id, weight in weights.items():
+        if weight < min_weight or weight > max_weight:
+            results.append(
+                ValidationResult(
+                    is_valid=False,
+                    message=(
+                        f"portfolio weight for {asset_id} must be between "
+                        f"{min_weight} and {max_weight}"
+                    ),
+                    severity="error",
+                    details={"asset": asset_id, "weight": weight},
+                )
+            )
+
+    gross_leverage = sum(abs(weight) for weight in weights.values())
+    max_leverage = active_constraints.leverage.max_gross_leverage
+    if gross_leverage > max_leverage:
+        results.append(
+            ValidationResult(
+                is_valid=False,
+                message=(
+                    f"portfolio gross leverage must be <= {max_leverage} "
+                    f"(got {gross_leverage:.4f})"
+                ),
+                severity="error",
+                details={"gross_leverage": gross_leverage},
+            )
+        )
+
+    if weights:
+        max_single_weight = max(weights.values())
+        max_single_limit = active_constraints.concentration.max_single_weight
+        if max_single_weight > max_single_limit:
+            results.append(
+                ValidationResult(
+                    is_valid=False,
+                    message=(
+                        f"portfolio max weight must be <= {max_single_limit} "
+                        f"(got {max_single_weight:.4f})"
+                    ),
+                    severity="error",
+                    details={"max_weight": max_single_weight},
+                )
+            )
+
+        top_n = min(active_constraints.concentration.top_n, len(weights))
+        if top_n > 0:
+            top_weights = sorted(weights.values(), reverse=True)[:top_n]
+            top_total = sum(top_weights)
+            max_top_n = active_constraints.concentration.max_top_n_weight
+            if top_total > max_top_n:
+                results.append(
+                    ValidationResult(
+                        is_valid=False,
+                        message=(
+                            f"portfolio top {top_n} weight must be <= {max_top_n} "
+                            f"(got {top_total:.4f})"
+                        ),
+                        severity="error",
+                        details={"top_n": top_n, "top_n_weight": top_total},
+                    )
+                )
+
+    return results
 
 
 class PSDProjectionInfo(NamedTuple):

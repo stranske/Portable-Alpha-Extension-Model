@@ -5,8 +5,10 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from pa_core.portfolio.constraints import COMMON_CONSTRAINTS
 from pa_core.schema import (
     ASSET_INDEX_CONFLICT_ERROR,
+    Portfolio,
     Scenario,
     load_scenario,
     save_scenario,
@@ -38,6 +40,16 @@ def test_bad_portfolio_weights() -> None:
     }
     with pytest.raises(ValueError):
         Scenario.model_validate(data)
+
+
+def test_portfolio_constraints_optional() -> None:
+    portfolio = Portfolio(id="p1", weights={"A": 0.7, "B": 0.3})
+    assert portfolio.constraints is None
+
+
+def test_portfolio_constraints_enforced_when_provided() -> None:
+    with pytest.raises(ValueError, match="portfolio max weight must be <="):
+        Portfolio(id="p1", weights={"A": 0.7, "B": 0.3}, constraints=COMMON_CONSTRAINTS)
 
 
 def test_missing_rho() -> None:
