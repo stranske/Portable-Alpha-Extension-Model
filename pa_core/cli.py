@@ -335,6 +335,11 @@ def main(
     )
     parser.add_argument("--index", required=True, help="Index returns CSV")
     parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Validate inputs and exit without running simulation",
+    )
+    parser.add_argument(
         "--index-frequency",
         choices=["daily", "weekly", "monthly", "quarterly"],
         default=None,
@@ -752,7 +757,15 @@ def main(
     # Defer heavy imports until after bootstrap (lightweight imports only)
     from .backend import resolve_and_set_backend
     from .config import load_config
+    from .data import load_index_returns
+    from .data.loaders import (
+        FrequencyValidationError,
+        resample_to_monthly,
+        validate_frequency,
+    )
     from .facade import RunOptions, apply_run_options
+    from .stress import apply_stress_preset
+    from .units import get_index_series_unit, normalize_index_series
 
     # Translate CLI flags into RunOptions before delegating execution to the facade.
     # The facade owns the simulation pipeline; the CLI owns argument parsing and output order.
@@ -770,6 +783,45 @@ def main(
         analysis_mode=args.mode,
     )
     cfg = apply_run_options(cfg, run_options)
+
+    base_cfg = cfg
+    if args.stress_preset:
+        base_cfg = cfg
+        cfg = apply_stress_preset(cfg, args.stress_preset)
+
+    idx_series = load_index_returns(args.index)
+
+    # Ensure idx_series is a pandas Series for type safety
+    if isinstance(idx_series, pd.DataFrame):
+        idx_series = idx_series.squeeze()
+        if not isinstance(idx_series, pd.Series):
+            raise ValueError("Index data must be convertible to pandas Series")
+    elif not isinstance(idx_series, pd.Series):
+        raise ValueError("Index data must be a pandas Series")
+
+    idx_series.attrs["source_path"] = str(args.index)
+
+    # If user explicitly declared frequency, store it in attrs
+    if args.index_frequency:
+        idx_series.attrs["frequency"] = args.index_frequency
+
+    # Resample if requested
+    if args.resample:
+        idx_series = resample_to_monthly(idx_series)
+
+    # Validate frequency (defaults to monthly, raises if mismatch)
+    try:
+        validate_frequency(idx_series, expected="monthly", strict=True)
+    except FrequencyValidationError as e:
+        raise SystemExit(f"Error: {e}") from None
+
+    idx_series = normalize_index_series(idx_series, get_index_series_unit())
+    index_hash = _hash_index_series(idx_series) if args.bundle else ""
+
+    if args.validate_only:
+        print("Validation OK")
+        return
+
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
@@ -779,7 +831,6 @@ def main(
     # Echo backend selection at start (asserted in tests/expected_cli_outputs.py::MAIN_BACKEND_STDOUT).
     print(f"[BACKEND] Using backend: {backend_choice}")
 
-    from .data import load_index_returns
     from .facade import run_single
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
@@ -793,7 +844,6 @@ def main(
     from .run_flags import RunFlags
     from .sim.simulation_initialization import initialize_sweep_rngs
     from .sleeve_suggestor import suggest_sleeve_sizes
-    from .stress import apply_stress_preset
     from .sweep import run_parameter_sweep
     from .viz.utils import safe_to_numpy
 
@@ -835,49 +885,6 @@ def main(
             _record_artifact(run_log_path)
         except (OSError, PermissionError, RuntimeError, ValueError) as e:
             logger.warning(f"Failed to set up JSON logging: {e}")
-
-    base_cfg = cfg
-    if args.stress_preset:
-        base_cfg = cfg
-        cfg = apply_stress_preset(cfg, args.stress_preset)
-
-    idx_series = load_index_returns(args.index)
-
-    # Ensure idx_series is a pandas Series for type safety
-    if isinstance(idx_series, pd.DataFrame):
-        idx_series = idx_series.squeeze()
-        if not isinstance(idx_series, pd.Series):
-            raise ValueError("Index data must be convertible to pandas Series")
-    elif not isinstance(idx_series, pd.Series):
-        raise ValueError("Index data must be a pandas Series")
-
-    idx_series.attrs["source_path"] = str(args.index)
-
-    # Handle frequency validation and resampling
-    from .data.loaders import (
-        FrequencyValidationError,
-        resample_to_monthly,
-        validate_frequency,
-    )
-
-    # If user explicitly declared frequency, store it in attrs
-    if args.index_frequency:
-        idx_series.attrs["frequency"] = args.index_frequency
-
-    # Resample if requested
-    if args.resample:
-        idx_series = resample_to_monthly(idx_series)
-
-    # Validate frequency (defaults to monthly, raises if mismatch)
-    try:
-        validate_frequency(idx_series, expected="monthly", strict=True)
-    except FrequencyValidationError as e:
-        raise SystemExit(f"Error: {e}") from None
-
-    from .units import get_index_series_unit, normalize_index_series
-
-    idx_series = normalize_index_series(idx_series, get_index_series_unit())
-    index_hash = _hash_index_series(idx_series) if args.bundle else ""
 
     if args.register:
         try:

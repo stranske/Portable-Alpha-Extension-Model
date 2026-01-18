@@ -24,6 +24,26 @@ def _patch_core(monkeypatch, cfg: ModelConfig) -> None:
     monkeypatch.setattr("pa_core.backend.resolve_and_set_backend", lambda *_: "numpy")
 
 
+def test_cli_validate_only_exits_without_backend(monkeypatch, capsys):
+    cfg = _minimal_config()
+    monkeypatch.setattr("pa_core.config.load_config", lambda *_: cfg)
+    monkeypatch.setattr("pa_core.facade.apply_run_options", lambda *_: cfg)
+    monkeypatch.setattr(
+        "pa_core.backend.resolve_and_set_backend",
+        lambda *_: (_ for _ in ()).throw(AssertionError("backend resolution invoked")),
+    )
+    monkeypatch.setattr(
+        "pa_core.data.load_index_returns",
+        lambda *_: _mock_monthly_series(),
+    )
+    monkeypatch.setattr("pa_core.units.normalize_index_series", lambda series, *_: series)
+    monkeypatch.setattr("pa_core.units.get_index_series_unit", lambda *_: "monthly")
+
+    main(["--config", "cfg.yaml", "--index", "idx.csv", "--validate-only"])
+    captured = capsys.readouterr()
+    assert captured.out == "Validation OK\n"
+
+
 def test_cli_rejects_non_series_index(monkeypatch):
     cfg = _minimal_config()
     _patch_core(monkeypatch, cfg)
