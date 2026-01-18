@@ -59,9 +59,7 @@ class Portfolio(BaseModel):
         if self.constraints is not None:
             from .validators import validate_portfolio_constraints
 
-            results = validate_portfolio_constraints(
-                self.weights, constraints=self.constraints
-            )
+            results = validate_portfolio_constraints(self.weights, constraints=self.constraints)
             errors = [result for result in results if not result.is_valid]
             if errors:
                 raise ValueError("; ".join(result.message for result in errors))
