@@ -566,8 +566,7 @@ def test_csv_to_yaml_conversion(tmp_path):
     # - Columns named "Parameter" and "Value" (capitalized)
     # - Parameter names as human-readable aliases from ModelConfig
     csv_path = tmp_path / "test_params.csv"
-    csv_content = dedent(
-        """\
+    csv_content = dedent("""\
         Parameter,Value
         Number of simulations,1000
         Number of months,6
@@ -578,8 +577,7 @@ def test_csv_to_yaml_conversion(tmp_path):
         Active Extension capital (mm),200.0
         Internal PA capital (mm),300.0
         Total fund capital (mm),1000.0
-    """
-    )
+    """)
     csv_path.write_text(csv_content)
     out_yaml = tmp_path / "out.yml"
     convert(csv_path, out_yaml)

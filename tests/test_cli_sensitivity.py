@@ -19,8 +19,7 @@ def test_sensitivity_flag_added():
         output_file = Path(temp_dir) / "output.xlsx"
 
         # Create minimal config file (use working config from example)
-        config_file.write_text(
-            """
+        config_file.write_text("""
 N_SIMULATIONS: 100
 N_MONTHS: 12
 financing_mode: broadcast
@@ -39,8 +38,7 @@ mu_E: 0.05
 sigma_E: 0.02
 mu_M: 0.03
 sigma_M: 0.01
-"""
-        )
+""")
 
         # Create minimal index file
         index_data = pd.DataFrame(
@@ -108,8 +106,7 @@ def test_sensitivity_analysis_execution():
         output_file = Path(temp_dir) / "output.xlsx"
 
         # Create minimal config file (use working config from example)
-        config_file.write_text(
-            """
+        config_file.write_text("""
 N_SIMULATIONS: 100
 N_MONTHS: 12
 financing_mode: broadcast
@@ -128,8 +125,7 @@ mu_E: 0.05
 sigma_E: 0.02
 mu_M: 0.03
 sigma_M: 0.01
-"""
-        )
+""")
 
         # Create minimal index file
         index_data = pd.DataFrame(
@@ -198,8 +194,7 @@ def test_sensitivity_sets_tornado_deltas(monkeypatch, tmp_path):
     index_file = tmp_path / "index.csv"
     output_file = tmp_path / "output.xlsx"
 
-    config_file.write_text(
-        """
+    config_file.write_text("""
 N_SIMULATIONS: 100
 N_MONTHS: 12
 financing_mode: broadcast
@@ -218,8 +213,7 @@ mu_E: 0.05
 sigma_E: 0.02
 mu_M: 0.03
 sigma_M: 0.01
-"""
-    )
+""")
 
     index_data = pd.DataFrame(
         {
@@ -314,8 +308,7 @@ def test_sensitivity_analysis_error_logging():
         output_file = Path(temp_dir) / "output.xlsx"
 
         # Create config that might cause evaluation errors
-        config_file.write_text(
-            """
+        config_file.write_text("""
 N_SIMULATIONS: 100
 N_MONTHS: 12
 financing_mode: broadcast
@@ -334,8 +327,7 @@ mu_E: 0.05
 sigma_E: 0.02
 mu_M: 0.03
 sigma_M: 0.01
-"""
-        )
+""")
 
         # Create minimal index file
         index_data = pd.DataFrame(
