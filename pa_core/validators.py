@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union, TYPE_CHECKING
+from typing import IO, TYPE_CHECKING, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -114,10 +114,7 @@ def _weight_bounds_suggestion(
     asset_id: str, weight: float, min_weight: float, max_weight: float
 ) -> str:
     if weight < min_weight:
-        return (
-            f"increase {asset_id} weight to at least {min_weight:.4f} "
-            "or remove the asset"
-        )
+        return f"increase {asset_id} weight to at least {min_weight:.4f} " "or remove the asset"
     if weight > max_weight:
         return f"reduce {asset_id} weight to {max_weight:.4f} or less"
     return "adjust weights to fit the bounds"
@@ -135,10 +132,7 @@ def _concentration_suggestion(asset_id: str, max_limit: float) -> str:
 
 
 def _top_n_suggestion(top_n: int, excess: float, max_limit: float) -> str:
-    return (
-        f"reduce the top {top_n} weights by {excess:.4f} total "
-        f"to reach <= {max_limit:.4f}"
-    )
+    return f"reduce the top {top_n} weights by {excess:.4f} total " f"to reach <= {max_limit:.4f}"
 
 
 def validate_portfolio_constraints(
@@ -156,9 +150,7 @@ def validate_portfolio_constraints(
     max_weight = active_constraints.weight_bounds.max_weight
     for asset_id, weight in weights.items():
         if weight < min_weight or weight > max_weight:
-            suggestion = _weight_bounds_suggestion(
-                asset_id, weight, min_weight, max_weight
-            )
+            suggestion = _weight_bounds_suggestion(asset_id, weight, min_weight, max_weight)
             results.append(
                 ValidationResult(
                     is_valid=False,

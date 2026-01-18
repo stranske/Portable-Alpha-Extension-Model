@@ -223,7 +223,6 @@ class TestCapitalAllocationValidation:
         )
         assert margin == pytest.approx(0.02 * 3.0 * 1000.0)
 
-
     def test_schedule_margin_drives_capital_validation(self, tmp_path: Path):
         """Ensure schedule-based margin drives capital validation outcomes."""
         csv = "term,multiplier\n1,10\n3,10\n"
@@ -253,17 +252,13 @@ class TestPortfolioConstraintSuggestions:
 
     def test_weight_bounds_suggestion(self) -> None:
         results = validate_portfolio_constraints({"A": 1.2})
-        message = next(
-            r.message for r in results if "portfolio weight for A" in r.message
-        )
+        message = next(r.message for r in results if "portfolio weight for A" in r.message)
         assert "suggestion:" in message
         assert "reduce A weight" in message
 
     def test_leverage_suggestion(self) -> None:
         results = validate_portfolio_constraints({"A": 0.7, "B": 0.6})
-        message = next(
-            r.message for r in results if "portfolio gross leverage" in r.message
-        )
+        message = next(r.message for r in results if "portfolio gross leverage" in r.message)
         assert "suggestion:" in message
         assert "scale all weights" in message
 
