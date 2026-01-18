@@ -30,9 +30,11 @@ portfolios:
 - id: portfolio_1
   weights:
     ASSET_1: 1.0
+  constraints: null
 - id: portfolio_2
   weights:
     ASSET_2: 1.0
+  constraints: null
 sleeves:
   sleeve_1:
     alpha_source: portfolio:portfolio_1

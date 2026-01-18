@@ -198,7 +198,7 @@ def validate_portfolio_constraints(
                 ValidationResult(
                     is_valid=False,
                     message=(
-                        f"portfolio max weight for {max_asset_id} must be <= {max_single_limit} "
+                        f"portfolio max weight must be <= {max_single_limit} for {max_asset_id} "
                         f"(got {max_single_weight:.4f}); suggestion: {suggestion}"
                     ),
                     severity="error",
