@@ -189,7 +189,7 @@ def validate_portfolio_constraints(
         )
 
     if weights:
-        max_asset_id = max(weights, key=weights.get)
+        max_asset_id = max(weights, key=lambda asset_id: weights[asset_id])
         max_single_weight = weights[max_asset_id]
         max_single_limit = active_constraints.concentration.max_single_weight
         if max_single_weight > max_single_limit:
