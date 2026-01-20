@@ -52,5 +52,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Added NaN total capital handling coverage for agent semantics mismatch flags.
 - Reconfirmed task checkboxes after NaN agent semantics serialization handling.
 - Reverified task checkboxes after invalid agent capital/share handling coverage.
+- Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
 
 <!-- auto-status-summary:end -->

@@ -1659,6 +1659,15 @@ def test_serialize_agent_semantics_input_list_numpy_scalars() -> None:
     assert values == [1.25, 2]
 
 
+def test_serialize_agent_semantics_input_tuple_numpy_scalars() -> None:
+    inputs = {"_agent_semantics_df": (np.float64(1.25), np.int64(2))}
+
+    _serialize_agent_semantics_input(inputs)
+
+    values = inputs["_agent_semantics_df"]
+    assert values == [1.25, 2]
+
+
 def test_serialize_agent_semantics_input_numpy_array_of_dicts() -> None:
     inputs = {
         "_agent_semantics_df": np.array(
