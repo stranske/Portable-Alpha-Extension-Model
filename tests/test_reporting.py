@@ -5,6 +5,8 @@ from typing import Any
 import pandas as pd
 import pytest
 
+from pa_core.config import ModelConfig
+from pa_core.facade import RunArtifacts, export
 from pa_core.reporting import export_to_excel
 
 openpyxl: Any = pytest.importorskip("openpyxl")
@@ -151,3 +153,36 @@ def test_export_to_excel_adds_agent_semantics_sheet(tmp_path: Path) -> None:
     assert set(required_cols) <= set(df.columns)
     expected_agents = {"Base", "ExternalPA", "ActiveExt", "InternalPA", "InternalBeta"}
     assert expected_agents <= set(df["Agent"].tolist())
+
+
+def test_export_attaches_agent_semantics_from_config(tmp_path: Path) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    )
+    artifacts = RunArtifacts(
+        config=cfg,
+        index_series=pd.Series([0.0]),
+        returns={"Base": [0.0]},
+        summary=pd.DataFrame({"Base": [0.0]}),
+        inputs={},
+        raw_returns={"Base": pd.DataFrame([[0.0]], columns=[0])},
+    )
+    file_path = tmp_path / "export_agent_semantics.xlsx"
+
+    export(artifacts, file_path)
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert "Base" in set(df["Agent"].tolist())
