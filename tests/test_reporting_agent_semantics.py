@@ -1068,6 +1068,21 @@ def test_serialize_agent_semantics_input_tuple() -> None:
     assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
 
 
+def test_serialize_agent_semantics_input_tuple_of_dicts() -> None:
+    inputs = {
+        "_agent_semantics_df": (
+            {"Agent": "Base", "mismatch_flag": False},
+            {"Agent": "ExternalPA", "mismatch_flag": True},
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
 def test_serialize_agent_semantics_input_tuple_of_series() -> None:
     inputs = {
         "_agent_semantics_df": (
