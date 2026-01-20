@@ -19,7 +19,7 @@ def test_export_to_excel_sheets(tmp_path: Path):
     file_path = tmp_path / "out.xlsx"
     export_to_excel(inputs, summary, raw, filename=str(file_path))
     wb = openpyxl.load_workbook(file_path)
-    assert set(wb.sheetnames) == {"Inputs", "Summary", "Base"}
+    assert set(wb.sheetnames) == {"Inputs", "Summary", "MetricDefinitions", "Base"}
 
 
 def test_export_to_excel_pivot(tmp_path: Path):
@@ -32,7 +32,7 @@ def test_export_to_excel_pivot(tmp_path: Path):
     file_path = tmp_path / "pivot.xlsx"
     export_to_excel(inputs, summary, raw, filename=str(file_path), pivot=True)
     wb = openpyxl.load_workbook(file_path)
-    assert set(wb.sheetnames) == {"Inputs", "Summary", "AllReturns"}
+    assert set(wb.sheetnames) == {"Inputs", "Summary", "MetricDefinitions", "AllReturns"}
     ws = wb["AllReturns"]
     header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
     assert header == ["Sim", "Month", "Agent", "Return"]

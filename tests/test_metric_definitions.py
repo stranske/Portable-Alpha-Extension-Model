@@ -5,6 +5,7 @@ from pa_core.agents.risk_metrics import RiskMetricsAgent
 from pa_core.sim.metrics import (
     breach_probability,
     conditional_value_at_risk,
+    metric_definitions_df,
     summary_table,
     terminal_return_below_threshold_prob,
     value_at_risk,
@@ -49,3 +50,17 @@ def test_shortfall_threshold_annual_to_horizon_adjustment() -> None:
     arr[1, 0] = -0.25
     prob = terminal_return_below_threshold_prob(arr, threshold=-0.1, periods_per_year=12)
     assert prob == pytest.approx(0.5)
+
+
+def test_metric_definitions_cover_summary_outputs() -> None:
+    arr = np.zeros((1, 2))
+    summary = summary_table({"Base": arr})
+    metrics = set(metric_definitions_df()["Metric"].tolist())
+    expected = set(summary.columns) - {"Agent"}
+    assert expected <= metrics
+
+
+def test_metric_definitions_types() -> None:
+    definitions = metric_definitions_df().set_index("Metric")
+    assert definitions.at["terminal_AnnReturn", "MetricType"] == "terminal_outcome"
+    assert definitions.at["monthly_VaR", "MetricType"] == "monthly_draw"

@@ -15,6 +15,7 @@ from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
 from ..config import ModelConfig
+from ..sim.metrics import metric_definitions_df
 from ..viz import risk_return, theme
 
 __all__ = ["export_to_excel"]
@@ -122,6 +123,7 @@ def export_to_excel(
             "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
         )
         summary_df.to_excel(writer, sheet_name="Summary", index=False)
+        metric_definitions_df().to_excel(writer, sheet_name="MetricDefinitions", index=False)
 
         # Optional: Sensitivity sheet if provided
         sens_df = _optional_df(inputs_dict, "_sensitivity_df")
