@@ -1,6 +1,12 @@
+from types import SimpleNamespace
+
+import numpy as np
+import pandas as pd
 import pytest
 
 from pa_core.config import ModelConfig
+from pa_core.facade import _serialize_agent_semantics_input
+from pa_core.reporting import export_to_excel
 from pa_core.reporting.agent_semantics import build_agent_semantics
 
 
@@ -96,6 +102,141 @@ def test_build_agent_semantics_coeffs_and_mismatch() -> None:
     assert bool(internal_beta["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_allows_null_extra() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 700.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": None,
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": None,
+            },
+            {
+                "name": "ActiveExt",
+                "capital": 100.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": None,
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg).set_index("Agent")
+
+    external = df.loc["ExternalPA"]
+    assert external["alpha_coeff_used"] == pytest.approx(0.0)
+
+    active = df.loc["ActiveExt"]
+    assert active["alpha_coeff_used"] == pytest.approx(0.1)
+
+
+def test_build_agent_semantics_invalid_extra_shares() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 700.0,
+                "beta_share": 0.7,
+                "alpha_share": 0.3,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": "not-a-number"},
+            },
+            {
+                "name": "ActiveExt",
+                "capital": 100.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.0,
+                "extra": {"active_share": "bad"},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg).set_index("Agent")
+
+    external = df.loc["ExternalPA"]
+    assert external["alpha_coeff_used"] == pytest.approx(0.0)
+
+    active = df.loc["ActiveExt"]
+    assert active["alpha_coeff_used"] == pytest.approx(0.0)
+
+
+def test_build_agent_semantics_agent_object_without_extra() -> None:
+    class Agent:
+        def __init__(
+            self, name: str, capital: float, beta_share: float, alpha_share: float
+        ) -> None:
+            self.name = name
+            self.capital = capital
+            self.beta_share = beta_share
+            self.alpha_share = alpha_share
+
+    cfg = SimpleNamespace(
+        total_fund_capital=1000.0,
+        agents=[
+            Agent(
+                "ExternalPA",
+                200.0,
+                0.2,
+                0.0,
+            )
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    external = df.set_index("Agent").loc["ExternalPA"]
+
+    assert external["alpha_coeff_used"] == pytest.approx(0.0)
+    assert bool(external["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_invalid_capital_and_shares() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=1000.0,
+        agents=[
+            {
+                "name": "ExternalPA",
+                "capital": "not-a-number",
+                "beta_share": "not-a-number",
+                "alpha_share": None,
+                "extra": {"theta_extpa": "bad"},
+            }
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    row = df.set_index("Agent").loc["ExternalPA"]
+
+    assert row["capital_mm"] == pytest.approx(0.0)
+    assert row["implied_capital_share"] == pytest.approx(0.0)
+    assert row["beta_coeff_used"] == pytest.approx(0.0)
+    assert row["alpha_coeff_used"] == pytest.approx(0.0)
+    assert bool(row["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_mismatch_flags() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
@@ -106,7 +247,7 @@ def test_build_agent_semantics_mismatch_flags() -> None:
         agents=[
             {
                 "name": "Base",
-                "capital": 600.0,
+                "capital": 500.0,
                 "beta_share": 0.6,
                 "alpha_share": 0.4,
                 "extra": {},
@@ -145,6 +286,7 @@ def test_build_agent_semantics_mismatch_flags() -> None:
     df = build_agent_semantics(cfg)
     lookup = df.set_index("Agent")
 
+    assert bool(lookup.loc["Base"]["mismatch_flag"]) is False
     assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is True
     assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is True
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
@@ -190,6 +332,178 @@ def test_build_agent_semantics_mismatch_tolerance() -> None:
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_zero_total_capital_disables_mismatch() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=0.0,
+        agents=[
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            },
+            {
+                "name": "InternalPA",
+                "capital": 100.0,
+                "beta_share": 0.0,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_zero_total_capital_disables_mismatch_for_other_agents() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=0.0,
+        agents=[
+            {
+                "name": "ActiveExt",
+                "capital": 50.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.0,
+                "extra": {"active_share": 0.5},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 150.0,
+                "beta_share": 0.9,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["CustomSleeve"]["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_nan_total_capital_disables_mismatch() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=float("nan"),
+        agents=[
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            }
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    row = df.set_index("Agent").loc["ExternalPA"]
+
+    assert row["implied_capital_share"] == pytest.approx(0.0)
+    assert bool(row["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_missing_total_capital_uses_agent_sum() -> None:
+    cfg = SimpleNamespace(
+        agents=[
+            {
+                "name": "Base",
+                "capital": 250.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 750.0,
+                "beta_share": 0.4,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.5},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert lookup.loc["Base"]["implied_capital_share"] == pytest.approx(0.25)
+    assert lookup.loc["ExternalPA"]["implied_capital_share"] == pytest.approx(0.75)
+    assert bool(lookup.loc["Base"]["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypatch) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.01,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 1.0,
+                "alpha_share": 0.0,
+                "extra": {},
+            }
+        ],
+    )
+
+    def _margin_requirement(*_args, **_kwargs) -> float:
+        return 25.0
+
+    monkeypatch.setattr(
+        "pa_core.reporting.agent_semantics.calculate_margin_requirement", _margin_requirement
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    internal_beta = lookup.loc["InternalBeta"]
+    assert internal_beta["capital_mm"] == pytest.approx(25.0)
+    assert internal_beta["beta_coeff_used"] == pytest.approx(0.025)
+    assert bool(internal_beta["mismatch_flag"]) is False
+
+
+@pytest.mark.parametrize("margin_value", [float("nan"), float("inf")])
+def test_build_agent_semantics_ignores_non_finite_margin_requirement(
+    monkeypatch, margin_value
+) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.01,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 1.0,
+                "alpha_share": 0.0,
+                "extra": {},
+            }
+        ],
+    )
+
+    def _margin_requirement(*_args, **_kwargs) -> float:
+        return margin_value
+
+    monkeypatch.setattr(
+        "pa_core.reporting.agent_semantics.calculate_margin_requirement", _margin_requirement
+    )
+
+    df = build_agent_semantics(cfg)
+
+    assert "InternalBeta" not in set(df["Agent"])
+
+
 def test_build_agent_semantics_custom_agent_defaults() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
@@ -221,9 +535,40 @@ def test_build_agent_semantics_custom_agent_defaults() -> None:
     assert row["beta_coeff_used"] == pytest.approx(0.55)
     assert row["alpha_coeff_used"] == pytest.approx(0.45)
     assert row["financing_coeff_used"] == pytest.approx(-0.55)
-    assert isinstance(row["notes"], str)
-    assert row["notes"]
-    assert "depend on implementation" in row["notes"]
+    assert row["notes"] == "Semantics depend on the specific agent implementation"
+    assert bool(row["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_base_and_custom_ignore_mismatch() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 0.9,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 400.0,
+                "beta_share": 0.95,
+                "alpha_share": 0.05,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["Base"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["CustomSleeve"]["mismatch_flag"]) is False
 
 
 def test_build_agent_semantics_percent_inputs() -> None:
@@ -302,3 +647,1069 @@ def test_build_agent_semantics_percent_inputs_base_internalpa() -> None:
     assert internal["beta_coeff_used"] == pytest.approx(0.0)
     assert internal["alpha_coeff_used"] == pytest.approx(0.05)
     assert internal["financing_coeff_used"] == pytest.approx(0.0)
+
+
+def test_build_agent_semantics_normalizes_agent_share_inputs() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=1000.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 60,
+                "alpha_share": 40,
+                "extra": {},
+            }
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    base = df.set_index("Agent").loc["Base"]
+
+    assert base["beta_coeff_used"] == pytest.approx(0.6)
+    assert base["alpha_coeff_used"] == pytest.approx(0.4)
+
+
+def test_export_uses_serialized_agent_semantics(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "capital_mm": 1000.0,
+                "implied_capital_share": 1.0,
+                "beta_coeff_used": 0.6,
+                "alpha_coeff_used": 0.4,
+                "financing_coeff_used": -0.6,
+                "notes": "",
+                "mismatch_flag": False,
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "serialized_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+
+
+def test_export_serializes_agent_semantics_dataframe(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": 1000.0,
+                    "implied_capital_share": 1.0,
+                    "beta_coeff_used": 0.6,
+                    "alpha_coeff_used": 0.4,
+                    "financing_coeff_used": -0.6,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ]
+        )
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "dataframe_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_export_serializes_agent_semantics_nan_values(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": float("nan"),
+                    "mismatch_flag": False,
+                }
+            ]
+        )
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "nan_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    assert inputs["_agent_semantics_df"][0]["capital_mm"] is None
+
+
+def test_export_serializes_agent_semantics_series(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": pd.Series(
+            {
+                "Agent": "Base",
+                "capital_mm": 1000.0,
+                "implied_capital_share": 1.0,
+                "beta_coeff_used": 0.6,
+                "alpha_coeff_used": 0.4,
+                "financing_coeff_used": -0.6,
+                "notes": "",
+                "mismatch_flag": False,
+            }
+        )
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "series_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_export_uses_single_row_agent_semantics_dict(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": "Base",
+            "capital_mm": 1000.0,
+            "implied_capital_share": 1.0,
+            "beta_coeff_used": 0.6,
+            "alpha_coeff_used": 0.4,
+            "financing_coeff_used": -0.6,
+            "notes": "",
+            "mismatch_flag": False,
+        },
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "single_row_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+
+
+def test_export_uses_agent_semantics_dict_of_columns(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": ["Base", "ExternalPA"],
+            "capital_mm": [1000.0, 200.0],
+            "implied_capital_share": [1.0, 0.2],
+            "beta_coeff_used": [0.6, 0.2],
+            "alpha_coeff_used": [0.4, 0.05],
+            "financing_coeff_used": [-0.6, -0.2],
+            "notes": ["", ""],
+            "mismatch_flag": [False, False],
+        },
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "column_dict_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
+def test_export_uses_agent_semantics_dict_of_series(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": pd.Series(["Base", "ExternalPA"]),
+            "mismatch_flag": pd.Series([False, False]),
+        },
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "series_dict_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
+def test_export_uses_agent_semantics_tuple_of_series(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": (
+            pd.Series({"Agent": "Base", "mismatch_flag": False}),
+            pd.Series({"Agent": "ExternalPA", "mismatch_flag": False}),
+        ),
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "tuple_series_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
+def test_export_uses_agent_semantics_tuple_of_dicts(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": (
+            {"Agent": "Base", "mismatch_flag": False},
+            {"Agent": "ExternalPA", "mismatch_flag": False},
+        ),
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "tuple_dict_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
+def test_export_uses_agent_semantics_numpy_array(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": np.array(
+            [{"Agent": "Base", "mismatch_flag": False}],
+            dtype=object,
+        )
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "array_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base"]
+
+
+def test_export_serializes_agent_semantics_list_of_dicts_numpy_scalars(
+    tmp_path, monkeypatch
+) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "capital_mm": np.float64(1000.0),
+                "mismatch_flag": np.bool_(False),
+            }
+        ]
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "list_dict_numpy_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    assert isinstance(inputs["_agent_semantics_df"][0]["capital_mm"], float)
+    assert isinstance(inputs["_agent_semantics_df"][0]["mismatch_flag"], bool)
+
+
+def test_export_serializes_agent_semantics_list_values_numpy_scalars(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "allocations": [np.float64(0.1), np.float64(0.2)],
+            }
+        ]
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "list_value_numpy_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == [0.1, 0.2]
+    assert all(isinstance(item, float) for item in allocations)
+
+
+def test_export_serializes_agent_semantics_numpy_array_values(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {"_agent_semantics_df": [{"Agent": "Base", "allocations": np.array([0.1, 0.2])}]}
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "array_value_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == [0.1, 0.2]
+    assert all(isinstance(item, float) for item in allocations)
+
+
+def test_export_serializes_agent_semantics_nested_dict_numpy_scalars(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "allocations": {"alpha": np.float64(0.1), "beta": np.float64(0.2)},
+            }
+        ]
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "nested_dict_numpy_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == {"alpha": 0.1, "beta": 0.2}
+    assert isinstance(allocations["alpha"], float)
+    assert isinstance(allocations["beta"], float)
+
+
+def test_export_uses_agent_semantics_list_of_dataframes(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [
+            pd.DataFrame([{"Agent": "Base", "mismatch_flag": False}]),
+            pd.DataFrame([{"Agent": "ExternalPA", "mismatch_flag": False}]),
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "list_df_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
+def test_export_uses_agent_semantics_tuple_of_dataframes(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": (
+            pd.DataFrame([{"Agent": "Base", "mismatch_flag": False}]),
+            pd.DataFrame([{"Agent": "ExternalPA", "mismatch_flag": False}]),
+        ),
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "tuple_df_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
+def test_export_builds_agent_semantics_when_missing(tmp_path) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "total_fund_capital": 1000.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "fallback_agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert "Agent" in df.columns
+
+
+def test_export_builds_agent_semantics_without_total_capital(tmp_path) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "missing_total_capital_agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert "Agent" in df.columns
+
+
+def test_export_builds_agent_semantics_when_empty_list(tmp_path) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [],
+        "total_fund_capital": 1000.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "empty_list_agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert "Agent" in df.columns
+
+
+def test_export_builds_agent_semantics_when_empty_dict(tmp_path) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {},
+        "total_fund_capital": 1000.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "empty_dict_agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert "Agent" in df.columns
+
+
+def test_export_builds_agent_semantics_when_empty_tuple(tmp_path) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": (),
+        "total_fund_capital": 1000.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "empty_tuple_agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert "Agent" in df.columns
+
+
+def test_serialize_agent_semantics_input_dataframe() -> None:
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": 1000.0,
+                    "implied_capital_share": 1.0,
+                    "beta_coeff_used": 0.6,
+                    "alpha_coeff_used": 0.4,
+                    "financing_coeff_used": -0.6,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ]
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_serialize_agent_semantics_input_series() -> None:
+    inputs = {
+        "_agent_semantics_df": pd.Series(
+            {
+                "Agent": "Base",
+                "capital_mm": 1000.0,
+                "implied_capital_share": 1.0,
+                "beta_coeff_used": 0.6,
+                "alpha_coeff_used": 0.4,
+                "financing_coeff_used": -0.6,
+                "notes": "",
+                "mismatch_flag": False,
+            }
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_serialize_agent_semantics_input_dict() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": "Base",
+            "capital_mm": 1000.0,
+            "implied_capital_share": 1.0,
+            "beta_coeff_used": 0.6,
+            "alpha_coeff_used": 0.4,
+            "financing_coeff_used": -0.6,
+            "notes": "",
+            "mismatch_flag": False,
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_serialize_agent_semantics_input_dict_of_columns() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": ["Base", "ExternalPA"],
+            "capital_mm": [1000.0, 200.0],
+            "implied_capital_share": [1.0, 0.2],
+            "beta_coeff_used": [0.6, 0.2],
+            "alpha_coeff_used": [0.4, 0.05],
+            "financing_coeff_used": [-0.6, -0.2],
+            "notes": ["", ""],
+            "mismatch_flag": [False, False],
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_dict_of_series() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": pd.Series(["Base", "ExternalPA"]),
+            "capital_mm": pd.Series([1000.0, 200.0]),
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_list_passthrough() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "capital_mm": 1000.0,
+                "implied_capital_share": 1.0,
+                "beta_coeff_used": 0.6,
+                "alpha_coeff_used": 0.4,
+                "financing_coeff_used": -0.6,
+                "notes": "",
+                "mismatch_flag": False,
+            }
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_serialize_agent_semantics_input_list_missing_keys_preserves_rows() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "capital_mm": 1000.0},
+            {"Agent": "ExternalPA", "capital_mm": 200.0, "notes": ""},
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert "notes" not in inputs["_agent_semantics_df"][0]
+    assert inputs["_agent_semantics_df"][1]["notes"] == ""
+
+
+def test_serialize_agent_semantics_input_converts_nan() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "capital_mm": float("nan"), "mismatch_flag": False}
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert inputs["_agent_semantics_df"][0]["capital_mm"] is None
+
+
+def test_serialize_agent_semantics_input_list_of_series() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            pd.Series(
+                {
+                    "Agent": "Base",
+                    "capital_mm": 1000.0,
+                    "implied_capital_share": 1.0,
+                    "beta_coeff_used": 0.6,
+                    "alpha_coeff_used": 0.4,
+                    "financing_coeff_used": -0.6,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ),
+            pd.Series(
+                {
+                    "Agent": "ExternalPA",
+                    "capital_mm": 200.0,
+                    "implied_capital_share": 0.2,
+                    "beta_coeff_used": 0.2,
+                    "alpha_coeff_used": 0.05,
+                    "financing_coeff_used": -0.2,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ),
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_list_of_dataframes() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            pd.DataFrame(
+                [
+                    {
+                        "Agent": "Base",
+                        "capital_mm": 1000.0,
+                        "implied_capital_share": 1.0,
+                        "beta_coeff_used": 0.6,
+                        "alpha_coeff_used": 0.4,
+                        "financing_coeff_used": -0.6,
+                        "notes": "",
+                        "mismatch_flag": False,
+                    }
+                ]
+            ),
+            pd.DataFrame(
+                [
+                    {
+                        "Agent": "ExternalPA",
+                        "capital_mm": 200.0,
+                        "implied_capital_share": 0.2,
+                        "beta_coeff_used": 0.2,
+                        "alpha_coeff_used": 0.05,
+                        "financing_coeff_used": -0.2,
+                        "notes": "",
+                        "mismatch_flag": False,
+                    }
+                ]
+            ),
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_list_mixed() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "mismatch_flag": False},
+            pd.Series({"Agent": "ExternalPA", "mismatch_flag": False}),
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_list_mixed_with_dataframes() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            pd.DataFrame([{"Agent": "Base", "mismatch_flag": False}]),
+            {"Agent": "ExternalPA", "mismatch_flag": False},
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_tuple() -> None:
+    inputs = {
+        "_agent_semantics_df": (
+            {
+                "Agent": "Base",
+                "capital_mm": 1000.0,
+                "implied_capital_share": 1.0,
+                "beta_coeff_used": 0.6,
+                "alpha_coeff_used": 0.4,
+                "financing_coeff_used": -0.6,
+                "notes": "",
+                "mismatch_flag": False,
+            },
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+
+
+def test_serialize_agent_semantics_input_tuple_of_dicts() -> None:
+    inputs = {
+        "_agent_semantics_df": (
+            {"Agent": "Base", "mismatch_flag": False},
+            {"Agent": "ExternalPA", "mismatch_flag": True},
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_tuple_of_series() -> None:
+    inputs = {
+        "_agent_semantics_df": (
+            pd.Series(
+                {
+                    "Agent": "Base",
+                    "capital_mm": 1000.0,
+                    "implied_capital_share": 1.0,
+                    "beta_coeff_used": 0.6,
+                    "alpha_coeff_used": 0.4,
+                    "financing_coeff_used": -0.6,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ),
+            pd.Series(
+                {
+                    "Agent": "ExternalPA",
+                    "capital_mm": 200.0,
+                    "implied_capital_share": 0.2,
+                    "beta_coeff_used": 0.2,
+                    "alpha_coeff_used": 0.05,
+                    "financing_coeff_used": -0.2,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ),
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_tuple_of_dataframes() -> None:
+    inputs = {
+        "_agent_semantics_df": (
+            pd.DataFrame(
+                [
+                    {
+                        "Agent": "Base",
+                        "capital_mm": 1000.0,
+                        "implied_capital_share": 1.0,
+                        "beta_coeff_used": 0.6,
+                        "alpha_coeff_used": 0.4,
+                        "financing_coeff_used": -0.6,
+                        "notes": "",
+                        "mismatch_flag": False,
+                    }
+                ]
+            ),
+            pd.DataFrame(
+                [
+                    {
+                        "Agent": "ExternalPA",
+                        "capital_mm": 200.0,
+                        "implied_capital_share": 0.2,
+                        "beta_coeff_used": 0.2,
+                        "alpha_coeff_used": 0.05,
+                        "financing_coeff_used": -0.2,
+                        "notes": "",
+                        "mismatch_flag": False,
+                    }
+                ]
+            ),
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_converts_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": np.float64(1000.0),
+                    "implied_capital_share": np.float64(1.0),
+                    "mismatch_flag": np.bool_(False),
+                }
+            ]
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    row = inputs["_agent_semantics_df"][0]
+    assert type(row["capital_mm"]) is float
+    assert type(row["implied_capital_share"]) is float
+    assert type(row["mismatch_flag"]) is bool
+
+
+def test_serialize_agent_semantics_input_list_of_dicts_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "capital_mm": np.float64(1000.0),
+                "mismatch_flag": np.bool_(False),
+            }
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    row = inputs["_agent_semantics_df"][0]
+    assert type(row["capital_mm"]) is float
+    assert type(row["mismatch_flag"]) is bool
+
+
+def test_serialize_agent_semantics_input_list_values_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "allocations": [np.float64(0.1), np.float64(0.2)],
+            }
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == [0.1, 0.2]
+    assert all(isinstance(item, float) for item in allocations)
+
+
+def test_serialize_agent_semantics_input_numpy_array_values() -> None:
+    inputs = {"_agent_semantics_df": [{"Agent": "Base", "allocations": np.array([0.1, 0.2])}]}
+
+    _serialize_agent_semantics_input(inputs)
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == [0.1, 0.2]
+    assert all(isinstance(item, float) for item in allocations)
+
+
+def test_serialize_agent_semantics_input_nested_dict_numpy_scalars() -> None:
+    inputs = {"_agent_semantics_df": [{"Agent": "Base", "allocations": {"alpha": np.float64(0.1)}}]}
+
+    _serialize_agent_semantics_input(inputs)
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == {"alpha": 0.1}
+    assert isinstance(allocations["alpha"], float)
+
+
+def test_serialize_agent_semantics_input_dict_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": "Base",
+            "capital_mm": np.float64(1000.0),
+            "mismatch_flag": np.bool_(False),
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    row = inputs["_agent_semantics_df"][0]
+    assert type(row["capital_mm"]) is float
+    assert type(row["mismatch_flag"]) is bool
+
+
+def test_serialize_agent_semantics_input_list_numpy_scalars() -> None:
+    inputs = {"_agent_semantics_df": [np.float64(1.25), np.int64(2)]}
+
+    _serialize_agent_semantics_input(inputs)
+
+    values = inputs["_agent_semantics_df"]
+    assert values == [1.25, 2]
+
+
+def test_serialize_agent_semantics_input_tuple_numpy_scalars() -> None:
+    inputs = {"_agent_semantics_df": (np.float64(1.25), np.int64(2))}
+
+    _serialize_agent_semantics_input(inputs)
+
+    values = inputs["_agent_semantics_df"]
+    assert values == [1.25, 2]
+
+
+def test_serialize_agent_semantics_input_numpy_array_of_dicts() -> None:
+    inputs = {
+        "_agent_semantics_df": np.array(
+            [{"Agent": "Base", "mismatch_flag": False}],
+            dtype=object,
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"

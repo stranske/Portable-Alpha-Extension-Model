@@ -47,6 +47,30 @@ def test_export_run_artifacts(run_artifacts, tmp_path: Path) -> None:
     xl = pd.ExcelFile(output_file)
     assert "Summary" in xl.sheet_names
     assert "Inputs" in xl.sheet_names
+    assert "AgentSemantics" in xl.sheet_names
+    serialized = run_artifacts.inputs.get("_agent_semantics_df")
+    assert isinstance(serialized, list)
+    assert serialized
+    assert "Agent" in serialized[0]
+    semantics = pd.read_excel(output_file, sheet_name="AgentSemantics")
+    assert not semantics.empty
+    assert "Agent" in semantics.columns
+
+
+def test_export_serializes_agent_semantics_tuple(run_artifacts, tmp_path: Path) -> None:
+    """Ensure agent semantics tuples are serialized before export."""
+    run_artifacts.inputs["_agent_semantics_df"] = (
+        pd.DataFrame([{"Agent": "Base", "mismatch_flag": False}]),
+        pd.DataFrame([{"Agent": "ExternalPA", "mismatch_flag": False}]),
+    )
+    output_file = tmp_path / "tuple_agent_semantics.xlsx"
+
+    export(run_artifacts, output_file)
+
+    serialized = run_artifacts.inputs["_agent_semantics_df"]
+    assert isinstance(serialized, list)
+    assert serialized[0]["Agent"] == "Base"
+    assert serialized[1]["Agent"] == "ExternalPA"
 
 
 def test_export_sweep_artifacts(sweep_artifacts, tmp_path: Path) -> None:

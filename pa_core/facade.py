@@ -26,6 +26,7 @@ Example Usage::
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
@@ -37,6 +38,103 @@ if TYPE_CHECKING:  # pragma: no cover - type hints only
 from .types import ArrayLike, SweepResult
 
 CANONICAL_PIPELINE = "pa_core.facade"
+
+
+def _to_builtin_scalar(value: Any) -> Any:
+    try:
+        import numpy as np
+    except Exception:
+        return value
+    if isinstance(value, np.generic):
+        return _to_builtin_scalar(value.item())
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, np.ndarray):
+        return _to_builtin_scalar(value.tolist())
+    if isinstance(value, dict):
+        return {key: _to_builtin_scalar(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_to_builtin_scalar(item) for item in value]
+    if isinstance(value, tuple):
+        return [_to_builtin_scalar(item) for item in value]
+    return value
+
+
+def _records_to_builtin(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{key: _to_builtin_scalar(val) for key, val in row.items()} for row in records]
+
+
+def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
+    import pandas as pd
+    from pandas.api.types import is_list_like
+
+    def _mapping_is_row(mapping: dict[str, Any]) -> bool:
+        for value in mapping.values():
+            if isinstance(value, dict):
+                return False
+            if is_list_like(value) and not isinstance(value, (str, bytes)):
+                return False
+        return True
+
+    agent_semantics_val = inputs.get("_agent_semantics_df")
+    np_module: Any | None = None
+    try:
+        import numpy as np_module
+    except Exception:
+        np_module = None
+    if np_module is not None and isinstance(agent_semantics_val, np_module.ndarray):
+        agent_semantics_val = agent_semantics_val.tolist()
+    if isinstance(agent_semantics_val, pd.DataFrame):
+        records = agent_semantics_val.to_dict(orient="records")
+        inputs["_agent_semantics_df"] = _records_to_builtin(records)
+        return
+    if isinstance(agent_semantics_val, pd.Series):
+        records = pd.DataFrame([agent_semantics_val]).to_dict(orient="records")
+        inputs["_agent_semantics_df"] = _records_to_builtin(records)
+        return
+    if isinstance(agent_semantics_val, (list, tuple)):
+        if agent_semantics_val and all(isinstance(item, dict) for item in agent_semantics_val):
+            if all(_mapping_is_row(item) for item in agent_semantics_val):
+                inputs["_agent_semantics_df"] = _records_to_builtin(list(agent_semantics_val))
+                return
+        if agent_semantics_val and all(
+            isinstance(item, pd.DataFrame) for item in agent_semantics_val
+        ):
+            records = pd.concat(agent_semantics_val, ignore_index=True).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+            return
+        if agent_semantics_val and all(
+            isinstance(item, (pd.Series, dict)) for item in agent_semantics_val
+        ):
+            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+            return
+        if agent_semantics_val and all(
+            isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in agent_semantics_val
+        ):
+            frames = []
+            for item in agent_semantics_val:
+                if isinstance(item, pd.DataFrame):
+                    frames.append(item)
+                else:
+                    frames.append(pd.DataFrame([item]))
+            records = pd.concat(frames, ignore_index=True).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+            return
+        if isinstance(agent_semantics_val, tuple):
+            inputs["_agent_semantics_df"] = _to_builtin_scalar(list(agent_semantics_val))
+            return
+        inputs["_agent_semantics_df"] = _to_builtin_scalar(list(agent_semantics_val))
+        return
+    if isinstance(agent_semantics_val, dict):
+        if agent_semantics_val and _mapping_is_row(agent_semantics_val):
+            inputs["_agent_semantics_df"] = _records_to_builtin([agent_semantics_val])
+            return
+        try:
+            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+        except Exception:
+            return
 
 
 @dataclass(slots=True)
@@ -358,6 +456,7 @@ def run_single(
     if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
         inputs["correlation_repair_applied"] = True
         inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
+    _serialize_agent_semantics_input(inputs)
     manifest = {
         "seed": run_options.seed,
         "substream_ids": substream_ids,
@@ -531,9 +630,29 @@ def export(
 
         from .reporting.agent_semantics import build_agent_semantics
 
+        _serialize_agent_semantics_input(inputs_dict)
         agent_semantics_val = inputs_dict.get("_agent_semantics_df")
-        if not (isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty):
-            inputs_dict["_agent_semantics_df"] = build_agent_semantics(artifacts.config)
+        has_serialized = isinstance(agent_semantics_val, (list, tuple, dict)) and bool(
+            agent_semantics_val
+        )
+        serialized_agent_semantics = None
+        if isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty:
+            serialized_agent_semantics = _records_to_builtin(
+                agent_semantics_val.to_dict(orient="records")
+            )
+        elif has_serialized:
+            serialized_agent_semantics = agent_semantics_val
+            if isinstance(serialized_agent_semantics, tuple):
+                serialized_agent_semantics = list(serialized_agent_semantics)
+
+        if serialized_agent_semantics is None:
+            agent_semantics_df = build_agent_semantics(artifacts.config)
+            serialized_agent_semantics = _records_to_builtin(
+                agent_semantics_df.to_dict(orient="records")
+            )
+
+        inputs_dict["_agent_semantics_df"] = serialized_agent_semantics
+        artifacts.inputs["_agent_semantics_df"] = serialized_agent_semantics
         metadata = None
         if artifacts.manifest is not None:
             metadata = {

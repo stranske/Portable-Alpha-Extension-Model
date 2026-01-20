@@ -3,10 +3,12 @@ from __future__ import annotations
 import base64
 import io
 import json
+import math
 import os
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, cast
 
+import numpy as np
 import openpyxl
 import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
@@ -215,19 +217,94 @@ def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
     return value if isinstance(value, pd.DataFrame) else None
 
 
+def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
+    def _mapping_is_row(mapping: dict[str, Any]) -> bool:
+        for item in mapping.values():
+            if isinstance(item, dict):
+                return False
+            if pd.api.types.is_list_like(item) and not isinstance(item, (str, bytes)):
+                return False
+        return True
+
+    if isinstance(value, np.ndarray):
+        return _coerce_agent_semantics_df(value.tolist())
+    if isinstance(value, pd.DataFrame):
+        return value
+    if isinstance(value, pd.Series):
+        return pd.DataFrame([value])
+    if isinstance(value, (list, tuple)):
+        if value and all(isinstance(item, pd.DataFrame) for item in value):
+            return pd.concat(list(value), ignore_index=True)
+        if value and all(isinstance(item, (pd.Series, dict)) for item in value):
+            return pd.DataFrame(list(value))
+        if value and all(isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in value):
+            frames = []
+            for item in value:
+                if isinstance(item, pd.DataFrame):
+                    frames.append(item)
+                else:
+                    frames.append(pd.DataFrame([item]))
+            return pd.concat(frames, ignore_index=True)
+        try:
+            return pd.DataFrame(value)
+        except Exception:
+            return None
+    if isinstance(value, dict):
+        if value and _mapping_is_row(value):
+            return pd.DataFrame([value])
+        try:
+            return pd.DataFrame(value)
+        except Exception:
+            return None
+    return None
+
+
+def _to_builtin_scalar(value: Any) -> Any:
+    if isinstance(value, np.generic):
+        return _to_builtin_scalar(value.item())
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if isinstance(value, np.ndarray):
+        return _to_builtin_scalar(value.tolist())
+    if isinstance(value, dict):
+        return {key: _to_builtin_scalar(val) for key, val in value.items()}
+    if isinstance(value, list):
+        return [_to_builtin_scalar(item) for item in value]
+    if isinstance(value, tuple):
+        return [_to_builtin_scalar(item) for item in value]
+    return value
+
+
+def _records_to_builtin(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{key: _to_builtin_scalar(val) for key, val in row.items()} for row in records]
+
+
 def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | None:
     value = inputs_dict.get("_agent_semantics_df")
-    if isinstance(value, pd.DataFrame) and not value.empty:
-        return value
+    df = _coerce_agent_semantics_df(value)
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        if isinstance(value, (pd.DataFrame, pd.Series, dict, tuple)):
+            inputs_dict["_agent_semantics_df"] = _records_to_builtin(df.to_dict(orient="records"))
+        elif isinstance(value, list):
+            if value:
+                if all(isinstance(item, dict) for item in value):
+                    inputs_dict["_agent_semantics_df"] = _records_to_builtin(list(value))
+                else:
+                    inputs_dict["_agent_semantics_df"] = _records_to_builtin(
+                        df.to_dict(orient="records")
+                    )
+        return df
     agents = inputs_dict.get("agents")
+    if agents is None:
+        return df if isinstance(df, pd.DataFrame) else None
     total_capital = inputs_dict.get("total_fund_capital")
-    if agents is None or total_capital is None:
-        return value if isinstance(value, pd.DataFrame) else None
     try:
         from .agent_semantics import build_agent_semantics
     except Exception:
-        return value if isinstance(value, pd.DataFrame) else None
-    cfg = SimpleNamespace(agents=agents, total_fund_capital=total_capital)
+        return df if isinstance(df, pd.DataFrame) else None
+    cfg = SimpleNamespace(agents=agents)
+    if total_capital is not None:
+        setattr(cfg, "total_fund_capital", total_capital)
     for attr in (
         "reference_sigma",
         "volatility_multiple",
@@ -238,7 +315,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
         if attr in inputs_dict:
             setattr(cfg, attr, inputs_dict[attr])
     df = build_agent_semantics(cast(ModelConfig, cfg))
-    inputs_dict["_agent_semantics_df"] = df
+    inputs_dict["_agent_semantics_df"] = _records_to_builtin(df.to_dict(orient="records"))
     return df
 
 

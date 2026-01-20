@@ -1,30 +1,58 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #1183
+> **Source:** Issue #1195
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-PR #1188 addressed issue #1183 but verification identified concerns (verdict: **CONCERNS**). This follow-up addresses the remaining gaps with improved task structure.
+PR #1196 addressed issue #1195 but verification identified concerns (verdict: **CONCERNS**). This follow-up addresses the remaining gaps with improved task structure to ensure correct mismatch detection and data serialization.
 
 #### Tasks
-- [x] [#1188](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1188)
-- [x] [#1183](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1183)
+- [x] [#1196](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1196)
+- [x] [#1195](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1195)
 
 #### Acceptance criteria
-- [x] Update the mismatch detection function to explicitly check the agent type and apply the tolerance of 1e-6 only for ExternalPA, ActiveExt, and InternalBeta (using beta_share) and for InternalPA (using alpha_share). Ensure Base/unknown agents are excluded from triggering mismatch flags unless documented differently.
-- [x] Add unit tests that assert the Excel workbook produced by 'pa run' contains a sheet named 'AgentSemantics' and that the sheet is populated correctly with the required columns and rows for all built-in agents.
-- [x] Enhance docs/UserGuide.md to include detailed examples and use cases for the 'AgentSemantics' sheet. This should clearly document how the sheet is generated and how mismatch detection works for each agent type.
-- [x] Modify the code to ensure that when a run path does not call build_agent_semantics explicitly, the Excel export routine still attaches a non-empty '_agent_semantics_df' (or its equivalent) as the 'AgentSemantics' sheet.
-- [x] Ensure that for unknown/custom agent types, the 'notes' field is always populated with a message that indicates semantics depend on the specific implementation. Add corresponding unit tests to verify this behavior.
-- [x] Review the logic handling the attachment of the '_agent_semantics_df' DataFrame into RunArtifacts.inputs to make sure it does not lead to serialization issues. If necessary, convert the DataFrame to a JSON- or YAML-compatible format or restrict its use to transient in-memory operations.
+- [x] Add explicit conditional checks in `pa_core/reporting/agent_semantics.py` to ensure that mismatch detection is applied only to ExternalPA, ActiveExt, InternalBeta, and InternalPA agents, while Base/unknown agents always return a mismatch flag as false.
+- [x] Update `pa_core/reporting/excel.py` and `pa_core/facade.py` to generate a non-empty agent semantics DataFrame and convert it to a JSON/YAML-compatible structure when `build_agent_semantics` is not called, ensuring it is attached as the 'AgentSemantics' sheet.
+- [x] Enhance tests in `tests/test_reporting_agent_semantics.py` to verify that unknown/custom agent types have their 'notes' field set to 'Semantics depend on the specific agent implementation' and to simulate a run where `build_agent_semantics` is not called, asserting that the Excel export still includes a non-empty 'AgentSemantics' DataFrame.
+- [x] Modify the code where `_agent_semantics_df` is attached to `RunArtifacts.inputs` to convert the raw pandas DataFrame into a serializable structure using methods such as `DataFrame.to_dict`.
 ## Related Issues
 - [ ] _Not provided._
 ## References
 - [ ] _Not provided._
 
 ## Notes
-- _None._
+- Verified task checkboxes after latest test update.
+- Added coverage for empty agent semantics dict export handling.
+- Added facade export coverage for the AgentSemantics sheet.
+- Added coverage for margin-driven InternalBeta semantics insertion.
+- Confirmed task reconciliation after agent semantics serialization handling.
+- Reconfirmed task checkboxes after series-based agent semantics serialization coverage.
+- Reverified task reconciliation after list-of-series agent semantics serialization handling.
+- Added tuple-of-series serialization coverage for agent semantics inputs.
+- Added Excel export coverage for tuple-of-series AgentSemantics inputs.
+- Added mismatch-flag guard coverage when total fund capital is zero.
+- Added list-of-dataframes serialization coverage for agent semantics inputs.
+- Added Excel export coverage for list-of-dataframes AgentSemantics inputs.
+- Added tuple-of-dataframes serialization coverage for agent semantics inputs.
+- Added Excel export coverage for tuple-of-dataframes AgentSemantics inputs.
+- Reconfirmed task reconciliation after tuple-of-dicts serialization coverage.
+- Added export coverage when total_fund_capital is missing from AgentSemantics inputs.
+- Added zero-total-capital mismatch coverage for ActiveExt/custom agents.
+- Added Excel export coverage for tuple-of-dicts AgentSemantics inputs.
+- Reconciled task checkboxes after reviewing recent agent semantics export updates.
+- Reverified task checkboxes after numpy scalar serialization handling updates.
+- Verified AgentSemantics sheet content via facade export test.
+- Normalized list-of-dicts AgentSemantics numpy scalars on export.
+- Normalized nested list numpy scalars in AgentSemantics serialization.
+- Normalized nested dict numpy scalars in AgentSemantics serialization.
+- Normalized numpy array AgentSemantics values during serialization.
+- Reverified task checkboxes after numpy array AgentSemantics handling.
+- Added NaN total capital handling coverage for agent semantics mismatch flags.
+- Reconfirmed task checkboxes after NaN agent semantics serialization handling.
+- Reverified task checkboxes after invalid agent capital/share handling coverage.
+- Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
+- Reconciled task checkboxes after reviewing non-finite margin requirement handling.
 
 <!-- auto-status-summary:end -->

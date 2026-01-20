@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Any, Iterable
 
 import pandas as pd
@@ -25,8 +26,23 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
         "mismatch_flag",
     ]
 
-    total_capital = float(getattr(cfg, "total_fund_capital", 0.0) or 0.0)
+    total_capital_value = getattr(cfg, "total_fund_capital", None)
+    total_capital_missing = total_capital_value is None
+    total_capital = float(total_capital_value or 0.0)
+    if not math.isfinite(total_capital):
+        total_capital = 0.0
     agents = list(_iter_agents(cfg)) if hasattr(cfg, "agents") else []
+    if total_capital_missing and total_capital <= 0.0:
+        summed_capital = 0.0
+        for agent in agents:
+            try:
+                capital = float(agent["capital"])
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(capital):
+                summed_capital += capital
+        if summed_capital > 0.0:
+            total_capital = summed_capital
     if not agents:
         return pd.DataFrame([], columns=columns)
 
@@ -50,7 +66,11 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
                 schedule_path=cfg.financing_schedule_path,
                 term_months=cfg.financing_term_months,
             )
-            if margin_requirement > 0.0 and not any(a["name"] == "InternalBeta" for a in agents):
+            if (
+                math.isfinite(margin_requirement)
+                and margin_requirement > 0.0
+                and not any(a["name"] == "InternalBeta" for a in agents)
+            ):
                 agents.append(
                     {
                         "name": "InternalBeta",
@@ -64,9 +84,9 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
     rows = [
         _build_row(
             agent["name"],
-            float(agent["capital"]),
-            float(agent["beta_share"]),
-            float(agent["alpha_share"]),
+            agent["capital"],
+            agent["beta_share"],
+            agent["alpha_share"],
             agent.get("extra", {}),
             total_capital,
         )
@@ -79,31 +99,61 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
 def _iter_agents(cfg: ModelConfig) -> Iterable[dict[str, Any]]:
     for agent in getattr(cfg, "agents", []):
         if isinstance(agent, dict):
+            extra = agent.get("extra") or {}
+            if not isinstance(extra, dict):
+                extra = {}
             yield {
                 "name": agent["name"],
                 "capital": agent["capital"],
                 "beta_share": agent["beta_share"],
                 "alpha_share": agent["alpha_share"],
-                "extra": agent.get("extra", {}),
+                "extra": extra,
             }
         else:
+            extra = getattr(agent, "extra", {})
+            if not isinstance(extra, dict):
+                extra = {}
             yield {
                 "name": agent.name,
                 "capital": agent.capital,
                 "beta_share": agent.beta_share,
                 "alpha_share": agent.alpha_share,
-                "extra": agent.extra,
+                "extra": extra,
             }
 
 
 def _build_row(
     name: str,
-    capital: float,
-    beta_share: float,
-    alpha_share: float,
+    capital: Any,
+    beta_share: Any,
+    alpha_share: Any,
     extra: dict[str, Any],
     total_capital: float,
 ) -> dict[str, Any]:
+    def _coerce_float(value: Any, fallback: float = 0.0) -> float:
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return fallback
+        if not math.isfinite(numeric):
+            return fallback
+        return numeric
+
+    def _coerce_share(value: Any, fallback: float = 0.0) -> float:
+        normalized = normalize_share(value)
+        if normalized is None:
+            return fallback
+        try:
+            return float(normalized)
+        except (TypeError, ValueError):
+            return fallback
+
+    if not isinstance(extra, dict):
+        extra = {}
+    capital = _coerce_float(capital)
+    beta_share = _coerce_share(beta_share)
+    alpha_share = _coerce_share(alpha_share)
+
     implied_share = capital / total_capital if total_capital > 0.0 else 0.0
     notes = ""
     mismatch_flag = False
@@ -113,18 +163,14 @@ def _build_row(
         alpha_coeff = alpha_share
         financing_coeff = -beta_share
     elif name == "ExternalPA":
-        theta = normalize_share(extra.get("theta_extpa", 0.0))
-        if theta is None:
-            theta = 0.0
+        theta = _coerce_share(extra.get("theta_extpa", 0.0))
         beta_coeff = beta_share
-        alpha_coeff = beta_share * float(theta)
+        alpha_coeff = beta_share * theta
         financing_coeff = -beta_share
     elif name == "ActiveExt":
-        active_share = normalize_share(extra.get("active_share", 0.5))
-        if active_share is None:
-            active_share = 0.0
+        active_share = _coerce_share(extra.get("active_share", 0.5))
         beta_coeff = beta_share
-        alpha_coeff = beta_share * float(active_share)
+        alpha_coeff = beta_share * active_share
         financing_coeff = -beta_share
     elif name == "InternalPA":
         beta_coeff = 0.0
@@ -138,16 +184,16 @@ def _build_row(
         beta_coeff = beta_share
         alpha_coeff = alpha_share
         financing_coeff = -beta_share
-        notes = "Custom agent; semantics depend on implementation."
+        notes = "Semantics depend on the specific agent implementation"
 
-    mismatch_share = None
-    if name in {"ExternalPA", "ActiveExt", "InternalBeta"}:
-        mismatch_share = beta_share
+    if total_capital <= 0.0:
+        mismatch_flag = False
+    elif name in {"ExternalPA", "ActiveExt", "InternalBeta"}:
+        mismatch_flag = abs(implied_share - beta_share) > _TOLERANCE
     elif name == "InternalPA":
-        mismatch_share = alpha_share
-
-    if mismatch_share is not None:
-        mismatch_flag = abs(implied_share - mismatch_share) > _TOLERANCE
+        mismatch_flag = abs(implied_share - alpha_share) > _TOLERANCE
+    else:
+        mismatch_flag = False
 
     return {
         "Agent": name,
