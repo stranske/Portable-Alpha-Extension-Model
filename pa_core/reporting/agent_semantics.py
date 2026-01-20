@@ -111,18 +111,19 @@ def _build_row(
     extra: dict[str, Any],
     total_capital: float,
 ) -> dict[str, Any]:
+    def _coerce_share(value: Any, fallback: float = 0.0) -> float:
+        normalized = normalize_share(value)
+        if normalized is None:
+            return fallback
+        try:
+            return float(normalized)
+        except (TypeError, ValueError):
+            return fallback
+
     if not isinstance(extra, dict):
         extra = {}
-    normalized_beta_share = normalize_share(beta_share)
-    normalized_alpha_share = normalize_share(alpha_share)
-    try:
-        beta_share = float(normalized_beta_share) if normalized_beta_share is not None else 0.0
-    except (TypeError, ValueError):
-        beta_share = 0.0
-    try:
-        alpha_share = float(normalized_alpha_share) if normalized_alpha_share is not None else 0.0
-    except (TypeError, ValueError):
-        alpha_share = 0.0
+    beta_share = _coerce_share(beta_share)
+    alpha_share = _coerce_share(alpha_share)
 
     implied_share = capital / total_capital if total_capital > 0.0 else 0.0
     notes = ""
@@ -133,18 +134,14 @@ def _build_row(
         alpha_coeff = alpha_share
         financing_coeff = -beta_share
     elif name == "ExternalPA":
-        theta = normalize_share(extra.get("theta_extpa", 0.0))
-        if theta is None:
-            theta = 0.0
+        theta = _coerce_share(extra.get("theta_extpa", 0.0))
         beta_coeff = beta_share
-        alpha_coeff = beta_share * float(theta)
+        alpha_coeff = beta_share * theta
         financing_coeff = -beta_share
     elif name == "ActiveExt":
-        active_share = normalize_share(extra.get("active_share", 0.5))
-        if active_share is None:
-            active_share = 0.0
+        active_share = _coerce_share(extra.get("active_share", 0.5))
         beta_coeff = beta_share
-        alpha_coeff = beta_share * float(active_share)
+        alpha_coeff = beta_share * active_share
         financing_coeff = -beta_share
     elif name == "InternalPA":
         beta_coeff = 0.0
