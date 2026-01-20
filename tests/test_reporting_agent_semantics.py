@@ -109,7 +109,7 @@ def test_build_agent_semantics_mismatch_flags() -> None:
         agents=[
             {
                 "name": "Base",
-                "capital": 600.0,
+                "capital": 500.0,
                 "beta_share": 0.6,
                 "alpha_share": 0.4,
                 "extra": {},
@@ -148,6 +148,7 @@ def test_build_agent_semantics_mismatch_flags() -> None:
     df = build_agent_semantics(cfg)
     lookup = df.set_index("Agent")
 
+    assert bool(lookup.loc["Base"]["mismatch_flag"]) is False
     assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is True
     assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is True
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
