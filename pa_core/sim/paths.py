@@ -160,6 +160,7 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
         "max_abs_delta": max_delta,
         "corr_before": corr.tolist(),
         "corr_after": repaired.tolist(),
+        "corr_delta": (repaired - corr).tolist(),
     }
     params["_correlation_repair_info"] = info
 
