@@ -233,9 +233,7 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
             return pd.concat(list(value), ignore_index=True)
         if value and all(isinstance(item, (pd.Series, dict)) for item in value):
             return pd.DataFrame(list(value))
-        if value and all(
-            isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in value
-        ):
+        if value and all(isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in value):
             frames = []
             for item in value:
                 if isinstance(item, pd.DataFrame):
