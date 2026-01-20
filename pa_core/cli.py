@@ -333,7 +333,7 @@ def main(
             "per_path for independent draws)"
         ),
     )
-    parser.add_argument("--index", required=True, help="Index returns CSV")
+    parser.add_argument("--index", required=False, help="Index returns CSV")
     parser.add_argument(
         "--index-frequency",
         choices=["daily", "weekly", "monthly", "quarterly"],
@@ -430,7 +430,7 @@ def main(
     parser.add_argument(
         "--validate-only",
         action="store_true",
-        help="Validate configuration and index inputs without running the simulation",
+        help="Validate configuration (and index inputs if provided) without running the simulation",
     )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
@@ -579,6 +579,8 @@ def main(
     # delegates to facade run/export helpers without duplicating simulation logic. This keeps
     # test expectations in tests/expected_cli_outputs.py stable when output lines move.
     args = parser.parse_args(argv)
+    if not args.index and not args.validate_only:
+        parser.error("--index is required unless --validate-only is set")
 
     run_timer = RunTimer()
     run_end_emitted = False
@@ -814,7 +816,6 @@ def main(
             prev_summary_df = pd.DataFrame()
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
-    from .backend import resolve_and_set_backend
     from .config import load_config
     from .facade import RunOptions, apply_run_options
 
@@ -834,6 +835,21 @@ def main(
         analysis_mode=args.mode,
     )
     cfg = apply_run_options(cfg, run_options)
+
+    if args.validate_only:
+        from .validators import format_validation_messages
+
+        results = _collect_validation_results(cfg)
+        print(format_validation_messages(results))
+        if any((not r.is_valid) and r.severity == "error" for r in results):
+            _emit_run_end()
+            raise SystemExit(1)
+        print("Validation completed successfully.")
+        _emit_run_end()
+        return
+
+    from .backend import resolve_and_set_backend
+
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
@@ -942,18 +958,6 @@ def main(
 
     idx_series = normalize_index_series(idx_series, get_index_series_unit())
     index_hash = _hash_index_series(idx_series) if args.bundle else ""
-
-    if args.validate_only:
-        from .validators import format_validation_messages
-
-        results = _collect_validation_results(cfg)
-        print(format_validation_messages(results))
-        if any((not r.is_valid) and r.severity == "error" for r in results):
-            _emit_run_end()
-            raise SystemExit(1)
-        print("Validation completed successfully.")
-        _emit_run_end()
-        return
 
     if args.register:
         try:

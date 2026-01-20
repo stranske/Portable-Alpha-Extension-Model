@@ -13,12 +13,9 @@ def _mock_monthly_series() -> pd.Series:
     return series
 
 
-def test_cli_validate_only_skips_run(monkeypatch, capsys) -> None:
+def test_cli_validate_only_skips_run_and_index(monkeypatch, capsys) -> None:
     cfg = ModelConfig(N_SIMULATIONS=100, N_MONTHS=1, financing_mode="broadcast")
     monkeypatch.setattr("pa_core.config.load_config", lambda *_: cfg)
-    monkeypatch.setattr("pa_core.backend.resolve_and_set_backend", lambda *_: "numpy")
-    monkeypatch.setattr("pa_core.data.load_index_returns", lambda *_: _mock_monthly_series())
-    monkeypatch.setattr("pa_core.units.normalize_index_series", lambda series, *_: series)
 
     called = {"run_single": False}
 
@@ -27,8 +24,12 @@ def test_cli_validate_only_skips_run(monkeypatch, capsys) -> None:
         raise AssertionError("run_single should not be called when --validate-only is set")
 
     monkeypatch.setattr("pa_core.facade.run_single", _fail_run_single)
+    def _fail_load_index(*_args, **_kwargs) -> None:
+        raise AssertionError("load_index_returns should not be called without --index")
 
-    main(["--config", "cfg.yaml", "--index", "idx.csv", "--validate-only"])
+    monkeypatch.setattr("pa_core.data.load_index_returns", _fail_load_index)
+
+    main(["--config", "cfg.yaml", "--validate-only"])
     captured = capsys.readouterr()
 
     assert called["run_single"] is False
