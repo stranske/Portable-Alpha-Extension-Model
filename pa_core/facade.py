@@ -56,8 +56,8 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         inputs["_agent_semantics_df"] = agent_semantics_val.to_dict(orient="records")
         return
     if isinstance(agent_semantics_val, pd.Series):
-        inputs["_agent_semantics_df"] = (
-            pd.DataFrame([agent_semantics_val]).to_dict(orient="records")
+        inputs["_agent_semantics_df"] = pd.DataFrame([agent_semantics_val]).to_dict(
+            orient="records"
         )
         return
     if isinstance(agent_semantics_val, tuple):
