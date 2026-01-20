@@ -79,20 +79,24 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
 def _iter_agents(cfg: ModelConfig) -> Iterable[dict[str, Any]]:
     for agent in getattr(cfg, "agents", []):
         if isinstance(agent, dict):
+            extra = agent.get("extra") or {}
+            if not isinstance(extra, dict):
+                extra = {}
             yield {
                 "name": agent["name"],
                 "capital": agent["capital"],
                 "beta_share": agent["beta_share"],
                 "alpha_share": agent["alpha_share"],
-                "extra": agent.get("extra", {}),
+                "extra": extra,
             }
         else:
+            extra = agent.extra if isinstance(agent.extra, dict) else {}
             yield {
                 "name": agent.name,
                 "capital": agent.capital,
                 "beta_share": agent.beta_share,
                 "alpha_share": agent.alpha_share,
-                "extra": agent.extra,
+                "extra": extra,
             }
 
 
@@ -104,6 +108,8 @@ def _build_row(
     extra: dict[str, Any],
     total_capital: float,
 ) -> dict[str, Any]:
+    if not isinstance(extra, dict):
+        extra = {}
     normalized_beta_share = normalize_share(beta_share)
     normalized_alpha_share = normalize_share(alpha_share)
     try:

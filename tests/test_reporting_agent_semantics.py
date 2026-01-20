@@ -101,6 +101,47 @@ def test_build_agent_semantics_coeffs_and_mismatch() -> None:
     assert bool(internal_beta["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_allows_null_extra() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 700.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": None,
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": None,
+            },
+            {
+                "name": "ActiveExt",
+                "capital": 100.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": None,
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg).set_index("Agent")
+
+    external = df.loc["ExternalPA"]
+    assert external["alpha_coeff_used"] == pytest.approx(0.0)
+
+    active = df.loc["ActiveExt"]
+    assert active["alpha_coeff_used"] == pytest.approx(0.1)
+
+
 def test_build_agent_semantics_mismatch_flags() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
