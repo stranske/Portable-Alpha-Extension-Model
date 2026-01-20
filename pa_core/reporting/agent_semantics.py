@@ -138,16 +138,14 @@ def _build_row(
         beta_coeff = beta_share
         alpha_coeff = alpha_share
         financing_coeff = -beta_share
-        notes = "Custom agent; semantics depend on implementation."
+        notes = "Semantics depend on the specific agent implementation"
 
-    mismatch_share = None
     if name in {"ExternalPA", "ActiveExt", "InternalBeta"}:
-        mismatch_share = beta_share
+        mismatch_flag = abs(implied_share - beta_share) > _TOLERANCE
     elif name == "InternalPA":
-        mismatch_share = alpha_share
-
-    if mismatch_share is not None:
-        mismatch_flag = abs(implied_share - mismatch_share) > _TOLERANCE
+        mismatch_flag = abs(implied_share - alpha_share) > _TOLERANCE
+    else:
+        mismatch_flag = False
 
     return {
         "Agent": name,

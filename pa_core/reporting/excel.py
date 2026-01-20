@@ -215,18 +215,30 @@ def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
     return value if isinstance(value, pd.DataFrame) else None
 
 
+def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
+    if isinstance(value, pd.DataFrame):
+        return value
+    if isinstance(value, (list, tuple, dict)):
+        try:
+            return pd.DataFrame(value)
+        except Exception:
+            return None
+    return None
+
+
 def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | None:
     value = inputs_dict.get("_agent_semantics_df")
-    if isinstance(value, pd.DataFrame) and not value.empty:
-        return value
+    df = _coerce_agent_semantics_df(value)
+    if isinstance(df, pd.DataFrame) and not df.empty:
+        return df
     agents = inputs_dict.get("agents")
     total_capital = inputs_dict.get("total_fund_capital")
     if agents is None or total_capital is None:
-        return value if isinstance(value, pd.DataFrame) else None
+        return df if isinstance(df, pd.DataFrame) else None
     try:
         from .agent_semantics import build_agent_semantics
     except Exception:
-        return value if isinstance(value, pd.DataFrame) else None
+        return df if isinstance(df, pd.DataFrame) else None
     cfg = SimpleNamespace(agents=agents, total_fund_capital=total_capital)
     for attr in (
         "reference_sigma",
@@ -238,7 +250,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
         if attr in inputs_dict:
             setattr(cfg, attr, inputs_dict[attr])
     df = build_agent_semantics(cast(ModelConfig, cfg))
-    inputs_dict["_agent_semantics_df"] = df
+    inputs_dict["_agent_semantics_df"] = df.to_dict(orient="records")
     return df
 
 

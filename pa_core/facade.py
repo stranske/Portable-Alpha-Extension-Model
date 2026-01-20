@@ -532,8 +532,16 @@ def export(
         from .reporting.agent_semantics import build_agent_semantics
 
         agent_semantics_val = inputs_dict.get("_agent_semantics_df")
-        if not (isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty):
-            inputs_dict["_agent_semantics_df"] = build_agent_semantics(artifacts.config)
+        has_serialized = isinstance(agent_semantics_val, (list, tuple, dict)) and bool(
+            agent_semantics_val
+        )
+        if not (
+            isinstance(agent_semantics_val, pd.DataFrame)
+            and not agent_semantics_val.empty
+            or has_serialized
+        ):
+            agent_semantics_df = build_agent_semantics(artifacts.config)
+            inputs_dict["_agent_semantics_df"] = agent_semantics_df.to_dict(orient="records")
         metadata = None
         if artifacts.manifest is not None:
             metadata = {
