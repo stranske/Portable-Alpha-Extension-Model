@@ -5,10 +5,10 @@ branch: codex/issue-1184
 tasks:
   - id: task-01
     title: _Not provided._
-    status: doing
+    status: done
     started_at: '2026-01-20T14:35:44Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-20T14:35:54Z'
+    commit: 7595e7b69ad0c67e9ee60e787bb2297393343657
     notes: []
   - id: task-02
     title: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include
