@@ -34,10 +34,7 @@ def test_suggest_constraint_fixes_leverage():
 
     suggestions = suggest_constraint_fixes(violation)
 
-    assert (
-        "Scale all weights by 0.83 to reduce gross exposure from 1.80 to 1.50."
-        in suggestions
-    )
+    assert "Scale all weights by 0.83 to reduce gross exposure from 1.80 to 1.50." in suggestions
     assert "Reduce short or long positions to bring leverage within limits." in suggestions
 
 
@@ -62,6 +59,4 @@ def test_suggest_constraint_fixes_fallback():
 
     suggestions = suggest_constraint_fixes(violation)
 
-    assert suggestions == [
-        "Review the constraint settings and adjust weights to satisfy limits."
-    ]
+    assert suggestions == ["Review the constraint settings and adjust weights to satisfy limits."]
