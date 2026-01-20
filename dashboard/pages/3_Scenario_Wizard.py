@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import tempfile
 from contextlib import contextmanager
@@ -37,6 +38,10 @@ _INTERNAL_CAPITAL_KEY = "wizard_internal_pa_capital"
 _W_BETA_KEY = "wizard_w_beta_h"
 _THETA_EXTPA_KEY = "wizard_theta_extpa"
 _ACTIVE_SHARE_KEY = "wizard_active_share"
+_REGIME_ENABLED_KEY = "wizard_regime_enabled"
+_REGIME_TEXT_KEY = "wizard_regimes_text"
+_REGIME_TRANSITION_TEXT_KEY = "wizard_regime_transition_text"
+_REGIME_START_KEY = "wizard_regime_start"
 
 
 def _normalize_risk_metric_defaults(metrics: list[Any]) -> list[RiskMetric]:
@@ -62,6 +67,50 @@ def _serialize_risk_metrics(metrics: list[Any]) -> list[str]:
         else:
             serialized.append(str(metric))
     return serialized
+
+
+def _serialize_regimes(regimes: Any) -> list[dict[str, Any]]:
+    """Normalize regime configs into a list of dictionaries for YAML output."""
+    if regimes is None:
+        return []
+    serialized: list[dict[str, Any]] = []
+    for regime in regimes:
+        if hasattr(regime, "model_dump"):
+            serialized.append(regime.model_dump())
+        elif isinstance(regime, dict):
+            serialized.append(dict(regime))
+        else:
+            raise TypeError("Regime entries must be dicts or RegimeConfig instances")
+    return serialized
+
+
+def _normalize_regime_payload(payload: Any) -> list[dict[str, Any]]:
+    """Validate parsed regime payload into a list of dicts with names."""
+    if not isinstance(payload, list):
+        raise ValueError("Regimes must be a list of mappings with a 'name' field.")
+    regimes: list[dict[str, Any]] = []
+    for idx, item in enumerate(payload):
+        if not isinstance(item, dict):
+            raise ValueError(f"Regime entry {idx} must be a mapping with a 'name' field.")
+        if not item.get("name"):
+            raise ValueError(f"Regime entry {idx} is missing required 'name'.")
+        regimes.append(dict(item))
+    return regimes
+
+
+def _normalize_transition_matrix(payload: Any) -> list[list[float]]:
+    """Validate parsed transition matrix into a numeric list-of-lists."""
+    if not isinstance(payload, list) or not payload:
+        raise ValueError("Transition matrix must be a non-empty list of rows.")
+    normalized: list[list[float]] = []
+    for row_idx, row in enumerate(payload):
+        if not isinstance(row, list) or not row:
+            raise ValueError(f"Transition row {row_idx} must be a non-empty list.")
+        try:
+            normalized.append([float(value) for value in row])
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"Transition row {row_idx} must be numeric.") from exc
+    return normalized
 
 
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
@@ -167,6 +216,15 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "financing_schedule_path": (str(sched_path) if (fm == "schedule" and sched_path) else None),
         "financing_term_months": term_m,
     }
+
+    if config.regimes is not None:
+        yaml_dict["regimes"] = _serialize_regimes(config.regimes)
+        yaml_dict["regime_transition"] = config.regime_transition
+        yaml_dict["regime_start"] = config.regime_start
+    elif config.regime_transition is not None or config.regime_start is not None:
+        yaml_dict["regimes"] = _serialize_regimes(config.regimes)
+        yaml_dict["regime_transition"] = config.regime_transition
+        yaml_dict["regime_start"] = config.regime_start
 
     return yaml_dict
 
@@ -985,6 +1043,147 @@ def _render_step_3_returns_risk(config: Any) -> Any:
     return config
 
 
+def _render_regime_switching(config: DefaultConfigView) -> DefaultConfigView:
+    """Render the regime switching configuration section."""
+    with st.expander("Regime Switching", expanded=False):
+        enabled_default = bool(
+            st.session_state.get(_REGIME_ENABLED_KEY, config.regimes is not None)
+        )
+        enabled = st.checkbox(
+            "Enable regime switching",
+            value=enabled_default,
+            key=_REGIME_ENABLED_KEY,
+            help="Toggle Markov regime switching for volatility/correlation parameters.",
+        )
+
+        if not enabled:
+            config.regimes = None
+            config.regime_transition = None
+            config.regime_start = None
+            return config
+
+        st.markdown(
+            "Provide regimes and a transition matrix in YAML or JSON. Each regime must "
+            "include a unique `name`."
+        )
+
+        regimes_default = st.session_state.get(_REGIME_TEXT_KEY)
+        if regimes_default is None and config.regimes:
+            regimes_default = yaml.safe_dump(
+                _serialize_regimes(config.regimes),
+                default_flow_style=False,
+            ).strip()
+        regimes_text = st.text_area(
+            "Regimes (YAML or JSON)",
+            value=regimes_default or "",
+            key=_REGIME_TEXT_KEY,
+            height=180,
+            placeholder=(
+                "- name: calm\n"
+                "  idx_sigma_multiplier: 1.0\n"
+                "- name: stress\n"
+                "  idx_sigma_multiplier: 1.5\n"
+                "  sigma_H: 0.05"
+            ),
+            help="List of regime objects. Each entry must include a name.",
+        )
+
+        transition_default = st.session_state.get(_REGIME_TRANSITION_TEXT_KEY)
+        if transition_default is None and config.regime_transition:
+            transition_default = yaml.safe_dump(
+                config.regime_transition,
+                default_flow_style=False,
+            ).strip()
+        transition_text = st.text_area(
+            "Transition matrix (YAML or JSON)",
+            value=transition_default or "",
+            key=_REGIME_TRANSITION_TEXT_KEY,
+            height=140,
+            placeholder="- [0.9, 0.1]\n- [0.2, 0.8]",
+            help="Square matrix with rows summing to 1.0 (one row per regime).",
+        )
+
+        errors: list[str] = []
+        regimes_payload: list[dict[str, Any]] | None = None
+        transition_payload: list[list[float]] | None = None
+
+        if regimes_text.strip():
+            try:
+                regimes_payload = _normalize_regime_payload(yaml.safe_load(regimes_text))
+            except (ValueError, yaml.YAMLError) as exc:
+                errors.append(f"Regimes parse error: {exc}")
+        else:
+            errors.append("Regimes definition is required when regime switching is enabled.")
+
+        if transition_text.strip():
+            try:
+                transition_payload = _normalize_transition_matrix(
+                    yaml.safe_load(transition_text)
+                )
+            except (ValueError, yaml.YAMLError) as exc:
+                errors.append(f"Transition matrix parse error: {exc}")
+        else:
+            errors.append("Transition matrix is required when regime switching is enabled.")
+
+        regime_names: list[str] = []
+        if regimes_payload is not None:
+            regime_names = [regime["name"] for regime in regimes_payload]
+            duplicate_names = sorted(
+                {name for name in regime_names if regime_names.count(name) > 1}
+            )
+            if duplicate_names:
+                errors.append(
+                    "Regime names must be unique; duplicates found: "
+                    + ", ".join(duplicate_names)
+                )
+
+        if regimes_payload is not None and transition_payload is not None:
+            n_regimes = len(regimes_payload)
+            if len(transition_payload) != n_regimes or any(
+                len(row) != n_regimes for row in transition_payload
+            ):
+                errors.append(
+                    "Transition matrix must be square and match the number of regimes."
+                )
+            else:
+                for row_idx, row in enumerate(transition_payload):
+                    row_sum = float(sum(row))
+                    if any(prob < 0.0 or prob > 1.0 for prob in row):
+                        errors.append(
+                            f"Transition row {row_idx} values must be between 0 and 1."
+                        )
+                    if not math.isclose(row_sum, 1.0, abs_tol=1e-6):
+                        errors.append(
+                            f"Transition row {row_idx} must sum to 1 (got {row_sum:.6f})."
+                        )
+
+        start_options = ["(none)"] + regime_names
+        current_start = config.regime_start if config.regime_start in regime_names else "(none)"
+        start_index = start_options.index(current_start)
+        start_choice = st.selectbox(
+            "Starting regime (optional)",
+            options=start_options,
+            index=start_index,
+            key=_REGIME_START_KEY,
+            help="Optional: choose the initial regime for the simulation.",
+        )
+        config.regime_start = None if start_choice == "(none)" else start_choice
+
+        if config.regime_start and config.regime_start not in regime_names:
+            errors.append("Starting regime must match a regime name.")
+
+        if errors:
+            for error in errors:
+                st.error(error)
+
+        config.regimes = regimes_payload if regimes_payload is not None else []
+        config.regime_transition = (
+            transition_payload if transition_payload is not None else []
+        )
+
+    return config
+
+
 def _render_step_4_correlations(config: Any) -> Any:
     """Step 4: Correlation Parameters."""
     st.subheader("Step 4: Correlation Parameters")
@@ -1081,8 +1280,8 @@ def _render_step_4_correlations(config: Any) -> Any:
         )
     else:
         st.success("✅ Correlation matrix is valid")
-    return config
 
+    config = _render_regime_switching(config)
     return config
 
 
