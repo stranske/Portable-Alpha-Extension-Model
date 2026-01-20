@@ -48,5 +48,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Normalized nested list numpy scalars in AgentSemantics serialization.
 - Normalized nested dict numpy scalars in AgentSemantics serialization.
 - Normalized numpy array AgentSemantics values during serialization.
+- Reverified task checkboxes after numpy array AgentSemantics handling.
 
 <!-- auto-status-summary:end -->

@@ -225,6 +225,8 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
                 return False
         return True
 
+    if isinstance(value, np.ndarray):
+        return _coerce_agent_semantics_df(value.tolist())
     if isinstance(value, pd.DataFrame):
         return value
     if isinstance(value, pd.Series):

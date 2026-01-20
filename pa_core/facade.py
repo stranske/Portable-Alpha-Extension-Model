@@ -74,6 +74,12 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         return True
 
     agent_semantics_val = inputs.get("_agent_semantics_df")
+    try:
+        import numpy as np
+    except Exception:
+        np = None
+    if np is not None and isinstance(agent_semantics_val, np.ndarray):
+        agent_semantics_val = agent_semantics_val.tolist()
     if isinstance(agent_semantics_val, pd.DataFrame):
         records = agent_semantics_val.to_dict(orient="records")
         inputs["_agent_semantics_df"] = _records_to_builtin(records)
