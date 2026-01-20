@@ -218,7 +218,14 @@ def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
 def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
     if isinstance(value, pd.DataFrame):
         return value
-    if isinstance(value, (list, tuple, dict)):
+    if isinstance(value, (list, tuple)):
+        try:
+            return pd.DataFrame(value)
+        except Exception:
+            return None
+    if isinstance(value, dict):
+        if value and all(not isinstance(v, (list, tuple, dict)) for v in value.values()):
+            return pd.DataFrame([value])
         try:
             return pd.DataFrame(value)
         except Exception:

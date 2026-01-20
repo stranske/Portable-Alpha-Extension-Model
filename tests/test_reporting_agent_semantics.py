@@ -361,6 +361,35 @@ def test_export_uses_serialized_agent_semantics(tmp_path, monkeypatch) -> None:
     assert not df.empty
 
 
+def test_export_uses_single_row_agent_semantics_dict(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": "Base",
+            "capital_mm": 1000.0,
+            "implied_capital_share": 1.0,
+            "beta_coeff_used": 0.6,
+            "alpha_coeff_used": 0.4,
+            "financing_coeff_used": -0.6,
+            "notes": "",
+            "mismatch_flag": False,
+        },
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "single_row_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+
+
 def test_serialize_agent_semantics_input_dataframe() -> None:
     inputs = {
         "_agent_semantics_df": pd.DataFrame(
