@@ -96,6 +96,10 @@ def export_to_excel(
     trade_df = _optional_df(inputs_dict, "_tradeoff_df")
     constraint_df = _optional_df(inputs_dict, "_constraint_report_df")
     agent_semantics_df = _ensure_agent_semantics_df(inputs_dict)
+    corr_before_df = _optional_df(inputs_dict, "_corr_before_df")
+    corr_after_df = _optional_df(inputs_dict, "_corr_after_df")
+    corr_delta_df = _optional_df(inputs_dict, "_corr_delta_df")
+    corr_repair_info_df = _optional_df(inputs_dict, "_corr_repair_info_df")
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         df_inputs = pd.DataFrame(
@@ -183,6 +187,14 @@ def export_to_excel(
             constraint_df.to_excel(writer, sheet_name="ConstraintBreaches", index=False)
         if agent_semantics_df is not None and not agent_semantics_df.empty:
             agent_semantics_df.to_excel(writer, sheet_name="AgentSemantics", index=False)
+        if corr_before_df is not None and not corr_before_df.empty:
+            corr_before_df.to_excel(writer, sheet_name="CorrInput", index=True)
+        if corr_after_df is not None and not corr_after_df.empty:
+            corr_after_df.to_excel(writer, sheet_name="CorrUsed", index=True)
+        if corr_delta_df is not None and not corr_delta_df.empty:
+            corr_delta_df.to_excel(writer, sheet_name="CorrDelta", index=True)
+        if corr_repair_info_df is not None and not corr_repair_info_df.empty:
+            corr_repair_info_df.to_excel(writer, sheet_name="CorrRepairInfo", index=False)
 
         # Write returns either pivoted or per-sheet
         if pivot:

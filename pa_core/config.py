@@ -287,6 +287,7 @@ class ModelConfig(BaseModel):
 
     correlation_repair_mode: Literal["error", "warn_fix"] = "warn_fix"
     correlation_repair_shrinkage: float = Field(default=0.0)
+    correlation_repair_max_abs_delta: float | None = Field(default=None)
 
     covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none"
     vol_regime: Literal["single", "two_state"] = "single"
@@ -821,6 +822,11 @@ class ModelConfig(BaseModel):
         self._trace_transform(self, "check_correlation_repairs")
         if not 0.0 <= self.correlation_repair_shrinkage <= 1.0:
             raise ValueError("correlation_repair_shrinkage must be between 0 and 1")
+        if (
+            self.correlation_repair_max_abs_delta is not None
+            and self.correlation_repair_max_abs_delta < 0.0
+        ):
+            raise ValueError("correlation_repair_max_abs_delta must be non-negative")
         return self
 
     @model_validator(mode="after")

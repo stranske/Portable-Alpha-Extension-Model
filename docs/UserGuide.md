@@ -1301,6 +1301,8 @@ Use the sensitivity flag to compute one‑factor deltas for key parameters and r
 
 Outputs also include Excel sheets: Sensitivity, Attribution, and RiskAttribution when data is available. When present, the AgentSemantics sheet summarizes how agent coefficients map to capital shares and flags material mismatches.
 
+When correlation repair is applied, the Excel export adds four diagnostic sheets: `CorrInput` (pre-repair matrix), `CorrUsed` (post-repair matrix), `CorrDelta` (post minus pre), and `CorrRepairInfo` (one-row summary with mode, method, shrinkage, min eigenvalues, and max delta).
+
 ### AgentSemantics sheet (Excel)
 
 The AgentSemantics sheet is generated during export using the resolved agent configuration. It provides a per-agent mapping of capital allocations to the coefficients used in the simulation along with a mismatch indicator.

@@ -250,9 +250,12 @@ def test_draw_joint_returns_passes_through_valid_correlation() -> None:
     assert info["method"] == "none"
     corr_before = np.array(info["corr_before"])
     corr_after = np.array(info["corr_after"])
+    corr_delta = np.array(info["corr_delta"])
     assert corr_before.shape == (4, 4)
     assert corr_after.shape == (4, 4)
+    assert corr_delta.shape == (4, 4)
     np.testing.assert_allclose(corr_before, corr_after)
+    np.testing.assert_allclose(corr_delta, corr_after - corr_before)
 
 
 def test_draw_joint_returns_rejects_out_of_range_correlations() -> None:
@@ -303,6 +306,37 @@ def test_draw_joint_returns_repairs_non_psd_correlation() -> None:
     assert info["min_eigenvalue_after"] >= -1e-10
     corr_before = np.array(info["corr_before"])
     corr_after = np.array(info["corr_after"])
+    corr_delta = np.array(info["corr_delta"])
     assert corr_before.shape == (4, 4)
     assert corr_after.shape == (4, 4)
+    assert corr_delta.shape == (4, 4)
     assert not np.allclose(corr_before, corr_after)
+    np.testing.assert_allclose(corr_delta, corr_after - corr_before)
+
+
+def test_draw_joint_returns_repair_delta_threshold() -> None:
+    params = _base_params()
+    params.update(
+        {
+            "rho_idx_H": 0.9,
+            "rho_idx_E": 0.9,
+            "rho_idx_M": 0.0,
+            "rho_H_E": -0.9,
+            "rho_H_M": 0.0,
+            "rho_E_M": 0.0,
+            "correlation_repair_mode": "warn_fix",
+        }
+    )
+    threshold = 1.0e-6
+    params["correlation_repair_max_abs_delta"] = threshold
+    rng = np.random.default_rng(7)
+    with pytest.raises(ValueError) as exc:
+        draw_joint_returns(
+            n_months=4,
+            n_sim=8,
+            params=params,
+            rng=rng,
+        )
+    message = str(exc.value)
+    assert "max_abs_delta" in message
+    assert f"{threshold:.3e}" in message

@@ -53,6 +53,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `rho_E_M` | `Corr Alpha-Extension–External` | `<class 'float'>` | no | `0.0` |  |
 | `correlation_repair_mode` | `correlation_repair_mode` | `Literal['error', 'warn_fix']` | no | `warn_fix` |  |
 | `correlation_repair_shrinkage` | `correlation_repair_shrinkage` | `<class 'float'>` | no | `0.0` |  |
+| `correlation_repair_max_abs_delta` | `correlation_repair_max_abs_delta` | `float \| None` | no | `None` |  |
 | `covariance_shrinkage` | `covariance_shrinkage` | `Literal['none', 'ledoit_wolf']` | no | `none` |  |
 | `vol_regime` | `vol_regime` | `Literal['single', 'two_state']` | no | `single` |  |
 | `vol_regime_window` | `vol_regime_window` | `<class 'int'>` | no | `12` |  |

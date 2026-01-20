@@ -56,3 +56,8 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reconciled task checkboxes after reviewing non-finite margin requirement handling.
 
 <!-- auto-status-summary:end -->
+
+## Correlation Repair Checklist
+- [x] `pa_core/facade.py::run_single()` attaches `_corr_before_df`, `_corr_after_df`, `_corr_delta_df`, and `_corr_repair_info_df` when correlation repair info is available (validated via `tests/test_facade_run_single.py`).
+- [x] `_corr_delta_df` matches `_corr_after_df - _corr_before_df` in `tests/test_facade_run_single.py`.
+- [x] `_corr_repair_info_df` includes mode, method, shrinkage, min eigen before/after, and max_abs_delta in `tests/test_facade_run_single.py`.

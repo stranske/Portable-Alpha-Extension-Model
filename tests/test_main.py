@@ -26,6 +26,7 @@ class DummyConfig:
     rho_E_M: float = 0.6
     correlation_repair_mode: str = "warn_fix"
     correlation_repair_shrinkage: float = 0.0
+    correlation_repair_max_abs_delta: float | None = None
     return_distribution: str = "normal"
     return_t_df: float = 8.0
     return_copula: str = "gaussian"

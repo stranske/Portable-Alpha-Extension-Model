@@ -198,3 +198,36 @@ def test_export_to_excel_includes_sleeve_attribution_sheet(tmp_path: Path) -> No
 
     wb = openpyxl.load_workbook(out_path)
     assert "sleeve_attribution" in wb.sheetnames
+
+
+def test_export_to_excel_includes_correlation_repair_sheets(tmp_path: Path) -> None:
+    from pa_core.reporting.excel import export_to_excel
+
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
+    corr_before = pd.DataFrame([[1.0, 0.1], [0.1, 1.0]], index=["A", "B"], columns=["A", "B"])
+    corr_after = pd.DataFrame([[1.0, 0.05], [0.05, 1.0]], index=["A", "B"], columns=["A", "B"])
+    corr_delta = corr_after - corr_before
+    repair_info = pd.DataFrame(
+        [
+            {
+                "mode": "auto",
+                "method": "near_pd",
+                "shrinkage": 0.0,
+                "min_eigenvalue_before": -0.01,
+                "min_eigenvalue_after": 0.0,
+                "max_abs_delta": float(corr_delta.abs().to_numpy().max()),
+            }
+        ]
+    )
+    inputs = {
+        "_corr_before_df": corr_before,
+        "_corr_after_df": corr_after,
+        "_corr_delta_df": corr_delta,
+        "_corr_repair_info_df": repair_info,
+    }
+    out_path = tmp_path / "outputs.xlsx"
+
+    export_to_excel(inputs, summary, {}, filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path)
+    assert {"CorrInput", "CorrUsed", "CorrDelta", "CorrRepairInfo"} <= set(wb.sheetnames)
