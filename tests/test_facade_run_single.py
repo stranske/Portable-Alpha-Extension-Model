@@ -108,3 +108,14 @@ def test_run_single_attaches_correlation_repair_frames() -> None:
         assert isinstance(artifacts.inputs[key], pd.DataFrame)
     assert artifacts.inputs["_corr_before_df"].shape == (4, 4)
     assert artifacts.inputs["_corr_after_df"].shape == (4, 4)
+    info_df = artifacts.inputs["_corr_repair_info_df"]
+    assert info_df.shape[0] == 1
+    expected_cols = {
+        "mode",
+        "method",
+        "shrinkage",
+        "min_eigenvalue_before",
+        "min_eigenvalue_after",
+        "max_abs_delta",
+    }
+    assert expected_cols.issubset(info_df.columns)
