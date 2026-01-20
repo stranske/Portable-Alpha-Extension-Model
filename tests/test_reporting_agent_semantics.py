@@ -573,6 +573,29 @@ def test_export_uses_agent_semantics_dict_of_series(tmp_path, monkeypatch) -> No
     assert list(df["Agent"]) == ["Base", "ExternalPA"]
 
 
+def test_export_uses_agent_semantics_tuple_of_series(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": (
+            pd.Series({"Agent": "Base", "mismatch_flag": False}),
+            pd.Series({"Agent": "ExternalPA", "mismatch_flag": False}),
+        ),
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "tuple_series_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
 def test_export_builds_agent_semantics_when_missing(tmp_path) -> None:
     pytest.importorskip("openpyxl")
     inputs = {

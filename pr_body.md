@@ -31,5 +31,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reconfirmed task checkboxes after series-based agent semantics serialization coverage.
 - Reverified task reconciliation after list-of-series agent semantics serialization handling.
 - Added tuple-of-series serialization coverage for agent semantics inputs.
+- Added Excel export coverage for tuple-of-series AgentSemantics inputs.
 
 <!-- auto-status-summary:end -->
