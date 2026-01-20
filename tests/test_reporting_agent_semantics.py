@@ -184,6 +184,33 @@ def test_build_agent_semantics_invalid_extra_shares() -> None:
     assert active["alpha_coeff_used"] == pytest.approx(0.0)
 
 
+def test_build_agent_semantics_agent_object_without_extra() -> None:
+    class Agent:
+        def __init__(self, name: str, capital: float, beta_share: float, alpha_share: float) -> None:
+            self.name = name
+            self.capital = capital
+            self.beta_share = beta_share
+            self.alpha_share = alpha_share
+
+    cfg = SimpleNamespace(
+        total_fund_capital=1000.0,
+        agents=[
+            Agent(
+                "ExternalPA",
+                200.0,
+                0.2,
+                0.0,
+            )
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    external = df.set_index("Agent").loc["ExternalPA"]
+
+    assert external["alpha_coeff_used"] == pytest.approx(0.0)
+    assert bool(external["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_invalid_capital_and_shares() -> None:
     cfg = SimpleNamespace(
         total_fund_capital=1000.0,

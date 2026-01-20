@@ -106,7 +106,9 @@ def _iter_agents(cfg: ModelConfig) -> Iterable[dict[str, Any]]:
                 "extra": extra,
             }
         else:
-            extra = agent.extra if isinstance(agent.extra, dict) else {}
+            extra = getattr(agent, "extra", {})
+            if not isinstance(extra, dict):
+                extra = {}
             yield {
                 "name": agent.name,
                 "capital": agent.capital,
