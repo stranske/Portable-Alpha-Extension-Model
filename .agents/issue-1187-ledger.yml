@@ -5,10 +5,10 @@ branch: codex/issue-1187
 tasks:
   - id: task-01
     title: _Not provided._
-    status: doing
+    status: done
     started_at: '2026-01-20T18:47:13Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-20T18:47:22Z'
+    commit: 4819b1999cd980344392c752a9ec2466d9ff7640
     notes: []
   - id: task-02
     title: Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the
