@@ -137,6 +137,15 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
     min_eig_after = float(eigvals_after.min())
     max_delta = float(np.max(np.abs(repaired - corr)))
     repair_applied = bool(applied_steps)
+    max_delta_threshold = params.get("correlation_repair_max_abs_delta")
+    if max_delta_threshold is not None and repair_applied:
+        max_delta_threshold = float(max_delta_threshold)
+        if max_delta > max_delta_threshold:
+            raise ValueError(
+                "Correlation repair max_abs_delta "
+                f"{max_delta:.3e} exceeds correlation_repair_max_abs_delta "
+                f"{max_delta_threshold:.3e}."
+            )
 
     info = {
         "repair_applied": repair_applied,

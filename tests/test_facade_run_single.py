@@ -82,3 +82,29 @@ def test_run_single_uses_regime_paths(monkeypatch) -> None:
     assert "Regime" in artifacts.raw_returns
     regime_values = set(pd.unique(artifacts.raw_returns["Regime"].to_numpy().ravel()))
     assert regime_values.issubset({"calm", "stress"})
+
+
+def test_run_single_attaches_correlation_repair_frames() -> None:
+    cfg = load_config("examples/scenarios/my_first_scenario.yml").model_copy(
+        update={
+            "N_SIMULATIONS": 2,
+            "N_MONTHS": 3,
+            "rho_idx_H": 0.9,
+            "rho_idx_E": 0.9,
+            "rho_idx_M": 0.0,
+            "rho_H_E": -0.9,
+            "rho_H_M": 0.0,
+            "rho_E_M": 0.0,
+            "correlation_repair_mode": "warn_fix",
+            "correlation_repair_shrinkage": 0.1,
+        }
+    )
+    idx = pd.Series([0.01, -0.02, 0.015])
+
+    artifacts = run_single(cfg, idx, RunOptions(seed=123))
+
+    for key in ("_corr_before_df", "_corr_after_df", "_corr_delta_df", "_corr_repair_info_df"):
+        assert key in artifacts.inputs
+        assert isinstance(artifacts.inputs[key], pd.DataFrame)
+    assert artifacts.inputs["_corr_before_df"].shape == (4, 4)
+    assert artifacts.inputs["_corr_after_df"].shape == (4, 4)

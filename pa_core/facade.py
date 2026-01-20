@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
+    import numpy as np
     import pandas as pd
 
     from .config import ModelConfig
@@ -65,6 +66,7 @@ def _records_to_builtin(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
+    import numpy as np
     import pandas as pd
     from pandas.api.types import is_list_like
 
@@ -318,6 +320,7 @@ def run_single(
         ))
     """
 
+    import numpy as np
     import pandas as pd
 
     from .agents.registry import build_from_config
@@ -453,9 +456,44 @@ def run_single(
     if regime_labels is not None:
         raw_returns["Regime"] = pd.DataFrame(regime_labels)
     inputs = run_cfg.model_dump()
-    if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
-        inputs["correlation_repair_applied"] = True
-        inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
+    if isinstance(corr_repair_info, dict):
+        if corr_repair_info.get("repair_applied"):
+            corr_before = np.array(corr_repair_info.get("corr_before"), dtype=float)
+            corr_after = np.array(corr_repair_info.get("corr_after"), dtype=float)
+            if corr_before.shape == corr_after.shape and corr_before.size:
+                labels = ["Index", "H", "E", "M"]
+                row_labels = labels if corr_before.shape[0] == len(labels) else None
+                inputs["_corr_before_df"] = pd.DataFrame(
+                    corr_before,
+                    index=row_labels,
+                    columns=row_labels,
+                )
+                inputs["_corr_after_df"] = pd.DataFrame(
+                    corr_after,
+                    index=row_labels,
+                    columns=row_labels,
+                )
+                inputs["_corr_delta_df"] = pd.DataFrame(
+                    corr_after - corr_before,
+                    index=row_labels,
+                    columns=row_labels,
+                )
+            inputs["_corr_repair_info_df"] = pd.DataFrame(
+                [
+                    {
+                        "mode": corr_repair_info.get("repair_mode"),
+                        "method": corr_repair_info.get("method"),
+                        "shrinkage": corr_repair_info.get("shrinkage"),
+                        "min_eigenvalue_before": corr_repair_info.get(
+                            "min_eigenvalue_before"
+                        ),
+                        "min_eigenvalue_after": corr_repair_info.get("min_eigenvalue_after"),
+                        "max_abs_delta": corr_repair_info.get("max_abs_delta"),
+                    }
+                ]
+            )
+            inputs["correlation_repair_applied"] = True
+            inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
     _serialize_agent_semantics_input(inputs)
     manifest = {
         "seed": run_options.seed,
