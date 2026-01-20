@@ -53,5 +53,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reconfirmed task checkboxes after NaN agent semantics serialization handling.
 - Reverified task checkboxes after invalid agent capital/share handling coverage.
 - Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
+- Reconciled task checkboxes after reviewing non-finite margin requirement handling.
 
 <!-- auto-status-summary:end -->

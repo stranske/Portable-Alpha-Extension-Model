@@ -66,7 +66,11 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
                 schedule_path=cfg.financing_schedule_path,
                 term_months=cfg.financing_term_months,
             )
-            if margin_requirement > 0.0 and not any(a["name"] == "InternalBeta" for a in agents):
+            if (
+                math.isfinite(margin_requirement)
+                and margin_requirement > 0.0
+                and not any(a["name"] == "InternalBeta" for a in agents)
+            ):
                 agents.append(
                     {
                         "name": "InternalBeta",

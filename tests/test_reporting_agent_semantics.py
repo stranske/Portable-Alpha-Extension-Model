@@ -471,6 +471,39 @@ def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypa
     assert bool(internal_beta["mismatch_flag"]) is False
 
 
+@pytest.mark.parametrize("margin_value", [float("nan"), float("inf")])
+def test_build_agent_semantics_ignores_non_finite_margin_requirement(
+    monkeypatch, margin_value
+) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.01,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 1.0,
+                "alpha_share": 0.0,
+                "extra": {},
+            }
+        ],
+    )
+
+    def _margin_requirement(*_args, **_kwargs) -> float:
+        return margin_value
+
+    monkeypatch.setattr(
+        "pa_core.reporting.agent_semantics.calculate_margin_requirement", _margin_requirement
+    )
+
+    df = build_agent_semantics(cfg)
+
+    assert "InternalBeta" not in set(df["Agent"])
+
+
 def test_build_agent_semantics_custom_agent_defaults() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
