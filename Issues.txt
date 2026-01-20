@@ -1,0 +1,255 @@
+1 — Add AgentSemantics sheet to disambiguate capital vs contribution weights
+## Why
+
+Agent configuration currently mixes concepts:
+- `capital` exists per agent, but simulation math is driven by `beta_share/alpha_share` (and sometimes `extra`).
+- For built-in sleeves, `beta_share/alpha_share` can represent capital-scaled contribution weights (ExternalPA/ActiveExt/InternalPA) while `Base` uses them as within-sleeve weights.
+
+This is correct mathematically, but it’s easy to misread outputs (“is this a beta exposure share, or a capital share, or an overlay intensity?”). A small, explicit “AgentSemantics” table makes the math auditable for humans and bots without changing model behavior.
+
+## Scope
+
+- Add a reporting helper that computes and exports a per-agent “effective coefficients” table:
+  - capital ($mm)
+  - implied capital share (capital / total_fund_capital)
+  - effective beta contribution coefficient
+  - effective alpha contribution coefficient
+  - effective financing coefficient
+  - notes/mismatch flags when implied capital share does not match contribution scaling
+
+- Export this as a dedicated Excel sheet `AgentSemantics`.
+
+## Non-Goals
+
+- Changing simulation math or existing outputs.
+- Refactoring the AgentConfig schema.
+- Rewriting the generic agents list format.
+
+## Tasks
+
+- [ ] Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame`.
+- [ ] Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`, `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.
+- [ ] Implement built-in agent rules:
+  - Base: beta_coeff = beta_share, alpha_coeff = alpha_share, financing_coeff = -beta_share
+  - ExternalPA: beta_coeff = beta_share, alpha_coeff = beta_share * theta_extpa (from extra), financing_coeff = -beta_share
+  - ActiveExt: beta_coeff = beta_share, alpha_coeff = beta_share * active_share (from extra), financing_coeff = -beta_share
+  - InternalPA: beta_coeff = 0, alpha_coeff = alpha_share, financing_coeff = 0
+  - InternalBeta: beta_coeff = beta_share, alpha_coeff = 0, financing_coeff = -beta_share
+  - Unknown/custom agents: treat beta_coeff = beta_share and alpha_coeff = alpha_share; set notes indicating semantics depend on implementation.
+- [ ] Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance (e.g., 1e-6).
+- [ ] Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+- [ ] Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a new sheet `AgentSemantics` when present.
+- [ ] Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+- [ ] Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics` sheet and how to interpret it.
+
+## Acceptance Criteria
+
+- [ ] Running `pa run` produces an Excel workbook containing a sheet named `AgentSemantics`.
+- [ ] The sheet contains the specified columns and rows for all built-in agents present in config.
+- [ ] For ExternalPA and ActiveExt, `alpha_coeff_used` equals `beta_share * theta_extpa` and `beta_share * active_share` respectively.
+- [ ] Mismatch flags trigger when implied capital share differs materially from the contribution scaling used.
+- [ ] All tests pass and no existing simulation output tests regress.
+
+## Implementation Notes
+
+Files likely involved:
+- `pa_core/reporting/agent_semantics.py` (new)
+- `pa_core/facade.py` (attach `_agent_semantics_df` to inputs)
+- `pa_core/reporting/excel.py` (write `AgentSemantics` sheet)
+- `pa_core/config.py` (use `total_fund_capital` and existing compiled agents list)
+- `pa_core/agents/*.py` (reference semantics only; do not change)
+
+2 — Export correlation repair diagnostics (before/after matrices) + optional max-delta guardrail
+## Why
+
+Correlation repair is correctly applied and logged, and summary stats are stored in `_correlation_repair_info`, but the actual matrices used (before vs after) are not exported. That makes it hard to audit when “inputs were repaired” materially.
+
+We should export:
+- correlation matrix before repair
+- correlation matrix after repair
+- delta matrix (after - before)
+- a small “repair info” table (min eigen before/after, max delta, mode, shrinkage)
+
+Optionally, users should be able to fail a run when the repair delta is too large.
+
+## Scope
+
+- Extend correlation repair info to include `corr_before` and `corr_after`.
+- Export diagnostic tables/sheets into the Excel output when correlation repair is present (or always, if cheap).
+- Add an optional threshold (`correlation_repair_max_abs_delta`) that raises when repair changes exceed tolerance.
+
+## Non-Goals
+
+- Changing the correlation repair algorithm.
+- Changing default behavior for `correlation_repair_mode` (still `warn_fix` by default).
+- Adding heavy logging or large binary artifacts.
+
+## Tasks
+
+- [ ] Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include `corr_before` and `corr_after` in the returned `info` dict (nested lists or small arrays).
+- [ ] Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig` in `pa_core/config.py` (default: None).
+- [ ] In `_resolve_correlation_matrix()`, if `correlation_repair_max_abs_delta` is not None and `repair_applied` is True, raise `ValueError` when `max_abs_delta > threshold`, including both values in the message.
+- [ ] In `pa_core/facade.py::run_single()`, when `corr_repair_info` exists, construct DataFrames:
+  - `inputs["_corr_before_df"]`
+  - `inputs["_corr_after_df"]`
+  - `inputs["_corr_delta_df"]`
+  - `inputs["_corr_repair_info_df"]` (one-row table of scalar diagnostics)
+- [ ] Update `pa_core/reporting/excel.py` to write these DataFrames to sheets (short names):
+  - `CorrInput`, `CorrUsed`, `CorrDelta`, `CorrRepairInfo`
+- [ ] Add tests:
+  - [ ] `tests/test_return_distributions.py` (or new file) asserts repair info contains `corr_before` and `corr_after`.
+  - [ ] Add a test that sets `correlation_repair_max_abs_delta` small and confirms a ValueError is raised when repair applied with larger delta.
+  - [ ] Add a test that `run_single()` attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+- [ ] Update documentation (`docs/UserGuide.md`) describing where to find correlation repair diagnostics in exports.
+
+## Acceptance Criteria
+
+- [ ] When correlation repair is applied, output Excel includes sheets: `CorrInput`, `CorrUsed`, `CorrDelta`, and `CorrRepairInfo`.
+- [ ] `CorrRepairInfo` includes at least: mode, method, shrinkage, min eigen before/after, max_abs_delta.
+- [ ] When `correlation_repair_max_abs_delta` is set and exceeded, the run fails with a clear error.
+- [ ] All unit tests pass.
+
+## Implementation Notes
+
+Files likely involved:
+- `pa_core/sim/paths.py` (correlation repair + info dict)
+- `pa_core/config.py` (new optional config field)
+- `pa_core/facade.py` (attach DataFrames to `inputs`)
+- `pa_core/reporting/excel.py` (write new sheets)
+- Tests: `tests/test_return_distributions.py`, plus new focused tests as needed.
+
+Use the canonical ordering for correlation labels: `[IDX, H, E, M]` to match parameter conventions.
+
+3 — Add MetricDefinitions sheet describing monthly vs terminal semantics
+## Why
+
+The summary table prefixes (`monthly_` vs `terminal_`) help, but users still routinely mix “monthly-draw” risk metrics with “terminal-outcome” performance metrics when reading exports. A small machine-readable “MetricDefinitions” table in the workbook makes interpretation unambiguous.
+
+## Scope
+
+- Add a function that returns metric metadata for the standard summary outputs:
+  - metric name
+  - metric type (monthly_draw / terminal_outcome / diagnostic)
+  - short description
+
+- Export this as a `MetricDefinitions` sheet in Excel outputs.
+
+## Non-Goals
+
+- Changing any metric calculation.
+- Converting summary output into long format.
+- Adding new risk metrics.
+
+## Tasks
+
+- [ ] Implement `pa_core/sim/metrics.py::metric_definitions_df() -> pd.DataFrame` (or new module under `pa_core/sim/`), returning columns: `Metric`, `MetricType`, `Description`.
+- [ ] Include rows for all standard summary outputs produced by `summary_table()` (e.g., terminal_AnnReturn, monthly_AnnVol, monthly_VaR, monthly_CVaR, terminal_CVaR, monthly_MaxDD, monthly_TimeUnderWater, monthly_BreachProb, monthly_BreachCountPath0, terminal_ShortfallProb, monthly_TE).
+- [ ] Update `pa_core/reporting/excel.py` to write the `MetricDefinitions` sheet (always, because it is small).
+- [ ] Add unit test that:
+  - [ ] `MetricDefinitions` includes `terminal_AnnReturn` and `monthly_VaR` with correct `MetricType` categories.
+  - [ ] Exported workbook includes `MetricDefinitions` sheet.
+
+## Acceptance Criteria
+
+- [ ] Excel export contains a `MetricDefinitions` sheet.
+- [ ] The sheet includes all standard summary metric columns (excluding `Agent`).
+- [ ] Each metric is labeled with a clear type (`monthly_draw`, `terminal_outcome`, or `diagnostic`) and a short description.
+- [ ] All tests pass.
+
+## Implementation Notes
+
+Files likely involved:
+- `pa_core/sim/metrics.py` (metadata table)
+- `pa_core/reporting/excel.py` (write `MetricDefinitions` sheet)
+- Tests should use openpyxl to verify the sheet exists without relying on chart rendering.
+
+4 — Bound the in-memory sweep cache (LRU + clear function)
+## Why
+
+`pa_core/sweep.py` uses a global `_SWEEP_CACHE` dict for cached sweeps. This cache is unbounded, so long-lived processes (dashboard sessions, notebooks) can leak memory as users try new configs and index series.
+
+A small LRU-style cap keeps caching useful while preventing runaway memory growth.
+
+## Scope
+
+- Convert sweep cache to bounded LRU eviction.
+- Add a public helper to clear cache (useful for tests and long-lived sessions).
+- Keep existing caching behavior for repeated identical calls.
+
+## Non-Goals
+
+- Disk caching.
+- Cross-process caching.
+- Changing sweep math or output shape.
+
+## Tasks
+
+- [ ] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` (or equivalent) that preserves insertion/use ordering.
+- [ ] Add `SWEEP_CACHE_MAX_ENTRIES` constant (e.g., 8) in `pa_core/sweep.py`.
+- [ ] On cache insert, evict least-recently-used entries until `len(cache) <= SWEEP_CACHE_MAX_ENTRIES`.
+- [ ] Add `clear_sweep_cache()` function in `pa_core/sweep.py`.
+- [ ] Update `run_parameter_sweep_cached()` to refresh LRU order on access.
+- [ ] Add tests:
+  - [ ] Existing deterministic caching test still passes (`res1 is res2`).
+  - [ ] New test: exceed cache max entries and assert oldest key is evicted.
+  - [ ] New test: `clear_sweep_cache()` empties cache.
+
+## Acceptance Criteria
+
+- [ ] Cache size never exceeds `SWEEP_CACHE_MAX_ENTRIES`.
+- [ ] Repeated calls with the same key still return the cached object.
+- [ ] Eviction removes the least-recently-used entry.
+- [ ] Tests pass.
+
+## Implementation Notes
+
+Files likely involved:
+- `pa_core/sweep.py` (`_SWEEP_CACHE`, `run_parameter_sweep_cached`)
+- `tests/test_sweep_cache.py` (extend with eviction/clear coverage)
+
+Avoid changing the cache key derivation logic so existing behavior remains stable.
+
+5 — Vectorize simulate_regime_paths to remove inner regime loop
+## Why
+
+`simulate_regime_paths()` currently loops over regimes inside each time step, masking subsets of simulations. This scales poorly when `n_sim` is large and makes regime switching a predictable hotspot.
+
+A vectorized transition update (still looping over time, but not over regimes) materially improves runtime while preserving correctness.
+
+## Scope
+
+- Refactor `simulate_regime_paths()` to compute next states for all simulations using vectorized operations and precomputed cumulative transition probabilities.
+- Preserve determinism and existing tests.
+
+## Non-Goals
+
+- Changing regime model semantics.
+- Adding multiprocessing or GPU acceleration.
+- Altering RNG seeding behavior.
+
+## Tasks
+
+- [ ] Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the inner `for regime_idx` loop.
+- [ ] Precompute `cum_probs = np.cumsum(transition_mat, axis=1)` once.
+- [ ] For each time step:
+  - draw `u = rng.random(size=n_sim)`
+  - gather `row_cum = cum_probs[prev_states]`
+  - compute `next_states = (u[:, None] <= row_cum).argmax(axis=1)`
+  - assign `paths[:, t] = next_states`
+- [ ] Add/adjust tests:
+  - [ ] Existing regime tests continue to pass.
+  - [ ] Add a deterministic snapshot test for a small transition matrix + seed (assert exact paths).
+
+## Acceptance Criteria
+
+- [ ] `simulate_regime_paths()` contains no per-regime inner loop over `n_regimes`.
+- [ ] Existing tests in `tests/test_regime_switching.py` pass.
+- [ ] New deterministic snapshot test passes for a fixed seed and small dimensions.
+
+## Implementation Notes
+
+Files likely involved:
+- `pa_core/sim/regimes.py` (refactor function)
+- `tests/test_regime_switching.py` (add snapshot test)
+
+Use `<=` when comparing `u` to cumulative probabilities to avoid edge-case gaps when `u` is extremely close to 1.0.
