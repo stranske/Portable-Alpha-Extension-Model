@@ -6,6 +6,7 @@ from pa_core.sim.metrics import (
     breach_probability,
     conditional_value_at_risk,
     metric_definitions_df,
+    register_metric,
     summary_table,
     terminal_return_below_threshold_prob,
     value_at_risk,
@@ -69,3 +70,23 @@ def test_metric_definitions_types() -> None:
     definitions = metric_definitions_df().set_index("Metric")
     assert definitions.at["terminal_AnnReturn", "MetricType"] == "terminal_outcome"
     assert definitions.at["monthly_VaR", "MetricType"] == "monthly_draw"
+
+
+def test_metric_definitions_include_registered_metric() -> None:
+    def mean_return(arr: np.ndarray) -> float:
+        return float(np.mean(arr))
+
+    name = "MetricDefinitions_CustomMetric_ForTest"
+    try:
+        register_metric(
+            name,
+            mean_return,
+            metric_type="diagnostic",
+            description="Custom metric description.",
+        )
+    except KeyError:
+        pass
+    definitions = metric_definitions_df().set_index("Metric")
+    assert name in definitions.index
+    assert definitions.at[name, "MetricType"] == "diagnostic"
+    assert definitions.at[name, "Description"] == "Custom metric description."

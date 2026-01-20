@@ -36,13 +36,25 @@ __all__ = [
 
 
 _EXTRA_METRICS: Dict[str, Callable[[ArrayLike], float]] = {}
+_EXTRA_METRIC_DEFINITIONS: Dict[str, Dict[str, str]] = {}
 
 
-def register_metric(name: str, func: Callable[[ArrayLike], float]) -> None:
+def register_metric(
+    name: str,
+    func: Callable[[ArrayLike], float],
+    *,
+    metric_type: str = "diagnostic",
+    description: str | None = None,
+) -> None:
     """Register a custom risk metric for inclusion in ``summary_table``."""
     if name in _EXTRA_METRICS:
         raise KeyError(f"Metric already registered: {name}")
     _EXTRA_METRICS[name] = func
+    _EXTRA_METRIC_DEFINITIONS[name] = {
+        "Metric": name,
+        "MetricType": metric_type,
+        "Description": description or "User-registered metric.",
+    }
 
 
 def _load_metric_plugins() -> None:
@@ -528,4 +540,10 @@ _METRIC_DEFINITIONS = [
 
 def metric_definitions_df() -> pd.DataFrame:
     """Return a machine-readable table of standard summary metric definitions."""
-    return pd.DataFrame(_METRIC_DEFINITIONS, columns=["Metric", "MetricType", "Description"])
+    definitions = list(_METRIC_DEFINITIONS)
+    if _EXTRA_METRIC_DEFINITIONS:
+        existing = {definition["Metric"] for definition in definitions}
+        for name, definition in _EXTRA_METRIC_DEFINITIONS.items():
+            if name not in existing:
+                definitions.append(definition)
+    return pd.DataFrame(definitions, columns=["Metric", "MetricType", "Description"])
