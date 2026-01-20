@@ -259,6 +259,8 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
 def _to_builtin_scalar(value: Any) -> Any:
     if isinstance(value, np.generic):
         return value.item()
+    if isinstance(value, dict):
+        return {key: _to_builtin_scalar(val) for key, val in value.items()}
     if isinstance(value, list):
         return [_to_builtin_scalar(item) for item in value]
     if isinstance(value, tuple):

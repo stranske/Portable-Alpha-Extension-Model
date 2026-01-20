@@ -771,6 +771,35 @@ def test_export_serializes_agent_semantics_list_values_numpy_scalars(tmp_path, m
     assert all(isinstance(item, float) for item in allocations)
 
 
+def test_export_serializes_agent_semantics_nested_dict_numpy_scalars(
+    tmp_path, monkeypatch
+) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "allocations": {"alpha": np.float64(0.1), "beta": np.float64(0.2)},
+            }
+        ]
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "nested_dict_numpy_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == {"alpha": 0.1, "beta": 0.2}
+    assert isinstance(allocations["alpha"], float)
+    assert isinstance(allocations["beta"], float)
+
+
 def test_export_uses_agent_semantics_list_of_dataframes(tmp_path, monkeypatch) -> None:
     pytest.importorskip("openpyxl")
     inputs = {
@@ -1361,6 +1390,20 @@ def test_serialize_agent_semantics_input_list_values_numpy_scalars() -> None:
     allocations = inputs["_agent_semantics_df"][0]["allocations"]
     assert allocations == [0.1, 0.2]
     assert all(isinstance(item, float) for item in allocations)
+
+
+def test_serialize_agent_semantics_input_nested_dict_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "allocations": {"alpha": np.float64(0.1)}}
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == {"alpha": 0.1}
+    assert isinstance(allocations["alpha"], float)
 
 
 def test_serialize_agent_semantics_input_dict_numpy_scalars() -> None:
