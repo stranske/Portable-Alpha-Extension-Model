@@ -80,9 +80,9 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
     rows = [
         _build_row(
             agent["name"],
-            float(agent["capital"]),
-            float(agent["beta_share"]),
-            float(agent["alpha_share"]),
+            agent["capital"],
+            agent["beta_share"],
+            agent["alpha_share"],
             agent.get("extra", {}),
             total_capital,
         )
@@ -118,12 +118,21 @@ def _iter_agents(cfg: ModelConfig) -> Iterable[dict[str, Any]]:
 
 def _build_row(
     name: str,
-    capital: float,
-    beta_share: float,
-    alpha_share: float,
+    capital: Any,
+    beta_share: Any,
+    alpha_share: Any,
     extra: dict[str, Any],
     total_capital: float,
 ) -> dict[str, Any]:
+    def _coerce_float(value: Any, fallback: float = 0.0) -> float:
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            return fallback
+        if not math.isfinite(numeric):
+            return fallback
+        return numeric
+
     def _coerce_share(value: Any, fallback: float = 0.0) -> float:
         normalized = normalize_share(value)
         if normalized is None:
@@ -135,6 +144,7 @@ def _build_row(
 
     if not isinstance(extra, dict):
         extra = {}
+    capital = _coerce_float(capital)
     beta_share = _coerce_share(beta_share)
     alpha_share = _coerce_share(alpha_share)
 
