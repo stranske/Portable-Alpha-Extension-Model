@@ -1443,3 +1443,12 @@ def test_serialize_agent_semantics_input_dict_numpy_scalars() -> None:
     row = inputs["_agent_semantics_df"][0]
     assert type(row["capital_mm"]) is float
     assert type(row["mismatch_flag"]) is bool
+
+
+def test_serialize_agent_semantics_input_list_numpy_scalars() -> None:
+    inputs = {"_agent_semantics_df": [np.float64(1.25), np.int64(2)]}
+
+    _serialize_agent_semantics_input(inputs)
+
+    values = inputs["_agent_semantics_df"]
+    assert values == [1.25, 2]

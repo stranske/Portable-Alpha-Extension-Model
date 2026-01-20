@@ -112,7 +112,9 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
             inputs["_agent_semantics_df"] = _records_to_builtin(records)
             return
         if isinstance(agent_semantics_val, tuple):
-            inputs["_agent_semantics_df"] = list(agent_semantics_val)
+            inputs["_agent_semantics_df"] = _to_builtin_scalar(list(agent_semantics_val))
+            return
+        inputs["_agent_semantics_df"] = _to_builtin_scalar(list(agent_semantics_val))
         return
     if isinstance(agent_semantics_val, dict):
         if agent_semantics_val and _mapping_is_row(agent_semantics_val):
