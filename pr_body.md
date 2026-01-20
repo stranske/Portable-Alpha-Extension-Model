@@ -23,6 +23,7 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - [ ] _Not provided._
 
 ## Notes
+- Verified sweep cache coverage via `pytest tests/test_sweep_cache.py -m "not slow"`.
 - Verified task checkboxes after latest test update.
 - Added coverage for empty agent semantics dict export handling.
 - Added facade export coverage for the AgentSemantics sheet.
@@ -57,6 +58,20 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Verified MetricDefinitions sheet presence via facade export test.
 
 <!-- auto-status-summary:end -->
+
+## Sweep Cache Tasks
+- [x] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` that preserves insertion/use ordering.
+- [x] Add `SWEEP_CACHE_MAX_ENTRIES` constant in `pa_core/sweep.py`.
+- [x] On cache insert, evict least-recently-used entries until `len(cache) <= SWEEP_CACHE_MAX_ENTRIES`.
+- [x] Add `clear_sweep_cache()` in `pa_core/sweep.py`.
+- [x] Update `run_parameter_sweep_cached()` to refresh LRU order on access.
+- [x] Tests cover deterministic caching, LRU eviction, max entries cap, and cache clearing.
+
+## Sweep Cache Acceptance Criteria
+- [x] Cache size never exceeds `SWEEP_CACHE_MAX_ENTRIES`.
+- [x] Repeated calls with the same key return the cached object.
+- [x] Eviction removes the least-recently-used entry.
+- [x] Tests pass.
 
 ## MetricDefinitions Tasks
 - [x] Implement `pa_core/sim/metrics.py::metric_definitions_df()` with `Metric`, `MetricType`, and `Description` columns.
