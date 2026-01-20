@@ -48,6 +48,10 @@ def test_export_run_artifacts(run_artifacts, tmp_path: Path) -> None:
     assert "Summary" in xl.sheet_names
     assert "Inputs" in xl.sheet_names
     assert "AgentSemantics" in xl.sheet_names
+    serialized = run_artifacts.inputs.get("_agent_semantics_df")
+    assert isinstance(serialized, list)
+    assert serialized
+    assert "Agent" in serialized[0]
 
 
 def test_export_serializes_agent_semantics_tuple(run_artifacts, tmp_path: Path) -> None:
