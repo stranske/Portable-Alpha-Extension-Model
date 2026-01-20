@@ -39,6 +39,14 @@ from .types import ArrayLike, SweepResult
 CANONICAL_PIPELINE = "pa_core.facade"
 
 
+def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
+    import pandas as pd
+
+    agent_semantics_val = inputs.get("_agent_semantics_df")
+    if isinstance(agent_semantics_val, pd.DataFrame):
+        inputs["_agent_semantics_df"] = agent_semantics_val.to_dict(orient="records")
+
+
 @dataclass(slots=True)
 class RunArtifacts:
     """Standardized outputs from a single simulation run.
@@ -358,6 +366,7 @@ def run_single(
     if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
         inputs["correlation_repair_applied"] = True
         inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
+    _serialize_agent_semantics_input(inputs)
     manifest = {
         "seed": run_options.seed,
         "substream_ids": substream_ids,

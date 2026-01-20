@@ -2,6 +2,7 @@ import pandas as pd
 import pytest
 
 from pa_core.config import ModelConfig
+from pa_core.facade import _serialize_agent_semantics_input
 from pa_core.reporting import export_to_excel
 from pa_core.reporting.agent_semantics import build_agent_semantics
 
@@ -333,3 +334,27 @@ def test_export_uses_serialized_agent_semantics(tmp_path, monkeypatch) -> None:
 
     df = pd.read_excel(file_path, sheet_name="AgentSemantics")
     assert not df.empty
+
+
+def test_serialize_agent_semantics_input_dataframe() -> None:
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": 1000.0,
+                    "implied_capital_share": 1.0,
+                    "beta_coeff_used": 0.6,
+                    "alpha_coeff_used": 0.4,
+                    "financing_coeff_used": -0.6,
+                    "notes": "",
+                    "mismatch_flag": False,
+                }
+            ]
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
