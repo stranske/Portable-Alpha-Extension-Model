@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from pa_core.config import RegimeConfig, load_config
@@ -108,6 +109,11 @@ def test_run_single_attaches_correlation_repair_frames() -> None:
         assert isinstance(artifacts.inputs[key], pd.DataFrame)
     assert artifacts.inputs["_corr_before_df"].shape == (4, 4)
     assert artifacts.inputs["_corr_after_df"].shape == (4, 4)
+    delta_df = artifacts.inputs["_corr_delta_df"]
+    np.testing.assert_allclose(
+        delta_df.to_numpy(),
+        (artifacts.inputs["_corr_after_df"] - artifacts.inputs["_corr_before_df"]).to_numpy(),
+    )
     info_df = artifacts.inputs["_corr_repair_info_df"]
     assert info_df.shape[0] == 1
     expected_cols = {
