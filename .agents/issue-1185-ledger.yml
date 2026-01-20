@@ -7,10 +7,10 @@ tasks:
     title: 'Implement `pa_core/sim/metrics.py::metric_definitions_df() -> pd.DataFrame`
       (or new module under `pa_core/sim/`), returning columns: `Metric`, `MetricType`,
       `Description`.'
-    status: doing
+    status: done
     started_at: '2026-01-20T15:59:13Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-20T15:59:21Z'
+    commit: a8d0832f7753c2a4376912d78ef68e495833a833
     notes: []
   - id: task-02
     title: 'Define scope for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
