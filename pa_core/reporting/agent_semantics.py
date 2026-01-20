@@ -104,18 +104,14 @@ def _build_row(
     extra: dict[str, Any],
     total_capital: float,
 ) -> dict[str, Any]:
-    beta_share = normalize_share(beta_share)
-    alpha_share = normalize_share(alpha_share)
-    if beta_share is None:
-        beta_share = 0.0
-    if alpha_share is None:
-        alpha_share = 0.0
+    normalized_beta_share = normalize_share(beta_share)
+    normalized_alpha_share = normalize_share(alpha_share)
     try:
-        beta_share = float(beta_share)
+        beta_share = float(normalized_beta_share) if normalized_beta_share is not None else 0.0
     except (TypeError, ValueError):
         beta_share = 0.0
     try:
-        alpha_share = float(alpha_share)
+        alpha_share = float(normalized_alpha_share) if normalized_alpha_share is not None else 0.0
     except (TypeError, ValueError):
         alpha_share = 0.0
 
