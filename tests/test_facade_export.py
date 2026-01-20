@@ -47,6 +47,7 @@ def test_export_run_artifacts(run_artifacts, tmp_path: Path) -> None:
     xl = pd.ExcelFile(output_file)
     assert "Summary" in xl.sheet_names
     assert "Inputs" in xl.sheet_names
+    assert "AgentSemantics" in xl.sheet_names
 
 
 def test_export_sweep_artifacts(sweep_artifacts, tmp_path: Path) -> None:
