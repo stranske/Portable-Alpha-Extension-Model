@@ -5,10 +5,10 @@ branch: codex/issue-1175
 tasks:
   - id: task-01
     title: Define common constraints for weight bounds
-    status: doing
+    status: done
     started_at: '2026-01-20T00:15:03Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-20T00:15:10Z'
+    commit: 23746079e6f8d02b2e5bf4d3cb148ffcf4f24007
     notes: []
   - id: task-02
     title: Define common constraints for leverage
