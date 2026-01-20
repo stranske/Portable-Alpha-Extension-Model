@@ -32,5 +32,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reverified task reconciliation after list-of-series agent semantics serialization handling.
 - Added tuple-of-series serialization coverage for agent semantics inputs.
 - Added Excel export coverage for tuple-of-series AgentSemantics inputs.
+- Added mismatch-flag guard coverage when total fund capital is zero.
 
 <!-- auto-status-summary:end -->

@@ -196,6 +196,34 @@ def test_build_agent_semantics_mismatch_tolerance() -> None:
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_zero_total_capital_disables_mismatch() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=0.0,
+        agents=[
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            },
+            {
+                "name": "InternalPA",
+                "capital": 100.0,
+                "beta_share": 0.0,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypatch) -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,

@@ -151,7 +151,9 @@ def _build_row(
         financing_coeff = -beta_share
         notes = "Semantics depend on the specific agent implementation"
 
-    if name in {"ExternalPA", "ActiveExt", "InternalBeta"}:
+    if total_capital <= 0.0:
+        mismatch_flag = False
+    elif name in {"ExternalPA", "ActiveExt", "InternalBeta"}:
         mismatch_flag = abs(implied_share - beta_share) > _TOLERANCE
     elif name == "InternalPA":
         mismatch_flag = abs(implied_share - alpha_share) > _TOLERANCE
