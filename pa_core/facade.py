@@ -82,9 +82,7 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         if agent_semantics_val and all(
             isinstance(item, pd.DataFrame) for item in agent_semantics_val
         ):
-            records = pd.concat(agent_semantics_val, ignore_index=True).to_dict(
-                orient="records"
-            )
+            records = pd.concat(agent_semantics_val, ignore_index=True).to_dict(orient="records")
             inputs["_agent_semantics_df"] = _records_to_builtin(records)
             return
         if agent_semantics_val and all(

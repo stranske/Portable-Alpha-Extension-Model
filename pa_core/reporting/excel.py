@@ -7,9 +7,9 @@ import os
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, cast
 
+import numpy as np
 import openpyxl
 import pandas as pd
-import numpy as np
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
@@ -271,9 +271,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
     df = _coerce_agent_semantics_df(value)
     if isinstance(df, pd.DataFrame) and not df.empty:
         if isinstance(value, (pd.DataFrame, pd.Series, dict, tuple)):
-            inputs_dict["_agent_semantics_df"] = _records_to_builtin(
-                df.to_dict(orient="records")
-            )
+            inputs_dict["_agent_semantics_df"] = _records_to_builtin(df.to_dict(orient="records"))
         elif isinstance(value, list):
             if value and not all(isinstance(item, dict) for item in value):
                 inputs_dict["_agent_semantics_df"] = _records_to_builtin(

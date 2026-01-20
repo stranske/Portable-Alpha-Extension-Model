@@ -1,8 +1,8 @@
 from types import SimpleNamespace
 
+import numpy as np
 import pandas as pd
 import pytest
-import numpy as np
 
 from pa_core.config import ModelConfig
 from pa_core.facade import _serialize_agent_semantics_input
