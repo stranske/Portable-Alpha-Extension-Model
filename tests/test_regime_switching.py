@@ -38,6 +38,27 @@ def test_simulate_regime_paths_respects_transition_probabilities() -> None:
     assert abs(prob_to_state_1 - 0.75) < 0.03
 
 
+def test_simulate_regime_paths_snapshot_seeded() -> None:
+    transition = [[0.2, 0.5, 0.3], [0.1, 0.6, 0.3], [0.4, 0.2, 0.4]]
+    paths = simulate_regime_paths(
+        n_sim=4,
+        n_months=6,
+        transition=transition,
+        start_state=1,
+        seed=1234,
+    )
+    expected = np.array(
+        [
+            [1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 2],
+            [1, 2, 0, 2, 1, 1],
+            [1, 2, 2, 2, 0, 2],
+        ],
+        dtype=int,
+    )
+    assert np.array_equal(paths, expected)
+
+
 def test_regime_switching_increases_corr_and_vol() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=2000,
