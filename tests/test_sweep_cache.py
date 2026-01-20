@@ -102,6 +102,28 @@ def test_sweep_cache_trims_when_max_reduced(monkeypatch):
     assert list(sweep_module._SWEEP_CACHE.keys()) == [key2]
 
 
+def test_sweep_cache_disabled_when_max_zero(monkeypatch):
+    clear_sweep_cache()
+    monkeypatch.setattr(sweep_module, "SWEEP_CACHE_MAX_ENTRIES", 0)
+    call_count = 0
+
+    def _fake_run_parameter_sweep(*_args, **_kwargs):
+        nonlocal call_count
+        call_count += 1
+        return [{"combination_id": call_count, "parameters": {}, "summary": pd.DataFrame()}]
+
+    monkeypatch.setattr(sweep_module, "run_parameter_sweep", _fake_run_parameter_sweep)
+
+    cfg = load_config("examples/scenarios/my_first_scenario.yml")
+    idx = pd.Series([0.01, 0.02, -0.01, 0.0])
+    res1 = run_parameter_sweep_cached(cfg, idx, seed=7)
+    res2 = run_parameter_sweep_cached(cfg, idx, seed=7)
+
+    assert call_count == 2
+    assert res2 is not res1
+    assert len(sweep_module._SWEEP_CACHE) == 0
+
+
 def test_clear_sweep_cache_empties_cache(monkeypatch):
     clear_sweep_cache()
 

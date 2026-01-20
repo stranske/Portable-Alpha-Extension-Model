@@ -59,6 +59,10 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 
 <!-- auto-status-summary:end -->
 
+## Task Reconciliation
+- [x] Reviewed recent commits for sweep cache changes.
+- [x] Updated task checkboxes to reflect completed sweep cache work.
+
 ## Sweep Cache Tasks
 - [x] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` that preserves insertion/use ordering.
 - [x] Add `SWEEP_CACHE_MAX_ENTRIES` constant in `pa_core/sweep.py`.
