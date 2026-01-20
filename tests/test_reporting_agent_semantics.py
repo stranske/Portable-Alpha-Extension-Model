@@ -1272,3 +1272,37 @@ def test_serialize_agent_semantics_input_converts_numpy_scalars() -> None:
     assert type(row["capital_mm"]) is float
     assert type(row["implied_capital_share"]) is float
     assert type(row["mismatch_flag"]) is bool
+
+
+def test_serialize_agent_semantics_input_list_of_dicts_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {
+                "Agent": "Base",
+                "capital_mm": np.float64(1000.0),
+                "mismatch_flag": np.bool_(False),
+            }
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    row = inputs["_agent_semantics_df"][0]
+    assert type(row["capital_mm"]) is float
+    assert type(row["mismatch_flag"]) is bool
+
+
+def test_serialize_agent_semantics_input_dict_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": "Base",
+            "capital_mm": np.float64(1000.0),
+            "mismatch_flag": np.bool_(False),
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    row = inputs["_agent_semantics_df"][0]
+    assert type(row["capital_mm"]) is float
+    assert type(row["mismatch_flag"]) is bool

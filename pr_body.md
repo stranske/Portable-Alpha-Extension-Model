@@ -42,5 +42,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Added zero-total-capital mismatch coverage for ActiveExt/custom agents.
 - Added Excel export coverage for tuple-of-dicts AgentSemantics inputs.
 - Reconciled task checkboxes after reviewing recent agent semantics export updates.
+- Reverified task checkboxes after numpy scalar serialization handling updates.
 
 <!-- auto-status-summary:end -->
