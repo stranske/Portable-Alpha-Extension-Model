@@ -455,9 +455,11 @@ def run_single(
         raw_returns["Regime"] = pd.DataFrame(regime_labels)
     inputs = run_cfg.model_dump()
     if isinstance(corr_repair_info, dict):
-        if corr_repair_info.get("repair_applied"):
-            corr_before = np.array(corr_repair_info.get("corr_before"), dtype=float)
-            corr_after = np.array(corr_repair_info.get("corr_after"), dtype=float)
+        corr_before_raw = corr_repair_info.get("corr_before")
+        corr_after_raw = corr_repair_info.get("corr_after")
+        if corr_before_raw is not None and corr_after_raw is not None:
+            corr_before = np.array(corr_before_raw, dtype=float)
+            corr_after = np.array(corr_after_raw, dtype=float)
             if corr_before.shape == corr_after.shape and corr_before.size:
                 labels = ["Index", "H", "E", "M"]
                 row_labels = labels if corr_before.shape[0] == len(labels) else None
@@ -476,18 +478,19 @@ def run_single(
                     index=row_labels,
                     columns=row_labels,
                 )
-            inputs["_corr_repair_info_df"] = pd.DataFrame(
-                [
-                    {
-                        "mode": corr_repair_info.get("repair_mode"),
-                        "method": corr_repair_info.get("method"),
-                        "shrinkage": corr_repair_info.get("shrinkage"),
-                        "min_eigenvalue_before": corr_repair_info.get("min_eigenvalue_before"),
-                        "min_eigenvalue_after": corr_repair_info.get("min_eigenvalue_after"),
-                        "max_abs_delta": corr_repair_info.get("max_abs_delta"),
-                    }
-                ]
-            )
+        inputs["_corr_repair_info_df"] = pd.DataFrame(
+            [
+                {
+                    "mode": corr_repair_info.get("repair_mode"),
+                    "method": corr_repair_info.get("method"),
+                    "shrinkage": corr_repair_info.get("shrinkage"),
+                    "min_eigenvalue_before": corr_repair_info.get("min_eigenvalue_before"),
+                    "min_eigenvalue_after": corr_repair_info.get("min_eigenvalue_after"),
+                    "max_abs_delta": corr_repair_info.get("max_abs_delta"),
+                }
+            ]
+        )
+        if corr_repair_info.get("repair_applied"):
             inputs["correlation_repair_applied"] = True
             inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
     _serialize_agent_semantics_input(inputs)

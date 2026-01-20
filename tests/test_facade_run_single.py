@@ -125,3 +125,18 @@ def test_run_single_attaches_correlation_repair_frames() -> None:
         "max_abs_delta",
     }
     assert expected_cols.issubset(info_df.columns)
+
+
+def test_run_single_attaches_correlation_frames_without_repair() -> None:
+    cfg = load_config("examples/scenarios/my_first_scenario.yml").model_copy(
+        update={"N_SIMULATIONS": 2, "N_MONTHS": 3}
+    )
+    idx = pd.Series([0.01, -0.02, 0.015])
+
+    artifacts = run_single(cfg, idx, RunOptions(seed=123))
+
+    for key in ("_corr_before_df", "_corr_after_df", "_corr_delta_df", "_corr_repair_info_df"):
+        assert key in artifacts.inputs
+        assert isinstance(artifacts.inputs[key], pd.DataFrame)
+    delta_df = artifacts.inputs["_corr_delta_df"]
+    np.testing.assert_allclose(delta_df.to_numpy(), 0.0, atol=1e-12)
