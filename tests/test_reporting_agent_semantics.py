@@ -265,6 +265,34 @@ def test_build_agent_semantics_zero_total_capital_disables_mismatch() -> None:
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_zero_total_capital_disables_mismatch_for_other_agents() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=0.0,
+        agents=[
+            {
+                "name": "ActiveExt",
+                "capital": 50.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.0,
+                "extra": {"active_share": 0.5},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 150.0,
+                "beta_share": 0.9,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["CustomSleeve"]["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypatch) -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
