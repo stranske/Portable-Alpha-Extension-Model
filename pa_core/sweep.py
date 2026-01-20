@@ -4,8 +4,8 @@ import copy
 import hashlib
 import json
 import logging
-from dataclasses import dataclass
 from collections import OrderedDict
+from dataclasses import dataclass
 from itertools import product
 from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Sequence
 

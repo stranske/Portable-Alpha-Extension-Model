@@ -1,8 +1,8 @@
 import pandas as pd
 
+from pa_core import sweep as sweep_module
 from pa_core.config import load_config
 from pa_core.sweep import clear_sweep_cache, run_parameter_sweep_cached, sweep_results_to_dataframe
-from pa_core import sweep as sweep_module
 
 
 def test_cached_sweep_deterministic():
