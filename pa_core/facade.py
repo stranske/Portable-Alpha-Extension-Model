@@ -358,6 +358,9 @@ def run_single(
     if isinstance(corr_repair_info, dict) and corr_repair_info.get("repair_applied"):
         inputs["correlation_repair_applied"] = True
         inputs["correlation_repair_details"] = json.dumps(corr_repair_info)
+    from .reporting.agent_semantics import build_agent_semantics
+
+    inputs["_agent_semantics_df"] = build_agent_semantics(run_cfg)
 
     manifest = {
         "seed": run_options.seed,

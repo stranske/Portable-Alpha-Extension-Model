@@ -32,9 +32,50 @@ Fields to include (from #957):
 
 ## Tasks
 
-- [ ] Update `pa_core/wizard_schema.py`:
-  - [ ] Extend `DefaultConfigView` with the advanced fields listed in Scope, using the same allowed values as CLI flags (e.g., `normal|student_t`, `gaussian|t`, `single|two_state`, `none|ledoit_wolf`, etc.).
-  - [ ] Ensure defaults match `ModelConfig` defaults.
+- [x] Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame`.
+- [x] Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`, `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.
+- [x] Implement built-in agent rules:
+  - Base: beta_coeff = beta_share, alpha_coeff = alpha_share, financing_coeff = -beta_share
+  - ExternalPA: beta_coeff = beta_share, alpha_coeff = beta_share * theta_extpa (from extra), financing_coeff = -beta_share
+  - ActiveExt: beta_coeff = beta_share, alpha_coeff = beta_share * active_share (from extra), financing_coeff = -beta_share
+  - InternalPA: beta_coeff = 0, alpha_coeff = alpha_share, financing_coeff = 0
+  - InternalBeta: beta_coeff = beta_share, alpha_coeff = 0, financing_coeff = -beta_share
+  - Unknown/custom agents: treat beta_coeff = beta_share and alpha_coeff = alpha_share; set notes indicating semantics depend on implementation.
+- [x] Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance (e.g., 1e-6).
+- [x] Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+- [x] Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a new sheet `AgentSemantics` when present.
+- [x] Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+- [x] Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics` sheet and how to interpret it.
+
+## Acceptance Criteria
+
+- [ ] Running `pa run` produces an Excel workbook containing a sheet named `AgentSemantics`.
+- [ ] The sheet contains the specified columns and rows for all built-in agents present in config.
+- [ ] For ExternalPA and ActiveExt, `alpha_coeff_used` equals `beta_share * theta_extpa` and `beta_share * active_share` respectively.
+- [ ] Mismatch flags trigger when implied capital share differs materially from the contribution scaling used.
+- [ ] All tests pass and no existing simulation output tests regress.
+
+## Implementation Notes
+
+Files likely involved:
+- `pa_core/reporting/agent_semantics.py` (new)
+- `pa_core/facade.py` (attach `_agent_semantics_df` to inputs)
+- `pa_core/reporting/excel.py` (write `AgentSemantics` sheet)
+- `pa_core/config.py` (use `total_fund_capital` and existing compiled agents list)
+- `pa_core/agents/*.py` (reference semantics only; do not change)
+
+2 — Export correlation repair diagnostics (before/after matrices) + optional max-delta guardrail
+## Why
+
+Correlation repair is correctly applied and logged, and summary stats are stored in `_correlation_repair_info`, but the actual matrices used (before vs after) are not exported. That makes it hard to audit when “inputs were repaired” materially.
+
+We should export:
+- correlation matrix before repair
+- correlation matrix after repair
+- delta matrix (after - before)
+- a small “repair info” table (min eigen before/after, max delta, mode, shrinkage)
+
+Optionally, users should be able to fail a run when the repair delta is too large.
 
 - [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
   - [ ] Add an "Advanced Simulation Settings" UI section (expander or dedicated step).
@@ -51,8 +92,21 @@ Fields to include (from #957):
     - assert `_build_yaml_from_config()` includes them
     - assert `ModelConfig.model_validate(yaml_dict)` reflects them correctly.
 
-- [ ] Documentation:
-  - [ ] Update `docs/COVERAGE_GAPS.md` (or equivalent wizard coverage doc) to reflect that advanced fields are now UI-exposed and wired.
+- [x] Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include `corr_before` and `corr_after` in the returned `info` dict (nested lists or small arrays).
+- [ ] Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig` in `pa_core/config.py` (default: None).
+- [ ] In `_resolve_correlation_matrix()`, if `correlation_repair_max_abs_delta` is not None and `repair_applied` is True, raise `ValueError` when `max_abs_delta > threshold`, including both values in the message.
+- [ ] In `pa_core/facade.py::run_single()`, when `corr_repair_info` exists, construct DataFrames:
+  - `inputs["_corr_before_df"]`
+  - `inputs["_corr_after_df"]`
+  - `inputs["_corr_delta_df"]`
+  - `inputs["_corr_repair_info_df"]` (one-row table of scalar diagnostics)
+- [ ] Update `pa_core/reporting/excel.py` to write these DataFrames to sheets (short names):
+  - `CorrInput`, `CorrUsed`, `CorrDelta`, `CorrRepairInfo`
+- [ ] Add tests:
+  - [x] `tests/test_return_distributions.py` (or new file) asserts repair info contains `corr_before` and `corr_after`.
+  - [ ] Add a test that sets `correlation_repair_max_abs_delta` small and confirms a ValueError is raised when repair applied with larger delta.
+  - [ ] Add a test that `run_single()` attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+- [ ] Update documentation (`docs/UserGuide.md`) describing where to find correlation repair diagnostics in exports.
 
 ## Acceptance Criteria
 
