@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pandas as pd
 import pytest
+import numpy as np
 
 from pa_core.config import ModelConfig
 from pa_core.facade import _serialize_agent_semantics_input
@@ -1249,3 +1250,25 @@ def test_serialize_agent_semantics_input_tuple_of_dataframes() -> None:
     assert isinstance(inputs["_agent_semantics_df"], list)
     assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
     assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_converts_numpy_scalars() -> None:
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": np.float64(1000.0),
+                    "implied_capital_share": np.float64(1.0),
+                    "mismatch_flag": np.bool_(False),
+                }
+            ]
+        )
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    row = inputs["_agent_semantics_df"][0]
+    assert type(row["capital_mm"]) is float
+    assert type(row["implied_capital_share"]) is float
+    assert type(row["mismatch_flag"]) is bool

@@ -39,6 +39,20 @@ from .types import ArrayLike, SweepResult
 CANONICAL_PIPELINE = "pa_core.facade"
 
 
+def _to_builtin_scalar(value: Any) -> Any:
+    try:
+        import numpy as np
+    except Exception:
+        return value
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def _records_to_builtin(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{key: _to_builtin_scalar(val) for key, val in row.items()} for row in records]
+
+
 def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
     import pandas as pd
     from pandas.api.types import is_list_like
@@ -53,12 +67,12 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
 
     agent_semantics_val = inputs.get("_agent_semantics_df")
     if isinstance(agent_semantics_val, pd.DataFrame):
-        inputs["_agent_semantics_df"] = agent_semantics_val.to_dict(orient="records")
+        records = agent_semantics_val.to_dict(orient="records")
+        inputs["_agent_semantics_df"] = _records_to_builtin(records)
         return
     if isinstance(agent_semantics_val, pd.Series):
-        inputs["_agent_semantics_df"] = pd.DataFrame([agent_semantics_val]).to_dict(
-            orient="records"
-        )
+        records = pd.DataFrame([agent_semantics_val]).to_dict(orient="records")
+        inputs["_agent_semantics_df"] = _records_to_builtin(records)
         return
     if isinstance(agent_semantics_val, (list, tuple)):
         if agent_semantics_val and all(isinstance(item, dict) for item in agent_semantics_val):
@@ -68,16 +82,16 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         if agent_semantics_val and all(
             isinstance(item, pd.DataFrame) for item in agent_semantics_val
         ):
-            inputs["_agent_semantics_df"] = pd.concat(
-                agent_semantics_val, ignore_index=True
-            ).to_dict(orient="records")
+            records = pd.concat(agent_semantics_val, ignore_index=True).to_dict(
+                orient="records"
+            )
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
             return
         if agent_semantics_val and all(
             isinstance(item, (pd.Series, dict)) for item in agent_semantics_val
         ):
-            inputs["_agent_semantics_df"] = pd.DataFrame(agent_semantics_val).to_dict(
-                orient="records"
-            )
+            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
             return
         if agent_semantics_val and all(
             isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in agent_semantics_val
@@ -88,9 +102,8 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
                     frames.append(item)
                 else:
                     frames.append(pd.DataFrame([item]))
-            inputs["_agent_semantics_df"] = pd.concat(frames, ignore_index=True).to_dict(
-                orient="records"
-            )
+            records = pd.concat(frames, ignore_index=True).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
             return
         if isinstance(agent_semantics_val, tuple):
             inputs["_agent_semantics_df"] = list(agent_semantics_val)
@@ -100,9 +113,8 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
             inputs["_agent_semantics_df"] = [agent_semantics_val]
             return
         try:
-            inputs["_agent_semantics_df"] = pd.DataFrame(agent_semantics_val).to_dict(
-                orient="records"
-            )
+            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
+            inputs["_agent_semantics_df"] = _records_to_builtin(records)
         except Exception:
             return
 
@@ -607,7 +619,9 @@ def export(
         )
         serialized_agent_semantics = None
         if isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty:
-            serialized_agent_semantics = agent_semantics_val.to_dict(orient="records")
+            serialized_agent_semantics = _records_to_builtin(
+                agent_semantics_val.to_dict(orient="records")
+            )
         elif has_serialized:
             serialized_agent_semantics = agent_semantics_val
             if isinstance(serialized_agent_semantics, tuple):
@@ -615,7 +629,9 @@ def export(
 
         if serialized_agent_semantics is None:
             agent_semantics_df = build_agent_semantics(artifacts.config)
-            serialized_agent_semantics = agent_semantics_df.to_dict(orient="records")
+            serialized_agent_semantics = _records_to_builtin(
+                agent_semantics_df.to_dict(orient="records")
+            )
 
         inputs_dict["_agent_semantics_df"] = serialized_agent_semantics
         artifacts.inputs["_agent_semantics_df"] = serialized_agent_semantics

@@ -9,6 +9,7 @@ from typing import Any, Dict, Mapping, cast
 
 import openpyxl
 import pandas as pd
+import numpy as np
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
@@ -255,15 +256,29 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
     return None
 
 
+def _to_builtin_scalar(value: Any) -> Any:
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
+def _records_to_builtin(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [{key: _to_builtin_scalar(val) for key, val in row.items()} for row in records]
+
+
 def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | None:
     value = inputs_dict.get("_agent_semantics_df")
     df = _coerce_agent_semantics_df(value)
     if isinstance(df, pd.DataFrame) and not df.empty:
         if isinstance(value, (pd.DataFrame, pd.Series, dict, tuple)):
-            inputs_dict["_agent_semantics_df"] = df.to_dict(orient="records")
+            inputs_dict["_agent_semantics_df"] = _records_to_builtin(
+                df.to_dict(orient="records")
+            )
         elif isinstance(value, list):
             if value and not all(isinstance(item, dict) for item in value):
-                inputs_dict["_agent_semantics_df"] = df.to_dict(orient="records")
+                inputs_dict["_agent_semantics_df"] = _records_to_builtin(
+                    df.to_dict(orient="records")
+                )
         return df
     agents = inputs_dict.get("agents")
     if agents is None:
@@ -286,7 +301,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
         if attr in inputs_dict:
             setattr(cfg, attr, inputs_dict[attr])
     df = build_agent_semantics(cast(ModelConfig, cfg))
-    inputs_dict["_agent_semantics_df"] = df.to_dict(orient="records")
+    inputs_dict["_agent_semantics_df"] = _records_to_builtin(df.to_dict(orient="records"))
     return df
 
 
