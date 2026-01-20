@@ -62,6 +62,13 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         return
     if isinstance(agent_semantics_val, (list, tuple)):
         if agent_semantics_val and all(
+            isinstance(item, pd.DataFrame) for item in agent_semantics_val
+        ):
+            inputs["_agent_semantics_df"] = pd.concat(
+                agent_semantics_val, ignore_index=True
+            ).to_dict(orient="records")
+            return
+        if agent_semantics_val and all(
             isinstance(item, (pd.Series, dict)) for item in agent_semantics_val
         ):
             inputs["_agent_semantics_df"] = pd.DataFrame(agent_semantics_val).to_dict(

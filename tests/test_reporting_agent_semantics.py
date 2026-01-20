@@ -903,6 +903,47 @@ def test_serialize_agent_semantics_input_list_of_series() -> None:
     assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
 
 
+def test_serialize_agent_semantics_input_list_of_dataframes() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            pd.DataFrame(
+                [
+                    {
+                        "Agent": "Base",
+                        "capital_mm": 1000.0,
+                        "implied_capital_share": 1.0,
+                        "beta_coeff_used": 0.6,
+                        "alpha_coeff_used": 0.4,
+                        "financing_coeff_used": -0.6,
+                        "notes": "",
+                        "mismatch_flag": False,
+                    }
+                ]
+            ),
+            pd.DataFrame(
+                [
+                    {
+                        "Agent": "ExternalPA",
+                        "capital_mm": 200.0,
+                        "implied_capital_share": 0.2,
+                        "beta_coeff_used": 0.2,
+                        "alpha_coeff_used": 0.05,
+                        "financing_coeff_used": -0.2,
+                        "notes": "",
+                        "mismatch_flag": False,
+                    }
+                ]
+            ),
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
 def test_serialize_agent_semantics_input_list_mixed() -> None:
     inputs = {
         "_agent_semantics_df": [

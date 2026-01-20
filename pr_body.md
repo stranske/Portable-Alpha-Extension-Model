@@ -33,5 +33,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Added tuple-of-series serialization coverage for agent semantics inputs.
 - Added Excel export coverage for tuple-of-series AgentSemantics inputs.
 - Added mismatch-flag guard coverage when total fund capital is zero.
+- Added list-of-dataframes serialization coverage for agent semantics inputs.
 
 <!-- auto-status-summary:end -->
