@@ -23,6 +23,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - [ ] _Not provided._
 
 ## Notes
-- _None._
+- Verified task checkboxes after latest test update.
 
 <!-- auto-status-summary:end -->
