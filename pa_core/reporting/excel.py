@@ -273,10 +273,13 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
         if isinstance(value, (pd.DataFrame, pd.Series, dict, tuple)):
             inputs_dict["_agent_semantics_df"] = _records_to_builtin(df.to_dict(orient="records"))
         elif isinstance(value, list):
-            if value and not all(isinstance(item, dict) for item in value):
-                inputs_dict["_agent_semantics_df"] = _records_to_builtin(
-                    df.to_dict(orient="records")
-                )
+            if value:
+                if all(isinstance(item, dict) for item in value):
+                    inputs_dict["_agent_semantics_df"] = _records_to_builtin(list(value))
+                else:
+                    inputs_dict["_agent_semantics_df"] = _records_to_builtin(
+                        df.to_dict(orient="records")
+                    )
         return df
     agents = inputs_dict.get("agents")
     if agents is None:

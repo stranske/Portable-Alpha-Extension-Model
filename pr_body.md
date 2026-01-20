@@ -44,5 +44,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reconciled task checkboxes after reviewing recent agent semantics export updates.
 - Reverified task checkboxes after numpy scalar serialization handling updates.
 - Verified AgentSemantics sheet content via facade export test.
+- Normalized list-of-dicts AgentSemantics numpy scalars on export.
 
 <!-- auto-status-summary:end -->
