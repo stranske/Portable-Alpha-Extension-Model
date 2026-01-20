@@ -226,6 +226,8 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
 
     if isinstance(value, pd.DataFrame):
         return value
+    if isinstance(value, pd.Series):
+        return pd.DataFrame([value])
     if isinstance(value, (list, tuple)):
         try:
             return pd.DataFrame(value)
@@ -245,7 +247,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
     value = inputs_dict.get("_agent_semantics_df")
     df = _coerce_agent_semantics_df(value)
     if isinstance(df, pd.DataFrame) and not df.empty:
-        if isinstance(value, (pd.DataFrame, dict, tuple)):
+        if isinstance(value, (pd.DataFrame, pd.Series, dict, tuple)):
             inputs_dict["_agent_semantics_df"] = df.to_dict(orient="records")
         elif isinstance(value, list):
             if value and not all(isinstance(item, dict) for item in value):
