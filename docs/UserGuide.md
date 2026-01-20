@@ -1299,7 +1299,7 @@ Use the sensitivity flag to compute one‑factor deltas for key parameters and r
 - Sensitivity Tornado (largest absolute deltas first)
 - Return attribution sunburst by sleeve (Beta / Alpha / Financing)
 
-Outputs also include Excel sheets: Sensitivity, Attribution, and RiskAttribution when data is available.
+Outputs also include Excel sheets: Sensitivity, Attribution, and RiskAttribution when data is available. When present, the AgentSemantics sheet summarizes how agent coefficients map to capital shares and flags material mismatches.
 
 Example:
 

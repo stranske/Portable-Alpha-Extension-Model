@@ -91,6 +91,7 @@ def export_to_excel(
     risk_df = _optional_df(inputs_dict, "_risk_attr_df")
     trade_df = _optional_df(inputs_dict, "_tradeoff_df")
     constraint_df = _optional_df(inputs_dict, "_constraint_report_df")
+    agent_semantics_df = _optional_df(inputs_dict, "_agent_semantics_df")
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         df_inputs = pd.DataFrame(
@@ -176,6 +177,8 @@ def export_to_excel(
             trade_df.to_excel(writer, sheet_name="SleeveTradeoffs", index=True)
         if constraint_df is not None and not constraint_df.empty:
             constraint_df.to_excel(writer, sheet_name="ConstraintBreaches", index=False)
+        if agent_semantics_df is not None and not agent_semantics_df.empty:
+            agent_semantics_df.to_excel(writer, sheet_name="AgentSemantics", index=False)
 
         # Write returns either pivoted or per-sheet
         if pivot:
