@@ -30,18 +30,31 @@ __all__ = [
     "terminal_return_below_threshold_prob",
     "shortfall_probability",
     "summary_table",
+    "metric_definitions_df",
     "register_metric",
 ]
 
 
 _EXTRA_METRICS: Dict[str, Callable[[ArrayLike], float]] = {}
+_EXTRA_METRIC_DEFINITIONS: Dict[str, Dict[str, str]] = {}
 
 
-def register_metric(name: str, func: Callable[[ArrayLike], float]) -> None:
+def register_metric(
+    name: str,
+    func: Callable[[ArrayLike], float],
+    *,
+    metric_type: str = "diagnostic",
+    description: str | None = None,
+) -> None:
     """Register a custom risk metric for inclusion in ``summary_table``."""
     if name in _EXTRA_METRICS:
         raise KeyError(f"Metric already registered: {name}")
     _EXTRA_METRICS[name] = func
+    _EXTRA_METRIC_DEFINITIONS[name] = {
+        "Metric": name,
+        "MetricType": metric_type,
+        "Description": description or "User-registered metric.",
+    }
 
 
 def _load_metric_plugins() -> None:
@@ -459,3 +472,78 @@ def summary_table(
 
     df = pd.DataFrame(rows)
     return df
+
+
+_METRIC_DEFINITIONS = [
+    {
+        "Metric": "terminal_AnnReturn",
+        "MetricType": "terminal_outcome",
+        "Description": "Annualized compounded return from terminal outcomes.",
+    },
+    {
+        "Metric": "terminal_ExcessReturn",
+        "MetricType": "terminal_outcome",
+        "Description": "Annualized return minus benchmark annualized return.",
+    },
+    {
+        "Metric": "monthly_AnnVol",
+        "MetricType": "monthly_draw",
+        "Description": "Annualized volatility from monthly return draws.",
+    },
+    {
+        "Metric": "monthly_VaR",
+        "MetricType": "monthly_draw",
+        "Description": "Monthly value at risk at configured confidence.",
+    },
+    {
+        "Metric": "monthly_CVaR",
+        "MetricType": "monthly_draw",
+        "Description": "Monthly conditional value at risk at configured confidence.",
+    },
+    {
+        "Metric": "terminal_CVaR",
+        "MetricType": "terminal_outcome",
+        "Description": "Conditional value at risk of terminal compounded outcomes.",
+    },
+    {
+        "Metric": "monthly_MaxDD",
+        "MetricType": "monthly_draw",
+        "Description": "Worst drawdown across compounded wealth paths.",
+    },
+    {
+        "Metric": "monthly_TimeUnderWater",
+        "MetricType": "monthly_draw",
+        "Description": "Fraction of months with negative compounded return.",
+    },
+    {
+        "Metric": "monthly_BreachProb",
+        "MetricType": "monthly_draw",
+        "Description": "Share of simulated months below the breach threshold.",
+    },
+    {
+        "Metric": "monthly_BreachCountPath0",
+        "MetricType": "diagnostic",
+        "Description": "Count of months below the breach threshold for path 0.",
+    },
+    {
+        "Metric": "terminal_ShortfallProb",
+        "MetricType": "terminal_outcome",
+        "Description": "Probability terminal compounded return is below the threshold.",
+    },
+    {
+        "Metric": "monthly_TE",
+        "MetricType": "monthly_draw",
+        "Description": "Annualized tracking error versus benchmark.",
+    },
+]
+
+
+def metric_definitions_df() -> pd.DataFrame:
+    """Return a machine-readable table of standard summary metric definitions."""
+    definitions = list(_METRIC_DEFINITIONS)
+    if _EXTRA_METRIC_DEFINITIONS:
+        existing = {definition["Metric"] for definition in definitions}
+        for name, definition in _EXTRA_METRIC_DEFINITIONS.items():
+            if name not in existing:
+                definitions.append(definition)
+    return pd.DataFrame(definitions, columns=["Metric", "MetricType", "Description"])

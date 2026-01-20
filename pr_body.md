@@ -54,8 +54,16 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reverified task checkboxes after invalid agent capital/share handling coverage.
 - Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
 - Reconciled task checkboxes after reviewing non-finite margin requirement handling.
+- Verified MetricDefinitions sheet presence via facade export test.
 
 <!-- auto-status-summary:end -->
+
+## MetricDefinitions Tasks
+- [x] Implement `pa_core/sim/metrics.py::metric_definitions_df()` with `Metric`, `MetricType`, and `Description` columns.
+- [x] Include rows for all standard summary outputs produced by `summary_table()` (excluding `Agent`).
+- [x] Update `pa_core/reporting/excel.py` to always write the `MetricDefinitions` sheet.
+- [x] Add unit tests covering `terminal_AnnReturn` and `monthly_VaR` metric types.
+- [x] Verify exported workbooks include the `MetricDefinitions` sheet.
 
 ## Correlation Repair Checklist
 - [x] `pa_core/facade.py::run_single()` attaches `_corr_before_df`, `_corr_after_df`, `_corr_delta_df`, and `_corr_repair_info_df` when correlation repair info is available (validated via `tests/test_facade_run_single.py`).

@@ -1,0 +1,567 @@
+version: 1
+issue: 1185
+base: main
+branch: codex/issue-1185
+tasks:
+  - id: task-01
+    title: 'Implement `pa_core/sim/metrics.py::metric_definitions_df() -> pd.DataFrame`
+      (or new module under `pa_core/sim/`), returning columns: `Metric`, `MetricType`,
+      `Description`.'
+    status: done
+    started_at: '2026-01-20T15:59:13Z'
+    finished_at: '2026-01-20T15:59:21Z'
+    commit: a8d0832f7753c2a4376912d78ef68e495833a833
+    notes: []
+  - id: task-02
+    title: 'Define scope for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
+      -> pd.DataFrame` (or new module under `pa_core/sim/`) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Implement focused slice for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
+      -> pd.DataFrame` (or new module under `pa_core/sim/`) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Validate focused slice for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
+      -> pd.DataFrame` (or new module under `pa_core/sim/`) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'returning columns: `Metric` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: '`MetricType` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: '`Description`. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: Include rows for all standard summary outputs produced by `summary_table()`
+      (e.g., terminal_AnnReturn, monthly_AnnVol, monthly_VaR, monthly_CVaR, terminal_CVaR,
+      monthly_MaxDD, monthly_TimeUnderWater, monthly_BreachProb, monthly_BreachCountPath0,
+      terminal_ShortfallProb, monthly_TE).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Define scope for: Include rows for all standard summary outputs produced
+      by `summary_table()` (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Implement focused slice for: Include rows for all standard summary outputs
+      produced by `summary_table()` (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Validate focused slice for: Include rows for all standard summary outputs
+      produced by `summary_table()` (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'terminal_AnnReturn (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'monthly_AnnVol (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'monthly_VaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'monthly_CVaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'terminal_CVaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'monthly_MaxDD (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'monthly_TimeUnderWater (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'monthly_BreachProb (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'monthly_BreachCountPath0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'terminal_ShortfallProb (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'monthly_TE). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: Update `pa_core/reporting/excel.py` to write the `MetricDefinitions` sheet
+      (always, because it is small).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'Define scope for: Update `pa_core/reporting/excel.py` to write the `MetricDefinitions`
+      sheet (always (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: 'Implement focused slice for: Update `pa_core/reporting/excel.py` to write
+      the `MetricDefinitions` sheet (always (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Validate focused slice for: Update `pa_core/reporting/excel.py` to write
+      the `MetricDefinitions` sheet (always (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: 'because it is small). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'Add unit test that:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: '`MetricDefinitions` includes `terminal_AnnReturn` and `monthly_VaR` with
+      correct `MetricType` categories.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: '`MetricDefinitions` includes `terminal_AnnReturn` (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: '`monthly_VaR` with correct `MetricType` categories. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: Exported workbook includes `MetricDefinitions` sheet.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'Implement `pa_core/sim/metrics.py::metric_definitions_df() -> pd.DataFrame`
+      (or new module under `pa_core/sim/`), returning columns: `Metric`, `MetricType`,
+      `Description`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: 'Define scope for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
+      -> pd.DataFrame` (or new module under `pa_core/sim/`) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: 'Implement focused slice for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
+      -> pd.DataFrame` (or new module under `pa_core/sim/`) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: 'Validate focused slice for: Implement `pa_core/sim/metrics.py::metric_definitions_df()
+      -> pd.DataFrame` (or new module under `pa_core/sim/`) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 'returning columns: `Metric` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: '`MetricType` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: '`Description`. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: Include rows for all standard summary outputs produced by `summary_table()`
+      (e.g., terminal_AnnReturn, monthly_AnnVol, monthly_VaR, monthly_CVaR, terminal_CVaR,
+      monthly_MaxDD, monthly_TimeUnderWater, monthly_BreachProb, monthly_BreachCountPath0,
+      terminal_ShortfallProb, monthly_TE).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: 'Define scope for: Include rows for all standard summary outputs produced
+      by `summary_table()` (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: 'Implement focused slice for: Include rows for all standard summary outputs
+      produced by `summary_table()` (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: 'Validate focused slice for: Include rows for all standard summary outputs
+      produced by `summary_table()` (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: 'terminal_AnnReturn (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: 'monthly_AnnVol (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: 'monthly_VaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'monthly_CVaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'terminal_CVaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: 'monthly_MaxDD (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: 'monthly_TimeUnderWater (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: 'monthly_BreachProb (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: 'monthly_BreachCountPath0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: 'terminal_ShortfallProb (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: 'monthly_TE). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: Update `pa_core/reporting/excel.py` to write the `MetricDefinitions` sheet
+      (always, because it is small).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: 'Define scope for: Update `pa_core/reporting/excel.py` to write the `MetricDefinitions`
+      sheet (always (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: 'Implement focused slice for: Update `pa_core/reporting/excel.py` to write
+      the `MetricDefinitions` sheet (always (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: 'Validate focused slice for: Update `pa_core/reporting/excel.py` to write
+      the `MetricDefinitions` sheet (always (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'because it is small). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: 'Add unit test that:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: '`MetricDefinitions` includes `terminal_AnnReturn` and `monthly_VaR` with
+      correct `MetricType` categories.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: '`MetricDefinitions` includes `terminal_AnnReturn` (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: '`monthly_VaR` with correct `MetricType` categories. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: Exported workbook includes `MetricDefinitions` sheet.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: Excel export contains a `MetricDefinitions` sheet.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: The sheet includes all standard summary metric columns (excluding `Agent`).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: Each metric is labeled with a clear type (`monthly_draw`, `terminal_outcome`,
+      or `diagnostic`) and a short description.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: All tests pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: Excel export contains a `MetricDefinitions` sheet.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: The sheet includes all standard summary metric columns (excluding `Agent`).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: Each metric is labeled with a clear type (`monthly_draw`, `terminal_outcome`,
+      or `diagnostic`) and a short description.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: All tests pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

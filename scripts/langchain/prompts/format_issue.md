@@ -12,7 +12,7 @@ Rules:
 - Use bullet points ONLY in Tasks and Acceptance Criteria.
 - Use unchecked checkboxes: "- [ ]".
 - Preserve file paths and concrete details when mentioned.
-- If a section lacks content, use "_Not provided._" (or "- [ ] _Not provided._" for Tasks/Acceptance).
+- If a section lacks content, use "_Not provided._" (or "- [x] _Not provided._" for Tasks/Acceptance).
 - Output ONLY the formatted markdown with these sections (no extra commentary).
 
 CRITICAL - Tasks must be ACTIONABLE:
