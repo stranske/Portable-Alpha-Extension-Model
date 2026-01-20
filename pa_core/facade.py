@@ -32,7 +32,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
-    import numpy as np
     import pandas as pd
 
     from .config import ModelConfig
@@ -66,7 +65,6 @@ def _records_to_builtin(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
-    import numpy as np
     import pandas as pd
     from pandas.api.types import is_list_like
 
@@ -484,9 +482,7 @@ def run_single(
                         "mode": corr_repair_info.get("repair_mode"),
                         "method": corr_repair_info.get("method"),
                         "shrinkage": corr_repair_info.get("shrinkage"),
-                        "min_eigenvalue_before": corr_repair_info.get(
-                            "min_eigenvalue_before"
-                        ),
+                        "min_eigenvalue_before": corr_repair_info.get("min_eigenvalue_before"),
                         "min_eigenvalue_after": corr_repair_info.get("min_eigenvalue_after"),
                         "max_abs_delta": corr_repair_info.get("max_abs_delta"),
                     }
