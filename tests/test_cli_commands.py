@@ -83,9 +83,7 @@ def _patch_cli_run(monkeypatch, cfg: DummyConfig) -> None:
     monkeypatch.setattr("pa_core.reporting.console.print_constraint_report", lambda *_: None)
 
 
-def _patch_cli_run_with_excel(
-    monkeypatch, cfg: DummyConfig, artifacts: RunArtifacts
-) -> None:
+def _patch_cli_run_with_excel(monkeypatch, cfg: DummyConfig, artifacts: RunArtifacts) -> None:
     monkeypatch.setattr("pa_core.config.load_config", lambda *_: cfg)
     monkeypatch.setattr("pa_core.facade.apply_run_options", lambda *_: cfg)
     monkeypatch.setattr("pa_core.backend.resolve_and_set_backend", lambda *_: "numpy")
