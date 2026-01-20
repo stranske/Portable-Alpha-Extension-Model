@@ -128,3 +128,37 @@ def test_build_agent_semantics_mismatch_flags() -> None:
     assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is True
     assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is True
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
+
+
+def test_build_agent_semantics_custom_agent_defaults() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=500.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 250.0,
+                "beta_share": 0.5,
+                "alpha_share": 0.5,
+                "extra": {},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 250.0,
+                "beta_share": 0.55,
+                "alpha_share": 0.45,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    row = df.set_index("Agent").loc["CustomSleeve"]
+
+    assert row["beta_coeff_used"] == pytest.approx(0.55)
+    assert row["alpha_coeff_used"] == pytest.approx(0.45)
+    assert row["financing_coeff_used"] == pytest.approx(-0.55)
+    assert "Custom agent" in row["notes"]
