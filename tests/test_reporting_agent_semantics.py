@@ -225,6 +225,7 @@ def test_build_agent_semantics_custom_agent_defaults() -> None:
     assert row["alpha_coeff_used"] == pytest.approx(0.45)
     assert row["financing_coeff_used"] == pytest.approx(-0.55)
     assert row["notes"] == "Semantics depend on the specific agent implementation"
+    assert bool(row["mismatch_flag"]) is False
 
 
 def test_build_agent_semantics_percent_inputs() -> None:
