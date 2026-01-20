@@ -12,6 +12,7 @@ import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
+from ..config import ModelConfig
 from ..viz import risk_return, theme
 
 __all__ = ["export_to_excel"]
@@ -236,7 +237,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
     ):
         if attr in inputs_dict:
             setattr(cfg, attr, inputs_dict[attr])
-    df = build_agent_semantics(cfg)
+    df = build_agent_semantics(cast(ModelConfig, cfg))
     inputs_dict["_agent_semantics_df"] = df
     return df
 
