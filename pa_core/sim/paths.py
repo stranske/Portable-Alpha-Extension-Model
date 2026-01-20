@@ -146,6 +146,8 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
         "min_eigenvalue_before": min_eig_before,
         "min_eigenvalue_after": min_eig_after,
         "max_abs_delta": max_delta,
+        "corr_before": corr.tolist(),
+        "corr_after": repaired.tolist(),
     }
     params["_correlation_repair_info"] = info
 

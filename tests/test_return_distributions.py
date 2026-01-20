@@ -248,6 +248,11 @@ def test_draw_joint_returns_passes_through_valid_correlation() -> None:
     assert isinstance(info, dict)
     assert info["repair_applied"] is False
     assert info["method"] == "none"
+    corr_before = np.array(info["corr_before"])
+    corr_after = np.array(info["corr_after"])
+    assert corr_before.shape == (4, 4)
+    assert corr_after.shape == (4, 4)
+    np.testing.assert_allclose(corr_before, corr_after)
 
 
 def test_draw_joint_returns_rejects_out_of_range_correlations() -> None:
@@ -296,3 +301,8 @@ def test_draw_joint_returns_repairs_non_psd_correlation() -> None:
     assert "eigen_clip" in info["method"]
     assert info["min_eigenvalue_before"] < 0.0
     assert info["min_eigenvalue_after"] >= -1e-10
+    corr_before = np.array(info["corr_before"])
+    corr_after = np.array(info["corr_after"])
+    assert corr_before.shape == (4, 4)
+    assert corr_after.shape == (4, 4)
+    assert not np.allclose(corr_before, corr_after)

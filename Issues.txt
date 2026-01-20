@@ -27,20 +27,20 @@ This is correct mathematically, but it’s easy to misread outputs (“is this a
 
 ## Tasks
 
-- [ ] Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame`.
-- [ ] Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`, `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.
-- [ ] Implement built-in agent rules:
+- [x] Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame`.
+- [x] Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`, `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.
+- [x] Implement built-in agent rules:
   - Base: beta_coeff = beta_share, alpha_coeff = alpha_share, financing_coeff = -beta_share
   - ExternalPA: beta_coeff = beta_share, alpha_coeff = beta_share * theta_extpa (from extra), financing_coeff = -beta_share
   - ActiveExt: beta_coeff = beta_share, alpha_coeff = beta_share * active_share (from extra), financing_coeff = -beta_share
   - InternalPA: beta_coeff = 0, alpha_coeff = alpha_share, financing_coeff = 0
   - InternalBeta: beta_coeff = beta_share, alpha_coeff = 0, financing_coeff = -beta_share
   - Unknown/custom agents: treat beta_coeff = beta_share and alpha_coeff = alpha_share; set notes indicating semantics depend on implementation.
-- [ ] Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance (e.g., 1e-6).
-- [ ] Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
-- [ ] Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a new sheet `AgentSemantics` when present.
-- [ ] Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
-- [ ] Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics` sheet and how to interpret it.
+- [x] Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance (e.g., 1e-6).
+- [x] Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+- [x] Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a new sheet `AgentSemantics` when present.
+- [x] Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+- [x] Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics` sheet and how to interpret it.
 
 ## Acceptance Criteria
 
@@ -86,7 +86,7 @@ Optionally, users should be able to fail a run when the repair delta is too larg
 
 ## Tasks
 
-- [ ] Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include `corr_before` and `corr_after` in the returned `info` dict (nested lists or small arrays).
+- [x] Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include `corr_before` and `corr_after` in the returned `info` dict (nested lists or small arrays).
 - [ ] Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig` in `pa_core/config.py` (default: None).
 - [ ] In `_resolve_correlation_matrix()`, if `correlation_repair_max_abs_delta` is not None and `repair_applied` is True, raise `ValueError` when `max_abs_delta > threshold`, including both values in the message.
 - [ ] In `pa_core/facade.py::run_single()`, when `corr_repair_info` exists, construct DataFrames:
@@ -97,7 +97,7 @@ Optionally, users should be able to fail a run when the repair delta is too larg
 - [ ] Update `pa_core/reporting/excel.py` to write these DataFrames to sheets (short names):
   - `CorrInput`, `CorrUsed`, `CorrDelta`, `CorrRepairInfo`
 - [ ] Add tests:
-  - [ ] `tests/test_return_distributions.py` (or new file) asserts repair info contains `corr_before` and `corr_after`.
+  - [x] `tests/test_return_distributions.py` (or new file) asserts repair info contains `corr_before` and `corr_after`.
   - [ ] Add a test that sets `correlation_repair_max_abs_delta` small and confirms a ValueError is raised when repair applied with larger delta.
   - [ ] Add a test that `run_single()` attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
 - [ ] Update documentation (`docs/UserGuide.md`) describing where to find correlation repair diagnostics in exports.
