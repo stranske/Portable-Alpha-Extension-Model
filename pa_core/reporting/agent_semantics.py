@@ -26,10 +26,23 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
         "mismatch_flag",
     ]
 
-    total_capital = float(getattr(cfg, "total_fund_capital", 0.0) or 0.0)
+    total_capital_value = getattr(cfg, "total_fund_capital", None)
+    total_capital_missing = total_capital_value is None
+    total_capital = float(total_capital_value or 0.0)
     if not math.isfinite(total_capital):
         total_capital = 0.0
     agents = list(_iter_agents(cfg)) if hasattr(cfg, "agents") else []
+    if total_capital_missing and total_capital <= 0.0:
+        summed_capital = 0.0
+        for agent in agents:
+            try:
+                capital = float(agent["capital"])
+            except (TypeError, ValueError):
+                continue
+            if math.isfinite(capital):
+                summed_capital += capital
+        if summed_capital > 0.0:
+            total_capital = summed_capital
     if not agents:
         return pd.DataFrame([], columns=columns)
 

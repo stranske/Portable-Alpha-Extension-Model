@@ -356,6 +356,34 @@ def test_build_agent_semantics_nan_total_capital_disables_mismatch() -> None:
     assert bool(row["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_missing_total_capital_uses_agent_sum() -> None:
+    cfg = SimpleNamespace(
+        agents=[
+            {
+                "name": "Base",
+                "capital": 250.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 750.0,
+                "beta_share": 0.4,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.5},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert lookup.loc["Base"]["implied_capital_share"] == pytest.approx(0.25)
+    assert lookup.loc["ExternalPA"]["implied_capital_share"] == pytest.approx(0.75)
+    assert bool(lookup.loc["Base"]["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypatch) -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
