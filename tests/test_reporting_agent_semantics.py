@@ -81,3 +81,50 @@ def test_build_agent_semantics_coeffs_and_mismatch() -> None:
     assert internal["alpha_coeff_used"] == pytest.approx(0.05)
     assert internal["financing_coeff_used"] == pytest.approx(0.0)
     assert bool(internal["mismatch_flag"]) is True
+
+
+def test_build_agent_semantics_mismatch_flags() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 300.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            },
+            {
+                "name": "ActiveExt",
+                "capital": 50.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.0,
+                "extra": {"active_share": 0.5},
+            },
+            {
+                "name": "InternalPA",
+                "capital": 50.0,
+                "beta_share": 0.0,
+                "alpha_share": 0.05,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is True
+    assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is True
+    assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
