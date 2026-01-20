@@ -40,5 +40,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reconfirmed task reconciliation after tuple-of-dicts serialization coverage.
 - Added export coverage when total_fund_capital is missing from AgentSemantics inputs.
 - Added zero-total-capital mismatch coverage for ActiveExt/custom agents.
+- Added Excel export coverage for tuple-of-dicts AgentSemantics inputs.
 
 <!-- auto-status-summary:end -->
