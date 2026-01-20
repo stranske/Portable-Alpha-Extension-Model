@@ -1013,6 +1013,21 @@ def test_serialize_agent_semantics_input_list_passthrough() -> None:
     assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
 
 
+def test_serialize_agent_semantics_input_list_missing_keys_preserves_rows() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "capital_mm": 1000.0},
+            {"Agent": "ExternalPA", "capital_mm": 200.0, "notes": ""},
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert "notes" not in inputs["_agent_semantics_df"][0]
+    assert inputs["_agent_semantics_df"][1]["notes"] == ""
+
+
 def test_serialize_agent_semantics_input_list_of_series() -> None:
     inputs = {
         "_agent_semantics_df": [
