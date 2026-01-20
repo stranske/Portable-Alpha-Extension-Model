@@ -10,6 +10,12 @@ import yaml
 from pydantic import AliasChoices, BaseModel, Field, field_validator, model_validator
 from pydantic_core import PydanticUndefined
 
+from .portfolio.constraints import (
+    COMMON_WEIGHT_BOUNDS,
+    ConstraintValidator,
+    WeightBoundsConstraint,
+    suggest_constraint_fixes,
+)
 from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 CORRELATION_LOWER_BOUND = -0.999
@@ -57,6 +63,52 @@ class Portfolio(BaseModel):
         return self
 
 
+class WeightBoundsSpec(BaseModel):
+    name: str | None = None
+    min_weight: float
+    max_weight: float
+    description: str | None = None
+
+    @model_validator(mode="after")
+    def _check_bounds(self) -> "WeightBoundsSpec":
+        if self.min_weight > self.max_weight:
+            raise ValueError("constraints.weight_bounds min_weight must be <= max_weight")
+        return self
+
+
+class PortfolioConstraints(BaseModel):
+    weight_bounds: WeightBoundsSpec | str | None = "long_only"
+    max_leverage: float | None = 1.0
+    max_concentration: float | None = None
+
+    @field_validator("max_leverage", "max_concentration")
+    @classmethod
+    def _check_positive(cls, value: float | None) -> float | None:
+        if value is None:
+            return value
+        if value <= 0:
+            raise ValueError("constraints values must be positive")
+        return value
+
+    def resolve_weight_bounds(self) -> WeightBoundsConstraint | None:
+        if self.weight_bounds is None:
+            return None
+        if isinstance(self.weight_bounds, str):
+            preset = COMMON_WEIGHT_BOUNDS.get(self.weight_bounds)
+            if preset is None:
+                raise ValueError(
+                    f"constraints.weight_bounds must be one of {sorted(COMMON_WEIGHT_BOUNDS)}"
+                )
+            return preset
+        spec = self.weight_bounds
+        return WeightBoundsConstraint(
+            name=spec.name or "Custom weight bounds",
+            min_weight=spec.min_weight,
+            max_weight=spec.max_weight,
+            description=spec.description or "Custom weight bounds.",
+        )
+
+
 class Sleeve(BaseModel):
     """Capital and alpha share metadata for a sleeve within a Scenario."""
 
@@ -99,6 +151,7 @@ class Scenario(BaseModel):
     assets: List[Asset] = Field(default_factory=list)
     correlations: List[Correlation] = Field(default_factory=list)
     portfolios: List[Portfolio] = Field(default_factory=list)
+    constraints: PortfolioConstraints = Field(default_factory=PortfolioConstraints)
     sleeves: Dict[str, Sleeve] | None = None
 
     @model_validator(mode="after")
@@ -121,6 +174,32 @@ class Scenario(BaseModel):
             unknown = set(p.weights) - asset_id_set
             if unknown:
                 raise ValueError(f"portfolio {p.id} references unknown assets: {sorted(unknown)}")
+        return self
+
+    @model_validator(mode="after")
+    def _check_portfolio_constraints(self) -> "Scenario":
+        if not self.portfolios:
+            return self
+        constraints = self.constraints
+        validator = ConstraintValidator(
+            weight_bounds=constraints.resolve_weight_bounds(),
+            max_leverage=constraints.max_leverage,
+            max_concentration=constraints.max_concentration,
+        )
+        messages: list[str] = []
+        for portfolio in self.portfolios:
+            violations = validator.validate(portfolio.weights, portfolio_id=portfolio.id)
+            for violation in violations:
+                suggestions = suggest_constraint_fixes(violation)
+                suggestion_text = "; ".join(suggestions)
+                prefix = f"{portfolio.id}: "
+                if suggestion_text:
+                    messages.append(f"{prefix}{violation.message} Suggestions: {suggestion_text}")
+                else:
+                    messages.append(f"{prefix}{violation.message}")
+        if messages:
+            formatted = "\n".join(f"- {message}" for message in messages)
+            raise ValueError(f"portfolio constraints violated:\n{formatted}")
         return self
 
     @model_validator(mode="after")
@@ -338,6 +417,7 @@ def _build_scenario_template(asset_count: int = 2) -> dict[str, Any]:
         "assets": assets,
         "correlations": correlations,
         "portfolios": portfolios,
+        "constraints": _build_model_template(PortfolioConstraints, use_aliases=False),
         "sleeves": sleeves,
     }
 

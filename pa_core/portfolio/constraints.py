@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Mapping
 
 
 @dataclass(frozen=True)
@@ -97,9 +97,106 @@ COMMON_WEIGHT_BOUNDS: dict[str, WeightBoundsConstraint] = {
     ),
 }
 
+_WEIGHT_TOLERANCE = 1e-12
+
+
+@dataclass(frozen=True)
+class ConstraintValidator:
+    """Validate portfolio weights against configured constraints."""
+
+    weight_bounds: WeightBoundsConstraint | None = None
+    max_leverage: float | None = None
+    max_concentration: float | None = None
+
+    def validate(
+        self,
+        weights: Mapping[str, float],
+        *,
+        portfolio_id: str | None = None,
+    ) -> list[ConstraintViolation]:
+        violations: list[ConstraintViolation] = []
+        if self.weight_bounds:
+            min_weight = self.weight_bounds.min_weight
+            max_weight = self.weight_bounds.max_weight
+            for asset, weight in weights.items():
+                if weight < min_weight - _WEIGHT_TOLERANCE:
+                    violations.append(
+                        ConstraintViolation(
+                            constraint_type="weight_bounds",
+                            message=(
+                                f"{asset} weight {weight:.2%} is below "
+                                f"min {min_weight:.2%}."
+                            ),
+                            details={
+                                "asset": asset,
+                                "weight": weight,
+                                "min_weight": min_weight,
+                                "max_weight": max_weight,
+                                "portfolio_id": portfolio_id,
+                            },
+                        )
+                    )
+                if weight > max_weight + _WEIGHT_TOLERANCE:
+                    violations.append(
+                        ConstraintViolation(
+                            constraint_type="weight_bounds",
+                            message=(
+                                f"{asset} weight {weight:.2%} exceeds "
+                                f"max {max_weight:.2%}."
+                            ),
+                            details={
+                                "asset": asset,
+                                "weight": weight,
+                                "min_weight": min_weight,
+                                "max_weight": max_weight,
+                                "portfolio_id": portfolio_id,
+                            },
+                        )
+                    )
+
+        if self.max_leverage is not None:
+            gross_exposure = sum(abs(weight) for weight in weights.values())
+            if gross_exposure > self.max_leverage + _WEIGHT_TOLERANCE:
+                violations.append(
+                    ConstraintViolation(
+                        constraint_type="leverage",
+                        message=(
+                            f"Gross exposure {gross_exposure:.2f} exceeds "
+                            f"max leverage {self.max_leverage:.2f}."
+                        ),
+                        details={
+                            "gross_exposure": gross_exposure,
+                            "max_leverage": self.max_leverage,
+                            "portfolio_id": portfolio_id,
+                        },
+                    )
+                )
+
+        if self.max_concentration is not None:
+            for asset, weight in weights.items():
+                if abs(weight) > self.max_concentration + _WEIGHT_TOLERANCE:
+                    violations.append(
+                        ConstraintViolation(
+                            constraint_type="concentration",
+                            message=(
+                                f"{asset} weight {weight:.2%} exceeds "
+                                f"concentration limit {self.max_concentration:.2%}."
+                            ),
+                            details={
+                                "asset": asset,
+                                "weight": weight,
+                                "max_weight": self.max_concentration,
+                                "portfolio_id": portfolio_id,
+                            },
+                        )
+                    )
+
+        return violations
+
 
 __all__ = [
     "ConstraintViolation",
+    "ConstraintValidator",
     "WeightBoundsConstraint",
     "COMMON_WEIGHT_BOUNDS",
     "suggest_constraint_fixes",

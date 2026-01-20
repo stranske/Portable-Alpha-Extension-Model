@@ -118,6 +118,28 @@ def test_sleeve_share_bounds() -> None:
         Scenario.model_validate(data)
 
 
+def test_portfolio_constraints_include_suggestions() -> None:
+    data = {
+        "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
+        "assets": [
+            {"id": "A", "mu": 0.05, "sigma": 0.1},
+            {"id": "B", "mu": 0.03, "sigma": 0.08},
+        ],
+        "correlations": [
+            {"pair": ["IDX", "A"], "rho": 0.1},
+            {"pair": ["IDX", "B"], "rho": 0.1},
+            {"pair": ["A", "B"], "rho": 0.1},
+        ],
+        "portfolios": [{"id": "p1", "weights": {"A": 1.2, "B": -0.2}}],
+    }
+    with pytest.raises(ValueError) as excinfo:
+        Scenario.model_validate(data)
+    message = str(excinfo.value)
+    assert "portfolio constraints violated" in message
+    assert "Suggestions:" in message
+    assert "Reduce A weight from 120.00% to 100.00% or below." in message
+
+
 def test_sleeve_share_normalization() -> None:
     data = {
         "index": {"id": "IDX", "mu": 0.1, "sigma": 0.2},
