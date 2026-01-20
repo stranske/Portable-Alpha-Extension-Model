@@ -1,0 +1,1201 @@
+version: 1
+issue: 1183
+base: main
+branch: codex/issue-1183
+tasks:
+  - id: task-01
+    title: _Not provided._
+    status: doing
+    started_at: '2026-01-20T06:17:08Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: 'Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg:
+      ModelConfig) -> pd.DataFrame`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`,
+      `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Include columns: `Agent` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: '`capital_mm` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: '`implied_capital_share` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: '`beta_coeff_used` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: '`alpha_coeff_used` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: '`financing_coeff_used` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: '`notes` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: '`mismatch_flag`. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Implement built-in agent rules:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'Base: beta_coeff = beta_share, alpha_coeff = alpha_share, financing_coeff
+      = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Base: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'alpha_coeff = alpha_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'ExternalPA: beta_coeff = beta_share, alpha_coeff = beta_share * theta_extpa
+      (from extra), financing_coeff = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'ExternalPA: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Define scope for: alpha_coeff = beta_share * theta_extpa (from extra)
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Implement focused slice for: alpha_coeff = beta_share * theta_extpa (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'Validate focused slice for: alpha_coeff = beta_share * theta_extpa (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: 'ActiveExt: beta_coeff = beta_share, alpha_coeff = beta_share * active_share
+      (from extra), financing_coeff = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'ActiveExt: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: 'Define scope for: alpha_coeff = beta_share * active_share (from extra)
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Implement focused slice for: alpha_coeff = beta_share * active_share (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: 'Validate focused slice for: alpha_coeff = beta_share * active_share (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: 'InternalPA: beta_coeff = 0, alpha_coeff = alpha_share, financing_coeff
+      = 0'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: 'InternalPA: beta_coeff = 0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: 'alpha_coeff = alpha_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: 'financing_coeff = 0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: 'InternalBeta: beta_coeff = beta_share, alpha_coeff = 0, financing_coeff
+      = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'InternalBeta: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: 'alpha_coeff = 0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: 'Unknown/custom agents: treat beta_coeff = beta_share and alpha_coeff =
+      alpha_share; set notes indicating semantics depend on implementation.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 'Define scope for: Unknown/custom agents: treat beta_coeff = beta_share
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: 'Implement focused slice for: Unknown/custom agents: treat beta_coeff =
+      beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: 'Validate focused slice for: Unknown/custom agents: treat beta_coeff =
+      beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: 'alpha_coeff = alpha_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: 'set notes indicating semantics depend on implementation. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta)
+      or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance
+      (e.g., 1e-6).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: 'Define scope for: Flag mismatch when `abs(implied_capital_share - beta_share)`
+      (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)`
+      (InternalPA) exceeds tolerance (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: 'Implement focused slice for: Flag mismatch when `abs(implied_capital_share
+      - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share
+      - alpha_share)` (InternalPA) exceeds tolerance (e.g. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: 'Validate focused slice for: Flag mismatch when `abs(implied_capital_share
+      - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share
+      - alpha_share)` (InternalPA) exceeds tolerance (e.g. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: '1e-6). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"]
+      = df` in `pa_core/facade.py` (RunArtifacts inputs).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'Define approach for: Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"]
+      = df` in `pa_core/facade.py` (RunArtifacts inputs). (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: 'Define scope for: Implement: Attach the DataFrame to run exports by adding
+      `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: 'Implement focused slice for: Implement: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: 'Validate focused slice for: Implement: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: 'Define scope for: Validate: Attach the DataFrame to run exports by adding
+      `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: 'Implement focused slice for: Validate: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: 'Validate focused slice for: Validate: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a
+      new sheet `AgentSemantics` when present.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients
+      and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: 'Define scope for: Add unit tests in `tests/test_reporting_agent_semantics.py`
+      to verify coefficients'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: 'Implement focused slice for: Add unit tests in `tests/test_reporting_agent_semantics.py`
+      to verify coefficients'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'Validate focused slice for: Add unit tests in `tests/test_reporting_agent_semantics.py`
+      to verify coefficients'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: 'Define scope for: mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+      (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: 'Implement focused slice for: mismatch detection for a small config with
+      Base/ExternalPA/ActiveExt/InternalPA. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: 'Validate focused slice for: mismatch detection for a small config with
+      Base/ExternalPA/ActiveExt/InternalPA. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`)
+      with a short explanation of the `AgentSemantics` sheet and how to interpret
+      it.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: 'Define scope for: Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`)
+      with a short explanation of the `AgentSemantics` sheet (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: 'Implement focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics`
+      sheet (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: 'Validate focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics`
+      sheet (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: 'Define scope for: Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`)
+      with how to interpret it. (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: 'Implement focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with how to interpret it. (verify: docs
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: 'Validate focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with how to interpret it. (verify: docs
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: 'Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg:
+      ModelConfig) -> pd.DataFrame`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`,
+      `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: 'Include columns: `Agent` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: '`capital_mm` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: '`implied_capital_share` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-77
+    title: '`beta_coeff_used` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-78
+    title: '`alpha_coeff_used` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-79
+    title: '`financing_coeff_used` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-80
+    title: '`notes` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-81
+    title: '`mismatch_flag`. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-82
+    title: 'Implement built-in agent rules:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-83
+    title: 'Base: beta_coeff = beta_share, alpha_coeff = alpha_share, financing_coeff
+      = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-84
+    title: 'Base: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-85
+    title: 'alpha_coeff = alpha_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-86
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-87
+    title: 'ExternalPA: beta_coeff = beta_share, alpha_coeff = beta_share * theta_extpa
+      (from extra), financing_coeff = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-88
+    title: 'ExternalPA: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-89
+    title: 'Define scope for: alpha_coeff = beta_share * theta_extpa (from extra)
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-90
+    title: 'Implement focused slice for: alpha_coeff = beta_share * theta_extpa (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-91
+    title: 'Validate focused slice for: alpha_coeff = beta_share * theta_extpa (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-92
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-93
+    title: 'ActiveExt: beta_coeff = beta_share, alpha_coeff = beta_share * active_share
+      (from extra), financing_coeff = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-94
+    title: 'ActiveExt: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-95
+    title: 'Define scope for: alpha_coeff = beta_share * active_share (from extra)
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-96
+    title: 'Implement focused slice for: alpha_coeff = beta_share * active_share (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-97
+    title: 'Validate focused slice for: alpha_coeff = beta_share * active_share (from
+      extra) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-98
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-99
+    title: 'InternalPA: beta_coeff = 0, alpha_coeff = alpha_share, financing_coeff
+      = 0'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-100
+    title: 'InternalPA: beta_coeff = 0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-101
+    title: 'alpha_coeff = alpha_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-102
+    title: 'financing_coeff = 0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-103
+    title: 'InternalBeta: beta_coeff = beta_share, alpha_coeff = 0, financing_coeff
+      = -beta_share'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-104
+    title: 'InternalBeta: beta_coeff = beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-105
+    title: 'alpha_coeff = 0 (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-106
+    title: 'financing_coeff = -beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-107
+    title: 'Unknown/custom agents: treat beta_coeff = beta_share and alpha_coeff =
+      alpha_share; set notes indicating semantics depend on implementation.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-108
+    title: 'Define scope for: Unknown/custom agents: treat beta_coeff = beta_share
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-109
+    title: 'Implement focused slice for: Unknown/custom agents: treat beta_coeff =
+      beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-110
+    title: 'Validate focused slice for: Unknown/custom agents: treat beta_coeff =
+      beta_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-111
+    title: 'alpha_coeff = alpha_share (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-112
+    title: 'set notes indicating semantics depend on implementation. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-113
+    title: Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta)
+      or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance
+      (e.g., 1e-6).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-114
+    title: 'Define scope for: Flag mismatch when `abs(implied_capital_share - beta_share)`
+      (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)`
+      (InternalPA) exceeds tolerance (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-115
+    title: 'Implement focused slice for: Flag mismatch when `abs(implied_capital_share
+      - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share
+      - alpha_share)` (InternalPA) exceeds tolerance (e.g. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-116
+    title: 'Validate focused slice for: Flag mismatch when `abs(implied_capital_share
+      - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share
+      - alpha_share)` (InternalPA) exceeds tolerance (e.g. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-117
+    title: '1e-6). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-118
+    title: Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"]
+      = df` in `pa_core/facade.py` (RunArtifacts inputs).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-119
+    title: 'Define approach for: Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"]
+      = df` in `pa_core/facade.py` (RunArtifacts inputs). (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-120
+    title: 'Define scope for: Implement: Attach the DataFrame to run exports by adding
+      `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-121
+    title: 'Implement focused slice for: Implement: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-122
+    title: 'Validate focused slice for: Implement: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-123
+    title: 'Define scope for: Validate: Attach the DataFrame to run exports by adding
+      `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-124
+    title: 'Implement focused slice for: Validate: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-125
+    title: 'Validate focused slice for: Validate: Attach the DataFrame to run exports
+      by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts
+      inputs). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-126
+    title: Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a
+      new sheet `AgentSemantics` when present.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-127
+    title: Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients
+      and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-128
+    title: 'Define scope for: Add unit tests in `tests/test_reporting_agent_semantics.py`
+      to verify coefficients'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-129
+    title: 'Implement focused slice for: Add unit tests in `tests/test_reporting_agent_semantics.py`
+      to verify coefficients'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-130
+    title: 'Validate focused slice for: Add unit tests in `tests/test_reporting_agent_semantics.py`
+      to verify coefficients'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-131
+    title: 'Define scope for: mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
+      (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-132
+    title: 'Implement focused slice for: mismatch detection for a small config with
+      Base/ExternalPA/ActiveExt/InternalPA. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-133
+    title: 'Validate focused slice for: mismatch detection for a small config with
+      Base/ExternalPA/ActiveExt/InternalPA. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-134
+    title: Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`)
+      with a short explanation of the `AgentSemantics` sheet and how to interpret
+      it.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-135
+    title: 'Define scope for: Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`)
+      with a short explanation of the `AgentSemantics` sheet (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-136
+    title: 'Implement focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics`
+      sheet (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-137
+    title: 'Validate focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics`
+      sheet (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-138
+    title: 'Define scope for: Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`)
+      with how to interpret it. (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-139
+    title: 'Implement focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with how to interpret it. (verify: docs
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-140
+    title: 'Validate focused slice for: Update documentation (`docs/UserGuide.md`
+      or `docs/guides/PARAMETER_GUIDE.md`) with how to interpret it. (verify: docs
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-141
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-142
+    title: Running `pa run` produces an Excel workbook containing a sheet named `AgentSemantics`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-143
+    title: The sheet contains the specified columns and rows for all built-in agents
+      present in config.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-144
+    title: For ExternalPA and ActiveExt, `alpha_coeff_used` equals `beta_share * theta_extpa`
+      and `beta_share * active_share` respectively.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-145
+    title: Mismatch flags trigger when implied capital share differs materially from
+      the contribution scaling used.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-146
+    title: All tests pass and no existing simulation output tests regress.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-147
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-148
+    title: Running `pa run` produces an Excel workbook containing a sheet named `AgentSemantics`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-149
+    title: The sheet contains the specified columns and rows for all built-in agents
+      present in config.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-150
+    title: For ExternalPA and ActiveExt, `alpha_coeff_used` equals `beta_share * theta_extpa`
+      and `beta_share * active_share` respectively.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-151
+    title: Mismatch flags trigger when implied capital share differs materially from
+      the contribution scaling used.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-152
+    title: All tests pass and no existing simulation output tests regress.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
