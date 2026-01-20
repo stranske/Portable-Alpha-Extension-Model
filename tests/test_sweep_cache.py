@@ -51,8 +51,10 @@ def test_sweep_cache_evicts_least_recently_used(monkeypatch):
     res2 = run_parameter_sweep_cached(cfg, idx, seed=2)
     res1_again = run_parameter_sweep_cached(cfg, idx, seed=1)
     assert res1_again is res1
+    assert len(sweep_module._SWEEP_CACHE) == 2
 
     run_parameter_sweep_cached(cfg, idx, seed=3)
+    assert len(sweep_module._SWEEP_CACHE) == 2
     res2_again = run_parameter_sweep_cached(cfg, idx, seed=2)
     assert res2_again is not res2
 
