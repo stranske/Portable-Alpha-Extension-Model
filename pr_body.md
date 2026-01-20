@@ -43,5 +43,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Added Excel export coverage for tuple-of-dicts AgentSemantics inputs.
 - Reconciled task checkboxes after reviewing recent agent semantics export updates.
 - Reverified task checkboxes after numpy scalar serialization handling updates.
+- Verified AgentSemantics sheet content via facade export test.
 
 <!-- auto-status-summary:end -->

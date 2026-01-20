@@ -52,6 +52,9 @@ def test_export_run_artifacts(run_artifacts, tmp_path: Path) -> None:
     assert isinstance(serialized, list)
     assert serialized
     assert "Agent" in serialized[0]
+    semantics = pd.read_excel(output_file, sheet_name="AgentSemantics")
+    assert not semantics.empty
+    assert "Agent" in semantics.columns
 
 
 def test_export_serializes_agent_semantics_tuple(run_artifacts, tmp_path: Path) -> None:
