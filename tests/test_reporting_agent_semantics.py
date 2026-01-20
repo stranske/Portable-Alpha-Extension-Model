@@ -261,3 +261,42 @@ def test_build_agent_semantics_percent_inputs() -> None:
 
     assert lookup.loc["ExternalPA"]["alpha_coeff_used"] == pytest.approx(0.1)
     assert lookup.loc["ActiveExt"]["alpha_coeff_used"] == pytest.approx(0.15)
+
+
+def test_build_agent_semantics_percent_inputs_base_internalpa() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 60,
+                "alpha_share": 40,
+                "extra": {},
+            },
+            {
+                "name": "InternalPA",
+                "capital": 50.0,
+                "beta_share": 0.0,
+                "alpha_share": 5,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    base = lookup.loc["Base"]
+    assert base["beta_coeff_used"] == pytest.approx(0.6)
+    assert base["alpha_coeff_used"] == pytest.approx(0.4)
+    assert base["financing_coeff_used"] == pytest.approx(-0.6)
+
+    internal = lookup.loc["InternalPA"]
+    assert internal["beta_coeff_used"] == pytest.approx(0.0)
+    assert internal["alpha_coeff_used"] == pytest.approx(0.05)
+    assert internal["financing_coeff_used"] == pytest.approx(0.0)
