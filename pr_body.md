@@ -38,5 +38,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Added tuple-of-dataframes serialization coverage for agent semantics inputs.
 - Added Excel export coverage for tuple-of-dataframes AgentSemantics inputs.
 - Reconfirmed task reconciliation after tuple-of-dicts serialization coverage.
+- Added export coverage when total_fund_capital is missing from AgentSemantics inputs.
 
 <!-- auto-status-summary:end -->

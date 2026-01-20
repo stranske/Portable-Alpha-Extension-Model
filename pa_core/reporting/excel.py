@@ -266,14 +266,16 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
                 inputs_dict["_agent_semantics_df"] = df.to_dict(orient="records")
         return df
     agents = inputs_dict.get("agents")
-    total_capital = inputs_dict.get("total_fund_capital")
-    if agents is None or total_capital is None:
+    if agents is None:
         return df if isinstance(df, pd.DataFrame) else None
+    total_capital = inputs_dict.get("total_fund_capital")
     try:
         from .agent_semantics import build_agent_semantics
     except Exception:
         return df if isinstance(df, pd.DataFrame) else None
-    cfg = SimpleNamespace(agents=agents, total_fund_capital=total_capital)
+    cfg = SimpleNamespace(agents=agents)
+    if total_capital is not None:
+        setattr(cfg, "total_fund_capital", total_capital)
     for attr in (
         "reference_sigma",
         "volatility_multiple",
