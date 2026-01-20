@@ -1,29 +1,34 @@
-1 — Add AgentSemantics sheet to disambiguate capital vs contribution weights
+Issue 1 — Wizard: add Advanced Simulation Settings UI + YAML wiring (returns, copula, vol regime, shrinkage, repair, backend)
+# AGENT_ISSUE_TEMPLATE
+
 ## Why
 
-Agent configuration currently mixes concepts:
-- `capital` exists per agent, but simulation math is driven by `beta_share/alpha_share` (and sometimes `extra`).
-- For built-in sleeves, `beta_share/alpha_share` can represent capital-scaled contribution weights (ExternalPA/ActiveExt/InternalPA) while `Base` uses them as within-sleeve weights.
+Issue #957 identifies several `ModelConfig` fields that exist in the backend but are not exposed in the Streamlit Scenario Wizard, and therefore cannot be set via the UI or persisted into the wizard-generated YAML.
 
-This is correct mathematically, but it’s easy to misread outputs (“is this a beta exposure share, or a capital share, or an overlay intensity?”). A small, explicit “AgentSemantics” table makes the math auditable for humans and bots without changing model behavior.
+This creates two problems:
+1) Users cannot access advanced behaviors (Student-t, copula, two-state vol regime, shrinkage/repair modes) from the UI.
+2) The wizard-generated YAML cannot reproduce those settings, making runs harder to audit and reproduce.
 
 ## Scope
 
-- Add a reporting helper that computes and exports a per-agent “effective coefficients” table:
-  - capital ($mm)
-  - implied capital share (capital / total_fund_capital)
-  - effective beta contribution coefficient
-  - effective alpha contribution coefficient
-  - effective financing coefficient
-  - notes/mismatch flags when implied capital share does not match contribution scaling
+Add an "Advanced Simulation Settings" panel to the Scenario Wizard that:
+- exposes key advanced `ModelConfig` fields
+- persists them into the config view (`pa_core/wizard_schema.py`)
+- writes them into the wizard YAML via `_build_yaml_from_config()`
+- adds tests ensuring end-to-end wiring from UI config → YAML dict → `ModelConfig`
 
-- Export this as a dedicated Excel sheet `AgentSemantics`.
+Fields to include (from #957):
+- `return_distribution`, `return_t_df`, `return_copula`
+- `vol_regime`, `vol_regime_window`
+- `covariance_shrinkage`
+- `correlation_repair_mode`, `correlation_repair_shrinkage`
+- `backend`
 
 ## Non-Goals
 
-- Changing simulation math or existing outputs.
-- Refactoring the AgentConfig schema.
-- Rewriting the generic agents list format.
+- Building a fully general GUI editor for complex nested objects (handled in a separate regime switching issue).
+- Changing defaults or simulation behavior beyond wiring.
+- Adding GPU/cupy support if it is not already supported; backend UI may be “numpy only” for now.
 
 ## Tasks
 
@@ -72,19 +77,20 @@ We should export:
 
 Optionally, users should be able to fail a run when the repair delta is too large.
 
-## Scope
+- [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
+  - [ ] Add an "Advanced Simulation Settings" UI section (expander or dedicated step).
+  - [ ] Add UI controls and store values into the config view and/or session_state consistently.
+  - [ ] Ensure these values are used when building the wizard config object.
 
-- Extend correlation repair info to include `corr_before` and `corr_after`.
-- Export diagnostic tables/sheets into the Excel output when correlation repair is present (or always, if cheap).
-- Add an optional threshold (`correlation_repair_max_abs_delta`) that raises when repair changes exceed tolerance.
+- [ ] Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:
+  - [ ] Emit the advanced fields into the YAML dict using the canonical `ModelConfig` keys (snake_case), alongside existing keys.
 
-## Non-Goals
-
-- Changing the correlation repair algorithm.
-- Changing default behavior for `correlation_repair_mode` (still `warn_fix` by default).
-- Adding heavy logging or large binary artifacts.
-
-## Tasks
+- [ ] Tests:
+  - [ ] Update `tests/test_wizard_schema.py` to assert `DefaultConfigView` includes the new fields and that defaults are valid.
+  - [ ] Update `tests/test_wizard_config_wiring.py` to:
+    - set non-default values for these new fields in the config view
+    - assert `_build_yaml_from_config()` includes them
+    - assert `ModelConfig.model_validate(yaml_dict)` reflects them correctly.
 
 - [x] Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include `corr_before` and `corr_after` in the returned `info` dict (nested lists or small arrays).
 - [ ] Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig` in `pa_core/config.py` (default: None).
@@ -104,152 +110,217 @@ Optionally, users should be able to fail a run when the repair delta is too larg
 
 ## Acceptance Criteria
 
-- [ ] When correlation repair is applied, output Excel includes sheets: `CorrInput`, `CorrUsed`, `CorrDelta`, and `CorrRepairInfo`.
-- [ ] `CorrRepairInfo` includes at least: mode, method, shrinkage, min eigen before/after, max_abs_delta.
-- [ ] When `correlation_repair_max_abs_delta` is set and exceeded, the run fails with a clear error.
-- [ ] All unit tests pass.
+- [ ] Wizard UI exposes the advanced settings listed in Scope.
+- [ ] `_build_yaml_from_config()` includes these settings in its output dict.
+- [ ] The resulting YAML dict validates into `ModelConfig` with the expected values.
+- [ ] `tests/test_wizard_schema.py` and `tests/test_wizard_config_wiring.py` cover all added fields and pass in CI.
+- [ ] Documentation notes the new coverage.
 
 ## Implementation Notes
 
-Files likely involved:
-- `pa_core/sim/paths.py` (correlation repair + info dict)
-- `pa_core/config.py` (new optional config field)
-- `pa_core/facade.py` (attach DataFrames to `inputs`)
-- `pa_core/reporting/excel.py` (write new sheets)
-- Tests: `tests/test_return_distributions.py`, plus new focused tests as needed.
+Files referenced by #957:
+- `dashboard/pages/3_Scenario_Wizard.py` (UI + `_build_yaml_from_config()`)
+- `pa_core/wizard_schema.py` (DefaultConfigView)
+- `tests/test_wizard_config_wiring.py`, `tests/test_wizard_schema.py`
 
-Use the canonical ordering for correlation labels: `[IDX, H, E, M]` to match parameter conventions.
+Issue 2 — Wizard: add Regime Switching UI + YAML wiring (regimes, transition matrix, start regime)
+# AGENT_ISSUE_TEMPLATE
 
-3 — Add MetricDefinitions sheet describing monthly vs terminal semantics
 ## Why
 
-The summary table prefixes (`monthly_` vs `terminal_`) help, but users still routinely mix “monthly-draw” risk metrics with “terminal-outcome” performance metrics when reading exports. A small machine-readable “MetricDefinitions” table in the workbook makes interpretation unambiguous.
+Issue #957 notes that regime switching exists in `ModelConfig` (from prior work) but has no wizard UI and is not persisted in wizard YAML output. That prevents users from configuring regimes via the dashboard and makes the feature effectively CLI-only.
 
 ## Scope
 
-- Add a function that returns metric metadata for the standard summary outputs:
-  - metric name
-  - metric type (monthly_draw / terminal_outcome / diagnostic)
-  - short description
+Add a minimal-but-usable UI for regime switching in the Scenario Wizard:
+- enable/disable regime switching
+- define `regimes`
+- define `regime_transition`
+- define `regime_start`
+- persist these fields into wizard YAML via `_build_yaml_from_config()`
 
-- Export this as a `MetricDefinitions` sheet in Excel outputs.
+Prefer a pragmatic UX that avoids complex grid editors:
+- Use structured inputs where easy (toggle + dropdown for start regime)
+- Use YAML/JSON text areas for regimes list and transition matrix, with validation and helpful errors.
 
 ## Non-Goals
 
-- Changing any metric calculation.
-- Converting summary output into long format.
-- Adding new risk metrics.
+- A full matrix editor UI.
+- Automatic inference of regime parameters from data.
+- Changing regime simulation logic.
 
 ## Tasks
 
-- [ ] Implement `pa_core/sim/metrics.py::metric_definitions_df() -> pd.DataFrame` (or new module under `pa_core/sim/`), returning columns: `Metric`, `MetricType`, `Description`.
-- [ ] Include rows for all standard summary outputs produced by `summary_table()` (e.g., terminal_AnnReturn, monthly_AnnVol, monthly_VaR, monthly_CVaR, terminal_CVaR, monthly_MaxDD, monthly_TimeUnderWater, monthly_BreachProb, monthly_BreachCountPath0, terminal_ShortfallProb, monthly_TE).
-- [ ] Update `pa_core/reporting/excel.py` to write the `MetricDefinitions` sheet (always, because it is small).
-- [ ] Add unit test that:
-  - [ ] `MetricDefinitions` includes `terminal_AnnReturn` and `monthly_VaR` with correct `MetricType` categories.
-  - [ ] Exported workbook includes `MetricDefinitions` sheet.
+- [ ] Update `pa_core/wizard_schema.py`:
+  - [ ] Extend `DefaultConfigView` to include optional regime fields:
+    - `regimes` (optional list/dict structure or a raw YAML field that is parsed before YAML build)
+    - `regime_transition` (optional list-of-lists or parsed structure)
+    - `regime_start` (optional string)
+
+- [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
+  - [ ] Add a "Regime Switching" section:
+    - [ ] Toggle: enable regime switching
+    - [ ] Text area: regimes YAML/JSON
+    - [ ] Text area: transition matrix YAML/JSON
+    - [ ] Input/select: starting regime (optional; validate it exists in regimes)
+  - [ ] Add parsing/validation that:
+    - fails loudly with actionable messages if YAML/JSON cannot be parsed
+    - checks transition matrix dimensions match number of regimes
+    - checks probabilities rows sum ~ 1.0 (tolerance)
+
+- [ ] Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:
+  - [ ] When regime switching enabled, emit:
+    - `regimes`
+    - `regime_transition`
+    - `regime_start`
+
+- [ ] Tests:
+  - [ ] Add `tests/test_wizard_regime_wiring.py` (or extend `test_wizard_config_wiring.py`) to:
+    - provide a minimal 2-regime configuration
+    - assert YAML dict contains the expected keys
+    - assert `ModelConfig.model_validate(yaml_dict)` succeeds
+
+- [ ] Documentation:
+  - [ ] Update `docs/UserGuide.md` (or wizard docs) with a short “Regime Switching via Wizard” example including a minimal two-state spec.
 
 ## Acceptance Criteria
 
-- [ ] Excel export contains a `MetricDefinitions` sheet.
-- [ ] The sheet includes all standard summary metric columns (excluding `Agent`).
-- [ ] Each metric is labeled with a clear type (`monthly_draw`, `terminal_outcome`, or `diagnostic`) and a short description.
-- [ ] All tests pass.
+- [ ] Wizard can accept a valid regime switching specification and persist it into YAML.
+- [ ] Invalid YAML/JSON for regimes or transition yields an actionable error in the UI.
+- [ ] The generated YAML validates into `ModelConfig` with regimes enabled.
+- [ ] Tests cover the wiring and pass in CI.
 
 ## Implementation Notes
 
-Files likely involved:
-- `pa_core/sim/metrics.py` (metadata table)
-- `pa_core/reporting/excel.py` (write `MetricDefinitions` sheet)
-- Tests should use openpyxl to verify the sheet exists without relying on chart rendering.
+Keep the initial UI minimal and robust. A text-area based approach is acceptable for advanced users and avoids a lot of fragile UI logic.
 
-4 — Bound the in-memory sweep cache (LRU + clear function)
+Issue 3 — Sleeve constraint settings: persist into YAML/ModelConfig and optionally validate runs
+# AGENT_ISSUE_TEMPLATE
+
 ## Why
 
-`pa_core/sweep.py` uses a global `_SWEEP_CACHE` dict for cached sweeps. This cache is unbounded, so long-lived processes (dashboard sessions, notebooks) can leak memory as users try new configs and index series.
+Issue #957 notes that sleeve constraint settings in the wizard (`sleeve_max_te`, `sleeve_max_breach`, `sleeve_max_cvar`, `sleeve_max_shortfall`, `sleeve_constraint_scope`) currently affect sleeve suggestion only, but do not flow into the main simulation configuration.
 
-A small LRU-style cap keeps caching useful while preventing runaway memory growth.
+This creates confusion: the wizard suggests solutions using constraints, but a subsequent run cannot record or enforce the same constraint set.
 
 ## Scope
 
-- Convert sweep cache to bounded LRU eviction.
-- Add a public helper to clear cache (useful for tests and long-lived sessions).
-- Keep existing caching behavior for repeated identical calls.
+- Persist sleeve constraint settings into the wizard YAML output and `ModelConfig`.
+- Add an optional “validate constraints on run” behavior (default off to avoid breaking existing flows).
+- Reuse existing constraint evaluation utilities if present (e.g., `pa_core/reporting/constraints.py`); otherwise implement a small validator.
 
 ## Non-Goals
 
-- Disk caching.
-- Cross-process caching.
-- Changing sweep math or output shape.
+- Turning the simulation into an optimizer.
+- Automatically changing sleeve allocations to satisfy constraints.
+- Changing existing suggestor behavior unless necessary for consistency.
 
 ## Tasks
 
-- [ ] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` (or equivalent) that preserves insertion/use ordering.
-- [ ] Add `SWEEP_CACHE_MAX_ENTRIES` constant (e.g., 8) in `pa_core/sweep.py`.
-- [ ] On cache insert, evict least-recently-used entries until `len(cache) <= SWEEP_CACHE_MAX_ENTRIES`.
-- [ ] Add `clear_sweep_cache()` function in `pa_core/sweep.py`.
-- [ ] Update `run_parameter_sweep_cached()` to refresh LRU order on access.
-- [ ] Add tests:
-  - [ ] Existing deterministic caching test still passes (`res1 is res2`).
-  - [ ] New test: exceed cache max entries and assert oldest key is evicted.
-  - [ ] New test: `clear_sweep_cache()` empties cache.
+- [ ] Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:
+  - `sleeve_max_te: float | None`
+  - `sleeve_max_breach: float | None`
+  - `sleeve_max_cvar: float | None`
+  - `sleeve_max_shortfall: float | None`
+  - `sleeve_constraint_scope: Literal["total", "per_sleeve"]`
+  - `sleeve_validate_on_run: bool` (default False)
+
+- [ ] Update `pa_core/wizard_schema.py`:
+  - [ ] Add these fields to `DefaultConfigView` with sensible defaults (None + total + False).
+
+- [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
+  - [ ] Wire existing UI inputs (already in session_state) into the config view.
+  - [ ] Add a checkbox “Validate constraints on run” that maps to `sleeve_validate_on_run`.
+
+- [ ] Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:
+  - [ ] Emit the sleeve constraint fields into the YAML dict.
+
+- [ ] Implement validation on run (facade layer):
+  - [ ] Add `validate_sleeve_constraints(summary_df: pd.DataFrame, cfg: ModelConfig) -> list[str]` (return list of violations) in `pa_core/reporting/constraints.py` (or a new module).
+  - [ ] In `pa_core/facade.run_single()`, after `summary_table()`:
+    - If `cfg.sleeve_validate_on_run` is True, evaluate constraints.
+    - If violations exist:
+      - raise `ValueError` with a readable multi-line summary of violations
+      - OR (if preferred) attach violations to inputs metadata and print a warning (choose one; default should be explicit and testable).
+
+- [ ] Tests:
+  - [ ] Extend `tests/test_wizard_config_wiring.py` to assert the new fields appear in YAML dict and validate into `ModelConfig`.
+  - [ ] Add `tests/test_sleeve_constraint_validation.py`:
+    - Provide a fake summary DataFrame with `monthly_TE`, `monthly_BreachProb`, `monthly_CVaR`, `terminal_ShortfallProb` columns (or the canonical column names used by your constraints utilities).
+    - Confirm violations are detected correctly for both `total` and `per_sleeve` scope.
+    - Confirm `run_single()` raises when `sleeve_validate_on_run=True` and violations exist.
+
+- [ ] Documentation:
+  - [ ] Update docs to state clearly:
+    - constraints are used by suggestor
+    - constraints can optionally be validated for a single run when enabled
 
 ## Acceptance Criteria
 
-- [ ] Cache size never exceeds `SWEEP_CACHE_MAX_ENTRIES`.
-- [ ] Repeated calls with the same key still return the cached object.
-- [ ] Eviction removes the least-recently-used entry.
-- [ ] Tests pass.
+- [ ] Wizard persists sleeve constraint values into YAML and they validate into `ModelConfig`.
+- [ ] When `sleeve_validate_on_run=True`, a run with violating metrics fails (or records violations) deterministically.
+- [ ] Tests cover both wiring and validation paths and pass in CI.
+- [ ] Documentation clarifies behavior and avoids user confusion.
 
 ## Implementation Notes
 
-Files likely involved:
-- `pa_core/sweep.py` (`_SWEEP_CACHE`, `run_parameter_sweep_cached`)
-- `tests/test_sweep_cache.py` (extend with eviction/clear coverage)
+This closes the “constraints don’t flow to main simulation” gap in #957 while keeping default behavior unchanged unless explicitly enabled.
 
-Avoid changing the cache key derivation logic so existing behavior remains stable.
+Issue 4 — Seed propagation: make wizard seed behavior consistent and testable (CLI + in-process runs)
+# AGENT_ISSUE_TEMPLATE
 
-5 — Vectorize simulate_regime_paths to remove inner regime loop
 ## Why
 
-`simulate_regime_paths()` currently loops over regimes inside each time step, masking subsets of simulations. This scales poorly when `n_sim` is large and makes regime switching a predictable hotspot.
-
-A vectorized transition update (still looping over time, but not over regimes) materially improves runtime while preserving correctness.
+Issue #957 flags a risk that “seed is passed to CLI but may not cover all paths.” The codebase now supports programmatic runs via `pa_core.facade.RunOptions(seed=...)`, but the dashboard/wizard must consistently:
+- store seed intent (enabled vs disabled)
+- pass seed to CLI runs
+- pass seed to in-process runs (e.g., sleeve suggestor workflows) when applicable
+- provide tests to prevent regressions
 
 ## Scope
 
-- Refactor `simulate_regime_paths()` to compute next states for all simulations using vectorized operations and precomputed cumulative transition probabilities.
-- Preserve determinism and existing tests.
+- Standardize how seed is represented in wizard state/config (enabled + value).
+- Ensure dashboard CLI invocation includes `--seed` only when enabled.
+- Ensure any in-process calls (suggestor/grid/sweep) receive the same seed through `RunOptions` or explicit arguments.
+- Add tests verifying command construction and seed propagation.
 
 ## Non-Goals
 
-- Changing regime model semantics.
-- Adding multiprocessing or GPU acceleration.
-- Altering RNG seeding behavior.
+- Making seed part of `ModelConfig` (seed belongs in RunOptions / CLI args).
+- Changing RNG semantics (already stabilized elsewhere).
 
 ## Tasks
 
-- [ ] Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the inner `for regime_idx` loop.
-- [ ] Precompute `cum_probs = np.cumsum(transition_mat, axis=1)` once.
-- [ ] For each time step:
-  - draw `u = rng.random(size=n_sim)`
-  - gather `row_cum = cum_probs[prev_states]`
-  - compute `next_states = (u[:, None] <= row_cum).argmax(axis=1)`
-  - assign `paths[:, t] = next_states`
-- [ ] Add/adjust tests:
-  - [ ] Existing regime tests continue to pass.
-  - [ ] Add a deterministic snapshot test for a small transition matrix + seed (assert exact paths).
+- [ ] Wizard/UI:
+  - [ ] Ensure wizard has explicit `use_seed` toggle and `seed_value` input in session_state/config view.
+  - [ ] Default: `use_seed=True` and `seed_value=42` (or current behavior).
+
+- [ ] Dashboard CLI wiring:
+  - [ ] Update `dashboard/cli.py` (or where CLI command is built) so:
+    - `--seed <value>` is included only when `use_seed=True`
+    - when `use_seed=False`, the command omits `--seed` entirely
+
+- [ ] In-process runs:
+  - [ ] Where the dashboard invokes backend logic directly (e.g., sleeve suggestor), ensure seed is passed through `RunOptions(seed=seed_value)` or equivalent.
+
+- [ ] Tests:
+  - [ ] Update/add `tests/test_dashboard_cli.py`:
+    - verify `--seed` is present when enabled
+    - verify `--seed` is absent when disabled
+  - [ ] Add a small unit test for in-process suggestor call signature (mock/monkeypatch) ensuring seed is forwarded.
+
+- [ ] Documentation:
+  - [ ] Update a short section in wizard docs stating:
+    - what seed does
+    - how disabling seed changes reproducibility
 
 ## Acceptance Criteria
 
-- [ ] `simulate_regime_paths()` contains no per-regime inner loop over `n_regimes`.
-- [ ] Existing tests in `tests/test_regime_switching.py` pass.
-- [ ] New deterministic snapshot test passes for a fixed seed and small dimensions.
+- [ ] Wizard has explicit seed toggle + value, and these are used when invoking runs.
+- [ ] Dashboard CLI commands include/omit `--seed` correctly.
+- [ ] In-process runs consistently receive the seed when enabled.
+- [ ] Tests cover both enabled and disabled behavior and pass in CI.
 
 ## Implementation Notes
 
-Files likely involved:
-- `pa_core/sim/regimes.py` (refactor function)
-- `tests/test_regime_switching.py` (add snapshot test)
-
-Use `<=` when comparing `u` to cumulative probabilities to avoid edge-case gaps when `u` is extremely close to 1.0.
+Prefer deterministic tests that validate command construction and argument plumbing rather than trying to assert stochastic output differences.
