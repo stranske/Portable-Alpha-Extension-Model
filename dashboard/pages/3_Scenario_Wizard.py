@@ -1117,9 +1117,7 @@ def _render_regime_switching(config: DefaultConfigView) -> DefaultConfigView:
 
         if transition_text.strip():
             try:
-                transition_payload = _normalize_transition_matrix(
-                    yaml.safe_load(transition_text)
-                )
+                transition_payload = _normalize_transition_matrix(yaml.safe_load(transition_text))
             except (ValueError, yaml.YAMLError) as exc:
                 errors.append(f"Transition matrix parse error: {exc}")
         else:
@@ -1133,8 +1131,7 @@ def _render_regime_switching(config: DefaultConfigView) -> DefaultConfigView:
             )
             if duplicate_names:
                 errors.append(
-                    "Regime names must be unique; duplicates found: "
-                    + ", ".join(duplicate_names)
+                    "Regime names must be unique; duplicates found: " + ", ".join(duplicate_names)
                 )
 
         if regimes_payload is not None and transition_payload is not None:
@@ -1142,16 +1139,12 @@ def _render_regime_switching(config: DefaultConfigView) -> DefaultConfigView:
             if len(transition_payload) != n_regimes or any(
                 len(row) != n_regimes for row in transition_payload
             ):
-                errors.append(
-                    "Transition matrix must be square and match the number of regimes."
-                )
+                errors.append("Transition matrix must be square and match the number of regimes.")
             else:
                 for row_idx, row in enumerate(transition_payload):
                     row_sum = float(sum(row))
                     if any(prob < 0.0 or prob > 1.0 for prob in row):
-                        errors.append(
-                            f"Transition row {row_idx} values must be between 0 and 1."
-                        )
+                        errors.append(f"Transition row {row_idx} values must be between 0 and 1.")
                     if not math.isclose(row_sum, 1.0, abs_tol=1e-6):
                         errors.append(
                             f"Transition row {row_idx} must sum to 1 (got {row_sum:.6f})."
@@ -1177,9 +1170,7 @@ def _render_regime_switching(config: DefaultConfigView) -> DefaultConfigView:
                 st.error(error)
 
         config.regimes = regimes_payload if regimes_payload is not None else []
-        config.regime_transition = (
-            transition_payload if transition_payload is not None else []
-        )
+        config.regime_transition = transition_payload if transition_payload is not None else []
 
     return config
 
