@@ -34,6 +34,7 @@ Corr In-House–External,0.1
 Corr Alpha-Extension–External,0.0
 correlation_repair_mode,warn_fix
 correlation_repair_shrinkage,0.0
+correlation_repair_max_abs_delta,
 covariance_shrinkage,none
 vol_regime,single
 vol_regime_window,12

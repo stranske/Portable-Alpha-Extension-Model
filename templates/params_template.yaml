@@ -33,6 +33,7 @@ External annual vol (%): 0.02
 "Corr Alpha-Extension\u2013External": 0.0
 correlation_repair_mode: warn_fix
 correlation_repair_shrinkage: 0.0
+correlation_repair_max_abs_delta: null
 covariance_shrinkage: none
 vol_regime: single
 vol_regime_window: 12
