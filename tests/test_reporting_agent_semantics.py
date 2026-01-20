@@ -151,6 +151,45 @@ def test_build_agent_semantics_mismatch_flags() -> None:
     assert bool(lookup.loc["InternalBeta"]["mismatch_flag"]) is True
 
 
+def test_build_agent_semantics_mismatch_tolerance() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 599.999,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 200.0005,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            },
+            {
+                "name": "InternalPA",
+                "capital": 200.0005,
+                "beta_share": 0.0,
+                "alpha_share": 0.2,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_custom_agent_defaults() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
