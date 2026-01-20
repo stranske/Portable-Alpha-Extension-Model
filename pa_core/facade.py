@@ -74,11 +74,12 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         return True
 
     agent_semantics_val = inputs.get("_agent_semantics_df")
+    np_module: Any | None = None
     try:
-        import numpy as np
+        import numpy as np_module
     except Exception:
-        np = None
-    if np is not None and isinstance(agent_semantics_val, np.ndarray):
+        np_module = None
+    if np_module is not None and isinstance(agent_semantics_val, np_module.ndarray):
         agent_semantics_val = agent_semantics_val.tolist()
     if isinstance(agent_semantics_val, pd.DataFrame):
         records = agent_semantics_val.to_dict(orient="records")
