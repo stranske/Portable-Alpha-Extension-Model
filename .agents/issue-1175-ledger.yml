@@ -1,0 +1,272 @@
+version: 1
+issue: 1175
+base: main
+branch: codex/issue-1175
+tasks:
+  - id: task-01
+    title: Define common constraints for weight bounds
+    status: doing
+    started_at: '2026-01-20T00:15:03Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Define common constraints for leverage
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Define common constraints for concentration
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: Add validation hooks in portfolio construction
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Generate suggestions for constraint violations
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: Add `--validate-only` CLI flag
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: Implement `ConstraintValidator` class to validate portfolio constraints
+      with unit tests ensuring correct error messages
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Define approach for: Implement `ConstraintValidator` class to validate
+      portfolio constraints with unit tests ensuring correct error messages (verify:
+      tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Define scope for: Implement: Implement `ConstraintValidator` class to
+      validate portfolio constraints with unit tests ensuring correct error messages
+      (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Implement focused slice for: Implement: Implement `ConstraintValidator`
+      class to validate portfolio constraints with unit tests ensuring correct error
+      messages (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Validate focused slice for: Implement: Implement `ConstraintValidator`
+      class to validate portfolio constraints with unit tests ensuring correct error
+      messages (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Define scope for: Validate: Implement `ConstraintValidator` class to validate
+      portfolio constraints with unit tests ensuring correct error messages (verify:
+      tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'Implement focused slice for: Validate: Implement `ConstraintValidator`
+      class to validate portfolio constraints with unit tests ensuring correct error
+      messages (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Validate focused slice for: Validate: Implement `ConstraintValidator`
+      class to validate portfolio constraints with unit tests ensuring correct error
+      messages (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: Document supported constraints in `docs/constraints.md` with examples and
+      usage guidelines
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'Document supported constraints in `docs/constraints.md` with examples
+      (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Define scope for: Document supported constraints in `docs/constraints.md`
+      with usage guidelines (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'Implement focused slice for: Document supported constraints in `docs/constraints.md`
+      with usage guidelines (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Validate focused slice for: Document supported constraints in `docs/constraints.md`
+      with usage guidelines (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: Invalid portfolios produce clear error messages
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Error messages suggest how to fix the violation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: Validation can run without executing full simulation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: Common constraints are pre-defined and documented
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: Define common constraints for weight bounds
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: Define common constraints for leverage
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: Define common constraints for concentration
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: Add validation hooks in portfolio construction
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: Generate suggestions for constraint violations
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: Add `--validate-only` CLI flag
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: Implement `ConstraintValidator` class to validate portfolio constraints
+      with unit tests ensuring correct error messages
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: Document supported constraints in `docs/constraints.md` with examples and
+      usage guidelines
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: Invalid portfolios produce clear error messages
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: Error messages suggest how to fix the violation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: Validation can run without executing full simulation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: Common constraints are pre-defined and documented
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
