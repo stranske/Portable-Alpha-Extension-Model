@@ -16,6 +16,7 @@ from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
 from dashboard.utils import normalize_share
 from pa_core import cli as pa_cli
+from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
@@ -107,6 +108,16 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
 
     risk_metrics = _serialize_risk_metrics(config.risk_metrics)
 
+    return_distribution = str(config.return_distribution)
+    return_t_df = float(config.return_t_df)
+    return_copula = str(config.return_copula)
+    vol_regime = str(config.vol_regime)
+    vol_regime_window = int(config.vol_regime_window)
+    covariance_shrinkage = str(config.covariance_shrinkage)
+    correlation_repair_mode = str(config.correlation_repair_mode)
+    correlation_repair_shrinkage = float(config.correlation_repair_shrinkage)
+    backend = str(config.backend)
+
     fm = fs.get("financing_model", "simple_proxy")
     ref_sigma = float(fs.get("reference_sigma", 0.01))
     vol_mult = float(fs.get("volatility_multiple", 3.0))
@@ -141,6 +152,15 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "rho_H_M": rho_h_m,
         "rho_E_M": rho_e_m,
         "risk_metrics": risk_metrics,
+        "return_distribution": return_distribution,
+        "return_t_df": return_t_df,
+        "return_copula": return_copula,
+        "vol_regime": vol_regime,
+        "vol_regime_window": vol_regime_window,
+        "covariance_shrinkage": covariance_shrinkage,
+        "correlation_repair_mode": correlation_repair_mode,
+        "correlation_repair_shrinkage": correlation_repair_shrinkage,
+        "backend": backend,
         "reference_sigma": ref_sigma,
         "volatility_multiple": vol_mult,
         "financing_model": fm,
@@ -847,6 +867,115 @@ def _render_step_3_returns_risk(config: Any) -> Any:
     )
 
     config.risk_metrics = _serialize_risk_metrics(selected_metrics)
+
+    with st.expander("Advanced Simulation Settings", expanded=False):
+        st.markdown("**Return Distribution:**")
+        distribution_options = ["normal", "student_t"]
+        dist_index = (
+            distribution_options.index(config.return_distribution)
+            if config.return_distribution in distribution_options
+            else 0
+        )
+        config.return_distribution = st.selectbox(
+            "Return distribution",
+            options=distribution_options,
+            index=dist_index,
+            help="Controls the base distribution used for return draws.",
+        )
+
+        copula_options = ["gaussian"] if config.return_distribution == "normal" else ["gaussian", "t"]
+        copula_index = (
+            copula_options.index(config.return_copula)
+            if config.return_copula in copula_options
+            else 0
+        )
+        config.return_copula = st.selectbox(
+            "Return copula",
+            options=copula_options,
+            index=copula_index,
+            help="Joint return dependence structure for simulated draws.",
+        )
+
+        config.return_t_df = st.number_input(
+            "Student-t degrees of freedom",
+            min_value=2.01,
+            value=float(config.return_t_df),
+            step=0.5,
+            format="%.2f",
+            help="Used only when return distribution is Student-t.",
+            disabled=config.return_distribution != "student_t",
+        )
+
+        st.markdown("**Volatility Regime:**")
+        vol_regime_options = ["single", "two_state"]
+        vol_regime_index = (
+            vol_regime_options.index(config.vol_regime)
+            if config.vol_regime in vol_regime_options
+            else 0
+        )
+        config.vol_regime = st.selectbox(
+            "Volatility regime",
+            options=vol_regime_options,
+            index=vol_regime_index,
+            help="Switch between a single volatility state or a two-state regime.",
+        )
+
+        vol_window_min = 2 if config.vol_regime == "two_state" else 1
+        config.vol_regime_window = st.number_input(
+            "Volatility regime window (months)",
+            min_value=vol_window_min,
+            value=int(config.vol_regime_window),
+            step=1,
+            help="Window length for regime estimation; must be > 1 for two-state regimes.",
+        )
+
+        st.markdown("**Correlation Repair:**")
+        shrinkage_options = ["none", "ledoit_wolf"]
+        shrinkage_index = (
+            shrinkage_options.index(config.covariance_shrinkage)
+            if config.covariance_shrinkage in shrinkage_options
+            else 0
+        )
+        config.covariance_shrinkage = st.selectbox(
+            "Covariance shrinkage",
+            options=shrinkage_options,
+            index=shrinkage_index,
+            help="Optional shrinkage estimator applied before correlation repair.",
+        )
+
+        repair_mode_options = ["error", "warn_fix"]
+        repair_mode_index = (
+            repair_mode_options.index(config.correlation_repair_mode)
+            if config.correlation_repair_mode in repair_mode_options
+            else 0
+        )
+        config.correlation_repair_mode = st.selectbox(
+            "Correlation repair mode",
+            options=repair_mode_options,
+            index=repair_mode_index,
+            help="Choose whether invalid correlations raise an error or are repaired.",
+        )
+
+        config.correlation_repair_shrinkage = st.slider(
+            "Correlation repair shrinkage",
+            min_value=0.0,
+            max_value=1.0,
+            value=float(config.correlation_repair_shrinkage),
+            step=0.05,
+            help="Shrinkage toward identity before repairing correlations.",
+        )
+
+        st.markdown("**Backend:**")
+        backend_options = list(SUPPORTED_BACKENDS)
+        backend_index = (
+            backend_options.index(config.backend) if config.backend in backend_options else 0
+        )
+        config.backend = st.selectbox(
+            "Simulation backend",
+            options=backend_options,
+            index=backend_index,
+            help="Select the numerical backend used for simulations.",
+        )
 
     st.markdown("---")
     _render_sleeve_suggestor(config)
