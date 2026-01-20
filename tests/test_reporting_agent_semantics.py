@@ -519,6 +519,29 @@ def test_export_uses_agent_semantics_dict_of_columns(tmp_path, monkeypatch) -> N
     assert list(df["Agent"]) == ["Base", "ExternalPA"]
 
 
+def test_export_uses_agent_semantics_dict_of_series(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": pd.Series(["Base", "ExternalPA"]),
+            "mismatch_flag": pd.Series([False, False]),
+        },
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "series_dict_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert list(df["Agent"]) == ["Base", "ExternalPA"]
+
+
 def test_export_builds_agent_semantics_when_missing(tmp_path) -> None:
     pytest.importorskip("openpyxl")
     inputs = {
@@ -651,6 +674,21 @@ def test_serialize_agent_semantics_input_dict_of_columns() -> None:
             "financing_coeff_used": [-0.6, -0.2],
             "notes": ["", ""],
             "mismatch_flag": [False, False],
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
+def test_serialize_agent_semantics_input_dict_of_series() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": pd.Series(["Base", "ExternalPA"]),
+            "capital_mm": pd.Series([1000.0, 200.0]),
         }
     }
 

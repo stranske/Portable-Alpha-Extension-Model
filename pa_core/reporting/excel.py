@@ -216,6 +216,14 @@ def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
 
 
 def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
+    def _mapping_is_row(mapping: dict[str, Any]) -> bool:
+        for item in mapping.values():
+            if isinstance(item, dict):
+                return False
+            if pd.api.types.is_list_like(item) and not isinstance(item, (str, bytes)):
+                return False
+        return True
+
     if isinstance(value, pd.DataFrame):
         return value
     if isinstance(value, (list, tuple)):
@@ -224,7 +232,7 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
         except Exception:
             return None
     if isinstance(value, dict):
-        if value and all(not isinstance(v, (list, tuple, dict)) for v in value.values()):
+        if value and _mapping_is_row(value):
             return pd.DataFrame([value])
         try:
             return pd.DataFrame(value)

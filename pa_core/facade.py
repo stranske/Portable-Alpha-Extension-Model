@@ -41,6 +41,15 @@ CANONICAL_PIPELINE = "pa_core.facade"
 
 def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
     import pandas as pd
+    from pandas.api.types import is_list_like
+
+    def _mapping_is_row(mapping: dict[str, Any]) -> bool:
+        for value in mapping.values():
+            if isinstance(value, dict):
+                return False
+            if is_list_like(value) and not isinstance(value, (str, bytes)):
+                return False
+        return True
 
     agent_semantics_val = inputs.get("_agent_semantics_df")
     if isinstance(agent_semantics_val, pd.DataFrame):
@@ -50,9 +59,7 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         inputs["_agent_semantics_df"] = list(agent_semantics_val)
         return
     if isinstance(agent_semantics_val, dict):
-        if agent_semantics_val and all(
-            not isinstance(v, (list, tuple, dict)) for v in agent_semantics_val.values()
-        ):
+        if agent_semantics_val and _mapping_is_row(agent_semantics_val):
             inputs["_agent_semantics_df"] = [agent_semantics_val]
             return
         try:
