@@ -231,6 +231,38 @@ def test_build_agent_semantics_custom_agent_defaults() -> None:
     assert bool(row["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_base_and_custom_ignore_mismatch() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 0.9,
+                "alpha_share": 0.1,
+                "extra": {},
+            },
+            {
+                "name": "CustomSleeve",
+                "capital": 400.0,
+                "beta_share": 0.95,
+                "alpha_share": 0.05,
+                "extra": {},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert bool(lookup.loc["Base"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["CustomSleeve"]["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_percent_inputs() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
