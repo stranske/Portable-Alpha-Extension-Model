@@ -127,9 +127,9 @@ def simulate_regime_paths(
     paths[:, 0] = start_state
     for t in range(1, n_months):
         prev_states = paths[:, t - 1]
-        draws = rng.random(size=n_sim)
+        u = rng.random(size=n_sim)
         row_cum = cum_probs[prev_states]
-        next_states = (draws[:, None] <= row_cum).argmax(axis=1)
+        next_states = (u[:, None] <= row_cum).argmax(axis=1)
         paths[:, t] = next_states
     return cast(npt.NDArray[Any], paths)
 
