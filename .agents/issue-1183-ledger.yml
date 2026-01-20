@@ -5,10 +5,10 @@ branch: codex/issue-1183
 tasks:
   - id: task-01
     title: _Not provided._
-    status: doing
+    status: done
     started_at: '2026-01-20T06:17:08Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-20T06:17:15Z'
+    commit: bf61390d7c3408c9bce29279872cb1911c56e742
     notes: []
   - id: task-02
     title: 'Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg:
