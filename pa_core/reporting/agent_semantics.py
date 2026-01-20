@@ -14,27 +14,52 @@ _TOLERANCE = 1e-6
 
 def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
     """Return a DataFrame describing agent coefficient semantics."""
-    total_capital = float(cfg.total_fund_capital)
-    agents = list(_iter_agents(cfg))
-    if total_capital > 0.0:
-        margin_requirement = calculate_margin_requirement(
-            reference_sigma=cfg.reference_sigma,
-            volatility_multiple=cfg.volatility_multiple,
-            total_capital=total_capital,
-            financing_model=cfg.financing_model,
-            schedule_path=cfg.financing_schedule_path,
-            term_months=cfg.financing_term_months,
+    columns = [
+        "Agent",
+        "capital_mm",
+        "implied_capital_share",
+        "beta_coeff_used",
+        "alpha_coeff_used",
+        "financing_coeff_used",
+        "notes",
+        "mismatch_flag",
+    ]
+
+    total_capital = float(getattr(cfg, "total_fund_capital", 0.0) or 0.0)
+    agents = list(_iter_agents(cfg)) if hasattr(cfg, "agents") else []
+    if not agents:
+        return pd.DataFrame([], columns=columns)
+
+    has_margin_inputs = all(
+        hasattr(cfg, attr)
+        for attr in (
+            "reference_sigma",
+            "volatility_multiple",
+            "financing_model",
+            "financing_schedule_path",
+            "financing_term_months",
         )
-        if margin_requirement > 0.0 and not any(a["name"] == "InternalBeta" for a in agents):
-            agents.append(
-                {
-                    "name": "InternalBeta",
-                    "capital": margin_requirement,
-                    "beta_share": margin_requirement / total_capital,
-                    "alpha_share": 0.0,
-                    "extra": {},
-                }
+    )
+    if total_capital > 0.0:
+        if has_margin_inputs:
+            margin_requirement = calculate_margin_requirement(
+                reference_sigma=cfg.reference_sigma,
+                volatility_multiple=cfg.volatility_multiple,
+                total_capital=total_capital,
+                financing_model=cfg.financing_model,
+                schedule_path=cfg.financing_schedule_path,
+                term_months=cfg.financing_term_months,
             )
+            if margin_requirement > 0.0 and not any(a["name"] == "InternalBeta" for a in agents):
+                agents.append(
+                    {
+                        "name": "InternalBeta",
+                        "capital": margin_requirement,
+                        "beta_share": margin_requirement / total_capital,
+                        "alpha_share": 0.0,
+                        "extra": {},
+                    }
+                )
 
     rows = [
         _build_row(
@@ -48,21 +73,11 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
         for agent in agents
     ]
 
-    columns = [
-        "Agent",
-        "capital_mm",
-        "implied_capital_share",
-        "beta_coeff_used",
-        "alpha_coeff_used",
-        "financing_coeff_used",
-        "notes",
-        "mismatch_flag",
-    ]
     return pd.DataFrame(rows, columns=columns)
 
 
 def _iter_agents(cfg: ModelConfig) -> Iterable[dict[str, Any]]:
-    for agent in cfg.agents:
+    for agent in getattr(cfg, "agents", []):
         if isinstance(agent, dict):
             yield {
                 "name": agent["name"],
