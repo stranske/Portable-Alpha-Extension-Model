@@ -57,6 +57,8 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reconciled task checkboxes after reviewing non-finite margin requirement handling.
 - Verified MetricDefinitions sheet presence via facade export test.
 - Verified regime switching tests via `pytest tests/test_regime_switching.py -m "not slow"`.
+- Reverified regime switching tests after transition selection update.
+- Added invalid-input coverage for `simulate_regime_paths`.
 
 <!-- auto-status-summary:end -->
 
@@ -65,6 +67,7 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - [x] Updated task checkboxes to reflect completed sweep cache work.
 - [x] Reviewed recent commits for regime switching changes.
 - [x] Updated task checkboxes to reflect completed regime switching work.
+- [x] Reviewed recent commits for regime switching transition selection update and refreshed task checks.
 
 ## Sweep Cache Tasks
 - [x] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` that preserves insertion/use ordering.

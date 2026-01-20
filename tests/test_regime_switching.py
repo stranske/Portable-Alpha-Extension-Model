@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pa_core.config import ModelConfig, RegimeConfig
 from pa_core.random import spawn_rngs
@@ -57,6 +58,31 @@ def test_simulate_regime_paths_snapshot_seeded() -> None:
         dtype=int,
     )
     assert np.array_equal(paths, expected)
+
+
+def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
+    transition = [[1.0]]
+    with pytest.raises(ValueError, match="n_sim and n_months must be positive"):
+        simulate_regime_paths(
+            n_sim=0,
+            n_months=1,
+            transition=transition,
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="n_sim and n_months must be positive"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=0,
+            transition=transition,
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="start_state must be within regime index range"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=transition,
+            start_state=2,
+        )
 
 
 def test_simulate_regime_paths_clamps_cum_probs() -> None:
