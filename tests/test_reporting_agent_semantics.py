@@ -222,3 +222,42 @@ def test_build_agent_semantics_custom_agent_defaults() -> None:
     assert row["alpha_coeff_used"] == pytest.approx(0.45)
     assert row["financing_coeff_used"] == pytest.approx(-0.55)
     assert "Custom agent" in row["notes"]
+
+
+def test_build_agent_semantics_percent_inputs() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 300.0,
+                "beta_share": 0.3,
+                "alpha_share": 0.7,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 400.0,
+                "beta_share": 0.4,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 25},
+            },
+            {
+                "name": "ActiveExt",
+                "capital": 300.0,
+                "beta_share": 0.3,
+                "alpha_share": 0.0,
+                "extra": {"active_share": 50},
+            },
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    assert lookup.loc["ExternalPA"]["alpha_coeff_used"] == pytest.approx(0.1)
+    assert lookup.loc["ActiveExt"]["alpha_coeff_used"] == pytest.approx(0.15)
