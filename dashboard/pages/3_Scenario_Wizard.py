@@ -883,7 +883,9 @@ def _render_step_3_returns_risk(config: Any) -> Any:
             help="Controls the base distribution used for return draws.",
         )
 
-        copula_options = ["gaussian"] if config.return_distribution == "normal" else ["gaussian", "t"]
+        copula_options = (
+            ["gaussian"] if config.return_distribution == "normal" else ["gaussian", "t"]
+        )
         copula_index = (
             copula_options.index(config.return_copula)
             if config.return_copula in copula_options
