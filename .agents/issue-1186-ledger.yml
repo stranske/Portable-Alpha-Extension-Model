@@ -5,10 +5,10 @@ branch: codex/issue-1186
 tasks:
   - id: task-01
     title: _Not provided._
-    status: doing
+    status: done
     started_at: '2026-01-20T17:08:51Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-20T17:08:59Z'
+    commit: a797e9eef5e488b20a05eae80f1933e672ce85f6
     notes: []
   - id: task-02
     title: 'Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict`
