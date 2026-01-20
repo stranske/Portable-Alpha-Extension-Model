@@ -9,6 +9,6 @@ def test_gap_analysis_includes_expected_fields() -> None:
     module = _load_gap_module()
     gap = module["compute_gap"]()
 
-    assert "backend" in gap["missing"]
+    assert "backend" in gap["wired"]
     assert "N_SIMULATIONS" in gap["wired"]
     assert "financing_term_months" in gap["wired"]

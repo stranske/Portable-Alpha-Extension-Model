@@ -199,6 +199,17 @@ class DefaultConfigView:
     # Risk metrics
     risk_metrics: List[str]
 
+    # Advanced simulation settings
+    return_distribution: str
+    return_t_df: float
+    return_copula: str
+    vol_regime: str
+    vol_regime_window: int
+    covariance_shrinkage: str
+    correlation_repair_mode: str
+    correlation_repair_shrinkage: float
+    backend: str
+
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
     """Create DefaultConfigView from ModelConfig with consistent field mappings.
@@ -246,6 +257,16 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         rho_e_m=m.rho_E_M,
         # Risk metrics
         risk_metrics=m.risk_metrics,
+        # Advanced simulation settings
+        return_distribution=m.return_distribution,
+        return_t_df=m.return_t_df,
+        return_copula=m.return_copula,
+        vol_regime=m.vol_regime,
+        vol_regime_window=m.vol_regime_window,
+        covariance_shrinkage=m.covariance_shrinkage,
+        correlation_repair_mode=m.correlation_repair_mode,
+        correlation_repair_shrinkage=m.correlation_repair_shrinkage,
+        backend=m.backend,
     )
 
 
