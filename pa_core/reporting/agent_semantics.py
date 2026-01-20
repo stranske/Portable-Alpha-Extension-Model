@@ -119,7 +119,6 @@ def _build_row(
         beta_coeff = beta_share
         alpha_coeff = beta_share * float(theta)
         financing_coeff = -beta_share
-        mismatch_flag = abs(implied_share - beta_share) > _TOLERANCE
     elif name == "ActiveExt":
         active_share = normalize_share(extra.get("active_share", 0.5))
         if active_share is None:
@@ -127,22 +126,28 @@ def _build_row(
         beta_coeff = beta_share
         alpha_coeff = beta_share * float(active_share)
         financing_coeff = -beta_share
-        mismatch_flag = abs(implied_share - beta_share) > _TOLERANCE
     elif name == "InternalPA":
         beta_coeff = 0.0
         alpha_coeff = alpha_share
         financing_coeff = 0.0
-        mismatch_flag = abs(implied_share - alpha_share) > _TOLERANCE
     elif name == "InternalBeta":
         beta_coeff = beta_share
         alpha_coeff = 0.0
         financing_coeff = -beta_share
-        mismatch_flag = abs(implied_share - beta_share) > _TOLERANCE
     else:
         beta_coeff = beta_share
         alpha_coeff = alpha_share
         financing_coeff = -beta_share
         notes = "Custom agent; semantics depend on implementation."
+
+    mismatch_share = None
+    if name in {"ExternalPA", "ActiveExt", "InternalBeta"}:
+        mismatch_share = beta_share
+    elif name == "InternalPA":
+        mismatch_share = alpha_share
+
+    if mismatch_share is not None:
+        mismatch_flag = abs(implied_share - mismatch_share) > _TOLERANCE
 
     return {
         "Agent": name,

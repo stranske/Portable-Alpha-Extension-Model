@@ -88,3 +88,66 @@ def test_export_to_excel_writes_rng_metadata_sheet(tmp_path: Path) -> None:
     meta_map = {key: value for key, value in rows}
     assert meta_map["rng_seed"] == 123
     assert meta_map["substream_ids"] == json.dumps(metadata["substream_ids"], sort_keys=True)
+
+
+def test_export_to_excel_adds_agent_semantics_sheet(tmp_path: Path) -> None:
+    inputs = {
+        "total_fund_capital": 1000.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            },
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            },
+            {
+                "name": "ActiveExt",
+                "capital": 100.0,
+                "beta_share": 0.1,
+                "alpha_share": 0.0,
+                "extra": {"active_share": 0.5},
+            },
+            {
+                "name": "InternalPA",
+                "capital": 50.0,
+                "beta_share": 0.0,
+                "alpha_share": 0.05,
+                "extra": {},
+            },
+            {
+                "name": "InternalBeta",
+                "capital": 50.0,
+                "beta_share": 0.05,
+                "alpha_share": 0.0,
+                "extra": {},
+            },
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    required_cols = [
+        "Agent",
+        "capital_mm",
+        "implied_capital_share",
+        "beta_coeff_used",
+        "alpha_coeff_used",
+        "financing_coeff_used",
+        "notes",
+        "mismatch_flag",
+    ]
+    assert set(required_cols) <= set(df.columns)
+    expected_agents = {"Base", "ExternalPA", "ActiveExt", "InternalPA", "InternalBeta"}
+    assert expected_agents <= set(df["Agent"].tolist())
