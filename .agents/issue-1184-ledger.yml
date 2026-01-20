@@ -1,0 +1,911 @@
+version: 1
+issue: 1184
+base: main
+branch: codex/issue-1184
+tasks:
+  - id: task-01
+    title: _Not provided._
+    status: doing
+    started_at: '2026-01-20T14:35:44Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include
+      `corr_before` and `corr_after` in the returned `info` dict (nested lists or
+      small arrays).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Define scope for: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()`
+      to include `corr_before` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Implement focused slice for: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()`
+      to include `corr_before` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'Validate focused slice for: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()`
+      to include `corr_before` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Define scope for: `corr_after` in the returned `info` dict (nested lists
+      or small arrays). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Implement focused slice for: `corr_after` in the returned `info` dict
+      (nested lists or small arrays). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Validate focused slice for: `corr_after` in the returned `info` dict (nested
+      lists or small arrays). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig`
+      in `pa_core/config.py` (default: None).'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: In `_resolve_correlation_matrix()`, if `correlation_repair_max_abs_delta`
+      is not None and `repair_applied` is True, raise `ValueError` when `max_abs_delta
+      > threshold`, including both values in the message.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'In `_resolve_correlation_matrix()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Define scope for: if `correlation_repair_max_abs_delta` is not None (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'Implement focused slice for: if `correlation_repair_max_abs_delta` is
+      not None (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Validate focused slice for: if `correlation_repair_max_abs_delta` is not
+      None (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: '`repair_applied` is True (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'raise `ValueError` when `max_abs_delta > threshold` (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'including both values in the message. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'In `pa_core/facade.py::run_single()`, when `corr_repair_info` exists,
+      construct DataFrames:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'In `pa_core/facade.py::run_single()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'when `corr_repair_info` exists (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'construct DataFrames: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: '`inputs["_corr_before_df"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: '`inputs["_corr_after_df"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: '`inputs["_corr_delta_df"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: '`inputs["_corr_repair_info_df"]` (one-row table of scalar diagnostics)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Update `pa_core/reporting/excel.py` to write these DataFrames to sheets
+      (short names):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: '`CorrInput`, `CorrUsed`, `CorrDelta`, `CorrRepairInfo`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: '`CorrInput` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: '`CorrUsed` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: '`CorrDelta` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: '`CorrRepairInfo` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: 'Add tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: '`tests/test_return_distributions.py` (or new file) asserts repair info
+      contains `corr_before` and `corr_after`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'Define scope for: `tests/test_return_distributions.py` (or new file) asserts
+      repair info contains `corr_before` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: 'Implement focused slice for: `tests/test_return_distributions.py` (or
+      new file) asserts repair info contains `corr_before` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: 'Validate focused slice for: `tests/test_return_distributions.py` (or new
+      file) asserts repair info contains `corr_before` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: '`corr_after`. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: Add a test that sets `correlation_repair_max_abs_delta` small and confirms
+      a ValueError is raised when repair applied with larger delta.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: 'Define scope for: Add a test that sets `correlation_repair_max_abs_delta`
+      small (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: 'Implement focused slice for: Add a test that sets `correlation_repair_max_abs_delta`
+      small (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: 'Validate focused slice for: Add a test that sets `correlation_repair_max_abs_delta`
+      small (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: 'Define scope for: confirms a ValueError is raised when repair applied
+      with larger delta. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: 'Implement focused slice for: confirms a ValueError is raised when repair
+      applied with larger delta. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: 'Validate focused slice for: confirms a ValueError is raised when repair
+      applied with larger delta. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: Add a test that `run_single()` attaches the `_corr_*_df` keys to `RunArtifacts.inputs`
+      when repair applied.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: 'Define approach for: Add a test that `run_single()` attaches the `_corr_*_df`
+      keys to `RunArtifacts.inputs` when repair applied. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: 'Define scope for: Implement: Add a test that `run_single()` attaches the
+      `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'Implement focused slice for: Implement: Add a test that `run_single()`
+      attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'Validate focused slice for: Implement: Add a test that `run_single()`
+      attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: 'Define scope for: Validate: Add a test that `run_single()` attaches the
+      `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: 'Implement focused slice for: Validate: Add a test that `run_single()`
+      attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: 'Validate focused slice for: Validate: Add a test that `run_single()` attaches
+      the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied. (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: Update documentation (`docs/UserGuide.md`) describing where to find correlation
+      repair diagnostics in exports.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include
+      `corr_before` and `corr_after` in the returned `info` dict (nested lists or
+      small arrays).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: 'Define scope for: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()`
+      to include `corr_before` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: 'Implement focused slice for: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()`
+      to include `corr_before` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: 'Validate focused slice for: Update `pa_core/sim/paths.py::_resolve_correlation_matrix()`
+      to include `corr_before` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: 'Define scope for: `corr_after` in the returned `info` dict (nested lists
+      or small arrays). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'Implement focused slice for: `corr_after` in the returned `info` dict
+      (nested lists or small arrays). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: 'Validate focused slice for: `corr_after` in the returned `info` dict (nested
+      lists or small arrays). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: 'Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig`
+      in `pa_core/config.py` (default: None).'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: In `_resolve_correlation_matrix()`, if `correlation_repair_max_abs_delta`
+      is not None and `repair_applied` is True, raise `ValueError` when `max_abs_delta
+      > threshold`, including both values in the message.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: 'In `_resolve_correlation_matrix()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: 'Define scope for: if `correlation_repair_max_abs_delta` is not None (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: 'Implement focused slice for: if `correlation_repair_max_abs_delta` is
+      not None (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: 'Validate focused slice for: if `correlation_repair_max_abs_delta` is not
+      None (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: '`repair_applied` is True (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: 'raise `ValueError` when `max_abs_delta > threshold` (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: 'including both values in the message. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: 'In `pa_core/facade.py::run_single()`, when `corr_repair_info` exists,
+      construct DataFrames:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: 'In `pa_core/facade.py::run_single()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'when `corr_repair_info` exists (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: 'construct DataFrames: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: '`inputs["_corr_before_df"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: '`inputs["_corr_after_df"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-77
+    title: '`inputs["_corr_delta_df"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-78
+    title: '`inputs["_corr_repair_info_df"]` (one-row table of scalar diagnostics)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-79
+    title: 'Update `pa_core/reporting/excel.py` to write these DataFrames to sheets
+      (short names):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-80
+    title: '`CorrInput`, `CorrUsed`, `CorrDelta`, `CorrRepairInfo`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-81
+    title: '`CorrInput` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-82
+    title: '`CorrUsed` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-83
+    title: '`CorrDelta` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-84
+    title: '`CorrRepairInfo` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-85
+    title: 'Add tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-86
+    title: '`tests/test_return_distributions.py` (or new file) asserts repair info
+      contains `corr_before` and `corr_after`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-87
+    title: 'Define scope for: `tests/test_return_distributions.py` (or new file) asserts
+      repair info contains `corr_before` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-88
+    title: 'Implement focused slice for: `tests/test_return_distributions.py` (or
+      new file) asserts repair info contains `corr_before` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-89
+    title: 'Validate focused slice for: `tests/test_return_distributions.py` (or new
+      file) asserts repair info contains `corr_before` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-90
+    title: '`corr_after`. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-91
+    title: Add a test that sets `correlation_repair_max_abs_delta` small and confirms
+      a ValueError is raised when repair applied with larger delta.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-92
+    title: 'Define scope for: Add a test that sets `correlation_repair_max_abs_delta`
+      small (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-93
+    title: 'Implement focused slice for: Add a test that sets `correlation_repair_max_abs_delta`
+      small (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-94
+    title: 'Validate focused slice for: Add a test that sets `correlation_repair_max_abs_delta`
+      small (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-95
+    title: 'Define scope for: confirms a ValueError is raised when repair applied
+      with larger delta. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-96
+    title: 'Implement focused slice for: confirms a ValueError is raised when repair
+      applied with larger delta. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-97
+    title: 'Validate focused slice for: confirms a ValueError is raised when repair
+      applied with larger delta. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-98
+    title: Add a test that `run_single()` attaches the `_corr_*_df` keys to `RunArtifacts.inputs`
+      when repair applied.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-99
+    title: 'Define approach for: Add a test that `run_single()` attaches the `_corr_*_df`
+      keys to `RunArtifacts.inputs` when repair applied. (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-100
+    title: 'Define scope for: Implement: Add a test that `run_single()` attaches the
+      `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-101
+    title: 'Implement focused slice for: Implement: Add a test that `run_single()`
+      attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-102
+    title: 'Validate focused slice for: Implement: Add a test that `run_single()`
+      attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-103
+    title: 'Define scope for: Validate: Add a test that `run_single()` attaches the
+      `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-104
+    title: 'Implement focused slice for: Validate: Add a test that `run_single()`
+      attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-105
+    title: 'Validate focused slice for: Validate: Add a test that `run_single()` attaches
+      the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied. (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-106
+    title: Update documentation (`docs/UserGuide.md`) describing where to find correlation
+      repair diagnostics in exports.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-107
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-108
+    title: 'When correlation repair is applied, output Excel includes sheets: `CorrInput`,
+      `CorrUsed`, `CorrDelta`, and `CorrRepairInfo`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-109
+    title: '`CorrRepairInfo` includes at least: mode, method, shrinkage, min eigen
+      before/after, max_abs_delta.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-110
+    title: When `correlation_repair_max_abs_delta` is set and exceeded, the run fails
+      with a clear error.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-111
+    title: All unit tests pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-112
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-113
+    title: 'When correlation repair is applied, output Excel includes sheets: `CorrInput`,
+      `CorrUsed`, `CorrDelta`, and `CorrRepairInfo`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-114
+    title: '`CorrRepairInfo` includes at least: mode, method, shrinkage, min eigen
+      before/after, max_abs_delta.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-115
+    title: When `correlation_repair_max_abs_delta` is set and exceeded, the run fails
+      with a clear error.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-116
+    title: All unit tests pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
