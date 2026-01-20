@@ -620,6 +620,33 @@ def test_export_serializes_agent_semantics_dataframe(tmp_path, monkeypatch) -> N
     assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
 
 
+def test_export_serializes_agent_semantics_nan_values(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": pd.DataFrame(
+            [
+                {
+                    "Agent": "Base",
+                    "capital_mm": float("nan"),
+                    "mismatch_flag": False,
+                }
+            ]
+        )
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "nan_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    assert inputs["_agent_semantics_df"][0]["capital_mm"] is None
+
+
 def test_export_serializes_agent_semantics_series(tmp_path, monkeypatch) -> None:
     pytest.importorskip("openpyxl")
     inputs = {
@@ -1212,6 +1239,18 @@ def test_serialize_agent_semantics_input_list_missing_keys_preserves_rows() -> N
     assert isinstance(inputs["_agent_semantics_df"], list)
     assert "notes" not in inputs["_agent_semantics_df"][0]
     assert inputs["_agent_semantics_df"][1]["notes"] == ""
+
+
+def test_serialize_agent_semantics_input_converts_nan() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "capital_mm": float("nan"), "mismatch_flag": False}
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert inputs["_agent_semantics_df"][0]["capital_mm"] is None
 
 
 def test_serialize_agent_semantics_input_list_of_series() -> None:

@@ -26,6 +26,7 @@ Example Usage::
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
@@ -45,7 +46,9 @@ def _to_builtin_scalar(value: Any) -> Any:
     except Exception:
         return value
     if isinstance(value, np.generic):
-        return value.item()
+        return _to_builtin_scalar(value.item())
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
     if isinstance(value, np.ndarray):
         return _to_builtin_scalar(value.tolist())
     if isinstance(value, dict):

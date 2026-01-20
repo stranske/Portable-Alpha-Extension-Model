@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import math
 import os
 from types import SimpleNamespace
 from typing import Any, Dict, Mapping, cast
@@ -260,7 +261,9 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
 
 def _to_builtin_scalar(value: Any) -> Any:
     if isinstance(value, np.generic):
-        return value.item()
+        return _to_builtin_scalar(value.item())
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
     if isinstance(value, np.ndarray):
         return _to_builtin_scalar(value.tolist())
     if isinstance(value, dict):

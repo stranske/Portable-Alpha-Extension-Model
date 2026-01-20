@@ -50,5 +50,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Normalized numpy array AgentSemantics values during serialization.
 - Reverified task checkboxes after numpy array AgentSemantics handling.
 - Added NaN total capital handling coverage for agent semantics mismatch flags.
+- Reconfirmed task checkboxes after NaN agent semantics serialization handling.
 
 <!-- auto-status-summary:end -->
