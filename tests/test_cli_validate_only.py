@@ -24,6 +24,7 @@ def test_cli_validate_only_skips_run_and_index(monkeypatch, capsys) -> None:
         raise AssertionError("run_single should not be called when --validate-only is set")
 
     monkeypatch.setattr("pa_core.facade.run_single", _fail_run_single)
+
     def _fail_load_index(*_args, **_kwargs) -> None:
         raise AssertionError("load_index_returns should not be called without --index")
 
