@@ -59,6 +59,33 @@ def test_simulate_regime_paths_snapshot_seeded() -> None:
     assert np.array_equal(paths, expected)
 
 
+def test_simulate_regime_paths_clamps_cum_probs() -> None:
+    class FixedRNG:
+        def __init__(self, value: float) -> None:
+            self._value = float(value)
+            self.bit_generator = np.random.default_rng(0).bit_generator
+
+        def random(self, size: int | None = None) -> np.ndarray | float:
+            if size is None:
+                return self._value
+            return np.full(size, self._value, dtype=float)
+
+    epsilon = 1e-12
+    transition = [
+        [0.2, 0.3, 0.5 - epsilon],
+        [0.2, 0.3, 0.5 - epsilon],
+        [0.2, 0.3, 0.5 - epsilon],
+    ]
+    paths = simulate_regime_paths(
+        n_sim=1,
+        n_months=2,
+        transition=transition,
+        start_state=0,
+        rng=FixedRNG(1.0 - 0.5 * epsilon),
+    )
+    assert paths.tolist() == [[0, 2]]
+
+
 def test_regime_switching_increases_corr_and_vol() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=2000,

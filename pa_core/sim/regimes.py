@@ -122,6 +122,7 @@ def simulate_regime_paths(
     rng = ensure_rng(seed, rng)
 
     cum_probs = np.cumsum(transition_mat, axis=1)
+    cum_probs[:, -1] = 1.0
     paths = np.empty((n_sim, n_months), dtype=int)
     paths[:, 0] = start_state
     for t in range(1, n_months):

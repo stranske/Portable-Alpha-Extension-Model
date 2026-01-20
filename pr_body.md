@@ -56,12 +56,15 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
 - Reconciled task checkboxes after reviewing non-finite margin requirement handling.
 - Verified MetricDefinitions sheet presence via facade export test.
+- Verified regime switching tests via `pytest tests/test_regime_switching.py -m "not slow"`.
 
 <!-- auto-status-summary:end -->
 
 ## Task Reconciliation
 - [x] Reviewed recent commits for sweep cache changes.
 - [x] Updated task checkboxes to reflect completed sweep cache work.
+- [x] Reviewed recent commits for regime switching changes.
+- [x] Updated task checkboxes to reflect completed regime switching work.
 
 ## Sweep Cache Tasks
 - [x] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` that preserves insertion/use ordering.
@@ -89,3 +92,17 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - [x] `pa_core/facade.py::run_single()` attaches `_corr_before_df`, `_corr_after_df`, `_corr_delta_df`, and `_corr_repair_info_df` when correlation repair info is available (validated via `tests/test_facade_run_single.py`).
 - [x] `_corr_delta_df` matches `_corr_after_df - _corr_before_df` in `tests/test_facade_run_single.py`.
 - [x] `_corr_repair_info_df` includes mode, method, shrinkage, min eigen before/after, and max_abs_delta in `tests/test_facade_run_single.py`.
+
+## Regime Switching Tasks
+- [x] Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the inner `for regime_idx` loop.
+- [x] Precompute `cum_probs = np.cumsum(transition_mat, axis=1)` once.
+- [x] For each time step, draw `u = rng.random(size=n_sim)` and gather `row_cum = cum_probs[prev_states]`.
+- [x] Compute `next_states = (u[:, None] <= row_cum).argmax(axis=1)`.
+- [x] Assign `paths[:, t] = next_states`.
+- [x] Existing regime tests continue to pass.
+- [x] Add a deterministic snapshot test for a small transition matrix + seed.
+
+## Regime Switching Acceptance Criteria
+- [x] `simulate_regime_paths()` contains no per-regime inner loop over `n_regimes`.
+- [x] Existing tests in `tests/test_regime_switching.py` pass.
+- [x] New deterministic snapshot test passes for a fixed seed and small dimensions.
