@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass
+from collections import OrderedDict
 from itertools import product
 from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Sequence
 
@@ -630,7 +631,8 @@ def run_parameter_sweep(
 # ---------------------------------------------------------------------------
 # Cached sweep and result helpers
 
-_SWEEP_CACHE: Dict[str, List[SweepResult]] = {}
+SWEEP_CACHE_MAX_ENTRIES = 8
+_SWEEP_CACHE: "OrderedDict[str, List[SweepResult]]" = OrderedDict()
 
 
 def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str:
@@ -655,16 +657,25 @@ def run_parameter_sweep_cached(
     without re-running the simulation.
     """
     key = _make_cache_key(cfg, index_series, seed)
-    if key not in _SWEEP_CACHE:
+    if key in _SWEEP_CACHE:
+        _SWEEP_CACHE.move_to_end(key)
+    else:
         rng_returns = spawn_rngs(seed, 1)[0]
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         _SWEEP_CACHE[key] = run_parameter_sweep(
             cfg, index_series, rng_returns, fin_rngs, seed=seed, progress=progress
         )
+        while len(_SWEEP_CACHE) > SWEEP_CACHE_MAX_ENTRIES:
+            _SWEEP_CACHE.popitem(last=False)
     results = _SWEEP_CACHE[key]
     if progress is not None:
         progress(len(results), len(results))
     return results
+
+
+def clear_sweep_cache() -> None:
+    """Clear cached parameter sweep results."""
+    _SWEEP_CACHE.clear()
 
 
 def sweep_results_to_dataframe(results: List[SweepResult]) -> pd.DataFrame:
@@ -730,6 +741,7 @@ __all__ = [
     "generate_parameter_combinations",
     "run_parameter_sweep",
     "run_parameter_sweep_cached",
+    "clear_sweep_cache",
     "sweep_results_to_dataframe",
     "aggregate_sweep_results",
     "SweepRunner",
