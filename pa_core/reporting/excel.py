@@ -229,6 +229,20 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
     if isinstance(value, pd.Series):
         return pd.DataFrame([value])
     if isinstance(value, (list, tuple)):
+        if value and all(isinstance(item, pd.DataFrame) for item in value):
+            return pd.concat(list(value), ignore_index=True)
+        if value and all(isinstance(item, (pd.Series, dict)) for item in value):
+            return pd.DataFrame(list(value))
+        if value and all(
+            isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in value
+        ):
+            frames = []
+            for item in value:
+                if isinstance(item, pd.DataFrame):
+                    frames.append(item)
+                else:
+                    frames.append(pd.DataFrame([item]))
+            return pd.concat(frames, ignore_index=True)
         try:
             return pd.DataFrame(value)
         except Exception:
