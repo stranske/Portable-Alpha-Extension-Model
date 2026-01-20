@@ -196,6 +196,40 @@ def test_build_agent_semantics_mismatch_tolerance() -> None:
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypatch) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        reference_sigma=0.01,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 1.0,
+                "alpha_share": 0.0,
+                "extra": {},
+            }
+        ],
+    )
+
+    def _margin_requirement(*_args, **_kwargs) -> float:
+        return 25.0
+
+    monkeypatch.setattr(
+        "pa_core.reporting.agent_semantics.calculate_margin_requirement", _margin_requirement
+    )
+
+    df = build_agent_semantics(cfg)
+    lookup = df.set_index("Agent")
+
+    internal_beta = lookup.loc["InternalBeta"]
+    assert internal_beta["capital_mm"] == pytest.approx(25.0)
+    assert internal_beta["beta_coeff_used"] == pytest.approx(0.025)
+    assert bool(internal_beta["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_custom_agent_defaults() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
