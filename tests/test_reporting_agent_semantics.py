@@ -491,6 +491,27 @@ def test_serialize_agent_semantics_input_dict() -> None:
     assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
 
 
+def test_serialize_agent_semantics_input_dict_of_columns() -> None:
+    inputs = {
+        "_agent_semantics_df": {
+            "Agent": ["Base", "ExternalPA"],
+            "capital_mm": [1000.0, 200.0],
+            "implied_capital_share": [1.0, 0.2],
+            "beta_coeff_used": [0.6, 0.2],
+            "alpha_coeff_used": [0.4, 0.05],
+            "financing_coeff_used": [-0.6, -0.2],
+            "notes": ["", ""],
+            "mismatch_flag": [False, False],
+        }
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
 def test_serialize_agent_semantics_input_list_passthrough() -> None:
     inputs = {
         "_agent_semantics_df": [
