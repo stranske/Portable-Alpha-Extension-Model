@@ -186,7 +186,9 @@ def test_build_agent_semantics_invalid_extra_shares() -> None:
 
 def test_build_agent_semantics_agent_object_without_extra() -> None:
     class Agent:
-        def __init__(self, name: str, capital: float, beta_share: float, alpha_share: float) -> None:
+        def __init__(
+            self, name: str, capital: float, beta_share: float, alpha_share: float
+        ) -> None:
             self.name = name
             self.capital = capital
             self.beta_share = beta_share
