@@ -47,5 +47,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Normalized list-of-dicts AgentSemantics numpy scalars on export.
 - Normalized nested list numpy scalars in AgentSemantics serialization.
 - Normalized nested dict numpy scalars in AgentSemantics serialization.
+- Normalized numpy array AgentSemantics values during serialization.
 
 <!-- auto-status-summary:end -->

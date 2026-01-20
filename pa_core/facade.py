@@ -46,6 +46,8 @@ def _to_builtin_scalar(value: Any) -> Any:
         return value
     if isinstance(value, np.generic):
         return value.item()
+    if isinstance(value, np.ndarray):
+        return _to_builtin_scalar(value.tolist())
     if isinstance(value, dict):
         return {key: _to_builtin_scalar(val) for key, val in value.items()}
     if isinstance(value, list):

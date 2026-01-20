@@ -771,6 +771,25 @@ def test_export_serializes_agent_semantics_list_values_numpy_scalars(tmp_path, m
     assert all(isinstance(item, float) for item in allocations)
 
 
+def test_export_serializes_agent_semantics_numpy_array_values(tmp_path, monkeypatch) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {"_agent_semantics_df": [{"Agent": "Base", "allocations": np.array([0.1, 0.2])}]}
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "array_value_agent_semantics.xlsx"
+
+    def _fail(*args, **kwargs):
+        raise AssertionError("build_agent_semantics should not be called")
+
+    monkeypatch.setattr("pa_core.reporting.agent_semantics.build_agent_semantics", _fail)
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == [0.1, 0.2]
+    assert all(isinstance(item, float) for item in allocations)
+
+
 def test_export_serializes_agent_semantics_nested_dict_numpy_scalars(tmp_path, monkeypatch) -> None:
     pytest.importorskip("openpyxl")
     inputs = {
@@ -1382,6 +1401,16 @@ def test_serialize_agent_semantics_input_list_values_numpy_scalars() -> None:
             }
         ]
     }
+
+    _serialize_agent_semantics_input(inputs)
+
+    allocations = inputs["_agent_semantics_df"][0]["allocations"]
+    assert allocations == [0.1, 0.2]
+    assert all(isinstance(item, float) for item in allocations)
+
+
+def test_serialize_agent_semantics_input_numpy_array_values() -> None:
+    inputs = {"_agent_semantics_df": [{"Agent": "Base", "allocations": np.array([0.1, 0.2])}]}
 
     _serialize_agent_semantics_input(inputs)
 
