@@ -635,6 +635,11 @@ SWEEP_CACHE_MAX_ENTRIES = 8
 _SWEEP_CACHE: "OrderedDict[str, List[SweepResult]]" = OrderedDict()
 
 
+def _enforce_sweep_cache_limit() -> None:
+    while len(_SWEEP_CACHE) > SWEEP_CACHE_MAX_ENTRIES:
+        _SWEEP_CACHE.popitem(last=False)
+
+
 def _make_cache_key(cfg: ModelConfig, index_series: pd.Series, seed: int) -> str:
     """Return a hash key for caching parameter sweeps."""
     cfg_json = json.dumps(cfg.model_dump(), sort_keys=True)
@@ -659,14 +664,14 @@ def run_parameter_sweep_cached(
     key = _make_cache_key(cfg, index_series, seed)
     if key in _SWEEP_CACHE:
         _SWEEP_CACHE.move_to_end(key)
+        _enforce_sweep_cache_limit()
     else:
         rng_returns = spawn_rngs(seed, 1)[0]
         fin_rngs = spawn_agent_rngs(seed, ["internal", "external_pa", "active_ext"])
         _SWEEP_CACHE[key] = run_parameter_sweep(
             cfg, index_series, rng_returns, fin_rngs, seed=seed, progress=progress
         )
-        while len(_SWEEP_CACHE) > SWEEP_CACHE_MAX_ENTRIES:
-            _SWEEP_CACHE.popitem(last=False)
+        _enforce_sweep_cache_limit()
     results = _SWEEP_CACHE[key]
     if progress is not None:
         progress(len(results), len(results))

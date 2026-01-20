@@ -79,6 +79,29 @@ def test_sweep_cache_respects_max_entries(monkeypatch):
     assert isinstance(sweep_module._SWEEP_CACHE, OrderedDict)
 
 
+def test_sweep_cache_trims_when_max_reduced(monkeypatch):
+    clear_sweep_cache()
+    monkeypatch.setattr(sweep_module, "SWEEP_CACHE_MAX_ENTRIES", 3)
+
+    def _fake_run_parameter_sweep(*_args, **_kwargs):
+        return [{"combination_id": 0, "parameters": {}, "summary": pd.DataFrame()}]
+
+    monkeypatch.setattr(sweep_module, "run_parameter_sweep", _fake_run_parameter_sweep)
+
+    cfg = load_config("examples/scenarios/my_first_scenario.yml")
+    idx = pd.Series([0.01, 0.02, -0.01, 0.0])
+    run_parameter_sweep_cached(cfg, idx, seed=1)
+    res2 = run_parameter_sweep_cached(cfg, idx, seed=2)
+    run_parameter_sweep_cached(cfg, idx, seed=3)
+    assert len(sweep_module._SWEEP_CACHE) == 3
+
+    monkeypatch.setattr(sweep_module, "SWEEP_CACHE_MAX_ENTRIES", 1)
+    res2_again = run_parameter_sweep_cached(cfg, idx, seed=2)
+    key2 = sweep_module._make_cache_key(cfg, idx, 2)
+    assert res2_again is res2
+    assert list(sweep_module._SWEEP_CACHE.keys()) == [key2]
+
+
 def test_clear_sweep_cache_empties_cache(monkeypatch):
     clear_sweep_cache()
 
