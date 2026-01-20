@@ -457,10 +457,16 @@ def run_single(
     if isinstance(corr_repair_info, dict):
         corr_before_raw = corr_repair_info.get("corr_before")
         corr_after_raw = corr_repair_info.get("corr_after")
+        corr_delta_raw = corr_repair_info.get("corr_delta")
         if corr_before_raw is not None and corr_after_raw is not None:
             corr_before = np.array(corr_before_raw, dtype=float)
             corr_after = np.array(corr_after_raw, dtype=float)
             if corr_before.shape == corr_after.shape and corr_before.size:
+                corr_delta = (
+                    np.array(corr_delta_raw, dtype=float)
+                    if corr_delta_raw is not None
+                    else corr_after - corr_before
+                )
                 labels = ["Index", "H", "E", "M"]
                 row_labels = labels if corr_before.shape[0] == len(labels) else None
                 inputs["_corr_before_df"] = pd.DataFrame(
@@ -474,7 +480,7 @@ def run_single(
                     columns=row_labels,
                 )
                 inputs["_corr_delta_df"] = pd.DataFrame(
-                    corr_after - corr_before,
+                    corr_delta,
                     index=row_labels,
                     columns=row_labels,
                 )
