@@ -3,6 +3,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from pa_core.backend import SUPPORTED_BACKENDS
+from pa_core.config import ModelConfig
 from pa_core.wizard_schema import AnalysisMode, RiskMetric, get_default_config
 
 
@@ -151,5 +153,47 @@ def test_build_yaml_serializes_risk_metric_enums() -> None:
         yaml_dict = build_yaml(config)
 
         assert yaml_dict["risk_metrics"] == ["Return", "Risk", "terminal_ShortfallProb"]
+    finally:
+        st.session_state.clear()
+
+
+def test_build_yaml_includes_advanced_simulation_settings() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml, _module = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        config.return_distribution = "student_t"
+        config.return_t_df = 5.5
+        config.return_copula = "t"
+        config.vol_regime = "two_state"
+        config.vol_regime_window = 12
+        config.covariance_shrinkage = "ledoit_wolf"
+        config.correlation_repair_mode = "warn_fix"
+        config.correlation_repair_shrinkage = 0.2
+        config.backend = list(SUPPORTED_BACKENDS)[0]
+
+        yaml_dict = build_yaml(config)
+
+        assert yaml_dict["return_distribution"] == "student_t"
+        assert yaml_dict["return_t_df"] == 5.5
+        assert yaml_dict["return_copula"] == "t"
+        assert yaml_dict["vol_regime"] == "two_state"
+        assert yaml_dict["vol_regime_window"] == 12
+        assert yaml_dict["covariance_shrinkage"] == "ledoit_wolf"
+        assert yaml_dict["correlation_repair_mode"] == "warn_fix"
+        assert yaml_dict["correlation_repair_shrinkage"] == 0.2
+        assert yaml_dict["backend"] == config.backend
+
+        model_config = ModelConfig.model_validate(yaml_dict)
+        assert model_config.return_distribution == "student_t"
+        assert model_config.return_t_df == 5.5
+        assert model_config.return_copula == "t"
+        assert model_config.vol_regime == "two_state"
+        assert model_config.vol_regime_window == 12
+        assert model_config.covariance_shrinkage == "ledoit_wolf"
+        assert model_config.correlation_repair_mode == "warn_fix"
+        assert model_config.correlation_repair_shrinkage == 0.2
+        assert model_config.backend == config.backend
     finally:
         st.session_state.clear()
