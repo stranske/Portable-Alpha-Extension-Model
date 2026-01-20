@@ -76,8 +76,7 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
             )
             return
         if agent_semantics_val and all(
-            isinstance(item, (pd.DataFrame, pd.Series, dict))
-            for item in agent_semantics_val
+            isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in agent_semantics_val
         ):
             frames = []
             for item in agent_semantics_val:
