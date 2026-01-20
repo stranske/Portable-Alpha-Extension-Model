@@ -771,9 +771,7 @@ def test_export_serializes_agent_semantics_list_values_numpy_scalars(tmp_path, m
     assert all(isinstance(item, float) for item in allocations)
 
 
-def test_export_serializes_agent_semantics_nested_dict_numpy_scalars(
-    tmp_path, monkeypatch
-) -> None:
+def test_export_serializes_agent_semantics_nested_dict_numpy_scalars(tmp_path, monkeypatch) -> None:
     pytest.importorskip("openpyxl")
     inputs = {
         "_agent_semantics_df": [
@@ -1393,11 +1391,7 @@ def test_serialize_agent_semantics_input_list_values_numpy_scalars() -> None:
 
 
 def test_serialize_agent_semantics_input_nested_dict_numpy_scalars() -> None:
-    inputs = {
-        "_agent_semantics_df": [
-            {"Agent": "Base", "allocations": {"alpha": np.float64(0.1)}}
-        ]
-    }
+    inputs = {"_agent_semantics_df": [{"Agent": "Base", "allocations": {"alpha": np.float64(0.1)}}]}
 
     _serialize_agent_semantics_input(inputs)
 
