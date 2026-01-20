@@ -60,6 +60,11 @@ def test_metric_definitions_cover_summary_outputs() -> None:
     assert expected <= metrics
 
 
+def test_metric_definitions_columns() -> None:
+    definitions = metric_definitions_df()
+    assert list(definitions.columns) == ["Metric", "MetricType", "Description"]
+
+
 def test_metric_definitions_types() -> None:
     definitions = metric_definitions_df().set_index("Metric")
     assert definitions.at["terminal_AnnReturn", "MetricType"] == "terminal_outcome"
