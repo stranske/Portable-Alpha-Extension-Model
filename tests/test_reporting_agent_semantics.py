@@ -294,6 +294,27 @@ def test_build_agent_semantics_zero_total_capital_disables_mismatch_for_other_ag
     assert bool(lookup.loc["CustomSleeve"]["mismatch_flag"]) is False
 
 
+def test_build_agent_semantics_nan_total_capital_disables_mismatch() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=float("nan"),
+        agents=[
+            {
+                "name": "ExternalPA",
+                "capital": 200.0,
+                "beta_share": 0.2,
+                "alpha_share": 0.0,
+                "extra": {"theta_extpa": 0.25},
+            }
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    row = df.set_index("Agent").loc["ExternalPA"]
+
+    assert row["implied_capital_share"] == pytest.approx(0.0)
+    assert bool(row["mismatch_flag"]) is False
+
+
 def test_build_agent_semantics_adds_internalbeta_for_margin_requirement(monkeypatch) -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,

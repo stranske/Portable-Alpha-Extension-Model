@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 from typing import Any, Iterable
 
 import pandas as pd
@@ -26,6 +27,8 @@ def build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame:
     ]
 
     total_capital = float(getattr(cfg, "total_fund_capital", 0.0) or 0.0)
+    if not math.isfinite(total_capital):
+        total_capital = 0.0
     agents = list(_iter_agents(cfg)) if hasattr(cfg, "agents") else []
     if not agents:
         return pd.DataFrame([], columns=columns)
