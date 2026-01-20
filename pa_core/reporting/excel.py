@@ -4,6 +4,7 @@ import base64
 import io
 import json
 import os
+from types import SimpleNamespace
 from typing import Any, Dict, Mapping, cast
 
 import openpyxl
@@ -11,6 +12,7 @@ import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
+from ..config import ModelConfig
 from ..viz import risk_return, theme
 
 __all__ = ["export_to_excel"]
@@ -91,7 +93,7 @@ def export_to_excel(
     risk_df = _optional_df(inputs_dict, "_risk_attr_df")
     trade_df = _optional_df(inputs_dict, "_tradeoff_df")
     constraint_df = _optional_df(inputs_dict, "_constraint_report_df")
-    agent_semantics_df = _optional_df(inputs_dict, "_agent_semantics_df")
+    agent_semantics_df = _ensure_agent_semantics_df(inputs_dict)
 
     with pd.ExcelWriter(filename, engine="openpyxl") as writer:
         df_inputs = pd.DataFrame(
@@ -211,6 +213,33 @@ def export_to_excel(
 def _optional_df(inputs_dict: Dict[str, Any], key: str) -> pd.DataFrame | None:
     value = inputs_dict.get(key)
     return value if isinstance(value, pd.DataFrame) else None
+
+
+def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | None:
+    value = inputs_dict.get("_agent_semantics_df")
+    if isinstance(value, pd.DataFrame) and not value.empty:
+        return value
+    agents = inputs_dict.get("agents")
+    total_capital = inputs_dict.get("total_fund_capital")
+    if agents is None or total_capital is None:
+        return value if isinstance(value, pd.DataFrame) else None
+    try:
+        from .agent_semantics import build_agent_semantics
+    except Exception:
+        return value if isinstance(value, pd.DataFrame) else None
+    cfg = SimpleNamespace(agents=agents, total_fund_capital=total_capital)
+    for attr in (
+        "reference_sigma",
+        "volatility_multiple",
+        "financing_model",
+        "financing_schedule_path",
+        "financing_term_months",
+    ):
+        if attr in inputs_dict:
+            setattr(cfg, attr, inputs_dict[attr])
+    df = build_agent_semantics(cast(ModelConfig, cfg))
+    inputs_dict["_agent_semantics_df"] = df
+    return df
 
 
 def _serialize_metadata_value(value: Any) -> Any:

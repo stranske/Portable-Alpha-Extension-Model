@@ -221,7 +221,9 @@ def test_build_agent_semantics_custom_agent_defaults() -> None:
     assert row["beta_coeff_used"] == pytest.approx(0.55)
     assert row["alpha_coeff_used"] == pytest.approx(0.45)
     assert row["financing_coeff_used"] == pytest.approx(-0.55)
-    assert "Custom agent" in row["notes"]
+    assert isinstance(row["notes"], str)
+    assert row["notes"]
+    assert "depend on implementation" in row["notes"]
 
 
 def test_build_agent_semantics_percent_inputs() -> None:

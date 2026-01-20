@@ -1301,6 +1301,39 @@ Use the sensitivity flag to compute one‑factor deltas for key parameters and r
 
 Outputs also include Excel sheets: Sensitivity, Attribution, and RiskAttribution when data is available. When present, the AgentSemantics sheet summarizes how agent coefficients map to capital shares and flags material mismatches.
 
+### AgentSemantics sheet (Excel)
+
+The AgentSemantics sheet is generated during export using the resolved agent configuration. It provides a per-agent mapping of capital allocations to the coefficients used in the simulation along with a mismatch indicator.
+
+**Columns**
+- `Agent`: sleeve name
+- `capital_mm`: capital allocated to the sleeve
+- `implied_capital_share`: `capital_mm / total_fund_capital`
+- `beta_coeff_used`: beta exposure coefficient used in the simulation
+- `alpha_coeff_used`: alpha exposure coefficient used in the simulation
+- `financing_coeff_used`: financing drag coefficient used in the simulation
+- `notes`: guidance for custom/unknown agents
+- `mismatch_flag`: `True` if the agent's implied capital share differs materially from its share mapping
+
+**Mismatch detection rules (tolerance 1e-6)**
+- `ExternalPA`, `ActiveExt`, `InternalBeta`: compare `implied_capital_share` to `beta_share`
+- `InternalPA`: compare `implied_capital_share` to `alpha_share`
+- `Base` and unknown/custom agents: `mismatch_flag` remains `False` (custom agents add a note explaining that semantics depend on implementation)
+
+**Example use cases**
+- Validate that capital weights and share inputs are aligned after configuration changes.
+- Diagnose unexpected allocation effects (e.g., when `ExternalPA` beta share no longer matches capital input).
+- Document custom agent behavior by checking the `notes` column.
+
+Example readout:
+
+```text
+Agent        implied_capital_share  beta_coeff_used  alpha_coeff_used  mismatch_flag  notes
+ExternalPA   0.20                   0.20             0.05              False          ""
+InternalPA   0.10                   0.00             0.10              False          ""
+CustomSleeve 0.15                   0.12             0.03              False          Custom agent; semantics depend on implementation.
+```
+
 Example:
 
 ```bash
