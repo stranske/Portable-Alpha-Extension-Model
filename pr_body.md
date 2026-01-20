@@ -24,5 +24,6 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 
 ## Notes
 - Verified task checkboxes after latest test update.
+- Added coverage for empty agent semantics dict export handling.
 
 <!-- auto-status-summary:end -->

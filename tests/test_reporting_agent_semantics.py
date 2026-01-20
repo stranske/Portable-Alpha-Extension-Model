@@ -503,6 +503,32 @@ def test_export_builds_agent_semantics_when_empty_list(tmp_path) -> None:
     assert "Agent" in df.columns
 
 
+def test_export_builds_agent_semantics_when_empty_dict(tmp_path) -> None:
+    pytest.importorskip("openpyxl")
+    inputs = {
+        "_agent_semantics_df": {},
+        "total_fund_capital": 1000.0,
+        "agents": [
+            {
+                "name": "Base",
+                "capital": 1000.0,
+                "beta_share": 0.6,
+                "alpha_share": 0.4,
+                "extra": {},
+            }
+        ],
+    }
+    summary = pd.DataFrame({"Base": [0.1]})
+    raw = {"Base": pd.DataFrame([[0.1]], columns=[0])}
+    file_path = tmp_path / "empty_dict_agent_semantics.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    df = pd.read_excel(file_path, sheet_name="AgentSemantics")
+    assert not df.empty
+    assert "Agent" in df.columns
+
+
 def test_serialize_agent_semantics_input_dataframe() -> None:
     inputs = {
         "_agent_semantics_df": pd.DataFrame(
