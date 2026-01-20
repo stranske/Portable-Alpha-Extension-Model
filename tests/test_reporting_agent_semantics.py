@@ -40,6 +40,13 @@ def test_build_agent_semantics_coeffs_and_mismatch() -> None:
                 "alpha_share": 0.05,
                 "extra": {},
             },
+            {
+                "name": "InternalBeta",
+                "capital": 50.0,
+                "beta_share": 0.05,
+                "alpha_share": 0.0,
+                "extra": {},
+            },
         ],
     )
 
@@ -82,6 +89,12 @@ def test_build_agent_semantics_coeffs_and_mismatch() -> None:
     assert internal["financing_coeff_used"] == pytest.approx(0.0)
     assert bool(internal["mismatch_flag"]) is True
 
+    internal_beta = lookup.loc["InternalBeta"]
+    assert internal_beta["beta_coeff_used"] == pytest.approx(0.05)
+    assert internal_beta["alpha_coeff_used"] == pytest.approx(0.0)
+    assert internal_beta["financing_coeff_used"] == pytest.approx(-0.05)
+    assert bool(internal_beta["mismatch_flag"]) is False
+
 
 def test_build_agent_semantics_mismatch_flags() -> None:
     cfg = ModelConfig(
@@ -119,6 +132,13 @@ def test_build_agent_semantics_mismatch_flags() -> None:
                 "alpha_share": 0.05,
                 "extra": {},
             },
+            {
+                "name": "InternalBeta",
+                "capital": 200.0,
+                "beta_share": 0.05,
+                "alpha_share": 0.0,
+                "extra": {},
+            },
         ],
     )
 
@@ -128,6 +148,7 @@ def test_build_agent_semantics_mismatch_flags() -> None:
     assert bool(lookup.loc["ExternalPA"]["mismatch_flag"]) is True
     assert bool(lookup.loc["ActiveExt"]["mismatch_flag"]) is True
     assert bool(lookup.loc["InternalPA"]["mismatch_flag"]) is False
+    assert bool(lookup.loc["InternalBeta"]["mismatch_flag"]) is True
 
 
 def test_build_agent_semantics_custom_agent_defaults() -> None:
