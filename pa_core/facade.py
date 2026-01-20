@@ -535,13 +535,18 @@ def export(
         has_serialized = isinstance(agent_semantics_val, (list, tuple, dict)) and bool(
             agent_semantics_val
         )
-        if not (
-            isinstance(agent_semantics_val, pd.DataFrame)
-            and not agent_semantics_val.empty
-            or has_serialized
-        ):
+        serialized_agent_semantics = None
+        if isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty:
+            serialized_agent_semantics = agent_semantics_val.to_dict(orient="records")
+        elif has_serialized:
+            serialized_agent_semantics = agent_semantics_val
+
+        if serialized_agent_semantics is None:
             agent_semantics_df = build_agent_semantics(artifacts.config)
-            inputs_dict["_agent_semantics_df"] = agent_semantics_df.to_dict(orient="records")
+            serialized_agent_semantics = agent_semantics_df.to_dict(orient="records")
+
+        inputs_dict["_agent_semantics_df"] = serialized_agent_semantics
+        artifacts.inputs["_agent_semantics_df"] = serialized_agent_semantics
         metadata = None
         if artifacts.manifest is not None:
             metadata = {
