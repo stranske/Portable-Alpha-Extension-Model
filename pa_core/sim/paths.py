@@ -117,19 +117,22 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
     if not 0.0 <= shrinkage <= 1.0:
         raise ValueError("correlation_repair_shrinkage must be between 0 and 1")
 
+    eigvals_input = np.linalg.eigvalsh(corr)
+    min_eig_input = float(eigvals_input.min())
+
     corr_work = corr
     applied_steps: list[str] = []
     if shrinkage > 0.0:
         corr_work = (1.0 - shrinkage) * corr_work + shrinkage * np.eye(corr.shape[0])
         applied_steps.append("shrinkage")
 
-    eigvals_before = np.linalg.eigvalsh(corr_work)
-    min_eig_before = float(eigvals_before.min())
+    eigvals_work = np.linalg.eigvalsh(corr_work)
+    min_eig_work = float(eigvals_work.min())
     repaired = corr_work
-    if min_eig_before < -_CORR_VALIDATION_TOL:
+    if min_eig_work < -_CORR_VALIDATION_TOL:
         if repair_mode == "error":
             raise ValueError(
-                "Correlation matrix is not PSD; " f"min eigenvalue {min_eig_before:.3e}."
+                "Correlation matrix is not PSD; " f"min eigenvalue {min_eig_work:.3e}."
             )
         repaired = _project_to_near_psd_correlation(corr_work)
         applied_steps.append("eigen_clip")
@@ -152,7 +155,7 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
         "repair_mode": repair_mode,
         "method": "none" if not applied_steps else "+".join(applied_steps),
         "shrinkage": shrinkage,
-        "min_eigenvalue_before": min_eig_before,
+        "min_eigenvalue_before": min_eig_input,
         "min_eigenvalue_after": min_eig_after,
         "max_abs_delta": max_delta,
         "corr_before": corr.tolist(),
@@ -167,7 +170,7 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
             repair_mode,
             info["method"],
             shrinkage,
-            min_eig_before,
+            min_eig_input,
             min_eig_after,
             max_delta,
         )
