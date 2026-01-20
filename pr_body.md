@@ -69,6 +69,7 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - [x] On cache insert, evict least-recently-used entries until `len(cache) <= SWEEP_CACHE_MAX_ENTRIES`.
 - [x] Add `clear_sweep_cache()` in `pa_core/sweep.py`.
 - [x] Update `run_parameter_sweep_cached()` to refresh LRU order on access.
+- [x] Disable caching when `SWEEP_CACHE_MAX_ENTRIES <= 0`.
 - [x] Tests cover deterministic caching, LRU eviction, max entries cap, and cache clearing.
 
 ## Sweep Cache Acceptance Criteria

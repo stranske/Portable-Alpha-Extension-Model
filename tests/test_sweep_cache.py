@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 import pandas as pd
+import pytest
 
 from pa_core import sweep as sweep_module
 from pa_core.config import load_config
@@ -102,9 +103,10 @@ def test_sweep_cache_trims_when_max_reduced(monkeypatch):
     assert list(sweep_module._SWEEP_CACHE.keys()) == [key2]
 
 
-def test_sweep_cache_disabled_when_max_zero(monkeypatch):
+@pytest.mark.parametrize("max_entries", [0, -1])
+def test_sweep_cache_disabled_when_max_non_positive(monkeypatch, max_entries):
     clear_sweep_cache()
-    monkeypatch.setattr(sweep_module, "SWEEP_CACHE_MAX_ENTRIES", 0)
+    monkeypatch.setattr(sweep_module, "SWEEP_CACHE_MAX_ENTRIES", max_entries)
     call_count = 0
 
     def _fake_run_parameter_sweep(*_args, **_kwargs):

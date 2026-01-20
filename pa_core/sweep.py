@@ -636,6 +636,8 @@ _SWEEP_CACHE: "OrderedDict[str, List[SweepResult]]" = OrderedDict()
 
 
 def _enforce_sweep_cache_limit() -> None:
+    if SWEEP_CACHE_MAX_ENTRIES < 1:
+        return
     while len(_SWEEP_CACHE) > SWEEP_CACHE_MAX_ENTRIES:
         _SWEEP_CACHE.popitem(last=False)
 
