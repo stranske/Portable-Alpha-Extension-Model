@@ -527,8 +527,9 @@ def export(
     if isinstance(artifacts, RunArtifacts):
         # Prepare inputs dict with optional internal DataFrames
         inputs_dict: dict[str, Any] = dict(artifacts.inputs)
-        from .reporting.agent_semantics import build_agent_semantics
         import pandas as pd
+
+        from .reporting.agent_semantics import build_agent_semantics
 
         agent_semantics_val = inputs_dict.get("_agent_semantics_df")
         if not (isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty):

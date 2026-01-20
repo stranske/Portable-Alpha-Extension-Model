@@ -4,8 +4,8 @@ import base64
 import io
 import json
 import os
-from typing import Any, Dict, Mapping, cast
 from types import SimpleNamespace
+from typing import Any, Dict, Mapping, cast
 
 import openpyxl
 import pandas as pd
