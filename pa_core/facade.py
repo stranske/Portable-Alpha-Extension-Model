@@ -596,6 +596,7 @@ def export(
 
         from .reporting.agent_semantics import build_agent_semantics
 
+        _serialize_agent_semantics_input(inputs_dict)
         agent_semantics_val = inputs_dict.get("_agent_semantics_df")
         has_serialized = isinstance(agent_semantics_val, (list, tuple, dict)) and bool(
             agent_semantics_val
@@ -605,6 +606,8 @@ def export(
             serialized_agent_semantics = agent_semantics_val.to_dict(orient="records")
         elif has_serialized:
             serialized_agent_semantics = agent_semantics_val
+            if isinstance(serialized_agent_semantics, tuple):
+                serialized_agent_semantics = list(serialized_agent_semantics)
 
         if serialized_agent_semantics is None:
             agent_semantics_df = build_agent_semantics(artifacts.config)
