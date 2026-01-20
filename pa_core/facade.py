@@ -45,6 +45,19 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
     agent_semantics_val = inputs.get("_agent_semantics_df")
     if isinstance(agent_semantics_val, pd.DataFrame):
         inputs["_agent_semantics_df"] = agent_semantics_val.to_dict(orient="records")
+        return
+    if isinstance(agent_semantics_val, dict):
+        if agent_semantics_val and all(
+            not isinstance(v, (list, tuple, dict)) for v in agent_semantics_val.values()
+        ):
+            inputs["_agent_semantics_df"] = [agent_semantics_val]
+            return
+        try:
+            inputs["_agent_semantics_df"] = pd.DataFrame(agent_semantics_val).to_dict(
+                orient="records"
+            )
+        except Exception:
+            return
 
 
 @dataclass(slots=True)
