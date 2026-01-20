@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pandas as pd
 import pytest
 
@@ -305,6 +307,27 @@ def test_build_agent_semantics_percent_inputs_base_internalpa() -> None:
     assert internal["beta_coeff_used"] == pytest.approx(0.0)
     assert internal["alpha_coeff_used"] == pytest.approx(0.05)
     assert internal["financing_coeff_used"] == pytest.approx(0.0)
+
+
+def test_build_agent_semantics_normalizes_agent_share_inputs() -> None:
+    cfg = SimpleNamespace(
+        total_fund_capital=1000.0,
+        agents=[
+            {
+                "name": "Base",
+                "capital": 600.0,
+                "beta_share": 60,
+                "alpha_share": 40,
+                "extra": {},
+            }
+        ],
+    )
+
+    df = build_agent_semantics(cfg)
+    base = df.set_index("Agent").loc["Base"]
+
+    assert base["beta_coeff_used"] == pytest.approx(0.6)
+    assert base["alpha_coeff_used"] == pytest.approx(0.4)
 
 
 def test_export_uses_serialized_agent_semantics(tmp_path, monkeypatch) -> None:
