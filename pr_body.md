@@ -54,6 +54,7 @@ PR #1196 addressed issue #1195 but verification identified concerns (verdict: **
 - Reverified task checkboxes after invalid agent capital/share handling coverage.
 - Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
 - Reconciled task checkboxes after reviewing non-finite margin requirement handling.
+- Verified MetricDefinitions sheet presence via facade export test.
 
 <!-- auto-status-summary:end -->
 

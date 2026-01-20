@@ -186,3 +186,5 @@ def test_export_attaches_agent_semantics_from_config(tmp_path: Path) -> None:
 
     df = pd.read_excel(file_path, sheet_name="AgentSemantics")
     assert "Base" in set(df["Agent"].tolist())
+    wb = openpyxl.load_workbook(file_path)
+    assert "MetricDefinitions" in wb.sheetnames
