@@ -33,6 +33,10 @@ portfolios:
 - id: portfolio_2
   weights:
     ASSET_2: 1.0
+constraints:
+  weight_bounds: long_only
+  max_leverage: 1.0
+  max_concentration: null
 sleeves:
   sleeve_1:
     alpha_source: portfolio:portfolio_1

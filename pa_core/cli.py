@@ -333,7 +333,7 @@ def main(
             "per_path for independent draws)"
         ),
     )
-    parser.add_argument("--index", required=True, help="Index returns CSV")
+    parser.add_argument("--index", required=False, help="Index returns CSV")
     parser.add_argument(
         "--index-frequency",
         choices=["daily", "weekly", "monthly", "quarterly"],
@@ -426,6 +426,11 @@ def main(
         "--register",
         action="store_true",
         help="Register the scenario and print its scenario ID",
+    )
+    parser.add_argument(
+        "--validate-only",
+        action="store_true",
+        help="Validate configuration (and index inputs if provided) without running the simulation",
     )
     parser.add_argument("--png", action="store_true", help="Export PNG chart")
     parser.add_argument("--pdf", action="store_true", help="Export PDF chart")
@@ -574,6 +579,8 @@ def main(
     # delegates to facade run/export helpers without duplicating simulation logic. This keeps
     # test expectations in tests/expected_cli_outputs.py stable when output lines move.
     args = parser.parse_args(argv)
+    if not args.index and not args.validate_only:
+        parser.error("--index is required unless --validate-only is set")
 
     run_timer = RunTimer()
     run_end_emitted = False
@@ -663,6 +670,65 @@ def main(
             outputs[key] = str(path)
         return outputs
 
+    def _collect_validation_results(cfg: Any) -> list[Any]:
+        from .validators import (
+            ValidationResult,
+            validate_capital_allocation,
+            validate_correlations,
+            validate_simulation_parameters,
+        )
+
+        results: list[ValidationResult] = []
+        correlations = {
+            "rho_idx_H": cfg.rho_idx_H,
+            "rho_idx_E": cfg.rho_idx_E,
+            "rho_idx_M": cfg.rho_idx_M,
+            "rho_H_E": cfg.rho_H_E,
+            "rho_H_M": cfg.rho_H_M,
+            "rho_E_M": cfg.rho_E_M,
+        }
+        results.extend(validate_correlations(correlations))
+        try:
+            results.extend(
+                validate_capital_allocation(
+                    external_pa_capital=cfg.external_pa_capital,
+                    active_ext_capital=cfg.active_ext_capital,
+                    internal_pa_capital=cfg.internal_pa_capital,
+                    total_fund_capital=cfg.total_fund_capital,
+                    reference_sigma=cfg.reference_sigma,
+                    volatility_multiple=cfg.volatility_multiple,
+                    financing_model=cfg.financing_model,
+                    margin_schedule_path=cfg.financing_schedule_path,
+                    term_months=cfg.financing_term_months,
+                )
+            )
+        except Exception as exc:
+            results.append(
+                ValidationResult(
+                    is_valid=False,
+                    message=f"Capital validation failed: {exc}",
+                    severity="error",
+                    details={"exception": str(exc)},
+                )
+            )
+        step_sizes = {
+            "external_step_size_pct": cfg.external_step_size_pct,
+            "in_house_return_step_pct": cfg.in_house_return_step_pct,
+            "in_house_vol_step_pct": cfg.in_house_vol_step_pct,
+            "alpha_ext_return_step_pct": cfg.alpha_ext_return_step_pct,
+            "alpha_ext_vol_step_pct": cfg.alpha_ext_vol_step_pct,
+            "external_pa_alpha_step_pct": cfg.external_pa_alpha_step_pct,
+            "active_share_step_pct": cfg.active_share_step_pct,
+            "sd_multiple_step": cfg.sd_multiple_step,
+        }
+        results.extend(
+            validate_simulation_parameters(
+                n_simulations=cfg.N_SIMULATIONS,
+                step_sizes=step_sizes,
+            )
+        )
+        return results
+
     def _maybe_write_bundle(
         *,
         index_hash: str,
@@ -750,7 +816,6 @@ def main(
             prev_summary_df = pd.DataFrame()
 
     # Defer heavy imports until after bootstrap (lightweight imports only)
-    from .backend import resolve_and_set_backend
     from .config import load_config
     from .facade import RunOptions, apply_run_options
 
@@ -770,6 +835,21 @@ def main(
         analysis_mode=args.mode,
     )
     cfg = apply_run_options(cfg, run_options)
+
+    if args.validate_only:
+        from .validators import format_validation_messages
+
+        results = _collect_validation_results(cfg)
+        print(format_validation_messages(results))
+        if any((not r.is_valid) and r.severity == "error" for r in results):
+            _emit_run_end()
+            raise SystemExit(1)
+        print("Validation completed successfully.")
+        _emit_run_end()
+        return
+
+    from .backend import resolve_and_set_backend
+
     # Resolve and set backend once, with proper signature
     backend_choice = resolve_and_set_backend(args.backend, cfg)
     args.backend = backend_choice
@@ -823,7 +903,7 @@ def main(
     # cfg is already loaded earlier; backend already resolved
 
     # Optional structured logging setup
-    if args.log_json:
+    if args.log_json and not args.validate_only:
         # Create run directory under ./runs/<timestamp>
         ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
         run_id = ts
