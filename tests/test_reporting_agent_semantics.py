@@ -745,9 +745,7 @@ def test_export_serializes_agent_semantics_list_of_dicts_numpy_scalars(
     assert isinstance(inputs["_agent_semantics_df"][0]["mismatch_flag"], bool)
 
 
-def test_export_serializes_agent_semantics_list_values_numpy_scalars(
-    tmp_path, monkeypatch
-) -> None:
+def test_export_serializes_agent_semantics_list_values_numpy_scalars(tmp_path, monkeypatch) -> None:
     pytest.importorskip("openpyxl")
     inputs = {
         "_agent_semantics_df": [
