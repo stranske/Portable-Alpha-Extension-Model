@@ -862,6 +862,21 @@ def test_serialize_agent_semantics_input_list_of_series() -> None:
     assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
 
 
+def test_serialize_agent_semantics_input_list_mixed() -> None:
+    inputs = {
+        "_agent_semantics_df": [
+            {"Agent": "Base", "mismatch_flag": False},
+            pd.Series({"Agent": "ExternalPA", "mismatch_flag": False}),
+        ]
+    }
+
+    _serialize_agent_semantics_input(inputs)
+
+    assert isinstance(inputs["_agent_semantics_df"], list)
+    assert inputs["_agent_semantics_df"][0]["Agent"] == "Base"
+    assert inputs["_agent_semantics_df"][1]["Agent"] == "ExternalPA"
+
+
 def test_serialize_agent_semantics_input_tuple() -> None:
     inputs = {
         "_agent_semantics_df": (
