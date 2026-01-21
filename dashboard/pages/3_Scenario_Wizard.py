@@ -1150,9 +1150,7 @@ def _render_step_3_returns_risk(config: Any) -> Any:
                 st.error(str(exc))
                 st.stop()
             try:
-                regimes, transition, regime_names = _validate_regime_inputs(
-                    regimes, transition
-                )
+                regimes, transition, regime_names = _validate_regime_inputs(regimes, transition)
             except ValueError as exc:
                 st.error(str(exc))
                 st.stop()

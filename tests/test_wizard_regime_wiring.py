@@ -87,9 +87,7 @@ def test_wizard_regime_validation_accepts_valid_inputs() -> None:
     ]
     transition = [[0.9, 0.1], [0.2, 0.8]]
 
-    validated_regimes, validated_transition, regime_names = validate_regimes(
-        regimes, transition
-    )
+    validated_regimes, validated_transition, regime_names = validate_regimes(regimes, transition)
 
     assert validated_regimes == regimes
     assert validated_transition == transition
