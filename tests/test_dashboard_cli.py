@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pandas as pd
+
 import dashboard.cli as dashboard_cli
 import dashboard.utils as dashboard_utils
-import pandas as pd
 
 
 def test_dashboard_cli_runs_streamlit(monkeypatch):

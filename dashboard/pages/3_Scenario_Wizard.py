@@ -13,8 +13,8 @@ import pandas as pd
 import streamlit as st
 import yaml
 
-from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard import cli as dashboard_cli
+from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
 from dashboard.utils import run_sleeve_frontier, run_sleeve_suggestions
 from pa_core import cli as pa_cli
