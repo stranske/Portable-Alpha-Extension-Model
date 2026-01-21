@@ -1,0 +1,747 @@
+version: 1
+issue: 1191
+base: main
+branch: codex/issue-1191
+tasks:
+  - id: task-01
+    title: _Not provided._
+    status: done
+    started_at: '2026-01-21T04:27:06Z'
+    finished_at: '2026-01-21T04:27:14Z'
+    commit: 7bb5f88ff6361d1dcdb4a61e0b1bb15317cfcc63
+    notes: []
+  - id: task-02
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Extend `DefaultConfigView` with the advanced fields listed in Scope, using
+      the same allowed values as CLI flags (e.g., `normal|student_t`, `gaussian|t`,
+      `single|two_state`, `none|ledoit_wolf`, etc.).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Extend `DefaultConfigView` with the advanced fields listed in Scope (verify:
+      config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'Define scope for: Extend `DefaultConfigView` with using the same allowed
+      values as CLI flags (e.g. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Implement focused slice for: Extend `DefaultConfigView` with using the
+      same allowed values as CLI flags (e.g. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Validate focused slice for: Extend `DefaultConfigView` with using the
+      same allowed values as CLI flags (e.g. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Extend `DefaultConfigView` with `normal|student_t` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Extend `DefaultConfigView` with `gaussian|t` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Extend `DefaultConfigView` with `single|two_state` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Extend `DefaultConfigView` with `none|ledoit_wolf` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Extend `DefaultConfigView` with etc.). (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: Ensure defaults match `ModelConfig` defaults.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: Add an "Advanced Simulation Settings" UI section (expander or dedicated
+      step).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: Add UI controls and store values into the config view and/or session_state
+      consistently.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Add UI controls (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'Define scope for: store values into the config view and/or session_state
+      consistently. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Implement focused slice for: store values into the config view and/or
+      session_state consistently. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Validate focused slice for: store values into the config view and/or session_state
+      consistently. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Ensure these values are used when building the wizard config object.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: Emit the advanced fields into the YAML dict using the canonical `ModelConfig`
+      keys (snake_case), alongside existing keys.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'Define scope for: Emit the advanced fields into the YAML dict using the
+      canonical `ModelConfig` keys (snake_case) (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: 'Implement focused slice for: Emit the advanced fields into the YAML dict
+      using the canonical `ModelConfig` keys (snake_case) (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Validate focused slice for: Emit the advanced fields into the YAML dict
+      using the canonical `ModelConfig` keys (snake_case) (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: 'alongside existing keys. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: Update `tests/test_wizard_schema.py` to assert `DefaultConfigView` includes
+      the new fields and that defaults are valid.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: 'Define scope for: Update `tests/test_wizard_schema.py` to assert `DefaultConfigView`
+      includes the new fields (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: 'Implement focused slice for: Update `tests/test_wizard_schema.py` to assert
+      `DefaultConfigView` includes the new fields (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: 'Validate focused slice for: Update `tests/test_wizard_schema.py` to assert
+      `DefaultConfigView` includes the new fields (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: 'that defaults are valid. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'Update `tests/test_wizard_config_wiring.py` to:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: set non-default values for these new fields in the config view
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: assert `_build_yaml_from_config()` includes them
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: assert `ModelConfig.model_validate(yaml_dict)` reflects them correctly.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: Update `docs/COVERAGE_GAPS.md` (or equivalent wizard coverage doc) to reflect
+      that advanced fields are now UI-exposed and wired.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: 'Define scope for: Update `docs/COVERAGE_GAPS.md` (or equivalent wizard
+      coverage doc) to reflect that advanced fields are now UI-exposed (verify: docs
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: 'Implement focused slice for: Update `docs/COVERAGE_GAPS.md` (or equivalent
+      wizard coverage doc) to reflect that advanced fields are now UI-exposed (verify:
+      docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: 'Validate focused slice for: Update `docs/COVERAGE_GAPS.md` (or equivalent
+      wizard coverage doc) to reflect that advanced fields are now UI-exposed (verify:
+      docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: 'wired. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: Extend `DefaultConfigView` with the advanced fields listed in Scope, using
+      the same allowed values as CLI flags (e.g., `normal|student_t`, `gaussian|t`,
+      `single|two_state`, `none|ledoit_wolf`, etc.).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: 'Extend `DefaultConfigView` with the advanced fields listed in Scope (verify:
+      config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'Define scope for: Extend `DefaultConfigView` with using the same allowed
+      values as CLI flags (e.g. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'Implement focused slice for: Extend `DefaultConfigView` with using the
+      same allowed values as CLI flags (e.g. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: 'Validate focused slice for: Extend `DefaultConfigView` with using the
+      same allowed values as CLI flags (e.g. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: 'Extend `DefaultConfigView` with `normal|student_t` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: 'Extend `DefaultConfigView` with `gaussian|t` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: 'Extend `DefaultConfigView` with `single|two_state` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: 'Extend `DefaultConfigView` with `none|ledoit_wolf` (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: 'Extend `DefaultConfigView` with etc.). (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: Ensure defaults match `ModelConfig` defaults.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: Add an "Advanced Simulation Settings" UI section (expander or dedicated
+      step).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: Add UI controls and store values into the config view and/or session_state
+      consistently.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'Add UI controls (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: 'Define scope for: store values into the config view and/or session_state
+      consistently. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: 'Implement focused slice for: store values into the config view and/or
+      session_state consistently. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: 'Validate focused slice for: store values into the config view and/or session_state
+      consistently. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: Ensure these values are used when building the wizard config object.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: Emit the advanced fields into the YAML dict using the canonical `ModelConfig`
+      keys (snake_case), alongside existing keys.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: 'Define scope for: Emit the advanced fields into the YAML dict using the
+      canonical `ModelConfig` keys (snake_case) (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: 'Implement focused slice for: Emit the advanced fields into the YAML dict
+      using the canonical `ModelConfig` keys (snake_case) (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: 'Validate focused slice for: Emit the advanced fields into the YAML dict
+      using the canonical `ModelConfig` keys (snake_case) (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: 'alongside existing keys. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: Update `tests/test_wizard_schema.py` to assert `DefaultConfigView` includes
+      the new fields and that defaults are valid.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'Define scope for: Update `tests/test_wizard_schema.py` to assert `DefaultConfigView`
+      includes the new fields (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: 'Implement focused slice for: Update `tests/test_wizard_schema.py` to assert
+      `DefaultConfigView` includes the new fields (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: 'Validate focused slice for: Update `tests/test_wizard_schema.py` to assert
+      `DefaultConfigView` includes the new fields (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: 'that defaults are valid. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-77
+    title: 'Update `tests/test_wizard_config_wiring.py` to:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-78
+    title: set non-default values for these new fields in the config view
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-79
+    title: assert `_build_yaml_from_config()` includes them
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-80
+    title: assert `ModelConfig.model_validate(yaml_dict)` reflects them correctly.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-81
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-82
+    title: Update `docs/COVERAGE_GAPS.md` (or equivalent wizard coverage doc) to reflect
+      that advanced fields are now UI-exposed and wired.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-83
+    title: 'Define scope for: Update `docs/COVERAGE_GAPS.md` (or equivalent wizard
+      coverage doc) to reflect that advanced fields are now UI-exposed (verify: docs
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-84
+    title: 'Implement focused slice for: Update `docs/COVERAGE_GAPS.md` (or equivalent
+      wizard coverage doc) to reflect that advanced fields are now UI-exposed (verify:
+      docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-85
+    title: 'Validate focused slice for: Update `docs/COVERAGE_GAPS.md` (or equivalent
+      wizard coverage doc) to reflect that advanced fields are now UI-exposed (verify:
+      docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-86
+    title: 'wired. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-87
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-88
+    title: Wizard UI exposes the advanced settings listed in Scope.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-89
+    title: '`_build_yaml_from_config()` includes these settings in its output dict.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-90
+    title: The resulting YAML dict validates into `ModelConfig` with the expected
+      values.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-91
+    title: '`tests/test_wizard_schema.py` and `tests/test_wizard_config_wiring.py`
+      cover all added fields and pass in CI.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-92
+    title: Documentation notes the new coverage.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-93
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-94
+    title: Wizard UI exposes the advanced settings listed in Scope.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-95
+    title: '`_build_yaml_from_config()` includes these settings in its output dict.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-96
+    title: The resulting YAML dict validates into `ModelConfig` with the expected
+      values.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-97
+    title: '`tests/test_wizard_schema.py` and `tests/test_wizard_config_wiring.py`
+      cover all added fields and pass in CI.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-98
+    title: Documentation notes the new coverage.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

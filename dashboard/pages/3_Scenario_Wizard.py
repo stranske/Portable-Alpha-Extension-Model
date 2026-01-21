@@ -15,7 +15,6 @@ import yaml
 
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
-from dashboard.utils import normalize_share
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
@@ -27,8 +26,8 @@ from pa_core.wizard_schema import (
     AnalysisMode,
     DefaultConfigView,
     RiskMetric,
-    WizardScenarioConfig,
     get_default_config,
+    make_view_from_model,
 )
 
 _TOTAL_CAPITAL_KEY = "wizard_total_fund_capital"
@@ -142,6 +141,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     covariance_shrinkage = str(config.covariance_shrinkage)
     correlation_repair_mode = str(config.correlation_repair_mode)
     correlation_repair_shrinkage = float(config.correlation_repair_shrinkage)
+    correlation_repair_max_abs_delta = config.correlation_repair_max_abs_delta
     backend = str(config.backend)
     regimes = config.regimes
     regime_transition = config.regime_transition
@@ -189,6 +189,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "covariance_shrinkage": covariance_shrinkage,
         "correlation_repair_mode": correlation_repair_mode,
         "correlation_repair_shrinkage": correlation_repair_shrinkage,
+        "correlation_repair_max_abs_delta": correlation_repair_max_abs_delta,
         "backend": backend,
         "reference_sigma": ref_sigma,
         "volatility_multiple": vol_mult,
@@ -960,10 +961,11 @@ def _render_step_3_returns_risk(config: Any) -> Any:
         )
 
         vol_window_min = 2 if config.vol_regime == "two_state" else 1
+        vol_window_value = max(int(config.vol_regime_window), vol_window_min)
         config.vol_regime_window = st.number_input(
             "Volatility regime window (months)",
             min_value=vol_window_min,
-            value=int(config.vol_regime_window),
+            value=vol_window_value,
             step=1,
             help="Window length for regime estimation; must be > 1 for two-state regimes.",
         )
@@ -1003,6 +1005,28 @@ def _render_step_3_returns_risk(config: Any) -> Any:
             step=0.05,
             help="Shrinkage toward identity before repairing correlations.",
         )
+
+        max_delta_enabled = st.checkbox(
+            "Enforce max correlation repair delta",
+            value=config.correlation_repair_max_abs_delta is not None,
+            help="Fail validation if repaired correlations move too far from the original matrix.",
+        )
+        if max_delta_enabled:
+            max_delta_default = (
+                float(config.correlation_repair_max_abs_delta)
+                if config.correlation_repair_max_abs_delta is not None
+                else 0.0
+            )
+            config.correlation_repair_max_abs_delta = st.number_input(
+                "Correlation repair max abs delta",
+                min_value=0.0,
+                value=max_delta_default,
+                step=0.01,
+                format="%.2f",
+                help="Maximum absolute delta allowed after correlation repair.",
+            )
+        else:
+            config.correlation_repair_max_abs_delta = None
 
         st.markdown("**Backend:**")
         backend_options = list(SUPPORTED_BACKENDS)
@@ -1466,71 +1490,19 @@ def main() -> None:
         try:
             config_data = yaml.safe_load(cfg.getvalue())
             if st.sidebar.button("Load Configuration"):
-                # Convert uploaded config to wizard format
-                wizard_config = WizardScenarioConfig.model_validate(
-                    {
-                        "analysis_mode": config_data.get("analysis_mode", "returns"),
-                        "n_simulations": config_data.get("N_SIMULATIONS", 1000),
-                        "n_months": config_data.get("N_MONTHS", 12),
-                        "total_fund_capital": config_data.get("total_fund_capital", 300.0),
-                        "external_pa_capital": config_data.get("external_pa_capital", 100.0),
-                        "active_ext_capital": config_data.get("active_ext_capital", 50.0),
-                        "internal_pa_capital": config_data.get("internal_pa_capital", 150.0),
-                        "w_beta_h": config_data.get("w_beta_H", 0.5),
-                        "w_alpha_h": config_data.get("w_alpha_H", 0.5),
-                        "theta_extpa": normalize_share(config_data.get("theta_extpa", 0.5)) or 0.5,
-                        "active_share": normalize_share(config_data.get("active_share", 0.5))
-                        or 0.5,
-                        "mu_h": config_data.get("mu_H", 0.04),
-                        "sigma_h": config_data.get("sigma_H", 0.01),
-                        "mu_e": config_data.get("mu_E", 0.05),
-                        "sigma_e": config_data.get("sigma_E", 0.02),
-                        "mu_m": config_data.get("mu_M", 0.03),
-                        "sigma_m": config_data.get("sigma_M", 0.02),
-                        "rho_idx_h": config_data.get("rho_idx_H", 0.05),
-                        "rho_idx_e": config_data.get("rho_idx_E", 0.0),
-                        "rho_idx_m": config_data.get("rho_idx_M", 0.0),
-                        "rho_h_e": config_data.get("rho_H_E", 0.1),
-                        "rho_h_m": config_data.get("rho_H_M", 0.1),
-                        "rho_e_m": config_data.get("rho_E_M", 0.0),
-                        "internal_financing_mean_month": config_data.get(
-                            "internal_financing_mean_month", 0.0
-                        ),
-                        "internal_financing_sigma_month": config_data.get(
-                            "internal_financing_sigma_month", 0.0
-                        ),
-                        "internal_spike_prob": config_data.get("internal_spike_prob", 0.0),
-                        "internal_spike_factor": config_data.get("internal_spike_factor", 0.0),
-                        "ext_pa_financing_mean_month": config_data.get(
-                            "ext_pa_financing_mean_month", 0.0
-                        ),
-                        "ext_pa_financing_sigma_month": config_data.get(
-                            "ext_pa_financing_sigma_month", 0.0
-                        ),
-                        "ext_pa_spike_prob": config_data.get("ext_pa_spike_prob", 0.0),
-                        "ext_pa_spike_factor": config_data.get("ext_pa_spike_factor", 0.0),
-                        "act_ext_financing_mean_month": config_data.get(
-                            "act_ext_financing_mean_month", 0.0
-                        ),
-                        "act_ext_financing_sigma_month": config_data.get(
-                            "act_ext_financing_sigma_month", 0.0
-                        ),
-                        "act_ext_spike_prob": config_data.get("act_ext_spike_prob", 0.0),
-                        "act_ext_spike_factor": config_data.get("act_ext_spike_factor", 0.0),
-                        "risk_metrics": config_data.get(
-                            "risk_metrics", ["Return", "Risk", "terminal_ShortfallProb"]
-                        ),
-                    }
-                )
-                financing_model = config_data.get("financing_model", "simple_proxy")
+                model_config = load_config(config_data)
+                wizard_config = make_view_from_model(model_config)
+                financing_model = model_config.financing_model
                 st.session_state.financing_settings = {
                     "financing_model": financing_model,
-                    "reference_sigma": config_data.get("reference_sigma", 0.01),
-                    "volatility_multiple": config_data.get("volatility_multiple", 3.0),
-                    "term_months": config_data.get(
-                        "financing_term_months", config_data.get("term_months", 1.0)
+                    "reference_sigma": model_config.reference_sigma,
+                    "volatility_multiple": model_config.volatility_multiple,
+                    "term_months": model_config.financing_term_months,
+                    "schedule_path": (
+                        str(model_config.financing_schedule_path)
+                        if model_config.financing_schedule_path
+                        else None
                     ),
-                    "schedule_path": config_data.get("financing_schedule_path"),
                 }
                 st.session_state.wizard_config = wizard_config
                 st.session_state.wizard_step = 5  # Go to review step

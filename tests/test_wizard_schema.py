@@ -2,12 +2,15 @@
 
 import pytest
 
+from pa_core.backend import SUPPORTED_BACKENDS
+from pa_core.config import ModelConfig
 from pa_core.wizard_schema import (
     ANALYSIS_MODE_DESCRIPTIONS,
     ANALYSIS_MODE_DISPLAY_NAMES,
     AnalysisMode,
     RiskMetric,
     get_default_config,
+    make_view_from_model,
 )
 
 
@@ -97,6 +100,72 @@ class TestAnalysisModeDefaults:
         assert config.sigma_h <= returns_config.sigma_h
         assert config.sigma_e <= returns_config.sigma_e
         assert config.sigma_m <= returns_config.sigma_m
+
+    def test_default_config_includes_advanced_model_defaults(self):
+        """Test advanced defaults match ModelConfig defaults."""
+        config = get_default_config(AnalysisMode.RETURNS)
+        model_defaults = ModelConfig.model_validate(
+            {"Number of simulations": 1, "Number of months": 1, "financing_mode": "broadcast"}
+        )
+
+        assert config.return_distribution == model_defaults.return_distribution
+        assert config.return_t_df == model_defaults.return_t_df
+        assert config.return_copula == model_defaults.return_copula
+        assert config.vol_regime == model_defaults.vol_regime
+        assert config.vol_regime_window == model_defaults.vol_regime_window
+        assert config.covariance_shrinkage == model_defaults.covariance_shrinkage
+        assert config.correlation_repair_mode == model_defaults.correlation_repair_mode
+        assert config.correlation_repair_shrinkage == model_defaults.correlation_repair_shrinkage
+        assert (
+            config.correlation_repair_max_abs_delta
+            == model_defaults.correlation_repair_max_abs_delta
+        )
+        assert config.backend == model_defaults.backend
+
+    def test_default_config_advanced_settings_allowed_values(self):
+        """Test advanced defaults stay within CLI-supported value sets."""
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        assert config.return_distribution in {"normal", "student_t"}
+        assert config.return_copula in {"gaussian", "t"}
+        assert config.vol_regime in {"single", "two_state"}
+        assert config.covariance_shrinkage in {"none", "ledoit_wolf"}
+        assert config.correlation_repair_mode in {"error", "warn_fix"}
+        assert config.backend in SUPPORTED_BACKENDS
+
+    def test_make_view_from_model_preserves_advanced_fields(self):
+        """Ensure model-based views retain advanced simulation settings."""
+        model_config = ModelConfig.model_validate(
+            {
+                "Number of simulations": 1000,
+                "Number of months": 12,
+                "financing_mode": "broadcast",
+                "analysis_mode": "returns",
+                "return_distribution": "student_t",
+                "return_t_df": 7.5,
+                "return_copula": "t",
+                "vol_regime": "two_state",
+                "vol_regime_window": 12,
+                "covariance_shrinkage": "ledoit_wolf",
+                "correlation_repair_mode": "warn_fix",
+                "correlation_repair_shrinkage": 0.25,
+                "correlation_repair_max_abs_delta": 0.2,
+                "backend": "numpy",
+            }
+        )
+
+        view = make_view_from_model(model_config)
+
+        assert view.return_distribution == "student_t"
+        assert view.return_t_df == 7.5
+        assert view.return_copula == "t"
+        assert view.vol_regime == "two_state"
+        assert view.vol_regime_window == 12
+        assert view.covariance_shrinkage == "ledoit_wolf"
+        assert view.correlation_repair_mode == "warn_fix"
+        assert view.correlation_repair_shrinkage == 0.25
+        assert view.correlation_repair_max_abs_delta == 0.2
+        assert view.backend == "numpy"
 
 
 class TestAnalysisModeProperties:

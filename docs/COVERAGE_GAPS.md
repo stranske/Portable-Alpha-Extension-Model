@@ -23,7 +23,7 @@ These modules should be targeted first for maximum impact:
 | 0% | `dashboard/pages/7_Run_Logs.py` | 1-67 | Run logs page |
 | 0% | `dashboard/validation_ui.py` | 3-297 | Validation UI (~300 lines) |
 | 0% | `pa_core/__main__.py` | 1-127 | Package entry point |
-| 6% | `dashboard/pages/3_Scenario_Wizard.py` | 936-1194 | Scenario wizard page |
+| 6% | `dashboard/pages/3_Scenario_Wizard.py` | 936-1194 | Scenario wizard page (advanced ModelConfig settings now UI-exposed and wired) |
 | 8% | `dashboard/pages/5_Scenario_Grid.py` | 46-368 | Scenario grid page |
 | 11% | `dashboard/pages/4_Results.py` | 201 | Results page |
 | 14% | `dashboard/pages/2_Portfolio_Builder.py` | 16-113 | Portfolio builder page |
