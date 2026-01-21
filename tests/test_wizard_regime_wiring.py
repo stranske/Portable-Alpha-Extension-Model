@@ -3,7 +3,7 @@ import runpy
 import pytest
 import streamlit as st
 
-from pa_core.config import ModelConfig
+from pa_core.config import ModelConfig, RegimeConfig
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
 
@@ -41,6 +41,33 @@ def test_wizard_regime_yaml_roundtrip() -> None:
         assert [regime.name for regime in model_config.regimes] == ["Calm", "Stressed"]
         assert model_config.regime_transition == [[0.9, 0.1], [0.2, 0.8]]
         assert model_config.regime_start == "Calm"
+    finally:
+        st.session_state.clear()
+
+
+def test_wizard_regime_build_yaml_accepts_regime_models() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        config.regimes = [
+            RegimeConfig(name="Calm", idx_sigma_multiplier=0.8),
+            RegimeConfig(name="Stressed", idx_sigma_multiplier=1.3),
+        ]
+        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+
+        yaml_dict = build_yaml(config)
+        regimes = yaml_dict["regimes"]
+
+        assert regimes[0]["name"] == "Calm"
+        assert regimes[0]["idx_sigma_multiplier"] == 0.8
+        assert regimes[1]["name"] == "Stressed"
+        assert regimes[1]["idx_sigma_multiplier"] == 1.3
+
+        model_config = ModelConfig.model_validate(yaml_dict)
+        assert model_config.regimes is not None
+        assert [regime.name for regime in model_config.regimes] == ["Calm", "Stressed"]
     finally:
         st.session_state.clear()
 
