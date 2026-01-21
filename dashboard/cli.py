@@ -6,6 +6,34 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
+from typing import Iterable
+
+
+def build_pa_core_args(
+    config_path: str | Path,
+    index_path: str | Path,
+    output_path: str | Path,
+    *,
+    use_seed: bool,
+    seed_value: int | None,
+    extra_args: Iterable[str] | None = None,
+) -> list[str]:
+    """Build pa_core CLI args for a dashboard run."""
+    args = [
+        "--config",
+        str(config_path),
+        "--index",
+        str(index_path),
+        "--output",
+        str(output_path),
+    ]
+    if use_seed:
+        if seed_value is None:
+            raise ValueError("Seed value is required when use_seed=True.")
+        args.extend(["--seed", str(int(seed_value))])
+    if extra_args:
+        args.extend([str(arg) for arg in extra_args])
+    return args
 
 
 def main(argv: list[str] | None = None) -> None:

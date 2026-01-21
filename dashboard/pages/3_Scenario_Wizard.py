@@ -13,13 +13,14 @@ import pandas as pd
 import streamlit as st
 import yaml
 
+from dashboard import cli as dashboard_cli
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
 from dashboard.glossary import tooltip
+from dashboard.utils import run_sleeve_frontier, run_sleeve_suggestions
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
-from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard_schema import (
@@ -784,7 +785,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         use_seed = st.session_state.get("wizard_use_seed", True)
         seed_value = st.session_state.get("wizard_seed", 42)
         suggest_seed = int(seed_value) if use_seed else None
-        df = suggest_sleeve_sizes(
+        df = run_sleeve_suggestions(
             cfg,
             idx_series,
             max_te=constraints["max_te"],
@@ -799,7 +800,7 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.session_state["sleeve_suggestions"] = df
         st.session_state["sleeve_suggestion_constraints"] = constraints
         try:
-            frontier_df = generate_sleeve_frontier(
+            frontier_df = run_sleeve_frontier(
                 cfg,
                 idx_series,
                 max_te=constraints["max_te"],
@@ -1671,18 +1672,15 @@ def main() -> None:
                         os.close(fd)  # Close file descriptor before writing to path
                         Path(idx_path).write_bytes(idx.getvalue())
 
-                        args = [
-                            "--config",
-                            cfg_path,
-                            "--index",
-                            idx_path,
-                            "--output",
-                            output,
-                        ]
                         use_seed = st.session_state.get("wizard_use_seed", True)
                         seed_value = st.session_state.get("wizard_seed", 42)
-                        if use_seed:
-                            args.extend(["--seed", str(int(seed_value))])
+                        args = dashboard_cli.build_pa_core_args(
+                            cfg_path,
+                            idx_path,
+                            output,
+                            use_seed=use_seed,
+                            seed_value=int(seed_value) if use_seed else None,
+                        )
 
                         with st.spinner("🔄 Running simulation..."):
                             pa_cli.main(args)
