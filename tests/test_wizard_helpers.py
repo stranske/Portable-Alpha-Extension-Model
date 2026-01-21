@@ -226,6 +226,28 @@ def test_validate_regime_inputs_rejects_blank_name() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_missing_name() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"idx_sigma_multiplier": 0.8}]
+    transition = [[1.0]]
+
+    with pytest.raises(ValueError, match="Regime #1 is missing a name"):
+        validate(regimes, transition)
+
+
+def test_validate_regime_inputs_rejects_list_item_non_mapping() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = ["Calm"]
+    transition = [[1.0]]
+
+    with pytest.raises(ValueError, match="Regime #1 must be a mapping with a name field"):
+        validate(regimes, transition)
+
+
 def test_validate_regime_inputs_rejects_blank_mapping_key() -> None:
     helpers = _load_helpers()
     validate = helpers["_validate_regime_inputs"]
