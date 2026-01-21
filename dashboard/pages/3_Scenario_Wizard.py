@@ -962,10 +962,11 @@ def _render_step_3_returns_risk(config: Any) -> Any:
         )
 
         vol_window_min = 2 if config.vol_regime == "two_state" else 1
+        vol_window_value = max(int(config.vol_regime_window), vol_window_min)
         config.vol_regime_window = st.number_input(
             "Volatility regime window (months)",
             min_value=vol_window_min,
-            value=int(config.vol_regime_window),
+            value=vol_window_value,
             step=1,
             help="Window length for regime estimation; must be > 1 for two-state regimes.",
         )
