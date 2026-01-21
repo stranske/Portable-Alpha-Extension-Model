@@ -118,6 +118,25 @@ def test_wizard_regime_start_must_match_name() -> None:
         st.session_state.clear()
 
 
+def test_wizard_regime_start_strips_whitespace() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+        config.regimes = [
+            {"name": "Calm", "idx_sigma_multiplier": 0.8},
+            {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+        ]
+        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+        config.regime_start = "  Calm  "
+
+        yaml_dict = build_yaml(config)
+
+        assert yaml_dict["regime_start"] == "Calm"
+    finally:
+        st.session_state.clear()
+
+
 def test_wizard_regime_validation_accepts_valid_inputs() -> None:
     validate_regimes = _load_validate_regimes()
     regimes = [
