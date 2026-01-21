@@ -93,8 +93,21 @@ def _validate_regime_inputs(
     regimes: Any, transition: Any
 ) -> tuple[list[dict[str, Any]], list[list[float]], list[str]]:
     """Validate parsed regime inputs and return regime names."""
-    if not isinstance(regimes, list) or not regimes:
-        raise ValueError("Regimes must be a non-empty YAML/JSON list.")
+    if isinstance(regimes, dict):
+        if not regimes:
+            raise ValueError("Regimes must be a non-empty YAML/JSON list or mapping.")
+        normalized_regimes: list[dict[str, Any]] = []
+        for name, regime in regimes.items():
+            if not name:
+                raise ValueError("Regime name keys must be non-empty.")
+            if not isinstance(regime, dict):
+                raise ValueError(f"Regime '{name}' must be a mapping of fields.")
+            regime_dict = dict(regime)
+            regime_dict["name"] = str(name)
+            normalized_regimes.append(regime_dict)
+        regimes = normalized_regimes
+    elif not isinstance(regimes, list) or not regimes:
+        raise ValueError("Regimes must be a non-empty YAML/JSON list or mapping.")
 
     regime_names: list[str] = []
     for idx, regime in enumerate(regimes, start=1):

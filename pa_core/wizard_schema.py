@@ -212,7 +212,7 @@ class DefaultConfigView:
     backend: Literal["numpy"]
 
     # Regime-switching configuration (optional)
-    regimes: Optional[List[dict[str, Any]]]
+    regimes: Optional[List[dict[str, Any]] | dict[str, dict[str, Any]]]
     regime_transition: Optional[List[List[float]]]
     regime_start: Optional[str]
 
