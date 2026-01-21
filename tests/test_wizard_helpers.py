@@ -151,9 +151,7 @@ def test_validate_regime_inputs_rejects_out_of_range_values() -> None:
     regimes = [{"name": "Calm"}, {"name": "Stress"}]
     transition = [[1.2, -0.2], [0.2, 0.8]]
 
-    with pytest.raises(
-        ValueError, match="Transition matrix row 1 values must be between 0 and 1"
-    ):
+    with pytest.raises(ValueError, match="Transition matrix row 1 values must be between 0 and 1"):
         validate(regimes, transition)
 
 
