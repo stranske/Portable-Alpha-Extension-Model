@@ -110,6 +110,10 @@ CONFIG_TIME_HORIZON_FIELDS: dict[str, str] = {
     "sleeve_max_breach": "monthly",
     "sleeve_max_cvar": "monthly",
     "financing_term_months": "months",
+    "sleeve_max_te": "monthly",
+    "sleeve_max_breach": "monthly",
+    "sleeve_max_cvar": "monthly",
+    "sleeve_max_shortfall": "annual",
 }
 
 
