@@ -84,9 +84,6 @@ class TestWizardConfigConsistency:
         assert default_view.sigma_e == model_config.sigma_E
         assert default_view.sigma_m == model_config.sigma_M
         assert default_view.risk_metrics == model_config.risk_metrics
-        assert default_view.regimes == model_config.regimes
-        assert default_view.regime_transition == model_config.regime_transition
-        assert default_view.regime_start == model_config.regime_start
 
     def test_analysis_mode_specific_overrides(self):
         """Test that mode-specific adjustments work correctly."""

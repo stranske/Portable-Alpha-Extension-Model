@@ -1,111 +1,34 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #1195
+> **Source:** Issue #1187
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-PR #1196 addressed issue #1195 but verification identified concerns (verdict: **CONCERNS**). This follow-up addresses the remaining gaps with improved task structure to ensure correct mismatch detection and data serialization.
+PR #1205 addressed issue #1187 but verification identified concerns (verdict: **CONCERNS**). This follow-up addresses the remaining gaps with improved task structure.
 
 #### Tasks
-- [x] [#1196](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1196)
-- [x] [#1195](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1195)
+- [x] [#1205](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1205)
+- [x] [#1187](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1187)
 
 #### Acceptance criteria
-- [x] Add explicit conditional checks in `pa_core/reporting/agent_semantics.py` to ensure that mismatch detection is applied only to ExternalPA, ActiveExt, InternalBeta, and InternalPA agents, while Base/unknown agents always return a mismatch flag as false.
-- [x] Update `pa_core/reporting/excel.py` and `pa_core/facade.py` to generate a non-empty agent semantics DataFrame and convert it to a JSON/YAML-compatible structure when `build_agent_semantics` is not called, ensuring it is attached as the 'AgentSemantics' sheet.
-- [x] Enhance tests in `tests/test_reporting_agent_semantics.py` to verify that unknown/custom agent types have their 'notes' field set to 'Semantics depend on the specific agent implementation' and to simulate a run where `build_agent_semantics` is not called, asserting that the Excel export still includes a non-empty 'AgentSemantics' DataFrame.
-- [x] Modify the code where `_agent_semantics_df` is attached to `RunArtifacts.inputs` to convert the raw pandas DataFrame into a serializable structure using methods such as `DataFrame.to_dict`.
+- [x] Refactor `simulate_regime_paths()` in `pa_core/sim/regimes.py` to remove any Python-level loops iterating over regimes and replace them with equivalent vectorized NumPy operations.
+- [x] Update `simulate_regime_paths()` to use `np.random.Generator` with a fixed seed parameter for deterministic behavior.
+- [x] Implement a deterministic snapshot test for `simulate_regime_paths()` in `tests/test_regime_switching.py` using a fixed seed and small dimensions.
+- [x] Remove unrelated changes from the PR, such as scenario wizard UI, schema/config/templates, and additional test suites.
+
 ## Related Issues
 - [ ] _Not provided._
 ## References
 - [ ] _Not provided._
 
 ## Notes
-- Verified sweep cache coverage via `pytest tests/test_sweep_cache.py -m "not slow"`.
-- Verified task checkboxes after latest test update.
-- Added coverage for empty agent semantics dict export handling.
-- Added facade export coverage for the AgentSemantics sheet.
-- Added coverage for margin-driven InternalBeta semantics insertion.
-- Confirmed task reconciliation after agent semantics serialization handling.
-- Reconfirmed task checkboxes after series-based agent semantics serialization coverage.
-- Reverified task reconciliation after list-of-series agent semantics serialization handling.
-- Added tuple-of-series serialization coverage for agent semantics inputs.
-- Added Excel export coverage for tuple-of-series AgentSemantics inputs.
-- Added mismatch-flag guard coverage when total fund capital is zero.
-- Added list-of-dataframes serialization coverage for agent semantics inputs.
-- Added Excel export coverage for list-of-dataframes AgentSemantics inputs.
-- Added tuple-of-dataframes serialization coverage for agent semantics inputs.
-- Added Excel export coverage for tuple-of-dataframes AgentSemantics inputs.
-- Reconfirmed task reconciliation after tuple-of-dicts serialization coverage.
-- Added export coverage when total_fund_capital is missing from AgentSemantics inputs.
-- Added zero-total-capital mismatch coverage for ActiveExt/custom agents.
-- Added Excel export coverage for tuple-of-dicts AgentSemantics inputs.
-- Reconciled task checkboxes after reviewing recent agent semantics export updates.
-- Reverified task checkboxes after numpy scalar serialization handling updates.
-- Verified AgentSemantics sheet content via facade export test.
-- Normalized list-of-dicts AgentSemantics numpy scalars on export.
-- Normalized nested list numpy scalars in AgentSemantics serialization.
-- Normalized nested dict numpy scalars in AgentSemantics serialization.
-- Normalized numpy array AgentSemantics values during serialization.
-- Reverified task checkboxes after numpy array AgentSemantics handling.
-- Added NaN total capital handling coverage for agent semantics mismatch flags.
-- Reconfirmed task checkboxes after NaN agent semantics serialization handling.
-- Reverified task checkboxes after invalid agent capital/share handling coverage.
-- Added tuple-of-numpy-scalars serialization coverage for AgentSemantics inputs.
-- Reconciled task checkboxes after reviewing non-finite margin requirement handling.
-- Verified MetricDefinitions sheet presence via facade export test.
 - Verified regime switching tests via `pytest tests/test_regime_switching.py -m "not slow"`.
-- Reverified regime switching tests after transition selection update.
-- Added invalid-input coverage for `simulate_regime_paths`.
 
 <!-- auto-status-summary:end -->
 
 ## Task Reconciliation
-- [x] Reviewed recent commits for sweep cache changes.
-- [x] Updated task checkboxes to reflect completed sweep cache work.
 - [x] Reviewed recent commits for regime switching changes.
 - [x] Updated task checkboxes to reflect completed regime switching work.
-- [x] Reviewed recent commits for regime switching transition selection update and refreshed task checks.
-
-## Sweep Cache Tasks
-- [x] Replace `_SWEEP_CACHE: Dict[str, List[SweepResult]]` with an `OrderedDict` that preserves insertion/use ordering.
-- [x] Add `SWEEP_CACHE_MAX_ENTRIES` constant in `pa_core/sweep.py`.
-- [x] On cache insert, evict least-recently-used entries until `len(cache) <= SWEEP_CACHE_MAX_ENTRIES`.
-- [x] Add `clear_sweep_cache()` in `pa_core/sweep.py`.
-- [x] Update `run_parameter_sweep_cached()` to refresh LRU order on access.
-- [x] Disable caching when `SWEEP_CACHE_MAX_ENTRIES <= 0`.
-- [x] Tests cover deterministic caching, LRU eviction, max entries cap, and cache clearing.
-
-## Sweep Cache Acceptance Criteria
-- [x] Cache size never exceeds `SWEEP_CACHE_MAX_ENTRIES`.
-- [x] Repeated calls with the same key return the cached object.
-- [x] Eviction removes the least-recently-used entry.
-- [x] Tests pass.
-
-## MetricDefinitions Tasks
-- [x] Implement `pa_core/sim/metrics.py::metric_definitions_df()` with `Metric`, `MetricType`, and `Description` columns.
-- [x] Include rows for all standard summary outputs produced by `summary_table()` (excluding `Agent`).
-- [x] Update `pa_core/reporting/excel.py` to always write the `MetricDefinitions` sheet.
-- [x] Add unit tests covering `terminal_AnnReturn` and `monthly_VaR` metric types.
-- [x] Verify exported workbooks include the `MetricDefinitions` sheet.
-
-## Correlation Repair Checklist
-- [x] `pa_core/facade.py::run_single()` attaches `_corr_before_df`, `_corr_after_df`, `_corr_delta_df`, and `_corr_repair_info_df` when correlation repair info is available (validated via `tests/test_facade_run_single.py`).
-- [x] `_corr_delta_df` matches `_corr_after_df - _corr_before_df` in `tests/test_facade_run_single.py`.
-- [x] `_corr_repair_info_df` includes mode, method, shrinkage, min eigen before/after, and max_abs_delta in `tests/test_facade_run_single.py`.
-
-## Regime Switching Tasks
-- [x] Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the inner `for regime_idx` loop.
-- [x] Precompute `cum_probs = np.cumsum(transition_mat, axis=1)` once.
-- [x] For each time step, draw `u = rng.random(size=n_sim)` and gather `row_cum = cum_probs[prev_states]`.
-- [x] Compute `next_states = (u[:, None] <= row_cum).argmax(axis=1)`.
-- [x] Assign `paths[:, t] = next_states`.
-- [x] Existing regime tests continue to pass.
-- [x] Add a deterministic snapshot test for a small transition matrix + seed.
-
-## Regime Switching Acceptance Criteria
-- [x] `simulate_regime_paths()` contains no per-regime inner loop over `n_regimes`.
-- [x] Existing tests in `tests/test_regime_switching.py` pass.
-- [x] New deterministic snapshot test passes for a fixed seed and small dimensions.
+- [x] Removed unrelated wizard/config/template changes and extra test updates.
