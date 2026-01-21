@@ -31,6 +31,7 @@ Issue #957 exposes advanced ModelConfig settings in the Streamlit Scenario Wizar
 
 ## Notes
 - [x] Verified wizard schema/config wiring tests via `pytest tests/test_wizard_schema.py tests/test_wizard_config_wiring.py -m "not slow"`.
+- [x] Verified wizard regime validation tests via `pytest tests/test_wizard_regime_wiring.py -m "not slow"`.
 
 <!-- auto-status-summary:end -->
 
