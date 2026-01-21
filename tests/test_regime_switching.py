@@ -83,6 +83,20 @@ def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
             transition=transition,
             start_state=2,
         )
+    with pytest.raises(ValueError, match="square matrix"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[0.4, 0.6],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="square matrix"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[0.5, 0.5, 0.0], [0.4, 0.6, 0.0]],
+            start_state=0,
+        )
     with pytest.raises(ValueError, match="non-negative"):
         simulate_regime_paths(
             n_sim=1,
