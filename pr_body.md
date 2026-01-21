@@ -10,11 +10,11 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 #### Tasks
 - [x] [#1221](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1221)
-- [ ] [#1194](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1194)
+- [x] [#1194](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1194)
 
 #### Acceptance criteria
 - [x] Original PR: #1221
-- [ ] Parent issue: #1194
+- [x] Parent issue: #1194
 
 ## Related Issues
 - [x] [#1221](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1221)
@@ -24,6 +24,7 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ## Notes
 - [x] Verified wizard helper tests via `pytest tests/test_wizard_helpers.py -m "not slow"`.
+- [x] Verified wizard regime wiring via `pytest tests/test_wizard_regime_wiring.py -m "not slow"`.
 
 <!-- auto-status-summary:end -->
 

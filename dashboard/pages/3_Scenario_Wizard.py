@@ -290,16 +290,20 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     if regimes is not None:
         if regime_transition is None:
             raise ValueError("regime_transition is required when regimes are specified")
-        serialized_regimes = _serialize_regimes(regimes)
+        if isinstance(regimes, list):
+            normalized_input = _serialize_regimes(regimes)
+        else:
+            normalized_input = regimes
+        validated_regimes, validated_transition, regime_names = _validate_regime_inputs(
+            normalized_input, regime_transition
+        )
         if regime_start is not None:
-            regime_names = {
-                str(regime.get("name")) for regime in serialized_regimes if isinstance(regime, dict)
-            }
-            if regime_start not in regime_names:
+            regime_start_value = str(regime_start).strip()
+            if not regime_start_value or regime_start_value not in regime_names:
                 raise ValueError("regime_start must match one of the regime names")
-            yaml_dict["regime_start"] = regime_start
-        yaml_dict["regimes"] = serialized_regimes
-        yaml_dict["regime_transition"] = regime_transition
+            yaml_dict["regime_start"] = regime_start_value
+        yaml_dict["regimes"] = validated_regimes
+        yaml_dict["regime_transition"] = validated_transition
 
     return yaml_dict
 

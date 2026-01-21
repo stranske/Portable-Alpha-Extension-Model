@@ -45,6 +45,31 @@ def test_wizard_regime_yaml_roundtrip() -> None:
         st.session_state.clear()
 
 
+def test_wizard_regime_build_yaml_accepts_mapping_regimes() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        config.regimes = {
+            "Calm": {"idx_sigma_multiplier": 0.8},
+            "Stressed": {"idx_sigma_multiplier": 1.3},
+        }
+        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+        config.regime_start = "Calm"
+
+        yaml_dict = build_yaml(config)
+
+        assert yaml_dict["regimes"] == [
+            {"name": "Calm", "idx_sigma_multiplier": 0.8},
+            {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+        ]
+        assert yaml_dict["regime_transition"] == [[0.9, 0.1], [0.2, 0.8]]
+        assert yaml_dict["regime_start"] == "Calm"
+    finally:
+        st.session_state.clear()
+
+
 def test_wizard_regime_requires_transition() -> None:
     st.session_state.clear()
     try:
@@ -56,6 +81,20 @@ def test_wizard_regime_requires_transition() -> None:
         with pytest.raises(
             ValueError, match="regime_transition is required when regimes are specified"
         ):
+            build_yaml(config)
+    finally:
+        st.session_state.clear()
+
+
+def test_wizard_regime_build_yaml_rejects_bad_transition() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+        config.regimes = [{"name": "Calm"}, {"name": "Stressed"}]
+        config.regime_transition = [[0.9, 0.2], [0.2, 0.8]]
+
+        with pytest.raises(ValueError, match="Transition matrix row 1 must sum to 1.0"):
             build_yaml(config)
     finally:
         st.session_state.clear()
