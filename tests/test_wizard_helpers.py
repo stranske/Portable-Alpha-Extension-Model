@@ -144,6 +144,17 @@ def test_validate_regime_inputs_rejects_mapping_name_mismatch() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_empty_mapping_name_field() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = {"Calm": {"name": "   ", "idx_sigma_multiplier": 0.8}}
+    transition = [[1.0]]
+
+    with pytest.raises(ValueError, match="Regime 'Calm' has an empty name field"):
+        validate(regimes, transition)
+
+
 def test_validate_regime_inputs_rejects_non_mapping_regime() -> None:
     helpers = _load_helpers()
     validate = helpers["_validate_regime_inputs"]
