@@ -108,6 +108,20 @@ def test_validate_regime_inputs_rejects_duplicate_names() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_mapping_name_mismatch() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = {
+        "Calm": {"name": "Stressed", "idx_sigma_multiplier": 0.8},
+        "Stressed": {"idx_sigma_multiplier": 1.2},
+    }
+    transition = [[0.9, 0.1], [0.2, 0.8]]
+
+    with pytest.raises(ValueError, match="Regime name 'Stressed' must match mapping key"):
+        validate(regimes, transition)
+
+
 def test_validate_regime_inputs_rejects_non_square_transition() -> None:
     helpers = _load_helpers()
     validate = helpers["_validate_regime_inputs"]

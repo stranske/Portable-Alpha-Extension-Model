@@ -104,6 +104,12 @@ def _validate_regime_inputs(
                 raise ValueError("Regime name keys must be non-empty.")
             if not isinstance(regime, dict):
                 raise ValueError(f"Regime '{name}' must be a mapping of fields.")
+            if "name" in regime:
+                declared_name = str(regime["name"]).strip()
+                if declared_name and declared_name != name_str:
+                    raise ValueError(
+                        f"Regime name '{declared_name}' must match mapping key '{name_str}'."
+                    )
             regime_dict = dict(regime)
             regime_dict["name"] = name_str
             normalized_regimes.append(regime_dict)
