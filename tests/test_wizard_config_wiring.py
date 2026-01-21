@@ -55,6 +55,13 @@ def test_build_yaml_maps_all_fields() -> None:
 
         config.risk_metrics = ["Return", "Risk", "terminal_ShortfallProb"]
 
+        st.session_state["sleeve_max_te"] = 0.02
+        st.session_state["sleeve_max_breach"] = 0.25
+        st.session_state["sleeve_max_cvar"] = 0.05
+        st.session_state["sleeve_max_shortfall"] = 0.1
+        st.session_state["sleeve_constraint_scope"] = "sleeves"
+        st.session_state["sleeve_validate_on_run"] = True
+
         st.session_state["financing_settings"] = {
             "financing_model": "simple_proxy",
             "reference_sigma": 0.02,
@@ -95,11 +102,25 @@ def test_build_yaml_maps_all_fields() -> None:
         assert yaml_dict["rho_E_M"] == 0.6
 
         assert yaml_dict["risk_metrics"] == ["Return", "Risk", "terminal_ShortfallProb"]
+        assert yaml_dict["sleeve_max_te"] == 0.02
+        assert yaml_dict["sleeve_max_breach"] == 0.25
+        assert yaml_dict["sleeve_max_cvar"] == 0.05
+        assert yaml_dict["sleeve_max_shortfall"] == 0.1
+        assert yaml_dict["sleeve_constraint_scope"] == "per_sleeve"
+        assert yaml_dict["sleeve_validate_on_run"] is True
         assert yaml_dict["reference_sigma"] == 0.02
         assert yaml_dict["volatility_multiple"] == 4.0
         assert yaml_dict["financing_model"] == "simple_proxy"
         assert yaml_dict["financing_schedule_path"] is None
         assert yaml_dict["financing_term_months"] == 2.5
+
+        model_config = ModelConfig.model_validate(yaml_dict)
+        assert model_config.sleeve_max_te == 0.02
+        assert model_config.sleeve_max_breach == 0.25
+        assert model_config.sleeve_max_cvar == 0.05
+        assert model_config.sleeve_max_shortfall == 0.1
+        assert model_config.sleeve_constraint_scope == "per_sleeve"
+        assert model_config.sleeve_validate_on_run is True
     finally:
         st.session_state.clear()
 

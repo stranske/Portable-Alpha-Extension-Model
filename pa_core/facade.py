@@ -450,6 +450,13 @@ def run_single(
     agents = build_from_config(run_cfg)
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
     summary = summary_table(returns, benchmark="Base")
+    if run_cfg.sleeve_validate_on_run:
+        from .reporting.constraints import validate_sleeve_constraints
+
+        violations = validate_sleeve_constraints(summary, run_cfg)
+        if violations:
+            formatted = "\n".join(f"- {violation}" for violation in violations)
+            raise ValueError(f"Sleeve constraint violations:\n{formatted}")
     raw_returns = {name: pd.DataFrame(data) for name, data in returns.items()}
     if regime_labels is not None:
         raw_returns["Regime"] = pd.DataFrame(regime_labels)

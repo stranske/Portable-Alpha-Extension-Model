@@ -391,6 +391,31 @@ class ModelConfig(BaseModel):
         alias="risk_metrics",
     )
 
+    sleeve_max_te: Optional[float] = Field(
+        default=None,
+        description="Maximum tracking error constraint for sleeves (monthly).",
+    )
+    sleeve_max_breach: Optional[float] = Field(
+        default=None,
+        description="Maximum breach probability constraint for sleeves (monthly).",
+    )
+    sleeve_max_cvar: Optional[float] = Field(
+        default=None,
+        description="Maximum CVaR constraint for sleeves (monthly).",
+    )
+    sleeve_max_shortfall: Optional[float] = Field(
+        default=None,
+        description="Maximum shortfall probability constraint for sleeves (terminal).",
+    )
+    sleeve_constraint_scope: Literal["total", "per_sleeve"] = Field(
+        default="total",
+        description="Constraint scope for sleeve validation (total or per-sleeve).",
+    )
+    sleeve_validate_on_run: bool = Field(
+        default=False,
+        description="Validate sleeve constraints during run_single when true.",
+    )
+
     debug_transform_order: bool = Field(
         default=False,
         exclude=True,
