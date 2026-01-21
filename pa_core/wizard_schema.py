@@ -6,11 +6,11 @@ used by portfolio managers in the guided wizard interface.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel, Field
 
-from .config import ModelConfig, RegimeConfig
+from .config import ModelConfig
 
 # Module-level constants for names and descriptions
 ANALYSIS_MODE_DESCRIPTIONS = {
@@ -210,11 +210,6 @@ class DefaultConfigView:
     correlation_repair_shrinkage: float
     backend: str
 
-    # Regime switching
-    regimes: Optional[List[RegimeConfig]]
-    regime_transition: Optional[List[List[float]]]
-    regime_start: Optional[str]
-
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
     """Create DefaultConfigView from ModelConfig with consistent field mappings.
@@ -272,10 +267,6 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         correlation_repair_mode=m.correlation_repair_mode,
         correlation_repair_shrinkage=m.correlation_repair_shrinkage,
         backend=m.backend,
-        # Regime switching
-        regimes=m.regimes,
-        regime_transition=m.regime_transition,
-        regime_start=m.regime_start,
     )
 
 

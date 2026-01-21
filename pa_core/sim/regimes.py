@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from numbers import Integral
 from typing import Any, Sequence, cast
 
 import numpy.typing as npt
@@ -9,7 +10,6 @@ from ..config import ModelConfig
 from ..types import GeneratorLike
 from .covariance import build_cov_matrix
 from .params import build_simulation_params
-from .simulation_initialization import ensure_rng
 
 
 def _cov_to_corr_and_sigma(cov: npt.NDArray[Any]) -> tuple[npt.NDArray[Any], npt.NDArray[Any]]:
@@ -109,17 +109,28 @@ def simulate_regime_paths(
 ) -> npt.NDArray[Any]:
     """Simulate regime paths using a Markov transition matrix.
 
-    ``seed`` is used to create a per-run generator when ``rng`` is not supplied.
+    ``seed`` is used to create a deterministic generator when ``rng`` is not supplied.
     """
     if n_sim <= 0 or n_months <= 0:
         raise ValueError("n_sim and n_months must be positive")
     transition_mat = np.asarray(transition, dtype=float)
     if transition_mat.ndim != 2 or transition_mat.shape[0] != transition_mat.shape[1]:
         raise ValueError("transition must be a square matrix")
+    if not np.isfinite(transition_mat).all():
+        raise ValueError("transition must contain finite probabilities")
+    if np.any(transition_mat < 0.0):
+        raise ValueError("transition probabilities must be non-negative")
+    row_sums = transition_mat.sum(axis=1)
+    if np.any(row_sums <= 0.0):
+        raise ValueError("transition rows must sum to a positive value")
+    transition_mat = transition_mat / row_sums[:, None]
     n_regimes = int(transition_mat.shape[0])
+    if isinstance(start_state, bool) or not isinstance(start_state, Integral):
+        raise ValueError("start_state must be an integer index")
     if not 0 <= start_state < n_regimes:
         raise ValueError("start_state must be within regime index range")
-    rng = ensure_rng(seed, rng)
+    if rng is None:
+        rng = np.random.default_rng(seed)
 
     cum_probs = np.cumsum(transition_mat, axis=1)
     cum_probs[:, -1] = 1.0

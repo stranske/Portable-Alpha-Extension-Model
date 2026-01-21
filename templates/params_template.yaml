@@ -52,12 +52,6 @@ Active Ext spike multiplier: 0.0
 financing_mode: broadcast
 Analysis mode: returns
 sweep: null
-sleeve_max_te: null
-sleeve_max_breach: null
-sleeve_max_cvar: null
-sleeve_max_shortfall: null
-sleeve_constraint_scope: total
-sleeve_validate_on_run: false
 max_external_combined_pct: 30.0
 external_step_size_pct: 5.0
 in_house_return_min_pct: 2.0

@@ -334,13 +334,6 @@ class ModelConfig(BaseModel):
         description="Optional sweep configuration for custom parameter sampling.",
     )
 
-    sleeve_max_te: Optional[float] = None
-    sleeve_max_breach: Optional[float] = None
-    sleeve_max_cvar: Optional[float] = None
-    sleeve_max_shortfall: Optional[float] = None
-    sleeve_constraint_scope: Literal["total", "per_sleeve"] = "total"
-    sleeve_validate_on_run: bool = False
-
     max_external_combined_pct: float = 30.0
     external_step_size_pct: float = 5.0
 

@@ -50,10 +50,10 @@ def test_simulate_regime_paths_snapshot_seeded() -> None:
     )
     expected = np.array(
         [
-            [1, 1, 1, 1, 1, 1],
+            [1, 2, 0, 2, 2, 2],
+            [1, 1, 1, 1, 2, 0],
+            [1, 2, 0, 1, 1, 1],
             [1, 1, 1, 1, 1, 2],
-            [1, 2, 0, 2, 1, 1],
-            [1, 2, 2, 2, 0, 2],
         ],
         dtype=int,
     )
@@ -83,6 +83,75 @@ def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
             transition=transition,
             start_state=2,
         )
+    with pytest.raises(ValueError, match="square matrix"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[0.4, 0.6],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="square matrix"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[0.5, 0.5, 0.0], [0.4, 0.6, 0.0]],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="non-negative"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[-0.1, 1.1], [0.2, 0.8]],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="finite"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[np.nan]],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="sum to a positive"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[0.0, 0.0], [0.5, 0.5]],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="integer index"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[1.0]],
+            start_state=0.5,
+        )
+    with pytest.raises(ValueError, match="integer index"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[1.0]],
+            start_state=True,
+        )
+
+
+def test_simulate_regime_paths_normalizes_transition_rows() -> None:
+    transition = [[2.0, 1.0], [1.0, 3.0]]
+    normalized = [[2.0 / 3.0, 1.0 / 3.0], [1.0 / 4.0, 3.0 / 4.0]]
+    paths_raw = simulate_regime_paths(
+        n_sim=6,
+        n_months=5,
+        transition=transition,
+        start_state=0,
+        seed=321,
+    )
+    paths_normalized = simulate_regime_paths(
+        n_sim=6,
+        n_months=5,
+        transition=normalized,
+        start_state=0,
+        seed=321,
+    )
+    assert np.array_equal(paths_raw, paths_normalized)
 
 
 def test_simulate_regime_paths_clamps_cum_probs() -> None:
@@ -114,7 +183,7 @@ def test_simulate_regime_paths_clamps_cum_probs() -> None:
 
 def test_simulate_regime_paths_prefers_rng_over_seed() -> None:
     transition = [[0.4, 0.6], [0.3, 0.7]]
-    rng = spawn_rngs(2024, 1)[0]
+    rng = np.random.default_rng(2024)
     paths_from_rng = simulate_regime_paths(
         n_sim=3,
         n_months=5,
