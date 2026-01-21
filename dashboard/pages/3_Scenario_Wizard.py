@@ -207,9 +207,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     sleeve_constraint_scope = _normalize_sleeve_constraint_scope(
         ss.get("sleeve_constraint_scope", config.sleeve_constraint_scope)
     )
-    sleeve_validate_on_run = bool(
-        ss.get("sleeve_validate_on_run", config.sleeve_validate_on_run)
-    )
+    sleeve_validate_on_run = bool(ss.get("sleeve_validate_on_run", config.sleeve_validate_on_run))
 
     return_distribution = str(config.return_distribution)
     return_t_df = float(config.return_t_df)

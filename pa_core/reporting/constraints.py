@@ -113,9 +113,7 @@ def validate_sleeve_constraints(
     else:
         sleeve_set = {str(agent) for agent in sleeves}
         agent_names = [
-            str(agent)
-            for agent in summary_df["Agent"].astype(str)
-            if str(agent) in sleeve_set
+            str(agent) for agent in summary_df["Agent"].astype(str) if str(agent) in sleeve_set
         ]
 
     if not agent_names:

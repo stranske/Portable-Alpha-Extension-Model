@@ -81,9 +81,7 @@ def test_validate_sleeve_constraints_per_sleeve_scope() -> None:
 
     assert violations
     assert not any("Total" in violation for violation in violations)
-    assert all(
-        any(sleeve in violation for sleeve in SLEEVE_AGENTS) for violation in violations
-    )
+    assert all(any(sleeve in violation for sleeve in SLEEVE_AGENTS) for violation in violations)
 
 
 def test_run_single_raises_on_sleeve_constraint_violation(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -99,9 +97,7 @@ def test_run_single_raises_on_sleeve_constraint_violation(monkeypatch: pytest.Mo
         called["cfg"] = cfg_arg
         return ["Total monthly_TE=0.5 exceeds Tracking error limit 0.1"]
 
-    monkeypatch.setattr(
-        "pa_core.reporting.constraints.validate_sleeve_constraints", _fake_validate
-    )
+    monkeypatch.setattr("pa_core.reporting.constraints.validate_sleeve_constraints", _fake_validate)
 
     with pytest.raises(ValueError, match="Sleeve constraint violations"):
         run_single(cfg, idx, RunOptions(seed=123))
