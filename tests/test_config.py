@@ -4,6 +4,7 @@ from textwrap import dedent
 from typing import Any
 
 import pytest
+from pydantic import ValidationError
 
 from pa_core.config import (
     ModelConfig,
@@ -182,6 +183,19 @@ def test_model_config_minimal_inputs_use_defaults():
     assert cfg.w_alpha_H == pytest.approx(0.5)
     assert cfg.mu_H == annual_mean_to_monthly(0.04)
     assert cfg.agents and cfg.agents[0].name == "Base"
+    assert cfg.sleeve_constraint_scope == "total"
+    assert cfg.sleeve_validate_on_run is False
+
+
+def test_model_config_rejects_invalid_sleeve_constraint_scope() -> None:
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "financing_mode": "broadcast",
+        "sleeve_constraint_scope": "invalid",
+    }
+    with pytest.raises(ValidationError):
+        ModelConfig(**data)
 
 
 def test_model_config_normalizes_share_percentages():
