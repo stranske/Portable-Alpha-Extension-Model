@@ -111,6 +111,14 @@ risk_metrics:
   - Return
   - Risk
   - terminal_ShortfallProb
+
+# Sleeve constraint defaults (used by sleeve suggestor; optional validation on run)
+sleeve_max_te: null # max monthly tracking error
+sleeve_max_breach: null # max monthly breach probability
+sleeve_max_cvar: null # max monthly CVaR
+sleeve_max_shortfall: null # max terminal shortfall probability
+sleeve_constraint_scope: total # total|per_sleeve
+sleeve_validate_on_run: false # set true to raise on violations in run_single
 # Financing model configuration
 # simple_proxy: uses reference_sigma × volatility_multiple × total_fund_capital
 # schedule: interpolates from a broker margin schedule CSV (term,multiplier)
