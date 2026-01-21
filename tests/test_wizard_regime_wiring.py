@@ -54,3 +54,21 @@ def test_wizard_regime_requires_transition() -> None:
             build_yaml(config)
     finally:
         st.session_state.clear()
+
+
+def test_wizard_regime_start_must_match_name() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+        config.regimes = [
+            {"name": "Calm", "idx_sigma_multiplier": 0.8},
+            {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+        ]
+        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+        config.regime_start = "Unknown"
+
+        with pytest.raises(ValueError, match="regime_start must match one of the regime names"):
+            build_yaml(config)
+    finally:
+        st.session_state.clear()
