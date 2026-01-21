@@ -125,6 +125,13 @@ def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
             transition=[[1.0]],
             start_state=0.5,
         )
+    with pytest.raises(ValueError, match="integer index"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[1.0]],
+            start_state=True,
+        )
 
 
 def test_simulate_regime_paths_normalizes_transition_rows() -> None:
