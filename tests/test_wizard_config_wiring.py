@@ -142,6 +142,23 @@ def test_build_yaml_dict_alias_matches_from_config() -> None:
         st.session_state.clear()
 
 
+def test_default_config_yaml_validates() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml, _module = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        yaml_dict = build_yaml(config)
+        model_config = ModelConfig.model_validate(yaml_dict)
+
+        assert model_config.return_distribution == config.return_distribution
+        assert model_config.return_copula == config.return_copula
+        assert model_config.vol_regime == config.vol_regime
+        assert model_config.covariance_shrinkage == config.covariance_shrinkage
+    finally:
+        st.session_state.clear()
+
+
 def test_build_yaml_serializes_risk_metric_enums() -> None:
     st.session_state.clear()
     try:
