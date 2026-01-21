@@ -115,3 +115,30 @@ def test_validate_regime_inputs_rejects_non_square_transition() -> None:
 
     with pytest.raises(ValueError, match="Transition matrix must be square"):
         validate(regimes, transition)
+
+
+def test_validate_regime_inputs_strips_whitespace_names() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = {
+        " Calm ": {"idx_sigma_multiplier": 0.8},
+        "Stressed": {"idx_sigma_multiplier": 1.2},
+    }
+    transition = [[0.9, 0.1], [0.2, 0.8]]
+
+    normalized, _matrix, names = validate(regimes, transition)
+
+    assert names == ["Calm", "Stressed"]
+    assert normalized[0]["name"] == "Calm"
+
+
+def test_validate_regime_inputs_rejects_blank_name() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "   "}]
+    transition = [[1.0]]
+
+    with pytest.raises(ValueError, match="Regime #1 is missing a name"):
+        validate(regimes, transition)

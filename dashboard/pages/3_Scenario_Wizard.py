@@ -94,30 +94,36 @@ def _validate_regime_inputs(
     regimes: Any, transition: Any
 ) -> tuple[list[dict[str, Any]], list[list[float]], list[str]]:
     """Validate parsed regime inputs and return regime names."""
+    normalized_regimes: list[dict[str, Any]] = []
     if isinstance(regimes, dict):
         if not regimes:
             raise ValueError("Regimes must be a non-empty YAML/JSON list or mapping.")
-        normalized_regimes: list[dict[str, Any]] = []
         for name, regime in regimes.items():
-            if not name:
+            name_str = str(name).strip()
+            if not name_str:
                 raise ValueError("Regime name keys must be non-empty.")
             if not isinstance(regime, dict):
                 raise ValueError(f"Regime '{name}' must be a mapping of fields.")
             regime_dict = dict(regime)
-            regime_dict["name"] = str(name)
+            regime_dict["name"] = name_str
             normalized_regimes.append(regime_dict)
-        regimes = normalized_regimes
-    elif not isinstance(regimes, list) or not regimes:
+    elif isinstance(regimes, list) and regimes:
+        for idx, regime in enumerate(regimes, start=1):
+            if not isinstance(regime, dict):
+                raise ValueError(f"Regime #{idx} must be a mapping with a name field.")
+            name = regime.get("name")
+            if name is None:
+                raise ValueError(f"Regime #{idx} is missing a name.")
+            name_str = str(name).strip()
+            if not name_str:
+                raise ValueError(f"Regime #{idx} is missing a name.")
+            regime_dict = dict(regime)
+            regime_dict["name"] = name_str
+            normalized_regimes.append(regime_dict)
+    else:
         raise ValueError("Regimes must be a non-empty YAML/JSON list or mapping.")
 
-    regime_names: list[str] = []
-    for idx, regime in enumerate(regimes, start=1):
-        if not isinstance(regime, dict):
-            raise ValueError(f"Regime #{idx} must be a mapping with a name field.")
-        name = regime.get("name")
-        if not name:
-            raise ValueError(f"Regime #{idx} is missing a name.")
-        regime_names.append(str(name))
+    regime_names = [regime["name"] for regime in normalized_regimes]
 
     if len(set(regime_names)) != len(regime_names):
         raise ValueError("Regime names must be unique.")
@@ -149,7 +155,7 @@ def _validate_regime_inputs(
             raise ValueError(f"Transition matrix row {row_idx} must sum to 1.0.")
         coerced_transition.append(coerced_row)
 
-    return regimes, coerced_transition, regime_names
+    return normalized_regimes, coerced_transition, regime_names
 
 
 def _normalize_sleeve_constraint_scope(scope: str | None) -> str:
