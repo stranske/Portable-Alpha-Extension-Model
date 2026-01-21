@@ -197,3 +197,31 @@ def test_build_yaml_includes_advanced_simulation_settings() -> None:
         assert model_config.backend == config.backend
     finally:
         st.session_state.clear()
+
+
+def test_build_yaml_includes_regime_switching() -> None:
+    st.session_state.clear()
+    try:
+        build_yaml, _module = _load_build_yaml()
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        config.regimes = [
+            {"name": "Calm", "idx_sigma_multiplier": 0.8},
+            {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+        ]
+        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+        config.regime_start = "Calm"
+
+        yaml_dict = build_yaml(config)
+
+        assert yaml_dict["regimes"] == config.regimes
+        assert yaml_dict["regime_transition"] == config.regime_transition
+        assert yaml_dict["regime_start"] == "Calm"
+
+        model_config = ModelConfig.model_validate(yaml_dict)
+        assert model_config.regimes is not None
+        assert [regime.name for regime in model_config.regimes] == ["Calm", "Stressed"]
+        assert model_config.regime_transition == [[0.9, 0.1], [0.2, 0.8]]
+        assert model_config.regime_start == "Calm"
+    finally:
+        st.session_state.clear()

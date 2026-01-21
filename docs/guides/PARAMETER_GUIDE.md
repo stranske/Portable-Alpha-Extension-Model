@@ -40,6 +40,9 @@ The Scenario Wizard writes these settings into its YAML preview/export:
 - `financing_model`
 - `financing_schedule_path`
 - `financing_term_months`
+- `regimes`
+- `regime_transition`
+- `regime_start`
 
 ### 1. Simulation Settings
 - **Number of simulations**: Monte Carlo trials (1000+ recommended for stable results)
@@ -170,6 +173,23 @@ The calibration workflow estimates parameters directly from manager return histo
 **Data expectations**:
 - Monthly return series with a consistent date column (default: `Date`).
 - For calibration to config parameters, provide an index column plus three manager series (H/E/M) or use `--alpha-ids`.
+
+### 8b. Regime Switching via Wizard
+Use the wizard's Regime Switching panel to supply a small YAML block. Example:
+
+```yaml
+regimes:
+  - name: Calm
+    idx_sigma_multiplier: 0.8
+  - name: Stressed
+    idx_sigma_multiplier: 1.3
+regime_transition:
+  - [0.9, 0.1]
+  - [0.2, 0.8]
+regime_start: Calm
+```
+
+The wizard validates the matrix dimensions and row sums before saving the YAML.
 
 ### 9. Financing Costs (Monthly %)
 Models the cost of leverage/shorting in portable alpha:

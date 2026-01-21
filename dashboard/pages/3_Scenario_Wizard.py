@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import tempfile
 from contextlib import contextmanager
@@ -37,6 +38,10 @@ _INTERNAL_CAPITAL_KEY = "wizard_internal_pa_capital"
 _W_BETA_KEY = "wizard_w_beta_h"
 _THETA_EXTPA_KEY = "wizard_theta_extpa"
 _ACTIVE_SHARE_KEY = "wizard_active_share"
+_REGIME_ENABLED_KEY = "wizard_regime_enabled"
+_REGIMES_KEY = "wizard_regimes_yaml"
+_REGIME_TRANSITION_KEY = "wizard_regime_transition_yaml"
+_REGIME_START_KEY = "wizard_regime_start"
 
 
 def _normalize_risk_metric_defaults(metrics: list[Any]) -> list[RiskMetric]:
@@ -62,6 +67,27 @@ def _serialize_risk_metrics(metrics: list[Any]) -> list[str]:
         else:
             serialized.append(str(metric))
     return serialized
+
+
+def _serialize_regimes(regimes: list[Any]) -> list[dict[str, Any]]:
+    """Serialize regime configs into YAML-friendly dicts."""
+    serialized: list[dict[str, Any]] = []
+    for regime in regimes:
+        if hasattr(regime, "model_dump"):
+            serialized.append(regime.model_dump())
+        elif isinstance(regime, dict):
+            serialized.append(regime)
+        else:
+            raise ValueError("Regime entries must be dicts or model instances.")
+    return serialized
+
+
+def _parse_yaml_or_json(raw: str, label: str) -> Any:
+    """Parse YAML/JSON text and raise a user-friendly error on failure."""
+    try:
+        return yaml.safe_load(raw)
+    except yaml.YAMLError as exc:
+        raise ValueError(f"{label} must be valid YAML/JSON. {exc}") from exc
 
 
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
@@ -117,6 +143,9 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     correlation_repair_mode = str(config.correlation_repair_mode)
     correlation_repair_shrinkage = float(config.correlation_repair_shrinkage)
     backend = str(config.backend)
+    regimes = config.regimes
+    regime_transition = config.regime_transition
+    regime_start = config.regime_start
 
     fm = fs.get("financing_model", "simple_proxy")
     ref_sigma = float(fs.get("reference_sigma", 0.01))
@@ -167,6 +196,14 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "financing_schedule_path": (str(sched_path) if (fm == "schedule" and sched_path) else None),
         "financing_term_months": term_m,
     }
+
+    if regimes is not None:
+        if regime_transition is None:
+            raise ValueError("regime_transition is required when regimes are specified")
+        yaml_dict["regimes"] = _serialize_regimes(regimes)
+        yaml_dict["regime_transition"] = regime_transition
+        if regime_start is not None:
+            yaml_dict["regime_start"] = regime_start
 
     return yaml_dict
 
@@ -978,6 +1015,129 @@ def _render_step_3_returns_risk(config: Any) -> Any:
             index=backend_index,
             help="Select the numerical backend used for simulations.",
         )
+
+    with st.expander("Regime Switching", expanded=False):
+        st.markdown("Enable a Markov regime-switching configuration for the simulation.")
+
+        regime_enabled = st.checkbox(
+            "Enable regime switching",
+            value=bool(config.regimes),
+            key=_REGIME_ENABLED_KEY,
+        )
+
+        if not regime_enabled:
+            config.regimes = None
+            config.regime_transition = None
+            config.regime_start = None
+        else:
+            regimes_default = ""
+            if config.regimes:
+                regimes_default = yaml.safe_dump(
+                    _serialize_regimes(config.regimes),
+                    default_flow_style=False,
+                )
+            regimes_raw = st.text_area(
+                "Regimes (YAML/JSON)",
+                value=regimes_default,
+                key=_REGIMES_KEY,
+                height=180,
+                help="Provide a list of regime dicts with a unique name per regime.",
+                placeholder=(
+                    "- name: Calm\n  idx_sigma_multiplier: 0.8\n"
+                    "- name: Stressed\n  idx_sigma_multiplier: 1.3"
+                ),
+            )
+
+            transition_default = ""
+            if config.regime_transition:
+                transition_default = yaml.safe_dump(
+                    config.regime_transition,
+                    default_flow_style=False,
+                )
+            transition_raw = st.text_area(
+                "Regime transition matrix (YAML/JSON)",
+                value=transition_default,
+                key=_REGIME_TRANSITION_KEY,
+                height=140,
+                help="Square matrix with rows summing to 1.0.",
+                placeholder="- [0.9, 0.1]\n- [0.2, 0.8]",
+            )
+
+            if not regimes_raw.strip():
+                st.error("Regimes are required when regime switching is enabled.")
+                st.stop()
+            if not transition_raw.strip():
+                st.error("Transition matrix is required when regime switching is enabled.")
+                st.stop()
+
+            try:
+                regimes = _parse_yaml_or_json(regimes_raw, "Regimes")
+            except ValueError as exc:
+                st.error(str(exc))
+                st.stop()
+
+            if not isinstance(regimes, list) or not regimes:
+                st.error("Regimes must be a non-empty YAML/JSON list.")
+                st.stop()
+
+            regime_names: list[str] = []
+            for idx, regime in enumerate(regimes, start=1):
+                if not isinstance(regime, dict):
+                    st.error(f"Regime #{idx} must be a mapping with a name field.")
+                    st.stop()
+                name = regime.get("name")
+                if not name:
+                    st.error(f"Regime #{idx} is missing a name.")
+                    st.stop()
+                regime_names.append(str(name))
+
+            if len(set(regime_names)) != len(regime_names):
+                st.error("Regime names must be unique.")
+                st.stop()
+
+            try:
+                transition = _parse_yaml_or_json(transition_raw, "Transition matrix")
+            except ValueError as exc:
+                st.error(str(exc))
+                st.stop()
+
+            if not isinstance(transition, list) or not transition:
+                st.error("Transition matrix must be a non-empty list of lists.")
+                st.stop()
+
+            if len(transition) != len(regime_names) or any(
+                not isinstance(row, list) or len(row) != len(regime_names) for row in transition
+            ):
+                st.error("Transition matrix must be square and match the number of regimes.")
+                st.stop()
+
+            for row_idx, row in enumerate(transition, start=1):
+                if any(not isinstance(value, (int, float)) for value in row):
+                    st.error(f"Transition matrix row {row_idx} must contain numeric values.")
+                    st.stop()
+                if any(value < 0 or value > 1 for value in row):
+                    st.error(f"Transition matrix row {row_idx} values must be between 0 and 1.")
+                    st.stop()
+                if not math.isclose(sum(row), 1.0, abs_tol=1e-6):
+                    st.error(f"Transition matrix row {row_idx} must sum to 1.0.")
+                    st.stop()
+
+            start_options = ["(auto)"] + regime_names
+            default_start = (
+                config.regime_start if config.regime_start in regime_names else "(auto)"
+            )
+            start_index = start_options.index(default_start)
+            start_selection = st.selectbox(
+                "Starting regime (optional)",
+                options=start_options,
+                index=start_index,
+                key=_REGIME_START_KEY,
+                help="Choose the initial regime; auto uses the first regime.",
+            )
+
+            config.regimes = regimes
+            config.regime_transition = transition
+            config.regime_start = None if start_selection == "(auto)" else start_selection
 
     st.markdown("---")
     _render_sleeve_suggestor(config)
