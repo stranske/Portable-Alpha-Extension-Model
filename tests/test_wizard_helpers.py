@@ -1,9 +1,11 @@
 import runpy
+from pathlib import Path
 
 import pytest
+import streamlit as st
 
 from pa_core.config import RegimeConfig
-from pa_core.wizard_schema import RiskMetric
+from pa_core.wizard_schema import AnalysisMode, RiskMetric, get_default_config
 
 
 def _load_helpers() -> dict:
@@ -142,3 +144,48 @@ def test_validate_regime_inputs_rejects_blank_name() -> None:
 
     with pytest.raises(ValueError, match="Regime #1 is missing a name"):
         validate(regimes, transition)
+
+
+def test_validate_yaml_dict_accepts_default_config() -> None:
+    helpers = _load_helpers()
+    build_yaml = helpers["_build_yaml_from_config"]
+    validate = helpers["_validate_yaml_dict"]
+
+    st.session_state.clear()
+    try:
+        config = get_default_config(AnalysisMode.RETURNS)
+        yaml_dict = build_yaml(config)
+
+        validate(yaml_dict)
+    finally:
+        st.session_state.clear()
+
+
+def test_validate_yaml_dict_rejects_missing_terminal_shortfall() -> None:
+    helpers = _load_helpers()
+    build_yaml = helpers["_build_yaml_from_config"]
+    validate = helpers["_validate_yaml_dict"]
+
+    st.session_state.clear()
+    try:
+        config = get_default_config(AnalysisMode.RETURNS)
+        yaml_dict = build_yaml(config)
+        yaml_dict["risk_metrics"] = ["Return"]
+
+        with pytest.raises(ValueError, match="terminal_ShortfallProb"):
+            validate(yaml_dict)
+    finally:
+        st.session_state.clear()
+
+
+def test_temp_yaml_file_writes_and_cleans_up() -> None:
+    helpers = _load_helpers()
+    temp_yaml = helpers["_temp_yaml_file"]
+
+    payload = {"alpha": 1, "beta": 2}
+    with temp_yaml(payload) as path:
+        file_path = Path(path)
+        assert file_path.exists()
+        assert "alpha: 1" in file_path.read_text()
+
+    assert not file_path.exists()
