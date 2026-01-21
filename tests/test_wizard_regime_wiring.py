@@ -138,6 +138,30 @@ def test_wizard_regime_validation_rejects_non_square_transition() -> None:
         validate_regimes(regimes, transition)
 
 
+def test_wizard_regime_validation_rejects_non_numeric_transition() -> None:
+    validate_regimes = _load_validate_regimes()
+    regimes = [
+        {"name": "Calm", "idx_sigma_multiplier": 0.8},
+        {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+    ]
+    transition = [[0.9, "bad"], [0.2, 0.8]]
+
+    with pytest.raises(ValueError, match="Transition matrix row 1 must contain numeric values"):
+        validate_regimes(regimes, transition)
+
+
+def test_wizard_regime_validation_rejects_row_sum_mismatch() -> None:
+    validate_regimes = _load_validate_regimes()
+    regimes = [
+        {"name": "Calm", "idx_sigma_multiplier": 0.8},
+        {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+    ]
+    transition = [[0.6, 0.3], [0.2, 0.8]]
+
+    with pytest.raises(ValueError, match="Transition matrix row 1 must sum to 1.0"):
+        validate_regimes(regimes, transition)
+
+
 def test_wizard_regime_validation_rejects_row_sum_error() -> None:
     validate_regimes = _load_validate_regimes()
     regimes = [{"name": "Calm", "idx_sigma_multiplier": 0.8}]
