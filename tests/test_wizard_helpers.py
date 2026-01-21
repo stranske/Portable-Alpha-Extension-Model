@@ -144,6 +144,17 @@ def test_validate_regime_inputs_rejects_mapping_name_mismatch() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_non_mapping_regime() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = {"Calm": "invalid"}
+    transition = [[1.0]]
+
+    with pytest.raises(ValueError, match="Regime 'Calm' must be a mapping of fields"):
+        validate(regimes, transition)
+
+
 def test_validate_regime_inputs_rejects_out_of_range_values() -> None:
     helpers = _load_helpers()
     validate = helpers["_validate_regime_inputs"]
