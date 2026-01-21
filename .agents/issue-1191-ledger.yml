@@ -5,10 +5,10 @@ branch: codex/issue-1191
 tasks:
   - id: task-01
     title: _Not provided._
-    status: doing
+    status: done
     started_at: '2026-01-21T04:27:06Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-21T04:27:14Z'
+    commit: 7bb5f88ff6361d1dcdb4a61e0b1bb15317cfcc63
     notes: []
   - id: task-02
     title: 'Update `pa_core/wizard_schema.py`:'
