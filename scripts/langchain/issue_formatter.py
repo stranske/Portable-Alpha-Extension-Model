@@ -261,8 +261,8 @@ def _format_issue_fallback(issue_body: str) -> str:
     scope_text = join_or_placeholder(scope_lines, "_Not provided._")
     non_goals_text = join_or_placeholder(non_goals_lines, "_Not provided._")
     impl_text = join_or_placeholder(impl_lines, "_Not provided._")
-    tasks_text = join_or_placeholder(tasks_lines, "- [x] _Not provided._")
-    acceptance_text = join_or_placeholder(acceptance_lines, "- [x] _Not provided._")
+    tasks_text = join_or_placeholder(tasks_lines, "- [ ] _Not provided._")
+    acceptance_text = join_or_placeholder(acceptance_lines, "- [ ] _Not provided._")
 
     parts = [
         "## Why",
@@ -405,7 +405,7 @@ def _validate_and_refine_tasks(formatted: str, *, use_llm: bool) -> tuple[str, s
     # Build new tasks section
     new_task_lines = [f"- [ ] {task}" for task in result.tasks]
     if not new_task_lines:
-        new_task_lines = ["- [x] _Not provided._"]
+        new_task_lines = ["- [ ] _Not provided._"]
 
     # Reconstruct formatted body
     new_lines = lines[: header_idx + 1]
