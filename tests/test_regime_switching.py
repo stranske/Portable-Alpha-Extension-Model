@@ -106,6 +106,26 @@ def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
         )
 
 
+def test_simulate_regime_paths_normalizes_transition_rows() -> None:
+    transition = [[2.0, 1.0], [1.0, 3.0]]
+    normalized = [[2.0 / 3.0, 1.0 / 3.0], [1.0 / 4.0, 3.0 / 4.0]]
+    paths_raw = simulate_regime_paths(
+        n_sim=6,
+        n_months=5,
+        transition=transition,
+        start_state=0,
+        seed=321,
+    )
+    paths_normalized = simulate_regime_paths(
+        n_sim=6,
+        n_months=5,
+        transition=normalized,
+        start_state=0,
+        seed=321,
+    )
+    assert np.array_equal(paths_raw, paths_normalized)
+
+
 def test_simulate_regime_paths_clamps_cum_probs() -> None:
     class FixedRNG:
         def __init__(self, value: float) -> None:

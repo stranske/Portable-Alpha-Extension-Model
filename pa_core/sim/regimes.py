@@ -122,6 +122,7 @@ def simulate_regime_paths(
     row_sums = transition_mat.sum(axis=1)
     if np.any(row_sums <= 0.0):
         raise ValueError("transition rows must sum to a positive value")
+    transition_mat = transition_mat / row_sums[:, None]
     n_regimes = int(transition_mat.shape[0])
     if not 0 <= start_state < n_regimes:
         raise ValueError("start_state must be within regime index range")
