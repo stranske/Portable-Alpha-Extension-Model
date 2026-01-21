@@ -94,30 +94,44 @@ def _validate_regime_inputs(
     regimes: Any, transition: Any
 ) -> tuple[list[dict[str, Any]], list[list[float]], list[str]]:
     """Validate parsed regime inputs and return regime names."""
+    normalized_regimes: list[dict[str, Any]] = []
     if isinstance(regimes, dict):
         if not regimes:
             raise ValueError("Regimes must be a non-empty YAML/JSON list or mapping.")
-        normalized_regimes: list[dict[str, Any]] = []
         for name, regime in regimes.items():
-            if not name:
+            name_str = str(name).strip()
+            if not name_str:
                 raise ValueError("Regime name keys must be non-empty.")
             if not isinstance(regime, dict):
                 raise ValueError(f"Regime '{name}' must be a mapping of fields.")
+            if "name" in regime:
+                declared_name = str(regime["name"]).strip()
+                if not declared_name:
+                    raise ValueError(f"Regime '{name_str}' has an empty name field.")
+                if declared_name != name_str:
+                    raise ValueError(
+                        f"Regime name '{declared_name}' must match mapping key '{name_str}'."
+                    )
             regime_dict = dict(regime)
-            regime_dict["name"] = str(name)
+            regime_dict["name"] = name_str
             normalized_regimes.append(regime_dict)
-        regimes = normalized_regimes
-    elif not isinstance(regimes, list) or not regimes:
+    elif isinstance(regimes, list) and regimes:
+        for idx, regime in enumerate(regimes, start=1):
+            if not isinstance(regime, dict):
+                raise ValueError(f"Regime #{idx} must be a mapping with a name field.")
+            name = regime.get("name")
+            if name is None:
+                raise ValueError(f"Regime #{idx} is missing a name.")
+            name_str = str(name).strip()
+            if not name_str:
+                raise ValueError(f"Regime #{idx} is missing a name.")
+            regime_dict = dict(regime)
+            regime_dict["name"] = name_str
+            normalized_regimes.append(regime_dict)
+    else:
         raise ValueError("Regimes must be a non-empty YAML/JSON list or mapping.")
 
-    regime_names: list[str] = []
-    for idx, regime in enumerate(regimes, start=1):
-        if not isinstance(regime, dict):
-            raise ValueError(f"Regime #{idx} must be a mapping with a name field.")
-        name = regime.get("name")
-        if not name:
-            raise ValueError(f"Regime #{idx} is missing a name.")
-        regime_names.append(str(name))
+    regime_names = [regime["name"] for regime in normalized_regimes]
 
     if len(set(regime_names)) != len(regime_names):
         raise ValueError("Regime names must be unique.")
@@ -149,7 +163,7 @@ def _validate_regime_inputs(
             raise ValueError(f"Transition matrix row {row_idx} must sum to 1.0.")
         coerced_transition.append(coerced_row)
 
-    return regimes, coerced_transition, regime_names
+    return normalized_regimes, coerced_transition, regime_names
 
 
 def _normalize_sleeve_constraint_scope(scope: str | None) -> str:
@@ -284,16 +298,20 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     if regimes is not None:
         if regime_transition is None:
             raise ValueError("regime_transition is required when regimes are specified")
-        serialized_regimes = _serialize_regimes(regimes)
+        if isinstance(regimes, list):
+            normalized_input = _serialize_regimes(regimes)
+        else:
+            normalized_input = regimes
+        validated_regimes, validated_transition, regime_names = _validate_regime_inputs(
+            normalized_input, regime_transition
+        )
         if regime_start is not None:
-            regime_names = {
-                str(regime.get("name")) for regime in serialized_regimes if isinstance(regime, dict)
-            }
-            if regime_start not in regime_names:
+            regime_start_value = str(regime_start).strip()
+            if not regime_start_value or regime_start_value not in regime_names:
                 raise ValueError("regime_start must match one of the regime names")
-            yaml_dict["regime_start"] = regime_start
-        yaml_dict["regimes"] = serialized_regimes
-        yaml_dict["regime_transition"] = regime_transition
+            yaml_dict["regime_start"] = regime_start_value
+        yaml_dict["regimes"] = validated_regimes
+        yaml_dict["regime_transition"] = validated_transition
 
     return yaml_dict
 

@@ -1,37 +1,39 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #957
+> **Source:** Issue #1194
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-Issue #957 ensures sleeve constraint settings persist from the Scenario Wizard into ModelConfig, and can optionally be validated during a run.
+Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wizard helper validation and tests.
 
 #### Tasks
-- [x] Add sleeve constraint fields to `ModelConfig`.
-- [x] Add sleeve constraint defaults to `DefaultConfigView` and wire wizard state into config + YAML.
-- [x] Validate sleeve constraints on run when enabled in the facade.
-- [x] Add tests for wizard wiring and constraint validation.
-- [x] Document sleeve constraint behavior for suggestor vs run validation.
+- [x] [#1221](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1221)
+- [x] [#1194](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1194)
 
 #### Acceptance criteria
-- [x] Wizard persists sleeve constraint values into YAML and validates into `ModelConfig`.
-- [x] When `sleeve_validate_on_run=True`, violating runs fail deterministically.
-- [x] Tests cover wiring + validation paths and pass in CI.
-- [x] Documentation clarifies constraint behavior to avoid user confusion.
+- [x] Original PR: #1221
+- [x] Parent issue: #1194
 
 ## Related Issues
-- [ ] _Not provided._
+- [x] [#1221](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1221)
+- [x] [#1194](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1194)
 ## References
 - [ ] _Not provided._
 
 ## Notes
-- [x] Verified sleeve wiring + validation tests via `pytest tests/test_wizard_config_wiring.py tests/test_sleeve_constraint_validation.py -m "not slow"`.
+- [x] Verified wizard helper tests via `pytest tests/test_wizard_helpers.py -m "not slow"`.
+- [x] Verified wizard regime wiring via `pytest tests/test_wizard_regime_wiring.py -m "not slow"`.
+- [x] Verified regime model wiring via `pytest tests/test_wizard_regime_wiring.py -m "not slow"`.
+- [x] Re-verified regime input validation coverage via `pytest tests/test_wizard_helpers.py -m "not slow"`.
+- [x] Re-validated regime mapping key checks via `pytest tests/test_wizard_helpers.py -m "not slow"`.
+- [x] Added regime list validation coverage via `pytest tests/test_wizard_helpers.py -m "not slow"`.
 
 <!-- auto-status-summary:end -->
 
 ## Task Reconciliation
-- [x] Reviewed recent commits for sleeve constraint wiring + validation updates.
-- [x] Updated task checkboxes to reflect completed sleeve constraint work.
-- [x] Synced PR body with Issue #957 scope and acceptance criteria.
+- [x] Reviewed recent commits for wizard helper tests and formatting updates.
+- [x] Updated task checkboxes to reflect completed follow-up work for #1221.
+- [x] Synced PR body with Issue #1194 scope and acceptance criteria.
+- [x] Confirmed task checkboxes after adding regime mapping key coverage.
