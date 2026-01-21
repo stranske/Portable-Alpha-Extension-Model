@@ -1,0 +1,429 @@
+version: 1
+issue: 1187
+base: main
+branch: codex/issue-1187
+tasks:
+  - id: task-01
+    title: _Not provided._
+    status: done
+    started_at: '2026-01-20T18:47:13Z'
+    finished_at: '2026-01-20T18:47:22Z'
+    commit: 4819b1999cd980344392c752a9ec2466d9ff7640
+    notes: []
+  - id: task-02
+    title: Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the
+      inner `for regime_idx` loop.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Precompute `cum_probs = np.cumsum(transition_mat, axis=1)` once.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Precompute `cum_probs = np.cumsum(transition_mat (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'axis=1)` once. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'For each time step:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: draw `u = rng.random(size=n_sim)`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: gather `row_cum = cum_probs[prev_states]`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: compute `next_states = (u[:, None] <= row_cum).argmax(axis=1)`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'compute `next_states = (u[: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'None] <= row_cum).argmax(axis=1)` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: assign `paths[:, t] = next_states`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'assign `paths[: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 't] = next_states` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'Add/adjust tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: Existing regime tests continue to pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: Add a deterministic snapshot test for a small transition matrix + seed
+      (assert exact paths).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'Define approach for: Add a deterministic snapshot test for a small transition
+      matrix + seed (assert exact paths). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Define scope for: Implement: Add a deterministic snapshot test for a small
+      transition matrix + seed (assert exact paths). (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Implement focused slice for: Implement: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'Validate focused slice for: Implement: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'Define scope for: Validate: Add a deterministic snapshot test for a small
+      transition matrix + seed (assert exact paths). (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: 'Implement focused slice for: Validate: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'Validate focused slice for: Validate: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: Refactor `pa_core/sim/regimes.py::simulate_regime_paths()` to remove the
+      inner `for regime_idx` loop.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: Precompute `cum_probs = np.cumsum(transition_mat, axis=1)` once.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'Precompute `cum_probs = np.cumsum(transition_mat (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: 'axis=1)` once. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: 'For each time step:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: draw `u = rng.random(size=n_sim)`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: gather `row_cum = cum_probs[prev_states]`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: compute `next_states = (u[:, None] <= row_cum).argmax(axis=1)`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'compute `next_states = (u[: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: 'None] <= row_cum).argmax(axis=1)` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: assign `paths[:, t] = next_states`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: 'assign `paths[: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 't] = next_states` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: 'Add/adjust tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: Existing regime tests continue to pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: Add a deterministic snapshot test for a small transition matrix + seed
+      (assert exact paths).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: 'Define approach for: Add a deterministic snapshot test for a small transition
+      matrix + seed (assert exact paths). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: 'Define scope for: Implement: Add a deterministic snapshot test for a small
+      transition matrix + seed (assert exact paths). (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: 'Implement focused slice for: Implement: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: 'Validate focused slice for: Implement: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: 'Define scope for: Validate: Add a deterministic snapshot test for a small
+      transition matrix + seed (assert exact paths). (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: 'Implement focused slice for: Validate: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'Validate focused slice for: Validate: Add a deterministic snapshot test
+      for a small transition matrix + seed (assert exact paths). (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: '`simulate_regime_paths()` contains no per-regime inner loop over `n_regimes`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: Existing tests in `tests/test_regime_switching.py` pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: New deterministic snapshot test passes for a fixed seed and small dimensions.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: '`simulate_regime_paths()` contains no per-regime inner loop over `n_regimes`.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: Existing tests in `tests/test_regime_switching.py` pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: New deterministic snapshot test passes for a fixed seed and small dimensions.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

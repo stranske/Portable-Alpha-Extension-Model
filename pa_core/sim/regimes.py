@@ -121,18 +121,16 @@ def simulate_regime_paths(
         raise ValueError("start_state must be within regime index range")
     rng = ensure_rng(seed, rng)
 
+    cum_probs = np.cumsum(transition_mat, axis=1)
+    cum_probs[:, -1] = 1.0
     paths = np.empty((n_sim, n_months), dtype=int)
     paths[:, 0] = start_state
     for t in range(1, n_months):
-        prev = paths[:, t - 1]
-        for regime_idx in range(n_regimes):
-            mask = prev == regime_idx
-            count = int(mask.sum())
-            if count == 0:
-                continue
-            draws = rng.random(size=count)
-            cum_probs = np.cumsum(transition_mat[regime_idx])
-            paths[mask, t] = np.searchsorted(cum_probs, draws)
+        prev_states = paths[:, t - 1]
+        u = rng.random(size=n_sim)
+        row_cum = cum_probs[prev_states]
+        next_states = (u[:, None] <= row_cum).argmax(axis=1)
+        paths[:, t] = next_states
     return cast(npt.NDArray[Any], paths)
 
 

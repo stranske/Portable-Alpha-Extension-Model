@@ -72,6 +72,12 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `financing_mode` | `financing_mode` | `Literal['broadcast', 'per_path']` | yes |  | Financing draw mode. broadcast reuses one financing vector across all simulations; per_path draws independent financing paths per scenario. |
 | `analysis_mode` | `Analysis mode` | `<class 'str'>` | no | `returns` |  |
 | `sweep` | `sweep` | `Optional[pa_core.config.SweepConfig]` | no | `None` | Optional sweep configuration for custom parameter sampling. |
+| `sleeve_max_te` | `sleeve_max_te` | `Optional[float]` | no | `None` |  |
+| `sleeve_max_breach` | `sleeve_max_breach` | `Optional[float]` | no | `None` |  |
+| `sleeve_max_cvar` | `sleeve_max_cvar` | `Optional[float]` | no | `None` |  |
+| `sleeve_max_shortfall` | `sleeve_max_shortfall` | `Optional[float]` | no | `None` |  |
+| `sleeve_constraint_scope` | `sleeve_constraint_scope` | `Literal['total', 'per_sleeve']` | no | `total` |  |
+| `sleeve_validate_on_run` | `sleeve_validate_on_run` | `<class 'bool'>` | no | `False` |  |
 | `max_external_combined_pct` | `max_external_combined_pct` | `<class 'float'>` | no | `30.0` |  |
 | `external_step_size_pct` | `external_step_size_pct` | `<class 'float'>` | no | `5.0` |  |
 | `in_house_return_min_pct` | `in_house_return_min_pct` | `<class 'float'>` | no | `2.0` |  |

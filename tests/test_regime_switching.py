@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from pa_core.config import ModelConfig, RegimeConfig
 from pa_core.random import spawn_rngs
@@ -36,6 +37,100 @@ def test_simulate_regime_paths_respects_transition_probabilities() -> None:
     next_states = paths[:, 1]
     prob_to_state_1 = float((next_states == 1).mean())
     assert abs(prob_to_state_1 - 0.75) < 0.03
+
+
+def test_simulate_regime_paths_snapshot_seeded() -> None:
+    transition = [[0.2, 0.5, 0.3], [0.1, 0.6, 0.3], [0.4, 0.2, 0.4]]
+    paths = simulate_regime_paths(
+        n_sim=4,
+        n_months=6,
+        transition=transition,
+        start_state=1,
+        seed=1234,
+    )
+    expected = np.array(
+        [
+            [1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 2],
+            [1, 2, 0, 2, 1, 1],
+            [1, 2, 2, 2, 0, 2],
+        ],
+        dtype=int,
+    )
+    assert np.array_equal(paths, expected)
+
+
+def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
+    transition = [[1.0]]
+    with pytest.raises(ValueError, match="n_sim and n_months must be positive"):
+        simulate_regime_paths(
+            n_sim=0,
+            n_months=1,
+            transition=transition,
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="n_sim and n_months must be positive"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=0,
+            transition=transition,
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="start_state must be within regime index range"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=transition,
+            start_state=2,
+        )
+
+
+def test_simulate_regime_paths_clamps_cum_probs() -> None:
+    class FixedRNG:
+        def __init__(self, value: float) -> None:
+            self._value = float(value)
+            self.bit_generator = np.random.default_rng(0).bit_generator
+
+        def random(self, size: int | None = None) -> np.ndarray | float:
+            if size is None:
+                return self._value
+            return np.full(size, self._value, dtype=float)
+
+    epsilon = 1e-12
+    transition = [
+        [0.2, 0.3, 0.5 - epsilon],
+        [0.2, 0.3, 0.5 - epsilon],
+        [0.2, 0.3, 0.5 - epsilon],
+    ]
+    paths = simulate_regime_paths(
+        n_sim=1,
+        n_months=2,
+        transition=transition,
+        start_state=0,
+        rng=FixedRNG(1.0 - 0.5 * epsilon),
+    )
+    assert paths.tolist() == [[0, 2]]
+
+
+def test_simulate_regime_paths_prefers_rng_over_seed() -> None:
+    transition = [[0.4, 0.6], [0.3, 0.7]]
+    rng = spawn_rngs(2024, 1)[0]
+    paths_from_rng = simulate_regime_paths(
+        n_sim=3,
+        n_months=5,
+        transition=transition,
+        start_state=0,
+        seed=999,
+        rng=rng,
+    )
+    paths_from_seed = simulate_regime_paths(
+        n_sim=3,
+        n_months=5,
+        transition=transition,
+        start_state=0,
+        seed=2024,
+    )
+    assert np.array_equal(paths_from_rng, paths_from_seed)
 
 
 def test_regime_switching_increases_corr_and_vol() -> None:
