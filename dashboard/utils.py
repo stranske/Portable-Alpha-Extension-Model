@@ -10,6 +10,7 @@ from typing import Any
 import pandas as pd
 
 from pa_core.config import ModelConfig, normalize_share
+from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 
 # Keep dashboard normalization aligned with core config behavior.
 
@@ -90,10 +91,68 @@ def apply_promoted_alpha_shares(
     return False
 
 
+def run_sleeve_suggestions(
+    cfg: ModelConfig,
+    index_series: pd.Series,
+    *,
+    max_te: float,
+    max_breach: float,
+    max_cvar: float,
+    max_shortfall: float,
+    step: float,
+    max_evals: int,
+    constraint_scope: str,
+    seed: int | None,
+) -> pd.DataFrame:
+    """Run the sleeve suggestor with a shared seed."""
+    return suggest_sleeve_sizes(
+        cfg,
+        index_series,
+        max_te=max_te,
+        max_breach=max_breach,
+        max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
+        step=step,
+        max_evals=max_evals,
+        constraint_scope=constraint_scope,
+        seed=seed,
+    )
+
+
+def run_sleeve_frontier(
+    cfg: ModelConfig,
+    index_series: pd.Series,
+    *,
+    max_te: float,
+    max_breach: float,
+    max_cvar: float,
+    max_shortfall: float,
+    step: float,
+    max_evals: int,
+    constraint_scope: str,
+    seed: int | None,
+) -> pd.DataFrame:
+    """Run the sleeve frontier with a shared seed."""
+    return generate_sleeve_frontier(
+        cfg,
+        index_series,
+        max_te=max_te,
+        max_breach=max_breach,
+        max_cvar=max_cvar,
+        max_shortfall=max_shortfall,
+        step=step,
+        max_evals=max_evals,
+        constraint_scope=constraint_scope,
+        seed=seed,
+    )
+
+
 __all__ = [
     "normalize_share",
     "build_alpha_shares_payload",
     "make_grid_cache_key",
     "bump_session_token",
     "apply_promoted_alpha_shares",
+    "run_sleeve_suggestions",
+    "run_sleeve_frontier",
 ]
