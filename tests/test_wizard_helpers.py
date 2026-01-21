@@ -193,6 +193,17 @@ def test_validate_regime_inputs_rejects_blank_name() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_blank_mapping_key() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = {"   ": {"idx_sigma_multiplier": 0.8}}
+    transition = [[1.0]]
+
+    with pytest.raises(ValueError, match="Regime name keys must be non-empty"):
+        validate(regimes, transition)
+
+
 def test_validate_yaml_dict_accepts_default_config() -> None:
     helpers = _load_helpers()
     build_yaml = helpers["_build_yaml_from_config"]

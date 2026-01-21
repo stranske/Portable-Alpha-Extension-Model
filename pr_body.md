@@ -26,6 +26,7 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Verified wizard helper tests via `pytest tests/test_wizard_helpers.py -m "not slow"`.
 - [x] Verified wizard regime wiring via `pytest tests/test_wizard_regime_wiring.py -m "not slow"`.
 - [x] Re-verified regime input validation coverage via `pytest tests/test_wizard_helpers.py -m "not slow"`.
+- [x] Re-validated regime mapping key checks via `pytest tests/test_wizard_helpers.py -m "not slow"`.
 
 <!-- auto-status-summary:end -->
 
@@ -33,3 +34,4 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Reviewed recent commits for wizard helper tests and formatting updates.
 - [x] Updated task checkboxes to reflect completed follow-up work for #1221.
 - [x] Synced PR body with Issue #1194 scope and acceptance criteria.
+- [x] Confirmed task checkboxes after adding regime mapping key coverage.
