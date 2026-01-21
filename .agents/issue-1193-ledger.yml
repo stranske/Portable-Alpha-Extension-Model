@@ -5,10 +5,10 @@ branch: codex/issue-1193
 tasks:
   - id: task-01
     title: 'Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:'
-    status: doing
+    status: done
     started_at: '2026-01-21T06:05:37Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-01-21T06:05:48Z'
+    commit: 946ad7af332f059131e6f81ba0c4e73cdceb352d
     notes: []
   - id: task-02
     title: '`sleeve_max_te: float | None`'
