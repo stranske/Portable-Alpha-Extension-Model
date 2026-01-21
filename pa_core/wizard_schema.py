@@ -6,7 +6,7 @@ used by portfolio managers in the guided wizard interface.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -200,16 +200,16 @@ class DefaultConfigView:
     risk_metrics: List[str]
 
     # Advanced simulation settings
-    return_distribution: str
+    return_distribution: Literal["normal", "student_t"]
     return_t_df: float
-    return_copula: str
-    vol_regime: str
+    return_copula: Literal["gaussian", "t"]
+    vol_regime: Literal["single", "two_state"]
     vol_regime_window: int
-    covariance_shrinkage: str
-    correlation_repair_mode: str
+    covariance_shrinkage: Literal["none", "ledoit_wolf"]
+    correlation_repair_mode: Literal["error", "warn_fix"]
     correlation_repair_shrinkage: float
     correlation_repair_max_abs_delta: Optional[float]
-    backend: str
+    backend: Literal["numpy"]
 
     # Regime-switching configuration (optional)
     regimes: Optional[List[dict[str, Any]]]

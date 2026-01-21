@@ -1,22 +1,26 @@
 <!-- pr-preamble:start -->
-> **Source:** Issue #1187
+> **Source:** Issue #957
 
 <!-- pr-preamble:end -->
 
 <!-- auto-status-summary:start -->
 ## Automated Status Summary
 #### Scope
-PR #1205 addressed issue #1187 but verification identified concerns (verdict: **CONCERNS**). This follow-up addresses the remaining gaps with improved task structure.
+Issue #957 exposes advanced ModelConfig settings in the Streamlit Scenario Wizard and persists them into the wizard-generated YAML.
 
 #### Tasks
-- [x] [#1205](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1205)
-- [x] [#1187](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/1187)
+- [x] Update `DefaultConfigView` to include advanced ModelConfig fields using the CLI value sets.
+- [x] Add an advanced simulation settings UI section and wire values into the wizard config.
+- [x] Emit advanced fields into `_build_yaml_from_config()`.
+- [x] Cover advanced fields in `tests/test_wizard_schema.py` and `tests/test_wizard_config_wiring.py`.
+- [x] Update wizard coverage documentation.
 
 #### Acceptance criteria
-- [x] Refactor `simulate_regime_paths()` in `pa_core/sim/regimes.py` to remove any Python-level loops iterating over regimes and replace them with equivalent vectorized NumPy operations.
-- [x] Update `simulate_regime_paths()` to use `np.random.Generator` with a fixed seed parameter for deterministic behavior.
-- [x] Implement a deterministic snapshot test for `simulate_regime_paths()` in `tests/test_regime_switching.py` using a fixed seed and small dimensions.
-- [x] Remove unrelated changes from the PR, such as scenario wizard UI, schema/config/templates, and additional test suites.
+- [x] Wizard UI exposes the advanced settings listed in Scope.
+- [x] `_build_yaml_from_config()` includes these settings in its output dict.
+- [x] The resulting YAML dict validates into `ModelConfig` with the expected values.
+- [x] `tests/test_wizard_schema.py` and `tests/test_wizard_config_wiring.py` cover all added fields and pass in CI.
+- [x] Documentation notes the new coverage.
 
 ## Related Issues
 - [ ] _Not provided._
@@ -24,11 +28,11 @@ PR #1205 addressed issue #1187 but verification identified concerns (verdict: **
 - [ ] _Not provided._
 
 ## Notes
-- Verified regime switching tests via `pytest tests/test_regime_switching.py -m "not slow"`.
+- [x] Verified wizard schema/config wiring tests via `pytest tests/test_wizard_schema.py tests/test_wizard_config_wiring.py -m "not slow"`.
 
 <!-- auto-status-summary:end -->
 
 ## Task Reconciliation
-- [x] Reviewed recent commits for regime switching changes.
-- [x] Updated task checkboxes to reflect completed regime switching work.
-- [x] Removed unrelated wizard/config/template changes and extra test updates.
+- [x] Reviewed recent commits for wizard advanced settings and correlation repair updates.
+- [x] Updated task checkboxes to reflect completed wizard wiring work.
+- [x] Synced PR body with Issue #957 scope and acceptance criteria.

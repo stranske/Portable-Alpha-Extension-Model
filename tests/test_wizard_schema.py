@@ -2,6 +2,7 @@
 
 import pytest
 
+from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import ModelConfig
 from pa_core.wizard_schema import (
     ANALYSIS_MODE_DESCRIPTIONS,
@@ -119,6 +120,17 @@ class TestAnalysisModeDefaults:
             == model_defaults.correlation_repair_max_abs_delta
         )
         assert config.backend == model_defaults.backend
+
+    def test_default_config_advanced_settings_allowed_values(self):
+        """Test advanced defaults stay within CLI-supported value sets."""
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        assert config.return_distribution in {"normal", "student_t"}
+        assert config.return_copula in {"gaussian", "t"}
+        assert config.vol_regime in {"single", "two_state"}
+        assert config.covariance_shrinkage in {"none", "ledoit_wolf"}
+        assert config.correlation_repair_mode in {"error", "warn_fix"}
+        assert config.backend in SUPPORTED_BACKENDS
 
 
 class TestAnalysisModeProperties:
