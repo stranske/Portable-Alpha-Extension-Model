@@ -115,6 +115,13 @@ def simulate_regime_paths(
     transition_mat = np.asarray(transition, dtype=float)
     if transition_mat.ndim != 2 or transition_mat.shape[0] != transition_mat.shape[1]:
         raise ValueError("transition must be a square matrix")
+    if not np.isfinite(transition_mat).all():
+        raise ValueError("transition must contain finite probabilities")
+    if np.any(transition_mat < 0.0):
+        raise ValueError("transition probabilities must be non-negative")
+    row_sums = transition_mat.sum(axis=1)
+    if np.any(row_sums <= 0.0):
+        raise ValueError("transition rows must sum to a positive value")
     n_regimes = int(transition_mat.shape[0])
     if not 0 <= start_state < n_regimes:
         raise ValueError("start_state must be within regime index range")

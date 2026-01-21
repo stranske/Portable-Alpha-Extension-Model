@@ -83,6 +83,27 @@ def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
             transition=transition,
             start_state=2,
         )
+    with pytest.raises(ValueError, match="non-negative"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[-0.1, 1.1], [0.2, 0.8]],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="finite"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[np.nan]],
+            start_state=0,
+        )
+    with pytest.raises(ValueError, match="sum to a positive"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=1,
+            transition=[[0.0, 0.0], [0.5, 0.5]],
+            start_state=0,
+        )
 
 
 def test_simulate_regime_paths_clamps_cum_probs() -> None:
