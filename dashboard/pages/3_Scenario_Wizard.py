@@ -89,6 +89,44 @@ def _parse_yaml_or_json(raw: str, label: str) -> Any:
         raise ValueError(f"{label} must be valid YAML/JSON. {exc}") from exc
 
 
+def _validate_regime_inputs(
+    regimes: Any, transition: Any
+) -> tuple[list[dict[str, Any]], list[list[float]], list[str]]:
+    """Validate parsed regime inputs and return regime names."""
+    if not isinstance(regimes, list) or not regimes:
+        raise ValueError("Regimes must be a non-empty YAML/JSON list.")
+
+    regime_names: list[str] = []
+    for idx, regime in enumerate(regimes, start=1):
+        if not isinstance(regime, dict):
+            raise ValueError(f"Regime #{idx} must be a mapping with a name field.")
+        name = regime.get("name")
+        if not name:
+            raise ValueError(f"Regime #{idx} is missing a name.")
+        regime_names.append(str(name))
+
+    if len(set(regime_names)) != len(regime_names):
+        raise ValueError("Regime names must be unique.")
+
+    if not isinstance(transition, list) or not transition:
+        raise ValueError("Transition matrix must be a non-empty list of lists.")
+
+    if len(transition) != len(regime_names) or any(
+        not isinstance(row, list) or len(row) != len(regime_names) for row in transition
+    ):
+        raise ValueError("Transition matrix must be square and match the number of regimes.")
+
+    for row_idx, row in enumerate(transition, start=1):
+        if any(not isinstance(value, (int, float)) for value in row):
+            raise ValueError(f"Transition matrix row {row_idx} must contain numeric values.")
+        if any(value < 0 or value > 1 for value in row):
+            raise ValueError(f"Transition matrix row {row_idx} values must be between 0 and 1.")
+        if not math.isclose(sum(row), 1.0, abs_tol=1e-6):
+            raise ValueError(f"Transition matrix row {row_idx} must sum to 1.0.")
+
+    return regimes, transition, regime_names
+
+
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     """Construct a YAML-compatible dict for ModelConfig from the wizard state.
 
@@ -1106,51 +1144,18 @@ def _render_step_3_returns_risk(config: Any) -> Any:
                 st.error(str(exc))
                 st.stop()
 
-            if not isinstance(regimes, list) or not regimes:
-                st.error("Regimes must be a non-empty YAML/JSON list.")
-                st.stop()
-
-            regime_names: list[str] = []
-            for idx, regime in enumerate(regimes, start=1):
-                if not isinstance(regime, dict):
-                    st.error(f"Regime #{idx} must be a mapping with a name field.")
-                    st.stop()
-                name = regime.get("name")
-                if not name:
-                    st.error(f"Regime #{idx} is missing a name.")
-                    st.stop()
-                regime_names.append(str(name))
-
-            if len(set(regime_names)) != len(regime_names):
-                st.error("Regime names must be unique.")
-                st.stop()
-
             try:
                 transition = _parse_yaml_or_json(transition_raw, "Transition matrix")
             except ValueError as exc:
                 st.error(str(exc))
                 st.stop()
-
-            if not isinstance(transition, list) or not transition:
-                st.error("Transition matrix must be a non-empty list of lists.")
+            try:
+                regimes, transition, regime_names = _validate_regime_inputs(
+                    regimes, transition
+                )
+            except ValueError as exc:
+                st.error(str(exc))
                 st.stop()
-
-            if len(transition) != len(regime_names) or any(
-                not isinstance(row, list) or len(row) != len(regime_names) for row in transition
-            ):
-                st.error("Transition matrix must be square and match the number of regimes.")
-                st.stop()
-
-            for row_idx, row in enumerate(transition, start=1):
-                if any(not isinstance(value, (int, float)) for value in row):
-                    st.error(f"Transition matrix row {row_idx} must contain numeric values.")
-                    st.stop()
-                if any(value < 0 or value > 1 for value in row):
-                    st.error(f"Transition matrix row {row_idx} values must be between 0 and 1.")
-                    st.stop()
-                if not math.isclose(sum(row), 1.0, abs_tol=1e-6):
-                    st.error(f"Transition matrix row {row_idx} must sum to 1.0.")
-                    st.stop()
 
             start_options = ["(auto)"] + regime_names
             default_start = config.regime_start if config.regime_start in regime_names else "(auto)"
