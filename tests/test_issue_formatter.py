@@ -25,7 +25,7 @@ def test_format_issue_body_uses_checked_placeholder_for_missing_tasks() -> None:
     tasks_lines = _section_lines(formatted, "## Tasks")
     acceptance_lines = _section_lines(formatted, "## Acceptance Criteria")
 
-    assert "- [x] _Not provided._" in tasks_lines
-    assert "- [x] _Not provided._" in acceptance_lines
-    assert "- [ ] _Not provided._" not in tasks_lines
-    assert "- [ ] _Not provided._" not in acceptance_lines
+    assert "- [ ] _Not provided._" in tasks_lines
+    assert "- [ ] _Not provided._" in acceptance_lines
+    assert "- [x] _Not provided._" not in tasks_lines
+    assert "- [x] _Not provided._" not in acceptance_lines
