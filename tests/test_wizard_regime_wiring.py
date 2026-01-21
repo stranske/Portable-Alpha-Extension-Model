@@ -112,6 +112,21 @@ def test_wizard_regime_validation_accepts_mapping_inputs() -> None:
     assert regime_names == ["Calm", "Stressed"]
 
 
+def test_wizard_regime_validation_accepts_tuple_transition() -> None:
+    validate_regimes = _load_validate_regimes()
+    regimes = [
+        {"name": "Calm", "idx_sigma_multiplier": 0.8},
+        {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+    ]
+    transition = ((0.9, 0.1), (0.2, 0.8))
+
+    validated_regimes, validated_transition, regime_names = validate_regimes(regimes, transition)
+
+    assert validated_regimes == regimes
+    assert validated_transition == [[0.9, 0.1], [0.2, 0.8]]
+    assert regime_names == ["Calm", "Stressed"]
+
+
 def test_wizard_regime_validation_rejects_non_square_transition() -> None:
     validate_regimes = _load_validate_regimes()
     regimes = [{"name": "Calm", "idx_sigma_multiplier": 0.8}]

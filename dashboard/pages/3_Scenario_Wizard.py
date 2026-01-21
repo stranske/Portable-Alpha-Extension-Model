@@ -121,23 +121,34 @@ def _validate_regime_inputs(
     if len(set(regime_names)) != len(regime_names):
         raise ValueError("Regime names must be unique.")
 
-    if not isinstance(transition, list) or not transition:
+    if not isinstance(transition, (list, tuple)) or not transition:
         raise ValueError("Transition matrix must be a non-empty list of lists.")
 
-    if len(transition) != len(regime_names) or any(
-        not isinstance(row, list) or len(row) != len(regime_names) for row in transition
+    normalized_transition: list[list[float]] = []
+    for row in transition:
+        if isinstance(row, tuple):
+            row = list(row)
+        if not isinstance(row, list):
+            raise ValueError("Transition matrix must be a non-empty list of lists.")
+        normalized_transition.append(row)
+
+    if len(normalized_transition) != len(regime_names) or any(
+        len(row) != len(regime_names) for row in normalized_transition
     ):
         raise ValueError("Transition matrix must be square and match the number of regimes.")
 
-    for row_idx, row in enumerate(transition, start=1):
+    coerced_transition: list[list[float]] = []
+    for row_idx, row in enumerate(normalized_transition, start=1):
         if any(not isinstance(value, (int, float)) for value in row):
             raise ValueError(f"Transition matrix row {row_idx} must contain numeric values.")
-        if any(value < 0 or value > 1 for value in row):
+        coerced_row = [float(value) for value in row]
+        if any(value < 0 or value > 1 for value in coerced_row):
             raise ValueError(f"Transition matrix row {row_idx} values must be between 0 and 1.")
-        if not math.isclose(sum(row), 1.0, abs_tol=1e-6):
+        if not math.isclose(sum(coerced_row), 1.0, abs_tol=1e-6):
             raise ValueError(f"Transition matrix row {row_idx} must sum to 1.0.")
+        coerced_transition.append(coerced_row)
 
-    return regimes, transition, regime_names
+    return regimes, coerced_transition, regime_names
 
 
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
