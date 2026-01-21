@@ -732,7 +732,11 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             "total": "Total portfolio constraints",
             "both": "Sleeves + total constraints",
         }
-        current_scope = st.session_state.get("sleeve_constraint_scope", "sleeves")
+        current_scope = st.session_state.get("sleeve_constraint_scope")
+        if current_scope is None:
+            current_scope = (
+                "sleeves" if config.sleeve_constraint_scope == "per_sleeve" else "total"
+            )
         if current_scope not in scope_labels:
             current_scope = "sleeves"
         scope_index = list(scope_labels.keys()).index(current_scope)
