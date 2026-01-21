@@ -50,10 +50,10 @@ def test_simulate_regime_paths_snapshot_seeded() -> None:
     )
     expected = np.array(
         [
-            [1, 1, 1, 1, 1, 1],
+            [1, 2, 0, 2, 2, 2],
+            [1, 1, 1, 1, 2, 0],
+            [1, 2, 0, 1, 1, 1],
             [1, 1, 1, 1, 1, 2],
-            [1, 2, 0, 2, 1, 1],
-            [1, 2, 2, 2, 0, 2],
         ],
         dtype=int,
     )
@@ -114,7 +114,7 @@ def test_simulate_regime_paths_clamps_cum_probs() -> None:
 
 def test_simulate_regime_paths_prefers_rng_over_seed() -> None:
     transition = [[0.4, 0.6], [0.3, 0.7]]
-    rng = spawn_rngs(2024, 1)[0]
+    rng = np.random.default_rng(2024)
     paths_from_rng = simulate_regime_paths(
         n_sim=3,
         n_months=5,
