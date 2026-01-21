@@ -272,7 +272,7 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         correlation_repair_mode=m.correlation_repair_mode,
         correlation_repair_shrinkage=m.correlation_repair_shrinkage,
         backend=m.backend,
-        regimes=m.regimes,
+        regimes=[regime.model_dump() for regime in m.regimes] if m.regimes else None,
         regime_transition=m.regime_transition,
         regime_start=m.regime_start,
     )
