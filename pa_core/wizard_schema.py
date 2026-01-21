@@ -199,6 +199,14 @@ class DefaultConfigView:
     # Risk metrics
     risk_metrics: List[str]
 
+    # Sleeve constraint defaults
+    sleeve_max_te: Optional[float]
+    sleeve_max_breach: Optional[float]
+    sleeve_max_cvar: Optional[float]
+    sleeve_max_shortfall: Optional[float]
+    sleeve_constraint_scope: Literal["total", "per_sleeve"]
+    sleeve_validate_on_run: bool
+
     # Advanced simulation settings
     return_distribution: Literal["normal", "student_t"]
     return_t_df: float
@@ -263,6 +271,13 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         rho_e_m=m.rho_E_M,
         # Risk metrics
         risk_metrics=m.risk_metrics,
+        # Sleeve constraint defaults
+        sleeve_max_te=m.sleeve_max_te,
+        sleeve_max_breach=m.sleeve_max_breach,
+        sleeve_max_cvar=m.sleeve_max_cvar,
+        sleeve_max_shortfall=m.sleeve_max_shortfall,
+        sleeve_constraint_scope=m.sleeve_constraint_scope,
+        sleeve_validate_on_run=m.sleeve_validate_on_run,
         # Advanced simulation settings
         return_distribution=cast(Literal["normal", "student_t"], m.return_distribution),
         return_t_df=m.return_t_df,

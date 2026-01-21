@@ -151,6 +151,12 @@ def _validate_regime_inputs(
     return regimes, coerced_transition, regime_names
 
 
+def _normalize_sleeve_constraint_scope(scope: str | None) -> str:
+    if scope in ("sleeves", "per_sleeve"):
+        return "per_sleeve"
+    return "total"
+
+
 def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     """Construct a YAML-compatible dict for ModelConfig from the wizard state.
 
@@ -194,6 +200,14 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     rho_e_m = float(config.rho_e_m)
 
     risk_metrics = _serialize_risk_metrics(config.risk_metrics)
+    sleeve_max_te = ss.get("sleeve_max_te", config.sleeve_max_te)
+    sleeve_max_breach = ss.get("sleeve_max_breach", config.sleeve_max_breach)
+    sleeve_max_cvar = ss.get("sleeve_max_cvar", config.sleeve_max_cvar)
+    sleeve_max_shortfall = ss.get("sleeve_max_shortfall", config.sleeve_max_shortfall)
+    sleeve_constraint_scope = _normalize_sleeve_constraint_scope(
+        ss.get("sleeve_constraint_scope", config.sleeve_constraint_scope)
+    )
+    sleeve_validate_on_run = bool(ss.get("sleeve_validate_on_run", config.sleeve_validate_on_run))
 
     return_distribution = str(config.return_distribution)
     return_t_df = float(config.return_t_df)
@@ -243,6 +257,12 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "rho_H_M": rho_h_m,
         "rho_E_M": rho_e_m,
         "risk_metrics": risk_metrics,
+        "sleeve_max_te": sleeve_max_te,
+        "sleeve_max_breach": sleeve_max_breach,
+        "sleeve_max_cvar": sleeve_max_cvar,
+        "sleeve_max_shortfall": sleeve_max_shortfall,
+        "sleeve_constraint_scope": sleeve_constraint_scope,
+        "sleeve_validate_on_run": sleeve_validate_on_run,
         "return_distribution": return_distribution,
         "return_t_df": return_t_df,
         "return_copula": return_copula,
@@ -712,7 +732,9 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             "total": "Total portfolio constraints",
             "both": "Sleeves + total constraints",
         }
-        current_scope = st.session_state.get("sleeve_constraint_scope", "sleeves")
+        current_scope = st.session_state.get("sleeve_constraint_scope")
+        if current_scope is None:
+            current_scope = "sleeves" if config.sleeve_constraint_scope == "per_sleeve" else "total"
         if current_scope not in scope_labels:
             current_scope = "sleeves"
         scope_index = list(scope_labels.keys()).index(current_scope)
@@ -722,6 +744,12 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             index=scope_index,
             format_func=lambda x: scope_labels[x],
             key="sleeve_constraint_scope",
+        )
+        st.checkbox(
+            "Validate constraints on run",
+            value=st.session_state.get("sleeve_validate_on_run", config.sleeve_validate_on_run),
+            key="sleeve_validate_on_run",
+            help="Raise an error if run results violate the sleeve constraints.",
         )
 
     constraints = {
@@ -733,6 +761,17 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         "max_evals": int(st.session_state["sleeve_max_evals"]),
         "constraint_scope": st.session_state["sleeve_constraint_scope"],
     }
+
+    config.sleeve_max_te = float(st.session_state["sleeve_max_te"])
+    config.sleeve_max_breach = float(st.session_state["sleeve_max_breach"])
+    config.sleeve_max_cvar = float(st.session_state["sleeve_max_cvar"])
+    config.sleeve_max_shortfall = float(st.session_state["sleeve_max_shortfall"])
+    config.sleeve_constraint_scope = _normalize_sleeve_constraint_scope(
+        st.session_state["sleeve_constraint_scope"]
+    )
+    config.sleeve_validate_on_run = bool(
+        st.session_state.get("sleeve_validate_on_run", config.sleeve_validate_on_run)
+    )
 
     if st.button("Run Suggestor"):
         yaml_dict = _build_yaml_from_config(config)

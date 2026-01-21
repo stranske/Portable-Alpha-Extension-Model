@@ -1439,6 +1439,8 @@ Attribution results are available in:
 
 The sleeve suggestor proposes feasible ExternalPA / ActiveExt / InternalPA capital combinations that satisfy risk constraints. By default it uses a grid search, but you can enable an optimizer (requires SciPy) that uses a coarse convex surrogate to target higher‑return allocations, with automatic fallback to the grid if the optimizer fails.
 
+The constraint inputs above are always used by the suggestor. If you also want a single run to fail when constraints are breached, set `sleeve_validate_on_run: true` in the scenario config and choose a `sleeve_constraint_scope` (`total` or `per_sleeve`) alongside the `sleeve_max_*` limits.
+
 Interactive suggest‑and‑apply flow:
 
 ```bash

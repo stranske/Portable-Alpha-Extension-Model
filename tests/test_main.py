@@ -50,6 +50,12 @@ class DummyConfig:
     vol_regime: str = "single"
     vol_regime_window: int = 12
     covariance_shrinkage: str = "none"
+    sleeve_max_te: float | None = None
+    sleeve_max_breach: float | None = None
+    sleeve_max_cvar: float | None = None
+    sleeve_max_shortfall: float | None = None
+    sleeve_constraint_scope: str = "total"
+    sleeve_validate_on_run: bool = False
     regimes: Any = None
     regime_start: Any = None
     regime_transition: Any = None

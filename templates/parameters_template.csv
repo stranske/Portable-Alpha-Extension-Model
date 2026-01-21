@@ -85,3 +85,9 @@ regimes,
 regime_start,
 regime_transition,
 risk_metrics,Return;Risk;terminal_ShortfallProb
+sleeve_max_te,
+sleeve_max_breach,
+sleeve_max_cvar,
+sleeve_max_shortfall,
+sleeve_constraint_scope,total
+sleeve_validate_on_run,False

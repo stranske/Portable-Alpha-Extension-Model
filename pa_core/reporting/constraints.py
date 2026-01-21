@@ -5,9 +5,10 @@ from typing import Iterable
 
 import pandas as pd
 
+from ..config import ModelConfig
 from ..sleeve_suggestor import SLEEVE_AGENTS
 
-__all__ = ["build_constraint_report"]
+__all__ = ["build_constraint_report", "validate_sleeve_constraints"]
 
 
 @dataclass(frozen=True)
@@ -84,3 +85,54 @@ def build_constraint_report(
             )
 
     return pd.DataFrame(rows)
+
+
+def validate_sleeve_constraints(
+    summary_df: pd.DataFrame,
+    cfg: ModelConfig,
+    *,
+    sleeves: Iterable[str] = SLEEVE_AGENTS,
+    total_agent: str = "Total",
+) -> list[str]:
+    """Return human-readable violations for sleeve constraints."""
+    if summary_df.empty or "Agent" not in summary_df.columns:
+        return []
+
+    specs = [
+        ("Tracking error", "monthly_TE", cfg.sleeve_max_te),
+        ("Breach probability", "monthly_BreachProb", cfg.sleeve_max_breach),
+        ("Monthly CVaR", "monthly_CVaR", cfg.sleeve_max_cvar),
+        ("Terminal shortfall probability", "terminal_ShortfallProb", cfg.sleeve_max_shortfall),
+    ]
+    active_specs = [spec for spec in specs if spec[2] is not None]
+    if not active_specs:
+        return []
+
+    if cfg.sleeve_constraint_scope == "total":
+        agent_names = [total_agent]
+    else:
+        sleeve_set = {str(agent) for agent in sleeves}
+        agent_names = [
+            str(agent) for agent in summary_df["Agent"].astype(str) if str(agent) in sleeve_set
+        ]
+
+    if not agent_names:
+        return []
+
+    violations: list[str] = []
+    agent_rows = summary_df[summary_df["Agent"].isin(agent_names)]
+    for _, row in agent_rows.iterrows():
+        agent = str(row["Agent"])
+        for label, metric, limit in active_specs:
+            if metric not in summary_df.columns or limit is None:
+                continue
+            value = pd.to_numeric(row.get(metric), errors="coerce")
+            if pd.isna(value):
+                continue
+            if float(value) <= float(limit):
+                continue
+            violations.append(
+                f"{agent} {metric}={float(value):.6g} exceeds {label} limit {float(limit):.6g}"
+            )
+
+    return violations
