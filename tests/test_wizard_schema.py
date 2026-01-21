@@ -9,6 +9,7 @@ from pa_core.wizard_schema import (
     RiskMetric,
     get_default_config,
 )
+from pa_core.config import ModelConfig
 
 
 class TestAnalysisMode:
@@ -97,6 +98,27 @@ class TestAnalysisModeDefaults:
         assert config.sigma_h <= returns_config.sigma_h
         assert config.sigma_e <= returns_config.sigma_e
         assert config.sigma_m <= returns_config.sigma_m
+
+    def test_default_config_includes_advanced_model_defaults(self):
+        """Test advanced defaults match ModelConfig defaults."""
+        config = get_default_config(AnalysisMode.RETURNS)
+        model_defaults = ModelConfig.model_validate(
+            {"Number of simulations": 1, "Number of months": 1, "financing_mode": "broadcast"}
+        )
+
+        assert config.return_distribution == model_defaults.return_distribution
+        assert config.return_t_df == model_defaults.return_t_df
+        assert config.return_copula == model_defaults.return_copula
+        assert config.vol_regime == model_defaults.vol_regime
+        assert config.vol_regime_window == model_defaults.vol_regime_window
+        assert config.covariance_shrinkage == model_defaults.covariance_shrinkage
+        assert config.correlation_repair_mode == model_defaults.correlation_repair_mode
+        assert config.correlation_repair_shrinkage == model_defaults.correlation_repair_shrinkage
+        assert (
+            config.correlation_repair_max_abs_delta
+            == model_defaults.correlation_repair_max_abs_delta
+        )
+        assert config.backend == model_defaults.backend
 
 
 class TestAnalysisModeProperties:

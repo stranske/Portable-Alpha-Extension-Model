@@ -142,6 +142,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     covariance_shrinkage = str(config.covariance_shrinkage)
     correlation_repair_mode = str(config.correlation_repair_mode)
     correlation_repair_shrinkage = float(config.correlation_repair_shrinkage)
+    correlation_repair_max_abs_delta = config.correlation_repair_max_abs_delta
     backend = str(config.backend)
     regimes = config.regimes
     regime_transition = config.regime_transition
@@ -189,6 +190,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
         "covariance_shrinkage": covariance_shrinkage,
         "correlation_repair_mode": correlation_repair_mode,
         "correlation_repair_shrinkage": correlation_repair_shrinkage,
+        "correlation_repair_max_abs_delta": correlation_repair_max_abs_delta,
         "backend": backend,
         "reference_sigma": ref_sigma,
         "volatility_multiple": vol_mult,
@@ -1003,6 +1005,28 @@ def _render_step_3_returns_risk(config: Any) -> Any:
             step=0.05,
             help="Shrinkage toward identity before repairing correlations.",
         )
+
+        max_delta_enabled = st.checkbox(
+            "Enforce max correlation repair delta",
+            value=config.correlation_repair_max_abs_delta is not None,
+            help="Fail validation if repaired correlations move too far from the original matrix.",
+        )
+        if max_delta_enabled:
+            max_delta_default = (
+                float(config.correlation_repair_max_abs_delta)
+                if config.correlation_repair_max_abs_delta is not None
+                else 0.0
+            )
+            config.correlation_repair_max_abs_delta = st.number_input(
+                "Correlation repair max abs delta",
+                min_value=0.0,
+                value=max_delta_default,
+                step=0.01,
+                format="%.2f",
+                help="Maximum absolute delta allowed after correlation repair.",
+            )
+        else:
+            config.correlation_repair_max_abs_delta = None
 
         st.markdown("**Backend:**")
         backend_options = list(SUPPORTED_BACKENDS)

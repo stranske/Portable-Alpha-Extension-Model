@@ -171,6 +171,7 @@ def test_build_yaml_includes_advanced_simulation_settings() -> None:
         config.covariance_shrinkage = "ledoit_wolf"
         config.correlation_repair_mode = "warn_fix"
         config.correlation_repair_shrinkage = 0.2
+        config.correlation_repair_max_abs_delta = 0.25
         config.backend = list(SUPPORTED_BACKENDS)[0]
 
         yaml_dict = build_yaml(config)
@@ -183,6 +184,7 @@ def test_build_yaml_includes_advanced_simulation_settings() -> None:
         assert yaml_dict["covariance_shrinkage"] == "ledoit_wolf"
         assert yaml_dict["correlation_repair_mode"] == "warn_fix"
         assert yaml_dict["correlation_repair_shrinkage"] == 0.2
+        assert yaml_dict["correlation_repair_max_abs_delta"] == 0.25
         assert yaml_dict["backend"] == config.backend
 
         model_config = ModelConfig.model_validate(yaml_dict)
@@ -194,6 +196,7 @@ def test_build_yaml_includes_advanced_simulation_settings() -> None:
         assert model_config.covariance_shrinkage == "ledoit_wolf"
         assert model_config.correlation_repair_mode == "warn_fix"
         assert model_config.correlation_repair_shrinkage == 0.2
+        assert model_config.correlation_repair_max_abs_delta == 0.25
         assert model_config.backend == config.backend
     finally:
         st.session_state.clear()

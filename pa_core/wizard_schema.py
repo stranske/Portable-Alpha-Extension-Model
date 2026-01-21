@@ -208,6 +208,7 @@ class DefaultConfigView:
     covariance_shrinkage: str
     correlation_repair_mode: str
     correlation_repair_shrinkage: float
+    correlation_repair_max_abs_delta: Optional[float]
     backend: str
 
     # Regime-switching configuration (optional)
@@ -271,6 +272,7 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
         covariance_shrinkage=m.covariance_shrinkage,
         correlation_repair_mode=m.correlation_repair_mode,
         correlation_repair_shrinkage=m.correlation_repair_shrinkage,
+        correlation_repair_max_abs_delta=m.correlation_repair_max_abs_delta,
         backend=m.backend,
         regimes=[regime.model_dump() for regime in m.regimes] if m.regimes else None,
         regime_transition=m.regime_transition,
