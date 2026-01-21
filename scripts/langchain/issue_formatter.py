@@ -37,7 +37,7 @@ Rules:
 - Every task/criterion must be specific, verifiable, and sized for ~10 minutes.
 - Use unchecked checkboxes: "- [ ]".
 - Preserve file paths and concrete details when mentioned.
-- If a section lacks content, use "_Not provided._" (or "- [x] _Not provided._"
+- If a section lacks content, use "_Not provided._" (or "- [ ] _Not provided._"
   for Tasks/Acceptance).
 - Output ONLY the formatted markdown with these sections (no extra commentary).
 
