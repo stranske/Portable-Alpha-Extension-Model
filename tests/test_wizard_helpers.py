@@ -108,6 +108,28 @@ def test_validate_regime_inputs_rejects_duplicate_names() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_empty_regimes() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = []
+    transition = []
+
+    with pytest.raises(ValueError, match="Regimes must be a non-empty YAML/JSON list or mapping"):
+        validate(regimes, transition)
+
+
+def test_validate_regime_inputs_rejects_empty_transition() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "Calm"}]
+    transition = []
+
+    with pytest.raises(ValueError, match="Transition matrix must be a non-empty list of lists"):
+        validate(regimes, transition)
+
+
 def test_validate_regime_inputs_rejects_mapping_name_mismatch() -> None:
     helpers = _load_helpers()
     validate = helpers["_validate_regime_inputs"]
@@ -119,6 +141,19 @@ def test_validate_regime_inputs_rejects_mapping_name_mismatch() -> None:
     transition = [[0.9, 0.1], [0.2, 0.8]]
 
     with pytest.raises(ValueError, match="Regime name 'Stressed' must match mapping key"):
+        validate(regimes, transition)
+
+
+def test_validate_regime_inputs_rejects_out_of_range_values() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "Calm"}, {"name": "Stress"}]
+    transition = [[1.2, -0.2], [0.2, 0.8]]
+
+    with pytest.raises(
+        ValueError, match="Transition matrix row 1 values must be between 0 and 1"
+    ):
         validate(regimes, transition)
 
 
