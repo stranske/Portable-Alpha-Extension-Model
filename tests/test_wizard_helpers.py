@@ -76,3 +76,42 @@ def test_normalize_sleeve_constraint_scope_maps_aliases() -> None:
     assert normalize("per_sleeve") == "per_sleeve"
     assert normalize("total") == "total"
     assert normalize(None) == "total"
+
+
+def test_validate_regime_inputs_accepts_mapping_and_transition() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = {
+        "Calm": {"idx_sigma_multiplier": 0.8},
+        "Stress": {"idx_sigma_multiplier": 1.2},
+    }
+    transition = [[0.9, 0.1], [0.2, 0.8]]
+
+    normalized, matrix, names = validate(regimes, transition)
+
+    assert [regime["name"] for regime in normalized] == ["Calm", "Stress"]
+    assert matrix == transition
+    assert names == ["Calm", "Stress"]
+
+
+def test_validate_regime_inputs_rejects_duplicate_names() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "Calm"}, {"name": "Calm"}]
+    transition = [[0.6, 0.4], [0.3, 0.7]]
+
+    with pytest.raises(ValueError, match="Regime names must be unique"):
+        validate(regimes, transition)
+
+
+def test_validate_regime_inputs_rejects_non_square_transition() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "Calm"}, {"name": "Stress"}]
+    transition = [[1.0], [0.2, 0.8]]
+
+    with pytest.raises(ValueError, match="Transition matrix must be square"):
+        validate(regimes, transition)
