@@ -2,6 +2,7 @@
 
 import pytest
 
+from pa_core.config import ModelConfig
 from pa_core.wizard_schema import (
     ANALYSIS_MODE_DESCRIPTIONS,
     ANALYSIS_MODE_DISPLAY_NAMES,
@@ -9,7 +10,6 @@ from pa_core.wizard_schema import (
     RiskMetric,
     get_default_config,
 )
-from pa_core.config import ModelConfig
 
 
 class TestAnalysisMode:
