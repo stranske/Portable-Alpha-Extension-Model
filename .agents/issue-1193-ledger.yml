@@ -1,0 +1,1641 @@
+version: 1
+issue: 1193
+base: main
+branch: codex/issue-1193
+tasks:
+  - id: task-01
+    title: 'Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:'
+    status: doing
+    started_at: '2026-01-21T06:05:37Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: '`sleeve_max_te: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: '`sleeve_max_breach: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: '`sleeve_max_cvar: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: '`sleeve_max_shortfall: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: '`sleeve_constraint_scope: Literal["total", "per_sleeve"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: '`sleeve_constraint_scope: Literal["total" (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: '"per_sleeve"]` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: '`sleeve_validate_on_run: bool` (default False)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: Add these fields to `DefaultConfigView` with sensible defaults (None +
+      total + False).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Split into smaller (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'single-action tasks (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: Wire existing UI inputs (already in session_state) into the config view.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: "Add a checkbox \u201CValidate constraints on run\u201D that maps to `sleeve_validate_on_run`."
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: Emit the sleeve constraint fields into the YAML dict.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Implement validation on run (facade layer):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Add `validate_sleeve_constraints(summary_df: pd.DataFrame, cfg: ModelConfig)
+      -> list[str]` (return list of violations) in `pa_core/reporting/constraints.py`
+      (or a new module).'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'Define scope for: Add `validate_sleeve_constraints(summary_df: pd.DataFrame
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'Implement focused slice for: Add `validate_sleeve_constraints(summary_df:
+      pd.DataFrame (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: 'Validate focused slice for: Add `validate_sleeve_constraints(summary_df:
+      pd.DataFrame (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'Define scope for: cfg: ModelConfig) -> list[str]` (return list of violations)
+      in `pa_core/reporting/constraints.py` (or a new module). (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: 'Implement focused slice for: cfg: ModelConfig) -> list[str]` (return list
+      of violations) in `pa_core/reporting/constraints.py` (or a new module). (verify:
+      config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Validate focused slice for: cfg: ModelConfig) -> list[str]` (return list
+      of violations) in `pa_core/reporting/constraints.py` (or a new module). (verify:
+      config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: 'In `pa_core/facade.run_single()`, after `summary_table()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'In `pa_core/facade.run_single()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: 'after `summary_table()`: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: If `cfg.sleeve_validate_on_run` is True, evaluate constraints.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: 'Define scope for: If `cfg.sleeve_validate_on_run` is True (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: 'Implement focused slice for: If `cfg.sleeve_validate_on_run` is True (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: 'Validate focused slice for: If `cfg.sleeve_validate_on_run` is True (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'evaluate constraints. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: 'If violations exist:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: raise `ValueError` with a readable multi-line summary of violations
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: OR (if preferred) attach violations to inputs metadata and print a warning
+      (choose one; default should be explicit and testable).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 'Define scope for: OR (if preferred) attach violations to inputs metadata
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: 'Implement focused slice for: OR (if preferred) attach violations to inputs
+      metadata (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: 'Validate focused slice for: OR (if preferred) attach violations to inputs
+      metadata (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: 'print a warning (choose one (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: 'default should be explicit (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: 'testable). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: Extend `tests/test_wizard_config_wiring.py` to assert the new fields appear
+      in YAML dict and validate into `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: 'Define scope for: Extend `tests/test_wizard_config_wiring.py` to assert
+      the new fields appear in YAML dict (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: 'Implement focused slice for: Extend `tests/test_wizard_config_wiring.py`
+      to assert the new fields appear in YAML dict (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'Validate focused slice for: Extend `tests/test_wizard_config_wiring.py`
+      to assert the new fields appear in YAML dict (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'validate into `ModelConfig`. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: 'Add `tests/test_sleeve_constraint_validation.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: Provide a fake summary DataFrame with `monthly_TE`, `monthly_BreachProb`,
+      `monthly_CVaR`, `terminal_ShortfallProb` columns (or the canonical column names
+      used by your constraints utilities).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: 'Define scope for: Provide a fake summary DataFrame with `monthly_TE` (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `monthly_TE`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `monthly_TE`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: 'Define scope for: Provide a fake summary DataFrame with `monthly_BreachProb`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `monthly_BreachProb`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `monthly_BreachProb`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: 'Define scope for: Provide a fake summary DataFrame with `monthly_CVaR`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `monthly_CVaR`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `monthly_CVaR`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: 'Define scope for: Provide a fake summary DataFrame with `terminal_ShortfallProb`
+      columns (or the canonical column names used by your constraints utilities).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `terminal_ShortfallProb`
+      columns (or the canonical column names used by your constraints utilities).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `terminal_ShortfallProb`
+      columns (or the canonical column names used by your constraints utilities).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: Confirm violations are detected correctly for both `total` and `per_sleeve`
+      scope.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: 'Define scope for: Confirm violations are detected correctly for both `total`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: 'Implement focused slice for: Confirm violations are detected correctly
+      for both `total` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: 'Validate focused slice for: Confirm violations are detected correctly
+      for both `total` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: '`per_sleeve` scope. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: Confirm `run_single()` raises when `sleeve_validate_on_run=True` and violations
+      exist.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: 'Define scope for: Confirm `run_single()` raises when `sleeve_validate_on_run=True`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: 'Implement focused slice for: Confirm `run_single()` raises when `sleeve_validate_on_run=True`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: 'Validate focused slice for: Confirm `run_single()` raises when `sleeve_validate_on_run=True`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'violations exist. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: 'Update docs to state clearly:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: constraints are used by suggestor
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-77
+    title: constraints can optionally be validated for a single run when enabled
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-78
+    title: 'Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-79
+    title: '`sleeve_max_te: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-80
+    title: '`sleeve_max_breach: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-81
+    title: '`sleeve_max_cvar: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-82
+    title: '`sleeve_max_shortfall: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-83
+    title: '`sleeve_constraint_scope: Literal["total", "per_sleeve"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-84
+    title: '`sleeve_constraint_scope: Literal["total" (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-85
+    title: '"per_sleeve"]` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-86
+    title: '`sleeve_validate_on_run: bool` (default False)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-87
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-88
+    title: Add these fields to `DefaultConfigView` with sensible defaults (None +
+      total + False).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-89
+    title: 'Split into smaller (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-90
+    title: 'single-action tasks (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-91
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-92
+    title: Wire existing UI inputs (already in session_state) into the config view.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-93
+    title: "Add a checkbox \u201CValidate constraints on run\u201D that maps to `sleeve_validate_on_run`."
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-94
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-95
+    title: Emit the sleeve constraint fields into the YAML dict.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-96
+    title: 'Implement validation on run (facade layer):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-97
+    title: 'Add `validate_sleeve_constraints(summary_df: pd.DataFrame, cfg: ModelConfig)
+      -> list[str]` (return list of violations) in `pa_core/reporting/constraints.py`
+      (or a new module).'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-98
+    title: 'Define scope for: Add `validate_sleeve_constraints(summary_df: pd.DataFrame
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-99
+    title: 'Implement focused slice for: Add `validate_sleeve_constraints(summary_df:
+      pd.DataFrame (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-100
+    title: 'Validate focused slice for: Add `validate_sleeve_constraints(summary_df:
+      pd.DataFrame (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-101
+    title: 'Define scope for: cfg: ModelConfig) -> list[str]` (return list of violations)
+      in `pa_core/reporting/constraints.py` (or a new module). (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-102
+    title: 'Implement focused slice for: cfg: ModelConfig) -> list[str]` (return list
+      of violations) in `pa_core/reporting/constraints.py` (or a new module). (verify:
+      config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-103
+    title: 'Validate focused slice for: cfg: ModelConfig) -> list[str]` (return list
+      of violations) in `pa_core/reporting/constraints.py` (or a new module). (verify:
+      config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-104
+    title: 'In `pa_core/facade.run_single()`, after `summary_table()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-105
+    title: 'In `pa_core/facade.run_single()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-106
+    title: 'after `summary_table()`: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-107
+    title: If `cfg.sleeve_validate_on_run` is True, evaluate constraints.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-108
+    title: 'Define scope for: If `cfg.sleeve_validate_on_run` is True (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-109
+    title: 'Implement focused slice for: If `cfg.sleeve_validate_on_run` is True (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-110
+    title: 'Validate focused slice for: If `cfg.sleeve_validate_on_run` is True (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-111
+    title: 'evaluate constraints. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-112
+    title: 'If violations exist:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-113
+    title: raise `ValueError` with a readable multi-line summary of violations
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-114
+    title: OR (if preferred) attach violations to inputs metadata and print a warning
+      (choose one; default should be explicit and testable).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-115
+    title: 'Define scope for: OR (if preferred) attach violations to inputs metadata
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-116
+    title: 'Implement focused slice for: OR (if preferred) attach violations to inputs
+      metadata (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-117
+    title: 'Validate focused slice for: OR (if preferred) attach violations to inputs
+      metadata (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-118
+    title: 'print a warning (choose one (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-119
+    title: 'default should be explicit (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-120
+    title: 'testable). (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-121
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-122
+    title: Extend `tests/test_wizard_config_wiring.py` to assert the new fields appear
+      in YAML dict and validate into `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-123
+    title: 'Define scope for: Extend `tests/test_wizard_config_wiring.py` to assert
+      the new fields appear in YAML dict (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-124
+    title: 'Implement focused slice for: Extend `tests/test_wizard_config_wiring.py`
+      to assert the new fields appear in YAML dict (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-125
+    title: 'Validate focused slice for: Extend `tests/test_wizard_config_wiring.py`
+      to assert the new fields appear in YAML dict (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-126
+    title: 'validate into `ModelConfig`. (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-127
+    title: 'Add `tests/test_sleeve_constraint_validation.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-128
+    title: Provide a fake summary DataFrame with `monthly_TE`, `monthly_BreachProb`,
+      `monthly_CVaR`, `terminal_ShortfallProb` columns (or the canonical column names
+      used by your constraints utilities).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-129
+    title: 'Define scope for: Provide a fake summary DataFrame with `monthly_TE` (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-130
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `monthly_TE`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-131
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `monthly_TE`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-132
+    title: 'Define scope for: Provide a fake summary DataFrame with `monthly_BreachProb`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-133
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `monthly_BreachProb`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-134
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `monthly_BreachProb`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-135
+    title: 'Define scope for: Provide a fake summary DataFrame with `monthly_CVaR`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-136
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `monthly_CVaR`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-137
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `monthly_CVaR`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-138
+    title: 'Define scope for: Provide a fake summary DataFrame with `terminal_ShortfallProb`
+      columns (or the canonical column names used by your constraints utilities).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-139
+    title: 'Implement focused slice for: Provide a fake summary DataFrame with `terminal_ShortfallProb`
+      columns (or the canonical column names used by your constraints utilities).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-140
+    title: 'Validate focused slice for: Provide a fake summary DataFrame with `terminal_ShortfallProb`
+      columns (or the canonical column names used by your constraints utilities).
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-141
+    title: Confirm violations are detected correctly for both `total` and `per_sleeve`
+      scope.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-142
+    title: 'Define scope for: Confirm violations are detected correctly for both `total`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-143
+    title: 'Implement focused slice for: Confirm violations are detected correctly
+      for both `total` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-144
+    title: 'Validate focused slice for: Confirm violations are detected correctly
+      for both `total` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-145
+    title: '`per_sleeve` scope. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-146
+    title: Confirm `run_single()` raises when `sleeve_validate_on_run=True` and violations
+      exist.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-147
+    title: 'Define scope for: Confirm `run_single()` raises when `sleeve_validate_on_run=True`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-148
+    title: 'Implement focused slice for: Confirm `run_single()` raises when `sleeve_validate_on_run=True`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-149
+    title: 'Validate focused slice for: Confirm `run_single()` raises when `sleeve_validate_on_run=True`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-150
+    title: 'violations exist. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-151
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-152
+    title: 'Update docs to state clearly:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-153
+    title: constraints are used by suggestor
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-154
+    title: constraints can optionally be validated for a single run when enabled
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-155
+    title: Wizard persists sleeve constraint values into YAML and they validate into
+      `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-156
+    title: When `sleeve_validate_on_run=True`, a run with violating metrics fails
+      (or records violations) deterministically.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-157
+    title: Tests cover both wiring and validation paths and pass in CI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-158
+    title: Documentation clarifies behavior and avoids user confusion.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-159
+    title: Wizard persists sleeve constraint values into YAML and they validate into
+      `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-160
+    title: When `sleeve_validate_on_run=True`, a run with violating metrics fails
+      (or records violations) deterministically.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-161
+    title: Tests cover both wiring and validation paths and pass in CI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-162
+    title: Documentation clarifies behavior and avoids user confusion.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-163
+    title: 'Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-164
+    title: '`sleeve_max_te: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-165
+    title: '`sleeve_max_breach: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-166
+    title: '`sleeve_max_cvar: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-167
+    title: '`sleeve_max_shortfall: float | None`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-168
+    title: '`sleeve_constraint_scope: Literal["total", "per_sleeve"]`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-169
+    title: '`sleeve_validate_on_run: bool` (default False)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-170
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-171
+    title: Add these fields to `DefaultConfigView` with sensible defaults (None +
+      total + False).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-172
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-173
+    title: Wire existing UI inputs (already in session_state) into the config view.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-174
+    title: "Add a checkbox \u201CValidate constraints on run\u201D that maps to `sleeve_validate_on_run`."
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-175
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-176
+    title: Emit the sleeve constraint fields into the YAML dict.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-177
+    title: 'Implement validation on run (facade layer):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-178
+    title: 'Add `validate_sleeve_constraints(summary_df: pd.DataFrame, cfg: ModelConfig)
+      -> list[str]` (return list of violations) in `pa_core/reporting/constraints.py`
+      (or a new module).'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-179
+    title: 'In `pa_core/facade.run_single()`, after `summary_table()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-180
+    title: If `cfg.sleeve_validate_on_run` is True, evaluate constraints.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-181
+    title: 'If violations exist:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-182
+    title: raise `ValueError` with a readable multi-line summary of violations
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-183
+    title: OR (if preferred) attach violations to inputs metadata and print a warning
+      (choose one; default should be explicit and testable).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-184
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-185
+    title: Extend `tests/test_wizard_config_wiring.py` to assert the new fields appear
+      in YAML dict and validate into `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-186
+    title: 'Add `tests/test_sleeve_constraint_validation.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-187
+    title: Provide a fake summary DataFrame with `monthly_TE`, `monthly_BreachProb`,
+      `monthly_CVaR`, `terminal_ShortfallProb` columns (or the canonical column names
+      used by your constraints utilities).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-188
+    title: Confirm violations are detected correctly for both `total` and `per_sleeve`
+      scope.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-189
+    title: Confirm `run_single()` raises when `sleeve_validate_on_run=True` and violations
+      exist.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-190
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-191
+    title: 'Update docs to state clearly:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-192
+    title: constraints are used by suggestor
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-193
+    title: constraints can optionally be validated for a single run when enabled
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-194
+    title: Wizard persists sleeve constraint values into YAML and they validate into
+      `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-195
+    title: When `sleeve_validate_on_run=True`, a run with violating metrics fails
+      (or records violations) deterministically.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-196
+    title: Tests cover both wiring and validation paths and pass in CI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-197
+    title: Documentation clarifies behavior and avoids user confusion.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-198
+    title: 'Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-199
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-200
+    title: Add these fields to `DefaultConfigView` with sensible defaults (None +
+      total + False).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-201
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-202
+    title: Wire existing UI inputs (already in session_state) into the config view.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-203
+    title: "Add a checkbox \u201CValidate constraints on run\u201D that maps to `sleeve_validate_on_run`."
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-204
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-205
+    title: Emit the sleeve constraint fields into the YAML dict.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-206
+    title: 'Implement validation on run (facade layer):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-207
+    title: 'Add `validate_sleeve_constraints(summary_df: pd.DataFrame, cfg: ModelConfig)
+      -> list[str]` (return list of violations) in `pa_core/reporting/constraints.py`
+      (or a new module).'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-208
+    title: 'In `pa_core/facade.run_single()`, after `summary_table()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-209
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-210
+    title: Extend `tests/test_wizard_config_wiring.py` to assert the new fields appear
+      in YAML dict and validate into `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-211
+    title: 'Add `tests/test_sleeve_constraint_validation.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-212
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-213
+    title: 'Update docs to state clearly:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-214
+    title: Wizard persists sleeve constraint values into YAML and they validate into
+      `ModelConfig`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-215
+    title: When `sleeve_validate_on_run=True`, a run with violating metrics fails
+      (or records violations) deterministically.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-216
+    title: Tests cover both wiring and validation paths and pass in CI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-217
+    title: Documentation clarifies behavior and avoids user confusion.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
