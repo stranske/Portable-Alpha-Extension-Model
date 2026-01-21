@@ -10,6 +10,7 @@ from pa_core.wizard_schema import (
     AnalysisMode,
     RiskMetric,
     get_default_config,
+    make_view_from_model,
 )
 
 
@@ -131,6 +132,40 @@ class TestAnalysisModeDefaults:
         assert config.covariance_shrinkage in {"none", "ledoit_wolf"}
         assert config.correlation_repair_mode in {"error", "warn_fix"}
         assert config.backend in SUPPORTED_BACKENDS
+
+    def test_make_view_from_model_preserves_advanced_fields(self):
+        """Ensure model-based views retain advanced simulation settings."""
+        model_config = ModelConfig.model_validate(
+            {
+                "Number of simulations": 1000,
+                "Number of months": 12,
+                "financing_mode": "broadcast",
+                "analysis_mode": "returns",
+                "return_distribution": "student_t",
+                "return_t_df": 7.5,
+                "return_copula": "t",
+                "vol_regime": "two_state",
+                "vol_regime_window": 12,
+                "covariance_shrinkage": "ledoit_wolf",
+                "correlation_repair_mode": "warn_fix",
+                "correlation_repair_shrinkage": 0.25,
+                "correlation_repair_max_abs_delta": 0.2,
+                "backend": "numpy",
+            }
+        )
+
+        view = make_view_from_model(model_config)
+
+        assert view.return_distribution == "student_t"
+        assert view.return_t_df == 7.5
+        assert view.return_copula == "t"
+        assert view.vol_regime == "two_state"
+        assert view.vol_regime_window == 12
+        assert view.covariance_shrinkage == "ledoit_wolf"
+        assert view.correlation_repair_mode == "warn_fix"
+        assert view.correlation_repair_shrinkage == 0.25
+        assert view.correlation_repair_max_abs_delta == 0.2
+        assert view.backend == "numpy"
 
 
 class TestAnalysisModeProperties:

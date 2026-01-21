@@ -280,6 +280,11 @@ def _make_view(m: ModelConfig) -> DefaultConfigView:
     )
 
 
+def make_view_from_model(model: ModelConfig) -> DefaultConfigView:
+    """Public helper to build a DefaultConfigView from a ModelConfig."""
+    return _make_view(model)
+
+
 def get_default_config(mode: AnalysisMode) -> DefaultConfigView:
     """Return a mode-specific default config view used by tests and UI.
 

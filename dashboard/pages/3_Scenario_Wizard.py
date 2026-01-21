@@ -27,8 +27,8 @@ from pa_core.wizard_schema import (
     AnalysisMode,
     DefaultConfigView,
     RiskMetric,
-    WizardScenarioConfig,
     get_default_config,
+    make_view_from_model,
 )
 
 _TOTAL_CAPITAL_KEY = "wizard_total_fund_capital"
@@ -1491,71 +1491,19 @@ def main() -> None:
         try:
             config_data = yaml.safe_load(cfg.getvalue())
             if st.sidebar.button("Load Configuration"):
-                # Convert uploaded config to wizard format
-                wizard_config = WizardScenarioConfig.model_validate(
-                    {
-                        "analysis_mode": config_data.get("analysis_mode", "returns"),
-                        "n_simulations": config_data.get("N_SIMULATIONS", 1000),
-                        "n_months": config_data.get("N_MONTHS", 12),
-                        "total_fund_capital": config_data.get("total_fund_capital", 300.0),
-                        "external_pa_capital": config_data.get("external_pa_capital", 100.0),
-                        "active_ext_capital": config_data.get("active_ext_capital", 50.0),
-                        "internal_pa_capital": config_data.get("internal_pa_capital", 150.0),
-                        "w_beta_h": config_data.get("w_beta_H", 0.5),
-                        "w_alpha_h": config_data.get("w_alpha_H", 0.5),
-                        "theta_extpa": normalize_share(config_data.get("theta_extpa", 0.5)) or 0.5,
-                        "active_share": normalize_share(config_data.get("active_share", 0.5))
-                        or 0.5,
-                        "mu_h": config_data.get("mu_H", 0.04),
-                        "sigma_h": config_data.get("sigma_H", 0.01),
-                        "mu_e": config_data.get("mu_E", 0.05),
-                        "sigma_e": config_data.get("sigma_E", 0.02),
-                        "mu_m": config_data.get("mu_M", 0.03),
-                        "sigma_m": config_data.get("sigma_M", 0.02),
-                        "rho_idx_h": config_data.get("rho_idx_H", 0.05),
-                        "rho_idx_e": config_data.get("rho_idx_E", 0.0),
-                        "rho_idx_m": config_data.get("rho_idx_M", 0.0),
-                        "rho_h_e": config_data.get("rho_H_E", 0.1),
-                        "rho_h_m": config_data.get("rho_H_M", 0.1),
-                        "rho_e_m": config_data.get("rho_E_M", 0.0),
-                        "internal_financing_mean_month": config_data.get(
-                            "internal_financing_mean_month", 0.0
-                        ),
-                        "internal_financing_sigma_month": config_data.get(
-                            "internal_financing_sigma_month", 0.0
-                        ),
-                        "internal_spike_prob": config_data.get("internal_spike_prob", 0.0),
-                        "internal_spike_factor": config_data.get("internal_spike_factor", 0.0),
-                        "ext_pa_financing_mean_month": config_data.get(
-                            "ext_pa_financing_mean_month", 0.0
-                        ),
-                        "ext_pa_financing_sigma_month": config_data.get(
-                            "ext_pa_financing_sigma_month", 0.0
-                        ),
-                        "ext_pa_spike_prob": config_data.get("ext_pa_spike_prob", 0.0),
-                        "ext_pa_spike_factor": config_data.get("ext_pa_spike_factor", 0.0),
-                        "act_ext_financing_mean_month": config_data.get(
-                            "act_ext_financing_mean_month", 0.0
-                        ),
-                        "act_ext_financing_sigma_month": config_data.get(
-                            "act_ext_financing_sigma_month", 0.0
-                        ),
-                        "act_ext_spike_prob": config_data.get("act_ext_spike_prob", 0.0),
-                        "act_ext_spike_factor": config_data.get("act_ext_spike_factor", 0.0),
-                        "risk_metrics": config_data.get(
-                            "risk_metrics", ["Return", "Risk", "terminal_ShortfallProb"]
-                        ),
-                    }
-                )
-                financing_model = config_data.get("financing_model", "simple_proxy")
+                model_config = load_config(config_data)
+                wizard_config = make_view_from_model(model_config)
+                financing_model = model_config.financing_model
                 st.session_state.financing_settings = {
                     "financing_model": financing_model,
-                    "reference_sigma": config_data.get("reference_sigma", 0.01),
-                    "volatility_multiple": config_data.get("volatility_multiple", 3.0),
-                    "term_months": config_data.get(
-                        "financing_term_months", config_data.get("term_months", 1.0)
+                    "reference_sigma": model_config.reference_sigma,
+                    "volatility_multiple": model_config.volatility_multiple,
+                    "term_months": model_config.financing_term_months,
+                    "schedule_path": (
+                        str(model_config.financing_schedule_path)
+                        if model_config.financing_schedule_path
+                        else None
                     ),
-                    "schedule_path": config_data.get("financing_schedule_path"),
                 }
                 st.session_state.wizard_config = wizard_config
                 st.session_state.wizard_step = 5  # Go to review step
