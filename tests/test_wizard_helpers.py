@@ -166,6 +166,28 @@ def test_validate_regime_inputs_rejects_out_of_range_values() -> None:
         validate(regimes, transition)
 
 
+def test_validate_regime_inputs_rejects_non_numeric_values() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "Calm"}, {"name": "Stress"}]
+    transition = [[0.6, "oops"], [0.2, 0.8]]
+
+    with pytest.raises(ValueError, match="Transition matrix row 1 must contain numeric values"):
+        validate(regimes, transition)
+
+
+def test_validate_regime_inputs_rejects_row_sum_mismatch() -> None:
+    helpers = _load_helpers()
+    validate = helpers["_validate_regime_inputs"]
+
+    regimes = [{"name": "Calm"}, {"name": "Stress"}]
+    transition = [[0.7, 0.1], [0.2, 0.8]]
+
+    with pytest.raises(ValueError, match="Transition matrix row 1 must sum to 1.0"):
+        validate(regimes, transition)
+
+
 def test_validate_regime_inputs_rejects_non_square_transition() -> None:
     helpers = _load_helpers()
     validate = helpers["_validate_regime_inputs"]
