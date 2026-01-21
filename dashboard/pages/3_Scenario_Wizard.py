@@ -1123,9 +1123,7 @@ def _render_step_3_returns_risk(config: Any) -> Any:
                     st.stop()
 
             start_options = ["(auto)"] + regime_names
-            default_start = (
-                config.regime_start if config.regime_start in regime_names else "(auto)"
-            )
+            default_start = config.regime_start if config.regime_start in regime_names else "(auto)"
             start_index = start_options.index(default_start)
             start_selection = st.selectbox(
                 "Starting regime (optional)",
