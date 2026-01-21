@@ -1129,6 +1129,24 @@ file alongside each theme to highlight compliance for different risk limits.
 
 The dashboard contains four tabs, each aimed at a different angle on portfolio behaviour.
 
+### Regime Switching via Wizard
+
+The Scenario Wizard (Step 3: Return & Risk) includes a **Regime Switching** expander. Enable the toggle and provide both a regimes list and a transition matrix. The YAML below shows a minimal two-regime example that the wizard persists into the generated `ModelConfig`:
+
+```yaml
+regimes:
+  - name: Calm
+    idx_sigma_multiplier: 0.8
+  - name: Stressed
+    idx_sigma_multiplier: 1.3
+regime_transition:
+  - [0.9, 0.1]
+  - [0.2, 0.8]
+regime_start: Calm
+```
+
+The transition matrix must be square and each row should sum to 1.0. Leave `regime_start` blank to let the model default to the first regime.
+
 ### Headline
 
 Displays a **risk‑return scatter** where each agent is a coloured marker. The "sweet‑spot" rectangle highlights the desired tracking‑error and excess‑return range. Use this view to compare risk and expected return across investment options.

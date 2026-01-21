@@ -6,7 +6,7 @@ used by portfolio managers in the guided wizard interface.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Literal, Optional, cast
+from typing import Any, List, Literal, Optional, Sequence, cast
 
 from pydantic import BaseModel, Field
 
@@ -212,8 +212,8 @@ class DefaultConfigView:
     backend: Literal["numpy"]
 
     # Regime-switching configuration (optional)
-    regimes: Optional[List[dict[str, Any]]]
-    regime_transition: Optional[List[List[float]]]
+    regimes: Optional[List[dict[str, Any]] | dict[str, dict[str, Any]]]
+    regime_transition: Optional[Sequence[Sequence[float]]]
     regime_start: Optional[str]
 
 

@@ -1,0 +1,787 @@
+version: 1
+issue: 1192
+base: main
+branch: codex/issue-1192
+tasks:
+  - id: task-01
+    title: _Not provided._
+    status: done
+    started_at: '2026-01-21T05:23:12Z'
+    finished_at: '2026-01-21T05:23:19Z'
+    commit: 2cc962889b45bc1fff374f921a0f6405eb2f2715
+    notes: []
+  - id: task-02
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Extend `DefaultConfigView` to include optional regime fields:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: '`regimes` (optional list/dict structure or a raw YAML field that is parsed
+      before YAML build)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'Define approach for: `regimes` (optional list/dict structure or a raw
+      YAML field that is parsed before YAML build) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Define scope for: Implement: `regimes` (optional list/dict structure or
+      a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Implement focused slice for: Implement: `regimes` (optional list/dict
+      structure or a raw YAML field that is parsed before YAML build) (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Validate focused slice for: Implement: `regimes` (optional list/dict structure
+      or a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Define scope for: Validate: `regimes` (optional list/dict structure or
+      a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Implement focused slice for: Validate: `regimes` (optional list/dict structure
+      or a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Validate focused slice for: Validate: `regimes` (optional list/dict structure
+      or a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: '`regime_transition` (optional list-of-lists or parsed structure)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: '`regime_start` (optional string)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'Add a "Regime Switching" section:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'Toggle: enable regime switching'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Text area: regimes YAML/JSON'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'Text area: transition matrix YAML/JSON'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Input/select: starting regime (optional; validate it exists in regimes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Input/select: starting regime (optional (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'validate it exists in regimes) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'Add parsing/validation that:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: fails loudly with actionable messages if YAML/JSON cannot be parsed
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: checks transition matrix dimensions match number of regimes
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: checks probabilities rows sum ~ 1.0 (tolerance)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: 'When regime switching enabled, emit:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'When regime switching enabled (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: 'emit: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: '`regimes`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: '`regime_transition`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: '`regime_start`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'Add `tests/test_wizard_regime_wiring.py` (or extend `test_wizard_config_wiring.py`)
+      to:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: provide a minimal 2-regime configuration
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: assert YAML dict contains the expected keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: assert `ModelConfig.model_validate(yaml_dict)` succeeds
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: "Update `docs/UserGuide.md` (or wizard docs) with a short \u201CRegime\
+      \ Switching via Wizard\u201D example including a minimal two-state spec."
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: "Define approach for: Update `docs/UserGuide.md` (or wizard docs) with\
+      \ a short \u201CRegime Switching via Wizard\u201D example including a minimal\
+      \ two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: "Define scope for: Implement: Update `docs/UserGuide.md` (or wizard docs)\
+      \ with a short \u201CRegime Switching via Wizard\u201D example including a minimal\
+      \ two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: "Implement focused slice for: Implement: Update `docs/UserGuide.md` (or\
+      \ wizard docs) with a short \u201CRegime Switching via Wizard\u201D example\
+      \ including a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: "Validate focused slice for: Implement: Update `docs/UserGuide.md` (or\
+      \ wizard docs) with a short \u201CRegime Switching via Wizard\u201D example\
+      \ including a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: "Define scope for: Validate: Update `docs/UserGuide.md` (or wizard docs)\
+      \ with a short \u201CRegime Switching via Wizard\u201D example including a minimal\
+      \ two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: "Implement focused slice for: Validate: Update `docs/UserGuide.md` (or\
+      \ wizard docs) with a short \u201CRegime Switching via Wizard\u201D example\
+      \ including a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: "Validate focused slice for: Validate: Update `docs/UserGuide.md` (or wizard\
+      \ docs) with a short \u201CRegime Switching via Wizard\u201D example including\
+      \ a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'Update `pa_core/wizard_schema.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'Extend `DefaultConfigView` to include optional regime fields:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: '`regimes` (optional list/dict structure or a raw YAML field that is parsed
+      before YAML build)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: 'Define approach for: `regimes` (optional list/dict structure or a raw
+      YAML field that is parsed before YAML build) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: 'Define scope for: Implement: `regimes` (optional list/dict structure or
+      a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: 'Implement focused slice for: Implement: `regimes` (optional list/dict
+      structure or a raw YAML field that is parsed before YAML build) (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: 'Validate focused slice for: Implement: `regimes` (optional list/dict structure
+      or a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: 'Define scope for: Validate: `regimes` (optional list/dict structure or
+      a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: 'Implement focused slice for: Validate: `regimes` (optional list/dict structure
+      or a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: 'Validate focused slice for: Validate: `regimes` (optional list/dict structure
+      or a raw YAML field that is parsed before YAML build) (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: '`regime_transition` (optional list-of-lists or parsed structure)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: '`regime_start` (optional string)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: 'Add a "Regime Switching" section:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: 'Toggle: enable regime switching'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: 'Text area: regimes YAML/JSON'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: 'Text area: transition matrix YAML/JSON'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: 'Input/select: starting regime (optional; validate it exists in regimes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: 'Input/select: starting regime (optional (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: 'validate it exists in regimes) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: 'Add parsing/validation that:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: fails loudly with actionable messages if YAML/JSON cannot be parsed
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: checks transition matrix dimensions match number of regimes
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: checks probabilities rows sum ~ 1.0 (tolerance)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: 'Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'When regime switching enabled, emit:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: 'When regime switching enabled (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: 'emit: (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: '`regimes`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-77
+    title: '`regime_transition`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-78
+    title: '`regime_start`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-79
+    title: 'Tests:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-80
+    title: 'Add `tests/test_wizard_regime_wiring.py` (or extend `test_wizard_config_wiring.py`)
+      to:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-81
+    title: provide a minimal 2-regime configuration
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-82
+    title: assert YAML dict contains the expected keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-83
+    title: assert `ModelConfig.model_validate(yaml_dict)` succeeds
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-84
+    title: 'Documentation:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-85
+    title: "Update `docs/UserGuide.md` (or wizard docs) with a short \u201CRegime\
+      \ Switching via Wizard\u201D example including a minimal two-state spec."
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-86
+    title: "Define approach for: Update `docs/UserGuide.md` (or wizard docs) with\
+      \ a short \u201CRegime Switching via Wizard\u201D example including a minimal\
+      \ two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-87
+    title: "Define scope for: Implement: Update `docs/UserGuide.md` (or wizard docs)\
+      \ with a short \u201CRegime Switching via Wizard\u201D example including a minimal\
+      \ two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-88
+    title: "Implement focused slice for: Implement: Update `docs/UserGuide.md` (or\
+      \ wizard docs) with a short \u201CRegime Switching via Wizard\u201D example\
+      \ including a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-89
+    title: "Validate focused slice for: Implement: Update `docs/UserGuide.md` (or\
+      \ wizard docs) with a short \u201CRegime Switching via Wizard\u201D example\
+      \ including a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-90
+    title: "Define scope for: Validate: Update `docs/UserGuide.md` (or wizard docs)\
+      \ with a short \u201CRegime Switching via Wizard\u201D example including a minimal\
+      \ two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-91
+    title: "Implement focused slice for: Validate: Update `docs/UserGuide.md` (or\
+      \ wizard docs) with a short \u201CRegime Switching via Wizard\u201D example\
+      \ including a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-92
+    title: "Validate focused slice for: Validate: Update `docs/UserGuide.md` (or wizard\
+      \ docs) with a short \u201CRegime Switching via Wizard\u201D example including\
+      \ a minimal two-state spec. (verify: docs updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-93
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-94
+    title: Wizard can accept a valid regime switching specification and persist it
+      into YAML.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-95
+    title: Invalid YAML/JSON for regimes or transition yields an actionable error
+      in the UI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-96
+    title: The generated YAML validates into `ModelConfig` with regimes enabled.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-97
+    title: Tests cover the wiring and pass in CI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-98
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-99
+    title: Wizard can accept a valid regime switching specification and persist it
+      into YAML.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-100
+    title: Invalid YAML/JSON for regimes or transition yields an actionable error
+      in the UI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-101
+    title: The generated YAML validates into `ModelConfig` with regimes enabled.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-102
+    title: Tests cover the wiring and pass in CI.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
