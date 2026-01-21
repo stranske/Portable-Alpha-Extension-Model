@@ -450,7 +450,7 @@ def run_single(
     agents = build_from_config(run_cfg)
     returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
     summary = summary_table(returns, benchmark="Base")
-    if run_cfg.sleeve_validate_on_run:
+    if getattr(run_cfg, "sleeve_validate_on_run", False):
         from .reporting.constraints import validate_sleeve_constraints
 
         violations = validate_sleeve_constraints(summary, run_cfg)

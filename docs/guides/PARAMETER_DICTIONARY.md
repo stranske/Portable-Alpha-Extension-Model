@@ -104,3 +104,9 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `regime_start` | `regime_start` | `Optional[str]` | no | `None` | Initial regime name for regime-switching simulations. |
 | `regime_transition` | `regime_transition` | `Optional[List[List[float]]]` | no | `None` | Markov transition matrix for regime switching (n_regimes x n_regimes). |
 | `risk_metrics` | `risk_metrics` | `List[str]` | no | `default_factory: <lambda>` |  |
+| `sleeve_max_te` | `sleeve_max_te` | `Optional[float]` | no | `None` | Maximum tracking error constraint for sleeves (monthly). |
+| `sleeve_max_breach` | `sleeve_max_breach` | `Optional[float]` | no | `None` | Maximum breach probability constraint for sleeves (monthly). |
+| `sleeve_max_cvar` | `sleeve_max_cvar` | `Optional[float]` | no | `None` | Maximum CVaR constraint for sleeves (monthly). |
+| `sleeve_max_shortfall` | `sleeve_max_shortfall` | `Optional[float]` | no | `None` | Maximum shortfall probability constraint for sleeves (terminal). |
+| `sleeve_constraint_scope` | `sleeve_constraint_scope` | `Literal['total', 'per_sleeve']` | no | `total` | Constraint scope for sleeve validation (total or per-sleeve). |
+| `sleeve_validate_on_run` | `sleeve_validate_on_run` | `<class 'bool'>` | no | `False` | Validate sleeve constraints during run_single when true. |
