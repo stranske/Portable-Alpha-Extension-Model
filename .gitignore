@@ -110,3 +110,6 @@ residual-trend-history.ndjson
 .autofix-venv/
 .workflows-lib
 build/
+
+# Node artifacts
+node_modules/
