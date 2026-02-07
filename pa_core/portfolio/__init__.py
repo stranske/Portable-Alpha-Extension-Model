@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from .aggregator import PortfolioAggregator
 
 
-def __getattr__(name: str):
+def __getattr__(name: str) -> object:
     if name == "PortfolioAggregator":
         from .aggregator import PortfolioAggregator
 

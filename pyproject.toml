@@ -36,6 +36,7 @@ python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
+explicit_package_bases = true
 ignore_missing_imports = true
 disable_error_code = ["import-untyped", "no-redef"]
 exclude = [
