@@ -183,6 +183,10 @@ class TestResolveApiKeyInput:
         with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "resolved-value"}):
             assert resolve_api_key_input("OPENAI_API_KEY") == "resolved-value"
 
+    def test_env_var_name_with_digits_and_underscores_resolves(self) -> None:
+        with mock.patch.dict(os.environ, {"OPENAI2_API_KEY_V1": "resolved-v2"}):
+            assert resolve_api_key_input("OPENAI2_API_KEY_V1") == "resolved-v2"
+
     def test_env_var_name_missing(self) -> None:
         with mock.patch.dict(os.environ, {}, clear=True):
             # Patch st.secrets away
@@ -343,6 +347,28 @@ class TestResolveLlmProviderConfig:
                 api_key="OPENAI_API_KEY",
             )
             assert config.credentials["api_key"] == "resolved-via-env"
+
+    def test_explicit_api_key_input_takes_precedence_over_default_chain(self) -> None:
+        env = {
+            **self._clean_env(),
+            "PA_STREAMLIT_API_KEY": "streamlit-default",
+            "OPENAI_API_KEY": "provider-default",
+        }
+        with mock.patch.dict(os.environ, env, clear=True):
+            config = resolve_llm_provider_config(
+                provider="openai",
+                api_key="sk-explicit-key",
+            )
+            assert config.credentials["api_key"] == "sk-explicit-key"
+
+    def test_missing_env_var_reference_falls_back_to_default_key(self) -> None:
+        env = {**self._clean_env(), "OPENAI_API_KEY": "provider-default"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            config = resolve_llm_provider_config(
+                provider="openai",
+                api_key="MISSING_ENV_API_KEY",
+            )
+            assert config.credentials["api_key"] == "provider-default"
 
     def test_unset_env_vars_no_exception(self) -> None:
         """Importing and resolving with a key must not raise even when
