@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence
+from difflib import unified_diff
+import json
+from typing import Any, Callable, Mapping, MutableMapping, Sequence
+
+import yaml
 
 from pa_core.backend import SUPPORTED_BACKENDS
+from pa_core.config import load_config
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
 
@@ -39,6 +45,32 @@ class ValidatedConfigPatch:
             "merge": dict(self.merge_ops),
             "remove": list(self.remove_ops),
         }
+
+
+_SESSION_FIELD_MIRRORS: dict[str, str] = {
+    "total_fund_capital": "wizard_total_fund_capital",
+    "external_pa_capital": "wizard_external_pa_capital",
+    "active_ext_capital": "wizard_active_ext_capital",
+    "internal_pa_capital": "wizard_internal_pa_capital",
+    "w_beta_h": "wizard_w_beta_h",
+    "theta_extpa": "wizard_theta_extpa",
+    "active_share": "wizard_active_share",
+    "sleeve_max_te": "sleeve_max_te",
+    "sleeve_max_breach": "sleeve_max_breach",
+    "sleeve_max_cvar": "sleeve_max_cvar",
+    "sleeve_max_shortfall": "sleeve_max_shortfall",
+    "sleeve_constraint_scope": "sleeve_constraint_scope",
+    "sleeve_validate_on_run": "sleeve_validate_on_run",
+    "regimes": "wizard_regimes_yaml",
+    "regime_transition": "wizard_regime_transition_yaml",
+    "regime_start": "wizard_regime_start",
+}
+
+
+def get_session_field_mirrors() -> dict[str, str]:
+    """Return a copy of wizard-field -> session-state mirror key mappings."""
+
+    return dict(_SESSION_FIELD_MIRRORS)
 
 
 def _is_int(value: Any) -> bool:
@@ -303,3 +335,130 @@ def validate_patch(patch: Mapping[str, Any]) -> ValidatedConfigPatch:
         deduped_remove.append(field)
 
     return ValidatedConfigPatch(set_ops=set_ops, merge_ops=merge_ops, remove_ops=deduped_remove)
+
+
+def _merge_value(current: Any, incoming: Any) -> Any:
+    if isinstance(current, Mapping) and isinstance(incoming, Mapping):
+        merged = dict(current)
+        merged.update(dict(incoming))
+        return merged
+    if isinstance(current, list) and isinstance(incoming, list):
+        merged = list(current)
+        for item in incoming:
+            if item not in merged:
+                merged.append(item)
+        return merged
+    return incoming
+
+
+def _mirror_session_field(
+    field: str,
+    value: Any,
+    *,
+    session_state: MutableMapping[str, Any] | None,
+) -> None:
+    if session_state is None:
+        return
+    key = _SESSION_FIELD_MIRRORS.get(field)
+    if key is None:
+        return
+    session_state[key] = deepcopy(value)
+
+
+def _clear_session_field(field: str, *, session_state: MutableMapping[str, Any] | None) -> None:
+    if session_state is None:
+        return
+    key = _SESSION_FIELD_MIRRORS.get(field)
+    if key is None:
+        return
+    session_state.pop(key, None)
+
+
+def apply_patch(
+    config: Any,
+    patch: Mapping[str, Any] | ValidatedConfigPatch,
+    *,
+    session_state: MutableMapping[str, Any] | None = None,
+) -> Any:
+    """Apply a validated patch to a wizard config and optional session-state mirrors."""
+
+    validated = patch if isinstance(patch, ValidatedConfigPatch) else validate_patch(patch)
+
+    for field, value in validated.set_ops.items():
+        setattr(config, field, deepcopy(value))
+        _mirror_session_field(field, value, session_state=session_state)
+
+    for field, value in validated.merge_ops.items():
+        current = getattr(config, field, None)
+        merged = _merge_value(current, value)
+        setattr(config, field, deepcopy(merged))
+        _mirror_session_field(field, merged, session_state=session_state)
+
+    for field in validated.remove_ops:
+        setattr(config, field, None)
+        _clear_session_field(field, session_state=session_state)
+
+    return config
+
+
+def _serialize_snapshot(snapshot: Mapping[str, Any], *, format: str) -> str:
+    kind = format.strip().lower()
+    if kind == "yaml":
+        return yaml.safe_dump(dict(snapshot), sort_keys=True)
+    if kind == "json":
+        return json.dumps(dict(snapshot), indent=2, sort_keys=True, default=str) + "\n"
+    raise ValueError("format must be 'yaml' or 'json'")
+
+
+def diff_config(
+    before_snapshot: Mapping[str, Any],
+    after_snapshot: Mapping[str, Any],
+    *,
+    format: str = "yaml",
+    fromfile: str = "before",
+    tofile: str = "after",
+) -> str:
+    """Produce a unified diff between two config snapshots."""
+
+    before_text = _serialize_snapshot(before_snapshot, format=format)
+    after_text = _serialize_snapshot(after_snapshot, format=format)
+    lines = unified_diff(
+        before_text.splitlines(keepends=True),
+        after_text.splitlines(keepends=True),
+        fromfile=fromfile,
+        tofile=tofile,
+    )
+    return "".join(lines)
+
+
+def validate_round_trip(
+    config: Any,
+    *,
+    build_yaml_from_config: Callable[[Any], Mapping[str, Any]],
+) -> list[str]:
+    """Validate config by serializing and reloading through ``load_config``."""
+
+    try:
+        yaml_payload = build_yaml_from_config(config)
+    except Exception as exc:
+        return [f"build_yaml_from_config failed: {exc}"]
+
+    try:
+        load_config(dict(yaml_payload))
+    except Exception as exc:
+        return [str(exc)]
+    return []
+
+
+def apply_patch_with_validation(
+    config: Any,
+    patch: Mapping[str, Any] | ValidatedConfigPatch,
+    *,
+    build_yaml_from_config: Callable[[Any], Mapping[str, Any]],
+    session_state: MutableMapping[str, Any] | None = None,
+) -> tuple[Any, list[str]]:
+    """Apply patch then return round-trip validation errors, if any."""
+
+    apply_patch(config, patch, session_state=session_state)
+    errors = validate_round_trip(config, build_yaml_from_config=build_yaml_from_config)
+    return config, errors

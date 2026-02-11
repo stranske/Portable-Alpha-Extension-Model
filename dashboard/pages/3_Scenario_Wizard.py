@@ -6,7 +6,10 @@ import math
 import os
 import tempfile
 from contextlib import contextmanager
+from copy import deepcopy
+from datetime import UTC, datetime
 from pathlib import Path
+import re
 from typing import Any, Dict
 
 import pandas as pd
@@ -15,12 +18,20 @@ import yaml
 
 from dashboard import cli as dashboard_cli
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
+from dashboard.components.config_chat import render_config_chat_panel
 from dashboard.glossary import tooltip
 from dashboard.utils import run_sleeve_frontier, run_sleeve_suggestions
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
+from pa_core.llm.config_patch import (
+    apply_patch as apply_config_patch,
+    diff_config,
+    get_session_field_mirrors,
+    validate_round_trip,
+)
+from pa_core.llm.config_patch_chain import ConfigPatchChain, ConfigPatchChainResult
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard_schema import (
@@ -42,6 +53,8 @@ _REGIME_ENABLED_KEY = "wizard_regime_enabled"
 _REGIMES_KEY = "wizard_regimes_yaml"
 _REGIME_TRANSITION_KEY = "wizard_regime_transition_yaml"
 _REGIME_START_KEY = "wizard_regime_start"
+_CONFIG_CHAT_PREVIEW_KEY = "wizard_config_chat_preview"
+_CONFIG_CHAT_HISTORY_KEY = "wizard_config_chat_history"
 
 
 def _normalize_risk_metric_defaults(metrics: list[Any]) -> list[RiskMetric]:
@@ -172,7 +185,11 @@ def _normalize_sleeve_constraint_scope(scope: str | None) -> str:
     return "total"
 
 
-def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
+def _build_yaml_from_config(
+    config: DefaultConfigView,
+    *,
+    session_state: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
     """Construct a YAML-compatible dict for ModelConfig from the wizard state.
 
     Includes optional Financing & Margin settings stored in session state.
@@ -180,7 +197,7 @@ def _build_yaml_from_config(config: DefaultConfigView) -> Dict[str, Any]:
     Args:
         config: DefaultConfigView object with all required configuration attributes.
     """
-    ss = st.session_state
+    ss = session_state if session_state is not None else st.session_state
     fs = ss.get("financing_settings", {})
 
     # Direct attribute access - all attributes are guaranteed to exist on DefaultConfigView
@@ -324,6 +341,190 @@ def _build_yaml_dict(config: DefaultConfigView) -> Dict[str, Any]:
 def _validate_yaml_dict(yaml_dict: Dict[str, Any]) -> None:
     """Validate using core ModelConfig; raises on error."""
     load_config(yaml_dict)
+
+
+def _clone_config(config: DefaultConfigView) -> DefaultConfigView:
+    return deepcopy(config)
+
+
+def _mirror_session_keys() -> set[str]:
+    return set(get_session_field_mirrors().values())
+
+
+def _snapshot_session_mirrors() -> dict[str, Any]:
+    keys = _mirror_session_keys()
+    return {key: st.session_state.get(key) for key in keys if key in st.session_state}
+
+
+def _restore_session_mirrors(snapshot: dict[str, Any]) -> None:
+    for key in _mirror_session_keys():
+        st.session_state.pop(key, None)
+    for key, value in snapshot.items():
+        st.session_state[key] = value
+
+
+def _heuristic_patch_from_instruction(
+    *,
+    current_config: DefaultConfigView,
+    instruction: str,
+) -> ConfigPatchChainResult:
+    text = instruction.strip().lower()
+    set_ops: dict[str, Any] = {}
+    risk_flags: list[str] = ["heuristic_patch_parser"]
+
+    sims_match = re.search(r"(?:simulations?|n[_\s-]?simulations?)\D+(\d+)", text)
+    if sims_match:
+        set_ops["n_simulations"] = int(sims_match.group(1))
+
+    breach_match = re.search(r"(?:breach(?:\s+tolerance)?)\D+([0-9]*\.?[0-9]+)", text)
+    if breach_match:
+        set_ops["sleeve_max_breach"] = float(breach_match.group(1))
+    elif "breach tolerance" in text and "reduce" in text:
+        current = current_config.sleeve_max_breach
+        inferred = 0.1 if current is None else max(0.0, float(current) * 0.9)
+        set_ops["sleeve_max_breach"] = inferred
+        risk_flags.append("heuristic_inferred_breach_tolerance")
+
+    if not set_ops:
+        raise ValueError(
+            "Could not infer a safe config patch from instruction. "
+            "Provide more specific values or configure an LLM response provider."
+        )
+
+    return ConfigPatchChainResult(
+        patch={"set": set_ops, "merge": {}, "remove": []},
+        summary="Heuristic config patch generated from instruction.",
+        risk_flags=risk_flags,
+    )
+
+
+def _resolve_chat_patch(
+    *,
+    current_config: DefaultConfigView,
+    instruction: str,
+) -> ConfigPatchChainResult:
+    provider = st.session_state.get("wizard_config_chat_response_provider")
+    if callable(provider):
+        chain = ConfigPatchChain(provider)
+        return chain.run(current_config=current_config.model_dump(), instruction=instruction)
+    return _heuristic_patch_from_instruction(current_config=current_config, instruction=instruction)
+
+
+def _preview_config_chat_change(instruction: str) -> None:
+    if not instruction.strip():
+        st.warning("Provide an instruction before previewing.")
+        return
+
+    current = st.session_state.wizard_config
+    try:
+        chain_result = _resolve_chat_patch(current_config=current, instruction=instruction)
+        candidate = _clone_config(current)
+        preview_session = dict(st.session_state)
+        before_snapshot = _build_yaml_from_config(current)
+        apply_config_patch(candidate, chain_result.patch, session_state=preview_session)
+        after_snapshot = _build_yaml_from_config(candidate, session_state=preview_session)
+        st.session_state[_CONFIG_CHAT_PREVIEW_KEY] = {
+            "created_at": datetime.now(UTC).isoformat(),
+            "instruction": instruction,
+            "patch": chain_result.patch,
+            "summary": chain_result.summary,
+            "risk_flags": chain_result.risk_flags,
+            "trace_url": chain_result.trace_url,
+            "before_snapshot": before_snapshot,
+            "after_snapshot": after_snapshot,
+            "unified_diff": diff_config(before_snapshot, after_snapshot, format="yaml"),
+            "before_yaml": yaml.safe_dump(before_snapshot, sort_keys=True),
+            "after_yaml": yaml.safe_dump(after_snapshot, sort_keys=True),
+        }
+        st.success("Preview generated. Review diff before applying.")
+    except Exception as exc:
+        st.session_state.pop(_CONFIG_CHAT_PREVIEW_KEY, None)
+        st.error(f"Preview failed: {exc}")
+
+
+def _apply_preview_patch(*, validate_first: bool) -> None:
+    preview = st.session_state.get(_CONFIG_CHAT_PREVIEW_KEY)
+    if not isinstance(preview, dict):
+        st.warning("Generate a preview before applying.")
+        return
+
+    patch = preview.get("patch")
+    if not isinstance(patch, dict):
+        st.error("Preview patch is missing or invalid.")
+        return
+
+    current = st.session_state.wizard_config
+    if validate_first:
+        trial_config = _clone_config(current)
+        trial_session = dict(st.session_state)
+        apply_config_patch(trial_config, patch, session_state=trial_session)
+        errors = validate_round_trip(
+            trial_config,
+            build_yaml_from_config=lambda cfg: _build_yaml_from_config(cfg, session_state=trial_session),
+        )
+        if errors:
+            st.error("Apply+Validate blocked invalid patch:\n" + "\n".join(f"- {err}" for err in errors))
+            return
+
+    history = st.session_state.setdefault(_CONFIG_CHAT_HISTORY_KEY, [])
+    history.append(
+        {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "pre_config": _clone_config(current),
+            "pre_session_mirrors": _snapshot_session_mirrors(),
+            "instruction": preview.get("instruction"),
+            "patch": patch,
+        }
+    )
+
+    apply_config_patch(current, patch, session_state=st.session_state)
+    st.session_state.wizard_config = current
+    st.success("Config patch applied.")
+
+
+def _revert_config_chat_change() -> None:
+    history = st.session_state.get(_CONFIG_CHAT_HISTORY_KEY)
+    if not isinstance(history, list) or not history:
+        st.warning("No config chat history to revert.")
+        return
+
+    last = history.pop()
+    pre_config = last.get("pre_config")
+    pre_session = last.get("pre_session_mirrors")
+    if pre_config is None or not isinstance(pre_session, dict):
+        st.error("Cannot revert: stored history entry is incomplete.")
+        return
+
+    st.session_state.wizard_config = _clone_config(pre_config)
+    _restore_session_mirrors(pre_session)
+    st.success("Reverted latest applied config chat change.")
+
+
+def _render_config_chat_preview() -> None:
+    preview = st.session_state.get(_CONFIG_CHAT_PREVIEW_KEY)
+    if not isinstance(preview, dict):
+        return
+
+    summary = str(preview.get("summary") or "").strip()
+    if summary:
+        st.caption(summary)
+    risk_flags = preview.get("risk_flags") or []
+    if risk_flags:
+        st.warning("Risk flags: " + ", ".join(str(flag) for flag in risk_flags))
+    trace_url = preview.get("trace_url")
+    if trace_url:
+        st.caption(f"LangSmith trace: {trace_url}")
+
+    st.markdown("**Unified Diff**")
+    st.code(str(preview.get("unified_diff") or ""), language="diff")
+    st.markdown("**Side-by-side (YAML)**")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.caption("Before")
+        st.code(str(preview.get("before_yaml") or ""), language="yaml")
+    with col2:
+        st.caption("After")
+        st.code(str(preview.get("after_yaml") or ""), language="yaml")
 
 
 @contextmanager
@@ -1571,6 +1772,15 @@ def main() -> None:
         mode = current.analysis_mode
         st.session_state.wizard_config = get_default_config(mode)
         st.rerun()
+
+    with st.sidebar.expander("💬 Config Chat", expanded=False):
+        render_config_chat_panel(
+            on_preview=_preview_config_chat_change,
+            on_apply=lambda _instruction: _apply_preview_patch(validate_first=False),
+            on_apply_validate=lambda _instruction: _apply_preview_patch(validate_first=True),
+            on_revert=_revert_config_chat_change,
+        )
+        _render_config_chat_preview()
 
     # Alternative: File upload mode
     st.sidebar.markdown("---")
