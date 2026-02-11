@@ -102,12 +102,12 @@ def read_secret(name: str) -> str | None:
     """
     # Try st.secrets first (only when Streamlit is importable and running)
     try:
-        import streamlit as st  # noqa: WPS433 – optional import
+        import streamlit as st
 
         value = st.secrets.get(name)
         if isinstance(value, str) and value.strip():
             return value.strip()
-    except Exception:  # noqa: BLE001 – broad ok, just a fallback
+    except Exception:
         pass
 
     value = os.environ.get(name)
