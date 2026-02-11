@@ -187,6 +187,10 @@ class TestResolveApiKeyInput:
         with mock.patch.dict(os.environ, {"OPENAI2_API_KEY_V1": "resolved-v2"}):
             assert resolve_api_key_input("OPENAI2_API_KEY_V1") == "resolved-v2"
 
+    def test_env_var_name_with_outer_whitespace_resolves(self) -> None:
+        with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "resolved-value"}):
+            assert resolve_api_key_input("  OPENAI_API_KEY  ") == "resolved-value"
+
     def test_env_var_name_missing(self) -> None:
         with mock.patch.dict(os.environ, {}, clear=True):
             # Patch st.secrets away
@@ -202,6 +206,8 @@ class TestResolveApiKeyInput:
             "openai_api_key",  # lowercase should not be treated as env var
             "OPENAI-API-KEY",  # disallowed character
             "AB",  # too short for env-var pattern
+            "1OPENAI_API_KEY",  # must start with uppercase letter
+            "_OPENAI_API_KEY",  # leading underscore is invalid
         ],
     )
     def test_invalid_env_var_formats_are_treated_as_literals(self, raw_input: str) -> None:
