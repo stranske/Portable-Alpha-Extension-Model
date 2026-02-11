@@ -122,6 +122,18 @@ class TestSanitizeApiKey:
         result = sanitize_api_key(key)
         assert key not in result
 
+    def test_special_characters_are_masked_without_leak(self) -> None:
+        key = "  sk-!@#$_+[]{}()|:;,./?<>  "
+        result = sanitize_api_key(key)
+        assert result.startswith("sk-!")
+        assert result.endswith("<>")
+        assert "***" in result
+        assert key.strip() not in result
+
+    @pytest.mark.parametrize("key", ["abcdefgh", "abcd1234"])
+    def test_boundary_length_fully_masked(self, key: str) -> None:
+        assert sanitize_api_key(key) == "*" * len(key)
+
 
 # ===================================================================
 # read_secret
@@ -179,6 +191,17 @@ class TestResolveApiKeyInput:
 
     def test_strips_whitespace(self) -> None:
         assert resolve_api_key_input("  sk-abc123  ") == "sk-abc123"
+
+    @pytest.mark.parametrize(
+        "raw_input",
+        [
+            "openai_api_key",  # lowercase should not be treated as env var
+            "OPENAI-API-KEY",  # disallowed character
+            "AB",  # too short for env-var pattern
+        ],
+    )
+    def test_invalid_env_var_formats_are_treated_as_literals(self, raw_input: str) -> None:
+        assert resolve_api_key_input(raw_input) == raw_input
 
 
 # ===================================================================
