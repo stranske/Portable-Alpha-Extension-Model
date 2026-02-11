@@ -130,9 +130,39 @@ class TestSanitizeApiKey:
         assert "***" in result
         assert key.strip() not in result
 
+    @pytest.mark.parametrize(
+        "key,expected_prefix,expected_suffix",
+        [
+            ("++++----====????", "++++", "???"),
+            ("ABCD!@#$%^&*()_+", "ABCD", ")_+"),
+            ("path/with\\slashes<>", "path", "<>"),
+        ],
+    )
+    def test_special_character_keys_preserve_only_safe_edges(
+        self, key: str, expected_prefix: str, expected_suffix: str
+    ) -> None:
+        result = sanitize_api_key(key)
+        assert result.startswith(expected_prefix)
+        assert result.endswith(expected_suffix)
+        assert "***" in result
+        assert key not in result
+
+    def test_internal_whitespace_and_control_chars_do_not_bypass_masking(self) -> None:
+        key = "\t sk-\nabc\rdef\x0bghi \n"
+        result = sanitize_api_key(key)
+        assert result.startswith("sk-\n")
+        assert result.endswith("ghi")
+        assert "***" in result
+        assert key.strip() not in result
+
     @pytest.mark.parametrize("key", ["abcdefgh", "abcd1234"])
     def test_boundary_length_fully_masked(self, key: str) -> None:
         assert sanitize_api_key(key) == "*" * len(key)
+
+    def test_boundary_nine_characters_masks_middle_only(self) -> None:
+        key = "abcd12345"
+        result = sanitize_api_key(key)
+        assert result == "abcd***345"
 
 
 # ===================================================================
