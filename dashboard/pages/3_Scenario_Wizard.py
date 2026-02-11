@@ -417,7 +417,7 @@ def _preview_config_chat_change(instruction: str) -> None:
         st.warning("Provide an instruction before previewing.")
         return
 
-    current = st.session_state.wizard_config
+    current = st.session_state["wizard_config"]
     try:
         chain_result = _resolve_chat_patch(current_config=current, instruction=instruction)
         candidate = _clone_config(current)
@@ -455,7 +455,7 @@ def _apply_preview_patch(*, validate_first: bool) -> None:
         st.error("Preview patch is missing or invalid.")
         return
 
-    current = st.session_state.wizard_config
+    current = st.session_state["wizard_config"]
     if validate_first:
         trial_config = _clone_config(current)
         trial_session = dict(st.session_state)
@@ -484,7 +484,7 @@ def _apply_preview_patch(*, validate_first: bool) -> None:
     )
 
     apply_config_patch(current, patch, session_state=st.session_state)
-    st.session_state.wizard_config = current
+    st.session_state["wizard_config"] = current
     st.success("Config patch applied.")
 
 
@@ -501,7 +501,7 @@ def _revert_config_chat_change() -> None:
         st.error("Cannot revert: stored history entry is incomplete.")
         return
 
-    st.session_state.wizard_config = _clone_config(pre_config)
+    st.session_state["wizard_config"] = _clone_config(pre_config)
     _restore_session_mirrors(pre_session)
     st.success("Reverted latest applied config chat change.")
 
