@@ -1,0 +1,852 @@
+version: 1
+issue: 1377
+base: main
+branch: codex/issue-1377
+tasks:
+  - id: task-01
+    title: "Create `pa_core/llm/result_explain.py` with an entrypoint that accepts\
+      \ the Results \u201Cdetails\u201D inputs (DataFrame + manifest) and returns\
+      \ `(text, trace_url, payload_dict)`"
+    status: doing
+    started_at: '2026-02-11T16:11:48Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: "Define scope for: Create `pa_core/llm/result_explain.py` with an entrypoint\
+      \ that accepts the Results \u201Cdetails\u201D inputs (DataFrame + manifest)\
+      \ (verify: confirm completion in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: "Implement focused slice for: Create `pa_core/llm/result_explain.py` with\
+      \ an entrypoint that accepts the Results \u201Cdetails\u201D inputs (DataFrame\
+      \ + manifest) (verify: confirm completion in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: "Validate focused slice for: Create `pa_core/llm/result_explain.py` with\
+      \ an entrypoint that accepts the Results \u201Cdetails\u201D inputs (DataFrame\
+      \ + manifest) (verify: confirm completion in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'Define scope for: Create `pa_core/llm/result_explain.py` with returns
+      `(text (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Implement focused slice for: Create `pa_core/llm/result_explain.py` with
+      returns `(text (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Validate focused slice for: Create `pa_core/llm/result_explain.py` with
+      returns `(text (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Define scope for: Create `pa_core/llm/result_explain.py` with trace_url
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Implement focused slice for: Create `pa_core/llm/result_explain.py` with
+      trace_url (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Validate focused slice for: Create `pa_core/llm/result_explain.py` with
+      trace_url (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Define scope for: Create `pa_core/llm/result_explain.py` with payload_dict)`
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Implement focused slice for: Create `pa_core/llm/result_explain.py` with
+      payload_dict)` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'Validate focused slice for: Create `pa_core/llm/result_explain.py` with
+      payload_dict)` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Implement building a compact `analysis_output` string in `pa_core/llm/result_explain.py`
+      from: summary DataFrame stats (means, tails, key quantiles), available column
+      names, manifest highlights (seed, key CLI args if available), and optional StressDelta
+      sheet summary if present'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'Define scope for: Implement building a compact `analysis_output` string
+      in `pa_core/llm/result_explain.py` from: summary DataFrame stats (means (verify:
+      confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'Implement focused slice for: Implement building a compact `analysis_output`
+      string in `pa_core/llm/result_explain.py` from: summary DataFrame stats (means
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Validate focused slice for: Implement building a compact `analysis_output`
+      string in `pa_core/llm/result_explain.py` from: summary DataFrame stats (means
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'tails (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'key quantiles) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'available column names (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'manifest highlights (seed (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'key CLI args if available) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: '(verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'optional StressDelta sheet summary if present (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: Implement building a `metric_catalog` in `pa_core/llm/result_explain.py`
+      from key summary columns (e.g., TE, CVaR, breach probability, etc.) for prompt
+      grounding
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Define scope for: Implement building a `metric_catalog` in `pa_core/llm/result_explain.py`
+      from key summary columns (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: 'Implement focused slice for: Implement building a `metric_catalog` in
+      `pa_core/llm/result_explain.py` from key summary columns (e.g. (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: 'Validate focused slice for: Implement building a `metric_catalog` in `pa_core/llm/result_explain.py`
+      from key summary columns (e.g. (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: 'TE (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: 'CVaR (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: 'breach probability (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: 'etc.) for prompt grounding (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: Implement LLM invocation in `pa_core/llm/result_explain.py` using `pa_core/llm/create_llm()`
+      and return `(text, trace_url)` (include LangSmith trace URL when enabled)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: 'Define scope for: Implement LLM invocation in `pa_core/llm/result_explain.py`
+      using `pa_core/llm/create_llm()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: 'Implement focused slice for: Implement LLM invocation in `pa_core/llm/result_explain.py`
+      using `pa_core/llm/create_llm()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: 'Validate focused slice for: Implement LLM invocation in `pa_core/llm/result_explain.py`
+      using `pa_core/llm/create_llm()` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: 'return `(text (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: 'Define scope for: trace_url)` (include LangSmith trace URL when enabled)
+      (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: 'Implement focused slice for: trace_url)` (include LangSmith trace URL
+      when enabled) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: 'Validate focused slice for: trace_url)` (include LangSmith trace URL when
+      enabled) (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: Add a Trend-style disclaimer/footer append in `pa_core/llm/result_explain.py`
+      to the generated text
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: "Create `dashboard/components/explain_results.py` Streamlit component that\
+      \ renders: a questions text area with a Portable Alpha default prompt, provider/key/model\
+      \ expander via `dashboard/components/llm_settings.py`, and an \u201CExplain\
+      \ Results\u201D button with spinner"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: 'Define scope for: Create `dashboard/components/explain_results.py` Streamlit
+      component that renders: a questions text area with a Portable Alpha default
+      prompt (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: 'Implement focused slice for: Create `dashboard/components/explain_results.py`
+      Streamlit component that renders: a questions text area with a Portable Alpha
+      default prompt (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: 'Validate focused slice for: Create `dashboard/components/explain_results.py`
+      Streamlit component that renders: a questions text area with a Portable Alpha
+      default prompt (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: 'Define scope for: Create `dashboard/components/explain_results.py` Streamlit
+      component that renders: a questions text area with provider/key/model expander
+      via `dashboard/components/llm_settings.py` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: 'Implement focused slice for: Create `dashboard/components/explain_results.py`
+      Streamlit component that renders: a questions text area with provider/key/model
+      expander via `dashboard/components/llm_settings.py` (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: 'Validate focused slice for: Create `dashboard/components/explain_results.py`
+      Streamlit component that renders: a questions text area with provider/key/model
+      expander via `dashboard/components/llm_settings.py` (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: 'Define scope for: Create `dashboard/components/explain_results.py` Streamlit
+      component that renders: a questions text area with (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: 'Implement focused slice for: Create `dashboard/components/explain_results.py`
+      Streamlit component that renders: a questions text area with (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: 'Validate focused slice for: Create `dashboard/components/explain_results.py`
+      Streamlit component that renders: a questions text area with (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: "an \u201CExplain Results\u201D button with spinner (verify: confirm completion\
+      \ in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: Implement caching in `dashboard/components/explain_results.py` using `st.session_state`
+      keyed by `(xlsx path + manifest seed + provider/model/questions)` (or equivalent
+      concrete identifiers available)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: 'Define approach for: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: 'Define scope for: Implement: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: 'Implement focused slice for: Implement: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: 'Validate focused slice for: Implement: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: 'Define scope for: Validate: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: 'Implement focused slice for: Validate: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: 'Validate focused slice for: Validate: Implement caching in `dashboard/components/explain_results.py`
+      using `st.session_state` keyed by `(xlsx path + manifest seed + provider/model/questions)`
+      (or equivalent concrete identifiers available) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: Add download buttons in `dashboard/components/explain_results.py` for TXT
+      and JSON (JSON includes `trace_url`, `created_at`, and inputs summary)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: 'Define scope for: Add download buttons in `dashboard/components/explain_results.py`
+      for TXT (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: 'Implement focused slice for: Add download buttons in `dashboard/components/explain_results.py`
+      for TXT (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: 'Validate focused slice for: Add download buttons in `dashboard/components/explain_results.py`
+      for TXT (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: 'JSON for JSON includes `trace_url` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: 'JSON for `created_at` (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: 'JSON for (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: 'inputs summary (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: Update `dashboard/pages/4_Results.py` to render the Explain Results panel
+      below Key Metrics and above exports (or inside a tab/expander)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: 'Define scope for: Update `dashboard/pages/4_Results.py` to render the
+      Explain Results panel below Key Metrics (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: 'Implement focused slice for: Update `dashboard/pages/4_Results.py` to
+      render the Explain Results panel below Key Metrics (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: 'Validate focused slice for: Update `dashboard/pages/4_Results.py` to render
+      the Explain Results panel below Key Metrics (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'above exports (or inside a tab/expander) (verify: confirm completion in
+      repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: "Fix `dashboard/pages/4_Results.py` to gracefully handle missing LLM dependencies\
+      \ by showing an \u201Cinstall .[llm]\u201D hint / \u201CLLM features unavailable\u201D\
+      \ message while keeping the page functional"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: "Define scope for: Fix `dashboard/pages/4_Results.py` to gracefully handle\
+      \ missing LLM dependencies by showing an \u201Cinstall .[llm]\u201D hint (verify:\
+      \ dependencies updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: "Implement focused slice for: Fix `dashboard/pages/4_Results.py` to gracefully\
+      \ handle missing LLM dependencies by showing an \u201Cinstall .[llm]\u201D hint\
+      \ (verify: dependencies updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-77
+    title: "Validate focused slice for: Fix `dashboard/pages/4_Results.py` to gracefully\
+      \ handle missing LLM dependencies by showing an \u201Cinstall .[llm]\u201D hint\
+      \ (verify: dependencies updated)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-78
+    title: "Define scope for: \u201CLLM features unavailable\u201D message while keeping\
+      \ the page functional (verify: confirm completion in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-79
+    title: "Implement focused slice for: \u201CLLM features unavailable\u201D message\
+      \ while keeping the page functional (verify: confirm completion in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-80
+    title: "Validate focused slice for: \u201CLLM features unavailable\u201D message\
+      \ while keeping the page functional (verify: confirm completion in repo)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-81
+    title: With `.[llm]` installed and an API key present, `dashboard/pages/4_Results.py`
+      can generate an explanation and display a LangSmith trace URL when LangSmith
+      is enabled
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-82
+    title: "Without `.[llm]`, `dashboard/pages/4_Results.py` still renders and shows\
+      \ a clear \u201CLLM features unavailable\u201D / \u201Cinstall .[llm]\u201D\
+      \ message"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-83
+    title: Generated UI text, TXT download, JSON download, and logs contain no secrets
+      (e.g., API keys)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-84
+    title: 'Create `pa_core/llm/result_explain.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-85
+    title: "Build a compact \u201Canalysis_output\u201D string from:"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-86
+    title: summary DataFrame stats (means, tails, key quantiles)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-87
+    title: available column names
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-88
+    title: manifest highlights (seed, key CLI args if available)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-89
+    title: optional StressDelta sheet summary if present
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-90
+    title: "Build a \u201Cmetric_catalog\u201D from key summary columns (TE, CVaR,\
+      \ breach prob, etc.)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-91
+    title: Invoke LLM via `pa_core/llm/create_llm()` and return `(text, trace_url)`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-92
+    title: Ensure a disclaimer/footer is appended (Trend-style)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-93
+    title: 'Create `dashboard/components/explain_results.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-94
+    title: Questions text area with a sensible default tailored to Portable Alpha
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-95
+    title: Provider/key/model expander using `dashboard/components/llm_settings.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-96
+    title: "\u201CExplain Results\u201D button with spinner"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-97
+    title: Cache in `st.session_state` keyed by (xlsx path + manifest seed + provider/model/questions)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-98
+    title: Download buttons for TXT + JSON payload (include trace URL, created_at,
+      inputs summary)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-99
+    title: 'Wire into `dashboard/pages/4_Results.py`:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-100
+    title: Render the panel below Key Metrics and above exports (or inside a tab/expander)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-101
+    title: "Graceful fallback when llm deps not installed (show \u201Cinstall .[llm]\u201D\
+      \ hint)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-102
+    title: With `.[llm]` installed and an API key present, Results page can generate
+      an explanation and display a trace URL when LangSmith is enabled
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-103
+    title: "Without `.[llm]`, the page still works and shows a clear \u201CLLM features\
+      \ unavailable\u201D message"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-104
+    title: No secrets appear in the UI output, downloads, or logs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
