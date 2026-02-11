@@ -18,8 +18,8 @@ from dashboard.app import (
     apply_theme,
     load_data,
 )
-from dashboard.glossary import tooltip
 from dashboard.components.explain_results import render_explain_results_panel
+from dashboard.glossary import tooltip
 from pa_core.contracts import (
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,

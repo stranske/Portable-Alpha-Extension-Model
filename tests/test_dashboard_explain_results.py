@@ -50,7 +50,9 @@ class FakeStreamlit:
         self.session_state.setdefault(key, options[index])
         return str(self.session_state[key])
 
-    def text_input(self, label: str, value: str, key: str, type: str | None = None, help: str | None = None) -> str:
+    def text_input(
+        self, label: str, value: str, key: str, type: str | None = None, help: str | None = None
+    ) -> str:
         self.session_state.setdefault(key, value)
         return str(self.session_state[key])
 
@@ -77,9 +79,7 @@ class FakeStreamlit:
         return [_FakeContext() for _ in range(n)]
 
     def download_button(self, label: str, data: str, file_name: str, mime: str) -> None:
-        self.downloads.append(
-            _DownloadCall(label=label, data=data, file_name=file_name, mime=mime)
-        )
+        self.downloads.append(_DownloadCall(label=label, data=data, file_name=file_name, mime=mime))
 
 
 def test_render_explain_results_caches_and_download_json_fields(monkeypatch) -> None:
@@ -100,7 +100,11 @@ def test_render_explain_results_caches_and_download_json_fields(monkeypatch) -> 
 
     def _fake_explain(summary_df: pd.DataFrame, manifest: dict[str, Any] | None):
         call_count["count"] += 1
-        return "Explanation text", "https://smith.langchain.com/r/trace123", {"rows": len(summary_df)}
+        return (
+            "Explanation text",
+            "https://smith.langchain.com/r/trace123",
+            {"rows": len(summary_df)},
+        )
 
     monkeypatch.setattr(explain_module, "explain_results_details", _fake_explain)
 
