@@ -15,8 +15,7 @@ LLM_REQUIREMENTS = Path("tools/requirements-llm.txt")
 LOCKFILE = Path("requirements.lock")
 
 LOCK_LINE_RE = re.compile(
-    r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]*)==(?P<version>[^\s;#]+)"
-    r"(?:\s*;\s*[^#]+)?(?:\s*#.*)?$"
+    r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]*)==(?P<version>[^\s;#]+)" r"(?:\s*;\s*[^#]+)?(?:\s*#.*)?$"
 )
 
 
