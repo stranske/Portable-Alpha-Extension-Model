@@ -258,6 +258,16 @@ kaleido==1.2.0
     # via portable-alpha-extension-model (pyproject.toml)
 keyring==25.7.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x'
     # via twine
+langchain==1.2.0
+    # via portable-alpha-extension-model (pyproject.toml)
+langchain-anthropic==0.3.21
+    # via portable-alpha-extension-model (pyproject.toml)
+langchain-core==1.2.8
+    # via portable-alpha-extension-model (pyproject.toml)
+langchain-openai==1.1.0
+    # via portable-alpha-extension-model (pyproject.toml)
+langsmith==0.6.8
+    # via portable-alpha-extension-model (pyproject.toml)
 lark==1.3.1
     # via rfc3987-syntax
 librt==0.7.7 ; platform_python_implementation != 'PyPy'

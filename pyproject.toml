@@ -40,6 +40,7 @@ explicit_package_bases = true
 ignore_missing_imports = true
 disable_error_code = ["import-untyped", "no-redef"]
 exclude = [
+    "^(?!pa_core/).*",
     "archive/",
     "tests/",
     "scripts/",
@@ -49,6 +50,19 @@ exclude = [
     "docs/",
     "tutorials/",
 ]
+
+[[tool.mypy.overrides]]
+module = [
+    "archive",
+    "archive.*",
+    "dashboard",
+    "dashboard.*",
+    "scripts",
+    "scripts.*",
+    "tests",
+    "tests.*",
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -88,7 +102,15 @@ dependencies = [
 
 [project.optional-dependencies]
 # Optional extras
+app = []
 parquet = ["pyarrow"]
+llm = [
+    "langchain>=0.3",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.3",
+    "langchain-anthropic>=0.3",
+    "langsmith>=0.1",
+]
 
 # Development dependencies
 dev = [
