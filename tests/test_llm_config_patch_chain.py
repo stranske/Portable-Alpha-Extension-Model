@@ -43,6 +43,7 @@ def test_parse_chain_output_strips_unknown_keys_and_fields() -> None:
     assert "stripped_unknown_patch_ops:replace" in result.risk_flags
     assert "stripped_unknown_patch_field:set.fake_field" in result.risk_flags
     assert "stripped_unknown_patch_field:remove.unknown_remove" in result.risk_flags
+    assert "unknown_keys_stripped" in result.risk_flags
 
 
 def test_chain_run_sets_trace_url_when_langsmith_enabled(monkeypatch) -> None:
