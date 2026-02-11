@@ -157,15 +157,15 @@
    - [ ] Build a “metric_catalog” from key summary columns (TE, CVaR, breach prob, etc.)
    - [ ] Invoke LLM via `pa_core/llm/create_llm()` and return `(text, trace_url)`
    - [ ] Ensure a disclaimer/footer is appended (Trend-style)
- - [ ] Create `dashboard/components/explain_results.py`:
-   - [ ] Questions text area with a sensible default tailored to Portable Alpha
-   - [ ] Provider/key/model expander using `dashboard/components/llm_settings.py`
-   - [ ] “Explain Results” button with spinner
-   - [ ] Cache in `st.session_state` keyed by (xlsx path + manifest seed + provider/model/questions)
-   - [ ] Download buttons for TXT + JSON payload (include trace URL, created_at, inputs summary)
- - [ ] Wire into `dashboard/pages/4_Results.py`:
-   - [ ] Render the panel below Key Metrics and above exports (or inside a tab/expander)
-   - [ ] Graceful fallback when llm deps not installed (show “install .[llm]” hint)
+ - [x] Create `dashboard/components/explain_results.py`:
+   - [x] Questions text area with a sensible default tailored to Portable Alpha
+   - [x] Provider/key/model expander using `dashboard/components/llm_settings.py`
+   - [x] “Explain Results” button with spinner
+   - [x] Cache in `st.session_state` keyed by (xlsx path + manifest seed + provider/model/questions)
+   - [x] Download buttons for TXT + JSON payload (include trace URL, created_at, inputs summary)
+ - [x] Wire into `dashboard/pages/4_Results.py`:
+   - [x] Render the panel below Key Metrics and above exports (or inside a tab/expander)
+   - [x] Graceful fallback when llm deps not installed (show “install .[llm]” hint)
 
  ## Acceptance Criteria
 

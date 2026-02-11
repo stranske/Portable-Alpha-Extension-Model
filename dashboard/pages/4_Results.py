@@ -18,6 +18,7 @@ from dashboard.app import (
     apply_theme,
     load_data,
 )
+from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
 from pa_core.contracts import (
     SUMMARY_BREACH_PROB_COLUMN,
@@ -27,6 +28,17 @@ from pa_core.contracts import (
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
 )
+
+
+def _render_explain_results(
+    *, summary: pd.DataFrame, manifest_data: dict | None, xlsx: str
+) -> None:
+    try:
+        render_explain_results_panel(summary_df=summary, manifest=manifest_data, xlsx_path=xlsx)
+    except ModuleNotFoundError:
+        st.info("LLM features unavailable. Install .[llm] to enable Explain Results.")
+    except Exception:
+        st.info("LLM features unavailable. Install .[llm] to enable Explain Results.")
 
 
 def main() -> None:
@@ -76,6 +88,8 @@ def main() -> None:
             f"{summary[SUMMARY_BREACH_PROB_COLUMN].mean():.2%}",
             help=tooltip("breach probability"),
         )
+
+    _render_explain_results(summary=summary, manifest_data=manifest_data, xlsx=xlsx)
 
     if "Config" in summary.columns:
         config_options = summary["Config"].unique().tolist()
