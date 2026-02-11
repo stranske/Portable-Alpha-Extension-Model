@@ -22,7 +22,6 @@ from dashboard.app import (
 from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
-from pa_core.llm.compare_runs import load_prior_manifest
 from pa_core.contracts import (
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,
@@ -31,6 +30,7 @@ from pa_core.contracts import (
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
 )
+from pa_core.llm.compare_runs import load_prior_manifest
 
 
 @dataclass(frozen=True)
