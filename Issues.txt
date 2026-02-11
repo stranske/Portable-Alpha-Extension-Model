@@ -1,326 +1,296 @@
-Issue 1 — Wizard: add Advanced Simulation Settings UI + YAML wiring (returns, copula, vol regime, shrinkage, repair, backend)
-# AGENT_ISSUE_TEMPLATE
-
-## Why
-
-Issue #957 identifies several `ModelConfig` fields that exist in the backend but are not exposed in the Streamlit Scenario Wizard, and therefore cannot be set via the UI or persisted into the wizard-generated YAML.
-
-This creates two problems:
-1) Users cannot access advanced behaviors (Student-t, copula, two-state vol regime, shrinkage/repair modes) from the UI.
-2) The wizard-generated YAML cannot reproduce those settings, making runs harder to audit and reproduce.
-
-## Scope
-
-Add an "Advanced Simulation Settings" panel to the Scenario Wizard that:
-- exposes key advanced `ModelConfig` fields
-- persists them into the config view (`pa_core/wizard_schema.py`)
-- writes them into the wizard YAML via `_build_yaml_from_config()`
-- adds tests ensuring end-to-end wiring from UI config → YAML dict → `ModelConfig`
-
-Fields to include (from #957):
-- `return_distribution`, `return_t_df`, `return_copula`
-- `vol_regime`, `vol_regime_window`
-- `covariance_shrinkage`
-- `correlation_repair_mode`, `correlation_repair_shrinkage`
-- `backend`
-
-## Non-Goals
-
-- Building a fully general GUI editor for complex nested objects (handled in a separate regime switching issue).
-- Changing defaults or simulation behavior beyond wiring.
-- Adding GPU/cupy support if it is not already supported; backend UI may be “numpy only” for now.
-
-## Tasks
-
-- [x] Create `pa_core/reporting/agent_semantics.py` with `build_agent_semantics(cfg: ModelConfig) -> pd.DataFrame`.
-- [x] Include columns: `Agent`, `capital_mm`, `implied_capital_share`, `beta_coeff_used`, `alpha_coeff_used`, `financing_coeff_used`, `notes`, `mismatch_flag`.
-- [x] Implement built-in agent rules:
-  - Base: beta_coeff = beta_share, alpha_coeff = alpha_share, financing_coeff = -beta_share
-  - ExternalPA: beta_coeff = beta_share, alpha_coeff = beta_share * theta_extpa (from extra), financing_coeff = -beta_share
-  - ActiveExt: beta_coeff = beta_share, alpha_coeff = beta_share * active_share (from extra), financing_coeff = -beta_share
-  - InternalPA: beta_coeff = 0, alpha_coeff = alpha_share, financing_coeff = 0
-  - InternalBeta: beta_coeff = beta_share, alpha_coeff = 0, financing_coeff = -beta_share
-  - Unknown/custom agents: treat beta_coeff = beta_share and alpha_coeff = alpha_share; set notes indicating semantics depend on implementation.
-- [x] Flag mismatch when `abs(implied_capital_share - beta_share)` (ExternalPA/ActiveExt/InternalBeta) or `abs(implied_capital_share - alpha_share)` (InternalPA) exceeds tolerance (e.g., 1e-6).
-- [x] Attach the DataFrame to run exports by adding `inputs["_agent_semantics_df"] = df` in `pa_core/facade.py` (RunArtifacts inputs).
-- [x] Update `pa_core/reporting/excel.py` to write `_agent_semantics_df` to a new sheet `AgentSemantics` when present.
-- [x] Add unit tests in `tests/test_reporting_agent_semantics.py` to verify coefficients and mismatch detection for a small config with Base/ExternalPA/ActiveExt/InternalPA.
-- [x] Update documentation (`docs/UserGuide.md` or `docs/guides/PARAMETER_GUIDE.md`) with a short explanation of the `AgentSemantics` sheet and how to interpret it.
-
-## Acceptance Criteria
-
-- [ ] Running `pa run` produces an Excel workbook containing a sheet named `AgentSemantics`.
-- [ ] The sheet contains the specified columns and rows for all built-in agents present in config.
-- [ ] For ExternalPA and ActiveExt, `alpha_coeff_used` equals `beta_share * theta_extpa` and `beta_share * active_share` respectively.
-- [ ] Mismatch flags trigger when implied capital share differs materially from the contribution scaling used.
-- [ ] All tests pass and no existing simulation output tests regress.
-
-## Implementation Notes
-
-Files likely involved:
-- `pa_core/reporting/agent_semantics.py` (new)
-- `pa_core/facade.py` (attach `_agent_semantics_df` to inputs)
-- `pa_core/reporting/excel.py` (write `AgentSemantics` sheet)
-- `pa_core/config.py` (use `total_fund_capital` and existing compiled agents list)
-- `pa_core/agents/*.py` (reference semantics only; do not change)
-
-2 — Export correlation repair diagnostics (before/after matrices) + optional max-delta guardrail
-## Why
-
-Correlation repair is correctly applied and logged, and summary stats are stored in `_correlation_repair_info`, but the actual matrices used (before vs after) are not exported. That makes it hard to audit when “inputs were repaired” materially.
-
-We should export:
-- correlation matrix before repair
-- correlation matrix after repair
-- delta matrix (after - before)
-- a small “repair info” table (min eigen before/after, max delta, mode, shrinkage)
-
-Optionally, users should be able to fail a run when the repair delta is too large.
-
-- [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
-  - [ ] Add an "Advanced Simulation Settings" UI section (expander or dedicated step).
-  - [ ] Add UI controls and store values into the config view and/or session_state consistently.
-  - [ ] Ensure these values are used when building the wizard config object.
-
-- [ ] Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:
-  - [ ] Emit the advanced fields into the YAML dict using the canonical `ModelConfig` keys (snake_case), alongside existing keys.
-
-- [ ] Tests:
-  - [ ] Update `tests/test_wizard_schema.py` to assert `DefaultConfigView` includes the new fields and that defaults are valid.
-  - [ ] Update `tests/test_wizard_config_wiring.py` to:
-    - set non-default values for these new fields in the config view
-    - assert `_build_yaml_from_config()` includes them
-    - assert `ModelConfig.model_validate(yaml_dict)` reflects them correctly.
-
-- [x] Update `pa_core/sim/paths.py::_resolve_correlation_matrix()` to include `corr_before` and `corr_after` in the returned `info` dict (nested lists or small arrays).
-- [ ] Add `correlation_repair_max_abs_delta: float | None` to `ModelConfig` in `pa_core/config.py` (default: None).
-- [ ] In `_resolve_correlation_matrix()`, if `correlation_repair_max_abs_delta` is not None and `repair_applied` is True, raise `ValueError` when `max_abs_delta > threshold`, including both values in the message.
-- [ ] In `pa_core/facade.py::run_single()`, when `corr_repair_info` exists, construct DataFrames:
-  - `inputs["_corr_before_df"]`
-  - `inputs["_corr_after_df"]`
-  - `inputs["_corr_delta_df"]`
-  - `inputs["_corr_repair_info_df"]` (one-row table of scalar diagnostics)
-- [ ] Update `pa_core/reporting/excel.py` to write these DataFrames to sheets (short names):
-  - `CorrInput`, `CorrUsed`, `CorrDelta`, `CorrRepairInfo`
-- [ ] Add tests:
-  - [x] `tests/test_return_distributions.py` (or new file) asserts repair info contains `corr_before` and `corr_after`.
-  - [ ] Add a test that sets `correlation_repair_max_abs_delta` small and confirms a ValueError is raised when repair applied with larger delta.
-  - [ ] Add a test that `run_single()` attaches the `_corr_*_df` keys to `RunArtifacts.inputs` when repair applied.
-- [ ] Update documentation (`docs/UserGuide.md`) describing where to find correlation repair diagnostics in exports.
+1. Add Streamlit LLM foundations (optional deps + core helpers): |
+ ## Why
 
-## Acceptance Criteria
+ Portable Alpha’s Streamlit app should support LangChain-powered feedback (Explain Results, Compare Runs, Config Chat) with the same core patterns as Trend (provider selection, safe key handling, LangSmith trace URLs, caching). Right now Portable Alpha lacks a dedicated, Streamlit-oriented LLM foundation.
 
-- [ ] Wizard UI exposes the advanced settings listed in Scope.
-- [ ] `_build_yaml_from_config()` includes these settings in its output dict.
-- [ ] The resulting YAML dict validates into `ModelConfig` with the expected values.
-- [ ] `tests/test_wizard_schema.py` and `tests/test_wizard_config_wiring.py` cover all added fields and pass in CI.
-- [ ] Documentation notes the new coverage.
+ ## Scope
 
-## Implementation Notes
+ - Add an `llm` optional dependency group and lock alignment
+ - Add `pa_core/llm/` foundational modules:
+   - provider config + `create_llm()`
+   - LangSmith tracing helper (trace_url capture)
+   - shared prompt helpers and disclaimers for Streamlit features
+ - Ensure all LLM features degrade gracefully when `.[llm]` is not installed or keys are missing
 
-Files referenced by #957:
-- `dashboard/pages/3_Scenario_Wizard.py` (UI + `_build_yaml_from_config()`)
-- `pa_core/wizard_schema.py` (DefaultConfigView)
-- `tests/test_wizard_config_wiring.py`, `tests/test_wizard_schema.py`
+ ## Non-Goals
 
-Issue 2 — Wizard: add Regime Switching UI + YAML wiring (regimes, transition matrix, start regime)
-# AGENT_ISSUE_TEMPLATE
+ - Implement the Streamlit UI panels (Explain/Compare/Config Chat) in this issue
+ - Add CI workflows or change `.github/workflows/**` (keep this issue repo-code only)
 
-## Why
+ ## Tasks
 
-Issue #957 notes that regime switching exists in `ModelConfig` (from prior work) but has no wizard UI and is not persisted in wizard YAML output. That prevents users from configuring regimes via the dashboard and makes the feature effectively CLI-only.
+ - [ ] Add `llm` optional dependency group in `pyproject.toml` with: `langchain`, `langchain-core`, `langchain-openai`, `langchain-anthropic`, `langsmith` (keep versions loosely pinned or consistent with Trend’s patterns)
+ - [ ] Update `requirements.lock` generation command and regenerate `requirements.lock` so `tests/test_dependency_version_alignment.py` continues to pass
+ - [ ] Create `pa_core/llm/tracing.py` mirroring Trend’s pattern: enable tracing only when `LANGSMITH_API_KEY` exists; expose `langsmith_tracing_context()` and `resolve_trace_url()`
+ - [ ] Create `pa_core/llm/provider.py` (or similar) defining a small `LLMProviderConfig` and `create_llm(config)` that builds a LangChain chat model
+ - [ ] Add `pa_core/llm/prompts.py` with prompt builders for:
+   - result explanation
+   - comparison explanation
+   - config patching (wizard)
+ - [ ] Add unit tests that:
+   - confirm tracing is a no-op without env keys
+   - validate `create_llm()` fails cleanly with a helpful error if provider keys missing
 
-## Scope
+ ## Acceptance Criteria
 
-Add a minimal-but-usable UI for regime switching in the Scenario Wizard:
-- enable/disable regime switching
-- define `regimes`
-- define `regime_transition`
-- define `regime_start`
-- persist these fields into wizard YAML via `_build_yaml_from_config()`
+ - [ ] `pip install -e ".[llm]"` succeeds locally and in CI, and `requirements.lock` includes pinned versions for new deps
+ - [ ] `import pa_core.llm` works without triggering network calls; tracing remains disabled unless `LANGSMITH_API_KEY` is set
+ - [ ] Unit tests pass without any real LLM calls
 
-Prefer a pragmatic UX that avoids complex grid editors:
-- Use structured inputs where easy (toggle + dropdown for start regime)
-- Use YAML/JSON text areas for regimes list and transition matrix, with validation and helpful errors.
+ ## Implementation Notes
 
-## Non-Goals
+ - Trend references to mirror (conceptually):
+   - `src/trend_analysis/llm/tracing.py` (LangSmith gating + trace URL)
+   - `streamlit_app/components/llm_settings.py` (sanitized key handling, env/secret fallback)
+ - Prefer Portable-specific env names (ex: `PA_LLM_PROVIDER`, `PA_LLM_MODEL`, `PA_LLM_API_KEY`) but allow fallbacks (`OPENAI_API_KEY`, `CLAUDE_API_STRANSKE`) for convenience.
+ - Never persist raw API keys into artifacts, logs, or exported packets.
 
-- A full matrix editor UI.
-- Automatic inference of regime parameters from data.
-- Changing regime simulation logic.
-
-## Tasks
+3. Add Trend Streamlit LLM reference pack config to Portable Alpha: |
+ ## Why
 
-- [ ] Update `pa_core/wizard_schema.py`:
-  - [ ] Extend `DefaultConfigView` to include optional regime fields:
-    - `regimes` (optional list/dict structure or a raw YAML field that is parsed before YAML build)
-    - `regime_transition` (optional list-of-lists or parsed structure)
-    - `regime_start` (optional string)
-
-- [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
-  - [ ] Add a "Regime Switching" section:
-    - [ ] Toggle: enable regime switching
-    - [ ] Text area: regimes YAML/JSON
-    - [ ] Text area: transition matrix YAML/JSON
-    - [ ] Input/select: starting regime (optional; validate it exists in regimes)
-  - [ ] Add parsing/validation that:
-    - fails loudly with actionable messages if YAML/JSON cannot be parsed
-    - checks transition matrix dimensions match number of regimes
-    - checks probabilities rows sum ~ 1.0 (tolerance)
+ Once Workflows supports reference packs, Portable Alpha needs a pinned, curated “Trend LLM Streamlit” pack so Codex can copy patterns reliably.
 
-- [ ] Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:
-  - [ ] When regime switching enabled, emit:
-    - `regimes`
-    - `regime_transition`
-    - `regime_start`
+ ## Scope
 
-- [ ] Tests:
-  - [ ] Add `tests/test_wizard_regime_wiring.py` (or extend `test_wizard_config_wiring.py`) to:
-    - provide a minimal 2-regime configuration
-    - assert YAML dict contains the expected keys
-    - assert `ModelConfig.model_validate(yaml_dict)` succeeds
+ - Add `.github/reference_packs.json` in Portable Alpha defining a Trend reference pack
+ - Pin to a specific Trend commit SHA
+ - Include only the minimal files needed for:
+   - LLM settings UI patterns
+   - Explain Results UI patterns
+   - Comparison UI patterns
+   - Tracing helpers and chain invocation patterns
+   - Config Chat patterns (even if we re-implement locally)
 
-- [ ] Documentation:
-  - [ ] Update `docs/UserGuide.md` (or wizard docs) with a short “Regime Switching via Wizard” example including a minimal two-state spec.
+ ## Non-Goals
 
-## Acceptance Criteria
+ - Implement the Streamlit features themselves
+ - Include large or unrelated Trend directories
 
-- [ ] Wizard can accept a valid regime switching specification and persist it into YAML.
-- [ ] Invalid YAML/JSON for regimes or transition yields an actionable error in the UI.
-- [ ] The generated YAML validates into `ModelConfig` with regimes enabled.
-- [ ] Tests cover the wiring and pass in CI.
+ ## Tasks
 
-## Implementation Notes
+ - [ ] Create `.github/reference_packs.json` with one pack named `trend_streamlit_llm`
+ - [ ] Pin `ref` to Trend `phase-3` HEAD commit (use current SHA: `8356d93c951ba39074d834875edbb7faa187da32`)
+ - [ ] Include these paths (minimum viable set):
+   - `streamlit_app/components/llm_settings.py`
+   - `streamlit_app/components/explain_results.py`
+   - `streamlit_app/components/comparison_llm.py`
+   - `streamlit_app/pages/2_Model.py` (for Config Chat patterns)
+   - `src/trend_analysis/llm/chain.py`
+   - `src/trend_analysis/llm/tracing.py`
+ - [ ] Add a short doc note in `docs/` describing what the reference pack is and how it is used in agent runs
 
-Keep the initial UI minimal and robust. A text-area based approach is acceptable for advanced users and avoids a lot of fragile UI logic.
+ ## Acceptance Criteria
 
-Issue 3 — Sleeve constraint settings: persist into YAML/ModelConfig and optionally validate runs
-# AGENT_ISSUE_TEMPLATE
+ - [ ] The reference pack config is valid JSON and includes a pinned commit SHA
+ - [ ] After the Workflows change is merged, a keepalive Codex run in Portable Alpha contains `.reference/trend_streamlit_llm/...` with those files
 
-## Why
+ ## Implementation Notes
 
-Issue #957 notes that sleeve constraint settings in the wizard (`sleeve_max_te`, `sleeve_max_breach`, `sleeve_max_cvar`, `sleeve_max_shortfall`, `sleeve_constraint_scope`) currently affect sleeve suggestion only, but do not flow into the main simulation configuration.
+ - Keep the pack small. If you later need more, add paths incrementally (avoid prompt bloat and workspace noise).
+ - Do not commit `.reference/**` (it should be runtime-only materialized by Workflows).
 
-This creates confusion: the wizard suggests solutions using constraints, but a subsequent run cannot record or enforce the same constraint set.
+4. Streamlit LLM settings component for Portable Alpha (Trend-style): |
+ ## Why
 
-## Scope
+ Explain/Compare/Config Chat should share consistent handling for provider/model/key selection (and avoid leaking secrets). Trend already has a good pattern.
 
-- Persist sleeve constraint settings into the wizard YAML output and `ModelConfig`.
-- Add an optional “validate constraints on run” behavior (default off to avoid breaking existing flows).
-- Reuse existing constraint evaluation utilities if present (e.g., `pa_core/reporting/constraints.py`); otherwise implement a small validator.
+ ## Scope
 
-## Non-Goals
+ - Add a shared Streamlit component for LLM settings (Portable-native)
+ - Support reading keys from `st.secrets` and environment, plus optional “env var name” inputs
+ - Provide a provider config object compatible with `pa_core/llm/create_llm()`
 
-- Turning the simulation into an optimizer.
-- Automatically changing sleeve allocations to satisfy constraints.
-- Changing existing suggestor behavior unless necessary for consistency.
+ ## Non-Goals
 
-## Tasks
+ - Build Explain/Compare/Config Chat panels in this issue
 
-- [ ] Add fields to `ModelConfig` (in `pa_core/config.py`) if not already present:
-  - `sleeve_max_te: float | None`
-  - `sleeve_max_breach: float | None`
-  - `sleeve_max_cvar: float | None`
-  - `sleeve_max_shortfall: float | None`
-  - `sleeve_constraint_scope: Literal["total", "per_sleeve"]`
-  - `sleeve_validate_on_run: bool` (default False)
+ ## Tasks
 
-- [ ] Update `pa_core/wizard_schema.py`:
-  - [ ] Add these fields to `DefaultConfigView` with sensible defaults (None + total + False).
+ - [ ] Add `dashboard/components/llm_settings.py` modeled after Trend’s `streamlit_app/components/llm_settings.py`
+ - [ ] Implement:
+   - [ ] `sanitize_api_key()`
+   - [ ] `read_secret()`
+   - [ ] `resolve_api_key_input()` (accept either raw key or env-var name)
+   - [ ] `default_api_key(provider)` (Portable defaults + fallbacks)
+   - [ ] `resolve_llm_provider_config(...)`
+ - [ ] Define Portable env defaults (recommended):
+   - `PA_LLM_PROVIDER`, `PA_LLM_MODEL`, `PA_LLM_BASE_URL`, `PA_LLM_ORG`, `PA_STREAMLIT_API_KEY`
+   - fall back to `OPENAI_API_KEY`, `CLAUDE_API_STRANSKE`, `LANGSMITH_API_KEY`
+ - [ ] Add a tiny unit test suite validating sanitize/resolve behavior without printing secrets
 
-- [ ] Update `dashboard/pages/3_Scenario_Wizard.py`:
-  - [ ] Wire existing UI inputs (already in session_state) into the config view.
-  - [ ] Add a checkbox “Validate constraints on run” that maps to `sleeve_validate_on_run`.
+ ## Acceptance Criteria
 
-- [ ] Update `dashboard/pages/3_Scenario_Wizard.py::_build_yaml_from_config()`:
-  - [ ] Emit the sleeve constraint fields into the YAML dict.
+ - [ ] Streamlit can render the settings component without exceptions even when no keys are set
+ - [ ] Entering an env var name like `OPENAI_API_KEY` resolves to the secret value (without displaying it)
+ - [ ] Missing key errors are user-friendly and do not expose sensitive values
 
-- [ ] Implement validation on run (facade layer):
-  - [ ] Add `validate_sleeve_constraints(summary_df: pd.DataFrame, cfg: ModelConfig) -> list[str]` (return list of violations) in `pa_core/reporting/constraints.py` (or a new module).
-  - [ ] In `pa_core/facade.run_single()`, after `summary_table()`:
-    - If `cfg.sleeve_validate_on_run` is True, evaluate constraints.
-    - If violations exist:
-      - raise `ValueError` with a readable multi-line summary of violations
-      - OR (if preferred) attach violations to inputs metadata and print a warning (choose one; default should be explicit and testable).
+ ## Implementation Notes
 
-- [ ] Tests:
-  - [ ] Extend `tests/test_wizard_config_wiring.py` to assert the new fields appear in YAML dict and validate into `ModelConfig`.
-  - [ ] Add `tests/test_sleeve_constraint_validation.py`:
-    - Provide a fake summary DataFrame with `monthly_TE`, `monthly_BreachProb`, `monthly_CVaR`, `terminal_ShortfallProb` columns (or the canonical column names used by your constraints utilities).
-    - Confirm violations are detected correctly for both `total` and `per_sleeve` scope.
-    - Confirm `run_single()` raises when `sleeve_validate_on_run=True` and violations exist.
+ - Keep provider options aligned with Trend where possible: `openai`, `anthropic` (and optionally `ollama` if you want local)
+ - Never store raw keys in exported files, manifests, or logs.
 
-- [ ] Documentation:
-  - [ ] Update docs to state clearly:
-    - constraints are used by suggestor
-    - constraints can optionally be validated for a single run when enabled
+5. Add Explain Results LLM panel to dashboard/pages/4_Results.py: |
+ ## Why
 
-## Acceptance Criteria
+ Portable Alpha’s Results page already surfaces summary metrics and exports. Adding a Trend-like “Explain Results” panel will let users quickly interpret drivers (risk/return, breach probability, CVaR, scenario mechanics) with traceable LangSmith runs.
 
-- [ ] Wizard persists sleeve constraint values into YAML and they validate into `ModelConfig`.
-- [ ] When `sleeve_validate_on_run=True`, a run with violating metrics fails (or records violations) deterministically.
-- [ ] Tests cover both wiring and validation paths and pass in CI.
-- [ ] Documentation clarifies behavior and avoids user confusion.
+ ## Scope
 
-## Implementation Notes
+ - Implement `dashboard/components/explain_results.py` (Streamlit UI)
+ - Implement `pa_core/llm/result_explain.py` (metric extraction + prompt builder + chain invocation)
+ - Wire into `dashboard/pages/4_Results.py`
+ - Cache results per run, provider, model, and question text
 
-This closes the “constraints don’t flow to main simulation” gap in #957 while keeping default behavior unchanged unless explicitly enabled.
+ ## Non-Goals
 
-Issue 4 — Seed propagation: make wizard seed behavior consistent and testable (CLI + in-process runs)
-# AGENT_ISSUE_TEMPLATE
+ - Compare runs (separate issue)
+ - Wizard Config Chat (separate issue)
 
-## Why
+ ## Tasks
 
-Issue #957 flags a risk that “seed is passed to CLI but may not cover all paths.” The codebase now supports programmatic runs via `pa_core.facade.RunOptions(seed=...)`, but the dashboard/wizard must consistently:
-- store seed intent (enabled vs disabled)
-- pass seed to CLI runs
-- pass seed to in-process runs (e.g., sleeve suggestor workflows) when applicable
-- provide tests to prevent regressions
+ - [ ] Create `pa_core/llm/result_explain.py`:
+   - [ ] Build a compact “analysis_output” string from:
+     - summary DataFrame stats (means, tails, key quantiles)
+     - available column names
+     - manifest highlights (seed, key CLI args if available)
+     - optional StressDelta sheet summary if present
+   - [ ] Build a “metric_catalog” from key summary columns (TE, CVaR, breach prob, etc.)
+   - [ ] Invoke LLM via `pa_core/llm/create_llm()` and return `(text, trace_url)`
+   - [ ] Ensure a disclaimer/footer is appended (Trend-style)
+ - [ ] Create `dashboard/components/explain_results.py`:
+   - [ ] Questions text area with a sensible default tailored to Portable Alpha
+   - [ ] Provider/key/model expander using `dashboard/components/llm_settings.py`
+   - [ ] “Explain Results” button with spinner
+   - [ ] Cache in `st.session_state` keyed by (xlsx path + manifest seed + provider/model/questions)
+   - [ ] Download buttons for TXT + JSON payload (include trace URL, created_at, inputs summary)
+ - [ ] Wire into `dashboard/pages/4_Results.py`:
+   - [ ] Render the panel below Key Metrics and above exports (or inside a tab/expander)
+   - [ ] Graceful fallback when llm deps not installed (show “install .[llm]” hint)
 
-## Scope
+ ## Acceptance Criteria
 
-- Standardize how seed is represented in wizard state/config (enabled + value).
-- Ensure dashboard CLI invocation includes `--seed` only when enabled.
-- Ensure any in-process calls (suggestor/grid/sweep) receive the same seed through `RunOptions` or explicit arguments.
-- Add tests verifying command construction and seed propagation.
+ - [ ] With `.[llm]` installed and an API key present, Results page can generate an explanation and display a trace URL when LangSmith is enabled
+ - [ ] Without `.[llm]`, the page still works and shows a clear “LLM features unavailable” message
+ - [ ] No secrets appear in the UI output, downloads, or logs
 
-## Non-Goals
+ ## Implementation Notes
 
-- Making seed part of `ModelConfig` (seed belongs in RunOptions / CLI args).
-- Changing RNG semantics (already stabilized elsewhere).
+ - Use Trend’s `streamlit_app/components/explain_results.py` as the structural reference.
+ - Portable’s “details” object is a DataFrame + manifest, not Trend’s dict, so focus on robust summarization of tabular outputs.
 
-## Tasks
+6. Add LLM Comparison panel (current run vs previous run): |
+ ## Why
 
-- [ ] Wizard/UI:
-  - [ ] Ensure wizard has explicit `use_seed` toggle and `seed_value` input in session_state/config view.
-  - [ ] Default: `use_seed=True` and `seed_value=42` (or current behavior).
+ Portable Alpha already tracks `previous_run` in the manifest and attempts to load prior outputs for exports. A Trend-like LLM comparison panel will explain why results moved between iterations.
 
-- [ ] Dashboard CLI wiring:
-  - [ ] Update `dashboard/cli.py` (or where CLI command is built) so:
-    - `--seed <value>` is included only when `use_seed=True`
-    - when `use_seed=False`, the command omits `--seed` entirely
+ ## Scope
 
-- [ ] In-process runs:
-  - [ ] Where the dashboard invokes backend logic directly (e.g., sleeve suggestor), ensure seed is passed through `RunOptions(seed=seed_value)` or equivalent.
+ - Implement `dashboard/components/comparison_llm.py` (Streamlit UI)
+ - Implement `pa_core/llm/compare_runs.py` (diff + prompt + chain)
+ - Wire into `dashboard/pages/4_Results.py`, using `manifest_data["previous_run"]` when present
 
-- [ ] Tests:
-  - [ ] Update/add `tests/test_dashboard_cli.py`:
-    - verify `--seed` is present when enabled
-    - verify `--seed` is absent when disabled
-  - [ ] Add a small unit test for in-process suggestor call signature (mock/monkeypatch) ensuring seed is forwarded.
+ ## Non-Goals
 
-- [ ] Documentation:
-  - [ ] Update a short section in wizard docs stating:
-    - what seed does
-    - how disabling seed changes reproducibility
+ - Config Chat patching (separate issue)
 
-## Acceptance Criteria
+ ## Tasks
 
-- [ ] Wizard has explicit seed toggle + value, and these are used when invoking runs.
-- [ ] Dashboard CLI commands include/omit `--seed` correctly.
-- [ ] In-process runs consistently receive the seed when enabled.
-- [ ] Tests cover both enabled and disabled behavior and pass in CI.
+ - [ ] Implement `pa_core/llm/compare_runs.py`:
+   - [ ] Load prior manifest and prior summary when `previous_run` exists and is readable
+   - [ ] Compute a human-readable diff of key config inputs:
+     - seed changes
+     - key CLI args (capital, weights, distribution choices)
+     - any wizard config fields if stored in manifest
+   - [ ] Build two metric catalogs (A/B) from both summaries (same metrics as Explain Results)
+   - [ ] Invoke LLM and return `(text, trace_url)`
+ - [ ] Implement `dashboard/components/comparison_llm.py`:
+   - [ ] UI to select current vs previous (auto-detect previous)
+   - [ ] Questions box with default tailored to Portable Alpha (drivers, risk constraints, breach, CVaR)
+   - [ ] Provider/key/model controls via shared LLM settings component
+   - [ ] Downloads (TXT/JSON) including config diff + trace URL
+ - [ ] Wire into `dashboard/pages/4_Results.py`:
+   - [ ] Show only when previous run is available; otherwise show a gentle message
 
-## Implementation Notes
+ ## Acceptance Criteria
 
-Prefer deterministic tests that validate command construction and argument plumbing rather than trying to assert stochastic output differences.
+ - [ ] When a previous run exists, the comparison panel produces a coherent explanation and shows trace URL (when enabled)
+ - [ ] When previous run is missing/unreadable, the Results page still loads and explains what is missing
+
+ ## Implementation Notes
+
+ - Use Trend’s `streamlit_app/components/comparison_llm.py` as the structural reference.
+ - Reuse any prior-run loading logic already present in Results export packet code to avoid duplication.
+
+7. Add Config Chat to Scenario Wizard (NL patch + diff preview + apply): |
+ ## Why
+
+ To match Trend’s Streamlit experience, users should be able to describe a change in plain English (“increase simulations to 5000 and reduce breach tolerance”) and get a preview diff before applying to the wizard config.
+
+ ## Scope
+
+ - Implement a Wizard “Config Chat” panel similar to Trend’s, but adapted to `DefaultConfigView` and session-state keys used by the wizard
+ - Support preview, apply, apply+validate, and revert
+ - Block unknown keys and add basic injection guard
+
+ ## Non-Goals
+
+ - Changing the underlying simulation math
+ - Adding new wizard steps or redesigning the wizard UX
+
+ ## Tasks
+
+ - [ ] Create `pa_core/llm/config_patch.py`:
+   - [ ] Define a patch format (set/merge/remove) that targets a known set of wizard fields
+   - [ ] Implement apply + diff functions for the wizard config (and session-state mirrors like `_TOTAL_CAPITAL_KEY`, etc.)
+   - [ ] Validate by round-tripping through `_build_yaml_from_config()` + `load_config()`
+ - [ ] Create `pa_core/llm/config_patch_chain.py`:
+   - [ ] Prompt builder that includes:
+     - current wizard config snapshot
+     - allowed schema (explicit list of keys and types)
+     - safety rules (no secrets, no workflow edits, no file writes)
+   - [ ] Return patch + summary + risk flags
+   - [ ] Capture trace URL when LangSmith enabled
+ - [ ] Add `dashboard/components/config_chat.py`:
+   - [ ] UI: Instruction input, Preview button, Apply, Apply+Validate, Revert
+   - [ ] Render unified diff and side-by-side diff (YAML or JSON)
+   - [ ] Persist change history in `st.session_state` with timestamps
+ - [ ] Wire into `dashboard/pages/3_Scenario_Wizard.py`:
+   - [ ] Add a sidebar expander “💬 Config Chat”
+   - [ ] On apply, update both `wizard_config` and relevant session keys
+
+ ## Acceptance Criteria
+
+ - [ ] A user can enter an instruction, see a preview diff, then apply it and pass `load_config()` validation
+ - [ ] Unknown keys are rejected or stripped (no silent hallucinated fields)
+ - [ ] Revert restores the last pre-apply config state
+
+ ## Implementation Notes
+
+ - Use Trend’s config chat flow as the UX reference, but keep Portable-specific schema.
+ - Keep the allowed schema explicit and small at first (core wizard fields only). Expand later as needed.
+
+8. Add tests + docs for Streamlit LLM features and reference pack: |
+ ## Why
+
+ LLM features are easy to break with small refactors. Lightweight tests (no network) and docs keep the system reliable and reproducible for agent runs.
+
+ ## Scope
+
+ - Unit tests for prompt builders, metric extraction, diff/apply logic, and key resolution
+ - Smoke tests for Streamlit component imports
+ - Docs explaining:
+   - enabling `.[llm]`
+   - required env vars / secrets
+   - how the reference pack works in keepalive runs
+
+ ## Non-Goals
+
+ - Integration tests that call real LLM endpoints
+
+ ## Tasks
+
+ - [ ] Add tests for:
+   - [ ] `dashboard/components/llm_settings.py` key resolution and sanitization
+   - [ ] `pa_core/llm/result_explain.py` metric extraction (with a small fake summary DataFrame)
+   - [ ] `pa_core/llm/compare_runs.py` diff formatting
+   - [ ] `pa_core/l_
