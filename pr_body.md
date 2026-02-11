@@ -85,6 +85,7 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ## Task Reconciliation (Keepalive Next Task #1391)
 - [x] Reviewed recent commits (`a30c46c`, `f24ebd8`, `0b2c8d5`) and reconciled checkbox state with implemented `result_explain` changes.
+- [x] Reviewed follow-up commits (`6e5ecb9`, `6fcb282`, `a678b9d`) and confirmed checkbox state remains aligned with implemented metric-catalog and redaction behavior.
 - [x] Added explicit acceptance-mapped unit coverage for `analysis_output` required sections and JSON serialization.
 - [x] Added dedicated unit test confirming `analysis_output.manifest_highlights` includes sentinel manifest values.
 - [x] Expanded `metric_catalog` alias handling/tests to cover human-readable metric column names (e.g., `Tracking Error`, `CVaR`, `Breach Probability`).
@@ -98,5 +99,5 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] API keys are not leaked: if `create_llm(...)` or the LLM invocation raises an exception containing the `api_key`, the surfaced/returned error text does not contain the secret and includes a redaction token.
 
 ### Verification (Keepalive Next Task #1391)
-- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (19 passed).
-- [x] `pytest tests/test_result_explain.py --cov=pa_core.llm --cov-report=term-missing -m "not slow"` (19 passed; includes `pa_core/llm/result_explain.py` coverage table entry at 83%).
+- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (20 passed).
+- [x] `coverage run -m pytest -q tests/test_result_explain.py -m "not slow"` and `coverage report -m pa_core/llm/result_explain.py` (20 passed; module coverage 82%).

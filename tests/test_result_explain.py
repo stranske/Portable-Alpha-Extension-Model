@@ -452,3 +452,28 @@ def test_error_messages_are_sanitized_and_bounded(monkeypatch) -> None:
     assert "SECRET456" not in text
     assert len(payload["error"]) <= result_explain._MAX_ERROR_MESSAGE_LEN
     assert "credentials" not in payload["error"].lower()
+
+
+def test_error_messages_redact_lowercase_bearer_and_config_dump(monkeypatch) -> None:
+    config = _config(api_key="SECRET123")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
+
+    class _RaisingLLM:
+        def invoke(self, prompt: str) -> Any:
+            raise RuntimeError(
+                "authorization: bearer SECRET123 "
+                "config={'provider':'openai','model':'gpt-4o-mini','api_key':'SECRET123'}"
+            )
+
+    monkeypatch.setattr(result_explain, "create_llm", lambda _cfg: _RaisingLLM())
+    text, _trace_url, payload = result_explain.explain_results_details(_toy_df(), llm_config=config)
+
+    assert "SECRET123" not in text
+    assert "bearer SECRET123" not in text.lower()
+    assert "authorization:" not in text.lower()
+    assert "config={" not in text
+    assert "SECRET123" not in payload["error"]
+    assert "config={" not in payload["error"]
+    assert result_explain._REDACTION_TOKEN in payload["error"]

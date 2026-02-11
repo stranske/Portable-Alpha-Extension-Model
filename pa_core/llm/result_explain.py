@@ -198,21 +198,26 @@ def _redact_sensitive(text: str, *, secrets: Sequence[str]) -> str:
     for secret in secrets:
         if isinstance(secret, str) and secret:
             redacted = redacted.replace(secret, _REDACTION_TOKEN)
-    redacted = re.sub(r"Bearer\s+[A-Za-z0-9._\-]+", _REDACTION_TOKEN, redacted)
     redacted = re.sub(
-        r"Authorization\s*:\s*[^\s,;]+",
+        r"\bbearer\b\s+[A-Za-z0-9._\-]+",
         _REDACTION_TOKEN,
         redacted,
         flags=re.IGNORECASE,
     )
     redacted = re.sub(
-        r"(api_?key|token|credential)s?\s*=\s*[^,\s]+",
+        r"\bauthorization\b\s*:\s*[^,;\n]+",
         _REDACTION_TOKEN,
         redacted,
         flags=re.IGNORECASE,
     )
     redacted = re.sub(
-        r"credentials\s*=\s*\{[^}]*\}",
+        r"(api_?key|token|credential)s?\s*[=:]\s*[^,\s]+",
+        _REDACTION_TOKEN,
+        redacted,
+        flags=re.IGNORECASE,
+    )
+    redacted = re.sub(
+        r"(credentials|config)\s*=\s*\{[^}]*\}",
         _REDACTION_TOKEN,
         redacted,
         flags=re.IGNORECASE,
