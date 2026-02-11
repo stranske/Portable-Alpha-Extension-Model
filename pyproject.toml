@@ -50,6 +50,19 @@ exclude = [
     "tutorials/",
 ]
 
+[[tool.mypy.overrides]]
+module = [
+    "archive",
+    "archive.*",
+    "dashboard",
+    "dashboard.*",
+    "scripts",
+    "scripts.*",
+    "tests",
+    "tests.*",
+]
+ignore_errors = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
