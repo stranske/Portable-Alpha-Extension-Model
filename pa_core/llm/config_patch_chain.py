@@ -129,6 +129,12 @@ def parse_chain_output(output: Any) -> ConfigPatchChainResult:
     patch_payload, patch_flags = _sanitize_patch(payload.get("patch") or {})
     risk_flags.extend(patch_flags)
 
+    if any(flag.startswith("stripped_unknown_") for flag in risk_flags):
+        risk_flags.append("unknown_keys_stripped")
+
+    # Keep ordering stable while avoiding duplicate flags from model + sanitizer.
+    risk_flags = list(dict.fromkeys(risk_flags))
+
     validated = validate_patch(patch_payload)
     summary = str(payload.get("summary") or "").strip()
     return ConfigPatchChainResult(
