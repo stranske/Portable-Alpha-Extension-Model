@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
-
 _REQUIRED_CREDENTIAL_KEYS: dict[str, tuple[str, ...]] = {
     "anthropic": ("api_key",),
     "azure_openai": ("api_key", "azure_endpoint", "api_version"),

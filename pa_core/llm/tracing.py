@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from contextlib import contextmanager
 import os
+from contextlib import contextmanager
 from typing import Any, Iterator, Mapping, Sequence
 from urllib.parse import quote
 

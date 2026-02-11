@@ -31,7 +31,9 @@ def test_import_tracing_no_network(socket_connect_guard):
     assert attempts == []
 
 
-def test_tracing_context_noop_without_api_key(monkeypatch: pytest.MonkeyPatch, socket_connect_guard):
+def test_tracing_context_noop_without_api_key(
+    monkeypatch: pytest.MonkeyPatch, socket_connect_guard
+):
     attempts, blocked = socket_connect_guard
 
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
