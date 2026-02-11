@@ -164,6 +164,17 @@ class TestSanitizeApiKey:
         result = sanitize_api_key(key)
         assert result == "abcd***345"
 
+    def test_boundary_nine_characters_with_special_chars_masks_middle_only(self) -> None:
+        key = "AB$%123?!"
+        result = sanitize_api_key(key)
+        assert result == "AB$%***3?!"
+
+    def test_surrounding_whitespace_is_trimmed_before_masking(self) -> None:
+        key = "  sk-abc123xyz  "
+        result = sanitize_api_key(key)
+        assert result == "sk-a***xyz"
+        assert key not in result
+
 
 # ===================================================================
 # read_secret

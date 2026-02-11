@@ -121,6 +121,9 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
 - [x] Implement focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
 - [x] Validate focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Define scope for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters edge cases (verify: tests pass).
 
 ### Verification (Keepalive Next Task #1402)
-- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (46 passed).
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (56 passed).
