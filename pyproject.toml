@@ -89,6 +89,13 @@ dependencies = [
 [project.optional-dependencies]
 # Optional extras
 parquet = ["pyarrow"]
+llm = [
+    "langchain>=0.3",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.3",
+    "langchain-anthropic>=0.3",
+    "langsmith>=0.1",
+]
 
 # Development dependencies
 dev = [
