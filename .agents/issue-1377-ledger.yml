@@ -7,10 +7,10 @@ tasks:
     title: "Create `pa_core/llm/result_explain.py` with an entrypoint that accepts\
       \ the Results \u201Cdetails\u201D inputs (DataFrame + manifest) and returns\
       \ `(text, trace_url, payload_dict)`"
-    status: doing
+    status: done
     started_at: '2026-02-11T16:11:48Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-11T16:11:57Z'
+    commit: 0f793f72f99361e501fb9f496545e27794561852
     notes: []
   - id: task-02
     title: "Define scope for: Create `pa_core/llm/result_explain.py` with an entrypoint\
