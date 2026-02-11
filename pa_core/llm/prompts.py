@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Sequence
 
 
 def _require_present(name: str, value: Any) -> Any:
@@ -18,14 +18,38 @@ def _to_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, indent=2, default=str)
 
 
-def build_result_explanation_prompt(result_data: Any) -> str:
+def _normalize_questions(questions: Sequence[str] | str | None) -> list[str]:
+    if questions is None:
+        return []
+    if isinstance(questions, str):
+        text = questions.strip()
+        return [text] if text else []
+    normalized: list[str] = []
+    for question in questions:
+        text = str(question).strip()
+        if text:
+            normalized.append(text)
+    return normalized
+
+
+def build_result_explanation_prompt(
+    result_data: Any,
+    *,
+    questions: Sequence[str] | str | None = None,
+) -> str:
     """Build a prompt requesting a concise explanation of model output."""
 
     _require_present("result_data", result_data)
+    question_lines = _normalize_questions(questions)
+    question_block = ""
+    if question_lines:
+        bullet_lines = "\n".join(f"- {line}" for line in question_lines)
+        question_block = f"\n\nQuestions:\n{bullet_lines}"
+
     return (
         "You are a quantitative analysis assistant. Explain the result data below "
         "in clear, plain language. Include key drivers, risks, and one practical next step.\n\n"
-        f"Result Data:\n{_to_json(result_data)}"
+        f"Result Data:\n{_to_json(result_data)}{question_block}"
     )
 
 
