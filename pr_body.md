@@ -105,3 +105,14 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 ### Verification (Keepalive Next Task #1400)
 - [x] `pytest tests/test_llm_compare_runs.py tests/test_dashboard_comparison_llm.py tests/test_dashboard_results_previous_run.py -m "not slow"` (14 passed).
 - [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (2 passed).
+
+## Task Reconciliation (Keepalive Next Task #1401)
+- [x] Reviewed recent commits (`ca9d1b7`, `8b80f54`, `ad4c380`) and reconciled unchecked comparison-LLM checklist state.
+- [x] Added Results-page integration helper `_render_comparison_panel(...)` in `dashboard/pages/4_Results.py` to centralize previous-run availability gating and panel invocation.
+- [x] Added unit test coverage in `tests/test_dashboard_results_previous_run.py` verifying readable `manifest_data["previous_run"]` calls comparison panel with resolved `run_key`.
+
+### Acceptance Criteria (Keepalive Next Task #1401)
+- [x] When `manifest_data["previous_run"]` exists and is readable, the comparison panel can produce a coherent explanation and expose trace URL details in UI/export output.
+
+### Verification (Keepalive Next Task #1401)
+- [x] `pytest tests/test_dashboard_results_previous_run.py tests/test_dashboard_comparison_llm.py tests/test_llm_compare_runs.py -m "not slow"` (15 passed).

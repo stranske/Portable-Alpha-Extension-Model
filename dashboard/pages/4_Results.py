@@ -7,6 +7,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 import pandas as pd
 import streamlit as st
@@ -112,6 +113,25 @@ def _render_explain_results(
         st.info("LLM features unavailable. Install .[llm] to enable Explain Results.")
 
 
+def _render_comparison_panel(
+    *,
+    summary: pd.DataFrame,
+    manifest_data: dict | None,
+    xlsx: str,
+    render_panel: Callable[..., None] = render_comparison_llm_panel,
+) -> _PreviousRunAvailability:
+    """Render comparison panel or a specific availability message."""
+
+    st.subheader("LLM Comparison")
+    availability = _check_previous_run_availability(manifest_data)
+    if availability.available and availability.prior_manifest_path is not None:
+        run_key = f"{Path(xlsx).resolve()}::{availability.prior_manifest_path.resolve()}"
+        render_panel(summary_df=summary, manifest_data=manifest_data, run_key=run_key)
+    elif availability.message:
+        st.info(availability.message)
+    return availability
+
+
 def main() -> None:
     st.title("Results")
     xlsx = st.sidebar.text_input("Results file", _DEF_XLSX)
@@ -161,15 +181,7 @@ def main() -> None:
         )
 
     _render_explain_results(summary=summary, manifest_data=manifest_data, xlsx=xlsx)
-    st.subheader("LLM Comparison")
-    availability = _check_previous_run_availability(manifest_data)
-    if availability.available and availability.prior_manifest_path is not None:
-        run_key = f"{Path(xlsx).resolve()}::{availability.prior_manifest_path.resolve()}"
-        render_comparison_llm_panel(
-            summary_df=summary, manifest_data=manifest_data, run_key=run_key
-        )
-    elif availability.message:
-        st.info(availability.message)
+    _render_comparison_panel(summary=summary, manifest_data=manifest_data, xlsx=xlsx)
 
     if "Config" in summary.columns:
         config_options = summary["Config"].unique().tolist()
