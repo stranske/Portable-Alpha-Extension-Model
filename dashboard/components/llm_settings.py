@@ -67,6 +67,34 @@ _ENV_VAR_PATTERN = re.compile(r"^[A-Z][A-Z0-9_]{2,}$")
 DEFAULT_PROVIDER = "openai"
 
 
+def default_provider() -> str:
+    """Return provider from ``PA_LLM_PROVIDER`` with a safe default."""
+    value = read_secret(ENV_PROVIDER)
+    if not value:
+        return DEFAULT_PROVIDER
+    return value.strip().lower()
+
+
+def default_model() -> str | None:
+    """Return model from ``PA_LLM_MODEL`` when configured."""
+    return read_secret(ENV_MODEL)
+
+
+def default_base_url() -> str | None:
+    """Return custom endpoint URL from ``PA_LLM_BASE_URL`` when configured."""
+    return read_secret(ENV_BASE_URL)
+
+
+def default_org() -> str | None:
+    """Return organization id from ``PA_LLM_ORG`` when configured."""
+    return read_secret(ENV_ORG)
+
+
+def default_streamlit_api_key() -> str | None:
+    """Return explicit dashboard key from ``PA_STREAMLIT_API_KEY`` when set."""
+    return read_secret(ENV_STREAMLIT_API_KEY)
+
+
 # ---------------------------------------------------------------------------
 # API key sanitisation
 # ---------------------------------------------------------------------------
@@ -162,12 +190,12 @@ def default_api_key(provider: str | None = None) -> str | None:
     Returns ``None`` when no key is available.
     """
     # 1. Explicit streamlit key
-    key = read_secret(ENV_STREAMLIT_API_KEY)
+    key = default_streamlit_api_key()
     if key:
         return key
 
     # 2. Provider-specific fallback
-    provider = (provider or DEFAULT_PROVIDER).strip().lower()
+    provider = (provider or default_provider()).strip().lower()
     env_name = _PROVIDER_KEY_ENV.get(provider)
     if env_name:
         key = read_secret(env_name)
@@ -220,9 +248,9 @@ def resolve_llm_provider_config(
         guidance on which env var to set but **never** includes the key
         value itself.
     """
-    resolved_provider = (provider or read_secret(ENV_PROVIDER) or DEFAULT_PROVIDER).strip().lower()
+    resolved_provider = (provider or default_provider()).strip().lower()
 
-    resolved_model = model or read_secret(ENV_MODEL)
+    resolved_model = model or default_model()
 
     # Key resolution: explicit → resolve input → default
     resolved_key = resolve_api_key_input(api_key) or default_api_key(resolved_provider)
@@ -235,8 +263,8 @@ def resolve_llm_provider_config(
             f"in the dashboard settings."
         )
 
-    resolved_base_url = base_url or read_secret(ENV_BASE_URL)
-    resolved_org = org or read_secret(ENV_ORG)
+    resolved_base_url = base_url or default_base_url()
+    resolved_org = org or default_org()
 
     client_kwargs: dict[str, Any] = {}
     if resolved_base_url:
@@ -252,3 +280,24 @@ def resolve_llm_provider_config(
         model_name=resolved_model,
         client_kwargs=client_kwargs,
     )
+
+
+__all__ = [
+    "ENV_BASE_URL",
+    "ENV_LANGSMITH_API_KEY",
+    "ENV_MODEL",
+    "ENV_ORG",
+    "ENV_PROVIDER",
+    "ENV_STREAMLIT_API_KEY",
+    "DEFAULT_PROVIDER",
+    "default_api_key",
+    "default_base_url",
+    "default_model",
+    "default_org",
+    "default_provider",
+    "default_streamlit_api_key",
+    "read_secret",
+    "resolve_api_key_input",
+    "resolve_llm_provider_config",
+    "sanitize_api_key",
+]

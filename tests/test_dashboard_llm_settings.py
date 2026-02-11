@@ -18,7 +18,12 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from dashboard.components.llm_settings import (  # noqa: E402
+    default_base_url,
     default_api_key,
+    default_model,
+    default_org,
+    default_provider,
+    default_streamlit_api_key,
     read_secret,
     resolve_api_key_input,
     resolve_llm_provider_config,
@@ -28,6 +33,54 @@ from dashboard.components.llm_settings import (  # noqa: E402
 # Pattern that matches common API key prefixes – used to verify no secrets
 # leak into captured output.
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]{10,}|ghp_[A-Za-z0-9]{10,}")
+
+
+# ===================================================================
+# env default readers
+# ===================================================================
+
+
+class TestEnvDefaultReaders:
+    """Verify PA_* env var defaults are read with safe fallback behavior."""
+
+    def _clean_env(self) -> dict[str, str]:
+        remove = {
+            "PA_LLM_PROVIDER",
+            "PA_LLM_MODEL",
+            "PA_LLM_BASE_URL",
+            "PA_LLM_ORG",
+            "PA_STREAMLIT_API_KEY",
+        }
+        return {k: v for k, v in os.environ.items() if k not in remove}
+
+    def test_provider_default_openai_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, self._clean_env(), clear=True):
+            assert default_provider() == "openai"
+
+    def test_provider_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_PROVIDER": "Anthropic"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_provider() == "anthropic"
+
+    def test_model_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_MODEL": "gpt-4o-mini"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_model() == "gpt-4o-mini"
+
+    def test_base_url_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_BASE_URL": "https://example.test"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_base_url() == "https://example.test"
+
+    def test_org_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_ORG": "org-abc"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_org() == "org-abc"
+
+    def test_streamlit_key_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_STREAMLIT_API_KEY": "streamlit-key"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_streamlit_api_key() == "streamlit-key"
 
 
 # ===================================================================
