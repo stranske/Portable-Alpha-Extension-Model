@@ -1,0 +1,221 @@
+version: 1
+issue: 1378
+base: main
+branch: codex/issue-1378
+tasks:
+  - id: task-01
+    title: Create `pa_core/llm/compare_runs.py` with function to load prior manifest
+      from `manifest_data["previous_run"]` path
+    status: doing
+    started_at: '2026-02-11T18:46:25Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Add function in `pa_core/llm/compare_runs.py` to load prior summary file
+      when `manifest_data["previous_run"]` exists
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Add error handling in `pa_core/llm/compare_runs.py` for unreadable prior
+      manifest or summary files
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: Implement diff computation for seed changes between runs in `pa_core/llm/compare_runs.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Implement diff computation for CLI arguments (capital, weights, distribution
+      choices) in `pa_core/llm/compare_runs.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: Implement diff computation for wizard config fields stored in manifest
+      in `pa_core/llm/compare_runs.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: Create unified human-readable formatter in `pa_core/llm/compare_runs.py`
+      that combines all config diffs into single output
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: Implement function in `pa_core/llm/compare_runs.py` to build metric catalog
+      A from current summary
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: Implement function in `pa_core/llm/compare_runs.py` to build metric catalog
+      B from prior summary using same metrics as Explain Results
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: Add LLM prompt construction in `pa_core/llm/compare_runs.py` using config
+      diff and metric catalogs A/B
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: Implement LLM chain invocation in `pa_core/llm/compare_runs.py` that returns
+      comparison text
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: Add trace URL generation in `pa_core/llm/compare_runs.py` when tracing
+      is enabled
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: Update `pa_core/llm/compare_runs.py` main function to return tuple `(text,
+      trace_url)`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: Create `dashboard/components/comparison_llm.py` with Streamlit component
+      skeleton using Trend's `streamlit_app/components/comparison_llm.py` as reference
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: Add UI controls in `dashboard/components/comparison_llm.py` to select current
+      vs previous run with auto-detection of previous
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: Create questions input box UI component in `dashboard/components/comparison_llm.py`
+      with placeholder text
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: Define default questions in `dashboard/components/comparison_llm.py` covering
+      drivers, risk constraints, breach, and CVaR metrics
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: Wire default questions into input box in `dashboard/components/comparison_llm.py`
+      with user override capability
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: Add provider/key/model controls in `dashboard/components/comparison_llm.py`
+      via shared LLM settings component
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: Implement TXT download button in `dashboard/components/comparison_llm.py`
+      including config diff and trace URL
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Implement JSON download button in `dashboard/components/comparison_llm.py`
+      including config diff and trace URL
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: Add download buttons to UI in `dashboard/components/comparison_llm.py`
+      that trigger both TXT and JSON export options
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: Update `dashboard/pages/4_Results.py` to check for `manifest_data["previous_run"]`
+      availability
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: Add comparison panel rendering in `dashboard/pages/4_Results.py` when previous
+      run is available
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: Add message display in `dashboard/pages/4_Results.py` comparison panel
+      section when previous run is missing, specifying which artifact and expected
+      file path
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: Add message display in `dashboard/pages/4_Results.py` comparison panel
+      section when previous run is unreadable, specifying which artifact and expected
+      file path
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: When `manifest_data["previous_run"]` exists and is readable,
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
