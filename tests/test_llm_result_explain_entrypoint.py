@@ -45,4 +45,3 @@ def test_explain_results_details_accepts_missing_manifest():
 def test_explain_results_details_rejects_non_dataframe():
     with pytest.raises(TypeError, match="details_df must be a pandas DataFrame"):
         explain_results_details({"not": "a dataframe"})
-

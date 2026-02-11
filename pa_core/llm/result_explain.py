@@ -64,4 +64,3 @@ def explain_results_details(
     )
     trace_url = None
     return text, trace_url, payload
-
