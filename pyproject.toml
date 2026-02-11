@@ -105,11 +105,13 @@ dependencies = [
 app = []
 parquet = ["pyarrow"]
 llm = [
-    "langchain>=0.3",
-    "langchain-core>=0.3",
-    "langchain-openai>=0.3",
-    "langchain-anthropic>=0.3",
-    "langsmith>=0.1",
+    "langchain==1.2.0",
+    "langchain-core==1.2.8",
+    "langchain-openai==1.1.0",
+    "langchain-anthropic==0.3.21",
+    "langsmith==0.6.8",
+    "pydantic==2.12.5",
+    "requests==2.32.5",
 ]
 
 # Development dependencies
