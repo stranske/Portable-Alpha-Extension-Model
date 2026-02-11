@@ -121,3 +121,35 @@ def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
     assert trace_url is not None
     assert payload.config_diff
     assert payload.prior_manifest_path == str(prior_manifest_path)
+
+
+def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path):
+    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest_path = tmp_path / "prior_manifest.json"
+    prior_manifest_path.write_text(
+        json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
+    )
+
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-langsmith-key")
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs._invoke_comparison_llm",
+        lambda *args, **kwargs: "LLM generated run comparison explanation.",
+    )
+
+    text, trace_url, payload = compare_runs(
+        current_summary=current_summary,
+        current_manifest={"previous_run": str(prior_manifest_path), "seed": 2},
+        questions="What changed?",
+        provider_name="openai",
+        model_name="gpt-4o-mini",
+        api_key="test-openai-key",
+    )
+
+    assert text == "LLM generated run comparison explanation."
+    assert trace_url is not None
+    assert trace_url.startswith("https://smith.langchain.com/r/")
+    assert payload.prior_manifest_path == str(prior_manifest_path)
