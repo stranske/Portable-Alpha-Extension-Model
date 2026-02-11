@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import types
 from unittest import mock
 
 import pytest
@@ -18,6 +19,7 @@ if _PROJECT_ROOT not in sys.path:
 
 from dashboard.components.llm_settings import (  # noqa: E402
     default_api_key,
+    read_secret,
     resolve_api_key_input,
     resolve_llm_provider_config,
     sanitize_api_key,
@@ -66,6 +68,32 @@ class TestSanitizeApiKey:
         key = "sk-proj-AbCdEfGhIjKlMnOpQrStUvWxYz"
         result = sanitize_api_key(key)
         assert key not in result
+
+
+# ===================================================================
+# read_secret
+# ===================================================================
+
+
+class TestReadSecret:
+    """Test st.secrets + environment resolution order."""
+
+    def test_prefers_streamlit_secrets(self) -> None:
+        fake_streamlit = types.SimpleNamespace(secrets={"OPENAI_API_KEY": "from-secrets"})
+        with mock.patch.dict(sys.modules, {"streamlit": fake_streamlit}):
+            with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "from-env"}, clear=True):
+                assert read_secret("OPENAI_API_KEY") == "from-secrets"
+
+    def test_falls_back_to_environment(self) -> None:
+        with mock.patch.dict(sys.modules, {"streamlit": None}):
+            with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "from-env"}, clear=True):
+                assert read_secret("OPENAI_API_KEY") == "from-env"
+
+    def test_returns_none_for_missing_or_blank(self) -> None:
+        fake_streamlit = types.SimpleNamespace(secrets={"OPENAI_API_KEY": "   "})
+        with mock.patch.dict(sys.modules, {"streamlit": fake_streamlit}):
+            with mock.patch.dict(os.environ, {"OPENAI_API_KEY": " "}, clear=True):
+                assert read_secret("OPENAI_API_KEY") is None
 
 
 # ===================================================================
