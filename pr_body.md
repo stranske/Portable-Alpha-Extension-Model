@@ -82,3 +82,14 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_dashboard_llm_settings.py --cov=dashboard.components.llm_settings --cov-report=term-missing -m "not slow"` (37 passed, module coverage 100%).
 - [x] `pytest tests/test_dashboard_explain_results.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_dashboard_llm_settings.py tests/test_dashboard_explain_results.py -m "not slow"` and grep scan for common secret patterns (no matches).
+
+## Task Reconciliation (Keepalive Next Task #1398)
+- [x] Reviewed recent commits (`f75c59e`, `8949dbc`) touching `pa_core/llm/compare_runs.py` and `tests/test_llm_compare_runs.py`.
+- [x] Confirmed those commits only cover task-01 scope (prior manifest loader) with tests.
+- [x] Updated PR checkbox tracking for issue #1378 before continuing implementation.
+
+### Task Progress (Keepalive Next Task #1398)
+- [x] Create `dashboard/components/comparison_llm.py` with Streamlit component skeleton using Trend's `streamlit_app/components/comparison_llm.py` as reference.
+
+### Verification (Keepalive Next Task #1398)
+- [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (1 passed).
