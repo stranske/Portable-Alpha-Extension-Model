@@ -54,9 +54,7 @@ def create_llm(config: LLMProviderConfig) -> Any:
         )
 
     provider_name = config.provider_name.strip().lower()
-    model_name = config.model_name or _DEFAULT_MODEL_NAMES.get(
-        provider_name, "gpt-4o-mini"
-    )
+    model_name = config.model_name or _DEFAULT_MODEL_NAMES.get(provider_name, "gpt-4o-mini")
 
     if provider_name == "openai":
         from langchain_openai import ChatOpenAI
