@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import re
 from contextlib import nullcontext
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Sequence, cast
 from uuid import uuid4
 
 import pandas as pd
@@ -114,7 +114,7 @@ def _build_basic_statistics(details_df: pd.DataFrame) -> dict[str, dict[str, flo
     if numeric_df.empty:
         return {}
     stat_rows = numeric_df.agg(["count", "mean", "std", "min", "max"]).to_dict()
-    return _to_json_safe(stat_rows)
+    return cast(dict[str, dict[str, float]], _to_json_safe(stat_rows))
 
 
 def _build_quantiles(details_df: pd.DataFrame) -> dict[str, dict[str, float]]:
@@ -122,14 +122,14 @@ def _build_quantiles(details_df: pd.DataFrame) -> dict[str, dict[str, float]]:
     if numeric_df.empty:
         return {}
     quantiles = numeric_df.quantile(_QUANTILE_LEVELS).to_dict()
-    return _to_json_safe(quantiles)
+    return cast(dict[str, dict[str, float]], _to_json_safe(quantiles))
 
 
 def _build_tail_samples(details_df: pd.DataFrame) -> list[dict[str, Any]]:
     if details_df.empty:
         return []
     tail_df = details_df.tail(_TAIL_ROW_LIMIT).copy()
-    return _to_json_safe(tail_df.to_dict(orient="records"))
+    return cast(list[dict[str, Any]], _to_json_safe(tail_df.to_dict(orient="records")))
 
 
 def _build_stress_delta_summary(details_df: pd.DataFrame) -> dict[str, Any] | None:
