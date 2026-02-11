@@ -37,3 +37,8 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Updated task checkboxes to reflect completed follow-up work for #1221.
 - [x] Synced PR body with Issue #1194 scope and acceptance criteria.
 - [x] Confirmed task checkboxes after adding regime mapping key coverage.
+
+## Task Reconciliation (LLM Follow-up #1381)
+- [x] Reviewed recent commits (`750b682`, `7d982d4`, `f320f85`, `50496ed`) for missing checkbox reconciliation context.
+- [x] Aligned `pyproject.toml` `llm` extras with lockfile pins for deterministic resolution.
+- [ ] Confirmed `pip install -e '.[llm]'` in a clean venv with full dependency download (requires networked environment).
