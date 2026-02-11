@@ -102,7 +102,9 @@ def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest_path = tmp_path / "prior_manifest.json"
-    prior_manifest_path.write_text(json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1}))
+    prior_manifest_path.write_text(
+        json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
+    )
 
     monkeypatch.setenv("LANGSMITH_API_KEY", "test-langsmith-key")
 

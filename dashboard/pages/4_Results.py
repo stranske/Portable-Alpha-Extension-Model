@@ -165,7 +165,9 @@ def main() -> None:
     availability = _check_previous_run_availability(manifest_data)
     if availability.available and availability.prior_manifest_path is not None:
         run_key = f"{Path(xlsx).resolve()}::{availability.prior_manifest_path.resolve()}"
-        render_comparison_llm_panel(summary_df=summary, manifest_data=manifest_data, run_key=run_key)
+        render_comparison_llm_panel(
+            summary_df=summary, manifest_data=manifest_data, run_key=run_key
+        )
     elif availability.message:
         st.info(availability.message)
 

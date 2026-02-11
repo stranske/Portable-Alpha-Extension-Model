@@ -32,9 +32,7 @@ _RUN_SELECTOR_KEY = "comparison_llm_run_selector"
 _CURRENT_LABEL = "Current run"
 _PREVIOUS_LABEL = "Previous run (auto-detected)"
 _DEFAULT_TEXT = "Click Compare Runs to generate an explanation."
-_MISSING_MESSAGE = (
-    "LLM comparison is unavailable because the previous run manifest or summary could not be loaded."
-)
+_MISSING_MESSAGE = "LLM comparison is unavailable because the previous run manifest or summary could not be loaded."
 _CACHE_KEY = "comparison_llm_cache"
 
 

@@ -124,7 +124,9 @@ def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch)
         run_key="run-a-vs-run-b",
     )
 
-    assert any(kind == "markdown" and "Generated comparison" in text for kind, text in fake_st.messages)
+    assert any(
+        kind == "markdown" and "Generated comparison" in text for kind, text in fake_st.messages
+    )
     assert any(kind == "caption" and "Trace URL" in text for kind, text in fake_st.messages)
     assert any(item.label == "Download TXT" for item in fake_st.downloads)
     assert any(item.label == "Download JSON" for item in fake_st.downloads)
