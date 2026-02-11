@@ -6,10 +6,10 @@ tasks:
   - id: task-01
     title: Create `pa_core/llm/compare_runs.py` with function to load prior manifest
       from `manifest_data["previous_run"]` path
-    status: doing
+    status: done
     started_at: '2026-02-11T18:46:25Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-11T18:46:34Z'
+    commit: 6f2c85cd2c4bc72c44b369bd8002f287e6cd211d
     notes: []
   - id: task-02
     title: Add function in `pa_core/llm/compare_runs.py` to load prior summary file
