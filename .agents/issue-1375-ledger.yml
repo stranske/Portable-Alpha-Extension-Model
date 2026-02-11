@@ -5,10 +5,10 @@ branch: codex/issue-1375
 tasks:
   - id: task-01
     title: Create `.github/reference_packs.json` defining one pack named `trend_streamlit_llm`
-    status: doing
+    status: done
     started_at: '2026-02-11T13:20:58Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-11T13:21:08Z'
+    commit: 0841e43386d238a1889f250d89d356b3e17048b4
     notes: []
   - id: task-02
     title: Update the `trend_streamlit_llm` pack `ref` to pin Trend `phase-3` HEAD
