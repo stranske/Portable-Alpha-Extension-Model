@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import types
 from unittest import mock
 
 import pytest
@@ -18,6 +19,12 @@ if _PROJECT_ROOT not in sys.path:
 
 from dashboard.components.llm_settings import (  # noqa: E402
     default_api_key,
+    default_base_url,
+    default_model,
+    default_org,
+    default_provider,
+    default_streamlit_api_key,
+    read_secret,
     resolve_api_key_input,
     resolve_llm_provider_config,
     sanitize_api_key,
@@ -26,6 +33,54 @@ from dashboard.components.llm_settings import (  # noqa: E402
 # Pattern that matches common API key prefixes – used to verify no secrets
 # leak into captured output.
 _SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9]{10,}|ghp_[A-Za-z0-9]{10,}")
+
+
+# ===================================================================
+# env default readers
+# ===================================================================
+
+
+class TestEnvDefaultReaders:
+    """Verify PA_* env var defaults are read with safe fallback behavior."""
+
+    def _clean_env(self) -> dict[str, str]:
+        remove = {
+            "PA_LLM_PROVIDER",
+            "PA_LLM_MODEL",
+            "PA_LLM_BASE_URL",
+            "PA_LLM_ORG",
+            "PA_STREAMLIT_API_KEY",
+        }
+        return {k: v for k, v in os.environ.items() if k not in remove}
+
+    def test_provider_default_openai_when_unset(self) -> None:
+        with mock.patch.dict(os.environ, self._clean_env(), clear=True):
+            assert default_provider() == "openai"
+
+    def test_provider_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_PROVIDER": "Anthropic"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_provider() == "anthropic"
+
+    def test_model_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_MODEL": "gpt-4o-mini"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_model() == "gpt-4o-mini"
+
+    def test_base_url_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_BASE_URL": "https://example.test"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_base_url() == "https://example.test"
+
+    def test_org_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_ORG": "org-abc"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_org() == "org-abc"
+
+    def test_streamlit_key_from_env(self) -> None:
+        env = {**self._clean_env(), "PA_STREAMLIT_API_KEY": "streamlit-key"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_streamlit_api_key() == "streamlit-key"
 
 
 # ===================================================================
@@ -66,6 +121,32 @@ class TestSanitizeApiKey:
         key = "sk-proj-AbCdEfGhIjKlMnOpQrStUvWxYz"
         result = sanitize_api_key(key)
         assert key not in result
+
+
+# ===================================================================
+# read_secret
+# ===================================================================
+
+
+class TestReadSecret:
+    """Test st.secrets + environment resolution order."""
+
+    def test_prefers_streamlit_secrets(self) -> None:
+        fake_streamlit = types.SimpleNamespace(secrets={"OPENAI_API_KEY": "from-secrets"})
+        with mock.patch.dict(sys.modules, {"streamlit": fake_streamlit}):
+            with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "from-env"}, clear=True):
+                assert read_secret("OPENAI_API_KEY") == "from-secrets"
+
+    def test_falls_back_to_environment(self) -> None:
+        with mock.patch.dict(sys.modules, {"streamlit": None}):
+            with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "from-env"}, clear=True):
+                assert read_secret("OPENAI_API_KEY") == "from-env"
+
+    def test_returns_none_for_missing_or_blank(self) -> None:
+        fake_streamlit = types.SimpleNamespace(secrets={"OPENAI_API_KEY": "   "})
+        with mock.patch.dict(sys.modules, {"streamlit": fake_streamlit}):
+            with mock.patch.dict(os.environ, {"OPENAI_API_KEY": " "}, clear=True):
+                assert read_secret("OPENAI_API_KEY") is None
 
 
 # ===================================================================

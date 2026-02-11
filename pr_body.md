@@ -43,3 +43,42 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Aligned `pyproject.toml` `llm` extras with lockfile pins for deterministic resolution.
 - [ ] Confirmed `pip install -e '.[llm]'` in a clean venv with full dependency download (requires networked environment).
 - [x] Validated `pa_core/llm/result_explain.py` entrypoint contract via `pytest tests/test_llm_result_explain_entrypoint.py -m "not slow"`.
+
+## Task Reconciliation (Keepalive Next Task #1393)
+- [x] Reviewed recent commits (`9c71ab9`, `803a57a`, `6061a6e`) and reconciled unchecked task status.
+- [x] Create file `dashboard/components/llm_settings.py` with basic module structure and imports.
+- [x] Add docstring documentation to `dashboard/components/llm_settings.py` explaining the module's purpose and relationship to Trend's implementation.
+- [x] Implement `sanitize_api_key()` in `dashboard/components/llm_settings.py`.
+- [x] Implement `read_secret()` in `dashboard/components/llm_settings.py` to read from `st.secrets`.
+- [x] Update `read_secret()` in `dashboard/components/llm_settings.py` to read from environment variables.
+- [x] Implement `resolve_api_key_input()` in `dashboard/components/llm_settings.py` to accept raw key input.
+- [x] Update `resolve_api_key_input()` in `dashboard/components/llm_settings.py` to accept env-var name input.
+- [x] Update `resolve_api_key_input()` in `dashboard/components/llm_settings.py` to resolve env-var names to actual values.
+- [x] Define constants for Portable environment variable names in `dashboard/components/llm_settings.py`.
+- [x] Implement environment variable reading logic for `PA_LLM_PROVIDER` with appropriate defaults.
+- [x] Implement environment variable reading logic for `PA_LLM_MODEL` with appropriate defaults.
+- [x] Implement environment variable reading logic for `PA_LLM_BASE_URL` with appropriate defaults.
+- [x] Implement environment variable reading logic for `PA_LLM_ORG` with appropriate defaults.
+- [x] Implement environment variable reading logic for `PA_STREAMLIT_API_KEY` with appropriate defaults.
+- [x] Implement `default_api_key(provider)` in `dashboard/components/llm_settings.py` with Portable defaults.
+- [x] Implement fallback logic in `default_api_key()` to check `OPENAI_API_KEY` when provider is openai.
+- [x] Implement fallback logic in `default_api_key()` to check `CLAUDE_API_STRANSKE` when provider is anthropic.
+- [x] Implement fallback logic in `default_api_key()` to check `LANGSMITH_API_KEY` for LangSmith integration.
+- [x] Implement `resolve_llm_provider_config(...)` in `dashboard/components/llm_settings.py` returning a provider config compatible with `pa_core/llm/create_llm()`.
+- [x] Write unit tests for `sanitize_api_key()` verifying that API keys are properly masked in output.
+- [x] Write unit tests for `resolve_api_key_input()` with direct API key input.
+- [x] Write unit tests for `resolve_api_key_input()` with environment variable name input.
+- [x] Write unit tests verifying that no secrets appear in test output or logs.
+- [x] Write unit tests for `default_api_key()` covering all supported providers.
+
+### Acceptance Criteria (Keepalive Next Task #1393)
+- [x] The component can be imported and displayed in a Streamlit app without raising exceptions when environment variables `PA_LLM_PROVIDER`, `PA_LLM_MODEL`, and all API key variables are unset.
+- [x] Entering an env var name like `OPENAI_API_KEY` in the UI resolves to the secret value without displaying the secret value in the UI.
+- [x] When a key is missing, the error message displayed contains instructions for setting the required environment variable and does not include any API key values (partial or complete).
+- [x] All unit tests pass with 100% coverage for `sanitize_api_key()`, `read_secret()`, `resolve_api_key_input()`, and `default_api_key()`.
+- [x] Running the test suite produces no output containing API keys or secrets (verified by grep for common key patterns).
+
+### Verification (Keepalive Next Task #1393)
+- [x] `pytest tests/test_dashboard_llm_settings.py --cov=dashboard.components.llm_settings --cov-report=term-missing -m "not slow"` (37 passed, module coverage 100%).
+- [x] `pytest tests/test_dashboard_explain_results.py -m "not slow"` (2 passed).
+- [x] `pytest tests/test_dashboard_llm_settings.py tests/test_dashboard_explain_results.py -m "not slow"` and grep scan for common secret patterns (no matches).
