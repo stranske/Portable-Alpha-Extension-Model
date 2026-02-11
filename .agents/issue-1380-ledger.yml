@@ -5,10 +5,10 @@ branch: codex/issue-1380
 tasks:
   - id: task-01
     title: Add unit tests for key resolution and sanitization in `dashboard/components/llm_settings.py`.
-    status: doing
+    status: done
     started_at: '2026-02-11T22:35:31Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-11T22:35:40Z'
+    commit: 167d300e9a577c6e2c3cff365ec090ace44b91e0
     notes: []
   - id: task-02
     title: 'Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py`
