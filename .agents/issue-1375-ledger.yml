@@ -1,0 +1,234 @@
+version: 1
+issue: 1375
+base: main
+branch: codex/issue-1375
+tasks:
+  - id: task-01
+    title: Create `.github/reference_packs.json` defining one pack named `trend_streamlit_llm`
+    status: done
+    started_at: '2026-02-11T13:20:58Z'
+    finished_at: '2026-02-11T13:21:08Z'
+    commit: 0841e43386d238a1889f250d89d356b3e17048b4
+    notes: []
+  - id: task-02
+    title: Update the `trend_streamlit_llm` pack `ref` to pin Trend `phase-3` HEAD
+      commit SHA `8356d93c951ba39074d834875edbb7faa187da32`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Add `streamlit_app/components/llm_settings.py` to the `trend_streamlit_llm`
+      pack `paths`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: Add `streamlit_app/components/explain_results.py` to the `trend_streamlit_llm`
+      pack `paths`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Add `streamlit_app/components/comparison_llm.py` to the `trend_streamlit_llm`
+      pack `paths`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: Add `streamlit_app/pages/2_Model.py` to the `trend_streamlit_llm` pack
+      `paths`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: Add `src/trend_analysis/llm/chain.py` to the `trend_streamlit_llm` pack
+      `paths`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: Add `src/trend_analysis/llm/tracing.py` to the `trend_streamlit_llm` pack
+      `paths`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: Write a short doc note under `docs/` describing what the reference pack
+      is and how it is used in agent runs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Define scope for: Write a short doc note under `docs/` describing what
+      the reference pack is (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Implement focused slice for: Write a short doc note under `docs/` describing
+      what the reference pack is (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Validate focused slice for: Write a short doc note under `docs/` describing
+      what the reference pack is (verify: docs updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'how it is used in agent runs (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: '`.github/reference_packs.json` exists and is valid JSON'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: '`.github/reference_packs.json` includes a pack named `trend_streamlit_llm`
+      with `ref` exactly `8356d93c951ba39074d834875edbb7faa187da32`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: '`.github/reference_packs.json` includes `paths` containing: `streamlit_app/components/llm_settings.py`,
+      `streamlit_app/components/explain_results.py`, `streamlit_app/components/comparison_llm.py`,
+      `streamlit_app/pages/2_Model.py`, `src/trend_analysis/llm/chain.py`, `src/trend_analysis/llm/tracing.py`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: A documentation file exists under `docs/` describing the reference pack
+      and its use in agent runs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: After the Workflows change is merged, a keepalive Codex run in Portable
+      Alpha materializes `.reference/trend_streamlit_llm/...` containing the listed
+      files
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: Create `.github/reference_packs.json` with one pack named `trend_streamlit_llm`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Pin `ref` to Trend `phase-3` HEAD commit (use current SHA: `8356d93c951ba39074d834875edbb7faa187da32`)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'Include these paths (minimum viable set):'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: '`streamlit_app/components/llm_settings.py`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: '`streamlit_app/components/explain_results.py`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: '`streamlit_app/components/comparison_llm.py`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: '`streamlit_app/pages/2_Model.py` (for Config Chat patterns)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: '`src/trend_analysis/llm/chain.py`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: '`src/trend_analysis/llm/tracing.py`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: Add a short doc note in `docs/` describing what the reference pack is and
+      how it is used in agent runs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: The reference pack config is valid JSON and includes a pinned commit SHA
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: After the Workflows change is merged, a keepalive Codex run in Portable
+      Alpha contains `.reference/trend_streamlit_llm/...` with those files
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

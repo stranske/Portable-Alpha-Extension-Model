@@ -68,20 +68,20 @@
 
  ## Tasks
 
- - [ ] Create `.github/reference_packs.json` with one pack named `trend_streamlit_llm`
- - [ ] Pin `ref` to Trend `phase-3` HEAD commit (use current SHA: `8356d93c951ba39074d834875edbb7faa187da32`)
- - [ ] Include these paths (minimum viable set):
+ - [x] Create `.github/reference_packs.json` with one pack named `trend_streamlit_llm`
+ - [x] Pin `ref` to Trend `phase-3` HEAD commit (use current SHA: `8356d93c951ba39074d834875edbb7faa187da32`)
+ - [x] Include these paths (minimum viable set):
    - `streamlit_app/components/llm_settings.py`
    - `streamlit_app/components/explain_results.py`
    - `streamlit_app/components/comparison_llm.py`
    - `streamlit_app/pages/2_Model.py` (for Config Chat patterns)
    - `src/trend_analysis/llm/chain.py`
    - `src/trend_analysis/llm/tracing.py`
- - [ ] Add a short doc note in `docs/` describing what the reference pack is and how it is used in agent runs
+ - [x] Add a short doc note in `docs/` describing what the reference pack is and how it is used in agent runs
 
  ## Acceptance Criteria
 
- - [ ] The reference pack config is valid JSON and includes a pinned commit SHA
+ - [x] The reference pack config is valid JSON and includes a pinned commit SHA
  - [ ] After the Workflows change is merged, a keepalive Codex run in Portable Alpha contains `.reference/trend_streamlit_llm/...` with those files
 
  ## Implementation Notes

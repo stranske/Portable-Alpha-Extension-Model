@@ -1,0 +1,17 @@
+{
+  "packs": [
+    {
+      "name": "trend_streamlit_llm",
+      "repo": "Trend_Model_Project",
+      "ref": "8356d93c951ba39074d834875edbb7faa187da32",
+      "paths": [
+        "streamlit_app/components/llm_settings.py",
+        "streamlit_app/components/explain_results.py",
+        "streamlit_app/components/comparison_llm.py",
+        "streamlit_app/pages/2_Model.py",
+        "src/trend_analysis/llm/chain.py",
+        "src/trend_analysis/llm/tracing.py"
+      ]
+    }
+  ]
+}
