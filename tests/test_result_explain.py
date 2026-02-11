@@ -189,7 +189,7 @@ def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch) -> None:
 
     monkeypatch.setattr(result_explain, "resolve_trace_url", _fake_resolve)
 
-    _text, trace_url, _payload = result_explain.explain_results_details(
+    _text, trace_url, payload = result_explain.explain_results_details(
         _toy_df(),
         llm_config=_config(),
         tracing_enabled=True,
@@ -199,6 +199,7 @@ def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch) -> None:
     assert len(resolve_calls) == 1
     assert isinstance(resolve_calls[0], str) and resolve_calls[0]
     assert trace_url == "https://smith.langchain.com/r/mock-trace"
+    assert payload["trace_url"] == "https://smith.langchain.com/r/mock-trace"
 
 
 def test_langsmith_tracing_wraps_llm_invoke(monkeypatch) -> None:
@@ -260,7 +261,7 @@ def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
     monkeypatch.setattr(result_explain, "langsmith_tracing_context", _fake_context)
     monkeypatch.setattr(result_explain, "resolve_trace_url", _fake_resolve)
 
-    _text, trace_url, _payload = result_explain.explain_results_details(
+    _text, trace_url, payload = result_explain.explain_results_details(
         _toy_df(),
         llm_config=_config(),
         tracing_enabled=False,
@@ -269,6 +270,7 @@ def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
     assert trace_calls["context"] == 0
     assert trace_calls["resolve"] == 0
     assert trace_url is None
+    assert payload["trace_url"] is None
 
 
 def test_analysis_output_contains_required_sections_and_is_json_serializable() -> None:

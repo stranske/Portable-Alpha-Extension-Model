@@ -281,6 +281,7 @@ def explain_results_details(
     payload: dict[str, Any] = {
         "analysis_output": analysis_output,
         "metric_catalog": metric_catalog,
+        "trace_url": None,
     }
 
     prompt_input = {
@@ -323,6 +324,7 @@ def explain_results_details(
         text = _extract_response_text(response)
         if use_tracing:
             trace_url = resolve_trace_url(request_id)
+            payload["trace_url"] = trace_url
     except Exception as exc:  # pragma: no cover - behavior validated by tests
         safe_error = _sanitize_error_message(exc, secrets=[api_key])
         text = f"Failed to generate explanation: {safe_error}"
