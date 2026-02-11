@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Mapping
 
+from pydantic import SecretStr
+
 _REQUIRED_CREDENTIAL_KEYS: dict[str, tuple[str, ...]] = {
     "anthropic": ("api_key",),
     "azure_openai": ("api_key", "azure_endpoint", "api_version"),
@@ -53,7 +55,7 @@ def create_llm(config: LLMProviderConfig) -> Any:
 
         return ChatOpenAI(
             model=model_name,
-            api_key=config.credentials["api_key"],
+            api_key=SecretStr(config.credentials["api_key"]),
             **dict(config.client_kwargs),
         )
 
@@ -61,8 +63,8 @@ def create_llm(config: LLMProviderConfig) -> Any:
         from langchain_anthropic import ChatAnthropic
 
         return ChatAnthropic(
-            model=model_name,
-            api_key=config.credentials["api_key"],
+            model_name=model_name,
+            api_key=SecretStr(config.credentials["api_key"]),
             **dict(config.client_kwargs),
         )
 
@@ -71,7 +73,7 @@ def create_llm(config: LLMProviderConfig) -> Any:
 
         return AzureChatOpenAI(
             model=model_name,
-            api_key=config.credentials["api_key"],
+            api_key=SecretStr(config.credentials["api_key"]),
             azure_endpoint=config.credentials["azure_endpoint"],
             api_version=config.credentials["api_version"],
             **dict(config.client_kwargs),

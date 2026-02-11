@@ -55,6 +55,7 @@ def resolve_trace_url(trace_id: str | None, *, base_url: str | None = None) -> s
     if not _is_nonempty(trace_id):
         return None
 
+    assert trace_id is not None  # guarded by _is_nonempty check above
     clean_trace_id = quote(trace_id.strip(), safe="")
     raw_base = base_url or os.getenv("LANGSMITH_TRACE_BASE_URL") or DEFAULT_LANGSMITH_TRACE_BASE_URL
     clean_base = raw_base.rstrip("/")
