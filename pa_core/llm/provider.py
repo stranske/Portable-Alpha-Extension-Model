@@ -13,6 +13,12 @@ _REQUIRED_CREDENTIAL_KEYS: dict[str, tuple[str, ...]] = {
     "openai": ("api_key",),
 }
 
+_DEFAULT_MODEL_NAMES: dict[str, str] = {
+    "anthropic": "claude-sonnet-4-20250514",
+    "azure_openai": "gpt-4o-mini",
+    "openai": "gpt-4o-mini",
+}
+
 
 @dataclass(frozen=True)
 class LLMProviderConfig:
@@ -48,7 +54,9 @@ def create_llm(config: LLMProviderConfig) -> Any:
         )
 
     provider_name = config.provider_name.strip().lower()
-    model_name = config.model_name or "gpt-4o-mini"
+    model_name = config.model_name or _DEFAULT_MODEL_NAMES.get(
+        provider_name, "gpt-4o-mini"
+    )
 
     if provider_name == "openai":
         from langchain_openai import ChatOpenAI

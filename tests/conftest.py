@@ -6,6 +6,7 @@ tests should use these shared utilities or rely on proper PYTHONPATH setup.
 """
 
 import runpy
+import socket
 import sys
 from pathlib import Path
 from typing import Any, Dict
@@ -68,3 +69,20 @@ def ensure_pa_core_importable() -> None:
 
 
 ensure_pa_core_importable()
+
+
+@pytest.fixture
+def socket_connect_guard(monkeypatch: pytest.MonkeyPatch):
+    """Block all socket.connect calls and track attempts.
+
+    Returns a tuple of (attempts_list, blocked_function) so tests can assert
+    that the guard was active and no connections were attempted.
+    """
+    attempts: list[object] = []
+
+    def _blocked_connect(self, address):  # noqa: ANN001
+        attempts.append(address)
+        raise AssertionError("socket.connect should not be called during this test")
+
+    monkeypatch.setattr(socket.socket, "connect", _blocked_connect)
+    return attempts, _blocked_connect
