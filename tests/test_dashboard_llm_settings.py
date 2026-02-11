@@ -18,8 +18,8 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from dashboard.components.llm_settings import (  # noqa: E402
-    default_base_url,
     default_api_key,
+    default_base_url,
     default_model,
     default_org,
     default_provider,
