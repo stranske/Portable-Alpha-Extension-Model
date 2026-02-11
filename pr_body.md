@@ -82,3 +82,37 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_dashboard_llm_settings.py --cov=dashboard.components.llm_settings --cov-report=term-missing -m "not slow"` (37 passed, module coverage 100%).
 - [x] `pytest tests/test_dashboard_explain_results.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_dashboard_llm_settings.py tests/test_dashboard_explain_results.py -m "not slow"` and grep scan for common secret patterns (no matches).
+
+## Task Reconciliation (Keepalive Next Task #1398)
+- [x] Reviewed recent commits (`f75c59e`, `8949dbc`) touching `pa_core/llm/compare_runs.py` and `tests/test_llm_compare_runs.py`.
+- [x] Confirmed those commits only cover task-01 scope (prior manifest loader) with tests.
+- [x] Updated PR checkbox tracking for issue #1378 before continuing implementation.
+
+### Task Progress (Keepalive Next Task #1398)
+- [x] Create `dashboard/components/comparison_llm.py` with Streamlit component skeleton using Trend's `streamlit_app/components/comparison_llm.py` as reference.
+
+### Verification (Keepalive Next Task #1398)
+- [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (1 passed).
+
+## Task Reconciliation (Keepalive Next Task #1400)
+- [x] Reviewed recent commits (`f9d6cb2`, `ca9d1b7`, `8b80f54`) and reconciled checklist progress for comparison LLM work.
+- [x] Added comparison export assertions in `tests/test_dashboard_comparison_llm.py` to verify TXT/JSON payloads include config diff and trace URL.
+- [x] Verified readable previous-run path flow produces comparison output and download artifacts.
+
+### Acceptance Criteria (Keepalive Next Task #1400)
+- [x] When `manifest_data["previous_run"]` exists and is readable, the comparison panel can produce a coherent explanation and expose trace URL details in UI/export output.
+
+### Verification (Keepalive Next Task #1400)
+- [x] `pytest tests/test_llm_compare_runs.py tests/test_dashboard_comparison_llm.py tests/test_dashboard_results_previous_run.py -m "not slow"` (14 passed).
+- [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (2 passed).
+
+## Task Reconciliation (Keepalive Next Task #1401)
+- [x] Reviewed recent commits (`ca9d1b7`, `8b80f54`, `ad4c380`) and reconciled unchecked comparison-LLM checklist state.
+- [x] Added Results-page integration helper `_render_comparison_panel(...)` in `dashboard/pages/4_Results.py` to centralize previous-run availability gating and panel invocation.
+- [x] Added unit test coverage in `tests/test_dashboard_results_previous_run.py` verifying readable `manifest_data["previous_run"]` calls comparison panel with resolved `run_key`.
+
+### Acceptance Criteria (Keepalive Next Task #1401)
+- [x] When `manifest_data["previous_run"]` exists and is readable, the comparison panel can produce a coherent explanation and expose trace URL details in UI/export output.
+
+### Verification (Keepalive Next Task #1401)
+- [x] `pytest tests/test_dashboard_results_previous_run.py tests/test_dashboard_comparison_llm.py tests/test_llm_compare_runs.py -m "not slow"` (15 passed).
