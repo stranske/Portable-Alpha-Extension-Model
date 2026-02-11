@@ -111,7 +111,9 @@ def test_questions_parameter_is_in_signature_and_forwarded(monkeypatch) -> None:
 def test_create_llm_receives_dashboard_config_and_api_key_not_exposed(monkeypatch) -> None:
     config = _config(api_key="SECRET123")
     captured: list[LLMProviderConfig] = []
-    monkeypatch.setattr(result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
 
     def _fake_create_llm(cfg: LLMProviderConfig) -> _StaticLLM:
         captured.append(cfg)
@@ -137,7 +139,9 @@ def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch) -> None:
     trace_calls: dict[str, int] = {}
     resolve_calls: list[str | None] = []
 
-    monkeypatch.setattr(result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
     monkeypatch.setattr(result_explain, "create_llm", lambda config: _StaticLLM("ok"))
     monkeypatch.setattr(
         result_explain,
@@ -166,7 +170,9 @@ def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch) -> None:
 def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
     trace_calls = {"context": 0, "resolve": 0}
 
-    monkeypatch.setattr(result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
     monkeypatch.setattr(result_explain, "create_llm", lambda config: _StaticLLM("ok"))
 
     def _fake_context(**_kwargs):
@@ -243,7 +249,9 @@ def test_metric_catalog_omits_missing_columns_without_error() -> None:
 
 def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:
     config = _config(api_key="SECRET123")
-    monkeypatch.setattr(result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
 
     def _raise_create(_cfg: LLMProviderConfig) -> Any:
         raise RuntimeError("llm failure using key SECRET123")
@@ -258,7 +266,9 @@ def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:
 
 def test_error_messages_are_sanitized_and_bounded(monkeypatch) -> None:
     config = _config(api_key="SECRET456")
-    monkeypatch.setattr(result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
 
     class _RaisingLLM:
         def invoke(self, prompt: str) -> Any:
@@ -275,4 +285,3 @@ def test_error_messages_are_sanitized_and_bounded(monkeypatch) -> None:
     assert "SECRET456" not in text
     assert len(payload["error"]) <= result_explain._MAX_ERROR_MESSAGE_LEN
     assert "credentials" not in payload["error"].lower()
-
