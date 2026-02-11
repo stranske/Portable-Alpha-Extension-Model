@@ -127,3 +127,10 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1402)
 - [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (56 passed).
+
+## Task Reconciliation (Keepalive Next Task #1403)
+- [x] Reviewed recent commits (`fcaf87b`, `ea76def`, `1360476`) and reconciled checkbox state for llm-settings follow-up test work.
+- [x] Added additional diff-formatting unit coverage for `format_config_diff(...)` in `tests/test_llm_compare_runs.py` for matching manifests, missing manifest inputs, and wizard add/remove paths.
+
+### Verification (Keepalive Next Task #1403)
+- [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
