@@ -140,6 +140,8 @@ def _build_stress_delta_summary(details_df: pd.DataFrame) -> dict[str, Any] | No
     ]
     if not relevant_cols:
         return None
+    # Keep output stable even if upstream dataframe column order changes.
+    relevant_cols = sorted(relevant_cols, key=_normalize_column_name)
     numeric_subset = details_df[relevant_cols].select_dtypes(include="number")
     if numeric_subset.empty:
         return {"columns": relevant_cols, "summary": {}}

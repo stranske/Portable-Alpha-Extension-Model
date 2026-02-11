@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pandas as pd
+import pytest
 
 import pa_core.llm.result_explain as result_explain
 from pa_core.llm.provider import LLMProviderConfig
@@ -309,7 +310,11 @@ def test_stress_delta_summary_present_when_columns_exist() -> None:
 
     stress = payload["analysis_output"]["stress_delta_summary"]
     assert stress is not None
-    assert "StressDelta_TE" in stress["columns"]
+    assert stress["columns"] == ["StressDelta_CVaR", "StressDelta_TE"]
+    assert stress["summary"]["StressDelta_TE"]["mean"] == pytest.approx(0.15)
+    assert stress["summary"]["StressDelta_TE"]["min"] == 0.1
+    assert stress["summary"]["StressDelta_TE"]["max"] == 0.2
+    assert stress["summary"]["StressDelta_CVaR"]["mean"] == -0.25
 
 
 def test_stress_delta_summary_absent_when_columns_missing() -> None:
