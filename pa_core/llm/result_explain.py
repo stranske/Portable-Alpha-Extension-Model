@@ -22,6 +22,8 @@ _METRIC_ALIAS_GROUPS: dict[str, tuple[str, ...]] = {
     "tracking_error": (
         "monthly_te",
         "te",
+        "tracking error",
+        "trackingerror",
         "trackingerr",
         "tracking_error",
         "monthly_tracking_error",

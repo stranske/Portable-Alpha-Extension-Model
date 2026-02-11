@@ -374,6 +374,26 @@ def test_metric_catalog_omits_unusable_metric_values_without_error() -> None:
     assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
 
 
+def test_metric_catalog_supports_human_readable_metric_column_names() -> None:
+    df = pd.DataFrame(
+        {
+            "Tracking Error": [0.02, 0.04],
+            "CVaR": [-0.03, -0.05],
+            "Breach Probability": [0.10, 0.30],
+        }
+    )
+
+    _text, _trace_url, payload = result_explain.explain_results_details(df)
+    metric_catalog = payload["metric_catalog"]
+
+    assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["cvar"]["label"] == "CVaR"
+    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
+    assert metric_catalog["breach_probability"]["label"] == "Breach Probability"
+    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.20)
+
+
 def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:
     config = _config(api_key="SECRET123")
     monkeypatch.setattr(

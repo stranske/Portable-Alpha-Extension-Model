@@ -87,6 +87,7 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Reviewed recent commits (`a30c46c`, `f24ebd8`, `0b2c8d5`) and reconciled checkbox state with implemented `result_explain` changes.
 - [x] Added explicit acceptance-mapped unit coverage for `analysis_output` required sections and JSON serialization.
 - [x] Added dedicated unit test confirming `analysis_output.manifest_highlights` includes sentinel manifest values.
+- [x] Expanded `metric_catalog` alias handling/tests to cover human-readable metric column names (e.g., `Tracking Error`, `CVaR`, `Breach Probability`).
 
 ### Acceptance Criteria (Keepalive Next Task #1391)
 - [x] `analysis_output` returned by `explain_results_details()` is non-empty and includes JSON-serializable sections for: column list, basic statistics, tail sample rows, and key quantiles.
@@ -97,5 +98,5 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] API keys are not leaked: if `create_llm(...)` or the LLM invocation raises an exception containing the `api_key`, the surfaced/returned error text does not contain the secret and includes a redaction token.
 
 ### Verification (Keepalive Next Task #1391)
-- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (15 passed).
-- [ ] `pytest tests/test_result_explain.py --cov=pa_core.llm.result_explain --cov-report=term-missing -m "not slow"` (blocked in this environment by `ImportError: numpy: cannot load module more than once per process` during collection).
+- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (19 passed).
+- [x] `pytest tests/test_result_explain.py --cov=pa_core.llm --cov-report=term-missing -m "not slow"` (19 passed; includes `pa_core/llm/result_explain.py` coverage table entry at 83%).
