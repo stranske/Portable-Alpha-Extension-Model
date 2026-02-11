@@ -339,15 +339,15 @@ def validate_patch(patch: Mapping[str, Any]) -> ValidatedConfigPatch:
 
 def _merge_value(current: Any, incoming: Any) -> Any:
     if isinstance(current, Mapping) and isinstance(incoming, Mapping):
-        merged = dict(current)
-        merged.update(dict(incoming))
-        return merged
+        merged_dict = dict(current)
+        merged_dict.update(dict(incoming))
+        return merged_dict
     if isinstance(current, list) and isinstance(incoming, list):
-        merged = list(current)
+        merged_list = list(current)
         for item in incoming:
-            if item not in merged:
-                merged.append(item)
-        return merged
+            if item not in merged_list:
+                merged_list.append(item)
+        return merged_list
     return incoming
 
 
