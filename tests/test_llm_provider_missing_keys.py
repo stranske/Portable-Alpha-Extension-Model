@@ -9,18 +9,6 @@ import pytest
 from pa_core.llm.provider import LLMProviderConfig, create_llm
 
 
-@pytest.fixture
-def socket_connect_guard(monkeypatch: pytest.MonkeyPatch):
-    attempts: list[object] = []
-
-    def _blocked_connect(self, address):  # noqa: ANN001
-        attempts.append(address)
-        raise AssertionError("socket.connect should not be called during this test")
-
-    monkeypatch.setattr(socket.socket, "connect", _blocked_connect)
-    return attempts, _blocked_connect
-
-
 def test_create_llm_missing_credentials_raises_value_error(socket_connect_guard):
     attempts, blocked = socket_connect_guard
 
@@ -41,5 +29,36 @@ def test_create_llm_missing_credentials_raises_value_error(socket_connect_guard)
     )
     assert "azure_endpoint" in message
     assert "api_version" in message
+    assert socket.socket.connect is blocked
+    assert attempts == []
+
+
+def test_create_llm_unsupported_provider_raises_value_error(socket_connect_guard):
+    attempts, blocked = socket_connect_guard
+
+    config = LLMProviderConfig(
+        provider_name="nonexistent_provider",
+        credentials={"api_key": "test-key"},
+    )
+
+    with pytest.raises(ValueError, match="Unsupported provider_name"):
+        create_llm(config)
+
+    assert socket.socket.connect is blocked
+    assert attempts == []
+
+
+def test_create_llm_empty_credential_treated_as_missing(socket_connect_guard):
+    """Empty-string or whitespace-only credentials should be treated as missing."""
+    attempts, blocked = socket_connect_guard
+
+    config = LLMProviderConfig(
+        provider_name="openai",
+        credentials={"api_key": "   "},
+    )
+
+    with pytest.raises(ValueError, match="api_key"):
+        create_llm(config)
+
     assert socket.socket.connect is blocked
     assert attempts == []
