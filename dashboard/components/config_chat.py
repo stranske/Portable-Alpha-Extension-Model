@@ -50,9 +50,7 @@ def render_config_chat_panel(
         preview_clicked = st.button("Preview", key=f"{key_prefix}::preview")
         apply_clicked = st.button("Apply", key=f"{key_prefix}::apply")
     with col2:
-        apply_validate_clicked = st.button(
-            "Apply+Validate", key=f"{key_prefix}::apply_validate"
-        )
+        apply_validate_clicked = st.button("Apply+Validate", key=f"{key_prefix}::apply_validate")
         revert_clicked = st.button("Revert", key=f"{key_prefix}::revert")
 
     if preview_clicked and on_preview is not None:
