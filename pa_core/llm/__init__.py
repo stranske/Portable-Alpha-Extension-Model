@@ -1,5 +1,6 @@
 """LLM integration surface for Portable Alpha."""
 
+from .config_patch_chain import ConfigPatchChain, ConfigPatchChainResult
 from .prompts import (
     build_comparison_prompt,
     build_config_wizard_prompt,
@@ -11,6 +12,8 @@ from .tracing import langsmith_tracing_context, resolve_trace_url
 
 __all__ = [
     "LLMProviderConfig",
+    "ConfigPatchChain",
+    "ConfigPatchChainResult",
     "build_comparison_prompt",
     "build_config_wizard_prompt",
     "build_result_explanation_prompt",
