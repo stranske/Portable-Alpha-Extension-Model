@@ -38,4 +38,3 @@ def load_prior_manifest(
     if not isinstance(loaded, dict):
         return None, prev_manifest_path
     return loaded, prev_manifest_path
-

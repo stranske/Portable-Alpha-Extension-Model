@@ -32,4 +32,3 @@ def test_load_prior_manifest_returns_path_when_file_missing(tmp_path):
 
     assert loaded is None
     assert path == missing_path
-
