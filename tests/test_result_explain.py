@@ -350,6 +350,30 @@ def test_metric_catalog_omits_missing_columns_without_error() -> None:
     assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
 
 
+def test_metric_catalog_entries_include_label_and_value_fields() -> None:
+    _text, _trace_url, payload = result_explain.explain_results_details(_toy_df())
+    metric_catalog = payload["metric_catalog"]
+
+    for key in ("tracking_error", "cvar", "breach_probability"):
+        assert key in metric_catalog
+        entry = metric_catalog[key]
+        assert isinstance(entry, dict)
+        assert "label" in entry and isinstance(entry["label"], str) and entry["label"]
+        assert "value" in entry and isinstance(entry["value"], float)
+
+
+def test_metric_catalog_omits_unusable_metric_values_without_error() -> None:
+    df = _toy_df().assign(monthly_CVaR=["bad", "worse"])
+    _text, _trace_url, payload = result_explain.explain_results_details(df)
+    metric_catalog = payload["metric_catalog"]
+
+    assert "tracking_error" in metric_catalog
+    assert "cvar" not in metric_catalog
+    assert "breach_probability" in metric_catalog
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
+
+
 def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:
     config = _config(api_key="SECRET123")
     monkeypatch.setattr(
