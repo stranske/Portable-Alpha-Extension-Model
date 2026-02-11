@@ -74,11 +74,7 @@ def check_for_hardcoded_versions() -> Tuple[bool, List[str]]:
     issues = []
     # Limit scope to dependency-focused tests to avoid false positives from
     # ordinary numeric assertions used throughout functional tests.
-    test_files = [
-        path
-        for path in Path("tests").rglob("test_*dependency*.py")
-        if path.is_file()
-    ]
+    test_files = [path for path in Path("tests").rglob("test_*dependency*.py") if path.is_file()]
 
     # Patterns that indicate hardcoded dependency versions
     version_patterns = [
