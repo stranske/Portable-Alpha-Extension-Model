@@ -1,0 +1,370 @@
+version: 1
+issue: 1374
+base: main
+branch: codex/issue-1374
+tasks:
+  - id: task-01
+    title: "Add an `llm` optional dependency group to `pyproject.toml` including `langchain`,\
+      \ `langchain-core`, `langchain-openai`, `langchain-anthropic`, `langsmith` (keep\
+      \ versions loosely pinned or consistent with Trend\u2019s patterns)."
+    status: doing
+    started_at: '2026-02-11T02:26:50Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Update the `requirements.lock` generation command and regenerate `requirements.lock`
+      so `tests/test_dependency_version_alignment.py` continues to pass.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Define scope for: Update the requirements.lock generation command or script
+      to include the new llm optional dependency group (verify: dependencies updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Implement focused slice for: Update the requirements.lock generation command
+      or script to include the new llm optional dependency group (verify: dependencies
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'Validate focused slice for: Update the requirements.lock generation command
+      or script to include the new llm optional dependency group (verify: dependencies
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Define scope for: Regenerate requirements.lock file with the updated command
+      to include pinned versions of llm dependencies (verify: dependencies updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Implement focused slice for: Regenerate requirements.lock file with the
+      updated command to include pinned versions of llm dependencies (verify: dependencies
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Validate focused slice for: Regenerate requirements.lock file with the
+      updated command to include pinned versions of llm dependencies (verify: dependencies
+      updated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'Define scope for: Verify that tests/test_dependency_version_alignment.py
+      passes with the regenerated requirements.lock'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: 'Implement focused slice for: Verify that tests/test_dependency_version_alignment.py
+      passes with the regenerated requirements.lock'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Validate focused slice for: Verify that tests/test_dependency_version_alignment.py
+      passes with the regenerated requirements.lock'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: Create `pa_core/llm/tracing.py` with `langsmith_tracing_context()` and
+      `resolve_trace_url()`, enabling tracing only when `LANGSMITH_API_KEY` exists.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: Create `pa_core/llm/provider.py` (or similar) defining `LLMProviderConfig`
+      and `create_llm(config)` that builds a LangChain chat model.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: Add `pa_core/llm/prompts.py` implementing prompt builders for result explanation,
+      comparison explanation, and config patching (wizard).
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'Define scope for: Create prompt builder for result explanation in pa_core/llm/prompts.py
+      with input validation (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'Implement focused slice for: Create prompt builder for result explanation
+      in pa_core/llm/prompts.py with input validation (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Validate focused slice for: Create prompt builder for result explanation
+      in pa_core/llm/prompts.py with input validation (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'Define scope for: Create prompt builder for result explanation in pa_core/llm/prompts.py
+      with output formatting (verify: formatter passes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Implement focused slice for: Create prompt builder for result explanation
+      in pa_core/llm/prompts.py with output formatting (verify: formatter passes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: 'Validate focused slice for: Create prompt builder for result explanation
+      in pa_core/llm/prompts.py with output formatting (verify: formatter passes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: 'Define scope for: Implement comparison explanation prompt builder that
+      handles multiple run comparisons with structured output (verify: confirm completion
+      in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: 'Implement focused slice for: Implement comparison explanation prompt builder
+      that handles multiple run comparisons with structured output (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: 'Validate focused slice for: Implement comparison explanation prompt builder
+      that handles multiple run comparisons with structured output (verify: confirm
+      completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: 'Define scope for: Add config patching wizard prompt builder that generates
+      safe configuration modifications with validation (verify: config validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: 'Implement focused slice for: Add config patching wizard prompt builder
+      that generates safe configuration modifications with validation (verify: config
+      validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: 'Validate focused slice for: Add config patching wizard prompt builder
+      that generates safe configuration modifications with validation (verify: config
+      validated)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: Write unit tests confirming tracing is a no-op without required env keys.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: Write unit tests validating `create_llm()` fails cleanly with a helpful
+      error when provider keys are missing.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: '`pip install -e ".[llm]"` succeeds and `requirements.lock` includes pinned
+      versions for the new dependencies.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: '`import pa_core.llm` succeeds without triggering network calls, and tracing
+      remains disabled unless `LANGSMITH_API_KEY` is set.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: Unit tests pass without making any real LLM calls.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: "Add `llm` optional dependency group in `pyproject.toml` with: `langchain`,\
+      \ `langchain-core`, `langchain-openai`, `langchain-anthropic`, `langsmith` (keep\
+      \ versions loosely pinned or consistent with Trend\u2019s patterns)"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: Update `requirements.lock` generation command and regenerate `requirements.lock`
+      so `tests/test_dependency_version_alignment.py` continues to pass
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: "Create `pa_core/llm/tracing.py` mirroring Trend\u2019s pattern: enable\
+      \ tracing only when `LANGSMITH_API_KEY` exists; expose `langsmith_tracing_context()`\
+      \ and `resolve_trace_url()`"
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: Create `pa_core/llm/provider.py` (or similar) defining a small `LLMProviderConfig`
+      and `create_llm(config)` that builds a LangChain chat model
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: 'Add `pa_core/llm/prompts.py` with prompt builders for:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: result explanation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: comparison explanation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: config patching (wizard)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: 'Add unit tests that:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: confirm tracing is a no-op without env keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: validate `create_llm()` fails cleanly with a helpful error if provider
+      keys missing
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: '`pip install -e ".[llm]"` succeeds locally and in CI, and `requirements.lock`
+      includes pinned versions for new deps'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: '`import pa_core.llm` works without triggering network calls; tracing remains
+      disabled unless `LANGSMITH_API_KEY` is set'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: Unit tests pass without any real LLM calls
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
