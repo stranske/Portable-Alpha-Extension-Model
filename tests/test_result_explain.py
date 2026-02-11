@@ -34,6 +34,16 @@ class _StaticLLM:
         return SimpleNamespace(content=self.text)
 
 
+class _ContextAwareLLM:
+    def __init__(self, state: dict[str, bool], text: str = "ok") -> None:
+        self._state = state
+        self._text = text
+
+    def invoke(self, prompt: str) -> Any:
+        assert self._state.get("inside") is True
+        return SimpleNamespace(content=self._text)
+
+
 def _config(api_key: str = "sk-test") -> LLMProviderConfig:
     return LLMProviderConfig(
         provider_name="openai",
@@ -108,6 +118,30 @@ def test_questions_parameter_is_in_signature_and_forwarded(monkeypatch) -> None:
     assert captured_questions == [["Q1", "Q2"]]
 
 
+def test_questions_forwarded_exactly_as_list(monkeypatch) -> None:
+    captured_call: dict[str, Any] = {}
+
+    def _fake_prompt_builder(result_data: Any, *, questions: Any = None) -> str:
+        captured_call["result_data"] = result_data
+        captured_call["questions"] = questions
+        return "prompt"
+
+    monkeypatch.setattr(result_explain, "build_result_explanation_prompt", _fake_prompt_builder)
+    monkeypatch.setattr(result_explain, "create_llm", lambda config: _StaticLLM("ok"))
+
+    result_explain.explain_results_details(
+        _toy_df(),
+        manifest={"run_name": "SENTINEL_RUN"},
+        questions=["Q1", "Q2"],
+        llm_config=_config(),
+        tracing_enabled=False,
+    )
+
+    assert captured_call["questions"] == ["Q1", "Q2"]
+    assert "analysis_output" in captured_call["result_data"]
+    assert "metric_catalog" in captured_call["result_data"]
+
+
 def test_create_llm_receives_dashboard_config_and_api_key_not_exposed(monkeypatch) -> None:
     config = _config(api_key="SECRET123")
     captured: list[LLMProviderConfig] = []
@@ -165,6 +199,46 @@ def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch) -> None:
     assert len(resolve_calls) == 1
     assert isinstance(resolve_calls[0], str) and resolve_calls[0]
     assert trace_url == "https://smith.langchain.com/r/mock-trace"
+
+
+def test_langsmith_tracing_wraps_llm_invoke(monkeypatch) -> None:
+    trace_state = {"inside": False}
+
+    class _StatefulContext:
+        def __enter__(self):
+            trace_state["inside"] = True
+            return self
+
+        def __exit__(self, exc_type, exc, tb) -> bool:
+            trace_state["inside"] = False
+            return False
+
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
+    monkeypatch.setattr(
+        result_explain,
+        "create_llm",
+        lambda _config: _ContextAwareLLM(trace_state, text="TRACED_RESPONSE"),
+    )
+    monkeypatch.setattr(
+        result_explain,
+        "langsmith_tracing_context",
+        lambda **_kwargs: _StatefulContext(),
+    )
+    monkeypatch.setattr(
+        result_explain,
+        "resolve_trace_url",
+        lambda _trace_id: "https://smith.langchain.com/r/context-verified",
+    )
+
+    text, trace_url, _payload = result_explain.explain_results_details(
+        _toy_df(), llm_config=_config(), tracing_enabled=True
+    )
+
+    assert text == "TRACED_RESPONSE"
+    assert trace_url == "https://smith.langchain.com/r/context-verified"
+    assert trace_state["inside"] is False
 
 
 def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
