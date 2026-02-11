@@ -2,7 +2,7 @@
   "packs": [
     {
       "name": "trend_streamlit_llm",
-      "repo": "Trend_Model_Project",
+      "repo": "stranske/Trend_Model_Project",
       "ref": "8356d93c951ba39074d834875edbb7faa187da32",
       "paths": [
         "streamlit_app/components/llm_settings.py",
