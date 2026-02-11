@@ -130,3 +130,12 @@ def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch)
     assert any(kind == "caption" and "Trace URL" in text for kind, text in fake_st.messages)
     assert any(item.label == "Download TXT" for item in fake_st.downloads)
     assert any(item.label == "Download JSON" for item in fake_st.downloads)
+
+    txt_export = next(item for item in fake_st.downloads if item.label == "Download TXT")
+    assert "Config Diff" in txt_export.data
+    assert "- seed: 1 -> 2" in txt_export.data
+    assert "Trace URL: https://smith.langchain.com/r/trace-id" in txt_export.data
+
+    json_export = next(item for item in fake_st.downloads if item.label == "Download JSON")
+    assert '"config_diff": "- seed: 1 -> 2"' in json_export.data
+    assert '"trace_url": "https://smith.langchain.com/r/trace-id"' in json_export.data

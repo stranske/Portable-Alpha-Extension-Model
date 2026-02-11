@@ -93,3 +93,15 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1398)
 - [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (1 passed).
+
+## Task Reconciliation (Keepalive Next Task #1400)
+- [x] Reviewed recent commits (`f9d6cb2`, `ca9d1b7`, `8b80f54`) and reconciled checklist progress for comparison LLM work.
+- [x] Added comparison export assertions in `tests/test_dashboard_comparison_llm.py` to verify TXT/JSON payloads include config diff and trace URL.
+- [x] Verified readable previous-run path flow produces comparison output and download artifacts.
+
+### Acceptance Criteria (Keepalive Next Task #1400)
+- [x] When `manifest_data["previous_run"]` exists and is readable, the comparison panel can produce a coherent explanation and expose trace URL details in UI/export output.
+
+### Verification (Keepalive Next Task #1400)
+- [x] `pytest tests/test_llm_compare_runs.py tests/test_dashboard_comparison_llm.py tests/test_dashboard_results_previous_run.py -m "not slow"` (14 passed).
+- [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (2 passed).
