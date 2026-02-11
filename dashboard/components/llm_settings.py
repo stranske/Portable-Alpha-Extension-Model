@@ -220,11 +220,7 @@ def resolve_llm_provider_config(
         guidance on which env var to set but **never** includes the key
         value itself.
     """
-    resolved_provider = (
-        provider
-        or read_secret(ENV_PROVIDER)
-        or DEFAULT_PROVIDER
-    ).strip().lower()
+    resolved_provider = (provider or read_secret(ENV_PROVIDER) or DEFAULT_PROVIDER).strip().lower()
 
     resolved_model = model or read_secret(ENV_MODEL)
 
