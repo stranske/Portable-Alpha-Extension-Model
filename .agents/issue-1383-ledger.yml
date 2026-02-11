@@ -1,0 +1,487 @@
+version: 1
+issue: 1383
+base: main
+branch: codex/issue-1383
+tasks:
+  - id: task-01
+    title: Create `pa_core/llm/__init__.py` with module-level imports for public API
+      surface
+    status: doing
+    started_at: '2026-02-11T05:04:14Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Create `pa_core/llm/tracing.py` file with module structure and imports
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Implement `langsmith_tracing_context()` context manager that yields control
+      without side effects when `LANGSMITH_API_KEY` is unset or empty
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: Implement `resolve_trace_url()` function that safely constructs trace URLs
+      without making network calls
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Add lazy initialization logic to defer any LangSmith SDK imports until
+      context manager entry
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: Create `pa_core/llm/provider.py` file with module structure and imports
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: Define `LLMProviderConfig` dataclass with fields for provider name and
+      credential mappings
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: Implement `create_llm()` factory function that accepts `LLMProviderConfig`
+      and returns a provider client instance
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: Add validation logic to `create_llm()` that checks for required credential
+      keys before instantiating any SDK clients
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: Implement `ValueError` exception raising with error messages that list
+      all missing credential key names
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: Create `pa_core/llm/prompts.py` file with module structure and imports
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: Implement `build_result_explanation_prompt()` function that accepts result
+      data and returns a formatted prompt string
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: Implement `build_comparison_prompt()` function that accepts two items to
+      compare and returns a formatted prompt string
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: Implement `build_config_wizard_prompt()` function that accepts configuration
+      context and returns a formatted prompt string
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: Add input validation to each prompt builder function to ensure required
+      parameters are provided
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: Create `tests/test_llm_import_and_no_network.py` file with test module
+      structure
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: Implement pytest fixture in `test_llm_import_and_no_network.py` that monkeypatches
+      `socket.socket.connect` to raise an exception when called
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: Write test function `test_import_pa_core_llm_no_network()` that imports
+      `pa_core.llm` under the socket guard and verifies no exceptions are raised
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: Add assertions to `test_import_pa_core_llm_no_network()` to verify the
+      monkeypatch was active during the import
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: Create `tests/test_llm_tracing_noop.py` file with test module structure
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Write test function `test_import_tracing_no_network()` that verifies importing
+      `pa_core.llm.tracing` under a socket guard performs no network calls
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: Write test function `test_tracing_context_noop_without_api_key()` that
+      unsets `LANGSMITH_API_KEY` and verifies `langsmith_tracing_context()` can be
+      entered and exited without exceptions
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: Add socket guard assertions to `test_tracing_context_noop_without_api_key()`
+      to verify no network connections are attempted
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: Create `tests/test_llm_provider_missing_keys.py` file with test module
+      structure
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: Write test function `test_create_llm_missing_credentials_raises_value_error()`
+      that calls `create_llm()` with incomplete credentials and asserts `ValueError`
+      is raised
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: Add assertions to `test_create_llm_missing_credentials_raises_value_error()`
+      to verify the exception message contains the exact names of all missing credential
+      keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: Implement socket guard protection in `test_create_llm_missing_credentials_raises_value_error()`
+      to verify `create_llm()` makes no network calls when validation fails
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: Create `tests/test_llm_prompts.py` file with test module structure
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: Write test function `test_build_result_explanation_prompt_returns_nonempty_string()`
+      that calls `build_result_explanation_prompt()` and asserts return value is a
+      non-empty string
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: Write test function `test_build_comparison_prompt_returns_nonempty_string()`
+      that calls `build_comparison_prompt()` and asserts return value is a non-empty
+      string
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: Write test function `test_build_config_wizard_prompt_returns_nonempty_string()`
+      that calls `build_config_wizard_prompt()` and asserts return value is a non-empty
+      string
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: Review `tools/requirements-llm.txt` and `requirements.lock` to identify
+      version inconsistencies for llm extra dependencies
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: Update version specifiers in `tools/requirements-llm.txt` to match the
+      pinned versions in `requirements.lock`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: Regenerate `requirements.lock` to ensure all llm extra dependencies have
+      consistent pinned versions
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: Create validation script `scripts/validate_lockfile.py` that programmatically
+      verifies all `requirements-llm.txt` dependencies are properly pinned in `requirements.lock`
+      with compatible versions
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: The file `pa_core/llm/__init__.py` exists in the repository
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: Running `python -c "import pa_core.llm"` exits with status code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: Importing `pa_core.llm` performs zero `socket.connect` attempts as verified
+      by `tests/test_llm_import_and_no_network.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: Running `pytest tests/test_llm_import_and_no_network.py` exits with status
+      code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: Running `python -c "from pa_core.llm.tracing import langsmith_tracing_context,
+      resolve_trace_url"` exits with status code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: Importing `pa_core.llm.tracing` performs zero `socket.connect` attempts
+      as verified by `tests/test_llm_tracing_noop.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: With `LANGSMITH_API_KEY` unset, entering and exiting `langsmith_tracing_context()`
+      raises zero exceptions and performs zero `socket.connect` attempts as verified
+      by `tests/test_llm_tracing_noop.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: Running `pytest tests/test_llm_tracing_noop.py` exits with status code
+      `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: Running `python -c "from pa_core.llm.provider import LLMProviderConfig,
+      create_llm"` exits with status code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: Calling `create_llm()` with a config missing required provider credentials
+      raises `ValueError`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: The `ValueError` exception message contains the exact names of all missing
+      credential keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: Calling `create_llm()` with missing credentials performs zero `socket.connect`
+      attempts as verified by `tests/test_llm_provider_missing_keys.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: Running `pytest tests/test_llm_provider_missing_keys.py` exits with status
+      code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: Running `python -c "from pa_core.llm.prompts import build_result_explanation_prompt,
+      build_comparison_prompt, build_config_wizard_prompt"` exits with status code
+      `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: '`build_result_explanation_prompt()` returns a string with `len(result)
+      > 0`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: '`build_comparison_prompt()` returns a string with `len(result) > 0`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: '`build_config_wizard_prompt()` returns a string with `len(result) > 0`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: Running `pytest tests/test_llm_prompts.py` exits with status code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: Running `pytest --collect-only` lists `tests/test_llm_import_and_no_network.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: Running `pytest --collect-only` lists `tests/test_llm_tracing_noop.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: Running `pytest --collect-only` lists `tests/test_llm_provider_missing_keys.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: Running `pytest --collect-only` lists `tests/test_llm_prompts.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: Running `pip install -e '.[llm]'` in a clean virtual environment exits
+      with status code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: Every package name listed in `tools/requirements-llm.txt` has a corresponding
+      entry in `requirements.lock`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: For each package in `tools/requirements-llm.txt`, the pinned version in
+      `requirements.lock` satisfies the version specifier in `tools/requirements-llm.txt`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: Running `python scripts/validate_lockfile.py` exits with status code `0`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
