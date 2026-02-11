@@ -326,12 +326,15 @@ def test_metric_catalog_includes_te_cvar_and_breach_probability() -> None:
     _text, _trace_url, payload = result_explain.explain_results_details(_toy_df())
     metric_catalog = payload["metric_catalog"]
 
+    assert metric_catalog["tracking_error"]["metric"] == "TE"
     assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
-    assert isinstance(metric_catalog["tracking_error"]["value"], float)
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["cvar"]["metric"] == "CVaR"
     assert metric_catalog["cvar"]["label"] == "CVaR"
-    assert isinstance(metric_catalog["cvar"]["value"], float)
+    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
+    assert metric_catalog["breach_probability"]["metric"] == "Breach Probability"
     assert metric_catalog["breach_probability"]["label"] == "Breach Probability"
-    assert isinstance(metric_catalog["breach_probability"]["value"], float)
+    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
 
 
 def test_metric_catalog_omits_missing_columns_without_error() -> None:
@@ -341,6 +344,10 @@ def test_metric_catalog_omits_missing_columns_without_error() -> None:
     assert "tracking_error" in metric_catalog
     assert "cvar" in metric_catalog
     assert "breach_probability" not in metric_catalog
+    assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["cvar"]["label"] == "CVaR"
+    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
 
 
 def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:
@@ -358,6 +365,26 @@ def test_api_keys_are_redacted_from_error_messages(monkeypatch) -> None:
     assert "SECRET123" not in text
     assert result_explain._REDACTION_TOKEN in text
     assert "SECRET123" not in payload["error"]
+    assert result_explain._REDACTION_TOKEN in payload["error"]
+
+
+def test_api_keys_are_redacted_from_invoke_errors(monkeypatch) -> None:
+    config = _config(api_key="SECRET123")
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
+
+    class _RaisingLLM:
+        def invoke(self, prompt: str) -> Any:
+            raise RuntimeError("invoke failed with Authorization: Bearer SECRET123")
+
+    monkeypatch.setattr(result_explain, "create_llm", lambda _cfg: _RaisingLLM())
+    text, _trace_url, payload = result_explain.explain_results_details(_toy_df(), llm_config=config)
+
+    assert "SECRET123" not in text
+    assert "SECRET123" not in payload["error"]
+    assert result_explain._REDACTION_TOKEN in text
+    assert result_explain._REDACTION_TOKEN in payload["error"]
 
 
 def test_error_messages_are_sanitized_and_bounded(monkeypatch) -> None:

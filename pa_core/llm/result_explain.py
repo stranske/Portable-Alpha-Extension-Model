@@ -19,13 +19,20 @@ _MAX_ERROR_MESSAGE_LEN = 500
 _TAIL_ROW_LIMIT = 3
 _QUANTILE_LEVELS = [0.05, 0.5, 0.95]
 _METRIC_ALIAS_GROUPS: dict[str, tuple[str, ...]] = {
-    "tracking_error": ("monthly_te", "te", "trackingerr", "tracking_error"),
-    "cvar": ("monthly_cvar", "cvar", "terminal_cvar"),
+    "tracking_error": (
+        "monthly_te",
+        "te",
+        "trackingerr",
+        "tracking_error",
+        "monthly_tracking_error",
+    ),
+    "cvar": ("monthly_cvar", "cvar", "terminal_cvar", "cvar95"),
     "breach_probability": (
         "monthly_breachprob",
         "breachprob",
         "breach_probability",
         "breachprobability",
+        "breach_prob",
     ),
 }
 _STRESS_DELTA_MARKERS = (
@@ -94,6 +101,11 @@ def _build_metric_catalog(details_df: pd.DataFrame) -> dict[str, dict[str, Any]]
         "cvar": "CVaR",
         "breach_probability": "Breach Probability",
     }
+    metric_codes = {
+        "tracking_error": "TE",
+        "cvar": "CVaR",
+        "breach_probability": "Breach Probability",
+    }
     for metric_key, aliases in _METRIC_ALIAS_GROUPS.items():
         col_name = _find_metric_column(details_df, aliases)
         if not col_name:
@@ -102,6 +114,7 @@ def _build_metric_catalog(details_df: pd.DataFrame) -> dict[str, dict[str, Any]]
         if metric_value is None:
             continue
         catalog[metric_key] = {
+            "metric": metric_codes[metric_key],
             "label": labels[metric_key],
             "value": metric_value,
             "column": col_name,
