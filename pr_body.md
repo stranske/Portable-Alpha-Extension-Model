@@ -42,3 +42,4 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Reviewed recent commits (`750b682`, `7d982d4`, `f320f85`, `50496ed`) for missing checkbox reconciliation context.
 - [x] Aligned `pyproject.toml` `llm` extras with lockfile pins for deterministic resolution.
 - [ ] Confirmed `pip install -e '.[llm]'` in a clean venv with full dependency download (requires networked environment).
+- [x] Validated `pa_core/llm/result_explain.py` entrypoint contract via `pytest tests/test_llm_result_explain_entrypoint.py -m "not slow"`.
