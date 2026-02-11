@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import math
 import os
+import re
 import tempfile
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
-import re
 from typing import Any, Dict
 
 import pandas as pd
@@ -27,6 +27,8 @@ from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.llm.config_patch import (
     apply_patch as apply_config_patch,
+)
+from pa_core.llm.config_patch import (
     diff_config,
     get_session_field_mirrors,
     validate_round_trip,
@@ -460,10 +462,14 @@ def _apply_preview_patch(*, validate_first: bool) -> None:
         apply_config_patch(trial_config, patch, session_state=trial_session)
         errors = validate_round_trip(
             trial_config,
-            build_yaml_from_config=lambda cfg: _build_yaml_from_config(cfg, session_state=trial_session),
+            build_yaml_from_config=lambda cfg: _build_yaml_from_config(
+                cfg, session_state=trial_session
+            ),
         )
         if errors:
-            st.error("Apply+Validate blocked invalid patch:\n" + "\n".join(f"- {err}" for err in errors))
+            st.error(
+                "Apply+Validate blocked invalid patch:\n" + "\n".join(f"- {err}" for err in errors)
+            )
             return
 
     history = st.session_state.setdefault(_CONFIG_CHAT_HISTORY_KEY, [])

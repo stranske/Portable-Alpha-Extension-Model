@@ -11,10 +11,10 @@ from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_PATCH_FIELDS,
     ConfigPatchValidationError,
     apply_patch,
-    diff_config,
     describe_allowed_patch_schema,
-    validate_round_trip,
+    diff_config,
     validate_patch,
+    validate_round_trip,
 )
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 

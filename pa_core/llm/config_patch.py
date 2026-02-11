@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 from dataclasses import dataclass
 from difflib import unified_diff
-import json
 from typing import Any, Callable, Mapping, MutableMapping, Sequence
 
 import yaml
