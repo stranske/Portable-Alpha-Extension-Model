@@ -8,7 +8,11 @@ from dataclasses import dataclass, replace
 from typing import Any, Callable, Mapping, Sequence
 from uuid import uuid4
 
-from pa_core.llm.config_patch import ALLOWED_WIZARD_PATCH_FIELDS, describe_allowed_patch_schema, validate_patch
+from pa_core.llm.config_patch import (
+    ALLOWED_WIZARD_PATCH_FIELDS,
+    describe_allowed_patch_schema,
+    validate_patch,
+)
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _OUTPUT_KEYS = frozenset({"patch", "summary", "risk_flags"})
@@ -47,9 +51,7 @@ def build_config_patch_prompt(
         f"{json.dumps(dict(current_config), indent=2, sort_keys=True, default=str)}\n\n"
         "Allowlisted schema (keys/types/operations):\n"
         f"{json.dumps(schema, indent=2, sort_keys=True, default=str)}\n\n"
-        "Safety rules:\n"
-        + "\n".join(f"- {rule}" for rule in rules)
-        + "\n\n"
+        "Safety rules:\n" + "\n".join(f"- {rule}" for rule in rules) + "\n\n"
         "Return strict JSON with keys: patch, summary, risk_flags.\n"
         "Instruction:\n"
         f"{instruction.strip()}"

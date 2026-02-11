@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from pa_core.llm.config_patch_chain import ConfigPatchChain, build_config_patch_prompt, parse_chain_output
+from pa_core.llm.config_patch_chain import (
+    ConfigPatchChain,
+    build_config_patch_prompt,
+    parse_chain_output,
+)
 
 
 def test_build_config_patch_prompt_contains_schema_and_safety_rules() -> None:
