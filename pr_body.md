@@ -82,3 +82,20 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_dashboard_llm_settings.py --cov=dashboard.components.llm_settings --cov-report=term-missing -m "not slow"` (37 passed, module coverage 100%).
 - [x] `pytest tests/test_dashboard_explain_results.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_dashboard_llm_settings.py tests/test_dashboard_explain_results.py -m "not slow"` and grep scan for common secret patterns (no matches).
+
+## Task Reconciliation (Keepalive Next Task #1391)
+- [x] Reviewed recent commits (`a30c46c`, `f24ebd8`, `0b2c8d5`) and reconciled checkbox state with implemented `result_explain` changes.
+- [x] Added explicit acceptance-mapped unit coverage for `analysis_output` required sections and JSON serialization.
+- [x] Added dedicated unit test confirming `analysis_output.manifest_highlights` includes sentinel manifest values.
+
+### Acceptance Criteria (Keepalive Next Task #1391)
+- [x] `analysis_output` returned by `explain_results_details()` is non-empty and includes JSON-serializable sections for: column list, basic statistics, tail sample rows, and key quantiles.
+- [x] `analysis_output` includes manifest highlights containing at least one sentinel value derived from the provided manifest (e.g., `run_name='SENTINEL_RUN'`).
+- [x] StressDelta behavior is deterministic: with StressDelta-relevant inputs present, `analysis_output` includes a StressDelta summary section; without those inputs, the StressDelta section is absent or explicitly `None`.
+- [x] `metric_catalog` exists in the returned `payload_dict` as a structured dict/list and includes TE, CVaR, and breach probability entries for metrics present in the inputs, each with at least `{label, value}`.
+- [x] `metric_catalog` generation is resilient to missing metric columns: `explain_results_details()` succeeds and omits (or marks unavailable) only missing metric entries without raising.
+- [x] API keys are not leaked: if `create_llm(...)` or the LLM invocation raises an exception containing the `api_key`, the surfaced/returned error text does not contain the secret and includes a redaction token.
+
+### Verification (Keepalive Next Task #1391)
+- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (15 passed).
+- [ ] `pytest tests/test_result_explain.py --cov=pa_core.llm.result_explain --cov-report=term-missing -m "not slow"` (blocked in this environment by `ImportError: numpy: cannot load module more than once per process` during collection).

@@ -276,16 +276,31 @@ def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
 def test_analysis_output_contains_required_sections_and_is_json_serializable() -> None:
     _text, _trace_url, payload = result_explain.explain_results_details(
         _toy_df(),
-        {"run_name": "SENTINEL_RUN"},
     )
 
     analysis_output = payload["analysis_output"]
-    assert analysis_output["columns"]
-    assert analysis_output["basic_statistics"]
-    assert analysis_output["tail_sample_rows"]
-    assert analysis_output["key_quantiles"]
-    assert analysis_output["manifest_highlights"]["run_name"] == "SENTINEL_RUN"
+    assert isinstance(analysis_output, dict)
+    assert analysis_output
+    assert isinstance(analysis_output["columns"], list) and analysis_output["columns"]
+    assert (
+        isinstance(analysis_output["basic_statistics"], dict)
+        and analysis_output["basic_statistics"]
+    )
+    assert (
+        isinstance(analysis_output["tail_sample_rows"], list)
+        and analysis_output["tail_sample_rows"]
+    )
+    assert isinstance(analysis_output["key_quantiles"], dict) and analysis_output["key_quantiles"]
     json.dumps(analysis_output, sort_keys=True)
+
+
+def test_analysis_output_manifest_highlights_include_sentinel_value() -> None:
+    _text, _trace_url, payload = result_explain.explain_results_details(
+        _toy_df(),
+        {"run_name": "SENTINEL_RUN"},
+    )
+    analysis_output = payload["analysis_output"]
+    assert analysis_output["manifest_highlights"]["run_name"] == "SENTINEL_RUN"
 
 
 def test_stress_delta_summary_present_when_columns_exist() -> None:
