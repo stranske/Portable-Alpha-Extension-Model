@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
@@ -18,8 +19,10 @@ from dashboard.app import (
     apply_theme,
     load_data,
 )
+from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
+from pa_core.llm.compare_runs import load_prior_manifest
 from pa_core.contracts import (
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,
@@ -28,6 +31,74 @@ from pa_core.contracts import (
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
 )
+
+
+@dataclass(frozen=True)
+class _PreviousRunAvailability:
+    available: bool
+    prior_manifest_path: Path | None
+    message: str | None
+
+
+def _check_previous_run_availability(
+    manifest_data: dict | None,
+) -> _PreviousRunAvailability:
+    """Check whether ``manifest_data['previous_run']`` points to a readable manifest."""
+
+    if not isinstance(manifest_data, dict):
+        return _PreviousRunAvailability(
+            available=False,
+            prior_manifest_path=None,
+            message=(
+                "Comparison unavailable: missing artifact `manifest_data['previous_run']`. "
+                "Expected file path to prior `manifest.json` in the current manifest."
+            ),
+        )
+
+    prev_ref = manifest_data.get("previous_run")
+    expected_path = (
+        str(Path(prev_ref).expanduser())
+        if isinstance(prev_ref, str) and prev_ref.strip()
+        else "<unset>"
+    )
+
+    try:
+        prior_manifest, prior_manifest_path = load_prior_manifest(manifest_data)
+    except Exception as exc:
+        return _PreviousRunAvailability(
+            available=False,
+            prior_manifest_path=Path(expected_path) if expected_path != "<unset>" else None,
+            message=(
+                "Comparison unavailable: unreadable artifact `manifest_data['previous_run']` "
+                f"at expected file path `{expected_path}` ({exc})."
+            ),
+        )
+
+    if prior_manifest is not None and prior_manifest_path is not None:
+        return _PreviousRunAvailability(
+            available=True,
+            prior_manifest_path=prior_manifest_path,
+            message=None,
+        )
+
+    if prior_manifest_path is None:
+        return _PreviousRunAvailability(
+            available=False,
+            prior_manifest_path=None,
+            message=(
+                "Comparison unavailable: missing artifact `manifest_data['previous_run']`. "
+                "Expected file path to prior `manifest.json` in the current manifest."
+            ),
+        )
+
+    return _PreviousRunAvailability(
+        available=False,
+        prior_manifest_path=prior_manifest_path,
+        message=(
+            "Comparison unavailable: missing artifact `manifest_data['previous_run']` "
+            f"at expected file path `{prior_manifest_path}`."
+        ),
+    )
 
 
 def _render_explain_results(
@@ -90,6 +161,13 @@ def main() -> None:
         )
 
     _render_explain_results(summary=summary, manifest_data=manifest_data, xlsx=xlsx)
+    st.subheader("LLM Comparison")
+    availability = _check_previous_run_availability(manifest_data)
+    if availability.available and availability.prior_manifest_path is not None:
+        run_key = f"{Path(xlsx).resolve()}::{availability.prior_manifest_path.resolve()}"
+        render_comparison_llm_panel(run_key=run_key)
+    elif availability.message:
+        st.info(availability.message)
 
     if "Config" in summary.columns:
         config_options = summary["Config"].unique().tolist()
