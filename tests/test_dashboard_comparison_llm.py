@@ -30,7 +30,5 @@ def test_render_comparison_llm_panel_shows_skeleton_message(monkeypatch) -> None
     comparison_module.render_comparison_llm_panel(run_key="run-a-vs-run-b")
 
     assert "comparison_llm_cache" in fake_st.session_state
-    assert any(
-        kind == "subheader" and "LLM Comparison" in text for kind, text in fake_st.messages
-    )
+    assert any(kind == "subheader" and "LLM Comparison" in text for kind, text in fake_st.messages)
     assert any(kind == "info" and "scaffold is ready" in text for kind, text in fake_st.messages)
