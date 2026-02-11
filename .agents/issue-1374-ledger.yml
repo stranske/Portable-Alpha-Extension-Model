@@ -7,10 +7,10 @@ tasks:
     title: "Add an `llm` optional dependency group to `pyproject.toml` including `langchain`,\
       \ `langchain-core`, `langchain-openai`, `langchain-anthropic`, `langsmith` (keep\
       \ versions loosely pinned or consistent with Trend\u2019s patterns)."
-    status: doing
+    status: done
     started_at: '2026-02-11T02:26:50Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-11T02:26:57Z'
+    commit: b48be48d4857df6e4358689d34c9e3fbaa3f0931
     notes: []
   - id: task-02
     title: Update the `requirements.lock` generation command and regenerate `requirements.lock`
