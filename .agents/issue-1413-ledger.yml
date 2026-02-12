@@ -6,10 +6,10 @@ tasks:
   - id: task-01
     title: Add exact-equality assertion for a numeric metric in `tests/test_result_explain.py`
       nominal-case test (e.g., `assert result["Tracking Error"] == <expected>`)
-    status: doing
+    status: done
     started_at: '2026-02-12T04:16:18Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-12T04:16:27Z'
+    commit: cd136b3f7ac7446aa1f3c3319c653b92844c9101
     notes: []
   - id: task-02
     title: Add exact-equality assertion for at least one categorical/string field
