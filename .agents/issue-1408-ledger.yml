@@ -1,0 +1,130 @@
+version: 1
+issue: 1408
+base: main
+branch: codex/issue-1408
+tasks:
+  - id: task-01
+    title: Create pytest fixture in `tests/test_result_explain.py` that returns a
+      baseline summary DataFrame with all required metric columns populated
+    status: doing
+    started_at: '2026-02-12T03:16:24Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Create pytest fixture in `tests/test_result_explain.py` that returns a
+      summary DataFrame variant with one required metric column removed
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Create pytest fixture in `tests/test_result_explain.py` that returns a
+      summary DataFrame variant with `None`, `NaN`, and empty-string values injected
+      into metric fields
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: Add unit test in `tests/test_result_explain.py` that calls the metric extraction
+      entrypoint with the baseline fixture and asserts exact expected output values
+      for at least one numeric metric and one string/categorical metric
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Add unit test in `tests/test_result_explain.py` that calls the metric extraction
+      entrypoint with the missing-column fixture and asserts either (a) a specific
+      exception type via `pytest.raises` or (b) exact returned output structure with
+      the missing metric omitted or set to `None`/`"N/A"`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: Add unit test in `tests/test_result_explain.py` that calls the metric extraction
+      entrypoint with the null/empty-value fixture and asserts exact output for these
+      inputs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: Update `.agents/issue-1380-ledger.yml` to remove or replace any task entry
+      containing the truncated path substring `pa_core/l_` with a concrete file path
+      (starting with `pa_core/` and ending with `.py`) and non-empty description
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: Update `.agents/issue-1380-ledger.yml` task statuses to mark metric-extraction
+      unit test tasks as done only if corresponding tests exist in `tests/test_result_explain.py`,
+      otherwise mark as todo with specific remaining-work description
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: Update `.agents/issue-1380-ledger.yml` and `pr_body.md` to ensure they
+      list the same set of subtasks for this follow-up with aligned names, descriptions,
+      and file paths
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: File `tests/test_result_explain.py` exists and contains at least three
+      unit tests that call metric extraction entrypoint(s) in `pa_core/llm/result_explain.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: The nominal-case unit test asserts exact expected extracted metric output
+      values (not just non-empty), including at least one numeric metric and one string/categorical
+      metric (if supported by the extractor)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: The missing-column unit test deterministically verifies behavior when a
+      required column is absent by either (a) asserting a specific exception type
+      via `pytest.raises` (e.g., `KeyError`/`ValueError`) or (b) asserting the exact
+      returned output where the missing metric is omitted or set to `None`/`"N/A"`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: The null/empty-value unit test deterministically verifies behavior when
+      metric values are `None`, `NaN`, or empty strings by asserting the exact output
+      for these inputs, consistent with current implementation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'File `tests/test_result_explain.py` defines at least three pytest fixtures:
+      (1) baseline summary DataFrame, (2) variant with required column removed, (3)
+      variant with'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
