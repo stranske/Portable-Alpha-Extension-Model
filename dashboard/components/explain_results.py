@@ -156,7 +156,12 @@ def render_explain_results_panel(
                         api_key=resolved_key,
                     )
 
-                    text, trace_url, payload = explain_results_details(summary_df, manifest)
+                    text, trace_url, payload = explain_results_details(
+                        summary_df,
+                        manifest,
+                        questions=questions,
+                        llm_config=config,
+                    )
                     cached = {
                         "text": text,
                         "trace_url": trace_url,

@@ -83,6 +83,25 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_dashboard_explain_results.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_dashboard_llm_settings.py tests/test_dashboard_explain_results.py -m "not slow"` and grep scan for common secret patterns (no matches).
 
+## Task Reconciliation (Keepalive Next Task #1391)
+- [x] Reviewed recent commits (`a30c46c`, `f24ebd8`, `0b2c8d5`) and reconciled checkbox state with implemented `result_explain` changes.
+- [x] Reviewed follow-up commits (`6e5ecb9`, `6fcb282`, `a678b9d`) and confirmed checkbox state remains aligned with implemented metric-catalog and redaction behavior.
+- [x] Added explicit acceptance-mapped unit coverage for `analysis_output` required sections and JSON serialization.
+- [x] Added dedicated unit test confirming `analysis_output.manifest_highlights` includes sentinel manifest values.
+- [x] Expanded `metric_catalog` alias handling/tests to cover human-readable metric column names (e.g., `Tracking Error`, `CVaR`, `Breach Probability`).
+
+### Acceptance Criteria (Keepalive Next Task #1391)
+- [x] `analysis_output` returned by `explain_results_details()` is non-empty and includes JSON-serializable sections for: column list, basic statistics, tail sample rows, and key quantiles.
+- [x] `analysis_output` includes manifest highlights containing at least one sentinel value derived from the provided manifest (e.g., `run_name='SENTINEL_RUN'`).
+- [x] StressDelta behavior is deterministic: with StressDelta-relevant inputs present, `analysis_output` includes a StressDelta summary section; without those inputs, the StressDelta section is absent or explicitly `None`.
+- [x] `metric_catalog` exists in the returned `payload_dict` as a structured dict/list and includes TE, CVaR, and breach probability entries for metrics present in the inputs, each with at least `{label, value}`.
+- [x] `metric_catalog` generation is resilient to missing metric columns: `explain_results_details()` succeeds and omits (or marks unavailable) only missing metric entries without raising.
+- [x] API keys are not leaked: if `create_llm(...)` or the LLM invocation raises an exception containing the `api_key`, the surfaced/returned error text does not contain the secret and includes a redaction token.
+
+### Verification (Keepalive Next Task #1391)
+- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (20 passed).
+- [x] `coverage run -m pytest -q tests/test_result_explain.py -m "not slow"` and `coverage report -m pa_core/llm/result_explain.py` (20 passed; module coverage 82%).
+
 ## Task Reconciliation (Keepalive Next Task #1398)
 - [x] Reviewed recent commits (`f75c59e`, `8949dbc`) touching `pa_core/llm/compare_runs.py` and `tests/test_llm_compare_runs.py`.
 - [x] Confirmed those commits only cover task-01 scope (prior manifest loader) with tests.
@@ -171,3 +190,19 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1408)
 - [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (65 passed).
+
+## Task Reconciliation (Keepalive Next Task #1404)
+- [x] Reviewed recent commits (`1d1a07c`, `b0828b3`, `a377eea`) and reconciled checkbox state for Config Chat backend groundwork.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch.py` schema/patch validation allowlist and tests.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch_chain.py` prompt builder, output parsing (`patch`, `summary`, `risk_flags`), and LangSmith trace URL capture with tests.
+
+### Verification (Keepalive Next Task #1404)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_llm_config_patch_chain.py -m "not slow"` (pass).
+
+## Task Reconciliation (Keepalive Next Task #1405)
+- [x] Implemented `dashboard/components/config_chat.py` with Streamlit controls for instruction input, `Preview`, `Apply`, `Apply+Validate`, and `Revert`.
+- [x] Added component tests in `tests/test_dashboard_config_chat.py` covering preview, apply/apply+validate callback wiring, and revert wiring.
+- [x] Updated task checkboxes for issue #1403 scope in `Issues.txt` to reflect completed `config_patch_chain` and `config_chat` UI-control items.
+
+### Verification (Keepalive Next Task #1405)
+- [x] `pytest tests/test_dashboard_config_chat.py -m "not slow"` (3 passed).

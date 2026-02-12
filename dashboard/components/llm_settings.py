@@ -133,7 +133,7 @@ def read_secret(name: str) -> str | None:
     """
     # Try st.secrets first (only when Streamlit is importable and running)
     try:
-        import streamlit as st
+        import streamlit as st  # optional import
 
         value = st.secrets.get(name)
         if isinstance(value, str) and value.strip():
