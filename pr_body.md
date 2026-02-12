@@ -134,3 +134,19 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1403)
 - [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
+
+## Task Reconciliation (Keepalive Next Task #1404)
+- [x] Reviewed recent commits (`1d1a07c`, `b0828b3`, `a377eea`) and reconciled checkbox state for Config Chat backend groundwork.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch.py` schema/patch validation allowlist and tests.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch_chain.py` prompt builder, output parsing (`patch`, `summary`, `risk_flags`), and LangSmith trace URL capture with tests.
+
+### Verification (Keepalive Next Task #1404)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_llm_config_patch_chain.py -m "not slow"` (pass).
+
+## Task Reconciliation (Keepalive Next Task #1405)
+- [x] Implemented `dashboard/components/config_chat.py` with Streamlit controls for instruction input, `Preview`, `Apply`, `Apply+Validate`, and `Revert`.
+- [x] Added component tests in `tests/test_dashboard_config_chat.py` covering preview, apply/apply+validate callback wiring, and revert wiring.
+- [x] Updated task checkboxes for issue #1403 scope in `Issues.txt` to reflect completed `config_patch_chain` and `config_chat` UI-control items.
+
+### Verification (Keepalive Next Task #1405)
+- [x] `pytest tests/test_dashboard_config_chat.py -m "not slow"` (3 passed).
