@@ -140,9 +140,9 @@ def _normalize_risk_flags(raw_flags: Any) -> list[str]:
 
 def _split_trace_metadata(raw_output: Any) -> tuple[str | Mapping[str, Any], str | None]:
     if isinstance(raw_output, Mapping):
-        payload = dict(raw_output)
-        trace_url = _extract_trace_from_mapping(payload)
-        return payload, trace_url
+        payload_dict = dict(raw_output)
+        trace_url = _extract_trace_from_mapping(payload_dict)
+        return payload_dict, trace_url
     if (
         isinstance(raw_output, tuple)
         and len(raw_output) == 2
