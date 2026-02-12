@@ -93,7 +93,7 @@ def test_validate_patch_dict_type_error_exposes_field_type_metadata() -> None:
     assert exc.actual_type == "str"
 
 
-def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structured() -> None:
+def test_validate_patch_dict_rejects_non_dict_top_level_patch_payload() -> None:
     with pytest.raises(ConfigPatchValidationError) as exc_info:
         validate_patch_dict(
             [
@@ -101,28 +101,28 @@ def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structur
                     "op": "set",
                     "key": "n_simulations",
                     "value": 5000,
-                    "foo": "bar",
                 }
             ]
         )
 
     exc = exc_info.value
-    assert exc.unknown_keys == ["foo"]
-    assert exc.unknown_paths == ["patch[0].foo"]
+    assert exc.field_name == "patch"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
 
 
-def test_validate_patch_dict_accepts_legacy_operation_list_shape() -> None:
-    patch = validate_patch_dict(
-        [
-            {"op": "set", "key": "n_simulations", "value": 5000},
-            {"op": "merge", "key": "regimes", "value": {"Stress": {"idx_sigma_multiplier": 1.2}}},
-            {"op": "remove", "key": "sleeve_max_cvar"},
-        ]
-    )
+def test_validate_patch_schema_rejects_non_dict_top_level_patch_payload() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_schema(
+            [
+                {"op": "set", "key": "n_simulations", "value": 5000},
+            ]
+        )
 
-    assert patch.set == {"n_simulations": 5000}
-    assert patch.merge == {"regimes": {"Stress": {"idx_sigma_multiplier": 1.2}}}
-    assert patch.remove == ["sleeve_max_cvar"]
+    exc = exc_info.value
+    assert exc.field_name == "patch"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
 
 
 def test_parse_chain_output_reports_unknown_top_level_keys_structured() -> None:

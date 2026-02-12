@@ -14,7 +14,6 @@ from pa_core.config import load_config
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
 _PATCH_KEYS: tuple[str, str, str] = ("set", "merge", "remove")
-_PATCH_OPERATION_ITEM_KEYS: tuple[str, str, str] = ("op", "key", "value")
 
 
 class ConfigPatchValidationError(ValueError):
@@ -47,23 +46,17 @@ class PatchSchemaValidationResult:
     normalized_patch: dict[str, Any] | None = None
 
 
-def validate_patch_schema(raw_patch: Mapping[str, Any] | list[Any]) -> PatchSchemaValidationResult:
+def validate_patch_schema(raw_patch: Any) -> PatchSchemaValidationResult:
     """Validate top-level patch schema and detect unknown operation keys."""
 
-    normalized: Mapping[str, Any]
-    if isinstance(raw_patch, list):
-        normalized = _normalize_patch_operations_list(raw_patch)
-    else:
-        normalized = raw_patch
-
-    if not isinstance(normalized, Mapping):
+    if not isinstance(raw_patch, Mapping):
         _raise_type_validation_error(
             field_name="patch",
-            expected_type="mapping",
-            actual_value=normalized,
+            expected_type="dict",
+            actual_value=raw_patch,
         )
 
-    unknown_patch_ops = sorted(set(normalized) - set(_PATCH_KEYS))
+    unknown_patch_ops = sorted(set(raw_patch) - set(_PATCH_KEYS))
     if unknown_patch_ops:
         return PatchSchemaValidationResult(
             is_valid=False,
@@ -73,7 +66,7 @@ def validate_patch_schema(raw_patch: Mapping[str, Any] | list[Any]) -> PatchSche
     return PatchSchemaValidationResult(
         is_valid=True,
         unknown_keys=[],
-        normalized_patch=dict(normalized),
+        normalized_patch=dict(raw_patch),
     )
 
 
@@ -193,13 +186,11 @@ def allowed_wizard_schema() -> dict[str, str]:
     return {key: field.type_label for key, field in ALLOWED_WIZARD_FIELDS.items()}
 
 
-def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch:
+def validate_patch_dict(raw_patch: Mapping[str, Any]) -> ConfigPatch:
     """Validate and normalize a config patch payload.
 
     Expected shape:
     ``{"set": {...}, "merge": {...}, "remove": [..]}``
-    or a legacy operation list:
-    ``[{"op": "set|merge|remove", "key": "...", "value": ...}, ...]``
     """
 
     schema = validate_patch_schema(raw_patch)
@@ -213,7 +204,7 @@ def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch
     if schema.normalized_patch is None:
         _raise_type_validation_error(
             field_name="patch",
-            expected_type="mapping",
+            expected_type="dict",
             actual_value=raw_patch,
         )
     assert schema.normalized_patch is not None
@@ -226,60 +217,6 @@ def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch
     _ensure_no_duplicate_targets(set_ops=set_ops, merge_ops=merge_ops, remove_ops=remove_ops)
 
     return ConfigPatch(set=set_ops, merge=merge_ops, remove=remove_ops)
-
-
-def _normalize_patch_operations_list(raw_patch: list[Any]) -> dict[str, Any]:
-    """Normalize legacy operation-list patches into mapping form."""
-
-    normalized_set: dict[str, Any] = {}
-    normalized_merge: dict[str, Any] = {}
-    normalized_remove: list[str] = []
-
-    for idx, operation in enumerate(raw_patch):
-        path_prefix = f"patch[{idx}]"
-        if not isinstance(operation, Mapping):
-            raise ConfigPatchValidationError(f"{path_prefix} must be a mapping")
-
-        unknown_item_keys = sorted(set(operation) - set(_PATCH_OPERATION_ITEM_KEYS))
-        if unknown_item_keys:
-            raise ConfigPatchValidationError(
-                f"unknown patch operation keys at {path_prefix}: {', '.join(unknown_item_keys)}",
-                unknown_keys=unknown_item_keys,
-                unknown_paths=[f"{path_prefix}.{key}" for key in unknown_item_keys],
-            )
-
-        op_name = operation.get("op")
-        if not isinstance(op_name, str):
-            raise ConfigPatchValidationError(f"{path_prefix}.op must be a string")
-        if op_name not in _PATCH_KEYS:
-            raise ConfigPatchValidationError(
-                f"unknown patch operation: {op_name}",
-                unknown_keys=[op_name],
-                unknown_paths=[f"{path_prefix}.op"],
-            )
-
-        key = operation.get("key")
-        if not isinstance(key, str) or not key:
-            raise ConfigPatchValidationError(f"{path_prefix}.key must be a non-empty string")
-
-        if op_name == "remove":
-            normalized_remove.append(key)
-            continue
-
-        if "value" not in operation:
-            raise ConfigPatchValidationError(f"{path_prefix}.value is required for '{op_name}'")
-
-        if op_name == "set":
-            normalized_set[key] = operation["value"]
-            continue
-
-        normalized_merge[key] = operation["value"]
-
-    return {
-        "set": normalized_set,
-        "merge": normalized_merge,
-        "remove": normalized_remove,
-    }
 
 
 def _ensure_known_key(key: str, *, path: str) -> AllowedField:
