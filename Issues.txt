@@ -240,7 +240,7 @@
  ## Tasks
 
  - [ ] Create `pa_core/llm/config_patch.py`:
-   - [ ] Define a patch format (set/merge/remove) that targets a known set of wizard fields
+   - [x] Define a patch format (set/merge/remove) that targets a known set of wizard fields
    - [ ] Implement apply + diff functions for the wizard config (and session-state mirrors like `_TOTAL_CAPITAL_KEY`, etc.)
    - [ ] Validate by round-tripping through `_build_yaml_from_config()` + `load_config()`
  - [ ] Create `pa_core/llm/config_patch_chain.py`:
