@@ -37,6 +37,9 @@ class ConfigPatchValidationError(ValueError):
         self.unknown_paths = list(unknown_paths or [])
 
 
+ValidationError = ConfigPatchValidationError
+
+
 @dataclass(frozen=True)
 class PatchSchemaValidationResult:
     """Schema validation result for incoming patch payloads."""
@@ -732,6 +735,7 @@ __all__ = [
     "ConfigPatch",
     "ConfigPatchValidationError",
     "ConfigRoundTripValidationResult",
+    "ValidationError",
     "AllowedField",
     "PatchSchemaValidationResult",
     "WIZARD_SESSION_MIRROR_KEYS",

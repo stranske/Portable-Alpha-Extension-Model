@@ -11,6 +11,7 @@ from pa_core.llm.config_patch import (
     ConfigPatch,
     ConfigPatchValidationError,
     PatchSchemaValidationResult,
+    ValidationError,
     allowed_wizard_schema,
     apply_patch,
     diff_config,
@@ -32,6 +33,10 @@ def test_allowed_wizard_schema_contains_core_keys_and_type_labels() -> None:
     assert schema["n_simulations"] == "int"
     assert schema["analysis_mode"] == "AnalysisMode"
     assert schema["total_fund_capital"] == "float"
+
+
+def test_validation_error_alias_points_to_config_patch_validation_error() -> None:
+    assert ValidationError is ConfigPatchValidationError
 
 
 def test_validate_patch_dict_accepts_valid_set_payload() -> None:
@@ -102,7 +107,7 @@ def test_validate_patch_schema_normalizes_non_string_unknown_keys() -> None:
 
 
 def test_validate_patch_dict_type_error_exposes_field_type_metadata() -> None:
-    with pytest.raises(ConfigPatchValidationError) as exc_info:
+    with pytest.raises(ValidationError) as exc_info:
         validate_patch_dict({"set": {}, "remove": "not-a-list"})
 
     exc = exc_info.value

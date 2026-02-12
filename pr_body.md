@@ -239,3 +239,18 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1421)
 - [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py tests/test_config_patch_roundtrip.py -m "not slow"` (24 passed).
+
+## Task Reconciliation (Keepalive Next Task #1422)
+- [x] Reviewed recent commits (`b4f4da9`, `b56763f`, `86235d0`) and reconciled previously missed checkbox updates for config-patch follow-up work.
+- [x] Implemented unknown-key detection in patch schema validation with structured `unknown_keys` output for disallowed top-level operations.
+- [x] Added explicit `ValidationError` alias export in `pa_core/llm/config_patch.py` and updated tests to assert type-metadata exceptions through the alias.
+- [x] Verified preview generation immutability behavior against live `wizard_config` via deep-equality checks.
+
+### Acceptance Criteria (Keepalive Next Task #1422)
+- [x] Patch validation rejects non-dict and unknown top-level operations and returns structured schema results containing `unknown_keys`.
+- [x] Patch validation enforces `set`/`merge` as dict and `remove` as list-of-strings; violations raise `ValidationError` with `field_name`, `expected_type`, and `actual_type`.
+- [x] `apply_patch()` applies remove->set->merge deterministically and does not mutate input config (verified by identity/deep-equality assertions).
+- [x] Preview generation does not mutate live `wizard_config` and preserves pre-preview deep-equality state.
+
+### Verification (Keepalive Next Task #1422)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py tests/test_config_patch_roundtrip.py -m "not slow"` (30 passed).
