@@ -50,9 +50,11 @@ class PatchSchemaValidationResult:
 def validate_patch_schema(raw_patch: Mapping[str, Any] | list[Any]) -> PatchSchemaValidationResult:
     """Validate top-level patch schema and detect unknown operation keys."""
 
-    normalized: Mapping[str, Any] | dict[str, Any] = raw_patch
+    normalized: Mapping[str, Any]
     if isinstance(raw_patch, list):
         normalized = _normalize_patch_operations_list(raw_patch)
+    else:
+        normalized = raw_patch
 
     if not isinstance(normalized, Mapping):
         _raise_type_validation_error(
@@ -214,11 +216,12 @@ def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch
             expected_type="mapping",
             actual_value=raw_patch,
         )
-    raw_patch = schema.normalized_patch
+    assert schema.normalized_patch is not None
+    normalized_patch: Mapping[str, Any] = schema.normalized_patch
 
-    set_ops = _validate_set_ops(raw_patch.get("set", {}))
-    merge_ops = _validate_merge_ops(raw_patch.get("merge", {}))
-    remove_ops = _validate_remove_ops(raw_patch.get("remove", []))
+    set_ops = _validate_set_ops(normalized_patch.get("set", {}))
+    merge_ops = _validate_merge_ops(normalized_patch.get("merge", {}))
+    remove_ops = _validate_remove_ops(normalized_patch.get("remove", []))
 
     _ensure_no_duplicate_targets(set_ops=set_ops, merge_ops=merge_ops, remove_ops=remove_ops)
 
