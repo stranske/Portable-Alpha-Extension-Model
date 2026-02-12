@@ -102,7 +102,10 @@ def test_metric_extraction_baseline_fixture_returns_expected_values(
     text, trace_url, payload = result_explain.explain_results_details(baseline_summary_df)
     metric_catalog = payload["metric_catalog"]
 
-    assert text == "LLM configuration is required to generate a result explanation. Prepared payload for 3 rows."
+    assert (
+        text
+        == "LLM configuration is required to generate a result explanation. Prepared payload for 3 rows."
+    )
     assert trace_url is None
     assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
     assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
