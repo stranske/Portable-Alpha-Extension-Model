@@ -372,7 +372,7 @@ def apply_patch(
 ) -> Any:
     """Apply a validated config patch to wizard config and optional session-state mirrors."""
 
-    normalized_patch = patch if isinstance(patch, ConfigPatch) else validate_patch_dict(patch)
+    normalized_patch = _normalize_patch_input(patch)
     mirrors = dict(session_mirror_keys or WIZARD_SESSION_MIRROR_KEYS)
 
     for key, value in normalized_patch.set.items():
@@ -395,6 +395,23 @@ def apply_patch(
             session_state[mirrors[key]] = None
 
     return config
+
+
+def _normalize_patch_input(patch: ConfigPatch | Mapping[str, Any]) -> ConfigPatch:
+    if isinstance(patch, ConfigPatch):
+        return patch
+    if isinstance(patch, Mapping):
+        return validate_patch_dict(patch)
+    # Accept ConfigPatch-like objects from equivalent modules loaded in another context.
+    if all(hasattr(patch, field) for field in ("set", "merge", "remove")):
+        return validate_patch_dict(
+            {
+                "set": getattr(patch, "set"),
+                "merge": getattr(patch, "merge"),
+                "remove": getattr(patch, "remove"),
+            }
+        )
+    raise ConfigPatchValidationError("patch must be a mapping")
 
 
 def diff_config(
