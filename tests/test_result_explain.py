@@ -96,7 +96,7 @@ def summary_df_with_null_nan_empty() -> pd.DataFrame:
     )
 
 
-def test_metric_extraction_baseline_fixture_returns_expected_values(
+def test_explain_results_details_nominal_baseline_fixture_returns_expected_values(
     baseline_summary_df: pd.DataFrame,
 ) -> None:
     text, trace_url, payload = result_explain.explain_results_details(baseline_summary_df)
@@ -107,13 +107,17 @@ def test_metric_extraction_baseline_fixture_returns_expected_values(
         == "LLM configuration is required to generate a result explanation. Prepared payload for 3 rows."
     )
     assert trace_url is None
+    assert metric_catalog["tracking_error"]["value"] == 0.03
     assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
     assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
     assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
     assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
+    # Categorical field extraction is not currently supported by metric catalog generation.
+    assert "Agent" not in metric_catalog
+    assert "Regime" not in metric_catalog
 
 
-def test_metric_extraction_missing_column_fixture_omits_missing_metric(
+def test_explain_results_details_missing_column_fixture_omits_missing_metric(
     summary_df_missing_monthly_cvar: pd.DataFrame,
 ) -> None:
     _text, _trace_url, payload = result_explain.explain_results_details(
@@ -127,7 +131,7 @@ def test_metric_extraction_missing_column_fixture_omits_missing_metric(
     assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
 
 
-def test_metric_extraction_null_nan_empty_fixture_handles_unusable_values(
+def test_explain_results_details_null_nan_empty_fixture_handles_unusable_values(
     summary_df_with_null_nan_empty: pd.DataFrame,
 ) -> None:
     _text, _trace_url, payload = result_explain.explain_results_details(
