@@ -22,7 +22,9 @@ def test_restore_wizard_session_snapshot_restores_all_mirror_keys() -> None:
 
     session_state = {
         "wizard_config": get_default_config(AnalysisMode.CAPITAL),
-        **{mirror_key: "mutated" for mirror_key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))},
+        **{
+            mirror_key: "mutated" for mirror_key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+        },
     }
 
     restored = restore_wizard_session_snapshot(snapshot, session_state=session_state)
