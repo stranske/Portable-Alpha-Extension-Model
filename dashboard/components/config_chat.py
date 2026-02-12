@@ -98,7 +98,9 @@ def _handle_preview(
         return
     st.session_state[preview_key] = preview
     patch_payload = preview.get("patch")
-    st.session_state[_PREVIEW_PATCH_KEY] = dict(patch_payload) if isinstance(patch_payload, Mapping) else {}
+    st.session_state[_PREVIEW_PATCH_KEY] = (
+        dict(patch_payload) if isinstance(patch_payload, Mapping) else {}
+    )
     unified_diff = preview.get("unified_diff")
     st.session_state[_PREVIEW_UNIFIED_DIFF_KEY] = (
         str(unified_diff).strip() if isinstance(unified_diff, str) else ""
