@@ -98,8 +98,17 @@ def test_render_explain_results_caches_and_download_json_fields(monkeypatch) -> 
 
     call_count = {"count": 0}
 
-    def _fake_explain(summary_df: pd.DataFrame, manifest: dict[str, Any] | None):
+    def _fake_explain(
+        summary_df: pd.DataFrame,
+        manifest: dict[str, Any] | None,
+        *,
+        questions: str,
+        llm_config: Any,
+    ):
         call_count["count"] += 1
+        assert questions
+        assert llm_config.provider_name == "openai"
+        assert llm_config.model_name == "gpt-4o-mini"
         return (
             "Explanation text",
             "https://smith.langchain.com/r/trace123",
