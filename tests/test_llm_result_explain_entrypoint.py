@@ -24,11 +24,12 @@ def test_explain_results_details_returns_expected_tuple_contract():
     assert len(text) > 0
     assert trace_url is None
     assert isinstance(payload, dict)
-    assert payload["rows"] == 2
-    assert payload["columns"] == ["monthly_TE", "monthly_CVaR", "Agent"]
-    assert payload["manifest_highlights"]["seed"] == 42
-    assert payload["manifest_highlights"]["cli_output"] == "results.xlsx"
-    assert payload["manifest_highlights"]["cli_n_sims"] == 1000
+    assert payload["analysis_output"]["rows"] == 2
+    assert payload["analysis_output"]["columns"] == ["monthly_TE", "monthly_CVaR", "Agent"]
+    assert payload["analysis_output"]["manifest_highlights"]["seed"] == 42
+    assert payload["analysis_output"]["manifest_highlights"]["cli_output"] == "results.xlsx"
+    assert payload["analysis_output"]["manifest_highlights"]["cli_n_sims"] == 1000
+    assert "LLM configuration is required" in text
 
 
 def test_explain_results_details_accepts_missing_manifest():
@@ -38,8 +39,8 @@ def test_explain_results_details_accepts_missing_manifest():
 
     assert isinstance(text, str)
     assert trace_url is None
-    assert payload["manifest_highlights"] == {}
-    assert payload["mean_stats"]["metric"] == pytest.approx(2.0)
+    assert payload["analysis_output"]["manifest_highlights"] == {}
+    assert payload["analysis_output"]["basic_statistics"]["metric"]["mean"] == pytest.approx(2.0)
 
 
 def test_explain_results_details_rejects_non_dataframe():
