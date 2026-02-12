@@ -40,15 +40,19 @@ def test_preview_produces_diff_without_mutating_live_config() -> None:
         st.session_state.clear()
 
 
-def test_apply_mutates_config_and_session_mirrors_and_round_trip_validates() -> None:
+def test_apply_mutates_config_and_session_mirrors_without_validation_round_trip() -> None:
     st.session_state.clear()
     try:
         module = _load_module()
         apply_fn = module["_apply_config_chat_preview"]
-        build_yaml = module["_build_yaml_from_config"]
         config = get_default_config(AnalysisMode.RETURNS)
         st.session_state["wizard_config"] = config
         st.session_state["wizard_total_fund_capital"] = config.total_fund_capital
+        apply_fn.__globals__["round_trip_validate_config"] = (
+            lambda *_args, **_kwargs: (_ for _ in ()).throw(
+                AssertionError("round_trip_validate_config must not be called for Apply")
+            )
+        )
 
         ok, message = apply_fn(
             {
@@ -68,7 +72,6 @@ def test_apply_mutates_config_and_session_mirrors_and_round_trip_validates() -> 
         assert "applied" in message.lower()
         assert st.session_state["wizard_config"].n_simulations == 5000
         assert st.session_state["wizard_total_fund_capital"] == 1200.0
-        module["load_config"](build_yaml(st.session_state["wizard_config"]))
     finally:
         st.session_state.clear()
 
@@ -80,12 +83,21 @@ def test_apply_validate_blocks_invalid_change_without_mutating_live_config() -> 
         apply_fn = module["_apply_config_chat_preview"]
         config = get_default_config(AnalysisMode.RETURNS)
         st.session_state["wizard_config"] = config
+        st.session_state["wizard_total_fund_capital"] = config.total_fund_capital
         original = config.n_simulations
+        original_capital = config.total_fund_capital
+        validate_calls: dict[str, int] = {"count": 0}
+
+        def _fail_validation(*_args, **_kwargs):
+            validate_calls["count"] += 1
+            return type("Result", (), {"is_valid": False, "errors": ["boom"]})()
+
+        apply_fn.__globals__["round_trip_validate_config"] = _fail_validation
 
         ok, message = apply_fn(
             {
                 "patch": {
-                    "set": {"n_simulations": -1},
+                    "set": {"n_simulations": -1, "total_fund_capital": 1200.0},
                     "merge": {},
                     "remove": [],
                 }
@@ -95,7 +107,49 @@ def test_apply_validate_blocks_invalid_change_without_mutating_live_config() -> 
 
         assert ok is False
         assert "validation failed" in message.lower()
+        assert validate_calls["count"] == 1
         assert st.session_state["wizard_config"].n_simulations == original
+        assert st.session_state["wizard_config"].total_fund_capital == original_capital
+        assert st.session_state["wizard_total_fund_capital"] == original_capital
+    finally:
+        st.session_state.clear()
+
+
+def test_apply_validate_applies_changes_and_mirrors_on_validation_success() -> None:
+    st.session_state.clear()
+    try:
+        module = _load_module()
+        apply_fn = module["_apply_config_chat_preview"]
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["wizard_config"] = config
+        st.session_state["wizard_total_fund_capital"] = config.total_fund_capital
+        validate_calls: dict[str, int] = {"count": 0}
+
+        def _ok_validation(*_args, **_kwargs):
+            validate_calls["count"] += 1
+            return type("Result", (), {"is_valid": True, "errors": []})()
+
+        apply_fn.__globals__["round_trip_validate_config"] = _ok_validation
+
+        ok, message = apply_fn(
+            {
+                "patch": {
+                    "set": {
+                        "n_simulations": 5000,
+                        "total_fund_capital": 1200.0,
+                    },
+                    "merge": {},
+                    "remove": [],
+                }
+            },
+            True,
+        )
+
+        assert ok is True
+        assert "validated" in message.lower()
+        assert validate_calls["count"] == 1
+        assert st.session_state["wizard_config"].n_simulations == 5000
+        assert st.session_state["wizard_total_fund_capital"] == 1200.0
     finally:
         st.session_state.clear()
 

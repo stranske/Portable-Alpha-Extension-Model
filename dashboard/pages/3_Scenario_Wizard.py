@@ -244,6 +244,36 @@ def _capture_session_mirror_state() -> tuple[dict[str, Any], list[str]]:
     return present, missing
 
 
+def _config_chat_state_snapshot(config: DefaultConfigView) -> dict[str, Any]:
+    pre_mirror_values, pre_missing_mirrors = _capture_session_mirror_state()
+    return {
+        "pre_apply_config": deepcopy(config),
+        "pre_apply_mirrors": pre_mirror_values,
+        "pre_apply_missing_mirrors": pre_missing_mirrors,
+    }
+
+
+def _restore_config_chat_state(snapshot: Mapping[str, Any]) -> None:
+    restored_config = snapshot.get("pre_apply_config")
+    if isinstance(restored_config, DefaultConfigView):
+        st.session_state["wizard_config"] = restored_config
+
+    mirrors = snapshot.get("pre_apply_mirrors", {})
+    if isinstance(mirrors, Mapping):
+        for key, value in mirrors.items():
+            st.session_state[str(key)] = deepcopy(value)
+
+    missing = snapshot.get("pre_apply_missing_mirrors", [])
+    if isinstance(missing, list):
+        for key in missing:
+            st.session_state.pop(str(key), None)
+
+
+def _apply_patch_to_wizard_state(config: DefaultConfigView, patch: Any) -> None:
+    apply_config_patch(config, patch, session_state=st.session_state)
+    st.session_state["wizard_config"] = config
+
+
 def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tuple[bool, str]:
     config = st.session_state.get("wizard_config")
     if not isinstance(config, DefaultConfigView):
@@ -255,28 +285,28 @@ def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tu
     except Exception as exc:
         return False, f"Patch validation failed: {exc}"
 
-    candidate = deepcopy(config)
-    apply_config_patch(candidate, patch)
-    validation_result = round_trip_validate_config(
-        candidate,
-        build_yaml_from_config=_build_yaml_from_config,
-    )
-    if not validation_result.is_valid:
-        errors = "; ".join(validation_result.errors)
-        return False, f"Validation failed; changes not applied. {errors}"
+    snapshot = _config_chat_state_snapshot(config)
 
-    pre_mirror_values, pre_missing_mirrors = _capture_session_mirror_state()
+    if validate:
+        candidate = deepcopy(config)
+        apply_config_patch(candidate, patch)
+        validation_result = round_trip_validate_config(
+            candidate,
+            build_yaml_from_config=_build_yaml_from_config,
+        )
+        if not validation_result.is_valid:
+            _restore_config_chat_state(snapshot)
+            errors = "; ".join(validation_result.errors)
+            return False, f"Validation failed; changes not applied. {errors}"
+
     _config_chat_history().append(
         {
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "pre_apply_config": deepcopy(config),
-            "pre_apply_mirrors": pre_mirror_values,
-            "pre_apply_missing_mirrors": pre_missing_mirrors,
+            **snapshot,
         }
     )
 
-    apply_config_patch(config, patch, session_state=st.session_state)
-    st.session_state["wizard_config"] = config
+    _apply_patch_to_wizard_state(config, patch)
 
     if validate:
         return True, "Config changes applied and validated."
@@ -292,18 +322,7 @@ def _revert_last_config_chat_change() -> tuple[bool, str]:
     restored_config = last.get("pre_apply_config")
     if not isinstance(restored_config, DefaultConfigView):
         return False, "Cannot revert because stored snapshot is invalid."
-
-    st.session_state["wizard_config"] = restored_config
-
-    mirrors = last.get("pre_apply_mirrors", {})
-    if isinstance(mirrors, Mapping):
-        for key, value in mirrors.items():
-            st.session_state[str(key)] = deepcopy(value)
-
-    missing = last.get("pre_apply_missing_mirrors", [])
-    if isinstance(missing, list):
-        for key in missing:
-            st.session_state.pop(str(key), None)
+    _restore_config_chat_state(last)
 
     return True, "Reverted to previous config snapshot."
 
