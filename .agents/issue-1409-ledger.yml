@@ -5,10 +5,10 @@ branch: codex/issue-1409
 tasks:
   - id: task-01
     title: '### Apply/Validate Behavior Split'
-    status: doing
+    status: done
     started_at: '2026-02-12T03:18:48Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-12T03:18:57Z'
+    commit: 7c360367264d2912491984f942b257a1f4164c11
     notes: []
   - id: task-02
     title: Extract patch application logic into a separate helper function in `pa_core/llm/config_chat.py`
