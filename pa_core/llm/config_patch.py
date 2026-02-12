@@ -621,14 +621,7 @@ def diff_config(
 
     before_text = _serialize_config_snapshot(before_config, format=format)
     after_text = _serialize_config_snapshot(after_config, format=format)
-    diff_text = "".join(
-        difflib.unified_diff(
-            before_text.splitlines(keepends=True),
-            after_text.splitlines(keepends=True),
-            fromfile="before",
-            tofile="after",
-        )
-    )
+    diff_text = generate_unified_diff(before_text, after_text)
     return diff_text, before_text, after_text
 
 
@@ -642,6 +635,25 @@ def side_by_side_diff_config(
 
     before_text = _serialize_config_snapshot(before_config, format=format)
     after_text = _serialize_config_snapshot(after_config, format=format)
+    return generate_side_by_side_diff(before_text, after_text)
+
+
+def generate_unified_diff(before_text: str, after_text: str) -> str:
+    """Return a deterministic unified diff string from serialized snapshots."""
+
+    return "".join(
+        difflib.unified_diff(
+            before_text.splitlines(keepends=True),
+            after_text.splitlines(keepends=True),
+            fromfile="before",
+            tofile="after",
+        )
+    )
+
+
+def generate_side_by_side_diff(before_text: str, after_text: str) -> list[dict[str, Any]]:
+    """Return line-paired side-by-side diff rows from serialized snapshots."""
+
     matcher = difflib.SequenceMatcher(
         None,
         before_text.splitlines(),
@@ -788,6 +800,8 @@ __all__ = [
     "allowed_wizard_schema",
     "diff_config",
     "empty_patch",
+    "generate_side_by_side_diff",
+    "generate_unified_diff",
     "parse_chain_output",
     "round_trip_validate_config",
     "side_by_side_diff_config",

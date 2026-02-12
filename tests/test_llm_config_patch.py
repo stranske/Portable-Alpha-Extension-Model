@@ -15,6 +15,8 @@ from pa_core.llm.config_patch import (
     apply_patch,
     diff_config,
     empty_patch,
+    generate_side_by_side_diff,
+    generate_unified_diff,
     parse_chain_output,
     round_trip_validate_config,
     side_by_side_diff_config,
@@ -228,6 +230,22 @@ def test_side_by_side_diff_config_returns_structured_changed_rows() -> None:
     after.n_simulations = 5000
 
     rows = side_by_side_diff_config(before, after)
+
+    assert rows
+    assert any(row["changed"] for row in rows)
+    assert any("n_simulations: 1" in row["before_line"] for row in rows)
+    assert any("n_simulations: 5000" in row["after_line"] for row in rows)
+
+
+def test_generate_unified_diff_returns_changed_plus_minus_lines() -> None:
+    diff_text = generate_unified_diff("a: 1\n", "a: 2\n")
+
+    assert "-a: 1" in diff_text
+    assert "+a: 2" in diff_text
+
+
+def test_generate_side_by_side_diff_returns_changed_line_pairs() -> None:
+    rows = generate_side_by_side_diff("n_simulations: 1\n", "n_simulations: 5000\n")
 
     assert rows
     assert any(row["changed"] for row in rows)

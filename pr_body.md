@@ -232,3 +232,10 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Reviewed recent commits (`b4f0ca9`, `e27026e`, `7b37985`) and reconciled unchecked config-chat/config-patch checklist state.
 - [x] Confirmed `pa_core/llm/config_patch.py` includes deterministic non-mutating apply semantics and both unified + side-by-side diff utilities.
 - [x] Synced tracking to reflect completed wrapper cleanup removing `n_simulations`/`N_SIMULATIONS` replacement logic.
+- [x] Reviewed follow-up commits (`1d16321`, `f6cd15f`, `9402cc8`) and reconciled previously missed checkbox updates from those code changes.
+- [x] Completed unified diff utility implementation by extracting `generate_unified_diff(...)` and wiring `diff_config(...)` through it.
+- [x] Completed side-by-side diff utility implementation by extracting `generate_side_by_side_diff(...)` and wiring `side_by_side_diff_config(...)` through it.
+- [x] Added direct unit coverage for both diff utilities to assert changed-line output semantics required by acceptance criteria.
+
+### Verification (Keepalive Next Task #1421)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py tests/test_config_patch_roundtrip.py -m "not slow"` (24 passed).
