@@ -290,9 +290,6 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
 def _preview_config_chat_change(instruction: str) -> dict[str, Any]:
     """Backward-compatible wrapper used by legacy tests/callers."""
     preview = dict(_preview_config_chat_instruction(instruction))
-    unified_diff = preview.get("unified_diff")
-    if isinstance(unified_diff, str):
-        preview["unified_diff"] = unified_diff.replace("n_simulations", "N_SIMULATIONS")
     st.session_state[_CONFIG_CHAT_PREVIEW_KEY] = preview
     return preview
 
