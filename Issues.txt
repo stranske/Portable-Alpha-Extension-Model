@@ -243,15 +243,15 @@
    - [x] Define a patch format (set/merge/remove) that targets a known set of wizard fields
    - [ ] Implement apply + diff functions for the wizard config (and session-state mirrors like `_TOTAL_CAPITAL_KEY`, etc.)
    - [ ] Validate by round-tripping through `_build_yaml_from_config()` + `load_config()`
- - [ ] Create `pa_core/llm/config_patch_chain.py`:
-   - [ ] Prompt builder that includes:
+ - [x] Create `pa_core/llm/config_patch_chain.py`:
+   - [x] Prompt builder that includes:
      - current wizard config snapshot
      - allowed schema (explicit list of keys and types)
      - safety rules (no secrets, no workflow edits, no file writes)
-   - [ ] Return patch + summary + risk flags
-   - [ ] Capture trace URL when LangSmith enabled
+   - [x] Return patch + summary + risk flags
+   - [x] Capture trace URL when LangSmith enabled
  - [ ] Add `dashboard/components/config_chat.py`:
-   - [ ] UI: Instruction input, Preview button, Apply, Apply+Validate, Revert
+   - [x] UI: Instruction input, Preview button, Apply, Apply+Validate, Revert
    - [ ] Render unified diff and side-by-side diff (YAML or JSON)
    - [ ] Persist change history in `st.session_state` with timestamps
  - [ ] Wire into `dashboard/pages/3_Scenario_Wizard.py`:
