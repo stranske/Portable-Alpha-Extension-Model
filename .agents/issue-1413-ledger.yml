@@ -1,0 +1,108 @@
+version: 1
+issue: 1413
+base: main
+branch: codex/issue-1413
+tasks:
+  - id: task-01
+    title: Add exact-equality assertion for a numeric metric in `tests/test_result_explain.py`
+      nominal-case test (e.g., `assert result["Tracking Error"] == <expected>`)
+    status: done
+    started_at: '2026-02-12T04:16:18Z'
+    finished_at: '2026-02-12T04:16:27Z'
+    commit: cd136b3f7ac7446aa1f3c3319c653b92844c9101
+    notes: []
+  - id: task-02
+    title: Add exact-equality assertion for at least one categorical/string field
+      in `tests/test_result_explain.py` nominal-case test (e.g., `assert result["Agent"]
+      == "..."`) OR add assertions that categorical fields are not returned (e.g.,
+      `"Agent" not in result`) with inline comment explaining limitation
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Update test function names in `tests/test_result_explain.py` from `test_metric_extraction_*`
+      to `test_explain_results_details_*` OR update `.agents/issue-1408-ledger.yml`
+      acceptance/ledger references to match existing `test_metric_extraction_*` names
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Update `.agents/issue-1408-ledger.yml` to set `status: done` for tasks
+      already implemented (fixtures, the three tests, ledger/pr_body reconciliation)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Update `.agents/issue-1408-ledger.yml` to leave only genuinely remaining
+      work as `todo` with specific remaining-work descriptions
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: '`tests/test_result_explain.py` nominal-case test includes assertion `assert
+      result["Tracking Error"] == <expected>` or equivalent exact-equality check for
+      a numeric metric'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: '`tests/test_result_explain.py` nominal-case test includes either: (A)
+      assertion `assert result["Agent"] == "..."` or equivalent for a categorical
+      field, OR (B) assertions `"Agent" not in result` and `"Regime" not in result`
+      with adjacent inline comment explaining categorical extraction is not supported'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: All test function names in `tests/test_result_explain.py` begin with `test_explain_results_details_*`
+      OR all ledger references in `.agents/issue-1408-ledger.yml` match implemented
+      `test_metric_extraction_*` names (no mixed conventions)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: '`.agents/issue-1408-ledger.yml` shows `status: done` for all tasks related
+      to fixtures, the three tests, and ledger/pr_body reconciliation'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: '`.agents/issue-1408-ledger.yml` contains only `todo` entries with specific
+      descriptions of required changes (no generic placeholders)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: Command `pytest -q tests/test_result_explain.py -k nominal` exits with
+      status code 0
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: Command `pytest -q tests/test_result_explain.py` exits with status code
+      0
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

@@ -83,6 +83,25 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_dashboard_explain_results.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_dashboard_llm_settings.py tests/test_dashboard_explain_results.py -m "not slow"` and grep scan for common secret patterns (no matches).
 
+## Task Reconciliation (Keepalive Next Task #1391)
+- [x] Reviewed recent commits (`a30c46c`, `f24ebd8`, `0b2c8d5`) and reconciled checkbox state with implemented `result_explain` changes.
+- [x] Reviewed follow-up commits (`6e5ecb9`, `6fcb282`, `a678b9d`) and confirmed checkbox state remains aligned with implemented metric-catalog and redaction behavior.
+- [x] Added explicit acceptance-mapped unit coverage for `analysis_output` required sections and JSON serialization.
+- [x] Added dedicated unit test confirming `analysis_output.manifest_highlights` includes sentinel manifest values.
+- [x] Expanded `metric_catalog` alias handling/tests to cover human-readable metric column names (e.g., `Tracking Error`, `CVaR`, `Breach Probability`).
+
+### Acceptance Criteria (Keepalive Next Task #1391)
+- [x] `analysis_output` returned by `explain_results_details()` is non-empty and includes JSON-serializable sections for: column list, basic statistics, tail sample rows, and key quantiles.
+- [x] `analysis_output` includes manifest highlights containing at least one sentinel value derived from the provided manifest (e.g., `run_name='SENTINEL_RUN'`).
+- [x] StressDelta behavior is deterministic: with StressDelta-relevant inputs present, `analysis_output` includes a StressDelta summary section; without those inputs, the StressDelta section is absent or explicitly `None`.
+- [x] `metric_catalog` exists in the returned `payload_dict` as a structured dict/list and includes TE, CVaR, and breach probability entries for metrics present in the inputs, each with at least `{label, value}`.
+- [x] `metric_catalog` generation is resilient to missing metric columns: `explain_results_details()` succeeds and omits (or marks unavailable) only missing metric entries without raising.
+- [x] API keys are not leaked: if `create_llm(...)` or the LLM invocation raises an exception containing the `api_key`, the surfaced/returned error text does not contain the secret and includes a redaction token.
+
+### Verification (Keepalive Next Task #1391)
+- [x] `pytest -q tests/test_result_explain.py -m "not slow"` (20 passed).
+- [x] `coverage run -m pytest -q tests/test_result_explain.py -m "not slow"` and `coverage report -m pa_core/llm/result_explain.py` (20 passed; module coverage 82%).
+
 ## Task Reconciliation (Keepalive Next Task #1398)
 - [x] Reviewed recent commits (`f75c59e`, `8949dbc`) touching `pa_core/llm/compare_runs.py` and `tests/test_llm_compare_runs.py`.
 - [x] Confirmed those commits only cover task-01 scope (prior manifest loader) with tests.
@@ -116,3 +135,95 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1401)
 - [x] `pytest tests/test_dashboard_results_previous_run.py tests/test_dashboard_comparison_llm.py tests/test_llm_compare_runs.py -m "not slow"` (15 passed).
+
+## Task Reconciliation (Keepalive Next Task #1402)
+- [x] Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Define scope for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters edge cases (verify: tests pass).
+
+### Verification (Keepalive Next Task #1402)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (56 passed).
+
+## Task Reconciliation (Keepalive Next Task #1403)
+- [x] Reviewed recent commits (`fcaf87b`, `ea76def`, `1360476`) and reconciled checkbox state for llm-settings follow-up test work.
+- [x] Added additional diff-formatting unit coverage for `format_config_diff(...)` in `tests/test_llm_compare_runs.py` for matching manifests, missing manifest inputs, and wizard add/remove paths.
+
+### Verification (Keepalive Next Task #1403)
+- [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
+
+## Task Reconciliation (Keepalive Next Task #1406)
+- [x] Reviewed recent commits (`0a1e27f`, `95c1279`, `1f473eb`) and reconciled checklist state before continuing.
+- [x] Confirmed prior `dashboard/components/llm_settings.py` key-resolution/sanitization subtasks were already completed and reflected in PR tracking.
+- [x] Define scope for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Implement focused slice for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Validate focused slice for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Define scope for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Implement focused slice for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Validate focused slice for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Define scope for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Implement focused slice for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Validate focused slice for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Resolved truncated task reference `pa_core/l_...` to `pa_core/llm/tracing.py` based on active LLM module scope and prior task context.
+- [x] Added a corresponding unit test in `tests/test_llm_tracing_noop.py` for run-object URL resolution via `get_url()`.
+
+### Verification (Keepalive Next Task #1406)
+- [x] `pytest tests/test_llm_result_explain_entrypoint.py -m "not slow"` (5 passed).
+- [x] `pytest tests/test_llm_tracing_noop.py -m "not slow"` (13 passed).
+
+## Task Reconciliation (Keepalive Next Task #1407)
+- [x] Reviewed recent commits (`3ad6989`, `39ec437`, `b345953`) and reconciled missing checkbox updates.
+- [x] Validated key-resolution follow-up for invalid env-var format inputs in `tests/test_dashboard_llm_settings.py`.
+- [x] Implemented a focused sanitization hardening slice in `dashboard/components/llm_settings.py` to neutralize non-printable characters before masking.
+- [x] Added focused sanitization tests for control/ANSI-character edge cases in `tests/test_dashboard_llm_settings.py`.
+- [x] Validated the sanitization slice with targeted test execution.
+
+### Verification (Keepalive Next Task #1407)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (64 passed).
+
+## Task Reconciliation (Keepalive Next Task #1408)
+- [x] Reviewed recent commits (`6d33a7e`, `3ad6989`, `39ec437`) and reconciled checklist tracking for the latest llm-settings follow-up.
+- [x] Added focused sanitization coverage in `tests/test_dashboard_llm_settings.py` for NUL (`\\x00`) and DEL (`\\x7f`) control-character handling.
+- [x] Validated the added slice with targeted test execution.
+
+### Verification (Keepalive Next Task #1408)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (65 passed).
+
+## Task Reconciliation (Keepalive Next Task #1404)
+- [x] Reviewed recent commits (`1d1a07c`, `b0828b3`, `a377eea`) and reconciled checkbox state for Config Chat backend groundwork.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch.py` schema/patch validation allowlist and tests.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch_chain.py` prompt builder, output parsing (`patch`, `summary`, `risk_flags`), and LangSmith trace URL capture with tests.
+
+### Verification (Keepalive Next Task #1404)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_llm_config_patch_chain.py -m "not slow"` (pass).
+
+## Task Reconciliation (Keepalive Next Task #1405)
+- [x] Implemented `dashboard/components/config_chat.py` with Streamlit controls for instruction input, `Preview`, `Apply`, `Apply+Validate`, and `Revert`.
+- [x] Added component tests in `tests/test_dashboard_config_chat.py` covering preview, apply/apply+validate callback wiring, and revert wiring.
+- [x] Updated task checkboxes for issue #1403 scope in `Issues.txt` to reflect completed `config_patch_chain` and `config_chat` UI-control items.
+
+### Verification (Keepalive Next Task #1405)
+- [x] `pytest tests/test_dashboard_config_chat.py -m "not slow"` (3 passed).
+
+## Task Reconciliation (Keepalive Next Task #1412)
+- [x] Reviewed recent commits (`8118216`, `1137e2f`) and reconciled checkbox status for Apply vs Apply+Validate follow-up work.
+- [x] Reviewed recent commits (`ea0f0e3`, `deaa5f2`, `3e6aaaa`) and reconciled checkbox status for unknown-key follow-up work that updated `dashboard/pages/3_Scenario_Wizard.py`, `pa_core/llm/config_patch_chain.py`, and `tests/test_wizard_config_chat_acceptance.py`.
+- [x] Synced PR tracking to reflect prior completion of the Apply/Apply+Validate split and acceptance coverage in `tests/test_wizard_config_chat_acceptance.py`.
+- [x] Updated LangSmith trace handling in `pa_core/llm/config_patch_chain.py` to consume callback-provided run/trace identifiers and removed synthetic UUID fallback generation.
+- [x] Added/updated unit coverage in `tests/test_llm_config_patch_chain.py` for callback-derived real trace URL capture and deterministic `None` when trace metadata is unavailable.
+- [x] Implemented shared restore helper `restore_wizard_session_snapshot(...)` in `pa_core/wizard/session_state.py` to restore `wizard_config` and all session mirror keys from config-chat snapshots.
+- [x] Updated Scenario Wizard config-chat Revert and Apply+Validate rollback paths to use `restore_wizard_session_snapshot(...)` instead of duplicate inline restore loops.
+- [x] Added unit coverage in `tests/test_wizard_session_state.py` asserting restore behavior across every key in `WIZARD_SESSION_MIRROR_KEYS`.
+- [x] Completed the remaining Unknown-Key Detection Refactoring checklist item by stabilizing structured unknown-output risk flag reporting (no duplicate `stripped_unknown_output_keys` values).
+- [x] Added unit coverage in `tests/test_llm_config_patch_chain.py` to verify unknown-output risk flags remain deduplicated while unknown keys are still reported in structured output.
+- [x] Hardened wizard preview structured unknown-key metadata to be deterministic by de-duplicating `risk_flags`, `unknown_output_keys`, `rejected_patch_keys`, and `rejected_patch_paths`.
+- [x] Added acceptance coverage in `tests/test_wizard_config_chat_acceptance.py` ensuring duplicate unknown-key metadata is normalized into stable machine-checkable lists.
+
+### Verification (Keepalive Next Task #1412)
+- [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (4 passed).
+- [x] `pytest tests/test_wizard_session_state.py -m "not slow"` (2 passed).
+- [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
+- [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (5 passed).
+- [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (13 passed).

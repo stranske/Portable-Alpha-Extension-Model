@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 import dashboard.components.config_chat as config_chat_module
@@ -13,15 +14,28 @@ class _FakeContext:
         return False
 
 
-class FakeStreamlit:
-    def __init__(self, *, clicked: set[str] | None = None) -> None:
-        self.session_state: dict[str, Any] = {}
-        self.clicked = clicked or set()
-        self.labels: list[str] = []
-        self.text_area_labels: list[str] = []
+@dataclass
+class _ApplyCall:
+    validate: bool
+    preview: dict[str, Any]
 
-    def text_area(self, label: str, key: str, value: str, help: str) -> str:
-        self.text_area_labels.append(label)
+
+class FakeStreamlit:
+    def __init__(
+        self, *, button_values: dict[str, bool], session_state: dict[str, Any] | None = None
+    ):
+        self.button_values = dict(button_values)
+        self.session_state: dict[str, Any] = session_state or {}
+        self.messages: list[tuple[str, str]] = []
+        self.code_blocks: list[tuple[str, str | None]] = []
+
+    def subheader(self, message: str) -> None:
+        self.messages.append(("subheader", message))
+
+    def caption(self, message: str) -> None:
+        self.messages.append(("caption", message))
+
+    def text_area(self, label: str, value: str, key: str, help: str) -> str:
         self.session_state.setdefault(key, value)
         return str(self.session_state[key])
 
@@ -29,43 +43,95 @@ class FakeStreamlit:
         return [_FakeContext() for _ in range(n)]
 
     def button(self, label: str, key: str) -> bool:
-        self.labels.append(label)
-        return label in self.clicked
+        return bool(self.button_values.get(key, False))
+
+    def warning(self, message: str) -> None:
+        self.messages.append(("warning", message))
+
+    def error(self, message: str) -> None:
+        self.messages.append(("error", message))
+
+    def success(self, message: str) -> None:
+        self.messages.append(("success", message))
+
+    def info(self, message: str) -> None:
+        self.messages.append(("info", message))
+
+    def markdown(self, message: str) -> None:
+        self.messages.append(("markdown", message))
+
+    def code(self, body: str, language: str | None = None) -> None:
+        self.code_blocks.append((body, language))
 
 
-def test_render_config_chat_panel_renders_required_controls(monkeypatch) -> None:
-    fake_st = FakeStreamlit()
+def test_render_config_chat_preview_populates_session_and_renders_diff(monkeypatch) -> None:
+    fake_st = FakeStreamlit(
+        button_values={"wizard_config_chat_preview": True},
+        session_state={"wizard_config_chat_instruction": "increase simulations to 5000"},
+    )
     monkeypatch.setattr(config_chat_module, "st", fake_st)
 
-    config_chat_module.render_config_chat_panel()
-
-    assert fake_st.text_area_labels == ["Instruction"]
-    assert "Preview" in fake_st.labels
-    assert "Apply" in fake_st.labels
-    assert "Apply+Validate" in fake_st.labels
-    assert "Revert" in fake_st.labels
-
-
-def test_render_config_chat_panel_invokes_callbacks_for_clicked_buttons(monkeypatch) -> None:
-    fake_st = FakeStreamlit(clicked={"Preview", "Revert"})
-    fake_st.session_state["wizard_config_chat::instruction"] = "  increase simulations to 5000  "
-    monkeypatch.setattr(config_chat_module, "st", fake_st)
-
-    called: dict[str, Any] = {"preview": None, "apply": None, "apply_validate": None, "revert": 0}
-
-    result = config_chat_module.render_config_chat_panel(
-        on_preview=lambda text: called.__setitem__("preview", text),
-        on_apply=lambda text: called.__setitem__("apply", text),
-        on_apply_validate=lambda text: called.__setitem__("apply_validate", text),
-        on_revert=lambda: called.__setitem__("revert", called["revert"] + 1),
+    config_chat_module.render_config_chat_panel(
+        on_preview=lambda instruction: {
+            "summary": f"Applied instruction: {instruction}",
+            "risk_flags": ["stripped_unknown_output_keys"],
+            "unified_diff": "--- before\n+++ after\n@@\n-n_simulations: 1000\n+n_simulations: 5000\n",
+            "before_text": "n_simulations: 1000\n",
+            "after_text": "n_simulations: 5000\n",
+        }
     )
 
-    assert result.instruction == "increase simulations to 5000"
-    assert result.preview_clicked is True
-    assert result.apply_clicked is False
-    assert result.apply_validate_clicked is False
-    assert result.revert_clicked is True
-    assert called["preview"] == "increase simulations to 5000"
-    assert called["apply"] is None
-    assert called["apply_validate"] is None
-    assert called["revert"] == 1
+    preview = fake_st.session_state["wizard_config_chat_preview"]
+    assert preview["summary"].startswith("Applied instruction:")
+    assert any(kind == "warning" and "Risk flags" in message for kind, message in fake_st.messages)
+    assert any(language == "diff" for _, language in fake_st.code_blocks)
+    assert any(language == "yaml" for _, language in fake_st.code_blocks)
+
+
+def test_render_config_chat_apply_and_apply_validate_call_handler(monkeypatch) -> None:
+    apply_calls: list[_ApplyCall] = []
+    preview_payload = {"summary": "ready"}
+    base_session = {"wizard_config_chat_preview": preview_payload}
+
+    fake_apply = FakeStreamlit(
+        button_values={"wizard_config_chat_apply": True},
+        session_state=dict(base_session),
+    )
+    monkeypatch.setattr(config_chat_module, "st", fake_apply)
+    config_chat_module.render_config_chat_panel(
+        on_preview=lambda instruction: {},
+        on_apply=lambda preview, validate: (
+            apply_calls.append(_ApplyCall(validate=validate, preview=dict(preview))) or (True, "ok")
+        ),
+    )
+
+    fake_apply_validate = FakeStreamlit(
+        button_values={"wizard_config_chat_apply_validate": True},
+        session_state=dict(base_session),
+    )
+    monkeypatch.setattr(config_chat_module, "st", fake_apply_validate)
+    config_chat_module.render_config_chat_panel(
+        on_preview=lambda instruction: {},
+        on_apply=lambda preview, validate: (
+            apply_calls.append(_ApplyCall(validate=validate, preview=dict(preview))) or (True, "ok")
+        ),
+    )
+
+    assert apply_calls == [
+        _ApplyCall(validate=False, preview=preview_payload),
+        _ApplyCall(validate=True, preview=preview_payload),
+    ]
+
+
+def test_render_config_chat_revert_calls_handler(monkeypatch) -> None:
+    called = {"value": False}
+    fake_st = FakeStreamlit(button_values={"wizard_config_chat_revert": True})
+    monkeypatch.setattr(config_chat_module, "st", fake_st)
+
+    config_chat_module.render_config_chat_panel(
+        on_preview=lambda instruction: {},
+        on_revert=lambda: (called.__setitem__("value", True) or (True, "reverted")),
+    )
+
+    assert called["value"] is True
+    assert any(kind == "success" and message == "reverted" for kind, message in fake_st.messages)

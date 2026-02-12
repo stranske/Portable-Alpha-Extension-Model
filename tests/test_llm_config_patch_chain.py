@@ -1,80 +1,94 @@
-"""Tests for pa_core.llm.config_patch_chain."""
+"""Tests for pa_core.llm.config_patch_chain helpers."""
 
 from __future__ import annotations
 
-from pa_core.llm.config_patch_chain import (
-    ConfigPatchChain,
-    build_config_patch_prompt,
-    parse_chain_output,
-)
+from pa_core.llm.config_patch_chain import parse_chain_output, run_config_patch_chain
 
 
-def test_build_config_patch_prompt_contains_schema_and_safety_rules() -> None:
-    text = build_config_patch_prompt(
-        current_config={"n_simulations": 1000},
-        instruction="increase simulations to 5000",
-    )
-
-    assert "Allowlisted schema" in text
-    assert "Safety rules" in text
-    assert "n_simulations" in text
-
-
-def test_parse_chain_output_strips_unknown_keys_and_fields() -> None:
+def test_parse_chain_output_strips_unknown_keys_and_flags_risk() -> None:
     result = parse_chain_output(
         {
-            "patch": {
-                "set": {"n_simulations": 5000, "fake_field": 1},
-                "merge": {"risk_metrics": ["Return"]},
-                "remove": ["regime_start", "unknown_remove"],
-                "replace": {"n_months": 24},
-            },
-            "summary": "apply requested updates",
-            "risk_flags": ["from-model"],
-            "unknown_root": "ignored",
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Increase simulation count.",
+            "risk_flags": ["low_risk"],
+            "hallucinated": {"ignored": True},
         }
     )
 
-    assert result.patch["set"] == {"n_simulations": 5000}
-    assert result.patch["merge"] == {"risk_metrics": ["Return"]}
-    assert result.patch["remove"] == ["regime_start"]
-    assert "from-model" in result.risk_flags
-    assert "stripped_unknown_output_key:unknown_root" in result.risk_flags
-    assert "stripped_unknown_patch_ops:replace" in result.risk_flags
-    assert "stripped_unknown_patch_field:set.fake_field" in result.risk_flags
-    assert "stripped_unknown_patch_field:remove.unknown_remove" in result.risk_flags
-    assert "unknown_keys_stripped" in result.risk_flags
+    assert result.patch.set == {"n_simulations": 5000}
+    assert result.summary == "Increase simulation count."
+    assert result.unknown_output_keys == ["hallucinated"]
+    assert "low_risk" in result.risk_flags
+    assert "stripped_unknown_output_keys" in result.risk_flags
 
 
-def test_chain_run_sets_trace_url_when_langsmith_enabled(monkeypatch) -> None:
-    class _FixedUUID:
-        hex = "trace-id-123"
+def test_parse_chain_output_does_not_duplicate_unknown_output_risk_flag() -> None:
+    result = parse_chain_output(
+        {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Increase simulation count.",
+            "risk_flags": ["stripped_unknown_output_keys"],
+            "hallucinated": {"ignored": True},
+        }
+    )
 
+    assert result.unknown_output_keys == ["hallucinated"]
+    assert result.risk_flags == ["stripped_unknown_output_keys"]
+
+
+def test_run_config_patch_chain_includes_trace_url_when_langsmith_enabled(
+    monkeypatch,
+) -> None:
     monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
-    monkeypatch.setattr("pa_core.llm.config_patch_chain.uuid4", lambda: _FixedUUID())
 
-    chain = ConfigPatchChain(
-        lambda _prompt: {
-            "patch": {"set": {"n_simulations": 4000}},
-            "summary": "ok",
+    class _CallbackRun:
+        def get_run_url(self) -> str:
+            return "https://smith.langchain.com/r/real-run-123"
+
+    result = run_config_patch_chain(
+        current_config={"n_simulations": 1000},
+        instruction="increase simulations to 5000",
+        invoke_llm=lambda _prompt: {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Updated n_simulations.",
             "risk_flags": [],
-        }
+            "callback": _CallbackRun(),
+        },
     )
-    result = chain.run(current_config={"n_simulations": 1000}, instruction="set to 4000")
 
-    assert result.trace_url == "https://smith.langchain.com/r/trace-id-123"
+    assert result.trace_url == "https://smith.langchain.com/r/real-run-123"
+    assert result.patch.set["n_simulations"] == 5000
 
 
-def test_chain_run_without_langsmith_key_returns_no_trace_url(monkeypatch) -> None:
+def test_run_config_patch_chain_has_no_trace_url_when_langsmith_disabled(monkeypatch) -> None:
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
-    chain = ConfigPatchChain(
-        lambda _prompt: {
-            "patch": {"set": {"n_simulations": 3000}},
-            "summary": "ok",
+
+    result = run_config_patch_chain(
+        current_config={"n_simulations": 1000},
+        instruction="increase simulations to 5000",
+        invoke_llm=lambda _prompt: {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Updated n_simulations.",
             "risk_flags": [],
-        }
+        },
     )
 
-    result = chain.run(current_config={"n_simulations": 1000}, instruction="set to 3000")
+    assert result.trace_url is None
+
+
+def test_run_config_patch_chain_has_no_trace_url_when_callback_metadata_missing(
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
+
+    result = run_config_patch_chain(
+        current_config={"n_simulations": 1000},
+        instruction="increase simulations to 5000",
+        invoke_llm=lambda _prompt: {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Updated n_simulations.",
+            "risk_flags": [],
+        },
+    )
 
     assert result.trace_url is None

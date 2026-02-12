@@ -1,133 +1,214 @@
-"""Tests for wizard config patch allowlist and patch-format validation."""
+"""Tests for wizard config patch schema/validation."""
 
 from __future__ import annotations
 
 import runpy
 
 import pytest
-import streamlit as st
 
 from pa_core.llm.config_patch import (
-    ALLOWED_WIZARD_PATCH_FIELDS,
+    ConfigPatch,
     ConfigPatchValidationError,
+    allowed_wizard_schema,
     apply_patch,
-    describe_allowed_patch_schema,
     diff_config,
-    validate_patch,
-    validate_round_trip,
+    empty_patch,
+    parse_chain_output,
+    round_trip_validate_config,
+    validate_patch_dict,
 )
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
 
-def test_allowed_schema_contains_expected_field_types_and_operations() -> None:
-    schema = describe_allowed_patch_schema()
+def test_allowed_wizard_schema_contains_core_keys_and_type_labels() -> None:
+    schema = allowed_wizard_schema()
 
-    assert "n_simulations" in schema
-    assert schema["n_simulations"]["type"] == "int"
-    assert schema["n_simulations"]["operations"] == ["set"]
-
-    assert "risk_metrics" in schema
-    assert "set" in schema["risk_metrics"]["operations"]
-    assert "merge" in schema["risk_metrics"]["operations"]
-    assert "enum" in schema["risk_metrics"]
-
-    assert "regime_start" in schema
-    assert "remove" in schema["regime_start"]["operations"]
+    assert schema["n_simulations"] == "int"
+    assert schema["analysis_mode"] == "AnalysisMode"
+    assert schema["total_fund_capital"] == "float"
 
 
-def test_validate_patch_accepts_valid_set_merge_remove_payload() -> None:
-    patch = {
-        "set": {"n_simulations": 5000, "sleeve_validate_on_run": True},
-        "merge": {"risk_metrics": ["Return", "Risk"]},
-        "remove": ["regime_start", "regime_start"],
-    }
+def test_validate_patch_dict_accepts_valid_set_payload() -> None:
+    patch = validate_patch_dict(
+        {
+            "set": {
+                "analysis_mode": "returns",
+                "n_simulations": 5000,
+                "sleeve_max_breach": 0.3,
+            }
+        }
+    )
 
-    validated = validate_patch(patch)
-
-    assert validated.set_ops["n_simulations"] == 5000
-    assert validated.merge_ops["risk_metrics"] == ["Return", "Risk"]
-    assert validated.remove_ops == ["regime_start"]
-
-
-def test_validate_patch_rejects_unknown_root_operation() -> None:
-    with pytest.raises(ConfigPatchValidationError, match="Unknown patch operation"):
-        validate_patch({"replace": {"n_months": 24}})
+    assert isinstance(patch, ConfigPatch)
+    assert patch.set["n_simulations"] == 5000
+    assert patch.merge == {}
+    assert patch.remove == []
 
 
-def test_validate_patch_rejects_unknown_field() -> None:
-    with pytest.raises(ConfigPatchValidationError, match="not allowlisted"):
-        validate_patch({"set": {"totally_fake_field": 123}})
+def test_validate_patch_dict_rejects_unknown_field() -> None:
+    with pytest.raises(ConfigPatchValidationError, match="unknown wizard field"):
+        validate_patch_dict({"set": {"totally_fake_field": 1}})
 
 
-def test_validate_patch_rejects_type_mismatch() -> None:
-    with pytest.raises(ConfigPatchValidationError, match="expects int"):
-        validate_patch({"set": {"n_simulations": "5000"}})
+def test_validate_patch_dict_reports_unknown_field_paths_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {"totally_fake_field": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["totally_fake_field"]
+    assert exc.unknown_paths == ["patch.set.totally_fake_field"]
 
 
-def test_validate_patch_rejects_disallowed_merge_operation() -> None:
+def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {}, "unexpected_op": {"foo": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["unexpected_op"]
+    assert exc.unknown_paths == ["patch.unexpected_op"]
+
+
+def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict(
+            [
+                {
+                    "op": "set",
+                    "key": "n_simulations",
+                    "value": 5000,
+                    "foo": "bar",
+                }
+            ]
+        )
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["foo"]
+    assert exc.unknown_paths == ["patch[0].foo"]
+
+
+def test_validate_patch_dict_accepts_legacy_operation_list_shape() -> None:
+    patch = validate_patch_dict(
+        [
+            {"op": "set", "key": "n_simulations", "value": 5000},
+            {"op": "merge", "key": "regimes", "value": {"Stress": {"idx_sigma_multiplier": 1.2}}},
+            {"op": "remove", "key": "sleeve_max_cvar"},
+        ]
+    )
+
+    assert patch.set == {"n_simulations": 5000}
+    assert patch.merge == {"regimes": {"Stress": {"idx_sigma_multiplier": 1.2}}}
+    assert patch.remove == ["sleeve_max_cvar"]
+
+
+def test_parse_chain_output_reports_unknown_top_level_keys_structured() -> None:
+    result = parse_chain_output(
+        {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Increase simulations.",
+            "risk_flags": [],
+            "hallucinated": True,
+        }
+    )
+
+    assert result.patch.set == {"n_simulations": 5000}
+    assert result.unknown_output_keys == ["hallucinated"]
+    assert "stripped_unknown_output_keys" in result.risk_flags
+
+
+def test_validate_patch_dict_rejects_wrong_type() -> None:
+    with pytest.raises(ConfigPatchValidationError, match="must be an int"):
+        validate_patch_dict({"set": {"n_simulations": "5000"}})
+
+
+def test_validate_patch_dict_allows_merge_for_regimes_only() -> None:
+    patch = validate_patch_dict({"merge": {"regimes": {"stress": {"mu_H": 0.02}}}})
+    assert patch.merge["regimes"]["stress"]["mu_H"] == 0.02
+
     with pytest.raises(ConfigPatchValidationError, match="does not support merge"):
-        validate_patch({"merge": {"n_months": 36}})
+        validate_patch_dict({"merge": {"n_simulations": {"value": 5000}}})
 
 
-def test_validate_patch_rejects_disallowed_remove_operation() -> None:
+def test_validate_patch_dict_restricts_remove_to_removable_keys() -> None:
+    patch = validate_patch_dict({"remove": ["regime_start", "sleeve_max_cvar"]})
+    assert patch.remove == ["regime_start", "sleeve_max_cvar"]
+
     with pytest.raises(ConfigPatchValidationError, match="does not support remove"):
-        validate_patch({"remove": ["n_months"]})
+        validate_patch_dict({"remove": ["n_simulations"]})
 
 
-def test_allowlist_is_explicit_and_non_empty() -> None:
-    assert len(ALLOWED_WIZARD_PATCH_FIELDS) > 0
-    assert "analysis_mode" in ALLOWED_WIZARD_PATCH_FIELDS
-    assert "backend" in ALLOWED_WIZARD_PATCH_FIELDS
+def test_validate_patch_dict_rejects_duplicate_targets_across_operations() -> None:
+    with pytest.raises(ConfigPatchValidationError, match="multiple operations"):
+        validate_patch_dict({"set": {"regime_start": "base"}, "remove": ["regime_start"]})
 
 
-def test_apply_patch_updates_config_and_session_mirrors() -> None:
-    cfg = get_default_config(AnalysisMode.RETURNS)
+def test_empty_patch_returns_valid_empty_container() -> None:
+    assert empty_patch() == ConfigPatch(set={}, merge={}, remove=[])
+
+
+def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
+    config = get_default_config(AnalysisMode.RETURNS)
     session_state: dict[str, object] = {}
 
-    apply_patch(
-        cfg,
+    patch = validate_patch_dict(
         {
             "set": {
                 "n_simulations": 5000,
-                "total_fund_capital": 900.0,
-                "external_pa_capital": 200.0,
+                "total_fund_capital": 1200.0,
+                "analysis_mode": "capital",
+                "sleeve_constraint_scope": "sleeves",
             },
-            "merge": {"risk_metrics": ["terminal_ShortfallProb"]},
-            "remove": ["regime_start"],
-        },
-        session_state=session_state,
+            "merge": {
+                "regimes": {
+                    "Calm": {"idx_sigma_multiplier": 0.8},
+                }
+            },
+            "remove": ["sleeve_max_cvar"],
+        }
     )
 
-    assert cfg.n_simulations == 5000
-    assert cfg.total_fund_capital == 900.0
-    assert cfg.external_pa_capital == 200.0
-    assert "terminal_ShortfallProb" in cfg.risk_metrics
-    assert cfg.regime_start is None
-    assert session_state["wizard_total_fund_capital"] == 900.0
-    assert session_state["wizard_external_pa_capital"] == 200.0
+    updated = apply_patch(config, patch, session_state=session_state)
+
+    assert updated.n_simulations == 5000
+    assert updated.total_fund_capital == 1200.0
+    assert updated.analysis_mode == AnalysisMode.CAPITAL
+    assert updated.sleeve_constraint_scope == "per_sleeve"
+    assert updated.regimes == {"Calm": {"idx_sigma_multiplier": 0.8, "name": "Calm"}}
+    assert updated.sleeve_max_cvar is None
+    assert session_state["wizard_total_fund_capital"] == 1200.0
+    assert session_state["sleeve_constraint_scope"] == "sleeves"
+    assert session_state["wizard_regimes_yaml"] == {
+        "Calm": {"idx_sigma_multiplier": 0.8, "name": "Calm"}
+    }
+    assert session_state["sleeve_max_cvar"] is None
 
 
-def test_diff_config_returns_unified_diff() -> None:
-    result = diff_config(
-        {"N_SIMULATIONS": 1000, "N_MONTHS": 12},
-        {"N_SIMULATIONS": 5000, "N_MONTHS": 12},
-        format="json",
+def test_diff_config_returns_unified_yaml_diff_and_snapshots() -> None:
+    before = get_default_config(AnalysisMode.RETURNS)
+    after = get_default_config(AnalysisMode.RETURNS)
+    after.n_simulations = 5000
+
+    unified_diff, before_text, after_text = diff_config(before, after)
+
+    assert unified_diff.startswith("--- before\n+++ after\n")
+    assert "n_simulations: 1" in before_text
+    assert "n_simulations: 5000" in after_text
+    assert "-n_simulations: 1" in unified_diff
+    assert "+n_simulations: 5000" in unified_diff
+
+
+def test_round_trip_validate_config_success_and_error_paths() -> None:
+    module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    build_yaml_from_config = module["_build_yaml_from_config"]
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    ok_result = round_trip_validate_config(config, build_yaml_from_config=build_yaml_from_config)
+    assert ok_result.is_valid is True
+    assert ok_result.errors == []
+    assert isinstance(ok_result.yaml_dict, dict)
+
+    config.n_simulations = -1
+    invalid_result = round_trip_validate_config(
+        config, build_yaml_from_config=build_yaml_from_config
     )
-
-    assert result.startswith("--- before\n+++ after\n")
-    assert '"N_SIMULATIONS": 1000' in result
-    assert '"N_SIMULATIONS": 5000' in result
-
-
-def test_validate_round_trip_default_config_has_no_errors() -> None:
-    st.session_state.clear()
-    try:
-        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
-        build_yaml_from_config = module["_build_yaml_from_config"]
-        cfg = get_default_config(AnalysisMode.RETURNS)
-
-        errors = validate_round_trip(cfg, build_yaml_from_config=build_yaml_from_config)
-
-        assert errors == []
-    finally:
-        st.session_state.clear()
+    assert invalid_result.is_valid is False
+    assert invalid_result.errors

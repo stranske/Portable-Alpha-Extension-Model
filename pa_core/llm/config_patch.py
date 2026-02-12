@@ -1,53 +1,104 @@
-"""Patch schema and validation helpers for wizard-config editing via LLM."""
+"""Patch schema and validation for wizard config chat updates."""
 
 from __future__ import annotations
 
+import difflib
 import json
-from copy import deepcopy
 from dataclasses import dataclass
-from difflib import unified_diff
-from typing import Any, Callable, Mapping, MutableMapping, Sequence
+from typing import Any, Callable, Mapping, MutableMapping
 
 import yaml
 
-from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
+_PATCH_KEYS: tuple[str, str, str] = ("set", "merge", "remove")
+_PATCH_OPERATION_ITEM_KEYS: tuple[str, str, str] = ("op", "key", "value")
+
 
 class ConfigPatchValidationError(ValueError):
-    """Raised when a config patch violates the allowed schema."""
+    """Raised when an incoming config patch payload is invalid."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        unknown_keys: list[str] | None = None,
+        unknown_paths: list[str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.unknown_keys = list(unknown_keys or [])
+        self.unknown_paths = list(unknown_paths or [])
 
 
 @dataclass(frozen=True)
-class WizardFieldSpec:
-    """Validation metadata for one allowlisted wizard field."""
+class AllowedField:
+    """Schema metadata for a single wizard field."""
 
-    type_name: str
-    validator: Callable[[Any], bool]
-    allow_set: bool = True
-    allow_merge: bool = False
-    allow_remove: bool = False
-    enum_values: tuple[str, ...] | None = None
+    type_label: str
+    removable: bool = False
+    mergeable: bool = False
 
 
 @dataclass(frozen=True)
-class ValidatedConfigPatch:
-    """Normalized patch that passed schema and value validation."""
+class ConfigPatch:
+    """Validated patch structure for wizard config edits."""
 
-    set_ops: dict[str, Any]
-    merge_ops: dict[str, Any]
-    remove_ops: list[str]
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "set": dict(self.set_ops),
-            "merge": dict(self.merge_ops),
-            "remove": list(self.remove_ops),
-        }
+    set: dict[str, Any]
+    merge: dict[str, dict[str, Any]]
+    remove: list[str]
 
 
-_SESSION_FIELD_MIRRORS: dict[str, str] = {
+# Explicit allowlist for wizard-facing fields. Keep this list tight and auditable.
+ALLOWED_WIZARD_FIELDS: dict[str, AllowedField] = {
+    "analysis_mode": AllowedField("AnalysisMode"),
+    "n_simulations": AllowedField("int"),
+    "n_months": AllowedField("int"),
+    "financing_mode": AllowedField("str"),
+    "external_pa_capital": AllowedField("float"),
+    "active_ext_capital": AllowedField("float"),
+    "internal_pa_capital": AllowedField("float"),
+    "total_fund_capital": AllowedField("float"),
+    "w_beta_h": AllowedField("float"),
+    "w_alpha_h": AllowedField("float"),
+    "theta_extpa": AllowedField("float"),
+    "active_share": AllowedField("float"),
+    "mu_h": AllowedField("float"),
+    "mu_e": AllowedField("float"),
+    "mu_m": AllowedField("float"),
+    "sigma_h": AllowedField("float"),
+    "sigma_e": AllowedField("float"),
+    "sigma_m": AllowedField("float"),
+    "rho_idx_h": AllowedField("float"),
+    "rho_idx_e": AllowedField("float"),
+    "rho_idx_m": AllowedField("float"),
+    "rho_h_e": AllowedField("float"),
+    "rho_h_m": AllowedField("float"),
+    "rho_e_m": AllowedField("float"),
+    "risk_metrics": AllowedField("list[str|RiskMetric]"),
+    "sleeve_max_te": AllowedField("float|None", removable=True),
+    "sleeve_max_breach": AllowedField("float|None", removable=True),
+    "sleeve_max_cvar": AllowedField("float|None", removable=True),
+    "sleeve_max_shortfall": AllowedField("float|None", removable=True),
+    "sleeve_constraint_scope": AllowedField("'total'|'per_sleeve'"),
+    "sleeve_validate_on_run": AllowedField("bool"),
+    "return_distribution": AllowedField("'normal'|'student_t'"),
+    "return_t_df": AllowedField("float"),
+    "return_copula": AllowedField("'gaussian'|'t'"),
+    "vol_regime": AllowedField("'single'|'two_state'"),
+    "vol_regime_window": AllowedField("int"),
+    "covariance_shrinkage": AllowedField("'none'|'ledoit_wolf'"),
+    "correlation_repair_mode": AllowedField("'error'|'warn_fix'"),
+    "correlation_repair_shrinkage": AllowedField("float"),
+    "correlation_repair_max_abs_delta": AllowedField("float|None", removable=True),
+    "backend": AllowedField("'numpy'"),
+    "regimes": AllowedField("list[dict]|dict[str,dict]|None", removable=True, mergeable=True),
+    "regime_transition": AllowedField("list[list[float]]|None", removable=True),
+    "regime_start": AllowedField("str|None", removable=True),
+}
+
+# Session-state mirrors used by the Scenario Wizard page.
+WIZARD_SESSION_MIRROR_KEYS: dict[str, str] = {
     "total_fund_capital": "wizard_total_fund_capital",
     "external_pa_capital": "wizard_external_pa_capital",
     "active_ext_capital": "wizard_active_ext_capital",
@@ -55,410 +106,531 @@ _SESSION_FIELD_MIRRORS: dict[str, str] = {
     "w_beta_h": "wizard_w_beta_h",
     "theta_extpa": "wizard_theta_extpa",
     "active_share": "wizard_active_share",
+    "regimes": "wizard_regimes_yaml",
+    "regime_transition": "wizard_regime_transition_yaml",
+    "regime_start": "wizard_regime_start",
     "sleeve_max_te": "sleeve_max_te",
     "sleeve_max_breach": "sleeve_max_breach",
     "sleeve_max_cvar": "sleeve_max_cvar",
     "sleeve_max_shortfall": "sleeve_max_shortfall",
     "sleeve_constraint_scope": "sleeve_constraint_scope",
     "sleeve_validate_on_run": "sleeve_validate_on_run",
-    "regimes": "wizard_regimes_yaml",
-    "regime_transition": "wizard_regime_transition_yaml",
-    "regime_start": "wizard_regime_start",
 }
 
 
-def get_session_field_mirrors() -> dict[str, str]:
-    """Return a copy of wizard-field -> session-state mirror key mappings."""
+@dataclass(frozen=True)
+class ConfigRoundTripValidationResult:
+    """Result of serializing and reloading wizard config."""
 
-    return dict(_SESSION_FIELD_MIRRORS)
-
-
-def _is_int(value: Any) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool)
-
-
-def _is_number(value: Any) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    is_valid: bool
+    errors: list[str]
+    yaml_dict: dict[str, Any] | None = None
 
 
-def _is_string(value: Any) -> bool:
-    return isinstance(value, str)
+def allowed_wizard_schema() -> dict[str, str]:
+    """Return a serializable key->type schema for the config patch allowlist."""
+
+    return {key: field.type_label for key, field in ALLOWED_WIZARD_FIELDS.items()}
 
 
-def _is_bool(value: Any) -> bool:
-    return isinstance(value, bool)
+def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch:
+    """Validate and normalize a config patch payload.
 
+    Expected shape:
+    ``{"set": {...}, "merge": {...}, "remove": [..]}``
+    or a legacy operation list:
+    ``[{"op": "set|merge|remove", "key": "...", "value": ...}, ...]``
+    """
 
-def _is_string_list(value: Any) -> bool:
-    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+    if isinstance(raw_patch, list):
+        raw_patch = _normalize_patch_operations_list(raw_patch)
 
+    if not isinstance(raw_patch, Mapping):
+        raise ConfigPatchValidationError("patch must be a mapping")
 
-def _is_regimes(value: Any) -> bool:
-    if isinstance(value, list):
-        return all(isinstance(item, dict) for item in value)
-    if isinstance(value, Mapping):
-        return all(
-            isinstance(key, str) and isinstance(item, Mapping) for key, item in value.items()
-        )
-    return False
-
-
-def _is_transition_matrix(value: Any) -> bool:
-    if not isinstance(value, Sequence) or isinstance(value, (str, bytes)):
-        return False
-    rows = list(value)
-    if not rows:
-        return False
-    for row in rows:
-        if not isinstance(row, Sequence) or isinstance(row, (str, bytes)):
-            return False
-        if not all(_is_number(cell) for cell in row):
-            return False
-    return True
-
-
-_ANALYSIS_MODE_VALUES = tuple(mode.value for mode in AnalysisMode)
-_RISK_METRIC_VALUES = tuple(metric.value for metric in RiskMetric)
-_SCOPE_VALUES = ("total", "per_sleeve")
-_RETURN_DISTRIBUTION_VALUES = ("normal", "student_t")
-_RETURN_COPULA_VALUES = ("gaussian", "t")
-_VOL_REGIME_VALUES = ("single", "two_state")
-_COVARIANCE_SHRINKAGE_VALUES = ("none", "ledoit_wolf")
-_CORRELATION_REPAIR_MODE_VALUES = ("error", "warn_fix")
-
-
-def _enum_validator(allowed: tuple[str, ...]) -> Callable[[Any], bool]:
-    return lambda value: isinstance(value, str) and value in allowed
-
-
-ALLOWED_WIZARD_PATCH_FIELDS: dict[str, WizardFieldSpec] = {
-    "analysis_mode": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_ANALYSIS_MODE_VALUES),
-        enum_values=_ANALYSIS_MODE_VALUES,
-    ),
-    "n_simulations": WizardFieldSpec(type_name="int", validator=_is_int),
-    "n_months": WizardFieldSpec(type_name="int", validator=_is_int),
-    "financing_mode": WizardFieldSpec(type_name="str", validator=_is_string),
-    "external_pa_capital": WizardFieldSpec(type_name="float", validator=_is_number),
-    "active_ext_capital": WizardFieldSpec(type_name="float", validator=_is_number),
-    "internal_pa_capital": WizardFieldSpec(type_name="float", validator=_is_number),
-    "total_fund_capital": WizardFieldSpec(type_name="float", validator=_is_number),
-    "w_beta_h": WizardFieldSpec(type_name="float", validator=_is_number),
-    "w_alpha_h": WizardFieldSpec(type_name="float", validator=_is_number),
-    "theta_extpa": WizardFieldSpec(type_name="float", validator=_is_number),
-    "active_share": WizardFieldSpec(type_name="float", validator=_is_number),
-    "mu_h": WizardFieldSpec(type_name="float", validator=_is_number),
-    "mu_e": WizardFieldSpec(type_name="float", validator=_is_number),
-    "mu_m": WizardFieldSpec(type_name="float", validator=_is_number),
-    "sigma_h": WizardFieldSpec(type_name="float", validator=_is_number),
-    "sigma_e": WizardFieldSpec(type_name="float", validator=_is_number),
-    "sigma_m": WizardFieldSpec(type_name="float", validator=_is_number),
-    "rho_idx_h": WizardFieldSpec(type_name="float", validator=_is_number),
-    "rho_idx_e": WizardFieldSpec(type_name="float", validator=_is_number),
-    "rho_idx_m": WizardFieldSpec(type_name="float", validator=_is_number),
-    "rho_h_e": WizardFieldSpec(type_name="float", validator=_is_number),
-    "rho_h_m": WizardFieldSpec(type_name="float", validator=_is_number),
-    "rho_e_m": WizardFieldSpec(type_name="float", validator=_is_number),
-    "risk_metrics": WizardFieldSpec(
-        type_name="list[str]",
-        validator=_is_string_list,
-        allow_merge=True,
-        enum_values=_RISK_METRIC_VALUES,
-    ),
-    "sleeve_max_te": WizardFieldSpec(
-        type_name="optional[float]", validator=_is_number, allow_remove=True
-    ),
-    "sleeve_max_breach": WizardFieldSpec(
-        type_name="optional[float]", validator=_is_number, allow_remove=True
-    ),
-    "sleeve_max_cvar": WizardFieldSpec(
-        type_name="optional[float]", validator=_is_number, allow_remove=True
-    ),
-    "sleeve_max_shortfall": WizardFieldSpec(
-        type_name="optional[float]", validator=_is_number, allow_remove=True
-    ),
-    "sleeve_constraint_scope": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_SCOPE_VALUES),
-        enum_values=_SCOPE_VALUES,
-    ),
-    "sleeve_validate_on_run": WizardFieldSpec(type_name="bool", validator=_is_bool),
-    "return_distribution": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_RETURN_DISTRIBUTION_VALUES),
-        enum_values=_RETURN_DISTRIBUTION_VALUES,
-    ),
-    "return_t_df": WizardFieldSpec(type_name="float", validator=_is_number),
-    "return_copula": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_RETURN_COPULA_VALUES),
-        enum_values=_RETURN_COPULA_VALUES,
-    ),
-    "vol_regime": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_VOL_REGIME_VALUES),
-        enum_values=_VOL_REGIME_VALUES,
-    ),
-    "vol_regime_window": WizardFieldSpec(type_name="int", validator=_is_int),
-    "covariance_shrinkage": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_COVARIANCE_SHRINKAGE_VALUES),
-        enum_values=_COVARIANCE_SHRINKAGE_VALUES,
-    ),
-    "correlation_repair_mode": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(_CORRELATION_REPAIR_MODE_VALUES),
-        enum_values=_CORRELATION_REPAIR_MODE_VALUES,
-    ),
-    "correlation_repair_shrinkage": WizardFieldSpec(type_name="float", validator=_is_number),
-    "correlation_repair_max_abs_delta": WizardFieldSpec(
-        type_name="optional[float]",
-        validator=_is_number,
-        allow_remove=True,
-    ),
-    "backend": WizardFieldSpec(
-        type_name="enum",
-        validator=_enum_validator(tuple(SUPPORTED_BACKENDS)),
-        enum_values=tuple(SUPPORTED_BACKENDS),
-    ),
-    "regimes": WizardFieldSpec(
-        type_name="optional[list[dict] | dict[str, dict]]",
-        validator=_is_regimes,
-        allow_merge=True,
-        allow_remove=True,
-    ),
-    "regime_transition": WizardFieldSpec(
-        type_name="optional[list[list[float]]]",
-        validator=_is_transition_matrix,
-        allow_remove=True,
-    ),
-    "regime_start": WizardFieldSpec(
-        type_name="optional[str]", validator=_is_string, allow_remove=True
-    ),
-}
-
-_PATCH_ROOT_KEYS = frozenset({"set", "merge", "remove"})
-
-
-def describe_allowed_patch_schema() -> dict[str, dict[str, Any]]:
-    """Return a serializable schema view of allowlisted patchable wizard fields."""
-
-    schema: dict[str, dict[str, Any]] = {}
-    for key in sorted(ALLOWED_WIZARD_PATCH_FIELDS):
-        spec = ALLOWED_WIZARD_PATCH_FIELDS[key]
-        schema[key] = {
-            "type": spec.type_name,
-            "operations": [
-                op
-                for op, allowed in (
-                    ("set", spec.allow_set),
-                    ("merge", spec.allow_merge),
-                    ("remove", spec.allow_remove),
-                )
-                if allowed
-            ],
-        }
-        if spec.enum_values:
-            schema[key]["enum"] = list(spec.enum_values)
-    return schema
-
-
-def _require_mapping(name: str, value: Any) -> dict[str, Any]:
-    if value is None:
-        return {}
-    if not isinstance(value, Mapping):
-        raise ConfigPatchValidationError(f"'{name}' must be a mapping of field -> value.")
-    return {str(key): child for key, child in value.items()}
-
-
-def _require_remove_list(value: Any) -> list[str]:
-    if value is None:
-        return []
-    if not isinstance(value, list):
-        raise ConfigPatchValidationError("'remove' must be a list of field names.")
-    if not all(isinstance(item, str) for item in value):
-        raise ConfigPatchValidationError("'remove' entries must all be strings.")
-    return value
-
-
-def _check_field_allowed(field: str, op: str) -> WizardFieldSpec:
-    spec = ALLOWED_WIZARD_PATCH_FIELDS.get(field)
-    if spec is None:
-        raise ConfigPatchValidationError(f"Field '{field}' is not allowlisted for patching.")
-    if op == "set" and not spec.allow_set:
-        raise ConfigPatchValidationError(f"Field '{field}' does not support set operations.")
-    if op == "merge" and not spec.allow_merge:
-        raise ConfigPatchValidationError(f"Field '{field}' does not support merge operations.")
-    if op == "remove" and not spec.allow_remove:
-        raise ConfigPatchValidationError(f"Field '{field}' does not support remove operations.")
-    return spec
-
-
-def _validate_value(field: str, value: Any, spec: WizardFieldSpec) -> None:
-    if not spec.validator(value):
+    unknown_patch_ops = sorted(set(raw_patch) - set(_PATCH_KEYS))
+    if unknown_patch_ops:
         raise ConfigPatchValidationError(
-            f"Field '{field}' expects {spec.type_name}, got {type(value).__name__}."
+            f"unknown patch operations: {', '.join(unknown_patch_ops)}",
+            unknown_keys=unknown_patch_ops,
+            unknown_paths=[f"patch.{key}" for key in unknown_patch_ops],
+        )
+
+    set_ops = _validate_set_ops(raw_patch.get("set", {}))
+    merge_ops = _validate_merge_ops(raw_patch.get("merge", {}))
+    remove_ops = _validate_remove_ops(raw_patch.get("remove", []))
+
+    _ensure_no_duplicate_targets(set_ops=set_ops, merge_ops=merge_ops, remove_ops=remove_ops)
+
+    return ConfigPatch(set=set_ops, merge=merge_ops, remove=remove_ops)
+
+
+def _normalize_patch_operations_list(raw_patch: list[Any]) -> dict[str, Any]:
+    """Normalize legacy operation-list patches into mapping form."""
+
+    normalized_set: dict[str, Any] = {}
+    normalized_merge: dict[str, Any] = {}
+    normalized_remove: list[str] = []
+
+    for idx, operation in enumerate(raw_patch):
+        path_prefix = f"patch[{idx}]"
+        if not isinstance(operation, Mapping):
+            raise ConfigPatchValidationError(f"{path_prefix} must be a mapping")
+
+        unknown_item_keys = sorted(set(operation) - set(_PATCH_OPERATION_ITEM_KEYS))
+        if unknown_item_keys:
+            raise ConfigPatchValidationError(
+                f"unknown patch operation keys at {path_prefix}: {', '.join(unknown_item_keys)}",
+                unknown_keys=unknown_item_keys,
+                unknown_paths=[f"{path_prefix}.{key}" for key in unknown_item_keys],
+            )
+
+        op_name = operation.get("op")
+        if not isinstance(op_name, str):
+            raise ConfigPatchValidationError(f"{path_prefix}.op must be a string")
+        if op_name not in _PATCH_KEYS:
+            raise ConfigPatchValidationError(
+                f"unknown patch operation: {op_name}",
+                unknown_keys=[op_name],
+                unknown_paths=[f"{path_prefix}.op"],
+            )
+
+        key = operation.get("key")
+        if not isinstance(key, str) or not key:
+            raise ConfigPatchValidationError(f"{path_prefix}.key must be a non-empty string")
+
+        if op_name == "remove":
+            normalized_remove.append(key)
+            continue
+
+        if "value" not in operation:
+            raise ConfigPatchValidationError(f"{path_prefix}.value is required for '{op_name}'")
+
+        if op_name == "set":
+            normalized_set[key] = operation["value"]
+            continue
+
+        normalized_merge[key] = operation["value"]
+
+    return {
+        "set": normalized_set,
+        "merge": normalized_merge,
+        "remove": normalized_remove,
+    }
+
+
+def _ensure_known_key(key: str, *, path: str) -> AllowedField:
+    field = ALLOWED_WIZARD_FIELDS.get(key)
+    if field is None:
+        raise ConfigPatchValidationError(
+            f"unknown wizard field: {key}",
+            unknown_keys=[key],
+            unknown_paths=[path],
+        )
+    return field
+
+
+def _validate_set_ops(raw_set: Any) -> dict[str, Any]:
+    if not isinstance(raw_set, Mapping):
+        raise ConfigPatchValidationError("patch.set must be a mapping")
+
+    normalized: dict[str, Any] = {}
+    for key, value in raw_set.items():
+        if not isinstance(key, str):
+            raise ConfigPatchValidationError("patch.set keys must be strings")
+        field = _ensure_known_key(key, path=f"patch.set.{key}")
+        _validate_value_for_key(key, value)
+        if value is None and not field.removable:
+            raise ConfigPatchValidationError(f"field '{key}' does not support null values")
+        normalized[key] = value
+    return normalized
+
+
+def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
+    if not isinstance(raw_merge, Mapping):
+        raise ConfigPatchValidationError("patch.merge must be a mapping")
+
+    normalized: dict[str, dict[str, Any]] = {}
+    for key, value in raw_merge.items():
+        if not isinstance(key, str):
+            raise ConfigPatchValidationError("patch.merge keys must be strings")
+        field = _ensure_known_key(key, path=f"patch.merge.{key}")
+        if not field.mergeable:
+            raise ConfigPatchValidationError(f"field '{key}' does not support merge")
+        if not isinstance(value, Mapping):
+            raise ConfigPatchValidationError(f"patch.merge['{key}'] must be a mapping")
+        normalized[key] = dict(value)
+    return normalized
+
+
+def _validate_remove_ops(raw_remove: Any) -> list[str]:
+    if not isinstance(raw_remove, list):
+        raise ConfigPatchValidationError("patch.remove must be a list")
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for idx, value in enumerate(raw_remove):
+        if not isinstance(value, str):
+            raise ConfigPatchValidationError("patch.remove values must be strings")
+        if value in seen:
+            continue
+        seen.add(value)
+        field = _ensure_known_key(value, path=f"patch.remove[{idx}]")
+        if not field.removable:
+            raise ConfigPatchValidationError(f"field '{value}' does not support remove")
+        normalized.append(value)
+    return normalized
+
+
+def _ensure_no_duplicate_targets(
+    *,
+    set_ops: Mapping[str, Any],
+    merge_ops: Mapping[str, Mapping[str, Any]],
+    remove_ops: list[str],
+) -> None:
+    set_keys = set(set_ops)
+    merge_keys = set(merge_ops)
+    remove_keys = set(remove_ops)
+
+    duplicate_targets = sorted(
+        (set_keys & merge_keys) | (set_keys & remove_keys) | (merge_keys & remove_keys)
+    )
+    if duplicate_targets:
+        raise ConfigPatchValidationError(
+            "patch cannot target the same field in multiple operations: "
+            + ", ".join(duplicate_targets)
         )
 
 
-def validate_patch(patch: Mapping[str, Any]) -> ValidatedConfigPatch:
-    """Validate and normalize a patch with `set`/`merge`/`remove` operations."""
+def _validate_value_for_key(key: str, value: Any) -> None:
+    if key == "analysis_mode":
+        if isinstance(value, AnalysisMode):
+            return
+        if isinstance(value, str) and value in {m.value for m in AnalysisMode}:
+            return
+        raise ConfigPatchValidationError(
+            "analysis_mode must be one of: capital, returns, alpha_shares, vol_mult"
+        )
 
-    if not isinstance(patch, Mapping):
-        raise ConfigPatchValidationError("Patch payload must be a mapping.")
-
-    unknown_root_keys = set(patch) - _PATCH_ROOT_KEYS
-    if unknown_root_keys:
-        keys = ", ".join(sorted(str(key) for key in unknown_root_keys))
-        raise ConfigPatchValidationError(f"Unknown patch operation(s): {keys}.")
-
-    set_ops = _require_mapping("set", patch.get("set"))
-    merge_ops = _require_mapping("merge", patch.get("merge"))
-    remove_ops = _require_remove_list(patch.get("remove"))
-
-    for field, value in set_ops.items():
-        spec = _check_field_allowed(field, "set")
-        _validate_value(field, value, spec)
-
-    for field, value in merge_ops.items():
-        spec = _check_field_allowed(field, "merge")
-        _validate_value(field, value, spec)
-
-    deduped_remove: list[str] = []
-    seen: set[str] = set()
-    for field in remove_ops:
-        _check_field_allowed(field, "remove")
-        if field in seen:
-            continue
-        seen.add(field)
-        deduped_remove.append(field)
-
-    return ValidatedConfigPatch(set_ops=set_ops, merge_ops=merge_ops, remove_ops=deduped_remove)
-
-
-def _merge_value(current: Any, incoming: Any) -> Any:
-    if isinstance(current, Mapping) and isinstance(incoming, Mapping):
-        merged_dict = dict(current)
-        merged_dict.update(dict(incoming))
-        return merged_dict
-    if isinstance(current, list) and isinstance(incoming, list):
-        merged_list = list(current)
-        for item in incoming:
-            if item not in merged_list:
-                merged_list.append(item)
-        return merged_list
-    return incoming
-
-
-def _mirror_session_field(
-    field: str,
-    value: Any,
-    *,
-    session_state: MutableMapping[str, Any] | None,
-) -> None:
-    if session_state is None:
+    if key in {
+        "n_simulations",
+        "n_months",
+        "vol_regime_window",
+    }:
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ConfigPatchValidationError(f"field '{key}' must be an int")
         return
-    key = _SESSION_FIELD_MIRRORS.get(field)
-    if key is None:
+
+    if key in {
+        "sleeve_validate_on_run",
+    }:
+        if not isinstance(value, bool):
+            raise ConfigPatchValidationError(f"field '{key}' must be a bool")
         return
-    session_state[key] = deepcopy(value)
+
+    if key in {
+        "financing_mode",
+        "regime_start",
+    }:
+        if value is None and ALLOWED_WIZARD_FIELDS[key].removable:
+            return
+        if not isinstance(value, str):
+            raise ConfigPatchValidationError(f"field '{key}' must be a string")
+        return
+
+    if key in {
+        "backend",
+    }:
+        if value != "numpy":
+            raise ConfigPatchValidationError("backend must be 'numpy'")
+        return
+
+    if key == "sleeve_constraint_scope":
+        if value not in {"total", "per_sleeve", "sleeves"}:
+            raise ConfigPatchValidationError(
+                "sleeve_constraint_scope must be one of: total, per_sleeve, sleeves"
+            )
+        return
+
+    if key == "return_distribution":
+        if value not in {"normal", "student_t"}:
+            raise ConfigPatchValidationError("return_distribution must be 'normal' or 'student_t'")
+        return
+
+    if key == "return_copula":
+        if value not in {"gaussian", "t"}:
+            raise ConfigPatchValidationError("return_copula must be 'gaussian' or 't'")
+        return
+
+    if key == "vol_regime":
+        if value not in {"single", "two_state"}:
+            raise ConfigPatchValidationError("vol_regime must be 'single' or 'two_state'")
+        return
+
+    if key == "covariance_shrinkage":
+        if value not in {"none", "ledoit_wolf"}:
+            raise ConfigPatchValidationError("covariance_shrinkage must be 'none' or 'ledoit_wolf'")
+        return
+
+    if key == "correlation_repair_mode":
+        if value not in {"error", "warn_fix"}:
+            raise ConfigPatchValidationError(
+                "correlation_repair_mode must be 'error' or 'warn_fix'"
+            )
+        return
+
+    if key == "risk_metrics":
+        if not isinstance(value, list):
+            raise ConfigPatchValidationError("risk_metrics must be a list")
+        for metric in value:
+            if isinstance(metric, RiskMetric):
+                continue
+            if isinstance(metric, str):
+                continue
+            raise ConfigPatchValidationError("risk_metrics entries must be strings or RiskMetric")
+        return
+
+    if key == "regimes":
+        if value is None:
+            return
+        if isinstance(value, list) and all(isinstance(item, dict) for item in value):
+            return
+        if isinstance(value, dict) and all(
+            isinstance(child_key, str) and isinstance(child_value, dict)
+            for child_key, child_value in value.items()
+        ):
+            return
+        raise ConfigPatchValidationError("regimes must be a list[dict], dict[str, dict], or null")
+
+    if key == "regime_transition":
+        if value is None:
+            return
+        if isinstance(value, list) and all(
+            isinstance(row, list)
+            and all(isinstance(cell, (int, float)) and not isinstance(cell, bool) for cell in row)
+            for row in value
+        ):
+            return
+        raise ConfigPatchValidationError(
+            "regime_transition must be a list of numeric lists or null"
+        )
+
+    if key == "correlation_repair_max_abs_delta" and value is None:
+        return
+
+    if (
+        key
+        in {
+            "sleeve_max_te",
+            "sleeve_max_breach",
+            "sleeve_max_cvar",
+            "sleeve_max_shortfall",
+        }
+        and value is None
+    ):
+        return
+
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ConfigPatchValidationError(f"field '{key}' must be a float")
 
 
-def _clear_session_field(field: str, *, session_state: MutableMapping[str, Any] | None) -> None:
-    if session_state is None:
-        return
-    key = _SESSION_FIELD_MIRRORS.get(field)
-    if key is None:
-        return
-    session_state.pop(key, None)
+def empty_patch() -> ConfigPatch:
+    """Return an empty validated patch object."""
+
+    return ConfigPatch(set={}, merge={}, remove=[])
 
 
 def apply_patch(
     config: Any,
-    patch: Mapping[str, Any] | ValidatedConfigPatch,
+    patch: ConfigPatch | Mapping[str, Any],
     *,
     session_state: MutableMapping[str, Any] | None = None,
+    session_mirror_keys: Mapping[str, str] | None = None,
 ) -> Any:
-    """Apply a validated patch to a wizard config and optional session-state mirrors."""
+    """Apply a validated config patch to wizard config and optional session-state mirrors."""
 
-    validated = patch if isinstance(patch, ValidatedConfigPatch) else validate_patch(patch)
+    normalized_patch = _normalize_patch_input(patch)
+    mirrors = dict(session_mirror_keys or WIZARD_SESSION_MIRROR_KEYS)
 
-    for field, value in validated.set_ops.items():
-        setattr(config, field, deepcopy(value))
-        _mirror_session_field(field, value, session_state=session_state)
+    for key, value in normalized_patch.set.items():
+        coerced_value = _coerce_runtime_value(key, value)
+        setattr(config, key, coerced_value)
+        if session_state is not None and key in mirrors:
+            session_state[mirrors[key]] = _session_state_value(key, coerced_value)
 
-    for field, value in validated.merge_ops.items():
-        current = getattr(config, field, None)
-        merged = _merge_value(current, value)
-        setattr(config, field, deepcopy(merged))
-        _mirror_session_field(field, merged, session_state=session_state)
+    for key, patch_value in normalized_patch.merge.items():
+        if key != "regimes":
+            continue
+        merged = _merge_regimes(getattr(config, key, None), patch_value)
+        setattr(config, key, merged)
+        if session_state is not None and key in mirrors:
+            session_state[mirrors[key]] = merged
 
-    for field in validated.remove_ops:
-        setattr(config, field, None)
-        _clear_session_field(field, session_state=session_state)
+    for key in normalized_patch.remove:
+        setattr(config, key, None)
+        if session_state is not None and key in mirrors:
+            session_state[mirrors[key]] = None
 
     return config
 
 
-def _serialize_snapshot(snapshot: Mapping[str, Any], *, format: str) -> str:
-    kind = format.strip().lower()
-    if kind == "yaml":
-        return yaml.safe_dump(dict(snapshot), sort_keys=True)
-    if kind == "json":
-        return json.dumps(dict(snapshot), indent=2, sort_keys=True, default=str) + "\n"
-    raise ValueError("format must be 'yaml' or 'json'")
+def _normalize_patch_input(patch: ConfigPatch | Mapping[str, Any]) -> ConfigPatch:
+    if isinstance(patch, ConfigPatch):
+        return patch
+    if isinstance(patch, Mapping):
+        return validate_patch_dict(patch)
+    # Accept ConfigPatch-like objects from equivalent modules loaded in another context.
+    if all(hasattr(patch, field) for field in ("set", "merge", "remove")):
+        return validate_patch_dict(
+            {
+                "set": getattr(patch, "set"),
+                "merge": getattr(patch, "merge"),
+                "remove": getattr(patch, "remove"),
+            }
+        )
+    raise ConfigPatchValidationError("patch must be a mapping")
 
 
 def diff_config(
-    before_snapshot: Mapping[str, Any],
-    after_snapshot: Mapping[str, Any],
+    before_config: Any,
+    after_config: Any,
     *,
     format: str = "yaml",
-    fromfile: str = "before",
-    tofile: str = "after",
-) -> str:
-    """Produce a unified diff between two config snapshots."""
+) -> tuple[str, str, str]:
+    """Return unified diff and serialized before/after snapshots."""
 
-    before_text = _serialize_snapshot(before_snapshot, format=format)
-    after_text = _serialize_snapshot(after_snapshot, format=format)
-    lines = unified_diff(
-        before_text.splitlines(keepends=True),
-        after_text.splitlines(keepends=True),
-        fromfile=fromfile,
-        tofile=tofile,
+    before_text = _serialize_config_snapshot(before_config, format=format)
+    after_text = _serialize_config_snapshot(after_config, format=format)
+    diff_text = "".join(
+        difflib.unified_diff(
+            before_text.splitlines(keepends=True),
+            after_text.splitlines(keepends=True),
+            fromfile="before",
+            tofile="after",
+        )
     )
-    return "".join(lines)
+    return diff_text, before_text, after_text
 
 
-def validate_round_trip(
+def round_trip_validate_config(
     config: Any,
     *,
     build_yaml_from_config: Callable[[Any], Mapping[str, Any]],
-) -> list[str]:
-    """Validate config by serializing and reloading through ``load_config``."""
+) -> ConfigRoundTripValidationResult:
+    """Validate config by serializing wizard YAML and reloading via ``load_config``."""
 
     try:
-        yaml_payload = build_yaml_from_config(config)
+        yaml_dict = dict(build_yaml_from_config(config))
+        load_config(yaml_dict)
     except Exception as exc:
-        return [f"build_yaml_from_config failed: {exc}"]
-
-    try:
-        load_config(dict(yaml_payload))
-    except Exception as exc:
-        return [str(exc)]
-    return []
+        return ConfigRoundTripValidationResult(is_valid=False, errors=[str(exc)], yaml_dict=None)
+    return ConfigRoundTripValidationResult(is_valid=True, errors=[], yaml_dict=yaml_dict)
 
 
-def apply_patch_with_validation(
-    config: Any,
-    patch: Mapping[str, Any] | ValidatedConfigPatch,
-    *,
-    build_yaml_from_config: Callable[[Any], Mapping[str, Any]],
-    session_state: MutableMapping[str, Any] | None = None,
-) -> tuple[Any, list[str]]:
-    """Apply patch then return round-trip validation errors, if any."""
+def _session_state_value(key: str, value: Any) -> Any:
+    if key == "analysis_mode" and isinstance(value, AnalysisMode):
+        return value.value
+    if key == "sleeve_constraint_scope" and value == "per_sleeve":
+        return "sleeves"
+    return value
 
-    apply_patch(config, patch, session_state=session_state)
-    errors = validate_round_trip(config, build_yaml_from_config=build_yaml_from_config)
-    return config, errors
+
+def _coerce_runtime_value(key: str, value: Any) -> Any:
+    if key == "analysis_mode" and isinstance(value, str):
+        return AnalysisMode(value)
+    if key == "risk_metrics":
+        normalized: list[str] = []
+        for metric in value:
+            if isinstance(metric, RiskMetric):
+                normalized.append(metric.value)
+            else:
+                normalized.append(str(metric))
+        return normalized
+    if key == "sleeve_constraint_scope" and value == "sleeves":
+        return "per_sleeve"
+    return value
+
+
+def _merge_regimes(
+    existing: list[dict[str, Any]] | dict[str, dict[str, Any]] | None,
+    patch_value: Mapping[str, Any],
+) -> dict[str, dict[str, Any]]:
+    merged = _normalize_regimes_mapping(existing)
+    for regime_name, regime_patch in patch_value.items():
+        if not isinstance(regime_patch, Mapping):
+            continue
+        target = dict(merged.get(regime_name, {}))
+        target.update(dict(regime_patch))
+        if "name" not in target:
+            target["name"] = regime_name
+        merged[regime_name] = target
+    return merged
+
+
+def _normalize_regimes_mapping(
+    regimes: list[dict[str, Any]] | dict[str, dict[str, Any]] | None,
+) -> dict[str, dict[str, Any]]:
+    if regimes is None:
+        return {}
+    if isinstance(regimes, list):
+        normalized: dict[str, dict[str, Any]] = {}
+        for regime in regimes:
+            name = str(regime.get("name", "")).strip()
+            if not name:
+                continue
+            normalized[name] = dict(regime)
+        return normalized
+    return {str(name): dict(regime) for name, regime in regimes.items()}
+
+
+def _serialize_config_snapshot(config: Any, *, format: str) -> str:
+    payload = _normalize_serializable(
+        {key: getattr(config, key, None) for key in ALLOWED_WIZARD_FIELDS}
+    )
+    if format == "yaml":
+        return yaml.safe_dump(payload, sort_keys=True)
+    if format == "json":
+        return json.dumps(payload, sort_keys=True, indent=2, default=str) + "\n"
+    raise ValueError("format must be 'yaml' or 'json'")
+
+
+def _normalize_serializable(value: Any) -> Any:
+    if isinstance(value, (AnalysisMode, RiskMetric)):
+        return value.value
+    if isinstance(value, Mapping):
+        return {str(key): _normalize_serializable(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_normalize_serializable(child) for child in value]
+    if isinstance(value, tuple):
+        return [_normalize_serializable(child) for child in value]
+    return value
+
+
+def parse_chain_output(raw_output: str | Mapping[str, Any]) -> Any:
+    """Compatibility wrapper for chain output parsing.
+
+    The canonical implementation lives in ``pa_core.llm.config_patch_chain``.
+    This wrapper keeps structured unknown-key reporting reachable from the
+    config_patch module without creating an import cycle at module load time.
+    """
+
+    from pa_core.llm.config_patch_chain import parse_chain_output as _parse_chain_output
+
+    return _parse_chain_output(raw_output)
+
+
+__all__ = [
+    "ALLOWED_WIZARD_FIELDS",
+    "ConfigPatch",
+    "ConfigPatchValidationError",
+    "ConfigRoundTripValidationResult",
+    "AllowedField",
+    "WIZARD_SESSION_MIRROR_KEYS",
+    "apply_patch",
+    "allowed_wizard_schema",
+    "diff_config",
+    "empty_patch",
+    "parse_chain_output",
+    "round_trip_validate_config",
+    "validate_patch_dict",
+]

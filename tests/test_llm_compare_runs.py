@@ -76,6 +76,35 @@ def test_format_config_diff_includes_seed_cli_and_wizard_changes():
     assert "wizard_config.risk.cvar_limit" in text
 
 
+def test_format_config_diff_reports_no_differences_when_manifests_match():
+    manifest = {
+        "seed": 7,
+        "cli_args": {"capital": 750000, "distribution": "student_t"},
+        "wizard_config": {"risk": {"cvar_limit": 0.09}},
+    }
+
+    text = format_config_diff(manifest, manifest)
+
+    assert text == "No config differences detected."
+
+
+def test_format_config_diff_handles_missing_manifest_inputs():
+    text = format_config_diff(None, {"seed": 1})
+
+    assert text == "No config differences available."
+
+
+def test_format_config_diff_includes_wizard_add_and_remove_paths():
+    current_manifest = {"wizard_inputs": {"alpha": {"limit": 0.2}, "beta": {"enabled": True}}}
+    prior_manifest = {"wizard_inputs": {"alpha": {"limit": 0.1}, "gamma": {"enabled": False}}}
+
+    text = format_config_diff(current_manifest, prior_manifest)
+
+    assert "wizard_inputs.alpha.limit" in text
+    assert "wizard_inputs.beta.enabled" in text
+    assert "wizard_inputs.gamma.enabled" in text
+
+
 def test_build_metric_catalog_extracts_supported_metrics():
     df = pd.DataFrame(
         {

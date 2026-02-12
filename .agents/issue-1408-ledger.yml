@@ -1,0 +1,69 @@
+version: 1
+issue: 1408
+base: main
+branch: codex/issue-1408
+tasks:
+  - id: task-01
+    title: Create baseline summary DataFrame fixture in `tests/test_result_explain.py` with required metric columns.
+    status: done
+    started_at: '2026-02-12T03:16:24Z'
+    finished_at: '2026-02-12T03:16:33Z'
+    commit: 1f0659059dfcecfc931f40a05e3ac20d306c9257
+    notes: []
+  - id: task-02
+    title: Create missing-column summary DataFrame fixture in `tests/test_result_explain.py` for deterministic omission behavior.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - Fixture `summary_df_missing_monthly_cvar` exists and is used by the missing-column test.
+  - id: task-03
+    title: Create null/NaN/empty-value summary DataFrame fixture in `tests/test_result_explain.py` for deterministic unusable-value behavior.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - Fixture `summary_df_with_null_nan_empty` exists and is used by the null/empty-value test.
+  - id: task-04
+    title: Add nominal-case test assertions for exact numeric metric output and categorical extraction limitation handling.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - `test_explain_results_details_nominal_baseline_fixture_returns_expected_values` asserts exact `0.03` tracking error.
+      - Nominal-case test asserts categorical keys are absent with inline limitation comment.
+  - id: task-05
+    title: Add missing-column extraction test verifying exact output shape omits unavailable metric.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - `test_explain_results_details_missing_column_fixture_omits_missing_metric` asserts exact catalog keys and values.
+  - id: task-06
+    title: Add null/empty-value extraction test verifying exact output handling for unusable metric values.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - `test_explain_results_details_null_nan_empty_fixture_handles_unusable_values` asserts exact expected behavior.
+  - id: task-07
+    title: Align test naming convention to `test_explain_results_details_*` for metric-extraction follow-up coverage.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - Renamed prior `test_metric_extraction_*` functions to `test_explain_results_details_*`.
+  - id: task-08
+    title: Reconcile ledger acceptance tracking with implemented fixtures/tests and PR follow-up scope.
+    status: done
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes:
+      - Removed stale generic placeholders and issue-mismatched references from this ledger.

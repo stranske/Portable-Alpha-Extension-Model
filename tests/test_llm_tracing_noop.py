@@ -41,6 +41,29 @@ def test_tracing_context_noop_without_api_key(
     assert attempts == []
 
 
+def test_maybe_enable_langsmith_tracing_sets_defaults(monkeypatch: pytest.MonkeyPatch):
+    tracing = importlib.import_module("pa_core.llm.tracing")
+
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
+    monkeypatch.delenv("LANGCHAIN_API_KEY", raising=False)
+    monkeypatch.delenv("LANGCHAIN_TRACING_V2", raising=False)
+    monkeypatch.setattr(tracing, "_LANGSMITH_ENABLED", None)
+
+    assert tracing.maybe_enable_langsmith_tracing() is True
+    assert tracing.maybe_enable_langsmith_tracing() is True
+    assert tracing.os.environ["LANGCHAIN_API_KEY"] == "test-key"
+    assert tracing.os.environ["LANGCHAIN_TRACING_V2"] == "true"
+
+
+def test_resolve_trace_url_accepts_run_object_url_attribute():
+    resolve_trace_url = _resolve_trace_url()
+
+    class _Run:
+        url = "https://smith.langchain.com/r/from-object"
+
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/from-object"
+
+
 # ---------- resolve_trace_url tests ----------
 
 
@@ -89,3 +112,20 @@ def test_resolve_trace_url_strips_trailing_slash_from_base():
     resolve_trace_url = _resolve_trace_url()
     url = resolve_trace_url("abc", base_url="https://example.com///")
     assert url == "https://example.com/abc"
+
+
+def test_resolve_trace_url_from_run_object_url_attr():
+    class _Run:
+        url = "https://smith.langchain.com/r/abc-run"
+
+    resolve_trace_url = _resolve_trace_url()
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/abc-run"
+
+
+def test_resolve_trace_url_from_run_object_get_url_method():
+    class _Run:
+        def get_url(self) -> str:
+            return "https://smith.langchain.com/r/get-url"
+
+    resolve_trace_url = _resolve_trace_url()
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/get-url"

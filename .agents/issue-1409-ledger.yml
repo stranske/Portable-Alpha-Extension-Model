@@ -1,0 +1,651 @@
+version: 1
+issue: 1409
+base: main
+branch: codex/issue-1409
+tasks:
+  - id: task-01
+    title: '### Apply/Validate Behavior Split'
+    status: done
+    started_at: '2026-02-12T03:18:48Z'
+    finished_at: '2026-02-12T03:18:57Z'
+    commit: 7c360367264d2912491984f942b257a1f4164c11
+    notes: []
+  - id: task-02
+    title: Extract patch application logic into a separate helper function in `pa_core/llm/config_chat.py`
+      that updates `wizard_config` and all session-state mirrors in `WIZARD_SESSION_MIRROR_KEYS`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Implement Apply action path in `_apply_config_chat_preview` that calls
+      the patch application helper without invoking `load_config()`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: Implement Apply+Validate action path in `_apply_config_chat_preview` that
+      validates via `load_config()` before applying changes
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: Add snapshot and restore logic to Apply+Validate in `_apply_config_chat_preview`
+      that preserves state when validation fails
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply action updates
+      config and mirrors even when `load_config()` would fail
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply+Validate
+      surfaces validation errors and leaves state unchanged on failure
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply+Validate
+      applies changes to config and mirrors when validation succeeds
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: '### LangSmith Trace Capture'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: Update trace capture logic in `pa_core/llm/config_chat.py` to extract real
+      run/trace identifier/URL from LangSmith/LangChain callback outputs when `LANGSMITH_API_KEY`
+      is set
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: Remove synthetic `uuid4().hex` trace ID generation from `pa_core/llm/config_chat.py`
+      and replace with deterministic empty value (`None` or `''`) when no trace is
+      available
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: Write unit test in `tests/test_config_chat.py` with stubbed callback objects
+      that simulates a real run/trace ID being returned and verifies it is stored
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: Write unit test in `tests/test_config_chat.py` confirming that when no
+      trace is available the system returns `None` or empty string without generating
+      synthetic UUIDs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: '### Unknown-Key Detection Refactoring'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: Update `parse_chain_output` in `pa_core/llm/config_patch.py` to return
+      structured unknown-key information for top-level LLM output keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: Update `validate_patch_dict` in `pa_core/llm/config_patch.py` to return
+      structured unknown-key information for nested keys with full path information
+      (e.g., `patch[0].foo`)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: Update call sites in `pa_core/llm/config_chat.py` to consume the new structured
+      unknown-key data from `parse_chain_output`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: Update call sites in `pa_core/llm/config_chat.py` to consume the new structured
+      unknown-key data from `validate_patch_dict`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: Update `_heuristic_config_patch_result` in `pa_core/llm/config_chat.py`
+      to consume structured unknown-key/validation information and expose rejected/stripped
+      fields in a stable machine-checkable location
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: Write unit test in `tests/test_config_patch.py` verifying structured reporting
+      of unknown top-level output keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Write unit test in `tests/test_config_patch.py` verifying structured reporting
+      of unknown nested keys within patch operations with full paths
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply action behavior
+      with unknown keys per chosen policy (strip vs error)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply+Validate
+      action behavior with unknown keys per chosen policy (strip vs error)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: '### Revert Restore Helper'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: Implement restore helper function in `pa_core/wizard/session_state.py`
+      that takes a snapshot and restores `wizard_config` and all keys in `WIZARD_SESSION_MIRROR_KEYS`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: Update Revert logic in `pa_core/llm/config_chat.py` to use the new restore
+      helper from `session_state.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: Write unit test in `tests/test_wizard_session_state.py` that simulates
+      revert and asserts every mirror key in `WIZARD_SESSION_MIRROR_KEYS` is restored
+      to its prior value
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: '`_apply_config_chat_preview(..., action=''Apply'')` applies the computed
+      patch to `wizard_config` and updates every session-state mirror key in `WIZARD_SESSION_MIRROR_KEYS`
+      without calling `load_config()`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-29
+    title: '`_apply_config_chat_preview(..., action=''Apply'')` persists the patch
+      to `wizard_config`/mirrors even when a `load_config()` round-trip would fail
+      for the resulting YAML'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-30
+    title: '`_apply_config_chat_preview(..., action=''Apply+Validate'')` calls `load_config()`
+      exactly once for validation and, when validation fails, returns/records the
+      validation error(s) and leaves `wizard_config` and all session-state mirror
+      keys unchanged from the pre-call snapshot'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-31
+    title: '`_apply_config_chat_preview(..., action=''Apply+Validate'')` applies the
+      patch to `wizard_config` and updates every session-state mirror key only when
+      `load_config()` validation succeeds'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-32
+    title: When `LANGSMITH_API_KEY` is set and the LangSmith/LangChain callback exposes
+      a real run/trace identifier or URL, `pa_core/llm/config_chat.py` stores/returns
+      that real identifier/URL and does not generate a `uuid4().hex` synthetic value
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-33
+    title: When no LangSmith trace information is available (missing callback fields
+      and/or `LANGSMITH_API_KEY` not set), the persisted/returned trace field is deterministic
+      (`None` or empty string per implementation) and no synthetic UUID is generated
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-34
+    title: '`parse_chain_output` reports unknown top-level LLM output keys via structured
+      data (e.g., a returned `unknown_keys` list or a typed exception field) rather
+      than relying on regex parsing of exception messages'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-35
+    title: '`validate_patch_dict` reports unknown nested keys inside patch operations
+      via structured data (returned value or typed exception) including the full path
+      to the offending key (e.g., `patch[0].foo`)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-36
+    title: '`_heuristic_config_patch_result` consumes the structured unknown-key/validation
+      information and includes the rejected/stripped field names in its returned result
+      in a stable machine-checkable location (e.g., `result.rejected_fields` or `result.risk_flags[''unknown_keys'']`)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-37
+    title: 'Unknown nested patch keys follow the chosen policy for both actions: (A)
+      if policy is "strip", the unknown fields are removed before applying and are
+      reported; (B) if policy is "error", Apply+Validate fails with structured unknown-key
+      feedback and makes no changes'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-38
+    title: Unknown top-level LLM output keys follow the chosen policy and are always
+      reported in structured output; no unknown top-level keys are silently accepted
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-39
+    title: A single helper in `pa_core/wizard/session_state.py` restores `wizard_config`
+      and all session-state mirror values defined by `WIZARD_SESSION_MIRROR_KEYS`
+      from a saved snapshot, and Revert uses this helper (no duplicate restore loops
+      in `pa_core/llm/config_chat.py`)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-40
+    title: Revert restores every key in `WIZARD_SESSION_MIRROR_KEYS` to its pre-Apply
+      snapshot value (including keys not touched by the patch), and restores `wizard_config`
+      to the snapshot config object/value
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-41
+    title: Extract patch application logic into a separate helper function in `pa_core/llm/config_chat.py`
+      that updates `wizard_config` and all session-state mirrors in `WIZARD_SESSION_MIRROR_KEYS`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-42
+    title: Implement Apply action path in `_apply_config_chat_preview` that calls
+      the patch application helper without invoking `load_config()`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-43
+    title: Implement Apply+Validate action path in `_apply_config_chat_preview` that
+      validates via `load_config()` before applying changes
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-44
+    title: Add snapshot and restore logic to Apply+Validate in `_apply_config_chat_preview`
+      that preserves state when validation fails
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-45
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply action updates
+      config and mirrors even when `load_config()` would fail
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-46
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply+Validate
+      surfaces validation errors and leaves state unchanged on failure
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-47
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply+Validate
+      applies changes to config and mirrors when validation succeeds
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-48
+    title: Update trace capture logic in `pa_core/llm/config_chat.py` to extract real
+      run/trace identifier/URL from LangSmith/LangChain callback outputs when `LANGSMITH_API_KEY`
+      is set
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-49
+    title: Remove synthetic `uuid4().hex` trace ID generation from `pa_core/llm/config_chat.py`
+      and replace with deterministic empty value (`None` or `''`) when no trace is
+      available
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-50
+    title: Write unit test in `tests/test_config_chat.py` with stubbed callback objects
+      that simulates a real run/trace ID being returned and verifies it is stored
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-51
+    title: Write unit test in `tests/test_config_chat.py` confirming that when no
+      trace is available the system returns `None` or empty string without generating
+      synthetic UUIDs
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-52
+    title: Update `parse_chain_output` in `pa_core/llm/config_patch.py` to return
+      structured unknown-key information for top-level LLM output keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-53
+    title: Update `validate_patch_dict` in `pa_core/llm/config_patch.py` to return
+      structured unknown-key information for nested keys with full path information
+      (e.g., `patch[0].foo`)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-54
+    title: Update call sites in `pa_core/llm/config_chat.py` to consume the new structured
+      unknown-key data from `parse_chain_output`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-55
+    title: Update call sites in `pa_core/llm/config_chat.py` to consume the new structured
+      unknown-key data from `validate_patch_dict`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-56
+    title: Update `_heuristic_config_patch_result` in `pa_core/llm/config_chat.py`
+      to consume structured unknown-key/validation information and expose rejected/stripped
+      fields in a stable machine-checkable location
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-57
+    title: Write unit test in `tests/test_config_patch.py` verifying structured reporting
+      of unknown top-level output keys
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-58
+    title: Write unit test in `tests/test_config_patch.py` verifying structured reporting
+      of unknown nested keys within patch operations with full paths
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-59
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply action behavior
+      with unknown keys per chosen policy (strip vs error)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-60
+    title: Write unit test in `tests/test_config_chat.py` verifying Apply+Validate
+      action behavior with unknown keys per chosen policy (strip vs error)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-61
+    title: Implement restore helper function in `pa_core/wizard/session_state.py`
+      that takes a snapshot and restores `wizard_config` and all keys in `WIZARD_SESSION_MIRROR_KEYS`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-62
+    title: Update Revert logic in `pa_core/llm/config_chat.py` to use the new restore
+      helper from `session_state.py`
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-63
+    title: Write unit test in `tests/test_wizard_session_state.py` that simulates
+      revert and asserts every mirror key in `WIZARD_SESSION_MIRROR_KEYS` is restored
+      to its prior value
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-64
+    title: '`_apply_config_chat_preview(..., action=''Apply'')` applies the computed
+      patch to `wizard_config` and updates every session-state mirror key in `WIZARD_SESSION_MIRROR_KEYS`
+      without calling `load_config()`'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-65
+    title: '`_apply_config_chat_preview(..., action=''Apply'')` persists the patch
+      to `wizard_config`/mirrors even when a `load_config()` round-trip would fail
+      for the resulting YAML'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-66
+    title: '`_apply_config_chat_preview(..., action=''Apply+Validate'')` calls `load_config()`
+      exactly once for validation and, when validation fails, returns/records the
+      validation error(s) and leaves `wizard_config` and all session-state mirror
+      keys unchanged from the pre-call snapshot'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-67
+    title: '`_apply_config_chat_preview(..., action=''Apply+Validate'')` applies the
+      patch to `wizard_config` and updates every session-state mirror key only when
+      `load_config()` validation succeeds'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-68
+    title: When `LANGSMITH_API_KEY` is set and the LangSmith/LangChain callback exposes
+      a real run/trace identifier or URL, `pa_core/llm/config_chat.py` stores/returns
+      that real identifier/URL and does not generate a `uuid4().hex` synthetic value
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-69
+    title: When no LangSmith trace information is available (missing callback fields
+      and/or `LANGSMITH_API_KEY` not set), the persisted/returned trace field is deterministic
+      (`None` or empty string per implementation) and no synthetic UUID is generated
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-70
+    title: '`parse_chain_output` reports unknown top-level LLM output keys via structured
+      data (e.g., a returned `unknown_keys` list or a typed exception field) rather
+      than relying on regex parsing of exception messages'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-71
+    title: '`validate_patch_dict` reports unknown nested keys inside patch operations
+      via structured data (returned value or typed exception) including the full path
+      to the offending key (e.g., `patch[0].foo`)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-72
+    title: '`_heuristic_config_patch_result` consumes the structured unknown-key/validation
+      information and includes the rejected/stripped field names in its returned result
+      in a stable machine-checkable location (e.g., `result.rejected_fields` or `result.risk_flags[''unknown_keys'']`)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-73
+    title: 'Unknown nested patch keys follow the chosen policy for both actions: (A)
+      if policy is "strip", the unknown fields are removed before applying and are
+      reported; (B) if policy is "error", Apply+Validate fails with structured unknown-key
+      feedback and makes no changes'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-74
+    title: Unknown top-level LLM output keys follow the chosen policy and are always
+      reported in structured output; no unknown top-level keys are silently accepted
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-75
+    title: A single helper in `pa_core/wizard/session_state.py` restores `wizard_config`
+      and all session-state mirror values defined by `WIZARD_SESSION_MIRROR_KEYS`
+      from a saved snapshot, and Revert uses this helper (no duplicate restore loops
+      in `pa_core/llm/config_chat.py`)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-76
+    title: Revert restores every key in `WIZARD_SESSION_MIRROR_KEYS` to its pre-Apply
+      snapshot value (including keys not touched by the patch), and restores `wizard_config`
+      to the snapshot config object/value
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

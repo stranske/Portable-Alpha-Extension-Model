@@ -1,0 +1,236 @@
+version: 1
+issue: 1380
+base: main
+branch: codex/issue-1380
+tasks:
+  - id: task-01
+    title: Add unit tests for key resolution and sanitization in `dashboard/components/llm_settings.py`.
+    status: done
+    started_at: '2026-02-11T22:35:31Z'
+    finished_at: '2026-02-11T22:35:40Z'
+    commit: 167d300e9a577c6e2c3cff365ec090ace44b91e0
+    notes: []
+  - id: task-02
+    title: 'Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py`
+      covering valid (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Implement focused slice for: Add unit tests for key resolution logic in
+      `dashboard/components/llm_settings.py` covering valid (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Validate focused slice for: Add unit tests for key resolution logic in
+      `dashboard/components/llm_settings.py` covering valid (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'invalid key formats (verify: formatter passes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Define scope for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py`
+      covering special characters (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Implement focused slice for: Add unit tests for sanitization logic in
+      `dashboard/components/llm_settings.py` covering special characters (verify:
+      tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Validate focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py`
+      covering special characters (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'edge cases (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: Create baseline summary DataFrame fixture with required metric columns in
+      `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added `baseline_summary_df` fixture in `tests/test_result_explain.py`.
+  - id: task-11
+    title: Create summary DataFrame fixture variant missing one required metric column
+      in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added `summary_df_missing_monthly_cvar` fixture in `tests/test_result_explain.py`.
+  - id: task-12
+    title: Create summary DataFrame fixture variant with `None`, `NaN`, and empty
+      string metric values in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added `summary_df_with_null_nan_empty` fixture in `tests/test_result_explain.py`.
+  - id: task-13
+    title: Add nominal metric extraction unit test with exact numeric and categorical
+      assertions in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added `test_explain_results_details_extracts_expected_metrics_baseline`.
+  - id: task-14
+    title: Add missing-column metric extraction unit test with exact expected output
+      in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added `test_explain_results_details_handles_missing_metric_column`.
+  - id: task-15
+    title: Add null and empty-value metric extraction unit test with exact expected
+      output in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added `test_explain_results_details_handles_null_nan_empty_metric_values`.
+  - id: task-16
+    title: Update `.agents/issue-1380-ledger.yml` to replace truncated path reference
+      task references with concrete `pa_core/llm/result_explain.py` paths and descriptions.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Replaced all truncated path reference task titles with concrete `pa_core/llm/result_explain.py` references.
+  - id: task-17
+    title: Update `.agents/issue-1380-ledger.yml` metric-extraction task statuses
+      to `done` only when corresponding tests exist in `tests/test_result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Statuses set to done for metric-extraction tasks with implemented tests.
+  - id: task-18
+    title: Align `.agents/issue-1380-ledger.yml` and `pr_body.md` follow-up subtasks
+      for issue #1380 with matching names, descriptions, and file paths.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Added aligned follow-up checklist entries in both ledger and PR body.
+  - id: task-19
+    title: Verify metric extraction follow-up via `pytest tests/test_result_explain.py
+      -m "not slow"` for `pa_core/llm/result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - 'Command passed: `pytest tests/test_result_explain.py -m "not slow"`.'
+  - id: task-20
+    title: Add unit tests for diff formatting in `pa_core/llm/compare_runs.py`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Add follow-up metric extraction unit-test coverage for `pa_core/llm/result_explain.py`
+      in `tests/test_result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Implemented in `tests/test_result_explain.py` with nominal and edge-case tests.
+  - id: task-22
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: 'Add tests for:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: '`dashboard/components/llm_settings.py` key resolution and sanitization'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: '`pa_core/llm/result_explain.py` metric extraction (with a small fake summary
+      DataFrame)'
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Covered by `tests/test_result_explain.py` fixtures and extraction assertions.
+  - id: task-26
+    title: '`pa_core/llm/compare_runs.py` diff formatting'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: '`pa_core/llm/result_explain.py` metric extraction fixture and edge-case
+      tests in `tests/test_result_explain.py`.'
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Replaced truncated task path with concrete module and test file.
+  - id: task-28
+    title: Reconcile previously truncated ledger reference against `pa_core/llm/result_explain.py`
+      and implemented tests in `tests/test_result_explain.py`.
+    status: done
+    started_at: '2026-02-12T00:00:00Z'
+    finished_at: '2026-02-12T00:00:00Z'
+    commit: ''
+    notes:
+      - Truncated reference removed and replaced with concrete paths and descriptions.
