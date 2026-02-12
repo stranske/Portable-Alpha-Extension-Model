@@ -5,6 +5,7 @@ import json
 from types import SimpleNamespace
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -62,6 +63,81 @@ def _toy_df() -> pd.DataFrame:
             "monthly_BreachProb": [0.11, 0.07],
         }
     )
+
+
+@pytest.fixture
+def baseline_summary_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "Agent": ["A", "Total", "C"],
+            "monthly_TE": [0.02, 0.03, 0.01],
+            "monthly_CVaR": [-0.05, -0.04, -0.06],
+            "monthly_BreachProb": [0.11, 0.07, 0.09],
+            "Regime": ["base", "bull", "bear"],
+        }
+    )
+
+
+@pytest.fixture
+def summary_df_missing_monthly_cvar(baseline_summary_df: pd.DataFrame) -> pd.DataFrame:
+    return baseline_summary_df.drop(columns=["monthly_CVaR"])
+
+
+@pytest.fixture
+def summary_df_with_null_nan_empty() -> pd.DataFrame:
+    return pd.DataFrame(
+        {
+            "Agent": ["A", "Total", None],
+            "monthly_TE": [0.02, None, np.nan],
+            "monthly_CVaR": [-0.05, np.nan, -0.01],
+            "monthly_BreachProb": [None, "", np.nan],
+            "Regime": ["base", "", None],
+        }
+    )
+
+
+def test_metric_extraction_baseline_fixture_returns_expected_values(
+    baseline_summary_df: pd.DataFrame,
+) -> None:
+    text, trace_url, payload = result_explain.explain_results_details(baseline_summary_df)
+    metric_catalog = payload["metric_catalog"]
+
+    assert (
+        text
+        == "LLM configuration is required to generate a result explanation. Prepared payload for 3 rows."
+    )
+    assert trace_url is None
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["tracking_error"]["label"] == "Tracking Error"
+    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.04)
+    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
+
+
+def test_metric_extraction_missing_column_fixture_omits_missing_metric(
+    summary_df_missing_monthly_cvar: pd.DataFrame,
+) -> None:
+    _text, _trace_url, payload = result_explain.explain_results_details(
+        summary_df_missing_monthly_cvar
+    )
+    metric_catalog = payload["metric_catalog"]
+
+    assert set(metric_catalog) == {"tracking_error", "breach_probability"}
+    assert "cvar" not in metric_catalog
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
+    assert metric_catalog["breach_probability"]["value"] == pytest.approx(0.07)
+
+
+def test_metric_extraction_null_nan_empty_fixture_handles_unusable_values(
+    summary_df_with_null_nan_empty: pd.DataFrame,
+) -> None:
+    _text, _trace_url, payload = result_explain.explain_results_details(
+        summary_df_with_null_nan_empty
+    )
+    metric_catalog = payload["metric_catalog"]
+
+    assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.02)
+    assert metric_catalog["cvar"]["value"] == pytest.approx(-0.03)
+    assert "breach_probability" not in metric_catalog
 
 
 def test_explain_results_calls_prompt_builder_and_llm_once(monkeypatch) -> None:
