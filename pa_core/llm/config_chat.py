@@ -8,9 +8,11 @@ from typing import Any, Callable, Mapping, MutableMapping
 from pa_core.llm.config_patch import (
     WIZARD_SESSION_MIRROR_KEYS,
     ConfigPatchValidationError,
-    apply_patch as apply_config_patch,
     round_trip_validate_config,
     validate_patch_dict,
+)
+from pa_core.llm.config_patch import (
+    apply_patch as apply_config_patch,
 )
 from pa_core.wizard.session_state import restore_wizard_session_snapshot
 from pa_core.wizard_schema import AnalysisMode, DefaultConfigView

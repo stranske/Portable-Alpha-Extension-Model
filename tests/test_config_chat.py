@@ -85,7 +85,9 @@ def test_apply_validate_returns_errors_and_restores_snapshot_on_failure() -> Non
     for mirror_key, expected in _expected_mirror_state(config).items():
         session_state[mirror_key] = expected
     before_config = session_state["wizard_config"]
-    before_mirrors = {key: session_state[key] for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))}
+    before_mirrors = {
+        key: session_state[key] for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+    }
     validate_calls = {"count": 0}
 
     def _invalid(*_args: Any, **_kwargs: Any) -> Any:
