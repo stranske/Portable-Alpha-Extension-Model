@@ -68,6 +68,38 @@ def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
     assert exc.unknown_paths == ["patch.unexpected_op"]
 
 
+def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict(
+            [
+                {
+                    "op": "set",
+                    "key": "n_simulations",
+                    "value": 5000,
+                    "foo": "bar",
+                }
+            ]
+        )
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["foo"]
+    assert exc.unknown_paths == ["patch[0].foo"]
+
+
+def test_validate_patch_dict_accepts_legacy_operation_list_shape() -> None:
+    patch = validate_patch_dict(
+        [
+            {"op": "set", "key": "n_simulations", "value": 5000},
+            {"op": "merge", "key": "regimes", "value": {"Stress": {"idx_sigma_multiplier": 1.2}}},
+            {"op": "remove", "key": "sleeve_max_cvar"},
+        ]
+    )
+
+    assert patch.set == {"n_simulations": 5000}
+    assert patch.merge == {"regimes": {"Stress": {"idx_sigma_multiplier": 1.2}}}
+    assert patch.remove == ["sleeve_max_cvar"]
+
+
 def test_parse_chain_output_reports_unknown_top_level_keys_structured() -> None:
     result = parse_chain_output(
         {
