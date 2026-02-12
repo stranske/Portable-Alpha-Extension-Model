@@ -163,6 +163,14 @@ class TestSanitizeApiKey:
         assert "\x1b" not in result
         assert all(ch.isprintable() for ch in result)
 
+    def test_null_and_del_control_chars_are_sanitized_before_masking(self) -> None:
+        key = "sk-\x00abc\x7fxyz9"
+        result = sanitize_api_key(key)
+        assert result == "sk-?***yz9"
+        assert "\x00" not in result
+        assert "\x7f" not in result
+        assert all(ch.isprintable() for ch in result)
+
     @pytest.mark.parametrize("key", ["abcdefgh", "abcd1234"])
     def test_boundary_length_fully_masked(self, key: str) -> None:
         assert sanitize_api_key(key) == "*" * len(key)

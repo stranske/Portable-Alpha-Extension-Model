@@ -163,3 +163,11 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1407)
 - [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (64 passed).
+
+## Task Reconciliation (Keepalive Next Task #1408)
+- [x] Reviewed recent commits (`6d33a7e`, `3ad6989`, `39ec437`) and reconciled checklist tracking for the latest llm-settings follow-up.
+- [x] Added focused sanitization coverage in `tests/test_dashboard_llm_settings.py` for NUL (`\\x00`) and DEL (`\\x7f`) control-character handling.
+- [x] Validated the added slice with targeted test execution.
+
+### Verification (Keepalive Next Task #1408)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (65 passed).
