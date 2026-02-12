@@ -227,3 +227,8 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
 - [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (5 passed).
 - [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (13 passed).
+
+## Task Reconciliation (Keepalive Next Task #1421)
+- [x] Reviewed recent commits (`b4f0ca9`, `e27026e`, `7b37985`) and reconciled unchecked config-chat/config-patch checklist state.
+- [x] Confirmed `pa_core/llm/config_patch.py` includes deterministic non-mutating apply semantics and both unified + side-by-side diff utilities.
+- [x] Synced tracking to reflect completed wrapper cleanup removing `n_simulations`/`N_SIMULATIONS` replacement logic.

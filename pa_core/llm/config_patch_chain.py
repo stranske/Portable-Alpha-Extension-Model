@@ -7,6 +7,8 @@ import os
 from dataclasses import dataclass, replace
 from typing import Any, Callable, Mapping, Sequence
 
+import yaml
+
 from pa_core.llm.config_patch import ConfigPatch, allowed_wizard_schema, validate_patch_dict
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
@@ -124,9 +126,18 @@ def _coerce_output_mapping(raw_output: str | Mapping[str, Any]) -> dict[str, Any
     if isinstance(raw_output, Mapping):
         return dict(raw_output)
     if isinstance(raw_output, str):
-        parsed = json.loads(raw_output)
-        if isinstance(parsed, Mapping):
-            return dict(parsed)
+        text = raw_output.strip()
+        if not text:
+            raise ValueError("chain output must be a non-empty mapping payload")
+        try:
+            parsed_json = json.loads(text)
+        except json.JSONDecodeError:
+            parsed_json = None
+        if isinstance(parsed_json, Mapping):
+            return dict(parsed_json)
+        parsed_yaml = yaml.safe_load(text)
+        if isinstance(parsed_yaml, Mapping):
+            return dict(parsed_yaml)
     raise ValueError("chain output must be a mapping or JSON object string")
 
 

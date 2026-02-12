@@ -49,6 +49,9 @@ from pa_core.llm.config_patch import (
 from pa_core.llm.config_patch import (
     diff_config as diff_wizard_config,
 )
+from pa_core.llm.config_patch import (
+    side_by_side_diff_config as side_by_side_diff_wizard_config,
+)
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard.session_state import restore_wizard_session_snapshot
@@ -76,6 +79,9 @@ _CONFIG_CHAT_PROVIDER_KEY = "wizard_config_chat_provider"
 _CONFIG_CHAT_MODEL_KEY = "wizard_config_chat_model"
 _CONFIG_CHAT_API_KEY_KEY = "wizard_config_chat_api_key"
 _CONFIG_CHAT_PREVIEW_KEY = "wizard_config_chat_preview"
+_CONFIG_CHAT_PREVIEW_PATCH_KEY = "preview_patch"
+_CONFIG_CHAT_PREVIEW_UNIFIED_DIFF_KEY = "preview_unified_diff"
+_CONFIG_CHAT_PREVIEW_SIDEBYSIDE_DIFF_KEY = "preview_sidebyside_diff"
 
 
 def _config_chat_history() -> list[dict[str, Any]]:
@@ -119,6 +125,43 @@ def _stable_unique_text_items(values: Any) -> list[str]:
         seen.add(text)
         normalized.append(text)
     return normalized
+
+
+def _render_side_by_side_diff_text(rows: list[dict[str, Any]]) -> str:
+    lines: list[str] = []
+    for row in rows:
+        if not bool(row.get("changed")):
+            continue
+        tag = str(row.get("tag", "change"))
+        before_line = str(row.get("before_line", ""))
+        after_line = str(row.get("after_line", ""))
+        lines.append(f"[{tag}] - {before_line}")
+        lines.append(f"[{tag}] + {after_line}")
+    return "\n".join(lines).strip()
+
+
+def _store_preview_session_state(preview: Mapping[str, Any]) -> None:
+    patch_payload = preview.get("patch")
+    unified_diff = preview.get("unified_diff")
+    sidebyside_diff = preview.get("sidebyside_diff")
+
+    st.session_state[_CONFIG_CHAT_PREVIEW_KEY] = dict(preview)
+    st.session_state[_CONFIG_CHAT_PREVIEW_PATCH_KEY] = (
+        deepcopy(patch_payload) if isinstance(patch_payload, Mapping) else {}
+    )
+    st.session_state[_CONFIG_CHAT_PREVIEW_UNIFIED_DIFF_KEY] = (
+        str(unified_diff).strip() if isinstance(unified_diff, str) else ""
+    )
+    st.session_state[_CONFIG_CHAT_PREVIEW_SIDEBYSIDE_DIFF_KEY] = (
+        str(sidebyside_diff).strip() if isinstance(sidebyside_diff, str) else ""
+    )
+
+
+def _clear_preview_session_state() -> None:
+    st.session_state.pop(_CONFIG_CHAT_PREVIEW_KEY, None)
+    st.session_state.pop(_CONFIG_CHAT_PREVIEW_PATCH_KEY, None)
+    st.session_state.pop(_CONFIG_CHAT_PREVIEW_UNIFIED_DIFF_KEY, None)
+    st.session_state.pop(_CONFIG_CHAT_PREVIEW_SIDEBYSIDE_DIFF_KEY, None)
 
 
 def _config_chat_snapshot(config: DefaultConfigView) -> dict[str, Any]:
@@ -252,6 +295,8 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
     result = _run_config_chat_instruction(instruction, config=config)
     after_config = apply_config_patch(config, result.patch)
     unified_diff, before_text, after_text = diff_wizard_config(before_config, after_config)
+    side_by_side_rows = side_by_side_diff_wizard_config(before_config, after_config)
+    side_by_side_text = _render_side_by_side_diff_text(side_by_side_rows)
     validation_result = round_trip_validate_config(
         after_config,
         build_yaml_from_config=_build_yaml_from_config,
@@ -282,6 +327,7 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         "trace_url": result.trace_url,
         "validation_errors": list(validation_result.errors),
         "unified_diff": unified_diff,
+        "sidebyside_diff": side_by_side_text,
         "before_text": before_text,
         "after_text": after_text,
     }
@@ -290,7 +336,7 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
 def _preview_config_chat_change(instruction: str) -> dict[str, Any]:
     """Backward-compatible wrapper used by legacy tests/callers."""
     preview = dict(_preview_config_chat_instruction(instruction))
-    st.session_state[_CONFIG_CHAT_PREVIEW_KEY] = preview
+    _store_preview_session_state(preview)
     return preview
 
 
@@ -334,6 +380,7 @@ def _revert_last_config_chat_change() -> tuple[bool, str]:
     if not restore_wizard_session_snapshot(last, session_state=st.session_state):
         return False, "Cannot revert because stored snapshot is invalid."
 
+    _clear_preview_session_state()
     return True, "Reverted to previous config snapshot."
 
 
