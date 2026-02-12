@@ -48,11 +48,9 @@ def test_apply_mutates_config_and_session_mirrors_without_validation_round_trip(
         config = get_default_config(AnalysisMode.RETURNS)
         st.session_state["wizard_config"] = config
         st.session_state["wizard_total_fund_capital"] = config.total_fund_capital
-        apply_fn.__globals__["round_trip_validate_config"] = (
-            lambda *_args, **_kwargs: (_ for _ in ()).throw(
-                AssertionError("round_trip_validate_config must not be called for Apply")
-            )
-        )
+        apply_fn.__globals__["round_trip_validate_config"] = lambda *_args, **_kwargs: (
+            _ for _ in ()
+        ).throw(AssertionError("round_trip_validate_config must not be called for Apply"))
 
         ok, message = apply_fn(
             {
