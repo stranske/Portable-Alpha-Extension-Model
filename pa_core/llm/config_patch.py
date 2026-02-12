@@ -546,6 +546,19 @@ def _normalize_serializable(value: Any) -> Any:
     return value
 
 
+def parse_chain_output(raw_output: str | Mapping[str, Any]) -> Any:
+    """Compatibility wrapper for chain output parsing.
+
+    The canonical implementation lives in ``pa_core.llm.config_patch_chain``.
+    This wrapper keeps structured unknown-key reporting reachable from the
+    config_patch module without creating an import cycle at module load time.
+    """
+
+    from pa_core.llm.config_patch_chain import parse_chain_output as _parse_chain_output
+
+    return _parse_chain_output(raw_output)
+
+
 __all__ = [
     "ALLOWED_WIZARD_FIELDS",
     "ConfigPatch",
@@ -557,6 +570,7 @@ __all__ = [
     "allowed_wizard_schema",
     "diff_config",
     "empty_patch",
+    "parse_chain_output",
     "round_trip_validate_config",
     "validate_patch_dict",
 ]

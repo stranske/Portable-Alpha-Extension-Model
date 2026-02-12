@@ -13,6 +13,7 @@ from pa_core.llm.config_patch import (
     apply_patch,
     diff_config,
     empty_patch,
+    parse_chain_output,
     round_trip_validate_config,
     validate_patch_dict,
 )
@@ -65,6 +66,21 @@ def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
     exc = exc_info.value
     assert exc.unknown_keys == ["unexpected_op"]
     assert exc.unknown_paths == ["patch.unexpected_op"]
+
+
+def test_parse_chain_output_reports_unknown_top_level_keys_structured() -> None:
+    result = parse_chain_output(
+        {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Increase simulations.",
+            "risk_flags": [],
+            "hallucinated": True,
+        }
+    )
+
+    assert result.patch.set == {"n_simulations": 5000}
+    assert result.unknown_output_keys == ["hallucinated"]
+    assert "stripped_unknown_output_keys" in result.risk_flags
 
 
 def test_validate_patch_dict_rejects_wrong_type() -> None:
