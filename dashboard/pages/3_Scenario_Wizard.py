@@ -389,7 +389,40 @@ def _apply_preview_patch(validate_first: bool) -> tuple[bool, str]:
     preview = st.session_state.get(_CONFIG_CHAT_PREVIEW_KEY)
     if not isinstance(preview, Mapping):
         return False, "No preview available to apply."
-    return _apply_config_chat_preview(preview, validate_first)
+
+    config = st.session_state.get("wizard_config")
+    if not isinstance(config, DefaultConfigView):
+        return False, "wizard_config is not initialized."
+
+    raw_patch = preview.get("patch", {})
+    try:
+        patch = validate_patch_dict(raw_patch)
+    except Exception as exc:
+        return False, f"Patch validation failed: {exc}"
+
+    if validate_first:
+        candidate = apply_config_patch(config, patch)
+        validation_result = round_trip_validate_config(
+            candidate,
+            build_yaml_from_config=_build_yaml_from_config,
+        )
+        if not validation_result.is_valid:
+            errors = "; ".join(validation_result.errors)
+            return False, f"Validation failed; changes not applied. {errors}"
+
+    snapshot = _config_chat_state_snapshot(config)
+    updated_config = apply_config_patch(config, patch, session_state=st.session_state)
+    st.session_state["wizard_config"] = updated_config
+    _config_chat_history().append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **snapshot,
+        }
+    )
+    return (
+        True,
+        "Config changes applied and validated." if validate_first else "Config changes applied.",
+    )
 
 
 def _revert_config_chat_change() -> tuple[bool, str]:
