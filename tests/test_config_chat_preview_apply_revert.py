@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import runpy
+from copy import deepcopy
 
 import streamlit as st
 
-from pa_core.llm.config_patch_chain import ConfigPatchChainResult
 from pa_core.llm.config_patch import validate_patch_dict
+from pa_core.llm.config_patch_chain import ConfigPatchChainResult
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
 
