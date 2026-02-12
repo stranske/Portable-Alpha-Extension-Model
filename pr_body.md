@@ -181,9 +181,12 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Added unit coverage in `tests/test_wizard_session_state.py` asserting restore behavior across every key in `WIZARD_SESSION_MIRROR_KEYS`.
 - [x] Completed the remaining Unknown-Key Detection Refactoring checklist item by stabilizing structured unknown-output risk flag reporting (no duplicate `stripped_unknown_output_keys` values).
 - [x] Added unit coverage in `tests/test_llm_config_patch_chain.py` to verify unknown-output risk flags remain deduplicated while unknown keys are still reported in structured output.
+- [x] Hardened wizard preview structured unknown-key metadata to be deterministic by de-duplicating `risk_flags`, `unknown_output_keys`, `rejected_patch_keys`, and `rejected_patch_paths`.
+- [x] Added acceptance coverage in `tests/test_wizard_config_chat_acceptance.py` ensuring duplicate unknown-key metadata is normalized into stable machine-checkable lists.
 
 ### Verification (Keepalive Next Task #1412)
 - [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (4 passed).
 - [x] `pytest tests/test_wizard_session_state.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
 - [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (5 passed).
+- [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (13 passed).

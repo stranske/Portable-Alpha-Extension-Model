@@ -97,6 +97,29 @@ def _normalize_config_chat_value(value: Any) -> Any:
     return value
 
 
+def _stable_unique_text_items(values: Any) -> list[str]:
+    """Normalize arbitrary values into a deterministic, de-duplicated string list."""
+
+    if values is None:
+        return []
+    if isinstance(values, str):
+        raw_values: list[Any] = [values]
+    elif isinstance(values, list):
+        raw_values = values
+    else:
+        raw_values = [values]
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in raw_values:
+        text = str(value).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        normalized.append(text)
+    return normalized
+
+
 def _config_chat_snapshot(config: DefaultConfigView) -> dict[str, Any]:
     return {
         key: _normalize_config_chat_value(getattr(config, key, None))
@@ -234,10 +257,10 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         build_yaml_from_config=_build_yaml_from_config,
     )
 
-    risk_flags = list(result.risk_flags)
-    unknown_output_keys = [str(key) for key in result.unknown_output_keys if str(key)]
-    rejected_patch_keys = [str(key) for key in (result.rejected_patch_keys or []) if str(key)]
-    rejected_patch_paths = [str(path) for path in (result.rejected_patch_paths or []) if str(path)]
+    risk_flags = _stable_unique_text_items(result.risk_flags)
+    unknown_output_keys = _stable_unique_text_items(result.unknown_output_keys)
+    rejected_patch_keys = _stable_unique_text_items(result.rejected_patch_keys)
+    rejected_patch_paths = _stable_unique_text_items(result.rejected_patch_paths)
     if unknown_output_keys and "stripped_unknown_output_keys" not in risk_flags:
         risk_flags.append("stripped_unknown_output_keys")
     if rejected_patch_paths and "rejected_unknown_patch_fields" not in risk_flags:

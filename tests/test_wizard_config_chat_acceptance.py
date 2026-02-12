@@ -208,6 +208,42 @@ def test_preview_carries_structured_unknown_output_keys() -> None:
         st.session_state.clear()
 
 
+def test_preview_deduplicates_structured_unknown_and_rejected_fields() -> None:
+    st.session_state.clear()
+    try:
+        module = _load_module()
+        preview_fn = module["_preview_config_chat_instruction"]
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["wizard_config"] = config
+
+        preview_fn.__globals__["_run_config_chat_instruction"] = lambda _instruction, config: (
+            ConfigPatchChainResult(
+                patch=empty_patch(),
+                summary="Duplicate metadata should be normalized.",
+                risk_flags=[
+                    "stripped_unknown_output_keys",
+                    "stripped_unknown_output_keys",
+                    "rejected_unknown_patch_fields",
+                ],
+                unknown_output_keys=["hallucinated", "hallucinated", "internal_meta"],
+                rejected_patch_keys=["fake_field", "fake_field"],
+                rejected_patch_paths=["patch.set.fake_field", "patch.set.fake_field"],
+                trace_url=None,
+            )
+        )
+
+        preview = preview_fn("change imaginary field")
+        assert preview["risk_flags"] == [
+            "stripped_unknown_output_keys",
+            "rejected_unknown_patch_fields",
+        ]
+        assert preview["unknown_output_keys"] == ["hallucinated", "internal_meta"]
+        assert preview["rejected_patch_keys"] == ["fake_field"]
+        assert preview["rejected_patch_paths"] == ["patch.set.fake_field"]
+    finally:
+        st.session_state.clear()
+
+
 def test_unknown_patch_field_rejection_requires_structured_details() -> None:
     st.session_state.clear()
     try:
