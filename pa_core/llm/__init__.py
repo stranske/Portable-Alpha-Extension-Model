@@ -17,7 +17,11 @@ if TYPE_CHECKING:
     )
     from .provider import LLMProviderConfig, create_llm
     from .result_explain import explain_results_details
-    from .tracing import langsmith_tracing_context, maybe_enable_langsmith_tracing, resolve_trace_url
+    from .tracing import (
+        langsmith_tracing_context,
+        maybe_enable_langsmith_tracing,
+        resolve_trace_url,
+    )
 
 __all__ = [
     "LLMProviderConfig",
