@@ -268,6 +268,10 @@ class TestResolveApiKeyInput:
         with mock.patch.dict(os.environ, {"OpenAI_API_KEY": "resolved-value"}, clear=True):
             assert resolve_api_key_input("OpenAI_API_KEY") == "OpenAI_API_KEY"
 
+    def test_invalid_env_var_like_input_does_not_resolve_when_valid_var_exists(self) -> None:
+        with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "resolved-value"}, clear=True):
+            assert resolve_api_key_input("OPENAI-API-KEY") == "OPENAI-API-KEY"
+
 
 # ===================================================================
 # default_api_key
