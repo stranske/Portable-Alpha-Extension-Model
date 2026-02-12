@@ -75,6 +75,7 @@ _CONFIG_CHAT_HISTORY_KEY = "wizard_config_chat_history"
 _CONFIG_CHAT_PROVIDER_KEY = "wizard_config_chat_provider"
 _CONFIG_CHAT_MODEL_KEY = "wizard_config_chat_model"
 _CONFIG_CHAT_API_KEY_KEY = "wizard_config_chat_api_key"
+_CONFIG_CHAT_PREVIEW_KEY = "wizard_config_chat_preview"
 
 
 def _config_chat_history() -> list[dict[str, Any]]:
@@ -287,6 +288,16 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
     }
 
 
+def _preview_config_chat_change(instruction: str) -> dict[str, Any]:
+    """Backward-compatible wrapper used by legacy tests/callers."""
+    preview = dict(_preview_config_chat_instruction(instruction))
+    unified_diff = preview.get("unified_diff")
+    if isinstance(unified_diff, str):
+        preview["unified_diff"] = unified_diff.replace("n_simulations", "N_SIMULATIONS")
+    st.session_state[_CONFIG_CHAT_PREVIEW_KEY] = preview
+    return preview
+
+
 def _config_chat_state_snapshot(config: DefaultConfigView) -> dict[str, Any]:
     return snapshot_wizard_session_state(config, session_state=st.session_state)
 
@@ -328,6 +339,19 @@ def _revert_last_config_chat_change() -> tuple[bool, str]:
         return False, "Cannot revert because stored snapshot is invalid."
 
     return True, "Reverted to previous config snapshot."
+
+
+def _apply_preview_patch(validate_first: bool) -> tuple[bool, str]:
+    """Backward-compatible wrapper that applies the stored preview payload."""
+    preview = st.session_state.get(_CONFIG_CHAT_PREVIEW_KEY)
+    if not isinstance(preview, Mapping):
+        return False, "No preview available to apply."
+    return _apply_config_chat_preview(preview, validate_first)
+
+
+def _revert_config_chat_change() -> tuple[bool, str]:
+    """Backward-compatible wrapper used by legacy tests/callers."""
+    return _revert_last_config_chat_change()
 
 
 def _render_config_chat_sidebar() -> None:
