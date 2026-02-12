@@ -7,7 +7,7 @@ from .prompts import (
 )
 from .provider import LLMProviderConfig, create_llm
 from .result_explain import explain_results_details
-from .tracing import langsmith_tracing_context, resolve_trace_url
+from .tracing import langsmith_tracing_context, maybe_enable_langsmith_tracing, resolve_trace_url
 
 __all__ = [
     "LLMProviderConfig",
@@ -17,5 +17,6 @@ __all__ = [
     "create_llm",
     "explain_results_details",
     "langsmith_tracing_context",
+    "maybe_enable_langsmith_tracing",
     "resolve_trace_url",
 ]
