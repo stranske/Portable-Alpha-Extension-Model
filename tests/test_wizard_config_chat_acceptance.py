@@ -319,6 +319,44 @@ def test_apply_rejects_unknown_patch_keys_without_mutating_wizard_state() -> Non
         st.session_state.clear()
 
 
+def test_apply_validate_rejects_unknown_patch_keys_without_mutating_wizard_state() -> None:
+    st.session_state.clear()
+    try:
+        module = _load_module()
+        apply_fn = module["_apply_config_chat_preview"]
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["wizard_config"] = config
+        st.session_state["wizard_total_fund_capital"] = config.total_fund_capital
+        original_simulations = config.n_simulations
+        original_capital = config.total_fund_capital
+        apply_fn.__globals__["round_trip_validate_config"] = lambda *_args, **_kwargs: (
+            _ for _ in ()
+        ).throw(AssertionError("round_trip_validate_config must not run when patch is invalid"))
+
+        ok, message = apply_fn(
+            {
+                "patch": {
+                    "set": {
+                        "n_simulations": 5000,
+                        "totally_fake_field": 123,
+                    },
+                    "merge": {},
+                    "remove": [],
+                }
+            },
+            True,
+        )
+
+        assert ok is False
+        assert "unknown patch fields" in message.lower()
+        assert "patch.set.totally_fake_field" in message
+        assert st.session_state["wizard_config"].n_simulations == original_simulations
+        assert st.session_state["wizard_config"].total_fund_capital == original_capital
+        assert st.session_state["wizard_total_fund_capital"] == original_capital
+    finally:
+        st.session_state.clear()
+
+
 def test_revert_restores_last_pre_apply_config_and_session_mirrors() -> None:
     st.session_state.clear()
     try:
