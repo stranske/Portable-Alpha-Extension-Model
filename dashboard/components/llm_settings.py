@@ -113,6 +113,9 @@ def sanitize_api_key(key: str | None) -> str:
     if not key or not key.strip():
         return "(not set)"
     key = key.strip()
+    # Replace non-printable characters so display/log sinks cannot be
+    # influenced by control bytes while still masking the key shape.
+    key = "".join(ch if ch.isprintable() else "?" for ch in key)
     if len(key) <= _MASK_VISIBLE * 2:
         return "*" * len(key)
     return key[:_MASK_VISIBLE] + "***" + key[-3:]

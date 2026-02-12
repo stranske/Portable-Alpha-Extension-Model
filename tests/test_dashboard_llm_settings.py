@@ -150,10 +150,18 @@ class TestSanitizeApiKey:
     def test_internal_whitespace_and_control_chars_do_not_bypass_masking(self) -> None:
         key = "\t sk-\nabc\rdef\x0bghi \n"
         result = sanitize_api_key(key)
-        assert result.startswith("sk-\n")
+        assert result.startswith("sk-?")
         assert result.endswith("ghi")
         assert "***" in result
         assert key.strip() not in result
+        assert all(ch.isprintable() for ch in result)
+
+    def test_ansi_escape_sequence_is_sanitized_to_printable_masked_output(self) -> None:
+        key = "sk-\x1b[31mred\x1b[0m-key"
+        result = sanitize_api_key(key)
+        assert "***" in result
+        assert "\x1b" not in result
+        assert all(ch.isprintable() for ch in result)
 
     @pytest.mark.parametrize("key", ["abcdefgh", "abcd1234"])
     def test_boundary_length_fully_masked(self, key: str) -> None:

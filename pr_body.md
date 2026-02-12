@@ -153,3 +153,13 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 ### Verification (Keepalive Next Task #1406)
 - [x] `pytest tests/test_llm_result_explain_entrypoint.py -m "not slow"` (5 passed).
 - [x] `pytest tests/test_llm_tracing_noop.py -m "not slow"` (13 passed).
+
+## Task Reconciliation (Keepalive Next Task #1407)
+- [x] Reviewed recent commits (`3ad6989`, `39ec437`, `b345953`) and reconciled missing checkbox updates.
+- [x] Validated key-resolution follow-up for invalid env-var format inputs in `tests/test_dashboard_llm_settings.py`.
+- [x] Implemented a focused sanitization hardening slice in `dashboard/components/llm_settings.py` to neutralize non-printable characters before masking.
+- [x] Added focused sanitization tests for control/ANSI-character edge cases in `tests/test_dashboard_llm_settings.py`.
+- [x] Validated the sanitization slice with targeted test execution.
+
+### Verification (Keepalive Next Task #1407)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (64 passed).
