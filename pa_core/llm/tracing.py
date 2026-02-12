@@ -80,9 +80,7 @@ def resolve_trace_url(trace: str | Any | None, *, base_url: str | None = None) -
             return None
         clean_trace_id = quote(trace.strip(), safe="")
         raw_base = (
-            base_url
-            or os.getenv("LANGSMITH_TRACE_BASE_URL")
-            or DEFAULT_LANGSMITH_TRACE_BASE_URL
+            base_url or os.getenv("LANGSMITH_TRACE_BASE_URL") or DEFAULT_LANGSMITH_TRACE_BASE_URL
         )
         clean_base = raw_base.rstrip("/")
         return f"{clean_base}/{clean_trace_id}"
