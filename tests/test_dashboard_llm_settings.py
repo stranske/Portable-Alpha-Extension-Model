@@ -175,6 +175,12 @@ class TestSanitizeApiKey:
         assert result == "sk-a***xyz"
         assert key not in result
 
+    @pytest.mark.parametrize("key", ["!", "[]", "@#$", "a b"])
+    def test_very_short_special_keys_are_fully_masked(self, key: str) -> None:
+        result = sanitize_api_key(key)
+        assert result == "*" * len(key)
+        assert key not in result
+
 
 # ===================================================================
 # read_secret
@@ -232,6 +238,10 @@ class TestResolveApiKeyInput:
         with mock.patch.dict(os.environ, {"OPENAI_API_KEY": "resolved-value"}):
             assert resolve_api_key_input("  OPENAI_API_KEY  ") == "resolved-value"
 
+    def test_shortest_valid_env_var_name_resolves(self) -> None:
+        with mock.patch.dict(os.environ, {"ABC": "resolved-abc"}):
+            assert resolve_api_key_input("ABC") == "resolved-abc"
+
     def test_env_var_name_missing(self) -> None:
         with mock.patch.dict(os.environ, {}, clear=True):
             # Patch st.secrets away
@@ -253,6 +263,10 @@ class TestResolveApiKeyInput:
     )
     def test_invalid_env_var_formats_are_treated_as_literals(self, raw_input: str) -> None:
         assert resolve_api_key_input(raw_input) == raw_input
+
+    def test_mixed_case_env_var_name_is_treated_as_literal(self) -> None:
+        with mock.patch.dict(os.environ, {"OpenAI_API_KEY": "resolved-value"}, clear=True):
+            assert resolve_api_key_input("OpenAI_API_KEY") == "OpenAI_API_KEY"
 
 
 # ===================================================================
