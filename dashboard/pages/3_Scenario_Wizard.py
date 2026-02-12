@@ -193,9 +193,12 @@ def _run_config_chat_instruction(
     except Exception as exc:
         rejected_patch_keys: list[str] = []
         rejected_patch_paths: list[str] = []
-        if isinstance(exc, ConfigPatchValidationError):
-            rejected_patch_keys = [str(key) for key in exc.unknown_keys if str(key)]
-            rejected_patch_paths = [str(path) for path in exc.unknown_paths if str(path)]
+        unknown_keys = getattr(exc, "unknown_keys", None)
+        if isinstance(unknown_keys, list):
+            rejected_patch_keys = [str(key) for key in unknown_keys if str(key)]
+        unknown_paths = getattr(exc, "unknown_paths", None)
+        if isinstance(unknown_paths, list):
+            rejected_patch_paths = [str(path) for path in unknown_paths if str(path)]
 
         fallback = _heuristic_config_patch_result(
             instruction,
