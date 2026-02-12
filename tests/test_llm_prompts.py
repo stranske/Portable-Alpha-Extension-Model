@@ -29,6 +29,20 @@ def test_build_config_wizard_prompt_returns_nonempty_string():
     assert len(result) > 0
 
 
+def test_build_comparison_prompt_contains_both_serialized_items():
+    result = build_comparison_prompt(
+        {"zeta": 1, "alpha": 2},
+        {"scenario": "stress", "cvar": -0.08},
+    )
+
+    assert "Item A:" in result
+    assert "Item B:" in result
+    # json.dumps(..., sort_keys=True) should order keys alphabetically.
+    assert '"alpha": 2' in result
+    assert '"zeta": 1' in result
+    assert result.index('"alpha": 2') < result.index('"zeta": 1')
+
+
 # ---------- Negative / validation tests ----------
 
 

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import math
 import os
+import re
 import tempfile
 from contextlib import contextmanager
+from copy import deepcopy
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Callable, Dict, Mapping
 
 import pandas as pd
 import streamlit as st
@@ -15,12 +18,32 @@ import yaml
 
 from dashboard import cli as dashboard_cli
 from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
+from dashboard.components.config_chat import render_config_chat_panel
+from dashboard.components.llm_settings import (
+    default_api_key,
+    resolve_api_key_input,
+    resolve_llm_provider_config,
+)
 from dashboard.glossary import tooltip
 from dashboard.utils import run_sleeve_frontier, run_sleeve_suggestions
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
+from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_chain
+from pa_core.llm.config_patch import (
+    ALLOWED_WIZARD_FIELDS,
+    WIZARD_SESSION_MIRROR_KEYS,
+    empty_patch,
+    round_trip_validate_config,
+    validate_patch_dict,
+)
+from pa_core.llm.config_patch import (
+    apply_patch as apply_config_patch,
+)
+from pa_core.llm.config_patch import (
+    diff_config as diff_wizard_config,
+)
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard_schema import (
@@ -42,6 +65,256 @@ _REGIME_ENABLED_KEY = "wizard_regime_enabled"
 _REGIMES_KEY = "wizard_regimes_yaml"
 _REGIME_TRANSITION_KEY = "wizard_regime_transition_yaml"
 _REGIME_START_KEY = "wizard_regime_start"
+_CONFIG_CHAT_HISTORY_KEY = "wizard_config_chat_history"
+_CONFIG_CHAT_PROVIDER_KEY = "wizard_config_chat_provider"
+_CONFIG_CHAT_MODEL_KEY = "wizard_config_chat_model"
+_CONFIG_CHAT_API_KEY_KEY = "wizard_config_chat_api_key"
+
+
+def _config_chat_history() -> list[dict[str, Any]]:
+    history = st.session_state.get(_CONFIG_CHAT_HISTORY_KEY)
+    if not isinstance(history, list):
+        history = []
+        st.session_state[_CONFIG_CHAT_HISTORY_KEY] = history
+    return history
+
+
+def _normalize_config_chat_value(value: Any) -> Any:
+    if isinstance(value, (AnalysisMode, RiskMetric)):
+        return value.value
+    if isinstance(value, Mapping):
+        return {str(key): _normalize_config_chat_value(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_normalize_config_chat_value(child) for child in value]
+    if isinstance(value, tuple):
+        return [_normalize_config_chat_value(child) for child in value]
+    return value
+
+
+def _config_chat_snapshot(config: DefaultConfigView) -> dict[str, Any]:
+    return {
+        key: _normalize_config_chat_value(getattr(config, key, None))
+        for key in ALLOWED_WIZARD_FIELDS
+    }
+
+
+def _heuristic_config_patch_result(
+    instruction: str,
+    *,
+    config: DefaultConfigView,
+) -> ConfigPatchChainResult:
+    text = instruction.strip().lower()
+    set_ops: dict[str, Any] = {}
+    risk_flags: list[str] = []
+
+    simulations_match = re.search(r"(?:simulations?|n_simulations)\D+(\d+)", text)
+    if simulations_match:
+        set_ops["n_simulations"] = int(simulations_match.group(1))
+
+    breach_to_match = re.search(
+        r"(?:breach tolerance|max breach|breach probability)\D+to\D*([0-9]*\.?[0-9]+)",
+        text,
+    )
+    if breach_to_match:
+        set_ops["sleeve_max_breach"] = float(breach_to_match.group(1))
+    elif "breach tolerance" in text and any(
+        token in text for token in ("reduce", "lower", "decrease")
+    ):
+        current = getattr(config, "sleeve_max_breach", None)
+        if isinstance(current, (int, float)):
+            set_ops["sleeve_max_breach"] = max(0.0, float(current) * 0.8)
+            risk_flags.append("heuristic_inferred_breach_target")
+
+    patch = validate_patch_dict({"set": set_ops}) if set_ops else empty_patch()
+    summary = "No recognized config changes in instruction."
+    if set_ops:
+        summary = "Applied heuristic instruction parsing."
+    else:
+        risk_flags.append("heuristic_noop")
+    return ConfigPatchChainResult(
+        patch=patch,
+        summary=summary,
+        risk_flags=risk_flags,
+        trace_url=None,
+    )
+
+
+def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | None, str | None]:
+    provider = str(st.session_state.get(_CONFIG_CHAT_PROVIDER_KEY, "openai")).strip().lower()
+    model = str(st.session_state.get(_CONFIG_CHAT_MODEL_KEY, "")).strip() or None
+    raw_key = st.session_state.get(_CONFIG_CHAT_API_KEY_KEY)
+    resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)
+    if not resolved_key:
+        return None, provider, model
+
+    try:
+        provider_config = resolve_llm_provider_config(
+            provider=provider,
+            model=model,
+            api_key=resolved_key,
+        )
+        llm = create_llm(provider_config)
+        from langchain_core.prompts import ChatPromptTemplate
+    except Exception:
+        return None, provider, model
+
+    def _invoke(prompt: str) -> str:
+        chain = ChatPromptTemplate.from_messages([("system", "{prompt}")]) | llm
+        response = chain.invoke({"prompt": prompt})
+        content = getattr(response, "content", None)
+        return str(content or response)
+
+    return _invoke, provider_config.provider_name, provider_config.model_name
+
+
+def _run_config_chat_instruction(
+    instruction: str,
+    *,
+    config: DefaultConfigView,
+) -> ConfigPatchChainResult:
+    invoke_llm, provider, model = _build_config_chat_llm_invoke()
+    if invoke_llm is None:
+        return _heuristic_config_patch_result(instruction, config=config)
+
+    try:
+        return run_config_patch_chain(
+            current_config=_config_chat_snapshot(config),
+            instruction=instruction,
+            invoke_llm=invoke_llm,
+            provider_name=provider,
+            model_name=model,
+        )
+    except Exception as exc:
+        fallback = _heuristic_config_patch_result(instruction, config=config)
+        exc_text = str(exc).lower()
+        if (
+            "unknown wizard field" in exc_text
+            and "rejected_unknown_patch_fields" not in fallback.risk_flags
+        ):
+            fallback.risk_flags.append("rejected_unknown_patch_fields")
+        if "llm_fallback_heuristic" not in fallback.risk_flags:
+            fallback.risk_flags.append("llm_fallback_heuristic")
+        return fallback
+
+
+def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
+    config = st.session_state.get("wizard_config")
+    if not isinstance(config, DefaultConfigView):
+        raise ValueError("wizard_config is not initialized")
+
+    before_config = deepcopy(config)
+    result = _run_config_chat_instruction(instruction, config=config)
+    after_config = deepcopy(config)
+    apply_config_patch(after_config, result.patch)
+    unified_diff, before_text, after_text = diff_wizard_config(before_config, after_config)
+    validation_result = round_trip_validate_config(
+        after_config,
+        build_yaml_from_config=_build_yaml_from_config,
+    )
+
+    risk_flags = list(result.risk_flags)
+    if not validation_result.is_valid and "round_trip_validation_failed" not in risk_flags:
+        risk_flags.append("round_trip_validation_failed")
+
+    return {
+        "patch": {
+            "set": dict(result.patch.set),
+            "merge": dict(result.patch.merge),
+            "remove": list(result.patch.remove),
+        },
+        "summary": result.summary,
+        "risk_flags": risk_flags,
+        "trace_url": result.trace_url,
+        "validation_errors": list(validation_result.errors),
+        "unified_diff": unified_diff,
+        "before_text": before_text,
+        "after_text": after_text,
+    }
+
+
+def _capture_session_mirror_state() -> tuple[dict[str, Any], list[str]]:
+    mirrors = sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+    present: dict[str, Any] = {}
+    missing: list[str] = []
+    for key in mirrors:
+        if key in st.session_state:
+            present[key] = deepcopy(st.session_state[key])
+        else:
+            missing.append(key)
+    return present, missing
+
+
+def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tuple[bool, str]:
+    config = st.session_state.get("wizard_config")
+    if not isinstance(config, DefaultConfigView):
+        return False, "wizard_config is not initialized."
+
+    raw_patch = preview.get("patch", {})
+    try:
+        patch = validate_patch_dict(raw_patch)
+    except Exception as exc:
+        return False, f"Patch validation failed: {exc}"
+
+    candidate = deepcopy(config)
+    apply_config_patch(candidate, patch)
+    validation_result = round_trip_validate_config(
+        candidate,
+        build_yaml_from_config=_build_yaml_from_config,
+    )
+    if not validation_result.is_valid:
+        errors = "; ".join(validation_result.errors)
+        return False, f"Validation failed; changes not applied. {errors}"
+
+    pre_mirror_values, pre_missing_mirrors = _capture_session_mirror_state()
+    _config_chat_history().append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "pre_apply_config": deepcopy(config),
+            "pre_apply_mirrors": pre_mirror_values,
+            "pre_apply_missing_mirrors": pre_missing_mirrors,
+        }
+    )
+
+    apply_config_patch(config, patch, session_state=st.session_state)
+    st.session_state["wizard_config"] = config
+
+    if validate:
+        return True, "Config changes applied and validated."
+    return True, "Config changes applied."
+
+
+def _revert_last_config_chat_change() -> tuple[bool, str]:
+    history = _config_chat_history()
+    if not history:
+        return False, "No applied config-chat changes to revert."
+
+    last = history.pop()
+    restored_config = last.get("pre_apply_config")
+    if not isinstance(restored_config, DefaultConfigView):
+        return False, "Cannot revert because stored snapshot is invalid."
+
+    st.session_state["wizard_config"] = restored_config
+
+    mirrors = last.get("pre_apply_mirrors", {})
+    if isinstance(mirrors, Mapping):
+        for key, value in mirrors.items():
+            st.session_state[str(key)] = deepcopy(value)
+
+    missing = last.get("pre_apply_missing_mirrors", [])
+    if isinstance(missing, list):
+        for key in missing:
+            st.session_state.pop(str(key), None)
+
+    return True, "Reverted to previous config snapshot."
+
+
+def _render_config_chat_sidebar() -> None:
+    render_config_chat_panel(
+        on_preview=_preview_config_chat_instruction,
+        on_apply=_apply_config_chat_preview,
+        on_revert=_revert_last_config_chat_change,
+        key_prefix="wizard",
+    )
 
 
 def _normalize_risk_metric_defaults(metrics: list[Any]) -> list[RiskMetric]:
@@ -1604,6 +1877,9 @@ def main() -> None:
     # Main wizard interface
     current_step = st.session_state.wizard_step
     config = st.session_state.wizard_config
+
+    with st.sidebar.expander("💬 Config Chat", expanded=False):
+        _render_config_chat_sidebar()
 
     _render_progress_bar(current_step)
 

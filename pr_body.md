@@ -101,3 +101,71 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 ### Verification (Keepalive Next Task #1391)
 - [x] `pytest -q tests/test_result_explain.py -m "not slow"` (20 passed).
 - [x] `coverage run -m pytest -q tests/test_result_explain.py -m "not slow"` and `coverage report -m pa_core/llm/result_explain.py` (20 passed; module coverage 82%).
+
+## Task Reconciliation (Keepalive Next Task #1398)
+- [x] Reviewed recent commits (`f75c59e`, `8949dbc`) touching `pa_core/llm/compare_runs.py` and `tests/test_llm_compare_runs.py`.
+- [x] Confirmed those commits only cover task-01 scope (prior manifest loader) with tests.
+- [x] Updated PR checkbox tracking for issue #1378 before continuing implementation.
+
+### Task Progress (Keepalive Next Task #1398)
+- [x] Create `dashboard/components/comparison_llm.py` with Streamlit component skeleton using Trend's `streamlit_app/components/comparison_llm.py` as reference.
+
+### Verification (Keepalive Next Task #1398)
+- [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (1 passed).
+
+## Task Reconciliation (Keepalive Next Task #1400)
+- [x] Reviewed recent commits (`f9d6cb2`, `ca9d1b7`, `8b80f54`) and reconciled checklist progress for comparison LLM work.
+- [x] Added comparison export assertions in `tests/test_dashboard_comparison_llm.py` to verify TXT/JSON payloads include config diff and trace URL.
+- [x] Verified readable previous-run path flow produces comparison output and download artifacts.
+
+### Acceptance Criteria (Keepalive Next Task #1400)
+- [x] When `manifest_data["previous_run"]` exists and is readable, the comparison panel can produce a coherent explanation and expose trace URL details in UI/export output.
+
+### Verification (Keepalive Next Task #1400)
+- [x] `pytest tests/test_llm_compare_runs.py tests/test_dashboard_comparison_llm.py tests/test_dashboard_results_previous_run.py -m "not slow"` (14 passed).
+- [x] `pytest tests/test_dashboard_comparison_llm.py -m "not slow"` (2 passed).
+
+## Task Reconciliation (Keepalive Next Task #1401)
+- [x] Reviewed recent commits (`ca9d1b7`, `8b80f54`, `ad4c380`) and reconciled unchecked comparison-LLM checklist state.
+- [x] Added Results-page integration helper `_render_comparison_panel(...)` in `dashboard/pages/4_Results.py` to centralize previous-run availability gating and panel invocation.
+- [x] Added unit test coverage in `tests/test_dashboard_results_previous_run.py` verifying readable `manifest_data["previous_run"]` calls comparison panel with resolved `run_key`.
+
+### Acceptance Criteria (Keepalive Next Task #1401)
+- [x] When `manifest_data["previous_run"]` exists and is readable, the comparison panel can produce a coherent explanation and expose trace URL details in UI/export output.
+
+### Verification (Keepalive Next Task #1401)
+- [x] `pytest tests/test_dashboard_results_previous_run.py tests/test_dashboard_comparison_llm.py tests/test_llm_compare_runs.py -m "not slow"` (15 passed).
+
+## Task Reconciliation (Keepalive Next Task #1402)
+- [x] Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Define scope for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters edge cases (verify: tests pass).
+
+### Verification (Keepalive Next Task #1402)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (56 passed).
+
+## Task Reconciliation (Keepalive Next Task #1403)
+- [x] Reviewed recent commits (`fcaf87b`, `ea76def`, `1360476`) and reconciled checkbox state for llm-settings follow-up test work.
+- [x] Added additional diff-formatting unit coverage for `format_config_diff(...)` in `tests/test_llm_compare_runs.py` for matching manifests, missing manifest inputs, and wizard add/remove paths.
+
+### Verification (Keepalive Next Task #1403)
+- [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
+
+## Task Reconciliation (Keepalive Next Task #1404)
+- [x] Reviewed recent commits (`1d1a07c`, `b0828b3`, `a377eea`) and reconciled checkbox state for Config Chat backend groundwork.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch.py` schema/patch validation allowlist and tests.
+- [x] Marked complete in PR tracking: created `pa_core/llm/config_patch_chain.py` prompt builder, output parsing (`patch`, `summary`, `risk_flags`), and LangSmith trace URL capture with tests.
+
+### Verification (Keepalive Next Task #1404)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_llm_config_patch_chain.py -m "not slow"` (pass).
+
+## Task Reconciliation (Keepalive Next Task #1405)
+- [x] Implemented `dashboard/components/config_chat.py` with Streamlit controls for instruction input, `Preview`, `Apply`, `Apply+Validate`, and `Revert`.
+- [x] Added component tests in `tests/test_dashboard_config_chat.py` covering preview, apply/apply+validate callback wiring, and revert wiring.
+- [x] Updated task checkboxes for issue #1403 scope in `Issues.txt` to reflect completed `config_patch_chain` and `config_chat` UI-control items.
+
+### Verification (Keepalive Next Task #1405)
+- [x] `pytest tests/test_dashboard_config_chat.py -m "not slow"` (3 passed).
