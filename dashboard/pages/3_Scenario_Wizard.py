@@ -250,8 +250,7 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
 
     before_config = deepcopy(config)
     result = _run_config_chat_instruction(instruction, config=config)
-    after_config = deepcopy(config)
-    apply_config_patch(after_config, result.patch)
+    after_config = apply_config_patch(config, result.patch)
     unified_diff, before_text, after_text = diff_wizard_config(before_config, after_config)
     validation_result = round_trip_validate_config(
         after_config,

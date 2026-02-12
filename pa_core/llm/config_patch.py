@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import difflib
 import json
+from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, MutableMapping
 
@@ -23,12 +24,69 @@ class ConfigPatchValidationError(ValueError):
         self,
         message: str,
         *,
+        field_name: str | None = None,
+        expected_type: str | None = None,
+        actual_type: str | None = None,
         unknown_keys: list[str] | None = None,
         unknown_paths: list[str] | None = None,
     ) -> None:
         super().__init__(message)
+        self.field_name = field_name
+        self.expected_type = expected_type
+        self.actual_type = actual_type
         self.unknown_keys = list(unknown_keys or [])
         self.unknown_paths = list(unknown_paths or [])
+
+
+@dataclass(frozen=True)
+class PatchSchemaValidationResult:
+    """Schema validation result for incoming patch payloads."""
+
+    is_valid: bool
+    unknown_keys: list[str]
+    normalized_patch: dict[str, Any] | None = None
+
+
+def validate_patch_schema(raw_patch: Mapping[str, Any] | list[Any]) -> PatchSchemaValidationResult:
+    """Validate top-level patch schema and detect unknown operation keys."""
+
+    normalized: Mapping[str, Any] | dict[str, Any] = raw_patch
+    if isinstance(raw_patch, list):
+        normalized = _normalize_patch_operations_list(raw_patch)
+
+    if not isinstance(normalized, Mapping):
+        _raise_type_validation_error(
+            field_name="patch",
+            expected_type="mapping",
+            actual_value=normalized,
+        )
+
+    unknown_patch_ops = sorted(set(normalized) - set(_PATCH_KEYS))
+    if unknown_patch_ops:
+        return PatchSchemaValidationResult(
+            is_valid=False,
+            unknown_keys=unknown_patch_ops,
+            normalized_patch=None,
+        )
+    return PatchSchemaValidationResult(
+        is_valid=True,
+        unknown_keys=[],
+        normalized_patch=dict(normalized),
+    )
+
+
+def _raise_type_validation_error(
+    *,
+    field_name: str,
+    expected_type: str,
+    actual_value: Any,
+) -> None:
+    raise ConfigPatchValidationError(
+        f"{field_name} must be {expected_type}",
+        field_name=field_name,
+        expected_type=expected_type,
+        actual_type=type(actual_value).__name__,
+    )
 
 
 @dataclass(frozen=True)
@@ -142,19 +200,21 @@ def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch
     ``[{"op": "set|merge|remove", "key": "...", "value": ...}, ...]``
     """
 
-    if isinstance(raw_patch, list):
-        raw_patch = _normalize_patch_operations_list(raw_patch)
-
-    if not isinstance(raw_patch, Mapping):
-        raise ConfigPatchValidationError("patch must be a mapping")
-
-    unknown_patch_ops = sorted(set(raw_patch) - set(_PATCH_KEYS))
-    if unknown_patch_ops:
+    schema = validate_patch_schema(raw_patch)
+    if not schema.is_valid:
+        unknown_patch_ops = list(schema.unknown_keys)
         raise ConfigPatchValidationError(
             f"unknown patch operations: {', '.join(unknown_patch_ops)}",
             unknown_keys=unknown_patch_ops,
             unknown_paths=[f"patch.{key}" for key in unknown_patch_ops],
         )
+    if schema.normalized_patch is None:
+        _raise_type_validation_error(
+            field_name="patch",
+            expected_type="mapping",
+            actual_value=raw_patch,
+        )
+    raw_patch = schema.normalized_patch
 
     set_ops = _validate_set_ops(raw_patch.get("set", {}))
     merge_ops = _validate_merge_ops(raw_patch.get("merge", {}))
@@ -232,7 +292,11 @@ def _ensure_known_key(key: str, *, path: str) -> AllowedField:
 
 def _validate_set_ops(raw_set: Any) -> dict[str, Any]:
     if not isinstance(raw_set, Mapping):
-        raise ConfigPatchValidationError("patch.set must be a mapping")
+        _raise_type_validation_error(
+            field_name="set",
+            expected_type="dict",
+            actual_value=raw_set,
+        )
 
     normalized: dict[str, Any] = {}
     for key, value in raw_set.items():
@@ -248,7 +312,11 @@ def _validate_set_ops(raw_set: Any) -> dict[str, Any]:
 
 def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
     if not isinstance(raw_merge, Mapping):
-        raise ConfigPatchValidationError("patch.merge must be a mapping")
+        _raise_type_validation_error(
+            field_name="merge",
+            expected_type="dict",
+            actual_value=raw_merge,
+        )
 
     normalized: dict[str, dict[str, Any]] = {}
     for key, value in raw_merge.items():
@@ -265,13 +333,21 @@ def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
 
 def _validate_remove_ops(raw_remove: Any) -> list[str]:
     if not isinstance(raw_remove, list):
-        raise ConfigPatchValidationError("patch.remove must be a list")
+        _raise_type_validation_error(
+            field_name="remove",
+            expected_type="list[str]",
+            actual_value=raw_remove,
+        )
 
     normalized: list[str] = []
     seen: set[str] = set()
     for idx, value in enumerate(raw_remove):
         if not isinstance(value, str):
-            raise ConfigPatchValidationError("patch.remove values must be strings")
+            _raise_type_validation_error(
+                field_name=f"remove[{idx}]",
+                expected_type="str",
+                actual_value=value,
+            )
         if value in seen:
             continue
         seen.add(value)
@@ -447,31 +523,72 @@ def apply_patch(
     session_state: MutableMapping[str, Any] | None = None,
     session_mirror_keys: Mapping[str, str] | None = None,
 ) -> Any:
-    """Apply a validated config patch to wizard config and optional session-state mirrors."""
+    """Apply a validated config patch without mutating the input config object."""
 
     normalized_patch = _normalize_patch_input(patch)
+    updated_config = deepcopy(config)
     mirrors = dict(session_mirror_keys or WIZARD_SESSION_MIRROR_KEYS)
+
+    touched_keys: set[str] = set()
+
+    # Deterministic operation order: remove -> set -> merge.
+    for key in normalized_patch.remove:
+        _set_config_value(updated_config, key, None)
+        touched_keys.add(key)
 
     for key, value in normalized_patch.set.items():
         coerced_value = _coerce_runtime_value(key, value)
-        setattr(config, key, coerced_value)
-        if session_state is not None and key in mirrors:
-            session_state[mirrors[key]] = _session_state_value(key, coerced_value)
+        _set_config_value(updated_config, key, coerced_value)
+        touched_keys.add(key)
 
     for key, patch_value in normalized_patch.merge.items():
-        if key != "regimes":
-            continue
-        merged = _merge_regimes(getattr(config, key, None), patch_value)
-        setattr(config, key, merged)
-        if session_state is not None and key in mirrors:
-            session_state[mirrors[key]] = merged
+        existing_value = _get_config_value(updated_config, key)
+        if key == "regimes":
+            merged = _merge_regimes(existing_value, patch_value)
+        else:
+            merged = _recursive_merge(existing_value, patch_value)
+        _set_config_value(updated_config, key, merged)
+        touched_keys.add(key)
 
-    for key in normalized_patch.remove:
-        setattr(config, key, None)
-        if session_state is not None and key in mirrors:
-            session_state[mirrors[key]] = None
+    if session_state is not None:
+        for key in touched_keys:
+            if key not in mirrors:
+                continue
+            session_state[mirrors[key]] = _session_state_value(
+                key, _get_config_value(updated_config, key)
+            )
 
-    return config
+    return updated_config
+
+
+def _get_config_value(config: Any, key: str) -> Any:
+    if isinstance(config, Mapping):
+        return config.get(key)
+    return getattr(config, key, None)
+
+
+def _set_config_value(config: Any, key: str, value: Any) -> None:
+    if isinstance(config, MutableMapping):
+        config[key] = value
+        return
+    setattr(config, key, value)
+
+
+def _recursive_merge(existing: Any, patch_value: Mapping[str, Any]) -> dict[str, Any]:
+    base: dict[str, Any]
+    if isinstance(existing, Mapping):
+        base = deepcopy(dict(existing))
+    else:
+        base = {}
+    for key, value in patch_value.items():
+        current = base.get(key)
+        if isinstance(current, Mapping) and isinstance(value, Mapping):
+            base[key] = _recursive_merge(current, value)
+        elif isinstance(value, Mapping):
+            base[key] = _recursive_merge({}, value)
+        else:
+            base[key] = deepcopy(value)
+    return base
 
 
 def _normalize_patch_input(patch: ConfigPatch | Mapping[str, Any]) -> ConfigPatch:
@@ -510,6 +627,44 @@ def diff_config(
         )
     )
     return diff_text, before_text, after_text
+
+
+def side_by_side_diff_config(
+    before_config: Any,
+    after_config: Any,
+    *,
+    format: str = "yaml",
+) -> list[dict[str, Any]]:
+    """Return structured side-by-side line pairs for UI diff rendering."""
+
+    before_text = _serialize_config_snapshot(before_config, format=format)
+    after_text = _serialize_config_snapshot(after_config, format=format)
+    matcher = difflib.SequenceMatcher(
+        None,
+        before_text.splitlines(),
+        after_text.splitlines(),
+    )
+    rows: list[dict[str, Any]] = []
+    before_lines = before_text.splitlines()
+    after_lines = after_text.splitlines()
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        before_chunk = before_lines[i1:i2]
+        after_chunk = after_lines[j1:j2]
+        max_len = max(len(before_chunk), len(after_chunk))
+        if max_len == 0:
+            continue
+        for idx in range(max_len):
+            before_line = before_chunk[idx] if idx < len(before_chunk) else ""
+            after_line = after_chunk[idx] if idx < len(after_chunk) else ""
+            rows.append(
+                {
+                    "tag": tag,
+                    "before_line": before_line,
+                    "after_line": after_line,
+                    "changed": tag != "equal" or before_line != after_line,
+                }
+            )
+    return rows
 
 
 def round_trip_validate_config(
@@ -559,8 +714,7 @@ def _merge_regimes(
     for regime_name, regime_patch in patch_value.items():
         if not isinstance(regime_patch, Mapping):
             continue
-        target = dict(merged.get(regime_name, {}))
-        target.update(dict(regime_patch))
+        target = _recursive_merge(merged.get(regime_name, {}), regime_patch)
         if "name" not in target:
             target["name"] = regime_name
         merged[regime_name] = target
@@ -625,6 +779,7 @@ __all__ = [
     "ConfigPatchValidationError",
     "ConfigRoundTripValidationResult",
     "AllowedField",
+    "PatchSchemaValidationResult",
     "WIZARD_SESSION_MIRROR_KEYS",
     "apply_patch",
     "allowed_wizard_schema",
@@ -632,5 +787,7 @@ __all__ = [
     "empty_patch",
     "parse_chain_output",
     "round_trip_validate_config",
+    "side_by_side_diff_config",
     "validate_patch_dict",
+    "validate_patch_schema",
 ]

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import runpy
 
 import pytest
 
 from pa_core.llm.config_patch import (
     ConfigPatch,
+    PatchSchemaValidationResult,
     ConfigPatchValidationError,
     allowed_wizard_schema,
     apply_patch,
@@ -15,7 +17,9 @@ from pa_core.llm.config_patch import (
     empty_patch,
     parse_chain_output,
     round_trip_validate_config,
+    side_by_side_diff_config,
     validate_patch_dict,
+    validate_patch_schema,
 )
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
@@ -66,6 +70,25 @@ def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
     exc = exc_info.value
     assert exc.unknown_keys == ["unexpected_op"]
     assert exc.unknown_paths == ["patch.unexpected_op"]
+
+
+def test_validate_patch_schema_returns_structured_unknown_keys_result() -> None:
+    result = validate_patch_schema({"set": {}, "nope": {}})
+
+    assert isinstance(result, PatchSchemaValidationResult)
+    assert result.is_valid is False
+    assert result.unknown_keys == ["nope"]
+    assert result.normalized_patch is None
+
+
+def test_validate_patch_dict_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {}, "remove": "not-a-list"})
+
+    exc = exc_info.value
+    assert exc.field_name == "remove"
+    assert exc.expected_type == "list[str]"
+    assert exc.actual_type == "str"
 
 
 def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structured() -> None:
@@ -147,6 +170,7 @@ def test_empty_patch_returns_valid_empty_container() -> None:
 
 def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
     config = get_default_config(AnalysisMode.RETURNS)
+    config_before = deepcopy(config)
     session_state: dict[str, object] = {}
 
     patch = validate_patch_dict(
@@ -168,6 +192,8 @@ def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
 
     updated = apply_patch(config, patch, session_state=session_state)
 
+    assert id(updated) != id(config)
+    assert config == config_before
     assert updated.n_simulations == 5000
     assert updated.total_fund_capital == 1200.0
     assert updated.analysis_mode == AnalysisMode.CAPITAL
@@ -194,6 +220,19 @@ def test_diff_config_returns_unified_yaml_diff_and_snapshots() -> None:
     assert "n_simulations: 5000" in after_text
     assert "-n_simulations: 1" in unified_diff
     assert "+n_simulations: 5000" in unified_diff
+
+
+def test_side_by_side_diff_config_returns_structured_changed_rows() -> None:
+    before = get_default_config(AnalysisMode.RETURNS)
+    after = deepcopy(before)
+    after.n_simulations = 5000
+
+    rows = side_by_side_diff_config(before, after)
+
+    assert rows
+    assert any(row["changed"] for row in rows)
+    assert any("n_simulations: 1" in row["before_line"] for row in rows)
+    assert any("n_simulations: 5000" in row["after_line"] for row in rows)
 
 
 def test_round_trip_validate_config_success_and_error_paths() -> None:
