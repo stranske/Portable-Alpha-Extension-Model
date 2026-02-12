@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import runpy
+from copy import deepcopy
 
 import pytest
 
 from pa_core.llm.config_patch import (
     ConfigPatch,
-    PatchSchemaValidationResult,
     ConfigPatchValidationError,
+    PatchSchemaValidationResult,
     allowed_wizard_schema,
     apply_patch,
     diff_config,
