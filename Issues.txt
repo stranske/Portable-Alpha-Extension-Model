@@ -293,4 +293,4 @@
    - [ ] `dashboard/components/llm_settings.py` key resolution and sanitization
    - [ ] `pa_core/llm/result_explain.py` metric extraction (with a small fake summary DataFrame)
    - [ ] `pa_core/llm/compare_runs.py` diff formatting
-   - [ ] `pa_core/l_
+   - [x] `pa_core/llm/prompts.py` prompt builder formatting and validation

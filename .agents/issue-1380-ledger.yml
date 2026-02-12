@@ -1,0 +1,225 @@
+version: 1
+issue: 1380
+base: main
+branch: codex/issue-1380
+tasks:
+  - id: task-01
+    title: Add unit tests for key resolution and sanitization in `dashboard/components/llm_settings.py`.
+    status: done
+    started_at: '2026-02-11T22:35:31Z'
+    finished_at: '2026-02-11T22:35:40Z'
+    commit: 167d300e9a577c6e2c3cff365ec090ace44b91e0
+    notes: []
+  - id: task-02
+    title: 'Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py`
+      covering valid (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: 'Implement focused slice for: Add unit tests for key resolution logic in
+      `dashboard/components/llm_settings.py` covering valid (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: 'Validate focused slice for: Add unit tests for key resolution logic in
+      `dashboard/components/llm_settings.py` covering valid (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: 'invalid key formats (verify: formatter passes)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Define scope for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py`
+      covering special characters (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-07
+    title: 'Implement focused slice for: Add unit tests for sanitization logic in
+      `dashboard/components/llm_settings.py` covering special characters (verify:
+      tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-08
+    title: 'Validate focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py`
+      covering special characters (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-09
+    title: 'edge cases (verify: confirm completion in repo)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-10
+    title: Add unit tests for metric extraction in `pa_core/llm/result_explain.py`
+      using a small fake summary DataFrame.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-11
+    title: 'Define scope for: Create fixture data with a small fake summary DataFrame
+      for metric extraction tests (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-12
+    title: 'Implement focused slice for: Create fixture data with a small fake summary
+      DataFrame for metric extraction tests (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-13
+    title: 'Validate focused slice for: Create fixture data with a small fake summary
+      DataFrame for metric extraction tests (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-14
+    title: 'Define scope for: Add unit tests for basic metric extraction from summary
+      DataFrames in `pa_core/llm/result_explain.py` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-15
+    title: 'Implement focused slice for: Add unit tests for basic metric extraction
+      from summary DataFrames in `pa_core/llm/result_explain.py` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-16
+    title: 'Validate focused slice for: Add unit tests for basic metric extraction
+      from summary DataFrames in `pa_core/llm/result_explain.py` (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-17
+    title: 'Define scope for: Add unit tests for edge cases in metric extraction such
+      as missing columns or null values (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-18
+    title: 'Implement focused slice for: Add unit tests for edge cases in metric extraction
+      such as missing columns or null values (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-19
+    title: 'Validate focused slice for: Add unit tests for edge cases in metric extraction
+      such as missing columns or null values (verify: tests pass)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-20
+    title: Add unit tests for diff formatting in `pa_core/llm/compare_runs.py`.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-21
+    title: Fix or complete the truncated task reference starting with `pa_core/l_`
+      by identifying the intended file/module and adding a corresponding unit test.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-22
+    title: _Not provided._
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-23
+    title: 'Add tests for:'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-24
+    title: '`dashboard/components/llm_settings.py` key resolution and sanitization'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-25
+    title: '`pa_core/llm/result_explain.py` metric extraction (with a small fake summary
+      DataFrame)'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-26
+    title: '`pa_core/llm/compare_runs.py` diff formatting'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-27
+    title: '`pa_core/l_'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-28
+    title: Fix or complete the truncated task reference starting with `pa_core/l_`
+      by identifying the intended file/module and adding a corresponding unit test.
+      (The task requires subjective interpretation of what the truncated text was
+      meant to say, which falls under 'cannot make subjective design decisions'. |
+      Request clarification from the issue author about what `pa_core/l_` was intended
+      to reference, or review git history/related files to determine the likely completion.)
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []

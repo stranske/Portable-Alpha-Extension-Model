@@ -116,3 +116,21 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1401)
 - [x] `pytest tests/test_dashboard_results_previous_run.py tests/test_dashboard_comparison_llm.py tests/test_llm_compare_runs.py -m "not slow"` (15 passed).
+
+## Task Reconciliation (Keepalive Next Task #1402)
+- [x] Define scope for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for key resolution logic in `dashboard/components/llm_settings.py` covering valid (verify: tests pass).
+- [x] Define scope for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Implement focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters (verify: tests pass).
+- [x] Validate focused slice for: Add unit tests for sanitization logic in `dashboard/components/llm_settings.py` covering special characters edge cases (verify: tests pass).
+
+### Verification (Keepalive Next Task #1402)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (56 passed).
+
+## Task Reconciliation (Keepalive Next Task #1403)
+- [x] Reviewed recent commits (`fcaf87b`, `ea76def`, `1360476`) and reconciled checkbox state for llm-settings follow-up test work.
+- [x] Added additional diff-formatting unit coverage for `format_config_diff(...)` in `tests/test_llm_compare_runs.py` for matching manifests, missing manifest inputs, and wizard add/remove paths.
+
+### Verification (Keepalive Next Task #1403)
+- [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
