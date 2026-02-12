@@ -47,6 +47,7 @@ from pa_core.llm.config_patch import (
 )
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
+from pa_core.wizard.session_state import restore_wizard_session_snapshot
 from pa_core.wizard_schema import (
     AnalysisMode,
     DefaultConfigView,
@@ -259,41 +260,20 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
     }
 
 
-def _capture_session_mirror_state() -> tuple[dict[str, Any], list[str]]:
+def _config_chat_state_snapshot(config: DefaultConfigView) -> dict[str, Any]:
     mirrors = sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
-    present: dict[str, Any] = {}
-    missing: list[str] = []
+    pre_mirror_values: dict[str, Any] = {}
+    pre_missing_mirrors: list[str] = []
     for key in mirrors:
         if key in st.session_state:
-            present[key] = deepcopy(st.session_state[key])
+            pre_mirror_values[key] = deepcopy(st.session_state[key])
         else:
-            missing.append(key)
-    return present, missing
-
-
-def _config_chat_state_snapshot(config: DefaultConfigView) -> dict[str, Any]:
-    pre_mirror_values, pre_missing_mirrors = _capture_session_mirror_state()
+            pre_missing_mirrors.append(key)
     return {
         "pre_apply_config": deepcopy(config),
         "pre_apply_mirrors": pre_mirror_values,
         "pre_apply_missing_mirrors": pre_missing_mirrors,
     }
-
-
-def _restore_config_chat_state(snapshot: Mapping[str, Any]) -> None:
-    restored_config = snapshot.get("pre_apply_config")
-    if isinstance(restored_config, DefaultConfigView):
-        st.session_state["wizard_config"] = restored_config
-
-    mirrors = snapshot.get("pre_apply_mirrors", {})
-    if isinstance(mirrors, Mapping):
-        for key, value in mirrors.items():
-            st.session_state[str(key)] = deepcopy(value)
-
-    missing = snapshot.get("pre_apply_missing_mirrors", [])
-    if isinstance(missing, list):
-        for key in missing:
-            st.session_state.pop(str(key), None)
 
 
 def _apply_patch_to_wizard_state(config: DefaultConfigView, patch: Any) -> None:
@@ -327,7 +307,7 @@ def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tu
             build_yaml_from_config=_build_yaml_from_config,
         )
         if not validation_result.is_valid:
-            _restore_config_chat_state(snapshot)
+            restore_wizard_session_snapshot(snapshot, session_state=st.session_state)
             errors = "; ".join(validation_result.errors)
             return False, f"Validation failed; changes not applied. {errors}"
 
@@ -351,10 +331,8 @@ def _revert_last_config_chat_change() -> tuple[bool, str]:
         return False, "No applied config-chat changes to revert."
 
     last = history.pop()
-    restored_config = last.get("pre_apply_config")
-    if not isinstance(restored_config, DefaultConfigView):
+    if not restore_wizard_session_snapshot(last, session_state=st.session_state):
         return False, "Cannot revert because stored snapshot is invalid."
-    _restore_config_chat_state(last)
 
     return True, "Reverted to previous config snapshot."
 

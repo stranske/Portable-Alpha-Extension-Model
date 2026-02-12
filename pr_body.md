@@ -172,9 +172,15 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ## Task Reconciliation (Keepalive Next Task #1412)
 - [x] Reviewed recent commits (`8118216`, `1137e2f`) and reconciled checkbox status for Apply vs Apply+Validate follow-up work.
+- [x] Reviewed recent commits (`ea0f0e3`, `deaa5f2`, `3e6aaaa`) and reconciled checkbox status for unknown-key follow-up work that updated `dashboard/pages/3_Scenario_Wizard.py`, `pa_core/llm/config_patch_chain.py`, and `tests/test_wizard_config_chat_acceptance.py`.
 - [x] Synced PR tracking to reflect prior completion of the Apply/Apply+Validate split and acceptance coverage in `tests/test_wizard_config_chat_acceptance.py`.
 - [x] Updated LangSmith trace handling in `pa_core/llm/config_patch_chain.py` to consume callback-provided run/trace identifiers and removed synthetic UUID fallback generation.
 - [x] Added/updated unit coverage in `tests/test_llm_config_patch_chain.py` for callback-derived real trace URL capture and deterministic `None` when trace metadata is unavailable.
+- [x] Implemented shared restore helper `restore_wizard_session_snapshot(...)` in `pa_core/wizard/session_state.py` to restore `wizard_config` and all session mirror keys from config-chat snapshots.
+- [x] Updated Scenario Wizard config-chat Revert and Apply+Validate rollback paths to use `restore_wizard_session_snapshot(...)` instead of duplicate inline restore loops.
+- [x] Added unit coverage in `tests/test_wizard_session_state.py` asserting restore behavior across every key in `WIZARD_SESSION_MIRROR_KEYS`.
 
 ### Verification (Keepalive Next Task #1412)
 - [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (4 passed).
+- [x] `pytest tests/test_wizard_session_state.py -m "not slow"` (2 passed).
+- [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
