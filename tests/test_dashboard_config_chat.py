@@ -21,7 +21,9 @@ class _ApplyCall:
 
 
 class FakeStreamlit:
-    def __init__(self, *, button_values: dict[str, bool], session_state: dict[str, Any] | None = None):
+    def __init__(
+        self, *, button_values: dict[str, bool], session_state: dict[str, Any] | None = None
+    ):
         self.button_values = dict(button_values)
         self.session_state: dict[str, Any] = session_state or {}
         self.messages: list[tuple[str, str]] = []
