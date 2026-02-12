@@ -39,6 +39,8 @@ class ConfigPatchChainResult:
     summary: str
     risk_flags: list[str]
     unknown_output_keys: list[str]
+    rejected_patch_keys: list[str] | None = None
+    rejected_patch_paths: list[str] | None = None
     trace_url: str | None = None
 
 

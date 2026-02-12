@@ -103,6 +103,8 @@ def _heuristic_config_patch_result(
     instruction: str,
     *,
     config: DefaultConfigView,
+    rejected_patch_keys: list[str] | None = None,
+    rejected_patch_paths: list[str] | None = None,
 ) -> ConfigPatchChainResult:
     text = instruction.strip().lower()
     set_ops: dict[str, Any] = {}
@@ -137,6 +139,8 @@ def _heuristic_config_patch_result(
         summary=summary,
         risk_flags=risk_flags,
         unknown_output_keys=[],
+        rejected_patch_keys=list(rejected_patch_keys or []),
+        rejected_patch_paths=list(rejected_patch_paths or []),
         trace_url=None,
     )
 
@@ -187,12 +191,19 @@ def _run_config_chat_instruction(
             model_name=model,
         )
     except Exception as exc:
-        fallback = _heuristic_config_patch_result(instruction, config=config)
-        has_unknown_patch_fields = isinstance(exc, ConfigPatchValidationError) and bool(
-            exc.unknown_paths
+        rejected_patch_keys: list[str] = []
+        rejected_patch_paths: list[str] = []
+        if isinstance(exc, ConfigPatchValidationError):
+            rejected_patch_keys = [str(key) for key in exc.unknown_keys if str(key)]
+            rejected_patch_paths = [str(path) for path in exc.unknown_paths if str(path)]
+
+        fallback = _heuristic_config_patch_result(
+            instruction,
+            config=config,
+            rejected_patch_keys=rejected_patch_keys,
+            rejected_patch_paths=rejected_patch_paths,
         )
-        if not has_unknown_patch_fields:
-            has_unknown_patch_fields = "unknown wizard field" in str(exc).lower()
+        has_unknown_patch_fields = bool(rejected_patch_paths)
         if has_unknown_patch_fields and "rejected_unknown_patch_fields" not in fallback.risk_flags:
             fallback.risk_flags.append("rejected_unknown_patch_fields")
         if "llm_fallback_heuristic" not in fallback.risk_flags:
@@ -217,8 +228,12 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
 
     risk_flags = list(result.risk_flags)
     unknown_output_keys = [str(key) for key in result.unknown_output_keys if str(key)]
+    rejected_patch_keys = [str(key) for key in (result.rejected_patch_keys or []) if str(key)]
+    rejected_patch_paths = [str(path) for path in (result.rejected_patch_paths or []) if str(path)]
     if unknown_output_keys and "stripped_unknown_output_keys" not in risk_flags:
         risk_flags.append("stripped_unknown_output_keys")
+    if rejected_patch_paths and "rejected_unknown_patch_fields" not in risk_flags:
+        risk_flags.append("rejected_unknown_patch_fields")
     if not validation_result.is_valid and "round_trip_validation_failed" not in risk_flags:
         risk_flags.append("round_trip_validation_failed")
 
@@ -231,6 +246,8 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         "summary": result.summary,
         "risk_flags": risk_flags,
         "unknown_output_keys": unknown_output_keys,
+        "rejected_patch_keys": rejected_patch_keys,
+        "rejected_patch_paths": rejected_patch_paths,
         "trace_url": result.trace_url,
         "validation_errors": list(validation_result.errors),
         "unified_diff": unified_diff,

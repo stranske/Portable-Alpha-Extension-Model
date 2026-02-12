@@ -167,12 +167,16 @@ def test_preview_surfaces_risk_flag_for_rejected_unknown_output() -> None:
                 summary="Unknown keys rejected.",
                 risk_flags=["rejected_unknown_patch_fields"],
                 unknown_output_keys=[],
+                rejected_patch_keys=["fake_field"],
+                rejected_patch_paths=["patch.set.fake_field"],
                 trace_url=None,
             )
         )
 
         preview = preview_fn("change imaginary field")
         assert "rejected_unknown_patch_fields" in preview["risk_flags"]
+        assert preview["rejected_patch_keys"] == ["fake_field"]
+        assert preview["rejected_patch_paths"] == ["patch.set.fake_field"]
     finally:
         st.session_state.clear()
 
@@ -191,6 +195,8 @@ def test_preview_carries_structured_unknown_output_keys() -> None:
                 summary="Unknown output fields were stripped.",
                 risk_flags=[],
                 unknown_output_keys=["hallucinated", "internal_meta"],
+                rejected_patch_keys=[],
+                rejected_patch_paths=[],
                 trace_url=None,
             )
         )
@@ -202,7 +208,7 @@ def test_preview_carries_structured_unknown_output_keys() -> None:
         st.session_state.clear()
 
 
-def test_unknown_patch_field_rejection_is_flagged() -> None:
+def test_unknown_patch_field_rejection_requires_structured_details() -> None:
     st.session_state.clear()
     try:
         module = _load_module()
@@ -218,7 +224,9 @@ def test_unknown_patch_field_rejection_is_flagged() -> None:
         )
 
         result = run_fn("set fake field to 1", config=config)
-        assert "rejected_unknown_patch_fields" in result.risk_flags
+        assert "rejected_unknown_patch_fields" not in result.risk_flags
+        assert result.rejected_patch_keys == []
+        assert result.rejected_patch_paths == []
     finally:
         st.session_state.clear()
 
@@ -244,6 +252,8 @@ def test_unknown_patch_field_rejection_is_flagged_from_structured_validation_err
 
         result = run_fn("set fake field to 1", config=config)
         assert "rejected_unknown_patch_fields" in result.risk_flags
+        assert result.rejected_patch_keys == ["fake_field"]
+        assert result.rejected_patch_paths == ["patch.set.fake_field"]
     finally:
         st.session_state.clear()
 
