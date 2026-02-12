@@ -3,19 +3,26 @@
 from __future__ import annotations
 
 import runpy
+from copy import deepcopy
 
 import pytest
 
 from pa_core.llm.config_patch import (
     ConfigPatch,
     ConfigPatchValidationError,
+    PatchSchemaValidationResult,
+    ValidationError,
     allowed_wizard_schema,
     apply_patch,
     diff_config,
     empty_patch,
+    generate_side_by_side_diff,
+    generate_unified_diff,
     parse_chain_output,
     round_trip_validate_config,
+    side_by_side_diff_config,
     validate_patch_dict,
+    validate_patch_schema,
 )
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
@@ -26,6 +33,10 @@ def test_allowed_wizard_schema_contains_core_keys_and_type_labels() -> None:
     assert schema["n_simulations"] == "int"
     assert schema["analysis_mode"] == "AnalysisMode"
     assert schema["total_fund_capital"] == "float"
+
+
+def test_validation_error_alias_points_to_config_patch_validation_error() -> None:
+    assert ValidationError is ConfigPatchValidationError
 
 
 def test_validate_patch_dict_accepts_valid_set_payload() -> None:
@@ -68,7 +79,74 @@ def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
     assert exc.unknown_paths == ["patch.unexpected_op"]
 
 
-def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structured() -> None:
+def test_validate_patch_dict_reports_non_string_unknown_patch_ops_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {}, 1: {"foo": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["1"]
+    assert exc.unknown_paths == ["patch.1"]
+
+
+def test_validate_patch_schema_returns_structured_unknown_keys_result() -> None:
+    result = validate_patch_schema({"set": {}, "nope": {}})
+
+    assert isinstance(result, PatchSchemaValidationResult)
+    assert result.is_valid is False
+    assert result.unknown_keys == ["nope"]
+    assert result.normalized_patch is None
+
+
+def test_validate_patch_schema_normalizes_non_string_unknown_keys() -> None:
+    result = validate_patch_schema({"set": {}, 5: {}, ("merge",): {}})
+
+    assert isinstance(result, PatchSchemaValidationResult)
+    assert result.is_valid is False
+    assert result.unknown_keys == ["('merge',)", "5"]
+    assert result.normalized_patch is None
+
+
+def test_validate_patch_dict_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ValidationError) as exc_info:
+        validate_patch_dict({"set": {}, "remove": "not-a-list"})
+
+    exc = exc_info.value
+    assert exc.field_name == "remove"
+    assert exc.expected_type == "list[str]"
+    assert exc.actual_type == "str"
+
+
+def test_validate_patch_dict_set_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": []})
+
+    exc = exc_info.value
+    assert exc.field_name == "set"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
+
+
+def test_validate_patch_dict_merge_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"merge": []})
+
+    exc = exc_info.value
+    assert exc.field_name == "merge"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
+
+
+def test_validate_patch_dict_merge_child_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"merge": {"regimes": []}})
+
+    exc = exc_info.value
+    assert exc.field_name == "merge.regimes"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
+
+
+def test_validate_patch_dict_rejects_non_dict_top_level_patch_payload() -> None:
     with pytest.raises(ConfigPatchValidationError) as exc_info:
         validate_patch_dict(
             [
@@ -76,28 +154,28 @@ def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structur
                     "op": "set",
                     "key": "n_simulations",
                     "value": 5000,
-                    "foo": "bar",
                 }
             ]
         )
 
     exc = exc_info.value
-    assert exc.unknown_keys == ["foo"]
-    assert exc.unknown_paths == ["patch[0].foo"]
+    assert exc.field_name == "patch"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
 
 
-def test_validate_patch_dict_accepts_legacy_operation_list_shape() -> None:
-    patch = validate_patch_dict(
-        [
-            {"op": "set", "key": "n_simulations", "value": 5000},
-            {"op": "merge", "key": "regimes", "value": {"Stress": {"idx_sigma_multiplier": 1.2}}},
-            {"op": "remove", "key": "sleeve_max_cvar"},
-        ]
-    )
+def test_validate_patch_schema_rejects_non_dict_top_level_patch_payload() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_schema(
+            [
+                {"op": "set", "key": "n_simulations", "value": 5000},
+            ]
+        )
 
-    assert patch.set == {"n_simulations": 5000}
-    assert patch.merge == {"regimes": {"Stress": {"idx_sigma_multiplier": 1.2}}}
-    assert patch.remove == ["sleeve_max_cvar"]
+    exc = exc_info.value
+    assert exc.field_name == "patch"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
 
 
 def test_parse_chain_output_reports_unknown_top_level_keys_structured() -> None:
@@ -147,6 +225,7 @@ def test_empty_patch_returns_valid_empty_container() -> None:
 
 def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
     config = get_default_config(AnalysisMode.RETURNS)
+    config_before = deepcopy(config)
     session_state: dict[str, object] = {}
 
     patch = validate_patch_dict(
@@ -168,6 +247,8 @@ def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
 
     updated = apply_patch(config, patch, session_state=session_state)
 
+    assert id(updated) != id(config)
+    assert config == config_before
     assert updated.n_simulations == 5000
     assert updated.total_fund_capital == 1200.0
     assert updated.analysis_mode == AnalysisMode.CAPITAL
@@ -194,6 +275,35 @@ def test_diff_config_returns_unified_yaml_diff_and_snapshots() -> None:
     assert "n_simulations: 5000" in after_text
     assert "-n_simulations: 1" in unified_diff
     assert "+n_simulations: 5000" in unified_diff
+
+
+def test_side_by_side_diff_config_returns_structured_changed_rows() -> None:
+    before = get_default_config(AnalysisMode.RETURNS)
+    after = deepcopy(before)
+    after.n_simulations = 5000
+
+    rows = side_by_side_diff_config(before, after)
+
+    assert rows
+    assert any(row["changed"] for row in rows)
+    assert any("n_simulations: 1" in row["before_line"] for row in rows)
+    assert any("n_simulations: 5000" in row["after_line"] for row in rows)
+
+
+def test_generate_unified_diff_returns_changed_plus_minus_lines() -> None:
+    diff_text = generate_unified_diff("a: 1\n", "a: 2\n")
+
+    assert "-a: 1" in diff_text
+    assert "+a: 2" in diff_text
+
+
+def test_generate_side_by_side_diff_returns_changed_line_pairs() -> None:
+    rows = generate_side_by_side_diff("n_simulations: 1\n", "n_simulations: 5000\n")
+
+    assert rows
+    assert any(row["changed"] for row in rows)
+    assert any("n_simulations: 1" in row["before_line"] for row in rows)
+    assert any("n_simulations: 5000" in row["after_line"] for row in rows)
 
 
 def test_round_trip_validate_config_success_and_error_paths() -> None:

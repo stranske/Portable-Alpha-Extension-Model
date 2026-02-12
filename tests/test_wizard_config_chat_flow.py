@@ -30,7 +30,7 @@ def test_preview_generates_diff_without_mutating_live_config(monkeypatch) -> Non
         preview = st.session_state.get(module["_CONFIG_CHAT_PREVIEW_KEY"])
         assert isinstance(preview, dict)
         assert st.session_state["wizard_config"].n_simulations == 1000
-        assert "N_SIMULATIONS" in preview["unified_diff"]
+        assert "n_simulations" in preview["unified_diff"]
         assert preview["patch"]["set"]["n_simulations"] == 5000
     finally:
         st.session_state.clear()

@@ -227,3 +227,38 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
 - [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (5 passed).
 - [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (13 passed).
+
+## Task Reconciliation (Keepalive Next Task #1421)
+- [x] Reviewed recent commits (`b4f0ca9`, `e27026e`, `7b37985`) and reconciled unchecked config-chat/config-patch checklist state.
+- [x] Confirmed `pa_core/llm/config_patch.py` includes deterministic non-mutating apply semantics and both unified + side-by-side diff utilities.
+- [x] Synced tracking to reflect completed wrapper cleanup removing `n_simulations`/`N_SIMULATIONS` replacement logic.
+- [x] Reviewed follow-up commits (`1d16321`, `f6cd15f`, `9402cc8`) and reconciled previously missed checkbox updates from those code changes.
+- [x] Completed unified diff utility implementation by extracting `generate_unified_diff(...)` and wiring `diff_config(...)` through it.
+- [x] Completed side-by-side diff utility implementation by extracting `generate_side_by_side_diff(...)` and wiring `side_by_side_diff_config(...)` through it.
+- [x] Added direct unit coverage for both diff utilities to assert changed-line output semantics required by acceptance criteria.
+
+### Verification (Keepalive Next Task #1421)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py tests/test_config_patch_roundtrip.py -m "not slow"` (24 passed).
+
+## Task Reconciliation (Keepalive Next Task #1422)
+- [x] Reviewed recent commits (`b4f4da9`, `b56763f`, `86235d0`) and reconciled previously missed checkbox updates for config-patch follow-up work.
+- [x] Implemented unknown-key detection in patch schema validation with structured `unknown_keys` output for disallowed top-level operations.
+- [x] Added explicit `ValidationError` alias export in `pa_core/llm/config_patch.py` and updated tests to assert type-metadata exceptions through the alias.
+- [x] Verified preview generation immutability behavior against live `wizard_config` via deep-equality checks.
+
+### Acceptance Criteria (Keepalive Next Task #1422)
+- [x] Patch validation rejects non-dict and unknown top-level operations and returns structured schema results containing `unknown_keys`.
+- [x] Patch validation enforces `set`/`merge` as dict and `remove` as list-of-strings; violations raise `ValidationError` with `field_name`, `expected_type`, and `actual_type`.
+- [x] `apply_patch()` applies remove->set->merge deterministically and does not mutate input config (verified by identity/deep-equality assertions).
+- [x] Preview generation does not mutate live `wizard_config` and preserves pre-preview deep-equality state.
+
+### Verification (Keepalive Next Task #1422)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py tests/test_config_patch_roundtrip.py -m "not slow"` (30 passed).
+
+## Task Reconciliation (Keepalive Next Task #1423)
+- [x] Reviewed recent commits (`b56763f`, `86235d0`, `3cdb74d`) and reconciled checkbox state for patch-validation follow-up work.
+- [x] Hardened `patch.merge.<key>` type validation to emit structured type metadata (`field_name`, `expected_type`, `actual_type`) via `ValidationError` contract.
+- [x] Added focused unit coverage for merge child-type validation metadata in `tests/test_llm_config_patch.py`.
+
+### Verification (Keepalive Next Task #1423)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py -m "not slow"` (31 passed).

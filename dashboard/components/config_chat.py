@@ -9,6 +9,9 @@ import streamlit as st
 _INSTRUCTION_KEY = "config_chat_instruction"
 _PREVIEW_KEY = "config_chat_preview"
 _STATUS_KEY = "config_chat_status"
+_PREVIEW_PATCH_KEY = "preview_patch"
+_PREVIEW_UNIFIED_DIFF_KEY = "preview_unified_diff"
+_PREVIEW_SIDEBYSIDE_DIFF_KEY = "preview_sidebyside_diff"
 
 
 PreviewHandler = Callable[[str], Mapping[str, Any]]
@@ -94,6 +97,18 @@ def _handle_preview(
         st.error(str(exc))
         return
     st.session_state[preview_key] = preview
+    patch_payload = preview.get("patch")
+    st.session_state[_PREVIEW_PATCH_KEY] = (
+        dict(patch_payload) if isinstance(patch_payload, Mapping) else {}
+    )
+    unified_diff = preview.get("unified_diff")
+    st.session_state[_PREVIEW_UNIFIED_DIFF_KEY] = (
+        str(unified_diff).strip() if isinstance(unified_diff, str) else ""
+    )
+    sidebyside_diff = preview.get("sidebyside_diff")
+    st.session_state[_PREVIEW_SIDEBYSIDE_DIFF_KEY] = (
+        str(sidebyside_diff).strip() if isinstance(sidebyside_diff, str) else ""
+    )
     st.session_state[status_key] = "Preview generated."
 
 
@@ -140,6 +155,9 @@ def _handle_revert(*, status_key: str, on_revert: RevertHandler | None) -> None:
         ok, message = outcome
         st.session_state[status_key] = message
         if ok:
+            st.session_state.pop(_PREVIEW_PATCH_KEY, None)
+            st.session_state.pop(_PREVIEW_UNIFIED_DIFF_KEY, None)
+            st.session_state.pop(_PREVIEW_SIDEBYSIDE_DIFF_KEY, None)
             st.success(message)
         else:
             st.error(message)
@@ -166,10 +184,18 @@ def _render_preview(preview: Any) -> None:
     if isinstance(risk_flags, list) and risk_flags:
         st.warning(f"Risk flags: {', '.join(str(flag) for flag in risk_flags)}")
 
-    unified_diff = preview.get("unified_diff")
+    unified_diff = preview.get("unified_diff") or st.session_state.get(_PREVIEW_UNIFIED_DIFF_KEY)
     if isinstance(unified_diff, str) and unified_diff.strip():
         st.markdown("**Unified diff**")
         st.code(unified_diff, language="diff")
+
+    sidebyside_diff = preview.get("sidebyside_diff") or st.session_state.get(
+        _PREVIEW_SIDEBYSIDE_DIFF_KEY
+    )
+    if isinstance(sidebyside_diff, str) and sidebyside_diff.strip():
+        st.markdown("**Side-by-side diff**")
+        st.code(sidebyside_diff, language="diff")
+        return
 
     before_text = preview.get("before_text")
     after_text = preview.get("after_text")

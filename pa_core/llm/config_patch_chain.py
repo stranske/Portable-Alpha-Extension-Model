@@ -4,11 +4,29 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, replace
+from contextlib import nullcontext
+from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Sequence
 
-from pa_core.llm.config_patch import ConfigPatch, allowed_wizard_schema, validate_patch_dict
-from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
+import yaml
+
+from pa_core.llm.config_patch import (
+    ConfigPatch,
+    ConfigPatchValidationError,
+    allowed_wizard_schema,
+    empty_patch,
+    validate_patch_dict,
+)
+
+_langsmith_tracing_context: Callable[..., Any] | None
+_resolve_trace_url: Callable[[Any], str | None] | None
+
+try:
+    from pa_core.llm.tracing import langsmith_tracing_context as _langsmith_tracing_context
+    from pa_core.llm.tracing import resolve_trace_url as _resolve_trace_url
+except ImportError:  # pragma: no cover - defensive import fallback
+    _langsmith_tracing_context = None
+    _resolve_trace_url = None
 
 _DEFAULT_SAFETY_RULES: tuple[str, ...] = (
     "Do not include secrets or credentials.",
@@ -39,6 +57,9 @@ class ConfigPatchChainResult:
     summary: str
     risk_flags: list[str]
     unknown_output_keys: list[str]
+    status: str = "accepted"
+    error: dict[str, Any] | None = None
+    risk_flags_detail: dict[str, list[str]] = field(default_factory=dict)
     rejected_patch_keys: list[str] | None = None
     rejected_patch_paths: list[str] | None = None
     trace_url: str | None = None
@@ -77,16 +98,40 @@ def parse_chain_output(raw_output: str | Mapping[str, Any]) -> ConfigPatchChainR
     if unknown_keys:
         payload = {key: value for key, value in payload.items() if key in _CHAIN_TOP_LEVEL_KEYS}
 
-    patch = validate_patch_dict(payload.get("patch", {}))
+    patch_payload = payload.get("patch", {})
+    validation_error: dict[str, Any] | None = None
+    rejected_patch_keys: list[str] = []
+    rejected_patch_paths: list[str] = []
+    status = "accepted"
+    try:
+        patch = validate_patch_dict(patch_payload)
+    except ConfigPatchValidationError as exc:
+        status = "rejected"
+        patch = empty_patch()
+        rejected_patch_keys = list(exc.unknown_keys or [])
+        rejected_patch_paths = list(exc.unknown_paths or [])
+        validation_error = _build_validation_error(exc)
     summary = str(payload.get("summary", "")).strip()
     risk_flags = _normalize_risk_flags(payload.get("risk_flags", []))
+    risk_flags_detail: dict[str, list[str]] = {}
     if unknown_keys and "stripped_unknown_output_keys" not in risk_flags:
         risk_flags.append("stripped_unknown_output_keys")
+    if unknown_keys:
+        risk_flags_detail["unknown_keys"] = list(unknown_keys)
+    if rejected_patch_keys:
+        risk_flags_detail["rejected_patch_keys"] = list(rejected_patch_keys)
+    if status == "rejected" and "rejected_unknown_patch_fields" not in risk_flags:
+        risk_flags.append("rejected_unknown_patch_fields")
     return ConfigPatchChainResult(
         patch=patch,
         summary=summary,
         risk_flags=risk_flags,
         unknown_output_keys=unknown_keys,
+        status=status,
+        error=validation_error,
+        risk_flags_detail=risk_flags_detail,
+        rejected_patch_keys=rejected_patch_keys,
+        rejected_patch_paths=rejected_patch_paths,
     )
 
 
@@ -106,15 +151,19 @@ def run_config_patch_chain(
     prompt = build_config_patch_prompt(current_config=current_config, instruction=instruction)
 
     trace_url: str | None = None
-    with langsmith_tracing_context(
-        project_name="portable-alpha-config-chat",
-        tags=("wizard", "config-chat"),
-        metadata={"provider": provider_name or "unknown", "model": model_name or "unknown"},
-    ):
+    if _langsmith_enabled() and _langsmith_tracing_context is not None:
+        tracing_context = _langsmith_tracing_context(
+            project_name="portable-alpha-config-chat",
+            tags=("wizard", "config-chat"),
+            metadata={"provider": provider_name or "unknown", "model": model_name or "unknown"},
+        )
+    else:
+        tracing_context = nullcontext()
+    with tracing_context:
         raw_output = invoke_llm(prompt)
 
     normalized_output, extracted_trace_url = _split_trace_metadata(raw_output)
-    if os.getenv("LANGSMITH_API_KEY"):
+    if _langsmith_enabled():
         trace_url = extracted_trace_url
     result = parse_chain_output(normalized_output)
     return replace(result, trace_url=trace_url)
@@ -124,9 +173,18 @@ def _coerce_output_mapping(raw_output: str | Mapping[str, Any]) -> dict[str, Any
     if isinstance(raw_output, Mapping):
         return dict(raw_output)
     if isinstance(raw_output, str):
-        parsed = json.loads(raw_output)
-        if isinstance(parsed, Mapping):
-            return dict(parsed)
+        text = raw_output.strip()
+        if not text:
+            raise ValueError("chain output must be a non-empty mapping payload")
+        try:
+            parsed_json = json.loads(text)
+        except json.JSONDecodeError:
+            parsed_json = None
+        if isinstance(parsed_json, Mapping):
+            return dict(parsed_json)
+        parsed_yaml = yaml.safe_load(text)
+        if isinstance(parsed_yaml, Mapping):
+            return dict(parsed_yaml)
     raise ValueError("chain output must be a mapping or JSON object string")
 
 
@@ -144,6 +202,26 @@ def _normalize_risk_flags(raw_flags: Any) -> list[str]:
         seen.add(text)
         normalized.append(text)
     return normalized
+
+
+def _build_validation_error(exc: ConfigPatchValidationError) -> dict[str, Any]:
+    error: dict[str, Any] = {
+        "kind": "validation_error",
+        "message": str(exc),
+        "unknown_keys": list(exc.unknown_keys or []),
+        "unknown_paths": list(exc.unknown_paths or []),
+    }
+    if exc.field_name is not None:
+        error["field_name"] = exc.field_name
+    if exc.expected_type is not None:
+        error["expected_type"] = exc.expected_type
+    if exc.actual_type is not None:
+        error["actual_type"] = exc.actual_type
+    return error
+
+
+def _langsmith_enabled() -> bool:
+    return _langsmith_tracing_context is not None and bool(os.getenv("LANGSMITH_API_KEY"))
 
 
 def _split_trace_metadata(raw_output: Any) -> tuple[str | Mapping[str, Any], str | None]:
@@ -208,7 +286,9 @@ def _extract_trace_candidate(candidate: Any) -> str | None:
             if resolved:
                 return resolved
         return None
-    return resolve_trace_url(candidate)
+    if _resolve_trace_url is None:
+        return None
+    return _resolve_trace_url(candidate)
 
 
 __all__ = [

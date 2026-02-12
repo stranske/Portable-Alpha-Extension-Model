@@ -60,12 +60,12 @@ def apply_patch_to_wizard_state(
 ) -> None:
     """Apply patch and synchronize wizard_config plus all mirror session keys."""
 
-    apply_config_patch(config, patch, session_state=session_state)
-    session_state[wizard_config_key] = config
+    updated_config = apply_config_patch(config, patch, session_state=session_state)
+    session_state[wizard_config_key] = updated_config
 
     for config_key, mirror_key in WIZARD_SESSION_MIRROR_KEYS.items():
         session_state[mirror_key] = _mirror_session_state_value(
-            config_key, getattr(config, config_key, None)
+            config_key, getattr(updated_config, config_key, None)
         )
 
 
@@ -108,8 +108,7 @@ def apply_config_chat_preview(
         return True, "Config changes applied."
 
     snapshot = snapshot_wizard_session_state(config, session_state=session_state)
-    candidate = deepcopy(config)
-    apply_config_patch(candidate, patch)
+    candidate = apply_config_patch(config, patch)
     validate_fn = validate_config or round_trip_validate_config
     validation_result = validate_fn(
         candidate,
