@@ -254,3 +254,11 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1422)
 - [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py tests/test_config_patch_roundtrip.py -m "not slow"` (30 passed).
+
+## Task Reconciliation (Keepalive Next Task #1423)
+- [x] Reviewed recent commits (`b56763f`, `86235d0`, `3cdb74d`) and reconciled checkbox state for patch-validation follow-up work.
+- [x] Hardened `patch.merge.<key>` type validation to emit structured type metadata (`field_name`, `expected_type`, `actual_type`) via `ValidationError` contract.
+- [x] Added focused unit coverage for merge child-type validation metadata in `tests/test_llm_config_patch.py`.
+
+### Verification (Keepalive Next Task #1423)
+- [x] `pytest tests/test_llm_config_patch.py tests/test_config_chat_preview_apply_revert.py -m "not slow"` (31 passed).

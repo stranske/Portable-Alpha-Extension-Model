@@ -271,7 +271,11 @@ def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
         if not field.mergeable:
             raise ConfigPatchValidationError(f"field '{key}' does not support merge")
         if not isinstance(value, Mapping):
-            raise ConfigPatchValidationError(f"patch.merge['{key}'] must be a mapping")
+            _raise_type_validation_error(
+                field_name=f"merge.{key}",
+                expected_type="dict",
+                actual_value=value,
+            )
         normalized[key] = dict(value)
     return normalized
 

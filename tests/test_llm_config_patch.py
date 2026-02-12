@@ -136,6 +136,16 @@ def test_validate_patch_dict_merge_type_error_exposes_field_type_metadata() -> N
     assert exc.actual_type == "list"
 
 
+def test_validate_patch_dict_merge_child_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"merge": {"regimes": []}})
+
+    exc = exc_info.value
+    assert exc.field_name == "merge.regimes"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
+
+
 def test_validate_patch_dict_rejects_non_dict_top_level_patch_payload() -> None:
     with pytest.raises(ConfigPatchValidationError) as exc_info:
         validate_patch_dict(
