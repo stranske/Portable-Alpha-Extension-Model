@@ -33,8 +33,8 @@ from pa_core.data import load_index_returns
 from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_chain
 from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_FIELDS,
-    ConfigPatchValidationError,
     WIZARD_SESSION_MIRROR_KEYS,
+    ConfigPatchValidationError,
     empty_patch,
     round_trip_validate_config,
     validate_patch_dict,
