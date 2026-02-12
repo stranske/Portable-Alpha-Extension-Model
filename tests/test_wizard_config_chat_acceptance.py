@@ -26,6 +26,7 @@ def test_preview_produces_diff_without_mutating_live_config() -> None:
                 patch=validate_patch_dict({"set": {"n_simulations": 5000}}),
                 summary="Increase simulations",
                 risk_flags=[],
+                unknown_output_keys=[],
                 trace_url=None,
             )
         )
@@ -165,12 +166,38 @@ def test_preview_surfaces_risk_flag_for_rejected_unknown_output() -> None:
                 patch=empty_patch(),
                 summary="Unknown keys rejected.",
                 risk_flags=["rejected_unknown_patch_fields"],
+                unknown_output_keys=[],
                 trace_url=None,
             )
         )
 
         preview = preview_fn("change imaginary field")
         assert "rejected_unknown_patch_fields" in preview["risk_flags"]
+    finally:
+        st.session_state.clear()
+
+
+def test_preview_carries_structured_unknown_output_keys() -> None:
+    st.session_state.clear()
+    try:
+        module = _load_module()
+        preview_fn = module["_preview_config_chat_instruction"]
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["wizard_config"] = config
+
+        preview_fn.__globals__["_run_config_chat_instruction"] = lambda _instruction, config: (
+            ConfigPatchChainResult(
+                patch=empty_patch(),
+                summary="Unknown output fields were stripped.",
+                risk_flags=[],
+                unknown_output_keys=["hallucinated", "internal_meta"],
+                trace_url=None,
+            )
+        )
+
+        preview = preview_fn("change imaginary field")
+        assert preview["unknown_output_keys"] == ["hallucinated", "internal_meta"]
+        assert "stripped_unknown_output_keys" in preview["risk_flags"]
     finally:
         st.session_state.clear()
 

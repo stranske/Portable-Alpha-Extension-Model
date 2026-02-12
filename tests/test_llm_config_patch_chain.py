@@ -17,6 +17,7 @@ def test_parse_chain_output_strips_unknown_keys_and_flags_risk() -> None:
 
     assert result.patch.set == {"n_simulations": 5000}
     assert result.summary == "Increase simulation count."
+    assert result.unknown_output_keys == ["hallucinated"]
     assert "low_risk" in result.risk_flags
     assert "stripped_unknown_output_keys" in result.risk_flags
 

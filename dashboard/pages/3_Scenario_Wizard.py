@@ -135,6 +135,7 @@ def _heuristic_config_patch_result(
         patch=patch,
         summary=summary,
         risk_flags=risk_flags,
+        unknown_output_keys=[],
         trace_url=None,
     )
 
@@ -213,6 +214,9 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
     )
 
     risk_flags = list(result.risk_flags)
+    unknown_output_keys = [str(key) for key in result.unknown_output_keys if str(key)]
+    if unknown_output_keys and "stripped_unknown_output_keys" not in risk_flags:
+        risk_flags.append("stripped_unknown_output_keys")
     if not validation_result.is_valid and "round_trip_validation_failed" not in risk_flags:
         risk_flags.append("round_trip_validation_failed")
 
@@ -224,6 +228,7 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         },
         "summary": result.summary,
         "risk_flags": risk_flags,
+        "unknown_output_keys": unknown_output_keys,
         "trace_url": result.trace_url,
         "validation_errors": list(validation_result.errors),
         "unified_diff": unified_diff,

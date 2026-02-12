@@ -38,6 +38,7 @@ class ConfigPatchChainResult:
     patch: ConfigPatch
     summary: str
     risk_flags: list[str]
+    unknown_output_keys: list[str]
     trace_url: str | None = None
 
 
@@ -79,7 +80,12 @@ def parse_chain_output(raw_output: str | Mapping[str, Any]) -> ConfigPatchChainR
     risk_flags = _normalize_risk_flags(payload.get("risk_flags", []))
     if unknown_keys:
         risk_flags.append("stripped_unknown_output_keys")
-    return ConfigPatchChainResult(patch=patch, summary=summary, risk_flags=risk_flags)
+    return ConfigPatchChainResult(
+        patch=patch,
+        summary=summary,
+        risk_flags=risk_flags,
+        unknown_output_keys=unknown_keys,
+    )
 
 
 def run_config_patch_chain(
