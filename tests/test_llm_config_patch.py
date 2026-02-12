@@ -2,15 +2,21 @@
 
 from __future__ import annotations
 
+import runpy
+
 import pytest
 
 from pa_core.llm.config_patch import (
     ConfigPatch,
     ConfigPatchValidationError,
+    apply_patch,
     allowed_wizard_schema,
+    diff_config,
     empty_patch,
+    round_trip_validate_config,
     validate_patch_dict,
 )
+from pa_core.wizard_schema import AnalysisMode, get_default_config
 
 
 def test_allowed_wizard_schema_contains_core_keys_and_type_labels() -> None:
@@ -71,3 +77,72 @@ def test_validate_patch_dict_rejects_duplicate_targets_across_operations() -> No
 
 def test_empty_patch_returns_valid_empty_container() -> None:
     assert empty_patch() == ConfigPatch(set={}, merge={}, remove=[])
+
+
+def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
+    config = get_default_config(AnalysisMode.RETURNS)
+    session_state: dict[str, object] = {}
+
+    patch = validate_patch_dict(
+        {
+            "set": {
+                "n_simulations": 5000,
+                "total_fund_capital": 1200.0,
+                "analysis_mode": "capital",
+                "sleeve_constraint_scope": "sleeves",
+            },
+            "merge": {
+                "regimes": {
+                    "Calm": {"idx_sigma_multiplier": 0.8},
+                }
+            },
+            "remove": ["sleeve_max_cvar"],
+        }
+    )
+
+    updated = apply_patch(config, patch, session_state=session_state)
+
+    assert updated.n_simulations == 5000
+    assert updated.total_fund_capital == 1200.0
+    assert updated.analysis_mode == AnalysisMode.CAPITAL
+    assert updated.sleeve_constraint_scope == "per_sleeve"
+    assert updated.regimes == {"Calm": {"idx_sigma_multiplier": 0.8, "name": "Calm"}}
+    assert updated.sleeve_max_cvar is None
+    assert session_state["wizard_total_fund_capital"] == 1200.0
+    assert session_state["sleeve_constraint_scope"] == "sleeves"
+    assert session_state["wizard_regimes_yaml"] == {
+        "Calm": {"idx_sigma_multiplier": 0.8, "name": "Calm"}
+    }
+    assert session_state["sleeve_max_cvar"] is None
+
+
+def test_diff_config_returns_unified_yaml_diff_and_snapshots() -> None:
+    before = get_default_config(AnalysisMode.RETURNS)
+    after = get_default_config(AnalysisMode.RETURNS)
+    after.n_simulations = 5000
+
+    unified_diff, before_text, after_text = diff_config(before, after)
+
+    assert unified_diff.startswith("--- before\n+++ after\n")
+    assert "n_simulations: 1" in before_text
+    assert "n_simulations: 5000" in after_text
+    assert "-n_simulations: 1" in unified_diff
+    assert "+n_simulations: 5000" in unified_diff
+
+
+def test_round_trip_validate_config_success_and_error_paths() -> None:
+    module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    build_yaml_from_config = module["_build_yaml_from_config"]
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    ok_result = round_trip_validate_config(config, build_yaml_from_config=build_yaml_from_config)
+    assert ok_result.is_valid is True
+    assert ok_result.errors == []
+    assert isinstance(ok_result.yaml_dict, dict)
+
+    config.n_simulations = -1
+    invalid_result = round_trip_validate_config(
+        config, build_yaml_from_config=build_yaml_from_config
+    )
+    assert invalid_result.is_valid is False
+    assert invalid_result.errors

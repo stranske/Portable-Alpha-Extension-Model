@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
+import difflib
+import json
 from dataclasses import dataclass
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping, MutableMapping
+
+import yaml
+
+from pa_core.config import load_config
 
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
@@ -79,6 +85,35 @@ ALLOWED_WIZARD_FIELDS: dict[str, AllowedField] = {
     "regime_transition": AllowedField("list[list[float]]|None", removable=True),
     "regime_start": AllowedField("str|None", removable=True),
 }
+
+# Session-state mirrors used by the Scenario Wizard page.
+WIZARD_SESSION_MIRROR_KEYS: dict[str, str] = {
+    "total_fund_capital": "wizard_total_fund_capital",
+    "external_pa_capital": "wizard_external_pa_capital",
+    "active_ext_capital": "wizard_active_ext_capital",
+    "internal_pa_capital": "wizard_internal_pa_capital",
+    "w_beta_h": "wizard_w_beta_h",
+    "theta_extpa": "wizard_theta_extpa",
+    "active_share": "wizard_active_share",
+    "regimes": "wizard_regimes_yaml",
+    "regime_transition": "wizard_regime_transition_yaml",
+    "regime_start": "wizard_regime_start",
+    "sleeve_max_te": "sleeve_max_te",
+    "sleeve_max_breach": "sleeve_max_breach",
+    "sleeve_max_cvar": "sleeve_max_cvar",
+    "sleeve_max_shortfall": "sleeve_max_shortfall",
+    "sleeve_constraint_scope": "sleeve_constraint_scope",
+    "sleeve_validate_on_run": "sleeve_validate_on_run",
+}
+
+
+@dataclass(frozen=True)
+class ConfigRoundTripValidationResult:
+    """Result of serializing and reloading wizard config."""
+
+    is_valid: bool
+    errors: list[str]
+    yaml_dict: dict[str, Any] | None = None
 
 
 def allowed_wizard_schema() -> dict[str, str]:
@@ -329,12 +364,166 @@ def empty_patch() -> ConfigPatch:
     return ConfigPatch(set={}, merge={}, remove=[])
 
 
+def apply_patch(
+    config: Any,
+    patch: ConfigPatch | Mapping[str, Any],
+    *,
+    session_state: MutableMapping[str, Any] | None = None,
+    session_mirror_keys: Mapping[str, str] | None = None,
+) -> Any:
+    """Apply a validated config patch to wizard config and optional session-state mirrors."""
+
+    normalized_patch = patch if isinstance(patch, ConfigPatch) else validate_patch_dict(patch)
+    mirrors = dict(session_mirror_keys or WIZARD_SESSION_MIRROR_KEYS)
+
+    for key, value in normalized_patch.set.items():
+        coerced_value = _coerce_runtime_value(key, value)
+        setattr(config, key, coerced_value)
+        if session_state is not None and key in mirrors:
+            session_state[mirrors[key]] = _session_state_value(key, coerced_value)
+
+    for key, patch_value in normalized_patch.merge.items():
+        if key != "regimes":
+            continue
+        merged = _merge_regimes(getattr(config, key, None), patch_value)
+        setattr(config, key, merged)
+        if session_state is not None and key in mirrors:
+            session_state[mirrors[key]] = merged
+
+    for key in normalized_patch.remove:
+        setattr(config, key, None)
+        if session_state is not None and key in mirrors:
+            session_state[mirrors[key]] = None
+
+    return config
+
+
+def diff_config(
+    before_config: Any,
+    after_config: Any,
+    *,
+    format: str = "yaml",
+) -> tuple[str, str, str]:
+    """Return unified diff and serialized before/after snapshots."""
+
+    before_text = _serialize_config_snapshot(before_config, format=format)
+    after_text = _serialize_config_snapshot(after_config, format=format)
+    diff_text = "".join(
+        difflib.unified_diff(
+            before_text.splitlines(keepends=True),
+            after_text.splitlines(keepends=True),
+            fromfile="before",
+            tofile="after",
+        )
+    )
+    return diff_text, before_text, after_text
+
+
+def round_trip_validate_config(
+    config: Any,
+    *,
+    build_yaml_from_config: Callable[[Any], Mapping[str, Any]],
+) -> ConfigRoundTripValidationResult:
+    """Validate config by serializing wizard YAML and reloading via ``load_config``."""
+
+    try:
+        yaml_dict = dict(build_yaml_from_config(config))
+        load_config(yaml_dict)
+    except Exception as exc:
+        return ConfigRoundTripValidationResult(is_valid=False, errors=[str(exc)], yaml_dict=None)
+    return ConfigRoundTripValidationResult(is_valid=True, errors=[], yaml_dict=yaml_dict)
+
+
+def _session_state_value(key: str, value: Any) -> Any:
+    if key == "analysis_mode" and isinstance(value, AnalysisMode):
+        return value.value
+    if key == "sleeve_constraint_scope" and value == "per_sleeve":
+        return "sleeves"
+    return value
+
+
+def _coerce_runtime_value(key: str, value: Any) -> Any:
+    if key == "analysis_mode" and isinstance(value, str):
+        return AnalysisMode(value)
+    if key == "risk_metrics":
+        normalized: list[str] = []
+        for metric in value:
+            if isinstance(metric, RiskMetric):
+                normalized.append(metric.value)
+            else:
+                normalized.append(str(metric))
+        return normalized
+    if key == "sleeve_constraint_scope" and value == "sleeves":
+        return "per_sleeve"
+    return value
+
+
+def _merge_regimes(
+    existing: list[dict[str, Any]] | dict[str, dict[str, Any]] | None,
+    patch_value: Mapping[str, Any],
+) -> dict[str, dict[str, Any]]:
+    merged = _normalize_regimes_mapping(existing)
+    for regime_name, regime_patch in patch_value.items():
+        if not isinstance(regime_patch, Mapping):
+            continue
+        target = dict(merged.get(regime_name, {}))
+        target.update(dict(regime_patch))
+        if "name" not in target:
+            target["name"] = regime_name
+        merged[regime_name] = target
+    return merged
+
+
+def _normalize_regimes_mapping(
+    regimes: list[dict[str, Any]] | dict[str, dict[str, Any]] | None,
+) -> dict[str, dict[str, Any]]:
+    if regimes is None:
+        return {}
+    if isinstance(regimes, list):
+        normalized: dict[str, dict[str, Any]] = {}
+        for regime in regimes:
+            name = str(regime.get("name", "")).strip()
+            if not name:
+                continue
+            normalized[name] = dict(regime)
+        return normalized
+    return {str(name): dict(regime) for name, regime in regimes.items()}
+
+
+def _serialize_config_snapshot(config: Any, *, format: str) -> str:
+    payload = _normalize_serializable(
+        {key: getattr(config, key, None) for key in ALLOWED_WIZARD_FIELDS}
+    )
+    if format == "yaml":
+        return yaml.safe_dump(payload, sort_keys=True)
+    if format == "json":
+        return json.dumps(payload, sort_keys=True, indent=2, default=str) + "\n"
+    raise ValueError("format must be 'yaml' or 'json'")
+
+
+def _normalize_serializable(value: Any) -> Any:
+    if isinstance(value, (AnalysisMode, RiskMetric)):
+        return value.value
+    if isinstance(value, Mapping):
+        return {str(key): _normalize_serializable(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [_normalize_serializable(child) for child in value]
+    if isinstance(value, tuple):
+        return [_normalize_serializable(child) for child in value]
+    return value
+
+
 __all__ = [
     "ALLOWED_WIZARD_FIELDS",
     "ConfigPatch",
     "ConfigPatchValidationError",
+    "ConfigRoundTripValidationResult",
     "AllowedField",
+    "WIZARD_SESSION_MIRROR_KEYS",
+    "apply_patch",
     "allowed_wizard_schema",
+    "diff_config",
     "empty_patch",
+    "round_trip_validate_config",
     "validate_patch_dict",
 ]
