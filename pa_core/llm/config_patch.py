@@ -13,10 +13,22 @@ from pa_core.config import load_config
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
 _PATCH_KEYS: tuple[str, str, str] = ("set", "merge", "remove")
+_PATCH_OPERATION_ITEM_KEYS: tuple[str, str, str] = ("op", "key", "value")
 
 
 class ConfigPatchValidationError(ValueError):
     """Raised when an incoming config patch payload is invalid."""
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        unknown_keys: list[str] | None = None,
+        unknown_paths: list[str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.unknown_keys = list(unknown_keys or [])
+        self.unknown_paths = list(unknown_paths or [])
 
 
 @dataclass(frozen=True)
@@ -121,12 +133,17 @@ def allowed_wizard_schema() -> dict[str, str]:
     return {key: field.type_label for key, field in ALLOWED_WIZARD_FIELDS.items()}
 
 
-def validate_patch_dict(raw_patch: Mapping[str, Any]) -> ConfigPatch:
+def validate_patch_dict(raw_patch: Mapping[str, Any] | list[Any]) -> ConfigPatch:
     """Validate and normalize a config patch payload.
 
     Expected shape:
     ``{"set": {...}, "merge": {...}, "remove": [..]}``
+    or a legacy operation list:
+    ``[{"op": "set|merge|remove", "key": "...", "value": ...}, ...]``
     """
+
+    if isinstance(raw_patch, list):
+        raw_patch = _normalize_patch_operations_list(raw_patch)
 
     if not isinstance(raw_patch, Mapping):
         raise ConfigPatchValidationError("patch must be a mapping")
@@ -134,7 +151,9 @@ def validate_patch_dict(raw_patch: Mapping[str, Any]) -> ConfigPatch:
     unknown_patch_ops = sorted(set(raw_patch) - set(_PATCH_KEYS))
     if unknown_patch_ops:
         raise ConfigPatchValidationError(
-            f"unknown patch operations: {', '.join(unknown_patch_ops)}"
+            f"unknown patch operations: {', '.join(unknown_patch_ops)}",
+            unknown_keys=unknown_patch_ops,
+            unknown_paths=[f"patch.{key}" for key in unknown_patch_ops],
         )
 
     set_ops = _validate_set_ops(raw_patch.get("set", {}))
@@ -146,10 +165,68 @@ def validate_patch_dict(raw_patch: Mapping[str, Any]) -> ConfigPatch:
     return ConfigPatch(set=set_ops, merge=merge_ops, remove=remove_ops)
 
 
-def _ensure_known_key(key: str) -> AllowedField:
+def _normalize_patch_operations_list(raw_patch: list[Any]) -> dict[str, Any]:
+    """Normalize legacy operation-list patches into mapping form."""
+
+    normalized_set: dict[str, Any] = {}
+    normalized_merge: dict[str, Any] = {}
+    normalized_remove: list[str] = []
+
+    for idx, operation in enumerate(raw_patch):
+        path_prefix = f"patch[{idx}]"
+        if not isinstance(operation, Mapping):
+            raise ConfigPatchValidationError(f"{path_prefix} must be a mapping")
+
+        unknown_item_keys = sorted(set(operation) - set(_PATCH_OPERATION_ITEM_KEYS))
+        if unknown_item_keys:
+            raise ConfigPatchValidationError(
+                f"unknown patch operation keys at {path_prefix}: {', '.join(unknown_item_keys)}",
+                unknown_keys=unknown_item_keys,
+                unknown_paths=[f"{path_prefix}.{key}" for key in unknown_item_keys],
+            )
+
+        op_name = operation.get("op")
+        if not isinstance(op_name, str):
+            raise ConfigPatchValidationError(f"{path_prefix}.op must be a string")
+        if op_name not in _PATCH_KEYS:
+            raise ConfigPatchValidationError(
+                f"unknown patch operation: {op_name}",
+                unknown_keys=[op_name],
+                unknown_paths=[f"{path_prefix}.op"],
+            )
+
+        key = operation.get("key")
+        if not isinstance(key, str) or not key:
+            raise ConfigPatchValidationError(f"{path_prefix}.key must be a non-empty string")
+
+        if op_name == "remove":
+            normalized_remove.append(key)
+            continue
+
+        if "value" not in operation:
+            raise ConfigPatchValidationError(f"{path_prefix}.value is required for '{op_name}'")
+
+        if op_name == "set":
+            normalized_set[key] = operation["value"]
+            continue
+
+        normalized_merge[key] = operation["value"]
+
+    return {
+        "set": normalized_set,
+        "merge": normalized_merge,
+        "remove": normalized_remove,
+    }
+
+
+def _ensure_known_key(key: str, *, path: str) -> AllowedField:
     field = ALLOWED_WIZARD_FIELDS.get(key)
     if field is None:
-        raise ConfigPatchValidationError(f"unknown wizard field: {key}")
+        raise ConfigPatchValidationError(
+            f"unknown wizard field: {key}",
+            unknown_keys=[key],
+            unknown_paths=[path],
+        )
     return field
 
 
@@ -161,7 +238,7 @@ def _validate_set_ops(raw_set: Any) -> dict[str, Any]:
     for key, value in raw_set.items():
         if not isinstance(key, str):
             raise ConfigPatchValidationError("patch.set keys must be strings")
-        field = _ensure_known_key(key)
+        field = _ensure_known_key(key, path=f"patch.set.{key}")
         _validate_value_for_key(key, value)
         if value is None and not field.removable:
             raise ConfigPatchValidationError(f"field '{key}' does not support null values")
@@ -177,7 +254,7 @@ def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
     for key, value in raw_merge.items():
         if not isinstance(key, str):
             raise ConfigPatchValidationError("patch.merge keys must be strings")
-        field = _ensure_known_key(key)
+        field = _ensure_known_key(key, path=f"patch.merge.{key}")
         if not field.mergeable:
             raise ConfigPatchValidationError(f"field '{key}' does not support merge")
         if not isinstance(value, Mapping):
@@ -192,13 +269,13 @@ def _validate_remove_ops(raw_remove: Any) -> list[str]:
 
     normalized: list[str] = []
     seen: set[str] = set()
-    for value in raw_remove:
+    for idx, value in enumerate(raw_remove):
         if not isinstance(value, str):
             raise ConfigPatchValidationError("patch.remove values must be strings")
         if value in seen:
             continue
         seen.add(value)
-        field = _ensure_known_key(value)
+        field = _ensure_known_key(value, path=f"patch.remove[{idx}]")
         if not field.removable:
             raise ConfigPatchValidationError(f"field '{value}' does not support remove")
         normalized.append(value)
@@ -529,6 +606,19 @@ def _normalize_serializable(value: Any) -> Any:
     return value
 
 
+def parse_chain_output(raw_output: str | Mapping[str, Any]) -> Any:
+    """Compatibility wrapper for chain output parsing.
+
+    The canonical implementation lives in ``pa_core.llm.config_patch_chain``.
+    This wrapper keeps structured unknown-key reporting reachable from the
+    config_patch module without creating an import cycle at module load time.
+    """
+
+    from pa_core.llm.config_patch_chain import parse_chain_output as _parse_chain_output
+
+    return _parse_chain_output(raw_output)
+
+
 __all__ = [
     "ALLOWED_WIZARD_FIELDS",
     "ConfigPatch",
@@ -540,6 +630,7 @@ __all__ = [
     "allowed_wizard_schema",
     "diff_config",
     "empty_patch",
+    "parse_chain_output",
     "round_trip_validate_config",
     "validate_patch_dict",
 ]

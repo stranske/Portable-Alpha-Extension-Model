@@ -31,9 +31,14 @@ from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_chain
+from pa_core.llm.config_chat import (
+    apply_config_chat_preview as apply_config_chat_preview_core,
+)
+from pa_core.llm.config_chat import (
+    snapshot_wizard_session_state,
+)
 from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_FIELDS,
-    WIZARD_SESSION_MIRROR_KEYS,
     empty_patch,
     round_trip_validate_config,
     validate_patch_dict,
@@ -46,6 +51,7 @@ from pa_core.llm.config_patch import (
 )
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
+from pa_core.wizard.session_state import restore_wizard_session_snapshot
 from pa_core.wizard_schema import (
     AnalysisMode,
     DefaultConfigView,
@@ -91,6 +97,29 @@ def _normalize_config_chat_value(value: Any) -> Any:
     return value
 
 
+def _stable_unique_text_items(values: Any) -> list[str]:
+    """Normalize arbitrary values into a deterministic, de-duplicated string list."""
+
+    if values is None:
+        return []
+    if isinstance(values, str):
+        raw_values: list[Any] = [values]
+    elif isinstance(values, list):
+        raw_values = values
+    else:
+        raw_values = [values]
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for value in raw_values:
+        text = str(value).strip()
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        normalized.append(text)
+    return normalized
+
+
 def _config_chat_snapshot(config: DefaultConfigView) -> dict[str, Any]:
     return {
         key: _normalize_config_chat_value(getattr(config, key, None))
@@ -102,6 +131,8 @@ def _heuristic_config_patch_result(
     instruction: str,
     *,
     config: DefaultConfigView,
+    rejected_patch_keys: list[str] | None = None,
+    rejected_patch_paths: list[str] | None = None,
 ) -> ConfigPatchChainResult:
     text = instruction.strip().lower()
     set_ops: dict[str, Any] = {}
@@ -135,6 +166,9 @@ def _heuristic_config_patch_result(
         patch=patch,
         summary=summary,
         risk_flags=risk_flags,
+        unknown_output_keys=[],
+        rejected_patch_keys=list(rejected_patch_keys or []),
+        rejected_patch_paths=list(rejected_patch_paths or []),
         trace_url=None,
     )
 
@@ -185,12 +219,23 @@ def _run_config_chat_instruction(
             model_name=model,
         )
     except Exception as exc:
-        fallback = _heuristic_config_patch_result(instruction, config=config)
-        exc_text = str(exc).lower()
-        if (
-            "unknown wizard field" in exc_text
-            and "rejected_unknown_patch_fields" not in fallback.risk_flags
-        ):
+        rejected_patch_keys: list[str] = []
+        rejected_patch_paths: list[str] = []
+        unknown_keys = getattr(exc, "unknown_keys", None)
+        if isinstance(unknown_keys, list):
+            rejected_patch_keys = [str(key) for key in unknown_keys if str(key)]
+        unknown_paths = getattr(exc, "unknown_paths", None)
+        if isinstance(unknown_paths, list):
+            rejected_patch_paths = [str(path) for path in unknown_paths if str(path)]
+
+        fallback = _heuristic_config_patch_result(
+            instruction,
+            config=config,
+            rejected_patch_keys=rejected_patch_keys,
+            rejected_patch_paths=rejected_patch_paths,
+        )
+        has_unknown_patch_fields = bool(rejected_patch_paths)
+        if has_unknown_patch_fields and "rejected_unknown_patch_fields" not in fallback.risk_flags:
             fallback.risk_flags.append("rejected_unknown_patch_fields")
         if "llm_fallback_heuristic" not in fallback.risk_flags:
             fallback.risk_flags.append("llm_fallback_heuristic")
@@ -212,7 +257,14 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         build_yaml_from_config=_build_yaml_from_config,
     )
 
-    risk_flags = list(result.risk_flags)
+    risk_flags = _stable_unique_text_items(result.risk_flags)
+    unknown_output_keys = _stable_unique_text_items(result.unknown_output_keys)
+    rejected_patch_keys = _stable_unique_text_items(result.rejected_patch_keys)
+    rejected_patch_paths = _stable_unique_text_items(result.rejected_patch_paths)
+    if unknown_output_keys and "stripped_unknown_output_keys" not in risk_flags:
+        risk_flags.append("stripped_unknown_output_keys")
+    if rejected_patch_paths and "rejected_unknown_patch_fields" not in risk_flags:
+        risk_flags.append("rejected_unknown_patch_fields")
     if not validation_result.is_valid and "round_trip_validation_failed" not in risk_flags:
         risk_flags.append("round_trip_validation_failed")
 
@@ -224,6 +276,9 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
         },
         "summary": result.summary,
         "risk_flags": risk_flags,
+        "unknown_output_keys": unknown_output_keys,
+        "rejected_patch_keys": rejected_patch_keys,
+        "rejected_patch_paths": rejected_patch_paths,
         "trace_url": result.trace_url,
         "validation_errors": list(validation_result.errors),
         "unified_diff": unified_diff,
@@ -232,16 +287,8 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
     }
 
 
-def _capture_session_mirror_state() -> tuple[dict[str, Any], list[str]]:
-    mirrors = sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
-    present: dict[str, Any] = {}
-    missing: list[str] = []
-    for key in mirrors:
-        if key in st.session_state:
-            present[key] = deepcopy(st.session_state[key])
-        else:
-            missing.append(key)
-    return present, missing
+def _config_chat_state_snapshot(config: DefaultConfigView) -> dict[str, Any]:
+    return snapshot_wizard_session_state(config, session_state=st.session_state)
 
 
 def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tuple[bool, str]:
@@ -249,38 +296,26 @@ def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tu
     if not isinstance(config, DefaultConfigView):
         return False, "wizard_config is not initialized."
 
-    raw_patch = preview.get("patch", {})
-    try:
-        patch = validate_patch_dict(raw_patch)
-    except Exception as exc:
-        return False, f"Patch validation failed: {exc}"
-
-    candidate = deepcopy(config)
-    apply_config_patch(candidate, patch)
-    validation_result = round_trip_validate_config(
-        candidate,
+    snapshot = _config_chat_state_snapshot(config)
+    action = "Apply+Validate" if validate else "Apply"
+    ok, message = apply_config_chat_preview_core(
+        preview,
+        action=action,
+        session_state=st.session_state,
         build_yaml_from_config=_build_yaml_from_config,
+        wizard_config_key="wizard_config",
+        validate_config=round_trip_validate_config,
     )
-    if not validation_result.is_valid:
-        errors = "; ".join(validation_result.errors)
-        return False, f"Validation failed; changes not applied. {errors}"
+    if not ok:
+        return ok, message
 
-    pre_mirror_values, pre_missing_mirrors = _capture_session_mirror_state()
     _config_chat_history().append(
         {
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "pre_apply_config": deepcopy(config),
-            "pre_apply_mirrors": pre_mirror_values,
-            "pre_apply_missing_mirrors": pre_missing_mirrors,
+            **snapshot,
         }
     )
-
-    apply_config_patch(config, patch, session_state=st.session_state)
-    st.session_state["wizard_config"] = config
-
-    if validate:
-        return True, "Config changes applied and validated."
-    return True, "Config changes applied."
+    return ok, message
 
 
 def _revert_last_config_chat_change() -> tuple[bool, str]:
@@ -289,21 +324,8 @@ def _revert_last_config_chat_change() -> tuple[bool, str]:
         return False, "No applied config-chat changes to revert."
 
     last = history.pop()
-    restored_config = last.get("pre_apply_config")
-    if not isinstance(restored_config, DefaultConfigView):
+    if not restore_wizard_session_snapshot(last, session_state=st.session_state):
         return False, "Cannot revert because stored snapshot is invalid."
-
-    st.session_state["wizard_config"] = restored_config
-
-    mirrors = last.get("pre_apply_mirrors", {})
-    if isinstance(mirrors, Mapping):
-        for key, value in mirrors.items():
-            st.session_state[str(key)] = deepcopy(value)
-
-    missing = last.get("pre_apply_missing_mirrors", [])
-    if isinstance(missing, list):
-        for key in missing:
-            st.session_state.pop(str(key), None)
 
     return True, "Reverted to previous config snapshot."
 

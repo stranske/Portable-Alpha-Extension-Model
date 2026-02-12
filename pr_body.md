@@ -207,16 +207,23 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 ### Verification (Keepalive Next Task #1405)
 - [x] `pytest tests/test_dashboard_config_chat.py -m "not slow"` (3 passed).
 
-## Task Reconciliation (Keepalive Next Task #1406, Issue #1380 Follow-up)
-- [x] Create baseline summary DataFrame fixture with required metric columns in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
-- [x] Create summary DataFrame fixture variant missing one required metric column in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
-- [x] Create summary DataFrame fixture variant with `None`, `NaN`, and empty string metric values in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
-- [x] Add nominal metric extraction unit test with exact numeric and categorical assertions in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
-- [x] Add missing-column metric extraction unit test with exact expected output in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
-- [x] Add null and empty-value metric extraction unit test with exact expected output in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
-- [x] Update `.agents/issue-1380-ledger.yml` to replace truncated path-reference task entries with concrete `pa_core/llm/result_explain.py` paths and descriptions.
-- [x] Update `.agents/issue-1380-ledger.yml` metric-extraction task statuses to `done` only when corresponding tests exist in `tests/test_result_explain.py`.
-- [x] Align `.agents/issue-1380-ledger.yml` and `pr_body.md` follow-up subtasks for issue #1380 with matching names, descriptions, and file paths.
+## Task Reconciliation (Keepalive Next Task #1412)
+- [x] Reviewed recent commits (`8118216`, `1137e2f`) and reconciled checkbox status for Apply vs Apply+Validate follow-up work.
+- [x] Reviewed recent commits (`ea0f0e3`, `deaa5f2`, `3e6aaaa`) and reconciled checkbox status for unknown-key follow-up work that updated `dashboard/pages/3_Scenario_Wizard.py`, `pa_core/llm/config_patch_chain.py`, and `tests/test_wizard_config_chat_acceptance.py`.
+- [x] Synced PR tracking to reflect prior completion of the Apply/Apply+Validate split and acceptance coverage in `tests/test_wizard_config_chat_acceptance.py`.
+- [x] Updated LangSmith trace handling in `pa_core/llm/config_patch_chain.py` to consume callback-provided run/trace identifiers and removed synthetic UUID fallback generation.
+- [x] Added/updated unit coverage in `tests/test_llm_config_patch_chain.py` for callback-derived real trace URL capture and deterministic `None` when trace metadata is unavailable.
+- [x] Implemented shared restore helper `restore_wizard_session_snapshot(...)` in `pa_core/wizard/session_state.py` to restore `wizard_config` and all session mirror keys from config-chat snapshots.
+- [x] Updated Scenario Wizard config-chat Revert and Apply+Validate rollback paths to use `restore_wizard_session_snapshot(...)` instead of duplicate inline restore loops.
+- [x] Added unit coverage in `tests/test_wizard_session_state.py` asserting restore behavior across every key in `WIZARD_SESSION_MIRROR_KEYS`.
+- [x] Completed the remaining Unknown-Key Detection Refactoring checklist item by stabilizing structured unknown-output risk flag reporting (no duplicate `stripped_unknown_output_keys` values).
+- [x] Added unit coverage in `tests/test_llm_config_patch_chain.py` to verify unknown-output risk flags remain deduplicated while unknown keys are still reported in structured output.
+- [x] Hardened wizard preview structured unknown-key metadata to be deterministic by de-duplicating `risk_flags`, `unknown_output_keys`, `rejected_patch_keys`, and `rejected_patch_paths`.
+- [x] Added acceptance coverage in `tests/test_wizard_config_chat_acceptance.py` ensuring duplicate unknown-key metadata is normalized into stable machine-checkable lists.
 
-### Verification (Keepalive Next Task #1406)
-- [x] `pytest tests/test_result_explain.py -m "not slow"` (3 passed).
+### Verification (Keepalive Next Task #1412)
+- [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (4 passed).
+- [x] `pytest tests/test_wizard_session_state.py -m "not slow"` (2 passed).
+- [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
+- [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (5 passed).
+- [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (13 passed).

@@ -13,6 +13,7 @@ from pa_core.llm.config_patch import (
     apply_patch,
     diff_config,
     empty_patch,
+    parse_chain_output,
     round_trip_validate_config,
     validate_patch_dict,
 )
@@ -47,6 +48,71 @@ def test_validate_patch_dict_accepts_valid_set_payload() -> None:
 def test_validate_patch_dict_rejects_unknown_field() -> None:
     with pytest.raises(ConfigPatchValidationError, match="unknown wizard field"):
         validate_patch_dict({"set": {"totally_fake_field": 1}})
+
+
+def test_validate_patch_dict_reports_unknown_field_paths_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {"totally_fake_field": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["totally_fake_field"]
+    assert exc.unknown_paths == ["patch.set.totally_fake_field"]
+
+
+def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {}, "unexpected_op": {"foo": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["unexpected_op"]
+    assert exc.unknown_paths == ["patch.unexpected_op"]
+
+
+def test_validate_patch_dict_reports_unknown_nested_operation_item_keys_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict(
+            [
+                {
+                    "op": "set",
+                    "key": "n_simulations",
+                    "value": 5000,
+                    "foo": "bar",
+                }
+            ]
+        )
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["foo"]
+    assert exc.unknown_paths == ["patch[0].foo"]
+
+
+def test_validate_patch_dict_accepts_legacy_operation_list_shape() -> None:
+    patch = validate_patch_dict(
+        [
+            {"op": "set", "key": "n_simulations", "value": 5000},
+            {"op": "merge", "key": "regimes", "value": {"Stress": {"idx_sigma_multiplier": 1.2}}},
+            {"op": "remove", "key": "sleeve_max_cvar"},
+        ]
+    )
+
+    assert patch.set == {"n_simulations": 5000}
+    assert patch.merge == {"regimes": {"Stress": {"idx_sigma_multiplier": 1.2}}}
+    assert patch.remove == ["sleeve_max_cvar"]
+
+
+def test_parse_chain_output_reports_unknown_top_level_keys_structured() -> None:
+    result = parse_chain_output(
+        {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Increase simulations.",
+            "risk_flags": [],
+            "hallucinated": True,
+        }
+    )
+
+    assert result.patch.set == {"n_simulations": 5000}
+    assert result.unknown_output_keys == ["hallucinated"]
+    assert "stripped_unknown_output_keys" in result.risk_flags
 
 
 def test_validate_patch_dict_rejects_wrong_type() -> None:
