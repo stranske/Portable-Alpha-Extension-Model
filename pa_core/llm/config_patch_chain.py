@@ -18,6 +18,9 @@ from pa_core.llm.config_patch import (
     validate_patch_dict,
 )
 
+_langsmith_tracing_context: Callable[..., Any] | None
+_resolve_trace_url: Callable[[Any], str | None] | None
+
 try:
     from pa_core.llm.tracing import langsmith_tracing_context as _langsmith_tracing_context
     from pa_core.llm.tracing import resolve_trace_url as _resolve_trace_url
@@ -148,15 +151,14 @@ def run_config_patch_chain(
     prompt = build_config_patch_prompt(current_config=current_config, instruction=instruction)
 
     trace_url: str | None = None
-    tracing_context = (
-        _langsmith_tracing_context(
+    if _langsmith_enabled() and _langsmith_tracing_context is not None:
+        tracing_context = _langsmith_tracing_context(
             project_name="portable-alpha-config-chat",
             tags=("wizard", "config-chat"),
             metadata={"provider": provider_name or "unknown", "model": model_name or "unknown"},
         )
-        if _langsmith_enabled()
-        else nullcontext()
-    )
+    else:
+        tracing_context = nullcontext()
     with tracing_context:
         raw_output = invoke_llm(prompt)
 
@@ -219,7 +221,7 @@ def _build_validation_error(exc: ConfigPatchValidationError) -> dict[str, Any]:
 
 
 def _langsmith_enabled() -> bool:
-    return bool(_langsmith_tracing_context and os.getenv("LANGSMITH_API_KEY"))
+    return _langsmith_tracing_context is not None and bool(os.getenv("LANGSMITH_API_KEY"))
 
 
 def _split_trace_metadata(raw_output: Any) -> tuple[str | Mapping[str, Any], str | None]:
