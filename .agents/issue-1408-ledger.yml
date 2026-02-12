@@ -6,10 +6,10 @@ tasks:
   - id: task-01
     title: Create pytest fixture in `tests/test_result_explain.py` that returns a
       baseline summary DataFrame with all required metric columns populated
-    status: doing
+    status: done
     started_at: '2026-02-12T03:16:24Z'
-    finished_at: null
-    commit: ''
+    finished_at: '2026-02-12T03:16:33Z'
+    commit: 1f0659059dfcecfc931f40a05e3ac20d306c9257
     notes: []
   - id: task-02
     title: Create pytest fixture in `tests/test_result_explain.py` that returns a
