@@ -31,10 +31,14 @@ from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_chain
+from pa_core.llm.config_chat import (
+    apply_config_chat_preview as apply_config_chat_preview_core,
+)
+from pa_core.llm.config_chat import (
+    snapshot_wizard_session_state,
+)
 from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_FIELDS,
-    WIZARD_SESSION_MIRROR_KEYS,
-    ConfigPatchValidationError,
     empty_patch,
     round_trip_validate_config,
     validate_patch_dict,
@@ -261,24 +265,7 @@ def _preview_config_chat_instruction(instruction: str) -> dict[str, Any]:
 
 
 def _config_chat_state_snapshot(config: DefaultConfigView) -> dict[str, Any]:
-    mirrors = sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
-    pre_mirror_values: dict[str, Any] = {}
-    pre_missing_mirrors: list[str] = []
-    for key in mirrors:
-        if key in st.session_state:
-            pre_mirror_values[key] = deepcopy(st.session_state[key])
-        else:
-            pre_missing_mirrors.append(key)
-    return {
-        "pre_apply_config": deepcopy(config),
-        "pre_apply_mirrors": pre_mirror_values,
-        "pre_apply_missing_mirrors": pre_missing_mirrors,
-    }
-
-
-def _apply_patch_to_wizard_state(config: DefaultConfigView, patch: Any) -> None:
-    apply_config_patch(config, patch, session_state=st.session_state)
-    st.session_state["wizard_config"] = config
+    return snapshot_wizard_session_state(config, session_state=st.session_state)
 
 
 def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tuple[bool, str]:
@@ -286,30 +273,18 @@ def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tu
     if not isinstance(config, DefaultConfigView):
         return False, "wizard_config is not initialized."
 
-    raw_patch = preview.get("patch", {})
-    try:
-        patch = validate_patch_dict(raw_patch)
-    except ConfigPatchValidationError as exc:
-        if exc.unknown_paths:
-            unknown_paths = ", ".join(exc.unknown_paths)
-            return False, f"Patch validation failed: unknown patch fields at {unknown_paths}"
-        return False, f"Patch validation failed: {exc}"
-    except Exception as exc:
-        return False, f"Patch validation failed: {exc}"
-
     snapshot = _config_chat_state_snapshot(config)
-
-    if validate:
-        candidate = deepcopy(config)
-        apply_config_patch(candidate, patch)
-        validation_result = round_trip_validate_config(
-            candidate,
-            build_yaml_from_config=_build_yaml_from_config,
-        )
-        if not validation_result.is_valid:
-            restore_wizard_session_snapshot(snapshot, session_state=st.session_state)
-            errors = "; ".join(validation_result.errors)
-            return False, f"Validation failed; changes not applied. {errors}"
+    action = "Apply+Validate" if validate else "Apply"
+    ok, message = apply_config_chat_preview_core(
+        preview,
+        action=action,
+        session_state=st.session_state,
+        build_yaml_from_config=_build_yaml_from_config,
+        wizard_config_key="wizard_config",
+        validate_config=round_trip_validate_config,
+    )
+    if not ok:
+        return ok, message
 
     _config_chat_history().append(
         {
@@ -317,12 +292,7 @@ def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tu
             **snapshot,
         }
     )
-
-    _apply_patch_to_wizard_state(config, patch)
-
-    if validate:
-        return True, "Config changes applied and validated."
-    return True, "Config changes applied."
+    return ok, message
 
 
 def _revert_last_config_chat_change() -> tuple[bool, str]:
