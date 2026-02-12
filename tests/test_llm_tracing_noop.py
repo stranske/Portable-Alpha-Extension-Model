@@ -111,3 +111,12 @@ def test_resolve_trace_url_from_run_object_url_attr():
 
     resolve_trace_url = _resolve_trace_url()
     assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/abc-run"
+
+
+def test_resolve_trace_url_from_run_object_get_url_method():
+    class _Run:
+        def get_url(self) -> str:
+            return "https://smith.langchain.com/r/get-url"
+
+    resolve_trace_url = _resolve_trace_url()
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/get-url"

@@ -134,3 +134,22 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1403)
 - [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
+
+## Task Reconciliation (Keepalive Next Task #1406)
+- [x] Reviewed recent commits (`0a1e27f`, `95c1279`, `1f473eb`) and reconciled checklist state before continuing.
+- [x] Confirmed prior `dashboard/components/llm_settings.py` key-resolution/sanitization subtasks were already completed and reflected in PR tracking.
+- [x] Define scope for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Implement focused slice for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Validate focused slice for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Define scope for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Implement focused slice for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Validate focused slice for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Define scope for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Implement focused slice for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Validate focused slice for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Resolved truncated task reference `pa_core/l_...` to `pa_core/llm/tracing.py` based on active LLM module scope and prior task context.
+- [x] Added a corresponding unit test in `tests/test_llm_tracing_noop.py` for run-object URL resolution via `get_url()`.
+
+### Verification (Keepalive Next Task #1406)
+- [x] `pytest tests/test_llm_result_explain_entrypoint.py -m "not slow"` (5 passed).
+- [x] `pytest tests/test_llm_tracing_noop.py -m "not slow"` (13 passed).
