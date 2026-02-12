@@ -129,8 +129,10 @@ def test_unknown_patch_field_rejection_is_flagged() -> None:
         module = _load_module()
         run_fn = module["_run_config_chat_instruction"]
         config = get_default_config(AnalysisMode.RETURNS)
-        run_fn.__globals__["_build_config_chat_llm_invoke"] = (
-            lambda: (lambda _prompt: "{}", "openai", None)
+        run_fn.__globals__["_build_config_chat_llm_invoke"] = lambda: (
+            lambda _prompt: "{}",
+            "openai",
+            None,
         )
         run_fn.__globals__["run_config_patch_chain"] = lambda **_kwargs: (_ for _ in ()).throw(
             ValueError("unknown wizard field: fake_field")

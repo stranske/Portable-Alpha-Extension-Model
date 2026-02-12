@@ -34,11 +34,15 @@ from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_cha
 from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_FIELDS,
     WIZARD_SESSION_MIRROR_KEYS,
-    apply_patch as apply_config_patch,
-    diff_config as diff_wizard_config,
     empty_patch,
     round_trip_validate_config,
     validate_patch_dict,
+)
+from pa_core.llm.config_patch import (
+    apply_patch as apply_config_patch,
+)
+from pa_core.llm.config_patch import (
+    diff_config as diff_wizard_config,
 )
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
@@ -113,7 +117,9 @@ def _heuristic_config_patch_result(
     )
     if breach_to_match:
         set_ops["sleeve_max_breach"] = float(breach_to_match.group(1))
-    elif "breach tolerance" in text and any(token in text for token in ("reduce", "lower", "decrease")):
+    elif "breach tolerance" in text and any(
+        token in text for token in ("reduce", "lower", "decrease")
+    ):
         current = getattr(config, "sleeve_max_breach", None)
         if isinstance(current, (int, float)):
             set_ops["sleeve_max_breach"] = max(0.0, float(current) * 0.8)
@@ -181,7 +187,10 @@ def _run_config_chat_instruction(
     except Exception as exc:
         fallback = _heuristic_config_patch_result(instruction, config=config)
         exc_text = str(exc).lower()
-        if "unknown wizard field" in exc_text and "rejected_unknown_patch_fields" not in fallback.risk_flags:
+        if (
+            "unknown wizard field" in exc_text
+            and "rejected_unknown_patch_fields" not in fallback.risk_flags
+        ):
             fallback.risk_flags.append("rejected_unknown_patch_fields")
         if "llm_fallback_heuristic" not in fallback.risk_flags:
             fallback.risk_flags.append("llm_fallback_heuristic")
