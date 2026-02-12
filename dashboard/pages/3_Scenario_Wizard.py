@@ -33,6 +33,7 @@ from pa_core.data import load_index_returns
 from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_chain
 from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_FIELDS,
+    ConfigPatchValidationError,
     WIZARD_SESSION_MIRROR_KEYS,
     empty_patch,
     round_trip_validate_config,
@@ -187,11 +188,12 @@ def _run_config_chat_instruction(
         )
     except Exception as exc:
         fallback = _heuristic_config_patch_result(instruction, config=config)
-        exc_text = str(exc).lower()
-        if (
-            "unknown wizard field" in exc_text
-            and "rejected_unknown_patch_fields" not in fallback.risk_flags
-        ):
+        has_unknown_patch_fields = isinstance(exc, ConfigPatchValidationError) and bool(
+            exc.unknown_paths
+        )
+        if not has_unknown_patch_fields:
+            has_unknown_patch_fields = "unknown wizard field" in str(exc).lower()
+        if has_unknown_patch_fields and "rejected_unknown_patch_fields" not in fallback.risk_flags:
             fallback.risk_flags.append("rejected_unknown_patch_fields")
         if "llm_fallback_heuristic" not in fallback.risk_flags:
             fallback.risk_flags.append("llm_fallback_heuristic")
@@ -287,6 +289,11 @@ def _apply_config_chat_preview(preview: Mapping[str, Any], validate: bool) -> tu
     raw_patch = preview.get("patch", {})
     try:
         patch = validate_patch_dict(raw_patch)
+    except ConfigPatchValidationError as exc:
+        if exc.unknown_paths:
+            unknown_paths = ", ".join(exc.unknown_paths)
+            return False, f"Patch validation failed: unknown patch fields at {unknown_paths}"
+        return False, f"Patch validation failed: {exc}"
     except Exception as exc:
         return False, f"Patch validation failed: {exc}"
 

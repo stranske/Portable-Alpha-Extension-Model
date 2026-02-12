@@ -49,6 +49,24 @@ def test_validate_patch_dict_rejects_unknown_field() -> None:
         validate_patch_dict({"set": {"totally_fake_field": 1}})
 
 
+def test_validate_patch_dict_reports_unknown_field_paths_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {"totally_fake_field": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["totally_fake_field"]
+    assert exc.unknown_paths == ["patch.set.totally_fake_field"]
+
+
+def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {}, "unexpected_op": {"foo": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["unexpected_op"]
+    assert exc.unknown_paths == ["patch.unexpected_op"]
+
+
 def test_validate_patch_dict_rejects_wrong_type() -> None:
     with pytest.raises(ConfigPatchValidationError, match="must be an int"):
         validate_patch_dict({"set": {"n_simulations": "5000"}})

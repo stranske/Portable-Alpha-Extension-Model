@@ -18,6 +18,17 @@ _PATCH_KEYS: tuple[str, str, str] = ("set", "merge", "remove")
 class ConfigPatchValidationError(ValueError):
     """Raised when an incoming config patch payload is invalid."""
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        unknown_keys: list[str] | None = None,
+        unknown_paths: list[str] | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.unknown_keys = list(unknown_keys or [])
+        self.unknown_paths = list(unknown_paths or [])
+
 
 @dataclass(frozen=True)
 class AllowedField:
@@ -134,7 +145,9 @@ def validate_patch_dict(raw_patch: Mapping[str, Any]) -> ConfigPatch:
     unknown_patch_ops = sorted(set(raw_patch) - set(_PATCH_KEYS))
     if unknown_patch_ops:
         raise ConfigPatchValidationError(
-            f"unknown patch operations: {', '.join(unknown_patch_ops)}"
+            f"unknown patch operations: {', '.join(unknown_patch_ops)}",
+            unknown_keys=unknown_patch_ops,
+            unknown_paths=[f"patch.{key}" for key in unknown_patch_ops],
         )
 
     set_ops = _validate_set_ops(raw_patch.get("set", {}))
@@ -146,10 +159,14 @@ def validate_patch_dict(raw_patch: Mapping[str, Any]) -> ConfigPatch:
     return ConfigPatch(set=set_ops, merge=merge_ops, remove=remove_ops)
 
 
-def _ensure_known_key(key: str) -> AllowedField:
+def _ensure_known_key(key: str, *, path: str) -> AllowedField:
     field = ALLOWED_WIZARD_FIELDS.get(key)
     if field is None:
-        raise ConfigPatchValidationError(f"unknown wizard field: {key}")
+        raise ConfigPatchValidationError(
+            f"unknown wizard field: {key}",
+            unknown_keys=[key],
+            unknown_paths=[path],
+        )
     return field
 
 
@@ -161,7 +178,7 @@ def _validate_set_ops(raw_set: Any) -> dict[str, Any]:
     for key, value in raw_set.items():
         if not isinstance(key, str):
             raise ConfigPatchValidationError("patch.set keys must be strings")
-        field = _ensure_known_key(key)
+        field = _ensure_known_key(key, path=f"patch.set.{key}")
         _validate_value_for_key(key, value)
         if value is None and not field.removable:
             raise ConfigPatchValidationError(f"field '{key}' does not support null values")
@@ -177,7 +194,7 @@ def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
     for key, value in raw_merge.items():
         if not isinstance(key, str):
             raise ConfigPatchValidationError("patch.merge keys must be strings")
-        field = _ensure_known_key(key)
+        field = _ensure_known_key(key, path=f"patch.merge.{key}")
         if not field.mergeable:
             raise ConfigPatchValidationError(f"field '{key}' does not support merge")
         if not isinstance(value, Mapping):
@@ -192,13 +209,13 @@ def _validate_remove_ops(raw_remove: Any) -> list[str]:
 
     normalized: list[str] = []
     seen: set[str] = set()
-    for value in raw_remove:
+    for idx, value in enumerate(raw_remove):
         if not isinstance(value, str):
             raise ConfigPatchValidationError("patch.remove values must be strings")
         if value in seen:
             continue
         seen.add(value)
-        field = _ensure_known_key(value)
+        field = _ensure_known_key(value, path=f"patch.remove[{idx}]")
         if not field.removable:
             raise ConfigPatchValidationError(f"field '{value}' does not support remove")
         normalized.append(value)

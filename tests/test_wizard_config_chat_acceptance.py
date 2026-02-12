@@ -4,7 +4,7 @@ import runpy
 
 import streamlit as st
 
-from pa_core.llm.config_patch import empty_patch, validate_patch_dict
+from pa_core.llm.config_patch import ConfigPatchValidationError, empty_patch, validate_patch_dict
 from pa_core.llm.config_patch_chain import ConfigPatchChainResult
 from pa_core.wizard_schema import AnalysisMode, get_default_config
 
@@ -219,6 +219,57 @@ def test_unknown_patch_field_rejection_is_flagged() -> None:
 
         result = run_fn("set fake field to 1", config=config)
         assert "rejected_unknown_patch_fields" in result.risk_flags
+    finally:
+        st.session_state.clear()
+
+
+def test_unknown_patch_field_rejection_is_flagged_from_structured_validation_error() -> None:
+    st.session_state.clear()
+    try:
+        module = _load_module()
+        run_fn = module["_run_config_chat_instruction"]
+        config = get_default_config(AnalysisMode.RETURNS)
+        run_fn.__globals__["_build_config_chat_llm_invoke"] = lambda: (
+            lambda _prompt: "{}",
+            "openai",
+            None,
+        )
+        run_fn.__globals__["run_config_patch_chain"] = lambda **_kwargs: (_ for _ in ()).throw(
+            ConfigPatchValidationError(
+                "unexpected failure shape",
+                unknown_keys=["fake_field"],
+                unknown_paths=["patch.set.fake_field"],
+            )
+        )
+
+        result = run_fn("set fake field to 1", config=config)
+        assert "rejected_unknown_patch_fields" in result.risk_flags
+    finally:
+        st.session_state.clear()
+
+
+def test_apply_reports_structured_unknown_patch_field_paths() -> None:
+    st.session_state.clear()
+    try:
+        module = _load_module()
+        apply_fn = module["_apply_config_chat_preview"]
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["wizard_config"] = config
+
+        ok, message = apply_fn(
+            {
+                "patch": {
+                    "set": {"totally_fake_field": 123},
+                    "merge": {},
+                    "remove": [],
+                }
+            },
+            False,
+        )
+
+        assert ok is False
+        assert "unknown patch fields" in message.lower()
+        assert "patch.set.totally_fake_field" in message
     finally:
         st.session_state.clear()
 
