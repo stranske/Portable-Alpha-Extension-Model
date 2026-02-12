@@ -74,12 +74,30 @@ def test_validate_patch_dict_reports_unknown_patch_ops_structured() -> None:
     assert exc.unknown_paths == ["patch.unexpected_op"]
 
 
+def test_validate_patch_dict_reports_non_string_unknown_patch_ops_structured() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": {}, 1: {"foo": 1}})
+
+    exc = exc_info.value
+    assert exc.unknown_keys == ["1"]
+    assert exc.unknown_paths == ["patch.1"]
+
+
 def test_validate_patch_schema_returns_structured_unknown_keys_result() -> None:
     result = validate_patch_schema({"set": {}, "nope": {}})
 
     assert isinstance(result, PatchSchemaValidationResult)
     assert result.is_valid is False
     assert result.unknown_keys == ["nope"]
+    assert result.normalized_patch is None
+
+
+def test_validate_patch_schema_normalizes_non_string_unknown_keys() -> None:
+    result = validate_patch_schema({"set": {}, 5: {}, ("merge",): {}})
+
+    assert isinstance(result, PatchSchemaValidationResult)
+    assert result.is_valid is False
+    assert result.unknown_keys == ["('merge',)", "5"]
     assert result.normalized_patch is None
 
 
@@ -91,6 +109,26 @@ def test_validate_patch_dict_type_error_exposes_field_type_metadata() -> None:
     assert exc.field_name == "remove"
     assert exc.expected_type == "list[str]"
     assert exc.actual_type == "str"
+
+
+def test_validate_patch_dict_set_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"set": []})
+
+    exc = exc_info.value
+    assert exc.field_name == "set"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
+
+
+def test_validate_patch_dict_merge_type_error_exposes_field_type_metadata() -> None:
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"merge": []})
+
+    exc = exc_info.value
+    assert exc.field_name == "merge"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "list"
 
 
 def test_validate_patch_dict_rejects_non_dict_top_level_patch_payload() -> None:

@@ -56,7 +56,9 @@ def validate_patch_schema(raw_patch: Any) -> PatchSchemaValidationResult:
             actual_value=raw_patch,
         )
 
-    unknown_patch_ops = sorted(set(raw_patch) - set(_PATCH_KEYS))
+    unknown_patch_ops = sorted(
+        {str(key) for key in raw_patch.keys() if key not in _PATCH_KEYS}
+    )
     if unknown_patch_ops:
         return PatchSchemaValidationResult(
             is_valid=False,
