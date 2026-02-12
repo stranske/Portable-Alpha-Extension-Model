@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 import socket
 import sys
 
@@ -39,6 +40,19 @@ def test_tracing_context_noop_without_api_key(
 
     assert socket.socket.connect is blocked
     assert attempts == []
+
+
+def test_maybe_enable_langsmith_tracing_wires_langchain_env(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("LANGCHAIN_API_KEY", raising=False)
+    monkeypatch.delenv("LANGCHAIN_TRACING_V2", raising=False)
+    monkeypatch.setenv("LANGSMITH_API_KEY", "langsmith-key")
+
+    tracing = importlib.import_module("pa_core.llm.tracing")
+    tracing._LANGSMITH_ENABLED = None
+
+    assert tracing.maybe_enable_langsmith_tracing() is True
+    assert os.environ.get("LANGCHAIN_API_KEY") == "langsmith-key"
+    assert os.environ.get("LANGCHAIN_TRACING_V2") == "true"
 
 
 # ---------- resolve_trace_url tests ----------
@@ -89,3 +103,11 @@ def test_resolve_trace_url_strips_trailing_slash_from_base():
     resolve_trace_url = _resolve_trace_url()
     url = resolve_trace_url("abc", base_url="https://example.com///")
     assert url == "https://example.com/abc"
+
+
+def test_resolve_trace_url_from_run_object_url_attr():
+    class _Run:
+        url = "https://smith.langchain.com/r/abc-run"
+
+    resolve_trace_url = _resolve_trace_url()
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/abc-run"
