@@ -169,3 +169,17 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 
 ### Verification (Keepalive Next Task #1405)
 - [x] `pytest tests/test_dashboard_config_chat.py -m "not slow"` (3 passed).
+
+## Task Reconciliation (Keepalive Next Task #1406, Issue #1380 Follow-up)
+- [x] Create baseline summary DataFrame fixture with required metric columns in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+- [x] Create summary DataFrame fixture variant missing one required metric column in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+- [x] Create summary DataFrame fixture variant with `None`, `NaN`, and empty string metric values in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+- [x] Add nominal metric extraction unit test with exact numeric and categorical assertions in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+- [x] Add missing-column metric extraction unit test with exact expected output in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+- [x] Add null and empty-value metric extraction unit test with exact expected output in `tests/test_result_explain.py` for `pa_core/llm/result_explain.py`.
+- [x] Update `.agents/issue-1380-ledger.yml` to replace truncated path-reference task entries with concrete `pa_core/llm/result_explain.py` paths and descriptions.
+- [x] Update `.agents/issue-1380-ledger.yml` metric-extraction task statuses to `done` only when corresponding tests exist in `tests/test_result_explain.py`.
+- [x] Align `.agents/issue-1380-ledger.yml` and `pr_body.md` follow-up subtasks for issue #1380 with matching names, descriptions, and file paths.
+
+### Verification (Keepalive Next Task #1406)
+- [x] `pytest tests/test_result_explain.py -m "not slow"` (3 passed).
