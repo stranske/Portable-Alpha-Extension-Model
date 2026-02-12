@@ -10,7 +10,6 @@ from typing import Any, Callable, Mapping, MutableMapping
 import yaml
 
 from pa_core.config import load_config
-
 from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
 _PATCH_KEYS: tuple[str, str, str] = ("set", "merge", "remove")

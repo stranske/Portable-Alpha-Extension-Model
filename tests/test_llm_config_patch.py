@@ -9,8 +9,8 @@ import pytest
 from pa_core.llm.config_patch import (
     ConfigPatch,
     ConfigPatchValidationError,
-    apply_patch,
     allowed_wizard_schema,
+    apply_patch,
     diff_config,
     empty_patch,
     round_trip_validate_config,
