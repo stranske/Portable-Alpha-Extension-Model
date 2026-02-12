@@ -46,3 +46,40 @@ def test_explain_results_details_accepts_missing_manifest():
 def test_explain_results_details_rejects_non_dataframe():
     with pytest.raises(TypeError, match="details_df must be a pandas DataFrame"):
         explain_results_details({"not": "a dataframe"})
+
+
+def test_explain_results_details_extracts_summary_metric_catalog():
+    summary_df = pd.DataFrame(
+        {
+            "monthly_TE": [0.01, 0.03, 0.02],
+            "TrackingErr": [0.02, 0.04, 0.06],
+            "monthly_CVaR": [-0.05, -0.07, -0.06],
+            "monthly_BreachProb": [0.10, 0.20, 0.15],
+            "label": ["A", "B", "C"],
+        }
+    )
+
+    _, _, payload = explain_results_details(summary_df, manifest=None)
+
+    catalog = payload["metric_catalog"]
+    # Main's _build_metric_catalog returns {metric_key: {metric, label, value, column}}
+    assert catalog["tracking_error"]["value"] == pytest.approx(0.02)
+    assert catalog["cvar"]["value"] == pytest.approx(-0.06)
+    assert catalog["breach_probability"]["value"] == pytest.approx(0.15)
+
+
+def test_explain_results_details_metric_catalog_handles_missing_and_null_columns():
+    summary_df = pd.DataFrame(
+        {
+            "monthly_TE": [None, None],
+            "monthly_BreachProb": [0.05, None],
+            "non_numeric": ["x", "y"],
+        }
+    )
+
+    _, _, payload = explain_results_details(summary_df, manifest=None)
+
+    catalog = payload["metric_catalog"]
+    assert "tracking_error" not in catalog
+    assert "cvar" not in catalog
+    assert catalog["breach_probability"]["value"] == pytest.approx(0.05)

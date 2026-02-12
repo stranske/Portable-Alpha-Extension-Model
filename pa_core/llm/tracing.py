@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from contextlib import contextmanager
-from typing import Any, Iterator, Mapping, Sequence
+from typing import Any, Iterator, Literal, Mapping, Sequence
 from urllib.parse import quote
 
 DEFAULT_LANGSMITH_TRACE_BASE_URL = "https://smith.langchain.com/r/"
@@ -37,6 +37,11 @@ def maybe_enable_langsmith_tracing() -> bool:
 @contextmanager
 def langsmith_tracing_context(
     *,
+    name: str | None = None,
+    run_type: Literal["retriever", "llm", "tool", "chain", "embedding", "prompt", "parser"] = (
+        "chain"
+    ),
+    inputs: Mapping[str, Any] | None = None,
     project_name: str | None = None,
     tags: Sequence[str] | None = None,
     metadata: Mapping[str, Any] | None = None,
@@ -54,9 +59,27 @@ def langsmith_tracing_context(
     try:
         from langsmith import run_helpers
     except Exception:
-        yield
+        yield None
         return
 
+    # Trend-compatible path: explicit run object for callers that need URL extraction.
+    if name:
+        try:
+            trace_cm = run_helpers.trace(
+                name,
+                run_type=run_type,
+                inputs=dict(inputs or {}),
+                metadata=dict(metadata or {}),
+                project_name=project_name,
+            )
+        except Exception:
+            yield None
+            return
+        with trace_cm as run:
+            yield run
+        return
+
+    # Lightweight path used by Portable dashboard features.
     context_kwargs: dict[str, Any] = {"enabled": True}
     if project_name:
         context_kwargs["project_name"] = project_name
@@ -66,7 +89,7 @@ def langsmith_tracing_context(
         context_kwargs["metadata"] = dict(metadata)
 
     with run_helpers.tracing_context(**context_kwargs):
-        yield
+        yield None
 
 
 def resolve_trace_url(trace: str | Any | None, *, base_url: str | None = None) -> str | None:

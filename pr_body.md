@@ -154,6 +154,43 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 ### Verification (Keepalive Next Task #1403)
 - [x] `pytest tests/test_llm_compare_runs.py -m "not slow"` (11 passed).
 
+## Task Reconciliation (Keepalive Next Task #1406)
+- [x] Reviewed recent commits (`0a1e27f`, `95c1279`, `1f473eb`) and reconciled checklist state before continuing.
+- [x] Confirmed prior `dashboard/components/llm_settings.py` key-resolution/sanitization subtasks were already completed and reflected in PR tracking.
+- [x] Define scope for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Implement focused slice for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Validate focused slice for: Create fixture data with a small fake summary DataFrame for metric extraction tests.
+- [x] Define scope for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Implement focused slice for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Validate focused slice for: Add unit tests for basic metric extraction from summary DataFrames in `pa_core/llm/result_explain.py`.
+- [x] Define scope for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Implement focused slice for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Validate focused slice for: Add unit tests for edge cases in metric extraction such as missing columns or null values.
+- [x] Resolved truncated task reference `pa_core/l_...` to `pa_core/llm/tracing.py` based on active LLM module scope and prior task context.
+- [x] Added a corresponding unit test in `tests/test_llm_tracing_noop.py` for run-object URL resolution via `get_url()`.
+
+### Verification (Keepalive Next Task #1406)
+- [x] `pytest tests/test_llm_result_explain_entrypoint.py -m "not slow"` (5 passed).
+- [x] `pytest tests/test_llm_tracing_noop.py -m "not slow"` (13 passed).
+
+## Task Reconciliation (Keepalive Next Task #1407)
+- [x] Reviewed recent commits (`3ad6989`, `39ec437`, `b345953`) and reconciled missing checkbox updates.
+- [x] Validated key-resolution follow-up for invalid env-var format inputs in `tests/test_dashboard_llm_settings.py`.
+- [x] Implemented a focused sanitization hardening slice in `dashboard/components/llm_settings.py` to neutralize non-printable characters before masking.
+- [x] Added focused sanitization tests for control/ANSI-character edge cases in `tests/test_dashboard_llm_settings.py`.
+- [x] Validated the sanitization slice with targeted test execution.
+
+### Verification (Keepalive Next Task #1407)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (64 passed).
+
+## Task Reconciliation (Keepalive Next Task #1408)
+- [x] Reviewed recent commits (`6d33a7e`, `3ad6989`, `39ec437`) and reconciled checklist tracking for the latest llm-settings follow-up.
+- [x] Added focused sanitization coverage in `tests/test_dashboard_llm_settings.py` for NUL (`\\x00`) and DEL (`\\x7f`) control-character handling.
+- [x] Validated the added slice with targeted test execution.
+
+### Verification (Keepalive Next Task #1408)
+- [x] `pytest tests/test_dashboard_llm_settings.py -m "not slow"` (65 passed).
+
 ## Task Reconciliation (Keepalive Next Task #1404)
 - [x] Reviewed recent commits (`1d1a07c`, `b0828b3`, `a377eea`) and reconciled checkbox state for Config Chat backend groundwork.
 - [x] Marked complete in PR tracking: created `pa_core/llm/config_patch.py` schema/patch validation allowlist and tests.

@@ -112,3 +112,20 @@ def test_resolve_trace_url_strips_trailing_slash_from_base():
     resolve_trace_url = _resolve_trace_url()
     url = resolve_trace_url("abc", base_url="https://example.com///")
     assert url == "https://example.com/abc"
+
+
+def test_resolve_trace_url_from_run_object_url_attr():
+    class _Run:
+        url = "https://smith.langchain.com/r/abc-run"
+
+    resolve_trace_url = _resolve_trace_url()
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/abc-run"
+
+
+def test_resolve_trace_url_from_run_object_get_url_method():
+    class _Run:
+        def get_url(self) -> str:
+            return "https://smith.langchain.com/r/get-url"
+
+    resolve_trace_url = _resolve_trace_url()
+    assert resolve_trace_url(_Run()) == "https://smith.langchain.com/r/get-url"
