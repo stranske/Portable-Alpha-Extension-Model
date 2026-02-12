@@ -179,8 +179,11 @@ Follow-up on PR #1221 for issue #1194, closing remaining gaps around Scenario Wi
 - [x] Implemented shared restore helper `restore_wizard_session_snapshot(...)` in `pa_core/wizard/session_state.py` to restore `wizard_config` and all session mirror keys from config-chat snapshots.
 - [x] Updated Scenario Wizard config-chat Revert and Apply+Validate rollback paths to use `restore_wizard_session_snapshot(...)` instead of duplicate inline restore loops.
 - [x] Added unit coverage in `tests/test_wizard_session_state.py` asserting restore behavior across every key in `WIZARD_SESSION_MIRROR_KEYS`.
+- [x] Completed the remaining Unknown-Key Detection Refactoring checklist item by stabilizing structured unknown-output risk flag reporting (no duplicate `stripped_unknown_output_keys` values).
+- [x] Added unit coverage in `tests/test_llm_config_patch_chain.py` to verify unknown-output risk flags remain deduplicated while unknown keys are still reported in structured output.
 
 ### Verification (Keepalive Next Task #1412)
 - [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (4 passed).
 - [x] `pytest tests/test_wizard_session_state.py -m "not slow"` (2 passed).
 - [x] `pytest tests/test_wizard_config_chat_acceptance.py -m "not slow"` (11 passed).
+- [x] `pytest tests/test_llm_config_patch_chain.py -m "not slow"` (5 passed).

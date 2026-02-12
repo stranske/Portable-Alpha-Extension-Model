@@ -80,7 +80,7 @@ def parse_chain_output(raw_output: str | Mapping[str, Any]) -> ConfigPatchChainR
     patch = validate_patch_dict(payload.get("patch", {}))
     summary = str(payload.get("summary", "")).strip()
     risk_flags = _normalize_risk_flags(payload.get("risk_flags", []))
-    if unknown_keys:
+    if unknown_keys and "stripped_unknown_output_keys" not in risk_flags:
         risk_flags.append("stripped_unknown_output_keys")
     return ConfigPatchChainResult(
         patch=patch,

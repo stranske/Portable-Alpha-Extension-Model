@@ -22,6 +22,20 @@ def test_parse_chain_output_strips_unknown_keys_and_flags_risk() -> None:
     assert "stripped_unknown_output_keys" in result.risk_flags
 
 
+def test_parse_chain_output_does_not_duplicate_unknown_output_risk_flag() -> None:
+    result = parse_chain_output(
+        {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Increase simulation count.",
+            "risk_flags": ["stripped_unknown_output_keys"],
+            "hallucinated": {"ignored": True},
+        }
+    )
+
+    assert result.unknown_output_keys == ["hallucinated"]
+    assert result.risk_flags == ["stripped_unknown_output_keys"]
+
+
 def test_run_config_patch_chain_includes_trace_url_when_langsmith_enabled(
     monkeypatch,
 ) -> None:
