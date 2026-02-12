@@ -148,3 +148,69 @@ def test_apply_validate_applies_and_syncs_all_mirrors_on_success() -> None:
     assert {
         key: session_state.get(key) for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
     } == _expected_mirror_state(session_state["wizard_config"])
+
+
+def test_apply_rejects_unknown_patch_fields_and_keeps_state_unchanged() -> None:
+    config = get_default_config(AnalysisMode.RETURNS)
+    session_state: dict[str, Any] = {"wizard_config": config}
+    for mirror_key, expected in _expected_mirror_state(config).items():
+        session_state[mirror_key] = expected
+    before_config = session_state["wizard_config"]
+    before_mirrors = {
+        key: session_state.get(key) for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+    }
+
+    ok, message = apply_config_chat_preview(
+        {
+            "patch": {
+                "set": {"totally_fake_field": 1},
+                "merge": {},
+                "remove": [],
+            }
+        },
+        action="Apply",
+        session_state=session_state,
+        build_yaml_from_config=lambda _cfg: {},
+    )
+
+    assert ok is False
+    assert "unknown patch fields at patch.set.totally_fake_field" in message.lower()
+    assert session_state["wizard_config"] == before_config
+    assert {
+        key: session_state.get(key) for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+    } == before_mirrors
+
+
+def test_apply_validate_rejects_unknown_patch_fields_without_validation_call() -> None:
+    config = get_default_config(AnalysisMode.RETURNS)
+    session_state: dict[str, Any] = {"wizard_config": config}
+    for mirror_key, expected in _expected_mirror_state(config).items():
+        session_state[mirror_key] = expected
+    before_config = session_state["wizard_config"]
+    before_mirrors = {
+        key: session_state.get(key) for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+    }
+
+    def _must_not_validate(*_args: Any, **_kwargs: Any) -> Any:
+        raise AssertionError("validation should not run for invalid patches")
+
+    ok, message = apply_config_chat_preview(
+        {
+            "patch": {
+                "set": {"totally_fake_field": 1},
+                "merge": {},
+                "remove": [],
+            }
+        },
+        action="Apply+Validate",
+        session_state=session_state,
+        build_yaml_from_config=lambda _cfg: {},
+        validate_config=_must_not_validate,
+    )
+
+    assert ok is False
+    assert "unknown patch fields at patch.set.totally_fake_field" in message.lower()
+    assert session_state["wizard_config"] == before_config
+    assert {
+        key: session_state.get(key) for key in sorted(set(WIZARD_SESSION_MIRROR_KEYS.values()))
+    } == before_mirrors
