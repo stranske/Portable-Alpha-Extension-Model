@@ -531,7 +531,7 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.15.0
+ruff==0.15.1
     # via portable-alpha-extension-model (pyproject.toml)
 secretstorage==3.5.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x' and sys_platform == 'linux'
     # via keyring
