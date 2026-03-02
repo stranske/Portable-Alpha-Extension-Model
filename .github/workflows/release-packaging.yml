@@ -39,7 +39,7 @@ jobs:
           python -m scripts.make_portable_zip --output "$ZIP_NAME"
 
       - name: Upload artifact (workflow)
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: portable_windows
           path: ${{ env.ZIP_NAME }}
