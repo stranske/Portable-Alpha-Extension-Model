@@ -123,6 +123,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.0.0",
     "pytest-xdist>=3.8.0",
+    "coverage==7.13.4",
     "hypothesis>=6.115.1",
     "pre-commit",
     "bandit",

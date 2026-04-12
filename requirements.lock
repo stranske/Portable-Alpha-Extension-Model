@@ -83,8 +83,10 @@ comm==0.2.3
     # via
     #   ipykernel
     #   ipywidgets
-coverage==7.13.5
-    # via pytest-cov
+coverage==7.13.4
+    # via
+    #   portable-alpha-extension-model (pyproject.toml)
+    #   pytest-cov
 cryptography==46.0.7 ; platform_machine != 'ppc64le' and platform_machine != 's390x' and sys_platform == 'linux'
     # via secretstorage
 debugpy==1.8.20
