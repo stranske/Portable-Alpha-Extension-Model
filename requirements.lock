@@ -284,11 +284,11 @@ kaleido==1.2.0
     # via portable-alpha-extension-model (pyproject.toml)
 keyring==25.7.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x'
     # via twine
-langchain==1.2.15
+langchain==1.2.13
     # via portable-alpha-extension-model (pyproject.toml)
 langchain-anthropic==1.4.0
     # via portable-alpha-extension-model (pyproject.toml)
-langchain-core==1.2.26
+langchain-core==1.2.23
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain
@@ -309,7 +309,7 @@ langgraph-prebuilt==1.0.9
     # via langgraph
 langgraph-sdk==0.3.12
     # via langgraph
-langsmith==0.7.25
+langsmith==0.7.22
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain-core
@@ -345,7 +345,7 @@ more-itertools==11.0.2 ; platform_machine != 'ppc64le' and platform_machine != '
     # via
     #   jaraco-classes
     #   jaraco-functools
-mypy==1.20.0
+mypy==1.19.1
     # via portable-alpha-extension-model (pyproject.toml)
 mypy-extensions==1.1.0
     # via
@@ -562,7 +562,7 @@ referencing==0.37.0
     #   jupyter-events
 regex==2026.2.28
     # via tiktoken
-requests==2.33.1
+requests==2.33.0
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   jupyterlab-server
