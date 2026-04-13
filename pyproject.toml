@@ -73,7 +73,7 @@ where = ["."]
 include = ["pa_core*", "archive*", "scripts*", "dashboard*"]
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
