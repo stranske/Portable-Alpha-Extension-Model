@@ -292,7 +292,7 @@ def _terminal_compounded_returns(arr: NDArray[np.float64]) -> NDArray[np.float64
     terminal = terminal[np.isfinite(terminal)]
     if terminal.size == 0:
         raise ValueError("Return series has no finite values")
-    return terminal
+    return np.asarray(terminal, dtype=np.float64)
 
 
 def _kde_density(samples: NDArray[np.float64], grid: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -308,7 +308,7 @@ def _kde_density(samples: NDArray[np.float64], grid: NDArray[np.float64]) -> NDA
     diffs = (grid[:, None] - data[None, :]) / bandwidth
     density = np.exp(-0.5 * diffs**2)
     mean_density = np.mean(density, axis=1) / (bandwidth * np.sqrt(2 * np.pi))
-    return cast(NDArray[np.float64], mean_density)
+    return np.asarray(mean_density, dtype=np.float64)
 
 
 def _downsample(samples: NDArray[np.float64], max_samples: int = 5000) -> NDArray[np.float64]:

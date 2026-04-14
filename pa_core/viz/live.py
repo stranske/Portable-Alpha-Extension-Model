@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Callable
+from typing import Any, Callable
 
 import plotly.graph_objects as go
 
 try:
     import websockets
 except (ImportError, ModuleNotFoundError):  # pragma: no cover - optional dep
-    websockets = None
+    websockets: Any | None = None
 
 
 async def connect(
