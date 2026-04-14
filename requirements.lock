@@ -83,7 +83,7 @@ comm==0.2.3
     # via
     #   ipykernel
     #   ipywidgets
-coverage==7.13.4
+coverage==7.13.5
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   pytest-cov
@@ -347,7 +347,7 @@ more-itertools==11.0.2 ; platform_machine != 'ppc64le' and platform_machine != '
     # via
     #   jaraco-classes
     #   jaraco-functools
-mypy==1.19.1
+mypy==1.20.1
     # via portable-alpha-extension-model (pyproject.toml)
 mypy-extensions==1.1.0
     # via
@@ -507,13 +507,13 @@ pygments==2.19.2
     #   sphinx
 pyproject-hooks==1.2.0
     # via build
-pytest==9.0.2
+pytest==9.0.3
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   pytest-cov
     #   pytest-timeout
     #   pytest-xdist
-pytest-cov==7.0.0
+pytest-cov==7.1.0
     # via portable-alpha-extension-model (pyproject.toml)
 pytest-timeout==2.4.0
     # via kaleido
@@ -601,7 +601,7 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.15.1
+ruff==0.15.10
     # via portable-alpha-extension-model (pyproject.toml)
 secretstorage==3.5.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x' and sys_platform == 'linux'
     # via keyring
