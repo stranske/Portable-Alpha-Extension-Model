@@ -73,7 +73,7 @@ where = ["."]
 include = ["pa_core*", "archive*", "scripts*", "dashboard*"]
 
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -96,7 +96,7 @@ dependencies = [
     "streamlit>=1.35",
     "python-pptx",
     "xlsxwriter",
-    "PyYAML>=6",
+    "PyYAML>=6.0.3",
     "tomli; python_version < \"3.11\"",
 ]
 
@@ -106,24 +106,24 @@ app = []
 parquet = ["pyarrow"]
 llm = [
     "langchain==1.2.15",
-    "langchain-core==1.2.26",
+    "langchain-core==1.2.28",
     "langchain-openai==1.1.12",
     "langchain-anthropic==1.4.0",
-    "langsmith==0.7.25",
-    "pydantic==2.12.5",
+    "langsmith==0.7.30",
+    "pydantic==2.13.0",
     "requests==2.33.1",
 ]
 
 # Development dependencies
 dev = [
-    "ruff==0.15.1",
+    "ruff==0.15.10",
     "black>=26.1.0",
     "isort>=7.0.0",
-    "mypy==1.19.1",
-    "pytest>=9.0.2",
-    "pytest-cov==7.0.0",
+    "mypy==1.20.1",
+    "pytest==9.0.3",
+    "pytest-cov==7.1.0",
     "pytest-xdist>=3.8.0",
-    "coverage==7.13.4",
+    "coverage==7.13.5",
     "hypothesis>=6.115.1",
     "pre-commit",
     "bandit",
@@ -135,7 +135,7 @@ dev = [
 # Documentation dependencies
 docs = [
     "sphinx",
-    "sphinx-rtd-theme>=2.0",
+    "sphinx-rtd-theme>=3.1.0",
     "nbsphinx",
 ]
 
