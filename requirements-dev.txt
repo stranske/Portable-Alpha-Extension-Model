@@ -15,7 +15,7 @@ kaleido            # Plotly static export driver
 streamlit>=1.35
 python-pptx        # PPTX helper for board packs
 xlsxwriter         # already implied in reporting/
-tomli; python_version<'3.11'
+tomli; python_version<"3.12"
 
 # Development dependencies
 black==24.4.2      # Code formatting

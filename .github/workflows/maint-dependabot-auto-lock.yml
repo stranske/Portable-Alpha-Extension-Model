@@ -26,9 +26,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
       
       - name: Install uv
         run: pip install uv
@@ -36,7 +36,7 @@ jobs:
       - name: Check if lock file needs update
         id: check
         run: |
-          uv pip compile pyproject.toml --extra parquet --extra dev --extra docs --extra build --extra notebook --extra all --universal --output-file requirements.check 2>&1 | tee compile.log || {
+          uv pip compile pyproject.toml --extra app --extra parquet --extra llm --extra dev --extra docs --extra build --extra notebook --extra all --universal --output-file requirements.check 2>&1 | tee compile.log || {
             echo "❌ Compilation failed:"
             cat compile.log
             exit 1
@@ -53,7 +53,7 @@ jobs:
       - name: Regenerate lock file
         if: steps.check.outputs.needs_update == 'true'
         run: |
-          uv pip compile pyproject.toml --extra parquet --extra dev --extra docs --extra build --extra notebook --extra all --universal --output-file requirements.lock
+          uv pip compile pyproject.toml --extra app --extra parquet --extra llm --extra dev --extra docs --extra build --extra notebook --extra all --universal --output-file requirements.lock
           echo "✓ Generated new lock file"
       
       - name: Commit updated lock file
