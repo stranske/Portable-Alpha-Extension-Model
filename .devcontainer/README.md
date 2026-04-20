@@ -10,7 +10,7 @@ This directory contains GitHub Codespaces configuration files that ensure your d
 
 ## What happens when you start a Codespace
 
-1. GitHub creates a container based on the Python 3.11 image
+1. GitHub creates a container based on the Python 3.12 image
 2. Installs VS Code extensions automatically
 3. Runs the setup script to create virtual environment and install dependencies
 4. Configures port forwarding for the Streamlit dashboard (port 8501)

@@ -84,7 +84,7 @@ authors = [{ name = "Portable Alpha Extension Model Developers" }]
 maintainers = [
     { name = "Portable Alpha Extension Model Maintainers", email = "maintainers@example.com" },
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
     "numpy",
     "pandas",
@@ -97,7 +97,7 @@ dependencies = [
     "python-pptx",
     "xlsxwriter",
     "PyYAML>=6.0.3",
-    "tomli; python_version < \"3.11\"",
+    "tomli; python_version < \"3.12\"",
 ]
 
 [project.optional-dependencies]
