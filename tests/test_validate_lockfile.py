@@ -7,10 +7,10 @@ from pathlib import Path
 
 
 def _load_validate_lockfile_module():
-    module_path = Path("scripts/validate_lockfile.py")
+    module_path = Path(__file__).resolve().parents[1] / "scripts" / "validate_lockfile.py"
     spec = importlib.util.spec_from_file_location("validate_lockfile", module_path)
-    assert spec is not None
-    assert spec.loader is not None
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Unable to load validate_lockfile module from {module_path}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
