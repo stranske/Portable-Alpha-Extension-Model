@@ -92,6 +92,9 @@ codex-prompt-*.md
 codex-output-*.md
 verifier-context.md
 
+# Runtime-only reference packs materialized by Workflows keepalive.
+.reference/
+
 # --- Autofix Status Files (HIGH conflict risk) ---
 # Updated by autofix workflow on every PR
 autofix_report_enriched.json
