@@ -50,13 +50,42 @@ def test_check_previous_run_availability_unreadable_json(tmp_path) -> None:
 def test_check_previous_run_availability_readable_manifest(tmp_path) -> None:
     module = _load_results_module()
     check = module["_check_previous_run_availability"]
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.02]}).to_excel(prior_output, sheet_name="Summary", index=False)
     prior_manifest = tmp_path / "prior_manifest.json"
-    prior_manifest.write_text(json.dumps({"seed": 42}))
+    prior_manifest.write_text(json.dumps({"seed": 42, "cli_args": {"output": str(prior_output)}}))
     result = check({"previous_run": str(prior_manifest)})
 
     assert result.available is True
     assert result.prior_manifest_path == prior_manifest
     assert result.message is None
+
+
+def test_check_previous_run_availability_missing_prior_summary(tmp_path) -> None:
+    module = _load_results_module()
+    check = module["_check_previous_run_availability"]
+    prior_manifest = tmp_path / "prior_manifest.json"
+    prior_manifest.write_text(json.dumps({"seed": 42, "cli_args": {"output": "missing.xlsx"}}))
+    result = check({"previous_run": str(prior_manifest)})
+
+    assert result.available is False
+    assert result.prior_manifest_path == prior_manifest
+    assert "missing prior summary sheet" in str(result.message).lower()
+    assert str(tmp_path / "missing.xlsx") in str(result.message)
+
+
+def test_check_previous_run_availability_unreadable_prior_summary(tmp_path) -> None:
+    module = _load_results_module()
+    check = module["_check_previous_run_availability"]
+    prior_output = tmp_path / "prior.xlsx"
+    prior_output.write_text("not an excel workbook")
+    prior_manifest = tmp_path / "prior_manifest.json"
+    prior_manifest.write_text(json.dumps({"seed": 42, "cli_args": {"output": str(prior_output)}}))
+    result = check({"previous_run": str(prior_manifest)})
+
+    assert result.available is False
+    assert result.prior_manifest_path == prior_manifest
+    assert "unreadable prior summary sheet" in str(result.message).lower()
 
 
 class _FakeStreamlit:
@@ -79,8 +108,10 @@ def test_render_comparison_panel_calls_component_when_previous_run_readable(tmp_
 
     current_output = tmp_path / "current.xlsx"
     current_output.write_bytes(b"placeholder")
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.02]}).to_excel(prior_output, sheet_name="Summary", index=False)
     prior_manifest = tmp_path / "prior_manifest.json"
-    prior_manifest.write_text(json.dumps({"seed": 42}))
+    prior_manifest.write_text(json.dumps({"seed": 42, "cli_args": {"output": str(prior_output)}}))
     manifest_data = {"previous_run": str(prior_manifest)}
     summary_df = pd.DataFrame({"monthly_TE": [0.02]})
     captured: dict[str, object] = {}

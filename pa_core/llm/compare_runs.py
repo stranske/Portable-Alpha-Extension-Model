@@ -85,8 +85,15 @@ def load_prior_manifest(
 
 def load_prior_summary(
     prior_manifest: Mapping[str, Any] | None,
+    *,
+    manifest_path: Path | None = None,
 ) -> tuple[pd.DataFrame | None, Path | None]:
-    """Load prior Summary sheet referenced by prior manifest output path."""
+    """Load prior Summary sheet referenced by prior manifest output path.
+
+    Relative output paths are resolved from the prior manifest directory. Older
+    manifests often record ``cli_args.output`` as a run-local path, while the
+    dashboard process may be launched from a different working directory.
+    """
 
     if not isinstance(prior_manifest, Mapping):
         return None, None
@@ -98,6 +105,8 @@ def load_prior_summary(
         return None, None
 
     output_path = Path(output).expanduser()
+    if not output_path.is_absolute() and manifest_path is not None:
+        output_path = manifest_path.expanduser().parent / output_path
     if not output_path.exists() or not output_path.is_file():
         return None, output_path
 
@@ -287,7 +296,9 @@ def compare_runs(
     if prior_manifest is None:
         raise ValueError("No readable prior manifest found from manifest_data['previous_run'].")
 
-    prior_summary, prior_summary_path = load_prior_summary(prior_manifest)
+    prior_summary, prior_summary_path = load_prior_summary(
+        prior_manifest, manifest_path=prior_manifest_path
+    )
     if prior_summary is None:
         expected = str(prior_summary_path) if prior_summary_path else "<unset>"
         raise ValueError(f"No readable prior summary found at expected path: {expected}")

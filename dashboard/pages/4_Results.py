@@ -31,7 +31,7 @@ from pa_core.contracts import (
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
 )
-from pa_core.llm.compare_runs import load_prior_manifest
+from pa_core.llm.compare_runs import load_prior_manifest, load_prior_summary
 
 
 @dataclass(frozen=True)
@@ -76,6 +76,29 @@ def _check_previous_run_availability(
         )
 
     if prior_manifest is not None and prior_manifest_path is not None:
+        try:
+            prior_summary, prior_summary_path = load_prior_summary(
+                prior_manifest, manifest_path=prior_manifest_path
+            )
+        except Exception as exc:
+            return _PreviousRunAvailability(
+                available=False,
+                prior_manifest_path=prior_manifest_path,
+                message=(
+                    "Comparison unavailable: unreadable prior Summary sheet referenced by "
+                    f"`manifest_data['previous_run']` at `{prior_manifest_path}` ({exc})."
+                ),
+            )
+        if prior_summary is None:
+            expected_summary = str(prior_summary_path) if prior_summary_path else "<unset>"
+            return _PreviousRunAvailability(
+                available=False,
+                prior_manifest_path=prior_manifest_path,
+                message=(
+                    "Comparison unavailable: missing prior Summary sheet referenced by "
+                    f"`manifest_data['previous_run']`; expected output file `{expected_summary}`."
+                ),
+            )
         return _PreviousRunAvailability(
             available=True,
             prior_manifest_path=prior_manifest_path,
