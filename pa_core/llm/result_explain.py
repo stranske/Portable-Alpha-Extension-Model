@@ -16,6 +16,21 @@ from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _REDACTION_TOKEN = "[REDACTED]"
 _MAX_ERROR_MESSAGE_LEN = 500
+EXPLAIN_RESULTS_DISCLAIMER = (
+    "Disclaimer: AI-generated explanation. Verify against the underlying simulation "
+    "data and manifest before relying on it for investment, risk, or compliance decisions."
+)
+
+
+def _with_disclaimer(text: str) -> str:
+    body = (text or "").rstrip()
+    if not body:
+        return EXPLAIN_RESULTS_DISCLAIMER
+    if EXPLAIN_RESULTS_DISCLAIMER in body:
+        return body
+    return f"{body}\n\n{EXPLAIN_RESULTS_DISCLAIMER}"
+
+
 _TAIL_ROW_LIMIT = 3
 _QUANTILE_LEVELS = [0.05, 0.5, 0.95]
 _METRIC_ALIAS_GROUPS: dict[str, tuple[str, ...]] = {
@@ -318,7 +333,7 @@ def explain_results_details(
             "LLM configuration is required to generate a result explanation. "
             f"Prepared payload for {analysis_output['rows']} rows."
         )
-        return text, None, payload
+        return _with_disclaimer(text), None, payload
 
     api_key = config.credentials.get("api_key", "")
     request_id = uuid4().hex
@@ -352,4 +367,4 @@ def explain_results_details(
         text = f"Failed to generate explanation: {safe_error}"
         payload["error"] = safe_error
         trace_url = None
-    return text, trace_url, payload
+    return _with_disclaimer(text), trace_url, payload

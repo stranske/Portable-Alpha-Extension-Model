@@ -102,10 +102,11 @@ def test_explain_results_details_nominal_baseline_fixture_returns_expected_value
     text, trace_url, payload = result_explain.explain_results_details(baseline_summary_df)
     metric_catalog = payload["metric_catalog"]
 
-    assert (
-        text
-        == "LLM configuration is required to generate a result explanation. Prepared payload for 3 rows."
+    assert text.startswith(
+        "LLM configuration is required to generate a result explanation. "
+        "Prepared payload for 3 rows."
     )
+    assert result_explain.EXPLAIN_RESULTS_DISCLAIMER in text
     assert trace_url is None
     assert metric_catalog["tracking_error"]["value"] == 0.03
     assert metric_catalog["tracking_error"]["value"] == pytest.approx(0.03)
@@ -168,7 +169,8 @@ def test_explain_results_calls_prompt_builder_and_llm_once(monkeypatch) -> None:
         tracing_enabled=False,
     )
 
-    assert text == "SENTINEL_LLM_RESPONSE"
+    assert text.startswith("SENTINEL_LLM_RESPONSE")
+    assert result_explain.EXPLAIN_RESULTS_DISCLAIMER in text
     assert trace_url is None
     assert len(prompt_calls) == 1
     assert len(create_calls) == 1
@@ -242,7 +244,8 @@ def test_create_llm_receives_dashboard_config_and_api_key_not_exposed(monkeypatc
         tracing_enabled=False,
     )
 
-    assert text == "ok"
+    assert text.startswith("ok")
+    assert result_explain.EXPLAIN_RESULTS_DISCLAIMER in text
     assert captured[0].provider_name == "openai"
     assert captured[0].model_name == "gpt-4o-mini"
     assert "api_key" in captured[0].credentials
@@ -318,7 +321,8 @@ def test_langsmith_tracing_wraps_llm_invoke(monkeypatch) -> None:
         _toy_df(), llm_config=_config(), tracing_enabled=True
     )
 
-    assert text == "TRACED_RESPONSE"
+    assert text.startswith("TRACED_RESPONSE")
+    assert result_explain.EXPLAIN_RESULTS_DISCLAIMER in text
     assert trace_url == "https://smith.langchain.com/r/context-verified"
     assert trace_state["inside"] is False
 
@@ -532,6 +536,44 @@ def test_error_messages_are_sanitized_and_bounded(monkeypatch) -> None:
     assert "SECRET456" not in text
     assert len(payload["error"]) <= result_explain._MAX_ERROR_MESSAGE_LEN
     assert "credentials" not in payload["error"].lower()
+
+
+def test_disclaimer_appended_to_no_llm_fallback_text() -> None:
+    text, _trace_url, _payload = result_explain.explain_results_details(_toy_df())
+    assert text.startswith("LLM configuration is required")
+    assert text.endswith(result_explain.EXPLAIN_RESULTS_DISCLAIMER)
+
+
+def test_disclaimer_appended_to_successful_llm_text(monkeypatch) -> None:
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
+    monkeypatch.setattr(result_explain, "create_llm", lambda _cfg: _StaticLLM("model says hi"))
+
+    text, _trace_url, _payload = result_explain.explain_results_details(
+        _toy_df(), llm_config=_config(), tracing_enabled=False
+    )
+
+    assert text.startswith("model says hi")
+    assert text.endswith(result_explain.EXPLAIN_RESULTS_DISCLAIMER)
+
+
+def test_disclaimer_appended_once_to_error_path_text(monkeypatch) -> None:
+    monkeypatch.setattr(
+        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
+    )
+
+    def _raise_create(_cfg: LLMProviderConfig) -> Any:
+        raise RuntimeError("upstream failure")
+
+    monkeypatch.setattr(result_explain, "create_llm", _raise_create)
+
+    text, _trace_url, _payload = result_explain.explain_results_details(
+        _toy_df(), llm_config=_config()
+    )
+
+    assert text.startswith("Failed to generate explanation")
+    assert text.count(result_explain.EXPLAIN_RESULTS_DISCLAIMER) == 1
 
 
 def test_error_messages_redact_lowercase_bearer_and_config_dump(monkeypatch) -> None:
