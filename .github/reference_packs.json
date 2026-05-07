@@ -10,7 +10,13 @@
         "streamlit_app/components/comparison_llm.py",
         "streamlit_app/pages/2_Model.py",
         "src/trend_analysis/llm/chain.py",
-        "src/trend_analysis/llm/tracing.py"
+        "src/trend_analysis/llm/tracing.py",
+        "streamlit_app/components/analysis_runner.py",
+        "streamlit_app/components/nl_operation_viewer.py",
+        "src/trend_analysis/llm/nl_logging.py",
+        "src/trend_analysis/llm/replay.py",
+        "src/trend_analysis/llm/validation.py",
+        "docs/natural-language-config.md"
       ]
     }
   ]
