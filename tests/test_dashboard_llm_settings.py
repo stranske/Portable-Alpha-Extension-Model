@@ -50,6 +50,7 @@ class TestEnvDefaultReaders:
             "PA_LLM_MODEL",
             "PA_LLM_BASE_URL",
             "PA_LLM_API_VERSION",
+            "AZURE_OPENAI_API_VERSION",
             "PA_LLM_ORG",
             "PA_STREAMLIT_API_KEY",
         }
@@ -454,6 +455,7 @@ class TestResolveLlmProviderConfig:
 
         message = str(exc_info.value)
         assert "PA_LLM_BASE_URL" in message
+        assert "api_version" not in message
         assert "sk-secret-value-1234567890" not in message
 
     def test_azure_openai_missing_api_version_raises_without_secret_leak(self) -> None:
@@ -466,6 +468,8 @@ class TestResolveLlmProviderConfig:
 
         message = str(exc_info.value)
         assert "PA_LLM_API_VERSION" in message
+        assert "AZURE_OPENAI_API_VERSION" in message
+        assert "base_url" not in message
         assert "sk-secret-value-1234567890" not in message
 
     def test_default_provider_is_openai(self) -> None:

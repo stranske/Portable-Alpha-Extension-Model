@@ -44,6 +44,7 @@ ENV_PROVIDER = "PA_LLM_PROVIDER"
 ENV_MODEL = "PA_LLM_MODEL"
 ENV_BASE_URL = "PA_LLM_BASE_URL"
 ENV_API_VERSION = "PA_LLM_API_VERSION"
+ENV_AZURE_OPENAI_API_VERSION = "AZURE_OPENAI_API_VERSION"
 ENV_ORG = "PA_LLM_ORG"
 ENV_STREAMLIT_API_KEY = "PA_STREAMLIT_API_KEY"
 
@@ -89,7 +90,7 @@ def default_base_url() -> str | None:
 
 def default_api_version() -> str | None:
     """Return Azure OpenAI API version from supported env vars when configured."""
-    return read_secret(ENV_API_VERSION) or read_secret("AZURE_OPENAI_API_VERSION")
+    return read_secret(ENV_API_VERSION) or read_secret(ENV_AZURE_OPENAI_API_VERSION)
 
 
 def default_org() -> str | None:
@@ -292,14 +293,21 @@ def resolve_llm_provider_config(
     if resolved_provider == "azure_openai":
         missing_azure_fields: list[str] = []
         if not resolved_base_url:
-            missing_azure_fields.append(ENV_BASE_URL)
+            missing_azure_fields.append(f"base_url ({ENV_BASE_URL})")
         if not resolved_api_version:
-            missing_azure_fields.append(ENV_API_VERSION)
+            missing_azure_fields.append(
+                f"api_version ({ENV_API_VERSION} or {ENV_AZURE_OPENAI_API_VERSION})"
+            )
         if missing_azure_fields:
+            if len(missing_azure_fields) == 1:
+                missing_hint = missing_azure_fields[0]
+            else:
+                missing_hint = " and ".join(missing_azure_fields)
             raise ValueError(
-                "Azure OpenAI settings are incomplete. Set "
-                + " and ".join(missing_azure_fields)
-                + " or provide base_url and api_version in the dashboard settings."
+                "Azure OpenAI settings are incomplete. Missing "
+                + missing_hint
+                + ". Set the matching environment variable or provide the missing "
+                "dashboard setting."
             )
         credentials["azure_endpoint"] = resolved_base_url
         credentials["api_version"] = resolved_api_version
@@ -315,6 +323,7 @@ def resolve_llm_provider_config(
 __all__ = [
     "ENV_BASE_URL",
     "ENV_API_VERSION",
+    "ENV_AZURE_OPENAI_API_VERSION",
     "ENV_LANGSMITH_API_KEY",
     "ENV_MODEL",
     "ENV_ORG",
