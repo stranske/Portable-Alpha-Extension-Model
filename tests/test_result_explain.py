@@ -599,3 +599,183 @@ def test_error_messages_redact_lowercase_bearer_and_config_dump(monkeypatch) -> 
     assert "SECRET123" not in payload["error"]
     assert "config={" not in payload["error"]
     assert result_explain._REDACTION_TOKEN in payload["error"]
+
+
+# ---------------------------------------------------------------------------
+# _with_disclaimer edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_with_disclaimer_empty_string_returns_just_disclaimer() -> None:
+    result = result_explain._with_disclaimer("")
+    assert result == result_explain.EXPLAIN_RESULTS_DISCLAIMER
+
+
+def test_with_disclaimer_none_coerced_empty_returns_just_disclaimer() -> None:
+    # _with_disclaimer treats falsy text as empty via `(text or "")`.
+    result = result_explain._with_disclaimer("")
+    assert result == result_explain.EXPLAIN_RESULTS_DISCLAIMER
+
+
+def test_with_disclaimer_idempotent_does_not_double_append() -> None:
+    already = f"Some analysis.\n\n{result_explain.EXPLAIN_RESULTS_DISCLAIMER}"
+    result = result_explain._with_disclaimer(already)
+    assert result == already
+    assert result.count(result_explain.EXPLAIN_RESULTS_DISCLAIMER) == 1
+
+
+def test_with_disclaimer_strips_trailing_whitespace_before_appending() -> None:
+    result = result_explain._with_disclaimer("Some text.   ")
+    assert result.startswith("Some text.")
+    assert result.endswith(result_explain.EXPLAIN_RESULTS_DISCLAIMER)
+
+
+# ---------------------------------------------------------------------------
+# TypeError guard
+# ---------------------------------------------------------------------------
+
+
+def test_explain_results_raises_type_error_for_non_dataframe() -> None:
+    with pytest.raises(TypeError, match="pandas DataFrame"):
+        result_explain.explain_results_details({"not": "a dataframe"})  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# _extract_response_text list-content path
+# ---------------------------------------------------------------------------
+
+
+def test_extract_response_text_list_of_strings() -> None:
+    response = SimpleNamespace(content=["Hello ", "world"])
+    result = result_explain._extract_response_text(response)
+    assert result == "Hello world"
+
+
+def test_extract_response_text_list_of_dicts_with_text_key() -> None:
+    response = SimpleNamespace(content=[{"text": "part one"}, {"text": "part two"}])
+    result = result_explain._extract_response_text(response)
+    assert result == "part one part two"
+
+
+def test_extract_response_text_mixed_list_skips_non_text_dicts() -> None:
+    response = SimpleNamespace(content=["hello", {"type": "image"}, {"text": "world"}])
+    result = result_explain._extract_response_text(response)
+    assert result == "hello world"
+
+
+def test_extract_response_text_empty_list_falls_back_to_str() -> None:
+    response = SimpleNamespace(content=[])
+    result = result_explain._extract_response_text(response)
+    # Falls through to str(response).strip() which is non-empty.
+    assert isinstance(result, str) and result
+
+
+def test_extract_response_text_list_of_blank_strings_falls_back_to_str() -> None:
+    response = SimpleNamespace(content=["  ", ""])
+    result = result_explain._extract_response_text(response)
+    assert isinstance(result, str) and result
+
+
+# ---------------------------------------------------------------------------
+# _to_json_safe edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_to_json_safe_tuple_is_converted_to_list() -> None:
+    result = result_explain._to_json_safe((1, "a", None))
+    assert result == [1, "a", None]
+
+
+def test_to_json_safe_timestamp_is_isoformat_string() -> None:
+    ts = pd.Timestamp("2024-01-15 12:30:00")
+    result = result_explain._to_json_safe(ts)
+    assert isinstance(result, str)
+    assert "2024-01-15" in result
+
+
+def test_to_json_safe_pandas_na_becomes_none() -> None:
+    # pd.NA is not a float/str/int/bool/Timestamp, so it reaches the pd.isna branch.
+    result = result_explain._to_json_safe(pd.NA)
+    assert result is None
+
+
+def test_to_json_safe_unknown_object_returns_str() -> None:
+    class _Opaque:
+        def __str__(self) -> str:
+            return "opaque-value"
+
+    result = result_explain._to_json_safe(_Opaque())
+    assert result == "opaque-value"
+
+
+# ---------------------------------------------------------------------------
+# Helper function edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_build_basic_statistics_empty_numeric_df_returns_empty_dict() -> None:
+    df = pd.DataFrame({"label": ["a", "b"]})
+    result = result_explain._build_basic_statistics(df)
+    assert result == {}
+
+
+def test_build_quantiles_empty_numeric_df_returns_empty_dict() -> None:
+    df = pd.DataFrame({"label": ["a", "b"]})
+    result = result_explain._build_quantiles(df)
+    assert result == {}
+
+
+def test_build_tail_samples_empty_df_returns_empty_list() -> None:
+    df = pd.DataFrame()
+    result = result_explain._build_tail_samples(df)
+    assert result == []
+
+
+def test_build_stress_delta_summary_non_numeric_stress_cols_returns_empty_summary() -> None:
+    df = pd.DataFrame({"StressDelta_TE": ["high", "low"]})
+    result = result_explain._build_stress_delta_summary(df)
+    assert result is not None
+    assert result["summary"] == {}
+
+
+def test_build_stress_delta_summary_all_nan_stress_col_skips_col() -> None:
+    import numpy as np
+
+    df = pd.DataFrame({"StressDelta_TE": [np.nan, np.nan]})
+    result = result_explain._build_stress_delta_summary(df)
+    assert result is not None
+    assert "StressDelta_TE" not in result["summary"]
+
+
+def test_manifest_highlights_includes_seed_and_cli_args() -> None:
+    manifest = {
+        "run_name": "test_run",
+        "seed": 42,
+        "cli_args": {"n_sims": 1000, "horizon_months": 12, "output": "results/"},
+    }
+    result = result_explain._manifest_highlights(manifest)
+    assert result["seed"] == 42
+    assert result["cli_n_sims"] == 1000
+    assert result["cli_horizon_months"] == 12
+    assert result["cli_output"] == "results/"
+
+
+def test_sanitize_error_message_empty_exc_returns_unknown_error() -> None:
+    exc = RuntimeError("")
+    result = result_explain._sanitize_error_message(exc, secrets=[])
+    assert result == "unknown error"
+
+
+def test_sanitize_error_message_long_plain_message_is_truncated() -> None:
+    # A long message with no sensitive patterns so redaction leaves it intact.
+    long_msg = "Network timeout connecting to endpoint. " * 20
+    exc = RuntimeError(long_msg)
+    result = result_explain._sanitize_error_message(exc, secrets=[])
+    assert len(result) <= result_explain._MAX_ERROR_MESSAGE_LEN
+    assert result.endswith("...")
+
+
+def test_coerce_metric_value_column_not_in_df_returns_none() -> None:
+    df = _toy_df()
+    result = result_explain._coerce_metric_value(df, "nonexistent_column")
+    assert result is None
