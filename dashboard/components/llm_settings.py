@@ -20,6 +20,7 @@ PA_LLM_PROVIDER      – provider name: "openai" | "anthropic" | "azure_openai"
 PA_LLM_MODEL         – model override (default: per-provider, see
                        ``pa_core.llm.provider``)
 PA_LLM_BASE_URL      – optional custom endpoint URL
+PA_LLM_API_VERSION   – Azure OpenAI API version when provider is azure_openai
 PA_LLM_ORG           – optional organisation id
 PA_STREAMLIT_API_KEY  – explicit API key for Streamlit dashboard use
 
@@ -42,6 +43,8 @@ from pa_core.llm.provider import LLMProviderConfig
 ENV_PROVIDER = "PA_LLM_PROVIDER"
 ENV_MODEL = "PA_LLM_MODEL"
 ENV_BASE_URL = "PA_LLM_BASE_URL"
+ENV_API_VERSION = "PA_LLM_API_VERSION"
+ENV_AZURE_OPENAI_API_VERSION = "AZURE_OPENAI_API_VERSION"
 ENV_ORG = "PA_LLM_ORG"
 ENV_STREAMLIT_API_KEY = "PA_STREAMLIT_API_KEY"
 
@@ -83,6 +86,11 @@ def default_model() -> str | None:
 def default_base_url() -> str | None:
     """Return custom endpoint URL from ``PA_LLM_BASE_URL`` when configured."""
     return read_secret(ENV_BASE_URL)
+
+
+def default_api_version() -> str | None:
+    """Return Azure OpenAI API version from supported env vars when configured."""
+    return read_secret(ENV_API_VERSION) or read_secret(ENV_AZURE_OPENAI_API_VERSION)
 
 
 def default_org() -> str | None:
@@ -220,6 +228,7 @@ def resolve_llm_provider_config(
     model: str | None = None,
     api_key: str | None = None,
     base_url: str | None = None,
+    api_version: str | None = None,
     org: str | None = None,
 ) -> LLMProviderConfig:
     """Build a :class:`LLMProviderConfig` from explicit args + env defaults.
@@ -235,7 +244,11 @@ def resolve_llm_provider_config(
     api_key
         Raw API key or env-var name.  Falls back to :func:`default_api_key`.
     base_url
-        Custom base URL override.  Falls back to ``PA_LLM_BASE_URL``.
+        Custom base URL override.  Falls back to ``PA_LLM_BASE_URL``. For
+        ``azure_openai`` this becomes the required ``azure_endpoint`` credential.
+    api_version
+        Azure OpenAI API version override. Falls back to ``PA_LLM_API_VERSION``
+        then ``AZURE_OPENAI_API_VERSION``.
     org
         Organisation id.  Falls back to ``PA_LLM_ORG``.
 
@@ -267,15 +280,37 @@ def resolve_llm_provider_config(
         )
 
     resolved_base_url = base_url or default_base_url()
+    resolved_api_version = api_version or default_api_version()
     resolved_org = org or default_org()
 
     client_kwargs: dict[str, Any] = {}
-    if resolved_base_url:
+    if resolved_base_url and resolved_provider != "azure_openai":
         client_kwargs["base_url"] = resolved_base_url
     if resolved_org:
         client_kwargs["organization"] = resolved_org
 
     credentials: dict[str, str] = {"api_key": resolved_key}
+    if resolved_provider == "azure_openai":
+        missing_azure_fields: list[str] = []
+        if not resolved_base_url:
+            missing_azure_fields.append(f"base_url ({ENV_BASE_URL})")
+        if not resolved_api_version:
+            missing_azure_fields.append(
+                f"api_version ({ENV_API_VERSION} or {ENV_AZURE_OPENAI_API_VERSION})"
+            )
+        if missing_azure_fields:
+            if len(missing_azure_fields) == 1:
+                missing_hint = missing_azure_fields[0]
+            else:
+                missing_hint = " and ".join(missing_azure_fields)
+            raise ValueError(
+                "Azure OpenAI settings are incomplete. Missing "
+                + missing_hint
+                + ". Set the matching environment variable or provide the missing "
+                "dashboard setting."
+            )
+        credentials["azure_endpoint"] = resolved_base_url
+        credentials["api_version"] = resolved_api_version
 
     return LLMProviderConfig(
         provider_name=resolved_provider,
@@ -287,6 +322,8 @@ def resolve_llm_provider_config(
 
 __all__ = [
     "ENV_BASE_URL",
+    "ENV_API_VERSION",
+    "ENV_AZURE_OPENAI_API_VERSION",
     "ENV_LANGSMITH_API_KEY",
     "ENV_MODEL",
     "ENV_ORG",
@@ -294,6 +331,7 @@ __all__ = [
     "ENV_STREAMLIT_API_KEY",
     "DEFAULT_PROVIDER",
     "default_api_key",
+    "default_api_version",
     "default_base_url",
     "default_model",
     "default_org",

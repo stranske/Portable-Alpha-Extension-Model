@@ -19,6 +19,7 @@ if _PROJECT_ROOT not in sys.path:
 
 from dashboard.components.llm_settings import (  # noqa: E402
     default_api_key,
+    default_api_version,
     default_base_url,
     default_model,
     default_org,
@@ -48,6 +49,8 @@ class TestEnvDefaultReaders:
             "PA_LLM_PROVIDER",
             "PA_LLM_MODEL",
             "PA_LLM_BASE_URL",
+            "PA_LLM_API_VERSION",
+            "AZURE_OPENAI_API_VERSION",
             "PA_LLM_ORG",
             "PA_STREAMLIT_API_KEY",
         }
@@ -71,6 +74,16 @@ class TestEnvDefaultReaders:
         env = {**self._clean_env(), "PA_LLM_BASE_URL": "https://example.test"}
         with mock.patch.dict(os.environ, env, clear=True):
             assert default_base_url() == "https://example.test"
+
+    def test_api_version_from_portable_env(self) -> None:
+        env = {**self._clean_env(), "PA_LLM_API_VERSION": "2024-10-21"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_api_version() == "2024-10-21"
+
+    def test_api_version_falls_back_to_azure_env(self) -> None:
+        env = {**self._clean_env(), "AZURE_OPENAI_API_VERSION": "2024-08-01-preview"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            assert default_api_version() == "2024-08-01-preview"
 
     def test_org_from_env(self) -> None:
         env = {**self._clean_env(), "PA_LLM_ORG": "org-abc"}
@@ -359,6 +372,7 @@ class TestResolveLlmProviderConfig:
             "PA_LLM_PROVIDER",
             "PA_LLM_MODEL",
             "PA_LLM_BASE_URL",
+            "PA_LLM_API_VERSION",
             "PA_LLM_ORG",
             "PA_STREAMLIT_API_KEY",
             "OPENAI_API_KEY",
@@ -413,6 +427,50 @@ class TestResolveLlmProviderConfig:
         )
         assert config.client_kwargs["base_url"] == "https://custom.api.com"
         assert config.client_kwargs["organization"] == "org-123"
+
+    def test_azure_openai_config_populates_required_provider_credentials(self) -> None:
+        config = resolve_llm_provider_config(
+            provider="azure_openai",
+            model="gpt-4o-mini",
+            api_key="azure-key",
+            base_url="https://portable-alpha.openai.azure.com",
+            api_version="2024-10-21",
+        )
+
+        assert config.provider_name == "azure_openai"
+        assert config.credentials == {
+            "api_key": "azure-key",
+            "azure_endpoint": "https://portable-alpha.openai.azure.com",
+            "api_version": "2024-10-21",
+        }
+        assert "base_url" not in config.client_kwargs
+
+    def test_azure_openai_missing_endpoint_raises_without_secret_leak(self) -> None:
+        with pytest.raises(ValueError) as exc_info:
+            resolve_llm_provider_config(
+                provider="azure_openai",
+                api_key="sk-secret-value-1234567890",
+                api_version="2024-10-21",
+            )
+
+        message = str(exc_info.value)
+        assert "PA_LLM_BASE_URL" in message
+        assert "api_version" not in message
+        assert "sk-secret-value-1234567890" not in message
+
+    def test_azure_openai_missing_api_version_raises_without_secret_leak(self) -> None:
+        with pytest.raises(ValueError) as exc_info:
+            resolve_llm_provider_config(
+                provider="azure_openai",
+                api_key="sk-secret-value-1234567890",
+                base_url="https://portable-alpha.openai.azure.com",
+            )
+
+        message = str(exc_info.value)
+        assert "PA_LLM_API_VERSION" in message
+        assert "AZURE_OPENAI_API_VERSION" in message
+        assert "base_url" not in message
+        assert "sk-secret-value-1234567890" not in message
 
     def test_default_provider_is_openai(self) -> None:
         env = {**self._clean_env(), "OPENAI_API_KEY": "key"}
