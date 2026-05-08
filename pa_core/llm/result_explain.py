@@ -26,7 +26,7 @@ def _with_disclaimer(text: str) -> str:
     body = (text or "").rstrip()
     if not body:
         return EXPLAIN_RESULTS_DISCLAIMER
-    if EXPLAIN_RESULTS_DISCLAIMER in body:
+    if body.endswith(EXPLAIN_RESULTS_DISCLAIMER):
         return body
     return f"{body}\n\n{EXPLAIN_RESULTS_DISCLAIMER}"
 

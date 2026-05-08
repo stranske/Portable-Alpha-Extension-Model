@@ -624,6 +624,18 @@ def test_with_disclaimer_idempotent_does_not_double_append() -> None:
     assert result.count(result_explain.EXPLAIN_RESULTS_DISCLAIMER) == 1
 
 
+def test_with_disclaimer_appends_when_disclaimer_is_not_footer() -> None:
+    text = (
+        f"The model discussed this text: {result_explain.EXPLAIN_RESULTS_DISCLAIMER}\n"
+        "Then it continued with more analysis."
+    )
+
+    result = result_explain._with_disclaimer(text)
+
+    assert result.endswith(result_explain.EXPLAIN_RESULTS_DISCLAIMER)
+    assert result.count(result_explain.EXPLAIN_RESULTS_DISCLAIMER) == 2
+
+
 def test_with_disclaimer_strips_trailing_whitespace_before_appending() -> None:
     result = result_explain._with_disclaimer("Some text.   ")
     assert result.startswith("Some text.")
