@@ -184,6 +184,10 @@ def _render_preview(preview: Any) -> None:
     if isinstance(risk_flags, list) and risk_flags:
         st.warning(f"Risk flags: {', '.join(str(flag) for flag in risk_flags)}")
 
+    trace_url = preview.get("trace_url")
+    if isinstance(trace_url, str) and trace_url.strip():
+        st.caption(f"Trace URL: {trace_url.strip()}")
+
     unified_diff = preview.get("unified_diff") or st.session_state.get(_PREVIEW_UNIFIED_DIFF_KEY)
     if isinstance(unified_diff, str) and unified_diff.strip():
         st.markdown("**Unified diff**")
