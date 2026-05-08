@@ -15,6 +15,7 @@ def test_llm_features_doc_names_install_env_and_reference_pack() -> None:
         "PA_STREAMLIT_API_KEY",
         "OPENAI_API_KEY",
         "CLAUDE_API_STRANSKE",
+        "PA_LLM_ORG",
         "PA_LLM_BASE_URL",
         "PA_LLM_API_VERSION",
         "AZURE_OPENAI_API_VERSION",

@@ -30,6 +30,7 @@ Use environment variables for shared or repeated runs:
 | `PA_STREAMLIT_API_KEY` | Dashboard-specific provider key. |
 | `OPENAI_API_KEY` | OpenAI fallback key. |
 | `CLAUDE_API_STRANSKE` | Anthropic fallback key. |
+| `PA_LLM_ORG` | Optional organization ID for providers that require one. |
 | `PA_LLM_BASE_URL` | Azure OpenAI endpoint or custom OpenAI-compatible base URL. |
 | `PA_LLM_API_VERSION` | Azure OpenAI API version. |
 | `AZURE_OPENAI_API_VERSION` | Azure API-version fallback. |
@@ -43,7 +44,7 @@ Streamlit messages, or exported artifacts.
 ## Reference Pack
 
 Agent runs use the curated Trend reference pack declared in
-`.github/reference_packs.json`. Workflows materializes it at
+`.github/reference_packs.json`. Workflows materialize it at
 `.reference/trend_streamlit_llm/` during keepalive runs so agents can inspect
 Trend's Streamlit LLM settings, comparison, tracing, and natural-language config
 patterns without copying the entire Trend repository.
