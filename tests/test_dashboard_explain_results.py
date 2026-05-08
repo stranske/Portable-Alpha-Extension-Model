@@ -169,3 +169,33 @@ def test_results_page_llm_fallback_message(monkeypatch) -> None:
 
     assert any("LLM features unavailable" in message for message in fake_st.messages)
     assert any("install .[llm]" in message.lower() for message in fake_st.messages)
+
+
+def test_render_explain_results_panel_reports_missing_llm_extra(monkeypatch) -> None:
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(explain_module, "st", fake_st)
+    monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        explain_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="gpt-4o-mini"),
+    )
+
+    def _raise_missing_extra(*args: Any, **kwargs: Any) -> None:
+        raise ModuleNotFoundError("langchain_openai")
+
+    monkeypatch.setattr(explain_module, "explain_results_details", _raise_missing_extra)
+
+    explain_module.render_explain_results_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.01]}),
+        manifest={"seed": 1},
+        xlsx_path="/tmp/Outputs.xlsx",
+    )
+
+    assert any(
+        kind == "error" and "LLM features unavailable" in text for kind, text in fake_st.messages
+    )
+    assert any(
+        kind == "error" and "install .[llm]" in text.lower() for kind, text in fake_st.messages
+    )

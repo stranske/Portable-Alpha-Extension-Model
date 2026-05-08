@@ -1,6 +1,8 @@
 # Reference Packs for Agent Runs
 
 Portable Alpha defines curated reference packs in `.github/reference_packs.json`.
+Dashboard LLM setup and operator expectations are covered in
+[`docs/llm_features.md`](llm_features.md).
 
 The `trend_streamlit_llm` pack pins a full Trend commit SHA and a small set of
 files that Codex can inspect as implementation patterns during keepalive runs.

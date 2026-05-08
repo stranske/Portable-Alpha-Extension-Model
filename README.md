@@ -53,6 +53,10 @@ The index CSV should include a `Date` column and a monthly total return column n
 
 If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **active return volatility (tracking error, TE)**, and **CVaR**.
 
+## Optional LLM Features
+
+The Results page includes optional LLM panels for run explanations and current-vs-previous comparisons. Install them with `python -m pip install -e ".[llm]"`, then configure provider keys with `PA_STREAMLIT_API_KEY`, `OPENAI_API_KEY`, `CLAUDE_API_STRANSKE`, or Azure-specific `PA_LLM_*` variables. See [Streamlit LLM Features](docs/llm_features.md) for key handling, no-secret export expectations, LangSmith tracing, and the Trend reference pack used by agent runs.
+
 ## Development Setup
 
 ### 🚀 GitHub Codespaces (Recommended)
