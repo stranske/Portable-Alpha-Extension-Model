@@ -70,7 +70,7 @@ def test_check_previous_run_availability_missing_prior_summary(tmp_path) -> None
 
     assert result.available is False
     assert result.prior_manifest_path == prior_manifest
-    assert "missing prior summary sheet" in str(result.message).lower()
+    assert "missing prior output workbook" in str(result.message).lower()
     assert str(tmp_path / "missing.xlsx") in str(result.message)
 
 
@@ -85,7 +85,20 @@ def test_check_previous_run_availability_unreadable_prior_summary(tmp_path) -> N
 
     assert result.available is False
     assert result.prior_manifest_path == prior_manifest
-    assert "unreadable prior summary sheet" in str(result.message).lower()
+    assert "unreadable prior output workbook" in str(result.message).lower()
+    assert str(prior_output) in str(result.message)
+
+
+def test_check_previous_run_availability_missing_prior_output_path(tmp_path) -> None:
+    module = _load_results_module()
+    check = module["_check_previous_run_availability"]
+    prior_manifest = tmp_path / "prior_manifest.json"
+    prior_manifest.write_text(json.dumps({"seed": 42, "cli_args": {}}))
+    result = check({"previous_run": str(prior_manifest)})
+
+    assert result.available is False
+    assert result.prior_manifest_path == prior_manifest
+    assert "missing `cli_args.output` path" in str(result.message)
 
 
 class _FakeStreamlit:
