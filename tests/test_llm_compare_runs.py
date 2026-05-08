@@ -57,6 +57,24 @@ def test_load_prior_summary_reads_previous_output(tmp_path):
     assert "monthly_TE" in loaded.columns
 
 
+def test_load_prior_summary_resolves_output_relative_to_manifest(tmp_path):
+    run_dir = tmp_path / "prior-run"
+    run_dir.mkdir()
+    prior_output = run_dir / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.02], "monthly_CVaR": [-0.03]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest_path = run_dir / "manifest.json"
+    prior_manifest_path.write_text(json.dumps({"cli_args": {"output": "prior.xlsx"}}))
+    prior_manifest = {"cli_args": {"output": "prior.xlsx"}}
+
+    loaded, path = load_prior_summary(prior_manifest, manifest_path=prior_manifest_path)
+
+    assert isinstance(loaded, pd.DataFrame)
+    assert path == prior_output
+    assert loaded["monthly_TE"].iloc[0] == 0.02
+
+
 def test_format_config_diff_includes_seed_cli_and_wizard_changes():
     current_manifest = {
         "seed": 11,

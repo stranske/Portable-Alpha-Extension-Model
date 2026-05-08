@@ -31,7 +31,7 @@ from pa_core.contracts import (
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
     manifest_path_for_output,
 )
-from pa_core.llm.compare_runs import load_prior_manifest
+from pa_core.llm.compare_runs import load_prior_manifest, load_prior_summary
 
 
 @dataclass(frozen=True)
@@ -39,6 +39,19 @@ class _PreviousRunAvailability:
     available: bool
     prior_manifest_path: Path | None
     message: str | None
+
+
+def _prior_output_path(prior_manifest: dict | None, prior_manifest_path: Path) -> Path | None:
+    cli_args = prior_manifest.get("cli_args") if isinstance(prior_manifest, dict) else None
+    if not isinstance(cli_args, dict):
+        return None
+    output = cli_args.get("output")
+    if not isinstance(output, str) or not output.strip():
+        return None
+    output_path = Path(output).expanduser()
+    if not output_path.is_absolute():
+        output_path = prior_manifest_path.expanduser().parent / output_path
+    return output_path
 
 
 def _check_previous_run_availability(
@@ -76,6 +89,37 @@ def _check_previous_run_availability(
         )
 
     if prior_manifest is not None and prior_manifest_path is not None:
+        try:
+            prior_summary, prior_summary_path = load_prior_summary(
+                prior_manifest, manifest_path=prior_manifest_path
+            )
+        except Exception as exc:
+            expected_summary = _prior_output_path(prior_manifest, prior_manifest_path)
+            expected_summary_text = str(expected_summary) if expected_summary else "<unset>"
+            return _PreviousRunAvailability(
+                available=False,
+                prior_manifest_path=prior_manifest_path,
+                message=(
+                    "Comparison unavailable: unreadable prior output workbook referenced by "
+                    f"`manifest_data['previous_run']`; expected output file "
+                    f"`{expected_summary_text}` ({exc})."
+                ),
+            )
+        if prior_summary is None:
+            expected_summary = str(prior_summary_path) if prior_summary_path else "<unset>"
+            missing_target = (
+                "prior output workbook"
+                if prior_summary_path is not None
+                else "`cli_args.output` path in the prior manifest"
+            )
+            return _PreviousRunAvailability(
+                available=False,
+                prior_manifest_path=prior_manifest_path,
+                message=(
+                    f"Comparison unavailable: missing {missing_target} referenced by "
+                    f"`manifest_data['previous_run']`; expected output file `{expected_summary}`."
+                ),
+            )
         return _PreviousRunAvailability(
             available=True,
             prior_manifest_path=prior_manifest_path,
