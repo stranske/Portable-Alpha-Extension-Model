@@ -75,6 +75,7 @@ def test_render_config_chat_preview_populates_session_and_renders_diff(monkeypat
         on_preview=lambda instruction: {
             "summary": f"Applied instruction: {instruction}",
             "risk_flags": ["stripped_unknown_output_keys"],
+            "trace_url": "https://smith.langchain.com/r/config-chat-123",
             "unified_diff": "--- before\n+++ after\n@@\n-n_simulations: 1000\n+n_simulations: 5000\n",
             "before_text": "n_simulations: 1000\n",
             "after_text": "n_simulations: 5000\n",
@@ -84,6 +85,10 @@ def test_render_config_chat_preview_populates_session_and_renders_diff(monkeypat
     preview = fake_st.session_state["wizard_config_chat_preview"]
     assert preview["summary"].startswith("Applied instruction:")
     assert any(kind == "warning" and "Risk flags" in message for kind, message in fake_st.messages)
+    assert any(
+        kind == "caption" and "https://smith.langchain.com/r/config-chat-123" in message
+        for kind, message in fake_st.messages
+    )
     assert any(language == "diff" for _, language in fake_st.code_blocks)
     assert any(language == "yaml" for _, language in fake_st.code_blocks)
 
