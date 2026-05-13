@@ -13,6 +13,8 @@ import streamlit as st
 
 from dashboard.components.llm_settings import (
     default_api_key,
+    default_api_version,
+    default_base_url,
     resolve_api_key_input,
     resolve_llm_provider_config,
 )
@@ -26,6 +28,8 @@ DEFAULT_COMPARISON_QUESTIONS = """Compare the current and previous runs and expl
 
 _PROVIDER_KEY = "comparison_llm_provider"
 _API_KEY_KEY = "comparison_llm_api_key"
+_BASE_URL_KEY = "comparison_llm_base_url"
+_API_VERSION_KEY = "comparison_llm_api_version"
 _MODEL_KEY = "comparison_llm_model"
 _QUESTIONS_KEY = "comparison_llm_questions"
 _RUN_SELECTOR_KEY = "comparison_llm_run_selector"
@@ -109,6 +113,8 @@ def render_comparison_llm_panel(
         provider_options = ["openai", "anthropic", "azure_openai"]
         provider_key = f"{_PROVIDER_KEY}::{run_key}"
         api_key_key = f"{_API_KEY_KEY}::{run_key}"
+        base_url_key = f"{_BASE_URL_KEY}::{run_key}"
+        api_version_key = f"{_API_VERSION_KEY}::{run_key}"
         model_key = f"{_MODEL_KEY}::{run_key}"
 
         default_provider = str(st.session_state.get(provider_key, "openai")).lower()
@@ -137,6 +143,21 @@ def render_comparison_llm_panel(
             value=st.session_state.get(model_key, ""),
             key=model_key,
         )
+        if provider == "azure_openai":
+            if not st.session_state.get(base_url_key):
+                st.session_state[base_url_key] = default_base_url() or ""
+            if not st.session_state.get(api_version_key):
+                st.session_state[api_version_key] = default_api_version() or ""
+            st.text_input(
+                "Azure endpoint",
+                value=st.session_state.get(base_url_key, ""),
+                key=base_url_key,
+            )
+            st.text_input(
+                "Azure API version",
+                value=st.session_state.get(api_version_key, ""),
+                key=api_version_key,
+            )
 
     cached = _cache_bucket().get(run_key)
     payload: CompareRunsPayload | None = st.session_state.get(f"comparison_payload::{run_key}")
@@ -151,13 +172,28 @@ def render_comparison_llm_panel(
                 questions_key = f"{_QUESTIONS_KEY}::{run_key}"
                 provider_key = f"{_PROVIDER_KEY}::{run_key}"
                 api_key_key = f"{_API_KEY_KEY}::{run_key}"
+                base_url_key = f"{_BASE_URL_KEY}::{run_key}"
+                api_version_key = f"{_API_VERSION_KEY}::{run_key}"
                 model_key = f"{_MODEL_KEY}::{run_key}"
 
                 provider = str(st.session_state.get(provider_key, "openai")).lower()
                 model = str(st.session_state.get(model_key, "")).strip() or None
                 raw_key = st.session_state.get(api_key_key)
                 resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)
-                resolve_llm_provider_config(provider=provider, model=model, api_key=resolved_key)
+                azure_base_url = None
+                azure_api_version = None
+                if provider == "azure_openai":
+                    azure_base_url = str(st.session_state.get(base_url_key, "")).strip() or None
+                    azure_api_version = (
+                        str(st.session_state.get(api_version_key, "")).strip() or None
+                    )
+                provider_config = resolve_llm_provider_config(
+                    provider=provider,
+                    model=model,
+                    api_key=resolved_key,
+                    base_url=azure_base_url,
+                    api_version=azure_api_version,
+                )
 
                 text, trace_url, payload = compare_runs(
                     current_summary=summary_df,
@@ -168,6 +204,7 @@ def render_comparison_llm_panel(
                     provider_name=provider,
                     model_name=model,
                     api_key=resolved_key,
+                    provider_config=provider_config,
                 )
                 cached = _new_result(text=text, trace_url=trace_url)
                 cached = ComparisonLLMResult(
