@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 import json
+import sys
+import types
 
 import pandas as pd
 import pytest
 
 from pa_core.llm.compare_runs import (
+    _invoke_comparison_llm,
     build_metric_catalog,
     compare_runs,
     format_config_diff,
     load_prior_manifest,
     load_prior_summary,
 )
+from pa_core.llm.provider import LLMProviderConfig
 
 
 def test_load_prior_manifest_reads_previous_run_file(tmp_path):
@@ -200,3 +204,81 @@ def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path):
     assert trace_url is not None
     assert trace_url.startswith("https://smith.langchain.com/r/")
     assert payload.prior_manifest_path == str(prior_manifest_path)
+
+
+def _install_fake_chat_prompt(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _FakeResponse:
+        content = "provider response"
+
+    class _FakeChain:
+        def invoke(self, payload):
+            assert "prompt" in payload
+            return _FakeResponse()
+
+    class _FakePrompt:
+        def __or__(self, llm):
+            return _FakeChain()
+
+    class _FakeChatPromptTemplate:
+        @staticmethod
+        def from_messages(messages):
+            assert messages == [("system", "{prompt}")]
+            return _FakePrompt()
+
+    fake_prompts = types.ModuleType("langchain_core.prompts")
+    fake_prompts.ChatPromptTemplate = _FakeChatPromptTemplate
+    fake_langchain_core = types.ModuleType("langchain_core")
+    fake_langchain_core.prompts = fake_prompts
+    monkeypatch.setitem(sys.modules, "langchain_core", fake_langchain_core)
+    monkeypatch.setitem(sys.modules, "langchain_core.prompts", fake_prompts)
+
+
+def test_invoke_comparison_llm_threads_anthropic_provider_config(monkeypatch) -> None:
+    captured: dict[str, LLMProviderConfig] = {}
+
+    def fake_create_llm(config: LLMProviderConfig):
+        captured["config"] = config
+        return object()
+
+    _install_fake_chat_prompt(monkeypatch)
+    monkeypatch.setattr("pa_core.llm.provider.create_llm", fake_create_llm)
+
+    text = _invoke_comparison_llm(
+        "Compare the runs.",
+        provider_name="anthropic",
+        model_name="claude-test",
+        api_key="sk-ant-test",
+    )
+
+    assert text == "provider response"
+    assert captured["config"].provider_name == "anthropic"
+    assert captured["config"].model_name == "claude-test"
+    assert captured["config"].credentials["api_key"] == "sk-ant-test"
+
+
+def test_invoke_comparison_llm_threads_azure_provider_credentials(monkeypatch) -> None:
+    captured: dict[str, LLMProviderConfig] = {}
+
+    def fake_create_llm(config: LLMProviderConfig):
+        captured["config"] = config
+        return object()
+
+    _install_fake_chat_prompt(monkeypatch)
+    monkeypatch.setattr("pa_core.llm.provider.create_llm", fake_create_llm)
+
+    text = _invoke_comparison_llm(
+        "Compare the runs.",
+        provider_name="azure_openai",
+        model_name="gpt-4o-mini",
+        api_key="sk-azure-test",
+        provider_credentials={
+            "azure_endpoint": "https://example.openai.azure.com",
+            "api_version": "2025-01-01-preview",
+        },
+    )
+
+    assert text == "provider response"
+    assert captured["config"].provider_name == "azure_openai"
+    assert captured["config"].credentials["api_key"] == "sk-azure-test"
+    assert captured["config"].credentials["azure_endpoint"] == "https://example.openai.azure.com"
+    assert captured["config"].credentials["api_version"] == "2025-01-01-preview"

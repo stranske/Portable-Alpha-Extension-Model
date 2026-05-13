@@ -139,3 +139,49 @@ def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch)
     json_export = next(item for item in fake_st.downloads if item.label == "Download JSON")
     assert '"config_diff": "- seed: 1 -> 2"' in json_export.data
     assert '"trace_url": "https://smith.langchain.com/r/trace-id"' in json_export.data
+
+
+def test_render_comparison_llm_panel_passes_azure_provider_config(monkeypatch) -> None:
+    fake_st = FakeStreamlit(button_value=True)
+    run_key = "run-a-vs-run-b"
+    fake_st.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] = "azure_openai"
+    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "sk-azure-test"
+    fake_st.session_state[f"{comparison_module._BASE_URL_KEY}::{run_key}"] = (
+        "https://example.openai.azure.com"
+    )
+    fake_st.session_state[f"{comparison_module._API_VERSION_KEY}::{run_key}"] = "2025-01-01-preview"
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "load_prior_manifest", lambda manifest_data: ({}, None))
+
+    captured: dict[str, Any] = {}
+
+    def fake_compare_runs(**kwargs):
+        captured.update(kwargs)
+        return (
+            "Generated comparison",
+            None,
+            comparison_module.CompareRunsPayload(
+                config_diff="- seed: 1 -> 2",
+                metric_catalog_a={"monthly_TE": 0.02},
+                metric_catalog_b={"monthly_TE": 0.01},
+                prompt="prompt",
+                questions="questions",
+                prior_manifest_path="prior_manifest.json",
+                prior_summary_path="prior.xlsx",
+            ),
+        )
+
+    monkeypatch.setattr(comparison_module, "compare_runs", fake_compare_runs)
+
+    comparison_module.render_comparison_llm_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+        manifest_data={"previous_run": "prior_manifest.json"},
+        run_key=run_key,
+    )
+
+    provider_config = captured["provider_config"]
+    assert provider_config.provider_name == "azure_openai"
+    assert provider_config.credentials["api_key"] == "sk-azure-test"
+    assert provider_config.credentials["azure_endpoint"] == "https://example.openai.azure.com"
+    assert provider_config.credentials["api_version"] == "2025-01-01-preview"
+    assert captured["provider_name"] == "azure_openai"

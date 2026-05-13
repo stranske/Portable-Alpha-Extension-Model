@@ -19,6 +19,7 @@ from pa_core.contracts import (
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
 )
 from pa_core.llm.prompts import build_comparison_prompt
+from pa_core.llm.provider import LLMProviderConfig
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _CLI_DIFF_KEYS: tuple[str, ...] = (
@@ -247,31 +248,30 @@ def _heuristic_compare_text(
 def _invoke_comparison_llm(
     prompt: str,
     *,
+    provider_config: LLMProviderConfig | None = None,
     provider_name: str | None,
     model_name: str | None,
     api_key: str | None,
+    provider_credentials: Mapping[str, str] | None = None,
 ) -> str:
     """Try an actual LLM invocation when langchain providers are installed."""
 
     # Optional dependency path; callers fall back to heuristic text on import/runtime errors.
-    from pa_core.llm.provider import LLMProviderConfig, create_llm
+    from pa_core.llm.provider import create_llm
 
-    provider = (provider_name or "openai").strip().lower()
-    if provider != "openai":
-        # Provider-specific credentials are not yet threaded through this dashboard flow.
-        provider = "openai"
-
-    resolved_key = api_key or os.getenv("OPENAI_API_KEY")
-    if not isinstance(resolved_key, str) or not resolved_key.strip():
-        raise ValueError("OPENAI_API_KEY is required for LLM comparison invocation.")
-
-    llm = create_llm(
-        LLMProviderConfig(
+    if provider_config is None:
+        provider = (provider_name or "openai").strip().lower()
+        credentials = dict(provider_credentials or {})
+        resolved_key = api_key or credentials.get("api_key") or _default_provider_api_key(provider)
+        if isinstance(resolved_key, str) and resolved_key.strip():
+            credentials["api_key"] = resolved_key
+        provider_config = LLMProviderConfig(
             provider_name=provider,
-            credentials={"api_key": resolved_key},
+            credentials=credentials,
             model_name=model_name or None,
         )
-    )
+
+    llm = create_llm(provider_config)
 
     from langchain_core.prompts import ChatPromptTemplate
 
@@ -279,6 +279,16 @@ def _invoke_comparison_llm(
     response = chain.invoke({"prompt": prompt})
     content = getattr(response, "content", None)
     return str(content or response).strip()
+
+
+def _default_provider_api_key(provider_name: str) -> str | None:
+    env_by_provider = {
+        "openai": "OPENAI_API_KEY",
+        "anthropic": "CLAUDE_API_STRANSKE",
+        "azure_openai": "PA_STREAMLIT_API_KEY",
+    }
+    env_name = env_by_provider.get(provider_name.strip().lower())
+    return os.getenv(env_name) if env_name else None
 
 
 def compare_runs(
@@ -289,6 +299,8 @@ def compare_runs(
     provider_name: str | None = None,
     model_name: str | None = None,
     api_key: str | None = None,
+    provider_config: LLMProviderConfig | None = None,
+    provider_credentials: Mapping[str, str] | None = None,
 ) -> tuple[str, str | None, CompareRunsPayload]:
     """Generate run comparison output and optional trace URL for Results panel."""
 
@@ -320,19 +332,24 @@ def compare_runs(
 
     trace_url: str | None = None
     trace_id: str | None = None
+    trace_provider = (
+        provider_config.provider_name if provider_config is not None else provider_name or "openai"
+    )
     with langsmith_tracing_context(
         project_name="portable-alpha-results-compare",
         tags=("results", "comparison"),
-        metadata={"provider": provider_name or "openai"},
+        metadata={"provider": trace_provider},
     ):
         if os.getenv("LANGSMITH_API_KEY"):
             trace_id = uuid4().hex
         try:
             llm_text = _invoke_comparison_llm(
                 prompt,
+                provider_config=provider_config,
                 provider_name=provider_name,
                 model_name=model_name,
                 api_key=api_key,
+                provider_credentials=provider_credentials,
             )
             if llm_text:
                 text = llm_text
