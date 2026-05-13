@@ -206,6 +206,45 @@ def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path):
     assert payload.prior_manifest_path == str(prior_manifest_path)
 
 
+def test_compare_runs_threads_provider_config_to_llm(monkeypatch, tmp_path) -> None:
+    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest_path = tmp_path / "prior_manifest.json"
+    prior_manifest_path.write_text(
+        json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
+    )
+
+    captured: dict[str, LLMProviderConfig] = {}
+
+    def fake_create_llm(config: LLMProviderConfig):
+        captured["config"] = config
+        return object()
+
+    _install_fake_chat_prompt(monkeypatch)
+    monkeypatch.setattr("pa_core.llm.provider.create_llm", fake_create_llm)
+
+    provider_config = LLMProviderConfig(
+        provider_name="anthropic",
+        credentials={"api_key": "sk-ant-test"},
+        model_name="claude-test",
+    )
+
+    text, _, payload = compare_runs(
+        current_summary=current_summary,
+        current_manifest={"previous_run": str(prior_manifest_path), "seed": 2},
+        questions="What changed?",
+        provider_name="openai",
+        provider_config=provider_config,
+    )
+
+    assert text == "provider response"
+    assert captured["config"] == provider_config
+    assert payload.prior_manifest_path == str(prior_manifest_path)
+
+
 def _install_fake_chat_prompt(monkeypatch: pytest.MonkeyPatch) -> None:
     class _FakeResponse:
         content = "provider response"

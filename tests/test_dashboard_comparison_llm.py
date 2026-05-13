@@ -185,3 +185,53 @@ def test_render_comparison_llm_panel_passes_azure_provider_config(monkeypatch) -
     assert provider_config.credentials["azure_endpoint"] == "https://example.openai.azure.com"
     assert provider_config.credentials["api_version"] == "2025-01-01-preview"
     assert captured["provider_name"] == "azure_openai"
+
+
+def test_render_comparison_llm_panel_ignores_stale_azure_fields_for_openai(monkeypatch) -> None:
+    fake_st = FakeStreamlit(button_value=True)
+    run_key = "run-a-vs-run-b"
+    fake_st.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] = "openai"
+    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "sk-openai-test"
+    fake_st.session_state[f"{comparison_module._BASE_URL_KEY}::{run_key}"] = (
+        "https://example.openai.azure.com"
+    )
+    fake_st.session_state[f"{comparison_module._API_VERSION_KEY}::{run_key}"] = "2025-01-01-preview"
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "load_prior_manifest", lambda manifest_data: ({}, None))
+
+    captured_config_kwargs: dict[str, Any] = {}
+
+    def fake_resolve_llm_provider_config(**kwargs):
+        captured_config_kwargs.update(kwargs)
+        return object()
+
+    monkeypatch.setattr(
+        comparison_module, "resolve_llm_provider_config", fake_resolve_llm_provider_config
+    )
+    monkeypatch.setattr(
+        comparison_module,
+        "compare_runs",
+        lambda **kwargs: (
+            "Generated comparison",
+            None,
+            comparison_module.CompareRunsPayload(
+                config_diff="- seed: 1 -> 2",
+                metric_catalog_a={"monthly_TE": 0.02},
+                metric_catalog_b={"monthly_TE": 0.01},
+                prompt="prompt",
+                questions="questions",
+                prior_manifest_path="prior_manifest.json",
+                prior_summary_path="prior.xlsx",
+            ),
+        ),
+    )
+
+    comparison_module.render_comparison_llm_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+        manifest_data={"previous_run": "prior_manifest.json"},
+        run_key=run_key,
+    )
+
+    assert captured_config_kwargs["provider"] == "openai"
+    assert captured_config_kwargs["base_url"] is None
+    assert captured_config_kwargs["api_version"] is None

@@ -180,12 +180,19 @@ def render_comparison_llm_panel(
                 model = str(st.session_state.get(model_key, "")).strip() or None
                 raw_key = st.session_state.get(api_key_key)
                 resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)
+                azure_base_url = None
+                azure_api_version = None
+                if provider == "azure_openai":
+                    azure_base_url = str(st.session_state.get(base_url_key, "")).strip() or None
+                    azure_api_version = (
+                        str(st.session_state.get(api_version_key, "")).strip() or None
+                    )
                 provider_config = resolve_llm_provider_config(
                     provider=provider,
                     model=model,
                     api_key=resolved_key,
-                    base_url=str(st.session_state.get(base_url_key, "")).strip() or None,
-                    api_version=str(st.session_state.get(api_version_key, "")).strip() or None,
+                    base_url=azure_base_url,
+                    api_version=azure_api_version,
                 )
 
                 text, trace_url, payload = compare_runs(
