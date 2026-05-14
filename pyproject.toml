@@ -117,14 +117,14 @@ llm = [
 
 # Development dependencies
 dev = [
-    "ruff>=0.15.12",
+    "ruff>=0.15.13",
     "black>=26.3.1",
     "isort>=8.0.1",
-    "mypy==2.0.0",
+    "mypy>=2.1.0",
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
     "pytest-xdist>=3.8.0",
-    "coverage==7.13.5",
+    "coverage>=7.14.0",
     "hypothesis>=6.115.1",
     "pre-commit",
     "bandit",

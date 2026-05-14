@@ -28,6 +28,8 @@ argon2-cffi-bindings==25.1.0
     # via argon2-cffi
 arrow==1.4.0
     # via isoduration
+ast-serialize==0.3.0
+    # via mypy
 asttokens==3.0.1
     # via stack-data
 async-lru==2.3.0
@@ -90,7 +92,7 @@ comm==0.2.3
     # via
     #   ipykernel
     #   ipywidgets
-coverage==7.13.5
+coverage==7.14.0
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   pytest-cov
@@ -348,7 +350,7 @@ langsmith==0.8.3
     #   langchain-core
 lark==1.3.1
     # via rfc3987-syntax
-librt==0.10.0 ; platform_python_implementation != 'PyPy'
+librt==0.11.0 ; platform_python_implementation != 'PyPy'
     # via mypy
 logistro==2.0.1
     # via
@@ -384,7 +386,7 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-mypy==2.0.0
+mypy==2.1.0
     # via portable-alpha-extension-model (pyproject.toml)
 mypy-extensions==1.1.0
     # via
@@ -657,7 +659,7 @@ rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
-ruff==0.15.12
+ruff==0.15.13
     # via portable-alpha-extension-model (pyproject.toml)
 secretstorage==3.5.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x' and sys_platform == 'linux'
     # via keyring
