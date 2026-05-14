@@ -5,7 +5,7 @@ openpyxl
 jupyter
 pytest==9.0.3
 hypothesis
-ruff==0.15.12
+ruff==0.15.13
 pydantic
 rich
 PyYAML>=6
@@ -23,7 +23,7 @@ pre-commit         # Git hooks
 pytest-cov==7.1.0  # Test coverage
 pytest-xdist==3.8.0  # Parallel testing
 bandit             # Security linting
-mypy==2.0.0        # Additional type checking
+mypy==2.1.0        # Additional type checking
 types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
 isort==8.0.1       # Import sorting
