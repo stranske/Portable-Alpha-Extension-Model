@@ -346,7 +346,7 @@ langsmith==0.7.32
     #   langchain-core
 lark==1.3.1
     # via rfc3987-syntax
-librt==0.9.0 ; platform_python_implementation != 'PyPy'
+librt==0.10.0 ; platform_python_implementation != 'PyPy'
     # via mypy
 logistro==2.0.1
     # via
