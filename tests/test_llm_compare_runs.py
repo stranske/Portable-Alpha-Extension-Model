@@ -295,6 +295,80 @@ def test_invoke_comparison_llm_threads_anthropic_provider_config(monkeypatch) ->
     assert captured["config"].credentials["api_key"] == "sk-ant-test"
 
 
+def test_compare_runs_with_anthropic_provider_name_and_no_prebuilt_config(
+    monkeypatch, tmp_path
+) -> None:
+    """End-to-end through ``compare_runs`` with ``provider_name="anthropic"`` and
+    no pre-built ``provider_config`` — i.e. the path a dashboard user takes when
+    they pick "anthropic" from the provider dropdown rather than supplying a
+    prepared LLMProviderConfig.
+
+    Follow-up to #1786 / PR #1787. The existing test
+    ``test_compare_runs_threads_provider_config_to_llm`` exercises the
+    short-circuit where a caller hands compare_runs a pre-built provider_config
+    (provider_name="openai" but provider_config=<anthropic>); that proves the
+    config-pass-through path but does NOT exercise the
+    provider_name="anthropic" + provider_credentials code path the dashboard
+    actually uses. The existing
+    ``test_invoke_comparison_llm_threads_anthropic_provider_config`` exercises
+    the lower-level helper directly, again bypassing compare_runs.
+
+    This test closes the gap: ``compare_runs`` is called with
+    ``provider_name="anthropic"`` (no pre-built provider_config) and asserts
+    the LLMProviderConfig actually constructed and passed to ``create_llm``
+    has provider_name=="anthropic", the model_name we requested, and the
+    api_key+credentials we provided.
+    """
+    current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest_path = tmp_path / "prior_manifest.json"
+    prior_manifest_path.write_text(
+        json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
+    )
+
+    captured: dict[str, LLMProviderConfig] = {}
+
+    def fake_create_llm(config: LLMProviderConfig):
+        captured["config"] = config
+        return object()
+
+    _install_fake_chat_prompt(monkeypatch)
+    monkeypatch.setattr("pa_core.llm.provider.create_llm", fake_create_llm)
+    # The default-key fallback reads CLAUDE_API_STRANSKE for anthropic; clear
+    # it so this test exercises ONLY the explicitly-passed api_key path and
+    # doesn't depend on the host environment.
+    monkeypatch.delenv("CLAUDE_API_STRANSKE", raising=False)
+
+    text, _trace_url, payload = compare_runs(
+        current_summary=current_summary,
+        current_manifest={"previous_run": str(prior_manifest_path), "seed": 2},
+        questions="What changed?",
+        provider_name="anthropic",
+        model_name="claude-sonnet-4-6",
+        api_key="sk-ant-test",
+        provider_credentials={"anthropic_version": "2026-01-01"},
+    )
+
+    assert text == "provider response"
+    assert payload.prior_manifest_path == str(prior_manifest_path)
+
+    # The end-to-end path constructed a fresh LLMProviderConfig from the
+    # provider_name + model_name + api_key inputs (not from a pre-supplied
+    # provider_config). This is the regression the test exists to guard
+    # against: if a future refactor accidentally requires provider_config to
+    # be pre-built, dashboard flows would silently fall through to the
+    # heuristic-text path.
+    cfg = captured["config"]
+    assert cfg.provider_name == "anthropic"
+    assert cfg.model_name == "claude-sonnet-4-6"
+    assert cfg.credentials["api_key"] == "sk-ant-test"
+    # Extra credentials (e.g. anthropic_version) thread through too.
+    assert cfg.credentials["anthropic_version"] == "2026-01-01"
+
+
 def test_invoke_comparison_llm_threads_azure_provider_credentials(monkeypatch) -> None:
     captured: dict[str, LLMProviderConfig] = {}
 
