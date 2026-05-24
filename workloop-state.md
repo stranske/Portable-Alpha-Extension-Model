@@ -5,7 +5,8 @@
 - Branch: `codex/issue-1802-langsmith-scenario-metadata`
 - Base: `origin/main` at `80738d6`
 - Lane: opener `new_issue`
-- Status: implementation complete locally; commit/push/PR pending
+- PR: `#1819` (`https://github.com/stranske/Portable-Alpha-Extension-Model/pull/1819`)
+- Status: PR opened, non-draft, routed to keepalive; latest cap-health reports `draining`
 - Summary:
   - Added `pa_core.llm.langsmith_fleet` for dashboard-safe `langsmith-fleet/v1` records.
   - Wired result explanations, run comparisons, and config patch chat to emit hashed/sanitized fleet records.
@@ -16,4 +17,9 @@
   - `python -m mypy pa_core/llm/langsmith_fleet.py pa_core/llm/result_explain.py pa_core/llm/compare_runs.py pa_core/llm/config_patch_chain.py` -> success.
   - `python -m black --check --line-length 100 --target-version py312 pa_core/llm/langsmith_fleet.py pa_core/llm/result_explain.py pa_core/llm/compare_runs.py pa_core/llm/config_patch_chain.py tests/test_langsmith_fleet.py` -> passed.
   - `git diff --check` -> passed.
-- Next action: commit, push, open a non-draft PR with `agent:codex`, `agents:keepalive`, and `autofix`.
+- Routing:
+  - Created PR with `agent:codex`, `agents:keepalive`, and `autofix`.
+  - Post-open cap-health initially reported `needs-dispatch-evidence`.
+  - Ran `opener-repair-infra-stalls.py --json`; it added `agent:retry` and dispatched `agents-81-gate-followups.yml`.
+  - Fresh cap-health at `2026-05-24T06:09:26Z` reports PR `#1819` `draining` with active/pending Gate evidence and no non-drainable blocker.
+- Next action: keepalive owns PR `#1819`; opener can continue to the next eligible issue on a later round.
