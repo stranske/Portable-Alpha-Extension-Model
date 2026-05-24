@@ -36,10 +36,25 @@ Use environment variables for shared or repeated runs:
 | `AZURE_OPENAI_API_VERSION` | Azure API-version fallback. |
 | `LANGSMITH_API_KEY` | Enables LangSmith trace-link resolution. |
 | `LANGSMITH_PROJECT` | Optional LangSmith project name. |
+| `PAEM_LANGSMITH_FLEET_PATH` | Optional NDJSON output path for `langsmith-fleet/v1` dashboard records. |
 
 Provider keys are masked before display, excluded from TXT/JSON exports, and
 redacted from user-visible error messages. Do not log raw key values in tests,
 Streamlit messages, or exported artifacts.
+
+## LangSmith Fleet Records
+
+Result explanations, run comparisons, and config patch assistance emit
+dashboard-compatible `langsmith-fleet/v1` NDJSON records to
+`artifacts/langsmith/langsmith-fleet.ndjson` by default. Records include
+provider/model, trace ID or URL when available, run/scenario/config references,
+seed, metric delta, dashboard surface, validation status, and error category.
+Prompts, outputs, proprietary payloads, and config snapshots are represented by
+SHA-256 hashes or artifact references rather than raw content.
+
+Missing `LANGSMITH_API_KEY` is a clean local/CI path: the LangSmith SDK is not
+required, model behavior is unchanged, and fleet records use `status="no_secret"`
+so dashboard coverage gaps are visible without network calls.
 
 ## Reference Pack
 
@@ -67,6 +82,7 @@ python -m pytest \
   tests/test_dashboard_llm_settings.py \
   tests/test_result_explain.py \
   tests/test_llm_compare_runs.py \
+  tests/test_langsmith_fleet.py \
   tests/test_llm_prompts.py \
   tests/test_dashboard_explain_results.py \
   tests/test_dashboard_comparison_llm.py \

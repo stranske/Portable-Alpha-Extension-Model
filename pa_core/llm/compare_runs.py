@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -20,6 +21,12 @@ from pa_core.contracts import (
 )
 from pa_core.llm.prompts import build_comparison_prompt
 from pa_core.llm.provider import LLMProviderConfig
+from pa_core.llm.langsmith_fleet import (
+    FleetContext,
+    config_fingerprint,
+    hash_reference,
+    record_fleet_event,
+)
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _CLI_DIFF_KEYS: tuple[str, ...] = (
@@ -332,6 +339,9 @@ def compare_runs(
 
     trace_url: str | None = None
     trace_id: str | None = None
+    status = "success"
+    error_category: str | None = None
+    started = time.perf_counter()
     trace_provider = (
         provider_config.provider_name if provider_config is not None else provider_name or "openai"
     )
@@ -353,8 +363,10 @@ def compare_runs(
             )
             if llm_text:
                 text = llm_text
-        except Exception:
+        except Exception as exc:
             # Keep dashboard responsive even without llm extras/credentials.
+            status = "fallback"
+            error_category = type(exc).__name__
             pass
 
     if trace_id:
@@ -369,7 +381,50 @@ def compare_runs(
         prior_manifest_path=str(prior_manifest_path) if prior_manifest_path else None,
         prior_summary_path=str(prior_summary_path) if prior_summary_path else None,
     )
+    try:
+        record_fleet_event(
+            FleetContext(
+                operation="run-comparison",
+                run_id=str((current_manifest or {}).get("run_name") or uuid4().hex),
+                provider=trace_provider,
+                model=(provider_config.model_name if provider_config is not None else model_name),
+                trace_id=trace_id,
+                trace_url=trace_url,
+                latency_ms=int((time.perf_counter() - started) * 1000),
+                status=status if os.getenv("LANGSMITH_API_KEY") else "no_secret",
+                error_category=error_category,
+                config_hash=config_fingerprint(current_manifest),
+                seed=(
+                    (current_manifest or {}).get("seed")
+                    if isinstance(current_manifest, Mapping)
+                    else None
+                ),
+                metric_delta=_largest_metric_delta(metrics_a, metrics_b),
+                dashboard_surface="results-comparison",
+                prompt_hash=hash_reference(prompt),
+                output_hash=hash_reference(text),
+                artifact_ref=str(prior_summary_path) if prior_summary_path else None,
+                validation_status="fallback" if status == "fallback" else "generated",
+                extra={
+                    "prior_manifest_path": str(prior_manifest_path) if prior_manifest_path else None
+                },
+            )
+        )
+    except Exception:
+        pass
     return text, trace_url, payload
+
+
+def _largest_metric_delta(
+    current_metrics: Mapping[str, float], prior_metrics: Mapping[str, float]
+) -> float | None:
+    deltas = [
+        float(current_metrics[key]) - float(prior_metrics[key])
+        for key in sorted(set(current_metrics) & set(prior_metrics))
+    ]
+    if not deltas:
+        return None
+    return max(deltas, key=abs)
 
 
 __all__ = [
