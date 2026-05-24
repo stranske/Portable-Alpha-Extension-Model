@@ -161,6 +161,42 @@ def run_config_patch_chain(
     started = time.perf_counter()
     status = "success"
     error_category: str | None = None
+
+    def emit_fleet_record(
+        *,
+        record_status: str,
+        record_error_category: str | None = None,
+        normalized_output: str | Mapping[str, Any] | None = None,
+        validation_status: str | None = None,
+        risk_flags: list[str] | None = None,
+        unknown_output_keys: list[str] | None = None,
+    ) -> None:
+        try:
+            record_fleet_event(
+                FleetContext(
+                    operation="config-patch",
+                    provider=provider_name,
+                    model=model_name,
+                    trace_url=trace_url,
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    status=record_status if os.getenv("LANGSMITH_API_KEY") else "no_secret",
+                    error_category=record_error_category,
+                    config_hash=config_fingerprint(current_config),
+                    dashboard_surface="config-chat",
+                    prompt_hash=hash_reference(prompt),
+                    output_hash=(
+                        hash_reference(normalized_output) if normalized_output is not None else None
+                    ),
+                    validation_status=validation_status,
+                    extra={
+                        "risk_flags": risk_flags or [],
+                        "unknown_output_keys": unknown_output_keys or [],
+                    },
+                )
+            )
+        except Exception:
+            pass
+
     if _langsmith_enabled() and _langsmith_tracing_context is not None:
         tracing_context = _langsmith_tracing_context(
             project_name="portable-alpha-config-chat",
@@ -175,6 +211,11 @@ def run_config_patch_chain(
     except Exception as exc:
         status = "error"
         error_category = type(exc).__name__
+        emit_fleet_record(
+            record_status=status,
+            record_error_category=error_category,
+            validation_status="failed",
+        )
         raise
 
     normalized_output, extracted_trace_url = _split_trace_metadata(raw_output)
@@ -184,29 +225,14 @@ def run_config_patch_chain(
     if result.status == "rejected":
         status = "validation_failed"
         error_category = (result.error or {}).get("kind", "validation_error")
-    try:
-        record_fleet_event(
-            FleetContext(
-                operation="config-patch",
-                provider=provider_name,
-                model=model_name,
-                trace_url=trace_url,
-                latency_ms=int((time.perf_counter() - started) * 1000),
-                status=status if os.getenv("LANGSMITH_API_KEY") else "no_secret",
-                error_category=error_category,
-                config_hash=config_fingerprint(current_config),
-                dashboard_surface="config-chat",
-                prompt_hash=hash_reference(prompt),
-                output_hash=hash_reference(normalized_output),
-                validation_status=result.status,
-                extra={
-                    "risk_flags": list(result.risk_flags),
-                    "unknown_output_keys": list(result.unknown_output_keys),
-                },
-            )
-        )
-    except Exception:
-        pass
+    emit_fleet_record(
+        record_status=status,
+        record_error_category=error_category,
+        normalized_output=normalized_output,
+        validation_status=result.status,
+        risk_flags=list(result.risk_flags),
+        unknown_output_keys=list(result.unknown_output_keys),
+    )
     return replace(result, trace_url=trace_url)
 
 

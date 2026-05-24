@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 
 import pandas as pd
+import pytest
 
 from pa_core.llm.compare_runs import compare_runs
 from pa_core.llm.config_patch_chain import run_config_patch_chain
@@ -88,6 +89,32 @@ def test_config_patch_chain_emits_no_secret_fleet_record(monkeypatch, tmp_path) 
     assert "increase simulations" not in json.dumps(record)
 
 
+def test_config_patch_chain_records_llm_failures_before_reraising(monkeypatch, tmp_path) -> None:
+    fleet_path = tmp_path / "fleet.ndjson"
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
+    monkeypatch.setenv("PAEM_LANGSMITH_FLEET_PATH", str(fleet_path))
+    monkeypatch.setattr("pa_core.llm.config_patch_chain._langsmith_enabled", lambda: False)
+
+    def fail_llm(_prompt: str) -> str:
+        raise TimeoutError("provider timed out")
+
+    with pytest.raises(TimeoutError):
+        run_config_patch_chain(
+            current_config={"n_simulations": 1000, "seed": 42},
+            instruction="increase simulations",
+            provider_name="openai",
+            model_name="gpt-test",
+            invoke_llm=fail_llm,
+        )
+
+    record = json.loads(fleet_path.read_text().splitlines()[-1])
+    assert record["status"] == "error"
+    assert record["operation"] == "config-patch"
+    assert record["domain"]["error_category"] == "TimeoutError"
+    assert record["domain"]["validation_status"] == "failed"
+    assert "increase simulations" not in json.dumps(record)
+
+
 def test_result_explain_emits_no_secret_record(monkeypatch, tmp_path) -> None:
     fleet_path = tmp_path / "fleet.ndjson"
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
@@ -101,7 +128,7 @@ def test_result_explain_emits_no_secret_record(monkeypatch, tmp_path) -> None:
                 "Agent": ["A", "B"],
             }
         ),
-        {"run_name": "demo-run", "seed": 123, "cli_args": {"output": "results.xlsx"}},
+        {"run_name": "demo-run", "seed": 123},
     )
 
     assert "LLM configuration is required" in text
@@ -112,6 +139,7 @@ def test_result_explain_emits_no_secret_record(monkeypatch, tmp_path) -> None:
     assert record["operation"] == "result-explanation"
     assert record["domain"]["run_id"] == "demo-run"
     assert record["domain"]["metric_delta"] == -0.015
+    assert "artifact_ref" not in record["domain"]
 
 
 def test_compare_runs_emits_fallback_record(monkeypatch, tmp_path) -> None:

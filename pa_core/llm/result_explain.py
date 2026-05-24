@@ -349,7 +349,7 @@ def explain_results_details(
                     seed=_manifest_highlights(manifest).get("seed"),
                     metric_delta=_extract_metric_delta(analysis_output),
                     dashboard_surface="results-details",
-                    artifact_ref=str(_manifest_highlights(manifest).get("cli_output") or ""),
+                    artifact_ref=_manifest_cli_output_ref(manifest),
                     validation_status="prepared",
                     extra={
                         "rows": analysis_output["rows"],
@@ -423,7 +423,7 @@ def explain_results_details(
                     dashboard_surface="results-details",
                     prompt_hash=prompt_hash,
                     output_hash=output_hash,
-                    artifact_ref=str(_manifest_highlights(manifest).get("cli_output") or ""),
+                    artifact_ref=_manifest_cli_output_ref(manifest),
                     validation_status="generated" if status == "success" else "failed",
                     extra={
                         "rows": analysis_output["rows"],
@@ -452,3 +452,10 @@ def _extract_metric_delta(analysis_output: Mapping[str, Any]) -> float | None:
     if not values:
         return None
     return max(values, key=abs)
+
+
+def _manifest_cli_output_ref(manifest: Mapping[str, Any] | None) -> str | None:
+    cli_output = _manifest_highlights(manifest).get("cli_output")
+    if cli_output in (None, ""):
+        return None
+    return str(cli_output)
