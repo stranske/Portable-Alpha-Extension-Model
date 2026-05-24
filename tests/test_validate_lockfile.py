@@ -20,3 +20,16 @@ def test_llm_requirements_match_lockfile() -> None:
     validate_lockfile = _load_validate_lockfile_module()
 
     assert validate_lockfile.main() == 0
+
+
+def test_workflow_drift_requirements_must_stay_strictly_pinned() -> None:
+    validate_lockfile = _load_validate_lockfile_module()
+    requirements = [
+        validate_lockfile.Requirement("langchain>=1.3"),
+        validate_lockfile.Requirement("requests~=2.34"),
+    ]
+
+    assert validate_lockfile._validate_strict_workflow_pins(requirements) == [
+        "- workflow pin must use one exact == version: langchain",
+        "- workflow pin must use one exact == version: requests",
+    ]

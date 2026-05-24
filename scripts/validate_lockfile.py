@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate llm dependency pins against requirements.lock."""
+"""Validate llm dependency pins."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from packaging.version import InvalidVersion, Version
 
 LLM_REQUIREMENTS = Path("tools/requirements-llm.txt")
 LOCKFILE = Path("requirements.lock")
+WORKFLOW_DRIFT_MARKER = "intentionally drift from pyproject.toml/requirements.lock"
 
 LOCK_LINE_RE = re.compile(
     r"^(?P<name>[A-Za-z0-9][A-Za-z0-9_.-]*)==(?P<version>[^\s;#]+)" r"(?:\s*;\s*[^#]+)?(?:\s*#.*)?$"
@@ -29,6 +30,11 @@ def _read_llm_requirements(path: Path) -> list[Requirement]:
     return requirements
 
 
+def _allows_workflow_drift(path: Path) -> bool:
+    """Return true when requirements are documented as workflow-only pins."""
+    return WORKFLOW_DRIFT_MARKER in path.read_text(encoding="utf-8")
+
+
 def _read_lockfile_pins(path: Path) -> dict[str, str]:
     pins: dict[str, str] = {}
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -43,6 +49,25 @@ def _read_lockfile_pins(path: Path) -> dict[str, str]:
     return pins
 
 
+def _validate_strict_workflow_pins(requirements: list[Requirement]) -> list[str]:
+    errors: list[str] = []
+    for requirement in requirements:
+        specifiers = list(requirement.specifier)
+        if len(specifiers) != 1 or specifiers[0].operator != "==":
+            errors.append(
+                f"- workflow pin must use one exact == version: {requirement.name}"
+            )
+            continue
+        try:
+            Version(specifiers[0].version)
+        except InvalidVersion:
+            errors.append(
+                f"- invalid workflow pin for {requirement.name}: "
+                f"{specifiers[0].version!r}"
+            )
+    return errors
+
+
 def main() -> int:
     if not LLM_REQUIREMENTS.exists():
         print(f"error: missing file {LLM_REQUIREMENTS}", file=sys.stderr)
@@ -52,6 +77,18 @@ def main() -> int:
         return 1
 
     llm_requirements = _read_llm_requirements(LLM_REQUIREMENTS)
+    if _allows_workflow_drift(LLM_REQUIREMENTS):
+        errors = _validate_strict_workflow_pins(llm_requirements)
+        if errors:
+            print("Workflow LLM requirement validation failed:")
+            print("\n".join(errors))
+            return 1
+        print(
+            "Workflow LLM requirement validation passed for "
+            f"{len(llm_requirements)} standalone pins in {LLM_REQUIREMENTS}."
+        )
+        return 0
+
     lockfile_pins = _read_lockfile_pins(LOCKFILE)
 
     errors: list[str] = []
