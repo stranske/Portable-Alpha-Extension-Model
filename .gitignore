@@ -116,3 +116,6 @@ build/
 
 # Node artifacts
 node_modules/
+
+# Generated LangSmith fleet artifacts
+artifacts/langsmith/

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from contextlib import nullcontext
 from dataclasses import dataclass, field, replace
 from typing import Any, Callable, Mapping, Sequence
@@ -16,6 +17,12 @@ from pa_core.llm.config_patch import (
     allowed_wizard_schema,
     empty_patch,
     validate_patch_dict,
+)
+from pa_core.llm.langsmith_fleet import (
+    FleetContext,
+    config_fingerprint,
+    hash_reference,
+    record_fleet_event,
 )
 
 _langsmith_tracing_context: Callable[..., Any] | None
@@ -151,6 +158,9 @@ def run_config_patch_chain(
     prompt = build_config_patch_prompt(current_config=current_config, instruction=instruction)
 
     trace_url: str | None = None
+    started = time.perf_counter()
+    status = "success"
+    error_category: str | None = None
     if _langsmith_enabled() and _langsmith_tracing_context is not None:
         tracing_context = _langsmith_tracing_context(
             project_name="portable-alpha-config-chat",
@@ -159,13 +169,44 @@ def run_config_patch_chain(
         )
     else:
         tracing_context = nullcontext()
-    with tracing_context:
-        raw_output = invoke_llm(prompt)
+    try:
+        with tracing_context:
+            raw_output = invoke_llm(prompt)
+    except Exception as exc:
+        status = "error"
+        error_category = type(exc).__name__
+        raise
 
     normalized_output, extracted_trace_url = _split_trace_metadata(raw_output)
     if _langsmith_enabled():
         trace_url = extracted_trace_url
     result = parse_chain_output(normalized_output)
+    if result.status == "rejected":
+        status = "validation_failed"
+        error_category = (result.error or {}).get("kind", "validation_error")
+    try:
+        record_fleet_event(
+            FleetContext(
+                operation="config-patch",
+                provider=provider_name,
+                model=model_name,
+                trace_url=trace_url,
+                latency_ms=int((time.perf_counter() - started) * 1000),
+                status=status if os.getenv("LANGSMITH_API_KEY") else "no_secret",
+                error_category=error_category,
+                config_hash=config_fingerprint(current_config),
+                dashboard_surface="config-chat",
+                prompt_hash=hash_reference(prompt),
+                output_hash=hash_reference(normalized_output),
+                validation_status=result.status,
+                extra={
+                    "risk_flags": list(result.risk_flags),
+                    "unknown_output_keys": list(result.unknown_output_keys),
+                },
+            )
+        )
+    except Exception:
+        pass
     return replace(result, trace_url=trace_url)
 
 

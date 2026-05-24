@@ -1,0 +1,147 @@
+"""Tests for dashboard-safe LangSmith fleet records."""
+
+from __future__ import annotations
+
+import json
+
+import pandas as pd
+
+from pa_core.llm.compare_runs import compare_runs
+from pa_core.llm.config_patch_chain import run_config_patch_chain
+from pa_core.llm.langsmith_fleet import (
+    FLEET_SCHEMA,
+    FleetContext,
+    append_fleet_records,
+    build_fleet_record,
+    config_fingerprint,
+    hash_reference,
+)
+from pa_core.llm.result_explain import explain_results_details
+
+
+def test_build_fleet_record_hashes_domain_metadata() -> None:
+    record = build_fleet_record(
+        FleetContext(
+            operation="result-explanation",
+            run_id="run-1",
+            scenario_id="scenario-a",
+            provider="openai",
+            model="gpt-test",
+            status="success",
+            config_hash=config_fingerprint({"seed": 7, "weights": {"alpha": 0.2}}),
+            seed=7,
+            metric_delta=0.05,
+            dashboard_surface="results-details",
+            prompt_hash=hash_reference("prompt text"),
+            output_hash=hash_reference("output text"),
+        )
+    )
+
+    assert record["schema"] == FLEET_SCHEMA
+    assert record["repo"] == "stranske/Portable-Alpha-Extension-Model"
+    assert record["provider"] == "openai"
+    assert record["domain"]["operation"] == "result-explanation"
+    assert record["domain"]["config_hash"] == config_fingerprint(
+        {"seed": 7, "weights": {"alpha": 0.2}}
+    )
+    assert "prompt text" not in json.dumps(record)
+    assert "output text" not in json.dumps(record)
+
+
+def test_append_fleet_records_retains_recent_records(tmp_path) -> None:
+    path = tmp_path / "fleet.ndjson"
+    records = [
+        build_fleet_record(FleetContext(operation=f"op-{index}", status="success"))
+        for index in range(3)
+    ]
+
+    append_fleet_records(records, path=path, max_records=2)
+
+    lines = path.read_text().splitlines()
+    assert len(lines) == 2
+    assert json.loads(lines[0])["operation"] == "op-1"
+    assert json.loads(lines[1])["operation"] == "op-2"
+
+
+def test_config_patch_chain_emits_no_secret_fleet_record(monkeypatch, tmp_path) -> None:
+    fleet_path = tmp_path / "fleet.ndjson"
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.setenv("PAEM_LANGSMITH_FLEET_PATH", str(fleet_path))
+
+    result = run_config_patch_chain(
+        current_config={"n_simulations": 1000, "seed": 42},
+        instruction="increase simulations",
+        provider_name="openai",
+        model_name="gpt-test",
+        invoke_llm=lambda _prompt: {
+            "patch": {"set": {"n_simulations": 5000}},
+            "summary": "Updated n_simulations.",
+            "risk_flags": [],
+        },
+    )
+
+    assert result.status == "accepted"
+    record = json.loads(fleet_path.read_text().splitlines()[-1])
+    assert record["status"] == "no_secret"
+    assert record["operation"] == "config-patch"
+    assert record["domain"]["validation_status"] == "accepted"
+    assert "increase simulations" not in json.dumps(record)
+
+
+def test_result_explain_emits_no_secret_record(monkeypatch, tmp_path) -> None:
+    fleet_path = tmp_path / "fleet.ndjson"
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.setenv("PAEM_LANGSMITH_FLEET_PATH", str(fleet_path))
+
+    text, trace_url, payload = explain_results_details(
+        pd.DataFrame(
+            {
+                "monthly_TE": [0.02, 0.03],
+                "stress_delta": [0.01, -0.04],
+                "Agent": ["A", "B"],
+            }
+        ),
+        {"run_name": "demo-run", "seed": 123, "cli_args": {"output": "results.xlsx"}},
+    )
+
+    assert "LLM configuration is required" in text
+    assert trace_url is None
+    assert payload["trace_url"] is None
+    record = json.loads(fleet_path.read_text().splitlines()[-1])
+    assert record["status"] == "no_secret"
+    assert record["operation"] == "result-explanation"
+    assert record["domain"]["run_id"] == "demo-run"
+    assert record["domain"]["metric_delta"] == -0.015
+
+
+def test_compare_runs_emits_fallback_record(monkeypatch, tmp_path) -> None:
+    fleet_path = tmp_path / "fleet.ndjson"
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.03]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest = tmp_path / "prior.json"
+    prior_manifest.write_text(json.dumps({"seed": 1, "cli_args": {"output": str(prior_output)}}))
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.setenv("PAEM_LANGSMITH_FLEET_PATH", str(fleet_path))
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs._invoke_comparison_llm",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("provider down")),
+    )
+
+    text, trace_url, payload = compare_runs(
+        current_summary=pd.DataFrame({"monthly_TE": [0.04], "monthly_CVaR": [-0.02]}),
+        current_manifest={"previous_run": str(prior_manifest), "seed": 2},
+        questions="What changed?",
+        provider_name="openai",
+        model_name="gpt-test",
+    )
+
+    assert "Run-to-run comparison summary" in text
+    assert trace_url is None
+    assert payload.prior_manifest_path == str(prior_manifest)
+    record = json.loads(fleet_path.read_text().splitlines()[-1])
+    assert record["status"] == "no_secret"
+    assert record["operation"] == "run-comparison"
+    assert record["domain"]["metric_delta"] == 0.03
+    assert record["domain"]["error_category"] == "RuntimeError"

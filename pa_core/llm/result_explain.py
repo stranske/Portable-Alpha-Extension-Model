@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 from contextlib import nullcontext
 from typing import Any, Mapping, Sequence, cast
 from uuid import uuid4
@@ -12,6 +13,12 @@ import pandas as pd
 
 from pa_core.llm.prompts import build_result_explanation_prompt
 from pa_core.llm.provider import LLMProviderConfig, create_llm
+from pa_core.llm.langsmith_fleet import (
+    FleetContext,
+    config_fingerprint,
+    hash_reference,
+    record_fleet_event,
+)
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _REDACTION_TOKEN = "[REDACTED]"
@@ -333,14 +340,39 @@ def explain_results_details(
             "LLM configuration is required to generate a result explanation. "
             f"Prepared payload for {analysis_output['rows']} rows."
         )
+        try:
+            record_fleet_event(
+                FleetContext(
+                    operation="result-explanation",
+                    run_id=str(_manifest_highlights(manifest).get("run_name") or uuid4().hex),
+                    status="no_secret",
+                    seed=_manifest_highlights(manifest).get("seed"),
+                    metric_delta=_extract_metric_delta(analysis_output),
+                    dashboard_surface="results-details",
+                    artifact_ref=str(_manifest_highlights(manifest).get("cli_output") or ""),
+                    validation_status="prepared",
+                    extra={
+                        "rows": analysis_output["rows"],
+                        "columns": len(analysis_output["columns"]),
+                    },
+                )
+            )
+        except Exception:
+            pass
         return _with_disclaimer(text), None, payload
 
     api_key = config.credentials.get("api_key", "")
     request_id = uuid4().hex
     trace_url: str | None = None
+    started = time.perf_counter()
+    status = "success"
+    error_category: str | None = None
+    prompt_hash: str | None = None
+    output_hash: str | None = None
 
     try:
         prompt = build_result_explanation_prompt(prompt_input, questions=questions)
+        prompt_hash = hash_reference(prompt)
         llm = create_llm(config)
         use_tracing = _is_tracing_enabled(tracing_enabled)
         tracing_cm = (
@@ -359,6 +391,7 @@ def explain_results_details(
         with tracing_cm:
             response = llm.invoke(prompt)
         text = _extract_response_text(response)
+        output_hash = hash_reference(text)
         if use_tracing:
             trace_url = resolve_trace_url(request_id)
             payload["trace_url"] = trace_url
@@ -366,5 +399,56 @@ def explain_results_details(
         safe_error = _sanitize_error_message(exc, secrets=[api_key])
         text = f"Failed to generate explanation: {safe_error}"
         payload["error"] = safe_error
+        status = "error"
+        error_category = type(exc).__name__
         trace_url = None
+    finally:
+        try:
+            record_fleet_event(
+                FleetContext(
+                    operation="result-explanation",
+                    run_id=str(_manifest_highlights(manifest).get("run_name") or request_id),
+                    provider=config.provider_name,
+                    model=config.model_name,
+                    trace_id=request_id if trace_url else None,
+                    trace_url=trace_url,
+                    latency_ms=int((time.perf_counter() - started) * 1000),
+                    status=status if os.getenv("LANGSMITH_API_KEY") else "no_secret",
+                    error_category=error_category,
+                    config_hash=config_fingerprint(
+                        {"provider": config.provider_name, "model": config.model_name}
+                    ),
+                    seed=_manifest_highlights(manifest).get("seed"),
+                    metric_delta=_extract_metric_delta(analysis_output),
+                    dashboard_surface="results-details",
+                    prompt_hash=prompt_hash,
+                    output_hash=output_hash,
+                    artifact_ref=str(_manifest_highlights(manifest).get("cli_output") or ""),
+                    validation_status="generated" if status == "success" else "failed",
+                    extra={
+                        "rows": analysis_output["rows"],
+                        "columns": len(analysis_output["columns"]),
+                    },
+                )
+            )
+        except Exception:
+            pass
     return _with_disclaimer(text), trace_url, payload
+
+
+def _extract_metric_delta(analysis_output: Mapping[str, Any]) -> float | None:
+    stress_summary = analysis_output.get("stress_delta_summary")
+    if not isinstance(stress_summary, Mapping):
+        return None
+    summary = stress_summary.get("summary")
+    if not isinstance(summary, Mapping):
+        return None
+    values: list[float] = []
+    for item in summary.values():
+        if isinstance(item, Mapping):
+            mean = item.get("mean")
+            if isinstance(mean, (int, float)):
+                values.append(float(mean))
+    if not values:
+        return None
+    return max(values, key=abs)
