@@ -1,3 +1,26 @@
+## 2026-05-24T07:11:51Z - PAEM PR #1819 Gate recovery
+
+- Repo: `stranske/Portable-Alpha-Extension-Model`
+- PR: `#1819` (`Issue #1802: Tag LangSmith traces with run, scenario, and config metadata`)
+- Branch: `codex/issue-1802-langsmith-scenario-metadata`
+- Lane: user-directed recovery after opener found the PR stuck on Gate.
+- Failure inspected:
+  - GitHub Gate failed on `Python CI / python 3.12`.
+  - Exact failing command reproduced locally: `python -m pytest tests/test_validate_lockfile.py -q --no-cov`.
+  - Root cause: `scripts/validate_lockfile.py` compared `tools/requirements-llm.txt` to `requirements.lock`, even though that requirements file explicitly documents that workflow LLM pins intentionally drift from `pyproject.toml` / `requirements.lock`.
+- Fix:
+  - Updated `scripts/validate_lockfile.py` to honor the documented workflow-drift marker.
+  - For workflow-only pins, validation now requires each dependency to use one exact `==` version instead of requiring lockfile equality.
+  - Added test coverage for non-exact workflow pins.
+- Validation:
+  - `python -m pytest tests/test_validate_lockfile.py -q --no-cov` -> 2 passed.
+  - `python scripts/validate_lockfile.py` -> passed.
+  - `python -m ruff check scripts/validate_lockfile.py tests/test_validate_lockfile.py` -> passed.
+  - `git diff --check` -> passed.
+- Commit pushed: `ad75b20` (`Fix LLM workflow pin validation`).
+- Post-push PR state: head `ad75b203c6e6c1d0e361aac85899a595e97d465b`, non-draft, labels still `agent:codex`, `agent:retry`, `agents:keepalive`, `autofix`; GitHub checks are pending/queued after the push.
+- Next action: wait for GitHub Gate/keepalive to rerun on `ad75b20`; no CI sleep was performed.
+
 ## 2026-05-24T06:07:47Z - opener lane issue #1802 PR materializing
 
 - Repo: `stranske/Portable-Alpha-Extension-Model`
