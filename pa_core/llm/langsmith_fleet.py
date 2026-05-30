@@ -11,6 +11,9 @@ from pathlib import Path
 from typing import Any, Mapping
 
 FLEET_SCHEMA = "langsmith-fleet/v1"
+FLEET_REPO = "stranske/Portable-Alpha-Extension-Model"
+FLEET_SURFACE = "scenario-analysis"
+FLEET_GITHUB_ISSUE = "stranske/Portable-Alpha-Extension-Model#1802"
 DEFAULT_FLEET_PATH = Path("artifacts/langsmith/langsmith-fleet.ndjson")
 MAX_RECORDS = 2000
 
@@ -66,13 +69,29 @@ def config_fingerprint(config: Mapping[str, Any] | None) -> str | None:
 
 
 def build_fleet_record(context: FleetContext) -> dict[str, Any]:
+    run_id = context.run_id or hash_reference(
+        {
+            "operation": context.operation,
+            "scenario_id": context.scenario_id,
+            "config_hash": context.config_hash,
+            "seed": context.seed,
+            "metric_delta": context.metric_delta,
+            "dashboard_surface": context.dashboard_surface,
+        }
+    )
+    scenario_id = context.scenario_id or run_id
+    config_hash = context.config_hash or hash_reference(
+        {"operation": context.operation, "run_id": run_id, "scenario_id": scenario_id}
+    )
+    seed = context.seed if context.seed is not None else "unknown"
+    metric_delta = context.metric_delta if context.metric_delta is not None else 0.0
     domain = {
         "operation": context.operation,
-        "run_id": context.run_id,
-        "scenario_id": context.scenario_id,
-        "config_hash": context.config_hash,
-        "seed": context.seed,
-        "metric_delta": context.metric_delta,
+        "run_id": run_id,
+        "scenario_id": scenario_id,
+        "config_hash": config_hash,
+        "seed": seed,
+        "metric_delta": metric_delta,
         "dashboard_surface": context.dashboard_surface,
         "prompt_hash": context.prompt_hash,
         "output_hash": context.output_hash,
@@ -83,11 +102,14 @@ def build_fleet_record(context: FleetContext) -> dict[str, Any]:
     }
     return _drop_none(
         {
-            "schema": FLEET_SCHEMA,
-            "repo": "stranske/Portable-Alpha-Extension-Model",
-            "generated_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+            "schema_version": FLEET_SCHEMA,
+            "repo": FLEET_REPO,
+            "surface": FLEET_SURFACE,
+            "recorded_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "operation": context.operation,
+            "run_id": run_id,
             "status": context.status,
+            "github_issue": FLEET_GITHUB_ISSUE,
             "provider": context.provider,
             "model": context.model,
             "trace_id": context.trace_id,
@@ -139,6 +161,9 @@ def _json_safe(value: Any) -> Any:
 
 __all__ = [
     "FLEET_SCHEMA",
+    "FLEET_GITHUB_ISSUE",
+    "FLEET_REPO",
+    "FLEET_SURFACE",
     "FleetContext",
     "append_fleet_records",
     "build_fleet_record",

@@ -10,7 +10,10 @@ import pytest
 from pa_core.llm.compare_runs import compare_runs
 from pa_core.llm.config_patch_chain import run_config_patch_chain
 from pa_core.llm.langsmith_fleet import (
+    FLEET_GITHUB_ISSUE,
+    FLEET_REPO,
     FLEET_SCHEMA,
+    FLEET_SURFACE,
     FleetContext,
     append_fleet_records,
     build_fleet_record,
@@ -38,15 +41,38 @@ def test_build_fleet_record_hashes_domain_metadata() -> None:
         )
     )
 
-    assert record["schema"] == FLEET_SCHEMA
-    assert record["repo"] == "stranske/Portable-Alpha-Extension-Model"
+    assert record["schema_version"] == FLEET_SCHEMA
+    assert record["repo"] == FLEET_REPO
+    assert record["surface"] == FLEET_SURFACE
+    assert record["run_id"] == "run-1"
+    assert record["github_issue"] == FLEET_GITHUB_ISSUE
+    assert "recorded_at" in record
+    assert "schema" not in record
+    assert "generated_at" not in record
     assert record["provider"] == "openai"
     assert record["domain"]["operation"] == "result-explanation"
+    assert record["domain"]["scenario_id"] == "scenario-a"
     assert record["domain"]["config_hash"] == config_fingerprint(
         {"seed": 7, "weights": {"alpha": 0.2}}
     )
+    assert record["domain"]["seed"] == 7
+    assert record["domain"]["metric_delta"] == 0.05
     assert "prompt text" not in json.dumps(record)
     assert "output text" not in json.dumps(record)
+
+
+def test_build_fleet_record_contains_required_contract_fields_when_context_sparse() -> None:
+    record = build_fleet_record(FleetContext(operation="config-patch", status="no_secret"))
+
+    assert record["schema_version"] == "langsmith-fleet/v1"
+    assert record["surface"] == "scenario-analysis"
+    assert record["run_id"]
+    assert record["github_issue"] == "stranske/Portable-Alpha-Extension-Model#1802"
+    assert set(["scenario_id", "config_hash", "seed", "metric_delta"]).issubset(
+        record["domain"]
+    )
+    assert record["domain"]["scenario_id"]
+    assert record["domain"]["config_hash"]
 
 
 def test_append_fleet_records_retains_recent_records(tmp_path) -> None:
