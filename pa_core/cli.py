@@ -897,7 +897,11 @@ def main(
         payload = {
             "manifest_path": str(manifest_path) if manifest_path is not None else None,
             "run_end_path": str(run_end_path) if run_end_path is not None else None,
-            "bundle_path": str(args.bundle) if getattr(args, "bundle", None) else None,
+            "bundle_path": (
+                str(Path(args.bundle) / "bundle.json")
+                if getattr(args, "bundle", None)
+                else None
+            ),
             "warnings": warnings,
             "cost": dict(cost),
         }
@@ -959,9 +963,9 @@ def main(
                 if prev_out and Path(prev_out).exists():
                     try:
                         prev_summary_df = pd.read_excel(prev_out, sheet_name="Summary")
-                    except Exception:
+                    except (ImportError, OSError, PermissionError, ValueError):
                         prev_summary_df = pd.DataFrame()
-        except Exception:
+        except (json.JSONDecodeError, OSError, PermissionError, TypeError):
             prev_manifest_data = None
             prev_summary_df = pd.DataFrame()
 

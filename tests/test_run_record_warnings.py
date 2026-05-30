@@ -92,6 +92,16 @@ def test_run_record_cost_stub_present(tmp_path: Path) -> None:
     assert cost["dollars"] is None
 
 
+def test_run_record_bundle_path_points_to_bundle_json(tmp_path: Path) -> None:
+    bundle_dir = tmp_path / "bundle"
+    out_file = _run_cli(tmp_path, "--bundle", str(bundle_dir))
+
+    record = json.loads(out_file.with_name("run.json").read_text())
+
+    assert record["bundle_path"] == str(bundle_dir / "bundle.json")
+    assert Path(record["bundle_path"]).is_file()
+
+
 def test_manifest_carries_optional_warnings_and_cost(tmp_path: Path) -> None:
     out_file = _run_cli(tmp_path, "--index-frequency", "daily")
     manifest = json.loads(out_file.with_name("manifest.json").read_text())
