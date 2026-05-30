@@ -51,7 +51,16 @@ MANIFEST_OPTIONAL_FIELDS: Sequence[str] = (
     "previous_run",
     "run_timing",
     "substream_ids",
+    "warnings",
+    "cost",
 )
+
+# Unified run-record envelope (run.json) — ties manifest.json, run_end.json and
+# the optional bundle.json together and is the single place where captured
+# run-level ``warnings`` and the ``cost`` stub are surfaced for automation.
+RUN_RECORD_FILENAME = "run.json"
+# Each captured warning is normalised to this four-key shape.
+RUN_RECORD_WARNING_FIELDS: Sequence[str] = ("code", "severity", "message", "context")
 
 
 @dataclass(frozen=True)
@@ -144,6 +153,8 @@ class ManifestPayload(TypedDict, total=False):
     run_log: str | None
     previous_run: str | None
     run_timing: Mapping[str, Any] | None
+    warnings: list[Mapping[str, Any]]
+    cost: Mapping[str, Any] | None
 
 
 @dataclass(frozen=True)
