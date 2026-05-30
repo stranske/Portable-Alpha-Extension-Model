@@ -62,6 +62,39 @@ def test_manifest_written(tmp_path):
     assert manifest["backend"] == "numpy"
 
 
+def test_manifest_records_index_data_quality(tmp_path):
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = tmp_path / "index.csv"
+    idx_csv.write_text(
+        "Date,Monthly_TR\n"
+        "2020-01-31,0.01\n"
+        "2020-02-29,0.02\n"
+        "2020-03-31,0.03\n"
+        "2020-04-30,#DIV/0!\n"
+    )
+    out_file = tmp_path / "out.xlsx"
+
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--index-frequency",
+            "monthly",
+            "--output",
+            str(out_file),
+        ]
+    )
+
+    manifest = json.loads(out_file.with_name("manifest.json").read_text())
+    assert manifest["data_quality"]["rows_in"] == 4
+    assert manifest["data_quality"]["rows_dropped"] == 1
+    assert manifest["data_quality"]["coerced_non_numeric"] == 1
+
+
 def test_manifest_records_run_log(tmp_path, monkeypatch):
     cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
     cfg_path = tmp_path / "cfg.yaml"

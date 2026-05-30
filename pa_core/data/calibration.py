@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Literal, cast
+from typing import Any, Dict, List, Literal, cast
 
 import numpy as np
 import pandas as pd
@@ -42,6 +42,7 @@ class CalibrationResult:
     assets: List[Asset]
     correlations: List[Correlation]
     diagnostics: CalibrationDiagnostics | None = None
+    data_quality: Dict[str, Any] | None = None
 
 
 def _ledoit_wolf_shrinkage(returns: np.ndarray) -> tuple[np.ndarray, float]:
@@ -93,7 +94,37 @@ class CalibrationAgent:
         self.vol_regime_window = vol_regime_window
 
     def calibrate(self, df: pd.DataFrame, index_id: str) -> CalibrationResult:
+        incoming_quality = getattr(df, "attrs", {}).get("data_quality")
         counts = cast(pd.Series, df.groupby("id")["return"].count())
+        series_quality = {
+            str(series_id): {
+                "n_obs": int(n_obs),
+                "below_min_obs": bool(int(n_obs) < self.min_obs),
+            }
+            for series_id, n_obs in counts.items()
+        }
+        data_quality: Dict[str, Any] = {}
+        incoming_series: Dict[str, Any] = {}
+        if isinstance(incoming_quality, dict):
+            # Preserve ancillary incoming fields (rows_in, rows_dropped,
+            # coerced_non_numeric, detected_frequency, etc.) but never let a stale
+            # incoming min_obs/series threshold override the active calibration values.
+            data_quality.update(
+                {k: v for k, v in incoming_quality.items() if k not in ("min_obs", "series")}
+            )
+            incoming_series = {
+                str(series_id): dict(payload)
+                for series_id, payload in incoming_quality.get("series", {}).items()
+                if isinstance(payload, dict)
+            }
+        data_quality["min_obs"] = int(self.min_obs)
+        # Freshly recomputed per-series values (n_obs/below_min_obs at this calibrator's
+        # min_obs) win over stale incoming entries; incoming-only ancillary per-series
+        # fields and series ids the calibrator did not recompute are still preserved.
+        merged_series: Dict[str, Any] = dict(incoming_series)
+        for series_id, payload in series_quality.items():
+            merged_series[series_id] = {**merged_series.get(series_id, {}), **payload}
+        data_quality["series"] = merged_series
         filtered = cast(pd.Series, counts[counts >= self.min_obs])
         valid_ids = cast(pd.Index, filtered.index).tolist()
         df = cast(pd.DataFrame, df[df["id"].isin(valid_ids)].copy())
@@ -167,7 +198,11 @@ class CalibrationAgent:
             vol_regime_state=regime_state,
         )
         return CalibrationResult(
-            index=index_obj, assets=assets, correlations=pairs, diagnostics=diagnostics
+            index=index_obj,
+            assets=assets,
+            correlations=pairs,
+            diagnostics=diagnostics,
+            data_quality=data_quality,
         )
 
     def to_yaml(self, result: CalibrationResult, path: str | Path) -> None:
@@ -176,4 +211,6 @@ class CalibrationAgent:
             "assets": [a.model_dump() for a in result.assets],
             "correlations": [{"pair": list(c.pair), "rho": c.rho} for c in result.correlations],
         }
+        if result.data_quality:
+            data["data_quality"] = result.data_quality
         Path(path).write_text(yaml.safe_dump(data))

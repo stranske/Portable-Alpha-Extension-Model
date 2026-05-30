@@ -1245,6 +1245,7 @@ def main(
             run_log=run_log_path,
             previous_run=args.prev_manifest,
             run_timing=run_timer.snapshot(),
+            data_quality=idx_series.attrs.get("data_quality"),
         )
         manifest_json = Path(args.output).with_name("manifest.json")
         manifest_path = manifest_json
@@ -1707,6 +1708,7 @@ def main(
             run_log=run_log_path,
             previous_run=args.prev_manifest,
             run_timing=run_timer.snapshot(),
+            data_quality=idx_series.attrs.get("data_quality"),
         )
         manifest_path = Path(flags.save_xlsx or "Outputs.xlsx").with_name("manifest.json")
     except (OSError, PermissionError, FileNotFoundError) as e:

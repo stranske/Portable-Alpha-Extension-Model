@@ -224,6 +224,80 @@ def test_import_min_obs_enforced(tmp_path: Path) -> None:
         agent.load(path)
 
 
+def test_import_below_min_obs_can_be_persisted_without_crashing(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-31", periods=5, freq="ME")
+    df = pd.DataFrame(
+        {
+            "Date": dates,
+            "IDX": [0.01, 0.02, 0.00, 0.01, -0.01],
+            "SHORT": [0.02, 0.03, np.nan, np.nan, np.nan],
+        }
+    )
+    path = tmp_path / "short.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(date_col="Date", min_obs=3, allow_below_min_obs=True)
+    loaded = importer.load(path)
+
+    assert loaded.attrs["data_quality"]["series"]["SHORT"] == {
+        "n_obs": 2,
+        "below_min_obs": True,
+    }
+
+    result = CalibrationAgent(min_obs=3).calibrate(loaded, index_id="IDX")
+    out = tmp_path / "library.yaml"
+    CalibrationAgent(min_obs=3).to_yaml(result, out)
+    data = yaml.safe_load(out.read_text())
+
+    assert data["data_quality"]["series"]["SHORT"]["below_min_obs"] is True
+    assert data["data_quality"]["series"]["SHORT"]["n_obs"] == 2
+    assert all(asset["id"] != "SHORT" for asset in data["assets"])
+
+
+def test_calibration_quality_wins_over_stale_incoming_attrs(tmp_path: Path) -> None:
+    """Regression for PR #1841 review thread.
+
+    When data is loaded with a permissive threshold and then calibrated with a
+    stricter one, the persisted data_quality must reflect the *calibrator's*
+    min_obs and recomputed below_min_obs, never the stale incoming values, while
+    ancillary incoming fields (e.g. detected_frequency) are still preserved.
+    """
+    dates = pd.date_range("2020-01-31", periods=6, freq="ME")
+    df = pd.DataFrame(
+        {
+            "Date": dates,
+            "IDX": [0.01, 0.02, 0.00, 0.01, -0.01, 0.02],
+            "SHORT": [0.02, 0.03, 0.01, np.nan, np.nan, np.nan],
+        }
+    )
+    path = tmp_path / "mixed.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(date_col="Date", min_obs=1, allow_below_min_obs=True)
+    loaded = importer.load(path)
+    # Incoming attrs report the permissive threshold: SHORT (3 obs) is not below min_obs=1.
+    assert loaded.attrs["data_quality"]["min_obs"] == 1
+    assert loaded.attrs["data_quality"]["series"]["SHORT"]["below_min_obs"] is False
+    # Ancillary incoming field that must survive the merge.
+    loaded.attrs["data_quality"]["detected_frequency"] = "ME"
+
+    result = CalibrationAgent(min_obs=4).calibrate(loaded, index_id="IDX")
+    out = tmp_path / "library.yaml"
+    CalibrationAgent(min_obs=4).to_yaml(result, out)
+    data = yaml.safe_load(out.read_text())
+
+    dq = data["data_quality"]
+    # Active calibration threshold wins over the stale incoming min_obs=1.
+    assert dq["min_obs"] == 4
+    # SHORT (3 obs) is now correctly flagged below the calibrator threshold.
+    assert dq["series"]["SHORT"] == {"n_obs": 3, "below_min_obs": True}
+    assert dq["series"]["IDX"]["below_min_obs"] is False
+    # Ancillary incoming field preserved.
+    assert dq["detected_frequency"] == "ME"
+    # SHORT is filtered out of the calibrated assets.
+    assert all(asset["id"] != "SHORT" for asset in data["assets"])
+
+
 @pytest.mark.parametrize(
     "periods,min_obs,should_fail",
     [

@@ -385,7 +385,9 @@ def main(argv: Sequence[str] | None = None) -> None:
                 "financing_mode": "broadcast",
                 **model_config,
             }
-            report = build_calibration_report(returns_result, alpha_map=alpha_map)
+            report = build_calibration_report(
+                returns_result, alpha_map=alpha_map, min_obs=int(args.min_obs)
+            )
             payload["calibration"] = report
 
             yaml = _require_yaml()
@@ -404,9 +406,10 @@ def main(argv: Sequence[str] | None = None) -> None:
         calibration_overrides: Mapping[str, Any] = {}
         if args.mapping:
             importer = DataImportAgent.from_template(args.mapping)
+            importer.allow_below_min_obs = True
             calibration_overrides = _load_calibration_overrides(args.mapping)
         else:
-            importer = DataImportAgent(min_obs=int(args.min_obs))
+            importer = DataImportAgent(min_obs=int(args.min_obs), allow_below_min_obs=True)
         if args.index_id is None:
             raise ValueError("index-id is required when using --input")
         cov_shrinkage = cast(

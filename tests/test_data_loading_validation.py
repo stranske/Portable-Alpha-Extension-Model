@@ -67,6 +67,27 @@ def test_load_index_returns_with_text_in_numeric_columns():
         os.remove(temp_path)
 
 
+def test_load_index_returns_records_data_quality_for_dropped_rows():
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+        f.write("Date,Monthly_TR\n")
+        f.write("2020-01-01,0.01\n")
+        f.write("2020-02-01,N/A\n")
+        f.write("2020-03-01,0.03\n")
+        f.write("2020-04-01,#DIV/0!\n")
+        temp_path = f.name
+
+    try:
+        series = load_index_returns(temp_path)
+        data_quality = series.attrs["data_quality"]
+        assert data_quality["rows_in"] == 4
+        assert data_quality["rows_dropped"] == 2
+        assert data_quality["coerced_non_numeric"] == 1
+        assert data_quality["detected_frequency"] == series.attrs["frequency"]
+        assert data_quality["rows_in"] > len(series)
+    finally:
+        os.remove(temp_path)
+
+
 def test_load_index_returns_prefers_monthly_tr_column():
     """Test that Monthly_TR is preferred when present."""
     with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
