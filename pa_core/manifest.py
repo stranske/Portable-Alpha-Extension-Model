@@ -24,6 +24,8 @@ class Manifest:
     run_log: str | None = None
     previous_run: str | None = None
     run_timing: Mapping[str, Any] | None = None
+    warnings: Sequence[Mapping[str, Any]] | None = None
+    cost: Mapping[str, Any] | None = None
 
 
 class ManifestWriter:
@@ -51,8 +53,15 @@ class ManifestWriter:
         run_log: str | Path | None = None,
         previous_run: str | Path | None = None,
         run_timing: Mapping[str, Any] | None = None,
+        warnings: Sequence[Mapping[str, Any]] | None = None,
+        cost: Mapping[str, Any] | None = None,
     ) -> None:
-        """Write manifest to ``self.path``."""
+        """Write manifest to ``self.path``.
+
+        ``warnings`` and ``cost`` are additive optional fields (see
+        ``MANIFEST_OPTIONAL_FIELDS``); they default to ``None`` so existing
+        callers are unaffected and may be finalized post-run by the CLI.
+        """
 
         repo_root = Path(__file__).resolve().parents[1]
         try:
@@ -76,5 +85,7 @@ class ManifestWriter:
             run_log=str(run_log) if run_log else None,
             previous_run=str(previous_run) if previous_run else None,
             run_timing=timing,
+            warnings=[dict(w) for w in warnings] if warnings is not None else None,
+            cost=dict(cost) if cost is not None else None,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))

@@ -59,6 +59,44 @@ warnings system. These warnings do not appear in stdout/stderr by default
 and must not be printed or logged as part of CLI output. Users can surface
 them explicitly with `-Wd` or warning filters.
 
+## Unified Run Record (`run.json`)
+Each run is representable as a single JSON envelope, `run.json`, written next to
+`manifest.json` (and, when `--log-json` is used, alongside `run_end.json`). It
+ties the existing artifacts together and adds two structured fields so an agent
+reading the structured output can answer "did this run warn about anything?" and
+"what did it cost?" without scraping `run.log`.
+
+`run.json` fields:
+
+- `manifest_path` — path to the run's `manifest.json` (or `null`).
+- `run_end_path` — path to the run's `run_end.json` (or `null` when `--log-json`
+  is not enabled).
+- `bundle_path` — path to the optional `bundle.json` artifact (or `null`).
+- `warnings` — a list of normalized warning objects (see below).
+- `cost` — `{ "latency_seconds": float, "dollars": float | null }`. `dollars` is
+  a deliberate stub (`null`) for the local numpy backend.
+
+Each entry in `warnings` has the four-key shape:
+
+```json
+{ "code": "UserWarning", "severity": "warning",
+  "message": "Index frequency mismatch: ...",
+  "context": { "source": "warnings", "filename": "...", "lineno": 152 } }
+```
+
+Warnings are captured during the run by an in-process collector
+(`pa_core.cli._WarningCollector`) that hooks both `logging.WARNING`+ records
+(e.g. sweep-perturbation and bundle failures) and the `warnings.warn(...)`
+channel (e.g. frequency-mismatch warnings from `pa_core.data.loaders`). The same
+`warnings` and `cost` fields are mirrored onto `manifest.json` and
+`run_end.json` as additive optional keys (`MANIFEST_OPTIONAL_FIELDS`), so
+existing consumers that ignore them keep working.
+
+Note: declaring `--index-frequency` explicitly overrides frequency detection;
+a mismatch against the expected monthly cadence is then surfaced as a captured
+warning rather than a hard error (consistent with the loaders guidance to pass
+`--index-frequency {detected}` to skip strict validation).
+
 ## Argument Parsing and Exit Codes
 The facade layer does not parse CLI arguments. Argument parsing lives in CLI
 entrypoints (`pa_core.cli`, `pa_core.pa`, and `pa_core.__main__`):

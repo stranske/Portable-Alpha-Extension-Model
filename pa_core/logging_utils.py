@@ -4,7 +4,7 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 
 class JSONLogFormatter(logging.Formatter):
@@ -130,8 +130,15 @@ def emit_run_end(
     run_log: str | Path | None = None,
     manifest_path: str | Path | None = None,
     status: str = "success",
+    warnings: Sequence[Mapping[str, Any]] | None = None,
+    cost: Mapping[str, Any] | None = None,
 ) -> None:
-    """Emit a JSONL run_end record for automation and audits."""
+    """Emit a JSONL run_end record for automation and audits.
+
+    ``warnings`` (a list of ``{code, severity, message, context}`` mappings) and
+    ``cost`` are additive optional fields mirrored into ``run_end.json`` so the
+    structured record answers "did this run warn about anything?".
+    """
     logger = logging.getLogger("pa_core.run")
     extra: dict[str, Any] = {
         "event": "run_end",
@@ -140,6 +147,8 @@ def emit_run_end(
         "backend": backend,
         "artifact_paths": artifact_paths or [],
         "status": status,
+        "warnings": warnings or [],
+        "cost": cost,
     }
     if started_at:
         extra["started_at"] = started_at

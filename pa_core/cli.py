@@ -90,6 +90,100 @@ class RunTimer:
         }
 
 
+class _WarningCollector:
+    """Capture run-level warnings into ``{code, severity, message, context}`` dicts.
+
+    Installs a ``logging.Handler`` for ``WARNING``+ records and a
+    ``warnings.showwarning`` shim so both ``logger.warning(...)`` sites (e.g.
+    sweep-perturbation / bundle failures) and ``warnings.warn(...)`` sites (e.g.
+    frequency mismatches in ``pa_core.data.loaders``) are serialized into the
+    unified run record. Dependency-free (stdlib ``logging`` + ``warnings`` only)
+    so it can install before the heavy-import bootstrap in ``main``.
+    """
+
+    def __init__(self) -> None:
+        self.records: list[dict[str, Any]] = []
+        self._handler: logging.Handler | None = None
+        self._orig_showwarning: Any = None
+        self._installed = False
+
+    def install(self) -> None:
+        import warnings as _warnings
+
+        if self._installed:
+            return
+        self._installed = True
+
+        collector = self
+
+        class _Handler(logging.Handler):
+            def emit(self, record: logging.LogRecord) -> None:
+                try:
+                    collector.records.append(
+                        {
+                            "code": record.name,
+                            "severity": record.levelname.lower(),
+                            "message": record.getMessage(),
+                            "context": {
+                                "source": "logging",
+                                "logger": record.name,
+                                "funcName": record.funcName,
+                                "lineno": record.lineno,
+                            },
+                        }
+                    )
+                except Exception:  # pragma: no cover - never let capture break a run
+                    pass
+
+        handler = _Handler()
+        handler.setLevel(logging.WARNING)
+        logging.getLogger().addHandler(handler)
+        self._handler = handler
+
+        self._orig_showwarning = _warnings.showwarning
+
+        def _showwarning(message, category, filename, lineno, file=None, line=None):  # type: ignore[no-untyped-def]
+            try:
+                collector.records.append(
+                    {
+                        "code": getattr(category, "__name__", str(category)),
+                        "severity": "warning",
+                        "message": str(message),
+                        "context": {
+                            "source": "warnings",
+                            "category": getattr(category, "__name__", str(category)),
+                            "filename": filename,
+                            "lineno": lineno,
+                        },
+                    }
+                )
+            except Exception:  # pragma: no cover
+                pass
+            if collector._orig_showwarning is not None:
+                try:
+                    collector._orig_showwarning(message, category, filename, lineno, file, line)
+                except Exception:  # pragma: no cover
+                    pass
+
+        _warnings.showwarning = _showwarning
+
+    def uninstall(self) -> None:
+        import warnings as _warnings
+
+        if not self._installed:
+            return
+        self._installed = False
+        if self._handler is not None:
+            logging.getLogger().removeHandler(self._handler)
+            self._handler = None
+        if self._orig_showwarning is not None:
+            _warnings.showwarning = self._orig_showwarning
+            self._orig_showwarning = None
+
+    def snapshot(self) -> list[dict[str, Any]]:
+        return [dict(rec) for rec in self.records]
+
+
 def _read_config_snapshot(path: str | Path) -> str:
     try:
         return Path(path).read_text()
@@ -298,6 +392,12 @@ def main(
             DeprecationWarning,
             stacklevel=2,
         )
+
+    # Install the run-level warning collector before the heavy-import bootstrap so
+    # import-time and run-time warnings are captured into the unified run record.
+    # Torn down in _emit_run_end (every exit path runs it).
+    warning_collector = _WarningCollector()
+    warning_collector.install()
 
     try:  # quick probe for required heavy deps in subprocess execution
         import numpy as _np  # noqa: F401
@@ -754,6 +854,9 @@ def main(
 
     def _finalize_manifest_timing(
         snapshot: dict[str, Any] | None = None,
+        *,
+        warnings: list[dict[str, Any]] | None = None,
+        cost: Mapping[str, Any] | None = None,
     ) -> dict[str, Any]:
         timing = snapshot or run_timer.snapshot()
         if manifest_path is None or not manifest_path.exists():
@@ -767,19 +870,64 @@ def main(
         data["run_timing"] = timing
         if run_log_path is not None:
             data["run_log"] = str(run_log_path)
+        # Additive optional fields (see MANIFEST_OPTIONAL_FIELDS); finalized here
+        # because captured warnings/cost are only known at run end.
+        if warnings is not None:
+            data["warnings"] = warnings
+        if cost is not None:
+            data["cost"] = dict(cost)
         manifest_path.write_text(json.dumps(data, indent=2))
         _record_artifact(manifest_path)
         return timing
+
+    def _write_run_record(
+        warnings: list[dict[str, Any]],
+        cost: Mapping[str, Any],
+        run_end_path: Path | None,
+    ) -> None:
+        """Write the unified run.json envelope next to manifest.json/run_end.json."""
+        from .contracts import RUN_RECORD_FILENAME
+
+        if manifest_path is not None:
+            target = manifest_path.with_name(RUN_RECORD_FILENAME)
+        elif run_log_path is not None:
+            target = Path(run_log_path).parent / RUN_RECORD_FILENAME
+        else:
+            return
+        payload = {
+            "manifest_path": str(manifest_path) if manifest_path is not None else None,
+            "run_end_path": str(run_end_path) if run_end_path is not None else None,
+            "bundle_path": str(args.bundle) if getattr(args, "bundle", None) else None,
+            "warnings": warnings,
+            "cost": dict(cost),
+        }
+        try:
+            target.write_text(json.dumps(payload, indent=2))
+            _record_artifact(target)
+        except (OSError, PermissionError) as exc:
+            logger.warning(f"Failed to write run record: {exc}")
 
     def _emit_run_end() -> None:
         nonlocal run_end_emitted
         if run_end_emitted:
             return
-        timing = _finalize_manifest_timing()
-        if run_log_path is None:
-            run_end_emitted = True
-            return
         run_end_emitted = True
+        collected = warning_collector.snapshot()
+        # Tear down capture before we emit/log run-end so trailing logs aren't captured.
+        warning_collector.uninstall()
+        timing = run_timer.snapshot()
+        cost = {
+            "latency_seconds": timing.get("duration_seconds", _current_duration()),
+            # Real dollar-cost accounting is out of scope for the local numpy backend.
+            "dollars": None,
+        }
+        timing = _finalize_manifest_timing(timing, warnings=collected, cost=cost)
+        run_end_path = (
+            Path(run_log_path).parent / "run_end.json" if run_log_path is not None else None
+        )
+        _write_run_record(collected, cost, run_end_path)
+        if run_log_path is None:
+            return
         from .logging_utils import emit_run_end
 
         emit_run_end(
@@ -792,6 +940,8 @@ def main(
             run_id=run_id,
             run_log=run_log_path,
             manifest_path=manifest_path,
+            warnings=collected,
+            cost=cost,
         )
 
     prev_manifest_data: dict[str, Any] | None = None
@@ -948,9 +1098,13 @@ def main(
     if args.resample:
         idx_series = resample_to_monthly(idx_series)
 
-    # Validate frequency (defaults to monthly, raises if mismatch)
+    # Validate frequency (defaults to monthly). When the user explicitly declares
+    # --index-frequency they are overriding detection (the loaders guidance is to
+    # pass "--index-frequency {detected} to skip validation"), so surface a
+    # mismatch as a captured warning rather than hard-failing the run.
+    freq_strict = not bool(args.index_frequency)
     try:
-        validate_frequency(idx_series, expected="monthly", strict=True)
+        validate_frequency(idx_series, expected="monthly", strict=freq_strict)
     except FrequencyValidationError as e:
         raise SystemExit(f"Error: {e}") from None
 
