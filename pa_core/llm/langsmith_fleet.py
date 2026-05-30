@@ -132,7 +132,11 @@ def append_fleet_records(
     target.parent.mkdir(parents=True, exist_ok=True)
     existing: list[str] = []
     if target.exists():
-        existing = [line for line in target.read_text(encoding="utf-8").splitlines() if line]
+        existing = [
+            line
+            for line in target.read_text(encoding="utf-8").splitlines()
+            if _is_current_fleet_record_line(line)
+        ]
     incoming = [
         json.dumps(_json_safe(dict(record)), sort_keys=True, separators=(",", ":"))
         for record in records
@@ -157,6 +161,20 @@ def _json_safe(value: Any) -> Any:
     if isinstance(value, (str, int, float, bool)) or value is None:
         return value
     return str(value)
+
+
+def _is_current_fleet_record_line(line: str) -> bool:
+    if not line:
+        return False
+    try:
+        record = json.loads(line)
+    except json.JSONDecodeError:
+        return False
+    return (
+        isinstance(record, Mapping)
+        and record.get("schema_version") == FLEET_SCHEMA
+        and record.get("repo") == FLEET_REPO
+    )
 
 
 __all__ = [

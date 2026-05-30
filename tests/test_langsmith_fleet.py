@@ -90,6 +90,40 @@ def test_append_fleet_records_retains_recent_records(tmp_path) -> None:
     assert json.loads(lines[1])["operation"] == "op-2"
 
 
+def test_append_fleet_records_filters_legacy_schema_lines(tmp_path) -> None:
+    path = tmp_path / "fleet.ndjson"
+    legacy_record = {
+        "schema": "paem-langsmith-fleet/v0",
+        "repo": FLEET_REPO,
+        "generated_at": "2026-05-30T00:00:00Z",
+        "operation": "scenario-run",
+    }
+    current_record = build_fleet_record(
+        FleetContext(operation="scenario-run", run_id="current-run")
+    )
+    path.write_text(
+        "\n".join(
+            [
+                json.dumps(legacy_record, sort_keys=True),
+                json.dumps(current_record, sort_keys=True),
+                "{not-json",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    append_fleet_records(
+        [build_fleet_record(FleetContext(operation="config-patch", run_id="new-run"))],
+        path=path,
+        max_records=10,
+    )
+
+    lines = [json.loads(line) for line in path.read_text().splitlines()]
+    assert [record["run_id"] for record in lines] == ["current-run", "new-run"]
+    assert all(record["schema_version"] == FLEET_SCHEMA for record in lines)
+
+
 def test_config_patch_chain_emits_no_secret_fleet_record(monkeypatch, tmp_path) -> None:
     fleet_path = tmp_path / "fleet.ndjson"
     monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
