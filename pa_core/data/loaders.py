@@ -299,7 +299,13 @@ def load_index_returns(path: str | Path, *, date_format: str | None = None) -> p
             date_column = candidate
             break
 
+    rows_in = int(len(raw))
     numeric = pd.to_numeric(raw, errors="coerce")
+    coerced_non_numeric = int((raw.notna() & numeric.isna()).sum())
+    data_quality: dict[str, object] = {
+        "rows_in": rows_in,
+        "coerced_non_numeric": coerced_non_numeric,
+    }
     if date_column:
         try:
             if date_format:
@@ -329,5 +335,9 @@ def load_index_returns(path: str | Path, *, date_format: str | None = None) -> p
 
     if len(series) == 0:
         raise ValueError(f"No valid numeric data found in CSV file: {path}")
+
+    data_quality["rows_dropped"] = rows_in - int(len(series))
+    data_quality["detected_frequency"] = series.attrs.get("frequency", "unknown")
+    series.attrs["data_quality"] = data_quality
 
     return series

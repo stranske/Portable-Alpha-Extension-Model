@@ -28,3 +28,13 @@
 - ≥ 36 monthly observations per instrument by default
 - No duplicate dates per instrument
 - Missing values handled by forward-fill for prices; rows with NA returns dropped
+
+## Persisted data quality
+- `load_index_returns` attaches `series.attrs["data_quality"]` with:
+  - `rows_in`: source return rows before numeric coercion and drop filtering.
+  - `coerced_non_numeric`: non-empty source values that became missing during numeric coercion.
+  - `rows_dropped`: rows excluded from the returned series after value/date drop filtering.
+  - `detected_frequency`: the inferred or fallback frequency recorded on the series.
+- Simulation manifests persist the index `data_quality` block so downstream readers can distinguish clean inputs from runs with dropped/coerced rows.
+- `DataImportAgent` records per-series calibration quality under `data_quality.series.<id>` with `n_obs` and `below_min_obs`.
+- The default importer still raises on series below `min_obs`. The calibrate `--input` command enables the additive record-and-filter path so below-threshold series are omitted from estimates while their `n_obs` and `below_min_obs: true` state remains in the asset-library YAML.

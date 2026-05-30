@@ -347,10 +347,11 @@ def build_calibration_report(
     result: CalibrationResult,
     *,
     alpha_map: Mapping[str, str] | None = None,
+    min_obs: int | None = None,
 ) -> dict[str, object]:
     series_payload = {}
     for series_id, stats in result.series.items():
-        series_payload[series_id] = {
+        payload = {
             "n_obs": stats.n_obs,
             "mean_ci": ([stats.mean_ci.lower, stats.mean_ci.upper] if stats.mean_ci else None),
             "volatility_ci": (
@@ -359,6 +360,9 @@ def build_calibration_report(
                 else None
             ),
         }
+        if min_obs is not None:
+            payload["below_min_obs"] = stats.n_obs < min_obs
+        series_payload[series_id] = payload
 
     corr_payload = []
     for corr in result.correlations:

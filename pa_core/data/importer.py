@@ -27,6 +27,7 @@ class DataImportAgent:
         frequency: Literal["monthly", "daily"] = "monthly",
         monthly_rule: Literal["ME", "MS"] = "ME",
         min_obs: int = 36,
+        allow_below_min_obs: bool = False,
         # Optional I/O parsing controls
         sheet_name: str | int | None = None,
         na_values: list[str] | None = None,
@@ -43,6 +44,7 @@ class DataImportAgent:
             raise ValueError("monthly_rule must be 'ME' or 'MS'")
         self.monthly_rule = monthly_rule
         self.min_obs = min_obs
+        self.allow_below_min_obs = allow_below_min_obs
         # I/O parsing options (safe defaults keep existing behavior)
         self.sheet_name = sheet_name
         self.na_values = na_values
@@ -150,8 +152,19 @@ class DataImportAgent:
             raise ValueError("dates must be strictly increasing within each id")
 
         counts = cast(pd.Series, long_df.groupby("id").size())
+        series_quality = {
+            str(series_id): {
+                "n_obs": int(n_obs),
+                "below_min_obs": bool(int(n_obs) < self.min_obs),
+            }
+            for series_id, n_obs in counts.items()
+        }
+        data_quality = {
+            "min_obs": int(self.min_obs),
+            "series": series_quality,
+        }
         bad = cast(pd.Series, counts[counts < self.min_obs])
-        if not bad.empty:
+        if not bad.empty and not self.allow_below_min_obs:
             max_ids = 10
             id_list = [str(x) for x in sorted(bad.index.tolist())]
             shown_ids = id_list[:max_ids]
@@ -177,7 +190,9 @@ class DataImportAgent:
                 "id": self.id_col,
                 "value": self.value_col,
             },
+            "data_quality": data_quality,
         }
+        long_df.attrs["data_quality"] = data_quality
 
         return cast(pd.DataFrame, long_df.reset_index(drop=True))
 
@@ -202,6 +217,7 @@ class DataImportAgent:
             "frequency": self.frequency,
             "monthly_rule": self.monthly_rule,
             "min_obs": self.min_obs,
+            "allow_below_min_obs": self.allow_below_min_obs,
             # I/O options
             "sheet_name": self.sheet_name,
             "na_values": list(self.na_values) if self.na_values is not None else None,
@@ -228,6 +244,7 @@ class DataImportAgent:
             "frequency": str,
             "monthly_rule": str,
             "min_obs": int,
+            "allow_below_min_obs": bool,
             # I/O options
             "sheet_name": (str | int | type(None)),
             "na_values": (list | type(None)),

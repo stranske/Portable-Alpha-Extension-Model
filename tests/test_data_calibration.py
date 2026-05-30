@@ -224,6 +224,36 @@ def test_import_min_obs_enforced(tmp_path: Path) -> None:
         agent.load(path)
 
 
+def test_import_below_min_obs_can_be_persisted_without_crashing(tmp_path: Path) -> None:
+    dates = pd.date_range("2020-01-31", periods=5, freq="ME")
+    df = pd.DataFrame(
+        {
+            "Date": dates,
+            "IDX": [0.01, 0.02, 0.00, 0.01, -0.01],
+            "SHORT": [0.02, 0.03, np.nan, np.nan, np.nan],
+        }
+    )
+    path = tmp_path / "short.csv"
+    df.to_csv(path, index=False)
+
+    importer = DataImportAgent(date_col="Date", min_obs=3, allow_below_min_obs=True)
+    loaded = importer.load(path)
+
+    assert loaded.attrs["data_quality"]["series"]["SHORT"] == {
+        "n_obs": 2,
+        "below_min_obs": True,
+    }
+
+    result = CalibrationAgent(min_obs=3).calibrate(loaded, index_id="IDX")
+    out = tmp_path / "library.yaml"
+    CalibrationAgent(min_obs=3).to_yaml(result, out)
+    data = yaml.safe_load(out.read_text())
+
+    assert data["data_quality"]["series"]["SHORT"]["below_min_obs"] is True
+    assert data["data_quality"]["series"]["SHORT"]["n_obs"] == 2
+    assert all(asset["id"] != "SHORT" for asset in data["assets"])
+
+
 @pytest.mark.parametrize(
     "periods,min_obs,should_fail",
     [

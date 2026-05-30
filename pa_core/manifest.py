@@ -26,6 +26,7 @@ class Manifest:
     run_timing: Mapping[str, Any] | None = None
     warnings: Sequence[Mapping[str, Any]] | None = None
     cost: Mapping[str, Any] | None = None
+    data_quality: Mapping[str, Any] | None = None
 
 
 class ManifestWriter:
@@ -55,12 +56,13 @@ class ManifestWriter:
         run_timing: Mapping[str, Any] | None = None,
         warnings: Sequence[Mapping[str, Any]] | None = None,
         cost: Mapping[str, Any] | None = None,
+        data_quality: Mapping[str, Any] | None = None,
     ) -> None:
         """Write manifest to ``self.path``.
 
-        ``warnings`` and ``cost`` are additive optional fields (see
-        ``MANIFEST_OPTIONAL_FIELDS``); they default to ``None`` so existing
-        callers are unaffected and may be finalized post-run by the CLI.
+        ``warnings``, ``cost``, and ``data_quality`` are additive optional
+        fields (see ``MANIFEST_OPTIONAL_FIELDS``); they default to ``None`` so
+        existing callers are unaffected and may be finalized post-run by the CLI.
         """
 
         repo_root = Path(__file__).resolve().parents[1]
@@ -87,5 +89,6 @@ class ManifestWriter:
             run_timing=timing,
             warnings=[dict(w) for w in warnings] if warnings is not None else None,
             cost=dict(cost) if cost is not None else None,
+            data_quality=dict(data_quality) if data_quality is not None else None,
         )
         self.path.write_text(json.dumps(asdict(manifest), indent=2))

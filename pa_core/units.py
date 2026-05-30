@@ -203,8 +203,11 @@ def normalize_index_series(idx_series: pd.Series, input_unit: str) -> pd.Series:
     """Return a monthly index series given an ``input_unit`` label."""
     unit = input_unit or CANONICAL_RETURN_UNIT
     series = pd.Series(idx_series)
+    series.attrs.update(getattr(idx_series, "attrs", {}))
     if unit == "annual":
-        return convert_annual_series_to_monthly(series)
+        converted = convert_annual_series_to_monthly(series)
+        converted.attrs.update(series.attrs)
+        return converted
     return series
 
 
