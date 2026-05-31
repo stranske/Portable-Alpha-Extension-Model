@@ -110,8 +110,23 @@ def test_agent_math_identity():
 
     pa_p = AgentParams("InternalPA", 75.0, 0.0, 0.2, {})
     pa_agent = InternalPAAgent(pa_p)
-    expected_pa = pa_p.alpha_share * r_H
+    expected_pa = pa_p.alpha_share * (r_H - f)
     np.testing.assert_allclose(pa_agent.monthly_returns(r_beta, r_H, f), expected_pa)
+
+
+def test_internal_pa_financing_cost_changes_net_return_direction() -> None:
+    r_beta = np.zeros((1, 2))
+    alpha = np.array([[0.01, 0.01]])
+    positive_cost = np.array([[0.002, 0.002]])
+    negative_cost = np.array([[-0.002, -0.002]])
+    agent = InternalPAAgent(AgentParams("InternalPA", 75.0, 0.0, 0.4, {}))
+
+    base = agent.monthly_returns(r_beta, alpha, np.zeros_like(alpha))
+    charged = agent.monthly_returns(r_beta, alpha, positive_cost)
+    rebated = agent.monthly_returns(r_beta, alpha, negative_cost)
+
+    assert np.all(charged < base)
+    assert np.all(rebated > base)
 
 
 def test_external_pa_theta_zero_returns_pure_beta() -> None:

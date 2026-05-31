@@ -10,6 +10,6 @@ class InternalPAAgent(Agent):
         alpha_stream: Array,
         financing: Array,
     ) -> Array:
-        """Return pure in-house alpha with input validation."""
+        """Return in-house alpha net of internal PA financing cost."""
         self._validate_inputs(r_beta, alpha_stream, financing)
-        return self.p.alpha_share * alpha_stream
+        return self.p.alpha_share * (alpha_stream - financing)

@@ -13,7 +13,7 @@ from pa_core.simulations import simulate_agents, simulate_financing
 from pa_core.validators import SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD
 
 
-def _build_financing_params(**updates: float) -> dict[str, float | str | None]:
+def _build_financing_params(**updates) -> dict[str, object]:
     base_cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
@@ -51,7 +51,12 @@ def test_build_cov_matrix_shape():
 def test_simulate_financing_shape():
     out = simulate_financing(12, SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD, 0.0, 2.0, n_scenarios=5)
     assert out.shape == (5, 12)
-    assert np.all(out >= 0)
+
+
+def test_simulate_financing_allows_negative_costs():
+    out = simulate_financing(6, -0.01, 0.0, 0.0, 0.0, n_scenarios=2)
+    assert out.shape == (2, 6)
+    assert np.all(out < 0)
 
 
 def test_build_cov_matrix_near_singular():
@@ -149,6 +154,25 @@ def test_draw_financing_series_broadcasts_monthly_vector():
         assert np.allclose(mat[0], mat[1])
         assert np.allclose(mat[1], mat[2])
     assert np.std(f_int[0]) > 0
+
+
+def test_draw_financing_series_uses_observed_monthly_series_with_negative_values():
+    params = _build_financing_params(
+        internal_financing_series_month=[0.001, -0.002, 0.003],
+        ext_pa_financing_series_month=[0.004, 0.005, 0.006],
+        act_ext_financing_series_month=[-0.001, -0.002, -0.003],
+    )
+    f_int, f_ext, f_act = draw_financing_series(
+        n_months=3,
+        n_sim=2,
+        params=params,
+        financing_mode="per_path",
+        rng=np.random.default_rng(17),
+    )
+
+    np.testing.assert_allclose(f_int, [[0.001, -0.002, 0.003]] * 2)
+    np.testing.assert_allclose(f_ext, [[0.004, 0.005, 0.006]] * 2)
+    np.testing.assert_allclose(f_act, [[-0.001, -0.002, -0.003]] * 2)
 
 
 def test_draw_financing_series_rngs():

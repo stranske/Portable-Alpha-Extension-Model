@@ -299,6 +299,13 @@ class ModelConfig(BaseModel):
     internal_financing_sigma_month: float = Field(
         default=0.0, alias="Internal financing vol (monthly %)"
     )
+    internal_financing_series_month: Optional[List[float]] = Field(
+        default=None,
+        description=(
+            "Optional observed monthly internal PA financing-cost series. Values are "
+            "monthly return costs and may be negative."
+        ),
+    )
     internal_spike_prob: float = Field(default=0.0, alias="Internal monthly spike prob")
     internal_spike_factor: float = Field(default=0.0, alias="Internal spike multiplier")
 
@@ -308,6 +315,13 @@ class ModelConfig(BaseModel):
     ext_pa_financing_sigma_month: float = Field(
         default=0.0, alias="External PA financing vol (monthly %)"
     )
+    ext_pa_financing_series_month: Optional[List[float]] = Field(
+        default=None,
+        description=(
+            "Optional observed monthly external PA financing-cost series. Values are "
+            "monthly return costs and may be negative."
+        ),
+    )
     ext_pa_spike_prob: float = Field(default=0.0, alias="External PA monthly spike prob")
     ext_pa_spike_factor: float = Field(default=0.0, alias="External PA spike multiplier")
 
@@ -316,6 +330,13 @@ class ModelConfig(BaseModel):
     )
     act_ext_financing_sigma_month: float = Field(
         default=0.0, alias="Active Ext financing vol (monthly %)"
+    )
+    act_ext_financing_series_month: Optional[List[float]] = Field(
+        default=None,
+        description=(
+            "Optional observed monthly active extension financing-cost series. Values "
+            "are monthly return costs and may be negative."
+        ),
     )
     act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
     act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")

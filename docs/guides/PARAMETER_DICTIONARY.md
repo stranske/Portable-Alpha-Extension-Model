@@ -59,14 +59,17 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `vol_regime_window` | `vol_regime_window` | `<class 'int'>` | no | `12` |  |
 | `internal_financing_mean_month` | `Internal financing mean (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `internal_financing_sigma_month` | `Internal financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
+| `internal_financing_series_month` | `internal_financing_series_month` | `list[float] \| None` | no | `None` | Optional observed monthly InternalPA financing-cost series; values are monthly return costs and may be negative. |
 | `internal_spike_prob` | `Internal monthly spike prob` | `<class 'float'>` | no | `0.0` |  |
 | `internal_spike_factor` | `Internal spike multiplier` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_financing_mean_month` | `External PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_financing_sigma_month` | `External PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
+| `ext_pa_financing_series_month` | `ext_pa_financing_series_month` | `list[float] \| None` | no | `None` | Optional observed monthly ExternalPA financing-cost series; values are monthly return costs and may be negative. |
 | `ext_pa_spike_prob` | `External PA monthly spike prob` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_spike_factor` | `External PA spike multiplier` | `<class 'float'>` | no | `0.0` |  |
 | `act_ext_financing_mean_month` | `Active Ext financing mean (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `act_ext_financing_sigma_month` | `Active Ext financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
+| `act_ext_financing_series_month` | `act_ext_financing_series_month` | `list[float] \| None` | no | `None` | Optional observed monthly ActiveExt financing-cost series; values are monthly return costs and may be negative. |
 | `act_ext_spike_prob` | `Active Ext monthly spike prob` | `<class 'float'>` | no | `0.0` |  |
 | `act_ext_spike_factor` | `Active Ext spike multiplier` | `<class 'float'>` | no | `0.0` |  |
 | `financing_mode` | `financing_mode` | `Literal['broadcast', 'per_path']` | yes |  | Financing draw mode. broadcast reuses one financing vector across all simulations; per_path draws independent financing paths per scenario. |

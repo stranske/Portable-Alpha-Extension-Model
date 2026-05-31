@@ -36,7 +36,7 @@ def simulate_financing(
     assert rng is not None
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
     jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
-    out = cast(npt.NDArray[Any], np.clip(base + jumps, 0.0, None))
+    out = cast(npt.NDArray[Any], base + jumps)
     if n_scenarios == 1:
         return cast(npt.NDArray[Any], out[0])
     return out
@@ -92,10 +92,21 @@ def draw_financing_series(
     def _sim(
         mean_key: str,
         sigma_key: str,
+        series_key: str,
         p_key: str,
         k_key: str,
         rng_local: GeneratorLike,
     ) -> npt.NDArray[Any]:
+        series = params.get(series_key)
+        if series is not None:
+            values = np.asarray(series, dtype=float)
+            if values.ndim != 1:
+                raise ValueError(f"{series_key} must be a one-dimensional monthly series")
+            if len(values) < n_months:
+                raise ValueError(f"{series_key} must contain at least n_months values")
+            monthly = values[:n_months]
+            return cast(npt.NDArray[Any], np.broadcast_to(monthly, (n_sim, n_months)))
+
         mean = params[mean_key]
         sigma = params[sigma_key]
         p = params[p_key]
@@ -116,6 +127,7 @@ def draw_financing_series(
     f_int_mat = _sim(
         "internal_financing_mean_month",
         "internal_financing_sigma_month",
+        "internal_financing_series_month",
         "internal_spike_prob",
         "internal_spike_factor",
         r_int,
@@ -123,6 +135,7 @@ def draw_financing_series(
     f_ext_pa_mat = _sim(
         "ext_pa_financing_mean_month",
         "ext_pa_financing_sigma_month",
+        "ext_pa_financing_series_month",
         "ext_pa_spike_prob",
         "ext_pa_spike_factor",
         r_ext,
@@ -130,6 +143,7 @@ def draw_financing_series(
     f_act_ext_mat = _sim(
         "act_ext_financing_mean_month",
         "act_ext_financing_sigma_month",
+        "act_ext_financing_series_month",
         "act_ext_spike_prob",
         "act_ext_spike_factor",
         r_act,

@@ -71,7 +71,7 @@ def _(agent: ActiveExtensionAgent, *streams: ArrayLike) -> Tuple[ArrayLike, Arra
 @_resolve_streams.register
 def _(agent: InternalPAAgent, *streams: ArrayLike) -> Tuple[ArrayLike, ArrayLike]:
     r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext = streams
-    return r_H, np.zeros_like(r_beta)
+    return r_H, f_int
 
 
 @_resolve_streams.register

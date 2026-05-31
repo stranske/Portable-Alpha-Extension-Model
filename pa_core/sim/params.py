@@ -53,14 +53,17 @@ def build_financing_params(cfg: ModelConfig) -> Dict[str, Any]:
     return {
         "internal_financing_mean_month": cfg.internal_financing_mean_month,
         "internal_financing_sigma_month": cfg.internal_financing_sigma_month,
+        "internal_financing_series_month": cfg.internal_financing_series_month,
         "internal_spike_prob": cfg.internal_spike_prob,
         "internal_spike_factor": cfg.internal_spike_factor,
         "ext_pa_financing_mean_month": cfg.ext_pa_financing_mean_month,
         "ext_pa_financing_sigma_month": cfg.ext_pa_financing_sigma_month,
+        "ext_pa_financing_series_month": cfg.ext_pa_financing_series_month,
         "ext_pa_spike_prob": cfg.ext_pa_spike_prob,
         "ext_pa_spike_factor": cfg.ext_pa_spike_factor,
         "act_ext_financing_mean_month": cfg.act_ext_financing_mean_month,
         "act_ext_financing_sigma_month": cfg.act_ext_financing_sigma_month,
+        "act_ext_financing_series_month": cfg.act_ext_financing_series_month,
         "act_ext_spike_prob": cfg.act_ext_spike_prob,
         "act_ext_spike_factor": cfg.act_ext_spike_factor,
     }
