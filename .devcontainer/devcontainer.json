@@ -40,7 +40,7 @@
     }
   },
   "postCreateCommand": "bash .devcontainer/setup.sh",
-  "postStartCommand": "echo 'Codespace ready! Run ./dev.sh demo to get started.'",
+  "postStartCommand": "bash -lc 'if ! pgrep -f \"streamlit run dashboard/app.py\" >/dev/null; then nohup python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501 --server.address=0.0.0.0 > /tmp/paem-dashboard.log 2>&1 & fi; echo \"Dashboard auto-started on forwarded port 8501. Logs: /tmp/paem-dashboard.log\"'",
   "mounts": [
     "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached"
   ],
