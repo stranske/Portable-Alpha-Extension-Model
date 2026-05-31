@@ -89,3 +89,34 @@ python -m pytest \
   tests/test_reference_packs.py \
   --no-cov
 ```
+
+## Live Verification
+
+Live provider verification is opt-in and must only run against an
+org-authorized, no-train provider endpoint with redaction enabled. It uses the
+bundled synthetic `data/sp500tr_fred_divyield.csv` fixture and must not be wired
+into automated CI for the proprietary data zone.
+
+Run the live smoke tests with an authorized OpenAI key:
+
+```bash
+PA_LLM_LIVE=1 PA_LLM_PROVIDER=openai OPENAI_API_KEY=... \
+  python -m pytest tests/test_llm_live_smoke.py -m live_llm -v
+```
+
+Expected output:
+
+```text
+2 passed
+```
+
+Provider environment variables:
+
+| Provider | Required variables |
+| --- | --- |
+| `openai` | `PA_LLM_LIVE=1`, `PA_LLM_PROVIDER=openai`, `OPENAI_API_KEY` |
+| `anthropic` | `PA_LLM_LIVE=1`, `PA_LLM_PROVIDER=anthropic`, `CLAUDE_API_STRANSKE` |
+| `azure_openai` | `PA_LLM_LIVE=1`, `PA_LLM_PROVIDER=azure_openai`, `PA_STREAMLIT_API_KEY`, `PA_LLM_BASE_URL`, and `PA_LLM_API_VERSION` or `AZURE_OPENAI_API_VERSION` |
+
+The default `python -m pytest` path excludes `live_llm` tests with pytest
+addopts, so the normal suite remains offline and key-free.
