@@ -21,9 +21,11 @@ from pa_core.data.index_financing_curves import (
     get_index_financing_curve_monthly,
 )
 from pa_core.facade import RunOptions, run_single
+from pa_core.random import spawn_agent_rngs, spawn_rngs
 from pa_core.reporting.attribution import compute_sleeve_return_attribution
 from pa_core.sim import resolve_internal_pa_financing_series
 from pa_core.simulations import simulate_agents
+from pa_core.sweep import run_parameter_sweep
 
 # ---------------------------------------------------------------------------
 # Index financing curve fixture
@@ -204,6 +206,59 @@ def test_run_single_accepts_index_curve() -> None:
     cfg = _internal_pa_scenario().model_copy(update={"internal_pa_financing_index": "SPX"})
     mean = _internal_pa_mean(cfg)
     assert np.isfinite(mean)
+
+
+def test_parameter_sweep_passes_internal_pa_financing_series(monkeypatch) -> None:
+    cfg = _internal_pa_scenario().model_copy(
+        update={
+            "N_SIMULATIONS": 200,
+            "N_MONTHS": 6,
+            "analysis_mode": "returns",
+            "internal_pa_financing_mean_month": 0.01,
+            "in_house_return_min_pct": 1.0,
+            "in_house_return_max_pct": 1.0,
+            "in_house_return_step_pct": 1.0,
+            "in_house_vol_min_pct": 1.0,
+            "in_house_vol_max_pct": 1.0,
+            "in_house_vol_step_pct": 1.0,
+            "alpha_ext_return_min_pct": 1.0,
+            "alpha_ext_return_max_pct": 1.0,
+            "alpha_ext_return_step_pct": 1.0,
+            "alpha_ext_vol_min_pct": 1.0,
+            "alpha_ext_vol_max_pct": 1.0,
+            "alpha_ext_vol_step_pct": 1.0,
+        }
+    )
+    idx = pd.Series([0.01, -0.02, 0.015, 0.0, 0.005, -0.01])
+    captured: dict[str, np.ndarray] = {}
+
+    def fake_draw_joint_returns(
+        *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None
+    ):
+        zeros = np.zeros((n_sim, n_months))
+        return zeros, zeros, zeros, zeros
+
+    def fake_draw_financing_series(*, n_months, n_sim, **_kwargs):
+        zeros = np.zeros((n_sim, n_months))
+        return zeros, zeros, zeros
+
+    def fake_simulate_agents(*args):
+        captured["internal_pa_financing"] = args[-1]
+        return {"Base": np.zeros((cfg.N_SIMULATIONS, cfg.N_MONTHS))}
+
+    monkeypatch.setattr("pa_core.sweep.draw_joint_returns", fake_draw_joint_returns)
+    monkeypatch.setattr("pa_core.sweep.draw_financing_series", fake_draw_financing_series)
+    monkeypatch.setattr("pa_core.sweep.simulate_agents", fake_simulate_agents)
+
+    run_parameter_sweep(
+        cfg,
+        idx,
+        spawn_rngs(7, 1)[0],
+        spawn_agent_rngs(7, ["internal", "external_pa", "active_ext"]),
+    )
+
+    assert captured["internal_pa_financing"].shape == (cfg.N_SIMULATIONS, cfg.N_MONTHS)
+    assert np.allclose(captured["internal_pa_financing"], 0.01)
 
 
 def test_attribution_includes_internal_pa_financing_row() -> None:
