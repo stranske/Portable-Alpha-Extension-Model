@@ -6,6 +6,18 @@ previous run, and show LangSmith trace links when tracing is enabled. Required
 tests use fake clients or heuristic fallbacks and must not call real LLM
 providers.
 
+The machine-readable boundary is available through:
+
+```bash
+pa describe
+```
+
+The descriptor declares the deterministic engine as offline and the LLM zone as
+`gated-no-train`: disabled for proprietary data unless an authorized no-train
+endpoint with redaction is explicitly configured. This descriptor is a static
+declaration for tooling and backplane discovery; it does not enable provider
+calls or enforce sandboxing by itself.
+
 ## Install
 
 Install the optional LLM extra before using provider-backed dashboard features:
