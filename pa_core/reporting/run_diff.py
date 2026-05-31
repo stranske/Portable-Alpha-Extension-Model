@@ -67,7 +67,7 @@ def build_run_diff(
 
     def _series_has_numeric(series: pd.Series) -> bool:
         try:
-            if series.dtype == object:
+            if pdt.is_object_dtype(series) or pdt.is_string_dtype(series):
                 as_str = series.astype(str)
                 cleaned = as_str.str.replace("%", "", regex=False)
                 numeric = pd.to_numeric(cleaned, errors="coerce")

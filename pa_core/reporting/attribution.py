@@ -21,6 +21,30 @@ __all__ = [
 RESIDUAL_BETA_LABEL = "ResidualBeta"
 
 
+def _internal_pa_financing_month_mean(cfg: ModelConfig) -> float:
+    """Return the representative monthly internal-PA financing cost (issue #1849).
+
+    Mirrors the simulator's resolution priority: explicit series mean, then the
+    named index curve, then the deterministic mean. Negative costs are
+    preserved (no clipping) so the attribution moves in the same direction as
+    the simulated sleeve return.
+    """
+    series = getattr(cfg, "internal_pa_financing_series", None)
+    if series:
+        return float(sum(float(v) for v in series) / len(series))
+    index = getattr(cfg, "internal_pa_financing_index", None)
+    if index:
+        from ..data.index_financing_curves import (
+            INDEX_FINANCING_CURVES_BPS,
+            annual_bps_to_monthly,
+        )
+
+        key = str(index).strip().upper()
+        if key in INDEX_FINANCING_CURVES_BPS:
+            return annual_bps_to_monthly(INDEX_FINANCING_CURVES_BPS[key])
+    return float(getattr(cfg, "internal_pa_financing_mean_month", 0.0))
+
+
 def _cvar_tail_mask(total_arr: ArrayLike, confidence: float) -> tuple[float, NDArray[Any]]:
     """Return (VaR cutoff, tail mask) matching CVaR strict-tail semantics."""
     flat = np.asarray(total_arr, dtype=float).reshape(-1)
@@ -69,6 +93,7 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
     fin_int_m = float(cfg.internal_financing_mean_month)
     fin_ext_m = float(cfg.ext_pa_financing_mean_month)
     fin_act_m = float(cfg.act_ext_financing_mean_month)
+    fin_int_pa_m = _internal_pa_financing_month_mean(cfg)
 
     theta_extpa = normalize_share(getattr(cfg, "theta_extpa", 0.0)) or 0.0
     active_share = normalize_share(getattr(cfg, "active_share", 0.5)) or 0.0
@@ -107,10 +132,13 @@ def compute_sleeve_return_attribution(cfg: ModelConfig, idx_series: pd.Series) -
             {"Agent": "ActiveExt", "Sub": "Financing", "Return": act_fin},
         ]
 
-    # InternalPA (pure alpha)
+    # InternalPA (in-house alpha net of internal-PA financing cost, issue #1849)
     if w_int > 0:
         int_alpha = w_int * mu_H_m
         rows.append({"Agent": "InternalPA", "Sub": "Alpha", "Return": int_alpha})
+        if fin_int_pa_m:
+            int_fin = -w_int * fin_int_pa_m
+            rows.append({"Agent": "InternalPA", "Sub": "Financing", "Return": int_fin})
 
     # Attribution leftover beta (ResidualBeta) is not the simulation InternalBeta margin agent;
     # see docs/UserGuide.md "Sleeve Attribution Methodology" for InternalBeta vs UnexplainedBeta.

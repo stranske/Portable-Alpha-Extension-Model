@@ -42,6 +42,10 @@ Internal financing mean (monthly %),0.0
 Internal financing vol (monthly %),0.0
 Internal monthly spike prob,0.0
 Internal spike multiplier,0.0
+Internal PA financing mean (monthly %),0.0
+Internal PA financing vol (monthly %),0.0
+Internal PA financing series (monthly),
+Internal PA financing index,
 External PA financing mean (monthly %),0.0
 External PA financing vol (monthly %),0.0
 External PA monthly spike prob,0.0

@@ -2,6 +2,7 @@
 
 from .covariance import build_cov_matrix
 from .financing import draw_financing_series, simulate_financing
+from .internal_pa_financing import resolve_internal_pa_financing_series
 from .paths import (
     draw_joint_returns,
     draw_returns,
@@ -28,6 +29,7 @@ __all__ = [
     "draw_financing",
     "draw_joint_returns",
     "draw_financing_series",
+    "resolve_internal_pa_financing_series",
     "simulate_alpha_streams",
     "apply_regime_labels",
     "build_regime_draw_params",

@@ -61,6 +61,10 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `internal_financing_sigma_month` | `Internal financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `internal_spike_prob` | `Internal monthly spike prob` | `<class 'float'>` | no | `0.0` |  |
 | `internal_spike_factor` | `Internal spike multiplier` | `<class 'float'>` | no | `0.0` |  |
+| `internal_pa_financing_mean_month` | `Internal PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` | Deterministic monthly internal-PA financing cost; may be negative. |
+| `internal_pa_financing_sigma_month` | `Internal PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` | Optional monthly stochastic vol for the internal-PA financing cost. |
+| `internal_pa_financing_series` | `Internal PA financing series (monthly)` | `Optional[List[float]]` | no | `None` | Explicit monthly internal-PA financing cost series (negatives allowed). |
+| `internal_pa_financing_index` | `Internal PA financing index` | `Optional[str]` | no | `None` | Named index futures/swap financing curve to source internal-PA costs from. |
 | `ext_pa_financing_mean_month` | `External PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_financing_sigma_month` | `External PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_spike_prob` | `External PA monthly spike prob` | `<class 'float'>` | no | `0.0` |  |

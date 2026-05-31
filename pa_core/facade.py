@@ -323,7 +323,11 @@ def run_single(
 
     from .agents.registry import build_from_config
     from .backend import resolve_and_set_backend
-    from .sim import draw_financing_series, draw_joint_returns
+    from .sim import (
+        draw_financing_series,
+        draw_joint_returns,
+        resolve_internal_pa_financing_series,
+    )
     from .sim.covariance import build_cov_matrix
     from .sim.metrics import summary_table
     from .sim.params import (
@@ -446,9 +450,19 @@ def run_single(
         financing_mode=run_cfg.financing_mode,
         rngs=fin_rngs,
     )
+    f_internal_pa = resolve_internal_pa_financing_series(
+        n_months=run_cfg.N_MONTHS,
+        n_sim=run_cfg.N_SIMULATIONS,
+        mean_month=getattr(run_cfg, "internal_pa_financing_mean_month", 0.0),
+        sigma_month=getattr(run_cfg, "internal_pa_financing_sigma_month", 0.0),
+        series=getattr(run_cfg, "internal_pa_financing_series", None),
+        index=getattr(run_cfg, "internal_pa_financing_index", None),
+        financing_mode=run_cfg.financing_mode,
+        rng=fin_rngs.get("internal") if fin_rngs else None,
+    )
 
     agents = build_from_config(run_cfg)
-    returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
+    returns = simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act, f_internal_pa)
     summary = summary_table(returns, benchmark="Base")
     if getattr(run_cfg, "sleeve_validate_on_run", False):
         from .reporting.constraints import validate_sleeve_constraints
