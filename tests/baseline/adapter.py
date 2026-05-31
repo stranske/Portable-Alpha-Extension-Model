@@ -24,7 +24,9 @@ SEED = 42
 BASE_PATCH: dict[str, Any] = {"N_SIMULATIONS": 400, "N_MONTHS": 12}
 
 # Deterministic 12-month benchmark index (no external data file needed).
-INDEX = pd.Series([0.01, -0.02, 0.015, 0.005, -0.01, 0.02, 0.01, 0.005, -0.015, 0.02, 0.01, -0.005])
+INDEX = pd.Series(
+    [0.01, -0.02, 0.015, 0.005, -0.01, 0.02, 0.01, 0.005, -0.015, 0.02, 0.01, -0.005]
+)
 
 # Numeric metric columns from the simulation summary table.
 METRIC_COLS = [
