@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 
 from baseline_kit import CoverageManifest, load_catalog
 

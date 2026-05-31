@@ -68,9 +68,7 @@ def test_build_fleet_record_contains_required_contract_fields_when_context_spars
     assert record["surface"] == "scenario-analysis"
     assert record["run_id"]
     assert record["github_issue"] == "stranske/Portable-Alpha-Extension-Model#1802"
-    assert set(["scenario_id", "config_hash", "seed", "metric_delta"]).issubset(
-        record["domain"]
-    )
+    assert set(["scenario_id", "config_hash", "seed", "metric_delta"]).issubset(record["domain"])
     assert record["domain"]["scenario_id"]
     assert record["domain"]["config_hash"]
 

@@ -71,9 +71,9 @@ def test_frequency_mismatch_warning_serialized(tmp_path: Path) -> None:
     assert "warnings" in record and isinstance(record["warnings"], list)
     assert "cost" in record
     messages = [str(w.get("message", "")) for w in record["warnings"]]
-    assert any("frequency mismatch" in m.lower() for m in messages), (
-        f"expected a captured frequency-mismatch warning, got: {messages}"
-    )
+    assert any(
+        "frequency mismatch" in m.lower() for m in messages
+    ), f"expected a captured frequency-mismatch warning, got: {messages}"
     # Every captured warning is normalized to the four-key shape.
     for warning in record["warnings"]:
         assert set(RUN_RECORD_WARNING_FIELDS).issubset(warning.keys())

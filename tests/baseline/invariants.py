@@ -26,7 +26,11 @@ def check_run(summary: pd.DataFrame) -> list[InvariantResult]:
         # Probabilities must lie in [0, 1].
         for col in adapter.METRIC_COLS:
             if adapter.is_probability_col(col) and col in row and pd.notna(row[col]):
-                add(f"{agent}.{col}_in_unit_interval", 0.0 <= float(row[col]) <= 1.0, f"{col}={row[col]}")
+                add(
+                    f"{agent}.{col}_in_unit_interval",
+                    0.0 <= float(row[col]) <= 1.0,
+                    f"{col}={row[col]}",
+                )
 
         # Volatility non-negative and finite.
         vol = float(row["monthly_AnnVol"])
@@ -34,7 +38,11 @@ def check_run(summary: pd.DataFrame) -> list[InvariantResult]:
 
         # Annualized return can't be worse than total loss (> -1).
         ret = float(row["terminal_AnnReturn"])
-        add(f"{agent}.terminal_return_gt_neg1", math.isfinite(ret) and ret > -1.0, f"terminal_AnnReturn={ret}")
+        add(
+            f"{agent}.terminal_return_gt_neg1",
+            math.isfinite(ret) and ret > -1.0,
+            f"terminal_AnnReturn={ret}",
+        )
 
         # Tracking error, when present, is non-negative.
         if "monthly_TE" in row and pd.notna(row["monthly_TE"]):
