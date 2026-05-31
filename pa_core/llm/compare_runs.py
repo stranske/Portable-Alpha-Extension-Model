@@ -56,6 +56,8 @@ class CompareRunsPayload:
     questions: str
     prior_manifest_path: str | None
     prior_summary_path: str | None
+    status: str = "success"
+    error_category: str | None = None
 
 
 def load_prior_manifest(
@@ -380,6 +382,8 @@ def compare_runs(
         questions=questions,
         prior_manifest_path=str(prior_manifest_path) if prior_manifest_path else None,
         prior_summary_path=str(prior_summary_path) if prior_summary_path else None,
+        status=status,
+        error_category=error_category,
     )
     try:
         record_fleet_event(
