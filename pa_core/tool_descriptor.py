@@ -71,7 +71,7 @@ _DESCRIPTOR: dict[str, Any] = {
         ],
         "network": {
             "deterministic": "offline",
-            "llm": "requires explicit authorized no-train provider configuration and redaction",
+            "llm": "gated-no-train",
         },
     },
 }

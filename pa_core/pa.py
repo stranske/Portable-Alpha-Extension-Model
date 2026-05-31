@@ -270,6 +270,9 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     args, remaining = parser.parse_known_args(argv)
     if args.command == "describe":
+        if remaining:
+            parser.error(f"unrecognized arguments: {' '.join(remaining)}")
+
         from .tool_descriptor import get_tool_descriptor
 
         print(json.dumps(get_tool_descriptor(), indent=2, sort_keys=True))

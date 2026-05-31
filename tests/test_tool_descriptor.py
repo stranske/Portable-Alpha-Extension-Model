@@ -25,6 +25,19 @@ def test_describe_emits_zones(capsys) -> None:
     assert llm_zone["network"] == "gated-no-train"
     assert "no-train" in llm_zone["boundary"]
     assert payload["network"]["llm"] == "gated-no-train"
+    assert payload["permissions"]["network"]["llm"] == "gated-no-train"
+
+
+def test_describe_rejects_unknown_arguments(capsys) -> None:
+    try:
+        pa_main(["describe", "--outpt", "descriptor.json"])
+    except SystemExit as exc:
+        assert exc.code == 2
+    else:  # pragma: no cover - defensive assertion for argparse behavior
+        raise AssertionError("describe accepted an unknown argument")
+
+    stderr = capsys.readouterr().err
+    assert "unrecognized arguments: --outpt descriptor.json" in stderr
 
 
 def test_llm_zone_consistent_with_no_network_guarantee(socket_connect_guard) -> None:
