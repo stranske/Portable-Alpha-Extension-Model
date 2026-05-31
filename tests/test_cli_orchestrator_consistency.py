@@ -38,7 +38,9 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
 
     original_simulate_agents = sim_module.simulate_agents
 
-    def capture_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act):
+    def capture_simulate_agents(
+        agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act, f_internal_pa=None
+    ):
         if run_phase["mode"] == "orch":
             if "draws" not in orch_capture:
                 orch_capture["draws"] = (
@@ -54,7 +56,9 @@ def test_cli_and_orchestrator_draws_match(tmp_path: Path, monkeypatch) -> None:
                 np.array(r_E),
                 np.array(r_M),
             )
-        return original_simulate_agents(agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act)
+        return original_simulate_agents(
+            agents, r_beta, r_H, r_E, r_M, f_int, f_ext, f_act, f_internal_pa
+        )
 
     def capture_draw_joint_returns(
         *, n_months, n_sim, params, rng=None, shocks=None, regime_paths=None, regime_params=None

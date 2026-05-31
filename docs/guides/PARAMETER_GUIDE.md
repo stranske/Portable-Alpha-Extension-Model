@@ -206,6 +206,45 @@ Models the cost of leverage/shorting in portable alpha:
 - **Active Ext monthly spike prob**: Probability of a spike for active extension
 - **Active Ext spike multiplier**: Size multiplier for active extension spikes
 
+#### Internal PA financing cost (the cost of funding the in-house alpha position)
+
+The financing parameters above model the *margin/borrowing spread on beta
+exposure* for the Base and InternalBeta sleeves. The **InternalPA** sleeve also
+carries a financing cost — the cost of funding the in-house alpha position it
+holds — which is configured separately:
+
+- **Internal PA financing mean (monthly %)** (`internal_pa_financing_mean_month`):
+  deterministic monthly financing cost applied to the InternalPA sleeve. **May
+  be negative** — a negative value represents a financing *benefit / positive
+  carry* and raises the sleeve return. Values are **never clipped**.
+- **Internal PA financing vol (monthly %)** (`internal_pa_financing_sigma_month`):
+  optional monthly volatility for a stochastic draw around the mean. Leave at
+  `0.0` for a deterministic cost.
+- **Internal PA financing series (monthly)** (`internal_pa_financing_series`):
+  an explicit list of monthly costs (one per simulated month, negatives
+  allowed). Takes precedence over the mean/vol when supplied; its length must
+  equal `N_MONTHS`.
+- **Internal PA financing index** (`internal_pa_financing_index`): the name of a
+  built-in index futures/swap financing curve (e.g. `SPX`, `NDX`, `SX5E`,
+  `NKY`). Used when no explicit series is given. The curves are **synthetic,
+  non-proprietary** illustrative spreads (annualised bps converted to a monthly
+  cost via `bps / 10000 / 12`), not observed market data.
+
+**Resolution priority:** explicit `series` → named `index` curve → deterministic
+`mean` (optionally perturbed by `vol`). When all are left at their defaults the
+InternalPA sleeve return is pure in-house alpha (historical behaviour).
+
+**Units & conversion:** all of the above are monthly return-equivalent costs.
+Index curves are quoted in annualised bps and converted linearly to a monthly
+cost so positive and negative spreads stay symmetric.
+
+**Capital / denominator semantics:** the financing cost reduces the InternalPA
+*sleeve* return directly (`return = alpha_share × alpha − financing`). The
+contribution to total-portfolio P&L is then scaled by the InternalPA sleeve's
+capital share — the same contribution machinery used by every other sleeve — so
+the cost is charged against the modeled InternalPA capital, not the
+institution's whole capital.
+
 ## Quick Start Configuration for First-Time Users
 
 For your first run, consider these conservative assumptions:

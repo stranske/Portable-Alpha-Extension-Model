@@ -110,7 +110,8 @@ def test_agent_math_identity():
 
     pa_p = AgentParams("InternalPA", 75.0, 0.0, 0.2, {})
     pa_agent = InternalPAAgent(pa_p)
-    expected_pa = pa_p.alpha_share * r_H
+    # InternalPA now subtracts its internal-PA financing cost (issue #1849).
+    expected_pa = pa_p.alpha_share * r_H - f
     np.testing.assert_allclose(pa_agent.monthly_returns(r_beta, r_H, f), expected_pa)
 
 

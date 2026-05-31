@@ -302,6 +302,34 @@ class ModelConfig(BaseModel):
     internal_spike_prob: float = Field(default=0.0, alias="Internal monthly spike prob")
     internal_spike_factor: float = Field(default=0.0, alias="Internal spike multiplier")
 
+    # Internal-PA financing cost (issue #1849). Distinct from the margin
+    # financing spread above: this is the cost of funding the in-house alpha
+    # position held by the InternalPA sleeve. Positive values are a cost and
+    # lower the sleeve return; negative values are a benefit/positive carry and
+    # are never clipped. A scenario may express the cost as a deterministic
+    # monthly mean (optionally perturbed by a vol), an explicit monthly series,
+    # or a named index futures/swap financing curve.
+    internal_pa_financing_mean_month: float = Field(
+        default=0.0,
+        alias="Internal PA financing mean (monthly %)",
+        description="Deterministic monthly internal-PA financing cost; may be negative.",
+    )
+    internal_pa_financing_sigma_month: float = Field(
+        default=0.0,
+        alias="Internal PA financing vol (monthly %)",
+        description="Optional monthly stochastic vol for the internal-PA financing cost.",
+    )
+    internal_pa_financing_series: Optional[List[float]] = Field(
+        default=None,
+        alias="Internal PA financing series (monthly)",
+        description="Explicit monthly internal-PA financing cost series (negatives allowed).",
+    )
+    internal_pa_financing_index: Optional[str] = Field(
+        default=None,
+        alias="Internal PA financing index",
+        description="Named index futures/swap financing curve to source internal-PA costs from.",
+    )
+
     ext_pa_financing_mean_month: float = Field(
         default=0.0, alias="External PA financing mean (monthly %)"
     )
