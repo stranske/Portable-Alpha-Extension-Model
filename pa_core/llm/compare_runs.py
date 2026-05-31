@@ -19,14 +19,14 @@ from pa_core.contracts import (
     SUMMARY_TE_COLUMN,
     SUMMARY_TRACKING_ERROR_LEGACY_COLUMN,
 )
-from pa_core.llm.prompts import build_comparison_prompt
-from pa_core.llm.provider import LLMProviderConfig
 from pa_core.llm.langsmith_fleet import (
     FleetContext,
     config_fingerprint,
     hash_reference,
     record_fleet_event,
 )
+from pa_core.llm.prompts import build_comparison_prompt
+from pa_core.llm.provider import LLMProviderConfig
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _CLI_DIFF_KEYS: tuple[str, ...] = (

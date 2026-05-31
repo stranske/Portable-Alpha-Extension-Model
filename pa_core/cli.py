@@ -898,9 +898,7 @@ def main(
             "manifest_path": str(manifest_path) if manifest_path is not None else None,
             "run_end_path": str(run_end_path) if run_end_path is not None else None,
             "bundle_path": (
-                str(Path(args.bundle) / "bundle.json")
-                if getattr(args, "bundle", None)
-                else None
+                str(Path(args.bundle) / "bundle.json") if getattr(args, "bundle", None) else None
             ),
             "warnings": warnings,
             "cost": dict(cost),

@@ -1,0 +1,75 @@
+# PAEM scenario catalog -- drives the real simulation (pa_core.facade.run_single)
+# off examples/scenarios/my_first_scenario.yml. Edit this to add scenarios.
+#
+# Each directional scenario compares a VARIANT run against the funded baseline
+# (control) on one agent + metric:
+#   vary_mult: multiply a loaded config field by a factor (e.g. sigma_H x2)
+#   vary_set:  set config fields to absolute values
+#   enforce:   true  -> a wrong direction FAILS (high-confidence economics)
+#              false -> observed direction is reported, not asserted (findings /
+#                       knobs not exercised by this scenario's mode)
+
+scenarios:
+  # --- Confirmed economic relationships (enforced) ---
+  - id: inhouse_vol_up
+    description: Doubling the in-house alpha vol should raise the in-house sleeve's annualized vol.
+    vary_mult: {sigma_H: 2.0}
+    agent: InternalPA
+    metric: monthly_AnnVol
+    direction: increase
+    enforce: true
+
+  - id: inhouse_return_up
+    description: Doubling the in-house mean return should raise the in-house sleeve's annualized return.
+    vary_mult: {mu_H: 2.0}
+    agent: InternalPA
+    metric: terminal_AnnReturn
+    direction: increase
+    enforce: true
+
+  - id: correlations_up_raise_total_vol
+    description: Cranking all correlations to 0.9 (killing diversification) should raise Total portfolio vol.
+    vary_set:
+      rho_idx_H: 0.9
+      rho_idx_E: 0.9
+      rho_idx_M: 0.9
+      rho_H_E: 0.9
+      rho_H_M: 0.9
+      rho_E_M: 0.9
+    agent: Total
+    metric: monthly_AnnVol
+    direction: increase
+    enforce: true
+
+  # --- Report-only (FINDINGS to confirm): knobs appear inert in analysis_mode=returns ---
+  - id: internal_financing_cost_up
+    # FINDING (2026-05-31): raising internal_financing_mean_month 0 -> 0.004 left
+    # the InternalPA return UNCHANGED even with the sleeve funded. Likely
+    # mode-dependent (financing may only bite outside analysis_mode=returns) or a
+    # wiring gap. Report-only until confirmed.
+    description: Higher internal financing cost should lower the in-house net return (currently inert in returns mode).
+    vary_set: {internal_financing_mean_month: 0.004}
+    agent: InternalPA
+    metric: terminal_AnnReturn
+    direction: decrease
+    enforce: false
+
+  - id: active_share_up_raise_te
+    # FINDING (2026-05-31): raising active_share 0.3 -> 0.8 changed ZERO of 72
+    # numeric summary cells. active_share appears inert under analysis_mode=returns
+    # (the demo scenario's mode); it may only be live in analysis_mode=alpha_shares.
+    # Report-only until confirmed (intended mode-gating vs. wiring gap).
+    description: Higher active share should raise active-extension tracking error (currently inert in returns mode).
+    vary_set: {active_share: 0.8}
+    agent: ActiveExt
+    metric: monthly_TE
+    direction: increase
+    enforce: false
+
+# Priority inputs the coverage manifest asserts are exercised by a scenario.
+priority_params:
+  - sigma_H
+  - mu_H
+  - rho_idx_H
+  - internal_financing_mean_month
+  - active_share

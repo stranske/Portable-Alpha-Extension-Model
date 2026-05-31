@@ -54,16 +54,13 @@ def _validate_strict_workflow_pins(requirements: list[Requirement]) -> list[str]
     for requirement in requirements:
         specifiers = list(requirement.specifier)
         if len(specifiers) != 1 or specifiers[0].operator != "==":
-            errors.append(
-                f"- workflow pin must use one exact == version: {requirement.name}"
-            )
+            errors.append(f"- workflow pin must use one exact == version: {requirement.name}")
             continue
         try:
             Version(specifiers[0].version)
         except InvalidVersion:
             errors.append(
-                f"- invalid workflow pin for {requirement.name}: "
-                f"{specifiers[0].version!r}"
+                f"- invalid workflow pin for {requirement.name}: " f"{specifiers[0].version!r}"
             )
     return errors
 

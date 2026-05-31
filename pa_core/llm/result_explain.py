@@ -11,14 +11,14 @@ from uuid import uuid4
 
 import pandas as pd
 
-from pa_core.llm.prompts import build_result_explanation_prompt
-from pa_core.llm.provider import LLMProviderConfig, create_llm
 from pa_core.llm.langsmith_fleet import (
     FleetContext,
     config_fingerprint,
     hash_reference,
     record_fleet_event,
 )
+from pa_core.llm.prompts import build_result_explanation_prompt
+from pa_core.llm.provider import LLMProviderConfig, create_llm
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 _REDACTION_TOKEN = "[REDACTED]"
