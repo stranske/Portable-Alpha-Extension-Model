@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from baseline_kit import CoverageManifest, load_catalog
 
 from .conftest import CATALOG_PATH, REPO_ROOT
