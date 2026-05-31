@@ -1,1 +1,3 @@
 expected_cli_outputs
+baseline_kit
+conftest
