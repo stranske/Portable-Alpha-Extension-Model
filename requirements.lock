@@ -20,6 +20,8 @@ anyio==4.13.0
     #   httpx
     #   jupyter-server
     #   openai
+app-baseline-kit @ git+https://github.com/stranske/Workflows.git@4581ee9c91240b6d3ef628f0f8ff982f6bcaba36#subdirectory=packages/app-baseline-kit
+    # via portable-alpha-extension-model (pyproject.toml)
 appnope==0.1.4 ; sys_platform == 'darwin'
     # via ipykernel
 argon2-cffi==25.1.0

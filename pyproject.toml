@@ -129,9 +129,10 @@ dev = [
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
     "pytest-xdist>=3.8.0",
-    # Shared app behavior baseline harness (pulls pytest-regressions). Pinned to
-    # the Workflows default branch; move to a tagged ref once the package is versioned.
-    "app-baseline-kit @ git+https://github.com/stranske/Workflows.git#subdirectory=packages/app-baseline-kit",
+    # Shared app behavior baseline harness (pulls pytest-regressions). Pinned
+    # to the Workflows merge commit that introduced the package; move to a
+    # tagged ref once the package is versioned.
+    "app-baseline-kit @ git+https://github.com/stranske/Workflows.git@4581ee9c91240b6d3ef628f0f8ff982f6bcaba36#subdirectory=packages/app-baseline-kit",
     "coverage>=7.14.0",
     "hypothesis>=6.115.1",
     "pre-commit",
