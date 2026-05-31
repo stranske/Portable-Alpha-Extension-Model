@@ -77,6 +77,8 @@ def test_all_pyproject_dependencies_are_in_lock() -> None:
 
     declared = set()
     for entry in project.get("dependencies", []):
+        if " @ " in entry:  # PEP 508 direct reference (git/url): pinned by URL, not by == in lock
+            continue
         pkg_name, condition = _split_spec(entry)
         pkg_name = pkg_name.lower()
         # Skip self-references
@@ -89,6 +91,8 @@ def test_all_pyproject_dependencies_are_in_lock() -> None:
 
     for group in project.get("optional-dependencies", {}).values():
         for entry in group:
+            if " @ " in entry:  # PEP 508 direct reference (git/url): pinned by URL, not by == in lock
+                continue
             pkg_name, condition = _split_spec(entry)
             pkg_name = pkg_name.lower()
             # Skip self-references
