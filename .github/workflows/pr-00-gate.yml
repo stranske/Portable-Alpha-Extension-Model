@@ -161,7 +161,7 @@ jobs:
           [ ${#files[@]} -gt 0 ] || { echo "::error::No output artifact produced"; exit 1; }
       - name: Run golden tutorial tests
         run: |
-          pytest tests/golden/ -v --tb=short || echo "::warning::Some golden tests failed"
+          pytest tests/golden/ -v --tb=short
 
   # ───────────────────────────────────────────────────────────────────────────
   # Gate Summary - Required for keepalive automation
