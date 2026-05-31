@@ -55,7 +55,9 @@ PYTHONPATH=$PWD python -m pytest tests/golden/ -v
 
 ## CI Integration
 
-These tests are integrated into the CI pipeline as the `golden-tutorial-tests` job, which:
+These tests are integrated into the PR Gate `integration-tests` job. Golden
+test failures hard-fail the job and the required `Gate / gate` status; they are
+not downgraded to warning annotations. The job:
 1. Runs all golden tests to validate functionality
 2. Generates tutorial artifacts for reviewer inspection
 3. Uploads artifacts (XLSX, PPTX) for 7-day retention
