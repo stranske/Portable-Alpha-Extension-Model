@@ -21,6 +21,10 @@ def _split_spec(raw: str) -> tuple[str, str | None]:
         entry = entry.strip()
         condition = condition.strip()
 
+    if " @ " in entry:
+        name, _ = entry.split(" @ ", 1)
+        return name.strip().split("[")[0], condition
+
     for operator in _OPERATORS:
         if operator in entry:
             name, _ = entry.split(operator, 1)
@@ -61,6 +65,10 @@ def _load_lock_versions(path: Path) -> Dict[str, str]:
             continue
         if stripped.startswith("--"):
             continue
+        if " @ " in stripped:
+            name, _ = stripped.split(" @ ", 1)
+            versions[name.lower().strip()] = "<direct-reference>"
+            continue
         # Handle conditional markers in lock file (e.g., ; sys_platform == 'win32')
         if "==" in stripped:
             entry = stripped.split(";")[0].strip() if ";" in stripped else stripped
@@ -77,8 +85,6 @@ def test_all_pyproject_dependencies_are_in_lock() -> None:
 
     declared = set()
     for entry in project.get("dependencies", []):
-        if " @ " in entry:  # PEP 508 direct reference (git/url): pinned by URL, not by == in lock
-            continue
         pkg_name, condition = _split_spec(entry)
         pkg_name = pkg_name.lower()
         # Skip self-references
@@ -91,8 +97,6 @@ def test_all_pyproject_dependencies_are_in_lock() -> None:
 
     for group in project.get("optional-dependencies", {}).values():
         for entry in group:
-            if " @ " in entry:  # PEP 508 direct reference (git/url): pinned by URL, not by == in lock
-                continue
             pkg_name, condition = _split_spec(entry)
             pkg_name = pkg_name.lower()
             # Skip self-references

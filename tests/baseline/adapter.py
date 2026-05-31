@@ -59,7 +59,9 @@ def run(patch: Mapping[str, Any] | None = None) -> pd.DataFrame:
     """Run the simulation with an input patch; return the summary indexed by Agent."""
     from pa_core.facade import RunOptions, run_single
 
-    cfg = _base_config().model_copy(update={**BASE_PATCH, **(patch or {})})
+    data = _base_config().model_dump()
+    data.update({**BASE_PATCH, **(patch or {})})
+    cfg = _base_config().__class__.model_validate(data)
     artifacts = run_single(cfg, INDEX, RunOptions(seed=SEED))
     return artifacts.summary.set_index("Agent")
 
