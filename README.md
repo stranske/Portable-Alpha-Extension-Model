@@ -10,12 +10,35 @@ Start here: Run the Dashboard Wizard (recommended)
 
 Most users should begin with the interactive dashboard wizard. It guides you through loading data and running a scenario without touching the command line.
 
-1) Setup (first time only)
-  - ./dev.sh setup
-2) Launch the dashboard wizard
-  - ./dev.sh dashboard
-  - Or: python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501
-3) In the app, open “Scenario Wizard” and follow the prompts to run and view results.
+## Try It In Your Browser
+
+The privacy-safe browser demo uses GitHub Codespaces. Click the Codespaces badge above and create a Codespace; the dashboard auto-starts on forwarded port 8501 and GitHub shows a forwarded-port notification. Open that forwarded URL and go to **Scenario Wizard**.
+
+This path keeps the app and uploaded files inside the user's own Codespace. Do not deploy real proprietary index data to Streamlit Community Cloud, Hugging Face Spaces, or another public/shared SaaS host. If an external demo is ever used, it must be synthetic-data only.
+
+The pure client-side WASM/stlite path is intentionally not claimed here: the base dependency surface includes `kaleido` for Plotly static export and `python-pptx` for board packs, both of which are not viable in Pyodide/stlite. The supported terminal-free path is therefore Codespace auto-start or an internal/on-prem host with equivalent data controls.
+
+The demo installs only the base package. LLM panels are disabled by default and show the install/key prompt instead of making provider calls. Enabling LLM features requires `.[llm]`, a provider key, and an org-authorized no-train endpoint.
+
+Boot smoke gate used by PRs:
+
+```bash
+python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501 --server.address=127.0.0.1 > streamlit.log 2>&1 &
+dashboard_pid=$!
+until curl --fail http://127.0.0.1:8501/_stcore/health; do sleep 1; done
+kill "$dashboard_pid"
+```
+
+To see sample output, upload `data/sp500tr_fred_divyield.csv` in the wizard and run the bundled scenario flow.
+
+Local terminal setup is still available for developers:
+
+1. Setup (first time only)
+  - `./dev.sh setup`
+2. Launch the dashboard wizard
+  - `./dev.sh dashboard`
+  - Or: `python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501`
+3. In the app, open **Scenario Wizard** and follow the prompts to run and view results.
 
 Wizard preview:
 
@@ -67,13 +90,9 @@ Click the "Open in GitHub Codespaces" badge above for an instant, fully-configur
 - Install all dependencies
 - Configure VS Code with optimal settings
 - Enable debugging and testing
-- Start with port forwarding for the dashboard
+- Auto-start the dashboard and notify on forwarded port 8501
 
-Once the Codespace loads, run:
-```bash
-./dev.sh dashboard # Start the dashboard wizard (opens on port 8501)
-./dev.sh demo      # Optional: quick demo via CLI
-```
+Once the Codespace loads, open the forwarded port 8501 URL and select **Scenario Wizard**. For CLI-only development, `./dev.sh dashboard` and `./dev.sh demo` remain available in the terminal.
 
 ### dev.sh helper script
 
