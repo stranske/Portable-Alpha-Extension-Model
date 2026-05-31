@@ -23,8 +23,10 @@ The demo installs only the base package. LLM panels are disabled by default and 
 Boot smoke gate used by PRs:
 
 ```bash
-python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501 --server.address=127.0.0.1
-curl --fail http://127.0.0.1:8501/_stcore/health
+python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501 --server.address=127.0.0.1 > streamlit.log 2>&1 &
+dashboard_pid=$!
+until curl --fail http://127.0.0.1:8501/_stcore/health; do sleep 1; done
+kill "$dashboard_pid"
 ```
 
 To see sample output, upload `data/sp500tr_fred_divyield.csv` in the wizard and run the bundled scenario flow.
