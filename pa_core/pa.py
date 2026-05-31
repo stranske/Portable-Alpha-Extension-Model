@@ -122,6 +122,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         argv = sys.argv[1:]
     parser = argparse.ArgumentParser(prog="pa")
     sub = parser.add_subparsers(dest="command", required=True)
+    sub.add_parser("describe", help="Emit the static tool descriptor as JSON")
     sub.add_parser("run", help="Run simulation")
     sub.add_parser("validate", help="Validate scenario YAML")
     sweep_parser = sub.add_parser("sweep", help="Run parameter sweep from sweep configuration")
@@ -268,7 +269,14 @@ def main(argv: Sequence[str] | None = None) -> None:
     convert_parser.add_argument("yaml", nargs="?", help="Output YAML file (default: <input>.yml)")
 
     args, remaining = parser.parse_known_args(argv)
-    if args.command == "run":
+    if args.command == "describe":
+        if remaining:
+            parser.error(f"unrecognized arguments: {' '.join(remaining)}")
+
+        from .tool_descriptor import get_tool_descriptor
+
+        print(json.dumps(get_tool_descriptor(), indent=2, sort_keys=True))
+    elif args.command == "run":
         from .cli import main as run_main
 
         run_main(list(remaining), emit_deprecation_warning=False)

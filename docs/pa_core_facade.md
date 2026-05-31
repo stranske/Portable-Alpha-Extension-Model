@@ -14,6 +14,9 @@ CLI entrypoints stay consistent and regression-safe.
 - `export`: shared export helper for artifact bundles.
 
 ## Delegation from CLI
+- `pa describe` emits a static JSON tool descriptor without importing the run
+  stack. It declares the deterministic offline zone, the gated LLM zone, and
+  filesystem read/write permissions for backplane discovery.
 - `pa` (the console script) parses the top-level subcommand and forwards run
   arguments to `pa_core.cli.main` so the full run parser stays centralized.
 - `pa_core.cli.main` owns the authoritative run argument parser, builds
@@ -52,6 +55,14 @@ When adjusting parsing or output sequencing, update:
   with `tests/expected_cli_outputs.py`.
 - `pa_core/__main__.py` to keep the legacy parser synchronized with shared flags
   and ensure delegated output lines still match the constants file.
+
+## Tool Descriptor
+The descriptor returned by `pa describe` is declaration-only. It does not
+sandbox execution, change runtime behavior, or enable LLM features. It states
+that deterministic runs are offline and may operate on real/proprietary data
+locally, while LLM helpers are disabled by default and require an authorized
+no-train endpoint with redaction before proprietary data can cross that
+boundary.
 
 ## Deprecation Warning Behavior
 Non-canonical invocation paths emit `DeprecationWarning` via the Python
