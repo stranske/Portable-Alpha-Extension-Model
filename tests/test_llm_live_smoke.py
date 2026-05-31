@@ -111,6 +111,7 @@ def _summary_frame() -> pd.DataFrame:
     )
 
 
+@pytest.mark.slow
 @pytest.mark.live_llm
 def test_explain_results_live(live_llm_config: tuple[LLMProviderConfig, str]) -> None:
     config, api_key = live_llm_config
@@ -150,6 +151,7 @@ def _run_cli(output_path: Path, *, previous_manifest: Path | None = None) -> Pat
     return manifest_path
 
 
+@pytest.mark.slow
 @pytest.mark.live_llm
 def test_compare_runs_live(tmp_path: Path, live_llm_config: tuple[LLMProviderConfig, str]) -> None:
     config, api_key = live_llm_config
@@ -172,5 +174,6 @@ def test_compare_runs_live(tmp_path: Path, live_llm_config: tuple[LLMProviderCon
     )
 
     assert text.strip()
-    assert not text.startswith("Run-to-run comparison summary:")
+    assert payload.status == "success"
+    assert payload.error_category is None
     _assert_secret_absent(api_key, text, trace_url, asdict(payload))

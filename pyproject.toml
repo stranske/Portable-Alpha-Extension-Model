@@ -70,6 +70,7 @@ python_files = ["test_*.py"]
 addopts = "-m 'not live_llm'"
 markers = [
     "live_llm: opt-in test that calls a real LLM provider; deselected by default",
+    "slow: slower or externally dependent tests skipped by routine keepalive commands",
 ]
 
 [tool.setuptools.packages.find]
