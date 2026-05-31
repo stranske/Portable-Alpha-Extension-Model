@@ -5,18 +5,12 @@ from __future__ import annotations
 import importlib
 import json
 import socket
+import subprocess
 import sys
+from pathlib import Path
 
 from pa_core.pa import main as pa_main
 from pa_core.tool_descriptor import get_tool_descriptor
-
-
-def _drop_heavy_modules() -> None:
-    for name in list(sys.modules):
-        if name == "numpy" or name.startswith("numpy."):
-            sys.modules.pop(name)
-        if name == "pandas" or name.startswith("pandas."):
-            sys.modules.pop(name)
 
 
 def test_describe_emits_zones(capsys) -> None:
@@ -48,11 +42,21 @@ def test_llm_zone_consistent_with_no_network_guarantee(socket_connect_guard) -> 
     assert attempts == []
 
 
-def test_describe_does_not_import_numpy_or_pandas(capsys) -> None:
-    _drop_heavy_modules()
+def test_describe_does_not_import_numpy_or_pandas() -> None:
+    script = """
+import sys
+from pa_core.pa import main
 
-    pa_main(["describe"])
+main(["describe"])
+if "numpy" in sys.modules or "pandas" in sys.modules:
+    raise SystemExit("describe imported numpy or pandas")
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        check=True,
+        cwd=Path(__file__).resolve().parents[1],
+        text=True,
+        capture_output=True,
+    )
 
-    assert json.loads(capsys.readouterr().out)["network"]["deterministic"] == "offline"
-    assert "numpy" not in sys.modules
-    assert "pandas" not in sys.modules
+    assert json.loads(result.stdout)["network"]["deterministic"] == "offline"
