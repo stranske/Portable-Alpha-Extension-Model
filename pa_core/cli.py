@@ -1274,7 +1274,7 @@ def main(
                 latency_ms=int(_current_duration() * 1000),
                 operation=SCENARIO_SWEEP_OPERATION,
             )
-        except Exception:
+        except (ImportError, AttributeError):
             logger.debug("Scenario sweep fleet-record emission failed", exc_info=True)
 
         current_manifest_data = manifest_data or {"config": raw_params}
