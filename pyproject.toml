@@ -81,6 +81,15 @@ include = ["pa_core*", "archive*", "scripts*", "dashboard*"]
 requires = ["setuptools>=82.0.1"]
 build-backend = "setuptools.build_meta"
 
+# Do not emit app-baseline-kit into requirements.lock. It is consumed from the
+# Workflows monorepo via an unpinned `@main` git URL (see the dev optional
+# dependencies), so freezing a commit SHA in the lock conflicts with that URL
+# the moment Workflows main advances ("conflicting URLs for package
+# app-baseline-kit" -> uv install aborts). Leaving it unpinned lets the editable
+# project install resolve it from main, with no lock to keep refreshed.
+[tool.uv.pip]
+no-emit-package = ["app-baseline-kit"]
+
 [project]
 name = "portable-alpha-extension-model"
 version = "0.1.0"
@@ -129,10 +138,13 @@ dev = [
     "pytest==9.0.3",
     "pytest-cov==7.1.0",
     "pytest-xdist>=3.8.0",
-    # Shared app behavior baseline harness (pulls pytest-regressions). Pinned
-    # to the Workflows merge commit that introduced the package; move to a
-    # tagged ref once the package is versioned.
-    "app-baseline-kit @ git+https://github.com/stranske/Workflows.git@4581ee9c91240b6d3ef628f0f8ff982f6bcaba36#subdirectory=packages/app-baseline-kit",
+    # Shared app behavior baseline harness (pulls pytest-regressions). Tracked
+    # as an unpinned `@main` git direct reference so it picks up upstream
+    # baseline_kit improvements (e.g. the py.typed marker) instead of staying
+    # frozen at one commit. Excluded from requirements.lock via [tool.uv.pip]
+    # no-emit-package below so a frozen SHA in the lock cannot conflict with the
+    # unpinned URL.
+    "app-baseline-kit @ git+https://github.com/stranske/Workflows.git#subdirectory=packages/app-baseline-kit",
     "coverage>=7.14.0",
     "hypothesis>=6.115.1",
     "pre-commit",
