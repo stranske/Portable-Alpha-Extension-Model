@@ -1,17 +1,11 @@
 from __future__ import annotations
 
-import time
 from typing import Dict, Mapping, Sequence, Tuple
 
 import pandas as pd
 
 from .config import ModelConfig
 from .facade import RunOptions, run_single, run_sweep
-from .llm.scenario_fleet import (
-    SCENARIO_RUN_OPERATION,
-    SCENARIO_SWEEP_OPERATION,
-    record_scenario_run,
-)
 from .types import ArrayLike, SweepResult
 from .units import get_index_series_unit, normalize_index_series
 
@@ -37,15 +31,7 @@ class SimulatorOrchestrator:
         from monthly returns.
         """
 
-        started = time.perf_counter()
         artifacts = run_single(self.cfg, self.idx_series, RunOptions(seed=seed))
-        record_scenario_run(
-            self.cfg,
-            artifacts.summary,
-            seed=seed,
-            latency_ms=int((time.perf_counter() - started) * 1000),
-            operation=SCENARIO_RUN_OPERATION,
-        )
         return artifacts.returns, artifacts.summary
 
     def run_sweep(
@@ -54,18 +40,10 @@ class SimulatorOrchestrator:
         seed: int | None = None,
     ) -> Tuple[Sequence[SweepResult], pd.DataFrame]:
         """Execute a parameter sweep and return results plus consolidated summary."""
-        started = time.perf_counter()
         artifacts = run_sweep(
             self.cfg,
             self.idx_series,
             sweep_params,
             RunOptions(seed=seed),
-        )
-        record_scenario_run(
-            self.cfg,
-            artifacts.summary,
-            seed=seed,
-            latency_ms=int((time.perf_counter() - started) * 1000),
-            operation=SCENARIO_SWEEP_OPERATION,
         )
         return artifacts.results, artifacts.summary

@@ -15,6 +15,7 @@ import pandas as pd
 import pytest
 
 from pa_core.config import load_config
+from pa_core.facade import RunOptions, run_sweep
 from pa_core.llm.langsmith_fleet import FLEET_REPO, FLEET_SCHEMA, FLEET_SURFACE
 from pa_core.llm.scenario_fleet import (
     SCENARIO_DASHBOARD_SURFACE,
@@ -24,6 +25,7 @@ from pa_core.llm.scenario_fleet import (
     _summary_metric_delta,
     record_scenario_run,
 )
+from pa_core.llm.langsmith_fleet import config_fingerprint
 from pa_core.orchestrator import SimulatorOrchestrator
 
 _BASIC_CONFIG = {
@@ -118,10 +120,13 @@ def test_scenario_run_record_excludes_raw_inputs(monkeypatch, tmp_path) -> None:
     cfg = load_config(_BASIC_CONFIG)
     SimulatorOrchestrator(cfg, _INDEX_RETURNS).run(seed=5)
 
-    raw = fleet_path.read_text(encoding="utf-8")
-    # Distinct index-return magnitudes never appear verbatim in the record.
-    assert "0.015" not in raw
-    assert "0.025" not in raw
+    record = _read_last_record(fleet_path)
+    domain = record["domain"]
+    assert set(domain) >= {"scenario_id", "config_hash", "seed", "metric_delta"}
+    assert "index_returns" not in domain
+    assert "raw_config" not in domain
+    assert "N_SIMULATIONS" not in domain
+    assert domain["config_hash"] != config_fingerprint({"index_returns": _INDEX_RETURNS.tolist()})
 
 
 def test_scenario_sweep_emits_sweep_operation(monkeypatch, tmp_path) -> None:
@@ -137,6 +142,24 @@ def test_scenario_sweep_emits_sweep_operation(monkeypatch, tmp_path) -> None:
     record = _read_last_record(fleet_path)
     assert record["operation"] == SCENARIO_SWEEP_OPERATION
     assert record["domain"]["seed"] == 2
+
+
+def test_facade_sweep_hashes_effective_sweep_config(monkeypatch, tmp_path) -> None:
+    fleet_path = tmp_path / "fleet.ndjson"
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.setenv("PAEM_LANGSMITH_FLEET_PATH", str(fleet_path))
+
+    cfg = load_config(_BASIC_CONFIG)
+    run_sweep(
+        cfg,
+        _INDEX_RETURNS,
+        {"analysis_mode": "vol_mult", "sd_multiple_min": 0.8, "sd_multiple_max": 0.8},
+        RunOptions(seed=11),
+    )
+
+    record = _read_last_record(fleet_path)
+    assert record["operation"] == SCENARIO_SWEEP_OPERATION
+    assert record["domain"]["config_hash"] != config_fingerprint(_config_mapping(cfg))
 
 
 def test_record_scenario_run_swallows_helper_failures(monkeypatch, tmp_path) -> None:

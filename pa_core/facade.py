@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
@@ -346,6 +347,7 @@ def run_single(
     from .units import normalize_return_inputs
     from .validators import select_vol_regime_sigma
 
+    started = time.perf_counter()
     run_options = options or RunOptions()
     run_cfg = apply_run_options(config, run_options)
     resolve_and_set_backend(run_options.backend, run_cfg)
@@ -526,7 +528,7 @@ def run_single(
         "substream_ids": substream_ids,
     }
 
-    return RunArtifacts(
+    artifacts = RunArtifacts(
         config=run_cfg,
         index_series=idx_series,
         returns=returns,
@@ -535,6 +537,16 @@ def run_single(
         raw_returns=raw_returns,
         manifest=manifest,
     )
+    from .llm.scenario_fleet import SCENARIO_RUN_OPERATION, record_scenario_run
+
+    record_scenario_run(
+        run_cfg,
+        summary,
+        seed=run_options.seed,
+        latency_ms=int((time.perf_counter() - started) * 1000),
+        operation=SCENARIO_RUN_OPERATION,
+    )
+    return artifacts
 
 
 def run_sweep(
@@ -590,6 +602,7 @@ def run_sweep(
     from .sim.simulation_initialization import initialize_sweep_rngs
     from .sweep import run_parameter_sweep, sweep_results_to_dataframe
 
+    started = time.perf_counter()
     run_options = options or RunOptions()
     run_cfg = apply_run_options(config, run_options, sweep_params)
     resolve_and_set_backend(run_options.backend, run_cfg)
@@ -625,7 +638,7 @@ def run_sweep(
         "substream_ids": substream_ids,
     }
 
-    return SweepArtifacts(
+    artifacts = SweepArtifacts(
         config=run_cfg,
         index_series=idx_series,
         results=results,
@@ -633,6 +646,16 @@ def run_sweep(
         inputs=inputs,
         manifest=manifest,
     )
+    from .llm.scenario_fleet import SCENARIO_SWEEP_OPERATION, record_scenario_run
+
+    record_scenario_run(
+        run_cfg,
+        summary,
+        seed=run_options.seed,
+        latency_ms=int((time.perf_counter() - started) * 1000),
+        operation=SCENARIO_SWEEP_OPERATION,
+    )
+    return artifacts
 
 
 def export(
