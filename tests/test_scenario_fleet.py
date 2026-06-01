@@ -10,7 +10,6 @@ registry domain fields, no raw proprietary data, a ``no_secret`` status when
 from __future__ import annotations
 
 import json
-import math
 
 import pandas as pd
 import pytest
