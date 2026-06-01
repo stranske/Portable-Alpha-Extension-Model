@@ -107,6 +107,19 @@ def test_all_pyproject_dependencies_are_in_lock() -> None:
                 continue
             declared.add(pkg_name)
 
+    # Packages intentionally excluded from the lock via uv's no-emit-package
+    # (monorepo deps consumed from an unpinned @main git URL, e.g.
+    # app-baseline-kit) are not pinned in requirements.lock, so don't expect
+    # them there.
+    no_emit = {
+        str(name).strip().lower().replace("_", "-")
+        for name in pyproject.get("tool", {})
+        .get("uv", {})
+        .get("pip", {})
+        .get("no-emit-package", [])
+    }
+    declared -= no_emit
+
     lock_versions = _load_lock_versions(Path("requirements.lock"))
 
     missing = []
