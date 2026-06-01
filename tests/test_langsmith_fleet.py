@@ -231,3 +231,71 @@ def test_compare_runs_emits_fallback_record(monkeypatch, tmp_path) -> None:
     assert record["operation"] == "run-comparison"
     assert record["domain"]["metric_delta"] == 0.03
     assert record["domain"]["error_category"] == "RuntimeError"
+
+
+def test_hash_reference_none_returns_none() -> None:
+    """hash_reference(None) must return None (line 55)."""
+    assert hash_reference(None) is None
+
+
+def test_hash_reference_empty_string_returns_none() -> None:
+    """hash_reference('') must return None because text is falsy (line 61)."""
+    assert hash_reference("") is None
+
+
+def test_config_fingerprint_non_mapping_returns_none() -> None:
+    """config_fingerprint returns None for non-Mapping arguments (line 67)."""
+    assert config_fingerprint(None) is None
+    assert config_fingerprint("not-a-mapping") is None
+    assert config_fingerprint(42) is None
+    assert config_fingerprint([1, 2, 3]) is None
+
+
+def test_append_fleet_records_empty_list_is_noop(tmp_path) -> None:
+    """append_fleet_records returns immediately on an empty sequence (line 130)."""
+    path = tmp_path / "fleet.ndjson"
+    append_fleet_records([], path=path)
+    # File must not have been created at all.
+    assert not path.exists()
+
+    # Also works with an empty tuple.
+    append_fleet_records((), path=path)
+    assert not path.exists()
+
+
+def test_json_safe_non_serialisable_falls_back_to_str(tmp_path) -> None:
+    """_json_safe converts non-JSON-serialisable objects to their str() (line 163)."""
+    from pa_core.llm.langsmith_fleet import _json_safe
+
+    class CustomObj:
+        def __repr__(self):
+            return "CustomObj()"
+
+        def __str__(self):
+            return "custom-object-value"
+
+    result = _json_safe(CustomObj())
+    assert result == "custom-object-value"
+
+    # Verify it round-trips cleanly through append_fleet_records.
+    import json
+
+    record = build_fleet_record(
+        FleetContext(
+            operation="test-op",
+            extra={"my_obj": CustomObj()},
+        )
+    )
+    path = tmp_path / "fleet.ndjson"
+    append_fleet_records([record], path=path)
+    stored = json.loads(path.read_text().splitlines()[-1])
+    assert stored["domain"]["my_obj"] == "custom-object-value"
+
+
+def test_is_current_fleet_record_line_empty_string_returns_false() -> None:
+    """_is_current_fleet_record_line('') must return False (line 168)."""
+    from pa_core.llm.langsmith_fleet import _is_current_fleet_record_line
+
+    assert _is_current_fleet_record_line("") is False
+    # Confirm non-empty but invalid JSON is also rejected.
+    assert _is_current_fleet_record_line("{bad json") is False

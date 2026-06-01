@@ -1264,6 +1264,18 @@ def main(
         all_summary = (
             pd.concat(summary_frames, ignore_index=True) if summary_frames else pd.DataFrame()
         )
+        try:
+            from .llm.scenario_fleet import SCENARIO_SWEEP_OPERATION, record_scenario_run
+
+            record_scenario_run(
+                cfg,
+                all_summary,
+                seed=rng_bundle.seed,
+                latency_ms=int(_current_duration() * 1000),
+                operation=SCENARIO_SWEEP_OPERATION,
+            )
+        except (ImportError, AttributeError):
+            logger.debug("Scenario sweep fleet-record emission failed", exc_info=True)
 
         current_manifest_data = manifest_data or {"config": raw_params}
         _maybe_print_run_diff(

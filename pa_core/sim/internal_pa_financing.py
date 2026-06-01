@@ -29,9 +29,9 @@ from typing import Any, Optional, Sequence, cast
 import numpy.typing as npt
 
 from ..backend import xp as np
+from ..data.index_financing_curves import get_index_financing_curve_monthly
 from ..random import spawn_rngs
 from ..types import GeneratorLike
-from ..data.index_financing_curves import get_index_financing_curve_monthly
 
 _FINANCING_MODES = ("broadcast", "per_path")
 
