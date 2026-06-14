@@ -92,6 +92,7 @@ Example quick run:
 ```bash
 # Install dependencies once
 pip install -r requirements.txt
+pip install -e .
 pip install streamlit>=1.35  # required for the dashboard
 
 # Run a quick single-scenario simulation (returns mode by default)

@@ -108,7 +108,7 @@ dev_setup() {
 run_demo() {
     print_status "Running demo with sample configuration..."
     if [ -f "config/params_template.yml" ] && [ -f "data/sp500tr_fred_divyield.csv" ]; then
-        pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
+        python -m pa_core.pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
         print_success "Demo completed! Check Outputs.xlsx for results"
     else
         print_warning "Sample data files not found. Please ensure config/params_template.yml and data/sp500tr_fred_divyield.csv exist"
