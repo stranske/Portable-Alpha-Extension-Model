@@ -152,7 +152,15 @@ class Scenario(BaseModel):
     correlations: List[Correlation] = Field(default_factory=list)
     portfolios: List[Portfolio] = Field(default_factory=list)
     constraints: PortfolioConstraints = Field(default_factory=PortfolioConstraints)
-    sleeves: Dict[str, Sleeve] | None = None
+    # NOTE: ``sleeves`` is currently unwired — it is validated (capital_share must
+    # sum to 1) but does not affect simulation results. See README
+    # 'Model Limitations & Caveats'.
+    sleeves: Dict[str, Sleeve] | None = Field(
+        default=None,
+        description=(
+            "Currently unwired: validated but does not affect simulation results."
+        ),
+    )
 
     @model_validator(mode="after")
     def _check_assets_and_portfolios(self) -> "Scenario":

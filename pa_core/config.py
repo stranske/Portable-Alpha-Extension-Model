@@ -500,6 +500,11 @@ class ModelConfig(BaseModel):
             "terminal_ShortfallProb",
         ],
         alias="risk_metrics",
+        description=(
+            "Advisory list selecting which metrics are reported/displayed. It "
+            "does not change how the simulation runs (must include "
+            "'terminal_ShortfallProb'). See README 'Model Limitations & Caveats'."
+        ),
     )
 
     sleeve_max_te: Optional[float] = Field(

@@ -16,6 +16,15 @@ ONE_PX_PNG = base64.b64decode(
 )
 
 
+def _presentation_text(presentation) -> str:
+    texts: list[str] = []
+    for slide in presentation.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                texts.append(shape.text_frame.text)
+    return "\n".join(texts)
+
+
 def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monkeypatch) -> None:
     from pa_core.reporting import sweep_excel
 
@@ -58,6 +67,7 @@ def test_export_sweep_results_writes_summary_when_empty(tmp_path: Path) -> None:
 
 
 def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) -> None:
+    from pa_core.reporting.disclaimers import LIMITATIONS_TITLE
     from pa_core.reporting.export_packet import create_export_packet
 
     summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
@@ -91,10 +101,12 @@ def test_create_export_packet_writes_files_and_manifest_slide(tmp_path: Path) ->
     assert Path(excel_path).exists()
 
     presentation = pptx.Presentation(pptx_path)
-    assert len(presentation.slides) == 5
+    assert len(presentation.slides) == 6
+    assert LIMITATIONS_TITLE in _presentation_text(presentation)
 
 
 def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
+    from pa_core.reporting.disclaimers import LIMITATIONS_TITLE
     from pa_core.reporting.export_packet import create_export_packet
 
     summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
@@ -125,7 +137,8 @@ def test_create_export_packet_adds_tornado_slide(tmp_path: Path) -> None:
     )
 
     presentation = pptx.Presentation(pptx_path)
-    assert len(presentation.slides) == 5
+    assert len(presentation.slides) == 6
+    assert LIMITATIONS_TITLE in _presentation_text(presentation)
 
 
 def test_export_to_excel_includes_tornado_snapshot(tmp_path: Path) -> None:

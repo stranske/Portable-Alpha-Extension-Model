@@ -19,6 +19,7 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
+from .disclaimers import LIMITATIONS_TITLE, MODEL_LIMITATIONS
 from .excel import export_to_excel, finalize_excel_workbook
 
 __all__ = ["create_export_packet"]
@@ -34,6 +35,24 @@ def _add_title_slide(prs: Any, title: str, subtitle: str | None = None) -> None:
     slide.shapes.title.text = title
     if subtitle and len(slide.placeholders) > 1:
         slide.placeholders[1].text = subtitle
+
+
+def _add_limitations_slide(prs: Any) -> None:
+    """Add a committee-facing slide listing model limitations and caveats."""
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    tx_box = slide.shapes.add_textbox(Inches(0.5), Inches(0.5), Inches(9), Inches(6))
+    tf = tx_box.text_frame
+    tf.word_wrap = True
+    tf.clear()
+    title_run = tf.paragraphs[0].add_run()
+    title_run.text = LIMITATIONS_TITLE
+    title_run.font.size = Pt(22)
+    title_run.font.bold = True
+    for item in MODEL_LIMITATIONS:
+        p = tf.add_paragraph()
+        run = p.add_run()
+        run.text = f"• {item}"
+        run.font.size = Pt(12)
 
 
 def _add_summary_table_slide(prs: Any, df: pd.DataFrame, title: str = "Executive Summary") -> None:
@@ -196,6 +215,7 @@ def create_export_packet(
         title="Portfolio Analysis Packet",
         subtitle=f"Generated: {pd.Timestamp.now():%Y-%m-%d %H:%M}",
     )
+    _add_limitations_slide(prs)
     if not summary_df.empty:
         _add_summary_table_slide(prs, summary_df)
 

@@ -113,7 +113,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `regimes` | `regimes` | `Optional[List[pa_core.config.RegimeConfig]]` | no | `None` | List of regime configurations for regime-switching models. |
 | `regime_start` | `regime_start` | `Optional[str]` | no | `None` | Initial regime name for regime-switching simulations. |
 | `regime_transition` | `regime_transition` | `Optional[List[List[float]]]` | no | `None` | Markov transition matrix for regime switching (n_regimes x n_regimes). |
-| `risk_metrics` | `risk_metrics` | `List[str]` | no | `default_factory: <lambda>` |  |
+| `risk_metrics` | `risk_metrics` | `List[str]` | no | `default_factory: <lambda>` | Advisory list selecting which metrics are reported/displayed. It does not change how the simulation runs (must include 'terminal_ShortfallProb'). See README 'Model Limitations & Caveats'. |
 | `sleeve_max_te` | `sleeve_max_te` | `Optional[float]` | no | `None` | Maximum tracking error constraint for sleeves (monthly). |
 | `sleeve_max_breach` | `sleeve_max_breach` | `Optional[float]` | no | `None` | Maximum breach probability constraint for sleeves (monthly). |
 | `sleeve_max_cvar` | `sleeve_max_cvar` | `Optional[float]` | no | `None` | Maximum CVaR constraint for sleeves (monthly). |
