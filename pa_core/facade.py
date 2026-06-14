@@ -629,6 +629,7 @@ def run_sweep(
         rng_returns,
         fin_rngs,
         seed=child_seed,
+        rng_regime=rng_bundle.rng_regime,
     )
     summary = sweep_results_to_dataframe(results)
     inputs = run_cfg.model_dump()

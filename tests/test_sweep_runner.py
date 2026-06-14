@@ -9,10 +9,19 @@ def test_sweep_runner_calls_run_parameter_sweep(monkeypatch) -> None:
     idx = pd.Series([0.01, 0.02, -0.01])
     captured: dict[str, object] = {}
 
-    def fake_run_parameter_sweep(cfg_arg, idx_arg, rng_returns, fin_rngs, seed=None, progress=None):
+    def fake_run_parameter_sweep(
+        cfg_arg,
+        idx_arg,
+        rng_returns,
+        fin_rngs,
+        seed=None,
+        rng_regime=None,
+        progress=None,
+    ):
         captured["cfg"] = cfg_arg
         captured["idx"] = idx_arg
         captured["seed"] = seed
+        captured["rng_regime"] = rng_regime
         captured["progress"] = progress
         return [{"combination_id": 0, "parameters": {}, "summary": pd.DataFrame()}]
 
@@ -25,3 +34,4 @@ def test_sweep_runner_calls_run_parameter_sweep(monkeypatch) -> None:
     assert captured["cfg"] is cfg
     assert isinstance(captured["idx"], pd.Series)
     assert captured["seed"] is not None
+    assert captured["rng_regime"] is not None

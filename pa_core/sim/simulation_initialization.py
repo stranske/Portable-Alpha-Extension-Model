@@ -24,6 +24,7 @@ class SweepRNGBundle:
     """RNG bundle for a parameter sweep run."""
 
     rng_returns: GeneratorLike
+    rng_regime: GeneratorLike
     rngs_financing: Mapping[str, GeneratorLike]
     substream_ids: Mapping[str, str]
     seed: int
@@ -70,7 +71,7 @@ def initialize_sweep_rngs(
     """Create per-sweep RNGs derived from the run seed."""
     base_rng = spawn_rngs(seed, 1)[0]
     child_seed = int(base_rng.integers(0, 2**32, dtype="uint32"))
-    rng_returns = spawn_rngs(child_seed, 1)[0]
+    rng_returns, rng_regime = spawn_rngs(child_seed, 2)
     rngs_financing, substream_ids = spawn_agent_rngs_with_ids(
         child_seed,
         financing_agents,
@@ -78,6 +79,7 @@ def initialize_sweep_rngs(
     )
     return SweepRNGBundle(
         rng_returns=rng_returns,
+        rng_regime=rng_regime,
         rngs_financing=rngs_financing,
         substream_ids=substream_ids,
         seed=child_seed,
