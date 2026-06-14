@@ -702,7 +702,9 @@ class ModelConfig(BaseModel):
             ]
             compiled_names = {agent["name"] for agent in compiled}
             compiled = compiled + [
-                agent for agent in normalized_existing if agent["name"] not in compiled_names
+                agent
+                for agent in normalized_existing
+                if agent["name"] not in compiled_names and agent["name"] not in recompiled_names
             ]
         normalized = cls._normalize_agents(compiled)
         data["agents"] = normalized

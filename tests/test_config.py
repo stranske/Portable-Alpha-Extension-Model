@@ -141,6 +141,34 @@ def test_model_dump_convenience_edits_recompile_standard_agents() -> None:
     assert agents["InternalPA"].alpha_share == pytest.approx(0.24)
 
 
+def test_model_dump_zero_capital_convenience_edits_drop_standard_agents() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        external_pa_capital=100.0,
+        active_ext_capital=200.0,
+        internal_pa_capital=300.0,
+    )
+    dumped = cfg.model_dump()
+    dumped.update(
+        {
+            "external_pa_capital": 0.0,
+            "active_ext_capital": 0.0,
+            "internal_pa_capital": 0.0,
+        }
+    )
+
+    reloaded = ModelConfig(**dumped)
+
+    agent_names = {agent.name for agent in reloaded.agents}
+    assert "Base" in agent_names
+    assert "ExternalPA" not in agent_names
+    assert "ActiveExt" not in agent_names
+    assert "InternalPA" not in agent_names
+
+
 def test_load_dict():
     data = {
         "N_SIMULATIONS": 1000,
