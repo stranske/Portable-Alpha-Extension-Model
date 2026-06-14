@@ -43,19 +43,11 @@ def test_limitations_markdown_is_a_bullet_list():
 
 
 def test_readme_documents_limitations():
-    readme = (_REPO_ROOT / "README.md").read_text().lower()
-    assert "model limitations & caveats" in readme
-    for phrase in (
-        "gross of fees",
-        "total excludes base",
-        "i.i.d",
-        "regimes are ignored",
-        "broadcast",
-        "backtested",
-        "advisory",
-        "unwired",
-    ):
-        assert phrase in readme, f"README missing caveat: {phrase}"
+    readme = (_REPO_ROOT / "README.md").read_text()
+    section_start = readme.index(f"## {LIMITATIONS_TITLE}")
+    next_section = readme.index("\n## ", section_start + 1)
+    section = readme[section_start:next_section]
+    assert limitations_markdown() in section
 
 
 def test_board_pack_includes_limitations_slide():

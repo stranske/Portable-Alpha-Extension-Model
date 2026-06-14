@@ -81,16 +81,14 @@ If you're new to the project, see the [primer](docs/primer.md) for simple defini
 Read these before relying on any output. The same caveats are printed on a slide
 in every generated board pack (see `pa_core/reporting/disclaimers.py`):
 
-- Results are **gross of fees and costs**.
-- **Total excludes Base** (overlay semantics): a Base-only fund shows `Total = 0`.
-- Monthly draws are **i.i.d.** — no volatility clustering is modelled.
-- **Regimes are ignored in parameter sweeps.**
-- Financing `broadcast` reuses a **single financing path** across simulations.
-- The model is **forward-looking and has not been backtested**.
-- `risk_metrics` is **advisory**: it selects which metrics are reported, not how
-  the simulation runs.
-- `Scenario.sleeves` is **currently unwired** and does not affect simulation
-  results.
+- By default, results are gross of fees and costs; configured `fee_schedule` entries report matching sleeves net of those fees.
+- Total excludes Base (overlay semantics): a Base-only fund shows Total = 0.
+- Monthly draws are i.i.d. — no volatility clustering is modelled.
+- Regimes are ignored in parameter sweeps.
+- Financing `broadcast` reuses a single financing path across simulations.
+- The model is forward-looking and has not been backtested.
+- `risk_metrics` is advisory: it selects which metrics are reported, not how the simulation runs.
+- `Scenario.sleeves` is currently unwired and does not affect simulation results.
 
 ## Optional LLM Features
 

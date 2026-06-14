@@ -13,7 +13,8 @@ LIMITATIONS_TITLE = "Model Limitations & Caveats"
 #: Ordered list of model caveats. Each entry is a single, self-contained
 #: statement suitable for a README bullet or a slide line.
 MODEL_LIMITATIONS: tuple[str, ...] = (
-    "Results are gross of fees and costs.",
+    "By default, results are gross of fees and costs; configured `fee_schedule` "
+    "entries report matching sleeves net of those fees.",
     "Total excludes Base (overlay semantics): a Base-only fund shows Total = 0.",
     "Monthly draws are i.i.d. — no volatility clustering is modelled.",
     "Regimes are ignored in parameter sweeps.",
