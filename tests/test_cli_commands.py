@@ -16,6 +16,12 @@ from pa_core.facade import RunArtifacts
 @dataclass
 class DummyConfig:
     analysis_mode: str = "single_with_sensitivity"
+    N_SIMULATIONS: int = 1
+    financing_mode: str = "broadcast"
+    internal_financing_sigma_month: float = 0.0
+    internal_pa_financing_sigma_month: float = 0.0
+    ext_pa_financing_sigma_month: float = 0.0
+    act_ext_financing_sigma_month: float = 0.0
 
     def model_dump(self) -> dict[str, Any]:
         return {"analysis_mode": self.analysis_mode}
@@ -104,6 +110,40 @@ def test_pa_run_command_outputs_and_exit_code(monkeypatch, tmp_path, capsys) -> 
     captured = capsys.readouterr()
     assert exit_code == 0
     assert captured.out == MAIN_BACKEND_STDOUT
+    assert captured.err == EMPTY_STDERR
+
+
+def test_pa_run_warns_after_stress_preset_adds_financing_vol(monkeypatch, tmp_path, capsys) -> None:
+    cfg = DummyConfig(N_SIMULATIONS=100, financing_mode="broadcast")
+    stressed_cfg = DummyConfig(
+        N_SIMULATIONS=100,
+        financing_mode="broadcast",
+        internal_financing_sigma_month=0.05,
+    )
+    _patch_cli_run(monkeypatch, cfg)
+    monkeypatch.setattr("pa_core.stress.apply_stress_preset", lambda *_: stressed_cfg)
+
+    out_path = tmp_path / "out.xlsx"
+    exit_code = _exit_code(
+        lambda: pa_entry.main(
+            [
+                "run",
+                "--config",
+                "cfg.yaml",
+                "--index",
+                "idx.csv",
+                "--output",
+                str(out_path),
+                "--stress-preset",
+                "liquidity_squeeze",
+            ]
+        )
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert "financing_mode='broadcast'" in captured.out
+    assert "per_path" in captured.out
     assert captured.err == EMPTY_STDERR
 
 

@@ -373,6 +373,23 @@ def test_broadcast_dispersion_warning_fires_when_risk_suppressed():
     assert "tail/CVaR" in msg
 
 
+def test_broadcast_dispersion_warning_includes_internal_pa_sigma_key():
+    """Internal-PA financing volatility also makes broadcast suppress dispersion."""
+    from pa_core.sim.financing import _FINANCING_SIGMA_KEYS, broadcast_dispersion_warning
+
+    sigma_by_key = {key: 0.0 for key in _FINANCING_SIGMA_KEYS}
+    sigma_by_key["internal_pa_financing_sigma_month"] = 0.05
+
+    msg = broadcast_dispersion_warning(
+        "broadcast",
+        1000,
+        (sigma_by_key[key] for key in _FINANCING_SIGMA_KEYS),
+    )
+
+    assert msg is not None
+    assert "tail/CVaR" in msg
+
+
 def test_broadcast_dispersion_warning_silent_when_harmless():
     """No warning for per_path, a single scenario, or all-zero financing vol."""
     from pa_core.sim.financing import broadcast_dispersion_warning

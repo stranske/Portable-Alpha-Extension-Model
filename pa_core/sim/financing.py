@@ -17,6 +17,7 @@ _FINANCING_MODES = ("broadcast", "per_path")
 # suppress risk dispersion (see ``broadcast_dispersion_warning``).
 _FINANCING_SIGMA_KEYS = (
     "internal_financing_sigma_month",
+    "internal_pa_financing_sigma_month",
     "ext_pa_financing_sigma_month",
     "act_ext_financing_sigma_month",
 )
