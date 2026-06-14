@@ -76,6 +76,42 @@ def config_capital_defaults(config: ModelConfig | None) -> dict[str, float]:
     }
 
 
+# Bundled index-returns dataset shipped with the repo so first-run users can run
+# an end-to-end example without uploading their own file (see issue #1900).
+SAMPLE_INDEX_FILENAME = "sp500tr_fred_divyield.csv"
+
+
+def bundled_sample_index_path() -> Path:
+    """Return the path to the bundled sample index-returns CSV.
+
+    The file lives in the repository ``data/`` directory and is the same series
+    referenced by the README onboarding ("upload sample and run"). Returning a
+    path (rather than reading eagerly) keeps callers free to stream it into a
+    download button or read it lazily only when the user opts in.
+    """
+    return Path(__file__).resolve().parents[1] / "data" / SAMPLE_INDEX_FILENAME
+
+
+def load_bundled_sample_index() -> pd.Series:
+    """Return the bundled sample index returns as a numeric ``pd.Series``.
+
+    Mirrors the per-page CSV readers: the first numeric column is used as the
+    index-returns series, with non-numeric/NaN values dropped. Raises
+    ``FileNotFoundError`` if the bundled dataset is missing and ``ValueError``
+    if it contains no numeric column.
+    """
+    path = bundled_sample_index_path()
+    if not path.exists():
+        raise FileNotFoundError(f"Bundled sample dataset not found at {path}")
+    df = pd.read_csv(path)
+    num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+    if not num_cols:
+        raise ValueError(
+            f"Bundled sample dataset {path.name} has no numeric column to use as index returns."
+        )
+    return pd.Series(df[num_cols[0]].dropna().to_numpy())
+
+
 def build_alpha_shares_payload(
     active_share: float | None, theta_extpa: float | None
 ) -> dict[str, float] | None:
@@ -224,4 +260,7 @@ __all__ = [
     "apply_promoted_alpha_shares",
     "run_sleeve_suggestions",
     "run_sleeve_frontier",
+    "SAMPLE_INDEX_FILENAME",
+    "bundled_sample_index_path",
+    "load_bundled_sample_index",
 ]

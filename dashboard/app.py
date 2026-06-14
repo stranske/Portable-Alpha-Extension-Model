@@ -11,6 +11,7 @@ import pandas as pd
 import streamlit as st
 
 from dashboard.glossary import GLOSSARY
+from dashboard.utils import bundled_sample_index_path
 from pa_core.contracts import (
     ALL_RETURNS_SHEET_NAME,
     DEFAULT_OUTPUT_FILENAME,
@@ -172,6 +173,37 @@ def load_history(parquet: str = "Outputs.parquet") -> pd.DataFrame | None:
     )
 
 
+def _render_getting_started() -> None:
+    """Surface the bundled sample dataset so first-run users aren't upload-gated.
+
+    The data-driven pages (Stress Lab, Scenario Grid) now offer a "Use bundled
+    sample data" option, so a non-technical first-run user can run an end-to-end
+    example in one click. This section advertises that and offers the bundled CSV
+    as a download for users who prefer the explicit upload flow. See issue #1900.
+    """
+    sample_path = bundled_sample_index_path()
+    if not sample_path.exists():
+        return
+    with st.expander("New here? Try the bundled sample data", expanded=True):
+        st.markdown(
+            "No data yet? The **Stress Lab** and **Scenario Grid** pages each have a "
+            "**“Use bundled sample data (no upload needed)”** checkbox that loads the "
+            "bundled S&P 500 TR / FRED dividend-yield series so you can run a complete "
+            "example in one click — no upload required."
+        )
+        try:
+            sample_bytes = sample_path.read_bytes()
+        except OSError:
+            return
+        st.download_button(
+            "Download sample index CSV",
+            data=sample_bytes,
+            file_name=sample_path.name,
+            mime="text/csv",
+            help="Use this with any page's upload control if you prefer the explicit flow.",
+        )
+
+
 def main() -> None:
     """Render the dashboard home page."""
 
@@ -188,6 +220,8 @@ def main() -> None:
     st.page_link("pages/4_Results.py", label="Results")
     st.page_link("pages/5_Scenario_Grid.py", label="Scenario Grid & Frontier (beta)")
     st.page_link("pages/6_Stress_Lab.py", label="Stress Lab (presets)")
+
+    _render_getting_started()
 
     history = load_history()
     if history is not None:

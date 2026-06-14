@@ -19,6 +19,7 @@ from dashboard.utils import (
     config_capital_defaults,
     current_index_returns,
     current_scenario_config,
+    load_bundled_sample_index,
 )
 from pa_core.config import ModelConfig
 from pa_core.orchestrator import SimulatorOrchestrator
@@ -72,8 +73,16 @@ def main() -> None:
     idx_file = st.file_uploader(
         "Index returns CSV (single numeric column)", type=["csv"], key="stress_idx"
     )
-    if idx_file is None and session_index is None:
-        st.info("Provide index CSV to simulate.")
+    use_sample = st.checkbox(
+        "Use bundled sample data (no upload needed)",
+        value=False,
+        key="stress_use_sample",
+        help="Loads the bundled S&P 500 TR / FRED dividend-yield series for a one-click demo.",
+    )
+    if idx_file is None and not use_sample and session_index is None:
+        st.info(
+            "Upload an index CSV, tick 'Use bundled sample data', or run a scenario first to simulate."
+        )
         return
 
     seed = st.number_input("Random seed", value=42, step=1)
@@ -148,9 +157,16 @@ def main() -> None:
 
     if st.button("Run stress test"):
         try:
-            index_series = _read_index_csv(idx_file) if idx_file is not None else session_index
+            if idx_file is not None:
+                index_series = _read_index_csv(idx_file)
+            elif use_sample:
+                index_series = load_bundled_sample_index()
+            else:
+                index_series = session_index
             if index_series is None:
-                raise ValueError("Provide index CSV to simulate.")
+                raise ValueError(
+                    "Provide an index CSV, enable bundled sample data, or run a scenario first."
+                )
 
             base_cfg = ModelConfig.model_validate(
                 {
