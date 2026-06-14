@@ -76,6 +76,22 @@ The index CSV should include a `Date` column and a monthly total return column n
 
 If you're new to the project, see the [primer](docs/primer.md) for simple definitions of terms like **active share**, **active return volatility (tracking error, TE)**, and **CVaR**.
 
+## Model Limitations & Caveats
+
+Read these before relying on any output. The same caveats are printed on a slide
+in every generated board pack (see `pa_core/reporting/disclaimers.py`):
+
+- Results are **gross of fees and costs**.
+- **Total excludes Base** (overlay semantics): a Base-only fund shows `Total = 0`.
+- Monthly draws are **i.i.d.** — no volatility clustering is modelled.
+- **Regimes are ignored in parameter sweeps.**
+- Financing `broadcast` reuses a **single financing path** across simulations.
+- The model is **forward-looking and has not been backtested**.
+- `risk_metrics` is **advisory**: it selects which metrics are reported, not how
+  the simulation runs.
+- `Scenario.sleeves` is **currently unwired** and does not affect simulation
+  results.
+
 ## Optional LLM Features
 
 The Results page includes optional LLM panels for run explanations and current-vs-previous comparisons. Install them with `python -m pip install -e ".[llm]"`, then configure provider keys with `PA_STREAMLIT_API_KEY`, `OPENAI_API_KEY`, or `CLAUDE_API_STRANSKE`; Azure OpenAI also needs endpoint/version settings such as `PA_LLM_BASE_URL`, `PA_LLM_API_VERSION`, or `AZURE_OPENAI_API_VERSION`. See [Streamlit LLM Features](docs/llm_features.md) for key handling, no-secret export expectations, LangSmith tracing, and the Trend reference pack used by agent runs.
