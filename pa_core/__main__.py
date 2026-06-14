@@ -29,8 +29,9 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         "--config",
         required=True,
         help=(
-            "YAML config file (set financing_mode to broadcast for shared paths or "
-            "per_path for independent draws)"
+            "YAML config file (set financing_mode to per_path for independent "
+            "financing draws per scenario, recommended for risk/tail analysis; "
+            "broadcast shares one financing path across all sims)"
         ),
     )
     parser.add_argument("--index", required=True, help="Index returns CSV")

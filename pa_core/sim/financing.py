@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Mapping, Optional, cast
+from typing import Any, Dict, Iterable, Mapping, Optional, cast
 
 import numpy.typing as npt
 
@@ -12,7 +12,42 @@ from ..types import GeneratorLike
 logger = logging.getLogger(__name__)
 
 _FINANCING_MODES = ("broadcast", "per_path")
-_BROADCAST_WARN_THRESHOLD = 100
+
+# Financing volatility keys whose non-zero values make ``broadcast`` mode
+# suppress risk dispersion (see ``broadcast_dispersion_warning``).
+_FINANCING_SIGMA_KEYS = (
+    "internal_financing_sigma_month",
+    "ext_pa_financing_sigma_month",
+    "act_ext_financing_sigma_month",
+)
+
+
+def broadcast_dispersion_warning(
+    financing_mode: str,
+    n_sim: int,
+    financing_sigmas: Iterable[float],
+) -> Optional[str]:
+    """Return a user-facing warning when ``broadcast`` financing suppresses risk.
+
+    ``broadcast`` reuses a single financing path across every Monte-Carlo
+    scenario. When more than one scenario is simulated and any financing
+    volatility is non-zero, that shared path removes financing-cost dispersion
+    (and any return/financing co-movement), so tail/CVaR estimates are
+    understated. Returns ``None`` when broadcast is harmless (a single scenario
+    or all financing volatilities zero) or when ``per_path`` is in effect.
+    """
+    if financing_mode != "broadcast":
+        return None
+    if not n_sim or n_sim <= 1:
+        return None
+    if not any((sigma or 0.0) > 0 for sigma in financing_sigmas):
+        return None
+    return (
+        "financing_mode='broadcast' reuses a single financing path across all "
+        f"{n_sim} simulations, so financing-cost dispersion is suppressed and "
+        "tail/CVaR risk is understated. Use financing_mode='per_path' for "
+        "risk/tail analysis."
+    )
 
 
 def simulate_financing(
@@ -67,11 +102,13 @@ def draw_financing_series(
         raise ValueError("n_months must be positive")
     if n_sim <= 0:
         raise ValueError("n_sim must be positive")
-    if financing_mode == "broadcast" and n_sim >= _BROADCAST_WARN_THRESHOLD:
-        logger.warning(
-            "Financing mode 'broadcast' reuses a single financing path across %s scenarios.",
-            n_sim,
-        )
+    warning = broadcast_dispersion_warning(
+        financing_mode,
+        n_sim,
+        (params.get(key, 0.0) for key in _FINANCING_SIGMA_KEYS),
+    )
+    if warning is not None:
+        logger.warning(warning)
 
     if rngs is not None:
         tmp_int = rngs.get("internal")

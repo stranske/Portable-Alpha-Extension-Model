@@ -347,11 +347,13 @@ class ModelConfig(BaseModel):
     )
     act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
     act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
-    financing_mode: Literal["broadcast", "per_path"] = Field(
+    financing_mode: Literal["per_path", "broadcast"] = Field(
         ...,
         description=(
-            "Financing draw mode. broadcast reuses one financing vector across "
-            "all simulations; per_path draws independent financing paths per scenario."
+            "Financing draw mode. per_path draws independent financing paths per "
+            "scenario and is recommended for risk/tail analysis; broadcast reuses "
+            "one financing vector across all simulations, which suppresses "
+            "financing-cost dispersion and understates tail/CVaR risk."
         ),
     )
 

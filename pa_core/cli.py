@@ -429,8 +429,9 @@ def main(
         "--config",
         required=True,
         help=(
-            "YAML config file (set financing_mode to broadcast for shared paths or "
-            "per_path for independent draws)"
+            "YAML config file (set financing_mode to per_path for independent "
+            "financing draws per scenario, recommended for risk/tail analysis; "
+            "broadcast shares one financing path across all sims)"
         ),
     )
     parser.add_argument("--index", required=False, help="Index returns CSV")
@@ -1010,6 +1011,18 @@ def main(
 
     # Echo backend selection at start (asserted in tests/expected_cli_outputs.py::MAIN_BACKEND_STDOUT).
     print(f"[BACKEND] Using backend: {backend_choice}")
+
+    # Surface the broadcast financing-risk notice where the user can see it: a
+    # shared financing path across many sims silently understates tail/CVaR risk.
+    from .sim.financing import _FINANCING_SIGMA_KEYS, broadcast_dispersion_warning
+
+    financing_warning = broadcast_dispersion_warning(
+        cfg.financing_mode,
+        cfg.N_SIMULATIONS,
+        (getattr(cfg, key, 0.0) for key in _FINANCING_SIGMA_KEYS),
+    )
+    if financing_warning is not None:
+        print(f"⚠️  {financing_warning}")
 
     from .data import load_index_returns
     from .facade import run_single
