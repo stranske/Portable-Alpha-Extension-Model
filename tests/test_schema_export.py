@@ -33,6 +33,11 @@ def test_templates_match_schema(tmp_path: Path) -> None:
         )
 
 
+def test_user_yaml_template_omits_backend() -> None:
+    template = Path("templates/params_template.yaml").read_text()
+    assert "\nbackend:" not in template
+
+
 def test_parameter_dictionary_matches_schema(tmp_path: Path) -> None:
     output_path = tmp_path / "PARAMETER_DICTIONARY.md"
     generate_parameter_dictionary(output_path, schema="config")

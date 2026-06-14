@@ -19,7 +19,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 
 | Field | Aliases | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- | --- |
-| `backend` | `backend` | `<class 'str'>` | no | `numpy` |  |
+| `backend` | `backend` | `Literal['numpy']` | no | `numpy` | Computation backend. Only 'numpy' is supported; cupy/GPU acceleration is not available. |
 | `N_SIMULATIONS` | `Number of simulations` | `<class 'int'>` | yes |  |  |
 | `N_MONTHS` | `Number of months` | `<class 'int'>` | yes |  |  |
 | `return_unit` | `return_unit` | `Literal['annual', 'monthly']` | no | `annual` | Input unit for return means/volatilities. |
