@@ -4,7 +4,7 @@ import base64
 import io
 import os
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Iterable, Sequence, cast
 
 import plotly.graph_objects as go
 from pptx import Presentation
@@ -32,7 +32,7 @@ def render_chart_png(fig: Any) -> bytes:
     if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
         return _ONE_PX_PNG
     try:
-        return fig.to_image(format="png", engine="kaleido")
+        return cast(bytes, fig.to_image(format="png", engine="kaleido"))
     except Exception as e:  # pragma: no cover - exercised only without kaleido
         raise RuntimeError(
             "PPTX export requires a static image renderer (Kaleido/Chromium). "
