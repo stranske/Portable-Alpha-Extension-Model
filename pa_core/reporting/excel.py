@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import logging
 import math
 import os
 from types import SimpleNamespace
@@ -19,6 +20,8 @@ from ..sim.metrics import metric_definitions_df
 from ..viz import risk_return, theme
 
 __all__ = ["export_to_excel"]
+
+logger = logging.getLogger(__name__)
 
 _ONE_PX_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
@@ -261,14 +264,16 @@ def _coerce_agent_semantics_df(value: Any) -> pd.DataFrame | None:
             return pd.concat(frames, ignore_index=True)
         try:
             return pd.DataFrame(value)
-        except Exception:
+        except (ValueError, TypeError):
+            logger.warning("Failed to coerce value into a DataFrame", exc_info=True)
             return None
     if isinstance(value, dict):
         if value and _mapping_is_row(value):
             return pd.DataFrame([value])
         try:
             return pd.DataFrame(value)
-        except Exception:
+        except (ValueError, TypeError):
+            logger.warning("Failed to coerce value into a DataFrame", exc_info=True)
             return None
     return None
 
@@ -314,7 +319,7 @@ def _ensure_agent_semantics_df(inputs_dict: Dict[str, Any]) -> pd.DataFrame | No
     total_capital = inputs_dict.get("total_fund_capital")
     try:
         from .agent_semantics import build_agent_semantics
-    except Exception:
+    except ImportError:
         return df if isinstance(df, pd.DataFrame) else None
     cfg = SimpleNamespace(agents=agents)
     if total_capital is not None:
@@ -424,9 +429,9 @@ def finalize_excel_workbook(
                 img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
-        except Exception:
+        except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
             # Non-fatal if renderer or data missing
-            pass
+            logger.warning("Failed to embed tornado chart in Sensitivity sheet", exc_info=True)
 
     # Best-effort: embed sunburst image on Attribution sheet
     if "Attribution" in wb.sheetnames:
@@ -445,7 +450,7 @@ def finalize_excel_workbook(
                         img_bytes = fig.to_image(format="png", engine="kaleido")
                     img = XLImage(io.BytesIO(img_bytes))
                     ws.add_image(img, "H2")
-        except Exception:
-            pass
+        except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
+            logger.warning("Failed to embed sunburst chart in Attribution sheet", exc_info=True)
 
     wb.save(filename)

@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import os
 from contextlib import contextmanager
 from typing import Any, Iterator, Literal, Mapping, Sequence
 from urllib.parse import quote
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_LANGSMITH_TRACE_BASE_URL = "https://smith.langchain.com/r/"
 _LANGSMITH_ENABLED: bool | None = None
@@ -58,7 +61,7 @@ def langsmith_tracing_context(
 
     try:
         from langsmith import run_helpers
-    except Exception:
+    except ImportError:
         yield None
         return
 
@@ -73,6 +76,7 @@ def langsmith_tracing_context(
                 project_name=project_name,
             )
         except Exception:
+            logger.warning("Failed to start LangSmith trace context", exc_info=True)
             yield None
             return
         with trace_cm as run:

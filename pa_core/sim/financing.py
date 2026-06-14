@@ -69,7 +69,8 @@ def simulate_financing(
         raise ValueError("n_scenarios must be positive")
     if rng is None:
         rng = spawn_rngs(seed, 1)[0]
-    assert rng is not None
+    if rng is None:
+        raise ValueError("rng could not be initialized; provide an explicit generator or seed")
     base = rng.normal(loc=financing_mean, scale=financing_sigma, size=(n_scenarios, T))
     jumps = (rng.random(size=(n_scenarios, T)) < spike_prob) * (spike_factor * financing_sigma)
     out = cast(npt.NDArray[Any], np.clip(base + jumps, 0.0, None))

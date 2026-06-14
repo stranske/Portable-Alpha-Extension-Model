@@ -71,7 +71,10 @@ def _estimate_total_combinations(cfg: ModelConfig) -> int:
             if param.values is not None:
                 count = len(param.values)
             else:
-                assert param.min is not None and param.max is not None and param.step is not None
+                if param.min is None or param.max is None or param.step is None:
+                    raise ValueError(
+                        "Sweep parameter requires 'min', 'max', and 'step' when 'values' is not set"
+                    )
                 count = _count_range(float(param.min), float(param.max), float(param.step))
             total *= count
         return int(total)
@@ -145,7 +148,10 @@ def _iter_sweep_grid(sweep: SweepConfig) -> Iterator[Dict[str, Any]]:
         if param.values is not None:
             param_values = list(param.values)
         else:
-            assert param.min is not None and param.max is not None and param.step is not None
+            if param.min is None or param.max is None or param.step is None:
+                raise ValueError(
+                    "Sweep parameter requires 'min', 'max', and 'step' when 'values' is not set"
+                )
             param_values = list(np.arange(param.min, param.max + param.step, param.step))
         names.append(name)
         values.append(param_values)
@@ -158,10 +164,12 @@ def _sample_sweep_value(param: SweepParameter, rng: np.random.Generator) -> floa
     if param.values is not None:
         return float(rng.choice(param.values))
     if param.step is not None:
-        assert param.min is not None and param.max is not None
+        if param.min is None or param.max is None:
+            raise ValueError("Sweep parameter requires 'min' and 'max' for stepped sampling")
         grid = np.arange(param.min, param.max + param.step, param.step)
         return float(rng.choice(grid))
-    assert param.min is not None and param.max is not None
+    if param.min is None or param.max is None:
+        raise ValueError("Sweep parameter requires 'min' and 'max' for uniform sampling")
     return float(rng.uniform(param.min, param.max))
 
 
