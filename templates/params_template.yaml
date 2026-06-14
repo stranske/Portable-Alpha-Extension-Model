@@ -19,6 +19,10 @@ In-House beta share: 0.5
 In-House alpha share: 0.5
 External PA alpha fraction: 0.5
 Active share (%): 0.5
+Active-share alpha decay (kappa): 0.0
+External-PA alpha decay (kappa): 0.0
+Active Ext extension cost (monthly %/share): 0.0
+External PA extension cost (monthly %/share): 0.0
 In-House annual return (%): 0.04
 In-House annual vol (%): 0.01
 Alpha-Extension annual return (%): 0.05
