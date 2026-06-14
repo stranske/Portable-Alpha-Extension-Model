@@ -14,7 +14,7 @@ This brief guide explains key terms in plain English and shows how to run the mo
 - **Time under water (TimeUnderWater)** – Fraction of periods where the compounded return is below zero.
 - **Total (overlay contribution)** – Sum of all non-Base, non-Total contribution sleeves.
   - Built-in overlays include ExternalPA, ActiveExt, InternalPA, and InternalBeta.
-  - plugin-registered sleeves are included by the same rule.
+  - Plugin-registered sleeves are included by the same rule.
   - It excludes Base, which is the benchmark comparator, so a true no-overlay/no-margin run reports Total as zero overlay contribution rather than the index return.
 
 ## Quick CLI examples
