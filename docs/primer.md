@@ -12,6 +12,7 @@ This brief guide explains key terms in plain English and shows how to run the mo
 - **Conditional Value at Risk (CVaR)** – Expected loss once losses exceed the usual Value‑at‑Risk cutoff.
 - **Max drawdown (MaxDD)** – Worst peak‑to‑trough decline of the compounded wealth path.
 - **Time under water (TimeUnderWater)** – Fraction of periods where the compounded return is below zero.
+- **Total (overlay contribution)** – Sum of overlay sleeves: ExternalPA, ActiveExt, InternalPA, and InternalBeta. It excludes Base, which is the benchmark comparator, so a Base-only run reports Total as zero overlay contribution rather than the index return.
 
 ## Quick CLI examples
 

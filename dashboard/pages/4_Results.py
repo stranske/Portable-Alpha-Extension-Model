@@ -25,6 +25,8 @@ from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
 from dashboard.utils import current_results_path
 from pa_core.contracts import (
+    SUMMARY_AGENT_COLUMN,
+    SUMMARY_ANN_RETURN_COLUMN,
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,
     SUMMARY_SHEET_NAME,
@@ -206,7 +208,7 @@ def main() -> None:
     months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
 
     st.subheader("Key Metrics")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     te_column = None
     if SUMMARY_TE_COLUMN in summary:
         te_column = SUMMARY_TE_COLUMN
@@ -228,6 +230,15 @@ def main() -> None:
             f"{summary[SUMMARY_BREACH_PROB_COLUMN].mean():.2%}",
             help=tooltip("breach probability"),
         )
+    if {SUMMARY_AGENT_COLUMN, SUMMARY_ANN_RETURN_COLUMN} <= set(summary.columns):
+        total_rows = summary[summary[SUMMARY_AGENT_COLUMN] == "Total"]
+        if not total_rows.empty:
+            total_return = float(total_rows[SUMMARY_ANN_RETURN_COLUMN].iloc[0])
+            col4.metric(
+                "Overlay Total",
+                f"{total_return:.2%}",
+                help=tooltip("overlay total"),
+            )
 
     _render_explain_results(summary=summary, manifest_data=manifest_data, xlsx=xlsx)
     _render_comparison_panel(summary=summary, manifest_data=manifest_data, xlsx=xlsx)

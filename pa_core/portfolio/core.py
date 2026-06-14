@@ -8,6 +8,16 @@ from ..types import ArrayLike
 Array: TypeAlias = ArrayLike
 
 DEFAULT_PORTFOLIO_EXCLUDES = ("Base", "Total")
+OVERLAY_SLEEVE_NAMES = ("ExternalPA", "ActiveExt", "InternalPA", "InternalBeta")
+OVERLAY_TOTAL_DESCRIPTION = (
+    "Total is the overlay contribution from ExternalPA, ActiveExt, InternalPA, "
+    "and InternalBeta. It excludes Base, which is the benchmark comparator."
+)
+BASE_ONLY_TOTAL_WARNING = (
+    "Base-only configuration: Total excludes Base, so Total will report zero "
+    "overlay contribution rather than the index return. Use the Base row for "
+    "benchmark return."
+)
 
 
 def compute_total_contribution_returns(
@@ -29,3 +39,20 @@ def compute_total_contribution_returns(
             total = np.zeros_like(arr)
         total = total + arr
     return total
+
+
+def is_base_only_config(config: object) -> bool:
+    """Return true when the run config has no non-benchmark sleeve capital."""
+
+    agents = getattr(config, "agents", ()) or ()
+    for agent in agents:
+        name = str(getattr(agent, "name", ""))
+        if name in DEFAULT_PORTFOLIO_EXCLUDES:
+            continue
+        try:
+            capital = float(getattr(agent, "capital", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            capital = 0.0
+        if capital > 0.0:
+            return False
+    return True

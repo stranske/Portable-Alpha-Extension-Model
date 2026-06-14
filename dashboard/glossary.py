@@ -1,9 +1,13 @@
 """Glossary of finance terms for dashboard tooltips."""
 
+from pa_core.portfolio import OVERLAY_TOTAL_DESCRIPTION
+
 GLOSSARY = {
     "active share": "Portion of a portfolio that differs from its benchmark; 0% means identical holdings, 100% fully independent.",
     "buffer multiple": "Multiplier applied to volatility to set the cash buffer threshold for drawdowns.",
     "breach probability": "Share of simulated months across all paths that fall below the breach threshold.",
+    "overlay total": OVERLAY_TOTAL_DESCRIPTION,
+    "total": OVERLAY_TOTAL_DESCRIPTION,
     "monthly_TE": "Tracking error — annualised volatility of active returns (portfolio minus benchmark).",
     "monthly_CVaR": "Conditional Value at Risk — expected loss given that losses exceed the VaR cutoff.",
     "monthly_MaxDD": "Worst peak-to-trough decline of the compounded wealth path.",

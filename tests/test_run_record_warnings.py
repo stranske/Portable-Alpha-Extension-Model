@@ -92,6 +92,14 @@ def test_run_record_cost_stub_present(tmp_path: Path) -> None:
     assert cost["dollars"] is None
 
 
+def test_base_only_total_warning_serialized(tmp_path: Path) -> None:
+    out_file = _run_cli(tmp_path)
+    record = json.loads(out_file.with_name("run.json").read_text())
+
+    messages = [str(w.get("message", "")) for w in record["warnings"]]
+    assert any("Base-only configuration" in m and "Total excludes Base" in m for m in messages)
+
+
 def test_run_record_bundle_path_points_to_bundle_json(tmp_path: Path) -> None:
     bundle_dir = tmp_path / "bundle"
     out_file = _run_cli(tmp_path, "--bundle", str(bundle_dir))
