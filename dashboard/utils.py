@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from importlib import resources
 from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,7 @@ from typing import Any
 import pandas as pd
 
 from pa_core.config import ModelConfig, normalize_share
+from pa_core.data import load_index_returns
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 
 # Keep dashboard normalization aligned with core config behavior.
@@ -74,6 +76,34 @@ def config_capital_defaults(config: ModelConfig | None) -> dict[str, float]:
         "active_ext_capital": float(config.active_ext_capital),
         "internal_pa_capital": float(config.internal_pa_capital),
     }
+
+
+# Bundled index-returns dataset shipped with the repo so first-run users can run
+# an end-to-end example without uploading their own file (see issue #1900).
+SAMPLE_INDEX_FILENAME = "sp500tr_fred_divyield.csv"
+
+
+def bundled_sample_index_path() -> Path:
+    """Return the path to the bundled sample index-returns CSV.
+
+    The file is shipped as package data so installed ``pa-dashboard`` users get
+    the same sample series as repo-checkout users. Returning a path keeps
+    callers free to stream it into a download button or read it lazily only when
+    the user opts in.
+    """
+    resource = resources.files("data").joinpath(SAMPLE_INDEX_FILENAME)
+    with resources.as_file(resource) as path:
+        return path
+
+
+def load_bundled_sample_index() -> pd.Series:
+    """Return the bundled sample index returns as a numeric ``pd.Series``.
+
+    Uses the core index-return loader so the one-click sample follows the same
+    ``Monthly_TR`` column and date-sorting rules as CLI and wizard simulations.
+    """
+    path = bundled_sample_index_path()
+    return load_index_returns(path)
 
 
 def build_alpha_shares_payload(
@@ -224,4 +254,7 @@ __all__ = [
     "apply_promoted_alpha_shares",
     "run_sleeve_suggestions",
     "run_sleeve_frontier",
+    "SAMPLE_INDEX_FILENAME",
+    "bundled_sample_index_path",
+    "load_bundled_sample_index",
 ]

@@ -16,6 +16,7 @@ from dashboard.app import _DEF_THEME, apply_theme
 from dashboard.utils import (
     build_alpha_shares_payload,
     bump_session_token,
+    load_bundled_sample_index,
     make_grid_cache_key,
 )
 from pa_core.config import ModelConfig
@@ -177,6 +178,12 @@ def main() -> None:
         idx_file = st.file_uploader(
             "Index returns CSV (single numeric column)", type=["csv"], key="idx_csv"
         )
+        use_sample = st.checkbox(
+            "Use bundled sample data (no upload needed)",
+            value=False,
+            key="grid_use_sample",
+            help="Loads the bundled S&P 500 TR / FRED dividend-yield series for a one-click demo.",
+        )
         seed = st.number_input("Random seed", value=42, step=1)
 
         # Optional step controls
@@ -206,19 +213,28 @@ def main() -> None:
             )
 
         run_sweep = st.button("Run sweep")
-        if idx_file is None:
-            st.info("Upload an index returns CSV to run the sweep.")
+        if idx_file is None and not use_sample:
+            st.info("Upload an index returns CSV or tick 'Use bundled sample data' to run the sweep.")
             return
 
         try:
-            idx_df = _read_csv(idx_file)
-            # Use first numeric column as index series
-            num_cols = [c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])]
-            if not num_cols:
-                st.error("No numeric column found in index CSV")
-                return
-            # Ensure a plain pandas Series for type-checker
-            index_series = pd.Series(idx_df[num_cols[0]].dropna().to_numpy())
+            if idx_file is not None:
+                idx_df = _read_csv(idx_file)
+                # Use first numeric column as index series
+                num_cols = [
+                    c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])
+                ]
+                if not num_cols:
+                    st.error("No numeric column found in index CSV")
+                    return
+                # Ensure a plain pandas Series for type-checker
+                index_series = pd.Series(idx_df[num_cols[0]].dropna().to_numpy())
+            else:
+                try:
+                    index_series = load_bundled_sample_index()
+                except (FileNotFoundError, ValueError) as exc:
+                    st.error(f"Bundled sample data could not be loaded: {exc}")
+                    return
 
             base_cfg = ModelConfig.model_validate(
                 {
