@@ -69,6 +69,7 @@ CONFIG_TIME_HORIZON_FIELDS: dict[str, str] = {
     "N_MONTHS": "months",
     "return_unit": "annual_or_monthly",
     "return_unit_input": "annual_or_monthly",
+    "mean_conversion": "annual_to_monthly_mean_method",
     "mu_H": "return_unit_input",
     "mu_H_annual": "annual",
     "mu_H_monthly": "monthly",

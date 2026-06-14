@@ -23,6 +23,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `N_SIMULATIONS` | `Number of simulations` | `<class 'int'>` | yes |  |  |
 | `N_MONTHS` | `Number of months` | `<class 'int'>` | yes |  |  |
 | `return_unit` | `return_unit` | `Literal['annual', 'monthly']` | no | `annual` | Input unit for return means/volatilities. |
+| `mean_conversion` | `Mean conversion` | `Literal['simple', 'geometric']` | no | `simple` | How annual mean returns are converted to monthly. 'simple' uses mean/12 (the historical default); it is fast but does NOT reproduce the configured annual mean once the monthly returns compound. 'geometric' uses (1+r)**(1/12)-1, so 12 compounded monthly means recover the annual mean. Only affects mu_* inputs supplied in annual units; volatilities are unchanged. |
 | `return_distribution` | `Return distribution` | `<class 'str'>` | no | `normal` |  |
 | `return_t_df` | `Student-t df` | `<class 'float'>` | no | `5.0` |  |
 | `return_copula` | `Return copula` | `<class 'str'>` | no | `gaussian` |  |
