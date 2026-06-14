@@ -71,6 +71,18 @@ def test_mgmt_fee_constant_monthly_drag() -> None:
     assert np.allclose(apply_fees(gross, sched), 0.009)
 
 
+def test_fee_drag_scales_by_notional_share() -> None:
+    gross = np.full((1, 2), 0.005)
+    sched = FeeSchedule(mgmt_fee_bps=120.0, perf_fee_pct=0.5, hurdle_bps=0.0)
+
+    drag = compute_fee_drag(gross, sched, notional_share=0.25)
+
+    # Underlying sleeve return is 2%; fee drag is 25% of the full-sleeve fee:
+    # (0.001 management + 0.5 * 0.02 performance) * 0.25 = 0.00275.
+    assert np.allclose(drag, 0.00275)
+    assert np.allclose(apply_fees(gross, sched, notional_share=0.25), 0.00225)
+
+
 def test_perf_fee_charged_above_hurdle_only() -> None:
     gross = np.array([[0.02, -0.01, 0.0]])
     sched = FeeSchedule(perf_fee_pct=0.5, hurdle_bps=0.0)  # 50% of positive return
@@ -136,6 +148,30 @@ def test_simulate_agents_applies_fee_to_named_sleeve_only() -> None:
     assert np.allclose(untouched["InternalPA"], 0.02)
 
 
+def test_simulate_agents_scales_fees_by_sleeve_notional_share() -> None:
+    n_sim, n_months = 2, 3
+    r_beta = np.zeros((n_sim, n_months))
+    r_H = np.full((n_sim, n_months), 0.02)
+    f = np.zeros((n_sim, n_months))
+    agents = [InternalPAAgent(AgentParams("InternalPA", 25.0, 0.0, 0.25, {}))]
+
+    gross = simulate_agents(agents, r_beta, r_H, r_H, r_H, f, f, f)
+    net = simulate_agents(
+        agents,
+        r_beta,
+        r_H,
+        r_H,
+        r_H,
+        f,
+        f,
+        f,
+        fee_schedule={"InternalPA": FeeSchedule(mgmt_fee_bps=120.0)},
+    )
+
+    assert np.allclose(gross["InternalPA"], 0.005)
+    assert np.allclose(gross["InternalPA"] - net["InternalPA"], 0.00025)
+
+
 def test_simulate_agents_default_is_backward_compatible() -> None:
     n_sim, n_months = 2, 3
     r_beta = np.zeros((n_sim, n_months))
@@ -161,7 +197,7 @@ def _scenario():
                     name="InternalPA",
                     capital=150.0,
                     beta_share=0.0,
-                    alpha_share=1.0,
+                    alpha_share=0.15,
                 )
             ],
         }
@@ -184,8 +220,9 @@ def test_run_single_mgmt_fee_lowers_return_by_exact_drag() -> None:
     net = _internal_pa_mean(
         base.model_copy(update={"fee_schedule": {"InternalPA": FeeSchedule(mgmt_fee_bps=120.0)}})
     )
-    # Deterministic mgmt fee shifts the mean by exactly the monthly drag (0.001).
-    assert gross - net == pytest.approx(0.001, abs=1e-9)
+    # 120 bps annual on a 150mm sleeve in a 1000mm fund:
+    # 0.012 / 12 * 0.15 = 0.00015 contribution-return drag.
+    assert gross - net == pytest.approx(0.00015, abs=1e-9)
 
 
 def test_run_single_perf_fee_lowers_return() -> None:

@@ -118,7 +118,8 @@ def simulate_agents(
         if fee_schedule is not None:
             schedule = fee_schedule.get(agent.p.name)
             if schedule is not None:
-                gross = apply_fees(gross, schedule)
+                notional_share = agent.p.beta_share + agent.p.alpha_share
+                gross = apply_fees(gross, schedule, notional_share=notional_share)
         results[agent.p.name] = gross
 
     total = compute_total_returns(results)

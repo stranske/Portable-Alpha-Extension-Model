@@ -13,12 +13,10 @@ supplied (the default) returns are unchanged and fully backward compatible.
 Modelling choices (intentionally a simple first increment; see the PR for
 rationale and follow-ups):
 
-* Fees are deducted in **sleeve contribution-return space** -- directly from
-  the monthly contribution return each agent emits
-  (:meth:`pa_core.agents.types.Agent.monthly_returns`), which is already scaled
-  by the sleeve's capital share. Assigning a schedule to a sleeve therefore
-  charges fees on that sleeve's fund-level contribution, mirroring how
-  financing cost is already deducted inside the agent return.
+* Fees are deducted in **sleeve contribution-return space**. The fee basis is
+  the sleeve's underlying return, then the resulting fee is scaled back by the
+  sleeve's fund-level notional share so a 25% sleeve pays 25% of a full-fund
+  drag.
 * **Management fee** (``mgmt_fee_bps``) is an annual rate in basis points,
   accrued linearly as a constant monthly drag ``mgmt_fee_bps / 1e4 / 12``.
 * **Performance fee** (``perf_fee_pct``) is a fraction of the monthly return
@@ -71,23 +69,39 @@ class FeeSchedule(BaseModel):
         return self.mgmt_fee_bps == 0.0 and self.perf_fee_pct == 0.0
 
 
-def compute_fee_drag(gross: ArrayLike, schedule: FeeSchedule) -> ArrayLike:
+def compute_fee_drag(
+    gross: ArrayLike,
+    schedule: FeeSchedule,
+    *,
+    notional_share: float = 1.0,
+) -> ArrayLike:
     """Return the per-month fee drag matrix for ``gross`` contribution returns.
 
     The result has the same shape as ``gross`` and is always non-negative
     (fees never increase returns). ``net = gross - compute_fee_drag(gross, ...)``.
     """
+    if notional_share < 0.0:
+        raise ValueError("notional_share must be non-negative")
+    if notional_share == 0.0:
+        return np.zeros_like(gross)
+
+    underlying_gross = gross / notional_share
     mgmt_monthly = schedule.mgmt_fee_bps / _BPS_PER_UNIT / _MONTHS_PER_YEAR
     drag: ArrayLike = np.full_like(gross, mgmt_monthly)
     if schedule.perf_fee_pct > 0.0:
         hurdle_monthly = schedule.hurdle_bps / _BPS_PER_UNIT / _MONTHS_PER_YEAR
-        excess = np.maximum(gross - hurdle_monthly, 0.0)
+        excess = np.maximum(underlying_gross - hurdle_monthly, 0.0)
         drag = drag + schedule.perf_fee_pct * excess
-    return drag
+    return drag * notional_share
 
 
-def apply_fees(gross: ArrayLike, schedule: FeeSchedule) -> ArrayLike:
+def apply_fees(
+    gross: ArrayLike,
+    schedule: FeeSchedule,
+    *,
+    notional_share: float = 1.0,
+) -> ArrayLike:
     """Return ``gross`` net of the management + performance fees in ``schedule``."""
     if schedule.is_zero:
         return gross
-    return gross - compute_fee_drag(gross, schedule)
+    return gross - compute_fee_drag(gross, schedule, notional_share=notional_share)
