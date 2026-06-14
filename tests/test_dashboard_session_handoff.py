@@ -26,7 +26,7 @@ def _model_config() -> ModelConfig:
             "active_ext_capital": 175.0,
             "internal_pa_capital": 500.0,
             "financing_mode": "broadcast",
-            "external_alpha_frac": 0.35,
+            "theta_extpa": 0.35,
             "active_share": 0.65,
             "risk_metrics": ["Return", "Risk", "terminal_ShortfallProb"],
         }
@@ -77,9 +77,11 @@ def test_results_default_path_uses_wizard_session_path() -> None:
         st.session_state.clear()
 
 
-def test_wizard_index_upload_bytes_select_first_numeric_column() -> None:
+def test_wizard_index_upload_bytes_uses_core_monthly_tr_loader() -> None:
     module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
 
-    series = module["_read_index_csv_bytes"](b"date,returns,other\n2026-01,0.01,5\n2026-02,-0.02,6\n")
+    series = module["_read_index_csv_bytes"](
+        b"Date,Other,Monthly_TR\n2026-02-28,5,-0.02\n2026-01-31,6,0.01\n"
+    )
 
     assert series.tolist() == [0.01, -0.02]

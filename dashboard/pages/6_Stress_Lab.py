@@ -119,7 +119,7 @@ def main() -> None:
         "External PA alpha fraction θ",
         min_value=0.0,
         max_value=1.0,
-        value=float(session_cfg.external_alpha_frac if session_cfg else 0.5),
+        value=float(session_cfg.theta_extpa if session_cfg else 0.5),
         step=0.05,
     )
     active_share = st.sidebar.slider(

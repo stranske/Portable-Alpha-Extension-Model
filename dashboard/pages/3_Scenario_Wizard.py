@@ -6,7 +6,6 @@ import math
 import os
 import re
 import tempfile
-import io
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -732,12 +731,11 @@ def _temp_yaml_file(data: Dict[str, Any]):
 
 
 def _read_index_csv_bytes(data: bytes) -> pd.Series:
-    """Return the first numeric index-return column from uploaded CSV bytes."""
-    df = pd.read_csv(io.BytesIO(data))
-    num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
-    if not num_cols:
-        raise ValueError("Index CSV must contain at least one numeric column.")
-    return pd.Series(df[num_cols[0]].dropna().to_numpy())
+    """Return index returns from uploaded CSV bytes using the core loader."""
+    with tempfile.NamedTemporaryFile(mode="wb", suffix=".csv") as tmp:
+        tmp.write(data)
+        tmp.flush()
+        return load_index_returns(tmp.name)
 
 
 def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
