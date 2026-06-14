@@ -247,8 +247,7 @@ class ModelConfig(BaseModel):
     backend: Literal["numpy"] = Field(
         default="numpy",
         description=(
-            "Computation backend. Only 'numpy' is supported; "
-            f"{BACKEND_UNAVAILABLE_DETAIL}"
+            "Computation backend. Only 'numpy' is supported; " f"{BACKEND_UNAVAILABLE_DETAIL}"
         ),
     )
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
@@ -761,7 +760,9 @@ class ModelConfig(BaseModel):
                 "Internal PA capital (mm)",
             },
         }
-        return {agent_name for agent_name, keys in groups.items() if any(key in data for key in keys)}
+        return {
+            agent_name for agent_name, keys in groups.items() if any(key in data for key in keys)
+        }
 
     @classmethod
     def normalize_share_inputs(cls, data: Any) -> Any:
@@ -782,7 +783,11 @@ class ModelConfig(BaseModel):
 
     @classmethod
     def _normalize_regime_sigma_overrides(cls, regimes: Any) -> Any:
-        if regimes is None or isinstance(regimes, (str, bytes)) or not isinstance(regimes, Sequence):
+        if (
+            regimes is None
+            or isinstance(regimes, (str, bytes))
+            or not isinstance(regimes, Sequence)
+        ):
             return regimes
 
         normalized: list[Any] = []

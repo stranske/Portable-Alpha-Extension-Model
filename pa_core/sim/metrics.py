@@ -178,9 +178,7 @@ def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
     return float(np.power(base, 1.0 / years) - 1.0)
 
 
-def annualised_return_percentile(
-    returns: ArrayLike, q: float, periods_per_year: int = 12
-) -> float:
+def annualised_return_percentile(returns: ArrayLike, q: float, periods_per_year: int = 12) -> float:
     """Return the annualised compound return at the ``q``-th percentile of paths.
 
     :func:`annualised_return` averages the terminal compounded return across
