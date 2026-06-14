@@ -589,7 +589,7 @@ def run_parameter_sweep(
             for name, rng in fin_rngs.items():
                 rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])
 
-        mod_cfg = cfg.model_copy(update=overrides)
+        mod_cfg = type(cfg).model_validate({**cfg.model_dump(), **overrides})
 
         if returns_static:
             if base_params is None:

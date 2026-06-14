@@ -287,6 +287,8 @@ def test_financing_spikes_require_matching_volatility(sigma_field, prob_field, f
         ModelConfig(**base, **{prob_field: 0.25})
     with pytest.raises(ValidationError, match=sigma_field):
         ModelConfig(**base, **{factor_field: 2.0})
+    with pytest.raises(ValidationError, match=sigma_field):
+        ModelConfig(**base, **{factor_field: -2.0})
 
     cfg = ModelConfig(
         **base,

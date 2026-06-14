@@ -821,7 +821,7 @@ class ModelConfig(BaseModel):
             sigma = float(getattr(self, sigma_field))
             spike_prob = float(getattr(self, prob_field))
             spike_factor = float(getattr(self, factor_field))
-            if sigma == 0.0 and (spike_prob > 0.0 or spike_factor > 0.0):
+            if sigma == 0.0 and (spike_prob > 0.0 or spike_factor != 0.0):
                 inert_spikes.append(f"{prob_field}/{factor_field} require {sigma_field} > 0")
         if inert_spikes:
             raise ValueError(
