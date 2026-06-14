@@ -16,6 +16,7 @@ def test_total_tooltip_documents_base_exclusion() -> None:
 
     assert total_tooltip == OVERLAY_TOTAL_DESCRIPTION
     assert "excludes Base" in total_tooltip
+    assert "all non-Base, non-Total sleeves" in total_tooltip
 
 
 def test_primer_documents_overlay_total_semantics() -> None:
@@ -23,11 +24,25 @@ def test_primer_documents_overlay_total_semantics() -> None:
 
     assert "Total (overlay contribution)" in primer
     assert "excludes Base" in primer
-    assert "Base-only run reports Total as zero" in primer
+    assert "all non-Base, non-Total contribution sleeves" in primer
+    assert "plugin-registered sleeves are included" in primer
+    assert "no-overlay/no-margin run reports Total as zero" in primer
 
 
-def test_base_only_config_is_flagged() -> None:
+def test_default_margin_config_is_not_base_only() -> None:
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
+
+    assert is_base_only_config(cfg) is False
+
+
+def test_no_overlay_no_margin_config_is_flagged() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        reference_sigma=0.0,
+        volatility_multiple=0.0,
+    )
 
     assert is_base_only_config(cfg) is True
 
@@ -53,3 +68,10 @@ def test_total_contribution_excludes_base() -> None:
 
     assert total is not None
     np.testing.assert_allclose(total, overlay)
+
+
+def test_results_page_aggregates_multiple_total_rows() -> None:
+    source = Path("dashboard/pages/4_Results.py").read_text()
+
+    assert 'total_rows[SUMMARY_ANN_RETURN_COLUMN].mean()' in source
+    assert 'total_rows[SUMMARY_ANN_RETURN_COLUMN].iloc[0]' not in source

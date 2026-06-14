@@ -9,9 +9,11 @@ Array: TypeAlias = ArrayLike
 
 DEFAULT_PORTFOLIO_EXCLUDES = ("Base", "Total")
 OVERLAY_SLEEVE_NAMES = ("ExternalPA", "ActiveExt", "InternalPA", "InternalBeta")
+_BUILT_IN_OVERLAY_SLEEVES = ", ".join(OVERLAY_SLEEVE_NAMES)
 OVERLAY_TOTAL_DESCRIPTION = (
-    "Total is the overlay contribution from ExternalPA, ActiveExt, InternalPA, "
-    "and InternalBeta. It excludes Base, which is the benchmark comparator."
+    "Total is the overlay contribution from all non-Base, non-Total sleeves "
+    f"(built-in overlays: {_BUILT_IN_OVERLAY_SLEEVES}). It excludes Base, "
+    "which is the benchmark comparator."
 )
 BASE_ONLY_TOTAL_WARNING = (
     "Base-only configuration: Total excludes Base, so Total will report zero "
@@ -41,18 +43,35 @@ def compute_total_contribution_returns(
     return total
 
 
-def is_base_only_config(config: object) -> bool:
-    """Return true when the run config has no non-benchmark sleeve capital."""
-
-    agents = getattr(config, "agents", ()) or ()
+def _has_positive_non_benchmark_capital(agents: Iterable[object]) -> bool:
     for agent in agents:
-        name = str(getattr(agent, "name", ""))
+        params = getattr(agent, "p", None)
+        if isinstance(agent, Mapping):
+            name = str(agent.get("name", ""))
+            raw_capital = agent.get("capital", 0.0)
+        else:
+            name = str(getattr(agent, "name", getattr(params, "name", "")))
+            raw_capital = getattr(agent, "capital", getattr(params, "capital_mm", 0.0))
         if name in DEFAULT_PORTFOLIO_EXCLUDES:
             continue
         try:
-            capital = float(getattr(agent, "capital", 0.0) or 0.0)
+            capital = float(raw_capital or 0.0)
         except (TypeError, ValueError):
             capital = 0.0
         if capital > 0.0:
-            return False
-    return True
+            return True
+    return False
+
+
+def is_base_only_config(config: object) -> bool:
+    """Return true when the effective run has no non-benchmark sleeve capital."""
+
+    effective_agents: Iterable[object]
+    try:
+        from ..agents.registry import build_from_config
+
+        effective_agents = build_from_config(config)  # type: ignore[arg-type]
+    except (AttributeError, FileNotFoundError, KeyError, OSError, TypeError, ValueError):
+        raw_agents = getattr(config, "agents", ())
+        effective_agents = raw_agents or ()
+    return not _has_positive_non_benchmark_capital(effective_agents)

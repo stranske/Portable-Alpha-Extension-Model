@@ -233,7 +233,7 @@ def main() -> None:
     if {SUMMARY_AGENT_COLUMN, SUMMARY_ANN_RETURN_COLUMN} <= set(summary.columns):
         total_rows = summary[summary[SUMMARY_AGENT_COLUMN] == "Total"]
         if not total_rows.empty:
-            total_return = float(total_rows[SUMMARY_ANN_RETURN_COLUMN].iloc[0])
+            total_return = float(total_rows[SUMMARY_ANN_RETURN_COLUMN].mean())
             col4.metric(
                 "Overlay Total",
                 f"{total_return:.2%}",
