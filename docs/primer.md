@@ -18,7 +18,7 @@ This brief guide explains key terms in plain English and shows how to run the mo
 Run a simulation and save results:
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
 ```
 
 Launch the interactive dashboard:

@@ -4,11 +4,11 @@ This program simulates a portable‑alpha plus active‑extension strategy. Each
 distributes capital across internal, external portable‑alpha and active‑extension
 sleeves and draws joint return paths. The command line prints a summary and
 writes an Excel workbook with an embedded risk‑return chart along with optional
-additional figures. Use ``python -m pa_core.cli`` to access all command‑line
+additional figures. Use ``pa run`` to access all command‑line
 features—including dashboard launch and static exports. The parameter templates
 in `config/` already include the mandatory `ShortfallProb` risk metric so the
 CLI will fail fast if you remove it. All tutorials assume you invoke the program
-via ``python -m pa_core.cli``. All parameter files include an `analysis_mode`
+via ``pa run``. All parameter files include an `analysis_mode`
 field selecting `returns`, `capital`, `alpha_shares` or `vol_mult`. The CLI
 validates this value.
 
@@ -95,9 +95,9 @@ pip install -r requirements.txt
 pip install streamlit>=1.35  # required for the dashboard
 
 # Run a quick single-scenario simulation (returns mode by default)
-python -m pa_core.cli \
+pa run \
   --config config/params_template.yml \
-  --index sp500tr_fred_divyield.csv \
+  --index data/sp500tr_fred_divyield.csv \
   --output QuickStart.xlsx
 ```
 
@@ -108,10 +108,10 @@ and specify the appropriate mode:
 # Create a capital sweep config (copy and modify params_template.yml)
 # Set analysis_mode: capital and add ranges for external_pa_capital, active_ext_capital
 
-python -m pa_core.cli \
+pa run \
   --config my_capital_sweep.yml \
   --mode capital \
-  --index sp500tr_fred_divyield.csv \
+  --index data/sp500tr_fred_divyield.csv \
   --output CapitalSweep.xlsx
 ```
 The resulting workbook aggregates every scenario on a **Summary** sheet for
@@ -157,7 +157,7 @@ The simulation engine expects **monthly** return data. The CLI automatically det
 
 Example with resampling:
 ```bash
-python -m pa_core.cli \
+pa run \
   --config config/params_template.yml \
   --index daily_returns.csv \
   --resample monthly \
@@ -166,7 +166,7 @@ python -m pa_core.cli \
 
 If you need to override auto-detection (e.g., for irregular data), use `--index-frequency`:
 ```bash
-python -m pa_core.cli --config config.yml --index data.csv --index-frequency monthly
+pa run --config config.yml --index data.csv --index-frequency monthly
 ```
 
 7. Make sure your parameter file includes `ShortfallProb` under `risk_metrics`; removing it triggers a validation error.
@@ -189,12 +189,12 @@ python -m pa_core.cli --config config.yml --index data.csv --index-frequency mon
    The output workbook includes `rng_seed` and `substream_ids` in the
    `Metadata` sheet.
 10. **Financing spikes** are controlled via `internal_spike_prob`, `ext_pa_spike_prob` and `act_ext_spike_prob`. Set them to `0.0` for a simplified first run.
-11. Run `python -m pa_core.cli --help` at any time to view all command-line options.
+11. Run `pa run --help` at any time to view all command-line options.
 12. Include `--dashboard` to open an interactive Streamlit view after the run completes. Example:
     ```bash
-    python -m pa_core.cli \
+    pa run \
       --config config/params_template.yml \
-      --index sp500tr_fred_divyield.csv \
+      --index data/sp500tr_fred_divyield.csv \
       --output QuickStart.xlsx \
       --dashboard
     ```
@@ -202,7 +202,7 @@ python -m pa_core.cli --config config.yml --index data.csv --index-frequency mon
 13. Install Chrome or Chromium if you plan to use `--png`, `--pdf` or `--pptx`; these exports rely on the browser together with the **kaleido** Python package (`pip install kaleido`).
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
 ```
 The run prints a console summary and writes an Excel workbook (`Outputs.xlsx` by default). If you include the `--pivot` flag the raw return paths are also saved in an
 `AllReturns` sheet. The existing sheet order is retained for compatibility. Convert the extra sheet to an `Outputs.parquet` file and keep it alongside the Excel workbook whenever you want the dashboard to display path‑based charts.
@@ -215,11 +215,11 @@ file with your own returns series and set `--output` to avoid overwriting previo
 
 | Scenario type               | Base template                    | Example command |
 |-----------------------------|----------------------------------|-----------------|
-| Single scenario             | `config/params_template.yml`     | `python -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv --output MyRun.xlsx` |
-| Capital allocation sweep    | Copy `params_template.yml`, set `analysis_mode: capital` | `python -m pa_core.cli --config my_capital_sweep.yml --mode capital --index sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
-| Returns sensitivity sweep   | Copy `params_template.yml`, set `analysis_mode: returns` | `python -m pa_core.cli --config my_returns_sweep.yml --mode returns --index sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
-| Alpha shares optimization   | Copy `params_template.yml`, set `analysis_mode: alpha_shares` | `python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
-| Volatility stress test      | Copy `params_template.yml`, set `analysis_mode: vol_mult` | `python -m pa_core.cli --config my_vol_sweep.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
+| Single scenario             | `config/params_template.yml`     | `pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --output MyRun.xlsx` |
+| Capital allocation sweep    | Copy `params_template.yml`, set `analysis_mode: capital` | `pa run --config my_capital_sweep.yml --mode capital --index data/sp500tr_fred_divyield.csv --output CapitalSweep.xlsx` |
+| Returns sensitivity sweep   | Copy `params_template.yml`, set `analysis_mode: returns` | `pa run --config my_returns_sweep.yml --mode returns --index data/sp500tr_fred_divyield.csv --output ReturnsSweep.xlsx` |
+| Alpha shares optimization   | Copy `params_template.yml`, set `analysis_mode: alpha_shares` | `pa run --config my_alpha_sweep.yml --mode alpha_shares --index data/sp500tr_fred_divyield.csv --output AlphaSweep.xlsx` |
+| Volatility stress test      | Copy `params_template.yml`, set `analysis_mode: vol_mult` | `pa run --config my_vol_sweep.yml --mode vol_mult --index data/sp500tr_fred_divyield.csv --output VolStressTest.xlsx` |
 
 All four sweep modes run correctly when the appropriate `analysis_mode` and `--mode`
 flag are supplied. See the Parameter Sweep Engine section below for YAML snippets.
@@ -249,16 +249,16 @@ Examples:
 
 ```bash
 # Export full committee packet with sensitivity tornado and attribution visuals
-python -m pa_core.cli \
+pa run \
    --config my_first_scenario.yml \
-   --index sp500tr_fred_divyield.csv \
+   --index data/sp500tr_fred_divyield.csv \
    --output Results.xlsx \
    --packet --sensitivity
 
 # Run sleeve suggestions under risk constraints and export top trade-offs
-python -m pa_core.cli \
+pa run \
    --config my_first_scenario.yml \
-   --index sp500tr_fred_divyield.csv \
+   --index data/sp500tr_fred_divyield.csv \
    --output Results.xlsx \
    --suggest-sleeves \
    --tradeoff-table --tradeoff-top 15 \
@@ -320,7 +320,7 @@ CSV file so the CLI can iterate through each scenario automatically.
   `internal_pa_capital` (must sum to the total fund size).
 - **CLI example:**
   ```bash
-  python -m pa_core.cli --mode capital --config my_params.yml
+  pa run --mode capital --config my_params.yml
   ```
   Example parameter file snippet:
   ```yaml
@@ -336,7 +336,7 @@ CSV file so the CLI can iterate through each scenario automatically.
 - **Key parameters:** `exp_return_*` and `vol_*` values in the config file.
 - **CLI example:**
   ```bash
-  python -m pa_core.cli --mode returns --config my_params.yml
+  pa run --mode returns --config my_params.yml
   ```
   Example snippet:
   ```yaml
@@ -351,7 +351,7 @@ CSV file so the CLI can iterate through each scenario automatically.
 - **Key parameters:** `external_pa_alpha_fraction`, `active_share`.
 - **CLI example:**
   ```bash
-  python -m pa_core.cli --mode alpha_shares --config my_params.yml
+  pa run --mode alpha_shares --config my_params.yml
   ```
   Example snippet:
   ```yaml
@@ -366,7 +366,7 @@ CSV file so the CLI can iterate through each scenario automatically.
 - **Key parameters:** `vol_mult` values such as `1.5, 2.0, 2.5`.
 - **CLI example:**
   ```bash
-  python -m pa_core.cli --mode vol_mult --config my_params.yml
+  pa run --mode vol_mult --config my_params.yml
   ```
   Example snippet:
   ```yaml
@@ -396,7 +396,7 @@ match against the summary table.
 Example command:
 
 ```bash
-python -m pa_core.cli --mode capital --config sweep_capital.yml --output Sweep.xlsx
+pa run --mode capital --config sweep_capital.yml --output Sweep.xlsx
 ```
 
 Introductory Tutorials 1‑3 cover the main workflow of implementing a scenario, interpreting the output metrics and visualising risk/return, funding shortfall and tracking error. Later tutorials introduce exports, customisation and stress-testing.
@@ -418,9 +418,9 @@ As a new user, start with the simplest possible setup - a minimal "sweep" that t
 
 2. **Run your first simulation** (minimal single-scenario sweep):
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_first_scenario.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --output MyFirstResults.xlsx
    ```
 
@@ -453,9 +453,9 @@ The `--mode=capital` parameter runs multiple scenarios automatically, varying ex
 
 2. **Run a capital allocation sweep**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_capital_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode capital \
      --output CapitalSweep.xlsx
    ```
@@ -489,9 +489,9 @@ Use `--mode=alpha_shares` to optimize the split between alpha-generating and bet
 
 2. **Run alpha/beta optimization**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_alpha_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode alpha_shares \
      --output AlphaSweep.xlsx
    ```
@@ -520,9 +520,9 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 2. **Run volatility stress test**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_vol_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode vol_mult \
      --output VolStressTest.xlsx
 
@@ -547,9 +547,9 @@ Available presets:
 
 Example CLI run:
 ```bash
-python -m pa_core.cli \
+pa run \
   --config config/params_template.yml \
-  --index sp500tr_fred_divyield.csv \
+  --index data/sp500tr_fred_divyield.csv \
   --stress-preset 2008_vol_regime \
   --output StressPreset_2008.xlsx
 ```
@@ -573,9 +573,9 @@ Use `--mode=returns` to test various return/volatility scenarios:
 
 2. **Run returns sensitivity analysis**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_returns_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode returns \
      --output ReturnsSweep.xlsx
    ```
@@ -605,8 +605,8 @@ You've now mastered:
 **Troubleshooting**:
 - If commands fail, ensure you're in the correct directory and virtual environment is activated
 - Check that CSV templates exist in the `config/` folder
-- Verify `sp500tr_fred_divyield.csv` is present in the root directory
-- Use `python -m pa_core.cli --help` to see all available options
+- Verify `data/sp500tr_fred_divyield.csv` is present
+- Use `pa run --help` to see all available options
 
 ### Introductory Tutorial 2 – Interpret the Metrics (Risk/Return, Shortfall and Tracking Error)
 
@@ -618,9 +618,9 @@ Start by copying `config/params_template.yml` to your working folder and
 inspect the baseline output metrics:
 
 ```bash
-python -m pa_core.cli \
+pa run \
   --config config/params_template.yml \
-  --index sp500tr_fred_divyield.csv \
+  --index data/sp500tr_fred_divyield.csv \
   --output Tutorial2_Baseline.xlsx
 ```
 
@@ -645,10 +645,10 @@ cp config/params_template.yml my_capital_sweep.yml
 # Edit my_capital_sweep.yml: set analysis_mode: capital and add ranges
 
 # Run the sweep
-python -m pa_core.cli \
+pa run \
   --config my_capital_sweep.yml \
   --mode capital \
-  --index sp500tr_fred_divyield.csv \
+  --index data/sp500tr_fred_divyield.csv \
   --output Tutorial2_CapitalSweep.xlsx
 ```
 
@@ -670,8 +670,8 @@ cp config/params_template.yml my_vol_sweep.yml
 # Edit my_vol_sweep.yml: set analysis_mode: vol_mult and add multipliers
 
 # Run the sweeps
-python -m pa_core.cli --config my_alpha_sweep.yml --mode alpha_shares --index sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
-python -m pa_core.cli --config my_vol_sweep.yml --mode vol_mult --index sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
+pa run --config my_alpha_sweep.yml --mode alpha_shares --index data/sp500tr_fred_divyield.csv --output Tutorial2_AlphaSweep.xlsx
+pa run --config my_vol_sweep.yml --mode vol_mult --index data/sp500tr_fred_divyield.csv --output Tutorial2_VolSweep.xlsx
 ```
 
 These sweeps can generate dozens of scenarios (up to 200 depending on the template). Apply the same threshold checks as in Part B and compare results across sheets.
@@ -699,9 +699,9 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 
 1. **Launch the dashboard** – either add `--dashboard` to the CLI call or run
    `streamlit run dashboard/app.py` manually. A quick command is:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config config/params_template.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --output DashboardDemo.xlsx \
      --dashboard
    ```
@@ -764,7 +764,7 @@ When running a parameter sweep you can include the same export flags to produce 
 
 ```bash
 # Create and run a capital sweep with PPTX export
-python -m pa_core.cli \
+pa run \
   --config my_capital_sweep.yml \
   --mode capital \
   --pptx --output CapitalSweep.xlsx
@@ -776,7 +776,7 @@ You can combine multiple export flags to create a full set of images at the same
 
 ```bash
 # Run with multiple export formats
-python -m pa_core.cli \
+pa run \
   --config my_alpha_sweep.yml \
   --mode alpha_shares \
   --png --pdf --pptx --output AlphaSweep.xlsx
@@ -806,9 +806,9 @@ For comprehensive reporting, use the `--packet` flag to generate a professional 
 
 ```bash
 # Generate committee packet for parameter sweep
-python -m pa_core.cli \
+pa run \
   --config my_first_scenario.yml \
-  --index sp500tr_fred_divyield.csv \
+  --index data/sp500tr_fred_divyield.csv \
   --packet --output CommitteeReport.xlsx
 ```
 
@@ -834,7 +834,7 @@ The export packet includes:
 Add descriptive text for screen readers and accessibility compliance:
 
 ```bash
-python -m pa_core.cli \
+pa run \
   --config scenario.yml \
   --index data.csv \
   --packet --alt-text "Risk-return analysis showing efficient frontier" \
@@ -1044,7 +1044,7 @@ class MyAgent(BaseAgent):
 pa-convert-params custom_agent_sweep.csv custom_agent_sweep.yml
 
 # Run the sweep
-python -m pa_core.cli \
+pa run \
   --mode capital \
   --config custom_agent_sweep.yml \
   --output MyAgentSweep.xlsx
@@ -1175,7 +1175,7 @@ cp config/params_template.yml my_stress_test.yml
 # Edit my_stress_test.yml: set analysis_mode: returns and add ranges
 
 # Run stress test
-python -m pa_core.cli \
+pa run \
   --mode returns \
   --config my_stress_test.yml \
   --output StressTest.xlsx
@@ -1232,8 +1232,8 @@ jupyter notebook viz_gallery.ipynb
 Generate a small results file first so the notebook has real data to display:
 
 ```bash
-python -m pa_core.cli --config params_template.yml \
-  --index sp500tr_fred_divyield.csv --output GalleryDemo.xlsx
+pa run --config params_template.yml \
+  --index data/sp500tr_fred_divyield.csv --output GalleryDemo.xlsx
 ```
 
 Open `viz_gallery.ipynb`, load `GalleryDemo.xlsx` (and `GalleryDemo.parquet` if
@@ -1260,7 +1260,7 @@ The model now supports automated sweeps across key parameters. Supply a CSV or Y
 Example command:
 
 ```bash
-python -m pa_core.cli --mode returns --config sweep_returns.yml --output Sweep.xlsx
+pa run --mode returns --config sweep_returns.yml --output Sweep.xlsx
 ```
 
 Each sheet in `Sweep.xlsx` corresponds to one parameter set while the `summary` sheet aggregates the metrics. Use helpers like `viz.surface.make()` or `viz.grid_heatmap.make()` on the summary table to visualise the landscape.
@@ -1270,7 +1270,7 @@ Each sheet in `Sweep.xlsx` corresponds to one parameter set while the `summary` 
 Need presentation-ready slides? Include the `--pptx` flag when running the CLI and a `board_pack.pptx` file will be created with the headline charts.
 
 ```bash
-python -m pa_core.cli --config my_params.yml --index sp500tr_fred_divyield.csv --pptx
+pa run --config my_params.yml --index data/sp500tr_fred_divyield.csv --pptx
 ```
 
 To customise which figures appear, call the helper in Python:
@@ -1357,9 +1357,9 @@ CustomSleeve 0.15                   0.12             0.03              False    
 Example:
 
 ```bash
-python -m pa_core.cli \
+pa run \
    --config config/params_template.yml \
-   --index sp500tr_fred_divyield.csv \
+   --index data/sp500tr_fred_divyield.csv \
    --sensitivity \
    --packet \
    --output Results.xlsx
@@ -1444,9 +1444,9 @@ The constraint inputs above are always used by the suggestor. If you also want a
 Interactive suggest‑and‑apply flow:
 
 ```bash
-python -m pa_core.cli \
+pa run \
    --config config/params_template.yml \
-   --index sp500tr_fred_divyield.csv \
+   --index data/sp500tr_fred_divyield.csv \
    --suggest-sleeves \
    --optimize \
    --max-te 0.03 \
@@ -1463,9 +1463,9 @@ python -m pa_core.cli \
 Export a trade‑off table without interactive selection and include it in the workbook (sheet: `SleeveTradeoffs`):
 
 ```bash
-python -m pa_core.cli \
+pa run \
    --config config/params_template.yml \
-   --index sp500tr_fred_divyield.csv \
+   --index data/sp500tr_fred_divyield.csv \
    --tradeoff-table \
    --tradeoff-top 10 \
    --tradeoff-sort risk_score \

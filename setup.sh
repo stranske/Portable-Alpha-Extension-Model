@@ -2,4 +2,4 @@
 set -e
 python3 -m venv .venv
 source .venv/bin/activate
-./setup_deps.sh
+./scripts/setup_deps.sh

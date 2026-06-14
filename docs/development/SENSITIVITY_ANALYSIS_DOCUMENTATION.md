@@ -12,10 +12,10 @@ Add the `--sensitivity` flag to any simulation:
 
 ```bash
 # Basic sensitivity analysis
-python -m pa_core.cli --config my_scenario.yml --index returns.csv --output results.xlsx --sensitivity
+pa run --config my_scenario.yml --index returns.csv --output results.xlsx --sensitivity
 
 # With parameter sweep (shows sweep-level sensitivity)
-python -m pa_core.cli --config my_scenario.yml --index returns.csv --mode returns --sensitivity
+pa run --config my_scenario.yml --index returns.csv --mode returns --sensitivity
 ```
 
 ## How It Works
