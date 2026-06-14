@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 import yaml
 
 from pa_core.cli import main
@@ -276,3 +277,25 @@ def test_sweep_return_overrides_convert_to_monthly(monkeypatch) -> None:
     assert np.isclose(params["default_sigma_H"], 0.01 / np.sqrt(12.0))
     assert np.isclose(params["default_mu_E"], 0.01 / 12.0)
     assert np.isclose(params["default_sigma_E"], 0.02 / np.sqrt(12.0))
+
+
+def test_sweep_overrides_revalidate_inert_spike_settings(monkeypatch) -> None:
+    cfg = load_config(
+        {
+            "N_SIMULATIONS": 1,
+            "N_MONTHS": 2,
+            "financing_mode": "broadcast",
+            "analysis_mode": "returns",
+        }
+    )
+    idx_series = pd.Series([0.0, 0.0])
+
+    monkeypatch.setattr(
+        "pa_core.sweep.generate_parameter_combinations",
+        lambda _cfg: iter([{"internal_spike_prob": 0.25}]),
+    )
+
+    rng_returns = spawn_rngs(7, 1)[0]
+    fin_rngs = spawn_agent_rngs(7, ["internal", "external_pa", "active_ext"])
+    with pytest.raises(ValueError, match="internal_financing_sigma_month"):
+        run_parameter_sweep(cfg, idx_series, rng_returns, fin_rngs, progress=lambda x, **_: x)

@@ -229,6 +229,11 @@ class ModelConfig(BaseModel):
             "monthly": ("sigma_M_monthly",),
         },
     }
+    _FINANCING_SPIKE_FIELDS: ClassVar[tuple[tuple[str, str, str], ...]] = (
+        ("internal_financing_sigma_month", "internal_spike_prob", "internal_spike_factor"),
+        ("ext_pa_financing_sigma_month", "ext_pa_spike_prob", "ext_pa_spike_factor"),
+        ("act_ext_financing_sigma_month", "act_ext_spike_prob", "act_ext_spike_factor"),
+    )
 
     backend: str = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
@@ -809,6 +814,12 @@ class ModelConfig(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def check_financing_spikes_have_volatility(self) -> "ModelConfig":
+        self._trace_transform(self, "check_financing_spikes_have_volatility")
+        validate_financing_spikes(self)
+        return self
+
+    @model_validator(mode="after")
     def check_capital(self) -> "ModelConfig":
         self._trace_transform(self, "check_capital")
         from .validators import validate_capital_allocation
@@ -1081,6 +1092,30 @@ class ModelConfig(BaseModel):
             raise ValueError("; ".join(error_messages))
 
         return self
+
+
+def validate_financing_spikes(cfg: "ModelConfig") -> None:
+    """Raise ``ValueError`` if any financing spike is configured with zero volatility.
+
+    Shared by :meth:`ModelConfig.check_financing_spikes_have_volatility` (run at
+    construction) and the parameter sweep, which builds each case with
+    ``model_copy`` and therefore does not re-run model validators. Only the inert
+    spike check is enforced on sweep overrides; broader constraints such as the
+    capital buffer are intentionally not re-validated so the sweep can still
+    explore over-margin parameter combinations.
+    """
+    inert_spikes = []
+    for sigma_field, prob_field, factor_field in cfg._FINANCING_SPIKE_FIELDS:
+        sigma = float(getattr(cfg, sigma_field))
+        spike_prob = float(getattr(cfg, prob_field))
+        spike_factor = float(getattr(cfg, factor_field))
+        if sigma == 0.0 and (spike_prob > 0.0 or spike_factor != 0.0):
+            inert_spikes.append(f"{prob_field}/{factor_field} require {sigma_field} > 0")
+    if inert_spikes:
+        raise ValueError(
+            "financing spike settings are inert when financing volatility is zero: "
+            + "; ".join(inert_spikes)
+        )
 
 
 def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:

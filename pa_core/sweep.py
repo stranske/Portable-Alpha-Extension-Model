@@ -21,7 +21,7 @@ except ImportError:  # pragma: no cover - fallback when tqdm is unavailable
     _HAS_TQDM = False
 
 from .agents.registry import build_from_config
-from .config import ModelConfig, SweepConfig, SweepParameter, normalize_share
+from .config import ModelConfig, SweepConfig, SweepParameter, normalize_share, validate_financing_spikes
 from .contracts import SUMMARY_NUMERIC_COLUMNS
 from .random import spawn_agent_rngs, spawn_rngs
 from .sim import (
@@ -589,7 +589,12 @@ def run_parameter_sweep(
             for name, rng in fin_rngs.items():
                 rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])
 
+        # Build each sweep case with ``model_copy`` (no full re-validation) so the
+        # grid can explore over-margin capital combinations as before, but re-run
+        # the inert-spike check so a sweep override cannot silently introduce a
+        # spike with zero financing volatility.
         mod_cfg = cfg.model_copy(update=overrides)
+        validate_financing_spikes(mod_cfg)
 
         if returns_static:
             if base_params is None:
