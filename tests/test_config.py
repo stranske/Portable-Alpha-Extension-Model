@@ -231,6 +231,35 @@ def test_invalid_capital(tmp_path):
         raise AssertionError("Expected validation failure")
 
 
+def test_total_fund_capital_must_be_positive():
+    # total_fund_capital == 0 previously reached the agent-compile validator and
+    # raised ZeroDivisionError on `sleeve_cap / total_cap`. A gt=0 Field
+    # constraint now rejects it cleanly at validation time.
+    data = {
+        "N_SIMULATIONS": 1,
+        "N_MONTHS": 1,
+        "financing_mode": "broadcast",
+        "total_fund_capital": 0.0,
+        "external_pa_capital": 100.0,
+    }
+    with pytest.raises(ValidationError):
+        ModelConfig(**data)
+
+
+def test_spike_prob_and_financing_sigma_bounds():
+    base = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    # spike probabilities are bounded to [0, 1]
+    with pytest.raises(ValidationError):
+        ModelConfig(**base, internal_spike_prob=1.5)
+    with pytest.raises(ValidationError):
+        ModelConfig(**base, ext_pa_spike_prob=-0.1)
+    # financing vols cannot be negative
+    with pytest.raises(ValidationError):
+        ModelConfig(**base, internal_financing_sigma_month=-0.01)
+    with pytest.raises(ValidationError):
+        ModelConfig(**base, internal_pa_financing_sigma_month=-0.01)
+
+
 def test_agents_missing_benchmark():
     data = {
         "N_SIMULATIONS": 1,

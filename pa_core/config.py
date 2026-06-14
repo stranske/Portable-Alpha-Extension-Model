@@ -258,7 +258,9 @@ class ModelConfig(BaseModel):
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
     active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
-    total_fund_capital: float = Field(default=1000.0, alias="Total fund capital (mm)")
+    total_fund_capital: float = Field(
+        default=1000.0, gt=0, alias="Total fund capital (mm)"
+    )
     agents: List[AgentConfig] = Field(default_factory=list)
 
     w_beta_H: float = Field(default=0.5, alias="In-House beta share")
@@ -297,9 +299,11 @@ class ModelConfig(BaseModel):
         default=0.0, alias="Internal financing mean (monthly %)"
     )
     internal_financing_sigma_month: float = Field(
-        default=0.0, alias="Internal financing vol (monthly %)"
+        default=0.0, ge=0, alias="Internal financing vol (monthly %)"
     )
-    internal_spike_prob: float = Field(default=0.0, alias="Internal monthly spike prob")
+    internal_spike_prob: float = Field(
+        default=0.0, ge=0, le=1, alias="Internal monthly spike prob"
+    )
     internal_spike_factor: float = Field(default=0.0, alias="Internal spike multiplier")
 
     # Internal-PA financing cost (issue #1849). Distinct from the margin
@@ -316,6 +320,7 @@ class ModelConfig(BaseModel):
     )
     internal_pa_financing_sigma_month: float = Field(
         default=0.0,
+        ge=0,
         alias="Internal PA financing vol (monthly %)",
         description="Optional monthly stochastic vol for the internal-PA financing cost.",
     )
@@ -334,18 +339,22 @@ class ModelConfig(BaseModel):
         default=0.0, alias="External PA financing mean (monthly %)"
     )
     ext_pa_financing_sigma_month: float = Field(
-        default=0.0, alias="External PA financing vol (monthly %)"
+        default=0.0, ge=0, alias="External PA financing vol (monthly %)"
     )
-    ext_pa_spike_prob: float = Field(default=0.0, alias="External PA monthly spike prob")
+    ext_pa_spike_prob: float = Field(
+        default=0.0, ge=0, le=1, alias="External PA monthly spike prob"
+    )
     ext_pa_spike_factor: float = Field(default=0.0, alias="External PA spike multiplier")
 
     act_ext_financing_mean_month: float = Field(
         default=0.0, alias="Active Ext financing mean (monthly %)"
     )
     act_ext_financing_sigma_month: float = Field(
-        default=0.0, alias="Active Ext financing vol (monthly %)"
+        default=0.0, ge=0, alias="Active Ext financing vol (monthly %)"
     )
-    act_ext_spike_prob: float = Field(default=0.0, alias="Active Ext monthly spike prob")
+    act_ext_spike_prob: float = Field(
+        default=0.0, ge=0, le=1, alias="Active Ext monthly spike prob"
+    )
     act_ext_spike_factor: float = Field(default=0.0, alias="Active Ext spike multiplier")
     financing_mode: Literal["broadcast", "per_path"] = Field(
         ...,
@@ -556,6 +565,12 @@ class ModelConfig(BaseModel):
             return field_info.default
 
         total_cap = float(_get_value("total_fund_capital", ("Total fund capital (mm)",)))
+        if total_cap <= 0:
+            # Guard the sleeve `capital / total_cap` shares below: a zero/negative
+            # total fund capital previously raised ZeroDivisionError here, before
+            # the gt=0 Field constraint could report it. Raise a clean validation
+            # error instead.
+            raise ValueError("total_fund_capital must be greater than 0")
         w_beta = normalize_share(_get_value("w_beta_H", ("In-House beta share",)))
         w_alpha = normalize_share(_get_value("w_alpha_H", ("In-House alpha share",)))
         theta = normalize_share(_get_value("theta_extpa", ("External PA alpha fraction",)))

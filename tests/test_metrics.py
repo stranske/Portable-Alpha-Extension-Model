@@ -63,6 +63,25 @@ def test_compound_and_summary():
     assert np.isfinite(ann_vol)
 
 
+def test_annualised_return_total_loss_is_finite():
+    # A catastrophic month (<= -100%) drives the mean terminal multiple to <= 0
+    # (base 1 + mean <= 0); this must not produce NaN / RuntimeWarning from a
+    # fractional power of a non-positive base.
+    arr = np.array([[-1.5, 0.2]])
+    ann_ret = annualised_return(arr)
+    assert np.isfinite(ann_ret)
+    assert ann_ret == -1.0
+
+
+def test_annualised_vol_single_observation_is_finite():
+    # ddof=1 sample std is undefined for a single observation; guard returns 0.0
+    # rather than NaN from the divide-by-zero.
+    arr = np.array([[0.01]])
+    ann_vol = annualised_vol(arr)
+    assert np.isfinite(ann_vol)
+    assert ann_vol == 0.0
+
+
 def test_summary_table_adds_total_when_benchmark_present():
     base = np.zeros((2, 3))
     ext = np.array([[0.01, -0.01, 0.02], [0.0, 0.01, -0.02]])
