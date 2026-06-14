@@ -17,7 +17,7 @@ import streamlit as st
 import yaml
 
 from dashboard import cli as dashboard_cli
-from dashboard.app import _DEF_THEME, _DEF_XLSX, apply_theme
+from dashboard.app import _DEF_XLSX, apply_theme, render_settings_sidebar
 from dashboard.components.config_chat import render_config_chat_panel
 from dashboard.components.llm_settings import (
     default_api_key,
@@ -1959,7 +1959,7 @@ def main() -> None:
         st.session_state.wizard_config = get_default_config(AnalysisMode.RETURNS)
 
     # Theme and validation settings in sidebar
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    _, theme_path = render_settings_sidebar()
     apply_theme(theme_path)
 
     st.sidebar.markdown("---")

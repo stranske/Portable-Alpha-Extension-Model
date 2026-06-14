@@ -14,7 +14,7 @@ from typing import cast
 import pandas as pd
 import streamlit as st
 
-from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.utils import (
     config_capital_defaults,
     current_index_returns,
@@ -62,7 +62,7 @@ def _config_diff(base: ModelConfig, stressed: ModelConfig) -> pd.DataFrame:
 
 def main() -> None:
     st.title("Stress Lab (presets)")
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    _, theme_path = render_settings_sidebar()
     apply_theme(theme_path)
 
     st.markdown("Pick a preset, run base vs stressed with identical seeds, and review deltas.")

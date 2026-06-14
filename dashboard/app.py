@@ -28,6 +28,30 @@ _DEF_XLSX = DEFAULT_OUTPUT_FILENAME
 _DEF_THEME = "config_theme.yaml"
 _PARQUET_HINT = "Parquet support missing; install pyarrow or use CSV."
 
+ADVANCED_SETTINGS_LABEL = "Advanced / Settings"
+
+
+def render_settings_sidebar(results_default: str | None = None) -> tuple[str | None, str]:
+    """Render file-path internals inside a collapsed sidebar expander.
+
+    The theme-file path (and, on the Results page, the results workbook path)
+    are configuration internals that previously sat as raw text inputs at the
+    top of every page's sidebar. Tucking them inside a collapsed
+    ``"Advanced / Settings"`` expander keeps the default sidebar focused on the
+    user's workflow while leaving the controls available for power users.
+
+    Returns ``(results_path, theme_path)``. When ``results_default`` is ``None``
+    the results input is omitted and the returned results path is ``None``.
+    """
+    with st.sidebar.expander(ADVANCED_SETTINGS_LABEL, expanded=False):
+        results_path = (
+            st.text_input("Results file", results_default)
+            if results_default is not None
+            else None
+        )
+        theme_path = st.text_input("Theme file", _DEF_THEME)
+    return results_path, theme_path
+
 
 def _cache_data(ttl: int):
     """Fallback wrapper when Streamlit cache decorators are unavailable."""
@@ -206,6 +230,16 @@ def _render_getting_started() -> None:
 
 def main() -> None:
     """Render the dashboard home page."""
+
+    # Give the home page a real browser/page title instead of the Streamlit
+    # default derived from the entry-point filename ("app").
+    try:
+        st.set_page_config(page_title="Portable Alpha Dashboard", page_icon="📈")
+    except Exception:
+        # set_page_config raises if called more than once per session (e.g. on
+        # a Streamlit rerun) or when unavailable in bare/test mode; the title is
+        # cosmetic, so a repeat call must not break the page.
+        pass
 
     st.title("Portable Alpha Dashboard")
     st.write("Select a page from the sidebar or use the links below to begin.")
