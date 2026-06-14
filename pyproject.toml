@@ -5,6 +5,13 @@ extend-exclude = ["archive/*", "build/*", "dist/*"]
 [tool.ruff.lint]
 extend-ignore = ["E501"]
 
+[tool.ruff.lint.per-file-ignores]
+# Tutorial notebooks deliberately run setup code (repo-root discovery,
+# sys.path.insert, os.chdir, matplotlib/warnings configuration) before the
+# bulk of their imports in the bootstrap cell, so the later module-level
+# imports legitimately trip E402. Suppress it for notebooks only.
+"*.ipynb" = ["E402"]
+
 [tool.black]
 line-length = 100
 target-version = ['py312']
