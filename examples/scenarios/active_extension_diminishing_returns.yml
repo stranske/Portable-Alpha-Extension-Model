@@ -1,0 +1,61 @@
+# "How much active extension is enough?" — moderate diminishing-returns preset (issue #1924)
+#
+# Demonstrates the transfer-coefficient feature: expected alpha grows sub-linearly
+# with active share while active risk grows linearly, so the information ratio
+# declines as the active bet grows and (with a positive extension cost) net alpha
+# has an interior optimum.
+#
+# Run an alpha-shares sweep and inspect the Summary across active_share levels:
+#   pa run --config examples/scenarios/active_extension_diminishing_returns.yml \
+#          --index data/sp500tr_fred_divyield.csv --output Outputs.xlsx
+# Net (terminal) return rises then falls, peaking near the closed-form optimum
+#   s* = (sqrt(mu_E_monthly / cost) - 1) / kappa.
+# Here mu_E_monthly = 0.05/12 ≈ 0.004167, cost = 0.0026, kappa = 0.43  ->  s* ≈ 0.62.
+
+N_SIMULATIONS: 2000
+N_MONTHS: 12
+analysis_mode: alpha_shares   # sweep active_share (and external PA alpha fraction)
+financing_mode: per_path      # correct mode for risk/tail dispersion
+
+external_pa_capital: 100.0
+active_ext_capital: 100.0
+internal_pa_capital: 100.0
+total_fund_capital: 300.0
+
+w_beta_H: 0.5
+w_alpha_H: 0.5
+theta_extpa: 0.5
+active_share: 0.5
+
+# --- Moderate diminishing returns (the preset) ---
+# kappa = 0.43  =>  IR at active_share=1 is ~70% of the small-bet IR (1/(1+0.43)=0.70).
+active_share_tc_decay: 0.43
+theta_tc_decay: 0.43
+# Positive monthly extension cost per unit of the lever -> interior optimum.
+active_ext_cost_per_share: 0.0026
+ext_pa_cost_per_share: 0.0026
+
+return_unit: annual
+mu_H_annual: 0.04
+sigma_H_annual: 0.01
+mu_E_annual: 0.05
+sigma_E_annual: 0.02
+mu_M_annual: 0.03
+sigma_M_annual: 0.02
+
+rho_idx_H: 0.05
+rho_idx_E: 0.00
+rho_idx_M: 0.00
+rho_H_E: 0.10
+rho_H_M: 0.10
+rho_E_M: 0.00
+
+# Sweep grid for active share (percent): 20%, 25%, ..., 100%
+active_share_min_pct: 20.0
+active_share_max_pct: 100.0
+active_share_step_pct: 5.0
+
+risk_metrics:
+  - Return
+  - Risk
+  - terminal_ShortfallProb

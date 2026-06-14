@@ -15,6 +15,22 @@ w_alpha_H: 0.5 # internal sleeve alpha weight
 theta_extpa: 0.5 # external PA alpha fraction
 active_share: 0.5 # active-extension active share fraction
 
+# Diminishing returns to active extension (transfer coefficient), issue #1924.
+# TC(s) = 1/(1 + decay*s): expected alpha grows sub-linearly with the lever while
+# active risk still grows linearly, so the information ratio declines as you push
+# active share/theta -- matching the active-extension literature (an interior
+# optimum exists). 0.0 = linear/legacy (default; reproduces prior behaviour exactly).
+# "Moderate diminishing returns" preset: 0.43 makes the IR at active_share=1 about
+# 70% of the small-bet IR (1/(1+0.43) = 0.70). See docs/guides/HOW_MUCH_EXTENSION.md
+# and examples/scenarios/active_extension_diminishing_returns.yml.
+active_share_tc_decay: 0.0   # kappa for ActiveExt; try 0.43 for moderate diminishing returns
+theta_tc_decay: 0.0          # kappa for ExternalPA
+# Optional monthly extension cost charged per unit of the lever (fraction of NAV).
+# With a positive cost the net-alpha curve has a closed-form interior optimum
+# s* = (sqrt(mu/cost) - 1)/kappa, so the model can answer "how much is enough".
+active_ext_cost_per_share: 0.0
+ext_pa_cost_per_share: 0.0
+
 # Return units are annual by default and converted to monthly at config load.
 # Set return_unit: monthly if you provide monthly inputs directly.
 return_unit: annual # annual|monthly

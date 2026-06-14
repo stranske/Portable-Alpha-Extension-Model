@@ -137,3 +137,14 @@ def test_config_wiring_kappa_reduces_active_ext_return():
     # same seed => identical draws => the transfer-coefficient haircut deterministically
     # lowers the ActiveExt expected return.
     assert r_decay < r_legacy
+
+
+def test_preset_example_loads_with_moderate_decay():
+    """The shipped 'moderate diminishing returns' example validates and uses kappa=0.43."""
+    from pa_core.config import load_config
+
+    root = Path(__file__).resolve().parents[1]
+    cfg = load_config(str(root / "examples/scenarios/active_extension_diminishing_returns.yml"))
+    assert cfg.active_share_tc_decay == pytest.approx(0.43)
+    assert cfg.theta_tc_decay == pytest.approx(0.43)
+    assert cfg.active_ext_cost_per_share > 0.0
