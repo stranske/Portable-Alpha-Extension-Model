@@ -12,12 +12,14 @@ from ..units import DEFAULT_BREACH_THRESHOLD, DEFAULT_SHORTFALL_THRESHOLD
 
 __all__ = [
     "active_return_volatility",
+    "per_path_active_return_volatility",
     "tracking_error",
     "value_at_risk",
     "cvar_monthly",
     "cvar_terminal",
     "compound",
     "annualised_return",
+    "annualised_return_percentile",
     "annualised_vol",
     "breach_probability",
     "breach_count_path0",
@@ -85,6 +87,36 @@ def active_return_volatility(
     return float(np.std(diff, ddof=1) * np.sqrt(periods_per_year))
 
 
+def per_path_active_return_volatility(
+    strategy: ArrayLike,
+    benchmark: ArrayLike,
+    *,
+    periods_per_year: int = 12,
+) -> float:
+    """Return annualised tracking error averaged over per-path active-return vols.
+
+    Unlike :func:`active_return_volatility`, which pools every ``(path, month)``
+    active return into a single dispersion, this computes the annualised
+    volatility of active returns *within each path* and then averages those
+    per-path tracking errors across paths. Because the pooled estimator also
+    absorbs cross-path dispersion of the active-return mean, it is typically
+    higher than this per-path average; this metric isolates the tracking error a
+    single path experiences over time. This is a monthly-draw metric.
+    """
+    if strategy.shape != benchmark.shape:
+        raise ValueError("shape mismatch")
+    diff = np.asarray(strategy, dtype=np.float64) - np.asarray(benchmark, dtype=np.float64)
+    if diff.size <= 1:
+        return 0.0
+    if diff.ndim == 1:
+        return float(np.std(diff, ddof=1) * np.sqrt(periods_per_year))
+    if diff.shape[1] <= 1:
+        # A single month per path leaves the within-path sample std undefined.
+        return 0.0
+    per_path = np.std(diff, axis=1, ddof=1)
+    return float(np.mean(per_path) * np.sqrt(periods_per_year))
+
+
 def tracking_error(
     strategy: ArrayLike,
     benchmark: ArrayLike,
@@ -142,6 +174,38 @@ def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
         # the annualised compound return is a total loss. Return -1.0 rather than
         # raising a RuntimeWarning / returning NaN from a fractional power of a
         # non-positive base.
+        return -1.0
+    return float(np.power(base, 1.0 / years) - 1.0)
+
+
+def annualised_return_percentile(
+    returns: ArrayLike, q: float, periods_per_year: int = 12
+) -> float:
+    """Return the annualised compound return at the ``q``-th percentile of paths.
+
+    :func:`annualised_return` averages the terminal compounded return across
+    paths *before* annualising; that arithmetic mean of terminal wealth is
+    dominated by the right tail and a typical path does not resemble it. This
+    function instead annualises the ``q``-th percentile of the per-path terminal
+    compounded returns, so ``q=50`` gives the median CAGR a typical outcome
+    resembles and ``q=10``/``q=90`` bound the distribution. This is a
+    terminal-outcome metric.
+    """
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.ndim == 1:
+        arr = arr.reshape(1, -1)
+    if arr.ndim != 2:
+        raise ValueError("returns must be a 1D or 2D array")
+    comp = compound(arr)
+    total_return = comp[:, -1]
+    years = arr.shape[1] / periods_per_year
+    base = 1.0 + float(np.percentile(total_return, q))
+    if base <= 0.0:
+        # Percentile terminal multiple wiped out: report a total loss rather than
+        # raising from a fractional power of a non-positive base (mirrors
+        # :func:`annualised_return`).
         return -1.0
     return float(np.power(base, 1.0 / years) - 1.0)
 
@@ -444,6 +508,9 @@ def summary_table(
     )
     for name, arr in returns.items():
         ann_ret = annualised_return(arr, periods_per_year)
+        ann_ret_p50 = annualised_return_percentile(arr, 50, periods_per_year)
+        ann_ret_p10 = annualised_return_percentile(arr, 10, periods_per_year)
+        ann_ret_p90 = annualised_return_percentile(arr, 90, periods_per_year)
         ann_vol = annualised_vol(arr, periods_per_year)
         excess_return = ann_ret - bench_ann_ret if bench_ann_ret is not None else ann_ret
         var = value_at_risk(arr, confidence=var_conf)
@@ -463,11 +530,19 @@ def summary_table(
             if bench_arr is not None and name != benchmark
             else None
         )
+        te_per_path = (
+            per_path_active_return_volatility(arr, bench_arr, periods_per_year=periods_per_year)
+            if bench_arr is not None and name != benchmark
+            else None
+        )
         extras = {k: fn(arr) for k, fn in _EXTRA_METRICS.items()}
         rows.append(
             {
                 "Agent": name,
                 "terminal_AnnReturn": ann_ret,
+                "terminal_AnnReturn_P50": ann_ret_p50,
+                "terminal_AnnReturn_P10": ann_ret_p10,
+                "terminal_AnnReturn_P90": ann_ret_p90,
                 "terminal_ExcessReturn": excess_return,
                 "monthly_AnnVol": ann_vol,
                 "monthly_VaR": var,
@@ -479,6 +554,7 @@ def summary_table(
                 "monthly_BreachCountPath0": bcount,
                 "terminal_ShortfallProb": shortfall,
                 "monthly_TE": te,
+                "monthly_TE_PerPath": te_per_path,
                 **extras,
             }
         )
@@ -491,7 +567,28 @@ _METRIC_DEFINITIONS = [
     {
         "Metric": "terminal_AnnReturn",
         "MetricType": "terminal_outcome",
-        "Description": "Annualized compounded return from terminal outcomes.",
+        "Description": (
+            "Annualized compounded return from the mean of terminal outcomes "
+            "(an E[wealth]-style average a typical path does not resemble)."
+        ),
+    },
+    {
+        "Metric": "terminal_AnnReturn_P50",
+        "MetricType": "terminal_outcome",
+        "Description": (
+            "Median annualized compounded return (CAGR) across paths; the "
+            "outcome a typical path resembles."
+        ),
+    },
+    {
+        "Metric": "terminal_AnnReturn_P10",
+        "MetricType": "terminal_outcome",
+        "Description": "10th-percentile annualized compounded return across paths.",
+    },
+    {
+        "Metric": "terminal_AnnReturn_P90",
+        "MetricType": "terminal_outcome",
+        "Description": "90th-percentile annualized compounded return across paths.",
     },
     {
         "Metric": "terminal_ExcessReturn",
@@ -546,7 +643,19 @@ _METRIC_DEFINITIONS = [
     {
         "Metric": "monthly_TE",
         "MetricType": "monthly_draw",
-        "Description": "Annualized tracking error versus benchmark.",
+        "Description": (
+            "Annualized tracking error versus benchmark, pooling every "
+            "(path, month) active return into a single dispersion."
+        ),
+    },
+    {
+        "Metric": "monthly_TE_PerPath",
+        "MetricType": "monthly_draw",
+        "Description": (
+            "Annualized tracking error averaged over per-path active-return "
+            "volatilities (excludes cross-path dispersion; typically lower than "
+            "monthly_TE)."
+        ),
     },
 ]
 

@@ -86,12 +86,16 @@ def export_sweep_results(
         ws = wb["Summary"]
         metrics = {
             "terminal_AnnReturn",
+            "terminal_AnnReturn_P50",
+            "terminal_AnnReturn_P10",
+            "terminal_AnnReturn_P90",
             "monthly_AnnVol",
             "monthly_VaR",
             "monthly_CVaR",
             "terminal_CVaR",
             "monthly_BreachProb",
             "monthly_TE",
+            "monthly_TE_PerPath",
         }
         header = [cell.value for cell in next(ws.iter_rows(min_row=1, max_row=1))]
         for idx, col_name in enumerate(header, 1):
