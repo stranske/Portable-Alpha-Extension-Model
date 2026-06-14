@@ -229,6 +229,11 @@ class ModelConfig(BaseModel):
             "monthly": ("sigma_M_monthly",),
         },
     }
+    _FINANCING_SPIKE_FIELDS: ClassVar[tuple[tuple[str, str, str], ...]] = (
+        ("internal_financing_sigma_month", "internal_spike_prob", "internal_spike_factor"),
+        ("ext_pa_financing_sigma_month", "ext_pa_spike_prob", "ext_pa_spike_factor"),
+        ("act_ext_financing_sigma_month", "act_ext_spike_prob", "act_ext_spike_factor"),
+    )
 
     backend: str = Field(default="numpy")
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
@@ -806,6 +811,23 @@ class ModelConfig(BaseModel):
             raise ValueError(f"financing_model must be one of: {sorted(valid)}")
         if self.financing_model == "schedule" and self.financing_schedule_path is None:
             raise ValueError("financing_schedule_path required for schedule financing model")
+        return self
+
+    @model_validator(mode="after")
+    def check_financing_spikes_have_volatility(self) -> "ModelConfig":
+        self._trace_transform(self, "check_financing_spikes_have_volatility")
+        inert_spikes = []
+        for sigma_field, prob_field, factor_field in self._FINANCING_SPIKE_FIELDS:
+            sigma = float(getattr(self, sigma_field))
+            spike_prob = float(getattr(self, prob_field))
+            spike_factor = float(getattr(self, factor_field))
+            if sigma == 0.0 and (spike_prob > 0.0 or spike_factor > 0.0):
+                inert_spikes.append(f"{prob_field}/{factor_field} require {sigma_field} > 0")
+        if inert_spikes:
+            raise ValueError(
+                "financing spike settings are inert when financing volatility is zero: "
+                + "; ".join(inert_spikes)
+            )
         return self
 
     @model_validator(mode="after")

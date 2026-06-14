@@ -260,6 +260,53 @@ def test_spike_prob_and_financing_sigma_bounds():
         ModelConfig(**base, internal_pa_financing_sigma_month=-0.01)
 
 
+@pytest.mark.parametrize(
+    ("sigma_field", "prob_field", "factor_field"),
+    [
+        (
+            "internal_financing_sigma_month",
+            "internal_spike_prob",
+            "internal_spike_factor",
+        ),
+        (
+            "ext_pa_financing_sigma_month",
+            "ext_pa_spike_prob",
+            "ext_pa_spike_factor",
+        ),
+        (
+            "act_ext_financing_sigma_month",
+            "act_ext_spike_prob",
+            "act_ext_spike_factor",
+        ),
+    ],
+)
+def test_financing_spikes_require_matching_volatility(sigma_field, prob_field, factor_field):
+    base = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+
+    with pytest.raises(ValidationError, match=sigma_field):
+        ModelConfig(**base, **{prob_field: 0.25})
+    with pytest.raises(ValidationError, match=sigma_field):
+        ModelConfig(**base, **{factor_field: 2.0})
+
+    cfg = ModelConfig(
+        **base,
+        **{
+            sigma_field: 0.01,
+            prob_field: 0.25,
+            factor_field: 2.0,
+        },
+    )
+    assert getattr(cfg, sigma_field) == 0.01
+
+
+def test_financing_volatility_can_be_zero_when_spikes_are_disabled():
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
+
+    assert cfg.internal_financing_sigma_month == 0.0
+    assert cfg.ext_pa_financing_sigma_month == 0.0
+    assert cfg.act_ext_financing_sigma_month == 0.0
+
+
 def test_agents_missing_benchmark():
     data = {
         "N_SIMULATIONS": 1,
@@ -730,6 +777,7 @@ def test_model_config_logs_transform_order(caplog: pytest.LogCaptureFixture) -> 
         "normalize_share_inputs",
         "compile_agent_config",
         "check_financing_model",
+        "check_financing_spikes_have_volatility",
         "check_capital",
         "check_return_distribution",
         "check_correlations",
