@@ -136,7 +136,14 @@ def annualised_return(returns: ArrayLike, periods_per_year: int = 12) -> float:
     comp = compound(returns)
     total_return = comp[:, -1]
     years = returns.shape[1] / periods_per_year
-    return float(np.power(1.0 + np.mean(total_return), 1.0 / years) - 1.0)
+    base = 1.0 + float(np.mean(total_return))
+    if base <= 0.0:
+        # Mean terminal multiple is wiped out (mean compounded return <= -100%):
+        # the annualised compound return is a total loss. Return -1.0 rather than
+        # raising a RuntimeWarning / returning NaN from a fractional power of a
+        # non-positive base.
+        return -1.0
+    return float(np.power(base, 1.0 / years) - 1.0)
 
 
 def annualised_vol(returns: ArrayLike, periods_per_year: int = 12) -> float:
@@ -146,6 +153,12 @@ def annualised_vol(returns: ArrayLike, periods_per_year: int = 12) -> float:
     annualised. This is a monthly-draw metric.
     """
     arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.size == 1:
+        # The ddof=1 sample standard deviation is undefined for a single
+        # observation; report 0.0 rather than NaN from the divide-by-zero.
+        return 0.0
     return float(np.std(arr, ddof=1) * np.sqrt(periods_per_year))
 
 
