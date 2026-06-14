@@ -337,6 +337,23 @@ def _get_empty_results_dataframe() -> pd.DataFrame:
     return _EMPTY_RESULTS_DF.copy()
 
 
+def _derive_regime_rng(rng_returns: GeneratorLike) -> GeneratorLike:
+    """Derive a regime RNG deterministically from ``rng_returns``'s state.
+
+    Used when neither a master ``seed`` nor an explicit ``rng_regime`` is
+    supplied: the regime path generator is seeded from a stable hash of the
+    ``rng_returns`` bit-generator state so repeated runs with the same seeded
+    ``rng_returns`` reproduce identical regime paths, while remaining an
+    independent stream from the return draws.
+    """
+    state_repr = json.dumps(
+        rng_returns.bit_generator.state, sort_keys=True, default=str
+    )
+    digest = hashlib.sha256(("pa_core.regime:" + state_repr).encode("utf-8")).digest()
+    entropy = int.from_bytes(digest, "big")
+    return spawn_rngs(entropy, 1)[0]
+
+
 def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
@@ -360,7 +377,16 @@ def run_parameter_sweep(
     """
     results: List[SweepResult] = []
     if rng_regime is None:
-        rng_regime = spawn_rngs(seed, 2)[1] if seed is not None else spawn_rngs(None, 1)[0]
+        if seed is not None:
+            rng_regime = spawn_rngs(seed, 2)[1]
+        else:
+            # No master seed and no explicit regime RNG: derive one
+            # deterministically from the supplied ``rng_returns`` so that direct
+            # callers that seed ``rng_returns``/``fin_rngs`` (the established
+            # reproducibility pattern) still get repeatable regime paths instead
+            # of OS entropy. Reading ``bit_generator.state`` does not advance
+            # ``rng_returns``, so this leaves the downstream draws untouched.
+            rng_regime = _derive_regime_rng(rng_returns)
 
     index_series = normalize_index_series(pd.Series(index_series), get_index_series_unit())
     mu_idx = float(index_series.mean())
