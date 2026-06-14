@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from pa_core.config import ModelConfig, RegimeConfig
+from pa_core.config import ModelConfig, RegimeConfig, annual_vol_to_monthly
 from pa_core.random import spawn_rngs
 from pa_core.sim.paths import draw_joint_returns
 from pa_core.sim.regimes import (
@@ -132,6 +132,96 @@ def test_simulate_regime_paths_rejects_invalid_inputs() -> None:
             transition=[[1.0]],
             start_state=True,
         )
+
+
+def test_regime_sigma_overrides_follow_annual_return_unit() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=2,
+        financing_mode="broadcast",
+        return_unit="annual",
+        sigma_H=0.12,
+        sigma_E=0.24,
+        sigma_M=0.36,
+        regimes=[
+            {
+                "name": "stress",
+                "sigma_H": 0.24,
+                "sigma_E": 0.30,
+                "sigma_M": 0.36,
+            }
+        ],
+        regime_transition=[[1.0]],
+        regime_start="stress",
+    )
+
+    assert cfg.regimes is not None
+    regime = cfg.regimes[0]
+    assert regime.sigma_H == pytest.approx(annual_vol_to_monthly(0.24))
+    assert regime.sigma_E == pytest.approx(annual_vol_to_monthly(0.30))
+    assert regime.sigma_M == pytest.approx(annual_vol_to_monthly(0.36))
+
+    params, labels = build_regime_draw_params(
+        cfg,
+        mu_idx=0.0,
+        idx_sigma=0.01,
+        n_samples=120,
+    )
+    assert labels == ["stress"]
+    assert params[0]["default_sigma_H"] == pytest.approx(annual_vol_to_monthly(0.24))
+
+
+def test_regime_sigma_overrides_follow_annual_return_unit_for_tuple_input() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=2,
+        financing_mode="broadcast",
+        return_unit="annual",
+        regimes=(
+            {
+                "name": "stress",
+                "sigma_H": 0.24,
+                "sigma_E": 0.30,
+                "sigma_M": 0.36,
+            },
+        ),
+        regime_transition=[[1.0]],
+        regime_start="stress",
+    )
+
+    assert cfg.regimes is not None
+    regime = cfg.regimes[0]
+    assert regime.sigma_H == pytest.approx(annual_vol_to_monthly(0.24))
+    assert regime.sigma_E == pytest.approx(annual_vol_to_monthly(0.30))
+    assert regime.sigma_M == pytest.approx(annual_vol_to_monthly(0.36))
+
+
+def test_regime_sigma_overrides_stay_monthly_when_return_unit_monthly() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=2,
+        financing_mode="broadcast",
+        return_unit="monthly",
+        sigma_H=0.01,
+        sigma_E=0.02,
+        sigma_M=0.03,
+        regimes=[
+            RegimeConfig(
+                name="stress",
+                sigma_H=0.04,
+                sigma_E=0.05,
+                sigma_M=0.06,
+            )
+        ],
+        regime_transition=[[1.0]],
+        regime_start="stress",
+    )
+
+    assert cfg.regimes is not None
+    regime = cfg.regimes[0]
+    assert regime.sigma_H == pytest.approx(0.04)
+    assert regime.sigma_E == pytest.approx(0.05)
+    assert regime.sigma_M == pytest.approx(0.06)
 
 
 def test_simulate_regime_paths_normalizes_transition_rows() -> None:
