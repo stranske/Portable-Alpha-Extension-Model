@@ -25,12 +25,17 @@ class _Column:
 def test_step_1_render_clamps_default_simulations_to_widget_min(monkeypatch) -> None:
     module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
     config = get_default_config(AnalysisMode.RETURNS)
-    assert config.n_simulations < 100
+    config.n_simulations = 1
 
     monkeypatch.setattr(module["st"], "subheader", lambda *args, **kwargs: None)
     monkeypatch.setattr(module["st"], "markdown", lambda *args, **kwargs: None)
     monkeypatch.setattr(module["st"], "info", lambda *args, **kwargs: None)
-    monkeypatch.setattr(module["st"], "columns", lambda count: [_Column() for _ in range(count)])
+
+    def columns(spec: int | list[Any], *args: Any, **kwargs: Any) -> list[_Column]:
+        count = spec if isinstance(spec, int) else len(spec)
+        return [_Column() for _ in range(count)]
+
+    monkeypatch.setattr(module["st"], "columns", columns)
     monkeypatch.setattr(
         module["st"],
         "selectbox",
