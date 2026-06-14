@@ -5,6 +5,7 @@ import pytest
 from pa_core.sim.metrics import (
     active_return_volatility,
     annualised_return,
+    annualised_return_percentile,
     annualised_vol,
     breach_count,
     breach_count_path0,
@@ -15,6 +16,7 @@ from pa_core.sim.metrics import (
     cvar_terminal,
     max_cumulative_sum_drawdown,
     max_drawdown,
+    per_path_active_return_volatility,
     shortfall_probability,
     summary_table,
     terminal_return_below_threshold_prob,
@@ -342,6 +344,77 @@ def test_summary_table_shortfall():
     stats = summary_table({"A": arr})
     assert "terminal_ShortfallProb" in stats.columns
     assert stats["terminal_ShortfallProb"].iloc[0] == 0.5
+
+
+def test_annualised_return_percentile_orders_p10_median_p90():
+    # Wide spread of single-month terminal returns across paths.
+    arr = np.array([[-0.3], [-0.1], [0.0], [0.1], [0.4]])
+    p10 = annualised_return_percentile(arr, 10, periods_per_year=12)
+    p50 = annualised_return_percentile(arr, 50, periods_per_year=12)
+    p90 = annualised_return_percentile(arr, 90, periods_per_year=12)
+    assert p10 < p50 < p90
+    # Median path here has a 0.0 terminal return -> 0.0 annualised.
+    assert p50 == pytest.approx(0.0)
+
+
+def test_annualised_return_percentile_matches_annualise_of_percentile():
+    arr = np.array([[0.02, -0.01, 0.03], [0.01, 0.0, -0.02], [0.05, 0.01, 0.0]])
+    comp = compound(arr)
+    total = comp[:, -1]
+    years = arr.shape[1] / 12
+    expected = (1.0 + float(np.percentile(total, 50))) ** (1.0 / years) - 1.0
+    assert annualised_return_percentile(arr, 50) == pytest.approx(expected)
+
+
+def test_annualised_return_percentile_total_loss_floor():
+    # A percentile terminal multiple wiped out should floor at -1.0, not raise.
+    arr = np.array([[-1.0], [-1.0], [-1.0]])
+    assert annualised_return_percentile(arr, 50, periods_per_year=12) == -1.0
+
+
+def test_summary_table_includes_terminal_return_percentiles():
+    arr = np.array([[-0.2], [0.0], [0.3]])
+    stats = summary_table({"Base": arr})
+    for col in ("terminal_AnnReturn_P50", "terminal_AnnReturn_P10", "terminal_AnnReturn_P90"):
+        assert col in stats.columns
+    row = stats.iloc[0]
+    assert row["terminal_AnnReturn_P10"] <= row["terminal_AnnReturn_P50"] <= row["terminal_AnnReturn_P90"]
+
+
+def test_per_path_te_lower_than_pooled_when_means_differ_across_paths():
+    # Two paths with no within-path active variation but different active means:
+    # pooled TE picks up the cross-path mean spread, per-path TE is ~0.
+    strat = np.array([[0.05, 0.05, 0.05], [-0.05, -0.05, -0.05]])
+    bench = np.zeros_like(strat)
+    pooled = active_return_volatility(strat, bench, periods_per_year=12)
+    per_path = per_path_active_return_volatility(strat, bench, periods_per_year=12)
+    assert per_path == pytest.approx(0.0)
+    assert pooled > per_path
+
+
+def test_per_path_te_matches_active_vol_for_single_path():
+    strat = np.array([[0.02, -0.02, 0.0, 0.01]])
+    bench = np.zeros_like(strat)
+    assert per_path_active_return_volatility(strat, bench) == pytest.approx(
+        active_return_volatility(strat, bench)
+    )
+
+
+def test_per_path_te_shape_mismatch_raises():
+    with pytest.raises(ValueError):
+        per_path_active_return_volatility(np.zeros((2, 3)), np.zeros((2, 4)))
+
+
+def test_summary_table_includes_per_path_te_with_benchmark():
+    returns = {
+        "Base": np.array([[0.01, -0.02, 0.03], [0.0, 0.01, -0.01]]),
+        "Active": np.array([[0.03, -0.01, 0.04], [0.01, 0.02, 0.0]]),
+    }
+    stats = summary_table(returns, benchmark="Base").set_index("Agent")
+    assert "monthly_TE_PerPath" in stats.columns
+    # Benchmark agent has no tracking error; active agent has a finite per-path TE.
+    assert pd.isna(stats.loc["Base", "monthly_TE_PerPath"])
+    assert np.isfinite(stats.loc["Active", "monthly_TE_PerPath"])
 
 
 def test_deprecated_metric_aliases_warn():

@@ -15,6 +15,15 @@ Policy summary
   annualised compounded return hurdle.
 - Summary tables report annualised terminal_AnnReturn/monthly_AnnVol/monthly_TE;
   probabilities and counts are unitless.
+- ``terminal_AnnReturn`` annualises the *mean* terminal compounded return
+  (E[wealth]-style), so it is pulled up by the right tail. The companion
+  ``terminal_AnnReturn_P50`` (median CAGR), ``terminal_AnnReturn_P10`` and
+  ``terminal_AnnReturn_P90`` columns report the percentile CAGRs a typical path
+  resembles and the distribution bounds.
+- ``monthly_TE`` pools every ``(path, month)`` active return into one annualised
+  dispersion, so it also absorbs cross-path spread of the active-return mean; the
+  companion ``monthly_TE_PerPath`` column averages per-path tracking errors and
+  is typically lower.
 """
 
 from __future__ import annotations
