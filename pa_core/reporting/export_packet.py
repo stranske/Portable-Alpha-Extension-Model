@@ -7,9 +7,6 @@ errors when static chart export is unavailable.
 
 from __future__ import annotations
 
-import base64
-import io
-import os
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Tuple
 
@@ -19,14 +16,12 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
+from ..viz.pptx_export import add_chart_slide
 from .disclaimers import LIMITATIONS_TITLE, MODEL_LIMITATIONS
 from .excel import export_to_excel, finalize_excel_workbook
 
 __all__ = ["create_export_packet"]
 
-_ONE_PX_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
-)
 RGBColorAny: Any = RGBColor  # python-pptx lacks typing for RGBColor
 
 
@@ -92,30 +87,10 @@ def _add_summary_table_slide(prs: Any, df: pd.DataFrame, title: str = "Executive
 
 
 def _add_chart_slide(prs: Any, fig: Any, alt: str | None = None) -> None:
-    slide = prs.slides.add_slide(prs.slide_layouts[5])
-    if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
-        # Avoid hanging kaleido subprocesses in CI/pytest by using a tiny placeholder image.
-        img = _ONE_PX_PNG
-    else:
-        try:
-            img = fig.to_image(format="png", engine="kaleido")
-        except Exception as e:
-            raise RuntimeError(
-                "PPTX export requires a static image renderer (Kaleido/Chromium). "
-                "Install Plotly Kaleido or Chrome/Chromium. For Debian/Ubuntu: "
-                "pip install 'plotly[kaleido]' or sudo apt-get install -y chromium-browser. "
-                f"Original error: {e}"
-            ) from e
-
-    pic = slide.shapes.add_picture(io.BytesIO(img), Inches(0), Inches(0))
-    if not alt:
-        layout = getattr(fig, "layout", None)
-        title = getattr(layout, "title", None) if layout is not None else None
-        text = getattr(title, "text", None) if title is not None else None
-        alt = str(text) if text else ""
-    if alt:
-        el = pic._element.xpath("./p:nvPicPr/p:cNvPr")[0]
-        el.set("descr", alt)
+    # Delegate to the shared viz exporter so chart rendering and kaleido error
+    # handling stay consistent between the standalone PPTX export and this
+    # committee packet (see pa_core/viz/pptx_export.add_chart_slide).
+    add_chart_slide(prs, fig, alt=alt)
 
 
 def _add_table_slide(prs: Any, df: pd.DataFrame, title: str = "Table") -> None:
