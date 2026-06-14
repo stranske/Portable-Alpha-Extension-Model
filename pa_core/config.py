@@ -22,6 +22,7 @@ import yaml
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
+from .fees import FeeSchedule
 from .share_utils import SHARE_MAX, SHARE_MIN, SHARE_SUM_TOLERANCE, normalize_share
 
 
@@ -260,6 +261,15 @@ class ModelConfig(BaseModel):
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, gt=0, alias="Total fund capital (mm)")
     agents: List[AgentConfig] = Field(default_factory=list)
+    fee_schedule: Optional[Dict[str, FeeSchedule]] = Field(
+        default=None,
+        description=(
+            "Optional per-sleeve management/performance fee schedule keyed by "
+            "agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's "
+            "returns are reported net of fees (issue #1904). None or empty keeps "
+            "the historical gross-of-fee behaviour."
+        ),
+    )
 
     w_beta_H: float = Field(default=0.5, alias="In-House beta share")
     w_alpha_H: float = Field(default=0.5, alias="In-House alpha share")

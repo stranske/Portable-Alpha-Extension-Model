@@ -59,6 +59,7 @@ class DummyConfig:
     regimes: Any = None
     regime_start: Any = None
     regime_transition: Any = None
+    fee_schedule: Any = None
     N_SIMULATIONS: int = 2
     N_MONTHS: int = 3
 
