@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from functools import singledispatch
-from typing import Iterable, Tuple
+from typing import Iterable, Mapping, Tuple
 
 from .agents import (
     ActiveExtensionAgent,
@@ -14,6 +14,7 @@ from .agents import (
     InternalPAAgent,
 )
 from .backend import xp as np
+from .fees import FeeSchedule, apply_fees
 from .portfolio import compute_total_contribution_returns
 from .sim import (
     draw_financing_series,
@@ -92,6 +93,7 @@ def simulate_agents(
     f_ext_pa: ArrayLike,
     f_act_ext: ArrayLike,
     f_internal_pa: ArrayLike | None = None,
+    fee_schedule: Mapping[str, FeeSchedule] | None = None,
 ) -> dict[str, ArrayLike]:
     """Return per-agent monthly returns using vectorised operations.
 
@@ -99,6 +101,12 @@ def simulate_agents(
     (issue #1849). When ``None`` it defaults to an all-zeros matrix shaped like
     ``r_beta``, so callers that do not supply it get the historical behaviour
     (InternalPA = pure in-house alpha).
+
+    ``fee_schedule`` is an optional per-sleeve management/performance fee
+    schedule keyed by agent name (issue #1904). When provided, the matching
+    sleeve's contribution return is reported net of fees and ``Total`` is the
+    sum of the net sleeves. When ``None`` (the default) returns are gross and
+    fully backward compatible.
     """
     results: dict[str, ArrayLike] = {}
     if f_internal_pa is None:
@@ -106,7 +114,12 @@ def simulate_agents(
     streams = (r_beta, r_H, r_E, r_M, f_int, f_ext_pa, f_act_ext, f_internal_pa)
     for agent in agents:
         alpha, financing = _resolve_streams(agent, *streams)
-        results[agent.p.name] = agent.monthly_returns(r_beta, alpha, financing)
+        gross = agent.monthly_returns(r_beta, alpha, financing)
+        if fee_schedule is not None:
+            schedule = fee_schedule.get(agent.p.name)
+            if schedule is not None:
+                gross = apply_fees(gross, schedule)
+        results[agent.p.name] = gross
 
     total = compute_total_returns(results)
     if total is not None:
