@@ -71,6 +71,12 @@ def _has_positive_non_benchmark_capital(agents: Iterable[object]) -> bool:
 
 
 def _agent_tuple(value: object) -> tuple[object, ...] | None:
+    """Normalize agent collections, preserving failed conversion as ``None``.
+
+    Empty tuple means the value was valid but empty or intentionally ignored;
+    ``None`` means conversion failed and the caller should use fallback agents.
+    """
+
     if value is None or isinstance(value, (str, bytes)):
         return ()
     if isinstance(value, Mapping):
