@@ -361,3 +361,69 @@ def test_run_sweep_ignores_global_rng_state() -> None:
     artifacts_b = run_sweep(cfg, idx, sweep_params, RunOptions(seed=123))
 
     pd.testing.assert_frame_equal(artifacts_a.summary, artifacts_b.summary)
+
+
+def test_broadcast_dispersion_warning_fires_when_risk_suppressed():
+    """broadcast + multiple sims + non-zero financing vol -> visible warning (#1909)."""
+    from pa_core.sim.financing import broadcast_dispersion_warning
+
+    msg = broadcast_dispersion_warning("broadcast", 1000, [0.0, 0.05, 0.0])
+    assert msg is not None
+    assert "per_path" in msg
+    assert "tail/CVaR" in msg
+
+
+def test_broadcast_dispersion_warning_includes_internal_pa_sigma_key():
+    """Internal-PA financing volatility also makes broadcast suppress dispersion."""
+    from pa_core.sim.financing import _FINANCING_SIGMA_KEYS, broadcast_dispersion_warning
+
+    sigma_by_key = {key: 0.0 for key in _FINANCING_SIGMA_KEYS}
+    sigma_by_key["internal_pa_financing_sigma_month"] = 0.05
+
+    msg = broadcast_dispersion_warning(
+        "broadcast",
+        1000,
+        (sigma_by_key[key] for key in _FINANCING_SIGMA_KEYS),
+    )
+
+    assert msg is not None
+    assert "tail/CVaR" in msg
+
+
+def test_broadcast_dispersion_warning_silent_when_harmless():
+    """No warning for per_path, a single scenario, or all-zero financing vol."""
+    from pa_core.sim.financing import broadcast_dispersion_warning
+
+    assert broadcast_dispersion_warning("per_path", 1000, [0.05, 0.05, 0.05]) is None
+    assert broadcast_dispersion_warning("broadcast", 1, [0.05, 0.05, 0.05]) is None
+    assert broadcast_dispersion_warning("broadcast", 1000, [0.0, 0.0, 0.0]) is None
+
+
+def test_draw_financing_series_logs_broadcast_warning(caplog):
+    """draw_financing_series surfaces the broadcast risk notice via logging (#1909)."""
+    params = _build_financing_params(
+        internal_financing_mean_month=0.01,
+        internal_financing_sigma_month=0.05,
+    )
+    rng = np.random.default_rng(7)
+    with caplog.at_level("WARNING", logger="pa_core.sim.financing"):
+        draw_financing_series(
+            n_months=12,
+            n_sim=50,
+            params=params,
+            financing_mode="broadcast",
+            rng=rng,
+        )
+    assert any("per_path" in rec.message for rec in caplog.records)
+
+    caplog.clear()
+    rng = np.random.default_rng(7)
+    with caplog.at_level("WARNING", logger="pa_core.sim.financing"):
+        draw_financing_series(
+            n_months=12,
+            n_sim=50,
+            params=params,
+            financing_mode="per_path",
+            rng=rng,
+        )
+    assert not any("per_path" in rec.message for rec in caplog.records)

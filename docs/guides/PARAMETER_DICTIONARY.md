@@ -73,7 +73,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `act_ext_financing_sigma_month` | `Active Ext financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `act_ext_spike_prob` | `Active Ext monthly spike prob` | `<class 'float'>` | no | `0.0` |  |
 | `act_ext_spike_factor` | `Active Ext spike multiplier` | `<class 'float'>` | no | `0.0` |  |
-| `financing_mode` | `financing_mode` | `Literal['broadcast', 'per_path']` | yes |  | Financing draw mode. broadcast reuses one financing vector across all simulations; per_path draws independent financing paths per scenario. |
+| `financing_mode` | `financing_mode` | `Literal['per_path', 'broadcast']` | yes |  | Financing draw mode. per_path draws independent financing paths per scenario and is recommended for risk/tail analysis; broadcast reuses one financing vector across all simulations, which suppresses financing-cost dispersion and understates tail/CVaR risk. |
 | `analysis_mode` | `Analysis mode` | `<class 'str'>` | no | `returns` |  |
 | `sweep` | `sweep` | `Optional[pa_core.config.SweepConfig]` | no | `None` | Optional sweep configuration for custom parameter sampling. |
 | `max_external_combined_pct` | `max_external_combined_pct` | `<class 'float'>` | no | `30.0` |  |
