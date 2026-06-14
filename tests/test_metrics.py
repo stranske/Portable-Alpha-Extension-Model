@@ -372,6 +372,17 @@ def test_annualised_return_percentile_total_loss_floor():
     assert annualised_return_percentile(arr, 50, periods_per_year=12) == -1.0
 
 
+def test_annualised_return_percentile_accepts_single_path_series():
+    arr = np.array([0.02, -0.01, 0.03])
+    expected = annualised_return_percentile(arr.reshape(1, -1), 50)
+    assert annualised_return_percentile(arr, 50) == pytest.approx(expected)
+
+
+def test_annualised_return_percentile_rejects_empty_input():
+    with pytest.raises(ValueError, match="returns must not be empty"):
+        annualised_return_percentile(np.array([]), 50)
+
+
 def test_summary_table_includes_terminal_return_percentiles():
     arr = np.array([[-0.2], [0.0], [0.3]])
     stats = summary_table({"Base": arr})

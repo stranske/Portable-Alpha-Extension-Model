@@ -191,9 +191,16 @@ def annualised_return_percentile(
     resembles and ``q=10``/``q=90`` bound the distribution. This is a
     terminal-outcome metric.
     """
-    comp = compound(returns)
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.ndim == 1:
+        arr = arr.reshape(1, -1)
+    if arr.ndim != 2:
+        raise ValueError("returns must be a 1D or 2D array")
+    comp = compound(arr)
     total_return = comp[:, -1]
-    years = returns.shape[1] / periods_per_year
+    years = arr.shape[1] / periods_per_year
     base = 1.0 + float(np.percentile(total_return, q))
     if base <= 0.0:
         # Percentile terminal multiple wiped out: report a total loss rather than
