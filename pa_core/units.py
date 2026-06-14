@@ -107,6 +107,8 @@ CONFIG_TIME_HORIZON_FIELDS: dict[str, str] = {
     "act_ext_financing_mean_month": "monthly",
     "act_ext_financing_sigma_month": "monthly",
     "act_ext_spike_prob": "monthly",
+    "active_ext_cost_per_share": "monthly",
+    "ext_pa_cost_per_share": "monthly",
     "vol_regime_window": "months",
     "reference_sigma": "monthly",
     "sleeve_max_te": "monthly",

@@ -39,6 +39,10 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `w_alpha_H` | `In-House alpha share` | `<class 'float'>` | no | `0.5` |  |
 | `theta_extpa` | `External PA alpha fraction` | `<class 'float'>` | no | `0.5` |  |
 | `active_share` | `Active share (%)`, `Active share` | `<class 'float'>` | no | `0.5` | Active share fraction (0..1) |
+| `active_share_tc_decay` | `Active-share alpha decay (kappa)` | `<class 'float'>` | no | `0.0` | Transfer-coefficient decay for ActiveExt: TC(s)=1/(1+kappa*s). 0.0 = linear/legacy; larger = stronger diminishing returns to active share. |
+| `theta_tc_decay` | `External-PA alpha decay (kappa)` | `<class 'float'>` | no | `0.0` | Transfer-coefficient decay for ExternalPA: TC(theta)=1/(1+kappa*theta). 0.0 = legacy. |
+| `active_ext_cost_per_share` | `Active Ext extension cost (monthly %/share)` | `<class 'float'>` | no | `0.0` | Monthly extension cost charged per unit of active_share on the ActiveExt sleeve. |
+| `ext_pa_cost_per_share` | `External PA extension cost (monthly %/share)` | `<class 'float'>` | no | `0.0` | Monthly extension cost charged per unit of theta on the ExternalPA sleeve. |
 | `mu_H` | `In-House annual return (%)` | `<class 'float'>` | no | `0.04` |  |
 | `sigma_H` | `In-House annual vol (%)` | `<class 'float'>` | no | `0.01` |  |
 | `mu_E` | `Alpha-Extension annual return (%)` | `<class 'float'>` | no | `0.05` |  |

@@ -67,6 +67,23 @@ def build_from_config(cfg: ModelConfig) -> List[Agent]:
             beta_share = agent.beta_share
             alpha_share = agent.alpha_share
             extra = agent.extra
+        # Thread the (monthly) alpha mean and transfer-coefficient/cost controls into
+        # the sleeves whose alpha lever supports diminishing returns (issue #1924).
+        # cfg.mu_E / cfg.mu_M are already normalised to monthly by ModelConfig.
+        if name == "ActiveExt":
+            extra = {
+                **extra,
+                "alpha_mu": float(cfg.mu_E),
+                "tc_decay": float(cfg.active_share_tc_decay),
+                "cost_per_share": float(cfg.active_ext_cost_per_share),
+            }
+        elif name == "ExternalPA":
+            extra = {
+                **extra,
+                "alpha_mu": float(cfg.mu_M),
+                "tc_decay": float(cfg.theta_tc_decay),
+                "cost_per_share": float(cfg.ext_pa_cost_per_share),
+            }
         params.append(
             AgentParams(
                 name,

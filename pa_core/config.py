@@ -273,6 +273,41 @@ class ModelConfig(BaseModel):
         description="Active share fraction (0..1)",
     )
 
+    # Transfer-coefficient (diminishing-returns) controls for the active-extension
+    # and external-PA alpha levers (issue #1924). With decay == 0 the alpha scales
+    # linearly with the lever (legacy behaviour, the default). With decay > 0 the
+    # transfer coefficient TC(s) = 1 / (1 + decay * s) makes expected alpha concave
+    # in the lever (information ratio declines as the active bet grows), matching the
+    # Grinold-Kahn / Clarke-de Silva-Thorley fundamental-law result. The optional
+    # per-share extension cost (monthly, as a fraction) produces an interior optimum.
+    active_share_tc_decay: float = Field(
+        default=0.0,
+        ge=0.0,
+        alias="Active-share alpha decay (kappa)",
+        description=(
+            "Transfer-coefficient decay for ActiveExt: TC(s)=1/(1+kappa*s). "
+            "0.0 = linear/legacy; larger = stronger diminishing returns to active share."
+        ),
+    )
+    theta_tc_decay: float = Field(
+        default=0.0,
+        ge=0.0,
+        alias="External-PA alpha decay (kappa)",
+        description="Transfer-coefficient decay for ExternalPA: TC(theta)=1/(1+kappa*theta). 0.0 = legacy.",
+    )
+    active_ext_cost_per_share: float = Field(
+        default=0.0,
+        ge=0.0,
+        alias="Active Ext extension cost (monthly %/share)",
+        description="Monthly extension cost charged per unit of active_share on the ActiveExt sleeve.",
+    )
+    ext_pa_cost_per_share: float = Field(
+        default=0.0,
+        ge=0.0,
+        alias="External PA extension cost (monthly %/share)",
+        description="Monthly extension cost charged per unit of theta on the ExternalPA sleeve.",
+    )
+
     mu_H: float = Field(default=0.04, alias="In-House annual return (%)")
     sigma_H: float = Field(default=0.01, alias="In-House annual vol (%)")
     mu_E: float = Field(default=0.05, alias="Alpha-Extension annual return (%)")
