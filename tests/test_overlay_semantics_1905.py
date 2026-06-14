@@ -31,7 +31,7 @@ def test_primer_documents_overlay_total_semantics() -> None:
     assert "Total (overlay contribution)" in primer
     assert "excludes Base" in primer
     assert "all non-Base, non-Total contribution sleeves" in primer
-    assert "plugin-registered sleeves are included" in primer
+    assert "Plugin-registered sleeves are included" in primer
     assert "no-overlay/no-margin run reports Total as zero" in primer
 
 
