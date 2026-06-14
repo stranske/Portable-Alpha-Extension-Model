@@ -1178,11 +1178,6 @@ class ModelConfig(BaseModel):
     @model_validator(mode="after")
     def check_backend(self) -> "ModelConfig":
         self._trace_transform(self, "check_backend")
-        valid_backends = list(SUPPORTED_BACKENDS)
-        if self.backend not in valid_backends:
-            raise ValueError(
-                f"backend must be one of: {valid_backends} ({BACKEND_UNAVAILABLE_DETAIL})"
-            )
         return self
 
     @model_validator(mode="after")

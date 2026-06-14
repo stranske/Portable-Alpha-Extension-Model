@@ -35,7 +35,7 @@ def test_templates_match_schema(tmp_path: Path) -> None:
 
 def test_user_yaml_template_omits_backend() -> None:
     template = Path("templates/params_template.yaml").read_text()
-    assert "\nbackend:" not in template
+    assert not any(line.lstrip().startswith("backend:") for line in template.splitlines())
 
 
 def test_parameter_dictionary_matches_schema(tmp_path: Path) -> None:
