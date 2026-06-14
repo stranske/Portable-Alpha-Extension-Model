@@ -706,6 +706,34 @@ class ModelConfig(BaseModel):
         return data
 
     @classmethod
+    def _normalize_regime_sigma_overrides(cls, regimes: Any) -> Any:
+        if regimes is None or not isinstance(regimes, list):
+            return regimes
+
+        normalized: list[Any] = []
+        for regime in regimes:
+            if isinstance(regime, RegimeConfig):
+                updates = {
+                    field: annual_vol_to_monthly(float(value))
+                    for field in ("sigma_H", "sigma_E", "sigma_M")
+                    if (value := getattr(regime, field)) is not None
+                }
+                normalized.append(regime.model_copy(update=updates) if updates else regime)
+                continue
+
+            if isinstance(regime, Mapping):
+                regime_data = dict(regime)
+                for field in ("sigma_H", "sigma_E", "sigma_M"):
+                    value = regime_data.get(field)
+                    if value is not None:
+                        regime_data[field] = annual_vol_to_monthly(float(value))
+                normalized.append(regime_data)
+                continue
+
+            normalized.append(regime)
+        return normalized
+
+    @classmethod
     def normalize_return_units(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
@@ -756,6 +784,8 @@ class ModelConfig(BaseModel):
             converted = annual_vol_to_monthly(value)
             for key in keys:
                 updated[key] = converted
+        if "regimes" in updated:
+            updated["regimes"] = cls._normalize_regime_sigma_overrides(updated["regimes"])
         updated["return_unit"] = CANONICAL_RETURN_UNIT
         return updated
 
