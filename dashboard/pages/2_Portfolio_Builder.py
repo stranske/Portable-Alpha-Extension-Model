@@ -7,7 +7,7 @@ import tempfile
 import streamlit as st
 import yaml
 
-from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.utils import apply_promoted_alpha_shares, normalize_share
 from pa_core.portfolio import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
@@ -15,7 +15,7 @@ from pa_core.schema import Portfolio, load_scenario
 
 def main() -> None:
     st.title("Portfolio Builder")
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    _, theme_path = render_settings_sidebar()
     apply_theme(theme_path)
 
     # Show any promoted alpha shares from Scenario Grid

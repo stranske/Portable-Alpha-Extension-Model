@@ -13,12 +13,12 @@ import pandas as pd
 import streamlit as st
 
 from dashboard.app import (
-    _DEF_THEME,
     _DEF_XLSX,
     PLOTS,
     _get_plot_fn,
     apply_theme,
     load_data,
+    render_settings_sidebar,
 )
 from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
@@ -184,8 +184,7 @@ def _default_results_path() -> str:
 
 def main() -> None:
     st.title("Results")
-    xlsx = st.sidebar.text_input("Results file", _default_results_path())
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    xlsx, theme_path = render_settings_sidebar(_default_results_path())
     apply_theme(theme_path)
     if not Path(xlsx).exists():
         st.warning(f"File {xlsx} not found")

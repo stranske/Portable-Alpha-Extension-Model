@@ -19,7 +19,7 @@ try:
     _BARE_MODE = get_script_run_ctx() is None
 except Exception:  # pragma: no cover - conservative fallback
     _BARE_MODE = True
-from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.app import apply_theme, render_settings_sidebar
 from pa_core.presets import AlphaPreset, PresetLibrary
 
 # Create logger for this module
@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 def main() -> None:
     st.title("Asset Library")
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    _, theme_path = render_settings_sidebar()
     apply_theme(theme_path)
     st.markdown("**Upload asset return data**")
     st.caption("Drag and drop a CSV or Excel file, or click to browse.")

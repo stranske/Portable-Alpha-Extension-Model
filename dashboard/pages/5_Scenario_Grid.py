@@ -12,7 +12,7 @@ import pandas as pd  # type: ignore[reportMissingImports]
 import streamlit as st
 import yaml
 
-from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.utils import (
     build_alpha_shares_payload,
     bump_session_token,
@@ -125,7 +125,7 @@ def _extract_plotly_click(selection) -> tuple[float, float] | None:
 
 def main() -> None:
     st.title("Scenario Grid & Frontier (beta)")
-    theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
+    _, theme_path = render_settings_sidebar()
     apply_theme(theme_path)
 
     tab1, tab2 = st.tabs(["Upload Grid CSV", "Compute from Config"])
