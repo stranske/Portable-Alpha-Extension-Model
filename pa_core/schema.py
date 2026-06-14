@@ -433,7 +433,7 @@ def _dump_csv_template(rows: list[tuple[str, str]], header: str) -> str:
 
     output = io.StringIO()
     output.write(f"{header}\n")
-    writer = csv.writer(output)
+    writer = csv.writer(output, lineterminator="\n")
     writer.writerow(["Parameter", "Value"])
     writer.writerows(rows)
     return output.getvalue()
@@ -462,6 +462,7 @@ def generate_schema_templates(output_dir: str | Path) -> None:
         use_aliases=True,
         overrides=config_overrides,
     )
+    config_data.pop("backend", None)
     (out_dir / "params_template.yaml").write_text(_dump_yaml_template(config_data, header))
 
     rows: list[tuple[str, str]] = []

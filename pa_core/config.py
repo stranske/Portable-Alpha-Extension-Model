@@ -20,7 +20,15 @@ from typing import (
 
 import numpy as np
 import yaml
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from .backend import BACKEND_UNAVAILABLE_DETAIL, SUPPORTED_BACKENDS
 from .fees import FeeSchedule
@@ -236,7 +244,13 @@ class ModelConfig(BaseModel):
         ("act_ext_financing_sigma_month", "act_ext_spike_prob", "act_ext_spike_factor"),
     )
 
-    backend: str = Field(default="numpy")
+    backend: Literal["numpy"] = Field(
+        default="numpy",
+        description=(
+            "Computation backend. Only 'numpy' is supported; "
+            f"{BACKEND_UNAVAILABLE_DETAIL}"
+        ),
+    )
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
     N_MONTHS: int = Field(gt=0, alias="Number of months")
     return_unit: Literal["annual", "monthly"] = Field(
@@ -1151,14 +1165,19 @@ class ModelConfig(BaseModel):
             raise ValueError("vol_regime_window must be > 1 for two_state regime")
         return self
 
-    @model_validator(mode="after")
-    def check_backend(self) -> "ModelConfig":
-        self._trace_transform(self, "check_backend")
-        valid_backends = list(SUPPORTED_BACKENDS)
-        if self.backend not in valid_backends:
+    @field_validator("backend", mode="before")
+    @classmethod
+    def reject_unsupported_backend(cls, value: Any) -> Any:
+        if value not in SUPPORTED_BACKENDS:
+            valid_backends = list(SUPPORTED_BACKENDS)
             raise ValueError(
                 f"backend must be one of: {valid_backends} ({BACKEND_UNAVAILABLE_DETAIL})"
             )
+        return value
+
+    @model_validator(mode="after")
+    def check_backend(self) -> "ModelConfig":
+        self._trace_transform(self, "check_backend")
         return self
 
     @model_validator(mode="after")
