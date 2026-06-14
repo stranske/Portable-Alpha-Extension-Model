@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 import logging
 import math
 import warnings
@@ -707,7 +708,7 @@ class ModelConfig(BaseModel):
 
     @classmethod
     def _normalize_regime_sigma_overrides(cls, regimes: Any) -> Any:
-        if regimes is None or not isinstance(regimes, list):
+        if regimes is None or isinstance(regimes, (str, bytes)) or not isinstance(regimes, Sequence):
             return regimes
 
         normalized: list[Any] = []

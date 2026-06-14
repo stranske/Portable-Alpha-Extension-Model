@@ -171,6 +171,31 @@ def test_regime_sigma_overrides_follow_annual_return_unit() -> None:
     assert params[0]["default_sigma_H"] == pytest.approx(annual_vol_to_monthly(0.24))
 
 
+def test_regime_sigma_overrides_follow_annual_return_unit_for_tuple_input() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=2,
+        financing_mode="broadcast",
+        return_unit="annual",
+        regimes=(
+            {
+                "name": "stress",
+                "sigma_H": 0.24,
+                "sigma_E": 0.30,
+                "sigma_M": 0.36,
+            },
+        ),
+        regime_transition=[[1.0]],
+        regime_start="stress",
+    )
+
+    assert cfg.regimes is not None
+    regime = cfg.regimes[0]
+    assert regime.sigma_H == pytest.approx(annual_vol_to_monthly(0.24))
+    assert regime.sigma_E == pytest.approx(annual_vol_to_monthly(0.30))
+    assert regime.sigma_M == pytest.approx(annual_vol_to_monthly(0.36))
+
+
 def test_regime_sigma_overrides_stay_monthly_when_return_unit_monthly() -> None:
     cfg = ModelConfig(
         N_SIMULATIONS=1,
