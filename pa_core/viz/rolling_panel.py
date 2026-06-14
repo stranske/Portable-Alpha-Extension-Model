@@ -33,8 +33,9 @@ def _rolling_te(paths: np.ndarray, window: int) -> np.ndarray:
 
 def _rolling_sharpe(paths: np.ndarray, window: int) -> np.ndarray:
     returns = pd.DataFrame(paths)
-    roll_mean = returns.rolling(window, axis=1, min_periods=1).mean()
-    roll_std = returns.rolling(window, axis=1, min_periods=1).std()
+    rolling = returns.T.rolling(window, min_periods=1)
+    roll_mean = rolling.mean().T
+    roll_std = rolling.std().T
     sharpe = roll_mean / roll_std
 
     sharpe_series = sharpe.mean(axis=0)

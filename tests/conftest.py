@@ -86,3 +86,27 @@ def socket_connect_guard(monkeypatch: pytest.MonkeyPatch):
 
     monkeypatch.setattr(socket.socket, "connect", _blocked_connect)
     return attempts, _blocked_connect
+
+
+@pytest.fixture(autouse=True)
+def _restore_viz_theme_globals():
+    """Isolate the shared plotly theme so tests cannot leak palette state.
+
+    ``pa_core.viz.theme`` keeps module-level globals (``TEMPLATE``, the colorway,
+    fonts, backgrounds and thresholds) that ``reload_theme``/``reload_thresholds``
+    -- and ``dashboard.app.apply_theme`` -- reassign in place. Tests such as
+    ``test_apply_theme`` and ``test_theme_reload`` rewrite the colorway to a short
+    custom palette and never restore it, which silently leaks into later tests that
+    assert on colour assignment (e.g. the risk-return sleeve legend, which expects
+    one distinct colour per sleeve). Snapshot the globals before each test and
+    restore them afterwards so theme state stays isolated regardless of test order.
+    """
+    from pa_core.viz import theme
+
+    attrs = ("TEMPLATE", "_COLORWAY", "_FONT", "_PAPER_BG", "_PLOT_BG", "THRESHOLDS")
+    saved = {name: getattr(theme, name) for name in attrs if hasattr(theme, name)}
+    try:
+        yield
+    finally:
+        for name, value in saved.items():
+            setattr(theme, name, value)

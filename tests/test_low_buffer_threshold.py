@@ -58,7 +58,7 @@ def test_risk_return_uses_constant(cleared_thresholds):
     fig = risk_return.make(df)
     # Check that the function doesn't crash and returns a figure
     assert fig is not None
-    assert len(fig.data) == 1
+    assert len(fig.data) == 3
 
 
 def test_beta_scatter_uses_constant(cleared_thresholds):
