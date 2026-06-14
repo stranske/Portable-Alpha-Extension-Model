@@ -153,7 +153,7 @@ def test_risk_return_uses_sleeve_legend_and_highlights_total_base():
         {
             "terminal_AnnReturn": [0.04, 0.06, 0.02, 0.07],
             "terminal_ExcessReturn": [0.0, 0.025, -0.01, 0.03],
-            "monthly_TE": [0.0, 0.04, 0.03, 0.05],
+            "monthly_TE": [pd.NA, 0.04, 0.03, 0.05],
             "Agent": ["Base", "Total", "ExternalPA", "ActiveExt"],
             "terminal_ShortfallProb": [0.01, 0.04, 0.12, 0.08],
         }
@@ -167,6 +167,7 @@ def test_risk_return_uses_sleeve_legend_and_highlights_total_base():
     assert traces["Total"].marker.size == 18
     assert traces["Base"].marker.symbol == "diamond"
     assert traces["Base"].marker.size == 16
+    assert list(traces["Base"].x) == [0.0]
     assert traces["Total"].mode == "markers+text"
     assert traces["Base"].mode == "markers+text"
     assert fig.layout.legend.title.text == "Sleeve / Scenario"

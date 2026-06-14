@@ -56,12 +56,14 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
         x_label = "Tracking Error"
         x_hover = "Tracking Error"
         cap = thr.get("te_cap", 0.03)
+        _fill_benchmark_tracking_error(df, x_col)
     elif has_data("TrackingErr"):
         df["monthly_TE"] = df["TrackingErr"]
         x_col = "monthly_TE"
         x_label = "Tracking Error"
         x_hover = "Tracking Error"
         cap = thr.get("te_cap", 0.03)
+        _fill_benchmark_tracking_error(df, x_col)
     else:
         x_col = "monthly_AnnVol"
         x_label = "Annualized Volatility"
@@ -145,8 +147,20 @@ def make(df_summary: pd.DataFrame) -> go.Figure:
 
 def _ordered_agents(agent_series: pd.Series) -> list[str]:
     agents = list(dict.fromkeys(agent_series.astype(str)))
-    highlighted = [agent for agent in ("Base", "Total") if agent in agents]
+    highlighted = [agent for agent in _fixed_agent_order() if agent in agents]
     return [agent for agent in agents if agent not in _FIXED_AGENT_STYLES] + highlighted
+
+
+def _fixed_agent_order() -> list[str]:
+    preferred_order = ["Base", "Total"]
+    preferred = [agent for agent in preferred_order if agent in _FIXED_AGENT_STYLES]
+    extras = [agent for agent in _FIXED_AGENT_STYLES if agent not in preferred]
+    return preferred + extras
+
+
+def _fill_benchmark_tracking_error(df: pd.DataFrame, x_col: str) -> None:
+    benchmark_mask = df["Agent"].astype(str) == "Base"
+    df.loc[benchmark_mask, x_col] = df.loc[benchmark_mask, x_col].fillna(0.0)
 
 
 def _agent_colors(agents: list[str]) -> dict[str, str]:
