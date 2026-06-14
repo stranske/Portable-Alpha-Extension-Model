@@ -23,6 +23,7 @@ from dashboard.app import (
 from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
+from dashboard.utils import current_results_path
 from pa_core.contracts import (
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,
@@ -176,9 +177,14 @@ def _render_comparison_panel(
     return availability
 
 
+def _default_results_path() -> str:
+    """Return the in-session wizard output path or the legacy default workbook."""
+    return current_results_path(st.session_state) or _DEF_XLSX
+
+
 def main() -> None:
     st.title("Results")
-    xlsx = st.sidebar.text_input("Results file", _DEF_XLSX)
+    xlsx = st.sidebar.text_input("Results file", _default_results_path())
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
     if not Path(xlsx).exists():

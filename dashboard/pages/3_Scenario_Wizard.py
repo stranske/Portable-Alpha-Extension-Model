@@ -6,6 +6,7 @@ import math
 import os
 import re
 import tempfile
+import io
 from contextlib import contextmanager
 from copy import deepcopy
 from datetime import datetime, timezone
@@ -25,7 +26,7 @@ from dashboard.components.llm_settings import (
     resolve_llm_provider_config,
 )
 from dashboard.glossary import tooltip
-from dashboard.utils import run_sleeve_frontier, run_sleeve_suggestions
+from dashboard.utils import remember_current_scenario, run_sleeve_frontier, run_sleeve_suggestions
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
@@ -728,6 +729,15 @@ def _temp_yaml_file(data: Dict[str, Any]):
         yaml.safe_dump(data, tmp, default_flow_style=False)
         tmp.flush()  # Ensure data is written to disk
         yield tmp.name
+
+
+def _read_index_csv_bytes(data: bytes) -> pd.Series:
+    """Return the first numeric index-return column from uploaded CSV bytes."""
+    df = pd.read_csv(io.BytesIO(data))
+    num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+    if not num_cols:
+        raise ValueError("Index CSV must contain at least one numeric column.")
+    return pd.Series(df[num_cols[0]].dropna().to_numpy())
 
 
 def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
@@ -2080,13 +2090,17 @@ def main() -> None:
             if idx is not None:
                 # Convert config to YAML and run simulation
                 yaml_data = _build_yaml_from_config(config)
+                model_config = load_config(yaml_data)
                 with _temp_yaml_file(yaml_data) as cfg_path:
                     # Write index data to a secure temp file
                     fd, idx_path = tempfile.mkstemp(suffix=".csv")
                     sim_ok = False
+                    index_series: pd.Series | None = None
                     try:
                         os.close(fd)  # Close file descriptor before writing to path
-                        Path(idx_path).write_bytes(idx.getvalue())
+                        idx_bytes = idx.getvalue()
+                        Path(idx_path).write_bytes(idx_bytes)
+                        index_series = _read_index_csv_bytes(idx_bytes)
 
                         use_seed = st.session_state.get("wizard_use_seed", True)
                         seed_value = st.session_state.get("wizard_seed", 42)
@@ -2111,6 +2125,12 @@ def main() -> None:
                             pass
 
                     if sim_ok:
+                        remember_current_scenario(
+                            st.session_state,
+                            config=model_config,
+                            results_path=output,
+                            index_returns=index_series,
+                        )
                         st.success(f"✅ Simulation complete! Results written to {output}")
                         st.balloons()
 

@@ -15,6 +15,11 @@ import pandas as pd
 import streamlit as st
 
 from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.utils import (
+    config_capital_defaults,
+    current_index_returns,
+    current_scenario_config,
+)
 from pa_core.config import ModelConfig
 from pa_core.orchestrator import SimulatorOrchestrator
 from pa_core.reporting.constraints import build_constraint_report
@@ -60,11 +65,14 @@ def main() -> None:
     apply_theme(theme_path)
 
     st.markdown("Pick a preset, run base vs stressed with identical seeds, and review deltas.")
+    session_cfg = current_scenario_config(st.session_state)
+    session_index = current_index_returns(st.session_state)
+    capital_defaults = config_capital_defaults(session_cfg)
 
     idx_file = st.file_uploader(
         "Index returns CSV (single numeric column)", type=["csv"], key="stress_idx"
     )
-    if idx_file is None:
+    if idx_file is None and session_index is None:
         st.info("Provide index CSV to simulate.")
         return
 
@@ -72,30 +80,36 @@ def main() -> None:
 
     # Base configuration controls (minimal for now)
     st.sidebar.subheader("Base configuration")
-    n_sims = st.sidebar.number_input("Number of simulations", value=1000, step=100)
-    n_months = st.sidebar.number_input("Number of months", value=12, step=1)
+    n_sims_default = int(session_cfg.N_SIMULATIONS if session_cfg else 1000)
+    n_months_default = int(session_cfg.N_MONTHS if session_cfg else 12)
+    n_sims = st.sidebar.number_input("Number of simulations", value=n_sims_default, step=100)
+    n_months = st.sidebar.number_input("Number of months", value=n_months_default, step=1)
 
     # Capital breakout (kept simple but non-zero to activate agents)
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Capital ($mm)**")
-    total_cap = st.sidebar.number_input("Total fund capital", value=1000.0, step=50.0)
+    total_cap = st.sidebar.number_input(
+        "Total fund capital",
+        value=capital_defaults["total_fund_capital"],
+        step=50.0,
+    )
     ext_cap = st.sidebar.number_input(
         "External PA capital",
-        value=200.0,
+        value=min(capital_defaults["external_pa_capital"], total_cap),
         step=10.0,
         min_value=0.0,
         max_value=total_cap,
     )
     act_cap = st.sidebar.number_input(
         "Active Extension capital",
-        value=200.0,
+        value=min(capital_defaults["active_ext_capital"], total_cap),
         step=10.0,
         min_value=0.0,
         max_value=total_cap,
     )
     int_cap = st.sidebar.number_input(
         "Internal PA capital",
-        value=200.0,
+        value=min(capital_defaults["internal_pa_capital"], total_cap),
         step=10.0,
         min_value=0.0,
         max_value=total_cap,
@@ -105,11 +119,15 @@ def main() -> None:
         "External PA alpha fraction θ",
         min_value=0.0,
         max_value=1.0,
-        value=0.5,
+        value=float(session_cfg.external_alpha_frac if session_cfg else 0.5),
         step=0.05,
     )
     active_share = st.sidebar.slider(
-        "Active share", min_value=0.0, max_value=1.0, value=0.5, step=0.05
+        "Active share",
+        min_value=0.0,
+        max_value=1.0,
+        value=float(session_cfg.active_share if session_cfg else 0.5),
+        step=0.05,
     )
 
     st.sidebar.markdown("---")
@@ -130,7 +148,9 @@ def main() -> None:
 
     if st.button("Run stress test"):
         try:
-            index_series = _read_index_csv(idx_file)
+            index_series = _read_index_csv(idx_file) if idx_file is not None else session_index
+            if index_series is None:
+                raise ValueError("Provide index CSV to simulate.")
 
             base_cfg = ModelConfig.model_validate(
                 {

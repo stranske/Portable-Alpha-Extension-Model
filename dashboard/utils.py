@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from collections.abc import MutableMapping
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -13,6 +14,66 @@ from pa_core.config import ModelConfig, normalize_share
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 
 # Keep dashboard normalization aligned with core config behavior.
+
+CURRENT_SCENARIO_CONFIG_KEY = "dashboard_current_scenario_config"
+CURRENT_RESULTS_PATH_KEY = "dashboard_current_results_path"
+CURRENT_INDEX_RETURNS_KEY = "dashboard_current_index_returns"
+
+
+def remember_current_scenario(
+    state: MutableMapping[str, Any],
+    *,
+    config: ModelConfig,
+    results_path: str | Path | None = None,
+    index_returns: pd.Series | None = None,
+) -> None:
+    """Persist the latest runnable scenario in session state for other pages."""
+    state[CURRENT_SCENARIO_CONFIG_KEY] = config
+    if results_path is not None:
+        state[CURRENT_RESULTS_PATH_KEY] = str(results_path)
+    if index_returns is not None:
+        state[CURRENT_INDEX_RETURNS_KEY] = index_returns.copy()
+
+
+def current_scenario_config(state: MutableMapping[str, Any]) -> ModelConfig | None:
+    """Return the latest in-session scenario config when available."""
+    config = state.get(CURRENT_SCENARIO_CONFIG_KEY)
+    return config if isinstance(config, ModelConfig) else None
+
+
+def current_results_path(state: MutableMapping[str, Any]) -> str | None:
+    """Return the latest results workbook path remembered by the wizard."""
+    raw_path = state.get(CURRENT_RESULTS_PATH_KEY)
+    if isinstance(raw_path, Path):
+        return str(raw_path)
+    if isinstance(raw_path, str) and raw_path.strip():
+        return raw_path
+    return None
+
+
+def current_index_returns(state: MutableMapping[str, Any]) -> pd.Series | None:
+    """Return a copy of the latest uploaded index returns from session state."""
+    series = state.get(CURRENT_INDEX_RETURNS_KEY)
+    if isinstance(series, pd.Series):
+        return series.copy()
+    return None
+
+
+def config_capital_defaults(config: ModelConfig | None) -> dict[str, float]:
+    """Return Stress Lab-compatible capital defaults from a stored config."""
+    if config is None:
+        return {
+            "total_fund_capital": 1000.0,
+            "external_pa_capital": 200.0,
+            "active_ext_capital": 200.0,
+            "internal_pa_capital": 200.0,
+        }
+    return {
+        "total_fund_capital": float(config.total_fund_capital),
+        "external_pa_capital": float(config.external_pa_capital),
+        "active_ext_capital": float(config.active_ext_capital),
+        "internal_pa_capital": float(config.internal_pa_capital),
+    }
 
 
 def build_alpha_shares_payload(
@@ -149,6 +210,14 @@ def run_sleeve_frontier(
 
 __all__ = [
     "normalize_share",
+    "CURRENT_SCENARIO_CONFIG_KEY",
+    "CURRENT_RESULTS_PATH_KEY",
+    "CURRENT_INDEX_RETURNS_KEY",
+    "remember_current_scenario",
+    "current_scenario_config",
+    "current_results_path",
+    "current_index_returns",
+    "config_capital_defaults",
     "build_alpha_shares_payload",
     "make_grid_cache_key",
     "bump_session_token",
