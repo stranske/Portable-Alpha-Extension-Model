@@ -694,12 +694,58 @@ class ModelConfig(BaseModel):
         if agents_provided:
             normalized_existing = cls._normalize_agents(existing_agents)
             existing_names = {agent["name"] for agent in normalized_existing}
+            recompiled_names = cls._agent_names_recompiled_by_convenience(data)
             compiled = [
-                agent for agent in compiled if agent["name"] not in existing_names
-            ] + normalized_existing
+                agent
+                for agent in compiled
+                if agent["name"] in recompiled_names or agent["name"] not in existing_names
+            ]
+            compiled_names = {agent["name"] for agent in compiled}
+            compiled = compiled + [
+                agent for agent in normalized_existing if agent["name"] not in compiled_names
+            ]
         normalized = cls._normalize_agents(compiled)
         data["agents"] = normalized
         return data
+
+    @classmethod
+    def _agent_names_recompiled_by_convenience(cls, data: Mapping[str, Any]) -> set[str]:
+        """Return derived agent names controlled by supplied convenience fields."""
+
+        groups = {
+            "Base": {
+                "total_fund_capital",
+                "Total fund capital (mm)",
+                "w_beta_H",
+                "w_alpha_H",
+                "In-House beta share",
+                "In-House alpha share",
+            },
+            "ExternalPA": {
+                "total_fund_capital",
+                "Total fund capital (mm)",
+                "external_pa_capital",
+                "External PA capital (mm)",
+                "theta_extpa",
+                "External PA alpha fraction",
+            },
+            "ActiveExt": {
+                "total_fund_capital",
+                "Total fund capital (mm)",
+                "active_ext_capital",
+                "Active Extension capital (mm)",
+                "active_share",
+                "Active share (%)",
+                "Active share",
+            },
+            "InternalPA": {
+                "total_fund_capital",
+                "Total fund capital (mm)",
+                "internal_pa_capital",
+                "Internal PA capital (mm)",
+            },
+        }
+        return {agent_name for agent_name, keys in groups.items() if any(key in data for key in keys)}
 
     @classmethod
     def normalize_share_inputs(cls, data: Any) -> Any:

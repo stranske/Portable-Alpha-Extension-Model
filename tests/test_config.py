@@ -99,6 +99,48 @@ def test_load_yaml_with_mixed_agents(tmp_path):
     assert {"Base", "ExternalPA", "ActiveExt", "InternalPA", "CustomSleeve"} <= names
 
 
+def test_model_dump_convenience_edits_recompile_standard_agents() -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=1000.0,
+        external_pa_capital=100.0,
+        active_ext_capital=200.0,
+        internal_pa_capital=300.0,
+        w_beta_H=0.6,
+        w_alpha_H=0.4,
+        theta_extpa=0.3,
+        active_share=0.5,
+    )
+    dumped = cfg.model_dump()
+    dumped.update(
+        {
+            "external_pa_capital": 120.0,
+            "active_ext_capital": 180.0,
+            "internal_pa_capital": 240.0,
+            "w_beta_H": 0.7,
+            "w_alpha_H": 0.3,
+            "theta_extpa": 0.8,
+            "active_share": 0.25,
+        }
+    )
+
+    reloaded = ModelConfig(**dumped)
+    agents = {agent.name: agent for agent in reloaded.agents}
+
+    assert agents["Base"].beta_share == pytest.approx(0.7)
+    assert agents["Base"].alpha_share == pytest.approx(0.3)
+    assert agents["ExternalPA"].capital == pytest.approx(120.0)
+    assert agents["ExternalPA"].beta_share == pytest.approx(0.12)
+    assert agents["ExternalPA"].extra["theta_extpa"] == pytest.approx(0.8)
+    assert agents["ActiveExt"].capital == pytest.approx(180.0)
+    assert agents["ActiveExt"].beta_share == pytest.approx(0.18)
+    assert agents["ActiveExt"].extra["active_share"] == pytest.approx(0.25)
+    assert agents["InternalPA"].capital == pytest.approx(240.0)
+    assert agents["InternalPA"].alpha_share == pytest.approx(0.24)
+
+
 def test_load_dict():
     data = {
         "N_SIMULATIONS": 1000,
