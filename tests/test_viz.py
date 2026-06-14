@@ -101,8 +101,11 @@ def test_risk_return_axis_labels_match_data():
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["monthly_TE"].tolist()
-    assert list(fig.data[0].y) == df["terminal_ExcessReturn"].tolist()
+    points = {trace.name: (list(trace.x), list(trace.y)) for trace in fig.data}
+    assert points == {
+        "A": ([0.12], [0.02]),
+        "B": ([0.18], [0.01]),
+    }
     assert fig.layout.xaxis.title.text == "Tracking Error"
     assert fig.layout.yaxis.title.text == "Annualized Excess Return"
 
@@ -117,8 +120,11 @@ def test_risk_return_axis_labels_match_vol_and_return():
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["monthly_AnnVol"].tolist()
-    assert list(fig.data[0].y) == df["terminal_AnnReturn"].tolist()
+    points = {trace.name: (list(trace.x), list(trace.y)) for trace in fig.data}
+    assert points == {
+        "A": ([0.12], [0.06]),
+        "B": ([0.18], [0.03]),
+    }
     assert fig.layout.xaxis.title.text == "Annualized Volatility"
     assert fig.layout.yaxis.title.text == "Annualized Return"
 
@@ -134,8 +140,38 @@ def test_risk_return_falls_back_to_vol_when_te_empty():
         }
     )
     fig = risk_return.make(df)
-    assert list(fig.data[0].x) == df["monthly_AnnVol"].tolist()
+    points = {trace.name: list(trace.x) for trace in fig.data}
+    assert points == {
+        "A": [0.12],
+        "B": [0.18],
+    }
     assert fig.layout.xaxis.title.text == "Annualized Volatility"
+
+
+def test_risk_return_uses_sleeve_legend_and_highlights_total_base():
+    df = pd.DataFrame(
+        {
+            "terminal_AnnReturn": [0.04, 0.06, 0.02, 0.07],
+            "terminal_ExcessReturn": [0.0, 0.025, -0.01, 0.03],
+            "monthly_TE": [0.0, 0.04, 0.03, 0.05],
+            "Agent": ["Base", "Total", "ExternalPA", "ActiveExt"],
+            "terminal_ShortfallProb": [0.01, 0.04, 0.12, 0.08],
+        }
+    )
+
+    fig = risk_return.make(df)
+
+    assert {trace.name for trace in fig.data} == {"Base", "Total", "ExternalPA", "ActiveExt"}
+    traces = {trace.name: trace for trace in fig.data}
+    assert traces["Total"].marker.symbol == "star"
+    assert traces["Total"].marker.size == 18
+    assert traces["Base"].marker.symbol == "diamond"
+    assert traces["Base"].marker.size == 16
+    assert traces["Total"].mode == "markers+text"
+    assert traces["Base"].mode == "markers+text"
+    assert fig.layout.legend.title.text == "Sleeve / Scenario"
+    assert len({trace.marker.color for trace in fig.data}) == 4
+    assert "Shortfall" in traces["ExternalPA"].hovertemplate
 
 
 def test_fan_and_dist():
