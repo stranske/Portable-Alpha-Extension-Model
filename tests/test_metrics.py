@@ -82,6 +82,11 @@ def test_annualised_vol_single_observation_is_finite():
     assert ann_vol == 0.0
 
 
+def test_annualised_vol_rejects_empty_input():
+    with pytest.raises(ValueError, match="returns must not be empty"):
+        annualised_vol(np.array([]))
+
+
 def test_summary_table_adds_total_when_benchmark_present():
     base = np.zeros((2, 3))
     ext = np.array([[0.01, -0.01, 0.02], [0.0, 0.01, -0.02]])

@@ -153,7 +153,9 @@ def annualised_vol(returns: ArrayLike, periods_per_year: int = 12) -> float:
     annualised. This is a monthly-draw metric.
     """
     arr = np.asarray(returns, dtype=np.float64)
-    if arr.size < 2:
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.size == 1:
         # The ddof=1 sample standard deviation is undefined for a single
         # observation; report 0.0 rather than NaN from the divide-by-zero.
         return 0.0
