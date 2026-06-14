@@ -63,6 +63,14 @@ class FakeStreamlit:
     def set_page_config(self, **kwargs: Any) -> None:
         self.events.append(("set_page_config", kwargs))
 
+    def expander(self, label: str, expanded: bool = False) -> _FakeExpander:
+        # Top-level ``st.expander`` is a context manager (e.g. the getting-started
+        # block in ``main`` via ``_render_getting_started``). Without this the
+        # catch-all ``__getattr__`` below returns a no-op that yields ``None``,
+        # which is not a context manager and breaks ``with st.expander(...)``.
+        self.events.append(("expander", label, expanded))
+        return _FakeExpander(self, label)
+
     def __getattr__(self, _name: str):  # no-op for title/write/page_link/etc.
         def _noop(*args: Any, **kwargs: Any) -> None:
             return None
