@@ -78,7 +78,7 @@ def compute_fee_drag(gross: ArrayLike, schedule: FeeSchedule) -> ArrayLike:
     (fees never increase returns). ``net = gross - compute_fee_drag(gross, ...)``.
     """
     mgmt_monthly = schedule.mgmt_fee_bps / _BPS_PER_UNIT / _MONTHS_PER_YEAR
-    drag = np.full_like(gross, mgmt_monthly)
+    drag: ArrayLike = np.full_like(gross, mgmt_monthly)
     if schedule.perf_fee_pct > 0.0:
         hurdle_monthly = schedule.hurdle_bps / _BPS_PER_UNIT / _MONTHS_PER_YEAR
         excess = np.maximum(gross - hurdle_monthly, 0.0)

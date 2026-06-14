@@ -16,6 +16,7 @@ Active Extension capital (mm),0.0
 Internal PA capital (mm),0.0
 Total fund capital (mm),1000.0
 agents,
+fee_schedule,
 In-House beta share,0.5
 In-House alpha share,0.5
 External PA alpha fraction,0.5

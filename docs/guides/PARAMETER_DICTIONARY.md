@@ -35,6 +35,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `internal_pa_capital` | `Internal PA capital (mm)` | `<class 'float'>` | no | `0.0` |  |
 | `total_fund_capital` | `Total fund capital (mm)` | `<class 'float'>` | no | `1000.0` |  |
 | `agents` | `agents` | `List[pa_core.config.AgentConfig]` | no | `default_factory: list` |  |
+| `fee_schedule` | `fee_schedule` | `Optional[Dict[str, pa_core.fees.FeeSchedule]]` | no | `None` | Optional per-sleeve management/performance fee schedule keyed by agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's returns are reported net of fees (issue #1904). None or empty keeps the historical gross-of-fee behaviour. |
 | `w_beta_H` | `In-House beta share` | `<class 'float'>` | no | `0.5` |  |
 | `w_alpha_H` | `In-House alpha share` | `<class 'float'>` | no | `0.5` |  |
 | `theta_extpa` | `External PA alpha fraction` | `<class 'float'>` | no | `0.5` |  |
