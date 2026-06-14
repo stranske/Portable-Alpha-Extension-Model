@@ -399,7 +399,7 @@ def finalize_excel_workbook(
             img_bytes = risk_return.make(summary_df).to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
-        except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
+        except (IndexError, KeyError, ValueError, RuntimeError, OSError, MemoryError):
             # Some tests pass a minimal summary without expected columns like 'Agent' or 'monthly_AnnVol'; skip chart.
             pass
 
@@ -429,7 +429,7 @@ def finalize_excel_workbook(
                 img_bytes = fig.to_image(format="png", engine="kaleido")
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
-        except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
+        except (IndexError, KeyError, ValueError, RuntimeError, OSError, MemoryError):
             # Non-fatal if renderer or data missing
             logger.warning("Failed to embed tornado chart in Sensitivity sheet", exc_info=True)
 
@@ -450,7 +450,7 @@ def finalize_excel_workbook(
                         img_bytes = fig.to_image(format="png", engine="kaleido")
                     img = XLImage(io.BytesIO(img_bytes))
                     ws.add_image(img, "H2")
-        except (KeyError, ValueError, RuntimeError, OSError, MemoryError):
+        except (KeyError, TypeError, ValueError, RuntimeError, OSError, MemoryError):
             logger.warning("Failed to embed sunburst chart in Attribution sheet", exc_info=True)
 
     wb.save(filename)

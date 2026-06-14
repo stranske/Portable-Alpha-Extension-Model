@@ -16,6 +16,7 @@ import logging
 from types import SimpleNamespace
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from pa_core import sweep
@@ -83,14 +84,17 @@ def test_estimate_total_combinations_raises_value_error_without_step():
         sweep._estimate_total_combinations(model_cfg)  # type: ignore[arg-type]
 
 
-def test_simulate_financing_raises_value_error_when_rng_unavailable(monkeypatch):
-    """simulate_financing raises ValueError when rng cannot be initialized."""
+def test_simulate_financing_uses_spawned_rng_without_redundant_guard(monkeypatch):
+    """simulate_financing relies on spawn_rngs to return a usable generator."""
 
     from pa_core.sim import financing
 
-    monkeypatch.setattr(financing, "spawn_rngs", lambda *a, **kw: [None])
-    with pytest.raises(ValueError, match="rng could not be initialized"):
-        financing.simulate_financing(12, 0.0, 0.01, 0.0, 1.0)
+    rng = np.random.default_rng(123)
+    monkeypatch.setattr(financing, "spawn_rngs", lambda *a, **kw: [rng])
+
+    result = financing.simulate_financing(12, 0.0, 0.01, 0.0, 1.0)
+
+    assert result.shape == (12,)
 
 
 def test_facade_agent_semantics_dict_logs_warning_with_exc_info(caplog):
@@ -120,6 +124,51 @@ def test_excel_coerce_agent_semantics_df_dict_logs_warning_with_exc_info(caplog)
     assert result is None
     records = [r for r in caplog.records if r.levelno >= logging.WARNING]
     assert records, "expected a warning log for bad dict coercion"
+    assert any(r.exc_info is not None for r in records)
+
+
+def test_excel_tornado_embed_logs_malformed_fallback_without_aborting(tmp_path, caplog):
+    """Malformed sensitivity sheet data remains a non-fatal optional chart failure."""
+
+    from pa_core.reporting.excel import export_to_excel
+
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
+    sens_df = pd.DataFrame({"Parameter": ["mu_H"]})
+    out_path = tmp_path / "malformed_tornado.xlsx"
+
+    with caplog.at_level(logging.WARNING, logger="pa_core.reporting.excel"):
+        export_to_excel({"_sensitivity_df": sens_df}, summary, {}, filename=str(out_path))
+
+    assert out_path.exists()
+    records = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert any("tornado chart" in r.getMessage() for r in records)
+    assert any(r.exc_info is not None for r in records)
+
+
+def test_excel_sunburst_embed_logs_type_error_without_aborting(
+    monkeypatch, tmp_path, caplog
+):
+    """Optional sunburst image failures stay non-fatal even for malformed return data."""
+
+    from pa_core.reporting import excel
+    from pa_core.viz import sunburst
+
+    def _raise_type_error(_df):
+        raise TypeError("cannot convert missing return")
+
+    summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
+    attr_df = pd.DataFrame({"Agent": ["Base"], "Sub": ["Core"], "Return": [None]})
+    out_path = tmp_path / "malformed_sunburst.xlsx"
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("CI", raising=False)
+    monkeypatch.setattr(sunburst, "make", _raise_type_error)
+
+    with caplog.at_level(logging.WARNING, logger=excel.__name__):
+        excel.export_to_excel({"_attribution_df": attr_df}, summary, {}, filename=str(out_path))
+
+    assert out_path.exists()
+    records = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert any("sunburst chart" in r.getMessage() for r in records)
     assert any(r.exc_info is not None for r in records)
 
 
