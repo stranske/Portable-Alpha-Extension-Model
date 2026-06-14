@@ -38,6 +38,7 @@ from .sim.params import (
     build_params,
     resolve_covariance_inputs,
 )
+from .sim.regimes import build_regime_draw_params, resolve_regime_start, simulate_regime_paths
 from .simulations import simulate_agents
 from .types import GeneratorLike, SweepResult
 from .units import (
@@ -304,6 +305,7 @@ class SweepRunner:
             rng_bundle.rng_returns,
             rng_bundle.rngs_financing,
             seed=rng_bundle.seed,
+            rng_regime=rng_bundle.rng_regime,
             progress=self.progress,
         )
 
@@ -335,12 +337,30 @@ def _get_empty_results_dataframe() -> pd.DataFrame:
     return _EMPTY_RESULTS_DF.copy()
 
 
+def _derive_regime_rng(rng_returns: GeneratorLike) -> GeneratorLike:
+    """Derive a regime RNG deterministically from ``rng_returns``'s state.
+
+    Used when neither a master ``seed`` nor an explicit ``rng_regime`` is
+    supplied: the regime path generator is seeded from a stable hash of the
+    ``rng_returns`` bit-generator state so repeated runs with the same seeded
+    ``rng_returns`` reproduce identical regime paths, while remaining an
+    independent stream from the return draws.
+    """
+    state_repr = json.dumps(
+        rng_returns.bit_generator.state, sort_keys=True, default=str
+    )
+    digest = hashlib.sha256(("pa_core.regime:" + state_repr).encode("utf-8")).digest()
+    entropy = int.from_bytes(digest, "big")
+    return spawn_rngs(entropy, 1)[0]
+
+
 def run_parameter_sweep(
     cfg: ModelConfig,
     index_series: pd.Series,
     rng_returns: GeneratorLike,
     fin_rngs: Mapping[str, GeneratorLike],
     seed: Optional[int] = None,
+    rng_regime: GeneratorLike | None = None,
     progress: Optional[Callable[[int, int], None]] = None,
 ) -> List[SweepResult]:
     """Run the parameter sweep and collect results.
@@ -356,6 +376,17 @@ def run_parameter_sweep(
         ``None``, a ``tqdm`` progress bar is displayed.
     """
     results: List[SweepResult] = []
+    if rng_regime is None:
+        if seed is not None:
+            rng_regime = spawn_rngs(seed, 2)[1]
+        else:
+            # No master seed and no explicit regime RNG: derive one
+            # deterministically from the supplied ``rng_returns`` so that direct
+            # callers that seed ``rng_returns``/``fin_rngs`` (the established
+            # reproducibility pattern) still get repeatable regime paths instead
+            # of OS entropy. Reading ``bit_generator.state`` does not advance
+            # ``rng_returns``, so this leaves the downstream draws untouched.
+            rng_regime = _derive_regime_rng(rng_returns)
 
     index_series = normalize_index_series(pd.Series(index_series), get_index_series_unit())
     mu_idx = float(index_series.mean())
@@ -430,6 +461,8 @@ def run_parameter_sweep(
     }
     reuse_return_shocks = not override_keys.intersection(shock_incompatible_keys)
     reuse_financing_series = not override_keys.intersection(financing_keys)
+    if cfg.regimes is not None:
+        reuse_return_shocks = False
     if cfg.covariance_shrinkage != "none" and override_keys.intersection(sigma_override_keys):
         reuse_return_shocks = False
     returns_static = not override_keys.intersection(return_param_keys)
@@ -440,13 +473,15 @@ def run_parameter_sweep(
     # is provided, derive the baseline RNG state from that seed.
     if seed is None:
         rng_returns_state = copy.deepcopy(rng_returns.bit_generator.state)
+        rng_regime_state = copy.deepcopy(rng_regime.bit_generator.state)
         fin_rng_states = {
             name: copy.deepcopy(rng.bit_generator.state) for name, rng in fin_rngs.items()
         }
     else:
-        base_rng_returns = spawn_rngs(seed, 1)[0]
+        base_rng_returns, base_rng_regime = spawn_rngs(seed, 2)
         base_fin_rngs = spawn_agent_rngs(seed, list(fin_rngs.keys()))
         rng_returns_state = copy.deepcopy(base_rng_returns.bit_generator.state)
+        rng_regime_state = copy.deepcopy(base_rng_regime.bit_generator.state)
         fin_rng_states = {
             name: copy.deepcopy(base_fin_rngs[name].bit_generator.state) for name in fin_rngs.keys()
         }
@@ -454,6 +489,8 @@ def run_parameter_sweep(
     base_sigma = None
     base_corr = None
     base_params = None
+    base_regime_params = None
+    base_regime_paths = None
     if returns_static or reuse_return_shocks:
         base_return_inputs = normalize_return_inputs(cfg)
         sigma_h = float(base_return_inputs["sigma_H"])
@@ -492,6 +529,24 @@ def run_parameter_sweep(
             idx_sigma=float(base_sigma[0]),
             return_overrides=build_covariance_return_overrides(base_sigma, base_corr),
         )
+        if cfg.regimes is not None:
+            if cfg.regime_transition is None:
+                raise ValueError("regime_transition is required when regimes are specified")
+            base_regime_params, _labels = build_regime_draw_params(
+                cfg,
+                mu_idx=mu_idx,
+                idx_sigma=float(base_sigma[0]),
+                n_samples=n_samples,
+            )
+            rng_regime_base = spawn_rngs(None, 1)[0]
+            rng_regime_base.bit_generator.state = copy.deepcopy(rng_regime_state)
+            base_regime_paths = simulate_regime_paths(
+                n_sim=cfg.N_SIMULATIONS,
+                n_months=cfg.N_MONTHS,
+                transition=cfg.regime_transition,
+                start_state=resolve_regime_start(cfg),
+                rng=rng_regime_base,
+            )
 
     return_shocks = None
     if reuse_return_shocks:
@@ -531,6 +586,7 @@ def run_parameter_sweep(
     for i, overrides in iterator:
         if return_shocks is None:
             rng_returns.bit_generator.state = copy.deepcopy(rng_returns_state)
+            rng_regime.bit_generator.state = copy.deepcopy(rng_regime_state)
         if financing_series is None:
             for name, rng in fin_rngs.items():
                 rng.bit_generator.state = copy.deepcopy(fin_rng_states[name])
@@ -585,12 +641,37 @@ def run_parameter_sweep(
                 return_overrides=build_covariance_return_overrides(sigma_vec, corr_mat),
             )
 
+        regime_params = None
+        regime_paths = None
+        if mod_cfg.regimes is not None:
+            if mod_cfg.regime_transition is None:
+                raise ValueError("regime_transition is required when regimes are specified")
+            if returns_static and base_regime_params is not None and base_regime_paths is not None:
+                regime_params = base_regime_params
+                regime_paths = base_regime_paths
+            else:
+                regime_params = build_regime_draw_params(
+                    mod_cfg,
+                    mu_idx=mu_idx,
+                    idx_sigma=float(params["idx_sigma_month"]),
+                    n_samples=n_samples,
+                )[0]
+                regime_paths = simulate_regime_paths(
+                    n_sim=mod_cfg.N_SIMULATIONS,
+                    n_months=mod_cfg.N_MONTHS,
+                    transition=mod_cfg.regime_transition,
+                    start_state=resolve_regime_start(mod_cfg),
+                    rng=rng_regime,
+                )
+
         r_beta, r_H, r_E, r_M = draw_joint_returns(
             n_months=mod_cfg.N_MONTHS,
             n_sim=mod_cfg.N_SIMULATIONS,
             params=params,
             rng=None if return_shocks is not None else rng_returns,
             shocks=return_shocks,
+            regime_paths=regime_paths,
+            regime_params=regime_params,
         )
         if financing_series is None:
             f_int, f_ext, f_act = draw_financing_series(
