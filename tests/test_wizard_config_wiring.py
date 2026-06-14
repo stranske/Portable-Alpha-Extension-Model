@@ -1,5 +1,6 @@
 import runpy
 from pathlib import Path
+from typing import Any
 
 import streamlit as st
 
@@ -11,6 +12,49 @@ from pa_core.wizard_schema import AnalysisMode, RiskMetric, get_default_config
 def _load_build_yaml() -> tuple[callable, dict]:
     module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
     return module["_build_yaml_from_config"], module
+
+
+class _Column:
+    def __enter__(self) -> "_Column":
+        return self
+
+    def __exit__(self, *args: object) -> bool:
+        return False
+
+
+def test_step_1_render_clamps_default_simulations_to_widget_min(monkeypatch) -> None:
+    module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    config = get_default_config(AnalysisMode.RETURNS)
+    config.n_simulations = 1
+
+    monkeypatch.setattr(module["st"], "subheader", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module["st"], "markdown", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module["st"], "info", lambda *args, **kwargs: None)
+
+    def columns(spec: int | list[Any], *args: Any, **kwargs: Any) -> list[_Column]:
+        count = spec if isinstance(spec, int) else len(spec)
+        return [_Column() for _ in range(count)]
+
+    monkeypatch.setattr(module["st"], "columns", columns)
+    monkeypatch.setattr(
+        module["st"],
+        "selectbox",
+        lambda _label, options, index=0, **_kwargs: options[index],
+    )
+
+    def number_input(label: str, *args: Any, **kwargs: Any) -> Any:
+        min_value = kwargs.get("min_value")
+        value = kwargs.get("value")
+        if label == "Number of Simulations":
+            assert min_value == 100
+            assert value >= min_value
+        return value
+
+    monkeypatch.setattr(module["st"], "number_input", number_input)
+
+    rendered = module["_render_step_1_analysis_mode"](config)
+
+    assert rendered.n_simulations == 100
 
 
 def test_build_yaml_maps_all_fields() -> None:

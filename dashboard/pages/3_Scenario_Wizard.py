@@ -792,7 +792,7 @@ def _render_step_1_analysis_mode(config: Any) -> Any:
             "Number of Simulations",
             min_value=100,
             max_value=10000,
-            value=config.n_simulations,
+            value=max(int(config.n_simulations), 100),
             step=100,
             help="More simulations provide more accurate results but take longer",
         )
