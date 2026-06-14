@@ -16,6 +16,7 @@ holdings, prompts, model output, or PII leave the process).
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import Any, Mapping
@@ -26,6 +27,8 @@ from pa_core.llm.langsmith_fleet import (
     hash_reference,
     record_fleet_event,
 )
+
+logger = logging.getLogger(__name__)
 
 SCENARIO_RUN_OPERATION = "scenario-run"
 SCENARIO_SWEEP_OPERATION = "scenario-sweep"
@@ -41,6 +44,7 @@ def _config_mapping(config: Any) -> Mapping[str, Any] | None:
         try:
             data = dump()
         except Exception:
+            logger.warning("Failed to dump config for fleet hashing", exc_info=True)
             return None
         return data if isinstance(data, Mapping) else None
     return config if isinstance(config, Mapping) else None
@@ -56,7 +60,7 @@ def _summary_metric_delta(summary: Any, *, benchmark: str = DEFAULT_BENCHMARK) -
 
     try:
         import pandas as pd
-    except Exception:  # pragma: no cover - pandas is a core dependency
+    except ImportError:  # pragma: no cover - pandas is a core dependency
         return None
     if not isinstance(summary, pd.DataFrame) or summary.empty:
         return None
@@ -80,7 +84,7 @@ def _artifact_reference(summary: Any) -> str | None:
 
     try:
         import pandas as pd
-    except Exception:  # pragma: no cover - pandas is a core dependency
+    except ImportError:  # pragma: no cover - pandas is a core dependency
         return None
     if not isinstance(summary, pd.DataFrame) or summary.empty:
         return None
@@ -130,7 +134,7 @@ def record_scenario_run(
         )
     except Exception:
         # Telemetry is non-critical; never propagate into the run path.
-        pass
+        logger.warning("Failed to record scenario fleet event", exc_info=True)
 
 
 __all__ = [

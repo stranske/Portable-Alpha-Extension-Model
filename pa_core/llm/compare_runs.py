@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -28,6 +29,8 @@ from pa_core.llm.langsmith_fleet import (
 from pa_core.llm.prompts import build_comparison_prompt
 from pa_core.llm.provider import LLMProviderConfig
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
+
+logger = logging.getLogger(__name__)
 
 _CLI_DIFF_KEYS: tuple[str, ...] = (
     "capital",
@@ -369,7 +372,7 @@ def compare_runs(
             # Keep dashboard responsive even without llm extras/credentials.
             status = "fallback"
             error_category = type(exc).__name__
-            pass
+            logger.warning("LLM comparison fell back without extras/credentials", exc_info=True)
 
     if trace_id:
         trace_url = resolve_trace_url(trace_id)
@@ -415,7 +418,7 @@ def compare_runs(
             )
         )
     except Exception:
-        pass
+        logger.warning("Failed to record run-comparison fleet event", exc_info=True)
     return text, trace_url, payload
 
 

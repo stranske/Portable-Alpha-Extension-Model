@@ -26,6 +26,7 @@ Example Usage::
 from __future__ import annotations
 
 import json
+import logging
 import math
 import time
 from dataclasses import dataclass
@@ -40,11 +41,13 @@ from .types import ArrayLike, SweepResult
 
 CANONICAL_PIPELINE = "pa_core.facade"
 
+logger = logging.getLogger(__name__)
+
 
 def _to_builtin_scalar(value: Any) -> Any:
     try:
         import numpy as np
-    except Exception:
+    except ImportError:
         return value
     if isinstance(value, np.generic):
         return _to_builtin_scalar(value.item())
@@ -81,7 +84,7 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
     np_module: Any | None = None
     try:
         import numpy as np_module
-    except Exception:
+    except ImportError:
         np_module = None
     if np_module is not None and isinstance(agent_semantics_val, np_module.ndarray):
         agent_semantics_val = agent_semantics_val.tolist()
@@ -134,7 +137,10 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         try:
             records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
             inputs["_agent_semantics_df"] = _records_to_builtin(records)
-        except Exception:
+        except (ValueError, TypeError):
+            logger.warning(
+                "Failed to serialize _agent_semantics_df mapping for export", exc_info=True
+            )
             return
 
 

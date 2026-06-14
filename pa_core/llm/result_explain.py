@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import time
@@ -20,6 +21,8 @@ from pa_core.llm.langsmith_fleet import (
 from pa_core.llm.prompts import build_result_explanation_prompt
 from pa_core.llm.provider import LLMProviderConfig, create_llm
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
+
+logger = logging.getLogger(__name__)
 
 _REDACTION_TOKEN = "[REDACTED]"
 _MAX_ERROR_MESSAGE_LEN = 500
@@ -358,7 +361,7 @@ def explain_results_details(
                 )
             )
         except Exception:
-            pass
+            logger.warning("Failed to record result-explanation fleet event", exc_info=True)
         return _with_disclaimer(text), None, payload
 
     api_key = config.credentials.get("api_key", "")
@@ -432,7 +435,7 @@ def explain_results_details(
                 )
             )
         except Exception:
-            pass
+            logger.warning("Failed to record result-explanation fleet event", exc_info=True)
     return _with_disclaimer(text), trace_url, payload
 
 

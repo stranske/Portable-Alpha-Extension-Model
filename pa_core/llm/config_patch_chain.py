@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
 from contextlib import nullcontext
@@ -24,6 +25,8 @@ from pa_core.llm.langsmith_fleet import (
     hash_reference,
     record_fleet_event,
 )
+
+logger = logging.getLogger(__name__)
 
 _langsmith_tracing_context: Callable[..., Any] | None
 _resolve_trace_url: Callable[[Any], str | None] | None
@@ -195,7 +198,7 @@ def run_config_patch_chain(
                 )
             )
         except Exception:
-            pass
+            logger.warning("Failed to record config-patch-chain fleet event", exc_info=True)
 
     if _langsmith_enabled() and _langsmith_tracing_context is not None:
         tracing_context = _langsmith_tracing_context(
