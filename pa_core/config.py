@@ -753,9 +753,7 @@ class ModelConfig(BaseModel):
                     return updated[key], candidates
             return field_info.default, candidates
 
-        mean_method = updated.get(
-            "mean_conversion", updated.get("Mean conversion", DEFAULT_MEAN_CONVERSION)
-        )
+        mean_method, _ = _get_value("mean_conversion")
         if mean_method not in ("simple", "geometric"):
             # Leave the invalid value in place so the Literal field validator
             # raises a clear error; fall back to the historical default here so
