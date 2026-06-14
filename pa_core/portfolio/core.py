@@ -63,15 +63,26 @@ def _has_positive_non_benchmark_capital(agents: Iterable[object]) -> bool:
     return False
 
 
+def _agent_tuple(value: object) -> tuple[object, ...] | None:
+    if value is None or isinstance(value, (str, bytes)):
+        return ()
+    if isinstance(value, Mapping):
+        return tuple(value.values())
+    try:
+        return tuple(value)  # type: ignore[arg-type]
+    except TypeError:
+        return None
+
+
 def is_base_only_config(config: object) -> bool:
     """Return true when the effective run has no non-benchmark sleeve capital."""
 
-    effective_agents: Iterable[object]
+    raw_agents = _agent_tuple(getattr(config, "agents", ())) or ()
     try:
         from ..agents.registry import build_from_config
 
-        effective_agents = build_from_config(config)  # type: ignore[arg-type]
+        built_agents = _agent_tuple(build_from_config(config))  # type: ignore[arg-type]
     except (AttributeError, FileNotFoundError, KeyError, OSError, TypeError, ValueError):
-        raw_agents = getattr(config, "agents", ())
-        effective_agents = raw_agents or ()
+        built_agents = None
+    effective_agents = raw_agents if built_agents is None else built_agents
     return not _has_positive_non_benchmark_capital(effective_agents)

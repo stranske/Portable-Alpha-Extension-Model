@@ -58,6 +58,18 @@ def test_overlay_config_is_not_base_only() -> None:
     assert is_base_only_config(cfg) is False
 
 
+def test_base_only_check_tolerates_non_iterable_registry_stub(monkeypatch) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        external_pa_capital=10.0,
+    )
+    monkeypatch.setattr("pa_core.agents.registry.build_from_config", lambda _cfg: object())
+
+    assert is_base_only_config(cfg) is False
+
+
 def test_total_contribution_excludes_base() -> None:
     import numpy as np
 
