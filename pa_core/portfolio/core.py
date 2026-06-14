@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import logging
 from typing import Iterable, Mapping, TypeAlias
 
 from ..backend import xp as np
 from ..types import ArrayLike
 
 Array: TypeAlias = ArrayLike
+logger = logging.getLogger(__name__)
 
 DEFAULT_PORTFOLIO_EXCLUDES = ("Base", "Total")
 OVERLAY_SLEEVE_NAMES = ("ExternalPA", "ActiveExt", "InternalPA", "InternalBeta")
@@ -57,6 +59,11 @@ def _has_positive_non_benchmark_capital(agents: Iterable[object]) -> bool:
         try:
             capital = float(raw_capital or 0.0)
         except (TypeError, ValueError):
+            logger.debug(
+                "Invalid capital value for agent %s: %r; treating as zero",
+                name,
+                raw_capital,
+            )
             capital = 0.0
         if capital > 0.0:
             return True
@@ -82,7 +89,8 @@ def is_base_only_config(config: object) -> bool:
         from ..agents.registry import build_from_config
 
         built_agents = _agent_tuple(build_from_config(config))  # type: ignore[arg-type]
-    except (AttributeError, FileNotFoundError, KeyError, OSError, TypeError, ValueError):
+    except (AttributeError, FileNotFoundError, KeyError, OSError, TypeError, ValueError) as exc:
+        logger.debug("build_from_config failed; using config.agents fallback: %s", exc)
         built_agents = None
     effective_agents = raw_agents if built_agents is None else built_agents
     return not _has_positive_non_benchmark_capital(effective_agents)

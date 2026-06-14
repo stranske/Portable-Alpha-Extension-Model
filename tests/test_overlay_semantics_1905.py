@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import runpy
 from pathlib import Path
+
+import pandas as pd
+import pytest
 
 from dashboard.glossary import tooltip
 from pa_core.config import ModelConfig
+from pa_core.contracts import SUMMARY_AGENT_COLUMN, SUMMARY_ANN_RETURN_COLUMN
 from pa_core.portfolio import (
     OVERLAY_TOTAL_DESCRIPTION,
     compute_total_contribution_returns,
@@ -22,6 +27,7 @@ def test_total_tooltip_documents_base_exclusion() -> None:
 def test_primer_documents_overlay_total_semantics() -> None:
     primer = Path("docs/primer.md").read_text()
 
+    # These phrases are deliberate wording anchors for the board-facing primer.
     assert "Total (overlay contribution)" in primer
     assert "excludes Base" in primer
     assert "all non-Base, non-Total contribution sleeves" in primer
@@ -83,7 +89,13 @@ def test_total_contribution_excludes_base() -> None:
 
 
 def test_results_page_aggregates_multiple_total_rows() -> None:
-    source = Path("dashboard/pages/4_Results.py").read_text()
+    module = runpy.run_path("dashboard/pages/4_Results.py")
+    overlay_total_return = module["_overlay_total_return"]
+    summary = pd.DataFrame(
+        {
+            SUMMARY_AGENT_COLUMN: ["Total", "Total", "Base"],
+            SUMMARY_ANN_RETURN_COLUMN: [0.02, 0.06, 0.10],
+        }
+    )
 
-    assert 'total_rows[SUMMARY_ANN_RETURN_COLUMN].mean()' in source
-    assert 'total_rows[SUMMARY_ANN_RETURN_COLUMN].iloc[0]' not in source
+    assert overlay_total_return(summary) == pytest.approx(0.04)
