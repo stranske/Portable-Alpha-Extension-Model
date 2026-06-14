@@ -30,6 +30,8 @@ All fee parameters are non-negative; an all-zero schedule is a no-op.
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from .backend import xp as np
@@ -83,16 +85,17 @@ def compute_fee_drag(
     if notional_share < 0.0:
         raise ValueError("notional_share must be non-negative")
     if notional_share == 0.0:
-        return np.zeros_like(gross)
+        return cast(ArrayLike, np.zeros_like(gross))
 
-    underlying_gross = gross / notional_share
+    gross_array = cast(Any, gross)
+    underlying_gross = gross_array / notional_share
     mgmt_monthly = schedule.mgmt_fee_bps / _BPS_PER_UNIT / _MONTHS_PER_YEAR
-    drag: ArrayLike = np.full_like(gross, mgmt_monthly)
+    drag = cast(ArrayLike, np.full_like(gross, mgmt_monthly))
     if schedule.perf_fee_pct > 0.0:
         hurdle_monthly = schedule.hurdle_bps / _BPS_PER_UNIT / _MONTHS_PER_YEAR
         excess = np.maximum(underlying_gross - hurdle_monthly, 0.0)
         drag = drag + schedule.perf_fee_pct * excess
-    return drag * notional_share
+    return cast(ArrayLike, drag * notional_share)
 
 
 def apply_fees(
