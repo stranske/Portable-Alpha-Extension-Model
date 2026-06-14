@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from collections.abc import MutableMapping
 from typing import Any
 
@@ -13,6 +14,187 @@ from pa_core.config import ModelConfig, normalize_share
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 
 # Keep dashboard normalization aligned with core config behavior.
+
+DASHBOARD_ASSET_LIBRARY_KEY = "dashboard_asset_library_yaml"
+DASHBOARD_PORTFOLIO_KEY = "dashboard_portfolio_yaml"
+DASHBOARD_SCENARIO_KEY = "dashboard_active_scenario"
+DASHBOARD_RESULT_KEY = "dashboard_active_result"
+
+_CAPITAL_DEFAULTS = {
+    "total_fund_capital": 1000.0,
+    "external_pa_capital": 200.0,
+    "active_ext_capital": 200.0,
+    "internal_pa_capital": 200.0,
+}
+
+_SCENARIO_VALUE_FIELDS = (
+    "analysis_mode",
+    "n_simulations",
+    "n_months",
+    "total_fund_capital",
+    "external_pa_capital",
+    "active_ext_capital",
+    "internal_pa_capital",
+    "theta_extpa",
+    "active_share",
+)
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _config_value(config: Any, field: str) -> Any:
+    if isinstance(config, dict):
+        if field in config:
+            return config[field]
+        upper_field = field.upper()
+        if upper_field in config:
+            return config[upper_field]
+    value = getattr(config, field, None)
+    if hasattr(value, "value"):
+        return value.value
+    return value
+
+
+def _coerce_float(value: Any, fallback: float) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return float(fallback)
+
+
+def build_dashboard_scenario_payload(
+    config: Any,
+    *,
+    source: str,
+    yaml_data: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the shared in-session scenario payload used by dashboard pages."""
+    values = {
+        field: _config_value(config, field)
+        for field in _SCENARIO_VALUE_FIELDS
+        if _config_value(config, field) is not None
+    }
+    return {
+        "source": source,
+        "updated_at": _now_iso(),
+        "values": values,
+        "yaml_data": dict(yaml_data or {}),
+    }
+
+
+def store_dashboard_scenario(
+    state: MutableMapping[str, Any],
+    config: Any,
+    *,
+    source: str,
+    yaml_data: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Store the latest scenario in Streamlit session state."""
+    payload = build_dashboard_scenario_payload(config, source=source, yaml_data=yaml_data)
+    state[DASHBOARD_SCENARIO_KEY] = payload
+    return payload
+
+
+def store_dashboard_result(
+    state: MutableMapping[str, Any],
+    output_path: str,
+    *,
+    source: str,
+    scenario: dict[str, Any] | None = None,
+    seed: int | None = None,
+) -> dict[str, Any]:
+    """Store the latest generated workbook path in Streamlit session state."""
+    payload: dict[str, Any] = {
+        "source": source,
+        "updated_at": _now_iso(),
+        "output_path": str(output_path),
+    }
+    if scenario is not None:
+        payload["scenario"] = scenario
+    if seed is not None:
+        payload["seed"] = int(seed)
+    state[DASHBOARD_RESULT_KEY] = payload
+    return payload
+
+
+def get_dashboard_result_path(state: MutableMapping[str, Any], default: str) -> str:
+    """Return the most recent in-session result workbook path, if present."""
+    result = state.get(DASHBOARD_RESULT_KEY)
+    if isinstance(result, dict):
+        output_path = result.get("output_path")
+        if isinstance(output_path, str) and output_path.strip():
+            return output_path
+    return default
+
+
+def get_dashboard_capital_defaults(
+    state: MutableMapping[str, Any],
+    fallback: dict[str, float] | None = None,
+) -> dict[str, float]:
+    """Return capital defaults from the current session scenario/result."""
+    defaults = dict(_CAPITAL_DEFAULTS)
+    if fallback:
+        defaults.update(fallback)
+
+    scenario = state.get(DASHBOARD_SCENARIO_KEY)
+    result = state.get(DASHBOARD_RESULT_KEY)
+    if not isinstance(scenario, dict) and isinstance(result, dict):
+        maybe_scenario = result.get("scenario")
+        if isinstance(maybe_scenario, dict):
+            scenario = maybe_scenario
+
+    values = scenario.get("values") if isinstance(scenario, dict) else None
+    if not isinstance(values, dict):
+        return defaults
+
+    return {
+        key: _coerce_float(values.get(key), default_value)
+        for key, default_value in defaults.items()
+    }
+
+
+def store_dashboard_asset_library(
+    state: MutableMapping[str, Any],
+    yaml_text: str,
+    *,
+    source_name: str | None = None,
+) -> dict[str, Any]:
+    """Store calibrated asset-library YAML for Portfolio Builder handoff."""
+    payload = {
+        "source": "asset_library",
+        "source_name": source_name,
+        "updated_at": _now_iso(),
+        "yaml": yaml_text,
+    }
+    state[DASHBOARD_ASSET_LIBRARY_KEY] = payload
+    return payload
+
+
+def get_dashboard_asset_library_yaml(state: MutableMapping[str, Any]) -> str | None:
+    payload = state.get(DASHBOARD_ASSET_LIBRARY_KEY)
+    if not isinstance(payload, dict):
+        return None
+    yaml_text = payload.get("yaml")
+    return yaml_text if isinstance(yaml_text, str) and yaml_text.strip() else None
+
+
+def store_dashboard_portfolio(
+    state: MutableMapping[str, Any],
+    yaml_text: str,
+    *,
+    source_name: str | None = None,
+) -> dict[str, Any]:
+    """Store generated portfolio YAML so file export is not the only handoff."""
+    payload = {
+        "source": "portfolio_builder",
+        "source_name": source_name,
+        "updated_at": _now_iso(),
+        "yaml": yaml_text,
+    }
+    state[DASHBOARD_PORTFOLIO_KEY] = payload
+    return payload
 
 
 def build_alpha_shares_payload(
@@ -149,6 +331,18 @@ def run_sleeve_frontier(
 
 __all__ = [
     "normalize_share",
+    "DASHBOARD_ASSET_LIBRARY_KEY",
+    "DASHBOARD_PORTFOLIO_KEY",
+    "DASHBOARD_SCENARIO_KEY",
+    "DASHBOARD_RESULT_KEY",
+    "build_dashboard_scenario_payload",
+    "store_dashboard_scenario",
+    "store_dashboard_result",
+    "get_dashboard_result_path",
+    "get_dashboard_capital_defaults",
+    "store_dashboard_asset_library",
+    "get_dashboard_asset_library_yaml",
+    "store_dashboard_portfolio",
     "build_alpha_shares_payload",
     "make_grid_cache_key",
     "bump_session_token",

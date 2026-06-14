@@ -25,7 +25,12 @@ from dashboard.components.llm_settings import (
     resolve_llm_provider_config,
 )
 from dashboard.glossary import tooltip
-from dashboard.utils import run_sleeve_frontier, run_sleeve_suggestions
+from dashboard.utils import (
+    run_sleeve_frontier,
+    run_sleeve_suggestions,
+    store_dashboard_result,
+    store_dashboard_scenario,
+)
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
@@ -2111,7 +2116,21 @@ def main() -> None:
                             pass
 
                     if sim_ok:
+                        scenario_payload = store_dashboard_scenario(
+                            st.session_state,
+                            config,
+                            source="scenario_wizard",
+                            yaml_data=yaml_data,
+                        )
+                        store_dashboard_result(
+                            st.session_state,
+                            output,
+                            source="scenario_wizard",
+                            scenario=scenario_payload,
+                            seed=int(seed_value) if use_seed else None,
+                        )
                         st.success(f"✅ Simulation complete! Results written to {output}")
+                        st.page_link("pages/4_Results.py", label="Open Results")
                         st.balloons()
 
                         # Show quick margin summary using current financing settings if available

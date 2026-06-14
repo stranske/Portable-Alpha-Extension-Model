@@ -15,6 +15,7 @@ import pandas as pd
 import streamlit as st
 
 from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.utils import get_dashboard_capital_defaults
 from pa_core.config import ModelConfig
 from pa_core.orchestrator import SimulatorOrchestrator
 from pa_core.reporting.constraints import build_constraint_report
@@ -78,24 +79,29 @@ def main() -> None:
     # Capital breakout (kept simple but non-zero to activate agents)
     st.sidebar.markdown("---")
     st.sidebar.markdown("**Capital ($mm)**")
-    total_cap = st.sidebar.number_input("Total fund capital", value=1000.0, step=50.0)
+    capital_defaults = get_dashboard_capital_defaults(st.session_state)
+    total_cap = st.sidebar.number_input(
+        "Total fund capital",
+        value=float(capital_defaults["total_fund_capital"]),
+        step=50.0,
+    )
     ext_cap = st.sidebar.number_input(
         "External PA capital",
-        value=200.0,
+        value=min(float(capital_defaults["external_pa_capital"]), float(total_cap)),
         step=10.0,
         min_value=0.0,
         max_value=total_cap,
     )
     act_cap = st.sidebar.number_input(
         "Active Extension capital",
-        value=200.0,
+        value=min(float(capital_defaults["active_ext_capital"]), float(total_cap)),
         step=10.0,
         min_value=0.0,
         max_value=total_cap,
     )
     int_cap = st.sidebar.number_input(
         "Internal PA capital",
-        value=200.0,
+        value=min(float(capital_defaults["internal_pa_capital"]), float(total_cap)),
         step=10.0,
         min_value=0.0,
         max_value=total_cap,

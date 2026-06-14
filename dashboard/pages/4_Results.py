@@ -23,6 +23,7 @@ from dashboard.app import (
 from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
+from dashboard.utils import DASHBOARD_RESULT_KEY, get_dashboard_result_path
 from pa_core.contracts import (
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,
@@ -178,7 +179,15 @@ def _render_comparison_panel(
 
 def main() -> None:
     st.title("Results")
-    xlsx = st.sidebar.text_input("Results file", _DEF_XLSX)
+    result_default = get_dashboard_result_path(st.session_state, _DEF_XLSX)
+    xlsx = st.sidebar.text_input("Results file", result_default)
+    active_result = st.session_state.get(DASHBOARD_RESULT_KEY)
+    if (
+        isinstance(active_result, dict)
+        and isinstance(active_result.get("output_path"), str)
+        and active_result["output_path"] == xlsx
+    ):
+        st.sidebar.caption(f"In-session result from {active_result.get('source', 'dashboard')}.")
     theme_path = st.sidebar.text_input("Theme file", _DEF_THEME)
     apply_theme(theme_path)
     if not Path(xlsx).exists():

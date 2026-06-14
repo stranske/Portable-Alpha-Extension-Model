@@ -20,6 +20,7 @@ try:
 except Exception:  # pragma: no cover - conservative fallback
     _BARE_MODE = True
 from dashboard.app import _DEF_THEME, apply_theme
+from dashboard.utils import store_dashboard_asset_library
 from pa_core.presets import AlphaPreset, PresetLibrary
 
 # Create logger for this module
@@ -193,6 +194,12 @@ def main() -> None:
             try:
                 calib.to_yaml(result, ypath)
                 yaml_str = Path(ypath).read_text()
+                store_dashboard_asset_library(
+                    st.session_state,
+                    yaml_str,
+                    source_name=uploaded.name,
+                )
+                st.success("Asset library saved for Portfolio Builder in this session.")
                 st.download_button(
                     "Download Asset Library YAML",
                     yaml_str,

@@ -8,7 +8,12 @@ import streamlit as st
 import yaml
 
 from dashboard.app import _DEF_THEME, apply_theme
-from dashboard.utils import apply_promoted_alpha_shares, normalize_share
+from dashboard.utils import (
+    apply_promoted_alpha_shares,
+    get_dashboard_asset_library_yaml,
+    normalize_share,
+    store_dashboard_portfolio,
+)
 from pa_core.portfolio import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
@@ -77,12 +82,18 @@ def main() -> None:
         )
 
     uploaded = st.file_uploader("Upload Asset Library YAML", type=["yaml", "yml"])
-    if uploaded is None:
+    session_asset_yaml = get_dashboard_asset_library_yaml(st.session_state)
+    if uploaded is None and session_asset_yaml is None:
         st.info("Upload an asset library YAML to begin.")
         return
+    if uploaded is None and session_asset_yaml is not None:
+        st.info("Using the Asset Library YAML saved in this session.")
 
     with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp:
-        tmp.write(uploaded.getvalue())
+        if uploaded is not None:
+            tmp.write(uploaded.getvalue())
+        elif session_asset_yaml is not None:
+            tmp.write(session_asset_yaml.encode("utf-8"))
         tmp.flush()  # Ensure data is written to disk
         scenario = load_scenario(tmp.name)
 
@@ -119,6 +130,12 @@ def main() -> None:
                 "theta_extpa": float(theta_extpa_input),
             }
             yaml_str = yaml.safe_dump(data, sort_keys=False)
+            store_dashboard_portfolio(
+                st.session_state,
+                yaml_str,
+                source_name=(uploaded.name if uploaded is not None else "session asset library"),
+            )
+            st.success("Portfolio YAML saved for this session.")
             st.download_button(
                 "Download Portfolio YAML",
                 yaml_str,
