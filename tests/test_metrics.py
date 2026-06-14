@@ -389,7 +389,11 @@ def test_summary_table_includes_terminal_return_percentiles():
     for col in ("terminal_AnnReturn_P50", "terminal_AnnReturn_P10", "terminal_AnnReturn_P90"):
         assert col in stats.columns
     row = stats.iloc[0]
-    assert row["terminal_AnnReturn_P10"] <= row["terminal_AnnReturn_P50"] <= row["terminal_AnnReturn_P90"]
+    assert (
+        row["terminal_AnnReturn_P10"]
+        <= row["terminal_AnnReturn_P50"]
+        <= row["terminal_AnnReturn_P90"]
+    )
 
 
 def test_per_path_te_lower_than_pooled_when_means_differ_across_paths():

@@ -145,9 +145,7 @@ def test_excel_tornado_embed_logs_malformed_fallback_without_aborting(tmp_path, 
     assert any(r.exc_info is not None for r in records)
 
 
-def test_excel_sunburst_embed_logs_type_error_without_aborting(
-    monkeypatch, tmp_path, caplog
-):
+def test_excel_sunburst_embed_logs_type_error_without_aborting(monkeypatch, tmp_path, caplog):
     """Optional sunburst image failures stay non-fatal even for malformed return data."""
 
     from pa_core.reporting import excel
