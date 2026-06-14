@@ -10,6 +10,9 @@ This document describes all labels that trigger automated workflows or affect CI
 | `autofix:clean` | PR labeled | Triggers clean-mode autofix (more aggressive)
 | `agent:codex` | Issue or PR labeled | Routes the issue or PR to the Codex agent
 | `agent:claude` | Issue or PR labeled | Routes the issue or PR to the Claude Code agent
+| `agent:cursor` | Issue or PR labeled | Routes the issue or PR to the Cursor agent (`cursor-agent` CLI)
+| `agent:gemini` | Issue or PR labeled | Routes the issue or PR to the Gemini agent (`gemini` CLI) — runner lands in a follow-up phase
+| `agent:aider` | Issue or PR labeled | Routes the issue or PR to the Aider agent for cheap, low-complexity tasks — runner lands in a follow-up phase
 | `agent:auto` | Issue or PR labeled | Delegates routing to the auto-delegation policy; do not combine with concrete `agent:<name>` labels
 | `agent:retry` | PR labeled | Requests one re-dispatch of the matching keepalive runner
 | `agent:rate-limited` | Auto-applied | Marks a PR as backing off from a rate-limit failure
@@ -24,6 +27,13 @@ This document describes all labels that trigger automated workflows or affect CI
 | `agents:auto-pilot-pause` | Issue labeled | Pauses auto-pilot dispatch
 | `agents:paused` | PR labeled | Pauses keepalive loop on PR
 | `agents:keepalive` | PR labeled | Enables keepalive loop on PR
+| `agents:max-runs:<K>` | PR labeled | Caps keepalive run count; `agents:max-runs:0` is an explicit hold
+| `needs-human` | Issue or PR labeled | Blocks automation until a human clears the blocker
+| `security:bypass-guard` | Issue or PR labeled | Bypasses prompt-injection guard after explicit approval
+| `agents:allow-change` | PR labeled | Allows guarded automation changes that require explicit permission
+| `automerge` | PR labeled | Marks a completed agent PR for guarded automerge
+| `status:in-progress` | Issue labeled | Marks an issue claimed by the belt dispatcher/worker
+| `from:<agent>` | PR labeled | Records the automation agent that produced the PR
 | `runner:<agent>` | Issue labeled | Selects an auto-pilot runner without triggering issue intake
 | `verify:checkbox` | PR labeled | Runs verifier checkbox mode after merge
 | `verify:evaluate` | PR labeled | Runs verifier evaluation mode after merge
@@ -121,6 +131,38 @@ This document describes all labels that trigger automated workflows or affect CI
 
 ---
 
+### `agent:cursor`
+
+**Applies to:** Issues and Pull Requests
+
+**Trigger:** When applied to an issue or PR
+
+**Effect:**
+1. Routes the issue or PR to the Cursor agent, a parallel surface to `agent:codex` and `agent:claude`
+2. On PRs, keepalive dispatches work via `reusable-cursor-run.yml` per `.github/agents/registry.yml`
+3. Branch prefix `cursor/issue-<number>` is used for agent work (see `.github/agents/registry.yml`)
+
+**Prerequisites:**
+- Repository has a valid `CURSOR_API_KEY` secret (per `.github/agents/registry.yml`)
+- Issue or PR should have clear requirements
+
+**Workflow:** `agents-keepalive-loop.yml`, `agents-autofix-loop.yml`; runner is `reusable-cursor-run.yml` per `.github/agents/registry.yml`.
+
+---
+
+### `agent:gemini` and `agent:aider`
+
+**Applies to:** Issues and Pull Requests
+
+These labels are registered ahead of their runners (which land in follow-up phases of the multi-agent
+rollout). `agent:gemini` routes to the `gemini` CLI; `agent:aider` is reserved for cheap, low-complexity
+tasks via Aider with a configurable backend model. Their registry entries are present for capacity
+tracking but disabled until the matching `reusable-<agent>-run.yml` runners ship, so applying these
+labels will not dispatch a runner yet. See `docs/guides/ADD_NEW_AGENT.md` and the rollout plan for
+sequencing.
+
+---
+
 ### `agent:auto`
 
 **Applies to:** Issues and Pull Requests
@@ -130,11 +172,11 @@ This document describes all labels that trigger automated workflows or affect CI
 **Effect:**
 1. Delegates routing to the auto-delegation policy in `.github/scripts/agent_delegation_policy.js`
 2. The policy switches between Codex and Claude based on stall/effectiveness signals
-3. Used to recover from capacity-stuck PRs by replacing the concrete `agent:<name>` label with `agent:auto`; the registry rejects `agent:auto` when it is co-present with a concrete agent label
+3. Used to recover from capacity-stuck PRs: **add** `agent:auto` to the PR (alongside the existing `agent:<name>` label); keepalive will override the concrete label and route through auto-delegation
 4. Selects a runner through the delegation policy without mutating labels; if no current agent is recorded, the policy chooses the default available agent or the first available alternative
 
 **Prerequisites:**
-- Do not combine `agent:auto` with `agent:codex`, `agent:claude`, or another concrete routing label; exactly one routing mode must be present
+- When `agent:auto` is present, any co-present concrete `agent:<name>` label is silently ignored; `agent:auto` always wins
 - Existing delegation state improves switch decisions, but the initial-selection path can choose an agent without a concrete label
 
 **Lifecycle:** Applied manually or by orchestrator/closer when a PR is capacity-stuck. The delegation policy reads it on keepalive ticks and either keeps the current runner choice or switches the runner decision for that dispatch.
@@ -374,6 +416,8 @@ These labels trigger the post-merge verifier workflow on a merged PR.
 
 **Effect:** Verifies acceptance criteria checkbox completion and opens follow-up issues if gaps are detected.
 
+**CI failure hard gate:** If any polled CI workflow concludes `failure` on the merge commit, the verdict is floored at CONCERNS before the LLM runs, so a merge that breaks `main` can never verify PASS.
+
 **Workflow:** `agents-verifier.yml`
 
 ---
@@ -386,6 +430,8 @@ These labels trigger the post-merge verifier workflow on a merged PR.
 
 **Effect:** Runs an LLM evaluation of the work and posts a report with optional follow-up issues.
 
+**CI failure hard gate:** If any polled CI workflow concludes `failure` on the merge commit, the verdict is floored at CONCERNS before the LLM runs, so a merge that breaks `main` can never verify PASS.
+
 **Workflow:** `agents-verifier.yml`
 
 ---
@@ -397,6 +443,8 @@ These labels trigger the post-merge verifier workflow on a merged PR.
 **Trigger:** When applied to a merged PR
 
 **Effect:** Runs the verifier across multiple models and posts a comparison report.
+
+**CI failure hard gate:** If any polled CI workflow concludes `failure` on the merge commit, the verdict is floored at CONCERNS before the LLM runs, so a merge that breaks `main` can never verify PASS.
 
 **Workflow:** `agents-verifier.yml`
 
@@ -483,6 +531,127 @@ These labels trigger the post-merge verifier workflow on a merged PR.
 - Gate workflow must pass
 
 **Workflow:** `agents-keepalive-loop.yml`
+
+---
+
+### `agents:max-runs:<K>`
+
+**Applies to:** Pull Requests
+
+**Trigger:** Read during keepalive evaluation
+
+**Effect:**
+1. Caps how many keepalive rounds a PR may run.
+2. `agents:max-runs:0` is an explicit hold and prevents dispatch.
+3. Values `K >= 1` are enforced by the keepalive loop when it evaluates the PR.
+
+**Consumer:** `.github/scripts/keepalive_gate.js` parses the prefix, and
+`.github/scripts/keepalive_loop.js` enforces the zero-run hold alongside
+`agents:paused` and `needs-human`.
+
+---
+
+### `needs-human`
+
+**Applies to:** Issues and Pull Requests
+
+**Trigger:** Read by agent, keepalive, verifier, and guard workflows
+
+**Effect:**
+1. Stops automation until a human removes the label.
+2. Marks a policy, product, access, or repeated-failure blocker that should not
+   be retried blindly.
+3. Is applied by verifier follow-up policy, auto-pilot blockers, capability
+   checks, and repeated keepalive failures.
+
+**Consumers:** `.github/scripts/keepalive_loop.js`,
+`.github/workflows/agents-auto-pilot.yml`,
+`.github/workflows/agents-verify-to-new-pr.yml`,
+`.github/workflows/agents-capability-check.yml`.
+
+---
+
+### `security:bypass-guard`
+
+**Applies to:** Issues and Pull Requests
+
+**Trigger:** Prompt-injection guard evaluation
+
+**Effect:**
+1. Explicitly bypasses the prompt-injection guard after a trusted reviewer has
+   accepted the risk.
+2. Should be used narrowly and removed after the guarded action completes.
+
+**Consumer:** `.github/scripts/prompt_injection_guard.js`.
+
+---
+
+### `agents:allow-change`
+
+**Applies to:** Pull Requests
+
+**Trigger:** Agent guard evaluation
+
+**Effect:**
+1. Allows protected automation changes, such as Dependabot or workflow-adjacent
+   edits, after the change has been justified.
+2. Prevents `agents-guard` from blocking PRs that would otherwise require
+   explicit permission.
+
+**Consumers:** `.github/scripts/agents-guard.js`,
+`.github/workflows/maint-dependabot-auto-label.yml`.
+
+---
+
+### `automerge`
+
+**Applies to:** Pull Requests
+
+**Trigger:** Guarded merge sweeps
+
+**Effect:**
+1. Marks a completed agent PR as eligible for the guarded automerge path.
+2. Does not bypass required checks, branch protection, or review policy.
+3. Is applied by keepalive on a tasks-complete success terminal when appropriate.
+
+**Consumers:** `.github/scripts/keepalive_loop.js`,
+`.github/scripts/merge_manager.js`,
+`.github/workflows/reusable-70-orchestrator-main.yml`.
+
+---
+
+### `status:in-progress`
+
+**Applies to:** Issues
+
+**Trigger:** Belt dispatcher or worker claim
+
+**Effect:**
+1. Records that an issue has active belt work in progress.
+2. Is removed by the conveyor after the active work hands off or completes.
+
+**Consumers:** `.github/workflows/agents-71-codex-belt-dispatcher.yml`,
+`.github/workflows/agents-72-codex-belt-worker.yml`,
+`.github/workflows/agents-73-codex-belt-conveyor.yml`.
+
+---
+
+### `from:<agent>`
+
+**Applies to:** Pull Requests
+
+**Trigger:** PR creation or verification follow-up creation
+
+**Effect:**
+1. Records the automation source that produced a PR, such as `from:codex`,
+   `from:claude`, or `from:auto`.
+2. Helps merge and verifier tooling distinguish agent-origin PRs from manual PRs.
+
+**Consumers:** `.github/scripts/merge_manager.js`,
+`.github/workflows/agents-72-codex-belt-worker.yml`,
+`.github/workflows/agents-verify-to-new-pr.yml`,
+`.github/workflows/agents-verify-to-issue-v2.yml`,
+`.github/workflows/reusable-agents-verifier.yml`.
 
 ---
 
