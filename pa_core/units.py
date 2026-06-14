@@ -5,6 +5,10 @@ Policy summary
 - Configured return inputs (mu/sigma/cov) are normalized to monthly units.
   ``ModelConfig.return_unit`` reports the canonical unit after normalization,
   while ``return_unit_input`` preserves the original unit provided by the user.
+- Annual mean returns are converted to monthly via ``ModelConfig.mean_conversion``:
+  ``simple`` (the default, ``mean/12``) is fast but does not reproduce the
+  configured annual mean once monthly returns compound; ``geometric``
+  (``(1+r)**(1/12)-1``) does. Volatility conversion is unaffected by this choice.
 - Index return series are always treated as monthly returns; the config return
   unit does not apply to the index series.
 - Breach thresholds compare monthly returns; shortfall thresholds compare an
@@ -65,6 +69,7 @@ CONFIG_TIME_HORIZON_FIELDS: dict[str, str] = {
     "N_MONTHS": "months",
     "return_unit": "annual_or_monthly",
     "return_unit_input": "annual_or_monthly",
+    "mean_conversion": "annual_to_monthly_mean_method",
     "mu_H": "return_unit_input",
     "mu_H_annual": "annual",
     "mu_H_monthly": "monthly",

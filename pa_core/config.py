@@ -248,6 +248,18 @@ class ModelConfig(BaseModel):
         exclude=True,
         description="Original return unit provided before normalization.",
     )
+    mean_conversion: Literal["simple", "geometric"] = Field(
+        default=DEFAULT_MEAN_CONVERSION,
+        alias="Mean conversion",
+        description=(
+            "How annual mean returns are converted to monthly. 'simple' uses "
+            "mean/12 (the historical default); it is fast but does NOT reproduce "
+            "the configured annual mean once the monthly returns compound. "
+            "'geometric' uses (1+r)**(1/12)-1, so 12 compounded monthly means "
+            "recover the annual mean. Only affects mu_* inputs supplied in annual "
+            "units; volatilities are unchanged."
+        ),
+    )
 
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
@@ -746,9 +758,15 @@ class ModelConfig(BaseModel):
                     return updated[key], candidates
             return field_info.default, candidates
 
+        mean_method, _ = _get_value("mean_conversion")
+        if mean_method not in ("simple", "geometric"):
+            # Leave the invalid value in place so the Literal field validator
+            # raises a clear error; fall back to the historical default here so
+            # the pre-validation conversion stays deterministic.
+            mean_method = DEFAULT_MEAN_CONVERSION
         for field in ("mu_H", "mu_E", "mu_M"):
             value, keys = _get_value(field)
-            converted = annual_mean_to_monthly(value)
+            converted = annual_mean_to_monthly(value, method=mean_method)
             for key in keys:
                 updated[key] = converted
         for field in ("sigma_H", "sigma_E", "sigma_M"):

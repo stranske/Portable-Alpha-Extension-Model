@@ -4,6 +4,7 @@ backend,numpy
 Number of simulations,1000
 Number of months,12
 return_unit,annual
+Mean conversion,simple
 Return distribution,normal
 Student-t df,5.0
 Return copula,gaussian
