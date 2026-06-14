@@ -10,7 +10,7 @@ extend-ignore = ["E501"]
 # sys.path.insert, os.chdir, matplotlib/warnings configuration) before the
 # bulk of their imports in the bootstrap cell, so the later module-level
 # imports legitimately trip E402. Suppress it for notebooks only.
-"*.ipynb" = ["E402"]
+"**/*.ipynb" = ["E402"]
 
 [tool.black]
 line-length = 100
