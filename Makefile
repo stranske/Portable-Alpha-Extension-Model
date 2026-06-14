@@ -2,6 +2,7 @@
 
 # Prefer repo virtualenv python if available
 PY := $(shell if [ -x ".venv/bin/python" ]; then echo ".venv/bin/python"; else command -v python; fi)
+PA := $(shell if [ -x ".venv/bin/pa" ]; then echo ".venv/bin/pa"; else command -v pa || echo pa; fi)
 
 # Default target
 help:
@@ -69,7 +70,7 @@ clean:
 	rm -rf htmlcov/
 
 demo:
-	$(PY) -m pa_core.cli --config config/params_template.yml --index sp500tr_fred_divyield.csv
+	$(PA) run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
 
 dashboard:
 	$(PY) -m streamlit run dashboard/app.py

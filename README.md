@@ -37,7 +37,7 @@ Local terminal setup is still available for developers:
   - `./dev.sh setup`
 2. Launch the dashboard wizard
   - `./dev.sh dashboard`
-  - Or: `python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501`
+  - Or: `python -m streamlit run dashboard/app.py --server.port=8501 --server.address=127.0.0.1`
 3. In the app, open **Scenario Wizard** and follow the prompts to run and view results.
 
 Wizard preview:
@@ -56,7 +56,7 @@ Below is a comprehensive description of the updated portable‑alpha + active‑
 The simplest way to explore the model is through the interactive dashboard wizard.
 
 ```bash
-python -m streamlit run dashboard/app.py --server.headless=true --server.port=8501  # launches Streamlit on port 8501
+python -m streamlit run dashboard/app.py --server.port=8501 --server.address=127.0.0.1  # launches Streamlit on port 8501
 ```
 
 1. Open the **Scenario Wizard** page.
@@ -68,7 +68,7 @@ python -m streamlit run dashboard/app.py --server.headless=true --server.port=85
 Power users can work directly with YAML configuration files via the command-line interface:
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv
 ```
 The index CSV should include a `Date` column and a monthly total return column named `Monthly_TR` (preferred) or `Return`; if neither exists, the loader uses the second column and emits a warning.
 
@@ -208,7 +208,7 @@ sudo apt-get install -y chromium-browser
 
 Advanced usage (CLI/YAML)
 
-If you prefer the command line, the main entry point is ``pa_core.cli`` which exposes analysis modes, export
+If you prefer the command line, use ``pa run`` for analysis modes, export
 options and dashboard integration:
 
 The CLI currently supports only the NumPy backend; cupy/GPU acceleration is not available.
@@ -216,21 +216,21 @@ If you set `backend: cupy` in a config file or pass `--backend cupy`, the run fa
 validation error, so do not assume GPU acceleration is available.
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \
   --mode returns
 
 # optional pivot-style output
-python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --pivot
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --pivot
 
 # launch dashboard alongside a run and export images
-python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv \
   --dashboard --png --alt-text "Risk-return chart"
 ```
 
 Structured logging: add `--log-json` to write JSONL to `runs/<timestamp>/run.log`. The manifest (`manifest.json`) records the selected backend and the log path for reproducibility:
 
 ```bash
-python -m pa_core.cli --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --log-json
+pa run --config config/params_template.yml --index data/sp500tr_fred_divyield.csv --log-json
 ```
 
 Legacy CSV parameter files can be converted for this release with:

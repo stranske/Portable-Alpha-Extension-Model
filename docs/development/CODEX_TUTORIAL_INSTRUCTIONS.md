@@ -57,9 +57,9 @@ As a new user, start with the simplest possible command to establish baseline un
 
 2. **Run your first simulation** (single scenario, no sweep):
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_first_scenario.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --output MyFirstResults.xlsx
    ```
 
@@ -91,9 +91,9 @@ The `--mode=capital` parameter runs multiple scenarios automatically, varying ex
 
 2. **Run a capital allocation sweep**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_capital_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode capital \
      --output CapitalSweep.xlsx
    ```
@@ -119,9 +119,9 @@ Use `--mode=returns` to test various return/volatility scenarios:
 
 2. **Run returns sensitivity analysis**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_returns_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode returns \
      --output ReturnsSweep.xlsx
    ```
@@ -144,9 +144,9 @@ Use `--mode=alpha_shares` to optimize the split between alpha-generating and bet
 
 2. **Run alpha/beta optimization**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_alpha_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode alpha_shares \
      --output AlphaSweep.xlsx
    ```
@@ -169,9 +169,9 @@ Use `--mode=vol_mult` to test how your strategy performs under different volatil
 
 2. **Run volatility stress test**:
    ```bash
-   python -m pa_core.cli \
+   pa run \
      --config my_vol_sweep.yml \
-     --index sp500tr_fred_divyield.csv \
+     --index data/sp500tr_fred_divyield.csv \
      --mode vol_mult \
      --output VolStressTest.xlsx
    ```
@@ -194,8 +194,8 @@ You've now mastered:
 **Troubleshooting**:
 - If commands fail, ensure you're in the correct directory and virtual environment is activated
 - Check that CSV templates exist in the `config/` folder
-- Verify `sp500tr_fred_divyield.csv` is present in the root directory
-- Use `python -m pa_core.cli --help` to see all available options
+- Verify `data/sp500tr_fred_divyield.csv` is present
+- Use `pa run --help` to see all available options
 ```
 
 ### **Step 3: Update Cross-References**
@@ -235,6 +235,6 @@ This tutorial shows how to visualise the metrics produced in Tutorial 1 (all 5 p
 ## 📝 **TESTING REQUIREMENTS**
 After implementation, verify:
 - All commands execute without errors
-- Referenced files exist (`config/*.csv`, `sp500tr_fred_divyield.csv`)  
+- Referenced files exist (`config/*.csv`, `data/sp500tr_fred_divyield.csv`)
 - Excel outputs match descriptions
 - Tutorials 2-3 flow naturally from new Tutorial 1 structure
