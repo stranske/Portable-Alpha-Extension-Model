@@ -1017,8 +1017,8 @@ def main(
     from .sim.financing import _FINANCING_SIGMA_KEYS, broadcast_dispersion_warning
 
     financing_warning = broadcast_dispersion_warning(
-        cfg.financing_mode,
-        cfg.N_SIMULATIONS,
+        getattr(cfg, "financing_mode", "broadcast"),
+        getattr(cfg, "N_SIMULATIONS", 1),
         (getattr(cfg, key, 0.0) for key in _FINANCING_SIGMA_KEYS),
     )
     if financing_warning is not None:
