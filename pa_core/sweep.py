@@ -346,9 +346,7 @@ def _derive_regime_rng(rng_returns: GeneratorLike) -> GeneratorLike:
     ``rng_returns`` reproduce identical regime paths, while remaining an
     independent stream from the return draws.
     """
-    state_repr = json.dumps(
-        rng_returns.bit_generator.state, sort_keys=True, default=str
-    )
+    state_repr = json.dumps(rng_returns.bit_generator.state, sort_keys=True, default=str)
     digest = hashlib.sha256(("pa_core.regime:" + state_repr).encode("utf-8")).digest()
     entropy = int.from_bytes(digest, "big")
     return spawn_rngs(entropy, 1)[0]

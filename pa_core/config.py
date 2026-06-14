@@ -259,9 +259,7 @@ class ModelConfig(BaseModel):
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
     active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
-    total_fund_capital: float = Field(
-        default=1000.0, gt=0, alias="Total fund capital (mm)"
-    )
+    total_fund_capital: float = Field(default=1000.0, gt=0, alias="Total fund capital (mm)")
     agents: List[AgentConfig] = Field(default_factory=list)
     fee_schedule: Optional[Dict[str, FeeSchedule]] = Field(
         default=None,
@@ -346,9 +344,7 @@ class ModelConfig(BaseModel):
     internal_financing_sigma_month: float = Field(
         default=0.0, ge=0, alias="Internal financing vol (monthly %)"
     )
-    internal_spike_prob: float = Field(
-        default=0.0, ge=0, le=1, alias="Internal monthly spike prob"
-    )
+    internal_spike_prob: float = Field(default=0.0, ge=0, le=1, alias="Internal monthly spike prob")
     internal_spike_factor: float = Field(default=0.0, alias="Internal spike multiplier")
 
     # Internal-PA financing cost (issue #1849). Distinct from the margin

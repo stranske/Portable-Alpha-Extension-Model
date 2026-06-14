@@ -99,9 +99,7 @@ class _FakeApp(ModuleType):
     def apply_theme(self, path: str) -> None:
         self.applied_theme = path
 
-    def render_settings_sidebar(
-        self, results_default: str | None = None
-    ) -> tuple[str | None, str]:
+    def render_settings_sidebar(self, results_default: str | None = None) -> tuple[str | None, str]:
         return results_default, self._DEF_THEME
 
 

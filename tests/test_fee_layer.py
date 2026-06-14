@@ -143,9 +143,7 @@ def test_simulate_agents_default_is_backward_compatible() -> None:
     f = np.zeros((n_sim, n_months))
     agents = [InternalPAAgent(AgentParams("InternalPA", 100.0, 0.0, 1.0, {}))]
     # No fee_schedule arg -> identical to gross.
-    assert np.allclose(
-        simulate_agents(agents, r_beta, r_H, r_H, r_H, f, f, f)["InternalPA"], 0.02
-    )
+    assert np.allclose(simulate_agents(agents, r_beta, r_H, r_H, r_H, f, f, f)["InternalPA"], 0.02)
 
 
 # ---------------------------------------------------------------------------
@@ -184,9 +182,7 @@ def test_run_single_mgmt_fee_lowers_return_by_exact_drag() -> None:
     base = _scenario()
     gross = _internal_pa_mean(base)
     net = _internal_pa_mean(
-        base.model_copy(
-            update={"fee_schedule": {"InternalPA": FeeSchedule(mgmt_fee_bps=120.0)}}
-        )
+        base.model_copy(update={"fee_schedule": {"InternalPA": FeeSchedule(mgmt_fee_bps=120.0)}})
     )
     # Deterministic mgmt fee shifts the mean by exactly the monthly drag (0.001).
     assert gross - net == pytest.approx(0.001, abs=1e-9)
@@ -197,11 +193,7 @@ def test_run_single_perf_fee_lowers_return() -> None:
     gross = _internal_pa_mean(base)
     net = _internal_pa_mean(
         base.model_copy(
-            update={
-                "fee_schedule": {
-                    "InternalPA": FeeSchedule(perf_fee_pct=0.5, hurdle_bps=0.0)
-                }
-            }
+            update={"fee_schedule": {"InternalPA": FeeSchedule(perf_fee_pct=0.5, hurdle_bps=0.0)}}
         )
     )
     assert net < gross

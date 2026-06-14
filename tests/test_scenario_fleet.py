@@ -16,7 +16,7 @@ import pytest
 
 from pa_core.config import load_config
 from pa_core.facade import RunOptions, run_sweep
-from pa_core.llm.langsmith_fleet import FLEET_REPO, FLEET_SCHEMA, FLEET_SURFACE
+from pa_core.llm.langsmith_fleet import FLEET_REPO, FLEET_SCHEMA, FLEET_SURFACE, config_fingerprint
 from pa_core.llm.scenario_fleet import (
     SCENARIO_DASHBOARD_SURFACE,
     SCENARIO_RUN_OPERATION,
@@ -25,7 +25,6 @@ from pa_core.llm.scenario_fleet import (
     _summary_metric_delta,
     record_scenario_run,
 )
-from pa_core.llm.langsmith_fleet import config_fingerprint
 from pa_core.orchestrator import SimulatorOrchestrator
 
 _BASIC_CONFIG = {
