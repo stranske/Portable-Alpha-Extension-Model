@@ -230,7 +230,11 @@ def main() -> None:
                 # Ensure a plain pandas Series for type-checker
                 index_series = pd.Series(idx_df[num_cols[0]].dropna().to_numpy())
             else:
-                index_series = load_bundled_sample_index()
+                try:
+                    index_series = load_bundled_sample_index()
+                except (FileNotFoundError, ValueError) as exc:
+                    st.error(f"Bundled sample data could not be loaded: {exc}")
+                    return
 
             base_cfg = ModelConfig.model_validate(
                 {

@@ -18,6 +18,7 @@ from dashboard.utils import (
     load_bundled_sample_index,
 )
 from pa_core.config import ModelConfig
+from pa_core.data import load_index_returns
 from pa_core.orchestrator import SimulatorOrchestrator
 
 
@@ -30,10 +31,12 @@ def test_bundled_sample_index_path_points_at_repo_data_file() -> None:
 
 def test_load_bundled_sample_index_returns_non_empty_numeric_series() -> None:
     series = load_bundled_sample_index()
+    expected = load_index_returns(bundled_sample_index_path())
     assert isinstance(series, pd.Series)
     assert len(series) > 0
     assert pd.api.types.is_numeric_dtype(series)
     assert not series.isna().any()
+    assert series.equals(expected)
 
 
 def test_bundled_sample_runs_through_orchestrator_end_to_end() -> None:

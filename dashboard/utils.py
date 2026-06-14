@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from importlib import resources
 from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Any
@@ -11,6 +12,7 @@ from typing import Any
 import pandas as pd
 
 from pa_core.config import ModelConfig, normalize_share
+from pa_core.data import load_index_returns
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 
 # Keep dashboard normalization aligned with core config behavior.
@@ -84,32 +86,24 @@ SAMPLE_INDEX_FILENAME = "sp500tr_fred_divyield.csv"
 def bundled_sample_index_path() -> Path:
     """Return the path to the bundled sample index-returns CSV.
 
-    The file lives in the repository ``data/`` directory and is the same series
-    referenced by the README onboarding ("upload sample and run"). Returning a
-    path (rather than reading eagerly) keeps callers free to stream it into a
-    download button or read it lazily only when the user opts in.
+    The file is shipped as package data so installed ``pa-dashboard`` users get
+    the same sample series as repo-checkout users. Returning a path keeps
+    callers free to stream it into a download button or read it lazily only when
+    the user opts in.
     """
-    return Path(__file__).resolve().parents[1] / "data" / SAMPLE_INDEX_FILENAME
+    resource = resources.files("data").joinpath(SAMPLE_INDEX_FILENAME)
+    with resources.as_file(resource) as path:
+        return path
 
 
 def load_bundled_sample_index() -> pd.Series:
     """Return the bundled sample index returns as a numeric ``pd.Series``.
 
-    Mirrors the per-page CSV readers: the first numeric column is used as the
-    index-returns series, with non-numeric/NaN values dropped. Raises
-    ``FileNotFoundError`` if the bundled dataset is missing and ``ValueError``
-    if it contains no numeric column.
+    Uses the core index-return loader so the one-click sample follows the same
+    ``Monthly_TR`` column and date-sorting rules as CLI and wizard simulations.
     """
     path = bundled_sample_index_path()
-    if not path.exists():
-        raise FileNotFoundError(f"Bundled sample dataset not found at {path}")
-    df = pd.read_csv(path)
-    num_cols = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
-    if not num_cols:
-        raise ValueError(
-            f"Bundled sample dataset {path.name} has no numeric column to use as index returns."
-        )
-    return pd.Series(df[num_cols[0]].dropna().to_numpy())
+    return load_index_returns(path)
 
 
 def build_alpha_shares_payload(
