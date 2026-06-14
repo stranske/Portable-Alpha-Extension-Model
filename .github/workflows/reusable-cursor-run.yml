@@ -1,0 +1,171 @@
+name: Reusable Cursor Run
+
+on:
+  workflow_call:
+    inputs:
+      skip:
+        description: 'If true, skip execution entirely. Used for conditional calls.'
+        required: false
+        default: false
+        type: boolean
+      prompt_file:
+        description: 'Path to the prompt file that Cursor should read.'
+        required: true
+        type: string
+      mode:
+        description: 'Cursor mode for logging purposes (keepalive | autofix | verifier).'
+        required: false
+        default: keepalive
+        type: string
+      pr_number:
+        description: 'Optional pull request number used for logging or comments by callers.'
+        required: false
+        default: ''
+        type: string
+      pr_ref:
+        description: 'The branch/ref to checkout and push to.'
+        required: false
+        default: ''
+        type: string
+      base_ref:
+        description: 'Optional base branch/ref for conflict surfacing.'
+        required: false
+        default: ''
+        type: string
+      workflows_ref:
+        description: 'The ref of the Workflows repo to checkout for scripts.'
+        required: false
+        default: main
+        type: string
+      max_runtime_minutes:
+        description: 'Upper bound for the job runtime in minutes.'
+        required: false
+        default: 45
+        type: number
+      sandbox:
+        description: 'Sandbox mode placeholder kept for Codex-compatible callers.'
+        required: false
+        default: workspace-write
+        type: string
+      safety_strategy:
+        description: 'Safety strategy placeholder kept for Codex-compatible callers.'
+        required: false
+        default: drop-sudo
+        type: string
+      skip_permissions:
+        description: 'Pass --force to cursor-agent so it can apply edits without confirmation.'
+        required: false
+        default: true
+        type: boolean
+      cursor_cli_args:
+        description: 'Optional additional cursor-agent CLI arguments.'
+        required: false
+        default: ''
+        type: string
+      appendix:
+        description: 'Optional context appended to the prompt passed to Cursor.'
+        required: false
+        default: ''
+        type: string
+      iteration:
+        description: 'Current iteration number for completion tracking.'
+        required: false
+        default: ''
+        type: string
+      environment:
+        description: 'GitHub environment to run in.'
+        required: false
+        default: agent-standard
+        type: string
+    secrets:
+      CURSOR_API_KEY:
+        required: false
+      WORKFLOWS_APP_ID:
+        required: false
+      WORKFLOWS_APP_PRIVATE_KEY:
+        required: false
+      OPENAI_API_KEY:
+        required: false
+      CLAUDE_API_STRANSKE:
+        required: false
+    outputs:
+      final-message:
+        description: 'Full Cursor output message (base64 encoded)'
+        value: ${{ jobs.cursor.outputs.final-message }}
+      final-message-summary:
+        description: 'First 500 chars of Cursor output (safe for PR comments)'
+        value: ${{ jobs.cursor.outputs.final-message-summary }}
+      error-summary:
+        description: 'Failure summary message'
+        value: ${{ jobs.cursor.outputs.error-summary }}
+      exit-code:
+        description: 'Cursor CLI exit code'
+        value: ${{ jobs.cursor.outputs.exit-code }}
+      changes-made:
+        description: 'Whether Cursor made file changes'
+        value: ${{ jobs.cursor.outputs.changes-made }}
+      commit-sha:
+        description: 'SHA of the commit if changes were pushed'
+        value: ${{ jobs.cursor.outputs.commit-sha }}
+      files-changed:
+        description: 'Number of files changed by Cursor'
+        value: ${{ jobs.cursor.outputs.files-changed }}
+      llm-analysis-run:
+        description: 'Whether LLM analysis was performed'
+        value: ${{ jobs.cursor.outputs.llm-analysis-run }}
+      llm-provider:
+        description: 'LLM provider used for analysis'
+        value: ${{ jobs.cursor.outputs.llm-provider }}
+      llm-model:
+        description: 'Specific model used for analysis'
+        value: ${{ jobs.cursor.outputs.llm-model }}
+      llm-confidence:
+        description: 'Confidence level of LLM analysis'
+        value: ${{ jobs.cursor.outputs.llm-confidence }}
+      llm-completed-tasks:
+        description: 'JSON array of completed task descriptions'
+        value: ${{ jobs.cursor.outputs.llm-completed-tasks }}
+      llm-has-completions:
+        description: 'Whether any task completions were detected'
+        value: ${{ jobs.cursor.outputs.llm-has-completions }}
+      error-category:
+        description: 'Error category'
+        value: ${{ jobs.cursor.outputs.error-category }}
+      error-type:
+        description: 'Error type'
+        value: ${{ jobs.cursor.outputs.error-type }}
+      error-recovery:
+        description: 'Suggested recovery action'
+        value: ${{ jobs.cursor.outputs.error-recovery }}
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  models: read
+
+jobs:
+  cursor:
+    uses: stranske/Workflows/.github/workflows/reusable-cursor-run.yml@main
+    with:
+      skip: ${{ inputs.skip }}
+      prompt_file: ${{ inputs.prompt_file }}
+      mode: ${{ inputs.mode }}
+      pr_number: ${{ inputs.pr_number }}
+      pr_ref: ${{ inputs.pr_ref }}
+      base_ref: ${{ inputs.base_ref }}
+      workflows_ref: ${{ inputs.workflows_ref }}
+      max_runtime_minutes: ${{ inputs.max_runtime_minutes }}
+      sandbox: ${{ inputs.sandbox }}
+      safety_strategy: ${{ inputs.safety_strategy }}
+      skip_permissions: ${{ inputs.skip_permissions }}
+      cursor_cli_args: ${{ inputs.cursor_cli_args }}
+      appendix: ${{ inputs.appendix }}
+      iteration: ${{ inputs.iteration }}
+      environment: ${{ inputs.environment }}
+    secrets:
+      CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+      WORKFLOWS_APP_ID: ${{ secrets.WORKFLOWS_APP_ID }}
+      WORKFLOWS_APP_PRIVATE_KEY: ${{ secrets.WORKFLOWS_APP_PRIVATE_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      CLAUDE_API_STRANSKE: ${{ secrets.CLAUDE_API_STRANSKE }}
