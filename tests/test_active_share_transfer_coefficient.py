@@ -5,6 +5,7 @@ bit-for-bit. With kappa > 0 the expected alpha is concave in the lever (declinin
 information ratio) while active risk still scales linearly, and an optional
 per-share extension cost yields a closed-form interior optimum.
 """
+
 from pathlib import Path
 
 import numpy as np
@@ -71,7 +72,9 @@ def test_active_risk_grows_even_as_alpha_saturates():
             ActiveExtensionAgent,
             1.0,
             {"active_share": s, "alpha_mu": 0.01, "tc_decay": 1.0, "cost_per_share": 0.0},
-        ).monthly_returns(z, alpha, z).std()
+        )
+        .monthly_returns(z, alpha, z)
+        .std()
         for s in (0.2, 0.5, 0.9)
     ]
     assert stds[0] < stds[1] < stds[2]
@@ -89,7 +92,9 @@ def test_interior_optimum_matches_closed_form():
             ActiveExtensionAgent,
             1.0,
             {"active_share": s, "alpha_mu": mu, "tc_decay": kappa, "cost_per_share": c},
-        ).monthly_returns(z, alpha, z).mean()
+        )
+        .monthly_returns(z, alpha, z)
+        .mean()
         for s in grid
     ]
     s_opt = grid[int(np.argmax(means))]

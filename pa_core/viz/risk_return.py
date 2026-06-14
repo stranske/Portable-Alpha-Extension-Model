@@ -166,10 +166,7 @@ def _fill_benchmark_tracking_error(df: pd.DataFrame, x_col: str) -> None:
 def _agent_colors(agents: list[str]) -> dict[str, str]:
     colorway = list(theme.TEMPLATE.layout.colorway or _DEFAULT_COLORWAY)
     dynamic_agents = [agent for agent in agents if agent not in _FIXED_AGENT_STYLES]
-    colors = {
-        agent: colorway[idx % len(colorway)]
-        for idx, agent in enumerate(dynamic_agents)
-    }
+    colors = {agent: colorway[idx % len(colorway)] for idx, agent in enumerate(dynamic_agents)}
     for agent, style in _FIXED_AGENT_STYLES.items():
         if agent in agents:
             colors[agent] = str(style["color"])
@@ -179,8 +176,7 @@ def _agent_colors(agents: list[str]) -> dict[str, str]:
 def _agent_symbols(agents: list[str]) -> dict[str, str]:
     dynamic_agents = [agent for agent in agents if agent not in _FIXED_AGENT_STYLES]
     symbols = {
-        agent: _AGENT_SYMBOLS[idx % len(_AGENT_SYMBOLS)]
-        for idx, agent in enumerate(dynamic_agents)
+        agent: _AGENT_SYMBOLS[idx % len(_AGENT_SYMBOLS)] for idx, agent in enumerate(dynamic_agents)
     }
     for agent, style in _FIXED_AGENT_STYLES.items():
         if agent in agents:

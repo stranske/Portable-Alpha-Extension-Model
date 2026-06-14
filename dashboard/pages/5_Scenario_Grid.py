@@ -214,16 +214,16 @@ def main() -> None:
 
         run_sweep = st.button("Run sweep")
         if idx_file is None and not use_sample:
-            st.info("Upload an index returns CSV or tick 'Use bundled sample data' to run the sweep.")
+            st.info(
+                "Upload an index returns CSV or tick 'Use bundled sample data' to run the sweep."
+            )
             return
 
         try:
             if idx_file is not None:
                 idx_df = _read_csv(idx_file)
                 # Use first numeric column as index series
-                num_cols = [
-                    c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])
-                ]
+                num_cols = [c for c in idx_df.columns if pd.api.types.is_numeric_dtype(idx_df[c])]
                 if not num_cols:
                     st.error("No numeric column found in index CSV")
                     return

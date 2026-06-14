@@ -45,9 +45,7 @@ def render_settings_sidebar(results_default: str | None = None) -> tuple[str | N
     """
     with st.sidebar.expander(ADVANCED_SETTINGS_LABEL, expanded=False):
         results_path = (
-            st.text_input("Results file", results_default)
-            if results_default is not None
-            else None
+            st.text_input("Results file", results_default) if results_default is not None else None
         )
         theme_path = st.text_input("Theme file", _DEF_THEME)
     return results_path, theme_path
