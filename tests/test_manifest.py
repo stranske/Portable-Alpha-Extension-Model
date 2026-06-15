@@ -209,8 +209,7 @@ def test_config_snapshot_read_failure_uses_manifest_file_fallback(tmp_path):
     assert config_snapshot is None
     assert config_snapshot_bytes is None
 
-    cfg_text = yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1})
-    cfg_path.write_text(cfg_text)
+    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1}))
     out = tmp_path / "manifest.json"
 
     ManifestWriter(out).write(
@@ -224,7 +223,7 @@ def test_config_snapshot_read_failure_uses_manifest_file_fallback(tmp_path):
 
     manifest = json.loads(out.read_text())
     assert manifest["config"]["N_SIMULATIONS"] == 2
-    assert manifest["config_hash"] == hashlib.sha256(cfg_text.encode()).hexdigest()
+    assert manifest["config_hash"] == hashlib.sha256(cfg_path.read_bytes()).hexdigest()
 
 
 def test_manifest_warns_without_seed(tmp_path, recwarn):
