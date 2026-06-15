@@ -141,11 +141,11 @@ llm = [
 
 # Development dependencies
 dev = [
-    "ruff>=0.15.14",
+    "ruff>=0.15.17",
     "black>=26.5.1",
     "isort>=8.0.1",
     "mypy>=2.1.0",
-    "pytest==9.0.3",
+    "pytest>=9.1.0",
     "pytest-cov==7.1.0",
     "pytest-xdist>=3.8.0",
     # Shared app behavior baseline harness (pulls pytest-regressions). Tracked
@@ -155,7 +155,7 @@ dev = [
     # no-emit-package below so a frozen SHA in the lock cannot conflict with the
     # unpinned URL.
     "app-baseline-kit @ git+https://github.com/stranske/Workflows.git#subdirectory=packages/app-baseline-kit",
-    "coverage>=7.14.0",
+    "coverage>=7.14.1",
     "hypothesis>=6.115.1",
     "pre-commit",
     "bandit",
