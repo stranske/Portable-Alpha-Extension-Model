@@ -48,3 +48,16 @@ captures from two channels:
 onto `manifest.json` / `run_end.json` as additive optional keys. They are absent
 from `MANIFEST_REQUIRED_FIELDS`, so `validate_manifest_payload` remains backward
 compatible with legacy manifests that predate these fields.
+
+## Reproducibility
+
+`manifest.json` ties every board number to a versioned config + seed + data
+hash:
+
+- `config_hash` (additive optional field) is the SHA-256 of the config file
+  bytes, recorded alongside the per-file `data_files` hashes so the exact config
+  that produced a run can be verified even if the file is later edited.
+- A run without an explicit `--seed` (`seed=None`) uses a non-deterministic RNG
+  and cannot be reproduced. `ManifestWriter.write` emits
+  `SEED_REPRODUCIBILITY_WARNING` via the `warnings.warn(...)` channel, so the
+  warning is also captured into the run-record `warnings` list above.

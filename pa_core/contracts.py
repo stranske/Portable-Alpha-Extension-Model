@@ -46,6 +46,7 @@ MANIFEST_REQUIRED_FIELDS: Sequence[str] = (
     "cli_args",
 )
 MANIFEST_OPTIONAL_FIELDS: Sequence[str] = (
+    "config_hash",
     "backend",
     "run_log",
     "previous_run",
@@ -161,6 +162,7 @@ class ManifestPayload(TypedDict, total=False):
     config: Mapping[str, Any]
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
+    config_hash: str | None
     backend: str | None
     run_log: str | None
     previous_run: str | None

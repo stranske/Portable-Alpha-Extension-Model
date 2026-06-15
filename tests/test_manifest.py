@@ -68,11 +68,7 @@ def test_manifest_records_index_data_quality(tmp_path):
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = tmp_path / "index.csv"
     idx_csv.write_text(
-        "Date,Monthly_TR\n"
-        "2020-01-31,0.01\n"
-        "2020-02-29,0.02\n"
-        "2020-03-31,0.03\n"
-        "2020-04-30,#DIV/0!\n"
+        "Date,Monthly_TR\n2020-01-31,0.01\n2020-02-29,0.02\n2020-03-31,0.03\n2020-04-30,#DIV/0!\n"
     )
     out_file = tmp_path / "out.xlsx"
 
@@ -120,6 +116,59 @@ def test_manifest_records_run_log(tmp_path, monkeypatch):
     if not run_log.is_absolute():
         run_log = tmp_path / run_log
     assert run_log.exists()
+
+
+def test_manifest_records_config_hash(tmp_path):
+    import hashlib
+
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--seed",
+            "123",
+        ]
+    )
+
+    manifest = json.loads(out_file.with_name("manifest.json").read_text())
+    expected = hashlib.sha256(cfg_path.read_bytes()).hexdigest()
+    assert manifest["config_hash"] == expected
+
+
+def test_manifest_warns_without_seed(tmp_path, recwarn):
+    from pa_core.manifest import SEED_REPRODUCIBILITY_WARNING
+
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+        ]
+    )
+
+    messages = [str(w.message) for w in recwarn.list]
+    assert any(SEED_REPRODUCIBILITY_WARNING in m for m in messages)
+    manifest = json.loads(out_file.with_name("manifest.json").read_text())
+    assert manifest["seed"] is None
 
 
 def test_manifest_records_previous_run(tmp_path):
