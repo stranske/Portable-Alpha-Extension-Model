@@ -4,14 +4,15 @@ import io
 import os
 import warnings
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 import plotly.graph_objects as go
 
+PdfWriterType: Any
 try:
-    from pypdf import PdfWriter
+    from pypdf import PdfWriter as PdfWriterType
 except (ImportError, ModuleNotFoundError):  # pragma: no cover - optional dep
-    PdfWriter = None
+    PdfWriterType = None
 
 
 def _write_json_fixture(figs: list[go.Figure], path: Path) -> None:
@@ -43,7 +44,7 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
             _write_json_fixture(figs, path)
         return
 
-    if PdfWriter is None:
+    if PdfWriterType is None:
         warnings.warn(
             "pypdf is required to merge multiple PDF figures; writing figure JSON fallback instead.",
             RuntimeWarning,
@@ -52,7 +53,7 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
         _write_json_fixture(figs, path)
         return
 
-    writer = PdfWriter()
+    writer = PdfWriterType()
     buffers: list[io.BytesIO] = []
     for fig in figs:
         buf = io.BytesIO()
