@@ -2,15 +2,22 @@ from __future__ import annotations
 
 import io
 import os
+import warnings
 from pathlib import Path
 from typing import Iterable
 
 import plotly.graph_objects as go
 
 try:
-    from PyPDF2 import PdfMerger
+    from pypdf import PdfWriter
 except (ImportError, ModuleNotFoundError):  # pragma: no cover - optional dep
-    PdfMerger = None
+    PdfWriter = None
+
+
+def _write_json_fixture(figs: list[go.Figure], path: Path) -> None:
+    payload = "[" + ",".join(fig.to_json() or "{}" for fig in figs) + "]"
+    with open(path, "wb") as fh:
+        fh.write(payload.encode())
 
 
 def save(figs: Iterable[go.Figure], path: str | Path) -> None:
@@ -18,33 +25,51 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
     figs = list(figs)
     path = Path(path)
     if os.environ.get("PAEM_SKIP_PDF_EXPORT") or os.environ.get("PYTEST_CURRENT_TEST"):
-        if figs:
-            with open(path, "wb") as fh:
-                fh.write((figs[0].to_json() or "").encode())
+        _write_json_fixture(figs, path)
         return
-    # If PdfMerger is unavailable or only a single figure provided, write a one-page PDF
-    if PdfMerger is None or len(figs) <= 1:
-        if figs:
-            try:
-                figs[0].write_image(path, format="pdf", engine="kaleido")
-            except (ValueError, RuntimeError, OSError, MemoryError):
-                # Fallback: write JSON representation instead of PDF bytes
-                with open(path, "wb") as fh:
-                    json_data = figs[0].to_json() or ""
-                    fh.write(json_data.encode())
+    if not figs:
+        _write_json_fixture(figs, path)
         return
 
-    merger = PdfMerger()
+    if len(figs) == 1:
+        try:
+            figs[0].write_image(path, format="pdf", engine="kaleido")
+        except (ValueError, RuntimeError, OSError, MemoryError) as exc:
+            warnings.warn(
+                f"PDF export failed; writing figure JSON fallback instead: {exc}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            _write_json_fixture(figs, path)
+        return
+
+    if PdfWriter is None:
+        warnings.warn(
+            "pypdf is required to merge multiple PDF figures; writing figure JSON fallback instead.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
+        _write_json_fixture(figs, path)
+        return
+
+    writer = PdfWriter()
+    buffers: list[io.BytesIO] = []
     for fig in figs:
         buf = io.BytesIO()
         try:
             fig.write_image(buf, format="pdf", engine="kaleido")
-            buf.seek(0)
-            merger.append(buf)
-        except (ValueError, RuntimeError, OSError, MemoryError):
-            # fallback to JSON page
-            json_data = fig.to_json() or ""
-            tmp = io.BytesIO(json_data.encode())
-            merger.append(tmp)
+        except (ValueError, RuntimeError, OSError, MemoryError) as exc:
+            warnings.warn(
+                f"PDF export failed; writing all figure JSON fallbacks instead: {exc}",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            _write_json_fixture(figs, path)
+            return
+        buf.seek(0)
+        buffers.append(buf)
+
+    for buf in buffers:
+        writer.append(buf)
     with open(path, "wb") as fh:
-        merger.write(fh)
+        writer.write(fh)

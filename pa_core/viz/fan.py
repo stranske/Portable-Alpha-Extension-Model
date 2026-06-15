@@ -43,5 +43,5 @@ def make(
                 name="Liability",
             )
         )
-    fig.update_layout(xaxis_title="Month", yaxis_title="Return")
+    fig.update_layout(xaxis_title="Month", yaxis_title="Cumulative Return")
     return fig

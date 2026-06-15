@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -185,6 +187,13 @@ def test_fan_and_dist():
     fig2.to_json()
 
 
+def test_fan_labels_cumulative_returns():
+    arr = np.random.normal(size=(10, 5))
+    fig = fan.make(arr)
+    assert fig.layout.xaxis.title.text == "Month"
+    assert fig.layout.yaxis.title.text == "Cumulative Return"
+
+
 def test_sharpe_ladder():
     df = pd.DataFrame(
         {
@@ -260,6 +269,8 @@ def test_html_and_corr(tmp_path):
     arr = np.random.normal(size=(5, 3))
     fig2 = corr_heatmap.make({"A": arr, "B": arr})
     assert isinstance(fig2, go.Figure)
+    assert fig2.layout.xaxis.title.text == "Return Horizon"
+    assert fig2.layout.yaxis.title.text == "Return Horizon"
     fig2.to_json()
 
 
@@ -673,6 +684,20 @@ def test_additional_visualisations(tmp_path):
 
     stack_df = pd.DataFrame({"A": [1, 2], "B": [2, 3]})
     assert isinstance(weighted_stack.make(stack_df), go.Figure)
+
+
+def test_pdf_report_preserves_multiple_figures_in_test_fallback(tmp_path):
+    first = go.Figure()
+    first.update_layout(title_text="First figure")
+    second = go.Figure()
+    second.update_layout(title_text="Second figure")
+
+    out = tmp_path / "report.pdf"
+    pdf_report.save([first, second], out)
+
+    payload = json.loads(out.read_text())
+    titles = [item["layout"]["title"]["text"] for item in payload]
+    assert titles == ["First figure", "Second figure"]
 
 
 def test_theme_reload(tmp_path):

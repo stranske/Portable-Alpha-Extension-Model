@@ -19,5 +19,5 @@ def make(paths_map: dict[str, pd.DataFrame | np.ndarray]) -> go.Figure:
         data=go.Heatmap(z=corr, x=idx, y=idx),
         layout_template=theme.TEMPLATE,
     )
-    fig.update_layout(xaxis_title="Month", yaxis_title="Month")
+    fig.update_layout(xaxis_title="Return Horizon", yaxis_title="Return Horizon")
     return fig
