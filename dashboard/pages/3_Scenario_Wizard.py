@@ -1766,6 +1766,7 @@ def _render_step_4_correlations(config: Any) -> Any:
 def _config_validation_payload(config: Any) -> dict[str, Any]:
     """Return the legacy validator input shape from the wizard config view."""
 
+    financing_settings = st.session_state.get("financing_settings", {})
     payload: dict[str, Any] = {
         "rho_idx_H": config.rho_idx_h,
         "rho_idx_E": config.rho_idx_e,
@@ -1777,14 +1778,15 @@ def _config_validation_payload(config: Any) -> dict[str, Any]:
         "active_ext_capital": config.active_ext_capital,
         "internal_pa_capital": config.internal_pa_capital,
         "total_fund_capital": config.total_fund_capital,
-        "reference_sigma": config.reference_sigma,
-        "volatility_multiple": config.volatility_multiple,
-        "financing_model": config.financing_model,
-        "financing_term_months": config.financing_term_months,
+        "reference_sigma": float(financing_settings.get("reference_sigma", 0.01)),
+        "volatility_multiple": float(financing_settings.get("volatility_multiple", 3.0)),
+        "financing_model": financing_settings.get("financing_model", "simple_proxy"),
+        "financing_term_months": float(financing_settings.get("term_months", 1.0)),
         "N_SIMULATIONS": config.n_simulations,
     }
-    if config.financing_schedule_path:
-        payload["financing_schedule_path"] = config.financing_schedule_path
+    schedule_path = financing_settings.get("schedule_path")
+    if schedule_path:
+        payload["financing_schedule_path"] = str(schedule_path)
     return payload
 
 
