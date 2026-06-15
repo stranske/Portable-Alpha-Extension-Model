@@ -2001,6 +2001,14 @@ def main(
                 logger.error(f"PPTX export failed due to data issue: {e}")
                 print(f"❌ PPTX export failed: Invalid data - {e}")
                 print("💡 Check your visualization data and parameters")
+            except RuntimeError as e:
+                # Raised by pptx_export when a static renderer (Kaleido/Chromium)
+                # is unavailable; surface it instead of dropping chart slides.
+                logger.error(f"PPTX export failed: {e}")
+                print("❌ PPTX export failed: Kaleido or Chrome/Chromium required")
+                print(
+                    "💡 Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser"
+                )
         if flags.html:
             viz.html_export.save(
                 fig,
