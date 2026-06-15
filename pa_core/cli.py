@@ -184,13 +184,13 @@ class _WarningCollector:
         return [dict(rec) for rec in self.records]
 
 
-def _read_config_snapshot(path: str | Path) -> tuple[str, bytes]:
+def _read_config_snapshot(path: str | Path) -> tuple[str | None, bytes | None]:
     try:
         raw = Path(path).read_bytes()
         return raw.decode(), raw
     except (FileNotFoundError, OSError, PermissionError, UnicodeDecodeError):
         logger.debug("Unable to read config snapshot from %s", path)
-        return "", b""
+        return None, None
 
 
 def _hash_index_series(index_series: "pd.Series") -> str:
@@ -843,7 +843,11 @@ def main(
 
             outputs = _build_outputs_map(_collect_artifacts())
             artifact = RunArtifact(
-                config=config_snapshot,
+                config=(
+                    config_snapshot
+                    if config_snapshot is not None
+                    else Path(args.config).read_text()
+                ),
                 index_hash=index_hash,
                 seed=args.seed,
                 manifest=manifest_data,

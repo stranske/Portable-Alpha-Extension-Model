@@ -195,6 +195,38 @@ def test_manifest_hashes_startup_config_snapshot_bytes(tmp_path):
     assert manifest["config_hash"] == hashlib.sha256(config_snapshot_bytes).hexdigest()
 
 
+def test_config_snapshot_read_failure_uses_manifest_file_fallback(tmp_path):
+    import hashlib
+
+    from pa_core.cli import _read_config_snapshot
+    from pa_core.manifest import ManifestWriter
+
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_bytes(b"\xff\xfe")
+
+    config_snapshot, config_snapshot_bytes = _read_config_snapshot(cfg_path)
+
+    assert config_snapshot is None
+    assert config_snapshot_bytes is None
+
+    cfg_text = yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1})
+    cfg_path.write_text(cfg_text)
+    out = tmp_path / "manifest.json"
+
+    ManifestWriter(out).write(
+        config_path=cfg_path,
+        config_snapshot=config_snapshot,
+        config_snapshot_bytes=config_snapshot_bytes,
+        data_files=[],
+        seed=123,
+        cli_args={"config": str(cfg_path)},
+    )
+
+    manifest = json.loads(out.read_text())
+    assert manifest["config"]["N_SIMULATIONS"] == 2
+    assert manifest["config_hash"] == hashlib.sha256(cfg_text.encode()).hexdigest()
+
+
 def test_manifest_warns_without_seed(tmp_path, recwarn):
     from pa_core.manifest import SEED_REPRODUCIBILITY_WARNING
 
