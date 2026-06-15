@@ -283,7 +283,8 @@ The summary table reports sampling-noise diagnostics for CVaR so board outputs d
 look more precise than the simulation count supports:
 
 - `monthly_CVaR_SE` and `terminal_CVaR_SE` estimate the standard error of the
-  lower-tail mean.
+  lower-tail mean. They report `NaN` when fewer than two strict tail
+  observations are available, rather than implying zero sampling error.
 - `monthly_CVaR_CI95_*` and `terminal_CVaR_CI95_*` provide normal-approximation
   95% intervals around the reported CVaR values.
 - `terminal_CVaR_HalfSampleDelta` compares terminal CVaR from the first half of

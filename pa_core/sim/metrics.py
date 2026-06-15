@@ -431,8 +431,6 @@ def _cvar_tail_values(returns: ArrayLike, confidence: float = 0.95) -> ArrayLike
         raise ValueError("returns must not be empty")
     cutoff = np.quantile(flat, 1 - confidence, method="lower")
     tail = flat[flat < cutoff]
-    if tail.size == 0:
-        return cast(ArrayLike, np.asarray([cutoff], dtype=np.float64))
     return cast(ArrayLike, tail)
 
 
@@ -441,10 +439,15 @@ def cvar_standard_error(returns: ArrayLike, confidence: float = 0.95) -> float:
 
     The estimate is the standard error of the returns that fall beyond the same
     strict lower-tail cutoff used by :func:`conditional_value_at_risk`. It is a
-    Monte Carlo precision diagnostic, not model risk.
+    Monte Carlo precision diagnostic, not model risk. If fewer than two strict
+    tail observations are available, the diagnostic is undefined and returns
+    ``NaN`` rather than implying zero sampling error.
     """
 
-    return metric_standard_error(_cvar_tail_values(returns, confidence=confidence))
+    tail = np.asarray(_cvar_tail_values(returns, confidence=confidence), dtype=np.float64)
+    if tail.size < 2:
+        return float("nan")
+    return metric_standard_error(tail)
 
 
 def cvar_confidence_interval(

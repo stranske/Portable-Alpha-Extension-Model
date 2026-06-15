@@ -142,6 +142,21 @@ def test_cvar_standard_error_and_interval_capture_tail_precision():
     assert ci_low < cvar < ci_high
 
 
+def test_cvar_standard_error_is_nan_when_tail_precision_is_unobserved():
+    arr = np.linspace(-0.05, 0.10, 20)
+    se = cvar_standard_error(arr, confidence=0.95)
+    ci_low, ci_high = cvar_confidence_interval(arr, confidence=0.95)
+    stats = summary_table({"Base": arr.reshape(20, 1)})
+    row = stats[stats["Agent"] == "Base"].iloc[0]
+
+    assert np.isnan(se)
+    assert np.isnan(ci_low)
+    assert np.isnan(ci_high)
+    assert np.isnan(row["terminal_CVaR_SE"])
+    assert np.isnan(row["terminal_CVaR_CI95_Low"])
+    assert np.isnan(row["terminal_CVaR_CI95_High"])
+
+
 def test_metric_standard_error_scales_sample_std_by_root_n():
     values = np.array([1.0, 2.0, 3.0, 4.0])
     expected = np.std(values, ddof=1) / np.sqrt(values.size)
