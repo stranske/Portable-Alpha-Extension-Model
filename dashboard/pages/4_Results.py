@@ -409,7 +409,7 @@ def main() -> None:
 
     if auto:
         time.sleep(interval)
-        st.experimental_rerun()
+        st.rerun()
 
 
 if __name__ == "__main__":

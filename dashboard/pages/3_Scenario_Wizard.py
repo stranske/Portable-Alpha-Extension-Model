@@ -17,6 +17,7 @@ import streamlit as st
 import yaml
 
 from dashboard import cli as dashboard_cli
+from dashboard import validation_ui
 from dashboard.app import _DEF_XLSX, apply_theme, render_settings_sidebar
 from dashboard.components.config_chat import render_config_chat_panel
 from dashboard.components.llm_settings import (
@@ -1757,9 +1758,45 @@ def _render_step_4_correlations(config: Any) -> Any:
         )
     else:
         st.success("✅ Correlation matrix is valid")
+
+    _render_validation_panel(config)
     return config
 
-    return config
+
+def _config_validation_payload(config: Any) -> dict[str, Any]:
+    """Return the legacy validator input shape from the wizard config view."""
+
+    financing_settings = st.session_state.get("financing_settings", {})
+    payload: dict[str, Any] = {
+        "rho_idx_H": config.rho_idx_h,
+        "rho_idx_E": config.rho_idx_e,
+        "rho_idx_M": config.rho_idx_m,
+        "rho_H_E": config.rho_h_e,
+        "rho_H_M": config.rho_h_m,
+        "rho_E_M": config.rho_e_m,
+        "external_pa_capital": config.external_pa_capital,
+        "active_ext_capital": config.active_ext_capital,
+        "internal_pa_capital": config.internal_pa_capital,
+        "total_fund_capital": config.total_fund_capital,
+        "reference_sigma": float(financing_settings.get("reference_sigma", 0.01)),
+        "volatility_multiple": float(financing_settings.get("volatility_multiple", 3.0)),
+        "financing_model": financing_settings.get("financing_model", "simple_proxy"),
+        "financing_term_months": float(financing_settings.get("term_months", 1.0)),
+        "N_SIMULATIONS": config.n_simulations,
+    }
+    schedule_path = financing_settings.get("schedule_path")
+    if schedule_path:
+        payload["financing_schedule_path"] = str(schedule_path)
+    return payload
+
+
+def _render_validation_panel(config: Any) -> list[Any]:
+    """Render real-time wizard validation and return the computed results."""
+
+    settings = validation_ui.create_validation_sidebar()
+    results = validation_ui.validate_scenario_config(_config_validation_payload(config), settings)
+    validation_ui.display_validation_results(results, title="Wizard Validation")
+    return results
 
 
 def _render_step_5_review(config: DefaultConfigView) -> bool:
