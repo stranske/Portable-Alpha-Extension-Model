@@ -68,11 +68,7 @@ def test_manifest_records_index_data_quality(tmp_path):
     cfg_path.write_text(yaml.safe_dump(cfg))
     idx_csv = tmp_path / "index.csv"
     idx_csv.write_text(
-        "Date,Monthly_TR\n"
-        "2020-01-31,0.01\n"
-        "2020-02-29,0.02\n"
-        "2020-03-31,0.03\n"
-        "2020-04-30,#DIV/0!\n"
+        "Date,Monthly_TR\n2020-01-31,0.01\n2020-02-29,0.02\n2020-03-31,0.03\n2020-04-30,#DIV/0!\n"
     )
     out_file = tmp_path / "out.xlsx"
 
@@ -120,6 +116,170 @@ def test_manifest_records_run_log(tmp_path, monkeypatch):
     if not run_log.is_absolute():
         run_log = tmp_path / run_log
     assert run_log.exists()
+
+
+def test_manifest_records_config_hash(tmp_path):
+    import hashlib
+
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--seed",
+            "123",
+        ]
+    )
+
+    manifest = json.loads(out_file.with_name("manifest.json").read_text())
+    expected = hashlib.sha256(cfg_path.read_bytes()).hexdigest()
+    assert manifest["config_hash"] == expected
+
+
+def test_manifest_hashes_startup_config_snapshot(tmp_path):
+    import hashlib
+
+    from pa_core.manifest import ManifestWriter
+
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 1, "N_MONTHS": 1}))
+    config_snapshot = cfg_path.read_text()
+    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 999, "N_MONTHS": 1}))
+
+    out = tmp_path / "manifest.json"
+    ManifestWriter(out).write(
+        config_path=cfg_path,
+        config_snapshot=config_snapshot,
+        data_files=[],
+        seed=123,
+        cli_args={"config": str(cfg_path)},
+    )
+
+    manifest = json.loads(out.read_text())
+    assert manifest["config"]["N_SIMULATIONS"] == 1
+    assert manifest["config_hash"] == hashlib.sha256(config_snapshot.encode()).hexdigest()
+
+
+def test_manifest_hashes_startup_config_snapshot_bytes(tmp_path):
+    import hashlib
+
+    from pa_core.manifest import ManifestWriter
+
+    cfg_path = tmp_path / "cfg.yaml"
+    config_snapshot_bytes = b"N_SIMULATIONS: 1\r\nN_MONTHS: 1\r\n"
+    cfg_path.write_bytes(config_snapshot_bytes)
+    config_snapshot = config_snapshot_bytes.decode()
+    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 999, "N_MONTHS": 1}))
+
+    out = tmp_path / "manifest.json"
+    ManifestWriter(out).write(
+        config_path=cfg_path,
+        config_snapshot=config_snapshot,
+        config_snapshot_bytes=config_snapshot_bytes,
+        data_files=[],
+        seed=123,
+        cli_args={"config": str(cfg_path)},
+    )
+
+    manifest = json.loads(out.read_text())
+    assert manifest["config"]["N_SIMULATIONS"] == 1
+    assert manifest["config_hash"] == hashlib.sha256(config_snapshot_bytes).hexdigest()
+
+
+def test_config_snapshot_read_failure_uses_manifest_file_fallback(tmp_path):
+    import hashlib
+
+    from pa_core.cli import _read_config_snapshot
+    from pa_core.manifest import ManifestWriter
+
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_bytes(b"\xff\xfe")
+
+    config_snapshot, config_snapshot_bytes = _read_config_snapshot(cfg_path)
+
+    assert config_snapshot is None
+    assert config_snapshot_bytes is None
+
+    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 2, "N_MONTHS": 1}))
+    out = tmp_path / "manifest.json"
+
+    ManifestWriter(out).write(
+        config_path=cfg_path,
+        config_snapshot=config_snapshot,
+        config_snapshot_bytes=config_snapshot_bytes,
+        data_files=[],
+        seed=123,
+        cli_args={"config": str(cfg_path)},
+    )
+
+    manifest = json.loads(out.read_text())
+    assert manifest["config"]["N_SIMULATIONS"] == 2
+    assert manifest["config_hash"] == hashlib.sha256(cfg_path.read_bytes()).hexdigest()
+
+
+def test_manifest_warns_without_seed(tmp_path, recwarn):
+    from pa_core.manifest import SEED_REPRODUCIBILITY_WARNING
+
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "out.xlsx"
+
+    main(
+        [
+            "--config",
+            str(cfg_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+        ]
+    )
+
+    messages = [str(w.message) for w in recwarn.list]
+    assert any(SEED_REPRODUCIBILITY_WARNING in m for m in messages)
+    manifest = json.loads(out_file.with_name("manifest.json").read_text())
+    assert manifest["seed"] is None
+
+
+def test_manifest_records_seed_warning_on_repeated_seedless_runs(tmp_path):
+    from pa_core.contracts import RUN_RECORD_FILENAME
+    from pa_core.manifest import SEED_REPRODUCIBILITY_WARNING
+
+    cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+    out_one = tmp_path / "run_one" / "out.xlsx"
+    out_two = tmp_path / "run_two" / "out.xlsx"
+    out_one.parent.mkdir()
+    out_two.parent.mkdir()
+
+    for out_file in (out_one, out_two):
+        main(
+            [
+                "--config",
+                str(cfg_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+            ]
+        )
+
+    run_record = json.loads(out_two.with_name(RUN_RECORD_FILENAME).read_text())
+    messages = [str(w.get("message", "")) for w in run_record["warnings"]]
+    assert any(SEED_REPRODUCIBILITY_WARNING in message for message in messages)
 
 
 def test_manifest_records_previous_run(tmp_path):

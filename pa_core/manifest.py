@@ -3,12 +3,20 @@ from __future__ import annotations
 import hashlib
 import json
 import subprocess
+import warnings as _warnings
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 import yaml
+
+#: Emitted (and recorded in the manifest) when a run has no explicit seed.
+SEED_REPRODUCIBILITY_WARNING = (
+    "Run executed without an explicit --seed (seed=None): results use a "
+    "non-deterministic RNG and cannot be reproduced. Pass --seed to make the "
+    "run reproducible."
+)
 
 
 @dataclass
@@ -20,6 +28,7 @@ class Manifest:
     config: Mapping[str, Any]
     data_files: Mapping[str, str]
     cli_args: Mapping[str, Any]
+    config_hash: str | None = None
     backend: str | None = None
     run_log: str | None = None
     previous_run: str | None = None
@@ -42,10 +51,16 @@ class ManifestWriter:
             h.update(fh.read())
         return h.hexdigest()
 
+    @staticmethod
+    def _hash_bytes(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
+
     def write(
         self,
         *,
         config_path: str | Path,
+        config_snapshot: str | None = None,
+        config_snapshot_bytes: bytes | None = None,
         data_files: Sequence[str | Path],
         seed: int | None,
         substream_ids: Mapping[str, str] | None = None,
@@ -72,9 +87,24 @@ class ManifestWriter:
             ).strip()
         except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             commit = "unknown"
-        cfg = yaml.safe_load(Path(config_path).read_text())
+        if config_snapshot is not None:
+            cfg_text = config_snapshot
+            cfg_bytes = (
+                config_snapshot_bytes
+                if config_snapshot_bytes is not None
+                else config_snapshot.encode()
+            )
+        else:
+            cfg_bytes = Path(config_path).read_bytes()
+            cfg_text = cfg_bytes.decode()
+        cfg = yaml.safe_load(cfg_text)
+        config_hash = self._hash_bytes(cfg_bytes)
         hashes = {str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()}
         timing = dict(run_timing) if run_timing else None
+        if seed is None:
+            with _warnings.catch_warnings():
+                _warnings.simplefilter("always", UserWarning)
+                _warnings.warn(SEED_REPRODUCIBILITY_WARNING, UserWarning, stacklevel=2)
         manifest = Manifest(
             git_commit=commit,
             timestamp=datetime.now(timezone.utc).isoformat(),
@@ -83,6 +113,7 @@ class ManifestWriter:
             config=cfg,
             data_files=hashes,
             cli_args=dict(cli_args),
+            config_hash=config_hash,
             backend=backend,
             run_log=str(run_log) if run_log else None,
             previous_run=str(previous_run) if previous_run else None,

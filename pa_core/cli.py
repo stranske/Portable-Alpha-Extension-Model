@@ -184,12 +184,13 @@ class _WarningCollector:
         return [dict(rec) for rec in self.records]
 
 
-def _read_config_snapshot(path: str | Path) -> str:
+def _read_config_snapshot(path: str | Path) -> tuple[str | None, bytes | None]:
     try:
-        return Path(path).read_text()
-    except (FileNotFoundError, OSError, PermissionError):
+        raw = Path(path).read_bytes()
+        return raw.decode(), raw
+    except (FileNotFoundError, OSError, PermissionError, UnicodeDecodeError):
         logger.debug("Unable to read config snapshot from %s", path)
-        return ""
+        return None, None
 
 
 def _hash_index_series(index_series: "pd.Series") -> str:
@@ -690,7 +691,7 @@ def main(
     run_id: str | None = None
     artifact_candidates: list[Path] = []
     manifest_path: Path | None = None
-    config_snapshot = _read_config_snapshot(args.config)
+    config_snapshot, config_snapshot_bytes = _read_config_snapshot(args.config)
 
     def _record_artifact(path: str | Path | None) -> None:
         if not path:
@@ -842,7 +843,11 @@ def main(
 
             outputs = _build_outputs_map(_collect_artifacts())
             artifact = RunArtifact(
-                config=config_snapshot,
+                config=(
+                    config_snapshot
+                    if config_snapshot is not None
+                    else Path(args.config).read_text()
+                ),
                 index_hash=index_hash,
                 seed=args.seed,
                 manifest=manifest_data,
@@ -1251,6 +1256,8 @@ def main(
             data_files.append(args.output)
         mw.write(
             config_path=args.config,
+            config_snapshot=config_snapshot,
+            config_snapshot_bytes=config_snapshot_bytes,
             data_files=data_files,
             seed=args.seed,
             substream_ids=substream_ids,
@@ -1726,6 +1733,8 @@ def main(
             data_files.append(str(out_path))
         mw.write(
             config_path=args.config,
+            config_snapshot=config_snapshot,
+            config_snapshot_bytes=config_snapshot_bytes,
             data_files=data_files,
             seed=args.seed,
             substream_ids=substream_ids,
