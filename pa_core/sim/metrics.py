@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 from importlib.metadata import entry_points
 from statistics import NormalDist
-from typing import Callable, Dict, Mapping
+from typing import Callable, Dict, Mapping, cast
 
 import pandas as pd
 
@@ -432,8 +432,8 @@ def _cvar_tail_values(returns: ArrayLike, confidence: float = 0.95) -> ArrayLike
     cutoff = np.quantile(flat, 1 - confidence, method="lower")
     tail = flat[flat < cutoff]
     if tail.size == 0:
-        return np.asarray([cutoff], dtype=np.float64)
-    return tail
+        return cast(ArrayLike, np.asarray([cutoff], dtype=np.float64))
+    return cast(ArrayLike, tail)
 
 
 def cvar_standard_error(returns: ArrayLike, confidence: float = 0.95) -> float:
