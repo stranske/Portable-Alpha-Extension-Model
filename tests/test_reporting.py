@@ -6,35 +6,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.contracts import (
-    SUMMARY_CVAR_CI95_HIGH_COLUMN,
-    SUMMARY_CVAR_CI95_LOW_COLUMN,
-    SUMMARY_CVAR_COLUMN,
-    SUMMARY_CVAR_SE_COLUMN,
-    SUMMARY_CVAR_TERMINAL_COLUMN,
-    SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
-    SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
-    SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
-    SUMMARY_TERMINAL_CVAR_SE_COLUMN,
-)
 from pa_core.config import ModelConfig
 from pa_core.facade import RunArtifacts, export
 from pa_core.reporting import export_to_excel
 from pa_core.sim.metrics import summary_table
+from tests.cvar_diagnostics import CVAR_DIAGNOSTIC_COLUMNS
 
 openpyxl: Any = pytest.importorskip("openpyxl")
-
-CVAR_DIAGNOSTIC_COLUMNS = [
-    SUMMARY_CVAR_COLUMN,
-    SUMMARY_CVAR_SE_COLUMN,
-    SUMMARY_CVAR_CI95_LOW_COLUMN,
-    SUMMARY_CVAR_CI95_HIGH_COLUMN,
-    SUMMARY_CVAR_TERMINAL_COLUMN,
-    SUMMARY_TERMINAL_CVAR_SE_COLUMN,
-    SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
-    SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
-    SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
-]
 
 
 def test_export_to_excel_sheets(tmp_path: Path):
