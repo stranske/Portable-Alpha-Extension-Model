@@ -38,7 +38,15 @@ def test_generic_covariance_supports_manager_universe_shape() -> None:
 
 
 def test_named_return_draws_map_sleeves_to_alpha_sources() -> None:
-    stream_names = ("idx", "H", "E", "M", "portfolio:trend_growth", "portfolio:trend_value")
+    stream_names = (
+        "idx",
+        "H",
+        "E",
+        "M",
+        "portfolio:trend_growth",
+        "portfolio:trend_value",
+        "stream:trend_core",
+    )
     correlations = {
         (left, right): 0.0 for i, left in enumerate(stream_names) for right in stream_names[i + 1 :]
     }
@@ -51,6 +59,7 @@ def test_named_return_draws_map_sleeves_to_alpha_sources() -> None:
             "M": 0.04,
             "portfolio:trend_growth": 0.05,
             "portfolio:trend_value": 0.06,
+            "stream:trend_core": 0.07,
         },
         correlations,
     )
@@ -67,6 +76,7 @@ def test_named_return_draws_map_sleeves_to_alpha_sources() -> None:
         {
             "growth_manager": "portfolio:trend_growth",
             "value_manager": "trend_value",
+            "prefixed_stream_manager": "portfolio:trend_core",
         },
         draws,
     )
@@ -75,6 +85,9 @@ def test_named_return_draws_map_sleeves_to_alpha_sources() -> None:
     assert draws["portfolio:trend_growth"].shape == (4, 3)
     np.testing.assert_array_equal(sleeve_streams["growth_manager"], draws["portfolio:trend_growth"])
     np.testing.assert_array_equal(sleeve_streams["value_manager"], draws["portfolio:trend_value"])
+    np.testing.assert_array_equal(
+        sleeve_streams["prefixed_stream_manager"], draws["stream:trend_core"]
+    )
 
 
 def test_legacy_four_stream_api_remains_compatible() -> None:

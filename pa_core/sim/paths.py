@@ -588,12 +588,15 @@ def _normalize_alpha_source(source: str) -> tuple[str, ...]:
     if not raw:
         raise ValueError("alpha_source must not be empty")
     candidates = [raw]
+    suffix = raw
     if ":" in raw:
         _, suffix = raw.split(":", 1)
         candidates.append(suffix)
     for prefix in ("stream:", "alpha:", "portfolio:", "manager:"):
         if not raw.startswith(prefix):
             candidates.append(f"{prefix}{raw}")
+        if suffix != raw:
+            candidates.append(f"{prefix}{suffix}")
     return tuple(dict.fromkeys(candidates))
 
 
