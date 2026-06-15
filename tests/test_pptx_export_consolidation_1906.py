@@ -9,6 +9,8 @@ missing renderer can never silently drop chart slides from a board pack.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import plotly.graph_objects as go
 import pytest
 from pptx import Presentation
@@ -26,11 +28,21 @@ class _BoomFig:
         raise ValueError("Kaleido/Chromium not installed")
 
 
+class _BadFig:
+    """Stand-in figure whose render fails for a non-renderer data reason."""
+
+    layout = None
+
+    def to_image(self, *args: object, **kwargs: object) -> bytes:
+        raise ValueError("bad figure data")
+
+
 def _without_ci_placeholder(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Force the real-render branch (CI/pytest normally short-circuit to a
+    # Force the real-render branch (pytest normally short-circuits to a
     # placeholder image to avoid spawning kaleido).
     monkeypatch.delenv("CI", raising=False)
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("PA_PPTX_PLACEHOLDER", raising=False)
 
 
 def test_export_packet_delegates_to_shared_helper() -> None:
@@ -44,13 +56,32 @@ def test_render_chart_png_uses_placeholder_under_pytest() -> None:
     assert pptx_export.render_chart_png(_BoomFig()) == pptx_export._ONE_PX_PNG
 
 
+def test_render_chart_png_does_not_mask_renderer_failure_in_generic_ci(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("CI", "1")
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("PA_PPTX_PLACEHOLDER", raising=False)
+
+    with pytest.raises(RuntimeError, match="static image renderer"):
+        pptx_export.render_chart_png(_BoomFig())
+
+
+def test_render_chart_png_preserves_non_renderer_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _without_ci_placeholder(monkeypatch)
+    with pytest.raises(ValueError, match="bad figure data"):
+        pptx_export.render_chart_png(_BadFig())
+
+
 def test_save_raises_actionable_error_without_renderer(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: object
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     # `save` no longer silently swallows render failures.
     _without_ci_placeholder(monkeypatch)
     with pytest.raises(RuntimeError, match="static image renderer"):
-        pptx_export.save([_BoomFig()], tmp_path / "out.pptx")  # type: ignore[operator]
+        pptx_export.save([_BoomFig()], tmp_path / "out.pptx")
 
 
 def test_packet_chart_slide_raises_same_error_without_renderer(
@@ -63,9 +94,9 @@ def test_packet_chart_slide_raises_same_error_without_renderer(
         export_packet._add_chart_slide(prs, _BoomFig())
 
 
-def test_save_writes_slides_with_alt_text(tmp_path: object) -> None:
+def test_save_writes_slides_with_alt_text(tmp_path: Path) -> None:
     fig = go.Figure()
-    out = tmp_path / "out.pptx"  # type: ignore[operator]
+    out = tmp_path / "out.pptx"
     pptx_export.save([fig], out, alt_texts=["my chart"])
     assert out.exists()
     pres = Presentation(out)

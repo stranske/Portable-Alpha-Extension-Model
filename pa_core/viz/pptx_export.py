@@ -12,28 +12,36 @@ from pptx.util import Inches
 
 __all__ = ["render_chart_png", "add_chart_slide", "save"]
 
-# Tiny 1x1 PNG used as a placeholder in CI/pytest so chart slides never spawn a
-# (potentially hanging) kaleido/Chromium subprocess during automated runs.
+# Tiny 1x1 PNG used as a placeholder in pytest or explicit placeholder mode so
+# chart slides never spawn a potentially hanging kaleido/Chromium subprocess.
 _ONE_PX_PNG = base64.b64decode(
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
     "ASsJTYQAAAAASUVORK5CYII="
 )
+_RENDERER_ERROR_TERMS = ("kaleido", "chrome", "chromium")
+
+
+def _is_static_renderer_error(exc: BaseException) -> bool:
+    return any(term in str(exc).lower() for term in _RENDERER_ERROR_TERMS)
 
 
 def render_chart_png(fig: Any) -> bytes:
     """Render a Plotly figure to PNG bytes for embedding in a PPTX slide.
 
-    In CI/pytest a tiny placeholder image is returned to avoid hanging kaleido
-    subprocesses. Outside CI a real static render is attempted via Kaleido; if
-    that renderer is unavailable the failure is surfaced as an actionable
-    ``RuntimeError`` rather than being silently swallowed (a silently-skipped
-    chart produces a divergent, incomplete board pack).
+    In pytest or explicit placeholder mode a tiny placeholder image is returned
+    to avoid hanging kaleido subprocesses. Otherwise a real static render is
+    attempted via Kaleido; if that renderer is unavailable the failure is
+    surfaced as an actionable ``RuntimeError`` rather than being silently
+    swallowed (a silently-skipped chart produces a divergent, incomplete board
+    pack).
     """
-    if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
+    if os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PA_PPTX_PLACEHOLDER") == "1":
         return _ONE_PX_PNG
     try:
         return cast(bytes, fig.to_image(format="png", engine="kaleido"))
     except Exception as e:  # pragma: no cover - exercised only without kaleido
+        if not _is_static_renderer_error(e):
+            raise
         raise RuntimeError(
             "PPTX export requires a static image renderer (Kaleido/Chromium). "
             "Install Plotly Kaleido or Chrome/Chromium. For Debian/Ubuntu: "
@@ -56,7 +64,13 @@ def add_chart_slide(
     """
     slide = prs.slides.add_slide(prs.slide_layouts[layout_index])
     img_bytes = render_chart_png(fig)
-    pic = slide.shapes.add_picture(io.BytesIO(img_bytes), Inches(0), Inches(0))
+    pic = slide.shapes.add_picture(
+        io.BytesIO(img_bytes),
+        Inches(0),
+        Inches(0),
+        width=prs.slide_width,
+        height=prs.slide_height,
+    )
     if not alt:
         layout = getattr(fig, "layout", None)
         title = getattr(layout, "title", None) if layout is not None else None
