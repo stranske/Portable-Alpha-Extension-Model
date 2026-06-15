@@ -51,10 +51,15 @@ class ManifestWriter:
             h.update(fh.read())
         return h.hexdigest()
 
+    @staticmethod
+    def _hash_text(text: str) -> str:
+        return hashlib.sha256(text.encode()).hexdigest()
+
     def write(
         self,
         *,
         config_path: str | Path,
+        config_snapshot: str | None = None,
         data_files: Sequence[str | Path],
         seed: int | None,
         substream_ids: Mapping[str, str] | None = None,
@@ -81,12 +86,15 @@ class ManifestWriter:
             ).strip()
         except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             commit = "unknown"
-        cfg = yaml.safe_load(Path(config_path).read_text())
-        config_hash = self._hash_file(config_path) if Path(config_path).exists() else None
+        cfg_text = config_snapshot if config_snapshot is not None else Path(config_path).read_text()
+        cfg = yaml.safe_load(cfg_text)
+        config_hash = self._hash_text(cfg_text)
         hashes = {str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()}
         timing = dict(run_timing) if run_timing else None
         if seed is None:
-            _warnings.warn(SEED_REPRODUCIBILITY_WARNING, stacklevel=2)
+            with _warnings.catch_warnings():
+                _warnings.simplefilter("always", UserWarning)
+                _warnings.warn(SEED_REPRODUCIBILITY_WARNING, UserWarning, stacklevel=2)
         manifest = Manifest(
             git_commit=commit,
             timestamp=datetime.now(timezone.utc).isoformat(),

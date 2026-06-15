@@ -1251,6 +1251,7 @@ def main(
             data_files.append(args.output)
         mw.write(
             config_path=args.config,
+            config_snapshot=config_snapshot,
             data_files=data_files,
             seed=args.seed,
             substream_ids=substream_ids,
@@ -1726,6 +1727,7 @@ def main(
             data_files.append(str(out_path))
         mw.write(
             config_path=args.config,
+            config_snapshot=config_snapshot,
             data_files=data_files,
             seed=args.seed,
             substream_ids=substream_ids,
