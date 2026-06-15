@@ -52,14 +52,15 @@ class ManifestWriter:
         return h.hexdigest()
 
     @staticmethod
-    def _hash_text(text: str) -> str:
-        return hashlib.sha256(text.encode()).hexdigest()
+    def _hash_bytes(data: bytes) -> str:
+        return hashlib.sha256(data).hexdigest()
 
     def write(
         self,
         *,
         config_path: str | Path,
         config_snapshot: str | None = None,
+        config_snapshot_bytes: bytes | None = None,
         data_files: Sequence[str | Path],
         seed: int | None,
         substream_ids: Mapping[str, str] | None = None,
@@ -86,9 +87,18 @@ class ManifestWriter:
             ).strip()
         except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             commit = "unknown"
-        cfg_text = config_snapshot if config_snapshot is not None else Path(config_path).read_text()
+        if config_snapshot is not None:
+            cfg_text = config_snapshot
+            cfg_bytes = (
+                config_snapshot_bytes
+                if config_snapshot_bytes is not None
+                else config_snapshot.encode()
+            )
+        else:
+            cfg_bytes = Path(config_path).read_bytes()
+            cfg_text = cfg_bytes.decode()
         cfg = yaml.safe_load(cfg_text)
-        config_hash = self._hash_text(cfg_text)
+        config_hash = self._hash_bytes(cfg_bytes)
         hashes = {str(Path(p)): self._hash_file(p) for p in data_files if Path(p).exists()}
         timing = dict(run_timing) if run_timing else None
         if seed is None:

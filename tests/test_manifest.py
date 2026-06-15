@@ -169,6 +169,32 @@ def test_manifest_hashes_startup_config_snapshot(tmp_path):
     assert manifest["config_hash"] == hashlib.sha256(config_snapshot.encode()).hexdigest()
 
 
+def test_manifest_hashes_startup_config_snapshot_bytes(tmp_path):
+    import hashlib
+
+    from pa_core.manifest import ManifestWriter
+
+    cfg_path = tmp_path / "cfg.yaml"
+    config_snapshot_bytes = b"N_SIMULATIONS: 1\r\nN_MONTHS: 1\r\n"
+    cfg_path.write_bytes(config_snapshot_bytes)
+    config_snapshot = config_snapshot_bytes.decode()
+    cfg_path.write_text(yaml.safe_dump({"N_SIMULATIONS": 999, "N_MONTHS": 1}))
+
+    out = tmp_path / "manifest.json"
+    ManifestWriter(out).write(
+        config_path=cfg_path,
+        config_snapshot=config_snapshot,
+        config_snapshot_bytes=config_snapshot_bytes,
+        data_files=[],
+        seed=123,
+        cli_args={"config": str(cfg_path)},
+    )
+
+    manifest = json.loads(out.read_text())
+    assert manifest["config"]["N_SIMULATIONS"] == 1
+    assert manifest["config_hash"] == hashlib.sha256(config_snapshot_bytes).hexdigest()
+
+
 def test_manifest_warns_without_seed(tmp_path, recwarn):
     from pa_core.manifest import SEED_REPRODUCIBILITY_WARNING
 
