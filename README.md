@@ -89,6 +89,8 @@ in every generated board pack (see `pa_core/reporting/disclaimers.py`):
 - The model is forward-looking and has not been backtested.
 - `risk_metrics` is advisory: it selects which metrics are reported, not how the simulation runs.
 - `Scenario.sleeves` is currently unwired and does not affect simulation results.
+- Legacy beta-sleeve financing costs are floored at zero; only `internal_pa_financing_*` supports negative financing as positive carry.
+- `analysis_mode='single_with_sensitivity'` is for single-run CLI sensitivity, not parameter sweeps; use `--sensitivity` with a single scenario instead of routing it through the sweep engine.
 
 ## Optional LLM Features
 

@@ -245,6 +245,27 @@ capital share — the same contribution machinery used by every other sleeve —
 the cost is charged against the modeled InternalPA capital, not the
 institution's whole capital.
 
+**Beta-sleeve financing floor:** legacy financing costs for the Base,
+InternalBeta, ExternalPA, and ActiveExt beta legs are floored at zero, so a
+negative value does not model positive carry for those sleeves. Use the
+`internal_pa_financing_*` fields above when you need negative financing to raise
+the InternalPA sleeve return.
+
+### Advisory and unwired inputs
+
+Several schema fields are accepted for compatibility or reporting control but
+do not change the simulation engine:
+
+- `risk_metrics` controls which metrics are reported or displayed. It does not
+  alter return generation, sleeve construction, or portfolio aggregation.
+- `Scenario.sleeves` is validated by the scenario schema, including the capital
+  share sum check, but engine runs still read sleeve allocations from
+  `ModelConfig` fields and `agents`.
+- `analysis_mode: single_with_sensitivity` is a single-run CLI/orchestrator
+  mode. The parameter sweep engine supports `returns`, `capital`,
+  `alpha_shares`, and `vol_mult`; use `pa run --sensitivity` with a single
+  scenario rather than routing `single_with_sensitivity` through sweep configs.
+
 ## Quick Start Configuration for First-Time Users
 
 For your first run, consider these conservative assumptions:

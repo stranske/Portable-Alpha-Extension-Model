@@ -32,6 +32,10 @@ def test_limitations_cover_required_caveats():
         "not been backtested",
         "risk_metrics",
         "scenario.sleeves",
+        "floored at zero",
+        "positive carry",
+        "single_with_sensitivity",
+        "sweep engine",
     ):
         assert phrase in blob, f"missing caveat: {phrase}"
 
@@ -48,6 +52,19 @@ def test_readme_documents_limitations():
     next_section = readme.index("\n## ", section_start + 1)
     section = readme[section_start:next_section]
     assert limitations_markdown() in section
+
+
+def test_parameter_guide_documents_advisory_and_unwired_fields():
+    guide = (_REPO_ROOT / "docs/guides/PARAMETER_GUIDE.md").read_text()
+    for phrase in (
+        "`risk_metrics` controls which metrics are reported",
+        "`Scenario.sleeves` is validated by the scenario schema",
+        "legacy financing costs",
+        "floored at zero",
+        "`analysis_mode: single_with_sensitivity`",
+        "parameter sweep engine supports `returns`, `capital`,",
+    ):
+        assert phrase in guide
 
 
 def test_board_pack_includes_limitations_slide():
