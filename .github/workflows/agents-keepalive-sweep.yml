@@ -66,7 +66,7 @@ jobs:
                   repo,
                   workflow_id: 'agents-81-gate-followups.yml',
                   ref: context.payload.repository.default_branch,
-                  inputs: { pr_number: String(pr.number), force_retry: 'true' },
+                  inputs: { pr_number: String(pr.number) },
                 });
                 dispatched += 1;
               } catch (error) {
