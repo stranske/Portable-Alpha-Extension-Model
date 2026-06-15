@@ -1016,6 +1016,7 @@ def main(
     from .facade import run_single
     from .logging_utils import setup_json_logging
     from .manifest import ManifestWriter
+    from .portfolio import BASE_ONLY_TOTAL_WARNING, is_base_only_config
     from .reporting.attribution import (
         compute_sleeve_cvar_contribution,
         compute_sleeve_return_attribution,
@@ -1207,6 +1208,9 @@ def main(
                     "internal_pa_capital": float(row["internal_pa_capital"]),
                 }
             )
+
+    if is_base_only_config(cfg):
+        warnings.warn(BASE_ONLY_TOTAL_WARNING, UserWarning, stacklevel=2)
 
     # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
     raw_params = cfg.model_dump()

@@ -9,7 +9,14 @@ from .constraints import (
     WeightBoundsConstraint,
     suggest_constraint_fixes,
 )
-from .core import DEFAULT_PORTFOLIO_EXCLUDES, compute_total_contribution_returns
+from .core import (
+    BASE_ONLY_TOTAL_WARNING,
+    DEFAULT_PORTFOLIO_EXCLUDES,
+    OVERLAY_SLEEVE_NAMES,
+    OVERLAY_TOTAL_DESCRIPTION,
+    compute_total_contribution_returns,
+    is_base_only_config,
+)
 
 if TYPE_CHECKING:
     from .aggregator import PortfolioAggregator
@@ -31,5 +38,9 @@ __all__ = [
     "COMMON_WEIGHT_BOUNDS",
     "suggest_constraint_fixes",
     "compute_total_contribution_returns",
+    "is_base_only_config",
     "DEFAULT_PORTFOLIO_EXCLUDES",
+    "OVERLAY_SLEEVE_NAMES",
+    "OVERLAY_TOTAL_DESCRIPTION",
+    "BASE_ONLY_TOTAL_WARNING",
 ]

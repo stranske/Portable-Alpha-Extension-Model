@@ -37,8 +37,10 @@ from pa_core.contracts import (  # noqa: E402
 DATA_INDEX = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
 
 
-def _run_cli(tmp_path: Path, *extra: str) -> Path:
+def _run_cli(tmp_path: Path, *extra: str, config_updates: dict[str, Any] | None = None) -> Path:
     cfg = {"N_SIMULATIONS": 1, "N_MONTHS": 1, "financing_mode": "broadcast"}
+    if config_updates:
+        cfg.update(config_updates)
     cfg_path = tmp_path / "cfg.yaml"
     cfg_path.write_text(yaml.safe_dump(cfg))
     out_file = tmp_path / "out.xlsx"
@@ -90,6 +92,25 @@ def test_run_record_cost_stub_present(tmp_path: Path) -> None:
     assert "latency_seconds" in cost and isinstance(cost["latency_seconds"], (int, float))
     # Dollar cost is a deliberate stub for the local numpy backend.
     assert cost["dollars"] is None
+
+
+def test_base_only_total_warning_serialized(tmp_path: Path) -> None:
+    out_file = _run_cli(
+        tmp_path,
+        config_updates={"reference_sigma": 0.0, "volatility_multiple": 0.0},
+    )
+    record = json.loads(out_file.with_name("run.json").read_text())
+
+    messages = [str(w.get("message", "")) for w in record["warnings"]]
+    assert any("Base-only configuration" in m and "Total excludes Base" in m for m in messages)
+
+
+def test_default_margin_run_does_not_emit_base_only_total_warning(tmp_path: Path) -> None:
+    out_file = _run_cli(tmp_path)
+    record = json.loads(out_file.with_name("run.json").read_text())
+
+    messages = [str(w.get("message", "")) for w in record["warnings"]]
+    assert not any("Base-only configuration" in m and "Total excludes Base" in m for m in messages)
 
 
 def test_run_record_bundle_path_points_to_bundle_json(tmp_path: Path) -> None:

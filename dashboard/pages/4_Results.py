@@ -25,6 +25,8 @@ from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
 from dashboard.utils import current_results_path
 from pa_core.contracts import (
+    SUMMARY_AGENT_COLUMN,
+    SUMMARY_ANN_RETURN_COLUMN,
     SUMMARY_BREACH_PROB_COLUMN,
     SUMMARY_CVAR_COLUMN,
     SUMMARY_SHEET_NAME,
@@ -182,6 +184,14 @@ def _default_results_path() -> str:
     return current_results_path(st.session_state) or _DEF_XLSX
 
 
+def _overlay_total_return(summary: pd.DataFrame) -> float | None:
+    if {SUMMARY_AGENT_COLUMN, SUMMARY_ANN_RETURN_COLUMN} <= set(summary.columns):
+        total_rows = summary[summary[SUMMARY_AGENT_COLUMN] == "Total"]
+        if not total_rows.empty:
+            return float(total_rows[SUMMARY_ANN_RETURN_COLUMN].mean())
+    return None
+
+
 def main() -> None:
     st.title("Results")
     xlsx, theme_path = render_settings_sidebar(_default_results_path())
@@ -206,7 +216,7 @@ def main() -> None:
     months = st.sidebar.slider("Months", 1, summary.shape[0], summary.shape[0])
 
     st.subheader("Key Metrics")
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     te_column = None
     if SUMMARY_TE_COLUMN in summary:
         te_column = SUMMARY_TE_COLUMN
@@ -227,6 +237,13 @@ def main() -> None:
             "Breach Prob",
             f"{summary[SUMMARY_BREACH_PROB_COLUMN].mean():.2%}",
             help=tooltip("breach probability"),
+        )
+    total_return = _overlay_total_return(summary)
+    if total_return is not None:
+        col4.metric(
+            "Overlay Total",
+            f"{total_return:.2%}",
+            help=tooltip("overlay total"),
         )
 
     _render_explain_results(summary=summary, manifest_data=manifest_data, xlsx=xlsx)
