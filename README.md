@@ -277,6 +277,22 @@ such as `ShortfallProb` trigger a `ConfigError` during loading.
 - `t` copula adds tail dependence across sleeves; combine with `student_t` for joint tail events.
 - Lower `return_t_df` increases tail thickness; keep `return_t_df > 2` for finite variance.
 
+### Monte Carlo precision diagnostics
+
+The summary table reports sampling-noise diagnostics for CVaR so board outputs do not
+look more precise than the simulation count supports:
+
+- `monthly_CVaR_SE` and `terminal_CVaR_SE` estimate the standard error of the
+  lower-tail mean. They report `NaN` when fewer than two strict tail
+  observations are available, rather than implying zero sampling error.
+- `monthly_CVaR_CI95_*` and `terminal_CVaR_CI95_*` provide normal-approximation
+  95% intervals around the reported CVaR values.
+- `terminal_CVaR_HalfSampleDelta` compares terminal CVaR from the first half of
+  paths with the full sample as a lightweight convergence-vs-N diagnostic.
+
+These columns measure Monte Carlo precision only. They do not include model risk,
+parameter uncertainty, regime misspecification, or fee/capacity uncertainty.
+
 ## Development
 
 ### Testing

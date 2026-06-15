@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import warnings
 from importlib.metadata import entry_points
-from typing import Callable, Dict, Mapping
+from statistics import NormalDist
+from typing import Callable, Dict, Mapping, cast
 
 import pandas as pd
 
@@ -17,6 +18,10 @@ __all__ = [
     "value_at_risk",
     "cvar_monthly",
     "cvar_terminal",
+    "metric_standard_error",
+    "cvar_standard_error",
+    "cvar_confidence_interval",
+    "monte_carlo_convergence_diagnostic",
     "compound",
     "annualised_return",
     "annualised_return_percentile",
@@ -402,6 +407,122 @@ def cvar_terminal(
     return conditional_value_at_risk(terminal, confidence=confidence)
 
 
+def metric_standard_error(values: ArrayLike) -> float:
+    """Return the Monte Carlo standard error of a scalar estimate sample.
+
+    ``values`` should contain independent path-level or draw-level estimates of
+    the same quantity. The function reports ``sample_std / sqrt(n)`` with
+    ``ddof=1`` and returns ``0.0`` for a single observation.
+    """
+
+    arr = np.asarray(values, dtype=np.float64).reshape(-1)
+    if arr.size == 0:
+        raise ValueError("values must not be empty")
+    if arr.size == 1:
+        return 0.0
+    return float(np.std(arr, ddof=1) / np.sqrt(arr.size))
+
+
+def _cvar_tail_values(returns: ArrayLike, confidence: float = 0.95) -> ArrayLike:
+    if not 0 < confidence < 1:
+        raise ValueError("confidence must be between 0 and 1")
+    flat = np.asarray(returns, dtype=np.float64).reshape(-1)
+    if flat.size == 0:
+        raise ValueError("returns must not be empty")
+    cutoff = np.quantile(flat, 1 - confidence, method="lower")
+    tail = flat[flat < cutoff]
+    return cast(ArrayLike, tail)
+
+
+def cvar_standard_error(returns: ArrayLike, confidence: float = 0.95) -> float:
+    """Return a sampling-error diagnostic for the CVaR tail mean.
+
+    The estimate is the standard error of the returns that fall beyond the same
+    strict lower-tail cutoff used by :func:`conditional_value_at_risk`. It is a
+    Monte Carlo precision diagnostic, not model risk. If fewer than two strict
+    tail observations are available, the diagnostic is undefined and returns
+    ``NaN`` rather than implying zero sampling error.
+    """
+
+    tail = np.asarray(_cvar_tail_values(returns, confidence=confidence), dtype=np.float64)
+    if tail.size < 2:
+        return float("nan")
+    return metric_standard_error(tail)
+
+
+def cvar_confidence_interval(
+    returns: ArrayLike,
+    confidence: float = 0.95,
+    *,
+    interval_confidence: float = 0.95,
+) -> tuple[float, float]:
+    """Return a normal-approximation confidence interval around CVaR."""
+
+    if not 0 < interval_confidence < 1:
+        raise ValueError("interval_confidence must be between 0 and 1")
+    center = conditional_value_at_risk(returns, confidence=confidence)
+    se = cvar_standard_error(returns, confidence=confidence)
+    z = NormalDist().inv_cdf(0.5 + interval_confidence / 2.0)
+    return (float(center - z * se), float(center + z * se))
+
+
+def monte_carlo_convergence_diagnostic(
+    returns: ArrayLike,
+    *,
+    metric: str = "terminal_CVaR",
+    confidence: float = 0.95,
+    checkpoints: tuple[float, ...] = (0.25, 0.5, 0.75, 1.0),
+    periods_per_year: int = 12,
+) -> pd.DataFrame:
+    """Return metric estimates at increasing path-count checkpoints.
+
+    ``returns`` must be shaped ``(paths, months)``. The diagnostic makes
+    convergence visible by recomputing a selected metric on the first N paths at
+    each checkpoint and reporting the absolute delta from the full-sample value.
+    """
+
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.size == 0:
+        raise ValueError("returns must not be empty")
+    if arr.ndim == 1:
+        arr = arr.reshape(1, -1)
+    if arr.ndim != 2:
+        raise ValueError("returns must be a 1D or 2D array")
+    if not checkpoints:
+        raise ValueError("checkpoints must not be empty")
+    if any(checkpoint <= 0.0 or checkpoint > 1.0 for checkpoint in checkpoints):
+        raise ValueError("checkpoints must be in the interval (0, 1]")
+
+    def estimate(sample: ArrayLike) -> float:
+        if metric == "terminal_CVaR":
+            return cvar_terminal(sample, confidence=confidence, periods_per_year=periods_per_year)
+        if metric == "monthly_CVaR":
+            return cvar_monthly(sample, confidence=confidence)
+        if metric == "terminal_AnnReturn":
+            return annualised_return(sample, periods_per_year=periods_per_year)
+        raise ValueError(
+            'metric must be one of "terminal_CVaR", "monthly_CVaR", or "terminal_AnnReturn"'
+        )
+
+    full_estimate = estimate(arr)
+    rows = []
+    path_count = arr.shape[0]
+    for checkpoint in checkpoints:
+        sample_paths = max(1, int(np.ceil(path_count * checkpoint)))
+        sample_estimate = estimate(arr[:sample_paths])
+        rows.append(
+            {
+                "metric": metric,
+                "checkpoint": float(checkpoint),
+                "paths": int(sample_paths),
+                "estimate": sample_estimate,
+                "full_sample_estimate": full_estimate,
+                "abs_delta_from_full": abs(sample_estimate - full_estimate),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def max_cumulative_sum_drawdown(returns: ArrayLike) -> float:
     """Return the worst drawdown observed over the full compounded horizon.
 
@@ -514,6 +635,26 @@ def summary_table(
         var = value_at_risk(arr, confidence=var_conf)
         cvar_month = cvar_monthly(arr, confidence=var_conf)
         cvar_term = cvar_terminal(arr, confidence=var_conf, periods_per_year=periods_per_year)
+        cvar_month_se = cvar_standard_error(arr, confidence=var_conf)
+        cvar_month_ci_low, cvar_month_ci_high = cvar_confidence_interval(
+            arr,
+            confidence=var_conf,
+        )
+        arr_np = np.asarray(arr, dtype=np.float64)
+        terminal_returns = compound(arr_np if arr_np.ndim == 2 else arr_np[None, :])[:, -1]
+        cvar_term_se = cvar_standard_error(terminal_returns, confidence=var_conf)
+        cvar_term_ci_low, cvar_term_ci_high = cvar_confidence_interval(
+            terminal_returns,
+            confidence=var_conf,
+        )
+        convergence = monte_carlo_convergence_diagnostic(
+            arr_np,
+            metric="terminal_CVaR",
+            confidence=var_conf,
+            periods_per_year=periods_per_year,
+            checkpoints=(0.5, 1.0),
+        )
+        terminal_cvar_half_delta = float(convergence["abs_delta_from_full"].iloc[0])
         breach = breach_probability(arr, breach_threshold)
         bcount = breach_count_path0(arr, breach_threshold)
         shortfall = terminal_return_below_threshold_prob(
@@ -545,7 +686,14 @@ def summary_table(
                 "monthly_AnnVol": ann_vol,
                 "monthly_VaR": var,
                 "monthly_CVaR": cvar_month,
+                "monthly_CVaR_SE": cvar_month_se,
+                "monthly_CVaR_CI95_Low": cvar_month_ci_low,
+                "monthly_CVaR_CI95_High": cvar_month_ci_high,
                 "terminal_CVaR": cvar_term,
+                "terminal_CVaR_SE": cvar_term_se,
+                "terminal_CVaR_CI95_Low": cvar_term_ci_low,
+                "terminal_CVaR_CI95_High": cvar_term_ci_high,
+                "terminal_CVaR_HalfSampleDelta": terminal_cvar_half_delta,
                 "monthly_MaxDD": mdd,
                 "monthly_TimeUnderWater": tuw,
                 "monthly_BreachProb": breach,
@@ -609,9 +757,47 @@ _METRIC_DEFINITIONS = [
         "Description": "Monthly conditional value at risk at configured confidence.",
     },
     {
+        "Metric": "monthly_CVaR_SE",
+        "MetricType": "diagnostic",
+        "Description": "Monte Carlo standard error of the monthly CVaR tail mean.",
+    },
+    {
+        "Metric": "monthly_CVaR_CI95_Low",
+        "MetricType": "diagnostic",
+        "Description": "Lower bound of the normal-approximation 95% interval around monthly CVaR.",
+    },
+    {
+        "Metric": "monthly_CVaR_CI95_High",
+        "MetricType": "diagnostic",
+        "Description": "Upper bound of the normal-approximation 95% interval around monthly CVaR.",
+    },
+    {
         "Metric": "terminal_CVaR",
         "MetricType": "terminal_outcome",
         "Description": "Conditional value at risk of terminal compounded outcomes.",
+    },
+    {
+        "Metric": "terminal_CVaR_SE",
+        "MetricType": "diagnostic",
+        "Description": "Monte Carlo standard error of the terminal CVaR tail mean.",
+    },
+    {
+        "Metric": "terminal_CVaR_CI95_Low",
+        "MetricType": "diagnostic",
+        "Description": "Lower bound of the normal-approximation 95% interval around terminal CVaR.",
+    },
+    {
+        "Metric": "terminal_CVaR_CI95_High",
+        "MetricType": "diagnostic",
+        "Description": "Upper bound of the normal-approximation 95% interval around terminal CVaR.",
+    },
+    {
+        "Metric": "terminal_CVaR_HalfSampleDelta",
+        "MetricType": "diagnostic",
+        "Description": (
+            "Absolute difference between terminal CVaR estimated on the first half "
+            "of paths and on the full Monte Carlo sample."
+        ),
     },
     {
         "Metric": "monthly_MaxDD",

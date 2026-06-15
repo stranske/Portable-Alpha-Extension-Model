@@ -13,7 +13,11 @@ from pa_core.sim.metrics import (
     compound,
     compounded_return_below_zero_fraction,
     conditional_value_at_risk,
+    cvar_confidence_interval,
+    cvar_standard_error,
     cvar_terminal,
+    metric_standard_error,
+    monte_carlo_convergence_diagnostic,
     max_cumulative_sum_drawdown,
     max_drawdown,
     per_path_active_return_volatility,
@@ -126,6 +130,59 @@ def test_conditional_value_at_risk_monotonic():
     cvar1 = conditional_value_at_risk(arr1, 0.95)
     cvar2 = conditional_value_at_risk(arr2, 0.95)
     assert cvar2 <= cvar1
+
+
+def test_cvar_standard_error_and_interval_capture_tail_precision():
+    arr = np.array([-0.50, -0.40, -0.30, 0.01, 0.02, 0.03, 0.04, 0.05])
+    se = cvar_standard_error(arr, confidence=0.50)
+    ci_low, ci_high = cvar_confidence_interval(arr, confidence=0.50)
+    cvar = conditional_value_at_risk(arr, confidence=0.50)
+
+    assert se > 0.0
+    assert ci_low < cvar < ci_high
+
+
+def test_cvar_standard_error_is_nan_when_tail_precision_is_unobserved():
+    arr = np.linspace(-0.05, 0.10, 20)
+    se = cvar_standard_error(arr, confidence=0.95)
+    ci_low, ci_high = cvar_confidence_interval(arr, confidence=0.95)
+    stats = summary_table({"Base": arr.reshape(20, 1)})
+    row = stats[stats["Agent"] == "Base"].iloc[0]
+
+    assert np.isnan(se)
+    assert np.isnan(ci_low)
+    assert np.isnan(ci_high)
+    assert np.isnan(row["terminal_CVaR_SE"])
+    assert np.isnan(row["terminal_CVaR_CI95_Low"])
+    assert np.isnan(row["terminal_CVaR_CI95_High"])
+
+
+def test_metric_standard_error_scales_sample_std_by_root_n():
+    values = np.array([1.0, 2.0, 3.0, 4.0])
+    expected = np.std(values, ddof=1) / np.sqrt(values.size)
+    assert metric_standard_error(values) == pytest.approx(expected)
+
+
+def test_monte_carlo_convergence_diagnostic_reports_checkpoint_deltas():
+    arr = np.array(
+        [
+            [-0.20, 0.02],
+            [-0.10, 0.02],
+            [0.01, 0.02],
+            [0.03, 0.02],
+        ]
+    )
+
+    diag = monte_carlo_convergence_diagnostic(
+        arr,
+        metric="terminal_CVaR",
+        confidence=0.75,
+        checkpoints=(0.5, 1.0),
+    )
+
+    assert list(diag["paths"]) == [2, 4]
+    assert list(diag["metric"]) == ["terminal_CVaR", "terminal_CVaR"]
+    assert diag["abs_delta_from_full"].iloc[-1] == pytest.approx(0.0)
 
 
 def test_terminal_cvar_worsens_with_heavier_tails_t_copula():
@@ -296,7 +353,14 @@ def test_summary_table_includes_new_metrics():
     stats = summary_table({"Base": arr})
     for col in {
         "monthly_CVaR",
+        "monthly_CVaR_SE",
+        "monthly_CVaR_CI95_Low",
+        "monthly_CVaR_CI95_High",
         "terminal_CVaR",
+        "terminal_CVaR_SE",
+        "terminal_CVaR_CI95_Low",
+        "terminal_CVaR_CI95_High",
+        "terminal_CVaR_HalfSampleDelta",
         "monthly_MaxDD",
         "monthly_TimeUnderWater",
         "monthly_BreachCountPath0",
