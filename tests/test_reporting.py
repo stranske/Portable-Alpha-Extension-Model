@@ -2,14 +2,39 @@ import json
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
 import pytest
 
+from pa_core.contracts import (
+    SUMMARY_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_CVAR_SE_COLUMN,
+    SUMMARY_CVAR_TERMINAL_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
+    SUMMARY_TERMINAL_CVAR_SE_COLUMN,
+)
 from pa_core.config import ModelConfig
 from pa_core.facade import RunArtifacts, export
 from pa_core.reporting import export_to_excel
+from pa_core.sim.metrics import summary_table
 
 openpyxl: Any = pytest.importorskip("openpyxl")
+
+CVAR_DIAGNOSTIC_COLUMNS = [
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_CVAR_SE_COLUMN,
+    SUMMARY_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_CVAR_TERMINAL_COLUMN,
+    SUMMARY_TERMINAL_CVAR_SE_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
+]
 
 
 def test_export_to_excel_sheets(tmp_path: Path):
@@ -20,6 +45,30 @@ def test_export_to_excel_sheets(tmp_path: Path):
     export_to_excel(inputs, summary, raw, filename=str(file_path))
     wb = openpyxl.load_workbook(file_path)
     assert set(wb.sheetnames) == {"Inputs", "Summary", "MetricDefinitions", "Base"}
+
+
+def test_export_to_excel_writes_cvar_diagnostics_to_summary_sheet(tmp_path: Path) -> None:
+    inputs = {"x": 1}
+    base_returns = np.linspace(-0.10, 0.08, 1200, dtype=float).reshape(200, 6)
+    active_returns = np.linspace(-0.12, 0.10, 1200, dtype=float).reshape(200, 6)
+    returns = {
+        "Base": base_returns,
+        "A": active_returns,
+    }
+    summary = summary_table(returns, benchmark="Base")
+    raw = {"Base": pd.DataFrame(returns["Base"])}
+    file_path = tmp_path / "cvar_summary.xlsx"
+
+    export_to_excel(inputs, summary, raw, filename=str(file_path))
+
+    wb = openpyxl.load_workbook(file_path, data_only=True)
+    header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
+    for column in CVAR_DIAGNOSTIC_COLUMNS:
+        assert column in header
+    first_row = next(wb["Summary"].iter_rows(min_row=2, max_row=2, values_only=True))
+    row = dict(zip(header, first_row))
+    for column in CVAR_DIAGNOSTIC_COLUMNS:
+        assert isinstance(row[column], (int, float))
 
 
 def test_export_to_excel_pivot(tmp_path: Path):
