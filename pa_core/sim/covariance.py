@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 import warnings
 from typing import Literal
 
@@ -9,7 +10,12 @@ from numpy.typing import NDArray
 from ..backend import xp
 from ..schema import CORRELATION_LOWER_BOUND, CORRELATION_UPPER_BOUND
 
-__all__ = ["build_cov_matrix", "nearest_psd", "build_cov_matrix_with_validation"]
+__all__ = [
+    "build_cov_matrix",
+    "build_generic_cov_matrix",
+    "nearest_psd",
+    "build_cov_matrix_with_validation",
+]
 
 
 def _boost_shrinkage_for_short_samples(
@@ -133,6 +139,87 @@ def build_cov_matrix(
         ]
     )
     cov = xp.outer(sds, sds) * rho
+    cov = 0.5 * (cov + cov.T)
+    if covariance_shrinkage == "ledoit_wolf" and n_samples is not None:
+        cov, _ = _ledoit_wolf_shrinkage_from_cov(cov, int(n_samples))
+        cov = xp.asarray(cov)
+    if _is_psd(cov):
+        return np.asarray(cov, dtype=np.float64)
+    adjusted = nearest_psd(cov)
+    max_delta = float(xp.max(xp.abs(adjusted - cov)))
+    warnings.warn(
+        f"Covariance matrix was not PSD; projected with max|Δ|={max_delta:.2e}",
+        RuntimeWarning,
+    )
+    return np.asarray(adjusted, dtype=np.float64)
+
+
+def _correlation_lookup(
+    correlations: Mapping[object, float], left: str, right: str
+) -> tuple[str, float]:
+    """Resolve a pairwise correlation from tuple or string-keyed mappings."""
+
+    candidates: tuple[object, ...] = (
+        (left, right),
+        (right, left),
+        tuple(sorted((left, right))),
+        f"{left}:{right}",
+        f"{right}:{left}",
+        f"{left},{right}",
+        f"{right},{left}",
+        f"rho_{left}_{right}",
+        f"rho_{right}_{left}",
+    )
+    for key in candidates:
+        if key in correlations:
+            return str(key), float(correlations[key])
+    raise ValueError(f"missing correlation for pair ({left}, {right})")
+
+
+def build_generic_cov_matrix(
+    stream_names: Sequence[str],
+    sigmas: Sequence[float] | Mapping[str, float],
+    correlations: Mapping[object, float],
+    covariance_shrinkage: Literal["none", "ledoit_wolf"] = "none",
+    n_samples: int | None = None,
+) -> NDArray[np.float64]:
+    """Return a PSD covariance matrix for index plus any number of alpha streams.
+
+    ``stream_names`` defines the matrix order, typically ``("idx", *alpha_names)``.
+    ``correlations`` must provide each off-diagonal pair using tuple keys,
+    ``"left:right"`` keys, or legacy-style ``"rho_left_right"`` keys.
+    """
+
+    names = tuple(str(name) for name in stream_names)
+    if len(names) < 2:
+        raise ValueError("stream_names must include index plus at least one alpha stream")
+    if len(set(names)) != len(names):
+        raise ValueError("stream_names must be unique")
+
+    if isinstance(sigmas, Mapping):
+        missing_sigmas = [name for name in names if name not in sigmas]
+        if missing_sigmas:
+            raise ValueError(f"missing sigma values for streams: {missing_sigmas}")
+        sigma_values = [float(sigmas[name]) for name in names]
+    else:
+        sigma_values = [float(value) for value in sigmas]
+        if len(sigma_values) != len(names):
+            raise ValueError("sigmas must have the same length as stream_names")
+
+    corr = xp.eye(len(names), dtype=float)
+    for i, left in enumerate(names):
+        for j in range(i + 1, len(names)):
+            right = names[j]
+            key, rho_value = _correlation_lookup(correlations, left, right)
+            if not (CORRELATION_LOWER_BOUND <= rho_value <= CORRELATION_UPPER_BOUND):
+                raise ValueError(
+                    f"{key} must be between {CORRELATION_LOWER_BOUND} and {CORRELATION_UPPER_BOUND}"
+                )
+            corr[i, j] = rho_value
+            corr[j, i] = rho_value
+
+    sds = xp.clip(xp.array(sigma_values, dtype=float), 0.0, None)
+    cov = xp.outer(sds, sds) * corr
     cov = 0.5 * (cov + cov.T)
     if covariance_shrinkage == "ledoit_wolf" and n_samples is not None:
         cov, _ = _ledoit_wolf_shrinkage_from_cov(cov, int(n_samples))
