@@ -19,6 +19,7 @@ types-PyYAML       # Type stubs for PyYAML
 
 plotly>=5.19
 kaleido            # Plotly static export driver
+pypdf              # Multi-page PDF report merge backend
 streamlit>=1.35
 python-pptx        # PPTX helper for board packs
 xlsxwriter         # already implied in reporting/

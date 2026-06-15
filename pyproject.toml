@@ -117,6 +117,7 @@ dependencies = [
     "rich",
     "plotly>=6.7.0",
     "kaleido",
+    "pypdf",
     "streamlit>=1.35",
     "python-pptx",
     "xlsxwriter",
