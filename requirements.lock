@@ -343,7 +343,7 @@ langgraph-prebuilt==1.1.0
     # via langgraph
 langgraph-sdk==0.4.2
     # via langgraph
-langsmith==0.8.15
+langsmith==0.8.16
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain-classic
@@ -783,10 +783,8 @@ types-pyyaml==6.0.12.20260408
     # via portable-alpha-extension-model (pyproject.toml)
 typing-extensions==4.15.0
     # via
-    #   aiosignal
     #   altair
     #   anthropic
-    #   anyio
     #   beautifulsoup4
     #   langchain-core
     #   langchain-protocol
@@ -795,7 +793,6 @@ typing-extensions==4.15.0
     #   pydantic
     #   pydantic-core
     #   python-pptx
-    #   referencing
     #   sqlalchemy
     #   streamlit
     #   typing-inspection
