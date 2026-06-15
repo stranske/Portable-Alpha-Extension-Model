@@ -18,9 +18,11 @@ __all__ = [
     "simulate_financing",
     "prepare_mc_universe",
     "prepare_return_shocks",
+    "draw_named_returns",
     "draw_returns",
     "draw_joint_returns",
     "draw_financing_series",
+    "map_sleeve_alpha_streams",
     "simulate_alpha_streams",
 ]
 
@@ -63,6 +65,20 @@ def _resolve_return_distributions(
         overrides[2] or base,
         overrides[3] or base,
     )
+
+
+def _resolve_stream_return_distributions(
+    base: str,
+    stream_names: Sequence[str],
+    overrides: Mapping[str, Optional[str]] | Sequence[Optional[str]] | None = None,
+) -> tuple[str, ...]:
+    if overrides is None:
+        return tuple(base for _ in stream_names)
+    if isinstance(overrides, Mapping):
+        return tuple(overrides.get(name) or base for name in stream_names)
+    if len(overrides) != len(stream_names):
+        raise ValueError("return_distributions must have the same length as stream_names")
+    return tuple(dist or base for dist in overrides)
 
 
 def _validate_correlation_matrix(corr: NDArray[Any]) -> None:
@@ -131,9 +147,7 @@ def _resolve_correlation_matrix(params: Dict[str, Any]) -> tuple[NDArray[Any], d
     repaired = corr_work
     if min_eig_work < -_CORR_VALIDATION_TOL:
         if repair_mode == "error":
-            raise ValueError(
-                "Correlation matrix is not PSD; " f"min eigenvalue {min_eig_work:.3e}."
-            )
+            raise ValueError(f"Correlation matrix is not PSD; min eigenvalue {min_eig_work:.3e}.")
         repaired = _project_to_near_psd_correlation(corr_work)
         applied_steps.append("eigen_clip")
     eigvals_after = np.linalg.eigvalsh(repaired)
@@ -485,6 +499,130 @@ def draw_returns(
     r_E = sims[:, :, 2]
     r_M = sims[:, :, 3]
     return r_beta, r_H, r_E, r_M
+
+
+def draw_named_returns(
+    *,
+    n_months: int,
+    n_sim: int,
+    stream_names: Sequence[str],
+    means: Sequence[float] | Mapping[str, float],
+    cov: npt.NDArray[Any],
+    return_distribution: str = "normal",
+    return_t_df: float = 5.0,
+    return_copula: str = "gaussian",
+    return_distributions: Mapping[str, Optional[str]] | Sequence[Optional[str]] | None = None,
+    seed: Optional[int] = None,
+    rng: Optional[GeneratorLike] = None,
+) -> dict[str, npt.NDArray[Any]]:
+    """Draw monthly returns for index plus an arbitrary named alpha universe.
+
+    This is the generic N-stream counterpart to ``draw_returns``. It preserves
+    the same distribution and copula semantics while returning a name-keyed
+    mapping, so callers can map Scenario sleeves to any calibrated manager
+    stream instead of only the legacy H/E/M streams.
+    """
+
+    names = tuple(str(name) for name in stream_names)
+    if n_months <= 0 or n_sim <= 0:
+        raise ValueError("n_months and n_sim must be positive")
+    if len(names) < 2:
+        raise ValueError("stream_names must include index plus at least one alpha stream")
+    if len(set(names)) != len(names):
+        raise ValueError("stream_names must be unique")
+    if cov.shape != (len(names), len(names)):
+        raise ValueError("cov shape must match stream_names")
+
+    if isinstance(means, Mapping):
+        missing_means = [name for name in names if name not in means]
+        if missing_means:
+            raise ValueError(f"missing mean values for streams: {missing_means}")
+        mean_vec = np.array([float(means[name]) for name in names])
+    else:
+        mean_vec = np.array([float(value) for value in means])
+        if mean_vec.size != len(names):
+            raise ValueError("means must have the same length as stream_names")
+
+    distributions = _resolve_stream_return_distributions(
+        return_distribution, names, return_distributions
+    )
+    _validate_return_draw_settings(distributions, return_copula, return_t_df)
+    rng = ensure_rng(seed, rng)
+    if all(dist == "normal" for dist in distributions):
+        sims = _safe_multivariate_normal(rng, mean_vec, cov, (n_sim, n_months))
+    else:
+        sigma = np.sqrt(np.clip(np.diag(cov), 0.0, None))
+        denom = np.outer(sigma, sigma)
+        corr = np.divide(
+            cov,
+            denom,
+            out=np.eye(cov.shape[0]),
+            where=denom != 0.0,
+        )
+        if all(dist == "student_t" for dist in distributions):
+            sims = _draw_student_t(
+                rng=rng,
+                mean=mean_vec,
+                sigma=sigma,
+                corr=corr,
+                size=(n_sim, n_months),
+                df=return_t_df,
+                copula=return_copula,
+            )
+        else:
+            sims = _draw_mixed_returns(
+                rng=rng,
+                mean=mean_vec,
+                sigma=sigma,
+                corr=corr,
+                size=(n_sim, n_months),
+                df=return_t_df,
+                copula=return_copula,
+                distributions=distributions,
+            )
+    return {name: sims[:, :, idx] for idx, name in enumerate(names)}
+
+
+def _normalize_alpha_source(source: str) -> tuple[str, ...]:
+    raw = str(source).strip()
+    if not raw:
+        raise ValueError("alpha_source must not be empty")
+    candidates = [raw]
+    suffix = raw
+    if ":" in raw:
+        _, suffix = raw.split(":", 1)
+        candidates.append(suffix)
+    for prefix in ("stream:", "alpha:", "portfolio:", "manager:"):
+        if not raw.startswith(prefix):
+            candidates.append(f"{prefix}{raw}")
+        if suffix != raw:
+            candidates.append(f"{prefix}{suffix}")
+    return tuple(dict.fromkeys(candidates))
+
+
+def map_sleeve_alpha_streams(
+    sleeve_alpha_sources: Mapping[str, str],
+    return_streams: Mapping[str, npt.NDArray[Any]],
+) -> dict[str, npt.NDArray[Any]]:
+    """Map sleeve names to drawn alpha streams using their configured source.
+
+    Source values may be plain stream names or prefixed values such as
+    ``stream:manager_a`` and ``portfolio:trend_123``. The latter is important
+    for Scenario sleeves that already express Trend-selected manager sources.
+    """
+
+    mapped: dict[str, npt.NDArray[Any]] = {}
+    for sleeve_name, source in sleeve_alpha_sources.items():
+        for candidate in _normalize_alpha_source(source):
+            if candidate in return_streams:
+                mapped[str(sleeve_name)] = return_streams[candidate]
+                break
+        else:
+            raise KeyError(
+                f"alpha source {source!r} for sleeve {sleeve_name!r} "
+                "does not match any drawn return stream"
+            )
+    return mapped
 
 
 def _distribution_signature(params: Dict[str, Any]) -> tuple[Any, ...]:
