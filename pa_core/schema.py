@@ -157,9 +157,7 @@ class Scenario(BaseModel):
     # 'Model Limitations & Caveats'.
     sleeves: Dict[str, Sleeve] | None = Field(
         default=None,
-        description=(
-            "Currently unwired: validated but does not affect simulation results."
-        ),
+        description=("Currently unwired: validated but does not affect simulation results."),
     )
 
     @model_validator(mode="after")
