@@ -3,10 +3,13 @@ from __future__ import annotations
 import base64
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import pytest
 
 from pa_core.reporting.sweep_excel import export_sweep_results
+from pa_core.sim.metrics import summary_table
+from tests.cvar_diagnostics import CVAR_DIAGNOSTIC_COLUMNS
 
 openpyxl = pytest.importorskip("openpyxl")
 pptx = pytest.importorskip("pptx")
@@ -53,6 +56,36 @@ def test_export_sweep_results_writes_summary_and_run_sheet(tmp_path: Path, monke
 
     header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
     assert "terminal_ShortfallProb" in header
+
+
+def test_export_sweep_results_preserves_cvar_diagnostics(tmp_path: Path, monkeypatch) -> None:
+    from pa_core.reporting import sweep_excel
+
+    base_returns = np.linspace(-0.10, 0.08, 1200, dtype=float).reshape(200, 6)
+    active_returns = np.linspace(-0.12, 0.10, 1200, dtype=float).reshape(200, 6)
+    returns = {
+        "Base": base_returns,
+        "A": active_returns,
+    }
+    summary = summary_table(returns, benchmark="Base")
+    results = [{"combination_id": 1, "summary": summary}]
+
+    def _raise_make(*_args, **_kwargs):
+        raise RuntimeError("no image")
+
+    monkeypatch.setattr(sweep_excel.risk_return, "make", _raise_make)
+
+    out_path = tmp_path / "sweep_cvar.xlsx"
+    export_sweep_results(results, filename=str(out_path))
+
+    wb = openpyxl.load_workbook(out_path, data_only=True)
+    header = [cell.value for cell in next(wb["Summary"].iter_rows(max_row=1))]
+    for column in CVAR_DIAGNOSTIC_COLUMNS:
+        assert column in header
+    first_row = next(wb["Summary"].iter_rows(min_row=2, max_row=2, values_only=True))
+    row = dict(zip(header, first_row))
+    for column in CVAR_DIAGNOSTIC_COLUMNS:
+        assert isinstance(row[column], (int, float))
 
 
 def test_export_sweep_results_writes_summary_when_empty(tmp_path: Path) -> None:

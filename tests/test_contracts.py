@@ -13,9 +13,18 @@ from pa_core.contracts import (
     RUN_END_MANIFEST_PATH_KEY,
     RUN_LOG_FILENAME,
     RUNS_DIR_NAME,
+    SUMMARY_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_CVAR_SE_COLUMN,
+    SUMMARY_CVAR_TERMINAL_COLUMN,
     SUMMARY_COLUMN_TYPES,
     SUMMARY_REQUIRED_COLUMNS,
     SUMMARY_SHEET_NAME,
+    SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
+    SUMMARY_TERMINAL_CVAR_SE_COLUMN,
     manifest_path_for_output,
     manifest_path_from_run_end,
     validate_manifest_payload,
@@ -89,3 +98,29 @@ def test_summary_contract_matches_summary_table() -> None:
         assert col in summary.columns
     assert set(SUMMARY_COLUMN_TYPES.keys()) == set(SUMMARY_REQUIRED_COLUMNS)
     assert SUMMARY_SHEET_NAME == "Summary"
+
+
+def test_summary_table_populates_cvar_precision_contract_columns() -> None:
+    base_returns = np.linspace(-0.10, 0.08, 1200, dtype=float).reshape(200, 6)
+    active_returns = np.linspace(-0.12, 0.10, 1200, dtype=float).reshape(200, 6)
+    returns = {
+        "Base": base_returns,
+        "A": active_returns,
+    }
+
+    summary = summary_table(returns, benchmark="Base")
+    diagnostic_columns = [
+        SUMMARY_CVAR_COLUMN,
+        SUMMARY_CVAR_SE_COLUMN,
+        SUMMARY_CVAR_CI95_LOW_COLUMN,
+        SUMMARY_CVAR_CI95_HIGH_COLUMN,
+        SUMMARY_CVAR_TERMINAL_COLUMN,
+        SUMMARY_TERMINAL_CVAR_SE_COLUMN,
+        SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
+        SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
+        SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
+    ]
+
+    assert diagnostic_columns == [col for col in SUMMARY_REQUIRED_COLUMNS if "CVaR" in col]
+    assert summary[diagnostic_columns].notna().all().all()
+    assert np.isfinite(summary[diagnostic_columns].to_numpy(dtype=float)).all()

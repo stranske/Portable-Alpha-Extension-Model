@@ -16,6 +16,17 @@ from openpyxl.drawing.image import Image as XLImage
 from openpyxl.utils import get_column_letter
 
 from ..config import ModelConfig
+from ..contracts import (
+    SUMMARY_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_CVAR_COLUMN,
+    SUMMARY_CVAR_SE_COLUMN,
+    SUMMARY_CVAR_TERMINAL_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
+    SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
+    SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
+    SUMMARY_TERMINAL_CVAR_SE_COLUMN,
+)
 from ..sim.metrics import metric_definitions_df
 from ..viz import risk_return, theme
 
@@ -383,8 +394,15 @@ def finalize_excel_workbook(
             "terminal_AnnReturn",
             "monthly_AnnVol",
             "monthly_VaR",
-            "monthly_CVaR",
-            "terminal_CVaR",
+            SUMMARY_CVAR_COLUMN,
+            SUMMARY_CVAR_SE_COLUMN,
+            SUMMARY_CVAR_CI95_LOW_COLUMN,
+            SUMMARY_CVAR_CI95_HIGH_COLUMN,
+            SUMMARY_CVAR_TERMINAL_COLUMN,
+            SUMMARY_TERMINAL_CVAR_SE_COLUMN,
+            SUMMARY_TERMINAL_CVAR_CI95_LOW_COLUMN,
+            SUMMARY_TERMINAL_CVAR_CI95_HIGH_COLUMN,
+            SUMMARY_TERMINAL_CVAR_HALF_SAMPLE_DELTA_COLUMN,
             "monthly_BreachProb",
             "monthly_TE",
         }
