@@ -35,7 +35,7 @@ jobs:
       classification_rationale: ${{ steps.classify.outputs.classification-rationale || 'path classifier unavailable' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Classify changed paths
         id: classify
@@ -74,7 +74,7 @@ jobs:
     if: ${{ needs.detect.outputs.is_docs_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Validate devcontainer.json
         run: |
           python -m json.tool .devcontainer/devcontainer.json > /dev/null
@@ -95,7 +95,7 @@ jobs:
     if: ${{ needs.detect.outputs.is_docs_only != 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
@@ -141,7 +141,7 @@ jobs:
     # depend on Python CI passing and can run in parallel for faster feedback.
     # If integration tests fail, the summary job will still catch it.
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v6
         with:
           python-version: "3.14"
