@@ -304,7 +304,7 @@ kaleido==1.2.0
     # via portable-alpha-extension-model (pyproject.toml)
 keyring==25.7.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x'
     # via twine
-langchain==1.3.9
+langchain==1.3.10
     # via portable-alpha-extension-model (pyproject.toml)
 langchain-anthropic==1.4.6
     # via portable-alpha-extension-model (pyproject.toml)
@@ -312,7 +312,7 @@ langchain-classic==1.0.7
     # via langchain-community
 langchain-community==0.4.2
     # via portable-alpha-extension-model (pyproject.toml)
-langchain-core==1.4.7
+langchain-core==1.4.8
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain
@@ -327,7 +327,7 @@ langchain-core==1.4.7
     #   langgraph-sdk
 langchain-openai==1.3.2
     # via portable-alpha-extension-model (pyproject.toml)
-langchain-protocol==0.0.15
+langchain-protocol==0.0.18
     # via
     #   langchain-core
     #   langgraph-sdk
@@ -343,7 +343,7 @@ langgraph-prebuilt==1.1.0
     # via langgraph
 langgraph-sdk==0.4.2
     # via langgraph
-langsmith==0.8.16
+langsmith==0.8.17
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain-classic
