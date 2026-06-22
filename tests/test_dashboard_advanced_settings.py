@@ -174,8 +174,25 @@ def test_wizard_default_allocation_is_feasible(tmp_path: Path) -> None:
         )
 
         assert model_config.financing_model == "schedule"
-        assert margin_requirement == 100.0
+        assert margin_requirement == pytest.approx(100.0)
         assert model_config.internal_pa_capital <= model_config.total_fund_capital * 0.96
         assert buffer_after_margin >= 0
     finally:
         st.session_state.clear()
+
+
+def test_wizard_default_allocation_ignores_stale_schedule_path(tmp_path: Path) -> None:
+    helpers = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    default_allocation = helpers["_default_capital_allocation"]
+
+    allocation = default_allocation(
+        total_fund_capital=1000.0,
+        reference_sigma=0.01,
+        volatility_multiple=3.0,
+        financing_model="schedule",
+        schedule_path=tmp_path / "missing-schedule.csv",
+        term_months=1.0,
+    )
+
+    assert allocation["margin_requirement"] == pytest.approx(30.0)
+    assert allocation["internal_pa_capital"] == pytest.approx(960.0)
