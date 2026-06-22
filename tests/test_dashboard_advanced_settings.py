@@ -8,11 +8,17 @@ home page sets a real page title instead of the Streamlit default ("app").
 
 from __future__ import annotations
 
+import runpy
+from pathlib import Path
 from typing import Any
 
 import pytest
+import streamlit as st
 
 import dashboard.app as app
+from pa_core.config import load_config
+from pa_core.validators import calculate_margin_requirement
+from pa_core.wizard_schema import AnalysisMode, get_default_config
 
 
 class _FakeExpander:
@@ -122,3 +128,71 @@ def test_home_page_sets_real_title(fake_st: FakeStreamlit) -> None:
     page_configs = [e for e in fake_st.events if e[0] == "set_page_config"]
     assert len(page_configs) == 1
     assert page_configs[0][1].get("page_title") == "Portable Alpha Dashboard"
+
+
+def test_wizard_default_allocation_is_feasible(tmp_path: Path) -> None:
+    helpers = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    default_allocation = helpers["_default_capital_allocation"]
+    build_yaml = helpers["_build_yaml_from_config"]
+    schedule_path = tmp_path / "margin_schedule.csv"
+    schedule_path.write_text("term,multiplier\n1,10\n", encoding="utf-8")
+
+    st.session_state.clear()
+    try:
+        config = get_default_config(AnalysisMode.RETURNS)
+        st.session_state["financing_settings"] = {
+            "financing_model": "schedule",
+            "reference_sigma": 0.01,
+            "volatility_multiple": 3.0,
+            "schedule_path": str(schedule_path),
+            "term_months": 1.0,
+        }
+        allocation = default_allocation(
+            total_fund_capital=config.total_fund_capital,
+            reference_sigma=0.01,
+            volatility_multiple=3.0,
+            financing_model="schedule",
+            schedule_path=schedule_path,
+            term_months=1.0,
+        )
+        config.external_pa_capital = allocation["external_pa_capital"]
+        config.active_ext_capital = allocation["active_ext_capital"]
+        config.internal_pa_capital = allocation["internal_pa_capital"]
+
+        yaml_dict = build_yaml(config)
+        model_config = load_config(yaml_dict)
+        margin_requirement = calculate_margin_requirement(
+            reference_sigma=model_config.reference_sigma,
+            volatility_multiple=model_config.volatility_multiple,
+            total_capital=model_config.total_fund_capital,
+            financing_model=model_config.financing_model,
+            schedule_path=model_config.financing_schedule_path,
+            term_months=model_config.financing_term_months,
+        )
+        buffer_after_margin = (
+            model_config.total_fund_capital - margin_requirement - model_config.internal_pa_capital
+        )
+
+        assert model_config.financing_model == "schedule"
+        assert margin_requirement == pytest.approx(100.0)
+        assert model_config.internal_pa_capital <= model_config.total_fund_capital * 0.96
+        assert buffer_after_margin >= 0
+    finally:
+        st.session_state.clear()
+
+
+def test_wizard_default_allocation_ignores_stale_schedule_path(tmp_path: Path) -> None:
+    helpers = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    default_allocation = helpers["_default_capital_allocation"]
+
+    allocation = default_allocation(
+        total_fund_capital=1000.0,
+        reference_sigma=0.01,
+        volatility_multiple=3.0,
+        financing_model="schedule",
+        schedule_path=tmp_path / "missing-schedule.csv",
+        term_months=1.0,
+    )
+
+    assert allocation["margin_requirement"] == pytest.approx(30.0)
+    assert allocation["internal_pa_capital"] == pytest.approx(960.0)

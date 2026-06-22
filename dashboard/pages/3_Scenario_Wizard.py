@@ -83,6 +83,88 @@ _CONFIG_CHAT_PREVIEW_KEY = "wizard_config_chat_preview"
 _CONFIG_CHAT_PREVIEW_PATCH_KEY = "preview_patch"
 _CONFIG_CHAT_PREVIEW_UNIFIED_DIFF_KEY = "preview_unified_diff"
 _CONFIG_CHAT_PREVIEW_SIDEBYSIDE_DIFF_KEY = "preview_sidebyside_diff"
+_DEFAULT_EXTERNAL_PA_SHARE = 0.02
+_DEFAULT_ACTIVE_EXT_SHARE = 0.02
+_DEFAULT_MARGIN_BUFFER_SHARE = 0.01
+_MAX_DEFAULT_INTERNAL_PA_SHARE = 0.96
+
+
+def _load_margin_schedule_from_path(
+    schedule_path: str | Path | None,
+) -> tuple[pd.DataFrame | None, Path | None]:
+    if not schedule_path:
+        return None, None
+
+    path = Path(str(schedule_path))
+    if not path.exists():
+        return None, None
+
+    try:
+        return load_margin_schedule(path), path
+    except Exception:
+        return None, None
+
+
+def _default_capital_allocation(
+    *,
+    total_fund_capital: float,
+    reference_sigma: float = 0.01,
+    volatility_multiple: float = 3.0,
+    financing_model: str = "simple_proxy",
+    margin_schedule: pd.DataFrame | None = None,
+    schedule_path: str | Path | None = None,
+    term_months: float = 1.0,
+    external_pa_capital: float | None = None,
+    active_ext_capital: float | None = None,
+) -> dict[str, float]:
+    total = max(0.0, float(total_fund_capital))
+    external = (
+        max(0.0, float(external_pa_capital))
+        if external_pa_capital is not None
+        else total * _DEFAULT_EXTERNAL_PA_SHARE
+    )
+    active = (
+        max(0.0, float(active_ext_capital))
+        if active_ext_capital is not None
+        else total * _DEFAULT_ACTIVE_EXT_SHARE
+    )
+    external = min(external, total)
+    active = min(active, max(0.0, total - external))
+
+    resolved_schedule = margin_schedule
+    resolved_schedule_path: Path | None = None
+    if resolved_schedule is None:
+        resolved_schedule, resolved_schedule_path = _load_margin_schedule_from_path(schedule_path)
+
+    use_schedule = financing_model == "schedule" and (
+        resolved_schedule is not None or resolved_schedule_path is not None
+    )
+    effective_financing_model = "schedule" if use_schedule else "simple_proxy"
+    margin_requirement = calculate_margin_requirement(
+        reference_sigma=reference_sigma,
+        volatility_multiple=volatility_multiple,
+        total_capital=total,
+        financing_model=effective_financing_model,
+        margin_schedule=resolved_schedule,
+        schedule_path=resolved_schedule_path,
+        term_months=term_months,
+    )
+    margin_buffer = total * _DEFAULT_MARGIN_BUFFER_SHARE
+    max_internal_after_margin = max(0.0, total - margin_requirement - margin_buffer)
+    max_internal_by_share = total * _MAX_DEFAULT_INTERNAL_PA_SHARE
+    remaining_after_other_sleeves = max(0.0, total - external - active)
+    internal = min(
+        remaining_after_other_sleeves,
+        max_internal_after_margin,
+        max_internal_by_share,
+    )
+    return {
+        "external_pa_capital": external,
+        "active_ext_capital": active,
+        "internal_pa_capital": internal,
+        "margin_requirement": margin_requirement,
+        "margin_buffer": total - margin_requirement - internal,
+    }
 
 
 def _config_chat_history() -> list[dict[str, Any]]:
@@ -832,6 +914,21 @@ def _render_step_2_capital(config: Any) -> Any:
     st.subheader("Step 2: Capital Allocation")
 
     ss = st.session_state
+    financing_settings = ss.get("financing_settings", {})
+    schedule_df, schedule_path = _load_margin_schedule_from_path(
+        financing_settings.get("schedule_path")
+    )
+    if financing_settings.get("schedule_path") and schedule_path is None:
+        financing_settings["schedule_path"] = None
+    default_allocation = _default_capital_allocation(
+        total_fund_capital=config.total_fund_capital,
+        reference_sigma=float(financing_settings.get("reference_sigma", 0.01)),
+        volatility_multiple=float(financing_settings.get("volatility_multiple", 3.0)),
+        financing_model=str(financing_settings.get("financing_model", "simple_proxy")),
+        margin_schedule=schedule_df,
+        schedule_path=schedule_path,
+        term_months=float(financing_settings.get("term_months", 1.0)),
+    )
     col1, col2 = st.columns(2)
 
     with col1:
@@ -851,7 +948,7 @@ def _render_step_2_capital(config: Any) -> Any:
             "External PA Capital [$M]",
             min_value=0.0,
             max_value=config.total_fund_capital,
-            value=ss.get(_EXTERNAL_CAPITAL_KEY, config.external_pa_capital),
+            value=ss.get(_EXTERNAL_CAPITAL_KEY, default_allocation["external_pa_capital"]),
             step=5.0,
             format="%.1f",
             help="Capital allocated to external portable alpha managers",
@@ -862,21 +959,28 @@ def _render_step_2_capital(config: Any) -> Any:
             "Active Extension Capital [$M]",
             min_value=0.0,
             max_value=config.total_fund_capital,
-            value=ss.get(_ACTIVE_CAPITAL_KEY, config.active_ext_capital),
+            value=ss.get(_ACTIVE_CAPITAL_KEY, default_allocation["active_ext_capital"]),
             step=5.0,
             format="%.1f",
             help="Capital for active equity overlay strategies",
             key=_ACTIVE_CAPITAL_KEY,
         )
 
-        # Calculate remaining capital
-        remaining = (
-            config.total_fund_capital - config.external_pa_capital - config.active_ext_capital
+        internal_default = _default_capital_allocation(
+            total_fund_capital=config.total_fund_capital,
+            reference_sigma=float(financing_settings.get("reference_sigma", 0.01)),
+            volatility_multiple=float(financing_settings.get("volatility_multiple", 3.0)),
+            financing_model=str(financing_settings.get("financing_model", "simple_proxy")),
+            margin_schedule=schedule_df,
+            schedule_path=schedule_path,
+            term_months=float(financing_settings.get("term_months", 1.0)),
+            external_pa_capital=config.external_pa_capital,
+            active_ext_capital=config.active_ext_capital,
         )
         config.internal_pa_capital = st.number_input(
             "Internal PA Capital [$M]",
             min_value=0.0,
-            value=ss.get(_INTERNAL_CAPITAL_KEY, max(0.0, remaining)),
+            value=ss.get(_INTERNAL_CAPITAL_KEY, internal_default["internal_pa_capital"]),
             step=5.0,
             format="%.1f",
             help="Capital managed internally for portable alpha",
@@ -923,6 +1027,30 @@ def _render_step_2_capital(config: Any) -> Any:
     total_allocated = (
         config.external_pa_capital + config.active_ext_capital + config.internal_pa_capital
     )
+    effective_financing_model = str(financing_settings.get("financing_model", "simple_proxy"))
+    use_schedule_margin = effective_financing_model == "schedule" and schedule_df is not None
+    margin_requirement = calculate_margin_requirement(
+        reference_sigma=float(financing_settings.get("reference_sigma", 0.01)),
+        volatility_multiple=float(financing_settings.get("volatility_multiple", 3.0)),
+        total_capital=config.total_fund_capital,
+        financing_model="schedule" if use_schedule_margin else "simple_proxy",
+        margin_schedule=schedule_df if use_schedule_margin else None,
+        schedule_path=schedule_path if use_schedule_margin else None,
+        term_months=float(financing_settings.get("term_months", 1.0)),
+    )
+    margin_buffer = config.total_fund_capital - margin_requirement - config.internal_pa_capital
+    buffer_pct = margin_buffer / config.total_fund_capital if config.total_fund_capital else 0.0
+
+    buffer_text = (
+        f"Buffer after margin: ${margin_buffer:.1f}M ({buffer_pct:.1%}) "
+        f"after ${margin_requirement:.1f}M estimated margin"
+    )
+    if margin_buffer < 0:
+        st.error(buffer_text)
+    elif buffer_pct < 0.1:
+        st.warning(buffer_text)
+    else:
+        st.success(buffer_text)
 
     if abs(total_allocated - config.total_fund_capital) > 0.01:
         st.error(
