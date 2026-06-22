@@ -11,15 +11,16 @@ import io
 import pandas as pd  # type: ignore[reportMissingImports]
 import streamlit as st
 import yaml
+from pydantic import ValidationError
 
 from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.utils import (
     build_alpha_shares_payload,
+    build_sample_model_config,
     bump_session_token,
     load_bundled_sample_index,
     make_grid_cache_key,
 )
-from pa_core.config import ModelConfig
 from pa_core.contracts import (
     SUMMARY_AGENT_COLUMN,
     SUMMARY_ANN_RETURN_COLUMN,
@@ -236,23 +237,16 @@ def main() -> None:
                     st.error(f"Bundled sample data could not be loaded: {exc}")
                     return
 
-            base_cfg = ModelConfig.model_validate(
-                {
-                    "Number of simulations": 1000,
-                    "Number of months": 12,
-                }
+            cfg = build_sample_model_config(
+                analysis_mode="alpha_shares",
+                external_pa_alpha_min_pct=float(ext_min),
+                external_pa_alpha_max_pct=float(ext_max),
+                external_pa_alpha_step_pct=float(ext_step),
+                active_share_min_pct=float(act_min),
+                active_share_max_pct=float(act_max),
+                active_share_step_pct=float(act_step),
             )
-            cfg = base_cfg.model_copy(
-                update={
-                    "analysis_mode": "alpha_shares",
-                    "external_pa_alpha_min_pct": float(ext_min),
-                    "external_pa_alpha_max_pct": float(ext_max),
-                    "external_pa_alpha_step_pct": float(ext_step),
-                    "active_share_min_pct": float(act_min),
-                    "active_share_max_pct": float(act_max),
-                    "active_share_step_pct": float(act_step),
-                }
-            )
+            base_cfg = cfg
 
             cache_key = make_grid_cache_key(cfg, index_series, int(seed), y_axis_mode)
             cached = _get_grid_cache(cache_key)
@@ -421,7 +415,7 @@ def main() -> None:
                 options=y_vals,
                 index=0,
                 format_func=(
-                    lambda v: (f"${v:,.0f} mm" if y_col == "external_pa_dollars_mm" else f"{v:.2f}")
+                    lambda v: f"${v:,.0f} mm" if y_col == "external_pa_dollars_mm" else f"{v:.2f}"
                 ),
             )
             if st.button("Promote to session"):
@@ -481,6 +475,11 @@ def main() -> None:
                 )
             except Exception:
                 pass
+        except ValidationError:
+            st.error(
+                "The sample scenario-grid settings could not be validated. "
+                "Refresh the defaults or use Scenario Wizard to build a configuration."
+            )
         except ValueError as exc:
             st.error(f"Invalid configuration: {exc}")
         except RuntimeError as exc:

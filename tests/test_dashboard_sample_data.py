@@ -14,6 +14,8 @@ import pandas as pd
 
 from dashboard.utils import (
     SAMPLE_INDEX_FILENAME,
+    SAMPLE_FINANCING_MODE,
+    build_sample_model_config,
     bundled_sample_index_path,
     load_bundled_sample_index,
 )
@@ -53,3 +55,40 @@ def test_bundled_sample_runs_through_orchestrator_end_to_end() -> None:
     _, summary = orch.run(seed=42)
     assert summary is not None
     assert not summary.empty
+
+
+def test_sample_run_config_validates() -> None:
+    """Stress Lab and Scenario Grid sample config paths must not dead-end."""
+    stress_config = build_sample_model_config(
+        **{
+            "Number of simulations": 1000,
+            "Number of months": 12,
+            "Total fund capital (mm)": 1000.0,
+            "External PA capital (mm)": 200.0,
+            "Active Extension capital (mm)": 200.0,
+            "Internal PA capital (mm)": 200.0,
+            "External PA alpha fraction": 0.5,
+            "Active share": 0.5,
+        }
+    )
+    grid_config = build_sample_model_config(
+        analysis_mode="alpha_shares",
+        external_pa_alpha_min_pct=25.0,
+        external_pa_alpha_max_pct=75.0,
+        external_pa_alpha_step_pct=5.0,
+        active_share_min_pct=20.0,
+        active_share_max_pct=100.0,
+        active_share_step_pct=5.0,
+    )
+
+    assert stress_config.financing_mode == SAMPLE_FINANCING_MODE
+    assert grid_config.financing_mode == SAMPLE_FINANCING_MODE
+    assert stress_config.financing_mode in {"per_path", "broadcast"}
+    assert grid_config.financing_mode in {"per_path", "broadcast"}
+    assert grid_config.analysis_mode == "alpha_shares"
+    assert grid_config.external_pa_alpha_min_pct == 25.0
+    assert grid_config.external_pa_alpha_max_pct == 75.0
+    assert grid_config.external_pa_alpha_step_pct == 5.0
+    assert grid_config.active_share_min_pct == 20.0
+    assert grid_config.active_share_max_pct == 100.0
+    assert grid_config.active_share_step_pct == 5.0

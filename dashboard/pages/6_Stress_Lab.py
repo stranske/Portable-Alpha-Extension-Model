@@ -13,9 +13,11 @@ from typing import cast
 
 import pandas as pd
 import streamlit as st
+from pydantic import ValidationError
 
 from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.utils import (
+    build_sample_model_config,
     config_capital_defaults,
     current_index_returns,
     current_scenario_config,
@@ -168,18 +170,19 @@ def main() -> None:
                     "Provide an index CSV, enable bundled sample data, or run a scenario first."
                 )
 
-            base_cfg = ModelConfig.model_validate(
-                {
-                    "Number of simulations": int(n_sims),
-                    "Number of months": int(n_months),
-                    "Total fund capital (mm)": float(total_cap),
-                    "External PA capital (mm)": float(ext_cap),
-                    "Active Extension capital (mm)": float(act_cap),
-                    "Internal PA capital (mm)": float(int_cap),
-                    "External PA alpha fraction": float(theta),
-                    "Active share": float(active_share),
-                }
-            )
+            config_overrides = {
+                "Number of simulations": int(n_sims),
+                "Number of months": int(n_months),
+                "Total fund capital (mm)": float(total_cap),
+                "External PA capital (mm)": float(ext_cap),
+                "Active Extension capital (mm)": float(act_cap),
+                "Internal PA capital (mm)": float(int_cap),
+                "External PA alpha fraction": float(theta),
+                "Active share": float(active_share),
+            }
+            if session_cfg is not None and not use_sample:
+                config_overrides["financing_mode"] = session_cfg.financing_mode
+            base_cfg = build_sample_model_config(**config_overrides)
 
             stressed_cfg = apply_stress_preset(base_cfg, cast(str, preset))
 
@@ -263,6 +266,11 @@ def main() -> None:
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
 
+        except ValidationError:  # pragma: no cover - runtime UX
+            st.error(
+                "The sample stress-test settings could not be validated. "
+                "Refresh the defaults or run a scenario first."
+            )
         except Exception as exc:  # pragma: no cover - runtime UX
             st.error(str(exc))
 
