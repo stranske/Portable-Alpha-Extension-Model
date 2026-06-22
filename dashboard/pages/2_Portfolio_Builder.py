@@ -81,13 +81,14 @@ def main() -> None:
         )
 
     sample_portfolio_path = bundled_portfolio_template_path()
+    sample_portfolio_available = sample_portfolio_path.exists()
     uploaded = st.file_uploader("Upload Asset Library YAML", type=["yaml", "yml"])
     use_sample_portfolio = st.checkbox(
         "Load bundled sample portfolio",
         value=False,
         help="Loads the starter scenario YAML so you can build weights without uploading a file.",
     )
-    if sample_portfolio_path.exists():
+    if sample_portfolio_available:
         st.download_button(
             "Download starter portfolio YAML",
             sample_portfolio_path.read_text(),
@@ -96,6 +97,9 @@ def main() -> None:
         )
     if uploaded is None and not use_sample_portfolio:
         st.info("Upload an asset library YAML or load the bundled sample portfolio to begin.")
+        return
+    if uploaded is None and use_sample_portfolio and not sample_portfolio_available:
+        st.error("Bundled starter portfolio is unavailable. Upload an asset library YAML instead.")
         return
 
     if uploaded is not None:

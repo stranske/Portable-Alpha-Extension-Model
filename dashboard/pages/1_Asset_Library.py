@@ -33,12 +33,13 @@ def main() -> None:
     apply_theme(theme_path)
     st.markdown("**Upload asset return data**")
     sample_path = bundled_asset_timeseries_path()
+    sample_available = sample_path.exists()
     use_sample = st.checkbox(
         "Use bundled sample asset data (no upload needed)",
         value=False,
         help="Loads the shipped wide-format return template so you can explore calibration immediately.",
     )
-    if sample_path.exists():
+    if sample_available:
         st.download_button(
             "Download asset return template",
             sample_path.read_bytes(),
@@ -54,6 +55,9 @@ def main() -> None:
     )
     if uploaded is None and not use_sample:
         st.info("Upload asset return data or use the bundled sample to begin.")
+        return
+    if uploaded is None and use_sample and not sample_available:
+        st.error("Bundled sample asset data is unavailable. Upload asset return data instead.")
         return
     cleanup_tmp_path = False
     tmp_path = str(sample_path)
