@@ -95,6 +95,9 @@ def _default_capital_allocation(
     reference_sigma: float = 0.01,
     volatility_multiple: float = 3.0,
     financing_model: str = "simple_proxy",
+    margin_schedule: pd.DataFrame | None = None,
+    schedule_path: str | Path | None = None,
+    term_months: float = 1.0,
     external_pa_capital: float | None = None,
     active_ext_capital: float | None = None,
 ) -> dict[str, float]:
@@ -112,12 +115,16 @@ def _default_capital_allocation(
     external = min(external, total)
     active = min(active, max(0.0, total - external))
 
-    effective_financing_model = "simple_proxy" if financing_model == "schedule" else financing_model
+    use_schedule = financing_model == "schedule" and (margin_schedule is not None or schedule_path)
+    effective_financing_model = "schedule" if use_schedule else "simple_proxy"
     margin_requirement = calculate_margin_requirement(
         reference_sigma=reference_sigma,
         volatility_multiple=volatility_multiple,
         total_capital=total,
         financing_model=effective_financing_model,
+        margin_schedule=margin_schedule,
+        schedule_path=schedule_path,
+        term_months=term_months,
     )
     margin_buffer = total * _DEFAULT_MARGIN_BUFFER_SHARE
     max_internal_after_margin = max(0.0, total - margin_requirement - margin_buffer)
@@ -890,6 +897,8 @@ def _render_step_2_capital(config: Any) -> Any:
         reference_sigma=float(financing_settings.get("reference_sigma", 0.01)),
         volatility_multiple=float(financing_settings.get("volatility_multiple", 3.0)),
         financing_model=str(financing_settings.get("financing_model", "simple_proxy")),
+        schedule_path=financing_settings.get("schedule_path"),
+        term_months=float(financing_settings.get("term_months", 1.0)),
     )
     col1, col2 = st.columns(2)
 
@@ -933,6 +942,8 @@ def _render_step_2_capital(config: Any) -> Any:
             reference_sigma=float(financing_settings.get("reference_sigma", 0.01)),
             volatility_multiple=float(financing_settings.get("volatility_multiple", 3.0)),
             financing_model=str(financing_settings.get("financing_model", "simple_proxy")),
+            schedule_path=financing_settings.get("schedule_path"),
+            term_months=float(financing_settings.get("term_months", 1.0)),
             external_pa_capital=config.external_pa_capital,
             active_ext_capital=config.active_ext_capital,
         )
@@ -986,15 +997,16 @@ def _render_step_2_capital(config: Any) -> Any:
     total_allocated = (
         config.external_pa_capital + config.active_ext_capital + config.internal_pa_capital
     )
+    effective_financing_model = str(financing_settings.get("financing_model", "simple_proxy"))
+    schedule_path = financing_settings.get("schedule_path")
+    use_schedule_margin = effective_financing_model == "schedule" and schedule_path
     margin_requirement = calculate_margin_requirement(
         reference_sigma=float(financing_settings.get("reference_sigma", 0.01)),
         volatility_multiple=float(financing_settings.get("volatility_multiple", 3.0)),
         total_capital=config.total_fund_capital,
-        financing_model=(
-            "simple_proxy"
-            if str(financing_settings.get("financing_model", "simple_proxy")) == "schedule"
-            else str(financing_settings.get("financing_model", "simple_proxy"))
-        ),
+        financing_model="schedule" if use_schedule_margin else "simple_proxy",
+        schedule_path=schedule_path if use_schedule_margin else None,
+        term_months=float(financing_settings.get("term_months", 1.0)),
     )
     margin_buffer = config.total_fund_capital - margin_requirement - config.internal_pa_capital
     buffer_pct = margin_buffer / config.total_fund_capital if config.total_fund_capital else 0.0
