@@ -237,18 +237,16 @@ def main() -> None:
                     st.error(f"Bundled sample data could not be loaded: {exc}")
                     return
 
-            base_cfg = build_sample_model_config()
-            cfg = base_cfg.model_copy(
-                update={
-                    "analysis_mode": "alpha_shares",
-                    "external_pa_alpha_min_pct": float(ext_min),
-                    "external_pa_alpha_max_pct": float(ext_max),
-                    "external_pa_alpha_step_pct": float(ext_step),
-                    "active_share_min_pct": float(act_min),
-                    "active_share_max_pct": float(act_max),
-                    "active_share_step_pct": float(act_step),
-                }
+            cfg = build_sample_model_config(
+                analysis_mode="alpha_shares",
+                external_pa_alpha_min_pct=float(ext_min),
+                external_pa_alpha_max_pct=float(ext_max),
+                external_pa_alpha_step_pct=float(ext_step),
+                active_share_min_pct=float(act_min),
+                active_share_max_pct=float(act_max),
+                active_share_step_pct=float(act_step),
             )
+            base_cfg = cfg
 
             cache_key = make_grid_cache_key(cfg, index_series, int(seed), y_axis_mode)
             cached = _get_grid_cache(cache_key)
