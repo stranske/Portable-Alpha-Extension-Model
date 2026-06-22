@@ -11,7 +11,7 @@ def make(paths: dict[str, pd.DataFrame | np.ndarray], *, threshold: float = 0.3)
     """Return correlation network diagram."""
     names = list(paths.keys())
     series = [np.asarray(v).mean(axis=0) for v in paths.values()]
-    corr = np.corrcoef(series)
+    corr = np.atleast_2d(np.corrcoef(series))
     n = len(names)
     angles = np.linspace(0, 2 * np.pi, n, endpoint=False)
     xs = np.cos(angles)
@@ -22,7 +22,7 @@ def make(paths: dict[str, pd.DataFrame | np.ndarray], *, threshold: float = 0.3)
     )
     for i in range(n):
         for j in range(i + 1, n):
-            if corr[i, j] >= threshold:
+            if float(corr[i, j]) >= threshold:
                 fig.add_trace(
                     go.Scatter(
                         x=[xs[i], xs[j]],
