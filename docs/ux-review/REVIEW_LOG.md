@@ -4,6 +4,7 @@ Diff-anchored record of UX Review (`/ux-review`) passes. Each entry's commit SHA
 review's git-diff focus. Detailed artifacts live in `Orchestrator/ux_reviews/`.
 
 ## 2026-06-22 — Dashboard (`dashboard/app.py`), FULL coverage — commit `98a2250` — overall 2.0/10 (gate FAIL)
+
 - **Coverage:** Home ✓; Asset Library ✓ (upload-only); Portfolio Builder ✓ (upload-only); Scenario Wizard ✓ (5 steps; Run with defaults → infeasible); Results ✓ (bare error); Scenario Grid ✓ (sample → error); Stress Lab ✓ (sample → error); Run Logs ✓ (empty). **NOT driven:** a *successful* run with valid uploaded data — every built-in run path dead-ended.
 - **Scores:** wired 2.0 / usability 2.0 / help_clarity 4.0 / workflow 2.0 (4 sev-4 blockers + 1 sev-3, all 4/4).
 - **Headline:** all three run entry points dead-end for a first-timer, and the home page recommends two of the broken ones.
