@@ -44,6 +44,7 @@ class FakeStreamlit(ModuleType):
         self._number_inputs = list(number_inputs or [])
         self._file_uploader = file_uploader
         self._button_value = button_value
+        self._checkbox_values: list[bool] = []
         self.sidebar = _FakeSidebar(self.calls)
 
     def title(self, message: str) -> None:
@@ -51,6 +52,9 @@ class FakeStreamlit(ModuleType):
 
     def info(self, message: str) -> None:
         self.calls.append(("info", message))
+
+    def caption(self, message: str) -> None:
+        self.calls.append(("caption", message))
 
     def warning(self, message: str) -> None:
         self.calls.append(("warning", message))
@@ -77,6 +81,12 @@ class FakeStreamlit(ModuleType):
     def file_uploader(self, label: str, **kwargs: Any) -> Any | None:
         self.calls.append(("file_uploader", label))
         return self._file_uploader
+
+    def checkbox(self, label: str, **kwargs: Any) -> bool:
+        self.calls.append(("checkbox", label))
+        if self._checkbox_values:
+            return self._checkbox_values.pop(0)
+        return bool(kwargs.get("value", False))
 
     def button(self, label: str) -> bool:
         self.calls.append(("button", label))
@@ -164,7 +174,14 @@ def test_portfolio_builder_requires_upload(monkeypatch: pytest.MonkeyPatch) -> N
 
     module["main"]()
 
-    assert any(call == ("info", "Upload an asset library YAML to begin.") for call in fake_st.calls)
+    assert any(
+        call
+        == (
+            "info",
+            "Upload an asset library YAML or load the bundled sample portfolio to begin.",
+        )
+        for call in fake_st.calls
+    )
 
 
 def test_portfolio_builder_empty_assets_warns(monkeypatch: pytest.MonkeyPatch) -> None:

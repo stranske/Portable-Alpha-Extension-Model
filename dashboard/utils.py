@@ -12,7 +12,7 @@ from typing import Any
 import pandas as pd
 
 from pa_core.config import ModelConfig, normalize_share
-from pa_core.data import load_index_returns
+from pa_core.data import DataImportAgent, load_index_returns
 from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_sizes
 
 # Keep dashboard normalization aligned with core config behavior.
@@ -137,6 +137,13 @@ def config_capital_defaults(config: ModelConfig | None) -> dict[str, float]:
 # an end-to-end example without uploading their own file (see issue #1900).
 SAMPLE_INDEX_FILENAME = "sp500tr_fred_divyield.csv"
 SAMPLE_FINANCING_MODE = "per_path"
+SAMPLE_ASSET_TIMESERIES_FILENAME = "asset_timeseries_wide_returns.csv"
+SAMPLE_PORTFOLIO_TEMPLATE_FILENAME = "scenario_template.yaml"
+
+
+def _repo_template_path(filename: str) -> Path:
+    """Return a repo-shipped dashboard template path."""
+    return Path(__file__).resolve().parents[1] / "templates" / filename
 
 
 def bundled_sample_index_path() -> Path:
@@ -160,6 +167,22 @@ def load_bundled_sample_index() -> pd.Series:
     """
     path = bundled_sample_index_path()
     return load_index_returns(path)
+
+
+def bundled_asset_timeseries_path() -> Path:
+    """Return the bundled wide-format asset time-series CSV path."""
+    return _repo_template_path(SAMPLE_ASSET_TIMESERIES_FILENAME)
+
+
+def bundled_portfolio_template_path() -> Path:
+    """Return the starter scenario YAML used by Portfolio Builder samples."""
+    return _repo_template_path(SAMPLE_PORTFOLIO_TEMPLATE_FILENAME)
+
+
+def load_bundled_asset_returns() -> pd.DataFrame:
+    """Return parsed bundled asset returns for no-upload dashboard previews."""
+    importer = DataImportAgent(min_obs=1)
+    return importer.load(bundled_asset_timeseries_path())
 
 
 def build_sample_model_config(**overrides: Any) -> ModelConfig:
@@ -324,4 +347,9 @@ __all__ = [
     "SAMPLE_INDEX_FILENAME",
     "bundled_sample_index_path",
     "load_bundled_sample_index",
+    "SAMPLE_ASSET_TIMESERIES_FILENAME",
+    "SAMPLE_PORTFOLIO_TEMPLATE_FILENAME",
+    "bundled_asset_timeseries_path",
+    "bundled_portfolio_template_path",
+    "load_bundled_asset_returns",
 ]
