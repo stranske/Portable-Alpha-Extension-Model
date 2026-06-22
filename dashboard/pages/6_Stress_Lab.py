@@ -13,9 +13,11 @@ from typing import cast
 
 import pandas as pd
 import streamlit as st
+from pydantic import ValidationError
 
 from dashboard.app import apply_theme, render_settings_sidebar
 from dashboard.utils import (
+    build_sample_model_config,
     config_capital_defaults,
     current_index_returns,
     current_scenario_config,
@@ -168,8 +170,8 @@ def main() -> None:
                     "Provide an index CSV, enable bundled sample data, or run a scenario first."
                 )
 
-            base_cfg = ModelConfig.model_validate(
-                {
+            base_cfg = build_sample_model_config(
+                **{
                     "Number of simulations": int(n_sims),
                     "Number of months": int(n_months),
                     "Total fund capital (mm)": float(total_cap),
@@ -263,6 +265,11 @@ def main() -> None:
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
 
+        except ValidationError:  # pragma: no cover - runtime UX
+            st.error(
+                "The sample stress-test settings could not be validated. "
+                "Refresh the defaults or run a scenario first."
+            )
         except Exception as exc:  # pragma: no cover - runtime UX
             st.error(str(exc))
 

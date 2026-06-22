@@ -81,6 +81,7 @@ def config_capital_defaults(config: ModelConfig | None) -> dict[str, float]:
 # Bundled index-returns dataset shipped with the repo so first-run users can run
 # an end-to-end example without uploading their own file (see issue #1900).
 SAMPLE_INDEX_FILENAME = "sp500tr_fred_divyield.csv"
+SAMPLE_FINANCING_MODE = "per_path"
 
 
 def bundled_sample_index_path() -> Path:
@@ -104,6 +105,17 @@ def load_bundled_sample_index() -> pd.Series:
     """
     path = bundled_sample_index_path()
     return load_index_returns(path)
+
+
+def build_sample_model_config(**overrides: Any) -> ModelConfig:
+    """Return a ModelConfig for bundled-sample dashboard paths."""
+    data: dict[str, Any] = {
+        "Number of simulations": 1000,
+        "Number of months": 12,
+        "financing_mode": SAMPLE_FINANCING_MODE,
+    }
+    data.update(overrides)
+    return ModelConfig.model_validate(data)
 
 
 def build_alpha_shares_payload(
