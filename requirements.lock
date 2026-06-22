@@ -95,7 +95,7 @@ comm==0.2.3
     # via
     #   ipykernel
     #   ipywidgets
-coverage==7.14.1
+coverage==7.14.2
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   pytest-cov
