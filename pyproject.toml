@@ -163,6 +163,7 @@ dev = [
     "types-PyYAML",
     "flake8",
     "docformatter>=1.7.8",
+    "packaging",
 ]
 
 # Documentation dependencies
