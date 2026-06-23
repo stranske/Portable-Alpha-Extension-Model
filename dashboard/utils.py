@@ -17,9 +17,62 @@ from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_si
 
 # Keep dashboard normalization aligned with core config behavior.
 
+RESULTS_EMPTY_STATE_MESSAGE = (
+    "No results yet - complete a run in the Scenario Wizard, Scenario Grid, or Stress Lab "
+    "to generate output."
+)
+RUN_LOGS_EMPTY_STATE_MESSAGE = "No runs yet - run a scenario and its history will appear here."
+
 CURRENT_SCENARIO_CONFIG_KEY = "dashboard_current_scenario_config"
 CURRENT_RESULTS_PATH_KEY = "dashboard_current_results_path"
 CURRENT_INDEX_RETURNS_KEY = "dashboard_current_index_returns"
+
+_CONFIG_FIELD_LABELS = {
+    "financing_mode": "Financing draw mode",
+    "financing_model": "Financing model",
+    "financing_schedule_path": "Financing schedule file",
+    "N_SIMULATIONS": "Number of simulations",
+    "Number of simulations": "Number of simulations",
+    "N_MONTHS": "Number of months",
+    "Number of months": "Number of months",
+    "risk_metrics": "Risk metrics",
+    "total_fund_capital": "Total fund capital",
+    "external_pa_capital": "External PA capital",
+    "active_ext_capital": "Active extension capital",
+    "internal_pa_capital": "Internal PA capital",
+}
+
+
+def friendly_validation_error_message(exc: BaseException) -> str:
+    """Return an operator-facing message for config validation failures."""
+
+    validation_exc = exc.__cause__ if exc.__cause__ is not None else exc
+    fields: list[str] = []
+    errors = getattr(validation_exc, "errors", None)
+    if callable(errors):
+        for error in errors():
+            loc = error.get("loc", ())
+            field = str(loc[-1]) if loc else ""
+            label = _CONFIG_FIELD_LABELS.get(field)
+            if label and label not in fields:
+                fields.append(label)
+
+    raw = str(exc)
+    for field, label in _CONFIG_FIELD_LABELS.items():
+        if field in raw and label not in fields:
+            fields.append(label)
+
+    if not fields:
+        return (
+            "The scenario settings need a correction before the dashboard can run them. "
+            "Review the highlighted inputs and try again."
+        )
+
+    field_list = ", ".join(fields)
+    return (
+        f"The scenario settings need a correction before the dashboard can run them: "
+        f"{field_list}. Choose or update the highlighted inputs, then try again."
+    )
 
 
 def remember_current_scenario(

@@ -26,7 +26,12 @@ from dashboard.components.llm_settings import (
     resolve_llm_provider_config,
 )
 from dashboard.glossary import tooltip
-from dashboard.utils import remember_current_scenario, run_sleeve_frontier, run_sleeve_suggestions
+from dashboard.utils import (
+    friendly_validation_error_message,
+    remember_current_scenario,
+    run_sleeve_frontier,
+    run_sleeve_suggestions,
+)
 from pa_core import cli as pa_cli
 from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
@@ -2167,7 +2172,7 @@ def main() -> None:
                 st.session_state.wizard_step = 5  # Go to review step
                 st.rerun()
         except Exception as e:
-            st.sidebar.error(f"Error loading config: {e}")
+            st.sidebar.error(friendly_validation_error_message(e))
 
     # Main wizard interface
     current_step = st.session_state.wizard_step
@@ -2253,7 +2258,11 @@ def main() -> None:
             if idx is not None:
                 # Convert config to YAML and run simulation
                 yaml_data = _build_yaml_from_config(config)
-                model_config = load_config(yaml_data)
+                try:
+                    model_config = load_config(yaml_data)
+                except Exception as exc:
+                    st.error(friendly_validation_error_message(exc))
+                    st.stop()
                 with _temp_yaml_file(yaml_data) as cfg_path:
                     # Write index data to a secure temp file
                     fd, idx_path = tempfile.mkstemp(suffix=".csv")
@@ -2279,7 +2288,10 @@ def main() -> None:
                             pa_cli.main(args)
                         sim_ok = True
                     except Exception as exc:
-                        st.error(f"❌ Simulation failed: {exc}")
+                        st.error(
+                            "Simulation could not complete from the current dashboard inputs. "
+                            f"{friendly_validation_error_message(exc)}"
+                        )
                     finally:
                         # Cleanup index temp file
                         try:

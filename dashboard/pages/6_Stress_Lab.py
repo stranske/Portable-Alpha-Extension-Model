@@ -21,6 +21,7 @@ from dashboard.utils import (
     config_capital_defaults,
     current_index_returns,
     current_scenario_config,
+    friendly_validation_error_message,
     load_bundled_sample_index,
 )
 from pa_core.config import ModelConfig
@@ -266,13 +267,10 @@ def main() -> None:
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
 
-        except ValidationError:  # pragma: no cover - runtime UX
-            st.error(
-                "The sample stress-test settings could not be validated. "
-                "Refresh the defaults or run a scenario first."
-            )
+        except ValidationError as exc:  # pragma: no cover - runtime UX
+            st.error(friendly_validation_error_message(exc))
         except Exception as exc:  # pragma: no cover - runtime UX
-            st.error(str(exc))
+            st.error(friendly_validation_error_message(exc))
 
 
 if __name__ == "__main__":  # pragma: no cover

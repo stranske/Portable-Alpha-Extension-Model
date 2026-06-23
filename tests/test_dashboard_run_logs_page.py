@@ -78,11 +78,7 @@ def test_run_logs_no_runs_directory(monkeypatch, tmp_path: Path) -> None:
         runpy.run_path(str(_page_path()))
 
     assert any(
-        call
-        == (
-            "info",
-            "No runs directory found yet. Launch a run with --log-json to create logs.",
-        )
+        call == ("info", "No runs yet - run a scenario and its history will appear here.")
         for call in fake_st.calls
     )
 

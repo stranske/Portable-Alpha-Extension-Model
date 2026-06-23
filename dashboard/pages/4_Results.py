@@ -23,7 +23,7 @@ from dashboard.app import (
 from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
-from dashboard.utils import current_results_path
+from dashboard.utils import RESULTS_EMPTY_STATE_MESSAGE, current_results_path
 from pa_core.contracts import (
     SUMMARY_AGENT_COLUMN,
     SUMMARY_ANN_RETURN_COLUMN,
@@ -197,7 +197,7 @@ def main() -> None:
     xlsx, theme_path = render_settings_sidebar(_default_results_path())
     apply_theme(theme_path)
     if not Path(xlsx).exists():
-        st.warning(f"File {xlsx} not found")
+        st.info(RESULTS_EMPTY_STATE_MESSAGE)
         st.stop()
     summary, paths = load_data(xlsx)
 
