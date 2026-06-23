@@ -269,6 +269,14 @@ templates/scenario_template.yaml
         }),
       );
 
+      // Resolve vendored URLs relative to THIS page (document.baseURI), not the
+      // server root. The bundle is served as a subdirectory (web/), so a
+      // root-absolute "/vendor/..." 404s; a bare-relative URL would be resolved
+      // by the Pyodide WORKER against the worker script (also wrong).
+      // new URL("vendor/...", baseURI) yields an absolute, worker-safe href at
+      // <page-dir>/vendor/... .
+      const __abs = (p) => new URL(String(p).replace(/^\/+/, ""), document.baseURI).href;
+
       mount(
         {
           entrypoint: "dashboard/app.py",
@@ -280,21 +288,21 @@ templates/scenario_template.yaml
             "Pillow",
             "pydantic",
             "PyYAML",
-            "/vendor/pypi/blinker-1.9.0-py3-none-any.whl",
-            "/vendor/pypi/tenacity-9.1.4-py3-none-any.whl",
-            "/vendor/pypi/narwhals-2.22.1-py3-none-any.whl",
-            "/vendor/pypi/plotly-6.8.0-py3-none-any.whl",
-            "/vendor/pypi/python_pptx-1.0.2-py3-none-any.whl",
-            "/vendor/pypi/et_xmlfile-2.0.0-py3-none-any.whl",
-            "/vendor/pypi/openpyxl-3.1.5-py2.py3-none-any.whl",
-            "/vendor/pypi/xlsxwriter-3.2.9-py3-none-any.whl",
-            "/vendor/pypi/pypdf-6.14.2-py3-none-any.whl",
+            __abs("/vendor/pypi/blinker-1.9.0-py3-none-any.whl"),
+            __abs("/vendor/pypi/tenacity-9.1.4-py3-none-any.whl"),
+            __abs("/vendor/pypi/narwhals-2.22.1-py3-none-any.whl"),
+            __abs("/vendor/pypi/plotly-6.8.0-py3-none-any.whl"),
+            __abs("/vendor/pypi/python_pptx-1.0.2-py3-none-any.whl"),
+            __abs("/vendor/pypi/et_xmlfile-2.0.0-py3-none-any.whl"),
+            __abs("/vendor/pypi/openpyxl-3.1.5-py2.py3-none-any.whl"),
+            __abs("/vendor/pypi/xlsxwriter-3.2.9-py3-none-any.whl"),
+            __abs("/vendor/pypi/pypdf-6.14.2-py3-none-any.whl"),
           ],
           files,
-          pyodideUrl: "/vendor/pyodide-0.26.2/pyodide.mjs",
+          pyodideUrl: __abs("/vendor/pyodide-0.26.2/pyodide.mjs"),
           wheels: {
-            stliteLib: "/vendor/stlite@0.76.0/wheels/stlite_lib-0.1.0-py3-none-any.whl",
-            streamlit: "/vendor/stlite@0.76.0/wheels/streamlit-1.41.0-cp312-none-any.whl",
+            stliteLib: __abs("/vendor/stlite@0.76.0/wheels/stlite_lib-0.1.0-py3-none-any.whl"),
+            streamlit: __abs("/vendor/stlite@0.76.0/wheels/streamlit-1.41.0-cp312-none-any.whl"),
           },
         },
         document.getElementById("root"),
