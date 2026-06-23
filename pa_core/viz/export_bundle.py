@@ -7,6 +7,7 @@ from typing import Iterable, Sequence
 import plotly.graph_objects as go
 
 from . import html_export
+from .export_backend import run_with_browser_png_cache, write_figure_image
 
 
 def save(
@@ -24,8 +25,8 @@ def save(
         stem = base.with_name(f"{base.stem}_{i}")
         if not skip_png:
             try:
-                # Prefer Kaleido for static export
-                fig.write_image(stem.with_suffix(".png"), engine="kaleido")
+                # Prefer Kaleido for static export on the server.
+                write_figure_image(fig, stem.with_suffix(".png"))
             except (ValueError, RuntimeError, OSError, MemoryError):
                 # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
                 pass
@@ -34,3 +35,16 @@ def save(
         with open(stem.with_suffix(".json"), "w", encoding="utf-8") as fh:
             json_data = fig.to_json()
             fh.write(json_data if isinstance(json_data, str) else "")
+
+
+async def save_async(
+    figs: Iterable[go.Figure],
+    prefix: str | Path,
+    *,
+    alt_texts: Sequence[str] | None = None,
+) -> None:
+    figs_list = list(figs)
+    await run_with_browser_png_cache(
+        figs_list,
+        lambda: save(figs_list, prefix, alt_texts=alt_texts),
+    )

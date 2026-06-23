@@ -14,6 +14,7 @@ import yaml
 from pydantic import ValidationError
 
 from dashboard.app import apply_theme, render_settings_sidebar
+from dashboard.browser_exports import render_png_download
 from dashboard.utils import (
     build_alpha_shares_payload,
     build_sample_model_config,
@@ -467,12 +468,13 @@ def main() -> None:
 
             # Optional: export heatmap to PNG if kaleido is available
             try:
-                img_bytes = fig2.to_image(format="png", scale=2)
-                st.download_button(
+                render_png_download(
+                    st,
+                    key="scenario_grid_heatmap_png",
                     label="Download heatmap PNG",
-                    data=img_bytes,
+                    fig=fig2,
                     file_name="scenario_grid.png",
-                    mime="image/png",
+                    scale=2,
                 )
             except Exception:
                 pass

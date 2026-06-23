@@ -29,8 +29,9 @@ from ..contracts import (
 )
 from ..sim.metrics import metric_definitions_df
 from ..viz import risk_return, theme
+from ..viz.export_backend import figure_to_png_bytes, run_with_browser_png_cache
 
-__all__ = ["export_to_excel"]
+__all__ = ["export_to_excel", "export_to_excel_async"]
 
 logger = logging.getLogger(__name__)
 
@@ -414,7 +415,7 @@ def finalize_excel_workbook(
                     cell.number_format = "0.00%"
 
         try:
-            img_bytes = risk_return.make(summary_df).to_image(format="png", engine="kaleido")
+            img_bytes = figure_to_png_bytes(risk_return.make(summary_df))
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (IndexError, KeyError, ValueError, RuntimeError, OSError, MemoryError):
@@ -444,7 +445,7 @@ def finalize_excel_workbook(
             if os.environ.get("CI") or os.environ.get("PYTEST_CURRENT_TEST"):
                 img_bytes = _ONE_PX_PNG
             else:
-                img_bytes = fig.to_image(format="png", engine="kaleido")
+                img_bytes = figure_to_png_bytes(fig)
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (IndexError, KeyError, ValueError, RuntimeError, OSError, MemoryError):
@@ -465,10 +466,82 @@ def finalize_excel_workbook(
                         img_bytes = _ONE_PX_PNG
                     else:
                         fig = sunburst.make(attr_df)
-                        img_bytes = fig.to_image(format="png", engine="kaleido")
+                        img_bytes = figure_to_png_bytes(fig)
                     img = XLImage(io.BytesIO(img_bytes))
                     ws.add_image(img, "H2")
         except (KeyError, TypeError, ValueError, RuntimeError, OSError, MemoryError):
             logger.warning("Failed to embed sunburst chart in Attribution sheet", exc_info=True)
 
     wb.save(filename)
+
+
+def _excel_embed_figures(
+    inputs_dict: Dict[str, Any],
+    summary_df: pd.DataFrame,
+) -> list[Any]:
+    figs: list[Any] = []
+    if not summary_df.empty:
+        try:
+            summary_for_chart = summary_df.copy()
+            summary_for_chart["terminal_ShortfallProb"] = summary_for_chart.get(
+                "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+            )
+            figs.append(risk_return.make(summary_for_chart))
+        except (AttributeError, IndexError, KeyError, TypeError, ValueError):
+            pass
+
+    sens_df = _optional_df(inputs_dict, "_sensitivity_df")
+    if (
+        sens_df is not None
+        and not sens_df.empty
+        and {"Parameter", "DeltaAbs"} <= set(sens_df.columns)
+    ):
+        try:
+            from ..viz import tornado
+
+            figs.append(tornado.make(tornado.series_from_sensitivity(sens_df)))
+        except (AttributeError, IndexError, KeyError, TypeError, ValueError):
+            pass
+
+    attr_df = _optional_df(inputs_dict, "_attribution_df")
+    if (
+        attr_df is not None
+        and not attr_df.empty
+        and {"Agent", "Sub", "Return"} <= set(attr_df.columns)
+    ):
+        try:
+            from ..viz import sunburst
+
+            figs.append(sunburst.make(attr_df))
+        except (AttributeError, IndexError, KeyError, TypeError, ValueError):
+            pass
+    return figs
+
+
+async def export_to_excel_async(
+    inputs_dict: Dict[str, Any],
+    summary_df: pd.DataFrame,
+    raw_returns_dict: Dict[str, Any],
+    filename: str = "Outputs.xlsx",
+    *,
+    pivot: bool = False,
+    diff_config_df: pd.DataFrame | None = None,
+    diff_metrics_df: pd.DataFrame | None = None,
+    metadata: Mapping[str, Any] | None = None,
+    finalize: bool = True,
+) -> None:
+    figs = _excel_embed_figures(inputs_dict, summary_df) if finalize else []
+    await run_with_browser_png_cache(
+        figs,
+        lambda: export_to_excel(
+            inputs_dict,
+            summary_df,
+            raw_returns_dict,
+            filename=filename,
+            pivot=pivot,
+            diff_config_df=diff_config_df,
+            diff_metrics_df=diff_metrics_df,
+            metadata=metadata,
+            finalize=finalize,
+        ),
+    )

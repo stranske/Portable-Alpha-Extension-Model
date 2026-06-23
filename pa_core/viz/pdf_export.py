@@ -4,6 +4,8 @@ import os
 
 import plotly.graph_objects as go
 
+from .export_backend import run_with_browser_png_cache, write_figure_image
+
 
 def save(fig: go.Figure, path: str) -> None:
     """Write figure to PDF using Plotly's static image renderer."""
@@ -12,7 +14,11 @@ def save(fig: go.Figure, path: str) -> None:
             fh.write(str(fig.to_json()).encode())
         return
     try:
-        fig.write_image(path, format="pdf", engine="kaleido")
+        write_figure_image(fig, path, format="pdf")
     except (ValueError, RuntimeError, OSError, MemoryError):
         with open(path, "wb") as fh:
             fh.write(str(fig.to_json()).encode())
+
+
+async def save_async(fig: go.Figure, path: str) -> None:
+    await run_with_browser_png_cache([fig], lambda: save(fig, path))

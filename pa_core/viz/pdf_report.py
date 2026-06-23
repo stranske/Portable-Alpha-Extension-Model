@@ -8,6 +8,8 @@ from typing import Any, Iterable
 
 import plotly.graph_objects as go
 
+from .export_backend import figure_to_pdf_bytes, run_with_browser_png_cache, write_figure_image
+
 PdfWriterType: Any
 try:
     from pypdf import PdfWriter as PdfWriterType
@@ -34,7 +36,7 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
 
     if len(figs) == 1:
         try:
-            figs[0].write_image(path, format="pdf", engine="kaleido")
+            write_figure_image(figs[0], path, format="pdf")
         except (ValueError, RuntimeError, OSError, MemoryError) as exc:
             warnings.warn(
                 f"PDF export failed; writing figure JSON fallback instead: {exc}",
@@ -58,7 +60,7 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
     for fig in figs:
         buf = io.BytesIO()
         try:
-            fig.write_image(buf, format="pdf", engine="kaleido")
+            buf.write(figure_to_pdf_bytes(fig))
         except (ValueError, RuntimeError, OSError, MemoryError) as exc:
             warnings.warn(
                 f"PDF export failed; writing all figure JSON fallbacks instead: {exc}",
@@ -74,3 +76,8 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
         writer.append(buf)
     with open(path, "wb") as fh:
         writer.write(fh)
+
+
+async def save_async(figs: Iterable[go.Figure], path: str | Path) -> None:
+    figs_list = list(figs)
+    await run_with_browser_png_cache(figs_list, lambda: save(figs_list, path))
