@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import tempfile
 from pathlib import Path
 
@@ -105,16 +104,10 @@ def main() -> None:
         return
 
     if uploaded is not None:
-        tmp_path: Path | None = None
-        try:
-            fd, tmp_name = tempfile.mkstemp(suffix=".yaml")
-            tmp_path = Path(tmp_name)
-            with os.fdopen(fd, "wb") as tmp:
-                tmp.write(uploaded.getvalue())
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir) / "uploaded.yaml"
+            tmp_path.write_bytes(uploaded.getvalue())
             scenario = load_scenario(tmp_path)
-        finally:
-            if tmp_path is not None:
-                tmp_path.unlink(missing_ok=True)
     else:
         st.caption(f"Using bundled sample: {sample_portfolio_path.name}")
         scenario = load_scenario(sample_portfolio_path)
