@@ -28,6 +28,7 @@ APP_REQUIREMENTS = (
     "XlsxWriter",
     "pypdf",
     "pydantic",
+    "rich",
     "PyYAML",
     "streamlit",
 )
@@ -74,6 +75,34 @@ def _dependency_closure(seed_names: set[str], packages: dict[str, dict]) -> set[
         closure.add(name)
         stack.extend(_lock_key(dep) for dep in packages[name].get("depends", []))
     return closure
+
+
+def _pyodide_wheel_metadata_requirements(
+    seed_names: set[str], packages: dict[str, dict]
+) -> list[Requirement]:
+    requirements: list[Requirement] = []
+    for name in sorted(_dependency_closure(seed_names, packages)):
+        file_name = str(packages[name]["file_name"])
+        if file_name.endswith(".whl"):
+            requirements.extend(_wheel_metadata_requires(PYODIDE_VENDOR_DIR / file_name))
+    return requirements
+
+
+def _expanded_pyodide_seed_names(
+    seed_names: set[str], packages: dict[str, dict]
+) -> tuple[set[str], list[Requirement]]:
+    seed_names = set(seed_names)
+    metadata_requirements: list[Requirement] = []
+    while True:
+        metadata_requirements = _pyodide_wheel_metadata_requirements(seed_names, packages)
+        metadata_seed_names = {
+            requirement.name
+            for requirement in metadata_requirements
+            if _lock_key(requirement.name) in packages
+        }
+        if metadata_seed_names <= seed_names:
+            return seed_names, metadata_requirements
+        seed_names.update(metadata_seed_names)
 
 
 def _pypi_wheel_names() -> set[str]:
@@ -162,6 +191,7 @@ def test_pyodide_wheel_closure_is_vendored() -> None:
         if _lock_key(requirement.name) in packages
     )
     seed_names.update({"micropip", "packaging"})
+    seed_names, _ = _expanded_pyodide_seed_names(seed_names, packages)
 
     missing: list[str] = []
     for name in sorted(_dependency_closure(seed_names, packages)):
@@ -183,6 +213,25 @@ def test_pure_pypi_wheel_closure_is_vendored() -> None:
     queue.extend(
         _lock_key(requirement.name)
         for requirement in _wheel_metadata_requires(streamlit_wheel)
+        if _lock_key(requirement.name) not in packages
+    )
+    pyodide_seed_names = {
+        Requirement(requirement).name
+        for requirement in APP_REQUIREMENTS
+        if _lock_key(Requirement(requirement).name) in packages
+    }
+    pyodide_seed_names.update(
+        requirement.name
+        for requirement in _wheel_metadata_requires(streamlit_wheel)
+        if _lock_key(requirement.name) in packages
+    )
+    pyodide_seed_names.update({"micropip", "packaging"})
+    _, pyodide_metadata_requirements = _expanded_pyodide_seed_names(
+        pyodide_seed_names, packages
+    )
+    queue.extend(
+        _lock_key(requirement.name)
+        for requirement in pyodide_metadata_requirements
         if _lock_key(requirement.name) not in packages
     )
     wheel_names = _pypi_wheel_names()
@@ -209,3 +258,20 @@ def test_pure_pypi_wheel_closure_is_vendored() -> None:
         if f"/vendor/pypi/{path.name}" not in html
     ]
     assert missing_from_html == []
+
+
+def test_offline_source_manifest_lists_every_app_module() -> None:
+    """Every dashboard/ + pa_core/ Python module must appear in web/index.html's
+    sourceFiles manifest, else it is not loaded into the Pyodide FS and the page
+    importing it crashes offline (e.g. dashboard.browser_exports -> Results)."""
+    html = WEB_HTML.read_text()
+    match = re.search(r"const sourceFiles = `(.*?)`", html, re.S)
+    assert match, "sourceFiles manifest not found in web/index.html"
+    listed = {line.strip() for line in match.group(1).splitlines() if line.strip()}
+    missing = [
+        str(p.relative_to(REPO_ROOT))
+        for base in ("dashboard", "pa_core")
+        for p in sorted((REPO_ROOT / base).rglob("*.py"))
+        if str(p.relative_to(REPO_ROOT)) not in listed
+    ]
+    assert missing == [], f"app modules missing from offline manifest: {missing}"
