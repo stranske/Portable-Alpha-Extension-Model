@@ -81,7 +81,7 @@ def test_run_logs_no_runs_directory(monkeypatch, tmp_path: Path) -> None:
         call
         == (
             "info",
-            "No runs directory found yet. Launch a run with --log-json to create logs.",
+            "No run logs yet - enable JSON logging for a run, then return here to inspect its history.",
         )
         for call in fake_st.calls
     )

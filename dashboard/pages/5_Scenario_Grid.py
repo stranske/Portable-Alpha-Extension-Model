@@ -18,6 +18,7 @@ from dashboard.utils import (
     build_alpha_shares_payload,
     build_sample_model_config,
     bump_session_token,
+    friendly_validation_error_message,
     load_bundled_sample_index,
     make_grid_cache_key,
 )
@@ -475,13 +476,10 @@ def main() -> None:
                 )
             except Exception:
                 pass
-        except ValidationError:
-            st.error(
-                "The sample scenario-grid settings could not be validated. "
-                "Refresh the defaults or use Scenario Wizard to build a configuration."
-            )
+        except ValidationError as exc:
+            st.error(friendly_validation_error_message(exc))
         except ValueError as exc:
-            st.error(f"Invalid configuration: {exc}")
+            st.error(friendly_validation_error_message(exc))
         except RuntimeError as exc:
             st.error(f"Simulation failed: {exc}")
 

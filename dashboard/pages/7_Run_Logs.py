@@ -5,6 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
+from dashboard.utils import RUN_LOGS_EMPTY_STATE_MESSAGE
 from pa_core.contracts import (
     MANIFEST_FILENAME,
     RUN_END_FILENAME,
@@ -18,7 +19,7 @@ st.title("Run Logs 🧾")
 
 runs_dir = Path(RUNS_DIR_NAME)
 if not runs_dir.exists():
-    st.info("No runs directory found yet. Launch a run with --log-json to create logs.")
+    st.info(RUN_LOGS_EMPTY_STATE_MESSAGE)
     st.stop()
 
 run_ids = sorted([p.name for p in runs_dir.iterdir() if p.is_dir()], reverse=True)
