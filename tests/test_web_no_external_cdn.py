@@ -118,13 +118,18 @@ def test_web_html_uses_vendored_runtime_assets() -> None:
     assert "./vendor/stlite@0.76.0/style.css" in html
     assert './vendor/stlite@0.76.0/stlite.js"' in html
     assert "./vendor/plotly-2.35.2.min.js" in html
-    assert 'pyodideUrl: "/vendor/pyodide-0.26.2/pyodide.mjs"' in html
-    assert (
-        'stliteLib: "/vendor/stlite@0.76.0/wheels/' 'stlite_lib-0.1.0-py3-none-any.whl"'
-    ) in html
-    assert (
-        'streamlit: "/vendor/stlite@0.76.0/wheels/' 'streamlit-1.41.0-cp312-none-any.whl"'
-    ) in html
+    # Vendored runtime + wheel paths are referenced...
+    assert "/vendor/pyodide-0.26.2/pyodide.mjs" in html
+    assert "/vendor/stlite@0.76.0/wheels/stlite_lib-0.1.0-py3-none-any.whl" in html
+    assert "/vendor/stlite@0.76.0/wheels/streamlit-1.41.0-cp312-none-any.whl" in html
+    # ...and resolved relative to document.baseURI rather than the server root,
+    # so the bundle boots when served from a subdirectory (web/). A regression to
+    # a root-absolute 'pyodideUrl: "/vendor/..."' would 404 the worker's Pyodide
+    # and wheel fetches. Guards the offline-boot fix.
+    assert "document.baseURI" in html
+    assert "pyodideUrl: __abs(" in html
+    assert "stliteLib: __abs(" in html
+    assert "streamlit: __abs(" in html
 
 
 def test_required_runtime_files_are_vendored() -> None:
