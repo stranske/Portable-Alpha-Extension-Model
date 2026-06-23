@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import asyncio
 import base64
+import types
 import zipfile
 from pathlib import Path
 
@@ -53,6 +54,44 @@ def test_browser_branch_uses_plotlyjs_bridge(monkeypatch: pytest.MonkeyPatch) ->
 
     assert calls == [(fig, {"scale": 3})]
     assert fig.calls == []
+
+
+def test_plotlyjs_bridge_posts_string_payload(monkeypatch: pytest.MonkeyPatch) -> None:
+    fig = _Figure()
+    calls: list[tuple[object, dict[str, object]]] = []
+    scripts: list[str] = []
+
+    def fake_run_js(script: str) -> object:
+        scripts.append(script)
+
+        def requester(fig_arg: object, opts: dict[str, object]) -> str:
+            calls.append((fig_arg, opts))
+            return (
+                "data:image/png;base64,"
+                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAA"
+                "MBAQDJ/pLvAAAAAElFTkSuQmCC"
+            )
+
+        return requester
+
+    pyodide_module = types.ModuleType("pyodide")
+    pyodide_code_module = types.ModuleType("pyodide.code")
+    pyodide_code_module.run_js = fake_run_js  # type: ignore[attr-defined]
+    monkeypatch.setitem(sys.modules, "pyodide", pyodide_module)
+    monkeypatch.setitem(sys.modules, "pyodide.code", pyodide_code_module)
+
+    png = asyncio.run(export_backend._plotlyjs_bridge_png_bytes(fig, scale=3, width=640))
+
+    assert png
+    assert len(calls) == 1
+    fig_arg, opts = calls[0]
+    assert isinstance(fig_arg, str)
+    assert fig_arg == fig.to_json()
+    assert opts == {"scale": 3, "width": 640, "height": None}
+    assert "BroadcastChannel" in scripts[0]
+    assert "document" not in scripts[0]
+    assert "window" not in scripts[0]
+    assert "Plotly" not in scripts[0]
 
 
 def test_browser_pptx_save_prerenders_without_manual_cache(

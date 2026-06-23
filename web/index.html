@@ -16,8 +16,40 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- CDN for this PR; vendoring Plotly for offline use follows the tracked Pension-Data #596 pattern. -->
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <script type="module">
       import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
+
+      const __paRenderBC = new BroadcastChannel("pa-render");
+      __paRenderBC.onmessage = async (e) => {
+        const m = e.data;
+        if (!m || m.kind !== "request") return;
+        try {
+          const figjson = JSON.parse(m.figStr);
+          const o = m.opts || {};
+          const div = document.createElement("div");
+          div.style.cssText =
+            "position:fixed;left:-9999px;top:-9999px;width:" +
+            (o.width || 960) +
+            "px;height:" +
+            (o.height || 540) +
+            "px";
+          document.body.appendChild(div);
+          await Plotly.newPlot(div, figjson.data || [], figjson.layout || {}, {});
+          const url = await Plotly.toImage(div, {
+            format: "png",
+            scale: o.scale || 2,
+            width: o.width || undefined,
+            height: o.height || undefined,
+          });
+          Plotly.purge(div);
+          div.remove();
+          __paRenderBC.postMessage({ kind: "response", id: m.id, url });
+        } catch (err) {
+          __paRenderBC.postMessage({ kind: "response", id: m.id, error: String(err) });
+        }
+      };
 
       const sourceFiles = `
 dashboard/__init__.py

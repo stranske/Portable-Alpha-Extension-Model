@@ -141,19 +141,23 @@ async def run_with_browser_png_cache(
 
 
 async def _plotlyjs_bridge_png_bytes(fig: Any, **opts: Any) -> bytes:
-    """Render a Plotly figure with Plotly.js inside Pyodide/stlite."""
-    figjson = json.loads(fig.to_json())
+    """Request Plotly.js PNG rendering from the stlite main thread."""
     scale = opts.get("scale", 2)
     width = opts.get("width")
     height = opts.get("height")
-    data_url = _run_plotlyjs_to_image(figjson, scale=scale, width=width, height=height)
+    data_url = _run_plotlyjs_to_image(
+        fig.to_json(),
+        scale=scale,
+        width=width,
+        height=height,
+    )
     if inspect.isawaitable(data_url):
         data_url = await data_url
     return _decode_data_url(str(data_url))
 
 
 def _run_plotlyjs_to_image(
-    figjson: Mapping[str, Any],
+    fig_json_str: str,
     *,
     scale: Any = 2,
     width: Any = None,
@@ -161,30 +165,34 @@ def _run_plotlyjs_to_image(
 ) -> Any:
     from pyodide.code import run_js  # type: ignore[import-not-found]
 
-    render = run_js("""
-        async (figjson, opts) => {
-          const div = document.createElement("div");
-          div.style.position = "fixed";
-          div.style.left = "-10000px";
-          div.style.top = "-10000px";
-          div.style.width = `${opts.width || 960}px`;
-          div.style.height = `${opts.height || 540}px`;
-          document.body.appendChild(div);
+    requester = run_js("""
+        (figStr, opts) => new Promise((resolve, reject) => {
+          let bc;
           try {
-            await Plotly.newPlot(div, figjson.data || [], figjson.layout || {}, {});
-            return await Plotly.toImage(div, {
-              format: "png",
-              scale: opts.scale || 2,
-              width: opts.width || undefined,
-              height: opts.height || undefined,
-            });
-          } finally {
-            Plotly.purge(div);
-            div.remove();
+            bc = new BroadcastChannel("pa-render");
+          } catch (e) {
+            reject(new Error("no BroadcastChannel in worker: " + e));
+            return;
           }
-        }
+          const id = Math.random().toString(36).slice(2);
+          const timer = setTimeout(() => {
+            try {
+              bc.close();
+            } catch (e) {}
+            reject(new Error("plotly render timeout"));
+          }, 30000);
+          bc.onmessage = (e) => {
+            const m = e.data;
+            if (!m || m.kind !== "response" || m.id !== id) return;
+            clearTimeout(timer);
+            bc.close();
+            if (m.error) reject(new Error(m.error));
+            else resolve(m.url);
+          };
+          bc.postMessage({ kind: "request", id, figStr, opts });
+        })
         """)
-    return render(figjson, {"scale": scale, "width": width, "height": height})
+    return requester(fig_json_str, {"scale": scale, "width": width, "height": height})
 
 
 def _decode_data_url(data_url: str) -> bytes:
