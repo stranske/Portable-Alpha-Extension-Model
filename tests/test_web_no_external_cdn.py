@@ -258,3 +258,20 @@ def test_pure_pypi_wheel_closure_is_vendored() -> None:
         if f"/vendor/pypi/{path.name}" not in html
     ]
     assert missing_from_html == []
+
+
+def test_offline_source_manifest_lists_every_app_module() -> None:
+    """Every dashboard/ + pa_core/ Python module must appear in web/index.html's
+    sourceFiles manifest, else it is not loaded into the Pyodide FS and the page
+    importing it crashes offline (e.g. dashboard.browser_exports -> Results)."""
+    html = WEB_HTML.read_text()
+    match = re.search(r"const sourceFiles = `(.*?)`", html, re.S)
+    assert match, "sourceFiles manifest not found in web/index.html"
+    listed = {line.strip() for line in match.group(1).splitlines() if line.strip()}
+    missing = [
+        str(p.relative_to(REPO_ROOT))
+        for base in ("dashboard", "pa_core")
+        for p in sorted((REPO_ROOT / base).rglob("*.py"))
+        if str(p.relative_to(REPO_ROOT)) not in listed
+    ]
+    assert missing == [], f"app modules missing from offline manifest: {missing}"
