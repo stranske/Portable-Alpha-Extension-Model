@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tempfile
 from pathlib import Path
 
@@ -106,10 +107,10 @@ def main() -> None:
     if uploaded is not None:
         tmp_path: Path | None = None
         try:
-            with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
-                tmp_path = Path(tmp.name)
+            fd, tmp_name = tempfile.mkstemp(suffix=".yaml")
+            tmp_path = Path(tmp_name)
+            with os.fdopen(fd, "wb") as tmp:
                 tmp.write(uploaded.getvalue())
-                tmp.flush()
             scenario = load_scenario(tmp_path)
         finally:
             if tmp_path is not None:
