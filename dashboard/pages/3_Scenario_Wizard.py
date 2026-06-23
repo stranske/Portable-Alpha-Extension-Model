@@ -19,6 +19,7 @@ import yaml
 from dashboard import cli as dashboard_cli
 from dashboard import validation_ui
 from dashboard.app import _DEF_XLSX, apply_theme, render_settings_sidebar
+from dashboard.theme import apply_theme as apply_ds_theme
 from dashboard.components.config_chat import render_config_chat_panel
 from dashboard.components.llm_settings import (
     default_api_key,
@@ -856,6 +857,7 @@ def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
 def _render_step_1_analysis_mode(config: Any) -> Any:
     """Step 1: Analysis Mode Selection."""
     st.subheader("Step 1: Analysis Mode & Basic Settings")
+    st.caption("Results will appear on the **Results** page after you complete the run in Step 5.")
 
     col1, col2 = st.columns(2)
 
@@ -2340,4 +2342,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":  # pragma: no cover - entry point
+    apply_ds_theme()
     main()

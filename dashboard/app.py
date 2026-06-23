@@ -11,6 +11,8 @@ import pandas as pd
 import streamlit as st
 
 from dashboard.glossary import GLOSSARY
+from dashboard.theme import apply_theme as apply_ds_theme
+from dashboard.theme import ds
 from dashboard.utils import bundled_sample_index_path
 from pa_core.contracts import (
     ALL_RETURNS_SHEET_NAME,
@@ -239,6 +241,8 @@ def main() -> None:
         # cosmetic, so a repeat call must not break the page.
         pass
 
+    apply_ds_theme()
+
     st.title("Portable Alpha Dashboard")
     st.write("Select a page from the sidebar or use the links below to begin.")
 
@@ -246,12 +250,30 @@ def main() -> None:
         for term, definition in GLOSSARY.items():
             st.markdown(f"**{term}** – {definition}")
 
+    # Primary "start here" cue: the fastest path to a complete result is a
+    # one-click bundled-sample run on Stress Lab (#2041 home discoverability).
+    _ds = ds()
+    if _ds is not None:
+        _ds.notice(
+            "info",
+            "New here? Start with Stress Lab",
+            "Tick “Use bundled sample data” on Stress Lab (or Scenario Grid) to run a "
+            "complete example in one click — no upload needed.",
+        )
+    st.page_link("pages/6_Stress_Lab.py", label="▶ Start here — Stress Lab (one-click example)")
+
+    # Group the tools so first-timers can tell run paths from inputs/outputs, and
+    # where each run's results appear.
+    st.markdown("**Run a scenario**")
+    st.caption("Stress Lab & Scenario Grid show results in-page; the Scenario Wizard writes to the Results page.")
+    st.page_link("pages/6_Stress_Lab.py", label="Stress Lab (presets)")
+    st.page_link("pages/5_Scenario_Grid.py", label="Scenario Grid & Frontier (beta)")
+    st.page_link("pages/3_Scenario_Wizard.py", label="Scenario Wizard")
+
+    st.markdown("**Inputs & outputs**")
     st.page_link("pages/1_Asset_Library.py", label="Asset Library")
     st.page_link("pages/2_Portfolio_Builder.py", label="Portfolio Builder")
-    st.page_link("pages/3_Scenario_Wizard.py", label="Scenario Wizard")
-    st.page_link("pages/4_Results.py", label="Results")
-    st.page_link("pages/5_Scenario_Grid.py", label="Scenario Grid & Frontier (beta)")
-    st.page_link("pages/6_Stress_Lab.py", label="Stress Lab (presets)")
+    st.page_link("pages/4_Results.py", label="Results (Scenario Wizard output)")
 
     _render_getting_started()
 
