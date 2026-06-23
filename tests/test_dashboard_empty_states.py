@@ -12,18 +12,21 @@ from pa_core.config import ModelConfig, load_config
 
 def test_results_empty_state_uses_operator_guidance() -> None:
     assert RESULTS_EMPTY_STATE_MESSAGE == (
-        "No results yet - complete a run in the Scenario Wizard, Scenario Grid, "
-        "or Stress Lab to generate output."
+        "No results yet - complete a run in the Scenario Wizard, then return here "
+        "to inspect the generated workbook."
     )
     assert "Outputs.xlsx" not in RESULTS_EMPTY_STATE_MESSAGE
     assert "File " not in RESULTS_EMPTY_STATE_MESSAGE
+    assert "Scenario Grid" not in RESULTS_EMPTY_STATE_MESSAGE
+    assert "Stress Lab" not in RESULTS_EMPTY_STATE_MESSAGE
 
 
-def test_run_logs_empty_state_hides_cli_flag() -> None:
+def test_run_logs_empty_state_mentions_json_logging_without_cli_flag() -> None:
     assert RUN_LOGS_EMPTY_STATE_MESSAGE == (
-        "No runs yet - run a scenario and its history will appear here."
+        "No run logs yet - enable JSON logging for a run, then return here to inspect its history."
     )
     assert "--log-json" not in RUN_LOGS_EMPTY_STATE_MESSAGE
+    assert "JSON logging" in RUN_LOGS_EMPTY_STATE_MESSAGE
 
 
 def test_validation_error_translator_uses_human_field_label() -> None:

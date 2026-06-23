@@ -270,7 +270,7 @@ def main() -> None:
         except ValidationError as exc:  # pragma: no cover - runtime UX
             st.error(friendly_validation_error_message(exc))
         except Exception as exc:  # pragma: no cover - runtime UX
-            st.error(friendly_validation_error_message(exc))
+            st.error(f"Stress Lab run failed: {exc}")
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -18,10 +18,12 @@ from pa_core.sleeve_suggestor import generate_sleeve_frontier, suggest_sleeve_si
 # Keep dashboard normalization aligned with core config behavior.
 
 RESULTS_EMPTY_STATE_MESSAGE = (
-    "No results yet - complete a run in the Scenario Wizard, Scenario Grid, or Stress Lab "
-    "to generate output."
+    "No results yet - complete a run in the Scenario Wizard, then return here to inspect "
+    "the generated workbook."
 )
-RUN_LOGS_EMPTY_STATE_MESSAGE = "No runs yet - run a scenario and its history will appear here."
+RUN_LOGS_EMPTY_STATE_MESSAGE = (
+    "No run logs yet - enable JSON logging for a run, then return here to inspect its history."
+)
 
 CURRENT_SCENARIO_CONFIG_KEY = "dashboard_current_scenario_config"
 CURRENT_RESULTS_PATH_KEY = "dashboard_current_results_path"
