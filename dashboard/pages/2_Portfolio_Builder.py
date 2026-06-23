@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tempfile
+from pathlib import Path
 
 import streamlit as st
 import yaml
@@ -103,10 +104,16 @@ def main() -> None:
         return
 
     if uploaded is not None:
-        with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp:
-            tmp.write(uploaded.getvalue())
-            tmp.flush()  # Ensure data is written to disk
-            scenario = load_scenario(tmp.name)
+        tmp_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False) as tmp:
+                tmp_path = Path(tmp.name)
+                tmp.write(uploaded.getvalue())
+                tmp.flush()
+            scenario = load_scenario(tmp_path)
+        finally:
+            if tmp_path is not None:
+                tmp_path.unlink(missing_ok=True)
     else:
         st.caption(f"Using bundled sample: {sample_portfolio_path.name}")
         scenario = load_scenario(sample_portfolio_path)

@@ -194,6 +194,55 @@ def test_portfolio_builder_empty_assets_warns(monkeypatch: pytest.MonkeyPatch) -
     assert any(call == ("warning", "No assets found in file.") for call in fake_st.calls)
 
 
+def test_portfolio_builder_closes_uploaded_temp_before_loading(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    fake_st = FakeStreamlit("streamlit", file_uploader=_Upload(b"assets: []"))
+    module = _load_module(monkeypatch, fake_st)
+    temp_path = tmp_path / "uploaded.yaml"
+    observed_paths: list[Path] = []
+
+    class _FakeNamedTemporaryFile:
+        def __init__(self, **_kwargs: Any) -> None:
+            self.name = str(temp_path)
+            self.closed = False
+
+        def __enter__(self) -> "_FakeNamedTemporaryFile":
+            return self
+
+        def __exit__(self, *_exc: Any) -> bool:
+            self.closed = True
+            return False
+
+        def write(self, payload: bytes) -> int:
+            temp_path.write_bytes(payload)
+            return len(payload)
+
+        def flush(self) -> None:
+            return None
+
+    fake_temp = _FakeNamedTemporaryFile()
+    monkeypatch.setattr(
+        module["main"].__globals__["tempfile"],
+        "NamedTemporaryFile",
+        lambda **kwargs: fake_temp,
+    )
+
+    def fake_load_scenario(path: Path) -> _Scenario:
+        observed_paths.append(path)
+        assert path.exists()
+        assert fake_temp.closed
+        return _Scenario([])
+
+    _patch_module_global(module, "load_scenario", fake_load_scenario)
+
+    module["main"]()
+
+    assert len(observed_paths) == 1
+    assert not observed_paths[0].exists()
+    assert any(call == ("warning", "No assets found in file.") for call in fake_st.calls)
+
+
 def test_portfolio_builder_zero_weights_warns(monkeypatch: pytest.MonkeyPatch) -> None:
     fake_st = FakeStreamlit(
         "streamlit",
