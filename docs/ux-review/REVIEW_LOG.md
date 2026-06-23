@@ -23,3 +23,11 @@ review's git-diff focus. Detailed artifacts live in `Orchestrator/ux_reviews/`.
 - **Headline:** dramatic, legitimate recovery from 2.0 → 8.0. All three run entry points that dead-ended last time now succeed end-to-end; raw errors replaced with friendly empty-states; bundled-sample onboarding added.
 - **Findings → disposition:** #2018 (financing_mode dead-ends) **FIXED** (Stress Lab + Scenario Grid sample runs succeed); #2020 (infeasible default allocation) **FIXED** (Wizard Step 2 "✅ Capital allocation balanced" + positive margin buffer); #2021 (raw errors) **FIXED** (Results/Home/Stress Lab friendly empty-states); #2026 (upload-only onboarding) **FIXED** (bundled-sample paths). New polish (corroborated, non-blocker) → **filed #2041**: home run-path discoverability ("start here" CTA + disclose where each run's output appears).
 - **Next focus:** drive Wizard Steps 3–5 + final Run → Results (confirm the full wizard→Results flow); Portfolio Builder bundled sample (#2027) + Run Logs (#2032); adopt the synced design-system kit (start with #2041).
+
+## 2026-06-23 — Offline stlite re-review — commit `b76ce904` — gate FAIL → fixed by #2052
+
+- **Coverage:** Home ✓ offline boot; Asset Library ✓ offline boot; Stress Lab ✗ offline crashed; Results ✗ offline crashed.
+- **Crash:** Stress Lab + Results failed offline with `ModuleNotFoundError: No module named 'rich'` because `pa_core.reporting` imports a declared dependency that was missing from the vendored stlite closure.
+- **Prior findings:** #2018, #2020, #2021, and #2026 verified **CLOSED + landed**.
+- **Gate:** FAIL for offline sev-4 crash; resolved by this PR by adding `rich` and its required offline closure to the stlite requirements/vendor set.
+- **Next focus:** full panel re-score on the working offline build, then server-app usability after #2018/#2020.

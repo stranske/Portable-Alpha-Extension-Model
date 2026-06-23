@@ -43,6 +43,7 @@ APP_REQUIREMENTS = (
     "XlsxWriter",
     "pypdf",
     "pydantic",
+    "rich",
     "PyYAML",
     "streamlit",
 )
@@ -138,6 +139,17 @@ def _download_pyodide_wheels(seed_names: set[str]) -> None:
             PYODIDE_VENDOR_DIR / file_name,
             expected_sha=str(package.get("sha256") or "") or None,
         )
+
+
+def _pyodide_wheel_metadata_requirements(
+    seed_names: set[str], packages: dict[str, dict]
+) -> list[Requirement]:
+    requirements: list[Requirement] = []
+    for name in sorted(_dependency_closure(seed_names, packages)):
+        file_name = str(packages[name]["file_name"])
+        if file_name.endswith(".whl"):
+            requirements.extend(_wheel_metadata_requires(PYODIDE_VENDOR_DIR / file_name))
+    return requirements
 
 
 def _vendor_stlite() -> None:
@@ -257,7 +269,21 @@ def main() -> int:
         _package_name(requirement) for requirement in _stlite_streamlit_requirements()
     )
     pyodide_seed_names.update({"micropip", "packaging"})
-    _download_pyodide_wheels(pyodide_seed_names)
+    packages = _load_pyodide_lock()
+    pyodide_metadata_requirements: list[Requirement] = []
+    while True:
+        _download_pyodide_wheels(pyodide_seed_names)
+        pyodide_metadata_requirements = _pyodide_wheel_metadata_requirements(
+            pyodide_seed_names, packages
+        )
+        metadata_seed_names = {
+            requirement.name
+            for requirement in pyodide_metadata_requirements
+            if _lock_key(requirement.name) in packages
+        }
+        if metadata_seed_names <= pyodide_seed_names:
+            break
+        pyodide_seed_names.update(metadata_seed_names)
 
     if PYPI_VENDOR_DIR.exists():
         shutil.rmtree(PYPI_VENDOR_DIR)
@@ -267,6 +293,11 @@ def main() -> int:
         if _lock_key(_package_name(requirement)) != "streamlit"
     }
     pypi_requirements.update(_stlite_streamlit_requirements())
+    pypi_requirements.update(
+        str(requirement)
+        for requirement in pyodide_metadata_requirements
+        if _lock_key(requirement.name) not in packages
+    )
     vendored = _download_pypi_wheel_closure(pypi_requirements)
     print(f"vendored pure-PyPI wheels: {', '.join(sorted(vendored))}")
     return 0
