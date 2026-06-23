@@ -44,6 +44,7 @@ class FakeStreamlit(ModuleType):
         self._number_inputs = list(number_inputs or [])
         self._file_uploader = file_uploader
         self._button_value = button_value
+        self._checkbox_values: list[bool] = []
         self.sidebar = _FakeSidebar(self.calls)
 
     def title(self, message: str) -> None:
@@ -51,6 +52,9 @@ class FakeStreamlit(ModuleType):
 
     def info(self, message: str) -> None:
         self.calls.append(("info", message))
+
+    def caption(self, message: str) -> None:
+        self.calls.append(("caption", message))
 
     def warning(self, message: str) -> None:
         self.calls.append(("warning", message))
@@ -77,6 +81,12 @@ class FakeStreamlit(ModuleType):
     def file_uploader(self, label: str, **kwargs: Any) -> Any | None:
         self.calls.append(("file_uploader", label))
         return self._file_uploader
+
+    def checkbox(self, label: str, **kwargs: Any) -> bool:
+        self.calls.append(("checkbox", label))
+        if self._checkbox_values:
+            return self._checkbox_values.pop(0)
+        return bool(kwargs.get("value", False))
 
     def button(self, label: str) -> bool:
         self.calls.append(("button", label))
@@ -164,7 +174,14 @@ def test_portfolio_builder_requires_upload(monkeypatch: pytest.MonkeyPatch) -> N
 
     module["main"]()
 
-    assert any(call == ("info", "Upload an asset library YAML to begin.") for call in fake_st.calls)
+    assert any(
+        call
+        == (
+            "info",
+            "Upload an asset library YAML or load the bundled sample portfolio to begin.",
+        )
+        for call in fake_st.calls
+    )
 
 
 def test_portfolio_builder_empty_assets_warns(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -174,6 +191,28 @@ def test_portfolio_builder_empty_assets_warns(monkeypatch: pytest.MonkeyPatch) -
 
     module["main"]()
 
+    assert any(call == ("warning", "No assets found in file.") for call in fake_st.calls)
+
+
+def test_portfolio_builder_closes_uploaded_temp_before_loading(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    fake_st = FakeStreamlit("streamlit", file_uploader=_Upload(b"assets: []"))
+    module = _load_module(monkeypatch, fake_st)
+    observed_paths: list[Path] = []
+
+    def fake_load_scenario(path: Path) -> _Scenario:
+        observed_paths.append(path)
+        assert path.exists()
+        assert path.read_bytes() == b"assets: []"
+        return _Scenario([])
+
+    _patch_module_global(module, "load_scenario", fake_load_scenario)
+
+    module["main"]()
+
+    assert len(observed_paths) == 1
+    assert not observed_paths[0].exists()
     assert any(call == ("warning", "No assets found in file.") for call in fake_st.calls)
 
 

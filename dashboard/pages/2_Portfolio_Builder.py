@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import tempfile
+from pathlib import Path
 
 import streamlit as st
 import yaml
 
 from dashboard.app import apply_theme, render_settings_sidebar
-from dashboard.utils import apply_promoted_alpha_shares, normalize_share
+from dashboard.utils import (
+    apply_promoted_alpha_shares,
+    bundled_portfolio_template_path,
+    normalize_share,
+)
 from pa_core.portfolio import PortfolioAggregator
 from pa_core.schema import Portfolio, load_scenario
 
@@ -76,15 +81,36 @@ def main() -> None:
             help="Optional. Included in the exported YAML under alpha_shares metadata.",
         )
 
+    sample_portfolio_path = bundled_portfolio_template_path()
+    sample_portfolio_available = sample_portfolio_path.exists()
     uploaded = st.file_uploader("Upload Asset Library YAML", type=["yaml", "yml"])
-    if uploaded is None:
-        st.info("Upload an asset library YAML to begin.")
+    use_sample_portfolio = st.checkbox(
+        "Load bundled sample portfolio",
+        value=False,
+        help="Loads the starter scenario YAML so you can build weights without uploading a file.",
+    )
+    if sample_portfolio_available:
+        st.download_button(
+            "Download starter portfolio YAML",
+            sample_portfolio_path.read_text(),
+            file_name=sample_portfolio_path.name,
+            mime="application/x-yaml",
+        )
+    if uploaded is None and not use_sample_portfolio:
+        st.info("Upload an asset library YAML or load the bundled sample portfolio to begin.")
+        return
+    if uploaded is None and use_sample_portfolio and not sample_portfolio_available:
+        st.error("Bundled starter portfolio is unavailable. Upload an asset library YAML instead.")
         return
 
-    with tempfile.NamedTemporaryFile(suffix=".yaml") as tmp:
-        tmp.write(uploaded.getvalue())
-        tmp.flush()  # Ensure data is written to disk
-        scenario = load_scenario(tmp.name)
+    if uploaded is not None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir) / "uploaded.yaml"
+            tmp_path.write_bytes(uploaded.getvalue())
+            scenario = load_scenario(tmp_path)
+    else:
+        st.caption(f"Using bundled sample: {sample_portfolio_path.name}")
+        scenario = load_scenario(sample_portfolio_path)
 
     if not scenario.assets:
         st.warning("No assets found in file.")

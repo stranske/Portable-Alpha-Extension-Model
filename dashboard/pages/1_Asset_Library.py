@@ -20,6 +20,7 @@ try:
 except Exception:  # pragma: no cover - conservative fallback
     _BARE_MODE = True
 from dashboard.app import apply_theme, render_settings_sidebar
+from dashboard.utils import bundled_asset_timeseries_path
 from pa_core.presets import AlphaPreset, PresetLibrary
 
 # Create logger for this module
@@ -31,6 +32,20 @@ def main() -> None:
     _, theme_path = render_settings_sidebar()
     apply_theme(theme_path)
     st.markdown("**Upload asset return data**")
+    sample_path = bundled_asset_timeseries_path()
+    sample_available = sample_path.exists()
+    use_sample = st.checkbox(
+        "Use bundled sample asset data (no upload needed)",
+        value=False,
+        help="Loads the shipped wide-format return template so you can explore calibration immediately.",
+    )
+    if sample_available:
+        st.download_button(
+            "Download asset return template",
+            sample_path.read_bytes(),
+            file_name=sample_path.name,
+            mime="text/csv",
+        )
     st.caption("Drag and drop a CSV or Excel file, or click to browse.")
     uploaded = st.file_uploader(
         "Drag-and-drop CSV/XLSX",
@@ -38,19 +53,32 @@ def main() -> None:
         help="CSV and Excel files are supported.",
         label_visibility="collapsed",
     )
-    if uploaded is None:
+    if uploaded is None and not use_sample:
+        st.info("Upload asset return data or use the bundled sample to begin.")
         return
-    data = uploaded.getvalue()
-    size_kb = len(data) / 1024
-    st.caption(f"Selected file: {uploaded.name} ({size_kb:.1f} KB)")
+    if uploaded is None and use_sample and not sample_available:
+        st.error("Bundled sample asset data is unavailable. Upload asset return data instead.")
+        return
+    cleanup_tmp_path = False
+    tmp_path = str(sample_path)
+    if uploaded is not None:
+        data = uploaded.getvalue()
+        size_kb = len(data) / 1024
+        st.caption(f"Selected file: {uploaded.name} ({size_kb:.1f} KB)")
 
-    # Persist the uploaded file to a temp path for pandas/Excel readers
-    suffix = Path(uploaded.name).suffix
-    fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+        # Persist the uploaded file to a temp path for pandas/Excel readers
+        suffix = Path(uploaded.name).suffix
+        fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+        cleanup_tmp_path = True
+    else:
+        data = b""
+        fd = -1
+        st.caption(f"Using bundled sample: {sample_path.name}")
     try:
-        with os.fdopen(fd, "wb") as tmp:
-            tmp.write(data)
-            tmp.flush()  # Ensure data is written to disk
+        if uploaded is not None:
+            with os.fdopen(fd, "wb") as tmp:
+                tmp.write(data)
+                tmp.flush()  # Ensure data is written to disk
 
         st.markdown("---")
         st.subheader("Column Mapping & Parse Options")
@@ -277,7 +305,8 @@ def main() -> None:
                 lib.load_json_str(text)
 
     finally:
-        Path(tmp_path).unlink(missing_ok=True)
+        if cleanup_tmp_path:
+            Path(tmp_path).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
