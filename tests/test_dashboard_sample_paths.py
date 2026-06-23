@@ -28,10 +28,10 @@ from tests.test_portfolio_builder_page import (
 
 def test_asset_library_bundled_sample_returns_are_usable() -> None:
     path = bundled_asset_timeseries_path()
-    parsed = load_bundled_asset_returns()
 
     assert path.exists()
     assert path.name == SAMPLE_ASSET_TIMESERIES_FILENAME
+    parsed = load_bundled_asset_returns()
     assert isinstance(parsed, pd.DataFrame)
     assert {"date", "id", "return"}.issubset(parsed.columns)
     assert parsed["id"].nunique() > 1
@@ -40,10 +40,10 @@ def test_asset_library_bundled_sample_returns_are_usable() -> None:
 
 def test_portfolio_builder_bundled_sample_template_loads_assets() -> None:
     path = bundled_portfolio_template_path()
-    scenario = load_scenario(path)
 
     assert path.exists()
     assert path.name == SAMPLE_PORTFOLIO_TEMPLATE_FILENAME
+    scenario = load_scenario(path)
     assert scenario.assets
     assert scenario.portfolios
 
