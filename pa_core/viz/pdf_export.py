@@ -4,7 +4,7 @@ import os
 
 import plotly.graph_objects as go
 
-from .export_backend import write_figure_image
+from .export_backend import run_with_browser_png_cache, write_figure_image
 
 
 def save(fig: go.Figure, path: str) -> None:
@@ -18,3 +18,7 @@ def save(fig: go.Figure, path: str) -> None:
     except (ValueError, RuntimeError, OSError, MemoryError):
         with open(path, "wb") as fh:
             fh.write(str(fig.to_json()).encode())
+
+
+async def save_async(fig: go.Figure, path: str) -> None:
+    await run_with_browser_png_cache([fig], lambda: save(fig, path))

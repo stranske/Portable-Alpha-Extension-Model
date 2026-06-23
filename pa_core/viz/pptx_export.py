@@ -10,9 +10,9 @@ import plotly.graph_objects as go
 from pptx import Presentation
 from pptx.util import Inches
 
-from .export_backend import figure_to_png_bytes
+from .export_backend import figure_to_png_bytes, is_browser_runtime, run_with_browser_png_cache
 
-__all__ = ["render_chart_png", "add_chart_slide", "save"]
+__all__ = ["render_chart_png", "add_chart_slide", "save", "save_async"]
 
 # Tiny 1x1 PNG used as a placeholder in pytest or explicit placeholder mode so
 # chart slides never spawn a potentially hanging kaleido/Chromium subprocess.
@@ -37,7 +37,9 @@ def render_chart_png(fig: Any) -> bytes:
     swallowed (a silently-skipped chart produces a divergent, incomplete board
     pack).
     """
-    if os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PA_PPTX_PLACEHOLDER") == "1":
+    if not is_browser_runtime() and (
+        os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PA_PPTX_PLACEHOLDER") == "1"
+    ):
         return _ONE_PX_PNG
     try:
         return cast(bytes, figure_to_png_bytes(fig))
@@ -113,3 +115,22 @@ def save(
     for fig in figs:
         add_chart_slide(pres, fig, alt=next(alt_iter, None) if alt_iter else None)
     pres.save(str(path))
+
+
+async def save_async(
+    figs: Iterable[go.Figure],
+    path: str | Path,
+    *,
+    alt_texts: Sequence[str] | None = None,
+) -> None:
+    """Async browser-safe variant of :func:`save`.
+
+    In server Python this delegates directly to the synchronous implementation.
+    In stlite/Pyodide it first renders every figure through Plotly.js, activates
+    the PNG cache, and then runs the same synchronous PPTX assembly.
+    """
+    figs_list = list(figs)
+    await run_with_browser_png_cache(
+        figs_list,
+        lambda: save(figs_list, path, alt_texts=alt_texts),
+    )

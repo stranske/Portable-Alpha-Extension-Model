@@ -8,7 +8,7 @@ from typing import Any, Iterable
 
 import plotly.graph_objects as go
 
-from .export_backend import figure_to_pdf_bytes, write_figure_image
+from .export_backend import figure_to_pdf_bytes, run_with_browser_png_cache, write_figure_image
 
 PdfWriterType: Any
 try:
@@ -76,3 +76,8 @@ def save(figs: Iterable[go.Figure], path: str | Path) -> None:
         writer.append(buf)
     with open(path, "wb") as fh:
         writer.write(fh)
+
+
+async def save_async(figs: Iterable[go.Figure], path: str | Path) -> None:
+    figs_list = list(figs)
+    await run_with_browser_png_cache(figs_list, lambda: save(figs_list, path))

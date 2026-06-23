@@ -25,10 +25,10 @@ from ..contracts import (
 from ..sweep import aggregate_sweep_results
 from ..types import SweepResult
 from ..viz import risk_return, theme
-from ..viz.export_backend import figure_to_png_bytes
+from ..viz.export_backend import figure_to_png_bytes, run_with_browser_png_cache
 from .excel import normalize_summary_columns
 
-__all__ = ["export_sweep_results"]
+__all__ = ["export_sweep_results", "export_sweep_results_async"]
 
 _SUMMARY_COLUMNS = [*SUMMARY_REQUIRED_COLUMNS, "Combination"]
 
@@ -132,6 +132,34 @@ def export_sweep_results(
             pass
 
     wb.save(filename)
+
+
+async def export_sweep_results_async(
+    results: Iterable[SweepResult],
+    filename: str = "Sweep.xlsx",
+    *,
+    metadata: Mapping[str, Any] | None = None,
+) -> None:
+    results_list = list(results)
+    figs: list[Any] = []
+    try:
+        summary_frames: list[pd.DataFrame] = []
+        for res in results_list:
+            summary_obj = res["summary"]
+            if isinstance(summary_obj, pd.DataFrame):
+                summary = normalize_summary_columns(summary_obj.copy())
+                summary["terminal_ShortfallProb"] = summary.get(
+                    "terminal_ShortfallProb", theme.DEFAULT_SHORTFALL_PROB
+                )
+                summary_frames.append(summary)
+        if summary_frames:
+            figs.append(risk_return.make(pd.concat(summary_frames, ignore_index=True)))
+    except (AttributeError, KeyError, TypeError, ValueError):
+        pass
+    await run_with_browser_png_cache(
+        figs,
+        lambda: export_sweep_results(results_list, filename=filename, metadata=metadata),
+    )
 
 
 def _serialize_metadata_value(value: Any) -> Any:

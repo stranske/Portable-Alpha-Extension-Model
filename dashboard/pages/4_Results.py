@@ -20,6 +20,7 @@ from dashboard.app import (
     load_data,
     render_settings_sidebar,
 )
+from dashboard.browser_exports import render_async_export_button, render_png_download
 from dashboard.components.comparison_llm import render_comparison_llm_panel
 from dashboard.components.explain_results import render_explain_results_panel
 from dashboard.glossary import tooltip
@@ -35,7 +36,6 @@ from pa_core.contracts import (
     manifest_path_for_output,
 )
 from pa_core.llm.compare_runs import load_prior_manifest, load_prior_summary
-from pa_core.viz.export_backend import figure_to_png_bytes
 
 
 @dataclass(frozen=True)
@@ -284,8 +284,13 @@ def main() -> None:
     with col1:
         # PNG export with error handling
         try:
-            png = figure_to_png_bytes(_get_plot_fn(PLOTS["Headline"])(summary))
-            st.download_button("Download PNG", png, file_name="risk_return.png", mime="image/png")
+            render_png_download(
+                st,
+                key="results_headline_png",
+                label="Download PNG",
+                fig=_get_plot_fn(PLOTS["Headline"])(summary),
+                file_name="risk_return.png",
+            )
         except RuntimeError as e:
             if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                 st.warning(
@@ -304,109 +309,109 @@ def main() -> None:
 
     with col3:
         # Export packet button
-        if st.button("📦 Export Committee Packet"):
-            try:
-                # Import pa_core modules here to avoid startup issues with heavy dependencies
-                # (Streamlit dashboard should start quickly even if pa_core has import delays)
-                sys.path.append(str(Path(__file__).parents[1]))
-                from pa_core.reporting.export_packet import create_export_packet
+        def _render_packet_downloads(paths: tuple[str, str]) -> None:
+            pptx_path, excel_path = paths
+            st.success("✅ Export packet created!")
+            with open(pptx_path, "rb") as pptx_file:
+                st.download_button(
+                    "📋 Download PowerPoint",
+                    pptx_file.read(),
+                    file_name=Path(pptx_path).name,
+                    mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                )
+            with open(excel_path, "rb") as excel_file:
+                st.download_button(
+                    "📊 Download Enhanced Excel",
+                    excel_file.read(),
+                    file_name=Path(excel_path).name,
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
 
-                # Create figure
-                fig = _get_plot_fn(PLOTS["Headline"])(summary)
+        def _packet_args() -> dict[str, object]:
+            sys.path.append(str(Path(__file__).parents[1]))
+            fig = _get_plot_fn(PLOTS["Headline"])(summary)
+            raw_returns_dict = {SUMMARY_SHEET_NAME: summary}
+            inputs_dict = {
+                "Data_Source": xlsx,
+                "Generated_At": str(pd.Timestamp.now()),
+                "Summary_Rows": len(summary),
+            }
+            base_name = f"committee_packet_{int(time.time())}"
 
-                # Create raw returns dict for export
-                raw_returns_dict = {SUMMARY_SHEET_NAME: summary}
-
-                # Extract inputs from summary or create minimal inputs
-                inputs_dict = {
-                    "Data_Source": xlsx,
-                    "Generated_At": str(pd.Timestamp.now()),
-                    "Summary_Rows": len(summary),
-                }
-
-                # Create packet with timestamp to avoid conflicts
-                base_name = f"committee_packet_{int(time.time())}"
-
-                prev_manifest_data = None
-                prev_summary_df = None
-                prev_manifest_path = None
-                if manifest_data:
-                    prev_ref = manifest_data.get("previous_run")
-                    if isinstance(prev_ref, str):
-                        candidate = Path(prev_ref)
-                        if candidate.exists():
-                            prev_manifest_path = candidate
-                if prev_manifest_path is not None:
-                    try:
-                        prev_manifest_data = json.loads(prev_manifest_path.read_text())
-                        prev_out = (
-                            prev_manifest_data.get("cli_args", {}).get("output")
-                            if isinstance(prev_manifest_data, dict)
-                            else None
-                        )
-                        if prev_out and Path(prev_out).exists():
-                            prev_summary_df = pd.read_excel(prev_out, sheet_name=SUMMARY_SHEET_NAME)
-                    except Exception:
-                        prev_manifest_data = None
-                        prev_summary_df = None
-
-                stress_delta_df = None
+            prev_manifest_data = None
+            prev_summary_df = None
+            prev_manifest_path = None
+            if manifest_data:
+                prev_ref = manifest_data.get("previous_run")
+                if isinstance(prev_ref, str):
+                    candidate = Path(prev_ref)
+                    if candidate.exists():
+                        prev_manifest_path = candidate
+            if prev_manifest_path is not None:
                 try:
-                    stress_delta_df = pd.read_excel(xlsx, sheet_name="StressDelta")
-                    if stress_delta_df.empty:
-                        stress_delta_df = None
-                except (FileNotFoundError, PermissionError, ValueError, OSError):
+                    prev_manifest_data = json.loads(prev_manifest_path.read_text())
+                    prev_out = (
+                        prev_manifest_data.get("cli_args", {}).get("output")
+                        if isinstance(prev_manifest_data, dict)
+                        else None
+                    )
+                    if prev_out and Path(prev_out).exists():
+                        prev_summary_df = pd.read_excel(prev_out, sheet_name=SUMMARY_SHEET_NAME)
+                except Exception:
+                    prev_manifest_data = None
+                    prev_summary_df = None
+
+            stress_delta_df = None
+            try:
+                stress_delta_df = pd.read_excel(xlsx, sheet_name="StressDelta")
+                if stress_delta_df.empty:
                     stress_delta_df = None
+            except (FileNotFoundError, PermissionError, ValueError, OSError):
+                stress_delta_df = None
 
-                with st.spinner("Creating export packet..."):
-                    pptx_path, excel_path = create_export_packet(
-                        figs=[fig],
-                        summary_df=summary,
-                        raw_returns_dict=raw_returns_dict,
-                        inputs_dict=inputs_dict,
-                        base_filename=base_name,
-                        manifest=manifest_data,
-                        prev_summary_df=prev_summary_df,
-                        prev_manifest=prev_manifest_data,
-                        stress_delta_df=stress_delta_df,
-                    )
+            return {
+                "figs": [fig],
+                "summary_df": summary,
+                "raw_returns_dict": raw_returns_dict,
+                "inputs_dict": inputs_dict,
+                "base_filename": base_name,
+                "manifest": manifest_data,
+                "prev_summary_df": prev_summary_df,
+                "prev_manifest": prev_manifest_data,
+                "stress_delta_df": stress_delta_df,
+            }
 
-                st.success("✅ Export packet created!")
+        try:
+            from pa_core.reporting.export_packet import create_export_packet_async
 
-                # Provide download links
-                with open(pptx_path, "rb") as pptx_file:
-                    st.download_button(
-                        "📋 Download PowerPoint",
-                        pptx_file.read(),
-                        file_name=Path(pptx_path).name,
-                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                    )
+            async def _create_packet_async() -> tuple[str, str]:
+                return await create_export_packet_async(**_packet_args())
 
-                with open(excel_path, "rb") as excel_file:
-                    st.download_button(
-                        "📊 Download Enhanced Excel",
-                        excel_file.read(),
-                        file_name=Path(excel_path).name,
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    )
-
-            except RuntimeError as e:
-                if (
-                    "kaleido" in str(e).lower()
-                    or "chrome" in str(e).lower()
-                    or "chromium" in str(e).lower()
-                ):
-                    st.error(
-                        "📷 Export packet requires Kaleido or Chrome/Chromium for chart generation."
-                    )
-                    st.info(
-                        "Install with: `pip install kaleido` or `sudo apt-get install chromium-browser`"
-                    )
-                else:
-                    st.error(f"Export packet failed: {e}")
-            except Exception as e:
-                st.error(f"Unexpected error creating export packet: {e}")
-                st.info("Please check your environment and try individual exports instead.")
+            render_async_export_button(
+                st,
+                key="results_committee_packet",
+                label="📦 Export Committee Packet",
+                factory=_create_packet_async,
+                on_ready=_render_packet_downloads,
+                pending_message="Creating export packet...",
+            )
+        except RuntimeError as e:
+            if (
+                "kaleido" in str(e).lower()
+                or "chrome" in str(e).lower()
+                or "chromium" in str(e).lower()
+            ):
+                st.error(
+                    "📷 Export packet requires Kaleido or Chrome/Chromium for chart generation."
+                )
+                st.info(
+                    "Install with: `pip install kaleido` or `sudo apt-get install chromium-browser`"
+                )
+            else:
+                st.error(f"Export packet failed: {e}")
+        except Exception as e:
+            st.error(f"Unexpected error creating export packet: {e}")
+            st.info("Please check your environment and try individual exports instead.")
 
     if auto:
         time.sleep(interval)

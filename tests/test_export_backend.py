@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import sys
 import asyncio
+import base64
+import zipfile
+from pathlib import Path
 
 import pytest
 
 from pa_core.viz import export_backend
+from pa_core.viz import pptx_export
 
 
 class _Figure:
@@ -49,3 +53,34 @@ def test_browser_branch_uses_plotlyjs_bridge(monkeypatch: pytest.MonkeyPatch) ->
 
     assert calls == [(fig, {"scale": 3})]
     assert fig.calls == []
+
+
+def test_browser_pptx_save_prerenders_without_manual_cache(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "emscripten")
+    monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("PA_PPTX_PLACEHOLDER", raising=False)
+    fig = _Figure()
+    calls: list[tuple[object, dict[str, object]]] = []
+    png = base64.b64decode(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4z8AAAAMBAQDJ"
+        "/pLvAAAAAElFTkSuQmCC"
+    )
+
+    async def fake_bridge(figure: object, **opts: object) -> bytes:
+        calls.append((figure, opts))
+        return png
+
+    monkeypatch.setattr(export_backend, "_plotlyjs_bridge_png_bytes", fake_bridge)
+
+    out = tmp_path / "browser-flow.pptx"
+    asyncio.run(pptx_export.save_async([fig], out, alt_texts=["browser chart"]))
+
+    assert calls == [(fig, {})]
+    assert fig.calls == []
+    with zipfile.ZipFile(out) as zf:
+        media = [name for name in zf.namelist() if name.startswith("ppt/media/")]
+        assert media
+        assert any(zf.read(name) == png for name in media)

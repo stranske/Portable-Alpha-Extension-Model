@@ -16,11 +16,12 @@ from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN
 from pptx.util import Inches, Pt
 
+from ..viz.export_backend import run_with_browser_png_cache
 from ..viz.pptx_export import add_chart_slide
 from .disclaimers import LIMITATIONS_TITLE, MODEL_LIMITATIONS
-from .excel import export_to_excel, finalize_excel_workbook
+from .excel import _excel_embed_figures, export_to_excel, finalize_excel_workbook
 
-__all__ = ["create_export_packet"]
+__all__ = ["create_export_packet", "create_export_packet_async"]
 
 RGBColorAny: Any = RGBColor  # python-pptx lacks typing for RGBColor
 
@@ -298,3 +299,77 @@ def create_export_packet(
 
     prs.save(pptx_path)
     return pptx_path, excel_path
+
+
+def _packet_render_figures(
+    *,
+    figs: Iterable[Any],
+    summary_df: pd.DataFrame,
+    inputs_dict: dict[str, object],
+) -> list[Any]:
+    figs_list = list(figs)
+    render_figs = [*figs_list, *_excel_embed_figures(inputs_dict, summary_df)]
+    try:
+        sens_val = inputs_dict.get("_sensitivity_df")
+        sens_df: pd.DataFrame | None = sens_val if isinstance(sens_val, pd.DataFrame) else None
+        if (
+            sens_df is not None
+            and not sens_df.empty
+            and {"Parameter", "DeltaAbs"} <= set(sens_df.columns)
+        ):
+            from ..viz import tornado
+
+            title = "Sensitivity Tornado"
+            has_tornado = False
+            for fig in figs_list:
+                layout = getattr(fig, "layout", None)
+                fig_title = getattr(layout, "title", None) if layout else None
+                text = getattr(fig_title, "text", None) if fig_title else None
+                if text and str(text).strip().lower() == title.lower():
+                    has_tornado = True
+                    break
+            if not has_tornado:
+                render_figs.append(
+                    tornado.make(tornado.series_from_sensitivity(sens_df), title=title)
+                )
+    except (AttributeError, KeyError, TypeError, ValueError):
+        pass
+    return render_figs
+
+
+async def create_export_packet_async(
+    *,
+    figs: Iterable[Any],
+    summary_df: pd.DataFrame,
+    raw_returns_dict: dict[str, pd.DataFrame],
+    inputs_dict: dict[str, object],
+    base_filename: str | Path = "committee_packet",
+    alt_texts: Sequence[str] | None = None,
+    pivot: bool = False,
+    manifest: Mapping[str, Any] | None = None,
+    prev_summary_df: pd.DataFrame | None = None,
+    prev_manifest: Mapping[str, Any] | None = None,
+    stress_delta_df: pd.DataFrame | None = None,
+) -> Tuple[str, str]:
+    figs_list = list(figs)
+    render_figs = _packet_render_figures(
+        figs=figs_list,
+        summary_df=summary_df,
+        inputs_dict=inputs_dict,
+    )
+    return await run_with_browser_png_cache(
+        render_figs,
+        lambda: create_export_packet(
+            figs=figs_list,
+            summary_df=summary_df,
+            raw_returns_dict=raw_returns_dict,
+            inputs_dict=inputs_dict,
+            base_filename=base_filename,
+            alt_texts=alt_texts,
+            pivot=pivot,
+            manifest=manifest,
+            prev_summary_df=prev_summary_df,
+            prev_manifest=prev_manifest,
+            stress_delta_df=stress_delta_df,
+        ),
+    )

@@ -5,12 +5,14 @@ import contextlib
 import contextvars
 import hashlib
 import inspect
+import io
 import json
 import sys
 from pathlib import Path
-from typing import Any, Iterator, Mapping, cast
+from typing import Any, Callable, Iterator, Mapping, TypeVar, cast
 
 ImageCache = dict[str, bytes]
+T = TypeVar("T")
 
 _PNG_CACHE: contextvars.ContextVar[ImageCache | None] = contextvars.ContextVar(
     "pa_core_plotly_png_cache",
@@ -68,14 +70,17 @@ def figure_to_pdf_bytes(fig: Any, **opts: Any) -> bytes:
 def figure_to_image_bytes(fig: Any, *, format: str = "png", **opts: Any) -> bytes:
     clean_opts = _without_engine(opts)
     if is_browser_runtime():
-        if format != "png":
+        if format not in {"png", "pdf"}:
             raise RuntimeError(
-                f"Browser Plotly export only supports cached PNG bytes; got {format!r}."
+                f"Browser Plotly export only supports cached PNG/PDF bytes; got {format!r}."
             )
         cache = _PNG_CACHE.get()
         key = figure_image_cache_key(fig, format="png", **clean_opts)
         if cache is not None and key in cache:
-            return cache[key]
+            png_bytes = cache[key]
+            if format == "pdf":
+                return _png_to_pdf_bytes(png_bytes)
+            return png_bytes
         raise RuntimeError(
             "Browser Plotly PNG export was requested before async pre-render completed. "
             "Call pa_core.viz.export_backend.prerender_png_cache at the export action boundary."
@@ -115,6 +120,24 @@ async def prerender_png_cache(figs: Any, **opts: Any) -> ImageCache:
         key = figure_image_cache_key(fig, format="png", **clean_opts)
         cache[key] = await _plotlyjs_bridge_png_bytes(fig, **clean_opts)
     return cache
+
+
+async def run_with_browser_png_cache(
+    figs: Any,
+    render: Callable[[], T],
+    **opts: Any,
+) -> T:
+    """Run ``render`` with a populated Plotly PNG cache in browser runtimes.
+
+    Server Python keeps the existing synchronous Kaleido path. Browser/Pyodide
+    callers must await this at the export action boundary because Plotly.js image
+    rendering is async while PPTX/Excel/PDF assembly APIs are synchronous.
+    """
+    if not is_browser_runtime():
+        return render()
+    cache = await prerender_png_cache(figs, **opts)
+    with use_png_cache(cache):
+        return render()
 
 
 async def _plotlyjs_bridge_png_bytes(fig: Any, **opts: Any) -> bytes:
@@ -169,6 +192,21 @@ def _decode_data_url(data_url: str) -> bytes:
     if not data_url.startswith(prefix):
         raise RuntimeError("Plotly.js did not return a PNG data URL.")
     return base64.b64decode(data_url[len(prefix) :])
+
+
+def _png_to_pdf_bytes(png_bytes: bytes) -> bytes:
+    try:
+        from PIL import Image
+    except (ImportError, ModuleNotFoundError) as exc:  # pragma: no cover - optional dep
+        raise RuntimeError("Browser PDF export requires Pillow to wrap cached PNG bytes.") from exc
+
+    with Image.open(io.BytesIO(png_bytes)) as img:
+        pdf_img: Any = img
+        if img.mode in {"RGBA", "LA", "P"}:
+            pdf_img = img.convert("RGB")
+        out = io.BytesIO()
+        pdf_img.save(out, format="PDF")
+        return out.getvalue()
 
 
 def _without_engine(opts: Mapping[str, Any]) -> dict[str, Any]:
