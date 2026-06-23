@@ -35,6 +35,7 @@ from pa_core.contracts import (
     manifest_path_for_output,
 )
 from pa_core.llm.compare_runs import load_prior_manifest, load_prior_summary
+from pa_core.viz.export_backend import figure_to_png_bytes
 
 
 @dataclass(frozen=True)
@@ -283,7 +284,7 @@ def main() -> None:
     with col1:
         # PNG export with error handling
         try:
-            png = _get_plot_fn(PLOTS["Headline"])(summary).to_image(format="png", engine="kaleido")
+            png = figure_to_png_bytes(_get_plot_fn(PLOTS["Headline"])(summary))
             st.download_button("Download PNG", png, file_name="risk_return.png", mime="image/png")
         except RuntimeError as e:
             if "kaleido" in str(e).lower() or "chrome" in str(e).lower():

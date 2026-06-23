@@ -7,6 +7,7 @@ from typing import Iterable, Sequence
 import plotly.graph_objects as go
 
 from . import html_export
+from .export_backend import write_figure_image
 
 
 def save(
@@ -24,8 +25,8 @@ def save(
         stem = base.with_name(f"{base.stem}_{i}")
         if not skip_png:
             try:
-                # Prefer Kaleido for static export
-                fig.write_image(stem.with_suffix(".png"), engine="kaleido")
+                # Prefer Kaleido for static export on the server.
+                write_figure_image(fig, stem.with_suffix(".png"))
             except (ValueError, RuntimeError, OSError, MemoryError):
                 # PNG export may fail (missing dependencies, etc.) - continue with HTML/JSON export
                 pass

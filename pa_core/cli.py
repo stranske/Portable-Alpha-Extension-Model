@@ -1810,6 +1810,7 @@ def main(
         ]
     ):
         from . import viz
+        from .viz.export_backend import write_figure_image
 
         plots = Path("plots")
         plots.mkdir(exist_ok=True)
@@ -1924,7 +1925,7 @@ def main(
         # Individual export formats (with improved error handling)
         if flags.png:
             try:
-                fig.write_image(stem.with_suffix(".png"), engine="kaleido")
+                write_figure_image(fig, stem.with_suffix(".png"))
             except (ImportError, ModuleNotFoundError) as e:
                 if "kaleido" in str(e).lower() or "chrome" in str(e).lower():
                     logger.error(f"PNG export failed due to missing dependency: {e}")
@@ -2034,7 +2035,7 @@ def main(
                 return
             anim = viz.animation.make(arr)
             try:
-                anim.write_image(str(plots / "paths.gif"))
+                write_figure_image(anim, plots / "paths.gif", format="gif")
             except Exception as e:
                 if "Chrome" in str(e) or "Kaleido" in str(e) or "Chromium" in str(e):
                     print("❌ GIF export failed: Chrome/Chromium required")

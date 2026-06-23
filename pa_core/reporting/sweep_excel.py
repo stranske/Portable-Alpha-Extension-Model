@@ -25,6 +25,7 @@ from ..contracts import (
 from ..sweep import aggregate_sweep_results
 from ..types import SweepResult
 from ..viz import risk_return, theme
+from ..viz.export_backend import figure_to_png_bytes
 from .excel import normalize_summary_columns
 
 __all__ = ["export_sweep_results"]
@@ -124,7 +125,7 @@ def export_sweep_results(
 
         try:
             fig = risk_return.make(all_summary)
-            img_bytes = fig.to_image(format="png", engine="kaleido")
+            img_bytes = figure_to_png_bytes(fig)
             img = XLImage(io.BytesIO(img_bytes))
             ws.add_image(img, "H2")
         except (AttributeError, ValueError, RuntimeError, OSError, MemoryError):

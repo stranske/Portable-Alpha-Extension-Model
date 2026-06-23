@@ -10,6 +10,8 @@ import plotly.graph_objects as go
 from pptx import Presentation
 from pptx.util import Inches
 
+from .export_backend import figure_to_png_bytes
+
 __all__ = ["render_chart_png", "add_chart_slide", "save"]
 
 # Tiny 1x1 PNG used as a placeholder in pytest or explicit placeholder mode so
@@ -38,7 +40,7 @@ def render_chart_png(fig: Any) -> bytes:
     if os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("PA_PPTX_PLACEHOLDER") == "1":
         return _ONE_PX_PNG
     try:
-        return cast(bytes, fig.to_image(format="png", engine="kaleido"))
+        return cast(bytes, figure_to_png_bytes(fig))
     except Exception as e:  # pragma: no cover - exercised only without kaleido
         if not _is_static_renderer_error(e):
             raise

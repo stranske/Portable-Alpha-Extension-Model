@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Portable Alpha Extension Model</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/style.css" />
+    <style>
+      html,
+      body,
+      #root {
+        height: 100%;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.76.0/build/stlite.js";
+
+      const sourceFiles = `
+dashboard/__init__.py
+dashboard/app.py
+dashboard/cli.py
+dashboard/components/__init__.py
+dashboard/components/comparison_llm.py
+dashboard/components/config_chat.py
+dashboard/components/explain_results.py
+dashboard/components/llm_settings.py
+dashboard/glossary.py
+dashboard/pages/1_Asset_Library.py
+dashboard/pages/2_Portfolio_Builder.py
+dashboard/pages/3_Scenario_Wizard.py
+dashboard/pages/4_Results.py
+dashboard/pages/5_Scenario_Grid.py
+dashboard/pages/6_Stress_Lab.py
+dashboard/pages/7_Run_Logs.py
+dashboard/pages/__init__.py
+dashboard/utils.py
+dashboard/validation_ui.py
+pa_core/__init__.py
+pa_core/__main__.py
+pa_core/agents/__init__.py
+pa_core/agents/active_ext.py
+pa_core/agents/base.py
+pa_core/agents/external_pa.py
+pa_core/agents/internal_beta.py
+pa_core/agents/internal_pa.py
+pa_core/agents/registry.py
+pa_core/agents/risk_metrics.py
+pa_core/agents/types.py
+pa_core/backend.py
+pa_core/calibration.py
+pa_core/cli.py
+pa_core/config.py
+pa_core/contracts.py
+pa_core/data/__init__.py
+pa_core/data/calibration.py
+pa_core/data/convert.py
+pa_core/data/importer.py
+pa_core/data/index_financing_curves.py
+pa_core/data/loaders.py
+pa_core/facade.py
+pa_core/fees.py
+pa_core/llm/__init__.py
+pa_core/llm/compare_runs.py
+pa_core/llm/config_chat.py
+pa_core/llm/config_patch.py
+pa_core/llm/config_patch_chain.py
+pa_core/llm/langsmith_fleet.py
+pa_core/llm/prompts.py
+pa_core/llm/provider.py
+pa_core/llm/result_explain.py
+pa_core/llm/scenario_fleet.py
+pa_core/llm/tracing.py
+pa_core/logging_utils.py
+pa_core/manifest.py
+pa_core/multi_objective.py
+pa_core/orchestrator.py
+pa_core/pa.py
+pa_core/portfolio/__init__.py
+pa_core/portfolio/aggregator.py
+pa_core/portfolio/constraints.py
+pa_core/portfolio/core.py
+pa_core/presets.py
+pa_core/random.py
+pa_core/regime_presets.py
+pa_core/reporting/__init__.py
+pa_core/reporting/agent_semantics.py
+pa_core/reporting/attribution.py
+pa_core/reporting/console.py
+pa_core/reporting/constraints.py
+pa_core/reporting/disclaimers.py
+pa_core/reporting/excel.py
+pa_core/reporting/export_packet.py
+pa_core/reporting/run_diff.py
+pa_core/reporting/stress_delta.py
+pa_core/reporting/sweep_excel.py
+pa_core/run_artifact_bundle.py
+pa_core/run_flags.py
+pa_core/scenario_registry.py
+pa_core/schema.py
+pa_core/sensitivity.py
+pa_core/share_utils.py
+pa_core/sim/__init__.py
+pa_core/sim/covariance.py
+pa_core/sim/financing.py
+pa_core/sim/internal_pa_financing.py
+pa_core/sim/metrics.py
+pa_core/sim/params.py
+pa_core/sim/paths.py
+pa_core/sim/regimes.py
+pa_core/sim/sensitivity.py
+pa_core/sim/simulation_initialization.py
+pa_core/simulations.py
+pa_core/sleeve_suggestor.py
+pa_core/stress.py
+pa_core/sweep.py
+pa_core/tool_descriptor.py
+pa_core/types.py
+pa_core/units.py
+pa_core/validate.py
+pa_core/validators.py
+pa_core/viz/__init__.py
+pa_core/viz/animation.py
+pa_core/viz/beta_heatmap.py
+pa_core/viz/beta_scatter.py
+pa_core/viz/beta_te_scatter.py
+pa_core/viz/bookmark.py
+pa_core/viz/boxplot.py
+pa_core/viz/breach_calendar.py
+pa_core/viz/capital_treemap.py
+pa_core/viz/category_pie.py
+pa_core/viz/compare_scenarios.py
+pa_core/viz/corr_heatmap.py
+pa_core/viz/corr_network.py
+pa_core/viz/crossfilter.py
+pa_core/viz/dashboard_templates.py
+pa_core/viz/data_quality.py
+pa_core/viz/data_table.py
+pa_core/viz/delta_heatmap.py
+pa_core/viz/export_backend.py
+pa_core/viz/export_bundle.py
+pa_core/viz/exposure_timeline.py
+pa_core/viz/factor_bar.py
+pa_core/viz/factor_matrix.py
+pa_core/viz/factor_timeline.py
+pa_core/viz/fan.py
+pa_core/viz/frontier.py
+pa_core/viz/funnel.py
+pa_core/viz/gauge.py
+pa_core/viz/geo_exposure.py
+pa_core/viz/grid_heatmap.py
+pa_core/viz/grid_panel.py
+pa_core/viz/horizon_slicer.py
+pa_core/viz/hover_sync.py
+pa_core/viz/html_export.py
+pa_core/viz/inset.py
+pa_core/viz/live.py
+pa_core/viz/metric_selector.py
+pa_core/viz/milestone_timeline.py
+pa_core/viz/moments_panel.py
+pa_core/viz/mosaic.py
+pa_core/viz/multi_fan.py
+pa_core/viz/overlay.py
+pa_core/viz/overlay_weighted.py
+pa_core/viz/panel.py
+pa_core/viz/parallel_coords.py
+pa_core/viz/path_dist.py
+pa_core/viz/pdf_export.py
+pa_core/viz/pdf_report.py
+pa_core/viz/pptx_export.py
+pa_core/viz/quantile_band.py
+pa_core/viz/quantile_fan.py
+pa_core/viz/radar.py
+pa_core/viz/rank_table.py
+pa_core/viz/regime_timeline.py
+pa_core/viz/risk_return.py
+pa_core/viz/risk_return_bubble.py
+pa_core/viz/rolling_corr_heatmap.py
+pa_core/viz/rolling_panel.py
+pa_core/viz/rolling_var.py
+pa_core/viz/scatter_matrix.py
+pa_core/viz/scenario_play.py
+pa_core/viz/scenario_slider.py
+pa_core/viz/scenario_viewer.py
+pa_core/viz/seasonality_heatmap.py
+pa_core/viz/sharpe_ladder.py
+pa_core/viz/spark_matrix.py
+pa_core/viz/sunburst.py
+pa_core/viz/surface.py
+pa_core/viz/surface_animation.py
+pa_core/viz/surface_slice.py
+pa_core/viz/te_cvar_scatter.py
+pa_core/viz/theme.py
+pa_core/viz/tornado.py
+pa_core/viz/triple_scatter.py
+pa_core/viz/utils.py
+pa_core/viz/violin.py
+pa_core/viz/waterfall.py
+pa_core/viz/weighted_stack.py
+pa_core/viz/widgets.py
+pa_core/wizard/__init__.py
+pa_core/wizard/session_state.py
+pa_core/wizard_schema.py
+data/sp500tr_fred_divyield.csv
+examples/scenarios/active_extension_diminishing_returns.yml
+examples/scenarios/my_first_scenario.yml
+examples/scenarios/my_threshold_test.yml
+examples/scenarios/tutorial2_aggressive.yml
+examples/scenarios/tutorial2_conservative.yml
+examples/scenarios/tutorial2_high_risk.yml
+examples/scenarios/validation_demo.yml
+templates/asset_timeseries_long_returns.csv
+templates/asset_timeseries_wide_returns.csv
+templates/parameters_template.csv
+templates/params_template.yaml
+templates/scenario_example.yaml
+templates/scenario_template.yaml
+      `
+        .trim()
+        .split("\n")
+        .map((path) => path.trim())
+        .filter(Boolean);
+
+      const files = {};
+      await Promise.all(
+        sourceFiles.map(async (path) => {
+          const response = await fetch(`../${path}`);
+          if (!response.ok) {
+            throw new Error(`Failed to load ${path}: ${response.status}`);
+          }
+          files[path] = await response.text();
+        }),
+      );
+
+      mount(
+        {
+          entrypoint: "dashboard/app.py",
+          requirements: [
+            "numpy",
+            "pandas",
+            "scipy",
+            "plotly",
+            "python-pptx",
+            "lxml",
+            "Pillow",
+            "openpyxl",
+            "XlsxWriter",
+            "pypdf",
+            "pydantic",
+            "PyYAML",
+            "streamlit",
+          ],
+          files,
+        },
+        document.getElementById("root"),
+      );
+    </script>
+  </body>
+</html>

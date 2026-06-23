@@ -33,6 +33,7 @@ from pa_core.contracts import (
 )
 from pa_core.sweep import run_parameter_sweep_cached, sweep_results_to_dataframe
 from pa_core.viz import grid_heatmap
+from pa_core.viz.export_backend import figure_to_png_bytes
 
 # Cached empty DataFrame to avoid repeated creation in error cases
 _EMPTY_DATAFRAME: pd.DataFrame | None = None
@@ -467,7 +468,7 @@ def main() -> None:
 
             # Optional: export heatmap to PNG if kaleido is available
             try:
-                img_bytes = fig2.to_image(format="png", scale=2)
+                img_bytes = figure_to_png_bytes(fig2, scale=2)
                 st.download_button(
                     label="Download heatmap PNG",
                     data=img_bytes,
