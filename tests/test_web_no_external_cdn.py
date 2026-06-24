@@ -226,9 +226,7 @@ def test_pure_pypi_wheel_closure_is_vendored() -> None:
         if _lock_key(requirement.name) in packages
     )
     pyodide_seed_names.update({"micropip", "packaging"})
-    _, pyodide_metadata_requirements = _expanded_pyodide_seed_names(
-        pyodide_seed_names, packages
-    )
+    _, pyodide_metadata_requirements = _expanded_pyodide_seed_names(pyodide_seed_names, packages)
     queue.extend(
         _lock_key(requirement.name)
         for requirement in pyodide_metadata_requirements
