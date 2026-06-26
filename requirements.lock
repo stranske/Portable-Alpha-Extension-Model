@@ -322,7 +322,7 @@ keyring==25.7.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x'
     # via twine
 langchain==1.3.11
     # via portable-alpha-extension-model (pyproject.toml)
-langchain-anthropic==1.4.7
+langchain-anthropic==1.4.8
     # via portable-alpha-extension-model (pyproject.toml)
 langchain-classic==1.0.8
     # via langchain-community
