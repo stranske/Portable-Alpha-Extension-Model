@@ -7,17 +7,22 @@ when the kit is absent (bare/test environments).
 
 from __future__ import annotations
 
+import logging
 import sys
 from pathlib import Path
 
+_LOGGER = logging.getLogger(__name__)
 _DS_DIR = Path(__file__).resolve().parents[1] / "design-system"
-if _DS_DIR.is_dir() and str(_DS_DIR) not in sys.path:
-    sys.path.insert(0, str(_DS_DIR))
+_ds = None
 
-try:  # the kit is vendored by the Workflows design-system sync (sync-manifest.yml)
-    import ds_streamlit as _ds
-except Exception:  # pragma: no cover - kit unavailable in bare/test mode
-    _ds = None
+if _DS_DIR.is_dir():
+    if str(_DS_DIR) not in sys.path:
+        sys.path.insert(0, str(_DS_DIR))
+    try:  # the kit is vendored by the Workflows design-system sync (sync-manifest.yml)
+        import ds_streamlit as _ds
+    except ModuleNotFoundError as exc:  # pragma: no cover - kit unavailable in bare/test mode
+        if exc.name != "ds_streamlit":
+            raise
 
 
 def apply_theme() -> None:
@@ -27,7 +32,7 @@ def apply_theme() -> None:
             _ds.inject_theme()
         except Exception:
             # Theming is cosmetic; never let it break a page render.
-            pass
+            _LOGGER.exception("Failed to inject shared Streamlit theme")
 
 
 def ds():
