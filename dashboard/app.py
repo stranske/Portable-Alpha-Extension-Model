@@ -260,7 +260,7 @@ def main() -> None:
             "Tick “Use bundled sample data” on Stress Lab (or Scenario Grid) to run a "
             "complete example in one click — no upload needed.",
         )
-    st.page_link("pages/6_Stress_Lab.py", label="▶ Start here — Stress Lab (one-click example)")
+    st.page_link("pages/6_Stress_Lab.py", label="Start here → Stress Lab (one-click example)")
 
     # Group the tools so first-timers can tell run paths from inputs/outputs, and
     # where each run's results appear.

@@ -857,7 +857,7 @@ def _render_progress_bar(current_step: int, total_steps: int = 5) -> None:
 def _render_step_1_analysis_mode(config: Any) -> Any:
     """Step 1: Analysis Mode Selection."""
     st.subheader("Step 1: Analysis Mode & Basic Settings")
-    st.caption("Results will appear on the **Results** page after you complete the run in Step 5.")
+    st.caption("Results will appear on the **Results** page after the run completes.")
 
     col1, col2 = st.columns(2)
 
