@@ -1,0 +1,3 @@
+[theme]
+# Pairs with the shared design-system kit (design-system/ds_streamlit.inject_theme()).
+base = "light"

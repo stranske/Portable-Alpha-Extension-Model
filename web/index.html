@@ -24,10 +24,11 @@
       __paRenderBC.onmessage = async (e) => {
         const m = e.data;
         if (!m || m.kind !== "request") return;
+        let div;
         try {
           const figjson = JSON.parse(m.figStr);
           const o = m.opts || {};
-          const div = document.createElement("div");
+          div = document.createElement("div");
           div.style.cssText =
             "position:fixed;left:-9999px;top:-9999px;width:" +
             (o.width || 960) +
@@ -45,11 +46,18 @@
             width: o.width || 960,
             height: o.height || 540,
           });
-          Plotly.purge(div);
-          div.remove();
           __paRenderBC.postMessage({ kind: "response", id: m.id, url });
         } catch (err) {
           __paRenderBC.postMessage({ kind: "response", id: m.id, error: String(err) });
+        } finally {
+          if (div) {
+            try {
+              Plotly.purge(div);
+            } catch (purgeErr) {
+              console.warn("Failed to purge Plotly render node", purgeErr);
+            }
+            div.remove();
+          }
         }
       };
 
@@ -64,6 +72,7 @@ dashboard/components/config_chat.py
 dashboard/components/explain_results.py
 dashboard/components/llm_settings.py
 dashboard/glossary.py
+dashboard/theme.py
 dashboard/pages/1_Asset_Library.py
 dashboard/pages/2_Portfolio_Builder.py
 dashboard/pages/3_Scenario_Wizard.py
