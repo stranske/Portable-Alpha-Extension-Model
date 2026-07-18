@@ -143,12 +143,12 @@ llm = [
 # Development dependencies
 dev = [
     "ruff==0.15.22",
-    "black>=26.5.1",
-    "isort>=8.0.1",
+    "black==26.5.1",
+    "isort==8.0.1",
     "mypy==2.3.0",
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
-    "pytest-xdist>=3.8.0",
+    "pytest-xdist==3.8.0",
     # Shared app behavior baseline harness (pulls pytest-regressions). Tracked
     # as an unpinned `@main` git direct reference so it picks up upstream
     # baseline_kit improvements (e.g. the py.typed marker) instead of staying
@@ -162,7 +162,7 @@ dev = [
     "bandit",
     "types-PyYAML",
     "flake8",
-    "docformatter>=1.7.8",
+    "docformatter==1.7.8",
     "packaging",
 ]
 
