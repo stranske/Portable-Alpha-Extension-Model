@@ -5,7 +5,7 @@ openpyxl
 jupyter
 pytest==9.1.1
 hypothesis
-ruff==0.15.22
+ruff==0.16.0
 pydantic
 rich
 PyYAML>=6
