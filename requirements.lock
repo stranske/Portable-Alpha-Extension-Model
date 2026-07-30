@@ -328,7 +328,7 @@ langchain-classic==1.0.8
     # via langchain-community
 langchain-community==0.4.2
     # via portable-alpha-extension-model (pyproject.toml)
-langchain-core==1.5.2
+langchain-core==1.5.3
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain
@@ -359,7 +359,7 @@ langgraph-prebuilt==1.1.0
     # via langgraph
 langgraph-sdk==0.4.2
     # via langgraph
-langsmith==0.10.12
+langsmith==0.10.13
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   langchain-classic
