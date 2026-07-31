@@ -1948,7 +1948,7 @@ wheels = [
 
 [[package]]
 name = "langsmith"
-version = "0.10.13"
+version = "0.10.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -1966,9 +1966,9 @@ dependencies = [
     { name = "xxhash" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/be/bb/f076052fde354bef3c8ed33e1d7ab38685888154bdad1639751ab61c38cc/langsmith-0.10.13.tar.gz", hash = "sha256:afa997abb722adb85a329461d453523db94be3f1855d83bd74eea11418558204", size = 4771985, upload-time = "2026-07-30T14:27:21.581Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b6/c2/804558586a5363af85fc5b03ea327d0ba5d4d83da4c7d53fbed2413ef681/langsmith-0.10.14.tar.gz", hash = "sha256:edd3711ed1a334e5fb87b15eb0777b5abe5ad931dc13bfb79b93fffcbd2c2b4c", size = 4782076, upload-time = "2026-07-30T23:27:22.164Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/a2/c424ce27a774fc9f529c30abd768b1e7b91b7c05ebb8fa546a357ab994c9/langsmith-0.10.13-py3-none-any.whl", hash = "sha256:25e4e30d2af70ddf29dea860a939725ff081dc11abe670534173a7fe75c378ce", size = 719764, upload-time = "2026-07-30T14:27:19.874Z" },
+    { url = "https://files.pythonhosted.org/packages/59/62/178c8c5bb50efd3e88986212993349aa027ff90364ccd4db4e3c596aede6/langsmith-0.10.14-py3-none-any.whl", hash = "sha256:185432f170c1639e9be14aad4116ba59079753a5762c7e1a26c11cf9988f8288", size = 726292, upload-time = "2026-07-30T23:27:20.333Z" },
 ]
 
 [[package]]
@@ -3040,7 +3040,7 @@ requires-dist = [
     { name = "langchain-community", marker = "extra == 'llm'", specifier = "==0.4.2" },
     { name = "langchain-core", marker = "extra == 'llm'", specifier = "==1.5.3" },
     { name = "langchain-openai", marker = "extra == 'llm'", specifier = "==1.4.1" },
-    { name = "langsmith", marker = "extra == 'llm'", specifier = "==0.10.13" },
+    { name = "langsmith", marker = "extra == 'llm'", specifier = "==0.10.14" },
     { name = "mypy", marker = "extra == 'dev'", specifier = "==2.3.0" },
     { name = "nbsphinx", marker = "extra == 'docs'" },
     { name = "numpy" },
