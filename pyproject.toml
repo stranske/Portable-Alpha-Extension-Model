@@ -136,7 +136,7 @@ llm = [
     "langchain-community==0.4.2",
     "langchain-openai==1.4.1",
     "langchain-anthropic==1.5.3",
-    "langsmith==0.10.13",
+    "langsmith==0.10.14",
     "pydantic==2.13.4",
     "requests==2.34.2",
 ]
