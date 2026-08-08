@@ -143,7 +143,7 @@ llm = [
 
 # Development dependencies
 dev = [
-    "ruff==0.16.1",
+    "ruff==0.16.2",
     "black==26.5.1",
     "isort==8.0.1",
     "mypy==2.3.0",
