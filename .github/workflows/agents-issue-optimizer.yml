@@ -39,6 +39,7 @@ jobs:
       issues: write
       contents: read
       models: read
+      actions: write
 
     steps:
       - name: Check trigger conditions
@@ -47,15 +48,74 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           LABEL_NAME: ${{ github.event.label.name }}
           DISPATCH_PHASE: ${{ inputs.phase }}
+          DISPATCH_ISSUE_NUMBER: ${{ inputs.issue_number }}
+          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
+          format_issue_is_eligible() {
+            local issue_number="$1"
+            if ! gh issue view "$issue_number" --repo "$GITHUB_REPOSITORY" \
+                --json body,labels,state,author > /tmp/format-eligibility.json; then
+              echo "::error::could not re-check issue eligibility; refusing format work"
+              return 2
+            fi
+            if [[ "$(jq -r '.state' /tmp/format-eligibility.json)" != "OPEN" ]]; then
+              echo "Skipping format: issue is not open."
+              return 1
+            fi
+            if jq -e '[.labels[].name] | any(
+                . == "agents:auto-pilot" or
+                . == "agents:auto-pilot-pause" or
+                . == "needs-human" or
+                . == "tracker:durable" or
+                . == "wontfix"
+              )' /tmp/format-eligibility.json >/dev/null; then
+              echo "Skipping format: issue is held, exempt, or owned by auto-pilot."
+              return 1
+            fi
+            if jq -er '.author.login // ""' /tmp/format-eligibility.json \
+                | grep -qiE '(\[bot\]|^renovate$|^dependabot$)'; then
+              echo "Skipping format: bot-authored issues are exempt."
+              return 1
+            fi
+            if jq -r '.body // ""' /tmp/format-eligibility.json \
+                | grep -qiE 'do not dispatch|not a (repo|cloud) coding task'; then
+              echo "Skipping format: issue body explicitly forbids dispatch."
+              return 1
+            fi
+            return 0
+          }
+
+          release_format_lease_after_skip() {
+            local issue_number="$1"
+            if jq -e '[.labels[].name] | any(. == "agents:format")' \
+                /tmp/format-eligibility.json >/dev/null; then
+              gh issue edit "$issue_number" --repo "$GITHUB_REPOSITORY" \
+                --remove-label "agents:format"
+              echo "Released agents:format lease after eligibility skip."
+            fi
+          }
+
           if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            should_run=true
+            if [[ "$DISPATCH_PHASE" == "format" ]]; then
+              if format_issue_is_eligible "$DISPATCH_ISSUE_NUMBER"; then
+                :
+              else
+                eligibility_rc=$?
+                if [[ "$eligibility_rc" -eq 2 ]]; then
+                  exit 1
+                fi
+                release_format_lease_after_skip "$DISPATCH_ISSUE_NUMBER"
+                should_run=false
+              fi
+            fi
             {
               echo "phase=$DISPATCH_PHASE"
-              echo "issue_number=${{ inputs.issue_number }}"
-              echo "should_run=true"
+              echo "issue_number=$DISPATCH_ISSUE_NUMBER"
+              echo "should_run=$should_run"
             } >> "$GITHUB_OUTPUT"
           elif [[ "$LABEL_NAME" == "agents:optimize" ]]; then
             # Skip if auto-pilot label is present (auto-pilot runs optimizer inline)
@@ -86,18 +146,19 @@ jobs:
               } >> "$GITHUB_OUTPUT"
             fi
           elif [[ "$LABEL_NAME" == "agents:format" ]]; then
-            # Skip if auto-pilot label is present (auto-pilot runs format inline)
-            # Use pipefail to ensure gh errors cause check to fail-closed
-            if gh issue view "${{ github.event.issue.number }}" --json labels \
-                --jq '.labels[].name' | grep -qx 'agents:auto-pilot'; then
-              echo "should_run=false" >> "$GITHUB_OUTPUT"
-              echo "Skipping: auto-pilot label present (runs inline)"
-            else
+            if format_issue_is_eligible "$EVENT_ISSUE_NUMBER"; then
               {
                 echo "phase=format"
-                echo "issue_number=${{ github.event.issue.number }}"
+                echo "issue_number=$EVENT_ISSUE_NUMBER"
                 echo "should_run=true"
               } >> "$GITHUB_OUTPUT"
+            else
+              eligibility_rc=$?
+              if [[ "$eligibility_rc" -eq 2 ]]; then
+                exit 1
+              fi
+              release_format_lease_after_skip "$EVENT_ISSUE_NUMBER"
+              echo "should_run=false" >> "$GITHUB_OUTPUT"
             fi
           else
             echo "should_run=false" >> "$GITHUB_OUTPUT"
@@ -523,7 +584,7 @@ jobs:
               result = json.load(f)
           formatted = result.get('formatted_body', '')
           if not formatted:
-              print('ERROR: No formatted body returned')
+              print('ERROR: ' + (result.get('error') or 'No formatted body returned'))
               import sys
               sys.exit(1)
           with open('/tmp/formatted_body.md', 'w') as f:
@@ -597,3 +658,7 @@ jobs:
           # A guard retry may proceed only after the failed format run releases its lease.
           gh issue edit "$ISSUE_NUMBER" --remove-label "agents:format" \
             || echo "::warning::could not release failed agents:format lease"
+          # GITHUB_TOKEN label edits do not emit issues:unlabeled workflows; dispatch explicitly.
+          gh workflow run agents-issue-format-guard.yml --repo "$GITHUB_REPOSITORY" \
+            -f issue_number="$ISSUE_NUMBER" \
+            || echo "::warning::could not dispatch format guard retry after lease release"
