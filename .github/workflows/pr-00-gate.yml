@@ -43,6 +43,15 @@ jobs:
         with:
           force-full: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'verify:full') || github.event_name == 'schedule' }}
 
+  generated-delivery-seal:
+    name: generated delivery seal
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Require an exact-head delivery seal
+        uses: stranske/Workflows/.github/actions/generated-delivery-seal@632eb20586f8403219d101e8a982b62efeb94104
+
   # ───────────────────────────────────────────────────────────────────────────
   # Core Python CI - delegates to Workflows reusable workflow
   # ───────────────────────────────────────────────────────────────────────────
@@ -168,7 +177,7 @@ jobs:
   # ───────────────────────────────────────────────────────────────────────────
   summary:
     name: gate-summary
-    needs: [detect, python-ci, codespace-validation, dashboard-smoke, integration-tests]
+    needs: [detect, generated-delivery-seal, python-ci, codespace-validation, dashboard-smoke, integration-tests]
     if: ${{ always() }}
     runs-on: ubuntu-latest
     permissions:
@@ -183,6 +192,7 @@ jobs:
         id: summarize
         env:
           DETECT_RESULT: ${{ needs.detect.result || 'skipped' }}
+          DELIVERY_SEAL_RESULT: ${{ needs.generated-delivery-seal.result || 'skipped' }}
           PYTHON_RESULT: ${{ needs.python-ci.result || 'skipped' }}
           CODESPACE_RESULT: ${{ needs.codespace-validation.result || 'skipped' }}
           DASHBOARD_RESULT: ${{ needs.dashboard-smoke.result || 'skipped' }}
@@ -191,6 +201,7 @@ jobs:
           set -euo pipefail
 
           python_result="${PYTHON_RESULT:-skipped}"
+          delivery_seal_result="${DELIVERY_SEAL_RESULT:-skipped}"
           codespace_result="${CODESPACE_RESULT:-skipped}"
           dashboard_result="${DASHBOARD_RESULT:-skipped}"
           integration_result="${INTEGRATION_RESULT:-skipped}"
@@ -198,11 +209,19 @@ jobs:
           state="success"
           description="All checks passed"
 
+          if [[ "$delivery_seal_result" == "failure" ]]; then
+            state="failure"
+            description="Generated delivery seal failed"
+          elif [[ "$delivery_seal_result" == "cancelled" ]]; then
+            state="error"
+            description="Generated delivery seal was cancelled"
+          fi
+
           # Check Python CI
-          if [[ "$python_result" == "failure" ]]; then
+          if [[ "$state" == "success" && "$python_result" == "failure" ]]; then
             state="failure"
             description="Python CI failed"
-          elif [[ "$python_result" == "cancelled" ]]; then
+          elif [[ "$state" == "success" && "$python_result" == "cancelled" ]]; then
             state="error"
             description="Python CI was cancelled"
           fi
