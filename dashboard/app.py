@@ -265,7 +265,9 @@ def main() -> None:
     # Group the tools so first-timers can tell run paths from inputs/outputs, and
     # where each run's results appear.
     st.markdown("**Run a scenario**")
-    st.caption("Stress Lab & Scenario Grid show results in-page; the Scenario Wizard writes to the Results page.")
+    st.caption(
+        "Stress Lab & Scenario Grid show results in-page; the Scenario Wizard writes to the Results page."
+    )
     st.page_link("pages/6_Stress_Lab.py", label="Stress Lab (presets)")
     st.page_link("pages/5_Scenario_Grid.py", label="Scenario Grid & Frontier (beta)")
     st.page_link("pages/3_Scenario_Wizard.py", label="Scenario Wizard")
