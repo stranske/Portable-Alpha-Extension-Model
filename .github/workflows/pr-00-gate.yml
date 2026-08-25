@@ -68,6 +68,14 @@ jobs:
       python-versions: '["3.12"]' # Single version, no multi-platform
       typecheck: true
       coverage-min: "60" # Target: 85% - tracking issue to be created
+      # Only the REPORTING leg was off: `enable-soft-gate` defaults to false upstream, so
+      # the Gate computed a coverage number every run and discarded it -- no trend
+      # artifact, no hotspot table, nothing for Maint Coverage Guard to read. Report-only:
+      # coverage_trend.py runs with --soft and always exits 0, so this cannot fail a PR.
+      # Measured 86.25% on 2026-08-25, which already MEETS the 85% target the line above
+      # calls untracked. The floor of 60 stays for now -- raising it is a gate change and
+      # belongs with the baseline work, not with turning reporting on.
+      enable-soft-gate: true
       format_check: false # Using ruff for formatting
       working-directory: "."
       artifact-prefix: "gate-"
