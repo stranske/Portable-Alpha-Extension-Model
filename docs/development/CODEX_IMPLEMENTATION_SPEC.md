@@ -23,6 +23,7 @@ The current CLI only supports single simulations, but documentation promises 4 a
 # Add to pa_core/config.py ModelConfig class:
 analysis_mode: str = "returns"  # capital, returns, alpha_shares, vol_mult
 
+
 # Add validation:
 @model_validator(mode="after")
 def check_analysis_mode(self) -> "ModelConfig":
@@ -38,7 +39,7 @@ def check_analysis_mode(self) -> "ModelConfig":
 max_external_combined_pct: float = 30.0
 external_step_size_pct: float = 5.0
 
-# Returns mode sweep parameters:  
+# Returns mode sweep parameters:
 in_house_return_min_pct: float = 2.0
 in_house_return_max_pct: float = 6.0
 in_house_return_step_pct: float = 2.0
@@ -74,64 +75,100 @@ from typing import List, Dict, Any, Iterator
 from .config import ModelConfig
 import numpy as np
 
+
 def generate_parameter_combinations(cfg: ModelConfig) -> Iterator[Dict[str, Any]]:
     """Generate parameter combinations based on analysis_mode."""
-    
+
     if cfg.analysis_mode == "capital":
         # Generate capital allocation combinations
-        for ext_pct in np.arange(0, cfg.max_external_combined_pct + cfg.external_step_size_pct, cfg.external_step_size_pct):
-            for act_pct in np.arange(0, ext_pct + cfg.external_step_size_pct, cfg.external_step_size_pct):
+        for ext_pct in np.arange(
+            0,
+            cfg.max_external_combined_pct + cfg.external_step_size_pct,
+            cfg.external_step_size_pct,
+        ):
+            for act_pct in np.arange(
+                0, ext_pct + cfg.external_step_size_pct, cfg.external_step_size_pct
+            ):
                 ext_pa_pct = ext_pct - act_pct
                 internal_pct = 100 - ext_pct
-                
+
                 yield {
                     "external_pa_capital": (ext_pa_pct / 100) * cfg.total_fund_capital,
                     "active_ext_capital": (act_pct / 100) * cfg.total_fund_capital,
                     "internal_pa_capital": (internal_pct / 100) * cfg.total_fund_capital,
                 }
-    
+
     elif cfg.analysis_mode == "returns":
         # Generate return assumption combinations
-        for mu_H in np.arange(cfg.in_house_return_min_pct, cfg.in_house_return_max_pct + cfg.in_house_return_step_pct, cfg.in_house_return_step_pct):
-            for sigma_H in np.arange(cfg.in_house_vol_min_pct, cfg.in_house_vol_max_pct + cfg.in_house_vol_step_pct, cfg.in_house_vol_step_pct):
-                for mu_E in np.arange(cfg.alpha_ext_return_min_pct, cfg.alpha_ext_return_max_pct + cfg.alpha_ext_return_step_pct, cfg.alpha_ext_return_step_pct):
-                    for sigma_E in np.arange(cfg.alpha_ext_vol_min_pct, cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct, cfg.alpha_ext_vol_step_pct):
+        for mu_H in np.arange(
+            cfg.in_house_return_min_pct,
+            cfg.in_house_return_max_pct + cfg.in_house_return_step_pct,
+            cfg.in_house_return_step_pct,
+        ):
+            for sigma_H in np.arange(
+                cfg.in_house_vol_min_pct,
+                cfg.in_house_vol_max_pct + cfg.in_house_vol_step_pct,
+                cfg.in_house_vol_step_pct,
+            ):
+                for mu_E in np.arange(
+                    cfg.alpha_ext_return_min_pct,
+                    cfg.alpha_ext_return_max_pct + cfg.alpha_ext_return_step_pct,
+                    cfg.alpha_ext_return_step_pct,
+                ):
+                    for sigma_E in np.arange(
+                        cfg.alpha_ext_vol_min_pct,
+                        cfg.alpha_ext_vol_max_pct + cfg.alpha_ext_vol_step_pct,
+                        cfg.alpha_ext_vol_step_pct,
+                    ):
                         yield {
                             "mu_H": mu_H / 100,
-                            "sigma_H": sigma_H / 100, 
+                            "sigma_H": sigma_H / 100,
                             "mu_E": mu_E / 100,
                             "sigma_E": sigma_E / 100,
                         }
-    
+
     elif cfg.analysis_mode == "alpha_shares":
         # Generate alpha share combinations
-        for theta_extpa in np.arange(cfg.external_pa_alpha_min_pct, cfg.external_pa_alpha_max_pct + cfg.external_pa_alpha_step_pct, cfg.external_pa_alpha_step_pct):
-            for active_share in np.arange(cfg.active_share_min_pct, cfg.active_share_max_pct + cfg.active_share_step_pct, cfg.active_share_step_pct):
+        for theta_extpa in np.arange(
+            cfg.external_pa_alpha_min_pct,
+            cfg.external_pa_alpha_max_pct + cfg.external_pa_alpha_step_pct,
+            cfg.external_pa_alpha_step_pct,
+        ):
+            for active_share in np.arange(
+                cfg.active_share_min_pct,
+                cfg.active_share_max_pct + cfg.active_share_step_pct,
+                cfg.active_share_step_pct,
+            ):
                 yield {
                     "theta_extpa": theta_extpa / 100,
                     "active_share": active_share,  # Keep as percentage for ActiveExtension agent
                 }
-    
+
     elif cfg.analysis_mode == "vol_mult":
         # Generate volatility multiplier combinations
-        for sd_mult in np.arange(cfg.sd_multiple_min, cfg.sd_multiple_max + cfg.sd_multiple_step, cfg.sd_multiple_step):
+        for sd_mult in np.arange(
+            cfg.sd_multiple_min, cfg.sd_multiple_max + cfg.sd_multiple_step, cfg.sd_multiple_step
+        ):
             yield {
                 "sigma_H": cfg.sigma_H * sd_mult,
                 "sigma_E": cfg.sigma_E * sd_mult,
                 "sigma_M": cfg.sigma_M * sd_mult,
             }
 
-def run_parameter_sweep(cfg: ModelConfig, index_series, rng_returns, fin_rngs) -> List[Dict[str, Any]]:
+
+def run_parameter_sweep(
+    cfg: ModelConfig, index_series, rng_returns, fin_rngs
+) -> List[Dict[str, Any]]:
     """Run parameter sweep and return results for all combinations."""
     results = []
-    
+
     for i, param_overrides in enumerate(generate_parameter_combinations(cfg)):
         # Create modified config for this combination
         modified_cfg = cfg.model_copy(update=param_overrides)
-        
+
         # Run single simulation with modified config
         # ... (implement simulation logic)
-        
+
         # Store results with parameter combination info
         result = {
             "combination_id": i,
@@ -139,7 +176,7 @@ def run_parameter_sweep(cfg: ModelConfig, index_series, rng_returns, fin_rngs) -
             "summary": summary_table,  # Results from simulation
         }
         results.append(result)
-    
+
     return results
 ```
 

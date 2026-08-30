@@ -35,9 +35,7 @@ def get_backend() -> str:
     return "numpy"
 
 
-def resolve_and_set_backend(
-    cli_backend: str | None, config: "ModelConfig" | None = None
-) -> str:
+def resolve_and_set_backend(cli_backend: str | None, config: "ModelConfig" | None = None) -> str:
     """Resolve backend choice from CLI args and config, then set it.
 
     Args:

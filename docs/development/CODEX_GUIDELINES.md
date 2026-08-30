@@ -32,6 +32,7 @@ def run_parameter_sweep(config: ModelConfig, mode: str) -> pd.DataFrame:
     """Run systematic parameter variations based on mode"""
     pass
 
+
 # Usage should be:
 # pa run --config config.yml --mode capital --sweep-range 0.1,0.5,0.1
 ```

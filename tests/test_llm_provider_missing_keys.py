@@ -24,8 +24,7 @@ def test_create_llm_missing_credentials_raises_value_error(socket_connect_guard)
 
     message = str(exc_info.value)
     assert message == (
-        "Missing required credential keys for provider 'azure_openai': "
-        "azure_endpoint, api_version"
+        "Missing required credential keys for provider 'azure_openai': azure_endpoint, api_version"
     )
     assert "azure_endpoint" in message
     assert "api_version" in message

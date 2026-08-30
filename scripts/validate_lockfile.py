@@ -60,7 +60,7 @@ def _validate_strict_workflow_pins(requirements: list[Requirement]) -> list[str]
             Version(specifiers[0].version)
         except InvalidVersion:
             errors.append(
-                f"- invalid workflow pin for {requirement.name}: " f"{specifiers[0].version!r}"
+                f"- invalid workflow pin for {requirement.name}: {specifiers[0].version!r}"
             )
     return errors
 

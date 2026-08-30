@@ -33,12 +33,13 @@ The original debugging workflow used a "shotgun approach" - trying to fix everyt
 # OLD: Shotgun approach
 def auto_fix_everything():
     fix_all_imports()
-    fix_all_formatting()  
+    fix_all_formatting()
     fix_all_types()
     fix_all_common_issues()
     # ... and many more
 
-# NEW: Methodical approach  
+
+# NEW: Methodical approach
 def fix_specific_errors(tool, errors):
     for error in errors:
         if "specific pattern" in error:
@@ -145,9 +146,7 @@ from rich.table import Table  # if not used
 export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
 
 # AUTO-FIXED: Proper line breaking
-export_sweep_results(
-    results, filename=flags.save_xlsx or "Outputs.xlsx"
-)
+export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
 ```
 
 ## 📊 Reporting

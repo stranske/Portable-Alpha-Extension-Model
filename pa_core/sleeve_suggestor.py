@@ -640,8 +640,9 @@ def _optimize_sleeve_sizes(
                 constraints.append(
                     {
                         "type": "ineq",
-                        "fun": lambda x, s=slope, lim=limit, ag=agent: lim
-                        - s * cap_for_agent(x, ag),
+                        "fun": lambda x, s=slope, lim=limit, ag=agent: (
+                            lim - s * cap_for_agent(x, ag)
+                        ),
                     }
                 )
 
@@ -655,8 +656,9 @@ def _optimize_sleeve_sizes(
             constraints.append(
                 {
                     "type": "ineq",
-                    "fun": lambda x, lim=limit, met=metric: lim
-                    - sum(slopes[ag][met] * cap_for_agent(x, ag) for ag in SLEEVE_AGENTS),
+                    "fun": lambda x, lim=limit, met=metric: (
+                        lim - sum(slopes[ag][met] * cap_for_agent(x, ag) for ag in SLEEVE_AGENTS)
+                    ),
                 }
             )
 

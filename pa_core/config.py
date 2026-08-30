@@ -245,7 +245,7 @@ class ModelConfig(BaseModel):
     backend: Literal["numpy"] = Field(
         default="numpy",
         description=(
-            "Computation backend. Only 'numpy' is supported; " f"{BACKEND_UNAVAILABLE_DETAIL}"
+            f"Computation backend. Only 'numpy' is supported; {BACKEND_UNAVAILABLE_DETAIL}"
         ),
     )
     N_SIMULATIONS: int = Field(gt=0, alias="Number of simulations")
@@ -281,9 +281,7 @@ class ModelConfig(BaseModel):
     return_distribution_E: str | None = Field(
         default=None, alias="Alpha-Extension return distribution"
     )
-    return_distribution_M: str | None = Field(
-        default=None, alias="External PA return distribution"
-    )
+    return_distribution_M: str | None = Field(default=None, alias="External PA return distribution")
 
     external_pa_capital: float = Field(default=0.0, alias="External PA capital (mm)")
     active_ext_capital: float = Field(default=0.0, alias="Active Extension capital (mm)")

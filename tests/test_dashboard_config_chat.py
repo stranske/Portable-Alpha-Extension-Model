@@ -135,7 +135,7 @@ def test_render_config_chat_revert_calls_handler(monkeypatch) -> None:
 
     config_chat_module.render_config_chat_panel(
         on_preview=lambda instruction: {},
-        on_revert=lambda: (called.__setitem__("value", True) or (True, "reverted")),
+        on_revert=lambda: called.__setitem__("value", True) or (True, "reverted"),
     )
 
     assert called["value"] is True

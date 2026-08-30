@@ -22,10 +22,8 @@ if active_share > 1:
 
 ### Current Working Code (CORRECT)
 ```python
-# Our working implementation  
-active_share = (
-    float(self.extra.get("active_share", 50.0)) / 100.0
-)  # Convert percentage to decimal
+# Our working implementation
+active_share = float(self.extra.get("active_share", 50.0)) / 100.0  # Convert percentage to decimal
 ```
 
 ### Why Codex's Change Failed

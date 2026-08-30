@@ -21,6 +21,7 @@ sudo apt-get install -y chromium-browser
 # pa_core/agents/my_agent.py
 from pa_core.agents.base import BaseAgent
 
+
 class MyAgent(BaseAgent):
     def monthly_returns(self, r_beta, alpha_stream, financing):
         return r_beta + alpha_stream - financing
