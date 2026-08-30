@@ -959,6 +959,7 @@ If your Excel file includes an `AllReturns` sheet, convert it to Parquet first:
 
 ```python
 import pandas as pd
+
 df = pd.read_excel("Outputs.xlsx", sheet_name="AllReturns")
 df.to_parquet("Outputs.parquet")
 ```
@@ -1029,6 +1030,7 @@ This produces a folder of charts for every scenario in the sweep so you can comp
 ```python
 # pa_core/agents/my_agent.py
 from pa_core.agents.base import BaseAgent
+
 
 class MyAgent(BaseAgent):
     def monthly_returns(self, r_beta, alpha_stream, financing):
@@ -1205,6 +1207,7 @@ Use the `viz.export_bundle.save` helper to output PNG, HTML and JSON files for m
 
 ```python
 from pa_core.viz import export_bundle, risk_return, fan
+
 figs = [risk_return.make(df_summary), fan.make(df_paths)]
 export_bundle.save(figs, "plots/summary")
 ```
@@ -1278,6 +1281,7 @@ To customise which figures appear, call the helper in Python:
 
 ```python
 from pa_core.viz import pptx_export, risk_return, category_pie
+
 figs = [risk_return.make(df_summary), category_pie.make(capital_map)]
 pptx_export.save(figs, "my_pack.pptx")
 ```
@@ -1293,6 +1297,7 @@ highlight which agents dominate the portfolio.
 
 ```python
 from pa_core.viz import risk_return_bubble
+
 fig = risk_return_bubble.make(df_summary)
 fig.show()
 ```
@@ -1306,6 +1311,7 @@ line chart.
 
 ```python
 from pa_core.viz import rolling_var
+
 fig = rolling_var.make(df_paths, window=12)
 fig.show()
 ```

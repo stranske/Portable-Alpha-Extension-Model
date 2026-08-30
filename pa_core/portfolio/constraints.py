@@ -123,9 +123,7 @@ class ConstraintValidator:
                     violations.append(
                         ConstraintViolation(
                             constraint_type="weight_bounds",
-                            message=(
-                                f"{asset} weight {weight:.2%} is below " f"min {min_weight:.2%}."
-                            ),
+                            message=(f"{asset} weight {weight:.2%} is below min {min_weight:.2%}."),
                             details={
                                 "asset": asset,
                                 "weight": weight,
@@ -139,9 +137,7 @@ class ConstraintValidator:
                     violations.append(
                         ConstraintViolation(
                             constraint_type="weight_bounds",
-                            message=(
-                                f"{asset} weight {weight:.2%} exceeds " f"max {max_weight:.2%}."
-                            ),
+                            message=(f"{asset} weight {weight:.2%} exceeds max {max_weight:.2%}."),
                             details={
                                 "asset": asset,
                                 "weight": weight,

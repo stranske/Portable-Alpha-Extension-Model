@@ -40,9 +40,9 @@ def test_annual_bps_to_monthly() -> None:
 
 
 def test_index_curve_supports_negative_spreads() -> None:
-    assert any(
-        v < 0 for v in INDEX_FINANCING_CURVES_BPS.values()
-    ), "fixture must include at least one negative (positive-carry) curve"
+    assert any(v < 0 for v in INDEX_FINANCING_CURVES_BPS.values()), (
+        "fixture must include at least one negative (positive-carry) curve"
+    )
     curve = get_index_financing_curve_monthly("NKY", 4)
     assert len(curve) == 4
     assert all(c == curve[0] for c in curve)

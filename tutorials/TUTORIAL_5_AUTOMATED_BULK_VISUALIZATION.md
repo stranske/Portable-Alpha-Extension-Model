@@ -22,6 +22,7 @@ After the run, convert the sheet to Parquet:
 
 ```python
 import pandas as pd
+
 df = pd.read_excel("Sweep.xlsx", sheet_name="AllReturns")
 df.to_parquet("Sweep.parquet")
 ```

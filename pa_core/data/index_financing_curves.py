@@ -69,8 +69,6 @@ def get_index_financing_curve_monthly(index: str, n_months: int) -> List[float]:
         raise ValueError("n_months must be positive")
     key = index.strip().upper()
     if key not in INDEX_FINANCING_CURVES_BPS:
-        raise KeyError(
-            f"Unknown index financing curve {index!r}; " f"available: {available_indices()}"
-        )
+        raise KeyError(f"Unknown index financing curve {index!r}; available: {available_indices()}")
     monthly_cost = annual_bps_to_monthly(INDEX_FINANCING_CURVES_BPS[key])
     return [monthly_cost] * int(n_months)

@@ -17,8 +17,7 @@ __all__ = ["render_chart_png", "add_chart_slide", "save", "save_async"]
 # Tiny 1x1 PNG used as a placeholder in pytest or explicit placeholder mode so
 # chart slides never spawn a potentially hanging kaleido/Chromium subprocess.
 _ONE_PX_PNG = base64.b64decode(
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMA"
-    "ASsJTYQAAAAASUVORK5CYII="
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
 )
 _RENDERER_ERROR_TERMS = ("kaleido", "chrome", "chromium")
 

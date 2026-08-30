@@ -21,6 +21,7 @@ to the CLI so each sweep saves to a new workbook.
 
 ```python
 from pa_core.viz import export_bundle, risk_return, fan
+
 figs = [risk_return.make(df_summary), fan.make(df_paths)]
 export_bundle.save(figs, "plots/summary")
 ```
