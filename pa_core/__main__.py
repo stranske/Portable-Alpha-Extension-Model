@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import warnings
-from typing import Literal, Optional, Sequence, cast
+from typing import Literal, Sequence, cast
 
 from .backend import get_backend
 from .config import load_config
@@ -12,7 +12,7 @@ from .units import get_index_series_unit, normalize_index_series
 from .validators import select_vol_regime_sigma
 
 
-def main(argv: Optional[Sequence[str]] = None) -> None:
+def main(argv: Sequence[str] | None = None) -> None:
     # Legacy entry point for `python -m pa_core`; warn and keep args aligned with `pa run`.
     warnings.warn(
         "Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.",

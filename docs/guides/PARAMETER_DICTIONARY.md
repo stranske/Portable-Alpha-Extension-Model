@@ -27,10 +27,10 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `return_distribution` | `Return distribution` | `<class 'str'>` | no | `normal` |  |
 | `return_t_df` | `Student-t df` | `<class 'float'>` | no | `5.0` |  |
 | `return_copula` | `Return copula` | `<class 'str'>` | no | `gaussian` |  |
-| `return_distribution_idx` | `Index return distribution` | `Optional[str]` | no | `None` |  |
-| `return_distribution_H` | `In-House return distribution` | `Optional[str]` | no | `None` |  |
-| `return_distribution_E` | `Alpha-Extension return distribution` | `Optional[str]` | no | `None` |  |
-| `return_distribution_M` | `External PA return distribution` | `Optional[str]` | no | `None` |  |
+| `return_distribution_idx` | `Index return distribution` | `str \| None` | no | `None` |  |
+| `return_distribution_H` | `In-House return distribution` | `str \| None` | no | `None` |  |
+| `return_distribution_E` | `Alpha-Extension return distribution` | `str \| None` | no | `None` |  |
+| `return_distribution_M` | `External PA return distribution` | `str \| None` | no | `None` |  |
 | `external_pa_capital` | `External PA capital (mm)` | `<class 'float'>` | no | `0.0` |  |
 | `active_ext_capital` | `Active Extension capital (mm)` | `<class 'float'>` | no | `0.0` |  |
 | `internal_pa_capital` | `Internal PA capital (mm)` | `<class 'float'>` | no | `0.0` |  |
@@ -70,7 +70,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `internal_pa_financing_mean_month` | `Internal PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` | Deterministic monthly internal-PA financing cost; may be negative. |
 | `internal_pa_financing_sigma_month` | `Internal PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` | Optional monthly stochastic vol for the internal-PA financing cost. |
 | `internal_pa_financing_series` | `Internal PA financing series (monthly)` | `Optional[List[float]]` | no | `None` | Explicit monthly internal-PA financing cost series (negatives allowed). |
-| `internal_pa_financing_index` | `Internal PA financing index` | `Optional[str]` | no | `None` | Named index futures/swap financing curve to source internal-PA costs from. |
+| `internal_pa_financing_index` | `Internal PA financing index` | `str \| None` | no | `None` | Named index futures/swap financing curve to source internal-PA costs from. |
 | `ext_pa_financing_mean_month` | `External PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_financing_sigma_month` | `External PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_spike_prob` | `External PA monthly spike prob` | `<class 'float'>` | no | `0.0` |  |
@@ -81,7 +81,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `act_ext_spike_factor` | `Active Ext spike multiplier` | `<class 'float'>` | no | `0.0` |  |
 | `financing_mode` | `financing_mode` | `Literal['per_path', 'broadcast']` | yes |  | Financing draw mode. per_path draws independent financing paths per scenario and is recommended for risk/tail analysis; broadcast reuses one financing vector across all simulations, which suppresses financing-cost dispersion and understates tail/CVaR risk. |
 | `analysis_mode` | `Analysis mode` | `<class 'str'>` | no | `returns` |  |
-| `sweep` | `sweep` | `Optional[pa_core.config.SweepConfig]` | no | `None` | Optional sweep configuration for custom parameter sampling. |
+| `sweep` | `sweep` | `pa_core.config.SweepConfig \| None` | no | `None` | Optional sweep configuration for custom parameter sampling. |
 | `max_external_combined_pct` | `max_external_combined_pct` | `<class 'float'>` | no | `30.0` |  |
 | `external_step_size_pct` | `external_step_size_pct` | `<class 'float'>` | no | `5.0` |  |
 | `in_house_return_min_pct` | `in_house_return_min_pct` | `<class 'float'>` | no | `2.0` |  |
@@ -108,15 +108,15 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `reference_sigma` | `reference_sigma` | `<class 'float'>` | no | `0.01` |  |
 | `volatility_multiple` | `volatility_multiple` | `<class 'float'>` | no | `3.0` |  |
 | `financing_model` | `financing_model` | `<class 'str'>` | no | `simple_proxy` |  |
-| `financing_schedule_path` | `financing_schedule_path` | `Optional[pathlib.Path]` | no | `None` |  |
+| `financing_schedule_path` | `financing_schedule_path` | `pathlib.Path \| None` | no | `None` |  |
 | `financing_term_months` | `financing_term_months` | `<class 'float'>` | no | `1.0` |  |
 | `regimes` | `regimes` | `Optional[List[pa_core.config.RegimeConfig]]` | no | `None` | List of regime configurations for regime-switching models. |
-| `regime_start` | `regime_start` | `Optional[str]` | no | `None` | Initial regime name for regime-switching simulations. |
+| `regime_start` | `regime_start` | `str \| None` | no | `None` | Initial regime name for regime-switching simulations. |
 | `regime_transition` | `regime_transition` | `Optional[List[List[float]]]` | no | `None` | Markov transition matrix for regime switching (n_regimes x n_regimes). |
 | `risk_metrics` | `risk_metrics` | `List[str]` | no | `default_factory: <lambda>` | Advisory list selecting which metrics are reported/displayed. It does not change how the simulation runs (must include 'terminal_ShortfallProb'). See README 'Model Limitations & Caveats'. |
-| `sleeve_max_te` | `sleeve_max_te` | `Optional[float]` | no | `None` | Maximum tracking error constraint for sleeves (monthly). |
-| `sleeve_max_breach` | `sleeve_max_breach` | `Optional[float]` | no | `None` | Maximum breach probability constraint for sleeves (monthly). |
-| `sleeve_max_cvar` | `sleeve_max_cvar` | `Optional[float]` | no | `None` | Maximum CVaR constraint for sleeves (monthly). |
-| `sleeve_max_shortfall` | `sleeve_max_shortfall` | `Optional[float]` | no | `None` | Maximum shortfall probability constraint for sleeves (terminal). |
+| `sleeve_max_te` | `sleeve_max_te` | `float \| None` | no | `None` | Maximum tracking error constraint for sleeves (monthly). |
+| `sleeve_max_breach` | `sleeve_max_breach` | `float \| None` | no | `None` | Maximum breach probability constraint for sleeves (monthly). |
+| `sleeve_max_cvar` | `sleeve_max_cvar` | `float \| None` | no | `None` | Maximum CVaR constraint for sleeves (monthly). |
+| `sleeve_max_shortfall` | `sleeve_max_shortfall` | `float \| None` | no | `None` | Maximum shortfall probability constraint for sleeves (terminal). |
 | `sleeve_constraint_scope` | `sleeve_constraint_scope` | `Literal['total', 'per_sleeve']` | no | `total` | Constraint scope for sleeve validation (total or per-sleeve). |
 | `sleeve_validate_on_run` | `sleeve_validate_on_run` | `<class 'bool'>` | no | `False` | Validate sleeve constraints during run_single when true. |

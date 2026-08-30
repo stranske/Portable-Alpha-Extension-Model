@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, List, Optional
+from typing import Iterable, List
 
 import numpy as np
 import pandas as pd
@@ -15,7 +15,7 @@ def make(
     x: str = "AE_leverage",
     y: str = "ExtPA_frac",
     z: str = "Sharpe",
-    custom_fields: Optional[Iterable[str]] = None,
+    custom_fields: Iterable[str] | None = None,
 ) -> go.Figure:
     """Return 2-D heatmap from a parameter grid.
 

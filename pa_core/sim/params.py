@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 
@@ -121,7 +121,7 @@ def build_simulation_params(
     *,
     mu_idx: float,
     idx_sigma: float,
-    return_overrides: Optional[Dict[str, Any]] = None,
+    return_overrides: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Combine return and financing parameters for simulation draws."""
     params = build_return_params(cfg, mu_idx=mu_idx, idx_sigma=idx_sigma)
@@ -137,7 +137,7 @@ def build_params(
     *,
     mu_idx: float,
     idx_sigma: float,
-    return_overrides: Optional[Dict[str, Any]] = None,
+    return_overrides: Dict[str, Any] | None = None,
 ) -> Dict[str, Any]:
     """Canonical build alias for simulation params."""
     return build_simulation_params(

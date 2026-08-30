@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import warnings
-from typing import Any, Dict, Mapping, Optional, Sequence, cast
+from typing import Any, Dict, Mapping, Sequence, cast
 
 import numpy.typing as npt
 from numpy.typing import NDArray
@@ -53,7 +53,7 @@ def _validate_return_draw_settings(
 
 
 def _resolve_return_distributions(
-    base: str, overrides: Optional[Sequence[Optional[str]]] = None
+    base: str, overrides: Sequence[str | None] | None = None
 ) -> tuple[str, str, str, str]:
     if overrides is None:
         return (base, base, base, base)
@@ -70,7 +70,7 @@ def _resolve_return_distributions(
 def _resolve_stream_return_distributions(
     base: str,
     stream_names: Sequence[str],
-    overrides: Mapping[str, Optional[str]] | Sequence[Optional[str]] | None = None,
+    overrides: Mapping[str, str | None] | Sequence[str | None] | None = None,
 ) -> tuple[str, ...]:
     if overrides is None:
         return tuple(base for _ in stream_names)
@@ -284,9 +284,9 @@ def prepare_mc_universe(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
-    return_distributions: Optional[Sequence[Optional[str]]] = None,
-    seed: Optional[int] = None,
-    rng: Optional[GeneratorLike] = None,
+    return_distributions: Sequence[str | None] | None = None,
+    seed: int | None = None,
+    rng: GeneratorLike | None = None,
 ) -> npt.NDArray[Any]:
     """Return stacked draws of (index, H, E, M) returns."""
     warnings.warn(
@@ -343,8 +343,8 @@ def prepare_return_shocks(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
-    seed: Optional[int] = None,
-    rng: Optional[GeneratorLike] = None,
+    seed: int | None = None,
+    rng: GeneratorLike | None = None,
 ) -> Dict[str, Any]:
     """Pre-generate return shocks to reuse across parameter combinations."""
     rng = ensure_rng(seed, rng)
@@ -385,9 +385,9 @@ def draw_returns(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
-    seed: Optional[int] = None,
-    rng: Optional[GeneratorLike] = None,
-    shocks: Optional[Dict[str, Any]] = None,
+    seed: int | None = None,
+    rng: GeneratorLike | None = None,
+    shocks: Dict[str, Any] | None = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M).
 
@@ -511,9 +511,9 @@ def draw_named_returns(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
-    return_distributions: Mapping[str, Optional[str]] | Sequence[Optional[str]] | None = None,
-    seed: Optional[int] = None,
-    rng: Optional[GeneratorLike] = None,
+    return_distributions: Mapping[str, str | None] | Sequence[str | None] | None = None,
+    seed: int | None = None,
+    rng: GeneratorLike | None = None,
 ) -> dict[str, npt.NDArray[Any]]:
     """Draw monthly returns for index plus an arbitrary named alpha universe.
 
@@ -643,11 +643,11 @@ def draw_joint_returns(
     n_months: int,
     n_sim: int,
     params: Dict[str, Any],
-    seed: Optional[int] = None,
-    rng: Optional[GeneratorLike] = None,
-    shocks: Optional[Dict[str, Any]] = None,
-    regime_paths: Optional[npt.NDArray[Any]] = None,
-    regime_params: Optional[Sequence[Dict[str, Any]]] = None,
+    seed: int | None = None,
+    rng: GeneratorLike | None = None,
+    shocks: Dict[str, Any] | None = None,
+    regime_paths: npt.NDArray[Any] | None = None,
+    regime_params: Sequence[Dict[str, Any]] | None = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Vectorised draw of monthly returns for (beta, H, E, M).
 
@@ -713,9 +713,9 @@ def simulate_alpha_streams(
     return_distribution: str = "normal",
     return_t_df: float = 5.0,
     return_copula: str = "gaussian",
-    return_distributions: Optional[Sequence[Optional[str]]] = None,
-    seed: Optional[int] = None,
-    rng: Optional[GeneratorLike] = None,
+    return_distributions: Sequence[str | None] | None = None,
+    seed: int | None = None,
+    rng: GeneratorLike | None = None,
 ) -> NDArray[Any]:
     """Simulate T observations of (Index_return, H, E, M)."""
     if T <= 0:

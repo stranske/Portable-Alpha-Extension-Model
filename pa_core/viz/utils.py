@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, cast
+from typing import cast
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from numpy.typing import NDArray
 
 
 def safe_to_numpy(
-    data: Union[pd.Series, pd.DataFrame], fillna_value: float = 0.0
+    data: pd.Series | pd.DataFrame, fillna_value: float = 0.0
 ) -> NDArray[np.float64]:
     """
     Safely convert pandas Series or DataFrame to numpy array with fallback handling.

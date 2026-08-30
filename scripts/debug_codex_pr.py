@@ -10,7 +10,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 
 class CodexPRDebugger:
@@ -18,7 +18,7 @@ class CodexPRDebugger:
 
     def __init__(
         self,
-        branch_name: Optional[str] = None,
+        branch_name: str | None = None,
         skip_mypy: bool = False,
         skip_tests: bool = False,
     ):

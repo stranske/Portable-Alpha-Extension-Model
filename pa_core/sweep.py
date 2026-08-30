@@ -7,7 +7,7 @@ import logging
 from collections import OrderedDict
 from dataclasses import dataclass
 from itertools import product
-from typing import Any, Callable, Dict, Iterator, List, Mapping, Optional, Sequence
+from typing import Any, Callable, Dict, Iterator, List, Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -57,7 +57,7 @@ from .units import (
 from .validators import select_vol_regime_sigma
 
 
-def progress_bar(iterable: Any, total: Optional[int] = None, desc: Optional[str] = None) -> Any:
+def progress_bar(iterable: Any, total: int | None = None, desc: str | None = None) -> Any:
     if _HAS_TQDM:
         return _tqdm(iterable, total=total, desc=desc)
     return iterable
@@ -288,9 +288,9 @@ class SweepRunner:
 
     config: ModelConfig
     index_series: pd.Series | pd.DataFrame
-    seed: Optional[int] = None
+    seed: int | None = None
     legacy_agent_rng: bool = False
-    progress: Optional[Callable[[int, int], None]] = None
+    progress: Callable[[int, int], None] | None = None
     substream_ids: Mapping[str, str] | None = None
 
     def iter_combinations(self) -> Iterator[Dict[str, Any]]:
@@ -371,9 +371,9 @@ def run_parameter_sweep(
     index_series: pd.Series,
     rng_returns: GeneratorLike,
     fin_rngs: Mapping[str, GeneratorLike],
-    seed: Optional[int] = None,
+    seed: int | None = None,
     rng_regime: GeneratorLike | None = None,
-    progress: Optional[Callable[[int, int], None]] = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> List[SweepResult]:
     """Run the parameter sweep and collect results.
 
@@ -769,7 +769,7 @@ def run_parameter_sweep_cached(
     cfg: ModelConfig,
     index_series: pd.Series,
     seed: int,
-    progress: Optional[Callable[[int, int], None]] = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> List[SweepResult]:
     """Run ``run_parameter_sweep`` with simple in-memory caching.
 

@@ -13,8 +13,6 @@ from typing import (
     List,
     Literal,
     Mapping,
-    Optional,
-    Union,
     cast,
 )
 
@@ -132,15 +130,15 @@ class RegimeConfig(BaseModel):
 
     name: str
     idx_sigma_multiplier: float = 1.0
-    sigma_H: Optional[float] = None
-    sigma_E: Optional[float] = None
-    sigma_M: Optional[float] = None
-    rho_idx_H: Optional[float] = None
-    rho_idx_E: Optional[float] = None
-    rho_idx_M: Optional[float] = None
-    rho_H_E: Optional[float] = None
-    rho_H_M: Optional[float] = None
-    rho_E_M: Optional[float] = None
+    sigma_H: float | None = None
+    sigma_E: float | None = None
+    sigma_M: float | None = None
+    rho_idx_H: float | None = None
+    rho_idx_E: float | None = None
+    rho_idx_M: float | None = None
+    rho_H_E: float | None = None
+    rho_H_M: float | None = None
+    rho_E_M: float | None = None
 
 
 class SweepParameter(BaseModel):
@@ -148,10 +146,10 @@ class SweepParameter(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    values: Optional[List[float]] = None
-    min: Optional[float] = None
-    max: Optional[float] = None
-    step: Optional[float] = None
+    values: List[float] | None = None
+    min: float | None = None
+    max: float | None = None
+    step: float | None = None
 
     @model_validator(mode="after")
     def check_values(self) -> "SweepParameter":
@@ -177,8 +175,8 @@ class SweepConfig(BaseModel):
 
     method: Literal["grid", "random"] = "grid"
     parameters: Dict[str, SweepParameter]
-    samples: Optional[int] = None
-    seed: Optional[int] = None
+    samples: int | None = None
+    seed: int | None = None
 
     @model_validator(mode="after")
     def check_config(self) -> "SweepConfig":
@@ -278,12 +276,12 @@ class ModelConfig(BaseModel):
     return_distribution: str = Field(default="normal", alias="Return distribution")
     return_t_df: float = Field(default=5.0, alias="Student-t df")
     return_copula: str = Field(default="gaussian", alias="Return copula")
-    return_distribution_idx: Optional[str] = Field(default=None, alias="Index return distribution")
-    return_distribution_H: Optional[str] = Field(default=None, alias="In-House return distribution")
-    return_distribution_E: Optional[str] = Field(
+    return_distribution_idx: str | None = Field(default=None, alias="Index return distribution")
+    return_distribution_H: str | None = Field(default=None, alias="In-House return distribution")
+    return_distribution_E: str | None = Field(
         default=None, alias="Alpha-Extension return distribution"
     )
-    return_distribution_M: Optional[str] = Field(
+    return_distribution_M: str | None = Field(
         default=None, alias="External PA return distribution"
     )
 
@@ -292,7 +290,7 @@ class ModelConfig(BaseModel):
     internal_pa_capital: float = Field(default=0.0, alias="Internal PA capital (mm)")
     total_fund_capital: float = Field(default=1000.0, gt=0, alias="Total fund capital (mm)")
     agents: List[AgentConfig] = Field(default_factory=list)
-    fee_schedule: Optional[Dict[str, FeeSchedule]] = Field(
+    fee_schedule: Dict[str, FeeSchedule] | None = Field(
         default=None,
         description=(
             "Optional per-sleeve management/performance fee schedule keyed by "
@@ -396,12 +394,12 @@ class ModelConfig(BaseModel):
         alias="Internal PA financing vol (monthly %)",
         description="Optional monthly stochastic vol for the internal-PA financing cost.",
     )
-    internal_pa_financing_series: Optional[List[float]] = Field(
+    internal_pa_financing_series: List[float] | None = Field(
         default=None,
         alias="Internal PA financing series (monthly)",
         description="Explicit monthly internal-PA financing cost series (negatives allowed).",
     )
-    internal_pa_financing_index: Optional[str] = Field(
+    internal_pa_financing_index: str | None = Field(
         default=None,
         alias="Internal PA financing index",
         description="Named index futures/swap financing curve to source internal-PA costs from.",
@@ -440,7 +438,7 @@ class ModelConfig(BaseModel):
 
     # Parameter sweep options
     analysis_mode: str = Field(default="returns", alias="Analysis mode")
-    sweep: Optional[SweepConfig] = Field(
+    sweep: SweepConfig | None = Field(
         default=None,
         description="Optional sweep configuration for custom parameter sampling.",
     )
@@ -476,19 +474,19 @@ class ModelConfig(BaseModel):
     reference_sigma: float = 0.01  # Monthly volatility for margin calculation
     volatility_multiple: float = 3.0  # Multiplier for margin requirement
     financing_model: str = "simple_proxy"  # or "schedule"
-    financing_schedule_path: Optional[Path] = None
+    financing_schedule_path: Path | None = None
     financing_term_months: float = 1.0
 
     # Regime-switching configuration
-    regimes: Optional[List["RegimeConfig"]] = Field(
+    regimes: List["RegimeConfig"] | None = Field(
         default=None,
         description="List of regime configurations for regime-switching models.",
     )
-    regime_start: Optional[str] = Field(
+    regime_start: str | None = Field(
         default=None,
         description="Initial regime name for regime-switching simulations.",
     )
-    regime_transition: Optional[List[List[float]]] = Field(
+    regime_transition: List[List[float]] | None = Field(
         default=None,
         description="Markov transition matrix for regime switching (n_regimes x n_regimes).",
     )
@@ -507,19 +505,19 @@ class ModelConfig(BaseModel):
         ),
     )
 
-    sleeve_max_te: Optional[float] = Field(
+    sleeve_max_te: float | None = Field(
         default=None,
         description="Maximum tracking error constraint for sleeves (monthly).",
     )
-    sleeve_max_breach: Optional[float] = Field(
+    sleeve_max_breach: float | None = Field(
         default=None,
         description="Maximum breach probability constraint for sleeves (monthly).",
     )
-    sleeve_max_cvar: Optional[float] = Field(
+    sleeve_max_cvar: float | None = Field(
         default=None,
         description="Maximum CVaR constraint for sleeves (monthly).",
     )
-    sleeve_max_shortfall: Optional[float] = Field(
+    sleeve_max_shortfall: float | None = Field(
         default=None,
         description="Maximum shortfall probability constraint for sleeves (terminal).",
     )
@@ -1244,7 +1242,7 @@ def validate_financing_spikes(cfg: "ModelConfig") -> None:
         )
 
 
-def load_config(path: Union[str, Path, Dict[str, Any]]) -> ModelConfig:
+def load_config(path: str | Path | Dict[str, Any]) -> ModelConfig:
     """Return ``ModelConfig`` parsed from YAML dictionary or file.
 
     See :class:`pa_core.schema.Scenario` for market data inputs that pair with

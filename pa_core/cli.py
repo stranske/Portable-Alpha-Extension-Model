@@ -24,7 +24,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Callable, Mapping, Optional, Sequence, cast
+from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence, cast
 
 # Fix UTF-8 encoding for Windows compatibility
 if sys.platform.startswith("win"):
@@ -371,8 +371,8 @@ class Dependencies:
 
 
 def main(
-    argv: Optional[Sequence[str]] = None,
-    deps: Optional[Dependencies] = None,
+    argv: Sequence[str] | None = None,
+    deps: Dependencies | None = None,
     *,
     emit_deprecation_warning: bool = True,
 ) -> None:
@@ -1853,7 +1853,7 @@ def main(
                 try:
                     # inputs_dict is a plain dict[str, object]; guard types before use
                     sens_val = inputs_dict.get("_sensitivity_df")
-                    sens_df_plot: Optional[pd.DataFrame] = (
+                    sens_df_plot: pd.DataFrame | None = (
                         sens_val if isinstance(sens_val, pd.DataFrame) else None
                     )
                     if sens_df_plot is not None and (not sens_df_plot.empty):
@@ -1866,7 +1866,7 @@ def main(
                 # Optional: Return attribution sunburst
                 try:
                     attr_val = inputs_dict.get("_attribution_df")
-                    attr_df: Optional[pd.DataFrame] = (
+                    attr_df: pd.DataFrame | None = (
                         attr_val if isinstance(attr_val, pd.DataFrame) else None
                     )
                     if attr_df is not None and (not attr_df.empty):

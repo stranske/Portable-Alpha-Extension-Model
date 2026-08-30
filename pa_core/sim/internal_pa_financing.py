@@ -24,7 +24,7 @@ identical to historical behaviour.
 
 from __future__ import annotations
 
-from typing import Any, Optional, Sequence, cast
+from typing import Any, Sequence, cast
 
 import numpy.typing as npt
 
@@ -42,10 +42,10 @@ def resolve_internal_pa_financing_series(
     n_sim: int,
     mean_month: float = 0.0,
     sigma_month: float = 0.0,
-    series: Optional[Sequence[float]] = None,
-    index: Optional[str] = None,
+    series: Sequence[float] | None = None,
+    index: str | None = None,
     financing_mode: str = "broadcast",
-    rng: Optional[GeneratorLike] = None,
+    rng: GeneratorLike | None = None,
 ) -> npt.NDArray[Any]:
     """Return an ``(n_sim, n_months)`` internal-PA monthly financing matrix.
 

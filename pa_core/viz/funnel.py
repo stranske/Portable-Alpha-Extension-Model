@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from . import theme
 
 
 def make(
-    df_paths: Union[pd.DataFrame, np.ndarray],
+    df_paths: pd.DataFrame | np.ndarray,
     quantiles: Tuple[float, float] = (0.05, 0.95),
 ) -> go.Figure:
     """Visualise widening distribution of cumulative returns."""
