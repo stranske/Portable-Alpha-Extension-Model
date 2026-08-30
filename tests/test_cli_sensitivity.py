@@ -184,9 +184,9 @@ sigma_M: 0.01
                 call for call in print_calls if "sensitivity" in call.lower() or "🔍" in call
             ]
 
-            assert len(sensitivity_messages) > 0, (
-                "Sensitivity analysis messages not found in output"
-            )
+            assert (
+                len(sensitivity_messages) > 0
+            ), "Sensitivity analysis messages not found in output"
 
 
 def test_sensitivity_sets_tornado_deltas(monkeypatch, tmp_path):
@@ -399,6 +399,6 @@ sigma_M: 0.01
                 call for call in print_calls if "failed" in call.lower() or "⚠️" in call
             ]
 
-            assert len(error_messages) > 0, (
-                "Parameter evaluation failure messages not found in output"
-            )
+            assert (
+                len(error_messages) > 0
+            ), "Parameter evaluation failure messages not found in output"

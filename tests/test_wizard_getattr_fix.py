@@ -48,9 +48,9 @@ class TestWizardConfigConsistency:
             config = get_default_config(mode)
 
             for attr in required_attributes:
-                assert hasattr(config, attr), (
-                    f"DefaultConfigView missing required attribute '{attr}' for mode {mode.value}"
-                )
+                assert hasattr(
+                    config, attr
+                ), f"DefaultConfigView missing required attribute '{attr}' for mode {mode.value}"
                 # Ensure attribute is not None and has a reasonable value
                 value = getattr(config, attr)
                 assert value is not None, f"Attribute '{attr}' is None for mode {mode.value}"

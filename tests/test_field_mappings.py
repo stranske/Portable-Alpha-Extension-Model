@@ -26,9 +26,9 @@ def test_get_field_mappings():
 
     for alias, field_name in expected_core_mappings.items():
         assert alias in mappings, f"Missing mapping for '{alias}'"
-        assert mappings[alias] == field_name, (
-            f"Wrong mapping for '{alias}': expected '{field_name}', got '{mappings[alias]}'"
-        )
+        assert (
+            mappings[alias] == field_name
+        ), f"Wrong mapping for '{alias}': expected '{field_name}', got '{mappings[alias]}'"
 
 
 def test_field_mappings_consistency():
@@ -38,9 +38,9 @@ def test_field_mappings_consistency():
 
     # Every mapped field should exist in the model
     for alias, field_name in mappings.items():
-        assert field_name in model_fields, (
-            f"Field '{field_name}' mapped from alias '{alias}' does not exist in ModelConfig"
-        )
+        assert (
+            field_name in model_fields
+        ), f"Field '{field_name}' mapped from alias '{alias}' does not exist in ModelConfig"
 
 
 def test_csv_conversion_with_field_mappings():
