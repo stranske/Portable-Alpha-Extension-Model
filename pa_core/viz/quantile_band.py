@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Tuple, Union
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ purposes in rolling quantile band plots.
 
 
 def make(
-    df_paths: Union[pd.DataFrame, np.ndarray],
+    df_paths: pd.DataFrame | np.ndarray,
     quantiles: Tuple[float, float] = (DEFAULT_LOWER_QUANTILE, DEFAULT_UPPER_QUANTILE),
     window: int = 12,
 ) -> go.Figure:

@@ -31,7 +31,7 @@ import math
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Mapping, Sequence, Union
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
     import pandas as pd
@@ -677,7 +677,7 @@ def run_sweep(
 
 
 def export(
-    artifacts: Union[RunArtifacts, SweepArtifacts],
+    artifacts: RunArtifacts | SweepArtifacts,
     output_path: str | Path,
     options: ExportOptions | None = None,
 ) -> Path:

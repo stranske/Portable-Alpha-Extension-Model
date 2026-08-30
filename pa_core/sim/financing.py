@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, Iterable, Mapping, Optional, cast
+from typing import Any, Dict, Iterable, Mapping, cast
 
 import numpy.typing as npt
 
@@ -27,7 +27,7 @@ def broadcast_dispersion_warning(
     financing_mode: str,
     n_sim: int,
     financing_sigmas: Iterable[float],
-) -> Optional[str]:
+) -> str | None:
     """Return a user-facing warning when ``broadcast`` financing suppresses risk.
 
     ``broadcast`` reuses a single financing path across every Monte-Carlo
@@ -58,9 +58,9 @@ def simulate_financing(
     spike_prob: float,
     spike_factor: float,
     *,
-    seed: Optional[int] = None,
+    seed: int | None = None,
     n_scenarios: int = 1,
-    rng: Optional[GeneratorLike] = None,
+    rng: GeneratorLike | None = None,
 ) -> npt.NDArray[Any]:
     """Vectorised financing spread simulation with optional spikes."""
     if T <= 0:
@@ -83,8 +83,8 @@ def draw_financing_series(
     n_sim: int,
     params: Dict[str, Any],
     financing_mode: str,
-    rng: Optional[GeneratorLike] = None,
-    rngs: Optional[Mapping[str, GeneratorLike]] = None,
+    rng: GeneratorLike | None = None,
+    rngs: Mapping[str, GeneratorLike] | None = None,
 ) -> tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]]:
     """Return three matrices of monthly financing spreads.
 

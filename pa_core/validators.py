@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from io import BytesIO, StringIO
 from pathlib import Path
-from typing import IO, Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import IO, Any, Dict, List, Literal, NamedTuple, Tuple
 
 import numpy as np
 import pandas as pd
@@ -217,7 +217,7 @@ def validate_covariance_matrix_psd(
     return result, psd_info
 
 
-def load_margin_schedule(path: Union[str, Path, bytes, bytearray, IO[Any]]) -> pd.DataFrame:
+def load_margin_schedule(path: str | Path | bytes | bytearray | IO[Any]) -> pd.DataFrame:
     """Load and validate broker margin schedule.
 
     The schedule must contain ``term`` and ``multiplier`` columns representing
@@ -299,8 +299,8 @@ def calculate_margin_requirement(
     total_capital: float = 1000.0,
     *,
     financing_model: str = "simple_proxy",
-    margin_schedule: Optional[pd.DataFrame] = None,
-    schedule_path: Optional[Union[str, Path]] = None,
+    margin_schedule: pd.DataFrame | None = None,
+    schedule_path: str | Path | None = None,
     term_months: float = 1.0,
 ) -> float:
     """Calculate margin requirement for beta backing.
@@ -334,7 +334,7 @@ def validate_capital_allocation(
     volatility_multiple: float = 3.0,
     *,
     financing_model: str = "simple_proxy",
-    margin_schedule_path: Optional[Union[str, Path]] = None,
+    margin_schedule_path: str | Path | None = None,
     term_months: float = 1.0,
 ) -> List[ValidationResult]:
     """Validate capital allocation including margin requirements.

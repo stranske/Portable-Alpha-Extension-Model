@@ -6,7 +6,7 @@ used by portfolio managers in the guided wizard interface.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Literal, Optional, Sequence, cast
+from typing import Any, List, Literal, Sequence, cast
 
 from pydantic import BaseModel, Field
 
@@ -200,10 +200,10 @@ class DefaultConfigView:
     risk_metrics: List[str]
 
     # Sleeve constraint defaults
-    sleeve_max_te: Optional[float]
-    sleeve_max_breach: Optional[float]
-    sleeve_max_cvar: Optional[float]
-    sleeve_max_shortfall: Optional[float]
+    sleeve_max_te: float | None
+    sleeve_max_breach: float | None
+    sleeve_max_cvar: float | None
+    sleeve_max_shortfall: float | None
     sleeve_constraint_scope: Literal["total", "per_sleeve"]
     sleeve_validate_on_run: bool
 
@@ -216,13 +216,13 @@ class DefaultConfigView:
     covariance_shrinkage: Literal["none", "ledoit_wolf"]
     correlation_repair_mode: Literal["error", "warn_fix"]
     correlation_repair_shrinkage: float
-    correlation_repair_max_abs_delta: Optional[float]
+    correlation_repair_max_abs_delta: float | None
     backend: Literal["numpy"]
 
     # Regime-switching configuration (optional)
-    regimes: Optional[List[dict[str, Any]] | dict[str, dict[str, Any]]]
-    regime_transition: Optional[Sequence[Sequence[float]]]
-    regime_start: Optional[str]
+    regimes: List[dict[str, Any]] | dict[str, dict[str, Any]] | None
+    regime_transition: Sequence[Sequence[float]] | None
+    regime_start: str | None
 
 
 def _make_view(m: ModelConfig) -> DefaultConfigView:
