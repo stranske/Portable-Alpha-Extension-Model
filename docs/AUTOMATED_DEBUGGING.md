@@ -145,7 +145,7 @@ from rich.table import Table  # if not used
 # DETECTED: Line too long
 export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
 
-# AUTO-FIXED: Proper line breaking
+# AUTO-FIXED: Formatter keeps the call on one line
 export_sweep_results(results, filename=flags.save_xlsx or "Outputs.xlsx")
 ```
 
