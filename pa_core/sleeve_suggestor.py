@@ -32,14 +32,15 @@ class _StreamCache:
         self._idx_series = idx_series
         self._seed = seed
         self._streams: _StreamTuple | None = None
+        self._probed = False
 
     def get(self) -> _StreamTuple | None:
-        if self._streams is None:
+        if not self._probed:
             orch = SimulatorOrchestrator(self._cfg, self._idx_series)
             draw_streams = getattr(orch, "draw_streams", None)
-            if draw_streams is None:
-                return None
-            self._streams = draw_streams(seed=self._seed)
+            if draw_streams is not None:
+                self._streams = draw_streams(seed=self._seed)
+            self._probed = True
         return self._streams
 
 
@@ -219,6 +220,8 @@ def _extract_metrics(
             meets = False
 
     total_row = summary[summary["Agent"] == "Total"]
+    if total_row.empty and constraint_scope in {"total", "both"}:
+        return None
     if not total_row.empty:
         total_row = total_row.iloc[0]
         total_te = _coerce_metric(total_row["monthly_TE"])
@@ -791,6 +794,8 @@ def suggest_sleeve_sizes(
 
     if constraint_scope not in {"sleeves", "total", "both"}:
         raise ValueError("constraint_scope must be one of: sleeves, total, both")
+    if max_evals is not None and max_evals < 0:
+        raise ValueError("max_evals must be non-negative")
 
     stream_cache = _StreamCache(cfg, idx_series, seed)
 
@@ -939,6 +944,8 @@ def _select_frontier_indices(
         lower = bins[i]
         upper = bins[i + 1]
         in_bin = feasible[(feasible[risk_col] >= lower) & (feasible[risk_col] <= upper)]
+        if picks:
+            in_bin = in_bin.drop(index=picks, errors="ignore")
         if in_bin.empty:
             continue
         best = in_bin.sort_values(return_col, ascending=False).iloc[0]
@@ -976,6 +983,8 @@ def generate_sleeve_frontier(
     """Evaluate sleeve allocations and mark efficient-frontier points."""
     if risk_metric != "TE":
         raise ValueError("risk_metric must be TE for sleeve frontier generation")
+    if max_evals is not None and max_evals < 0:
+        raise ValueError("max_evals must be non-negative")
     problem = build_sleeve_multi_objective_problem(
         return_metric=return_metric,
         max_te=max_te,

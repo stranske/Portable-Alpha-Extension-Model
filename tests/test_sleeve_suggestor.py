@@ -10,9 +10,89 @@ from pa_core.cli import main
 from pa_core.config import ModelConfig, load_config
 from pa_core.data import load_index_returns
 from pa_core.sim.metrics import summary_table
-from pa_core.sleeve_suggestor import suggest_sleeve_sizes
+from pa_core.sleeve_suggestor import (
+    _StreamCache,
+    _coerce_metric,
+    _extract_metrics,
+    suggest_sleeve_sizes,
+)
 
 yaml: Any = pytest.importorskip("yaml")
+
+
+def _constraint_summary(*agents: str) -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "Agent": agent,
+                "monthly_TE": 0.1,
+                "monthly_BreachProb": 0.2,
+                "monthly_CVaR": -0.3,
+                "terminal_ShortfallProb": 0.4,
+            }
+            for agent in agents
+        ]
+    )
+
+
+def test_stream_cache_probes_missing_stream_capability_once(monkeypatch):
+    """A stable missing capability must not double orchestration work for every allocation."""
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
+    constructions = 0
+
+    class OrchestratorWithoutStreams:
+        def __init__(self, _cfg, _idx_series):
+            nonlocal constructions
+            constructions += 1
+
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.SimulatorOrchestrator", OrchestratorWithoutStreams
+    )
+    cache = _StreamCache(cfg, pd.Series([0.0]), seed=7)
+
+    assert cache.get() is None
+    assert cache.get() is None
+    assert constructions == 1
+
+
+def test_total_constraints_fail_closed_without_total_metrics():
+    """Portfolio-wide limits cannot be declared satisfied without a portfolio row."""
+    summary = _constraint_summary("ExternalPA", "ActiveExt", "InternalPA")
+
+    assert (
+        _extract_metrics(
+            summary,
+            max_te=1.0,
+            max_breach=1.0,
+            max_cvar=1.0,
+            max_shortfall=1.0,
+            constraint_scope="total",
+        )
+        is None
+    )
+
+
+def test_metric_coercion_accepts_finite_text_and_rejects_invalid_values():
+    """Report-shaped strings are valid inputs, but malformed or non-finite risk data is not."""
+    assert _coerce_metric("1.25") == pytest.approx(1.25)
+    for invalid in (None, "not-a-number", object(), np.inf, "nan"):
+        assert _coerce_metric(invalid) is None
+
+
+def test_suggest_sleeve_sizes_rejects_negative_evaluation_budget():
+    """A negative cap must fail explicitly instead of evaluating an arbitrary priority slice."""
+    cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
+
+    with pytest.raises(ValueError, match="max_evals must be non-negative"):
+        suggest_sleeve_sizes(
+            cfg,
+            pd.Series([0.0]),
+            max_te=1.0,
+            max_breach=1.0,
+            max_cvar=1.0,
+            max_shortfall=1.0,
+            max_evals=-1,
+        )
 
 
 def test_suggest_sleeve_sizes_returns_feasible():
