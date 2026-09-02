@@ -325,6 +325,23 @@ def test_named_return_draws_accept_large_finite_covariance_without_overflow() ->
     assert all(np.all(np.isfinite(values)) for values in draws.values())
 
 
+def test_named_return_draws_reject_opposite_max_covariance_without_overflow() -> None:
+    maximum = np.finfo(np.float64).max
+    covariance = np.array([[1.0, maximum], [-maximum, 1.0]])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        with pytest.raises(ValueError, match="symmetric"):
+            draw_named_returns(
+                n_months=1,
+                n_sim=1,
+                stream_names=("idx", "alpha"),
+                means=(0.0, 0.0),
+                cov=covariance,
+                seed=1,
+            )
+
+
 def test_named_return_draws_preserve_subnormal_variance_during_symmetrization() -> None:
     covariance = np.diag([np.nextafter(0.0, 1.0), 1.0])
 

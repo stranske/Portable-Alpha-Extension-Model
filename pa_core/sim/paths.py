@@ -122,7 +122,13 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
     )
     symmetry_tolerance = max(float(precision), np.finfo(float).eps)
     local_scale = np.maximum(np.abs(covariance), np.abs(covariance.T))
-    if np.any(np.abs(covariance - covariance.T) > symmetry_tolerance * local_scale):
+    normalized = np.divide(
+        covariance,
+        local_scale,
+        out=np.zeros_like(covariance),
+        where=local_scale != 0.0,
+    )
+    if np.any(np.abs(normalized - normalized.T) > symmetry_tolerance):
         raise ValueError("Covariance matrix must be symmetric")
     upper = np.triu_indices_from(covariance, k=1)
     lower = (upper[1], upper[0])
