@@ -1,3 +1,6 @@
+import logging
+import warnings
+
 import pandas as pd
 import pytest
 
@@ -22,6 +25,44 @@ def _mock_monthly_series(values=None) -> pd.Series:
 def _patch_core(monkeypatch, cfg: ModelConfig) -> None:
     monkeypatch.setattr("pa_core.config.load_config", lambda _: cfg)
     monkeypatch.setattr("pa_core.backend.resolve_and_set_backend", lambda *_: "numpy")
+
+
+def test_cli_parser_error_restores_warning_collector() -> None:
+    root_logger = logging.getLogger()
+    original_handlers = tuple(root_logger.handlers)
+    original_showwarning = warnings.showwarning
+
+    try:
+        for _ in range(2):
+            with pytest.raises(SystemExit) as exc_info:
+                main(["--config", "missing.yml"], emit_deprecation_warning=False)
+
+            assert exc_info.value.code == 2
+            assert tuple(root_logger.handlers) == original_handlers
+            assert warnings.showwarning is original_showwarning
+    finally:
+        root_logger.handlers[:] = list(original_handlers)
+        warnings.showwarning = original_showwarning
+
+
+def test_cli_config_error_restores_warning_collector(monkeypatch: pytest.MonkeyPatch) -> None:
+    root_logger = logging.getLogger()
+    original_handlers = tuple(root_logger.handlers)
+    original_showwarning = warnings.showwarning
+
+    def fail_load_config(_path: str) -> None:
+        raise RuntimeError("config loader exploded")
+
+    monkeypatch.setattr("pa_core.config.load_config", fail_load_config)
+    try:
+        with pytest.raises(RuntimeError, match="config loader exploded"):
+            main(["--config", "cfg.yml", "--validate-only"], emit_deprecation_warning=False)
+
+        assert tuple(root_logger.handlers) == original_handlers
+        assert warnings.showwarning is original_showwarning
+    finally:
+        root_logger.handlers[:] = list(original_handlers)
+        warnings.showwarning = original_showwarning
 
 
 def test_cli_rejects_non_series_index(monkeypatch):
