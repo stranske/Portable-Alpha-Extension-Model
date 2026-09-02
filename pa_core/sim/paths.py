@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import warnings
 from typing import Any, Dict, Mapping, Sequence, cast
 
@@ -34,9 +35,21 @@ _CORR_VALIDATION_TOL = 1e-8
 logger = logging.getLogger(__name__)
 
 
+def _coerce_return_t_df(t_df: Any) -> float:
+    try:
+        value = float(t_df)
+    except (TypeError, ValueError, OverflowError):
+        raise ValueError(
+            "return_t_df must be finite and greater than 2 for finite variance"
+        ) from None
+    if not math.isfinite(value):
+        raise ValueError("return_t_df must be finite and greater than 2 for finite variance")
+    return value
+
+
 def _validate_return_draw_settings(
-    distribution: str | Sequence[str], copula: str, t_df: float
-) -> None:
+    distribution: str | Sequence[str], copula: str, t_df: Any
+) -> float:
     if isinstance(distribution, str):
         distributions: tuple[str, ...] = (distribution,)
     else:
@@ -48,8 +61,11 @@ def _validate_return_draw_settings(
         raise ValueError(f"return_copula must be one of: {sorted(_VALID_RETURN_COPULAS)}")
     if all(dist == "normal" for dist in distributions) and copula != "gaussian":
         raise ValueError("return_copula must be 'gaussian' when return_distribution is 'normal'")
-    if any(dist == "student_t" for dist in distributions) and t_df <= 2.0:
-        raise ValueError("return_t_df must be greater than 2 for finite variance")
+    t_df_value = _coerce_return_t_df(t_df)
+    if any(dist == "student_t" for dist in distributions):
+        if t_df_value <= 2.0:
+            raise ValueError("return_t_df must be finite and greater than 2 for finite variance")
+    return t_df_value
 
 
 def _resolve_return_distributions(
@@ -95,6 +111,30 @@ def _validate_correlation_matrix(corr: NDArray[Any]) -> None:
     if not np.allclose(diag, 1.0, atol=_CORR_VALIDATION_TOL):
         idx = int(np.argmax(np.abs(diag - 1.0)))
         raise ValueError(f"Correlation matrix diagonal must be 1; idx {idx} has {diag[idx]:.6f}")
+
+
+def _validate_covariance_matrix(cov: NDArray[Any]) -> None:
+    if not np.all(np.isfinite(cov)):
+        raise ValueError("Covariance matrix contains non-finite values")
+    if not np.allclose(cov, cov.T, rtol=0.0, atol=_CORR_VALIDATION_TOL):
+        raise ValueError("Covariance matrix must be symmetric")
+    if np.any(np.diag(cov) < 0.0):
+        raise ValueError("Covariance matrix variances must be non-negative")
+    scale = float(np.max(np.abs(cov)))
+    if scale == 0.0:
+        return
+    scaled_min_eigenvalue = float(np.linalg.eigvalsh(cov / scale).min())
+    eigenvalue_tolerance = np.finfo(float).eps * max(cov.shape)
+    if scaled_min_eigenvalue < -eigenvalue_tolerance:
+        min_eigenvalue = scaled_min_eigenvalue * scale
+        raise ValueError(
+            f"Covariance matrix must be positive semidefinite; min eigenvalue {min_eigenvalue:.3e}"
+        )
+
+
+def _validate_finite_means(mean: NDArray[Any]) -> None:
+    if not np.all(np.isfinite(mean)):
+        raise ValueError("Return means must contain only finite values")
 
 
 def _project_to_near_psd_correlation(corr: NDArray[Any]) -> NDArray[Any]:
@@ -298,10 +338,12 @@ def prepare_mc_universe(
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
     if cov_mat.shape != (4, 4):
         raise ValueError("cov_mat must be 4×4 and ordered as [idx, H, E, M]")
+    _validate_covariance_matrix(cov_mat)
     rng = ensure_rng(seed, rng)
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
-    _validate_return_draw_settings(distributions, return_copula, return_t_df)
+    return_t_df = _validate_return_draw_settings(distributions, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M])
+    _validate_finite_means(mean)
     cov = cov_mat
     if all(dist == "normal" for dist in distributions):
         sims = _safe_multivariate_normal(rng, mean, cov, (N_SIMULATIONS, N_MONTHS))
@@ -357,11 +399,11 @@ def prepare_return_shocks(
     )
     use_overrides = any(val is not None for val in dist_overrides)
     copula = params.get("return_copula", "gaussian")
-    t_df = float(params.get("return_t_df", 5.0))
+    t_df = params.get("return_t_df", 5.0)
     distributions = _resolve_return_distributions(
         distribution, dist_overrides if use_overrides else None
     )
-    _validate_return_draw_settings(distributions, copula, t_df)
+    t_df = _validate_return_draw_settings(distributions, copula, t_df)
     corr, repair_info = _resolve_correlation_matrix(params)
     z = _safe_multivariate_normal(rng, np.zeros(4), corr, (n_sim, n_months))
     shocks: Dict[str, Any] = {
@@ -375,8 +417,14 @@ def prepare_return_shocks(
     if any(dist == "student_t" for dist in distributions):
         if copula == "t":
             shocks["chi_common"] = rng.chisquare(t_df, size=(n_sim, n_months))
-        else:
+        elif all(dist == "student_t" for dist in distributions):
             shocks["chi_dim"] = rng.chisquare(t_df, size=(n_sim, n_months, 4))
+        else:
+            chi_dim = np.ones((n_sim, n_months, 4), dtype=float)
+            for idx, dist in enumerate(distributions):
+                if dist == "student_t":
+                    chi_dim[..., idx] = rng.chisquare(t_df, size=(n_sim, n_months))
+            shocks["chi_dim"] = chi_dim
     return shocks
 
 
@@ -403,11 +451,11 @@ def draw_returns(
     )
     use_overrides = any(val is not None for val in dist_overrides)
     copula = params.get("return_copula", "gaussian")
-    t_df = float(params.get("return_t_df", 5.0))
+    t_df = params.get("return_t_df", 5.0)
     distributions = _resolve_return_distributions(
         distribution, dist_overrides if use_overrides else None
     )
-    _validate_return_draw_settings(distributions, copula, t_df)
+    t_df = _validate_return_draw_settings(distributions, copula, t_df)
     μ_idx = params["mu_idx_month"]
     μ_H = params["default_mu_H"]
     μ_E = params["default_mu_E"]
@@ -532,6 +580,7 @@ def draw_named_returns(
         raise ValueError("stream_names must be unique")
     if cov.shape != (len(names), len(names)):
         raise ValueError("cov shape must match stream_names")
+    _validate_covariance_matrix(cov)
 
     if isinstance(means, Mapping):
         missing_means = [name for name in names if name not in means]
@@ -542,11 +591,12 @@ def draw_named_returns(
         mean_vec = np.array([float(value) for value in means])
         if mean_vec.size != len(names):
             raise ValueError("means must have the same length as stream_names")
+    _validate_finite_means(mean_vec)
 
     distributions = _resolve_stream_return_distributions(
         return_distribution, names, return_distributions
     )
-    _validate_return_draw_settings(distributions, return_copula, return_t_df)
+    return_t_df = _validate_return_draw_settings(distributions, return_copula, return_t_df)
     rng = ensure_rng(seed, rng)
     if all(dist == "normal" for dist in distributions):
         sims = _safe_multivariate_normal(rng, mean_vec, cov, (n_sim, n_months))
@@ -634,7 +684,7 @@ def _distribution_signature(params: Dict[str, Any]) -> tuple[Any, ...]:
         params.get("return_distribution_E"),
         params.get("return_distribution_M"),
         params.get("return_copula", "gaussian"),
-        float(params.get("return_t_df", 5.0)),
+        _coerce_return_t_df(params.get("return_t_df", 5.0)),
     )
 
 
@@ -674,6 +724,12 @@ def draw_joint_returns(
 
     if regime_paths.shape != (n_sim, n_months):
         raise ValueError("regime_paths has incompatible shape")
+    if not np.issubdtype(regime_paths.dtype, np.integer) or np.issubdtype(
+        regime_paths.dtype, np.bool_
+    ):
+        raise ValueError("regime_paths must contain integer regime indices")
+    if np.any(regime_paths < 0) or np.any(regime_paths >= len(regime_params)):
+        raise ValueError("regime_paths contains an index outside regime_params")
 
     signature = _distribution_signature(regime_params[0])
     for idx, regime in enumerate(regime_params[1:], start=1):
@@ -722,9 +778,11 @@ def simulate_alpha_streams(
         raise ValueError("T must be positive")
     if cov.shape != (4, 4):
         raise ValueError("cov must be 4×4 and ordered as [idx, H, E, M]")
+    _validate_covariance_matrix(cov)
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
-    _validate_return_draw_settings(distributions, return_copula, return_t_df)
+    return_t_df = _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])
+    _validate_finite_means(means)
     rng = ensure_rng(seed, rng)
     if all(dist == "normal" for dist in distributions):
         return _safe_multivariate_normal(rng, means, cov, (T, 1))[:, 0, :]

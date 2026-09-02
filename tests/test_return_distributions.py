@@ -62,6 +62,69 @@ def _build_cov(params: dict[str, float | str]) -> np.ndarray:
     return corr * (sigma[:, None] * sigma[None, :])
 
 
+@pytest.mark.parametrize("t_df", [float("nan"), float("inf"), float("-inf")])
+def test_model_config_rejects_nonfinite_student_t_df(t_df: float) -> None:
+    with pytest.raises(ValueError, match="finite and greater than 2"):
+        ModelConfig(
+            N_SIMULATIONS=1,
+            N_MONTHS=1,
+            financing_mode="broadcast",
+            return_unit="monthly",
+            return_distribution="student_t",
+            return_copula="t",
+            return_t_df=t_df,
+        )
+
+
+@pytest.mark.parametrize(
+    "t_df",
+    [float("nan"), float("inf"), float("-inf"), 10**10000],
+    ids=["nan", "positive-infinity", "negative-infinity", "out-of-float-range"],
+)
+def test_direct_draw_rejects_nonfinite_student_t_df(t_df: float) -> None:
+    with pytest.raises(ValueError, match="finite and greater than 2"):
+        simulate_alpha_streams(
+            2,
+            np.eye(4),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            return_distribution="student_t",
+            return_copula="t",
+            return_t_df=t_df,
+            seed=5,
+        )
+
+
+@pytest.mark.parametrize("bad_t_df", [None, 10**10000], ids=["none", "out-of-float-range"])
+@pytest.mark.parametrize("route", ["prepare", "draw", "regime"])
+def test_parameter_draw_routes_translate_invalid_student_t_df(bad_t_df: Any, route: str) -> None:
+    params = _base_params()
+    params.update(
+        {
+            "return_distribution": "student_t",
+            "return_copula": "t",
+            "return_t_df": bad_t_df,
+        }
+    )
+
+    with pytest.raises(ValueError, match="finite and greater than 2"):
+        if route == "prepare":
+            prepare_return_shocks(n_months=2, n_sim=2, params=params, seed=1)
+        elif route == "draw":
+            draw_joint_returns(n_months=2, n_sim=2, params=params, seed=1)
+        else:
+            draw_joint_returns(
+                n_months=2,
+                n_sim=2,
+                params=params,
+                regime_paths=np.zeros((2, 2), dtype=int),
+                regime_params=(dict(params),),
+                seed=1,
+            )
+
+
 def test_draw_joint_returns_variance_matches_sigma() -> None:
     n_sim, n_months = 2000, 24
     params = _base_params()
@@ -233,6 +296,39 @@ def test_draw_joint_returns_matches_prepared_shocks() -> None:
     )
     for left, right in zip(shocked, repeated):
         np.testing.assert_allclose(left, right)
+
+
+def test_mixed_gaussian_prepared_shocks_match_direct_draws() -> None:
+    params = _base_params()
+    params.update(
+        {
+            "return_distribution_H": "student_t",
+            "return_distribution_M": "student_t",
+        }
+    )
+    n_sim, n_months, seed = 4, 3, 123
+
+    direct = draw_joint_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=np.random.default_rng(seed),
+    )
+    shocks = prepare_return_shocks(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        rng=np.random.default_rng(seed),
+    )
+    replayed = draw_joint_returns(
+        n_months=n_months,
+        n_sim=n_sim,
+        params=params,
+        shocks=shocks,
+    )
+
+    for direct_stream, replayed_stream in zip(direct, replayed):
+        np.testing.assert_array_equal(direct_stream, replayed_stream)
 
 
 def test_draw_joint_returns_passes_through_valid_correlation() -> None:

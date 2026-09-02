@@ -433,3 +433,42 @@ def test_regime_switching_seed_is_deterministic() -> None:
     assert np.allclose(returns_a, returns_c)
     assert not np.array_equal(paths_a, paths_b)
     assert not np.allclose(returns_a, returns_b)
+
+
+@pytest.mark.parametrize(
+    ("regime_paths", "message"),
+    [
+        (np.array([[0, 2], [0, 1]]), "outside regime_params"),
+        (np.array([[0, -1], [0, 1]]), "outside regime_params"),
+        (np.array([[0.0, 1.0], [0.0, 1.0]]), "integer regime indices"),
+        (np.array([[False, True], [False, True]]), "integer regime indices"),
+    ],
+    ids=["too-high", "negative", "float", "boolean"],
+)
+def test_draw_joint_returns_rejects_invalid_regime_states(
+    regime_paths: np.ndarray, message: str
+) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=2,
+        N_MONTHS=2,
+        financing_mode="broadcast",
+        return_unit="monthly",
+        regimes=[RegimeConfig(name="calm"), RegimeConfig(name="stress")],
+        regime_transition=[[0.8, 0.2], [0.2, 0.8]],
+    )
+    params, _labels = build_regime_draw_params(
+        cfg,
+        mu_idx=0.0,
+        idx_sigma=0.015,
+        n_samples=12,
+    )
+
+    with pytest.raises(ValueError, match=message):
+        draw_joint_returns(
+            n_months=cfg.N_MONTHS,
+            n_sim=cfg.N_SIMULATIONS,
+            params=params[0],
+            regime_paths=regime_paths,
+            regime_params=params,
+            seed=2,
+        )
