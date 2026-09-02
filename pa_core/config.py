@@ -997,8 +997,10 @@ class ModelConfig(BaseModel):
             raise ValueError(
                 "return_copula must be 'gaussian' when return_distribution is 'normal'"
             )
-        if any(dist == "student_t" for dist in resolved) and self.return_t_df <= 2.0:
-            raise ValueError("return_t_df must be greater than 2 for finite variance")
+        if any(dist == "student_t" for dist in resolved) and (
+            not math.isfinite(self.return_t_df) or self.return_t_df <= 2.0
+        ):
+            raise ValueError("return_t_df must be finite and greater than 2 for finite variance")
         return self
 
     @model_validator(mode="after")

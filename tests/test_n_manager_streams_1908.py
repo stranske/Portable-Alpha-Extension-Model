@@ -90,6 +90,39 @@ def test_named_return_draws_map_sleeves_to_alpha_sources() -> None:
     )
 
 
+def test_named_return_draws_reject_nonfinite_means() -> None:
+    with pytest.raises(ValueError, match="means must contain only finite"):
+        draw_named_returns(
+            n_months=2,
+            n_sim=2,
+            stream_names=("idx", "alpha"),
+            means=(float("nan"), 0.0),
+            cov=np.eye(2),
+            seed=1,
+        )
+
+
+@pytest.mark.parametrize(
+    ("cov", "message"),
+    [
+        (np.array([[float("nan"), 0.0], [0.0, 1.0]]), "non-finite"),
+        (np.array([[1.0, 0.5], [0.0, 1.0]]), "symmetric"),
+        (np.array([[-1.0, 0.0], [0.0, 1.0]]), "positive semidefinite"),
+    ],
+    ids=["nonfinite", "asymmetric", "indefinite"],
+)
+def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: str) -> None:
+    with pytest.raises(ValueError, match=message):
+        draw_named_returns(
+            n_months=2,
+            n_sim=2,
+            stream_names=("idx", "alpha"),
+            means=(0.0, 0.0),
+            cov=cov,
+            seed=1,
+        )
+
+
 def test_legacy_four_stream_api_remains_compatible() -> None:
     cov = build_cov_matrix(
         0.05,
