@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 
@@ -107,10 +109,17 @@ def test_named_return_draws_reject_nonfinite_means() -> None:
     [
         (np.array([[float("nan"), 0.0], [0.0, 1.0]]), "non-finite"),
         (np.array([[1.0, 0.5], [0.0, 1.0]]), "symmetric"),
+        (np.array([[1.0e-20, 1.0e-12], [0.0, 1.0e-20]]), "symmetric"),
         (np.array([[-1.0e-9, 0.0], [0.0, 1.0]]), "variances must be non-negative"),
         (np.array([[1.0e-20, 2.0e-20], [2.0e-20, 1.0e-20]]), "positive semidefinite"),
     ],
-    ids=["nonfinite", "asymmetric", "negative-variance", "scale-sensitive-indefinite"],
+    ids=[
+        "nonfinite",
+        "asymmetric",
+        "tiny-asymmetric",
+        "negative-variance",
+        "scale-sensitive-indefinite",
+    ],
 )
 def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: str) -> None:
     with pytest.raises(ValueError, match=message):
@@ -122,6 +131,26 @@ def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: 
             cov=cov,
             seed=1,
         )
+
+
+def test_named_return_draws_accept_rank_deficient_float32_covariance() -> None:
+    factors = np.random.default_rng(0).standard_normal((4, 2)).astype(np.float32)
+    covariance = factors @ factors.T
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = draw_named_returns(
+            n_months=2,
+            n_sim=2,
+            stream_names=("idx", "alpha_a", "alpha_b", "alpha_c"),
+            means=(0.0, 0.0, 0.0, 0.0),
+            cov=covariance,
+            seed=1,
+        )
+
+    assert set(draws) == {"idx", "alpha_a", "alpha_b", "alpha_c"}
+    assert all(values.shape == (2, 2) for values in draws.values())
+    assert all(np.all(np.isfinite(values)) for values in draws.values())
 
 
 def test_legacy_four_stream_api_remains_compatible() -> None:
