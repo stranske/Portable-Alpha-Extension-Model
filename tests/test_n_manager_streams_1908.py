@@ -10,8 +10,14 @@ from pa_core.sim import (
     build_generic_cov_matrix,
     draw_named_returns,
     map_sleeve_alpha_streams,
+    prepare_mc_universe,
     simulate_alpha_streams,
 )
+
+
+def _rank_deficient_float32_covariance() -> np.ndarray:
+    factors = np.random.default_rng(0).standard_normal((4, 2)).astype(np.float32)
+    return factors @ factors.T
 
 
 def test_generic_covariance_supports_manager_universe_shape() -> None:
@@ -104,6 +110,23 @@ def test_named_return_draws_reject_nonfinite_means() -> None:
         )
 
 
+def test_named_return_draws_reject_dimension_amplified_asymmetry() -> None:
+    size = 64
+    covariance = np.eye(size, dtype=np.float16)
+    covariance[0, 1] = np.float16(1.0)
+    covariance[1, 0] = np.float16(0.9375)
+
+    with pytest.raises(ValueError, match="symmetric"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(size)),
+            means=(0.0,) * size,
+            cov=covariance,
+            seed=1,
+        )
+
+
 @pytest.mark.parametrize(
     ("cov", "message"),
     [
@@ -146,8 +169,7 @@ def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: 
 
 
 def test_named_return_draws_accept_rank_deficient_float32_covariance() -> None:
-    factors = np.random.default_rng(0).standard_normal((4, 2)).astype(np.float32)
-    covariance = factors @ factors.T
+    covariance = _rank_deficient_float32_covariance()
 
     with warnings.catch_warnings():
         warnings.simplefilter("error", RuntimeWarning)
@@ -163,6 +185,57 @@ def test_named_return_draws_accept_rank_deficient_float32_covariance() -> None:
     assert set(draws) == {"idx", "alpha_a", "alpha_b", "alpha_c"}
     assert all(values.shape == (2, 2) for values in draws.values())
     assert all(np.all(np.isfinite(values)) for values in draws.values())
+
+
+def test_named_return_draws_accept_large_finite_covariance_without_overflow() -> None:
+    covariance = np.diag([0.75 * np.finfo(np.float64).max] * 2)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=("idx", "alpha"),
+            means=(0.0, 0.0),
+            cov=covariance,
+            seed=1,
+        )
+
+    assert all(np.all(np.isfinite(values)) for values in draws.values())
+
+
+def test_prepare_mc_universe_uses_repaired_rank_deficient_covariance() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = prepare_mc_universe(
+            N_SIMULATIONS=2,
+            N_MONTHS=2,
+            mu_idx=0.0,
+            mu_H=0.0,
+            mu_E=0.0,
+            mu_M=0.0,
+            cov_mat=_rank_deficient_float32_covariance(),
+            seed=1,
+        )
+
+    assert draws.shape == (2, 2, 4)
+
+
+def test_simulate_alpha_streams_uses_repaired_rank_deficient_covariance() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = simulate_alpha_streams(
+            2,
+            _rank_deficient_float32_covariance(),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            seed=1,
+        )
+
+    assert draws.shape == (2, 4)
 
 
 def test_legacy_four_stream_api_remains_compatible() -> None:

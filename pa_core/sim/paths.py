@@ -120,11 +120,12 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
     precision = (
         np.finfo(cov.dtype).eps if np.issubdtype(cov.dtype, np.floating) else np.finfo(float).eps
     )
-    matrix_tolerance = max(float(precision), np.finfo(float).eps) * max(cov.shape)
+    symmetry_tolerance = max(float(precision), np.finfo(float).eps)
+    matrix_tolerance = symmetry_tolerance * max(cov.shape)
     local_scale = np.maximum(np.abs(covariance), np.abs(covariance.T))
-    if np.any(np.abs(covariance - covariance.T) > matrix_tolerance * local_scale):
+    if np.any(np.abs(covariance - covariance.T) > symmetry_tolerance * local_scale):
         raise ValueError("Covariance matrix must be symmetric")
-    covariance = 0.5 * (covariance + covariance.T)
+    covariance = 0.5 * covariance + 0.5 * covariance.T
     variances = np.diag(covariance).copy()
     if np.any(variances < 0.0):
         raise ValueError("Covariance matrix variances must be non-negative")
