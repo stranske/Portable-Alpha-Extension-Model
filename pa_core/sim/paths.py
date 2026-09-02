@@ -113,23 +113,78 @@ def _validate_correlation_matrix(corr: NDArray[Any]) -> None:
         raise ValueError(f"Correlation matrix diagonal must be 1; idx {idx} has {diag[idx]:.6f}")
 
 
-def _validate_covariance_matrix(cov: NDArray[Any]) -> None:
+def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
     if not np.all(np.isfinite(cov)):
         raise ValueError("Covariance matrix contains non-finite values")
-    if not np.allclose(cov, cov.T, rtol=0.0, atol=_CORR_VALIDATION_TOL):
+    covariance = np.asarray(cov, dtype=float)
+    precision = (
+        np.finfo(cov.dtype).eps if np.issubdtype(cov.dtype, np.floating) else np.finfo(float).eps
+    )
+    symmetry_tolerance = max(float(precision), np.finfo(float).eps)
+    local_scale = np.maximum(np.abs(covariance), np.abs(covariance.T))
+    normalized = np.divide(
+        covariance,
+        local_scale,
+        out=np.zeros_like(covariance),
+        where=local_scale != 0.0,
+    )
+    if np.any(np.abs(normalized - normalized.T) > symmetry_tolerance):
         raise ValueError("Covariance matrix must be symmetric")
-    if np.any(np.diag(cov) < 0.0):
+    upper = np.triu_indices_from(covariance, k=1)
+    lower = (upper[1], upper[0])
+    midpoints = covariance[upper] + 0.5 * (covariance[lower] - covariance[upper])
+    covariance = covariance.copy()
+    covariance[upper] = covariance[lower] = midpoints
+    variances = np.diag(covariance).copy()
+    if np.any(variances < 0.0):
         raise ValueError("Covariance matrix variances must be non-negative")
-    scale = float(np.max(np.abs(cov)))
-    if scale == 0.0:
-        return
-    scaled_min_eigenvalue = float(np.linalg.eigvalsh(cov / scale).min())
-    eigenvalue_tolerance = np.finfo(float).eps * max(cov.shape)
-    if scaled_min_eigenvalue < -eigenvalue_tolerance:
-        min_eigenvalue = scaled_min_eigenvalue * scale
+    positive_variance = variances > 0.0
+    if np.any(covariance[~positive_variance, :] != 0.0):
         raise ValueError(
-            f"Covariance matrix must be positive semidefinite; min eigenvalue {min_eigenvalue:.3e}"
+            "Covariance matrix must be positive semidefinite; zero variance requires zero covariance"
         )
+    if not np.any(positive_variance):
+        return cast(npt.NDArray[Any], covariance)
+    standard_deviations = np.sqrt(variances[positive_variance])
+    denominator = np.outer(standard_deviations, standard_deviations)
+    positive_covariance = covariance[np.ix_(positive_variance, positive_variance)]
+    correlation = positive_covariance / denominator
+    if np.any(np.abs(correlation) > 1.0 + symmetry_tolerance):
+        raise ValueError(
+            "Covariance matrix must be positive semidefinite; absolute correlation cannot exceed 1"
+        )
+    min_eigenvalue = float(np.linalg.eigvalsh(correlation).min())
+    if min_eigenvalue >= 0.0:
+        return cast(npt.NDArray[Any], covariance)
+    eigenvalues, eigenvectors = np.linalg.eigh(correlation)
+    negative = eigenvalues < 0.0
+    negative_eigenvectors = eigenvectors[:, negative]
+    negative_vectors = np.abs(negative_eigenvectors)
+    # Bound each negative Rayleigh quotient by its own entrywise input-rounding
+    # uncertainty plus the observed eigensolver residual.  The latter keeps a
+    # PSD matrix consumable when eigvalsh and eigh differ at machine precision,
+    # without importing scale from unrelated covariance blocks.
+    rounding_tolerance = symmetry_tolerance * np.sum(
+        negative_vectors * (np.abs(correlation) @ negative_vectors), axis=0
+    )
+    eigensolver_residual = np.linalg.norm(
+        correlation @ negative_eigenvectors - negative_eigenvectors * eigenvalues[negative],
+        axis=0,
+    )
+    rounding_tolerance += eigensolver_residual
+    invalid = eigenvalues[negative] < -rounding_tolerance
+    if np.any(invalid):
+        invalid_min_eigenvalue = float(np.min(eigenvalues[negative][invalid]))
+        raise ValueError(
+            "Covariance matrix must be positive semidefinite"
+            f"; normalized min eigenvalue {invalid_min_eigenvalue:.3e}"
+        )
+    correlation = (eigenvectors * np.clip(eigenvalues, 0.0, None)) @ eigenvectors.T
+    correlation_scale = np.sqrt(np.diag(correlation))
+    correlation /= np.outer(correlation_scale, correlation_scale)
+    covariance[np.ix_(positive_variance, positive_variance)] = correlation * denominator
+    np.fill_diagonal(covariance, variances)
+    return cast(npt.NDArray[Any], covariance)
 
 
 def _validate_finite_means(mean: NDArray[Any]) -> None:
@@ -338,13 +393,12 @@ def prepare_mc_universe(
         raise ValueError("N_SIMULATIONS and N_MONTHS must be positive")
     if cov_mat.shape != (4, 4):
         raise ValueError("cov_mat must be 4×4 and ordered as [idx, H, E, M]")
-    _validate_covariance_matrix(cov_mat)
+    cov = _validate_covariance_matrix(cov_mat)
     rng = ensure_rng(seed, rng)
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
     return_t_df = _validate_return_draw_settings(distributions, return_copula, return_t_df)
     mean = np.array([mu_idx, mu_H, mu_E, mu_M])
     _validate_finite_means(mean)
-    cov = cov_mat
     if all(dist == "normal" for dist in distributions):
         sims = _safe_multivariate_normal(rng, mean, cov, (N_SIMULATIONS, N_MONTHS))
     else:
@@ -580,7 +634,7 @@ def draw_named_returns(
         raise ValueError("stream_names must be unique")
     if cov.shape != (len(names), len(names)):
         raise ValueError("cov shape must match stream_names")
-    _validate_covariance_matrix(cov)
+    cov = _validate_covariance_matrix(cov)
 
     if isinstance(means, Mapping):
         missing_means = [name for name in names if name not in means]
@@ -778,7 +832,7 @@ def simulate_alpha_streams(
         raise ValueError("T must be positive")
     if cov.shape != (4, 4):
         raise ValueError("cov must be 4×4 and ordered as [idx, H, E, M]")
-    _validate_covariance_matrix(cov)
+    cov = _validate_covariance_matrix(cov)
     distributions = _resolve_return_distributions(return_distribution, return_distributions)
     return_t_df = _validate_return_draw_settings(distributions, return_copula, return_t_df)
     means = np.array([mu_idx, mu_H, mu_E, mu_M])

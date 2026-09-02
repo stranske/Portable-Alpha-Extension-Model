@@ -1,15 +1,24 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pytest
 
+from pa_core.sim import paths as paths_module
 from pa_core.sim import (
     build_cov_matrix,
     build_generic_cov_matrix,
     draw_named_returns,
     map_sleeve_alpha_streams,
+    prepare_mc_universe,
     simulate_alpha_streams,
 )
+
+
+def _rank_deficient_float32_covariance() -> np.ndarray:
+    factors = np.random.default_rng(0).standard_normal((4, 2)).astype(np.float32)
+    return factors @ factors.T
 
 
 def test_generic_covariance_supports_manager_universe_shape() -> None:
@@ -102,15 +111,126 @@ def test_named_return_draws_reject_nonfinite_means() -> None:
         )
 
 
+def test_named_return_draws_reject_dimension_amplified_asymmetry() -> None:
+    size = 64
+    covariance = np.eye(size, dtype=np.float16)
+    covariance[0, 1] = np.float16(1.0)
+    covariance[1, 0] = np.float16(0.9375)
+
+    with pytest.raises(ValueError, match="symmetric"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(size)),
+            means=(0.0,) * size,
+            cov=covariance,
+            seed=1,
+        )
+
+
+def test_named_return_draws_reject_dimension_amplified_correlation() -> None:
+    size = 64
+    covariance = np.eye(size, dtype=np.float16)
+    covariance[0, 1] = covariance[1, 0] = np.float16(1.05)
+
+    with pytest.raises(ValueError, match="absolute correlation cannot exceed 1"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(size)),
+            means=(0.0,) * size,
+            cov=covariance,
+            seed=1,
+        )
+
+
+def test_named_return_draws_keep_psd_tolerance_local_to_correlated_block() -> None:
+    size = 64
+    block_size = 21
+    covariance = np.eye(size, dtype=np.float16)
+    covariance[1:block_size, 1:block_size] = np.float16(0.9375)
+    np.fill_diagonal(covariance, np.float16(1.0))
+    covariance[0, 1:block_size] = np.float16(1.0)
+    covariance[1:block_size, 0] = np.float16(1.0)
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(size)),
+            means=(0.0,) * size,
+            cov=covariance,
+            seed=1,
+        )
+
+
+def test_named_return_draws_validate_disconnected_blocks_independently() -> None:
+    large_valid_block = np.ones((64, 64), dtype=np.float16)
+    small_invalid_block = np.full((3, 3), np.float16(-0.53), dtype=np.float16)
+    np.fill_diagonal(small_invalid_block, np.float16(1.0))
+    covariance = np.zeros((67, 67), dtype=np.float16)
+    covariance[:64, :64] = large_valid_block
+    covariance[64:, 64:] = small_invalid_block
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(67)),
+            means=(0.0,) * 67,
+            cov=covariance,
+            seed=1,
+        )
+
+
+def test_named_return_draws_keep_psd_tolerance_local_across_weak_links() -> None:
+    large_valid_block = np.ones((64, 64), dtype=np.float16)
+    small_invalid_block = np.full((3, 3), np.float16(-0.53), dtype=np.float16)
+    np.fill_diagonal(small_invalid_block, np.float16(1.0))
+    covariance = np.zeros((67, 67), dtype=np.float16)
+    covariance[:64, :64] = large_valid_block
+    covariance[64:, 64:] = small_invalid_block
+    covariance[0, 64] = covariance[64, 0] = np.float16(0.01)
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(67)),
+            means=(0.0,) * 67,
+            cov=covariance,
+            seed=1,
+        )
+
+
 @pytest.mark.parametrize(
     ("cov", "message"),
     [
         (np.array([[float("nan"), 0.0], [0.0, 1.0]]), "non-finite"),
         (np.array([[1.0, 0.5], [0.0, 1.0]]), "symmetric"),
+        (np.array([[1.0e-20, 1.0e-12], [0.0, 1.0e-20]]), "symmetric"),
+        (
+            np.array([[1.0, 1.0e-7], [0.0, 1.0e-20]], dtype=np.float32),
+            "symmetric",
+        ),
         (np.array([[-1.0e-9, 0.0], [0.0, 1.0]]), "variances must be non-negative"),
         (np.array([[1.0e-20, 2.0e-20], [2.0e-20, 1.0e-20]]), "positive semidefinite"),
+        (
+            np.array([[1.0, 5.0e-8], [5.0e-8, 1.0e-20]], dtype=np.float32),
+            "positive semidefinite",
+        ),
+        (np.array([[0.0, 1.0e-20], [1.0e-20, 1.0]]), "positive semidefinite"),
     ],
-    ids=["nonfinite", "asymmetric", "negative-variance", "scale-sensitive-indefinite"],
+    ids=[
+        "nonfinite",
+        "asymmetric",
+        "tiny-asymmetric",
+        "heterogeneous-asymmetric",
+        "negative-variance",
+        "scale-sensitive-indefinite",
+        "heterogeneous-indefinite",
+        "zero-variance-covariance",
+    ],
 )
 def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: str) -> None:
     with pytest.raises(ValueError, match=message):
@@ -122,6 +242,155 @@ def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: 
             cov=cov,
             seed=1,
         )
+
+
+def test_named_return_draws_accept_rank_deficient_float32_covariance() -> None:
+    covariance = _rank_deficient_float32_covariance()
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = draw_named_returns(
+            n_months=2,
+            n_sim=2,
+            stream_names=("idx", "alpha_a", "alpha_b", "alpha_c"),
+            means=(0.0, 0.0, 0.0, 0.0),
+            cov=covariance,
+            seed=1,
+        )
+
+    assert set(draws) == {"idx", "alpha_a", "alpha_b", "alpha_c"}
+    assert all(values.shape == (2, 2) for values in draws.values())
+    assert all(np.all(np.isfinite(values)) for values in draws.values())
+
+
+def test_covariance_validation_allows_eigensolver_roundoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    covariance = np.ones((2, 2))
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+
+    monkeypatch.setattr(
+        np.linalg,
+        "eigvalsh",
+        lambda *_args, **_kwargs: np.array([-2.00e-16, eigenvalues[1]]),
+    )
+    monkeypatch.setattr(
+        np.linalg,
+        "eigh",
+        lambda *_args, **_kwargs: (
+            np.array([-5.67e-16, eigenvalues[1]]),
+            eigenvectors,
+        ),
+    )
+
+    validated = paths_module._validate_covariance_matrix(covariance)
+
+    np.testing.assert_allclose(validated, covariance)
+
+
+def test_simulation_consumes_covariance_projected_by_public_builder() -> None:
+    with pytest.warns(RuntimeWarning, match="projected"):
+        covariance = build_cov_matrix(
+            0.3865769365,
+            0.5460361401,
+            -0.6809298699,
+            -0.3813075772,
+            0.6520265866,
+            0.4112788655,
+            0.3287485317,
+            0.8164557614,
+            0.1765603702,
+            0.2803247493,
+        )
+
+    draws = simulate_alpha_streams(2, covariance, 0.0, 0.0, 0.0, 0.0, seed=1)
+
+    assert draws.shape == (2, 4)
+
+
+def test_named_return_draws_accept_large_finite_covariance_without_overflow() -> None:
+    covariance = np.diag([0.75 * np.finfo(np.float64).max] * 2)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=("idx", "alpha"),
+            means=(0.0, 0.0),
+            cov=covariance,
+            seed=1,
+        )
+
+    assert all(np.all(np.isfinite(values)) for values in draws.values())
+
+
+def test_named_return_draws_reject_opposite_max_covariance_without_overflow() -> None:
+    maximum = np.finfo(np.float64).max
+    covariance = np.array([[1.0, maximum], [-maximum, 1.0]])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        with pytest.raises(ValueError, match="symmetric"):
+            draw_named_returns(
+                n_months=1,
+                n_sim=1,
+                stream_names=("idx", "alpha"),
+                means=(0.0, 0.0),
+                cov=covariance,
+                seed=1,
+            )
+
+
+def test_named_return_draws_preserve_subnormal_variance_during_symmetrization() -> None:
+    covariance = np.diag([np.nextafter(0.0, 1.0), 1.0])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = draw_named_returns(
+            n_months=2,
+            n_sim=2,
+            stream_names=("tiny", "unit"),
+            means=(0.0, 0.0),
+            cov=covariance,
+            seed=1,
+        )
+
+    assert np.any(draws["tiny"] != 0.0)
+
+
+def test_prepare_mc_universe_uses_repaired_rank_deficient_covariance() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = prepare_mc_universe(
+            N_SIMULATIONS=2,
+            N_MONTHS=2,
+            mu_idx=0.0,
+            mu_H=0.0,
+            mu_E=0.0,
+            mu_M=0.0,
+            cov_mat=_rank_deficient_float32_covariance(),
+            seed=1,
+        )
+
+    assert draws.shape == (2, 2, 4)
+
+
+def test_simulate_alpha_streams_uses_repaired_rank_deficient_covariance() -> None:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = simulate_alpha_streams(
+            2,
+            _rank_deficient_float32_covariance(),
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            seed=1,
+        )
+
+    assert draws.shape == (2, 4)
 
 
 def test_legacy_four_stream_api_remains_compatible() -> None:

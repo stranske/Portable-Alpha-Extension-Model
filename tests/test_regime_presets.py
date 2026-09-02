@@ -66,6 +66,10 @@ def test_apply_regime_preset_builds_named_stress_regime(
     expected_transition: list[list[float]],
 ) -> None:
     source = _config()
+    source_snapshot = source.model_dump()
+    expected_sigma_h = source.sigma_H * expected_multiplier
+    expected_sigma_e = source.sigma_E * expected_multiplier
+    expected_sigma_m = source.sigma_M * expected_sigma_m_multiplier
 
     configured = apply_regime_preset(source, name)
     label = REGIME_PRESET_LABELS[expected_key]
@@ -74,16 +78,16 @@ def test_apply_regime_preset_builds_named_stress_regime(
     assert label == expected_label
     assert configured_from_label.regime_transition == configured.regime_transition
     assert configured is not source
-    assert source.regimes is None
+    assert source.model_dump() == source_snapshot
     assert configured.regime_start == "calm"
     assert configured.regime_transition == expected_transition
     assert configured.regimes is not None
     assert [regime.name for regime in configured.regimes] == ["calm", expected_regime]
     stress = configured.regimes[1]
     assert stress.idx_sigma_multiplier == expected_multiplier
-    assert stress.sigma_H == pytest.approx(source.sigma_H * expected_multiplier)
-    assert stress.sigma_E == pytest.approx(source.sigma_E * expected_multiplier)
-    assert stress.sigma_M == pytest.approx(source.sigma_M * expected_sigma_m_multiplier)
+    assert stress.sigma_H == pytest.approx(expected_sigma_h)
+    assert stress.sigma_E == pytest.approx(expected_sigma_e)
+    assert stress.sigma_M == pytest.approx(expected_sigma_m)
 
 
 def test_apply_regime_preset_rejects_unknown_or_blank_names() -> None:
