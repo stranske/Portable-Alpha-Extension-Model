@@ -116,29 +116,43 @@ def _validate_correlation_matrix(corr: NDArray[Any]) -> None:
 def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
     if not np.all(np.isfinite(cov)):
         raise ValueError("Covariance matrix contains non-finite values")
-    scale = float(np.max(np.abs(cov)))
-    if scale == 0.0:
-        return cast(npt.NDArray[Any], np.asarray(cov, dtype=float))
-    scaled_cov = np.asarray(cov, dtype=float) / scale
+    covariance = np.asarray(cov, dtype=float)
     precision = (
         np.finfo(cov.dtype).eps if np.issubdtype(cov.dtype, np.floating) else np.finfo(float).eps
     )
     matrix_tolerance = max(float(precision), np.finfo(float).eps) * max(cov.shape)
-    if not np.allclose(scaled_cov, scaled_cov.T, rtol=0.0, atol=matrix_tolerance):
+    local_scale = np.maximum(np.abs(covariance), np.abs(covariance.T))
+    if np.any(np.abs(covariance - covariance.T) > matrix_tolerance * local_scale):
         raise ValueError("Covariance matrix must be symmetric")
-    if np.any(np.diag(cov) < 0.0):
+    covariance = 0.5 * (covariance + covariance.T)
+    variances = np.diag(covariance).copy()
+    if np.any(variances < 0.0):
         raise ValueError("Covariance matrix variances must be non-negative")
-    scaled_cov = 0.5 * (scaled_cov + scaled_cov.T)
-    eigenvalues, eigenvectors = np.linalg.eigh(scaled_cov)
-    scaled_min_eigenvalue = float(eigenvalues.min())
-    if scaled_min_eigenvalue < -matrix_tolerance:
-        min_eigenvalue = scaled_min_eigenvalue * scale
+    positive_variance = variances > 0.0
+    if np.any(covariance[~positive_variance, :] != 0.0):
         raise ValueError(
-            f"Covariance matrix must be positive semidefinite; min eigenvalue {min_eigenvalue:.3e}"
+            "Covariance matrix must be positive semidefinite; zero variance requires zero covariance"
         )
-    if scaled_min_eigenvalue < 0.0:
-        scaled_cov = (eigenvectors * np.clip(eigenvalues, 0.0, None)) @ eigenvectors.T
-    return cast(npt.NDArray[Any], scaled_cov * scale)
+    if not np.any(positive_variance):
+        return cast(npt.NDArray[Any], covariance)
+    standard_deviations = np.sqrt(variances[positive_variance])
+    denominator = np.outer(standard_deviations, standard_deviations)
+    positive_covariance = covariance[np.ix_(positive_variance, positive_variance)]
+    correlation = positive_covariance / denominator
+    min_eigenvalue = float(np.linalg.eigvalsh(correlation).min())
+    if min_eigenvalue < -matrix_tolerance:
+        raise ValueError(
+            "Covariance matrix must be positive semidefinite"
+            f"; normalized min eigenvalue {min_eigenvalue:.3e}"
+        )
+    if min_eigenvalue < 0.0:
+        eigenvalues, eigenvectors = np.linalg.eigh(correlation)
+        correlation = (eigenvectors * np.clip(eigenvalues, 0.0, None)) @ eigenvectors.T
+        correlation_scale = np.sqrt(np.diag(correlation))
+        correlation /= np.outer(correlation_scale, correlation_scale)
+        covariance[np.ix_(positive_variance, positive_variance)] = correlation * denominator
+        np.fill_diagonal(covariance, variances)
+    return cast(npt.NDArray[Any], covariance)
 
 
 def _validate_finite_means(mean: NDArray[Any]) -> None:

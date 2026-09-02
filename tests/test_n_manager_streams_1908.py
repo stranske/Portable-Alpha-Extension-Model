@@ -110,15 +110,27 @@ def test_named_return_draws_reject_nonfinite_means() -> None:
         (np.array([[float("nan"), 0.0], [0.0, 1.0]]), "non-finite"),
         (np.array([[1.0, 0.5], [0.0, 1.0]]), "symmetric"),
         (np.array([[1.0e-20, 1.0e-12], [0.0, 1.0e-20]]), "symmetric"),
+        (
+            np.array([[1.0, 1.0e-7], [0.0, 1.0e-20]], dtype=np.float32),
+            "symmetric",
+        ),
         (np.array([[-1.0e-9, 0.0], [0.0, 1.0]]), "variances must be non-negative"),
         (np.array([[1.0e-20, 2.0e-20], [2.0e-20, 1.0e-20]]), "positive semidefinite"),
+        (
+            np.array([[1.0, 5.0e-8], [5.0e-8, 1.0e-20]], dtype=np.float32),
+            "positive semidefinite",
+        ),
+        (np.array([[0.0, 1.0e-20], [1.0e-20, 1.0]]), "positive semidefinite"),
     ],
     ids=[
         "nonfinite",
         "asymmetric",
         "tiny-asymmetric",
+        "heterogeneous-asymmetric",
         "negative-variance",
         "scale-sensitive-indefinite",
+        "heterogeneous-indefinite",
+        "zero-variance-covariance",
     ],
 )
 def test_named_return_draws_reject_invalid_covariance(cov: np.ndarray, message: str) -> None:
