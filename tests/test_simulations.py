@@ -99,6 +99,17 @@ def test_simulate_regime_paths_rejects_boolean_start_state():
         )
 
 
+def test_simulate_regime_paths_rejects_zero_sum_transition_row():
+    with pytest.raises(ValueError, match=r"^transition rows must sum to a positive value$"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=2,
+            transition=[[1.0, 0.0], [0.0, 0.0]],
+            start_state=0,
+            seed=1,
+        )
+
+
 def test_simulate_financing_spikes():
     out = simulate_financing(6, SYNTHETIC_DATA_MEAN, 1.0, 1.0, 5.0, seed=42)
     # with spike_prob=1 all months should include spike component
