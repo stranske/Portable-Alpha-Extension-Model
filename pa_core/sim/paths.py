@@ -152,11 +152,20 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
         return cast(npt.NDArray[Any], covariance)
     eigenvalues, eigenvectors = np.linalg.eigh(correlation)
     negative = eigenvalues < 0.0
-    negative_vectors = np.abs(eigenvectors[:, negative])
-    # Bound each negative Rayleigh quotient by its own entrywise rounding uncertainty.
+    negative_eigenvectors = eigenvectors[:, negative]
+    negative_vectors = np.abs(negative_eigenvectors)
+    # Bound each negative Rayleigh quotient by its own entrywise input-rounding
+    # uncertainty plus the observed eigensolver residual.  The latter keeps a
+    # PSD matrix consumable when eigvalsh and eigh differ at machine precision,
+    # without importing scale from unrelated covariance blocks.
     rounding_tolerance = symmetry_tolerance * np.sum(
         negative_vectors * (np.abs(correlation) @ negative_vectors), axis=0
     )
+    eigensolver_residual = np.linalg.norm(
+        correlation @ negative_eigenvectors - negative_eigenvectors * eigenvalues[negative],
+        axis=0,
+    )
+    rounding_tolerance += eigensolver_residual
     invalid = eigenvalues[negative] < -rounding_tolerance
     if np.any(invalid):
         invalid_min_eigenvalue = float(np.min(eigenvalues[negative][invalid]))

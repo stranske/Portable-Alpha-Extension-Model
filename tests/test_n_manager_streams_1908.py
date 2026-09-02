@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import pytest
 
+from pa_core.sim import paths as paths_module
 from pa_core.sim import (
     build_cov_matrix,
     build_generic_cov_matrix,
@@ -260,6 +261,51 @@ def test_named_return_draws_accept_rank_deficient_float32_covariance() -> None:
     assert set(draws) == {"idx", "alpha_a", "alpha_b", "alpha_c"}
     assert all(values.shape == (2, 2) for values in draws.values())
     assert all(np.all(np.isfinite(values)) for values in draws.values())
+
+
+def test_covariance_validation_allows_eigensolver_roundoff(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    covariance = np.ones((2, 2))
+    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
+
+    monkeypatch.setattr(
+        np.linalg,
+        "eigvalsh",
+        lambda *_args, **_kwargs: np.array([-2.00e-16, eigenvalues[1]]),
+    )
+    monkeypatch.setattr(
+        np.linalg,
+        "eigh",
+        lambda *_args, **_kwargs: (
+            np.array([-5.67e-16, eigenvalues[1]]),
+            eigenvectors,
+        ),
+    )
+
+    validated = paths_module._validate_covariance_matrix(covariance)
+
+    np.testing.assert_allclose(validated, covariance)
+
+
+def test_simulation_consumes_covariance_projected_by_public_builder() -> None:
+    with pytest.warns(RuntimeWarning, match="projected"):
+        covariance = build_cov_matrix(
+            0.3865769365,
+            0.5460361401,
+            -0.6809298699,
+            -0.3813075772,
+            0.6520265866,
+            0.4112788655,
+            0.3287485317,
+            0.8164557614,
+            0.1765603702,
+            0.2803247493,
+        )
+
+    draws = simulate_alpha_streams(2, covariance, 0.0, 0.0, 0.0, 0.0, seed=1)
+
+    assert draws.shape == (2, 4)
 
 
 def test_named_return_draws_accept_large_finite_covariance_without_overflow() -> None:
