@@ -88,6 +88,15 @@ def _raise_type_validation_error(
     )
 
 
+def _is_finite_float_value(value: int | float) -> bool:
+    """Return whether a numeric value is finite and representable as a float."""
+
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 @dataclass(frozen=True)
 class AllowedField:
     """Schema metadata for a single wizard field."""
@@ -448,7 +457,7 @@ def _validate_value_for_key(key: str, value: Any) -> None:
             and all(
                 isinstance(cell, (int, float))
                 and not isinstance(cell, bool)
-                and math.isfinite(cell)
+                and _is_finite_float_value(cell)
                 for cell in row
             )
             for row in value
@@ -475,7 +484,7 @@ def _validate_value_for_key(key: str, value: Any) -> None:
 
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ConfigPatchValidationError(f"field '{key}' must be a float")
-    if not math.isfinite(value):
+    if not _is_finite_float_value(value):
         raise ConfigPatchValidationError(f"field '{key}' must be a finite float")
 
 

@@ -241,9 +241,10 @@ def test_validate_patch_dict_keeps_boolean_and_integer_domains_separate() -> Non
         pytest.param(float("nan"), id="nan"),
         pytest.param(float("inf"), id="positive-infinity"),
         pytest.param(float("-inf"), id="negative-infinity"),
+        pytest.param(10**10000, id="out-of-float-range"),
     ],
 )
-def test_validate_patch_dict_rejects_nonfinite_scalar_values(value: float) -> None:
+def test_validate_patch_dict_rejects_nonfinite_scalar_values(value: int | float) -> None:
     """Non-finite capital would contaminate every downstream portfolio calculation."""
 
     with pytest.raises(ConfigPatchValidationError, match="finite float"):
@@ -256,6 +257,7 @@ def test_validate_patch_dict_rejects_nonfinite_scalar_values(value: float) -> No
         pytest.param(True, id="boolean"),
         pytest.param(float("nan"), id="nan"),
         pytest.param(float("inf"), id="infinity"),
+        pytest.param(10**10000, id="out-of-float-range"),
     ],
 )
 def test_validate_patch_dict_rejects_invalid_transition_cells(cell: object) -> None:
