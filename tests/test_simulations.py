@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -9,6 +11,7 @@ from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
 from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_financing_series
+from pa_core.sim.regimes import simulate_regime_paths
 from pa_core.simulations import simulate_agents, simulate_financing
 from pa_core.validators import SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD
 
@@ -59,6 +62,41 @@ def test_build_cov_matrix_near_singular():
     # matrix should remain symmetric
     assert cov.shape == (4, 4)
     assert np.allclose(cov, cov.T)
+
+
+@pytest.mark.parametrize(
+    ("transition", "message"),
+    [
+        (
+            [[1.0, np.nan], [0.0, 1.0]],
+            "transition must contain finite probabilities",
+        ),
+        (
+            [[1.0, 0.0], [-0.1, 1.1]],
+            "transition probabilities must be non-negative",
+        ),
+    ],
+)
+def test_simulate_regime_paths_rejects_invalid_transition_values(transition, message):
+    with pytest.raises(ValueError, match=rf"^{re.escape(message)}$"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=2,
+            transition=transition,
+            start_state=0,
+            seed=1,
+        )
+
+
+def test_simulate_regime_paths_rejects_boolean_start_state():
+    with pytest.raises(ValueError, match=r"^start_state must be an integer index$"):
+        simulate_regime_paths(
+            n_sim=1,
+            n_months=2,
+            transition=[[1.0, 0.0], [0.0, 1.0]],
+            start_state=True,
+            seed=1,
+        )
 
 
 def test_simulate_financing_spikes():
