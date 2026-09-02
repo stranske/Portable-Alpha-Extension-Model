@@ -17,25 +17,62 @@ def _config() -> ModelConfig:
 
 
 @pytest.mark.parametrize(
-    ("name", "expected_key", "expected_regime", "expected_multiplier", "expected_transition"),
+    (
+        "name",
+        "expected_key",
+        "expected_label",
+        "expected_regime",
+        "expected_multiplier",
+        "expected_sigma_m_multiplier",
+        "expected_transition",
+    ),
     [
-        ("2008_crisis", "2008_crisis", "crisis", 2.5, [[0.95, 0.05], [0.2, 0.8]]),
-        ("2008 crisis", "2008_crisis", "crisis", 2.5, [[0.95, 0.05], [0.2, 0.8]]),
-        ("COVID-SHOCK", "covid_shock", "shock", 3.0, [[0.97, 0.03], [0.6, 0.4]]),
+        (
+            "2008_crisis",
+            "2008_crisis",
+            "2008 crisis",
+            "crisis",
+            2.5,
+            2.5,
+            [[0.95, 0.05], [0.2, 0.8]],
+        ),
+        (
+            "2008 crisis",
+            "2008_crisis",
+            "2008 crisis",
+            "crisis",
+            2.5,
+            2.5,
+            [[0.95, 0.05], [0.2, 0.8]],
+        ),
+        (
+            "COVID-SHOCK",
+            "covid_shock",
+            "COVID shock",
+            "shock",
+            3.0,
+            2.5,
+            [[0.97, 0.03], [0.6, 0.4]],
+        ),
     ],
 )
 def test_apply_regime_preset_builds_named_stress_regime(
     name: str,
     expected_key: str,
+    expected_label: str,
     expected_regime: str,
     expected_multiplier: float,
+    expected_sigma_m_multiplier: float,
     expected_transition: list[list[float]],
 ) -> None:
     source = _config()
 
     configured = apply_regime_preset(source, name)
+    label = REGIME_PRESET_LABELS[expected_key]
+    configured_from_label = apply_regime_preset(source, label)
 
-    assert REGIME_PRESET_LABELS[expected_key]
+    assert label == expected_label
+    assert configured_from_label.regime_transition == configured.regime_transition
     assert configured is not source
     assert source.regimes is None
     assert configured.regime_start == "calm"
@@ -46,6 +83,7 @@ def test_apply_regime_preset_builds_named_stress_regime(
     assert stress.idx_sigma_multiplier == expected_multiplier
     assert stress.sigma_H == pytest.approx(source.sigma_H * expected_multiplier)
     assert stress.sigma_E == pytest.approx(source.sigma_E * expected_multiplier)
+    assert stress.sigma_M == pytest.approx(source.sigma_M * expected_sigma_m_multiplier)
 
 
 def test_apply_regime_preset_rejects_unknown_or_blank_names() -> None:
