@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -76,7 +78,7 @@ def test_build_cov_matrix_near_singular():
     ],
 )
 def test_simulate_regime_paths_rejects_invalid_transition_values(transition, message):
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(ValueError, match=rf"^{re.escape(message)}$"):
         simulate_regime_paths(
             n_sim=1,
             n_months=2,
@@ -87,7 +89,7 @@ def test_simulate_regime_paths_rejects_invalid_transition_values(transition, mes
 
 
 def test_simulate_regime_paths_rejects_boolean_start_state():
-    with pytest.raises(ValueError, match="start_state must be an integer index"):
+    with pytest.raises(ValueError, match=r"^start_state must be an integer index$"):
         simulate_regime_paths(
             n_sim=1,
             n_months=2,
