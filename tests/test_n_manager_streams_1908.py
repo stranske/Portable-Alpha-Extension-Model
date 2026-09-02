@@ -143,6 +143,26 @@ def test_named_return_draws_reject_dimension_amplified_correlation() -> None:
         )
 
 
+def test_named_return_draws_keep_psd_tolerance_local_to_correlated_block() -> None:
+    size = 64
+    block_size = 21
+    covariance = np.eye(size, dtype=np.float16)
+    covariance[1:block_size, 1:block_size] = np.float16(0.9375)
+    np.fill_diagonal(covariance, np.float16(1.0))
+    covariance[0, 1:block_size] = np.float16(1.0)
+    covariance[1:block_size, 0] = np.float16(1.0)
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(size)),
+            means=(0.0,) * size,
+            cov=covariance,
+            seed=1,
+        )
+
+
 @pytest.mark.parametrize(
     ("cov", "message"),
     [
@@ -218,6 +238,23 @@ def test_named_return_draws_accept_large_finite_covariance_without_overflow() ->
         )
 
     assert all(np.all(np.isfinite(values)) for values in draws.values())
+
+
+def test_named_return_draws_preserve_subnormal_variance_during_symmetrization() -> None:
+    covariance = np.diag([np.nextafter(0.0, 1.0), 1.0])
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RuntimeWarning)
+        draws = draw_named_returns(
+            n_months=2,
+            n_sim=2,
+            stream_names=("tiny", "unit"),
+            means=(0.0, 0.0),
+            cov=covariance,
+            seed=1,
+        )
+
+    assert np.any(draws["tiny"] != 0.0)
 
 
 def test_prepare_mc_universe_uses_repaired_rank_deficient_covariance() -> None:

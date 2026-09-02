@@ -121,11 +121,14 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
         np.finfo(cov.dtype).eps if np.issubdtype(cov.dtype, np.floating) else np.finfo(float).eps
     )
     symmetry_tolerance = max(float(precision), np.finfo(float).eps)
-    matrix_tolerance = symmetry_tolerance * max(cov.shape)
     local_scale = np.maximum(np.abs(covariance), np.abs(covariance.T))
     if np.any(np.abs(covariance - covariance.T) > symmetry_tolerance * local_scale):
         raise ValueError("Covariance matrix must be symmetric")
-    covariance = 0.5 * covariance + 0.5 * covariance.T
+    upper = np.triu_indices_from(covariance, k=1)
+    lower = (upper[1], upper[0])
+    midpoints = covariance[upper] + 0.5 * (covariance[lower] - covariance[upper])
+    covariance = covariance.copy()
+    covariance[upper] = covariance[lower] = midpoints
     variances = np.diag(covariance).copy()
     if np.any(variances < 0.0):
         raise ValueError("Covariance matrix variances must be non-negative")
@@ -144,8 +147,10 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
         raise ValueError(
             "Covariance matrix must be positive semidefinite; absolute correlation cannot exceed 1"
         )
+    row_sum_scale = max(1.0, float(np.max(np.sum(np.abs(correlation), axis=1))))
+    eigenvalue_tolerance = symmetry_tolerance * row_sum_scale
     min_eigenvalue = float(np.linalg.eigvalsh(correlation).min())
-    if min_eigenvalue < -matrix_tolerance:
+    if min_eigenvalue < -eigenvalue_tolerance:
         raise ValueError(
             "Covariance matrix must be positive semidefinite"
             f"; normalized min eigenvalue {min_eigenvalue:.3e}"
