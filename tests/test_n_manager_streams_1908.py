@@ -163,6 +163,45 @@ def test_named_return_draws_keep_psd_tolerance_local_to_correlated_block() -> No
         )
 
 
+def test_named_return_draws_validate_disconnected_blocks_independently() -> None:
+    large_valid_block = np.ones((64, 64), dtype=np.float16)
+    small_invalid_block = np.full((3, 3), np.float16(-0.53), dtype=np.float16)
+    np.fill_diagonal(small_invalid_block, np.float16(1.0))
+    covariance = np.zeros((67, 67), dtype=np.float16)
+    covariance[:64, :64] = large_valid_block
+    covariance[64:, 64:] = small_invalid_block
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(67)),
+            means=(0.0,) * 67,
+            cov=covariance,
+            seed=1,
+        )
+
+
+def test_named_return_draws_keep_psd_tolerance_local_across_weak_links() -> None:
+    large_valid_block = np.ones((64, 64), dtype=np.float16)
+    small_invalid_block = np.full((3, 3), np.float16(-0.53), dtype=np.float16)
+    np.fill_diagonal(small_invalid_block, np.float16(1.0))
+    covariance = np.zeros((67, 67), dtype=np.float16)
+    covariance[:64, :64] = large_valid_block
+    covariance[64:, 64:] = small_invalid_block
+    covariance[0, 64] = covariance[64, 0] = np.float16(0.01)
+
+    with pytest.raises(ValueError, match="positive semidefinite"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(67)),
+            means=(0.0,) * 67,
+            cov=covariance,
+            seed=1,
+        )
+
+
 @pytest.mark.parametrize(
     ("cov", "message"),
     [

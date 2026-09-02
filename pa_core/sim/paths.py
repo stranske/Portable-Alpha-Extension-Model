@@ -147,21 +147,28 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
         raise ValueError(
             "Covariance matrix must be positive semidefinite; absolute correlation cannot exceed 1"
         )
-    row_sum_scale = max(1.0, float(np.max(np.sum(np.abs(correlation), axis=1))))
-    eigenvalue_tolerance = symmetry_tolerance * row_sum_scale
     min_eigenvalue = float(np.linalg.eigvalsh(correlation).min())
-    if min_eigenvalue < -eigenvalue_tolerance:
+    if min_eigenvalue >= 0.0:
+        return cast(npt.NDArray[Any], covariance)
+    eigenvalues, eigenvectors = np.linalg.eigh(correlation)
+    negative = eigenvalues < 0.0
+    negative_vectors = np.abs(eigenvectors[:, negative])
+    # Bound each negative Rayleigh quotient by its own entrywise rounding uncertainty.
+    rounding_tolerance = symmetry_tolerance * np.sum(
+        negative_vectors * (np.abs(correlation) @ negative_vectors), axis=0
+    )
+    invalid = eigenvalues[negative] < -rounding_tolerance
+    if np.any(invalid):
+        invalid_min_eigenvalue = float(np.min(eigenvalues[negative][invalid]))
         raise ValueError(
             "Covariance matrix must be positive semidefinite"
-            f"; normalized min eigenvalue {min_eigenvalue:.3e}"
+            f"; normalized min eigenvalue {invalid_min_eigenvalue:.3e}"
         )
-    if min_eigenvalue < 0.0:
-        eigenvalues, eigenvectors = np.linalg.eigh(correlation)
-        correlation = (eigenvectors * np.clip(eigenvalues, 0.0, None)) @ eigenvectors.T
-        correlation_scale = np.sqrt(np.diag(correlation))
-        correlation /= np.outer(correlation_scale, correlation_scale)
-        covariance[np.ix_(positive_variance, positive_variance)] = correlation * denominator
-        np.fill_diagonal(covariance, variances)
+    correlation = (eigenvectors * np.clip(eigenvalues, 0.0, None)) @ eigenvectors.T
+    correlation_scale = np.sqrt(np.diag(correlation))
+    correlation /= np.outer(correlation_scale, correlation_scale)
+    covariance[np.ix_(positive_variance, positive_variance)] = correlation * denominator
+    np.fill_diagonal(covariance, variances)
     return cast(npt.NDArray[Any], covariance)
 
 
