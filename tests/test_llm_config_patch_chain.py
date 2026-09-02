@@ -56,6 +56,27 @@ def test_parse_chain_output_rejects_invalid_patch_and_returns_structured_error()
     assert result.risk_flags_detail["rejected_patch_keys"] == ["fake_field"]
 
 
+def test_parse_chain_output_rejects_out_of_float_range_numbers_without_crashing() -> None:
+    """Untrusted JSON integers must enter the rejected state, not escape as OverflowError."""
+
+    result = parse_chain_output(
+        {
+            "patch": {"set": {"total_fund_capital": 10**10000}},
+            "summary": "Set capital.",
+            "risk_flags": [],
+        }
+    )
+
+    assert result.status == "rejected"
+    assert result.patch.set == {}
+    assert result.error == {
+        "kind": "validation_error",
+        "message": "field 'total_fund_capital' must be a finite float",
+        "unknown_keys": [],
+        "unknown_paths": [],
+    }
+
+
 def test_run_config_patch_chain_includes_trace_url_when_langsmith_enabled(
     monkeypatch,
 ) -> None:
