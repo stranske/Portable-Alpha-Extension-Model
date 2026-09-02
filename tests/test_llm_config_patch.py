@@ -24,7 +24,7 @@ from pa_core.llm.config_patch import (
     validate_patch_dict,
     validate_patch_schema,
 )
-from pa_core.wizard_schema import AnalysisMode, get_default_config
+from pa_core.wizard_schema import AnalysisMode, RiskMetric, get_default_config
 
 
 def test_allowed_wizard_schema_contains_core_keys_and_type_labels() -> None:
@@ -198,12 +198,103 @@ def test_validate_patch_dict_rejects_wrong_type() -> None:
         validate_patch_dict({"set": {"n_simulations": "5000"}})
 
 
+@pytest.mark.parametrize(
+    ("key", "valid_value", "invalid_value"),
+    [
+        pytest.param("analysis_mode", AnalysisMode.RETURNS, "unsupported", id="analysis-mode"),
+        pytest.param("backend", "numpy", "cupy", id="backend"),
+        pytest.param("sleeve_constraint_scope", "total", "portfolio", id="constraint-scope"),
+        pytest.param("return_distribution", "normal", "lognormal", id="return-distribution"),
+        pytest.param("return_copula", "gaussian", "clayton", id="return-copula"),
+        pytest.param("vol_regime", "single", "three_state", id="vol-regime"),
+        pytest.param("covariance_shrinkage", "none", "manual", id="covariance-shrinkage"),
+        pytest.param("correlation_repair_mode", "error", "ignore", id="correlation-repair"),
+    ],
+)
+def test_validate_patch_dict_enforces_supported_mode_values(
+    key: str, valid_value: object, invalid_value: object
+) -> None:
+    """Mode-like fields must not admit states downstream code cannot execute."""
+
+    accepted = validate_patch_dict({"set": {key: valid_value}})
+    assert accepted.set[key] == valid_value
+
+    with pytest.raises(ConfigPatchValidationError):
+        validate_patch_dict({"set": {key: invalid_value}})
+
+
+def test_validate_patch_dict_keeps_boolean_and_integer_domains_separate() -> None:
+    """Python bools are ints, but the wizard state machine treats them differently."""
+
+    patch = validate_patch_dict({"set": {"n_simulations": 5000, "sleeve_validate_on_run": True}})
+    assert patch.set == {"n_simulations": 5000, "sleeve_validate_on_run": True}
+
+    with pytest.raises(ConfigPatchValidationError, match="must be an int"):
+        validate_patch_dict({"set": {"n_simulations": True}})
+    with pytest.raises(ConfigPatchValidationError, match="must be a bool"):
+        validate_patch_dict({"set": {"sleeve_validate_on_run": 1}})
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param(float("nan"), id="nan"),
+        pytest.param(float("inf"), id="positive-infinity"),
+        pytest.param(float("-inf"), id="negative-infinity"),
+    ],
+)
+def test_validate_patch_dict_rejects_nonfinite_scalar_values(value: float) -> None:
+    """Non-finite capital would contaminate every downstream portfolio calculation."""
+
+    with pytest.raises(ConfigPatchValidationError, match="finite float"):
+        validate_patch_dict({"set": {"total_fund_capital": value}})
+
+
+@pytest.mark.parametrize(
+    "cell",
+    [
+        pytest.param(True, id="boolean"),
+        pytest.param(float("nan"), id="nan"),
+        pytest.param(float("inf"), id="infinity"),
+    ],
+)
+def test_validate_patch_dict_rejects_invalid_transition_cells(cell: object) -> None:
+    """Transition probabilities must remain finite numerics, never bools or NaN/inf."""
+
+    with pytest.raises(ConfigPatchValidationError, match="finite numeric lists"):
+        validate_patch_dict({"set": {"regime_transition": [[cell, 0.0], [0.0, 1.0]]}})
+
+
 def test_validate_patch_dict_allows_merge_for_regimes_only() -> None:
     patch = validate_patch_dict({"merge": {"regimes": {"stress": {"mu_H": 0.02}}}})
     assert patch.merge["regimes"]["stress"]["mu_H"] == 0.02
 
     with pytest.raises(ConfigPatchValidationError, match="does not support merge"):
         validate_patch_dict({"merge": {"n_simulations": {"value": 5000}}})
+
+
+def test_validate_patch_dict_rejects_non_mapping_regime_children() -> None:
+    """Reject regime entries that apply would otherwise be tempted to discard silently."""
+
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"merge": {"regimes": {"Stress": "not-a-mapping"}}})
+
+    exc = exc_info.value
+    assert exc.field_name == "merge.regimes.Stress"
+    assert exc.expected_type == "dict"
+    assert exc.actual_type == "str"
+
+
+def test_validate_patch_dict_rejects_non_string_regime_names() -> None:
+    """Regime identifiers become durable config names and must stay string-keyed."""
+
+    with pytest.raises(ConfigPatchValidationError) as exc_info:
+        validate_patch_dict({"merge": {"regimes": {1: {"mu_H": 0.02}}}})
+
+    exc = exc_info.value
+    assert exc.field_name == "merge.regimes"
+    assert exc.expected_type == "dict[str, dict]"
+    assert exc.actual_type == "int"
 
 
 def test_validate_patch_dict_restricts_remove_to_removable_keys() -> None:
@@ -263,6 +354,58 @@ def test_apply_patch_updates_config_and_session_state_mirrors() -> None:
     assert session_state["sleeve_max_cvar"] is None
 
 
+def test_apply_patch_rejects_unvalidated_malformed_regime_children() -> None:
+    """A directly constructed ConfigPatch must not turn malformed input into silent data loss."""
+
+    malformed = ConfigPatch(
+        set={},
+        merge={"regimes": {"Stress": "not-a-mapping"}},
+        remove=[],
+    )
+
+    with pytest.raises(ConfigPatchValidationError, match="merge.regimes.Stress"):
+        apply_patch({"regimes": {}}, malformed)
+
+
+def test_apply_patch_deep_merges_regimes_without_dropping_siblings() -> None:
+    """A partial regime edit must preserve unmentioned model parameters and nested metadata."""
+
+    original = {
+        "regimes": {
+            "Stress": {
+                "name": "Stress",
+                "idx_sigma_multiplier": 1.5,
+                "metadata": {"source": "committee"},
+            }
+        }
+    }
+    patch = validate_patch_dict(
+        {"merge": {"regimes": {"Stress": {"metadata": {"reviewed": True}}}}}
+    )
+
+    updated = apply_patch(original, patch)
+
+    assert original["regimes"]["Stress"]["metadata"] == {"source": "committee"}
+    assert updated["regimes"]["Stress"] == {
+        "name": "Stress",
+        "idx_sigma_multiplier": 1.5,
+        "metadata": {"source": "committee", "reviewed": True},
+    }
+
+
+def test_apply_patch_normalizes_supported_risk_metrics_and_rejects_opaque_entries() -> None:
+    """Metric identifiers must remain serializable domain values, not arbitrary objects."""
+
+    patch = validate_patch_dict(
+        {"set": {"risk_metrics": [RiskMetric.RETURN, "terminal_ShortfallProb"]}}
+    )
+    updated = apply_patch({"risk_metrics": []}, patch)
+    assert updated["risk_metrics"] == ["Return", "terminal_ShortfallProb"]
+
+    with pytest.raises(ConfigPatchValidationError, match="strings or RiskMetric"):
+        validate_patch_dict({"set": {"risk_metrics": [object()]}})
+
+
 def test_diff_config_returns_unified_yaml_diff_and_snapshots() -> None:
     before = get_default_config(AnalysisMode.RETURNS)
     after = get_default_config(AnalysisMode.RETURNS)
@@ -271,6 +414,19 @@ def test_diff_config_returns_unified_yaml_diff_and_snapshots() -> None:
     unified_diff, before_text, after_text = diff_config(before, after)
 
     assert unified_diff.startswith("--- before\n+++ after\n")
+    assert "n_simulations: 1" in before_text
+    assert "n_simulations: 5000" in after_text
+    assert "-n_simulations: 1" in unified_diff
+    assert "+n_simulations: 5000" in unified_diff
+
+
+def test_diff_config_reports_mapping_backed_changes() -> None:
+    """Diff previews must expose edits when callers use the supported mapping config shape."""
+
+    unified_diff, before_text, after_text = diff_config(
+        {"n_simulations": 1}, {"n_simulations": 5000}
+    )
+
     assert "n_simulations: 1" in before_text
     assert "n_simulations: 5000" in after_text
     assert "-n_simulations: 1" in unified_diff

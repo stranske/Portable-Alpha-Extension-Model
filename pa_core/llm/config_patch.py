@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import difflib
 import json
+import math
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import Any, Callable, Mapping, MutableMapping
@@ -274,6 +275,20 @@ def _validate_merge_ops(raw_merge: Any) -> dict[str, dict[str, Any]]:
                 expected_type="dict",
                 actual_value=value,
             )
+        if key == "regimes":
+            for regime_name, regime_patch in value.items():
+                if not isinstance(regime_name, str):
+                    _raise_type_validation_error(
+                        field_name="merge.regimes",
+                        expected_type="dict[str, dict]",
+                        actual_value=regime_name,
+                    )
+                if not isinstance(regime_patch, Mapping):
+                    _raise_type_validation_error(
+                        field_name=f"merge.regimes.{regime_name}",
+                        expected_type="dict",
+                        actual_value=regime_patch,
+                    )
         normalized[key] = dict(value)
     return normalized
 
@@ -430,12 +445,17 @@ def _validate_value_for_key(key: str, value: Any) -> None:
             return
         if isinstance(value, list) and all(
             isinstance(row, list)
-            and all(isinstance(cell, (int, float)) and not isinstance(cell, bool) for cell in row)
+            and all(
+                isinstance(cell, (int, float))
+                and not isinstance(cell, bool)
+                and math.isfinite(cell)
+                for cell in row
+            )
             for row in value
         ):
             return
         raise ConfigPatchValidationError(
-            "regime_transition must be a list of numeric lists or null"
+            "regime_transition must be a list of finite numeric lists or null"
         )
 
     if key == "correlation_repair_max_abs_delta" and value is None:
@@ -455,6 +475,8 @@ def _validate_value_for_key(key: str, value: Any) -> None:
 
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise ConfigPatchValidationError(f"field '{key}' must be a float")
+    if not math.isfinite(value):
+        raise ConfigPatchValidationError(f"field '{key}' must be a finite float")
 
 
 def empty_patch() -> ConfigPatch:
@@ -671,8 +693,18 @@ def _merge_regimes(
 ) -> dict[str, dict[str, Any]]:
     merged = _normalize_regimes_mapping(existing)
     for regime_name, regime_patch in patch_value.items():
+        if not isinstance(regime_name, str):
+            _raise_type_validation_error(
+                field_name="merge.regimes",
+                expected_type="dict[str, dict]",
+                actual_value=regime_name,
+            )
         if not isinstance(regime_patch, Mapping):
-            continue
+            _raise_type_validation_error(
+                field_name=f"merge.regimes.{regime_name}",
+                expected_type="dict",
+                actual_value=regime_patch,
+            )
         target = _recursive_merge(merged.get(regime_name, {}), regime_patch)
         if "name" not in target:
             target["name"] = regime_name
@@ -698,7 +730,7 @@ def _normalize_regimes_mapping(
 
 def _serialize_config_snapshot(config: Any, *, format: str) -> str:
     payload = _normalize_serializable(
-        {key: getattr(config, key, None) for key in ALLOWED_WIZARD_FIELDS}
+        {key: _get_config_value(config, key) for key in ALLOWED_WIZARD_FIELDS}
     )
     if format == "yaml":
         return yaml.safe_dump(payload, sort_keys=True)
