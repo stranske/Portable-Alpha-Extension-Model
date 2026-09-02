@@ -127,6 +127,22 @@ def test_named_return_draws_reject_dimension_amplified_asymmetry() -> None:
         )
 
 
+def test_named_return_draws_reject_dimension_amplified_correlation() -> None:
+    size = 64
+    covariance = np.eye(size, dtype=np.float16)
+    covariance[0, 1] = covariance[1, 0] = np.float16(1.05)
+
+    with pytest.raises(ValueError, match="absolute correlation cannot exceed 1"):
+        draw_named_returns(
+            n_months=1,
+            n_sim=1,
+            stream_names=tuple(f"stream_{index}" for index in range(size)),
+            means=(0.0,) * size,
+            cov=covariance,
+            seed=1,
+        )
+
+
 @pytest.mark.parametrize(
     ("cov", "message"),
     [

@@ -140,6 +140,10 @@ def _validate_covariance_matrix(cov: NDArray[Any]) -> NDArray[Any]:
     denominator = np.outer(standard_deviations, standard_deviations)
     positive_covariance = covariance[np.ix_(positive_variance, positive_variance)]
     correlation = positive_covariance / denominator
+    if np.any(np.abs(correlation) > 1.0 + symmetry_tolerance):
+        raise ValueError(
+            "Covariance matrix must be positive semidefinite; absolute correlation cannot exceed 1"
+        )
     min_eigenvalue = float(np.linalg.eigvalsh(correlation).min())
     if min_eigenvalue < -matrix_tolerance:
         raise ValueError(
