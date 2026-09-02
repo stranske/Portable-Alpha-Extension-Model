@@ -73,9 +73,9 @@ def test_frequency_mismatch_warning_serialized(tmp_path: Path) -> None:
     assert "warnings" in record and isinstance(record["warnings"], list)
     assert "cost" in record
     messages = [str(w.get("message", "")) for w in record["warnings"]]
-    assert any(
-        "frequency mismatch" in m.lower() for m in messages
-    ), f"expected a captured frequency-mismatch warning, got: {messages}"
+    assert any("frequency mismatch" in m.lower() for m in messages), (
+        f"expected a captured frequency-mismatch warning, got: {messages}"
+    )
     # Every captured warning is normalized to the four-key shape.
     for warning in record["warnings"]:
         assert set(RUN_RECORD_WARNING_FIELDS).issubset(warning.keys())
@@ -101,8 +101,17 @@ def test_base_only_total_warning_serialized(tmp_path: Path) -> None:
     )
     record = json.loads(out_file.with_name("run.json").read_text())
 
-    messages = [str(w.get("message", "")) for w in record["warnings"]]
-    assert any("Base-only configuration" in m and "Total excludes Base" in m for m in messages)
+    base_only_warning = next(
+        (
+            warning
+            for warning in record["warnings"]
+            if "Base-only configuration" in str(warning.get("message", ""))
+            and "Total excludes Base" in str(warning.get("message", ""))
+        ),
+        None,
+    )
+    assert base_only_warning is not None
+    assert Path(base_only_warning["context"]["filename"]).resolve() == Path(__file__).resolve()
 
 
 def test_default_margin_run_does_not_emit_base_only_total_warning(tmp_path: Path) -> None:

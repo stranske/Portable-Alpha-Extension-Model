@@ -376,10 +376,6 @@ def main(
     *,
     emit_deprecation_warning: bool = True,
 ) -> None:
-    # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
-    # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
-    import os
-    import sys
     import warnings
 
     # `pa run` delegates here with emit_deprecation_warning=False; legacy entrypoints warn.
@@ -396,9 +392,25 @@ def main(
 
     # Install the run-level warning collector before the heavy-import bootstrap so
     # import-time and run-time warnings are captured into the unified run record.
-    # Torn down in _emit_run_end (every exit path runs it).
     warning_collector = _WarningCollector()
-    warning_collector.install()
+    try:
+        warning_collector.install()
+        _main(argv, deps, warning_collector=warning_collector)
+    finally:
+        warning_collector.uninstall()
+
+
+def _main(
+    argv: Sequence[str] | None,
+    deps: Dependencies | None,
+    *,
+    warning_collector: _WarningCollector,
+) -> None:
+    # Lightweight bootstrap: ensure numpy is available; if not, try to re-exec using
+    # the project's virtualenv interpreter to satisfy subprocess tests that use `python`.
+    import os
+    import sys
+    import warnings
 
     try:  # quick probe for required heavy deps in subprocess execution
         import numpy as _np  # noqa: F401
@@ -1215,7 +1227,7 @@ def main(
             )
 
     if is_base_only_config(cfg):
-        warnings.warn(BASE_ONLY_TOTAL_WARNING, UserWarning, stacklevel=2)
+        warnings.warn(BASE_ONLY_TOTAL_WARNING, UserWarning, stacklevel=3)
 
     # Capture raw params after user-driven config adjustments (mode/stress/suggestions)
     raw_params = cfg.model_dump()
