@@ -97,6 +97,34 @@ def test_direct_draw_rejects_nonfinite_student_t_df(t_df: float) -> None:
         )
 
 
+@pytest.mark.parametrize("bad_t_df", [None, 10**10000], ids=["none", "out-of-float-range"])
+@pytest.mark.parametrize("route", ["prepare", "draw", "regime"])
+def test_parameter_draw_routes_translate_invalid_student_t_df(bad_t_df: Any, route: str) -> None:
+    params = _base_params()
+    params.update(
+        {
+            "return_distribution": "student_t",
+            "return_copula": "t",
+            "return_t_df": bad_t_df,
+        }
+    )
+
+    with pytest.raises(ValueError, match="finite and greater than 2"):
+        if route == "prepare":
+            prepare_return_shocks(n_months=2, n_sim=2, params=params, seed=1)
+        elif route == "draw":
+            draw_joint_returns(n_months=2, n_sim=2, params=params, seed=1)
+        else:
+            draw_joint_returns(
+                n_months=2,
+                n_sim=2,
+                params=params,
+                regime_paths=np.zeros((2, 2), dtype=int),
+                regime_params=(dict(params),),
+                seed=1,
+            )
+
+
 def test_draw_joint_returns_variance_matches_sigma() -> None:
     n_sim, n_months = 2000, 24
     params = _base_params()
