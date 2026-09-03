@@ -112,8 +112,11 @@ def test_simulate_regime_paths_rejects_zero_sum_transition_row():
 
 def test_regime_paths_default_start_skips_zero_probability_state():
     class ZeroRNG:
-        def random(self, size: int) -> np.ndarray:
-            return np.zeros(size, dtype=float)
+        def __init__(self) -> None:
+            self.bit_generator = np.random.default_rng(0).bit_generator
+
+        def random(self, size: int | None = None) -> np.ndarray | float:
+            return 0.0 if size is None else np.zeros(size, dtype=float)
 
     cfg = ModelConfig(
         N_SIMULATIONS=1,
