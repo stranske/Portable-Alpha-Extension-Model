@@ -140,6 +140,28 @@ def test_regime_paths_default_start_skips_zero_probability_state():
     assert labels.tolist() == [["calm", "stress"]]
 
 
+def test_simulate_regime_paths_normalizes_positive_transition_rows():
+    normalized_transition = [[0.75, 0.25], [0.0, 1.0]]
+    unnormalized_transition = [[3.0, 1.0], [0.0, 4.0]]
+
+    expected = simulate_regime_paths(
+        n_sim=12,
+        n_months=6,
+        transition=normalized_transition,
+        start_state=0,
+        seed=17,
+    )
+    actual = simulate_regime_paths(
+        n_sim=12,
+        n_months=6,
+        transition=unnormalized_transition,
+        start_state=0,
+        seed=17,
+    )
+
+    assert np.array_equal(actual, expected)
+
+
 def test_simulate_financing_spikes():
     out = simulate_financing(6, SYNTHETIC_DATA_MEAN, 1.0, 1.0, 5.0, seed=42)
     # with spike_prob=1 all months should include spike component
