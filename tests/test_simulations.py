@@ -11,7 +11,7 @@ from pa_core.random import spawn_agent_rngs
 from pa_core.sim.covariance import build_cov_matrix
 from pa_core.sim.params import build_simulation_params
 from pa_core.sim.paths import draw_financing_series
-from pa_core.sim.regimes import simulate_regime_paths
+from pa_core.sim.regimes import apply_regime_labels, resolve_regime_start, simulate_regime_paths
 from pa_core.simulations import simulate_agents, simulate_financing
 from pa_core.validators import SYNTHETIC_DATA_MEAN, SYNTHETIC_DATA_STD
 
@@ -108,6 +108,36 @@ def test_simulate_regime_paths_rejects_zero_sum_transition_row():
             start_state=0,
             seed=1,
         )
+
+
+def test_regime_paths_default_start_skips_zero_probability_state():
+    class ZeroRNG:
+        def __init__(self) -> None:
+            self.bit_generator = np.random.default_rng(0).bit_generator
+
+        def random(self, size: int | None = None) -> np.ndarray | float:
+            return 0.0 if size is None else np.zeros(size, dtype=float)
+
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=2,
+        financing_mode="broadcast",
+        regimes=[{"name": "calm"}, {"name": "stress"}],
+        regime_transition=[[0.0, 1.0], [0.0, 1.0]],
+    )
+    assert cfg.regimes is not None
+    assert cfg.regime_transition is not None
+
+    paths = simulate_regime_paths(
+        n_sim=1,
+        n_months=2,
+        transition=cfg.regime_transition,
+        start_state=resolve_regime_start(cfg),
+        rng=ZeroRNG(),
+    )
+    labels = apply_regime_labels(paths, [regime.name for regime in cfg.regimes])
+
+    assert labels.tolist() == [["calm", "stress"]]
 
 
 def test_simulate_financing_spikes():
