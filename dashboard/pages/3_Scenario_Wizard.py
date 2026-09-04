@@ -1234,7 +1234,10 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.number_input(
             "Max Tracking Error",
             min_value=0.0,
-            value=st.session_state.get("sleeve_max_te", 0.02),
+            value=st.session_state.get(
+                "sleeve_max_te",
+                0.02 if config.sleeve_max_te is None else config.sleeve_max_te,
+            ),
             step=0.01,
             format="%.2f",
             key="sleeve_max_te",
@@ -1243,7 +1246,10 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             "Max Breach Probability",
             min_value=0.0,
             max_value=1.0,
-            value=st.session_state.get("sleeve_max_breach", 0.5),
+            value=st.session_state.get(
+                "sleeve_max_breach",
+                0.5 if config.sleeve_max_breach is None else config.sleeve_max_breach,
+            ),
             step=0.05,
             format="%.2f",
             key="sleeve_max_breach",
@@ -1251,7 +1257,10 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
         st.number_input(
             "Max monthly_CVaR",
             min_value=0.0,
-            value=st.session_state.get("sleeve_max_cvar", 0.05),
+            value=st.session_state.get(
+                "sleeve_max_cvar",
+                0.05 if config.sleeve_max_cvar is None else config.sleeve_max_cvar,
+            ),
             step=0.01,
             format="%.2f",
             key="sleeve_max_cvar",
@@ -1260,7 +1269,10 @@ def _render_sleeve_suggestor(config: DefaultConfigView) -> None:
             "Max Terminal Shortfall Probability",
             min_value=0.0,
             max_value=1.0,
-            value=st.session_state.get("sleeve_max_shortfall", 0.05),
+            value=st.session_state.get(
+                "sleeve_max_shortfall",
+                0.05 if config.sleeve_max_shortfall is None else config.sleeve_max_shortfall,
+            ),
             step=0.05,
             format="%.2f",
             key="sleeve_max_shortfall",
