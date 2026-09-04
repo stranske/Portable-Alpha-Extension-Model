@@ -23,6 +23,32 @@ class _Column:
         return False
 
 
+class _SessionState(dict[str, Any]):
+    def __getattr__(self, key: str) -> Any:
+        return self[key]
+
+    def __setattr__(self, key: str, value: Any) -> None:
+        self[key] = value
+
+
+class _RerunRequested(BaseException):
+    pass
+
+
+def _stale_step_2_state() -> _SessionState:
+    return _SessionState(
+        {
+            "wizard_total_fund_capital": 777.0,
+            "wizard_external_pa_capital": 7.0,
+            "wizard_active_ext_capital": 8.0,
+            "wizard_internal_pa_capital": 9.0,
+            "wizard_w_beta_h": 0.9,
+            "wizard_theta_extpa": 0.8,
+            "wizard_active_share": 0.7,
+        }
+    )
+
+
 def test_step_1_render_clamps_default_simulations_to_widget_min(monkeypatch) -> None:
     module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
     config = get_default_config(AnalysisMode.RETURNS)
@@ -62,16 +88,6 @@ def test_loaded_config_replaces_stale_widget_state_and_survives_step_2(monkeypat
     module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
     widget_values: dict[str, Any] = {}
 
-    class _SessionState(dict[str, Any]):
-        def __getattr__(self, key: str) -> Any:
-            return self[key]
-
-        def __setattr__(self, key: str, value: Any) -> None:
-            self[key] = value
-
-    class _RerunRequested(BaseException):
-        pass
-
     loaded_values = {
         "wizard_total_fund_capital": 1000.0,
         "wizard_external_pa_capital": 125.0,
@@ -81,9 +97,7 @@ def test_loaded_config_replaces_stale_widget_state_and_survives_step_2(monkeypat
         "wizard_theta_extpa": 0.42,
         "wizard_active_share": 0.73,
     }
-    session_state = _SessionState(
-        {key: stale for key, stale in zip(loaded_values, [777.0, 7.0, 8.0, 9.0, 0.9, 0.8, 0.7])}
-    )
+    session_state = _stale_step_2_state()
     uploaded = MagicMock()
     uploaded.getvalue.return_value = (
         module["yaml"]
@@ -144,12 +158,88 @@ def test_loaded_config_replaces_stale_widget_state_and_survives_step_2(monkeypat
 
     rendered = module["_render_step_2_capital"](session_state.wizard_config)
 
+    assert rendered.total_fund_capital == 1000.0
     assert rendered.external_pa_capital == 125.0
     assert rendered.active_ext_capital == 175.0
     assert rendered.internal_pa_capital == 650.0
+    assert rendered.w_beta_h == 0.35
+    assert rendered.theta_extpa == 0.42
+    assert rendered.active_share == 0.73
+    assert widget_values["Total Fund Capital"] == 1000.0
     assert widget_values["External PA Capital [$M]"] == 125.0
     assert widget_values["Active Extension Capital [$M]"] == 175.0
     assert widget_values["Internal PA Capital [$M]"] == 650.0
+    assert widget_values["Internal Beta Weight"] == 0.35
+    assert widget_values["External PA Alpha Fraction"] == 0.42
+    assert widget_values["Active Extension Share"] == 0.73
+
+
+def test_sidebar_reset_replaces_stale_step_2_widget_state(monkeypatch) -> None:
+    module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    config = get_default_config(AnalysisMode.RETURNS)
+    session_state = _stale_step_2_state()
+    session_state.wizard_config = config
+    session_state.wizard_step = 5
+
+    fake_st = MagicMock()
+    fake_st.session_state = session_state
+    fake_st.sidebar.button.side_effect = (
+        lambda label, *args, **kwargs: label == "🔄 Reset All Defaults"
+    )
+    fake_st.rerun.side_effect = _RerunRequested
+    globals_ = module["main"].__globals__
+    monkeypatch.setitem(globals_, "st", fake_st)
+    monkeypatch.setitem(globals_, "render_settings_sidebar", lambda: (None, None))
+    monkeypatch.setitem(globals_, "apply_theme", lambda _path: None)
+
+    try:
+        module["main"]()
+    except _RerunRequested:
+        pass
+    else:
+        raise AssertionError("resetting defaults must request a Streamlit rerun")
+
+    reset = session_state.wizard_config
+    assert session_state["wizard_total_fund_capital"] == reset.total_fund_capital
+    assert session_state["wizard_external_pa_capital"] == reset.external_pa_capital
+    assert session_state["wizard_active_ext_capital"] == reset.active_ext_capital
+    assert session_state["wizard_internal_pa_capital"] == reset.internal_pa_capital
+    assert session_state["wizard_w_beta_h"] == reset.w_beta_h
+    assert session_state["wizard_theta_extpa"] == reset.theta_extpa
+    assert session_state["wizard_active_share"] == reset.active_share
+
+
+def test_review_reset_replaces_stale_step_2_widget_state(monkeypatch) -> None:
+    module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    config = get_default_config(AnalysisMode.RETURNS)
+    session_state = _stale_step_2_state()
+    session_state.wizard_config = config
+
+    fake_st = MagicMock()
+    fake_st.session_state = session_state
+    fake_st.columns.side_effect = lambda spec, *args, **kwargs: [
+        _Column() for _ in range(spec if isinstance(spec, int) else len(spec))
+    ]
+    fake_st.button.side_effect = lambda label, *args, **kwargs: label == "🔄 Reset to Defaults"
+    fake_st.checkbox.return_value = True
+    fake_st.rerun.side_effect = _RerunRequested
+    monkeypatch.setitem(module["_render_step_5_review"].__globals__, "st", fake_st)
+
+    try:
+        module["_render_step_5_review"](config)
+    except _RerunRequested:
+        pass
+    else:
+        raise AssertionError("resetting defaults must request a Streamlit rerun")
+
+    reset = session_state.wizard_config
+    assert session_state["wizard_total_fund_capital"] == reset.total_fund_capital
+    assert session_state["wizard_external_pa_capital"] == reset.external_pa_capital
+    assert session_state["wizard_active_ext_capital"] == reset.active_ext_capital
+    assert session_state["wizard_internal_pa_capital"] == reset.internal_pa_capital
+    assert session_state["wizard_w_beta_h"] == reset.w_beta_h
+    assert session_state["wizard_theta_extpa"] == reset.theta_extpa
+    assert session_state["wizard_active_share"] == reset.active_share
 
 
 def test_build_yaml_maps_all_fields() -> None:
