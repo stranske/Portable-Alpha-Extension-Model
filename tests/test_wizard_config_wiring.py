@@ -310,3 +310,103 @@ def test_build_yaml_includes_regime_switching() -> None:
         assert model_config.regime_start == "Calm"
     finally:
         st.session_state.clear()
+
+
+def test_step_3_render_preserves_advanced_regime_and_sleeve_settings(monkeypatch) -> None:
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        config = get_default_config(AnalysisMode.RETURNS)
+        config.risk_metrics = [RiskMetric.RETURN, RiskMetric.SHORTFALL_PROB]
+        config.return_distribution = "student_t"
+        config.return_t_df = 7.5
+        config.return_copula = "t"
+        config.vol_regime = "two_state"
+        config.vol_regime_window = 12
+        config.covariance_shrinkage = "ledoit_wolf"
+        config.correlation_repair_mode = "warn_fix"
+        config.correlation_repair_shrinkage = 0.2
+        config.correlation_repair_max_abs_delta = 0.25
+        config.regimes = [
+            {"name": "Calm", "idx_sigma_multiplier": 0.8},
+            {"name": "Stressed", "idx_sigma_multiplier": 1.3},
+        ]
+        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+        config.regime_start = "Stressed"
+        config.sleeve_constraint_scope = "per_sleeve"
+        config.sleeve_validate_on_run = True
+
+        rendered_widgets: dict[str, dict[str, Any]] = {}
+
+        def _record_value(label: str, *args: Any, **kwargs: Any) -> Any:
+            rendered_widgets[label] = kwargs
+            value = kwargs.get("value")
+            if key := kwargs.get("key"):
+                st.session_state[key] = value
+            return value
+
+        def _selectbox(
+            label: str,
+            options: list[Any],
+            index: int = 0,
+            **kwargs: Any,
+        ) -> Any:
+            rendered_widgets[label] = kwargs
+            value = options[index]
+            if key := kwargs.get("key"):
+                st.session_state[key] = value
+            return value
+
+        def _checkbox(label: str, *args: Any, **kwargs: Any) -> bool:
+            rendered_widgets[label] = kwargs
+            value = bool(kwargs.get("value", False))
+            if key := kwargs.get("key"):
+                st.session_state[key] = value
+            return value
+
+        def _text_area(label: str, *args: Any, **kwargs: Any) -> str:
+            rendered_widgets[label] = kwargs
+            value = str(kwargs.get("value", ""))
+            if key := kwargs.get("key"):
+                st.session_state[key] = value
+            return value
+
+        monkeypatch.setattr(
+            module["st"], "columns", lambda count: [_Column() for _ in range(count)]
+        )
+        monkeypatch.setattr(module["st"], "expander", lambda *args, **kwargs: _Column())
+        monkeypatch.setattr(module["st"], "number_input", _record_value)
+        monkeypatch.setattr(module["st"], "slider", _record_value)
+        monkeypatch.setattr(module["st"], "selectbox", _selectbox)
+        monkeypatch.setattr(
+            module["st"],
+            "multiselect",
+            lambda _label, *, default, **_kwargs: list(default),
+        )
+        monkeypatch.setattr(module["st"], "checkbox", _checkbox)
+        monkeypatch.setattr(module["st"], "text_area", _text_area)
+        monkeypatch.setattr(module["st"], "button", lambda *args, **kwargs: False)
+        for method in ("subheader", "markdown", "write"):
+            monkeypatch.setattr(module["st"], method, lambda *args, **kwargs: None)
+
+        rendered = module["_render_step_3_returns_risk"](config)
+
+        assert rendered is config
+        assert config.risk_metrics == ["Return", "terminal_ShortfallProb"]
+        assert config.return_distribution == "student_t"
+        assert config.return_t_df == 7.5
+        assert config.return_copula == "t"
+        assert config.vol_regime == "two_state"
+        assert config.vol_regime_window == 12
+        assert config.covariance_shrinkage == "ledoit_wolf"
+        assert config.correlation_repair_mode == "warn_fix"
+        assert config.correlation_repair_shrinkage == 0.2
+        assert config.correlation_repair_max_abs_delta == 0.25
+        assert config.regime_start == "Stressed"
+        assert [regime["name"] for regime in config.regimes] == ["Calm", "Stressed"]
+        assert config.regime_transition == [[0.9, 0.1], [0.2, 0.8]]
+        assert config.sleeve_constraint_scope == "per_sleeve"
+        assert config.sleeve_validate_on_run is True
+        assert rendered_widgets["Student-t degrees of freedom"]["disabled"] is False
+    finally:
+        st.session_state.clear()
