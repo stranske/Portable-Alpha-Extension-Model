@@ -2182,6 +2182,13 @@ def main() -> None:
                         else None
                     ),
                 }
+                st.session_state[_TOTAL_CAPITAL_KEY] = wizard_config.total_fund_capital
+                st.session_state[_EXTERNAL_CAPITAL_KEY] = wizard_config.external_pa_capital
+                st.session_state[_ACTIVE_CAPITAL_KEY] = wizard_config.active_ext_capital
+                st.session_state[_INTERNAL_CAPITAL_KEY] = wizard_config.internal_pa_capital
+                st.session_state[_W_BETA_KEY] = wizard_config.w_beta_h
+                st.session_state[_THETA_EXTPA_KEY] = wizard_config.theta_extpa
+                st.session_state[_ACTIVE_SHARE_KEY] = wizard_config.active_share
                 st.session_state.wizard_config = wizard_config
                 st.session_state.wizard_step = 5  # Go to review step
                 st.rerun()

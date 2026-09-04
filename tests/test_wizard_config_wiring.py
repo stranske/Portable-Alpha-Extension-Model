@@ -1,6 +1,7 @@
 import runpy
 from pathlib import Path
 from typing import Any
+from unittest.mock import MagicMock
 
 import streamlit as st
 
@@ -55,6 +56,100 @@ def test_step_1_render_clamps_default_simulations_to_widget_min(monkeypatch) -> 
     rendered = module["_render_step_1_analysis_mode"](config)
 
     assert rendered.n_simulations == 100
+
+
+def test_loaded_config_replaces_stale_widget_state_and_survives_step_2(monkeypatch) -> None:
+    module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    widget_values: dict[str, Any] = {}
+
+    class _SessionState(dict[str, Any]):
+        def __getattr__(self, key: str) -> Any:
+            return self[key]
+
+        def __setattr__(self, key: str, value: Any) -> None:
+            self[key] = value
+
+    class _RerunRequested(BaseException):
+        pass
+
+    loaded_values = {
+        "wizard_total_fund_capital": 1000.0,
+        "wizard_external_pa_capital": 125.0,
+        "wizard_active_ext_capital": 175.0,
+        "wizard_internal_pa_capital": 650.0,
+        "wizard_w_beta_h": 0.35,
+        "wizard_theta_extpa": 0.42,
+        "wizard_active_share": 0.73,
+    }
+    session_state = _SessionState(
+        {key: stale for key, stale in zip(loaded_values, [777.0, 7.0, 8.0, 9.0, 0.9, 0.8, 0.7])}
+    )
+    uploaded = MagicMock()
+    uploaded.getvalue.return_value = (
+        module["yaml"]
+        .safe_dump(
+            {
+                "Number of simulations": 1000,
+                "Number of months": 12,
+                "financing_mode": "broadcast",
+                "total_fund_capital": loaded_values["wizard_total_fund_capital"],
+                "external_pa_capital": loaded_values["wizard_external_pa_capital"],
+                "active_ext_capital": loaded_values["wizard_active_ext_capital"],
+                "internal_pa_capital": loaded_values["wizard_internal_pa_capital"],
+                "w_beta_H": loaded_values["wizard_w_beta_h"],
+                "w_alpha_H": 1.0 - loaded_values["wizard_w_beta_h"],
+                "theta_extpa": loaded_values["wizard_theta_extpa"],
+                "active_share": loaded_values["wizard_active_share"],
+            }
+        )
+        .encode()
+    )
+
+    fake_st = MagicMock()
+    fake_st.session_state = session_state
+    fake_st.sidebar.button.side_effect = (
+        lambda label, *args, **kwargs: label == "Load Configuration"
+    )
+    fake_st.sidebar.file_uploader.return_value = uploaded
+    fake_st.rerun.side_effect = _RerunRequested
+    fake_st.columns.side_effect = lambda spec, *args, **kwargs: [
+        _Column() for _ in range(spec if isinstance(spec, int) else len(spec))
+    ]
+    fake_st.expander.return_value = _Column()
+    fake_st.button.return_value = False
+
+    def _record_value(label: str, *args: Any, **kwargs: Any) -> Any:
+        value = kwargs.get("value")
+        widget_values[label] = value
+        if key := kwargs.get("key"):
+            session_state[key] = value
+        return value
+
+    fake_st.number_input.side_effect = _record_value
+    fake_st.slider.side_effect = _record_value
+    fake_st.selectbox.side_effect = lambda label, options, index=0, **kwargs: options[index]
+    globals_ = module["main"].__globals__
+    monkeypatch.setitem(globals_, "st", fake_st)
+    monkeypatch.setitem(globals_, "render_settings_sidebar", lambda: (None, None))
+    monkeypatch.setitem(globals_, "apply_theme", lambda _path: None)
+
+    try:
+        module["main"]()
+    except _RerunRequested:
+        pass
+    else:
+        raise AssertionError("loading a configuration must request a Streamlit rerun")
+
+    assert {key: session_state[key] for key in loaded_values} == loaded_values
+
+    rendered = module["_render_step_2_capital"](session_state.wizard_config)
+
+    assert rendered.external_pa_capital == 125.0
+    assert rendered.active_ext_capital == 175.0
+    assert rendered.internal_pa_capital == 650.0
+    assert widget_values["External PA Capital [$M]"] == 125.0
+    assert widget_values["Active Extension Capital [$M]"] == 175.0
+    assert widget_values["Internal PA Capital [$M]"] == 650.0
 
 
 def test_build_yaml_maps_all_fields() -> None:
