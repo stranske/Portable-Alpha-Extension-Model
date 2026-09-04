@@ -327,12 +327,18 @@ def test_step_3_render_preserves_advanced_regime_and_sleeve_settings(monkeypatch
         config.correlation_repair_mode = "warn_fix"
         config.correlation_repair_shrinkage = 0.2
         config.correlation_repair_max_abs_delta = 0.25
-        config.regimes = [
+        expected_regimes = [
             {"name": "Calm", "idx_sigma_multiplier": 0.8},
             {"name": "Stressed", "idx_sigma_multiplier": 1.3},
         ]
-        config.regime_transition = [[0.9, 0.1], [0.2, 0.8]]
+        expected_transition = [[0.9, 0.1], [0.2, 0.8]]
+        config.regimes = expected_regimes
+        config.regime_transition = expected_transition
         config.regime_start = "Stressed"
+        config.sleeve_max_te = 0.0
+        config.sleeve_max_breach = 0.4
+        config.sleeve_max_cvar = 0.06
+        config.sleeve_max_shortfall = 0.08
         config.sleeve_constraint_scope = "per_sleeve"
         config.sleeve_validate_on_run = True
 
@@ -351,11 +357,28 @@ def test_step_3_render_preserves_advanced_regime_and_sleeve_settings(monkeypatch
             index: int = 0,
             **kwargs: Any,
         ) -> Any:
-            rendered_widgets[label] = kwargs
+            rendered_widgets[label] = {
+                **kwargs,
+                "options": list(options),
+                "index": index,
+            }
             value = options[index]
             if key := kwargs.get("key"):
                 st.session_state[key] = value
             return value
+
+        def _multiselect(
+            label: str,
+            options: list[Any],
+            default: list[Any],
+            **kwargs: Any,
+        ) -> list[Any]:
+            rendered_widgets[label] = {
+                **kwargs,
+                "options": list(options),
+                "default": list(default),
+            }
+            return list(default)
 
         def _checkbox(label: str, *args: Any, **kwargs: Any) -> bool:
             rendered_widgets[label] = kwargs
@@ -378,11 +401,7 @@ def test_step_3_render_preserves_advanced_regime_and_sleeve_settings(monkeypatch
         monkeypatch.setattr(module["st"], "number_input", _record_value)
         monkeypatch.setattr(module["st"], "slider", _record_value)
         monkeypatch.setattr(module["st"], "selectbox", _selectbox)
-        monkeypatch.setattr(
-            module["st"],
-            "multiselect",
-            lambda _label, *, default, **_kwargs: list(default),
-        )
+        monkeypatch.setattr(module["st"], "multiselect", _multiselect)
         monkeypatch.setattr(module["st"], "checkbox", _checkbox)
         monkeypatch.setattr(module["st"], "text_area", _text_area)
         monkeypatch.setattr(module["st"], "button", lambda *args, **kwargs: False)
@@ -403,10 +422,54 @@ def test_step_3_render_preserves_advanced_regime_and_sleeve_settings(monkeypatch
         assert config.correlation_repair_shrinkage == 0.2
         assert config.correlation_repair_max_abs_delta == 0.25
         assert config.regime_start == "Stressed"
-        assert [regime["name"] for regime in config.regimes] == ["Calm", "Stressed"]
-        assert config.regime_transition == [[0.9, 0.1], [0.2, 0.8]]
+        assert config.regimes == expected_regimes
+        assert config.regime_transition == expected_transition
+        assert config.sleeve_max_te == 0.0
+        assert config.sleeve_max_breach == 0.4
+        assert config.sleeve_max_cvar == 0.06
+        assert config.sleeve_max_shortfall == 0.08
         assert config.sleeve_constraint_scope == "per_sleeve"
         assert config.sleeve_validate_on_run is True
+
+        assert rendered_widgets["Select Risk Metrics"]["options"] == list(RiskMetric)
+        assert rendered_widgets["Select Risk Metrics"]["default"] == [
+            RiskMetric.RETURN,
+            RiskMetric.SHORTFALL_PROB,
+        ]
+        assert rendered_widgets["Return distribution"]["options"] == ["normal", "student_t"]
+        assert rendered_widgets["Return distribution"]["index"] == 1
+        assert rendered_widgets["Return copula"]["options"] == ["gaussian", "t"]
+        assert rendered_widgets["Return copula"]["index"] == 1
         assert rendered_widgets["Student-t degrees of freedom"]["disabled"] is False
+        assert rendered_widgets["Student-t degrees of freedom"]["value"] == 7.5
+        assert rendered_widgets["Volatility regime"]["index"] == 1
+        assert rendered_widgets["Volatility regime window (months)"]["value"] == 12
+        assert rendered_widgets["Covariance shrinkage"]["index"] == 1
+        assert rendered_widgets["Correlation repair mode"]["index"] == 1
+        assert rendered_widgets["Correlation repair shrinkage"]["value"] == 0.2
+        assert rendered_widgets["Enforce max correlation repair delta"]["value"] is True
+        assert rendered_widgets["Correlation repair max abs delta"]["value"] == 0.25
+        assert module["yaml"].safe_load(rendered_widgets["Regimes (YAML/JSON)"]["value"]) == (
+            expected_regimes
+        )
+        assert (
+            module["yaml"].safe_load(
+                rendered_widgets["Regime transition matrix (YAML/JSON)"]["value"]
+            )
+            == expected_transition
+        )
+        assert rendered_widgets["Starting regime (optional)"]["options"] == [
+            "(auto)",
+            "Calm",
+            "Stressed",
+        ]
+        assert rendered_widgets["Starting regime (optional)"]["index"] == 2
+        assert rendered_widgets["Max Tracking Error"]["value"] == 0.0
+        assert rendered_widgets["Max Breach Probability"]["value"] == 0.4
+        assert rendered_widgets["Max monthly_CVaR"]["value"] == 0.06
+        assert rendered_widgets["Max Terminal Shortfall Probability"]["value"] == 0.08
+        assert rendered_widgets["Constraint Scope"]["options"] == ["sleeves", "total", "both"]
+        assert rendered_widgets["Constraint Scope"]["index"] == 0
+        assert rendered_widgets["Validate constraints on run"]["value"] is True
     finally:
         st.session_state.clear()
