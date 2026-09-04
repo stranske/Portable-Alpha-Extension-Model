@@ -95,6 +95,18 @@ _DEFAULT_MARGIN_BUFFER_SHARE = 0.01
 _MAX_DEFAULT_INTERNAL_PA_SHARE = 0.96
 
 
+def _replace_wizard_config(config: DefaultConfigView) -> None:
+    """Replace the config and the keyed Step 2 widget values together."""
+    st.session_state[_TOTAL_CAPITAL_KEY] = config.total_fund_capital
+    st.session_state[_EXTERNAL_CAPITAL_KEY] = config.external_pa_capital
+    st.session_state[_ACTIVE_CAPITAL_KEY] = config.active_ext_capital
+    st.session_state[_INTERNAL_CAPITAL_KEY] = config.internal_pa_capital
+    st.session_state[_W_BETA_KEY] = config.w_beta_h
+    st.session_state[_THETA_EXTPA_KEY] = config.theta_extpa
+    st.session_state[_ACTIVE_SHARE_KEY] = config.active_share
+    st.session_state.wizard_config = config
+
+
 def _load_margin_schedule_from_path(
     schedule_path: str | Path | None,
 ) -> tuple[pd.DataFrame | None, Path | None]:
@@ -2108,7 +2120,7 @@ def _render_step_5_review(config: DefaultConfigView) -> bool:
     with col1:
         if st.button("🔄 Reset to Defaults", help="Reset all parameters to sensible defaults"):
             mode = config.analysis_mode
-            st.session_state.wizard_config = get_default_config(mode)
+            _replace_wizard_config(get_default_config(mode))
             st.rerun()
 
     with col2:
@@ -2156,7 +2168,7 @@ def main() -> None:
     if st.sidebar.button("🔄 Reset All Defaults"):
         current = st.session_state.wizard_config
         mode = current.analysis_mode
-        st.session_state.wizard_config = get_default_config(mode)
+        _replace_wizard_config(get_default_config(mode))
         st.rerun()
 
     # Alternative: File upload mode
@@ -2182,7 +2194,7 @@ def main() -> None:
                         else None
                     ),
                 }
-                st.session_state.wizard_config = wizard_config
+                _replace_wizard_config(wizard_config)
                 st.session_state.wizard_step = 5  # Go to review step
                 st.rerun()
         except Exception as e:
