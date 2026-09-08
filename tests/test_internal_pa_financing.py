@@ -242,7 +242,8 @@ def test_parameter_sweep_passes_internal_pa_financing_series(monkeypatch) -> Non
         zeros = np.zeros((n_sim, n_months))
         return zeros, zeros, zeros
 
-    def fake_simulate_agents(*args):
+    def fake_simulate_agents(*args, fee_schedule):
+        assert fee_schedule is cfg.fee_schedule
         captured["internal_pa_financing"] = args[-1]
         return {"Base": np.zeros((cfg.N_SIMULATIONS, cfg.N_MONTHS))}
 
