@@ -724,6 +724,27 @@ class ModelConfig(BaseModel):
         data["agents"] = normalized
         return data
 
+    def with_agent_overrides(self, updates: Mapping[str, Any]) -> "ModelConfig":
+        """Copy canonical field overrides and refresh only their derived agents.
+
+        Like ``model_copy``, this does not revalidate the whole configuration:
+        sweep candidates may exceed margin limits, and returns are already in
+        monthly units. Unaffected explicit agents (including custom agents) are
+        preserved; convenience overrides replace only the agents they control.
+        """
+        updated = self.model_copy(update=updates)
+        affected = self._agent_names_recompiled_by_convenience(updates)
+        if not affected:
+            return updated
+        compiled = self.compile_agent_config(updated.model_dump(exclude={"agents"}))
+        refreshed = [
+            AgentConfig.model_validate(agent)
+            for agent in compiled["agents"]
+            if agent["name"] in affected
+        ]
+        preserved = [agent for agent in updated.agents if agent.name not in affected]
+        return updated.model_copy(update={"agents": refreshed + preserved})
+
     @classmethod
     def _agent_names_recompiled_by_convenience(cls, data: Mapping[str, Any]) -> set[str]:
         """Return derived agent names controlled by supplied convenience fields."""

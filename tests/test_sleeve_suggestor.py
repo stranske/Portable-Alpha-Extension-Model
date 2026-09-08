@@ -756,3 +756,77 @@ def test_suggest_sleeve_sizes_infeasible_constraints_returns_status(monkeypatch)
     assert not df.empty
     assert not bool(df.loc[0, "constraints_satisfied"])
     assert str(df.loc[0, "optimizer_status"]).startswith("fallback_failed")
+
+
+@pytest.mark.parametrize("cached", [False, True])
+def test_allocation_candidates_match_validated_controls(cached):
+    from pa_core.orchestrator import SimulatorOrchestrator
+    from pa_core.sleeve_suggestor import _evaluate_allocation
+
+    cfg = ModelConfig(
+        N_SIMULATIONS=100,
+        N_MONTHS=6,
+        external_pa_capital=100,
+        active_ext_capital=100,
+        internal_pa_capital=100,
+        mu_M=0.36,
+        mu_E=0.12,
+        mu_H=0.06,
+        theta_extpa=1.0,
+        financing_mode="broadcast",
+    )
+    idx = pd.Series([0.01, -0.02, 0.03, 0.0, 0.02, -0.01])
+    cache = _StreamCache(cfg, idx, seed=73) if cached else None
+    if cache is not None:
+        # Exercise the actual cached simulation path even when the current
+        # orchestrator has no draw_streams capability.
+        rng = np.random.default_rng(73)
+        streams = tuple(
+            rng.normal(mean, 0.001, (100, 6)) for mean in [0.005, 0.01, 0.02, 0.04, 0.0, 0.0, 0.0]
+        )
+        cache._streams = streams
+        cache._probed = True
+    limits = dict(
+        max_te=10.0,
+        max_breach=1.0,
+        max_cvar=10.0,
+        max_shortfall=1.0,
+        constraint_scope="both",
+        include_returns=True,
+    )
+    observed = []
+    for ext_cap, act_cap, int_cap in [
+        (300.0, 50.0, 150.0),
+        (50.0, 300.0, 150.0),
+        (0.0, 0.0, 500.0),
+    ]:
+        actual = _evaluate_allocation(
+            cfg,
+            idx,
+            ext_cap=ext_cap,
+            act_cap=act_cap,
+            int_cap=int_cap,
+            seed=73,
+            stream_cache=cache,
+            **limits,
+        )
+        data = cfg.model_dump()
+        data.update(
+            external_pa_capital=ext_cap, active_ext_capital=act_cap, internal_pa_capital=int_cap
+        )
+        control = ModelConfig.model_validate(data)
+        if cache is None:
+            _, summary = SimulatorOrchestrator(control, idx).run(seed=73)
+        else:
+            from pa_core.agents.registry import build_from_config
+            from pa_core.simulations import simulate_agents
+
+            summary = summary_table(
+                simulate_agents(build_from_config(control), *streams), benchmark="Base"
+            )
+        expected = _extract_metrics(summary, **limits)
+        assert actual is not None and expected is not None
+        assert actual[0] == pytest.approx(expected[0])
+        assert actual[1] == expected[1]
+        observed.append(actual[0]["Total_terminal_AnnReturn"])
+    assert abs(observed[0] - observed[1]) > 0.01
