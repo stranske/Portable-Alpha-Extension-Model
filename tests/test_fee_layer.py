@@ -14,10 +14,12 @@ from pydantic import ValidationError
 
 from pa_core.agents.internal_pa import InternalPAAgent
 from pa_core.agents.types import AgentParams
-from pa_core.config import AgentConfig, load_config
+from pa_core.config import AgentConfig, ModelConfig, load_config
 from pa_core.facade import RunOptions, run_single
 from pa_core.fees import FeeSchedule, apply_fees, compute_fee_drag
+from pa_core.random import spawn_agent_rngs, spawn_rngs
 from pa_core.simulations import simulate_agents
+from pa_core.sweep import clear_sweep_cache, run_parameter_sweep, run_parameter_sweep_cached
 
 # ---------------------------------------------------------------------------
 # FeeSchedule model
@@ -242,3 +244,90 @@ def test_fee_schedule_survives_model_dump() -> None:
     )
     dumped = cfg.model_dump()
     assert dumped["fee_schedule"]["InternalPA"]["mgmt_fee_bps"] == 50.0
+
+
+@pytest.mark.parametrize("cached", [False, True])
+@pytest.mark.parametrize(
+    "schedule",
+    [
+        None,
+        FeeSchedule(),
+        FeeSchedule(mgmt_fee_bps=120.0),
+        FeeSchedule(mgmt_fee_bps=120.0, perf_fee_pct=0.2, hurdle_bps=60.0),
+    ],
+    ids=["absent", "zero", "management", "management-and-performance"],
+)
+def test_one_point_sweep_fee_drag_matches_single_run(schedule, cached, monkeypatch) -> None:
+    cfg = ModelConfig(
+        N_SIMULATIONS=100,
+        N_MONTHS=12,
+        internal_pa_capital=100.0,
+        mu_H_annual=0.24,
+        sigma_H_annual=0.02,
+        financing_mode="broadcast",
+        sweep={"method": "grid", "parameters": {"internal_pa_capital": {"values": [100.0]}}},
+    )
+    idx = pd.Series([0.01, -0.02, 0.015, 0.0, 0.005, -0.01])
+    net_cfg = cfg.model_copy(
+        update={"fee_schedule": None if schedule is None else {"InternalPA": schedule}}
+    )
+
+    # The sweep precomputes shocks; single runs draw them directly. Supply the
+    # same deterministic market inputs to isolate fee economics from RNG layout.
+    def fixed_returns(*, n_sim, n_months, **kwargs):
+        beta = np.full((n_sim, n_months), 0.01)
+        alpha = np.tile([0.02, -0.01, 0.0001, 0.005], (n_sim, n_months // 4))
+        return beta, alpha, alpha, alpha
+
+    def fixed_financing(*, n_sim, n_months, **kwargs):
+        return tuple(np.zeros((n_sim, n_months)) for _ in range(3))
+
+    for module in ("pa_core.sim", "pa_core.sweep"):
+        monkeypatch.setattr(f"{module}.draw_joint_returns", fixed_returns)
+        monkeypatch.setattr(f"{module}.draw_financing_series", fixed_financing)
+
+    def sweep(config):
+        if cached:
+            return run_parameter_sweep_cached(config, idx, seed=73)
+        return run_parameter_sweep(
+            config,
+            idx,
+            spawn_rngs(73, 1)[0],
+            spawn_agent_rngs(73, ["internal", "external_pa", "active_ext"]),
+            seed=73,
+        )
+
+    clear_sweep_cache()
+    try:
+        gross_single = run_single(cfg, idx, RunOptions(seed=73))
+        net_single = run_single(net_cfg, idx, RunOptions(seed=73))
+        gross_sweep = sweep(cfg)
+        net_sweep = sweep(net_cfg)
+        assert len(gross_sweep) == len(net_sweep) == 1
+        if cached:
+            assert sweep(net_cfg) is net_sweep
+
+        gross_summary = gross_sweep[0]["summary"].set_index("Agent")
+        net_summary = net_sweep[0]["summary"].set_index("Agent")
+        single_gross = gross_single.summary.set_index("Agent")
+        single_net = net_single.summary.set_index("Agent")
+        pd.testing.assert_frame_equal(gross_summary, single_gross)
+        pd.testing.assert_frame_equal(net_summary, single_net)
+        # Fees affect only the configured sleeve, including its annual economics.
+        pd.testing.assert_series_equal(net_summary.loc["Base"], gross_summary.loc["Base"])
+        drag = (
+            gross_summary.loc["InternalPA", "terminal_AnnReturn"]
+            - net_summary.loc["InternalPA", "terminal_AnnReturn"]
+        )
+        if schedule is None or schedule.is_zero:
+            pd.testing.assert_frame_equal(net_summary, gross_summary)
+            assert drag == 0.0
+        else:
+            assert drag > 0.0
+            assert drag == pytest.approx(
+                single_gross.loc["InternalPA", "terminal_AnnReturn"]
+                - single_net.loc["InternalPA", "terminal_AnnReturn"],
+                abs=1e-12,
+            )
+    finally:
+        clear_sweep_cache()

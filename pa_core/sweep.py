@@ -722,6 +722,7 @@ def run_parameter_sweep(
             f_ext,
             f_act,
             f_internal_pa,
+            fee_schedule=mod_cfg.fee_schedule,
         )
 
         summary = summary_table(returns, benchmark="Base")
