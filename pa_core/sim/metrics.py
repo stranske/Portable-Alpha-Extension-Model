@@ -435,19 +435,43 @@ def _cvar_tail_values(returns: ArrayLike, confidence: float = 0.95) -> ArrayLike
 
 
 def cvar_standard_error(returns: ArrayLike, confidence: float = 0.95) -> float:
-    """Return a sampling-error diagnostic for the CVaR tail mean.
+    """Estimate CVaR sampling error, including the empirical cutoff uncertainty.
 
-    The estimate is the standard error of the returns that fall beyond the same
-    strict lower-tail cutoff used by :func:`conditional_value_at_risk`. It is a
-    Monte Carlo precision diagnostic, not model risk. If fewer than two strict
-    tail observations are available, the diagnostic is undefined and returns
-    ``NaN`` rather than implying zero sampling error.
+    For tail probability ``p = 1 - confidence`` and empirical cutoff ``q``,
+    the lower-tail expected-shortfall influence score, up to a constant, is
+    ``min(returns - q, 0) / p``. Its variance includes tail membership uncertainty;
+    the conditional standard error of just the selected returns does not.
+    See Zhang, Martin and Christidis (2021), equation (21),
+    https://doi.org/10.4236/jmf.2021.111002 (loss sign reversed here).
+
+    A 1-D input denotes independent draws (e.g. terminal returns). A 2-D input
+    denotes independent, identically distributed paths x months: average scores
+    within each path before estimating variance across paths. Months may be
+    arbitrarily dependent within a path; paths must be independent. Other input
+    shapes retain the historical flattening behavior and denote independent draws.
+    This is an asymptotic Monte Carlo diagnostic, not model risk. Calibration assumes a
+    continuous distribution near the cutoff, finite tail second moments, and
+    enough independent paths in the tail. Discrete cutoff masses and very small
+    samples are not covered by the nominal confidence interpretation.
+
+    Return ``NaN`` if fewer than two strict-tail observations or contributing
+    independent paths are observed, including constant returns and a single
+    path. The point estimate's existing strict-tail semantics are unchanged.
     """
 
-    tail = np.asarray(_cvar_tail_values(returns, confidence=confidence), dtype=np.float64)
+    arr = np.asarray(returns, dtype=np.float64)
+    if arr.ndim != 2:
+        arr = arr.reshape(-1)
+    tail = np.asarray(_cvar_tail_values(arr, confidence=confidence), dtype=np.float64)
     if tail.size < 2:
         return float("nan")
-    return metric_standard_error(tail)
+    cutoff = np.quantile(arr, 1 - confidence, method="lower")
+    scores = np.minimum(arr - cutoff, 0.0) / (1 - confidence)
+    if arr.ndim == 2:
+        if np.count_nonzero(np.any(arr < cutoff, axis=1)) < 2:
+            return float("nan")
+        scores = scores.mean(axis=1)
+    return metric_standard_error(scores)
 
 
 def cvar_confidence_interval(
@@ -456,7 +480,14 @@ def cvar_confidence_interval(
     *,
     interval_confidence: float = 0.95,
 ) -> tuple[float, float]:
-    """Return a normal-approximation confidence interval around CVaR."""
+    """Return an asymptotic normal confidence interval around empirical CVaR.
+
+    Uses cutoff-aware, path-clustered sampling error. The independence, sample
+    size and continuity assumptions in :func:`cvar_standard_error` apply; this
+    is not a finite-sample or model-risk guarantee. Undefined error yields NaN
+    bounds. ``confidence`` chooses the CVaR tail; ``interval_confidence`` chooses
+    the interval's nominal coverage.
+    """
 
     if not 0 < interval_confidence < 1:
         raise ValueError("interval_confidence must be between 0 and 1")
@@ -595,6 +626,7 @@ def summary_table(
     ----------
     returns_map:
         Mapping of agent name to monthly return series (shape: paths x months).
+        A 1-D series denotes one path, including for CVaR uncertainty diagnostics.
         terminal_AnnReturn, monthly_AnnVol, and monthly_TE outputs are annualised
         using ``periods_per_year``.
     breach_threshold:
@@ -611,13 +643,15 @@ def summary_table(
     expectation) and is included for debugging parity with legacy outputs.
     """
 
-    returns = returns_map
-    if benchmark and "Total" not in returns_map and benchmark in returns_map:
+    returns = {}
+    for name, values in returns_map.items():
+        sample = np.asarray(values, dtype=np.float64)
+        returns[name] = sample[None, :] if sample.ndim == 1 else sample
+    if benchmark and "Total" not in returns and benchmark in returns:
         from ..portfolio import compute_total_contribution_returns
 
-        total = compute_total_contribution_returns(returns_map)
+        total = compute_total_contribution_returns(returns)
         if total is not None:
-            returns = dict(returns_map)
             returns["Total"] = total
 
     rows = []
@@ -635,13 +669,14 @@ def summary_table(
         var = value_at_risk(arr, confidence=var_conf)
         cvar_month = cvar_monthly(arr, confidence=var_conf)
         cvar_term = cvar_terminal(arr, confidence=var_conf, periods_per_year=periods_per_year)
-        cvar_month_se = cvar_standard_error(arr, confidence=var_conf)
+        arr_np = np.asarray(arr, dtype=np.float64)
+        paths = arr_np if arr_np.ndim == 2 else arr_np[None, :]
+        cvar_month_se = cvar_standard_error(paths, confidence=var_conf)
         cvar_month_ci_low, cvar_month_ci_high = cvar_confidence_interval(
-            arr,
+            paths,
             confidence=var_conf,
         )
-        arr_np = np.asarray(arr, dtype=np.float64)
-        terminal_returns = compound(arr_np if arr_np.ndim == 2 else arr_np[None, :])[:, -1]
+        terminal_returns = compound(paths)[:, -1]
         cvar_term_se = cvar_standard_error(terminal_returns, confidence=var_conf)
         cvar_term_ci_low, cvar_term_ci_high = cvar_confidence_interval(
             terminal_returns,
@@ -759,17 +794,17 @@ _METRIC_DEFINITIONS = [
     {
         "Metric": "monthly_CVaR_SE",
         "MetricType": "diagnostic",
-        "Description": "Monte Carlo standard error of the monthly CVaR tail mean.",
+        "Description": "Cutoff-aware Monte Carlo standard error of monthly CVaR, clustered by path.",
     },
     {
         "Metric": "monthly_CVaR_CI95_Low",
         "MetricType": "diagnostic",
-        "Description": "Lower bound of the normal-approximation 95% interval around monthly CVaR.",
+        "Description": "Lower bound of the asymptotic 95% interval around monthly CVaR (independent paths).",
     },
     {
         "Metric": "monthly_CVaR_CI95_High",
         "MetricType": "diagnostic",
-        "Description": "Upper bound of the normal-approximation 95% interval around monthly CVaR.",
+        "Description": "Upper bound of the asymptotic 95% interval around monthly CVaR (independent paths).",
     },
     {
         "Metric": "terminal_CVaR",
@@ -779,17 +814,17 @@ _METRIC_DEFINITIONS = [
     {
         "Metric": "terminal_CVaR_SE",
         "MetricType": "diagnostic",
-        "Description": "Monte Carlo standard error of the terminal CVaR tail mean.",
+        "Description": "Cutoff-aware Monte Carlo standard error of terminal CVaR across independent paths.",
     },
     {
         "Metric": "terminal_CVaR_CI95_Low",
         "MetricType": "diagnostic",
-        "Description": "Lower bound of the normal-approximation 95% interval around terminal CVaR.",
+        "Description": "Lower bound of the asymptotic 95% interval around terminal CVaR (independent paths).",
     },
     {
         "Metric": "terminal_CVaR_CI95_High",
         "MetricType": "diagnostic",
-        "Description": "Upper bound of the normal-approximation 95% interval around terminal CVaR.",
+        "Description": "Upper bound of the asymptotic 95% interval around terminal CVaR (independent paths).",
     },
     {
         "Metric": "terminal_CVaR_HalfSampleDelta",
