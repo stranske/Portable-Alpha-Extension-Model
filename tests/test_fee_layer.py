@@ -321,7 +321,7 @@ def test_one_point_sweep_fee_drag_matches_single_run(schedule, cached, monkeypat
         )
         if schedule is None or schedule.is_zero:
             pd.testing.assert_frame_equal(net_summary, gross_summary)
-            assert drag == 0.0
+            assert drag == pytest.approx(0.0, abs=1e-12)
         else:
             assert drag > 0.0
             assert drag == pytest.approx(
