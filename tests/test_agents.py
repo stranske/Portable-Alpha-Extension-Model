@@ -13,6 +13,7 @@ from pa_core.agents import (
 )
 from pa_core.agents.registry import build_all, build_from_config, register_agent
 from pa_core.config import ModelConfig, normalize_share
+from pa_core.simulations import simulate_agents
 
 
 def _mock_inputs(shape=(5, 12)):
@@ -110,8 +111,8 @@ def test_agent_math_identity():
 
     pa_p = AgentParams("InternalPA", 75.0, 0.0, 0.2, {})
     pa_agent = InternalPAAgent(pa_p)
-    # InternalPA now subtracts its internal-PA financing cost (issue #1849).
-    expected_pa = pa_p.alpha_share * r_H - f
+    # Alpha and financing both contribute at the sleeve's portfolio weight.
+    expected_pa = pa_p.alpha_share * (r_H - f)
     np.testing.assert_allclose(pa_agent.monthly_returns(r_beta, r_H, f), expected_pa)
 
 
@@ -179,6 +180,62 @@ def test_internal_pa_no_alpha_returns_zero() -> None:
     agent = InternalPAAgent(p)
     out = agent.monthly_returns(r_beta, zeros, zeros)
     assert np.allclose(out, 0.0)
+
+
+@pytest.mark.parametrize(
+    ("share", "expected_financing", "expected_alpha"),
+    [
+        (0.1, [-0.001, 0.001, 0.0], [0.002, -0.003, 0.001]),
+        (1.0, [-0.01, 0.01, 0.0], [0.02, -0.03, 0.01]),
+        (0.0, [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]),
+    ],
+)
+@pytest.mark.parametrize("with_alpha", [False, True])
+def test_internal_pa_financing_contribution_share(
+    share: float,
+    expected_financing: list[float],
+    expected_alpha: list[float],
+    with_alpha: bool,
+) -> None:
+    agent = InternalPAAgent(AgentParams("InternalPA", 1000.0 * share, 0.0, share, {}))
+    beta = np.full((2, 3), 0.07)  # InternalPA must not acquire beta exposure.
+    alpha = np.tile([0.02, -0.03, 0.01], (2, 1)) if with_alpha else np.zeros((2, 3))
+    financing = np.tile([0.01, -0.01, 0.0], (2, 1))
+    expected = np.array(expected_financing)
+    if with_alpha:
+        expected = expected + np.array(expected_alpha)
+
+    result = agent.monthly_returns(beta, alpha, financing)
+
+    np.testing.assert_allclose(result, np.tile(expected, (2, 1)), atol=1e-12)
+
+
+@pytest.mark.parametrize(
+    ("share", "expected_pa", "expected_total"),
+    [
+        (0.1, [-0.001, 0.001, 0.0], [0.003, 0.005, 0.004]),
+        (1.0, [-0.01, 0.01, 0.0], [-0.006, 0.014, 0.004]),
+        (0.0, [0.0, 0.0, 0.0], [0.004, 0.004, 0.004]),
+    ],
+)
+def test_simulate_agents_total_scales_internal_pa_financing_once(
+    share: float, expected_pa: list[float], expected_total: list[float]
+) -> None:
+    agents = [
+        BaseAgent(AgentParams("Base", 1000.0, 1.0, 0.0, {})),
+        InternalBetaAgent(AgentParams("InternalBeta", 200.0, 0.2, 0.0, {})),
+        InternalPAAgent(AgentParams("InternalPA", 1000.0 * share, 0.0, share, {})),
+    ]
+    beta = np.full((2, 3), 0.02)
+    zeros = np.zeros_like(beta)
+    financing = np.tile([0.01, -0.01, 0.0], (2, 1))
+
+    result = simulate_agents(agents, beta, zeros, zeros, zeros, zeros, zeros, zeros, financing)
+
+    np.testing.assert_allclose(result["InternalPA"], np.tile(expected_pa, (2, 1)), atol=1e-12)
+    np.testing.assert_allclose(result["InternalBeta"], 0.004, atol=1e-12)
+    np.testing.assert_allclose(result["Base"], 0.02, atol=1e-12)
+    np.testing.assert_allclose(result["Total"], np.tile(expected_total, (2, 1)), atol=1e-12)
 
 
 def test_build_from_config_basic():
