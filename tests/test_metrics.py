@@ -157,6 +157,66 @@ def test_cvar_standard_error_is_nan_when_tail_precision_is_unobserved():
     assert np.isnan(row["terminal_CVaR_CI95_High"])
 
 
+@pytest.mark.parametrize("months", [1, 12])
+def test_cvar_ci95_normal_calibration(months):
+    # Analytic E[Z | Z < Phi^-1(.05)] = -phi(Phi^-1(.05)) / .05.
+    # Repeating a draw within a path supplies no additional independent data.
+    rng = np.random.default_rng(20260908)
+    truth = -2.0627128075074275
+    covered = 0
+    for _ in range(1000):
+        draws = rng.normal(size=2000)
+        sample = draws if months == 1 else np.repeat(draws[:, None], months, axis=1)
+        low, high = cvar_confidence_interval(sample)
+        assert np.isfinite(low) and np.isfinite(high) and low < high
+        covered += low <= truth <= high
+    coverage = covered / 1000
+    print(f"CVaR CI95 normal calibration ({months} months): {coverage:.3f}")
+    assert 0.92 <= coverage <= 0.98
+
+
+def test_cvar_ci95_dependent_months_preserve_path_uncertainty_and_exports():
+    draws = np.random.default_rng(2282).normal(0, 0.02, size=2000)
+    paths = np.repeat(draws[:, None], 12, axis=1)
+    single_se = cvar_standard_error(draws)
+    assert cvar_standard_error(paths) == pytest.approx(single_se, rel=0.02)
+    # Flattening asserts month independence and must produce a narrower interval.
+    assert cvar_standard_error(paths.ravel()) < single_se / 3
+    row = summary_table({"Base": paths}).iloc[0]
+    low, high = cvar_confidence_interval(paths)
+    assert row["monthly_CVaR_SE"] == pytest.approx(cvar_standard_error(paths))
+    assert row["monthly_CVaR_CI95_Low"] == pytest.approx(low)
+    assert row["monthly_CVaR_CI95_High"] == pytest.approx(high)
+    terminal = compound(paths)[:, -1]
+    low, high = cvar_confidence_interval(terminal)
+    assert row["terminal_CVaR_CI95_Low"] == pytest.approx(low)
+    assert row["terminal_CVaR_CI95_High"] == pytest.approx(high)
+
+
+@pytest.mark.parametrize(
+    "sample",
+    [
+        np.full(2000, -0.01),
+        np.array([-0.1]),
+        np.linspace(-0.1, 0.1, 20),
+        np.linspace(-0.1, 0.1, 2000).reshape(1, -1),
+        np.vstack([np.full((1, 12), -0.5), np.zeros((99, 12))]),
+    ],
+    ids=["constant", "single-draw", "empty-tail", "single-path", "one-tail-path"],
+)
+def test_cvar_ci95_degenerate_or_unreplicated_tail_is_undefined(sample):
+    assert np.isnan(cvar_standard_error(sample))
+    assert all(np.isnan(bound) for bound in cvar_confidence_interval(sample))
+
+
+def test_summary_cvar_ci95_does_not_treat_single_path_months_as_independent():
+    path = np.random.default_rng(2282).normal(0, 0.02, size=2000)
+    row = summary_table({"Base": path[None, :]}).iloc[0]
+    assert np.isnan(row["monthly_CVaR_SE"])
+    assert np.isnan(row["monthly_CVaR_CI95_Low"])
+    assert np.isnan(row["monthly_CVaR_CI95_High"])
+
+
 def test_metric_standard_error_scales_sample_std_by_root_n():
     values = np.array([1.0, 2.0, 3.0, 4.0])
     expected = np.std(values, ddof=1) / np.sqrt(values.size)
