@@ -76,7 +76,12 @@ def test_asset_library_bundled_sample_at_real_defaults():
 
     app = AppTest.from_file("dashboard/pages/1_Asset_Library.py").run()
     assert not app.exception
-    app.checkbox[0].check().run()
+    sample_toggle = next(
+        checkbox
+        for checkbox in app.checkbox
+        if checkbox.label == "Use bundled sample asset data (no upload needed)"
+    )
+    sample_toggle.check().run()
 
     assert not app.exception
     assert not app.error
