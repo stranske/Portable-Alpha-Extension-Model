@@ -88,6 +88,7 @@ def test_sweep_theta_endpoints_match_validated_controls(cached):
     if cached:
         assert run(cfg) is results
     for result in results:
+        assert result["summary"]["Agent"].tolist()[0] == "Base"
         data = cfg.model_dump()
         data.update(result["parameters"])
         data["sweep"] = {
@@ -122,6 +123,7 @@ def test_agent_overrides_preserve_explicit_agents_and_monthly_inputs():
         ],
     )
     updated = cfg.with_agent_overrides({"external_pa_capital": 200, "theta_extpa": 0.8})
+    assert [agent.name for agent in updated.agents] == ["Base", "CustomSleeve", "ExternalPA"]
     agents = {agent.name: agent for agent in updated.agents}
     assert agents["Base"] == cfg.agents[0]
     assert agents["CustomSleeve"] == cfg.agents[1]
@@ -146,3 +148,31 @@ def test_agent_overrides_keep_over_margin_candidates_and_drop_zero_sleeves():
         ModelConfig.model_validate(updated.model_dump())
     zero = updated.with_agent_overrides({"internal_pa_capital": 0})
     assert [a.name for a in zero.agents] == ["Base"]
+
+
+@pytest.mark.parametrize(
+    "updates",
+    [
+        {"theta_extpa": 0.8},
+        {"active_share": 0.7},
+        {"w_beta_H": 0.6, "w_alpha_H": 0.4},
+        {"total_fund_capital": 1200},
+    ],
+)
+def test_agent_overrides_replace_affected_agents_in_place(updates):
+    cfg = ModelConfig(
+        N_SIMULATIONS=100,
+        N_MONTHS=6,
+        external_pa_capital=100,
+        active_ext_capital=100,
+        internal_pa_capital=100,
+        financing_mode="broadcast",
+    )
+    custom = cfg.agents[0].model_copy(update={"name": "CustomSleeve"})
+    # Custom input order is intentional and must survive any subset refresh.
+    cfg = cfg.model_copy(
+        update={"agents": [cfg.agents[2], custom, cfg.agents[0], cfg.agents[1], cfg.agents[3]]}
+    )
+    updated = cfg.with_agent_overrides(updates)
+    assert [agent.name for agent in updated.agents] == [agent.name for agent in cfg.agents]
+    assert updated.agents[1] is custom

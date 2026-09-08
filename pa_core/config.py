@@ -742,8 +742,16 @@ class ModelConfig(BaseModel):
             for agent in compiled["agents"]
             if agent["name"] in affected
         ]
-        preserved = [agent for agent in updated.agents if agent.name not in affected]
-        return updated.model_copy(update={"agents": refreshed + preserved})
+        refreshed_by_name = {agent.name: agent for agent in refreshed}
+        agents = []
+        for agent in updated.agents:
+            if agent.name not in affected:
+                agents.append(agent)
+            elif agent.name in refreshed_by_name:
+                agents.append(refreshed_by_name.pop(agent.name))
+        # Preserve positions for existing sleeves; append only newly enabled ones.
+        agents.extend(refreshed_by_name.values())
+        return updated.model_copy(update={"agents": agents})
 
     @classmethod
     def _agent_names_recompiled_by_convenience(cls, data: Mapping[str, Any]) -> set[str]:
