@@ -201,7 +201,19 @@ def main() -> None:
                         Path(tmp_yaml).unlink(missing_ok=True)
 
         # Load using current importer configuration
-        df = importer.load(tmp_path)
+        try:
+            df = importer.load(tmp_path)
+        except ValueError as exc:
+            if not str(exc).startswith("insufficient data for ids:"):
+                raise
+            st.error(
+                f"Unable to load asset data: {exc}. "
+                f"Upload a longer history with at least {importer.min_obs} valid monthly "
+                "observations per id after parsing, or use the bundled sample with "
+                "the default settings. Check the date, value and frequency settings "
+                "if observations were dropped."
+            )
+            return
         st.success("Data loaded successfully with current mapping")
         st.dataframe(df, use_container_width=True)
         st.json(importer.metadata)
