@@ -447,8 +447,9 @@ def cvar_standard_error(returns: ArrayLike, confidence: float = 0.95) -> float:
     A 1-D input denotes independent draws (e.g. terminal returns). A 2-D input
     denotes independent, identically distributed paths x months: average scores
     within each path before estimating variance across paths. Months may be
-    arbitrarily dependent within a path; paths must be independent. This is an
-    asymptotic Monte Carlo diagnostic, not model risk. Calibration assumes a
+    arbitrarily dependent within a path; paths must be independent. Other input
+    shapes retain the historical flattening behavior and denote independent draws.
+    This is an asymptotic Monte Carlo diagnostic, not model risk. Calibration assumes a
     continuous distribution near the cutoff, finite tail second moments, and
     enough independent paths in the tail. Discrete cutoff masses and very small
     samples are not covered by the nominal confidence interpretation.
@@ -459,8 +460,8 @@ def cvar_standard_error(returns: ArrayLike, confidence: float = 0.95) -> float:
     """
 
     arr = np.asarray(returns, dtype=np.float64)
-    if arr.ndim not in (1, 2):
-        raise ValueError("returns must be independent draws or paths x months")
+    if arr.ndim != 2:
+        arr = arr.reshape(-1)
     tail = np.asarray(_cvar_tail_values(arr, confidence=confidence), dtype=np.float64)
     if tail.size < 2:
         return float("nan")
@@ -625,6 +626,7 @@ def summary_table(
     ----------
     returns_map:
         Mapping of agent name to monthly return series (shape: paths x months).
+        A 1-D series denotes one path, including for CVaR uncertainty diagnostics.
         terminal_AnnReturn, monthly_AnnVol, and monthly_TE outputs are annualised
         using ``periods_per_year``.
     breach_threshold:
@@ -641,13 +643,15 @@ def summary_table(
     expectation) and is included for debugging parity with legacy outputs.
     """
 
-    returns = returns_map
-    if benchmark and "Total" not in returns_map and benchmark in returns_map:
+    returns = {}
+    for name, values in returns_map.items():
+        sample = np.asarray(values, dtype=np.float64)
+        returns[name] = sample[None, :] if sample.ndim == 1 else sample
+    if benchmark and "Total" not in returns and benchmark in returns:
         from ..portfolio import compute_total_contribution_returns
 
-        total = compute_total_contribution_returns(returns_map)
+        total = compute_total_contribution_returns(returns)
         if total is not None:
-            returns = dict(returns_map)
             returns["Total"] = total
 
     rows = []
@@ -665,13 +669,14 @@ def summary_table(
         var = value_at_risk(arr, confidence=var_conf)
         cvar_month = cvar_monthly(arr, confidence=var_conf)
         cvar_term = cvar_terminal(arr, confidence=var_conf, periods_per_year=periods_per_year)
-        cvar_month_se = cvar_standard_error(arr, confidence=var_conf)
+        arr_np = np.asarray(arr, dtype=np.float64)
+        paths = arr_np if arr_np.ndim == 2 else arr_np[None, :]
+        cvar_month_se = cvar_standard_error(paths, confidence=var_conf)
         cvar_month_ci_low, cvar_month_ci_high = cvar_confidence_interval(
-            arr,
+            paths,
             confidence=var_conf,
         )
-        arr_np = np.asarray(arr, dtype=np.float64)
-        terminal_returns = compound(arr_np if arr_np.ndim == 2 else arr_np[None, :])[:, -1]
+        terminal_returns = compound(paths)[:, -1]
         cvar_term_se = cvar_standard_error(terminal_returns, confidence=var_conf)
         cvar_term_ci_low, cvar_term_ci_high = cvar_confidence_interval(
             terminal_returns,

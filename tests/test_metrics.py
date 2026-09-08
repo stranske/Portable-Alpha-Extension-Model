@@ -198,23 +198,48 @@ def test_cvar_ci95_dependent_months_preserve_path_uncertainty_and_exports():
     [
         np.full(2000, -0.01),
         np.array([-0.1]),
+        np.array(-0.1),
         np.linspace(-0.1, 0.1, 20),
         np.linspace(-0.1, 0.1, 2000).reshape(1, -1),
         np.vstack([np.full((1, 12), -0.5), np.zeros((99, 12))]),
     ],
-    ids=["constant", "single-draw", "empty-tail", "single-path", "one-tail-path"],
+    ids=["constant", "single-draw", "scalar", "empty-tail", "single-path", "one-tail-path"],
 )
 def test_cvar_ci95_degenerate_or_unreplicated_tail_is_undefined(sample):
     assert np.isnan(cvar_standard_error(sample))
     assert all(np.isnan(bound) for bound in cvar_confidence_interval(sample))
 
 
-def test_summary_cvar_ci95_does_not_treat_single_path_months_as_independent():
+@pytest.mark.parametrize("as_series", [False, True])
+@pytest.mark.parametrize("benchmark", [None, "Base"])
+def test_summary_cvar_ci95_does_not_treat_single_path_months_as_independent(as_series, benchmark):
     path = np.random.default_rng(2282).normal(0, 0.02, size=2000)
-    row = summary_table({"Base": path[None, :]}).iloc[0]
+    stats = summary_table(
+        {
+            "Base": path if as_series else path[None, :],
+            "InternalPA": 0.1 * path if as_series else 0.1 * path[None, :],
+        },
+        benchmark=benchmark,
+    )
+    expected = summary_table(
+        {"Base": path[None, :], "InternalPA": 0.1 * path[None, :]}, benchmark=benchmark
+    )
+    pd.testing.assert_frame_equal(stats, expected)
+    row = stats.iloc[0]
     assert np.isnan(row["monthly_CVaR_SE"])
     assert np.isnan(row["monthly_CVaR_CI95_Low"])
     assert np.isnan(row["monthly_CVaR_CI95_High"])
+
+
+@pytest.mark.parametrize("shape", [(10, 20, 10), (5, 4, 10, 10)])
+def test_cvar_helpers_preserve_flattened_higher_dimensional_inputs(shape):
+    draws = np.random.default_rng(2293).normal(0, 0.02, size=2000)
+    sample = draws.reshape(shape)
+    expected_se = cvar_standard_error(draws)
+    assert expected_se > 0
+    assert cvar_standard_error(sample) == pytest.approx(expected_se)
+    assert cvar_confidence_interval(sample) == pytest.approx(cvar_confidence_interval(draws))
+    assert conditional_value_at_risk(sample) == conditional_value_at_risk(draws)
 
 
 def test_metric_standard_error_scales_sample_std_by_root_n():
