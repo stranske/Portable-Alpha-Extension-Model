@@ -847,16 +847,21 @@ def _main(
         *,
         index_hash: str,
         manifest_data: Mapping[str, Any] | None,
-    ) -> None:
+    ) -> bool:
         if not args.bundle:
-            return
+            return False
         try:
             from .run_artifact_bundle import RunArtifact, RunArtifactBundle
 
-            # Run-end finalization updates the file after export code read its
-            # snapshot. Package the finalized provenance, not that stale copy.
-            if manifest_path is not None and manifest_path.exists():
-                manifest_data = json.loads(manifest_path.read_text())
+            # Prefer finalized disk provenance, retaining the finalized in-memory
+            # snapshot if a transient read or parse failure makes it unavailable.
+            if manifest_path is not None:
+                try:
+                    loaded = json.loads(manifest_path.read_text())
+                    if isinstance(loaded, dict):
+                        manifest_data = loaded
+                except (OSError, ValueError):
+                    logger.debug("Using in-memory bundle manifest", exc_info=True)
             outputs = _build_outputs_map(_collect_artifacts())
             artifact = RunArtifact(
                 config=(
@@ -871,8 +876,10 @@ def _main(
             )
             bundle = RunArtifactBundle(artifact)
             bundle.save(args.bundle)
+            return True
         except (ImportError, ModuleNotFoundError, OSError, PermissionError, ValueError) as exc:
             logger.warning(f"Failed to write artifact bundle: {exc}")
+            return False
 
     def _finalize_manifest_timing(
         snapshot: dict[str, Any] | None = None,
@@ -887,7 +894,7 @@ def _main(
             data = json.loads(manifest_path.read_text())
             if not isinstance(data, dict):
                 return timing
-        except (json.JSONDecodeError, FileNotFoundError, PermissionError):
+        except (OSError, ValueError):
             return timing
         data["run_timing"] = timing
         if run_log_path is not None:
@@ -906,6 +913,8 @@ def _main(
         warnings: list[dict[str, Any]],
         cost: Mapping[str, Any],
         run_end_path: Path | None,
+        *,
+        bundle_written: bool,
     ) -> None:
         """Write the unified run.json envelope next to manifest.json/run_end.json."""
         from .contracts import RUN_RECORD_FILENAME
@@ -919,9 +928,7 @@ def _main(
         payload = {
             "manifest_path": str(manifest_path) if manifest_path is not None else None,
             "run_end_path": str(run_end_path) if run_end_path is not None else None,
-            "bundle_path": (
-                str(Path(args.bundle) / "bundle.json") if getattr(args, "bundle", None) else None
-            ),
+            "bundle_path": (str(Path(args.bundle) / "bundle.json") if bundle_written else None),
             "warnings": warnings,
             "cost": dict(cost),
         }
@@ -931,14 +938,18 @@ def _main(
         except (OSError, PermissionError) as exc:
             logger.warning(f"Failed to write run record: {exc}")
 
-    def _emit_run_end() -> None:
+    def _emit_run_end(
+        *,
+        index_hash: str | None = None,
+        manifest_data: Mapping[str, Any] | None = None,
+    ) -> None:
         nonlocal run_end_emitted
         if run_end_emitted:
             return
         run_end_emitted = True
         collected = warning_collector.snapshot()
-        # Tear down capture before we emit/log run-end so trailing logs aren't captured.
-        warning_collector.uninstall()
+        # Freeze simulation timing before packaging, but keep warning capture alive
+        # until the bundle attempt has completed and its outcome is known.
         timing = run_timer.snapshot()
         cost = {
             "latency_seconds": timing.get("duration_seconds", _current_duration()),
@@ -946,10 +957,26 @@ def _main(
             "dollars": None,
         }
         timing = _finalize_manifest_timing(timing, warnings=collected, cost=cost)
+        bundle_written = False
+        if index_hash is not None and args.bundle:
+            finalized_manifest = dict(manifest_data) if manifest_data is not None else None
+            if finalized_manifest is not None:
+                finalized_manifest.update(run_timing=timing, warnings=collected, cost=cost)
+                if run_log_path is not None:
+                    finalized_manifest["run_log"] = str(run_log_path)
+            # Package before writing run.json: its source-local paths are not
+            # portable bundle outputs. On failure, seal records with the warning.
+            bundle_written = _maybe_write_bundle(
+                index_hash=index_hash, manifest_data=finalized_manifest
+            )
+            if not bundle_written:
+                collected = warning_collector.snapshot()
+                _finalize_manifest_timing(timing, warnings=collected, cost=cost)
+        warning_collector.uninstall()
         run_end_path = (
             Path(run_log_path).parent / "run_end.json" if run_log_path is not None else None
         )
-        _write_run_record(collected, cost, run_end_path)
+        _write_run_record(collected, cost, run_end_path, bundle_written=bundle_written)
         if run_log_path is None:
             return
         from .logging_utils import emit_run_end
@@ -1415,8 +1442,7 @@ def _main(
             else:
                 print("   ❌ No sweep results available")
 
-        _emit_run_end()
-        _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
+        _emit_run_end(index_hash=index_hash, manifest_data=manifest_data)
         return
 
     # Normal single-run mode below delegates to run_single + optional exports.
@@ -2101,8 +2127,7 @@ def _main(
                 _emit_run_end()
                 return
 
-    _emit_run_end()
-    _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
+    _emit_run_end(index_hash=index_hash, manifest_data=manifest_data)
 
 
 # (Backward compatibility global variable assignment removed)
