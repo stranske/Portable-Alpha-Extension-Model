@@ -238,12 +238,14 @@ InternalPA sleeve return is pure in-house alpha (historical behaviour).
 Index curves are quoted in annualised bps and converted linearly to a monthly
 cost so positive and negative spreads stay symmetric.
 
-**Capital / denominator semantics:** the financing cost reduces the InternalPA
-*sleeve* return directly (`return = alpha_share × alpha − financing`). The
-contribution to total-portfolio P&L is then scaled by the InternalPA sleeve's
-capital share — the same contribution machinery used by every other sleeve — so
-the cost is charged against the modeled InternalPA capital, not the
-institution's whole capital.
+**Capital / denominator semantics:** InternalPA returns an already-scaled
+portfolio contribution: `contribution = alpha_share × (alpha − financing)`,
+where `alpha_share` is the sleeve's capital share. Both alpha and financing are
+scaled once inside the agent. Portfolio aggregation sums these contributions
+(excluding the Base benchmark); it does not apply another capital-share factor.
+With zero alpha and a 1% monthly financing cost, a 10% share contributes −0.1%
+monthly, a 100% share contributes −1%, and a zero share contributes zero.
+Negative financing produces positive carry at the same capital-share scale.
 
 **Beta-sleeve financing floor:** legacy financing costs for the Base,
 InternalBeta, ExternalPA, and ActiveExt beta legs are floored at zero, so a
