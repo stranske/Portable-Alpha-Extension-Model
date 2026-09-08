@@ -1,9 +1,79 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
+import pytest
+
 from pa_core.run_artifact_bundle import RunArtifact, RunArtifactBundle
+
+
+@pytest.mark.parametrize("mode", ["single_with_sensitivity", "vol_mult"])
+@pytest.mark.parametrize("log_json", [False, True])
+def test_cli_bundle_finalized_manifest_parity(tmp_path, mode, log_json) -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = tmp_path / "config.json"
+    config.write_text(
+        json.dumps(
+            {
+                "N_SIMULATIONS": 100,
+                "N_MONTHS": 2,
+                "financing_mode": "broadcast",
+                "analysis_mode": mode,
+                "sd_multiple_min": 2.0,
+                "sd_multiple_max": 2.0,
+            }
+        )
+    )
+    command = [
+        sys.executable,
+        "-m",
+        "pa_core.cli",
+        "--config",
+        str(config),
+        "--index",
+        str(root / "data" / "sp500tr_fred_divyield.csv"),
+        "--index-frequency",
+        "daily",
+        "--output",
+        str(tmp_path / "out.xlsx"),
+        "--bundle",
+        str(tmp_path / "bundle"),
+        "--seed",
+        "123",
+    ]
+    if log_json:
+        command.append("--log-json")
+    result = subprocess.run(
+        command,
+        cwd=tmp_path,
+        env={**os.environ, "PYTHONPATH": str(root)},
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    manifest = json.loads((tmp_path / "manifest.json").read_text())
+    assert any("frequency mismatch" in w["message"].lower() for w in manifest["warnings"])
+    assert manifest["cost"]["latency_seconds"] > 0
+    assert manifest["run_timing"]["ended_at"]
+    assert manifest["cost"]["latency_seconds"] == manifest["run_timing"]["duration_seconds"]
+    bundle = RunArtifactBundle.load(tmp_path / "bundle")
+    assert bundle.artifact.manifest == manifest
+    assert bundle.verify()
+
+    record = json.loads((tmp_path / "run.json").read_text())
+    assert record["warnings"] == manifest["warnings"]
+    assert record["cost"] == manifest["cost"]
+    if log_json:
+        run_end = json.loads((tmp_path / record["run_end_path"]).read_text())
+        assert run_end["warnings"] == manifest["warnings"]
+        assert run_end["cost"] == manifest["cost"]
+        assert run_end["duration_seconds"] == manifest["run_timing"]["duration_seconds"]
 
 
 def test_run_artifact_fields() -> None:

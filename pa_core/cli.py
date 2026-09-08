@@ -853,6 +853,10 @@ def _main(
         try:
             from .run_artifact_bundle import RunArtifact, RunArtifactBundle
 
+            # Run-end finalization updates the file after export code read its
+            # snapshot. Package the finalized provenance, not that stale copy.
+            if manifest_path is not None and manifest_path.exists():
+                manifest_data = json.loads(manifest_path.read_text())
             outputs = _build_outputs_map(_collect_artifacts())
             artifact = RunArtifact(
                 config=(
@@ -1411,8 +1415,8 @@ def _main(
             else:
                 print("   ❌ No sweep results available")
 
-        _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
         _emit_run_end()
+        _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
         return
 
     # Normal single-run mode below delegates to run_single + optional exports.
@@ -2097,8 +2101,8 @@ def _main(
                 _emit_run_end()
                 return
 
-    _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
     _emit_run_end()
+    _maybe_write_bundle(index_hash=index_hash, manifest_data=manifest_data)
 
 
 # (Backward compatibility global variable assignment removed)
