@@ -278,8 +278,8 @@ def _evaluate_allocation(
     stream_cache: _StreamCache | None = None,
     include_returns: bool = False,
 ) -> tuple[dict[str, float], bool, float | None] | None:
-    test_cfg = cfg.model_copy(
-        update={
+    test_cfg = cfg.with_agent_overrides(
+        {
             "external_pa_capital": float(ext_cap),
             "active_ext_capital": float(act_cap),
             "internal_pa_capital": float(int_cap),
