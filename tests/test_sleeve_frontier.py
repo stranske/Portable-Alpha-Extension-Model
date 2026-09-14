@@ -2,7 +2,86 @@ import pandas as pd
 import pytest
 
 from pa_core.config import ModelConfig
-from pa_core.sleeve_suggestor import _select_frontier_indices, generate_sleeve_frontier
+from pa_core.sleeve_suggestor import (
+    _select_frontier_indices,
+    generate_sleeve_frontier,
+    suggest_sleeve_sizes,
+)
+
+
+@pytest.mark.parametrize("search", [suggest_sleeve_sizes, generate_sleeve_frontier])
+@pytest.mark.parametrize("budget", [5, 12])
+def test_allocation_search_recovers_from_exhausted_random_sampling(monkeypatch, search, budget):
+    """Rejected draws must not starve the search or spend slots on duplicate allocations."""
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=100.0,
+        external_pa_capital=25.0,
+        active_ext_capital=25.0,
+        internal_pa_capital=50.0,
+    )
+    evaluated = []
+
+    class LinearOrchestrator:
+        def __init__(self, cfg, _idx):
+            self.cfg = cfg
+
+        def run(self, seed=None):
+            evaluated.append((self.cfg.external_pa_capital, self.cfg.active_ext_capital))
+            return {}, _make_linear_summary(self.cfg)
+
+    class RepeatingDraws:
+        calls = 0
+
+        def integers(self, low, high):
+            # Overspend, violate the internal bound, duplicate a priority point,
+            # then contribute one new point. Repetition forces enumeration.
+            draws = (4, 4, 0, 0, 1, 1, 0, 1)
+            value = draws[self.calls % len(draws)]
+            self.calls += 1
+            assert low <= value < high
+            return value
+
+    rng = RepeatingDraws()
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", LinearOrchestrator)
+    monkeypatch.setattr("pa_core.sleeve_suggestor.np.random.default_rng", lambda seed: rng)
+
+    result = search(
+        cfg,
+        pd.Series([0.0]),
+        max_te=1.0,
+        max_breach=1.0,
+        max_cvar=1.0,
+        max_shortfall=1.0,
+        step=0.25,
+        min_internal=25.0,
+        max_internal=75.0,
+        max_evals=budget,
+        seed=7,
+    )
+
+    # Independent, exhaustive oracle: nine allocations satisfy these bounds.
+    feasible = {
+        (float(ext), float(act))
+        for ext in range(0, 101, 25)
+        for act in range(0, 101, 25)
+        if 25 <= 100 - ext - act <= 75
+    }
+    expected_count = min(budget, len(feasible))
+    actual = set(zip(result["external_pa_capital"], result["active_ext_capital"]))
+    assert rng.calls > 8
+    assert len(result) == len(actual) == len(evaluated) == expected_count
+    assert set(evaluated) == actual
+    assert actual <= feasible
+    assert (
+        result["internal_pa_capital"]
+        .eq(100.0 - result["external_pa_capital"] - result["active_ext_capital"])
+        .all()
+    )
+    if budget >= len(feasible):
+        assert actual == feasible
 
 
 def _make_linear_summary(cfg: ModelConfig) -> pd.DataFrame:
