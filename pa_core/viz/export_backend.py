@@ -85,7 +85,8 @@ def figure_to_image_bytes(fig: Any, *, format: str = "png", **opts: Any) -> byte
             "Browser Plotly PNG export was requested before async pre-render completed. "
             "Call pa_core.viz.export_backend.prerender_png_cache at the export action boundary."
         )
-    return cast(bytes, fig.to_image(format=format, engine="kaleido", **clean_opts))
+    # Plotly 7 removes the engine keyword; Kaleido is selected automatically.
+    return cast(bytes, fig.to_image(format=format, **clean_opts))
 
 
 def write_figure_image(
@@ -97,7 +98,7 @@ def write_figure_image(
 ) -> None:
     clean_opts = _without_engine(opts)
     if not is_browser_runtime():
-        write_opts: dict[str, Any] = {"engine": "kaleido", **clean_opts}
+        write_opts: dict[str, Any] = dict(clean_opts)
         if format is not None:
             write_opts["format"] = format
         fig.write_image(path, **write_opts)

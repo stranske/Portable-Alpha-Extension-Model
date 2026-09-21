@@ -116,7 +116,7 @@ dependencies = [
     "openpyxl",
     "pydantic",
     "rich",
-    "plotly>=6.7.0",
+    "plotly>=6.7.0,<7",  # Plotly 7 needs a newer Kaleido/Choreographer export stack.
     "kaleido",
     "pypdf",
     "streamlit>=1.35",

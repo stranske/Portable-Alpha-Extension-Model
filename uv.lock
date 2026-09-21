@@ -3086,7 +3086,7 @@ requires-dist = [
     { name = "openpyxl" },
     { name = "packaging", marker = "extra == 'dev'" },
     { name = "pandas" },
-    { name = "plotly", specifier = ">=6.7.0" },
+    { name = "plotly", specifier = ">=6.7.0,<7" },
     { name = "pre-commit", marker = "extra == 'dev'" },
     { name = "pyarrow", marker = "extra == 'parquet'" },
     { name = "pydantic" },
