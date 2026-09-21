@@ -41,8 +41,9 @@ def test_plotly_dependency_excludes_unverified_major() -> None:
         (root / "requirements-dev.txt").read_text().splitlines(),
     ):
         plotly = next(Requirement(dep) for dep in requirements if dep.startswith("plotly"))
-        assert "6.7.0" in plotly.specifier
+        assert any(spec.operator == ">=" and spec.version == "6.7.0" for spec in plotly.specifier)
         assert "7.0.0" not in plotly.specifier
+        assert any(spec.operator == "<" and spec.version == "7" for spec in plotly.specifier)
 
 
 def test_server_branch_uses_kaleido(monkeypatch: pytest.MonkeyPatch) -> None:
