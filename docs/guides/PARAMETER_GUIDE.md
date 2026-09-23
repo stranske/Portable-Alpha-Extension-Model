@@ -191,6 +191,8 @@ regime_start: Calm
 
 The wizard validates the matrix dimensions and row sums before saving the YAML.
 
+Configured regimes apply to single runs and to parameter sweeps alike: each sweep grid point draws its returns from the regime-switching paths (`pa_core/sweep.py`).
+
 ### 9. Financing Costs (Monthly %)
 Models the cost of leverage/shorting in portable alpha:
 - **Internal financing mean (monthly %)**: Baseline borrowing cost for the internal sleeve

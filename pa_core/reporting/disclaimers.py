@@ -17,7 +17,8 @@ MODEL_LIMITATIONS: tuple[str, ...] = (
     "entries report matching sleeves net of those fees.",
     "Total excludes Base (overlay semantics): a Base-only fund shows Total = 0.",
     "Monthly draws are i.i.d. — no volatility clustering is modelled.",
-    "Regimes are ignored in parameter sweeps.",
+    "Regimes apply in parameter sweeps: when `regimes` and `regime_transition` "
+    "are configured, every sweep grid point draws regime-switching returns.",
     "Financing `broadcast` reuses a single financing path across simulations.",
     "The model is forward-looking and has not been backtested.",
     "`risk_metrics` is advisory: it selects which metrics are reported, "
