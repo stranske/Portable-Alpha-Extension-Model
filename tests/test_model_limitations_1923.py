@@ -27,7 +27,7 @@ def test_limitations_cover_required_caveats():
         "gross of fees",
         "total excludes base",
         "i.i.d",
-        "regimes are ignored",
+        "regimes apply in parameter sweeps",
         "broadcast",
         "not been backtested",
         "risk_metrics",
@@ -38,6 +38,7 @@ def test_limitations_cover_required_caveats():
         "sweep engine",
     ):
         assert phrase in blob, f"missing caveat: {phrase}"
+    assert "regimes are ignored" not in blob, "stale caveat: sweeps honor regimes"
 
 
 def test_limitations_markdown_is_a_bullet_list():
@@ -94,3 +95,47 @@ def test_board_pack_includes_limitations_slide():
         assert LIMITATIONS_TITLE in blob
         for item in MODEL_LIMITATIONS:
             assert item in blob, f"slide missing caveat: {item}"
+
+
+def _sweep_total_ann_return(cfg, idx):
+    from pa_core import sweep as sweep_module
+    from pa_core.contracts import SUMMARY_AGENT_COLUMN, SUMMARY_ANN_RETURN_COLUMN
+    from pa_core.random import spawn_agent_rngs, spawn_rngs
+
+    rng_returns = spawn_rngs(42, 1)[0]
+    fin_rngs = spawn_agent_rngs(42, ["internal", "external_pa", "active_ext"])
+    summary = sweep_module.run_parameter_sweep(cfg, idx, rng_returns, fin_rngs, seed=42)[0][
+        "summary"
+    ]
+    total = summary[summary[SUMMARY_AGENT_COLUMN] == "Total"].iloc[0]
+    return float(total[SUMMARY_ANN_RETURN_COLUMN])
+
+
+def test_regime_sweep_changes_metrics_when_configured():
+    """Sweeps honor configured regimes, and the published caveats must say so."""
+    from pa_core.config import RegimeConfig, load_config
+
+    idx = pd.Series([0.01, -0.02, 0.015] * 4)
+    base = load_config(_REPO_ROOT / "examples/scenarios/my_first_scenario.yml").model_copy(
+        update={"N_SIMULATIONS": 400, "N_MONTHS": 12, "analysis_mode": "returns"}
+    )
+    with_regimes = base.model_copy(
+        update={
+            "regimes": [
+                RegimeConfig(name="calm"),
+                RegimeConfig(name="stress", idx_sigma_multiplier=3.0),
+            ],
+            "regime_transition": [[0.5, 0.5], [0.5, 0.5]],
+            "regime_start": "calm",
+        }
+    )
+
+    plain = _sweep_total_ann_return(base, idx)
+    regime = _sweep_total_ann_return(with_regimes, idx)
+    assert abs(regime - plain) > 1e-4
+
+    # Behaviour and disclosure must agree: regimes move sweep metrics, so no
+    # caveat may claim sweeps ignore them.
+    blob = " ".join(MODEL_LIMITATIONS).lower()
+    assert "regimes are ignored" not in blob
+    assert "regimes apply in parameter sweeps" in blob
