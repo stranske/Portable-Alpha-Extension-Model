@@ -13,7 +13,7 @@ This document describes all labels that trigger automated workflows or affect CI
 | `agent:cursor` | Issue or PR labeled | Routes consumer Gate-followup keepalive to the Cursor runner
 | `agent:gemini` | Issue or PR labeled | Routes consumer Gate-followup keepalive to the Gemini runner
 | `agent:aider` | Issue or PR labeled | Routes the issue or PR to the Aider agent for cheap, low-complexity tasks — runner lands in a follow-up phase
-| `agent:auto` | Issue or PR labeled | Delegates routing to the auto-delegation policy; do not combine with concrete `agent:<name>` labels
+| `agent:auto` | Issue or PR labeled | Delegates routing to the auto-delegation policy; may sit alongside one concrete `agent:<name>` label, which keepalive routing overrides
 | `agent:retry` | PR labeled | Consolidated consumers require a manual Gate-followups dispatch; the root/non-consolidated keepalive workflow forces a retry and clears recovery labels
 | `agent:rate-limited` | Auto-applied | Marks a PR as backing off from a rate-limit failure
 | ~~`agent:codex-invite`~~ | *(deprecated)* | No workflow, script, or tool references this label by name; the generic `agent:<name>-invite` mechanism in `reusable-agents-issue-bridge.yml` still works but this specific label is unmaintained — see detail section below
@@ -188,15 +188,16 @@ runner and registry entry ship, applying this label will not dispatch a runner. 
 
 **Effect:**
 1. Delegates routing to the auto-delegation policy in `.github/scripts/agent_delegation_policy.js`
-2. The policy switches between Codex and Claude based on stall/effectiveness signals
-3. Used to recover from capacity-stuck PRs: **add** `agent:auto` to the PR (alongside the existing `agent:<name>` label); keepalive will override the concrete label and route through auto-delegation
-4. Selects a runner through the delegation policy without mutating labels; if no current agent is recorded, the policy chooses the default available agent or the first available alternative
+2. The policy selects an eligible registered agent using the initial-selection order below, then uses stall/effectiveness signals to decide whether to switch
+3. Used to recover from capacity-stuck PRs: **add** `agent:auto` to the PR (alongside the existing `agent:<name>` label); keepalive uses the available concrete label as the initial seed, then routes subsequent choices through auto-delegation
+4. Selects a runner through the delegation policy without mutating labels; if no current agent is recorded, the policy first uses a co-present available concrete `agent:<name>` label, otherwise uses evidence-bearing route weights, and otherwise chooses the default available agent or the first available alternative
 
 **Prerequisites:**
-- When `agent:auto` is present, any co-present concrete `agent:<name>` label is silently ignored; `agent:auto` always wins
+- When `agent:auto` is present, a co-present concrete `agent:<name>` label seeds the first round's agent, and the delegation policy decides after that; `agent:auto` always wins
+- Only keepalive routing honors the pair today: `resolveAgentRoutingFromLabels` in `.github/scripts/agent_registry.js` still rejects `agent:auto` beside a concrete label, so its other callers (the verifier, verify-to-new-pr, the autofix loop and the bot-comment handler) fall back to a default agent; tracked in #3519
 - Existing delegation state improves switch decisions, but the initial-selection path can choose an agent without a concrete label
 
-**Lifecycle:** Applied manually or by orchestrator/closer when a PR is capacity-stuck. The delegation policy reads it on keepalive ticks and either keeps the current runner choice or switches the runner decision for that dispatch.
+**Lifecycle:** Applied at PR creation by the opener lane, alongside the concrete `agent:<name>` label that records which seat opened the PR, or manually or by the closer when a PR is capacity-stuck. The delegation policy reads it on keepalive ticks and either keeps the current runner choice or switches the runner decision for that dispatch.
 
 **Workflow:** `agents-auto-label.yml`, `reusable-pr-context.yml`, `agents-capability-check.yml`, `agents-guard.yml`; policy implementation is `.github/scripts/agent_delegation_policy.js`.
 
@@ -230,7 +231,7 @@ runner and registry entry ship, applying this label will not dispatch a runner. 
 
 **Effect:**
 1. Marks the PR as currently backed off due to API/runner rate limits
-2. Used with the matching concrete `agent:<name>` label to flag backoff for the current route; switch to `agent:auto` only after removing the concrete routing label
+2. Used with the matching concrete `agent:<name>` label to flag backoff for the current route; to hand routing to the delegation policy, add `agent:auto` alongside the concrete label (see `agent:auto`)
 3. Remains an observability/backoff marker until automation or an operator explicitly removes it
 
 **Prerequisites:**
@@ -677,13 +678,17 @@ Agents 81 is the active local guarded merge route.
 
 **Effect:**
 1. Records that an issue has active belt work in progress.
-2. Is cleared by Agents 81 after it successfully merges the linked completed PR.
-3. Is also cleared by Agents 73 when that callable-only recovery path is invoked.
+2. In the standard consumer flow, is cleared by Agents 81 after it successfully merges the linked PR.
+3. Is cleared by Agents 73 when that callable-only recovery path merges the linked completed PR.
+4. Is reclaimed by the periodic keepalive sweep after 24 hours when the issue has no linked
+   open or merged PR; the sweep writes a timestamp-bearing reclaim-intent comment before
+   removing the label.
 
 **Consumers:** `.github/workflows/agents-71-codex-belt-dispatcher.yml`,
 `.github/workflows/agents-72-codex-belt-worker.yml`,
-`.github/workflows/agents-81-gate-followups.yml`, and the callable-only
-`.github/workflows/agents-73-codex-belt-conveyor.yml` recovery component.
+`.github/workflows/agents-keepalive-sweep.yml`, and the callable-only
+`.github/workflows/agents-73-codex-belt-conveyor.yml` recovery component. The claim-reclaim
+window is shared through `.github/scripts/belt_claim_reclaim.js`.
 
 ---
 
@@ -749,8 +754,9 @@ These labels are used for categorization but do not trigger workflows.
 | (none) | `agent:codex` | Triggers agent assignment (Codex runner)
 | (none) | `agent:claude` | Triggers agent assignment (Claude runner)
 | (none) | `agent:auto` | Delegates routing to `agent_delegation_policy.js`
-| `agent:codex` | `agent:auto` | Invalid mixed routing; remove `agent:codex` before using `agent:auto`
-| `agent:claude` | `agent:auto` | Invalid mixed routing; remove `agent:claude` before using `agent:auto`
+| `agent:codex` | `agent:auto` | `agent:auto` wins: when no current agent is recorded, the available `agent:codex` label seeds initial selection; subsequent routing uses `agent_delegation_policy.js`; keep both labels
+| `agent:claude` | `agent:auto` | `agent:auto` wins: when no current agent is recorded, the available `agent:claude` label seeds initial selection; subsequent routing uses `agent_delegation_policy.js`; keep both labels
+| `agent:codex` | `agent:claude` | Invalid mixed routing: two concrete labels resolve no route, so keepalive does not dispatch; keep exactly one concrete label
 | `agent:<name>` + `agents:keepalive` | `agent:retry` | Consolidated: records a recovery request; root/non-consolidated: forces the keepalive retry and cleanup handler
 | `agent:retry` | Manual Gate-followups dispatch | Consolidated only: forces the retry and does not imply automatic label cleanup
 | `agent:rate-limited` | Successful forced retry | Remove stale recovery labels manually if automation leaves them behind
@@ -811,7 +817,7 @@ To add new label-triggered functionality:
 
 ---
 
-*Last updated: May 13, 2026*
+*Last updated: September 22, 2026*
 
 > **Source of truth.** This file is the canonical consumer label inventory. It is synced to every supported consumer repository via `.github/sync-manifest.yml` (`templates/consumer-repo/docs/LABELS.md` → `docs/LABELS.md`); changes here propagate on the next scheduled sync.
 *Source of truth: Workflows repository*
