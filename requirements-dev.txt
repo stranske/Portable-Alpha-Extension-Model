@@ -5,7 +5,7 @@ openpyxl
 jupyter
 pytest==9.1.1
 hypothesis
-ruff==0.16.7
+ruff==0.16.8
 pydantic
 rich
 PyYAML>=6
@@ -26,7 +26,7 @@ bandit             # Security linting
 mypy==2.3.1        # Additional type checking
 types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
-isort==8.0.1       # Import sorting
+isort==9.0.1       # Import sorting
 docformatter==1.7.8  # Docstring formatting
 
 # Build and packaging dependencies
