@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
 import runpy
 import sys
 from pathlib import Path
 from types import ModuleType
 
 import pytest
+
+from pa_core.contracts import RUN_END_FILENAME, RUN_END_MANIFEST_PATH_KEY, RUN_LOG_FILENAME
 
 
 class _StopCalled(Exception):
@@ -99,21 +102,80 @@ def test_run_logs_no_run_ids(monkeypatch, tmp_path: Path) -> None:
     assert any(call == ("info", "No run directories available.") for call in fake_st.calls)
 
 
-def test_run_logs_with_log_and_manifest(monkeypatch, tmp_path: Path) -> None:
-    fake_st = FakeStreamlit("streamlit", select_value="run-1")
-    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
-    run_dir = tmp_path / "runs" / "run-1"
+def _run_logs_layout(tmp_path: Path, *, select_value: str = "run-1") -> tuple[Path, FakeStreamlit]:
+    fake_st = FakeStreamlit("streamlit", select_value=select_value)
+    run_dir = tmp_path / "runs" / select_value
     run_dir.mkdir(parents=True)
-    (run_dir / "run.log").write_text('{"event":"ok"}\nplain line\n', encoding="utf-8")
-    (tmp_path / "manifest.json").write_text('{"version":"1"}', encoding="utf-8")
+    (run_dir / RUN_LOG_FILENAME).write_text('{"event":"ok"}\n', encoding="utf-8")
+    return run_dir, fake_st
+
+
+def test_run_logs_with_linked_manifest(monkeypatch, tmp_path: Path) -> None:
+    run_dir, fake_st = _run_logs_layout(tmp_path)
+    manifest_path = tmp_path / "linked-manifest.json"
+    manifest_path.write_text('{"version":"linked"}', encoding="utf-8")
+    (run_dir / RUN_END_FILENAME).write_text(
+        json.dumps({RUN_END_MANIFEST_PATH_KEY: str(manifest_path)}),
+        encoding="utf-8",
+    )
+    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
     monkeypatch.chdir(tmp_path)
 
     runpy.run_path(str(_page_path()))
 
-    call_types = {call[0] for call in fake_st.calls}
-    assert "code" in call_types
-    assert "text" in call_types
-    assert any(call[0] == "write" for call in fake_st.calls)
+    code_payloads = [call[1] for call in fake_st.calls if call[0] == "code"]
+    assert any("linked" in payload for payload in code_payloads)
+    assert any(call == ("write", ("linked-manifest.json",)) for call in fake_st.calls)
+
+
+def test_run_logs_ignores_unrelated_root_manifest(monkeypatch, tmp_path: Path) -> None:
+    run_dir, fake_st = _run_logs_layout(tmp_path)
+    (tmp_path / "manifest.json").write_text(
+        '{"run_id":"WRONG_UNRELATED_RUN"}',
+        encoding="utf-8",
+    )
+    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
+    monkeypatch.chdir(tmp_path)
+
+    runpy.run_path(str(_page_path()))
+
+    code_payloads = [call[1] for call in fake_st.calls if call[0] == "code"]
+    assert not any("WRONG_UNRELATED_RUN" in payload for payload in code_payloads)
+    assert any(
+        call == ("info", "Manifest not found. Check the run's output directory.")
+        for call in fake_st.calls
+    )
+
+
+def test_run_logs_missing_linked_manifest_file(monkeypatch, tmp_path: Path) -> None:
+    run_dir, fake_st = _run_logs_layout(tmp_path)
+    missing = tmp_path / "missing-manifest.json"
+    (run_dir / RUN_END_FILENAME).write_text(
+        json.dumps({RUN_END_MANIFEST_PATH_KEY: str(missing)}),
+        encoding="utf-8",
+    )
+    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
+    monkeypatch.chdir(tmp_path)
+
+    runpy.run_path(str(_page_path()))
+
+    assert any(
+        call == ("info", "Manifest not found. Check the run's output directory.")
+        for call in fake_st.calls
+    )
+
+
+def test_run_logs_malformed_run_end(monkeypatch, tmp_path: Path) -> None:
+    run_dir, fake_st = _run_logs_layout(tmp_path)
+    (run_dir / RUN_END_FILENAME).write_text("{not-json", encoding="utf-8")
+    (tmp_path / "manifest.json").write_text('{"run_id":"WRONG_UNRELATED_RUN"}', encoding="utf-8")
+    monkeypatch.setitem(sys.modules, "streamlit", fake_st)
+    monkeypatch.chdir(tmp_path)
+
+    runpy.run_path(str(_page_path()))
+
+    code_payloads = [call[1] for call in fake_st.calls if call[0] == "code"]
+    assert not any("WRONG_UNRELATED_RUN" in payload for payload in code_payloads)
 
 
 def test_run_logs_missing_log_and_manifest(monkeypatch, tmp_path: Path) -> None:
