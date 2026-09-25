@@ -83,10 +83,11 @@ markers = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["pa_core*", "archive*", "scripts*", "dashboard*", "data*"]
+include = ["pa_core*", "archive*", "scripts*", "dashboard*", "data*", "templates*"]
 
 [tool.setuptools.package-data]
 data = ["*.csv"]
+templates = ["*.csv", "*.yaml"]
 
 [build-system]
 requires = ["setuptools>=82.0.1"]

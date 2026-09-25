@@ -10,7 +10,12 @@ on.
 
 from __future__ import annotations
 
+import subprocess
+import venv
+from pathlib import Path
+
 import pandas as pd
+import pytest
 
 from dashboard.utils import (
     SAMPLE_INDEX_FILENAME,
@@ -22,6 +27,74 @@ from dashboard.utils import (
 from pa_core.config import ModelConfig
 from pa_core.data import load_index_returns
 from pa_core.orchestrator import SimulatorOrchestrator
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+
+def _build_wheel(destination: Path) -> Path:
+    environment = destination / "wheel-build-env"
+    venv.EnvBuilder(with_pip=True).create(environment)
+    python = environment / "bin" / "python"
+    subprocess.run(
+        [python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    wheel_dir = destination / "wheels"
+    wheel_dir.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        [python, "-m", "pip", "wheel", str(REPO_ROOT), "--no-deps", "-w", str(wheel_dir)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    wheels = sorted(wheel_dir.glob("portable_alpha_extension_model-*.whl"))
+    assert wheels, "expected a built project wheel"
+    return wheels[-1]
+
+
+@pytest.mark.slow
+def test_wheel_install_exposes_bundled_dashboard_samples(tmp_path: Path) -> None:
+    """Non-editable installs must resolve index, asset, and portfolio samples (#2285)."""
+    wheel_path = _build_wheel(tmp_path)
+    install_root = tmp_path / "install-env"
+    venv.EnvBuilder(with_pip=True).create(install_root)
+    python = install_root / "bin" / "python"
+    subprocess.run(
+        [python, "-m", "pip", "install", str(wheel_path)],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+    )
+    probe = """
+from dashboard.utils import (
+    bundled_asset_timeseries_path,
+    bundled_portfolio_template_path,
+    bundled_sample_index_path,
+    load_bundled_asset_returns,
+)
+from pa_core.schema import load_scenario
+
+index_path = bundled_sample_index_path()
+asset_path = bundled_asset_timeseries_path()
+portfolio_path = bundled_portfolio_template_path()
+assert index_path.is_file(), index_path
+assert asset_path.is_file(), asset_path
+assert portfolio_path.is_file(), portfolio_path
+load_bundled_asset_returns()
+load_scenario(portfolio_path)
+print("ok")
+"""
+    completed = subprocess.run(
+        [python, "-c", probe],
+        check=True,
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+    )
+    assert "ok" in completed.stdout
 
 
 def test_bundled_sample_index_path_points_at_repo_data_file() -> None:

@@ -141,9 +141,11 @@ SAMPLE_ASSET_TIMESERIES_FILENAME = "asset_timeseries_wide_returns.csv"
 SAMPLE_PORTFOLIO_TEMPLATE_FILENAME = "scenario_template.yaml"
 
 
-def _repo_template_path(filename: str) -> Path:
-    """Return a repo-shipped dashboard template path."""
-    return Path(__file__).resolve().parents[1] / "templates" / filename
+def _bundled_template_path(filename: str) -> Path:
+    """Return a wheel-shipped dashboard template path (see issue #2285)."""
+    resource = resources.files("templates").joinpath(filename)
+    with resources.as_file(resource) as path:
+        return path
 
 
 def bundled_sample_index_path() -> Path:
@@ -171,12 +173,12 @@ def load_bundled_sample_index() -> pd.Series:
 
 def bundled_asset_timeseries_path() -> Path:
     """Return the bundled wide-format asset time-series CSV path."""
-    return _repo_template_path(SAMPLE_ASSET_TIMESERIES_FILENAME)
+    return _bundled_template_path(SAMPLE_ASSET_TIMESERIES_FILENAME)
 
 
 def bundled_portfolio_template_path() -> Path:
     """Return the starter scenario YAML used by Portfolio Builder samples."""
-    return _repo_template_path(SAMPLE_PORTFOLIO_TEMPLATE_FILENAME)
+    return _bundled_template_path(SAMPLE_PORTFOLIO_TEMPLATE_FILENAME)
 
 
 def load_bundled_asset_returns() -> pd.DataFrame:
