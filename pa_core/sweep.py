@@ -351,6 +351,14 @@ def _get_empty_results_dataframe() -> pd.DataFrame:
     return _EMPTY_RESULTS_DF.copy()
 
 
+def _derive_rng_from_state(rng: GeneratorLike, namespace: str) -> GeneratorLike:
+    """Derive an independent deterministic RNG from another generator's state."""
+    state_repr = json.dumps(rng.bit_generator.state, sort_keys=True, default=str)
+    digest = hashlib.sha256((namespace + ":" + state_repr).encode("utf-8")).digest()
+    entropy = int.from_bytes(digest, "big")
+    return spawn_rngs(entropy, 1)[0]
+
+
 def _derive_regime_rng(rng_returns: GeneratorLike) -> GeneratorLike:
     """Derive a regime RNG deterministically from ``rng_returns``'s state.
 
@@ -360,10 +368,7 @@ def _derive_regime_rng(rng_returns: GeneratorLike) -> GeneratorLike:
     ``rng_returns`` reproduce identical regime paths, while remaining an
     independent stream from the return draws.
     """
-    state_repr = json.dumps(rng_returns.bit_generator.state, sort_keys=True, default=str)
-    digest = hashlib.sha256(("pa_core.regime:" + state_repr).encode("utf-8")).digest()
-    entropy = int.from_bytes(digest, "big")
-    return spawn_rngs(entropy, 1)[0]
+    return _derive_rng_from_state(rng_returns, "pa_core.regime")
 
 
 def run_parameter_sweep(
@@ -489,6 +494,7 @@ def run_parameter_sweep(
         fin_rng_states = {
             name: copy.deepcopy(rng.bit_generator.state) for name, rng in fin_rngs.items()
         }
+        internal_pa_rng_source = fin_rngs.get("internal", rng_returns)
     else:
         base_rng_returns, base_rng_regime = spawn_rngs(seed, 2)
         base_fin_rngs = spawn_agent_rngs(seed, list(fin_rngs.keys()))
@@ -497,6 +503,12 @@ def run_parameter_sweep(
         fin_rng_states = {
             name: copy.deepcopy(base_fin_rngs[name].bit_generator.state) for name in fin_rngs.keys()
         }
+        internal_pa_rng_source = base_fin_rngs.get("internal", base_rng_returns)
+    internal_pa_rng = _derive_rng_from_state(
+        internal_pa_rng_source,
+        "pa_core.internal_pa_financing",
+    )
+    internal_pa_rng_state = copy.deepcopy(internal_pa_rng.bit_generator.state)
 
     base_sigma = None
     base_corr = None
@@ -700,6 +712,10 @@ def run_parameter_sweep(
             )
         else:
             f_int, f_ext, f_act = financing_series
+        # InternalPA financing needs its own resettable substream. Reusing the
+        # standard internal-financing generator either advances between cached
+        # combinations or shares draws accidentally with the standard sleeve.
+        internal_pa_rng.bit_generator.state = copy.deepcopy(internal_pa_rng_state)
         f_internal_pa = resolve_internal_pa_financing_series(
             n_months=mod_cfg.N_MONTHS,
             n_sim=mod_cfg.N_SIMULATIONS,
@@ -708,7 +724,7 @@ def run_parameter_sweep(
             series=getattr(mod_cfg, "internal_pa_financing_series", None),
             index=getattr(mod_cfg, "internal_pa_financing_index", None),
             financing_mode=mod_cfg.financing_mode,
-            rng=fin_rngs.get("internal") if fin_rngs else None,
+            rng=internal_pa_rng,
         )
 
         agents = build_from_config(mod_cfg)
