@@ -25,6 +25,11 @@ def test_preset_import_export(tmp_path):
     assert lib_yaml.get("A").rho == 0.3
     assert lib_json.get("A").sigma == 0.2
 
+    lib_yaml.load_yaml_str(lib.to_yaml_str())
+    lib_json.load_json_str(lib.to_json_str())
+    assert lib_yaml.to_dict() == lib.to_dict()
+    assert lib_json.to_dict() == lib.to_dict()
+
 
 def test_load_yaml_str_duplicate_validation():
     """Test that load_yaml_str properly validates duplicate IDs."""
