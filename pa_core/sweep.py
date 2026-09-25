@@ -321,6 +321,7 @@ class SweepRunner:
             seed=rng_bundle.seed,
             rng_regime=rng_bundle.rng_regime,
             progress=self.progress,
+            legacy_agent_rng=self.legacy_agent_rng,
         )
 
 
@@ -379,6 +380,8 @@ def run_parameter_sweep(
     seed: int | None = None,
     rng_regime: GeneratorLike | None = None,
     progress: Callable[[int, int], None] | None = None,
+    *,
+    legacy_agent_rng: bool = False,
 ) -> List[SweepResult]:
     """Run the parameter sweep and collect results.
 
@@ -497,7 +500,11 @@ def run_parameter_sweep(
         internal_pa_rng_source = fin_rngs.get("internal", rng_returns)
     else:
         base_rng_returns, base_rng_regime = spawn_rngs(seed, 2)
-        base_fin_rngs = spawn_agent_rngs(seed, list(fin_rngs.keys()))
+        base_fin_rngs = spawn_agent_rngs(
+            seed,
+            list(fin_rngs.keys()),
+            legacy_order=legacy_agent_rng,
+        )
         rng_returns_state = copy.deepcopy(base_rng_returns.bit_generator.state)
         rng_regime_state = copy.deepcopy(base_rng_regime.bit_generator.state)
         fin_rng_states = {

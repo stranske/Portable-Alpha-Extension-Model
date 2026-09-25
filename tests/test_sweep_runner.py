@@ -17,17 +17,20 @@ def test_sweep_runner_calls_run_parameter_sweep(monkeypatch) -> None:
         seed=None,
         rng_regime=None,
         progress=None,
+        *,
+        legacy_agent_rng=False,
     ):
         captured["cfg"] = cfg_arg
         captured["idx"] = idx_arg
         captured["seed"] = seed
         captured["rng_regime"] = rng_regime
         captured["progress"] = progress
+        captured["legacy_agent_rng"] = legacy_agent_rng
         return [{"combination_id": 0, "parameters": {}, "summary": pd.DataFrame()}]
 
     monkeypatch.setattr("pa_core.sweep.run_parameter_sweep", fake_run_parameter_sweep)
 
-    runner = SweepRunner(cfg, idx, seed=123)
+    runner = SweepRunner(cfg, idx, seed=123, legacy_agent_rng=True)
     results = runner.run()
 
     assert results[0]["combination_id"] == 0
@@ -35,3 +38,4 @@ def test_sweep_runner_calls_run_parameter_sweep(monkeypatch) -> None:
     assert isinstance(captured["idx"], pd.Series)
     assert captured["seed"] is not None
     assert captured["rng_regime"] is not None
+    assert captured["legacy_agent_rng"] is True
