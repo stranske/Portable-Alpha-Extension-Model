@@ -1286,6 +1286,7 @@ def _main(
             rng_returns,
             fin_rngs,
             seed=rng_bundle.seed,
+            legacy_agent_rng=args.legacy_agent_rng,
         )
         sweep_metadata = {"rng_seed": args.seed, "substream_ids": substream_ids}
         export_sweep_results(results, filename=args.output, metadata=sweep_metadata)
