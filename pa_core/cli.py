@@ -1331,6 +1331,43 @@ def _main(
         all_summary = (
             pd.concat(summary_frames, ignore_index=True) if summary_frames else pd.DataFrame()
         )
+        sweep_fig = None
+        if not all_summary.empty and any(
+            [flags.png, flags.pdf, flags.pptx, flags.html, flags.packet]
+        ):
+            from . import viz
+
+            if "terminal_ShortfallProb" in all_summary.columns:
+                sweep_fig = viz.risk_return.make(all_summary)
+            else:
+                sweep_fig = viz.sharpe_ladder.make(all_summary)
+
+        # Sweep mode returns before the single-run export block below, so honor
+        # its individual export flags here using the consolidated sweep summary.
+        if sweep_fig is not None and any([flags.png, flags.pdf, flags.pptx, flags.html]):
+            from .viz.export_backend import write_figure_image
+
+            export_stem = Path(args.output or "Sweep.xlsx").with_suffix("")
+            if flags.png:
+                png_path = export_stem.with_suffix(".png")
+                write_figure_image(sweep_fig, png_path)
+                _record_artifact(png_path)
+            if flags.pdf:
+                pdf_path = export_stem.with_suffix(".pdf")
+                viz.pdf_export.save(sweep_fig, str(pdf_path))
+                _record_artifact(pdf_path)
+            if flags.pptx:
+                pptx_path = export_stem.with_suffix(".pptx")
+                viz.pptx_export.save(
+                    [sweep_fig],
+                    str(pptx_path),
+                    alt_texts=[flags.alt_text] if flags.alt_text else None,
+                )
+                _record_artifact(pptx_path)
+            if flags.html:
+                html_path = export_stem.with_suffix(".html")
+                viz.html_export.save(sweep_fig, str(html_path), alt_text=flags.alt_text)
+                _record_artifact(html_path)
         try:
             from .llm.scenario_fleet import SCENARIO_SWEEP_OPERATION, record_scenario_run
 
@@ -1368,18 +1405,10 @@ def _main(
         # Handle packet export for parameter sweep mode
         if flags.packet:
             try:
-                from . import viz
-
-                if not all_summary.empty:
+                if sweep_fig is not None:
                     from .reporting.export_packet import (
                         create_export_packet as create_export_packet_fn,
                     )
-
-                    # Create visualization from consolidated summary
-                    if "terminal_ShortfallProb" in all_summary.columns:
-                        fig = viz.risk_return.make(all_summary)
-                    else:
-                        fig = viz.sharpe_ladder.make(all_summary)
 
                     # Create export packet with sweep results
                     base_name = Path(args.output or "parameter_sweep_packet").stem
@@ -1388,7 +1417,7 @@ def _main(
                     raw_returns_dict = {"Summary": all_summary}
 
                     pptx_path, excel_path = create_export_packet_fn(
-                        figs=[fig],
+                        figs=[sweep_fig],
                         summary_df=all_summary,
                         raw_returns_dict=raw_returns_dict,
                         inputs_dict={k: raw_params.get(k, "") for k in raw_params},
