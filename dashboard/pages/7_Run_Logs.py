@@ -7,7 +7,6 @@ import streamlit as st
 
 from dashboard.utils import RUN_LOGS_EMPTY_STATE_MESSAGE
 from pa_core.contracts import (
-    MANIFEST_FILENAME,
     RUN_END_FILENAME,
     RUN_LOG_FILENAME,
     RUNS_DIR_NAME,
@@ -56,11 +55,6 @@ with cols[1]:
     st.subheader("Manifest link")
     # Prefer manifest path recorded in run_end.json for this run.
     found_manifest = manifest_path_from_run_end(run_end_file)
-    if found_manifest is None or not found_manifest.exists():
-        # Fallback: search nearby manifests in project root.
-        for cand in Path.cwd().glob(MANIFEST_FILENAME):
-            found_manifest = cand
-            break
     if found_manifest is not None and found_manifest.exists():
         try:
             data = json.loads(found_manifest.read_text())
