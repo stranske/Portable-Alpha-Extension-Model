@@ -1369,7 +1369,7 @@ def _main(
             ) -> None:
                 try:
                     exporter()
-                except Exception as exc:
+                except (OSError, RuntimeError, ValueError, TypeError, ImportError) as exc:
                     # Export rendering is optional. Keep the completed sweep and
                     # structured run finalization even when a renderer or target
                     # path is unavailable.
