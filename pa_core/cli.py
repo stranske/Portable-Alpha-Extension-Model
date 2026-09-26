@@ -1348,9 +1348,13 @@ def _main(
                     if scenario_summary.empty:
                         continue
                     if "terminal_ShortfallProb" in scenario_summary.columns:
-                        sweep_pptx_figs.append(viz.risk_return.make(scenario_summary))
+                        scenario_fig = viz.risk_return.make(scenario_summary)
                     else:
-                        sweep_pptx_figs.append(viz.sharpe_ladder.make(scenario_summary))
+                        scenario_fig = viz.sharpe_ladder.make(scenario_summary)
+                    scenario_fig.update_layout(
+                        title=f"Parameter sweep combination {result['combination_id']}"
+                    )
+                    sweep_pptx_figs.append(scenario_fig)
 
         # Sweep mode returns before the single-run export block below, so honor
         # its individual export flags here using the consolidated sweep summary.
@@ -1454,7 +1458,8 @@ def _main(
                     )
 
                     # Create export packet with sweep results
-                    base_name = Path(args.output or "parameter_sweep_packet").stem
+                    output_stem = Path(args.output or "parameter_sweep_packet").with_suffix("")
+                    packet_base_name = Path(f"{output_stem}_packet")
 
                     # Create a simplified raw_returns_dict for packet export
                     raw_returns_dict = {"Summary": all_summary}
@@ -1464,7 +1469,7 @@ def _main(
                         summary_df=all_summary,
                         raw_returns_dict=raw_returns_dict,
                         inputs_dict={k: raw_params.get(k, "") for k in raw_params},
-                        base_filename=base_name,
+                        base_filename=packet_base_name,
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
                         manifest=manifest_data,
