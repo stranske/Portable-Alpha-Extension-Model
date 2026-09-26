@@ -176,6 +176,10 @@ def test_run_logs_malformed_run_end(monkeypatch, tmp_path: Path) -> None:
 
     code_payloads = [call[1] for call in fake_st.calls if call[0] == "code"]
     assert not any("WRONG_UNRELATED_RUN" in payload for payload in code_payloads)
+    assert any(
+        call == ("info", "Manifest not found. Check the run's output directory.")
+        for call in fake_st.calls
+    )
 
 
 def test_run_logs_missing_log_and_manifest(monkeypatch, tmp_path: Path) -> None:
