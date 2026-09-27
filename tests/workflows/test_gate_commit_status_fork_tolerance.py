@@ -35,9 +35,10 @@ RUNNER_JS = textwrap.dedent("""
     const vm = require('vm');
     const src = fs.readFileSync(process.argv[2], 'utf8');
 
-    function makeError(status, message) {
+    function makeError(status, message, response = {}) {
       const error = new Error(message);
       error.status = status;
+      error.response = response;
       return error;
     }
 
@@ -138,6 +139,52 @@ RUNNER_JS = textwrap.dedent("""
           description: 'all checks passed',
           error: makeError(403, 'API rate limit exceeded'),
         }),
+        fork_rate_limit_header_string: await runCase({
+          ...FORK,
+          state: 'success',
+          description: 'all checks passed',
+          error: makeError(403, 'Forbidden', {
+            headers: { 'x-ratelimit-remaining': '0' },
+          }),
+        }),
+        fork_rate_limit_header_number: await runCase({
+          ...FORK,
+          state: 'success',
+          description: 'all checks passed',
+          error: makeError(403, 'Forbidden', {
+            headers: { 'x-ratelimit-remaining': 0 },
+          }),
+        }),
+        fork_secondary_abuse: await runCase({
+          ...FORK,
+          state: 'success',
+          description: 'all checks passed',
+          error: makeError(403, 'You have triggered an abuse detection mechanism'),
+        }),
+        fork_secondary_retry_after: await runCase({
+          ...FORK,
+          state: 'success',
+          description: 'all checks passed',
+          error: makeError(403, 'Forbidden', {
+            headers: { 'x-ratelimit-remaining': '42', 'retry-after': '60' },
+          }),
+        }),
+        fork_rate_limit_response_body: await runCase({
+          ...FORK,
+          state: 'success',
+          description: 'all checks passed',
+          error: makeError(403, 'Forbidden', {
+            data: { message: 'Secondary rate limit exceeded' },
+          }),
+        }),
+        fork_read_only_positive_quota: await runCase({
+          ...FORK,
+          state: 'success',
+          description: 'all checks passed',
+          error: makeError(403, 'Resource not accessible by integration', {
+            headers: { 'x-ratelimit-remaining': '42' },
+          }),
+        }),
         fork_server_error: await runCase({
           ...FORK,
           state: 'success',
@@ -232,10 +279,29 @@ def test_same_repo_403_still_fails_the_gate(outcomes: dict[str, Any]) -> None:
 
 
 def test_rate_limit_403_still_fails_the_gate(outcomes: dict[str, Any]) -> None:
-    case = outcomes["fork_rate_limit"]
-    assert case["threw"]["status"] == 403
-    assert case["summaryWrites"] == 0
-    assert case["summaryRaw"] == []
+    rate_limit_cases = (
+        "fork_rate_limit",
+        "fork_rate_limit_header_string",
+        "fork_rate_limit_header_number",
+        "fork_secondary_abuse",
+        "fork_secondary_retry_after",
+        "fork_rate_limit_response_body",
+    )
+    for case_name in rate_limit_cases:
+        case = outcomes[case_name]
+        assert case["threw"]["status"] == 403, case_name
+        assert case["warnings"] == [], case_name
+        assert case["summaryWrites"] == 0, case_name
+        assert case["summaryRaw"] == [], case_name
+
+
+def test_positive_quota_permission_403_uses_fork_fallback(
+    outcomes: dict[str, Any],
+) -> None:
+    case = outcomes["fork_read_only_positive_quota"]
+    assert case["threw"] is None
+    assert "read-only" in " ".join(case["warnings"])
+    assert case["summaryWrites"] == 1
 
 
 def test_non_403_errors_still_fail_the_gate(outcomes: dict[str, Any]) -> None:

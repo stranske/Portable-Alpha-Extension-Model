@@ -309,9 +309,13 @@ jobs:
 
               console.log(`Posted commit status: ${state} - ${description}`);
             } catch (error) {
+              const responseHeaders = error?.response?.headers || {};
               const hitRateLimit =
                 error?.status === 403 &&
-                /rate limit/i.test(error?.message || '');
+                (/rate limit|abuse/i.test(error?.message || '') ||
+                  /rate limit|abuse/i.test(error?.response?.data?.message || '') ||
+                  String(responseHeaders['x-ratelimit-remaining']) === '0' ||
+                  responseHeaders['retry-after'] != null);
               // Pull requests opened from forks receive a read-only token, so the
               // status write can be refused after Gate has computed its verdict.
               // Keep same-repository permission failures, rate limits, and unrelated
