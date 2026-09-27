@@ -296,17 +296,57 @@ jobs:
             const description = process.env.DESCRIPTION;
             const target_url = process.env.TARGET_URL;
 
-            await github.rest.repos.createCommitStatus({
-              owner,
-              repo,
-              sha,
-              state,
-              context: 'Gate / gate',
-              description,
-              target_url
-            });
+            try {
+              await github.rest.repos.createCommitStatus({
+                owner,
+                repo,
+                sha,
+                state,
+                context: 'Gate / gate',
+                description,
+                target_url
+              });
 
-            console.log(`Posted commit status: ${state} - ${description}`);
+              console.log(`Posted commit status: ${state} - ${description}`);
+            } catch (error) {
+              const hitRateLimit =
+                error?.status === 403 &&
+                /rate limit/i.test(error?.message || '');
+              // Pull requests opened from forks receive a read-only token, so the
+              // status write can be refused after Gate has computed its verdict.
+              // Keep same-repository permission failures, rate limits, and unrelated
+              // errors loud; only the fork-token case is safe to report in-band.
+              const pullRequest = context.payload.pull_request;
+              const headRepoObject = pullRequest?.head?.repo;
+              const headRepo = headRepoObject?.full_name;
+              const baseRepo = pullRequest?.base?.repo?.full_name;
+              const isForkPullRequest = Boolean(
+                baseRepo &&
+                  (headRepoObject === null || (headRepo && headRepo !== baseRepo)),
+              );
+              const readOnlyForkToken =
+                error?.status === 403 && isForkPullRequest && !hitRateLimit;
+              if (!readOnlyForkToken) {
+                throw error;
+              }
+
+              core.warning(
+                'Fork pull request from ' +
+                  `${headRepo ?? pullRequest?.head?.label ?? 'deleted source repository'}: ` +
+                  'the workflow token is ' +
+                  "read-only, so the 'Gate / gate' commit status could not be " +
+                  `written (${error.message}). Gate verdict for ${sha} is ` +
+                  `'${state}': ${description}.`,
+              );
+              await core.summary
+                .addHeading('Gate verdict (fork pull request)', 3)
+                .addRaw(
+                  'The `Gate / gate` commit status could not be written for ' +
+                    `\`${sha}\` because a pull request from a fork receives a ` +
+                    `read-only token. Gate verdict: **${state}** — ${description}`,
+                )
+                .write();
+            }
 
       - name: Fail if Gate failed
         if: ${{ steps.summarize.outputs.state == 'failure' }}
