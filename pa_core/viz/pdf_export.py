@@ -13,11 +13,7 @@ def save(fig: go.Figure, path: str) -> None:
         with open(path, "wb") as fh:
             fh.write(str(fig.to_json()).encode())
         return
-    try:
-        write_figure_image(fig, path, format="pdf")
-    except (ValueError, RuntimeError, OSError, MemoryError):
-        with open(path, "wb") as fh:
-            fh.write(str(fig.to_json()).encode())
+    write_figure_image(fig, path, format="pdf")
 
 
 async def save_async(fig: go.Figure, path: str) -> None:

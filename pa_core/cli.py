@@ -1331,6 +1331,90 @@ def _main(
         all_summary = (
             pd.concat(summary_frames, ignore_index=True) if summary_frames else pd.DataFrame()
         )
+        sweep_fig = None
+        sweep_pptx_figs: list[Any] = []
+        if not all_summary.empty and any(
+            [flags.png, flags.pdf, flags.pptx, flags.html, flags.packet]
+        ):
+            from . import viz
+
+            if "terminal_ShortfallProb" in all_summary.columns:
+                sweep_fig = viz.risk_return.make(all_summary)
+            else:
+                sweep_fig = viz.sharpe_ladder.make(all_summary)
+            if flags.pptx:
+                for result in results:
+                    scenario_summary = result["summary"]
+                    if scenario_summary.empty:
+                        continue
+                    if "terminal_ShortfallProb" in scenario_summary.columns:
+                        scenario_fig = viz.risk_return.make(scenario_summary)
+                    else:
+                        scenario_fig = viz.sharpe_ladder.make(scenario_summary)
+                    scenario_fig.update_layout(
+                        title=f"Parameter sweep combination {result['combination_id']}"
+                    )
+                    sweep_pptx_figs.append(scenario_fig)
+
+        # Sweep mode returns before the single-run export block below, so honor
+        # its individual export flags here using the consolidated sweep summary.
+        if sweep_fig is not None and any([flags.png, flags.pdf, flags.pptx, flags.html]):
+            from .viz.export_backend import write_figure_image
+
+            export_stem = Path(args.output or "Sweep.xlsx").with_suffix("")
+
+            def _export_path(suffix: str) -> Path:
+                # Appending preserves meaningful dots in names such as
+                # ``results.q3.xlsx`` -> ``results.q3.png``.
+                return Path(f"{export_stem}{suffix}")
+
+            def _attempt_sweep_export(
+                label: str, output_path: Path, exporter: Callable[[], None]
+            ) -> None:
+                try:
+                    exporter()
+                except (OSError, RuntimeError, ValueError, TypeError, ImportError) as exc:
+                    # Export rendering is optional. Keep the completed sweep and
+                    # structured run finalization even when a renderer or target
+                    # path is unavailable.
+                    logger.error("%s export failed: %s", label, exc)
+                    print(f"❌ {label} export failed: {exc}")
+                    return
+                _record_artifact(output_path)
+
+            if flags.png:
+                sweep_png_path = _export_path(".png")
+                _attempt_sweep_export(
+                    "PNG", sweep_png_path, lambda: write_figure_image(sweep_fig, sweep_png_path)
+                )
+            if flags.pdf:
+                sweep_pdf_path = _export_path(".pdf")
+                _attempt_sweep_export(
+                    "PDF",
+                    sweep_pdf_path,
+                    lambda: viz.pdf_export.save(sweep_fig, str(sweep_pdf_path)),
+                )
+            if flags.pptx:
+                sweep_pptx_path = _export_path(".pptx")
+                pptx_figs = sweep_pptx_figs or [sweep_fig]
+                _attempt_sweep_export(
+                    "PPTX",
+                    sweep_pptx_path,
+                    lambda: viz.pptx_export.save(
+                        pptx_figs,
+                        str(sweep_pptx_path),
+                        alt_texts=([flags.alt_text] * len(pptx_figs) if flags.alt_text else None),
+                    ),
+                )
+            if flags.html:
+                sweep_html_path = _export_path(".html")
+                _attempt_sweep_export(
+                    "HTML",
+                    sweep_html_path,
+                    lambda: viz.html_export.save(
+                        sweep_fig, str(sweep_html_path), alt_text=flags.alt_text
+                    ),
+                )
         try:
             from .llm.scenario_fleet import SCENARIO_SWEEP_OPERATION, record_scenario_run
 
@@ -1368,42 +1452,35 @@ def _main(
         # Handle packet export for parameter sweep mode
         if flags.packet:
             try:
-                from . import viz
-
-                if not all_summary.empty:
+                if sweep_fig is not None:
                     from .reporting.export_packet import (
                         create_export_packet as create_export_packet_fn,
                     )
 
-                    # Create visualization from consolidated summary
-                    if "terminal_ShortfallProb" in all_summary.columns:
-                        fig = viz.risk_return.make(all_summary)
-                    else:
-                        fig = viz.sharpe_ladder.make(all_summary)
-
                     # Create export packet with sweep results
-                    base_name = Path(args.output or "parameter_sweep_packet").stem
+                    output_stem = Path(args.output or "parameter_sweep_packet").with_suffix("")
+                    packet_base_name = Path(f"{output_stem}_packet")
 
                     # Create a simplified raw_returns_dict for packet export
                     raw_returns_dict = {"Summary": all_summary}
 
-                    pptx_path, excel_path = create_export_packet_fn(
-                        figs=[fig],
+                    sweep_packet_pptx_path, sweep_packet_excel_path = create_export_packet_fn(
+                        figs=[sweep_fig],
                         summary_df=all_summary,
                         raw_returns_dict=raw_returns_dict,
                         inputs_dict={k: raw_params.get(k, "") for k in raw_params},
-                        base_filename=base_name,
+                        base_filename=packet_base_name,
                         alt_texts=[flags.alt_text] if flags.alt_text else None,
                         pivot=args.pivot,
                         manifest=manifest_data,
                         prev_summary_df=prev_summary_df,
                         prev_manifest=prev_manifest_data,
                     )
-                    _record_artifact(pptx_path)
-                    _record_artifact(excel_path)
+                    _record_artifact(sweep_packet_pptx_path)
+                    _record_artifact(sweep_packet_excel_path)
                     print("✅ Parameter sweep export packet created:")
-                    print(f"   📊 Excel: {excel_path}")
-                    print(f"   📋 PowerPoint: {pptx_path}")
+                    print(f"   📊 Excel: {sweep_packet_excel_path}")
+                    print(f"   📋 PowerPoint: {sweep_packet_pptx_path}")
                 else:
                     print("⚠️  No summary data available for export packet")
             except RuntimeError as e:
