@@ -51,7 +51,7 @@ uv run pytest tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_png_fla
 Cleanup proof:
 
 ```text
-git diff --exit-code -- pa_core/cli.py tests/test_cli_sweep_png_export.py
+git diff --exit-code HEAD -- pa_core/cli.py tests/test_cli_sweep_png_export.py
 ```
 
 The cleanup command exited `0` with no output, proving the temporary production
