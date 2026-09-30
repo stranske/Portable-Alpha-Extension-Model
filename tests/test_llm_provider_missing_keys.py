@@ -94,3 +94,23 @@ def test_create_llm_anthropic_claude5_defaults(monkeypatch):
         )
     )
     assert captured["max_tokens"] == 2048  # an explicit caller value wins
+
+
+@pytest.mark.parametrize(
+    ("model", "expected"),
+    [
+        ("claude-sonnet-5-5", True),
+        ("claude-sonnet-5", True),
+        ("claude-opus-5-5", True),
+        ("claude-haiku-5", True),
+        ("claude-fable-5-1", True),
+        ("  Claude-Sonnet-5-5 ", True),
+        ("claude-sonnet-4-6", False),
+        ("claude-haiku-4-5", False),
+        ("gpt-4o-mini", False),
+    ],
+)
+def test_is_claude5_family(model: str, expected: bool) -> None:
+    from pa_core.llm.provider import _is_claude5_family
+
+    assert _is_claude5_family(model) is expected
