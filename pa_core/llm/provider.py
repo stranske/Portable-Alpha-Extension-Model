@@ -14,10 +14,20 @@ _REQUIRED_CREDENTIAL_KEYS: dict[str, tuple[str, ...]] = {
 }
 
 _DEFAULT_MODEL_NAMES: dict[str, str] = {
-    "anthropic": "claude-sonnet-4-20250514",
+    "anthropic": "claude-sonnet-5-5",
     "azure_openai": "gpt-4o-mini",
     "openai": "gpt-4o-mini",
 }
+
+
+ANTHROPIC_THINKING_MAX_TOKENS = 16000
+
+
+def _is_claude5_family(model: str) -> bool:
+    lowered = model.lower().strip()
+    return any(
+        lowered.startswith(f"claude-{family}-5") for family in ("opus", "sonnet", "haiku", "fable")
+    )
 
 
 @dataclass(frozen=True)
@@ -68,10 +78,15 @@ def create_llm(config: LLMProviderConfig) -> Any:
     if provider_name == "anthropic":
         from langchain_anthropic import ChatAnthropic
 
+        anthropic_kwargs = dict(config.client_kwargs)
+        if _is_claude5_family(model_name):
+            # Always-thinking family: thinking tokens count against max_tokens, and
+            # langchain-anthropic falls back to 4096 for models it has no profile for.
+            anthropic_kwargs.setdefault("max_tokens", ANTHROPIC_THINKING_MAX_TOKENS)
         return ChatAnthropic(
             model_name=model_name,
             api_key=SecretStr(config.credentials["api_key"]),
-            **dict(config.client_kwargs),
+            **anthropic_kwargs,
         )
 
     if provider_name == "azure_openai":

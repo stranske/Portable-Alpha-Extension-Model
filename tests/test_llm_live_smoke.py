@@ -33,7 +33,7 @@ def _provider_model(provider_name: str) -> str:
     if model:
         return model
     if provider_name == "anthropic":
-        return "claude-sonnet-4-20250514"
+        return "claude-sonnet-5-5"
     return "gpt-4o-mini"
 
 
