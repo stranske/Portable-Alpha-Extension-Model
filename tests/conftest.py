@@ -6,12 +6,47 @@ tests should use these shared utilities or rely on proper PYTHONPATH setup.
 """
 
 import runpy
+import shutil
 import socket
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 import pytest
+
+
+PACKAGING_SOURCE_FILES = ("pyproject.toml", "README.md", "LICENSE")
+PACKAGING_SOURCE_DIRS = ("pa_core", "archive", "scripts", "dashboard", "data", "templates")
+PACKAGING_IGNORED_NAMES = (
+    "build",
+    "dist",
+    "*.egg-info",
+    "__pycache__",
+    "*.pyc",
+    ".pytest_cache",
+    ".venv",
+    "venv",
+)
+
+
+@pytest.fixture
+def stage_packaging_source() -> Callable[[Path, Path], Path]:
+    """Give each packaging subprocess its own setuptools output tree.
+
+    Parallel pip builds otherwise share the checkout's build/lib directory and
+    can delete one another's intermediate files under pytest-xdist.
+    """
+
+    def stage(source_root: Path, destination: Path) -> Path:
+        destination.mkdir(parents=True)
+        for name in PACKAGING_SOURCE_FILES:
+            shutil.copy2(source_root / name, destination / name)
+        ignore = shutil.ignore_patterns(*PACKAGING_IGNORED_NAMES)
+        for name in PACKAGING_SOURCE_DIRS:
+            shutil.copytree(source_root / name, destination / name, ignore=ignore)
+        return destination
+
+    return stage
 
 
 @pytest.fixture
