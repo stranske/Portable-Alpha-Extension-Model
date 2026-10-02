@@ -10,6 +10,7 @@ import venv
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
+from typing import Callable
 
 import pytest
 
@@ -97,7 +98,38 @@ def _console_script_path(venv_dir: Path, name: str) -> Path:
     raise FileNotFoundError(f"Console script {name!r} not found in {bin_dir}")
 
 
-def test_console_scripts_work_in_clean_venv(tmp_path: Path) -> None:
+def test_packaging_sources_do_not_share_build_artifacts(
+    tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
+) -> None:
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    for name in ("pyproject.toml", "README.md", "LICENSE"):
+        (origin / name).write_text(name)
+    for name in ("pa_core", "archive", "scripts", "dashboard", "data", "templates"):
+        package = origin / name
+        package.mkdir()
+        (package / "module.py").write_text(name)
+    (origin / "data" / "sample.csv").write_text("value\n1\n")
+    (origin / "pa_core" / "build").mkdir()
+    (origin / "pa_core" / "build" / "stale.py").write_text("stale")
+
+    first = stage_packaging_source(origin, tmp_path / "first")
+    second = stage_packaging_source(origin, tmp_path / "second")
+    assert (first / "data" / "sample.csv").read_text() == "value\n1\n"
+    assert (second / "pa_core" / "module.py").read_text() == "pa_core"
+    assert not (first / "pa_core" / "build").exists()
+    assert not (second / "pa_core" / "build").exists()
+
+    (first / "build").mkdir()
+    (first / "build" / "stale.py").write_text("first only")
+    assert not (second / "build").exists()
+    assert not (origin / "build").exists()
+
+
+def test_console_scripts_work_in_clean_venv(
+    tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
+) -> None:
+    source = stage_packaging_source(Path(__file__).resolve().parents[1], tmp_path / "source")
     venv_dir = tmp_path / "entrypoint-venv"
     venv.EnvBuilder(with_pip=True).create(venv_dir)
     python = _venv_python(venv_dir)
@@ -119,13 +151,15 @@ def test_console_scripts_work_in_clean_venv(tmp_path: Path) -> None:
             "--no-deps",
             "--no-build-isolation",
             "--no-cache-dir",
-            ".",
+            str(source),
         ],
         env={**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"},
         check=True,
+        cwd=tmp_path,
     )
 
     pa = _console_script_path(venv_dir, "pa")
     dashboard = _console_script_path(venv_dir, "pa-dashboard")
-    subprocess.run([str(pa), "--help"], check=True)
-    subprocess.run([str(dashboard), "--help"], check=True)
+    probe_env = {key: value for key, value in os.environ.items() if key != "PYTHONPATH"}
+    subprocess.run([str(pa), "--help"], check=True, cwd=tmp_path, env=probe_env)
+    subprocess.run([str(dashboard), "--help"], check=True, cwd=tmp_path, env=probe_env)

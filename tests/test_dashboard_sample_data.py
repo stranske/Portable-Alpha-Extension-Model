@@ -13,6 +13,7 @@ from __future__ import annotations
 import subprocess
 import venv
 from pathlib import Path
+from typing import Callable
 
 import pandas as pd
 import pytest
@@ -31,7 +32,7 @@ from pa_core.orchestrator import SimulatorOrchestrator
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _build_wheel(destination: Path) -> Path:
+def _build_wheel(destination: Path, source: Path) -> Path:
     environment = destination / "wheel-build-env"
     venv.EnvBuilder(with_pip=True).create(environment)
     python = environment / "bin" / "python"
@@ -44,10 +45,11 @@ def _build_wheel(destination: Path) -> Path:
     wheel_dir = destination / "wheels"
     wheel_dir.mkdir(parents=True, exist_ok=True)
     subprocess.run(
-        [python, "-m", "pip", "wheel", str(REPO_ROOT), "--no-deps", "-w", str(wheel_dir)],
+        [python, "-m", "pip", "wheel", str(source), "--no-deps", "-w", str(wheel_dir)],
         check=True,
         capture_output=True,
         text=True,
+        cwd=destination,
     )
     wheels = sorted(wheel_dir.glob("portable_alpha_extension_model-*.whl"))
     assert wheels, "expected a built project wheel"
@@ -55,9 +57,12 @@ def _build_wheel(destination: Path) -> Path:
 
 
 @pytest.mark.slow
-def test_wheel_install_exposes_bundled_dashboard_samples(tmp_path: Path) -> None:
+def test_wheel_install_exposes_bundled_dashboard_samples(
+    tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
+) -> None:
     """Non-editable installs must resolve index, asset, and portfolio samples (#2285)."""
-    wheel_path = _build_wheel(tmp_path)
+    source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
+    wheel_path = _build_wheel(tmp_path, source)
     install_root = tmp_path / "install-env"
     venv.EnvBuilder(with_pip=True).create(install_root)
     python = install_root / "bin" / "python"

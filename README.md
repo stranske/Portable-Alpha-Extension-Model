@@ -374,7 +374,7 @@ Parquet file so the dashboard remains usable.
 
 ### Python version requirement and packaging
 
-This project requires Python 3.10 or newer. Packaging is unified via `pyproject.toml` (PEP 621); no legacy `setup.py` is required.
+This project requires Python 3.12 or newer, as declared in `pyproject.toml`. Packaging is unified there (PEP 621); no legacy `setup.py` is required. The clean-venv console-script and installed-wheel tests build from separate temporary copies of the package source so parallel test workers cannot interfere through setuptools' `build/` directory.
 
 ## Financing schedule (configurable) ⚙️
 
