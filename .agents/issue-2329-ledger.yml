@@ -1,0 +1,55 @@
+version: 1
+issue: 2329
+base: main
+branch: codex/issue-2329
+tasks:
+  - id: task-01
+    title: Run python3 -m pytest tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv
+      -q at the exact head, and run python3 -m pytest tests/test_entrypoints.py -n
+      2 -q to compare isolated and parallel behavior.
+    status: doing
+    started_at: '2026-10-02T11:43:26Z'
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-02
+    title: Inspect tests/test_entrypoints.py and pyproject.toml to identify the missing
+      build path or competing process. If parallel build interference is confirmed,
+      install from an isolated tmp_path source copy or per-test build directory.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-03
+    title: Add a deterministic regression in tests/test_entrypoints.py, preserving
+      the wheel installation and console-script checks.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-04
+    title: python3 -m pytest tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv
+      -q exits 0 on the repair head.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-05
+    title: python3 -m pytest tests/test_entrypoints.py -n 2 -q exits 0 on repeated
+      runs or yields a logged distinct failure with a concrete owner.
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
+  - id: task-06
+    title: 'Python CI 3.12 and gate-summary on the repaired source PR head pass before
+      Maint 71 rechecks generated #2328.'
+    status: todo
+    started_at: null
+    finished_at: null
+    commit: ''
+    notes: []
