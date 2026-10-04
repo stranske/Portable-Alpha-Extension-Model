@@ -10,6 +10,7 @@ on.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import venv
 from pathlib import Path
@@ -73,7 +74,25 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
         text=True,
         cwd=tmp_path,
     )
+    # Poison the inherited module path: a source-tree import must never make
+    # this installed-wheel acceptance check pass.
+    decoy = tmp_path / "source-decoy"
+    package = decoy / "dashboard"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        "raise RuntimeError('installed wheel probe imported PYTHONPATH decoy')\n"
+    )
+    probe_env = {**os.environ, "PYTHONPATH": str(decoy)}
     probe = """
+import sys
+from pathlib import Path
+import dashboard
+import pa_core
+
+assert sys.flags.isolated, "wheel probe must ignore inherited source import paths"
+for module in (dashboard, pa_core):
+    assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve()), module
+
 from dashboard.utils import (
     bundled_asset_timeseries_path,
     bundled_portfolio_template_path,
@@ -93,11 +112,12 @@ load_scenario(portfolio_path)
 print("ok")
 """
     completed = subprocess.run(
-        [python, "-c", probe],
+        [python, "-I", "-c", probe],
         check=True,
         capture_output=True,
         text=True,
         cwd=tmp_path,
+        env=probe_env,
     )
     assert "ok" in completed.stdout
 
