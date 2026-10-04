@@ -113,11 +113,15 @@ print("ok")
 """
     completed = subprocess.run(
         [python, "-I", "-c", probe],
-        check=True,
+        check=False,
         capture_output=True,
         text=True,
         cwd=tmp_path,
         env=probe_env,
+    )
+    assert completed.returncode == 0, (
+        f"installed-wheel probe failed ({completed.returncode})\n"
+        f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
     )
     assert "ok" in completed.stdout
 
