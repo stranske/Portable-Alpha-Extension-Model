@@ -22,7 +22,10 @@ Exact CI diagnostic run37213701485 at1b2222a reported `ModuleNotFoundError: No m
 Same production test and wheel-build path, strip only `-I` from wheel installation at runtime (no source edit):
 
 ```text
-
+FAILED tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples
+AssertionError: installed-wheel probe failed (1)
+ModuleNotFoundError: No module named 'dashboard'
+1 failed in 31.03s
 ```
 
 Isolated installation restored, metadata decoy retained:
@@ -34,3 +37,12 @@ Isolated installation restored, metadata decoy retained:
 ```
 
 The earlier diagnostic assertion still prints real stdout/stderr and fails on a nonzero probe. No Gate failure or original provider CONCERNS is relabeled PASS; fresh-head CI and verifier disposition remain required.
+
+
+## Current exact-head evidence recovery (2026-10-04T16:53Z)
+
+Reproduced from merged repair head `9817a37e343b30eb8cf4ad5f4d8c2bc6efb9f871`, with the same committed production test and staged-wheel build. A runtime subprocess wrapper removed only `-I` from the wheel-install pip command; no production source or assertion changed. The inherited distribution-metadata decoy caused pip to skip the actual install, then the unchanged isolated probe failed with `ModuleNotFoundError: No module named dashboard` (1 failed in 31.03s). Restoring the exact subprocess command, retaining the decoy and all assertions, passed (1 passed in 46.74s). Full raw logs and runtime wrappers are retained in closer `work/20261004T1641Z/pip-{red,green}.log` and `pip-{red,green}.py`.
+
+Production test SHA256: `ccf62e54c2075f04f7e4dae182512a9a762d0c18c4685b2fa627afdd3e98871b`.
+
+Merge CI run37216777796 failed Black solely on an extra blank line in `tests/conftest.py` (1 file would be reformatted; 471 unchanged). This follow-up removes that line and fills the empty negative-control transcript. It does not claim provider PASS, full CI success, or source closure before exact-head checks and verifier disposition.

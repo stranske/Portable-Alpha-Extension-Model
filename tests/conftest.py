@@ -14,7 +14,6 @@ from typing import Any, Callable, Dict
 
 import pytest
 
-
 PACKAGING_SOURCE_FILES = ("pyproject.toml", "README.md", "LICENSE")
 PACKAGING_SOURCE_DIRS = ("pa_core", "archive", "scripts", "dashboard", "data", "templates")
 PACKAGING_IGNORED_NAMES = (
