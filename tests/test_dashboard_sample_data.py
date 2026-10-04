@@ -10,8 +10,10 @@ on.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import venv
+import zipfile
 from pathlib import Path
 from typing import Callable
 
@@ -66,14 +68,45 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
     install_root = tmp_path / "install-env"
     venv.EnvBuilder(with_pip=True).create(install_root)
     python = install_root / "bin" / "python"
+    # An inherited source distribution can make pip report the wheel as already
+    # installed even in this fresh venv. Reproduce that metadata-only decoy so
+    # installation must ignore PYTHONPATH before the isolated import probe.
+    metadata_decoy = tmp_path / "metadata-decoy"
+    with zipfile.ZipFile(wheel_path) as archive:
+        metadata_name = next(
+            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+        )
+        metadata_path = metadata_decoy / metadata_name
+        metadata_path.parent.mkdir(parents=True)
+        metadata_path.write_bytes(archive.read(metadata_name))
+    install_env = {**os.environ, "PYTHONPATH": str(metadata_decoy)}
     subprocess.run(
-        [python, "-m", "pip", "install", str(wheel_path)],
+        [python, "-I", "-m", "pip", "install", str(wheel_path)],
         check=True,
         capture_output=True,
         text=True,
         cwd=tmp_path,
+        env=install_env,
     )
+    # Poison the inherited module path: a source-tree import must never make
+    # this installed-wheel acceptance check pass.
+    decoy = tmp_path / "source-decoy"
+    package = decoy / "dashboard"
+    package.mkdir(parents=True)
+    (package / "__init__.py").write_text(
+        "raise RuntimeError('installed wheel probe imported PYTHONPATH decoy')\n"
+    )
+    probe_env = {**os.environ, "PYTHONPATH": str(decoy)}
     probe = """
+import sys
+from pathlib import Path
+import dashboard
+import pa_core
+
+assert sys.flags.isolated, "wheel probe must ignore inherited source import paths"
+for module in (dashboard, pa_core):
+    assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve()), module
+
 from dashboard.utils import (
     bundled_asset_timeseries_path,
     bundled_portfolio_template_path,
@@ -93,11 +126,16 @@ load_scenario(portfolio_path)
 print("ok")
 """
     completed = subprocess.run(
-        [python, "-c", probe],
-        check=True,
+        [python, "-I", "-c", probe],
+        check=False,
         capture_output=True,
         text=True,
         cwd=tmp_path,
+        env=probe_env,
+    )
+    assert completed.returncode == 0, (
+        f"installed-wheel probe failed ({completed.returncode})\n"
+        f"stdout:\n{completed.stdout}\nstderr:\n{completed.stderr}"
     )
     assert "ok" in completed.stdout
 
