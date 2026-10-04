@@ -13,3 +13,24 @@ Validation used a private project environment, because shared Anaconda has an in
 Commands were invoked with closer `work/20261004T1444Z/pae-test-env/bin/python`. Full logs and installed-interpreter/control identity are retained in that round's `pae-wheel-*.log`, `pae-parallel-entrypoints-*.log`, and `pae-wheel-control.json`.
 
 Acceptance remains open until this follow-up's exact-head CI/reviews, squash merge, verify:compare report and original2331 check-floor/review disposition are complete. No generated sync PR is edited; maintenance rechecks remain Maint71-owned. No hosted production acceptance or provider PASS is invented.
+
+
+## Isolated pip installation recovery
+
+Exact CI diagnostic run37213701485 at1b2222a reported `ModuleNotFoundError: No module named dashboard` after1569 other tests passed. A fresh venv pip invocation can discover matching distribution metadata through inherited PYTHONPATH, declare the wheel already installed and skip installation. The isolated import probe then exposes the missing package. Run wheel installation with `python -I -m pip` too, and reproduce the inherited metadata in the committed test using the real wheel METADATA. All installed imports/resources/assertions remain.
+
+Same production test and wheel-build path, strip only `-I` from wheel installation at runtime (no source edit):
+
+```text
+
+```
+
+Isolated installation restored, metadata decoy retained:
+
+```text
+.
+1 passed in 52.13s
+
+```
+
+The earlier diagnostic assertion still prints real stdout/stderr and fails on a nonzero probe. No Gate failure or original provider CONCERNS is relabeled PASS; fresh-head CI and verifier disposition remain required.

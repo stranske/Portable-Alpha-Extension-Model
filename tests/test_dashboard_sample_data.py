@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import subprocess
 import venv
+import zipfile
 from pathlib import Path
 from typing import Callable
 
@@ -67,12 +68,25 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
     install_root = tmp_path / "install-env"
     venv.EnvBuilder(with_pip=True).create(install_root)
     python = install_root / "bin" / "python"
+    # An inherited source distribution can make pip report the wheel as already
+    # installed even in this fresh venv. Reproduce that metadata-only decoy so
+    # installation must ignore PYTHONPATH before the isolated import probe.
+    metadata_decoy = tmp_path / "metadata-decoy"
+    with zipfile.ZipFile(wheel_path) as archive:
+        metadata_name = next(
+            name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+        )
+        metadata_path = metadata_decoy / metadata_name
+        metadata_path.parent.mkdir(parents=True)
+        metadata_path.write_bytes(archive.read(metadata_name))
+    install_env = {**os.environ, "PYTHONPATH": str(metadata_decoy)}
     subprocess.run(
-        [python, "-m", "pip", "install", str(wheel_path)],
+        [python, "-I", "-m", "pip", "install", str(wheel_path)],
         check=True,
         capture_output=True,
         text=True,
         cwd=tmp_path,
+        env=install_env,
     )
     # Poison the inherited module path: a source-tree import must never make
     # this installed-wheel acceptance check pass.
