@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections import UserDict
+from types import MappingProxyType
+
 import pytest
 
 from pa_core.config import AgentConfig, load_config
@@ -55,6 +58,17 @@ def test_agent_extra_accepts_none_or_mapping_and_preserves_values(extra: object)
     assert cfg.agents[0].capital == 1000.0
     assert cfg.agents[0].beta_share == 1.0
     assert cfg.agents[0].alpha_share == 0.0
+
+
+@pytest.mark.parametrize("mapping_type", [UserDict, MappingProxyType])
+@pytest.mark.parametrize("metadata", [{}, {"desk": "Equities", "tag": 0}])
+def test_agent_extra_accepts_mapping_implementations(mapping_type, metadata) -> None:
+    extra = mapping_type(metadata)
+    cfg = load_config(_config([_benchmark(extra=extra)]))
+    assert isinstance(cfg.agents[0].extra, dict)
+    assert cfg.agents[0].extra == metadata
+    assert cfg.agents[0].beta_share == 1.0
+    assert dict(extra) == metadata
 
 
 def test_agent_extra_can_be_omitted() -> None:
