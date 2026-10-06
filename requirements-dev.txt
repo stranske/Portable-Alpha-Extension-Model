@@ -5,7 +5,7 @@ openpyxl
 jupyter
 pytest==9.1.1
 hypothesis
-ruff==0.16.9
+ruff==0.16.10
 pydantic
 rich
 PyYAML>=6
@@ -18,15 +18,15 @@ xlsxwriter         # already implied in reporting/
 tomli; python_version<"3.12"
 
 # Development dependencies
-black==26.5.1      # Code formatting
+black==26.10.0      # Code formatting
 pre-commit         # Git hooks
 pytest-cov==7.1.0  # Test coverage
 pytest-xdist==3.8.0  # Parallel testing
 bandit             # Security linting
-mypy==2.3.1        # Additional type checking
+mypy==2.4.0        # Additional type checking
 types-PyYAML       # Type stubs for PyYAML
 flake8             # Additional linting
-isort==9.0.1       # Import sorting
+isort==9.0.2       # Import sorting
 docformatter==1.7.8  # Docstring formatting
 
 # Build and packaging dependencies
