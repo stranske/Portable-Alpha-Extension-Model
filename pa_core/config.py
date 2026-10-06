@@ -933,7 +933,9 @@ class ModelConfig(BaseModel):
             missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
             if missing:
                 raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
-            extra = agent_data.get("extra") or {}
+            extra = agent_data.get("extra")
+            if extra is None:
+                extra = {}
             if not isinstance(extra, dict):
                 raise ValueError(f"agents[{idx}].extra must be a mapping")
             beta_share = normalize_share(agent_data["beta_share"])
