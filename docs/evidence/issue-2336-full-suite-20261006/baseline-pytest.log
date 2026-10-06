@@ -1,0 +1,639 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020
+configfile: pyproject.toml
+plugins: langsmith-0.10.9, cov-7.1.0, xdist-3.8.0, rerunfailures-16.3, datadir-1.8.0, typeguard-4.5.1, asyncio-1.3.0, pytest_httpserver-1.1.3, hypothesis-6.155.7, regressions-2.11.0, Faker-40.39.0, anyio-4.13.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 1574 items / 2 deselected / 1572 selected
+
+tests/baseline/test_coverage_manifest.py ..                              [  0%]
+tests/baseline/test_directional.py ...s.                                 [  0%]
+tests/baseline/test_golden.py .                                          [  0%]
+tests/baseline/test_invariants.py .                                      [  0%]
+tests/golden/test_scenario_smoke.py .                                    [  0%]
+tests/golden/test_tutorial_golden.py ..........                          [  1%]
+tests/test_active_share_transfer_coefficient.py .......                  [  1%]
+tests/test_agents.py ..........................                          [  3%]
+tests/test_asset_library_exception_handling.py ....                      [  3%]
+tests/test_attribution_reporting.py .......                              [  4%]
+tests/test_backend_cli_integration.py ....                               [  4%]
+tests/test_backend_selection.py ..                                       [  4%]
+tests/test_backend_selection_refactor.py ........                        [  4%]
+tests/test_calibration_module.py .................                       [  6%]
+tests/test_cli.py ...                                                    [  6%]
+tests/test_cli_commands.py .....                                         [  6%]
+tests/test_cli_edge_cases.py ..........                                  [  7%]
+tests/test_cli_exception_handling.py ......                              [  7%]
+tests/test_cli_orchestrator_consistency.py .                             [  7%]
+tests/test_cli_output_constants.py .                                     [  7%]
+tests/test_cli_packet_diff.py ...                                        [  7%]
+tests/test_cli_return_distribution.py .                                  [  7%]
+tests/test_cli_sensitivity.py ....                                       [  8%]
+tests/test_cli_sweep_png_export.py .........                             [  8%]
+tests/test_cli_validate_only.py .                                        [  8%]
+tests/test_compare_runs.py ....                                          [  9%]
+tests/test_config.py ............................................        [ 11%]
+tests/test_config_chat.py ......                                         [ 12%]
+tests/test_config_chat_preview_apply_revert.py ....                      [ 12%]
+tests/test_config_enhanced_validation.py ......                          [ 12%]
+tests/test_config_patch_roundtrip.py .                                   [ 12%]
+tests/test_config_validation_paths.py ..............                     [ 13%]
+tests/test_console.py .                                                  [ 13%]
+tests/test_contracts.py .......                                          [ 14%]
+tests/test_covariance_psd.py ....                                        [ 14%]
+tests/test_create_launchers.py .                                         [ 14%]
+tests/test_cross_platform_temp_paths.py .......                          [ 15%]
+tests/test_dashboard.py .                                                [ 15%]
+tests/test_dashboard_advanced_settings.py .....                          [ 15%]
+tests/test_dashboard_app_helpers.py ......                               [ 15%]
+tests/test_dashboard_asset_library.py ...                                [ 16%]
+tests/test_dashboard_cli.py ....                                         [ 16%]
+tests/test_dashboard_comparison_llm.py ....                              [ 16%]
+tests/test_dashboard_config_chat.py ...                                  [ 16%]
+tests/test_dashboard_dead_ux_1907.py ...                                 [ 16%]
+tests/test_dashboard_empty_states.py ....                                [ 17%]
+tests/test_dashboard_error_handling.py ...                               [ 17%]
+tests/test_dashboard_explain_results.py ...                              [ 17%]
+tests/test_dashboard_llm_settings.py ................................... [ 19%]
+...................................                                      [ 22%]
+tests/test_dashboard_pages.py .                                          [ 22%]
+tests/test_dashboard_results_previous_run.py ........                    [ 22%]
+tests/test_dashboard_run_history.py ....                                 [ 22%]
+tests/test_dashboard_run_logs_page.py .......                            [ 23%]
+tests/test_dashboard_sample_data.py .....                                [ 23%]
+tests/test_dashboard_sample_paths.py ......                              [ 24%]
+tests/test_dashboard_session_handoff.py ....                             [ 24%]
+tests/test_dashboard_utils.py ...........                                [ 25%]
+tests/test_dashboard_validation_ui.py .......                            [ 25%]
+tests/test_data_calibration.py .......................                   [ 26%]
+tests/test_data_loading_validation.py .........................          [ 28%]
+tests/test_dataframe_optimization.py ...                                 [ 28%]
+tests/test_dependency_injection.py ....                                  [ 28%]
+tests/test_dependency_version_alignment.py .                             [ 29%]
+tests/test_deprecation_warnings.py ...                                   [ 29%]
+tests/test_entrypoints.py .......                                        [ 29%]
+tests/test_exception_handling_audit_1920.py ...........                  [ 30%]
+tests/test_export_backend.py .......                                     [ 30%]
+tests/test_export_packet.py ........                                     [ 31%]
+tests/test_facade_export.py ......                                       [ 31%]
+tests/test_facade_run_single.py .....                                    [ 31%]
+tests/test_facade_run_sweep.py ...                                       [ 32%]
+tests/test_fee_layer.py ........................                         [ 33%]
+tests/test_field_mappings.py .....                                       [ 34%]
+tests/test_frontier_viz.py .                                             [ 34%]
+tests/test_glossary.py ..                                                [ 34%]
+tests/test_import_templates.py ...                                       [ 34%]
+tests/test_importer_parsing_options.py ....                              [ 34%]
+tests/test_index_data_frequency.py .                                     [ 34%]
+tests/test_integration_regressions.py .                                  [ 34%]
+tests/test_internal_pa_financing.py ...............                      [ 35%]
+tests/test_issue_formatter.py .                                          [ 35%]
+tests/test_langsmith_fleet.py ..............                             [ 36%]
+tests/test_llm_compare_runs.py ................                          [ 37%]
+tests/test_llm_config_patch.py ......................................... [ 40%]
+.........                                                                [ 40%]
+tests/test_llm_config_patch_chain.py ........                            [ 41%]
+tests/test_llm_docs.py ..                                                [ 41%]
+tests/test_llm_import_and_no_network.py .                                [ 41%]
+tests/test_llm_init_lazy_exports.py ...                                  [ 41%]
+tests/test_llm_init_reexports.py ...                                     [ 41%]
+tests/test_llm_live_smoke.py .                                           [ 42%]
+tests/test_llm_prompts.py ..........                                     [ 42%]
+tests/test_llm_provider_missing_keys.py .............                    [ 43%]
+tests/test_llm_result_explain_entrypoint.py .....                        [ 43%]
+tests/test_llm_tracing_noop.py ..............                            [ 44%]
+tests/test_log_json.py .                                                 [ 44%]
+tests/test_logging_and_manifest.py ..                                    [ 44%]
+tests/test_low_buffer_threshold.py ......                                [ 45%]
+tests/test_main.py .                                                     [ 45%]
+tests/test_make_portable_zip_security.py ....                            [ 45%]
+tests/test_manifest.py ..........                                        [ 46%]
+tests/test_mean_conversion_config.py .........                           [ 46%]
+tests/test_metric_definitions.py .........                               [ 47%]
+tests/test_metrics.py .................................................. [ 50%]
+...............                                                          [ 51%]
+tests/test_model_config_ui_gap.py .                                      [ 51%]
+tests/test_model_limitations_1923.py ......                              [ 51%]
+tests/test_multi_objective.py ..                                         [ 52%]
+tests/test_n_manager_streams_1908.py .........................           [ 53%]
+tests/test_nearest_psd.py ..                                             [ 53%]
+tests/test_num_val_fix.py ..                                             [ 53%]
+tests/test_orchestrator.py .......                                       [ 54%]
+tests/test_orchestrator_sweep_covariance.py .                            [ 54%]
+tests/test_outputs.py .                                                  [ 54%]
+tests/test_overlay_semantics_1905.py ........                            [ 55%]
+tests/test_pa_calibrate_cli.py ....                                      [ 55%]
+tests/test_pa_cli_validate.py ....                                       [ 55%]
+tests/test_pa_core_main.py ...                                           [ 55%]
+tests/test_plugin_registry.py ..                                         [ 55%]
+tests/test_portable_zip.py ..                                            [ 55%]
+tests/test_portfolio.py .....                                            [ 56%]
+tests/test_portfolio_aggregator.py ....                                  [ 56%]
+tests/test_portfolio_builder_page.py ......                              [ 56%]
+tests/test_portfolio_constraint_validator.py .                           [ 56%]
+tests/test_portfolio_constraints.py .....                                [ 57%]
+tests/test_pptx_export_consolidation_1906.py .......                     [ 57%]
+tests/test_preset_library.py ......                                      [ 58%]
+tests/test_property.py ......                                            [ 58%]
+tests/test_quantile_band_constants.py ........                           [ 59%]
+tests/test_random_utils.py ...........                                   [ 59%]
+tests/test_reference_packs.py ...                                        [ 59%]
+tests/test_regime_presets.py ....                                        [ 60%]
+tests/test_regime_switching.py ................                          [ 61%]
+tests/test_reporting.py ........                                         [ 61%]
+tests/test_reporting_agent_semantics.py ................................ [ 63%]
+.................................                                        [ 65%]
+tests/test_reporting_console.py ....                                     [ 66%]
+tests/test_reporting_constraints.py .                                    [ 66%]
+tests/test_reporting_exports.py .........                                [ 66%]
+tests/test_reporting_run_diff.py .......                                 [ 67%]
+tests/test_result_explain.py ........................................... [ 69%]
+.......                                                                  [ 70%]
+tests/test_return_distributions.py .........................             [ 71%]
+tests/test_risk_metrics_agent.py .......                                 [ 72%]
+tests/test_run_artifact_bundle.py .................                      [ 73%]
+tests/test_run_flags.py ..                                               [ 73%]
+tests/test_run_record_warnings.py ......                                 [ 73%]
+tests/test_safe_to_numpy.py .......                                      [ 74%]
+tests/test_scenario_fleet.py ............                                [ 75%]
+tests/test_scenario_grid.py ....                                         [ 75%]
+tests/test_scenario_registry.py ...                                      [ 75%]
+tests/test_schema.py ................                                    [ 76%]
+tests/test_schema_export.py .....                                        [ 76%]
+tests/test_sensitivity.py ....                                           [ 77%]
+tests/test_settings_effectiveness.py ..                                  [ 77%]
+tests/test_simulations.py ..........................                     [ 79%]
+tests/test_sleeve_constraint_validation.py ...                           [ 79%]
+tests/test_sleeve_frontier.py .......                                    [ 79%]
+tests/test_sleeve_suggestor.py ...................                       [ 80%]
+tests/test_stress_delta.py ...                                           [ 81%]
+tests/test_stress_lab.py ....                                            [ 81%]
+tests/test_stress_presets.py ........                                    [ 81%]
+tests/test_sweep_aggregation.py .                                        [ 81%]
+tests/test_sweep_cache.py ........                                       [ 82%]
+tests/test_sweep_common_random_numbers.py ..............                 [ 83%]
+tests/test_sweep_config.py ..........                                    [ 83%]
+tests/test_sweep_efficiency.py .                                         [ 83%]
+tests/test_sweep_reproducibility.py ...                                  [ 84%]
+tests/test_sweep_runner.py .                                             [ 84%]
+tests/test_tempfile_security_fix.py ....                                 [ 84%]
+tests/test_tool_descriptor.py ....                                       [ 84%]
+tests/test_tornado_viz.py ...                                            [ 84%]
+tests/test_tracing.py ..                                                 [ 85%]
+tests/test_unit_conversions.py ................                          [ 86%]
+tests/test_unit_policy_entrypoints.py ....                               [ 86%]
+tests/test_units_audit.py .                                              [ 86%]
+tests/test_validate_cli.py ....                                          [ 86%]
+tests/test_validate_cli_subproc.py ...                                   [ 86%]
+tests/test_validate_lockfile.py ..                                       [ 86%]
+tests/test_validation_ui.py ...........                                  [ 87%]
+tests/test_validators.py ........................................        [ 90%]
+tests/test_validators_constants.py .............                         [ 91%]
+tests/test_visualise.py .                                                [ 91%]
+tests/test_viz.py ...........................                            [ 92%]
+tests/test_viz_live.py ..                                                [ 92%]
+tests/test_web_no_external_cdn.py .......                                [ 93%]
+tests/test_widgets.py .                                                  [ 93%]
+tests/test_wizard_config_chat_acceptance.py .............                [ 94%]
+tests/test_wizard_config_chat_flow.py ...                                [ 94%]
+tests/test_wizard_config_wiring.py ............                          [ 95%]
+tests/test_wizard_getattr_fix.py ....                                    [ 95%]
+tests/test_wizard_helpers.py .........................                   [ 97%]
+tests/test_wizard_regime_wiring.py ..............                        [ 97%]
+tests/test_wizard_schema.py ....................                         [ 99%]
+tests/test_wizard_session_state.py ..                                    [ 99%]
+tests/test_wizard_sleeve_suggestion_apply.py .                           [ 99%]
+tests/workflows/test_gate_commit_status_fork_tolerance.py .........      [100%]
+
+=============================== warnings summary ===============================
+tests/baseline/test_directional.py: 6 warnings
+tests/test_backend_cli_integration.py: 4 warnings
+tests/test_backend_selection.py: 1 warning
+tests/test_cli.py: 3 warnings
+tests/test_cli_edge_cases.py: 8 warnings
+tests/test_cli_orchestrator_consistency.py: 14 warnings
+tests/test_cli_packet_diff.py: 31 warnings
+tests/test_cli_return_distribution.py: 14 warnings
+tests/test_cli_sensitivity.py: 60 warnings
+tests/test_cli_sweep_png_export.py: 9 warnings
+tests/test_cli_validate_only.py: 1 warning
+tests/test_config.py: 3 warnings
+tests/test_config_chat_preview_apply_revert.py: 3 warnings
+tests/test_config_patch_roundtrip.py: 1 warning
+tests/test_dashboard_advanced_settings.py: 1 warning
+tests/test_facade_export.py: 1 warning
+tests/test_facade_run_single.py: 1 warning
+tests/test_facade_run_sweep.py: 4 warnings
+tests/test_llm_config_patch.py: 2 warnings
+tests/test_log_json.py: 1 warning
+tests/test_manifest.py: 8 warnings
+tests/test_mean_conversion_config.py: 1 warning
+tests/test_pa_calibrate_cli.py: 1 warning
+tests/test_return_distributions.py: 16 warnings
+tests/test_run_artifact_bundle.py: 3 warnings
+tests/test_run_record_warnings.py: 6 warnings
+tests/test_scenario_fleet.py: 1 warning
+tests/test_simulations.py: 11 warnings
+tests/test_sleeve_suggestor.py: 36 warnings
+tests/test_sweep_config.py: 7 warnings
+tests/test_unit_conversions.py: 2 warnings
+tests/test_unit_policy_entrypoints.py: 28 warnings
+tests/test_wizard_config_chat_acceptance.py: 4 warnings
+tests/test_wizard_config_chat_flow.py: 2 warnings
+tests/test_wizard_config_wiring.py: 5 warnings
+tests/test_wizard_helpers.py: 2 warnings
+tests/test_wizard_regime_wiring.py: 2 warnings
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/baseline/test_directional.py::test_directional[inhouse_vol_up]
+tests/baseline/test_directional.py::test_directional[inhouse_return_up]
+tests/baseline/test_directional.py::test_directional[correlations_up_raise_total_vol]
+tests/baseline/test_directional.py::test_directional[internal_financing_cost_up]
+tests/baseline/test_directional.py::test_directional[active_share_up_raise_te]
+  tests/baseline/test_directional.py:24: PytestWarning: record_property is incompatible with junit_family 'xunit2' (use 'legacy' or 'xunit1')
+    @pytest.mark.parametrize("scen", _SCENARIOS, ids=_IDS)
+
+tests/test_backend_cli_integration.py::TestBackendCLIIntegration::test_backend_numpy_cli_flag
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_backend_cli_integration.py:82: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_backend_cli_integration.py: 4 warnings
+tests/test_backend_selection.py: 1 warning
+tests/test_cli.py: 3 warnings
+tests/test_cli_packet_diff.py: 1 warning
+tests/test_manifest.py: 6 warnings
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/cli.py:1301: UserWarning: Run executed without an explicit --seed (seed=None): results use a non-deterministic RNG and cannot be reproduced. Pass --seed to make the run reproducible.
+    mw.write(
+
+tests/test_backend_cli_integration.py::TestBackendCLIIntegration::test_backend_from_config_file
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_backend_cli_integration.py:114: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_backend_cli_integration.py::TestBackendCLIIntegration::test_backend_default_fallback
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_backend_cli_integration.py:139: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_backend_cli_integration.py::TestBackendCLIIntegration::test_backend_in_manifest_matches_actual
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_backend_cli_integration.py:162: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_backend_selection.py::test_backend_cli_numpy
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_backend_selection.py:64: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_backend_selection.py::test_backend_config_rejects_unknown
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_backend_selection.py:82: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli.py::test_main_with_yaml
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli.py:15: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli.py::test_main_with_png
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli.py:35: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli.py::test_main_with_bundle
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli.py:57: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_commands.py::test_pa_run_command_outputs_and_exit_code
+tests/test_cli_commands.py::test_pa_run_warns_after_stress_preset_adds_financing_vol
+tests/test_cli_commands.py::test_pa_run_compare_viz_exports_html
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/pa.py:282: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    run_main(list(remaining), emit_deprecation_warning=False)
+
+tests/test_cli_commands.py::test_module_command_outputs_and_exit_code
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_commands.py:258: DeprecationWarning: Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.
+    lambda: pa_module.main(
+
+tests/test_cli_edge_cases.py::test_cli_rejects_non_series_index
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:75: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--index", "idx.csv"])
+
+tests/test_cli_edge_cases.py::test_cli_rejects_non_series_type
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:84: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--index", "idx.csv"])
+
+tests/test_cli_edge_cases.py::test_cli_suggest_sleeves_empty_exits
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:96: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves"])
+
+tests/test_cli_edge_cases.py::test_cli_suggest_sleeves_blank_selection_aborts
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:118: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves"])
+
+tests/test_cli_edge_cases.py::test_cli_suggest_sleeves_invalid_selection_aborts
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:140: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves"])
+
+tests/test_cli_edge_cases.py::test_cli_suggest_sleeves_out_of_range_aborts
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:162: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--index", "idx.csv", "--suggest-sleeves"])
+
+tests/test_cli_edge_cases.py::test_cli_prev_manifest_invalid_json_is_ignored
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:181: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_edge_cases.py::test_cli_log_json_setup_warning
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_edge_cases.py:210: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_edge_cases.py::test_cli_log_json_setup_warning
+tests/test_log_json.py::test_log_json_creates_file_and_manifest
+tests/test_manifest.py::test_manifest_records_run_log
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/cli.py:1111: Pandas4Warning: Timestamp.utcnow is deprecated and will be removed in a future version. Use Timestamp.now('UTC') instead.
+    ts = pd.Timestamp.utcnow().strftime("%Y%m%dT%H%M%SZ")
+
+tests/test_cli_edge_cases.py::test_cli_log_json_setup_warning
+tests/test_cli_orchestrator_consistency.py::test_cli_and_orchestrator_draws_match
+tests/test_cli_return_distribution.py::test_cli_overrides_return_distribution
+tests/test_sleeve_suggestor.py::test_sleeve_suggestor_matches_cli_summary
+tests/test_unit_policy_entrypoints.py::test_entrypoints_keep_index_series_monthly
+tests/test_unit_policy_entrypoints.py::test_entrypoints_summary_table_annualised
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/cli.py:1170: UserWarning: Could not detect index frequency. Expected monthly. Ensure your CSV has a Date column with consistent spacing.
+    validate_frequency(idx_series, expected="monthly", strict=freq_strict)
+
+tests/test_cli_orchestrator_consistency.py::test_cli_and_orchestrator_draws_match
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_orchestrator_consistency.py:88: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_packet_diff.py:86: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_packet_includes_stress_delta
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_packet_diff.py:180: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_packet_includes_stress_delta
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_packet_diff.py:180: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_packet_diff.py::test_packet_includes_stress_delta
+tests/test_cli_packet_diff.py::test_stress_delta_written_to_output_workbook
+tests/test_cli_return_distribution.py::test_cli_overrides_return_distribution
+tests/test_cli_sensitivity.py::test_sensitivity_flag_added
+tests/test_cli_sensitivity.py::test_sensitivity_analysis_execution
+tests/test_cli_sensitivity.py::test_sensitivity_sets_tornado_deltas
+tests/test_cli_sensitivity.py::test_sensitivity_analysis_error_logging
+tests/test_sleeve_suggestor.py::test_cli_sleeve_suggestion_applies_to_inputs
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/cli.py:1854: UserWarning: Run executed without an explicit --seed (seed=None): results use a non-deterministic RNG and cannot be reproduced. Pass --seed to make the run reproducible.
+    mw.write(
+
+tests/test_cli_packet_diff.py::test_stress_delta_written_to_output_workbook
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_packet_diff.py:291: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_stress_delta_written_to_output_workbook
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_packet_diff.py:291: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_return_distribution.py::test_cli_overrides_return_distribution
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_return_distribution.py:38: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_return_distribution.py::test_cli_overrides_return_distribution
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_return_distribution.py:38: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_flag_added
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:85: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_flag_added
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:85: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_analysis_execution
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:169: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_analysis_execution
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:169: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_sets_tornado_deltas
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:276: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_analysis_error_logging
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:384: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_sensitivity.py::test_sensitivity_analysis_error_logging
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sensitivity.py:384: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_png_flag
+tests/test_cli_sweep_png_export.py::test_sweep_export_preserves_multi_dot_output_stem
+tests/test_cli_sweep_png_export.py::test_sweep_export_failure_does_not_abort_completed_run
+tests/test_cli_sweep_png_export.py::test_sweep_pptx_contains_one_figure_per_scenario
+tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_pdf_flag
+tests/test_cli_sweep_png_export.py::test_sweep_pdf_failure_does_not_record_invalid_artifact
+tests/test_cli_sweep_png_export.py::test_sweep_mode_honors_html_flag
+tests/test_cli_sweep_png_export.py::test_sweep_html_failure_does_not_abort_completed_run
+tests/test_cli_sweep_png_export.py::test_sweep_pptx_and_packet_use_distinct_paths
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_sweep_png_export.py:53: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_validate_only.py::test_cli_validate_only_skips_run_and_index
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_cli_validate_only.py:33: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(["--config", "cfg.yaml", "--validate-only"])
+
+tests/test_config.py: 2 warnings
+tests/test_mean_conversion_config.py: 8 warnings
+tests/test_pa_cli_validate.py: 1 warning
+tests/test_unit_conversions.py: 2 warnings
+tests/test_validate_cli.py: 1 warning
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_H, sigma_H. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_config.py::test_load_dict
+tests/test_field_mappings.py::test_csv_conversion_with_field_mappings
+tests/test_field_mappings.py::test_legacy_compatibility
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_H. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_config.py::test_csv_to_yaml_conversion
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/data/convert.py:19: DeprecationWarning: CSV parameter loading is deprecated and will be removed in the next release. Use YAML configurations and 'pa convert' to migrate existing CSV files.
+    raw = load_parameters(csv_path, label_map)
+
+tests/test_config.py: 1 warning
+tests/test_regime_presets.py: 6 warnings
+tests/test_regime_switching.py: 4 warnings
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_covariance_psd.py::test_short_sample_shrinkage_limits_psd_adjustment
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/sim/covariance.py:309: RuntimeWarning: Projected to PSD: Δλmax = 8.99e-02, max|Δ| = 2.25e-02
+    warnings.warn(validation_result.message, RuntimeWarning)
+
+tests/test_data_loading_validation.py::test_rolling_panel_with_malformed_data
+  /opt/anaconda3/lib/python3.12/site-packages/numpy/_core/_methods.py:188: RuntimeWarning: invalid value encountered in subtract
+    x = um.subtract(arr, arrmean, out=...)
+
+tests/test_data_loading_validation.py::TestValidateFrequency::test_validate_non_strict_logs_warning
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_data_loading_validation.py:340: UserWarning: Index frequency mismatch: expected monthly, detected daily. Use --resample monthly to convert or --index-frequency daily to skip validation.
+    validate_frequency(series, expected="monthly", strict=False)
+
+tests/test_facade_run_single.py::test_run_single_attaches_correlation_repair_frames
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/sim/covariance.py:150: RuntimeWarning: Covariance matrix was not PSD; projected with max|Δ|=1.18e-05
+    warnings.warn(
+
+tests/test_log_json.py::test_log_json_creates_file_and_manifest
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_log_json.py:22: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_main.py::test_main_applies_overrides_and_exports
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_main.py:171: DeprecationWarning: Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.
+    pa_main.main(
+
+tests/test_main.py::test_main_applies_overrides_and_exports
+  /opt/anaconda3/lib/python3.12/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+
+tests/test_main.py::test_main_applies_overrides_and_exports
+  /opt/anaconda3/lib/python3.12/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+    ret = ret.dtype.type(ret / rcount)
+
+tests/test_manifest.py::test_manifest_written
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:43: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_manifest.py::test_manifest_records_index_data_quality
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:75: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_manifest.py::test_manifest_records_run_log
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:102: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_manifest.py::test_manifest_records_config_hash
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:130: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_manifest.py::test_manifest_records_seed_warning_on_repeated_seedless_runs
+tests/test_manifest.py::test_manifest_records_seed_warning_on_repeated_seedless_runs
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:269: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_manifest.py::test_manifest_records_previous_run
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:294: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_manifest.py::test_manifest_records_previous_run
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_manifest.py:310: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_mean_conversion_config.py::test_geometric_conversion_reproduces_annual_mean_after_compounding
+tests/test_mean_conversion_config.py::test_geometric_conversion_applies_to_all_mu_fields
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_H. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_metrics.py::test_terminal_cvar_worsens_with_heavier_tails_t_copula
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_metrics.py:275: DeprecationWarning: prepare_mc_universe is deprecated; use draw_joint_returns instead.
+    low_df = prepare_mc_universe(
+
+tests/test_metrics.py::test_terminal_cvar_worsens_with_heavier_tails_t_copula
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_metrics.py:288: DeprecationWarning: prepare_mc_universe is deprecated; use draw_joint_returns instead.
+    high_df = prepare_mc_universe(
+
+tests/test_metrics.py::test_max_drawdown_uses_compounded_path
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_metrics.py:322: DeprecationWarning: max_drawdown is deprecated; use max_cumulative_sum_drawdown
+    dd = max_drawdown(arr)
+
+tests/test_pa_core_main.py::test_main_applies_overrides_and_exports
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_pa_core_main.py:110: DeprecationWarning: Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.
+    pa_main.main(
+
+tests/test_pa_core_main.py::test_main_without_overrides
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_pa_core_main.py:156: DeprecationWarning: Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.
+    pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
+
+tests/test_pa_core_main.py::test_main_rejects_invalid_vol_regime
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_pa_core_main.py:172: DeprecationWarning: Direct invocation via `python -m pa_core` is deprecated; use `pa run` instead.
+    pa_main.main(["--config", "config.yaml", "--index", "index.csv"])
+
+tests/test_run_artifact_bundle.py::test_cli_bundle_retains_manifest_when_finalized_reload_fails[unreadable]
+tests/test_run_artifact_bundle.py::test_cli_bundle_retains_manifest_when_finalized_reload_fails[invalid-json]
+tests/test_run_artifact_bundle.py::test_cli_bundle_retains_manifest_when_finalized_reload_fails[not-a-mapping]
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_run_artifact_bundle.py:135: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_run_record_warnings.py::test_frequency_mismatch_warning_serialized
+tests/test_run_record_warnings.py::test_run_record_cost_stub_present
+tests/test_run_record_warnings.py::test_base_only_total_warning_serialized
+tests/test_run_record_warnings.py::test_default_margin_run_does_not_emit_base_only_total_warning
+tests/test_run_record_warnings.py::test_run_record_bundle_path_points_to_bundle_json
+tests/test_run_record_warnings.py::test_manifest_carries_optional_warnings_and_cost
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_run_record_warnings.py:47: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_run_record_warnings.py::test_frequency_mismatch_warning_serialized
+tests/test_run_record_warnings.py::test_manifest_carries_optional_warnings_and_cost
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/cli.py:1170: UserWarning: Index frequency mismatch: expected monthly, detected daily. Use --resample monthly to convert or --index-frequency daily to skip validation.
+    validate_frequency(idx_series, expected="monthly", strict=freq_strict)
+
+tests/test_run_record_warnings.py::test_base_only_total_warning_serialized
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_run_record_warnings.py:47: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_sleeve_suggestor.py::test_cli_sleeve_suggestion
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_sleeve_suggestor.py:151: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_sleeve_suggestor.py::test_cli_sleeve_suggestion_auto_apply
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_sleeve_suggestor.py:186: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_sleeve_suggestor.py::test_cli_sleeve_suggestion_applies_to_inputs
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_sleeve_suggestor.py:280: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_sleeve_suggestor.py::test_sleeve_suggestor_matches_cli_summary
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_sleeve_suggestor.py:528: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_sleeve_suggestor.py::test_allocation_candidates_match_validated_controls[False]
+tests/test_sleeve_suggestor.py::test_allocation_candidates_match_validated_controls[True]
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_sweep_config.py::test_sweep_theta_endpoints_match_validated_controls[False]
+tests/test_sweep_config.py::test_sweep_theta_endpoints_match_validated_controls[True]
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_M, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_unit_policy_entrypoints.py::test_entrypoints_keep_index_series_monthly
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_unit_policy_entrypoints.py:97: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_unit_policy_entrypoints.py::test_entrypoints_keep_index_series_monthly
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_unit_policy_entrypoints.py:97: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_unit_policy_entrypoints.py::test_entrypoints_summary_table_annualised
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_unit_policy_entrypoints.py:209: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_unit_policy_entrypoints.py::test_entrypoints_summary_table_annualised
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/tests/test_unit_policy_entrypoints.py:209: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_viz.py::test_additional_visualisations
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2336-baseline-2020/pa_core/viz/geo_exposure.py:12: DeprecationWarning: The library used by the *country names* `locationmode` option is changing in an upcoming version. Country names in existing plots may not work in the new version. To ensure consistent behavior, consider setting `locationmode` to *ISO-3*.
+    fig = px.choropleth(
+
+tests/test_viz.py::test_additional_visualisations
+  /opt/anaconda3/lib/python3.12/site-packages/plotly/express/_core.py:2796: DeprecationWarning: The library used by the *country names* `locationmode` option is changing in an upcoming version. Country names in existing plots may not work in the new version. To ensure consistent behavior, consider setting `locationmode` to *ISO-3*.
+    fig.add_traces(frame_list[0]["data"] if len(frame_list) > 0 else [])
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/2336-baseline-full.xml -
+================================ tests coverage ================================
+_______________ coverage: platform darwin, python 3.12.2-final-0 _______________
+
+Coverage JSON written to file /Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/2336-baseline-coverage.json
+=== 1571 passed, 1 skipped, 2 deselected, 465 warnings in 180.24s (0:03:00) ====

@@ -68,3 +68,8 @@ repository under `/tmp`; the tested source changes remain in this workspace.
 GitHub publication was blocked because connector writes require approval and
 this run's approval policy is `never`. The PR body/checklists cannot be updated
 from this run; the verified checkboxes above provide the handoff record.
+
+## Full-suite recovery on 2026-10-06
+
+- [x] Both full-suite revisions now complete successfully in the same isolated environment. See [the full receipt](issue-2336-full-suite-20261006/README.md), unabridged coverage JSON, logs and hash manifest. The unchecked historical statement above describes the earlier interrupted attempts.
+- [ ] Broad initiative coverage remains below 90%; #2336 stays open for the next ranked chunk.
