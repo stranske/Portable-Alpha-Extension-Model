@@ -1,0 +1,34 @@
+{
+  "baseline_head": "7e7fbba8485ef655895029cf4786f1144bcc05d9",
+  "candidate_head": "b25c491b1b2e94d1ad2480949e6bbdedcc25a0a7",
+  "artifacts": {
+    "baseline-coverage.json": "411fb97cdfccf6748d36e19d9a4de4b35fe2d4cd7c19760176fcd0e1bc26b703",
+    "candidate-coverage.json": "f035fbf2ca1bc29acd129d9ee2288d4898175adcc99a2ecdc8405883b4b82eed",
+    "baseline-pytest.log": "2f4d5b6710ee0bec47bf26ed5d7bfa18c9b3b27a095a47c18904a712bb4df1ba",
+    "candidate-pytest.log": "96617ed132ccf4f41e17750d06c666c0acf336525584c9bd4d439104f34e9eac",
+    "baseline-process.json": "eedd0f65342f9f91d52c1bcc21489314685a53694550af30545bacfa63cc5b11",
+    "candidate-process.json": "19eae6161763d10825d1c9284ae8512322a0a2ca94a30abf4d9b51206c9c5cd7"
+  },
+  "source_files": 186,
+  "baseline_totals": {
+    "covered_lines": 12127,
+    "num_statements": 14551,
+    "percent_covered": 83.34135110988936,
+    "percent_covered_display": "83",
+    "missing_lines": 2424,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.34135110988936,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate_totals": {
+    "covered_lines": 12133,
+    "num_statements": 14553,
+    "percent_covered": 83.37112622826909,
+    "percent_covered_display": "83",
+    "missing_lines": 2420,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.37112622826909,
+    "percent_statements_covered_display": "83"
+  },
+  "exclusion_scope_unchanged": true
+}

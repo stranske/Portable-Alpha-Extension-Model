@@ -1,0 +1,17 @@
+{
+  "exit": 0,
+  "elapsed_seconds": 174.00644898414612,
+  "timeout": false,
+  "command": [
+    "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/2336-current-coverage.json",
+    "tests/",
+    "-o",
+    "faulthandler_timeout=120",
+    "--junitxml=/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/2336-full-recovered.xml"
+  ]
+}
