@@ -22,7 +22,16 @@ Exact CI diagnostic run37213701485 at1b2222a reported `ModuleNotFoundError: No m
 Same production test and wheel-build path, strip only `-I` from wheel installation at runtime (no source edit):
 
 ```text
+AssertionError: installed-wheel probe failed (1)
+stdout:
 
+stderr:
+Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+ModuleNotFoundError: No module named 'dashboard'
+
+FAILED tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples
+1 failed in 32.36s
 ```
 
 Isolated installation restored, metadata decoy retained:
@@ -34,3 +43,33 @@ Isolated installation restored, metadata decoy retained:
 ```
 
 The earlier diagnostic assertion still prints real stdout/stderr and fails on a nonzero probe. No Gate failure or original provider CONCERNS is relabeled PASS; fresh-head CI and verifier disposition remain required.
+
+
+## Post-merge verifier follow-through (2026-10-04)
+
+The original negative-control log was empty; it was not recoverable evidence.
+A new control ran the actual production test and its real wheel build at merged
+main `7e7fbba8485ef655895029cf4786f1144bcc05d9`, stripping only the wheel
+installation invocation's `-I` at runtime. No production source was mutated.
+The complete nonzero control above was captured from this new run, not reconstructed.
+The restored unmodified production command produced:
+
+```text
+$ python -m pytest tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples -q -o addopts=
+.                                                                        [100%]
+1 passed in 44.50s
+```
+
+The private environment was the same for both runs. Each run staged/builds its
+own real wheel; the inherited matching wheel metadata decoy causes the unisolated
+pip invocation to skip installation, and the isolated probe then cannot import
+`dashboard`. Isolated installation restores the actual installed package.
+
+The source merge's Python CI run37216777796 passed Python3.12, Ruff and Mypy,
+but lint-format failed on `tests/conftest.py`. The exact full-repository command
+`black --check --line-length 100 --exclude '(\.venv|\.workflows-lib|node_modules)' .`
+reproduced the same single-file failure locally. Formatting that file is
+AST-equivalent; the full check now passes472 files. The prior focused Black
+claim did not establish the full-repository gate. The historical failed run and
+provider CONCERNS remain unchanged. Fresh follow-up CI, review and compare must
+finish before source2329 closes; Maint71 retains generated-delivery acceptance.
