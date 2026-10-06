@@ -1,0 +1,113 @@
+{
+  "source_sha256": "8f68a107067d2fc73ccd507b001d0d98d9810c41d0cb40fe8ecf5cee2a3a9fdd",
+  "tests_sha256": "3fa84c361072b3a080ddfc63c1d5fe7c7a1f6726ebd533a278970585a86e9717",
+  "historical": {
+    "label": "historical",
+    "exit": 1,
+    "nodes": 19,
+    "failed": [
+      "test_agent_extra_rejects_non_mapping_even_when_empty[extra0]",
+      "test_agent_extra_rejects_non_mapping_even_when_empty[extra1]",
+      "test_agent_extra_rejects_non_mapping_even_when_empty[]",
+      "test_agent_extra_rejects_non_mapping_even_when_empty[False]",
+      "test_agent_extra_rejects_non_mapping_even_when_empty[0]"
+    ],
+    "errors": [],
+    "source_sha256": "4e0b594ee406278ebf984e0cd87e4b15eff1c1c0a5c3d842c1caeab4860808b6"
+  },
+  "mapping_red": {
+    "label": "mapping-before-fix",
+    "exit": 1,
+    "nodes": 4,
+    "failed": [
+      "test_agent_extra_accepts_mapping_implementations[metadata0-UserDict]",
+      "test_agent_extra_accepts_mapping_implementations[metadata0-mappingproxy]",
+      "test_agent_extra_accepts_mapping_implementations[metadata1-UserDict]",
+      "test_agent_extra_accepts_mapping_implementations[metadata1-mappingproxy]"
+    ],
+    "errors": [],
+    "source_sha256": "d6726cd4b2285e51dc841a89b7e3ab2047734752b6f56301ecb0581dbfb8aad1"
+  },
+  "mutations": [
+    {
+      "label": "extra-guard",
+      "exit": 1,
+      "nodes": 7,
+      "failed": [
+        "test_agent_extra_rejects_non_mapping_even_when_empty[extra0]",
+        "test_agent_extra_rejects_non_mapping_even_when_empty[extra1]",
+        "test_agent_extra_rejects_non_mapping_even_when_empty[]",
+        "test_agent_extra_rejects_non_mapping_even_when_empty[False]",
+        "test_agent_extra_rejects_non_mapping_even_when_empty[0]",
+        "test_agent_extra_rejects_non_mapping_even_when_empty[extra5]",
+        "test_agent_extra_rejects_non_mapping_even_when_empty[metadata]"
+      ],
+      "errors": [],
+      "source_sha256": "e70aee36775a55f67784daed7cf00d39f1ad586032dc22e2227d04b5af34ad22"
+    },
+    {
+      "label": "entry-guard",
+      "exit": 1,
+      "nodes": 3,
+      "failed": [
+        "test_agent_entry_rejects_non_mapping[None]",
+        "test_agent_entry_rejects_non_mapping[42]",
+        "test_agent_entry_rejects_non_mapping[Base]"
+      ],
+      "errors": [],
+      "source_sha256": "50308be15487eec1814db2c836e7ac2e2965bd1ec3c61a7e7289a7b1b4cd8184"
+    },
+    {
+      "label": "missing-key-guard",
+      "exit": 1,
+      "nodes": 4,
+      "failed": [
+        "test_agent_entry_reports_missing_required_key[name]",
+        "test_agent_entry_reports_missing_required_key[capital]",
+        "test_agent_entry_reports_missing_required_key[beta_share]",
+        "test_agent_entry_reports_missing_required_key[alpha_share]"
+      ],
+      "errors": [],
+      "source_sha256": "e1d7e33705b0b20e5d46b1d281480718088b50a54ee8e8df1741857a39eb8d00"
+    },
+    {
+      "label": "metadata-preservation",
+      "exit": 1,
+      "nodes": 9,
+      "failed": [
+        "test_agent_extra_accepts_none_or_mapping_and_preserves_values[None]",
+        "test_agent_extra_accepts_none_or_mapping_and_preserves_values[extra1]",
+        "test_agent_extra_accepts_none_or_mapping_and_preserves_values[extra2]",
+        "test_agent_extra_accepts_mapping_implementations[metadata0-UserDict]",
+        "test_agent_extra_accepts_mapping_implementations[metadata0-mappingproxy]",
+        "test_agent_extra_accepts_mapping_implementations[metadata1-UserDict]",
+        "test_agent_extra_accepts_mapping_implementations[metadata1-mappingproxy]",
+        "test_agent_extra_can_be_omitted",
+        "test_agent_model_instance_preserves_metadata_and_normalizes_shares"
+      ],
+      "errors": [],
+      "source_sha256": "c57cfa93ca73ffe329c09867324cdfb29b2fc99e6b7f447d2b9e5ab930188e25"
+    },
+    {
+      "label": "model-entry",
+      "exit": 1,
+      "nodes": 1,
+      "failed": [
+        "test_agent_model_instance_preserves_metadata_and_normalizes_shares"
+      ],
+      "errors": [],
+      "source_sha256": "6e7b9ffaa5a69c1ee1b0432d38331738378c473072a5563480b4a55a566cc02c"
+    }
+  ],
+  "distinct_nodes": 23,
+  "failed_executions": 24,
+  "restored": {
+    "label": "restored",
+    "exit": 0,
+    "nodes": 23,
+    "failed": [],
+    "errors": [],
+    "source_sha256": "8f68a107067d2fc73ccd507b001d0d98d9810c41d0cb40fe8ecf5cee2a3a9fdd"
+  },
+  "byte_identical_restoration": true
+}

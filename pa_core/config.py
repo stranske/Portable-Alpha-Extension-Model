@@ -933,8 +933,10 @@ class ModelConfig(BaseModel):
             missing = {"name", "capital", "beta_share", "alpha_share"} - agent_data.keys()
             if missing:
                 raise ValueError(f"agents[{idx}] missing keys: {sorted(missing)}")
-            extra = agent_data.get("extra") or {}
-            if not isinstance(extra, dict):
+            extra = agent_data.get("extra")
+            if extra is None:
+                extra = {}
+            if not isinstance(extra, Mapping):
                 raise ValueError(f"agents[{idx}].extra must be a mapping")
             beta_share = normalize_share(agent_data["beta_share"])
             alpha_share = normalize_share(agent_data["alpha_share"])
@@ -944,7 +946,7 @@ class ModelConfig(BaseModel):
                     "capital": float(agent_data["capital"]),
                     "beta_share": 0.0 if beta_share is None else float(beta_share),
                     "alpha_share": 0.0 if alpha_share is None else float(alpha_share),
-                    "extra": extra,
+                    "extra": dict(extra),
                 }
             )
         return normalized
