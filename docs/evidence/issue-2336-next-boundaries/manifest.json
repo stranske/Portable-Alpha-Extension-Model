@@ -632,7 +632,7 @@
     },
     {
       "path": "tests/test_cli_mutation_replay_isolation.py",
-      "sha256": "77741a035fe69ed3b7a4a06db87bd70e8f8b182d8f9dee16d27573bac0ecc0a1"
+      "sha256": "dbc69ad5835f250590addc56880fa5a83136f8918414f6a0c9f160754d1ecedd"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/README.md",
@@ -739,6 +739,206 @@
     {
       "path": "docs/evidence/issue-2336-next-boundaries/utc-review/local-time-mutant.stderr.gz",
       "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/README.md",
+      "sha256": "777c2765b65547bfeda476c29f04c19fb3bf4d41f32f12f0324280bb1631ba66"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential-results.json.gz",
+      "sha256": "8f32d832e42f1c9aa7a2b8b4a5790a0084457e5e6d044c8548b98906d745fcca",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential-results.json",
+      "decoded_sha256": "3b74b39f370a4d75a9d8f7cd8d51dc3c6a79f9b53e4c736186669cc12bbe7ee1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential.py.gz",
+      "sha256": "ee71f7fa990eb446e539b3db3fe4f4d716956b9b33e2bb7b0310ef1289636f16",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential.py",
+      "decoded_sha256": "64c1f0a501e5a900103eff660b11f762b32114218bc4b1657ad898f5b4f96a9a"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential.stderr.gz",
+      "sha256": "0d98a3a64095fc04a774eac97fa796ef67fd495c2122532202e06775f700836e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential.stderr",
+      "decoded_sha256": "2096595eabc4b006bd044ca67356399b6477acd658a6108c48403ff1b6ded7ad"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential.stdout.gz",
+      "sha256": "795f6fa2a6b17d8b2041e4265d25aacff3329ec1d9e2a74b04927b406593c413",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black-sequential.stdout",
+      "decoded_sha256": "1776a7e0c4ac630615409d8adb897f8290ba588505789ded27e5fcc2ad1db4e6"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black.stderr.gz",
+      "sha256": "21c13b2eb0b602e49f7044f113e275eb3b89cb8c6cb2286918777560f6e3230b",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black.stderr",
+      "decoded_sha256": "648415a26b2474472bdad6dea88660ca502784cd6356cc68a5510ce24294bc6b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black.stdout.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/black.stdout",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/focused-coverage.json.gz",
+      "sha256": "bc97a68d6d9f94c67ebabea7abf42f27474fd7b9bbf10e5989f367cb4d9fca71",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/focused-coverage.json",
+      "decoded_sha256": "0f9bdcf63474011e87b81220d1750b73499763fa19093639e206bb597322ab84"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/manifest-before-receipts.json.gz",
+      "sha256": "a7bb5ff2c40b596b6215efc2b6ff80f0f7dc2c7076d87b4ded888baaed46ac07",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/manifest-before-receipts.json",
+      "decoded_sha256": "e97c7168644b2e62888208b5afd872e3f8cb4754dcf0acf663746ce9352765fc"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.stdout.gz",
+      "sha256": "1160925c49d9402b7c76f6655beae63ffd09554fd7cbdb8c3afa25e58ef2aaeb",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.stdout",
+      "decoded_sha256": "941fd927604956af95533710b95a4b5cfe32fe875376a69b8cd3d6db814e3c2b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.xml.gz",
+      "sha256": "a001402ff65a8749bc8fa5d1444efafe3252c231bb2e99d9c9b11bfc93de7589",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.xml",
+      "decoded_sha256": "c5bdfaa5a3967a7e6e8cf7b6bf30f14caff8768c4a9b6d92b5ade784b6294835"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.stdout.gz",
+      "sha256": "56860b97fc1c19f642fb5dc805fb7b0f5dc116f969a9d3de75ef14171c017a4f",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.stdout",
+      "decoded_sha256": "1d4a11fc90a7086c182cc06bc43bebeb59a36928082944ef103c86041aa4cf49"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.xml.gz",
+      "sha256": "026191c9bb082ae91c873f7229140fa8f4a6d8e16cfcf0d604a9964aed41a550",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.xml",
+      "decoded_sha256": "8f40305a3a853a3d91cbfe74f53cf6df207f91768dd64d7750f36fccccb658d9"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.stdout.gz",
+      "sha256": "4f703a1daf372d67e9b04162b8cd475df55d9e43bf4083477294abe49ed25a1a",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.stdout",
+      "decoded_sha256": "26fb2a8d6bb012586eeb782d34d3ce9fc9cac6c110f7a90e2f722a7e769b50b0"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.xml.gz",
+      "sha256": "29c2684b7e4f4e59a6a42780c739a11066fea86497d4f67785c17aa41a53bebd",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.xml",
+      "decoded_sha256": "456c5c4aa4eaff2a7088be987a4274bf52604300d7071e3797798282e5090c3b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.stdout.gz",
+      "sha256": "1fe603b2fa92e5d48b4e9edacde264e82d0f0bc5fe2b90b18c4b22031eb95815",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.stdout",
+      "decoded_sha256": "7c3178f0eacce0030ee95f7f98a44083255d44c3206e826585cc9bcd4b8c4092"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.xml.gz",
+      "sha256": "3b4fd115792f2eaba14e76906d3fdf4d61c3689a78bffde892db148f841d9f7e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.xml",
+      "decoded_sha256": "138e1d1f0b99c20b768f7d9d4574eae4ec6e706545e28b2fed246bc835a1ef91"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.stdout.gz",
+      "sha256": "62f30cc9356dd56fae00e70d8208e8356a4e72c74ce5ee0a24f40430ae2646b6",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.stdout",
+      "decoded_sha256": "a2afc6a85000e6c86d24f1c70b373328d0d333047c7cb25320e5adb72a7f16a3"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.xml.gz",
+      "sha256": "a5cd463629db742136d6efb1d60ae85c13143e0f89a5f0abb519469eb72f9b1a",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.xml",
+      "decoded_sha256": "80cc42b3d59c0daab6b81fd9ab2f923701888be355988a7c8a797f0cacfc18f3"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.stdout.gz",
+      "sha256": "46a2335f28af9b171cbe8d6f12839ce3682bbc4d1554ca6b3939776922e97f45",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.stdout",
+      "decoded_sha256": "f908bd53e59b6ff300bf963dbbaf5c019f3695058bcb8b0d3473fc135e4ac480"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.xml.gz",
+      "sha256": "3b5274b30ceb6687a26200805ecfd05ec288d93690c5d03f90194a4f3f9c11fe",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.xml",
+      "decoded_sha256": "b12b95487b958ae618189355b03bf8e4c8dad256c9a05a32b8b9aa718d6f0743"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.stdout.gz",
+      "sha256": "874efb836abdaa25b3733c2c7b529137dd9a6e49e71e0ecba6c5b993b167105a",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.stdout",
+      "decoded_sha256": "cbee0e2f4b556c6cd106c8dec7062b371e321c7a741b1807fca4219f70d0132c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.xml.gz",
+      "sha256": "9fa2198d0cefd0abac3c38c1eebf6dc14a2d31bd20cce464df42b64a7968b851",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.xml",
+      "decoded_sha256": "3ab59b50239105afd6f596ed066d33951f4b98dff803ed5149321708c7f72926"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/ruff.stderr.gz",
+      "sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/ruff.stderr",
+      "decoded_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/ruff.stdout.gz",
+      "sha256": "f3af4d142827f5aad2eb0c72d556d325488a57fb6219aac10afeb51085667d53",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/ruff.stdout",
+      "decoded_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/verification-runner.py.gz",
+      "sha256": "3a9303ce8a27d5f4fb0d44f4367ff96eda3c2c97696fe3b84709ef1981b470e5",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/verification-runner.py",
+      "decoded_sha256": "499f45188bef9374b034cc49485aa1802e5bf9ffefe6bf2f3e368b0233fac7c9"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/verification.json",
+      "sha256": "2a3f891429029c7069c53b253d338488a7eb379d86a371030090158ba912cfd8"
     }
   ]
 }

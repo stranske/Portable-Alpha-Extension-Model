@@ -1,6 +1,7 @@
 """Mutation replay must never write the caller's source, including on interruption."""
 
 import importlib.util
+import json
 import os
 import signal
 import subprocess
@@ -58,6 +59,10 @@ def test_existing_output_refused_before_copying_or_mutating_checkout(
     output.mkdir()
     proof = output / "controls.json"
     proof.write_bytes(b"existing proof must survive")
+    nested = output / "phases"
+    nested.mkdir()
+    (nested / "console.txt").write_bytes(b"prior phase output must survive")
+    output_bytes = checkout_bytes(output)
     monkeypatch.setattr(module, "__file__", str(active / REPLAY))
     monkeypatch.setattr(sys, "argv", ["replay.py", "--output", str(output)])
 
@@ -68,9 +73,8 @@ def test_existing_output_refused_before_copying_or_mutating_checkout(
     monkeypatch.setattr(module.subprocess, "run", cannot_start)
     with pytest.raises(FileExistsError):
         module.main()
-    assert {path.name: path.read_bytes() for path in output.iterdir()} == {
-        "controls.json": b"existing proof must survive"
-    }
+    assert_checkout_unchanged(output, output_bytes)
+    assert nested.is_dir()
     assert_checkout_unchanged(active, original)
 
 
@@ -83,20 +87,23 @@ def test_phase_failure_mutates_only_private_tree_and_preserves_active_source(
     source = active / files[0]
     original = source.read_bytes()
     active_bytes = checkout_bytes(active)
+    output = tmp_path / "output"
     monkeypatch.setattr(module, "__file__", str(active / REPLAY))
-    monkeypatch.setattr(sys, "argv", ["replay.py", "--output", str(tmp_path / "output")])
+    monkeypatch.setattr(sys, "argv", ["replay.py", "--output", str(output)])
     monkeypatch.setattr(
         module.subprocess,
         "check_output",
         lambda *a, **kw: b"\0".join(str(p).encode() for p in files),
     )
     private = []
+    mutant_hashes = []
 
     def fail(argv, *, cwd, **kwargs):
         assert cwd != active
         assert (cwd / files[0]).read_bytes() != original
         assert source.read_bytes() == original
         private.append(cwd)
+        mutant_hashes.append(module.digest((cwd / files[0]).read_bytes()))
         if interruption == "timeout":
             raise subprocess.TimeoutExpired(argv, 90)
         raise KeyboardInterrupt
@@ -107,6 +114,16 @@ def test_phase_failure_mutates_only_private_tree_and_preserves_active_source(
         module.main()
     assert private and all(not p.exists() for p in private)
     assert_checkout_unchanged(active, active_bytes)
+
+    # Interrupted phases must keep restoration evidence without claiming completion.
+    controls = json.loads((output / "controls.json").read_text(encoding="utf-8"))
+    assert controls["source_sha256"] == module.digest(original)
+    assert controls["restored_sha256"] == controls["source_sha256"]
+    assert controls["test_sha256"] == module.digest(active_bytes[files[1]])
+    assert len(controls["cases"]) == 1
+    assert controls["cases"][0]["mutant_sha256"] == mutant_hashes[0]
+    assert controls["cases"][0]["phases"] == []
+    assert (output / "00-red.txt").is_file()
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX SIGTERM contract")

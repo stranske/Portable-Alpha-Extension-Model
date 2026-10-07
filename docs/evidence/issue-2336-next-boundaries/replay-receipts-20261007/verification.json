@@ -1,0 +1,421 @@
+{
+  "records": [
+    {
+      "label": "receipt-previous",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_phase_failure_mutates_only_private_tree_and_preserves_active_source",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-previous.xml"
+      ],
+      "cwd": "/tmp/cli-receipt-control-5lvzcixk",
+      "exit": 0,
+      "elapsed_seconds": 2.6845979279999597,
+      "passed": 2,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[timeout]"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[keyboard]"
+        ]
+      ]
+    },
+    {
+      "label": "receipt-red",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_phase_failure_mutates_only_private_tree_and_preserves_active_source",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-red.xml"
+      ],
+      "cwd": "/tmp/cli-receipt-control-5lvzcixk",
+      "exit": 1,
+      "elapsed_seconds": 2.681606251000005,
+      "passed": 0,
+      "failure": 2,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[timeout]"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[keyboard]"
+        ]
+      ]
+    },
+    {
+      "label": "receipt-green",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_phase_failure_mutates_only_private_tree_and_preserves_active_source",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/receipt-green.xml"
+      ],
+      "cwd": "/tmp/cli-receipt-control-5lvzcixk",
+      "exit": 0,
+      "elapsed_seconds": 2.61680409600001,
+      "passed": 2,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[timeout]"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[keyboard]"
+        ]
+      ]
+    },
+    {
+      "label": "nested-output-previous",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_existing_output_refused_before_copying_or_mutating_checkout",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-previous.xml"
+      ],
+      "cwd": "/tmp/cli-receipt-control-2d2sx7fl",
+      "exit": 0,
+      "elapsed_seconds": 2.64984916100002,
+      "passed": 1,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_existing_output_refused_before_copying_or_mutating_checkout"
+        ]
+      ]
+    },
+    {
+      "label": "nested-output-red",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_existing_output_refused_before_copying_or_mutating_checkout",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-red.xml"
+      ],
+      "cwd": "/tmp/cli-receipt-control-2d2sx7fl",
+      "exit": 1,
+      "elapsed_seconds": 2.6248359399999686,
+      "passed": 0,
+      "failure": 1,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_existing_output_refused_before_copying_or_mutating_checkout"
+        ]
+      ]
+    },
+    {
+      "label": "nested-output-green",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_existing_output_refused_before_copying_or_mutating_checkout",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/nested-output-green.xml"
+      ],
+      "cwd": "/tmp/cli-receipt-control-2d2sx7fl",
+      "exit": 0,
+      "elapsed_seconds": 2.5494024810000155,
+      "passed": 1,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_existing_output_refused_before_copying_or_mutating_checkout"
+        ]
+      ]
+    },
+    {
+      "label": "related",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py",
+        "tests/test_cli_mutation_replay_isolation.py",
+        "tests/test_cli_edge_cases.py",
+        "tests/test_cli_packet_diff.py",
+        "tests/test_cli_exception_handling.py",
+        "-q",
+        "-m",
+        "not slow",
+        "--cov=pa_core.cli",
+        "--cov-report=term-missing",
+        "--cov-report=json:/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/focused-coverage.json",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/related.xml"
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 0,
+      "elapsed_seconds": 5.840439369000023,
+      "passed": 31,
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "nodes": [
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_run_diff_expected_error_is_logged_without_rendering[key]"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_run_diff_expected_error_is_logged_without_rendering[type]"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_run_diff_expected_error_is_logged_without_rendering[value]"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_run_diff_unexpected_error_propagates"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_warning_collector_double_install_captures_once_and_restores"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_warning_snapshot_does_not_expose_mutable_message_records"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_json_formatter_preserves_utc_and_interpolates_arguments"
+        ],
+        [
+          "tests.test_cli_observability_boundaries",
+          "test_invalid_utf8_config_snapshot_is_unavailable"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_existing_output_refused_before_copying_or_mutating_checkout"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[timeout]"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_phase_failure_mutates_only_private_tree_and_preserves_active_source[keyboard]"
+        ],
+        [
+          "tests.test_cli_mutation_replay_isolation",
+          "test_sigterm_after_mutation_leaves_active_source_unchanged"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_parser_error_restores_warning_collector"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_config_error_restores_warning_collector"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_rejects_non_series_index"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_rejects_non_series_type"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_suggest_sleeves_empty_exits"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_suggest_sleeves_blank_selection_aborts"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_suggest_sleeves_invalid_selection_aborts"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_suggest_sleeves_out_of_range_aborts"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_prev_manifest_invalid_json_is_ignored"
+        ],
+        [
+          "tests.test_cli_edge_cases",
+          "test_cli_log_json_setup_warning"
+        ],
+        [
+          "tests.test_cli_packet_diff",
+          "test_sweep_packet_passes_prev_diff"
+        ],
+        [
+          "tests.test_cli_packet_diff",
+          "test_packet_includes_stress_delta"
+        ],
+        [
+          "tests.test_cli_packet_diff",
+          "test_stress_delta_written_to_output_workbook"
+        ],
+        [
+          "tests.test_cli_exception_handling",
+          "test_attribution_exception_handling_attribute_error"
+        ],
+        [
+          "tests.test_cli_exception_handling",
+          "test_attribution_exception_handling_value_error"
+        ],
+        [
+          "tests.test_cli_exception_handling",
+          "test_sensitivity_parameter_evaluation_value_error"
+        ],
+        [
+          "tests.test_cli_exception_handling",
+          "test_sensitivity_parameter_evaluation_key_error"
+        ],
+        [
+          "tests.test_cli_exception_handling",
+          "test_no_more_silent_failures"
+        ],
+        [
+          "tests.test_cli_exception_handling",
+          "test_specific_exception_types_used"
+        ]
+      ]
+    }
+  ],
+  "history": {
+    "manifest_entries_verified": 133,
+    "historical_junit": {
+      "baseline": {
+        "passed": 1594,
+        "failure": 0,
+        "error": 0,
+        "skipped": 1
+      },
+      "candidate": {
+        "passed": 1602,
+        "failure": 0,
+        "error": 0,
+        "skipped": 1
+      }
+    },
+    "historical_coverage": {
+      "covered_statements": [
+        12133,
+        12140
+      ],
+      "statements": 14553,
+      "source_files": 186,
+      "exclusions": 181,
+      "covered_line_regressions": 0
+    },
+    "production_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+    "mutation_pairs_verified": 8
+  },
+  "targeted_cli_coverage": {
+    "covered_lines": 652,
+    "num_statements": 1106,
+    "percent_covered": 58.95117540687161,
+    "percent_covered_display": "59",
+    "missing_lines": 454,
+    "excluded_lines": 17,
+    "percent_statements_covered": 58.95117540687161,
+    "percent_statements_covered_display": "59"
+  },
+  "sha256": {
+    "production": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+    "driver": "3776f97c68ea6b802dbdade2a2b059cec5b6136806884deeb61def92daa5cd6a",
+    "previous_test": "77741a035fe69ed3b7a4a06db87bd70e8f8b182d8f9dee16d27573bac0ecc0a1",
+    "test": "dbc69ad5835f250590addc56880fa5a83136f8918414f6a0c9f160754d1ecedd"
+  },
+  "mutation_controls": {
+    "receipt": "2a837cc2d190f744cbdddae7e199d492c640cab496df015b2dad20953da86801",
+    "nested-output": "1b5685f1d7a1bc9faf0b6592ce9a4bb00a345b5edfcc7e9ac915aa913e0e2d86"
+  },
+  "pr_body_update": "Connector requires approval; approval policy is never. Remote body unchanged.",
+  "formatting": {
+    "environment": {
+      "BLACK_NUM_WORKERS": "1",
+      "BLACK_CACHE_DIR": "/tmp/cli-receipts-black-cache"
+    },
+    "records": [
+      {
+        "label": "black-sequential",
+        "argv": [
+          "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+          "/tmp/cli-receipts-black-sequential.py"
+        ],
+        "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+        "exit": 0,
+        "elapsed_seconds": 22.039953357
+      },
+      {
+        "label": "black",
+        "argv": [
+          "black",
+          "--check",
+          "--line-length",
+          "100",
+          "--exclude",
+          "(\\.workflows-lib|node_modules)",
+          "."
+        ],
+        "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+        "exit": 0,
+        "elapsed_seconds": 0.5115339500000005
+      },
+      {
+        "label": "ruff",
+        "argv": [
+          "ruff",
+          "check",
+          "tests/test_cli_observability_boundaries.py",
+          "tests/test_cli_mutation_replay_isolation.py"
+        ],
+        "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+        "exit": 0,
+        "elapsed_seconds": 0.007225541999957841
+      }
+    ],
+    "initial_attempt": "One-worker Black stalled; interrupted with exit130. Sequential Black verified all selected file hashes and warmed writable cache before the exact command passed."
+  }
+}
