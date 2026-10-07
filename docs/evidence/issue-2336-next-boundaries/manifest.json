@@ -602,7 +602,7 @@
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/replay.py",
-      "sha256": "3776f97c68ea6b802dbdade2a2b059cec5b6136806884deeb61def92daa5cd6a"
+      "sha256": "343a03c8479fb88c965245e70c36acb8690aea1954e8dad6a34910f604a7e659"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/ruff-check.txt.gz",
@@ -612,7 +612,7 @@
     },
     {
       "path": "tests/test_cli_observability_boundaries.py",
-      "sha256": "97b14e2b59538c92d4ac08358b95556c2a02eee270ede1906f7a9e73267c7067"
+      "sha256": "ed14ee29c8d5dd71101921688bb498586c6d244dccaedc1d25fcc0b3e87fdb88"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/README.md",
@@ -940,5 +940,6 @@
       "path": "docs/evidence/issue-2336-next-boundaries/replay-receipts-20261007/verification.json",
       "sha256": "2a3f891429029c7069c53b253d338488a7eb379d86a371030090158ba912cfd8"
     }
-  ]
+  ],
+  "current_driver_note": "Current replay, source and test manifest entries bind checkout bytes after the snapshot deepcopy repair. Historical phase captures and source_sha256 remain unchanged at 2e48bf69. Exact original manifest is preserved at issue-2336-cli-snapshots/prior-manifest.json; current14node proof is separate."
 }

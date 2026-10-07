@@ -1,0 +1,8 @@
+{
+  "mutation": "disable actual snapshot-driver finally source restoration",
+  "red_exit": 1,
+  "named_failures": 2,
+  "byte_identical_restored": true,
+  "driver_sha256": "90f2de5d008b1c4c6ac309e3fa1acbac324b2322e78230f1bc498e35402f7d2e",
+  "environment": "existing round-local xarray2026.9 overlay; global packages unchanged"
+}

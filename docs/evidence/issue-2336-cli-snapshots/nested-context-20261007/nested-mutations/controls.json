@@ -1,0 +1,92 @@
+{
+  "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "276c3229c5eaab92436b9627d4d49eeeff7cc45cddbaf1191afec7b4474b9f24",
+  "before": "return deepcopy(self.records)",
+  "after": "return [{**rec, \"context\": dict(rec[\"context\"])} for rec in self.records]",
+  "mutant_sha256": "cfd027fb321a5d83562efe3e888d04a262af580263569c6ed37c6abe25f46278",
+  "cases": [
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+      "phases": [
+        {
+          "phase": "red",
+          "exit": 1,
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-nested-proof/00-red.xml"
+          ],
+          "cwd": "/tmp/cli-context-only-replay-52ijhhra",
+          "source_sha256": "cfd027fb321a5d83562efe3e888d04a262af580263569c6ed37c6abe25f46278",
+          "console": "00-red.txt",
+          "junit": "00-red.xml"
+        },
+        {
+          "phase": "green",
+          "exit": 0,
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-nested-proof/00-green.xml"
+          ],
+          "cwd": "/tmp/cli-context-only-replay-52ijhhra",
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "00-green.txt",
+          "junit": "00-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+      "phases": [
+        {
+          "phase": "red",
+          "exit": 1,
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-nested-proof/01-red.xml"
+          ],
+          "cwd": "/tmp/cli-context-only-replay-52ijhhra",
+          "source_sha256": "cfd027fb321a5d83562efe3e888d04a262af580263569c6ed37c6abe25f46278",
+          "console": "01-red.txt",
+          "junit": "01-red.xml"
+        },
+        {
+          "phase": "green",
+          "exit": 0,
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-nested-proof/01-green.xml"
+          ],
+          "cwd": "/tmp/cli-context-only-replay-52ijhhra",
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "01-green.txt",
+          "junit": "01-green.xml"
+        }
+      ]
+    }
+  ],
+  "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+}

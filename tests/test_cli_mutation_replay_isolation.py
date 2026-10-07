@@ -160,3 +160,39 @@ def test_sigterm_after_mutation_leaves_active_source_unchanged(checkout, tmp_pat
     assert private != active
     assert (private / files[0]).read_bytes() != original
     assert_checkout_unchanged(active, active_bytes)
+
+
+@pytest.mark.parametrize("interruption", ["timeout", "keyboard"])
+def test_snapshot_replay_restores_source_after_phase_failure(
+    checkout, tmp_path, monkeypatch, interruption
+):
+    active, files = checkout
+    path = Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-cli-snapshots/replay.py"
+    spec = importlib.util.spec_from_file_location("snapshot_cli_replay", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    source, test = active / files[0], active / files[1]
+    original, original_test = source.read_bytes(), test.read_bytes()
+    output = tmp_path / "snapshot-output"
+    output.mkdir()
+
+    def fail(argv, *, cwd, **kwargs):
+        assert cwd == active
+        assert source.read_bytes() != original
+        if interruption == "timeout":
+            raise subprocess.TimeoutExpired(argv, 90)
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(module.subprocess, "run", fail)
+    expected = subprocess.TimeoutExpired if interruption == "timeout" else KeyboardInterrupt
+    with pytest.raises(expected):
+        module.replay(active, output, sys.executable)
+
+    assert source.read_bytes() == original
+    assert test.read_bytes() == original_test
+    controls = json.loads((output / "controls.json").read_text(encoding="utf-8"))
+    assert controls["source_sha256"] == module.digest(original)
+    assert controls["restored_sha256"] == module.digest(original)
+    assert controls["test_sha256"] == module.digest(original_test)
+    assert len(controls["cases"]) == 1
+    assert controls["cases"][0]["phases"] == []

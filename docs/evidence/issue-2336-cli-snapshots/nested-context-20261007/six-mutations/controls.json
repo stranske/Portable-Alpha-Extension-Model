@@ -1,0 +1,283 @@
+{
+  "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "276c3229c5eaab92436b9627d4d49eeeff7cc45cddbaf1191afec7b4474b9f24",
+  "cases": [
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+      "mutant_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+      "before": "return deepcopy(self.records)",
+      "after": "return [dict(rec) for rec in self.records]",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/00-red.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.9793858528137207,
+          "source_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+          "console": "00-red.txt",
+          "junit": "00-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/00-green.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 0,
+          "elapsed_seconds": 3.6265220642089844,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "00-green.txt",
+          "junit": "00-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+      "mutant_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+      "before": "return deepcopy(self.records)",
+      "after": "return [dict(rec) for rec in self.records]",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/01-red.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.774812936782837,
+          "source_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+          "console": "01-red.txt",
+          "junit": "01-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/01-green.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 0,
+          "elapsed_seconds": 3.575779438018799,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "01-green.txt",
+          "junit": "01-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+      "mutant_sha256": "57abfb1cccfb043286e379f675ab592893932d70f601b44b4b2b2cdb74a5eade",
+      "before": "return summary_table(returns_map, benchmark=benchmark)",
+      "after": "return summary_table({k: -v for k, v in returns_map.items()}, benchmark=benchmark)",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/02-red.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.673940896987915,
+          "source_sha256": "57abfb1cccfb043286e379f675ab592893932d70f601b44b4b2b2cdb74a5eade",
+          "console": "02-red.txt",
+          "junit": "02-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/02-green.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 0,
+          "elapsed_seconds": 3.573117971420288,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "02-green.txt",
+          "junit": "02-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+      "mutant_sha256": "c95ed7b299ea05d1bdd2cfe1140b140159d401018b59e0bed8fd42f1aeb5cfd0",
+      "before": "return summary_table(returns_map, benchmark=benchmark)",
+      "after": "return summary_table(returns_map, benchmark=None)",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/03-red.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.62292742729187,
+          "source_sha256": "c95ed7b299ea05d1bdd2cfe1140b140159d401018b59e0bed8fd42f1aeb5cfd0",
+          "console": "03-red.txt",
+          "junit": "03-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/03-green.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 0,
+          "elapsed_seconds": 3.5741944313049316,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "03-green.txt",
+          "junit": "03-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_config_snapshot_preserves_utf8_and_original_bytes",
+      "mutant_sha256": "20e8a2574217e1483b3ce818441ae4f344b1d49e525aa14296b62e216704db2f",
+      "before": "return raw.decode(), raw",
+      "after": "return raw.decode(), raw.replace(b\"\\r\\n\", b\"\\n\")",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_config_snapshot_preserves_utf8_and_original_bytes",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/04-red.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.723630666732788,
+          "source_sha256": "20e8a2574217e1483b3ce818441ae4f344b1d49e525aa14296b62e216704db2f",
+          "console": "04-red.txt",
+          "junit": "04-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_config_snapshot_preserves_utf8_and_original_bytes",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/04-green.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 0,
+          "elapsed_seconds": 3.6227433681488037,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "04-green.txt",
+          "junit": "04-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+      "mutant_sha256": "41fde3e352bdceb7bcb597aadcc5537be5898b138621bfad66a7f7f1383e5bd8",
+      "before": "\"duration_seconds\": self.elapsed(),",
+      "after": "\"duration_seconds\": 0.0,",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/05-red.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.7726571559906006,
+          "source_sha256": "41fde3e352bdceb7bcb597aadcc5537be5898b138621bfad66a7f7f1383e5bd8",
+          "console": "05-red.txt",
+          "junit": "05-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+            "-m",
+            "not slow",
+            "-q",
+            "--junitxml=/tmp/cli-deep-context-six-proof/05-green.xml"
+          ],
+          "cwd": "/tmp/cli-mutation-replay-cl6gd5x2/checkout",
+          "exit": 0,
+          "elapsed_seconds": 3.878392457962036,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "05-green.txt",
+          "junit": "05-green.xml"
+        }
+      ]
+    }
+  ],
+  "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+}

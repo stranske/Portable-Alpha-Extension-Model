@@ -1,0 +1,246 @@
+{
+  "evaluated_head": "c42c68eb7e55fa216515a2f5c8e2cce5af4480f2",
+  "files": [
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/README.md",
+      "bytes": 6136,
+      "sha256": "4c1b53374ef47900f74090f3319ef4c7523bcfc9f62ba6124bcd61df77521de6"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest.json",
+      "bytes": 21854,
+      "sha256": "1b56362f202f39b0bdf415cfd9d42148787bda4bfa3b9cb034c77451f8d7a419"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/replay.py",
+      "bytes": 6607,
+      "sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671"
+    },
+    {
+      "path": "pa_core/cli.py",
+      "bytes": 93209,
+      "sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+    },
+    {
+      "path": "tests/test_cli_observability_boundaries.py",
+      "bytes": 10355,
+      "sha256": "0ecd19f7d0c97fa0baf07a137e66508d42e4b22ed402b70a06d21403f1c4f5ec"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/00-green.txt.gz",
+      "bytes": 404,
+      "sha256": "5e2be91ea77523fc1c27cec6bfac2cea61a18f26be458fc921e8a55ed03a58f3",
+      "decoded_bytes": 1151,
+      "decoded_sha256": "d365925810accda2b32ddb2f2d58a740402d57d7287dc47c4abae6a65aaae0a0"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/00-green.xml.gz",
+      "bytes": 271,
+      "sha256": "e6947bd4e7263c103754afd3708efb73b75e9d53b261a22fdf7099520a4388d7",
+      "decoded_bytes": 404,
+      "decoded_sha256": "a4950916ec8f46492584a81df59d2dcac075b4a8c87ee6f6a01fb88b64a2fe3e"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/00-red.txt.gz",
+      "bytes": 1075,
+      "sha256": "72d7664af9ca86706ed01d9d11a0f6e3d3071a460248049a5704ee0cd0ea0594",
+      "decoded_bytes": 3315,
+      "decoded_sha256": "05729f5505afe85e85bb9020d3a871d9488724a85ff2ea8cb46cedb5516e911d"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/00-red.xml.gz",
+      "bytes": 864,
+      "sha256": "b4def1661b9686a22948cddcdb79501564329f9422ac28d156255dfb31acfb38",
+      "decoded_bytes": 2696,
+      "decoded_sha256": "760b6a00c47da161cf8b037fddfc463d5d13a0b80fbd53a3313fda1dd8b1f2ea"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/01-green.txt.gz",
+      "bytes": 404,
+      "sha256": "0c274ddfc43506649c5e38030d3448809bf37994e758cfcfe3dd9df9da4e4e72",
+      "decoded_bytes": 1151,
+      "decoded_sha256": "13b3227fdf9c5db1c9bb2d758389a9ee54e77277a49028cdfa573bfa437c4ff7"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/01-green.xml.gz",
+      "bytes": 270,
+      "sha256": "36b63a3893380300651d9d2df84433d0a5e60e0f9a4fe14b67976ab8f1306b10",
+      "decoded_bytes": 405,
+      "decoded_sha256": "b7b73de935b24d4752b853fa05e49759332cb29b78b482a1076580a66c1a9c88"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/01-red.txt.gz",
+      "bytes": 1037,
+      "sha256": "d0c8cc52947bcbd24e32c6e85a7970ce09e234ef81034c59ae36594678ede069",
+      "decoded_bytes": 3059,
+      "decoded_sha256": "63312c39828d4bce2076c5c73e7afb3c3c0047e32f605d4fa56bafe35197c8ed"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/01-red.xml.gz",
+      "bytes": 862,
+      "sha256": "1ebdc26ef7a8f641a6bbd2f08a0abfa1e9538adde0bbd1b8db20162d6afddb44",
+      "decoded_bytes": 2510,
+      "decoded_sha256": "613a55a4da356b9bd00d5129794b4ae3cfd7c8da7ec0a41280066b6dde063241"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/02-green.txt.gz",
+      "bytes": 404,
+      "sha256": "12d32549c6fdceab7d4fe71157b06638f0e22f07540c65f1eb00c8b7a729b731",
+      "decoded_bytes": 1151,
+      "decoded_sha256": "6f90323c2af341a824da8dd2af9a2707f263352c10497e437bacf26160ba2b4a"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/02-green.xml.gz",
+      "bytes": 274,
+      "sha256": "23c5018cd1fdb142273acf4854882fed6b8d602a11c3d55796985175eedbd121",
+      "decoded_bytes": 414,
+      "decoded_sha256": "fc749573d0d69c09a2908fbb4ca1bed231822cd26fe5cf584ca7889d4359f064"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/02-red.txt.gz",
+      "bytes": 961,
+      "sha256": "714f3ad367218c6eb2deab9d3b77e97a363e6e4c441f9a7ec0fa5964538380d1",
+      "decoded_bytes": 2604,
+      "decoded_sha256": "66e8e370b0cd107129575999bb79bc0e4a61d04edc5cc22d1b6703a0a73ddccd"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/02-red.xml.gz",
+      "bytes": 789,
+      "sha256": "21f69fa9740c438bef561657cb6c3cd65281638e0bdee2419fb8484f71d347bd",
+      "decoded_bytes": 1716,
+      "decoded_sha256": "a47ec143f8de3e7c771a1daabdefdadd22626d93e6cc9e99a6bac985f613ed85"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/03-green.txt.gz",
+      "bytes": 404,
+      "sha256": "6183824eaa74626cec72fee57c0ae5b9cb4e595a48aac168d6d23cb5c40f3e15",
+      "decoded_bytes": 1151,
+      "decoded_sha256": "2d6246b140010bc1eedd7878fe9a017876def3c9ac390d257ad56bdef0726839"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/03-green.xml.gz",
+      "bytes": 276,
+      "sha256": "f34e0d4bd9751c6e49799a5d379bb7364d976aee9024406fc4660546be77c6bb",
+      "decoded_bytes": 417,
+      "decoded_sha256": "f94fedf9af5f9df69768f895adb78087f01b85a310b1173f34051eb01c1354b9"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/03-red.txt.gz",
+      "bytes": 1041,
+      "sha256": "005a3f00c28b4556ee20008b970bc974f151e49366fa0b0af9209b04b2780c66",
+      "decoded_bytes": 2919,
+      "decoded_sha256": "186bec9eff8bcf61152d4626333d60e21f201404924c0b366343d0c8f7d2d8a1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/03-red.xml.gz",
+      "bytes": 870,
+      "sha256": "123cee90c2f68c7e37c138257cbd7963fde9f045b78510ec711b067cdac5a07f",
+      "decoded_bytes": 1997,
+      "decoded_sha256": "25f679a6c3f8fc39ac496fbfdf94330d284fdea9794b1e49240193100c8530cd"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/04-green.txt.gz",
+      "bytes": 404,
+      "sha256": "bddcf7b4bc3bb6733935f997e5fdb371994655392113ea7cd4a1fa8305df1cf1",
+      "decoded_bytes": 1151,
+      "decoded_sha256": "eb342dc7d70a774256117967134548567fdc6b9bda1fa279aaa4bdb3d98817c6"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/04-green.xml.gz",
+      "bytes": 263,
+      "sha256": "6bb608aa0978fb642ddff698b2a04ebb7fa2b93d4937e27bf0b52392c3f21652",
+      "decoded_bytes": 393,
+      "decoded_sha256": "104af7ab2e65152403157b86b9fe7a915e539ea2feec8af5572078a795f67841"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/04-red.txt.gz",
+      "bytes": 822,
+      "sha256": "f37984286d8484f1615243b53da52db74057eb1ed5d835bcf2017f742dd77c6e",
+      "decoded_bytes": 2227,
+      "decoded_sha256": "48bcafa7b7ea344643c584b49669e2121b3ae1b13bdbcf50b5cd37ba09aa3a51"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/04-red.xml.gz",
+      "bytes": 624,
+      "sha256": "d6d4ff45c5cf596001bc1bb2283f668803ba240003d0290872b43db32c6069e2",
+      "decoded_bytes": 1323,
+      "decoded_sha256": "520e1ccdc809489608b2524452830cfc91b1ccaabddf927bb0dbc516d1ba4e71"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/05-green.txt.gz",
+      "bytes": 404,
+      "sha256": "6183824eaa74626cec72fee57c0ae5b9cb4e595a48aac168d6d23cb5c40f3e15",
+      "decoded_bytes": 1151,
+      "decoded_sha256": "2d6246b140010bc1eedd7878fe9a017876def3c9ac390d257ad56bdef0726839"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/05-green.xml.gz",
+      "bytes": 268,
+      "sha256": "09191394fef68112c5151aff25d9fcce810fad6bdb2ffaef1b5f42d7e0e98fe5",
+      "decoded_bytes": 403,
+      "decoded_sha256": "94ae23f829142cda88831b7f3e87b9e1b8ce40dd659ea7bb50fba818d4766efb"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/05-red.txt.gz",
+      "bytes": 971,
+      "sha256": "a0d9ddab403cbb94abf330c287c6fac96c99133133212537d6fe01472c4a7464",
+      "decoded_bytes": 2762,
+      "decoded_sha256": "24961e94c6df9559614c084619b470fb658d7ccfeb33221454f52719cc7ba136"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/05-red.xml.gz",
+      "bytes": 792,
+      "sha256": "39b81a883b07888a26cb0c105827ee15afc177f2f4610ab5c200154cf80467f3",
+      "decoded_bytes": 1959,
+      "decoded_sha256": "cb41f71071c35cf1ba73289b9cbe6c964dbbf9ce9791047b4c291619ac5fe248"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/2342-focused.log.gz",
+      "bytes": 406,
+      "sha256": "1770d2a6da233a7770f365da3ca534c0bd107605da858d7d34bdee185789a02c",
+      "decoded_bytes": 1056,
+      "decoded_sha256": "b64f2e6cc4876a2de6b4afd91c271640807fbbfbfe76c503fc307d008cf4f5dd"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/2342-manifest-audit.json.gz",
+      "bytes": 386,
+      "sha256": "b59d3f5e4d67442c0b994d07bcae69fc49d9dcd8af4391634b56376483f922df",
+      "decoded_bytes": 680,
+      "decoded_sha256": "6ed418c628ee967227eb2f0024f2133c633e0d8aaa3cb33ee173adfe83e50c52"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/2342-replay.log.gz",
+      "bytes": 90,
+      "sha256": "16798726a8030a649ef8ca3c4ba52759c78d9f476cf9a4a9e9c1b45e944cd63e",
+      "decoded_bytes": 72,
+      "decoded_sha256": "beef7665b75f614a776fa664e65ccdcbe5264cfc1c2742a15f83cc1fce307535"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/README.md",
+      "bytes": 1189,
+      "sha256": "945ac6c0f3b500e9f259569a777ef28eb1c0328f1e224b3d26bc6f77f5e2091c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/controls.json.gz",
+      "bytes": 1472,
+      "sha256": "b333e4210fa933faf7f01beff3acc0926fe561392f0cce3b578c0f54b1ef8a06",
+      "decoded_bytes": 12985,
+      "decoded_sha256": "e61291b86ac8dcb25278cb851d87c9d24447100bef35361d01f31c7723228ebf"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/prior-README.md",
+      "bytes": 5390,
+      "sha256": "df66052f6d1d772fe64b2eb2496148a9c57c9c401134173913d08e2a6a14d2cd"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/prior-manifest.json",
+      "bytes": 21513,
+      "sha256": "9a452e7ae5b2dab8f0e923979b4e8970939ddc2c5ff361ce60208e992abcee57"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/acceptance-revalidation-20261007/README.md",
+      "bytes": 119,
+      "sha256": "ef0f0457d8a42d2ecbd6cba2904913be9eb2bc5c0a8e32ac0a66b9c7a4c394cc"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/pae-baseline-coverage.json",
+    "tests/",
+    "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/pae-baseline.xml"
+  ],
+  "cwd": "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-cli-snapshots",
+  "exit": 0,
+  "seconds": 191.87824177742004
+}

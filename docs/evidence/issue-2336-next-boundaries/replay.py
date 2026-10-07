@@ -67,7 +67,7 @@ def replay(root, output, python):
             ),
             (
                 "test_warning_snapshot_does_not_expose_mutable_message_records",
-                "return [dict(rec) for rec in self.records]",
+                "return deepcopy(self.records)",
                 "return list(self.records)",
             ),
             (

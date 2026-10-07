@@ -22,6 +22,7 @@ import json
 import logging
 import sys
 import time
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, Mapping, Sequence, cast
@@ -181,7 +182,7 @@ class _WarningCollector:
             self._orig_showwarning = None
 
     def snapshot(self) -> list[dict[str, Any]]:
-        return [dict(rec) for rec in self.records]
+        return deepcopy(self.records)
 
 
 def _read_config_snapshot(path: str | Path) -> tuple[str | None, bytes | None]:
