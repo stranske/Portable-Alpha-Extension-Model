@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "black",
+    "--check",
+    "--line-length",
+    "100",
+    "--exclude",
+    "(\\.workflows-lib|node_modules)",
+    "."
+  ],
+  "environment": {
+    "BLACK_NUM_WORKERS": "1",
+    "BLACK_CACHE_DIR": "/tmp/cli-boundary-recheck/black-cache"
+  },
+  "completed": false,
+  "reason": "Single-worker invocation timed out after 180 seconds; diagnostic showed idle worker and selector waiting for a thread completion wakeup. No result was claimed."
+}

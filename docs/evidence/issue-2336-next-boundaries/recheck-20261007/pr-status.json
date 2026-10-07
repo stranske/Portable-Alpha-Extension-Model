@@ -1,0 +1,9 @@
+{
+  "number": 2341,
+  "url": "https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2341",
+  "state": "open",
+  "isDraft": false,
+  "head": "codex/issue-2336-next-boundaries",
+  "head_sha": "3b9340600c8e027492eb57615436b4daca4870ae",
+  "source": "GitHub connector get_pr_info; shell gh API connection failed"
+}

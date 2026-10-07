@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/test_cli_observability_boundaries.py",
+    "tests/test_cli_edge_cases.py",
+    "tests/test_cli_packet_diff.py",
+    "tests/test_cli_exception_handling.py",
+    "-q",
+    "-m",
+    "not slow and not live_llm",
+    "--cov=pa_core.cli",
+    "--cov-report=term-missing",
+    "--cov-report=json:/tmp/cli-boundary-recheck/candidate-related-coverage.json",
+    "--junitxml=/tmp/cli-boundary-recheck/candidate-related.xml"
+  ],
+  "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+  "exit": 1,
+  "elapsed_seconds": 4.125747839999974,
+  "python": "3.14.7 (main, Aug  6 2026, 02:19:46) [GCC 13.3.0]",
+  "hashes": {
+    "pa_core/cli.py": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+    "tests/test_cli_observability_boundaries.py": "fafb8156c5a9e9c0572b1745a4fe6e56579e63c9938a70855b118bd74f1b33fd"
+  }
+}

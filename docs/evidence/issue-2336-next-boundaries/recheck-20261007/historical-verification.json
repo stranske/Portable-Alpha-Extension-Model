@@ -1,0 +1,41 @@
+{
+  "historical_comparison_verified": true,
+  "source_files": 186,
+  "baseline": {
+    "covered_lines": 12133,
+    "num_statements": 14553,
+    "percent_covered": 83.37112622826909,
+    "percent_covered_display": "83",
+    "missing_lines": 2420,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.37112622826909,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate": {
+    "covered_lines": 12140,
+    "num_statements": 14553,
+    "percent_covered": 83.41922627636913,
+    "percent_covered_display": "83",
+    "missing_lines": 2413,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.41922627636913,
+    "percent_statements_covered_display": "83"
+  },
+  "junit": {
+    "baseline": {
+      "cases": 1595,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1
+    },
+    "candidate": {
+      "cases": 1603,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1
+    }
+  },
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "mutation_cases_verified": 8,
+  "artifact_hashes_verified": 106
+}

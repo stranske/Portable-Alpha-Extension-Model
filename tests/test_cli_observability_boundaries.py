@@ -86,6 +86,35 @@ def test_warning_collector_double_install_captures_once_and_restores(monkeypatch
         collector.uninstall()
         assert tuple(root.handlers) == original_handlers
         assert warnings.showwarning is previous_hook
+
+        # Restoring the hook must also stop both capture paths.
+        logging.getLogger("pa.boundary").warning("outside collection")
+        outside_warning = UserWarning("outside source warning")
+        warnings.showwarning(outside_warning, UserWarning, "scenario.yml", 18)
+        assert collector.snapshot() == records
+        assert forwarded[-1] == (outside_warning, UserWarning, "scenario.yml", 18)
+
+        # A new run can reuse the collector without retaining stale hooks or handlers.
+        collector.install()
+        collector.install()
+        logging.getLogger("pa.boundary").error("run %s failed again", "beta")
+        next_warning = UserWarning("next source warning")
+        warnings.showwarning(next_warning, UserWarning, "scenario.yml", 19)
+        next_records = collector.snapshot()
+        assert next_records[:2] == records
+        assert [(r["code"], r["severity"], r["message"]) for r in next_records[2:]] == [
+            ("pa.boundary", "error", "run beta failed again"),
+            ("UserWarning", "warning", "next source warning"),
+        ]
+        assert forwarded == [
+            (warning, UserWarning, "scenario.yml", 17, None, None),
+            (outside_warning, UserWarning, "scenario.yml", 18),
+            (next_warning, UserWarning, "scenario.yml", 19, None, None),
+        ]
+        collector.uninstall()
+        collector.uninstall()
+        assert tuple(root.handlers) == original_handlers
+        assert warnings.showwarning is previous_hook
     finally:
         collector.uninstall()
         collector.uninstall()

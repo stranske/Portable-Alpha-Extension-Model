@@ -1,0 +1,49 @@
+{
+  "baseline_commit": "3b9340600c8e027492eb57615436b4daca4870ae",
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "test_sha256": "db486f7b1ce988378848915a309aba9ca25f6b8662fbfc6744af3b349740ac4d",
+  "related_baseline": {
+    "passed": 27,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "related_candidate": {
+    "passed": 27,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "same_named_cases": true,
+  "related_baseline_coverage": {
+    "covered_lines": 652,
+    "num_statements": 1106,
+    "percent_covered": 58.95117540687161,
+    "percent_covered_display": "59",
+    "missing_lines": 454,
+    "excluded_lines": 17,
+    "percent_statements_covered": 58.95117540687161,
+    "percent_statements_covered_display": "59"
+  },
+  "related_candidate_coverage": {
+    "covered_lines": 652,
+    "num_statements": 1106,
+    "percent_covered": 58.95117540687161,
+    "percent_covered_display": "59",
+    "missing_lines": 454,
+    "excluded_lines": 17,
+    "percent_statements_covered": 58.95117540687161,
+    "percent_statements_covered_display": "59"
+  },
+  "no_executed_line_regressions": true,
+  "focused_candidate": {
+    "passed": 8,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "replayed_mutation_pairs": 8,
+  "additional_mutation": "uninstall does not reset the installed flag: old test PASS, strengthened test FAIL, restored production PASS",
+  "current_full_suite_complete": false,
+  "full_suite_limitation": "Baseline stalled in Kaleido PNG export before the changed test ran; interrupted with exit 130. Retained historical full-suite evidence verified separately."
+}
