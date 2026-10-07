@@ -22,6 +22,6 @@ UTC review reconciliation: `utc-review/` retains an actual production mutation
 that removes only the explicit UTC timezone from JsonFormatter's timestamp
 conversion. The strengthened named test models a non-UTC host without mutating
 process-global timezone state: the local-time mutant fails, byte-identical
-production restoration passes, and all12 focused cases pass. Both epoch and
+production restoration passes, and all 12 focused cases pass. Both epoch and
 fractional-second expectations remain. The previous manifest is preserved
 verbatim in that directory; this manifest binds the current test and receipts.
