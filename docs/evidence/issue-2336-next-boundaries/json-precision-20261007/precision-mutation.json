@@ -1,0 +1,34 @@
+{
+  "node": "tests/test_cli_observability_boundaries.py::test_json_formatter_preserves_utc_and_interpolates_arguments",
+  "before": "datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat()",
+  "after": "datetime.fromtimestamp(int(record.created), tz=timezone.utc).isoformat()",
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "mutant_sha256": "1191bbbf45ab41ebdf7dacd47cdda43cc516f4ca266543d809bca6f08f2dd4d7",
+  "old_test_sha256": "db486f7b1ce988378848915a309aba9ca25f6b8662fbfc6744af3b349740ac4d",
+  "strengthened_test_sha256": "f9caea23a289efc473ec76f881d4d10d2d69fb9e0a189aa051900f4d6c16dbf3",
+  "restored_source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "byte_identical_restoration": true,
+  "phases": [
+    {
+      "phase": "old-test-mutant-green",
+      "exit_code": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "phase": "strengthened-mutant-red",
+      "exit_code": 1,
+      "failures": 1,
+      "errors": 0,
+      "skips": 0
+    },
+    {
+      "phase": "restored-green",
+      "exit_code": 0,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0
+    }
+  ]
+}

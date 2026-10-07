@@ -138,14 +138,19 @@ def test_warning_snapshot_does_not_expose_mutable_message_records():
 
 def test_json_formatter_preserves_utc_and_interpolates_arguments():
     record = logging.LogRecord("pa.output", logging.ERROR, __file__, 1, "scenario %s", ("α",), None)
-    record.created = 0
-    result = json.loads(cli.JsonFormatter().format(record))
-    assert result == {
-        "level": "ERROR",
-        "timestamp": datetime(1970, 1, 1, tzinfo=timezone.utc).isoformat(),
-        "module": "pa.output",
-        "message": "scenario α",
-    }
+    # Include fractional seconds so truncating real log timestamps cannot pass.
+    for created, expected_time in [
+        (0, datetime(1970, 1, 1, tzinfo=timezone.utc)),
+        (1704164645.125, datetime(2024, 1, 2, 3, 4, 5, 125000, tzinfo=timezone.utc)),
+    ]:
+        record.created = created
+        result = json.loads(cli.JsonFormatter().format(record))
+        assert result == {
+            "level": "ERROR",
+            "timestamp": expected_time.isoformat(),
+            "module": "pa.output",
+            "message": "scenario α",
+        }
 
 
 def test_invalid_utf8_config_snapshot_is_unavailable(tmp_path, caplog):

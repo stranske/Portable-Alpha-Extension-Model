@@ -1,0 +1,68 @@
+{
+  "historical_manifests_verified": [
+    {
+      "manifest": "docs/evidence/issue-2336-next-boundaries/manifest.json",
+      "entries": 106,
+      "historical_test_commit": "3b934060"
+    },
+    {
+      "manifest": "docs/evidence/issue-2336-next-boundaries/recheck-20261007/manifest.json",
+      "entries": 80,
+      "historical_test_commit": "98fbf8ba"
+    }
+  ],
+  "historical_baseline": {
+    "failure": 0,
+    "error": 0,
+    "skipped": 1,
+    "passed": 1594
+  },
+  "historical_candidate": {
+    "failure": 0,
+    "error": 0,
+    "skipped": 1,
+    "passed": 1602
+  },
+  "historical_covered_statements": [
+    12133,
+    12140
+  ],
+  "historical_statements": 14553,
+  "historical_excluded_lines": 181,
+  "historical_source_files": 186,
+  "historical_mutation_pairs_verified": 8,
+  "historical_no_executed_line_regression": true,
+  "current_related_baseline": {
+    "failure": 0,
+    "error": 0,
+    "skipped": 0,
+    "passed": 27
+  },
+  "current_related_candidate": {
+    "failure": 0,
+    "error": 0,
+    "skipped": 0,
+    "passed": 27
+  },
+  "current_related_coverage": {
+    "covered_lines": 652,
+    "num_statements": 1106,
+    "percent_covered": 58.95117540687161,
+    "percent_covered_display": "59",
+    "missing_lines": 454,
+    "excluded_lines": 17,
+    "percent_statements_covered": 58.95117540687161,
+    "percent_statements_covered_display": "59"
+  },
+  "current_related_same_named_cases_and_executed_lines": true,
+  "current_focused": {
+    "failure": 0,
+    "error": 0,
+    "skipped": 0,
+    "passed": 8
+  },
+  "source_matches_base": true,
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "test_sha256": "f9caea23a289efc473ec76f881d4d10d2d69fb9e0a189aa051900f4d6c16dbf3",
+  "current_full_suite_rerun": false
+}
