@@ -21,13 +21,3 @@ The [acceptance revalidation](acceptance-revalidation-20261007/README.md) streng
 The prior issue-2336-next-boundaries captures remain historical. Its replay anchor alone changes to the current deepcopy expression. Current replay/source/test manifest entries are refreshed; prior-manifest.json preserves the exact old manifest and historical source/capture hashes are not relabeled as current proof.
 
 Full console, coverage JSON, JUnit and history are losslessly gzipped. manifest.json records stored and decoded lengths/SHA256 for every new evidence member; decode with gzip or Python. Hosted checks/review are asynchronous keepalive work; closer must revalidate complete expected-check topology, unchanged head, full active threads and seven-minute activity floor before guarded merge and actual compare. No auto-merge or merge authorization is inferred.
-
-The later closer manifest repair preserves the exact prior manifest and README in
-`manifest-repair-20261007/`. Its independent current-source replay executes all six
-named mutations against the strengthened warning tests: each RED exit 1, exact byte
-restoration GREEN exit 0. The current focused suite reports 20 passes. The parent
-manifest's README and replay entries now describe their current stored bytes; its
-original source/test metadata is explicitly bound to initial candidate `193d05df`.
-The repair manifest separately binds the current production, test and replay hashes.
-Historical full-suite/coverage and eight prior-node mutation captures retain their
-original identities and results; no final-head full-suite or 90% claim is made.

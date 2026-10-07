@@ -4,8 +4,8 @@
   "files": [
     {
       "path": "README.md",
-      "bytes": 6136,
-      "sha256": "4c1b53374ef47900f74090f3319ef4c7523bcfc9f62ba6124bcd61df77521de6"
+      "bytes": 4861,
+      "sha256": "49aa911e6a5b376be334dffae9b9bdb132acac29d330ccd2a1d7d2dea64df0ee"
     },
     {
       "path": "baseline-process.json",
@@ -499,8 +499,8 @@
     },
     {
       "path": "replay.py",
-      "bytes": 6607,
-      "sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671"
+      "bytes": 6410,
+      "sha256": "90f2de5d008b1c4c6ac309e3fa1acbac324b2322e78230f1bc498e35402f7d2e"
     },
     {
       "path": "snapshots-green.log.gz",
@@ -530,7 +530,5 @@
       "decoded_bytes": 6888,
       "decoded_sha256": "5915aafc5114a21c6cc70a91d7842f9ba37a1031da1711ba07a4d55501fa9e35"
     }
-  ],
-  "initial_candidate_revision": "193d05df48dc872871e92dc700a86689fe9aa706",
-  "identity_note": "Top-level source_sha256/test_sha256 describe the initial candidate above. The files inventory binds current stored artifact bytes. Current source/test/replay identities and actual six-case replay are in manifest-repair-20261007/manifest.json."
+  ]
 }
