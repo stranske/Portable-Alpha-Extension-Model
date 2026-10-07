@@ -181,17 +181,31 @@ def test_warning_snapshot_context_is_detached_from_collector(source, monkeypatch
             logging.getLogger("pa.snapshot").warning("immutable diagnostic")
         else:
             warnings.showwarning(UserWarning("immutable diagnostic"), UserWarning, "cfg.yml", 23)
+        # Context may be enriched after capture; isolation must reach through
+        # dictionaries and lists, rather than stop at the context dictionary.
+        collector.records[0]["context"]["details"] = {
+            "locations": [{"filename": "cfg.yml", "tags": ["captured"]}]
+        }
         before = json.loads(json.dumps(collector.snapshot()))
         snapshot = collector.snapshot()
         # A retained snapshot must also survive later edits to captured context.
         collector.records[0]["context"]["lineno"] += 1
+        location = collector.records[0]["context"]["details"]["locations"][0]
+        location["filename"] = "updated.yml"
+        location["tags"].append("enriched")
         assert snapshot == before
         updated = json.loads(json.dumps(collector.snapshot()))
         assert updated[0]["context"]["lineno"] == before[0]["context"]["lineno"] + 1
+        sibling = collector.snapshot()
 
         snapshot[0]["context"]["source"] = "tampered"
         snapshot[0]["context"]["injected"] = "must not leak into run.json"
+        snapshot_location = snapshot[0]["context"]["details"]["locations"][0]
+        snapshot_location["filename"] = "tampered.yml"
+        snapshot_location["tags"].clear()
+        snapshot[0]["context"]["details"]["locations"].append({"filename": "injected.yml"})
         assert collector.snapshot() == updated
+        assert sibling == updated
         assert collector.snapshot()[0]["context"]["source"] == source
     finally:
         collector.uninstall()
