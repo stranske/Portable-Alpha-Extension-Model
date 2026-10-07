@@ -1,0 +1,47 @@
+{
+  "python": "3.14.7 (main, Aug  6 2026, 02:19:46) [GCC 13.3.0]",
+  "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "0ecd19f7d0c97fa0baf07a137e66508d42e4b22ed402b70a06d21403f1c4f5ec",
+  "replay_sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671",
+  "focused_argv": [
+    "pytest",
+    "tests/test_cli_observability_boundaries.py",
+    "tests/test_cli_mutation_replay_isolation.py",
+    "-m",
+    "not slow",
+    "-q",
+    "--cov=pa_core.cli",
+    "--cov-report=term-missing",
+    "--junitxml=docs/evidence/issue-2336-cli-snapshots/acceptance-revalidation-20261007/focused.xml"
+  ],
+  "focused_passed": 20,
+  "mutation_cases": 6,
+  "each_mutation_exit": [
+    1,
+    0
+  ],
+  "active_source_matches_restored_private_source": true,
+  "test_node_count_changed": false,
+  "black_check_argv": [
+    "black",
+    "--check",
+    "--line-length",
+    "100",
+    "--exclude",
+    "(\\.workflows-lib|node_modules)",
+    "."
+  ],
+  "black_check_env": {
+    "BLACK_CACHE_DIR": "/tmp/cli-snapshot-black-cache",
+    "BLACK_NUM_WORKERS": "1"
+  },
+  "black_check_exit": 0,
+  "black_files_unchanged": 488,
+  "ruff_check_argv": [
+    "ruff",
+    "check",
+    "tests/test_cli_observability_boundaries.py",
+    "docs/evidence/issue-2336-cli-snapshots/replay.py"
+  ],
+  "ruff_check_exit": 0
+}

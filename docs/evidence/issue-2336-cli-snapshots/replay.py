@@ -101,7 +101,16 @@ def replay(root, output, python):
                     cache.unlink()
                 stem = f"{index:02d}-{phase}"
                 junit = output / (stem + ".xml")
-                argv = [python, "-m", "pytest", node, "-q", "--junitxml=" + str(junit)]
+                argv = [
+                    python,
+                    "-m",
+                    "pytest",
+                    node,
+                    "-m",
+                    "not slow",
+                    "-q",
+                    "--junitxml=" + str(junit),
+                ]
                 started = time.time()
                 with (output / (stem + ".txt")).open("w", encoding="utf-8") as stream:
                     proc = subprocess.run(
