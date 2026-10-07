@@ -1,0 +1,259 @@
+{
+  "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "ed14ee29c8d5dd71101921688bb498586c6d244dccaedc1d25fcc0b3e87fdb88",
+  "cases": [
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+      "mutant_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+      "before": "return deepcopy(self.records)",
+      "after": "return [dict(rec) for rec in self.records]",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/00-red.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.881139039993286,
+          "source_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+          "console": "00-red.txt",
+          "junit": "00-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/00-green.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 0,
+          "elapsed_seconds": 2.9422850608825684,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "00-green.txt",
+          "junit": "00-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+      "mutant_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+      "before": "return deepcopy(self.records)",
+      "after": "return [dict(rec) for rec in self.records]",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/01-red.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 1,
+          "elapsed_seconds": 3.0042622089385986,
+          "source_sha256": "5ad067d85f573ae5c1f1b349fafb0e08b4cdd0df085733b1b344b7e4b92e6c4e",
+          "console": "01-red.txt",
+          "junit": "01-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/01-green.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 0,
+          "elapsed_seconds": 2.828511953353882,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "01-green.txt",
+          "junit": "01-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+      "mutant_sha256": "57abfb1cccfb043286e379f675ab592893932d70f601b44b4b2b2cdb74a5eade",
+      "before": "return summary_table(returns_map, benchmark=benchmark)",
+      "after": "return summary_table({k: -v for k, v in returns_map.items()}, benchmark=benchmark)",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/02-red.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 1,
+          "elapsed_seconds": 2.8561861515045166,
+          "source_sha256": "57abfb1cccfb043286e379f675ab592893932d70f601b44b4b2b2cdb74a5eade",
+          "console": "02-red.txt",
+          "junit": "02-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/02-green.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 0,
+          "elapsed_seconds": 2.85663104057312,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "02-green.txt",
+          "junit": "02-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+      "mutant_sha256": "c95ed7b299ea05d1bdd2cfe1140b140159d401018b59e0bed8fd42f1aeb5cfd0",
+      "before": "return summary_table(returns_map, benchmark=benchmark)",
+      "after": "return summary_table(returns_map, benchmark=None)",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/03-red.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 1,
+          "elapsed_seconds": 2.883683919906616,
+          "source_sha256": "c95ed7b299ea05d1bdd2cfe1140b140159d401018b59e0bed8fd42f1aeb5cfd0",
+          "console": "03-red.txt",
+          "junit": "03-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/03-green.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 0,
+          "elapsed_seconds": 2.792952060699463,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "03-green.txt",
+          "junit": "03-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_config_snapshot_preserves_utf8_and_original_bytes",
+      "mutant_sha256": "20e8a2574217e1483b3ce818441ae4f344b1d49e525aa14296b62e216704db2f",
+      "before": "return raw.decode(), raw",
+      "after": "return raw.decode(), raw.replace(b\"\\r\\n\", b\"\\n\")",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_config_snapshot_preserves_utf8_and_original_bytes",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/04-red.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 1,
+          "elapsed_seconds": 2.7800869941711426,
+          "source_sha256": "20e8a2574217e1483b3ce818441ae4f344b1d49e525aa14296b62e216704db2f",
+          "console": "04-red.txt",
+          "junit": "04-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_config_snapshot_preserves_utf8_and_original_bytes",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/04-green.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 0,
+          "elapsed_seconds": 2.7190587520599365,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "04-green.txt",
+          "junit": "04-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+      "mutant_sha256": "41fde3e352bdceb7bcb597aadcc5537be5898b138621bfad66a7f7f1383e5bd8",
+      "before": "\"duration_seconds\": self.elapsed(),",
+      "after": "\"duration_seconds\": 0.0,",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/05-red.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 1,
+          "elapsed_seconds": 2.7632997035980225,
+          "source_sha256": "41fde3e352bdceb7bcb597aadcc5537be5898b138621bfad66a7f7f1383e5bd8",
+          "console": "05-red.txt",
+          "junit": "05-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261007T1202Z/snapshot-mutations/05-green.xml"
+          ],
+          "cwd": "/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/cli-mutation-replay-ymeq5bdv/checkout",
+          "exit": 0,
+          "elapsed_seconds": 2.7632980346679688,
+          "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+          "console": "05-green.txt",
+          "junit": "05-green.xml"
+        }
+      ]
+    }
+  ],
+  "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+}

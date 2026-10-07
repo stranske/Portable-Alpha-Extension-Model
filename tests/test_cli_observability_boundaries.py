@@ -169,3 +169,79 @@ def test_invalid_utf8_config_snapshot_is_unavailable(tmp_path, caplog):
         assert cli._read_config_snapshot(path) == (None, None)
     assert "Unable to read config snapshot" in caplog.text
     assert "secret:" not in caplog.text
+
+
+@pytest.mark.parametrize("source", ["logging", "warnings"])
+def test_warning_snapshot_context_is_detached_from_collector(source, monkeypatch):
+    monkeypatch.setattr(warnings, "showwarning", lambda *args: None)
+    collector = cli._WarningCollector()
+    try:
+        collector.install()
+        if source == "logging":
+            logging.getLogger("pa.snapshot").warning("immutable diagnostic")
+        else:
+            warnings.showwarning(UserWarning("immutable diagnostic"), UserWarning, "cfg.yml", 23)
+        before = json.loads(json.dumps(collector.snapshot()))
+        snapshot = collector.snapshot()
+        snapshot[0]["context"]["source"] = "tampered"
+        snapshot[0]["context"]["injected"] = "must not leak into run.json"
+        assert collector.snapshot() == before
+        assert collector.snapshot()[0]["context"]["source"] == source
+    finally:
+        collector.uninstall()
+
+
+@pytest.mark.parametrize("benchmark", [None, "Index"], ids=["no-benchmark", "index-benchmark"])
+def test_enhanced_summary_preserves_monthly_returns_and_benchmark(benchmark):
+    import numpy as np
+
+    index = np.array([[0.01, -0.02, 0.03, 0.04]])
+    strategy = np.array([[0.02, -0.01, 0.01, 0.05]])
+    summary = cli.create_enhanced_summary(
+        {"Index": index, "Strategy": strategy}, benchmark=benchmark
+    )
+    rows = summary.set_index("Agent")
+    assert {"Index", "Strategy"} <= set(rows.index)
+    # Four monthly returns must compound to an annualized return, not be averaged.
+    expected_return = float(np.prod(1.0 + strategy) ** 3 - 1.0)
+    assert rows.loc["Strategy", "terminal_AnnReturn"] == pytest.approx(expected_return)
+    if benchmark is None:
+        assert rows["monthly_TE"].isna().all()
+    else:
+        assert pd.isna(rows.loc["Index", "monthly_TE"])
+        expected_te = float(np.std(strategy - index, ddof=1) * np.sqrt(12))
+        assert rows.loc["Strategy", "monthly_TE"] == pytest.approx(expected_te)
+
+
+def test_config_snapshot_preserves_utf8_and_original_bytes(tmp_path):
+    raw = "# café\nname: α\r\n".encode("utf-8")
+    path = tmp_path / "scenario.yml"
+    path.write_bytes(raw)
+    text, captured = cli._read_config_snapshot(path)
+    assert text == "# café\nname: α\r\n"
+    assert captured == raw
+    assert captured.decode("utf-8") == text
+
+
+def test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time(monkeypatch):
+    instants = iter(
+        [
+            datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc),
+            datetime(2026, 1, 2, 3, 4, 7, tzinfo=timezone.utc),
+        ]
+    )
+
+    class FixedDatetime:
+        @staticmethod
+        def now(tz):
+            assert tz is timezone.utc
+            return next(instants)
+
+    ticks = iter([100.0, 102.5])
+    monkeypatch.setattr(cli, "datetime", FixedDatetime)
+    monkeypatch.setattr(cli.time, "perf_counter", lambda: next(ticks))
+    assert cli.RunTimer().snapshot() == {
+        "duration_seconds": 2.5,
+        "started_at": "2026-01-02T03:04:05+00:00",
+        "ended_at": "2026-01-02T03:04:07+00:00",
+    }

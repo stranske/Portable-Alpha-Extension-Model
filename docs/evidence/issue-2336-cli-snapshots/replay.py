@@ -1,4 +1,4 @@
-"""Replay eight real CLI production mutations into a new immutable output directory."""
+"""Replay six real CLI production mutations into a new immutable output directory."""
 
 import argparse
 import hashlib
@@ -43,45 +43,38 @@ def replay(root, output, python):
     test = root / "tests/test_cli_observability_boundaries.py"
     original = source.read_bytes()
     text = original.decode("utf-8")
-    cases = []
-    for label, exception in [("key", "KeyError"), ("type", "TypeError"), ("value", "ValueError")]:
-        retained = [e for e in ["KeyError", "TypeError", "ValueError"] if e != exception]
-        cases.append(
-            (
-                "test_run_diff_expected_error_is_logged_without_rendering[" + label + "]",
-                "except (KeyError, TypeError, ValueError) as exc:",
-                "except (" + ", ".join(retained) + ") as exc:",
-            )
-        )
-    cases.extend(
-        [
-            (
-                "test_run_diff_unexpected_error_propagates",
-                "except (KeyError, TypeError, ValueError) as exc:",
-                "except Exception as exc:",
-            ),
-            (
-                "test_warning_collector_double_install_captures_once_and_restores",
-                "if self._installed:\n            return\n        self._installed = True",
-                "if False:\n            return\n        self._installed = True",
-            ),
-            (
-                "test_warning_snapshot_does_not_expose_mutable_message_records",
-                "return deepcopy(self.records)",
-                "return list(self.records)",
-            ),
-            (
-                "test_json_formatter_preserves_utc_and_interpolates_arguments",
-                '"module": record.name,\n            "message": record.getMessage(),',
-                '"module": record.name,\n            "message": str(record.msg),',
-            ),
-            (
-                "test_invalid_utf8_config_snapshot_is_unavailable",
-                "return raw.decode(), raw",
-                'return raw.decode(errors="replace"), raw',
-            ),
-        ]
-    )
+    cases = [
+        (
+            "test_warning_snapshot_context_is_detached_from_collector[logging]",
+            "return deepcopy(self.records)",
+            "return [dict(rec) for rec in self.records]",
+        ),
+        (
+            "test_warning_snapshot_context_is_detached_from_collector[warnings]",
+            "return deepcopy(self.records)",
+            "return [dict(rec) for rec in self.records]",
+        ),
+        (
+            "test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+            "return summary_table(returns_map, benchmark=benchmark)",
+            "return summary_table({k: -v for k, v in returns_map.items()}, benchmark=benchmark)",
+        ),
+        (
+            "test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+            "return summary_table(returns_map, benchmark=benchmark)",
+            "return summary_table(returns_map, benchmark=None)",
+        ),
+        (
+            "test_config_snapshot_preserves_utf8_and_original_bytes",
+            "return raw.decode(), raw",
+            'return raw.decode(), raw.replace(b"\\r\\n", b"\\n")',
+        ),
+        (
+            "test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+            '"duration_seconds": self.elapsed(),',
+            '"duration_seconds": 0.0,',
+        ),
+    ]
     controls = {
         "source_sha256": digest(original),
         "test_sha256": digest(test.read_bytes()),
@@ -148,7 +141,7 @@ def replay(root, output, python):
         (output / "controls.json").write_text(json.dumps(controls, indent=2), encoding="utf-8")
     if source.read_bytes() != original or digest(test.read_bytes()) != controls["test_sha256"]:
         raise RuntimeError("Source/test restoration failed")
-    print("8 named nodes: actual production RED then byte-identical restored GREEN")
+    print("6 named nodes: actual production RED then byte-identical restored GREEN")
 
 
 if __name__ == "__main__":

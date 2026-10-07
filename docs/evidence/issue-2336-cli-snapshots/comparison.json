@@ -1,0 +1,48 @@
+{
+  "base": "2e48bf69be495f52b30b9e9d8f3bd4394bb66a12",
+  "baseline": {
+    "covered_lines": 12140,
+    "num_statements": 14553,
+    "percent_covered": 83.41922627636913,
+    "percent_covered_display": "83",
+    "missing_lines": 2413,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.41922627636913,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate": {
+    "covered_lines": 12143,
+    "num_statements": 14554,
+    "percent_covered": 83.43410746186615,
+    "percent_covered_display": "83",
+    "missing_lines": 2411,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.43410746186615,
+    "percent_statements_covered_display": "83"
+  },
+  "baseline_nodes": 1607,
+  "candidate_nodes": 1613,
+  "added_nodes": [
+    "tests.test_cli_observability_boundaries::test_config_snapshot_preserves_utf8_and_original_bytes",
+    "tests.test_cli_observability_boundaries::test_enhanced_summary_preserves_monthly_returns_and_benchmark[index-benchmark]",
+    "tests.test_cli_observability_boundaries::test_enhanced_summary_preserves_monthly_returns_and_benchmark[no-benchmark]",
+    "tests.test_cli_observability_boundaries::test_run_timer_snapshot_uses_monotonic_elapsed_and_utc_wall_time",
+    "tests.test_cli_observability_boundaries::test_warning_snapshot_context_is_detached_from_collector[logging]",
+    "tests.test_cli_observability_boundaries::test_warning_snapshot_context_is_detached_from_collector[warnings]"
+  ],
+  "removed_nodes": [],
+  "old_node_outcome_changes": [],
+  "same_source_files": true,
+  "line_mapping": "cli.py >=26 shifts by one for the new deepcopy import",
+  "covered_line_regressions": [],
+  "covered_line_gains": [
+    {
+      "file": "pa_core/cli.py",
+      "new_lines": [
+        26,
+        219,
+        221
+      ]
+    }
+  ]
+}
