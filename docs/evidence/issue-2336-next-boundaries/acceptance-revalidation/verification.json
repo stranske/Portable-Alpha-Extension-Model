@@ -1,0 +1,157 @@
+{
+  "records": [
+    {
+      "label": "refusal-mutant",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_existing_output_refused_before_copying_or_mutating_checkout",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/refusal-mutant.xml"
+      ],
+      "cwd": "/tmp/cli-acceptance-control-ul9jjjef",
+      "exit": 1,
+      "elapsed_seconds": 2.674018727000032
+    },
+    {
+      "label": "cache-mutant",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_phase_failure_mutates_only_private_tree_and_preserves_active_source[keyboard]",
+        "-q",
+        "-m",
+        "not slow",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/cache-mutant.xml"
+      ],
+      "cwd": "/tmp/cli-acceptance-control-0w8fooh3",
+      "exit": 1,
+      "elapsed_seconds": 2.7436599210000168
+    },
+    {
+      "label": "focused",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py",
+        "tests/test_cli_observability_boundaries.py",
+        "-q",
+        "-m",
+        "not slow",
+        "--cov=pa_core.cli",
+        "--cov-report=term-missing",
+        "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/focused.xml"
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 0,
+      "elapsed_seconds": 5.202962217999982
+    },
+    {
+      "label": "ruff",
+      "argv": [
+        "ruff",
+        "check",
+        "tests/test_cli_mutation_replay_isolation.py",
+        "tests/test_cli_observability_boundaries.py"
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 0,
+      "elapsed_seconds": 0.007659659000012198
+    },
+    {
+      "label": "black",
+      "argv": [
+        "black",
+        "--check",
+        "--line-length",
+        "100",
+        "--exclude",
+        "(\\.workflows-lib|node_modules)",
+        "."
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 0,
+      "elapsed_seconds": 0.4910481939999727
+    }
+  ],
+  "black_environment": {
+    "BLACK_NUM_WORKERS": "1",
+    "BLACK_CACHE_DIR": "/tmp/cli-acceptance-black-cache"
+  },
+  "focused_passes": 12,
+  "mutation_controls": "Two isolated replay-driver mutants fail with JUnit assertions, no errors or skips.",
+  "historical_verified_manifest_files": 110,
+  "historical_covered_line_delta": 7,
+  "historical_passes": {
+    "baseline": 1594,
+    "candidate": 1602
+  },
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "test_sha256": "77741a035fe69ed3b7a4a06db87bd70e8f8b182d8f9dee16d27573bac0ecc0a1",
+  "pr_body_update": "Connector rejected update: requires approval, approval policy is never.",
+  "files": [
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/README.md",
+      "sha256": "0c8d67ab3cd339841e4bf30c6ff0a96edf1df3aaec221f2bee277dfbaf4a14de"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/black-sequential-results.json.gz",
+      "sha256": "da57e13faa0eccb56f9484d78bdecd214782be4a6243b54e2ca486270c6c000f",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/black-sequential-results.json",
+      "decoded_sha256": "357ea16cf1eada5f7783e6c97124dca8aaee97ec8b0e768f737b7c961e7f9fa1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/black.txt.gz",
+      "sha256": "21c13b2eb0b602e49f7044f113e275eb3b89cb8c6cb2286918777560f6e3230b",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/black.txt",
+      "decoded_sha256": "648415a26b2474472bdad6dea88660ca502784cd6356cc68a5510ce24294bc6b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/cache-mutant.txt.gz",
+      "sha256": "d2c3e411bed4d16ffca5f410c61abb6854eb3103d4314c3a2ccb792d58f14971",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/cache-mutant.txt",
+      "decoded_sha256": "3868e27d54d2d99f8e521a14d59e5c9885d1cae5da250dd0e068831ec838fee5"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/cache-mutant.xml.gz",
+      "sha256": "884e90ece031fd915b7f58cb43d6dcc864c09a038833338cdc4e746bb7be638b",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/cache-mutant.xml",
+      "decoded_sha256": "c23cf6a5a1ca5f74e1cb20f32b48fd540e5fb4d203c7b4e36dc11c998249c9bf"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/focused.txt.gz",
+      "sha256": "ffc63f7c2ef22c5575bbd8a294205f32c2cc48a80ece87581018b866d3b5120d",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/focused.txt",
+      "decoded_sha256": "fc3d87cc76039c8751a8a434094bf3f59992f6ca2216a69fdb709b3634bba2ab"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/focused.xml.gz",
+      "sha256": "b6b67b92fdbd1d5851e7968789e76dd13d33d6b5e5eb770e00db961ae9e65e95",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/focused.xml",
+      "decoded_sha256": "8b0a87ab5341ebf21971e785b24313a70d733580e2b2294d0f17df5f2b54f156"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/refusal-mutant.txt.gz",
+      "sha256": "62011c32b349e9e159a68cd48f4c6d7ff56fc03b27e30746b65d2c1a2acbe671",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/refusal-mutant.txt",
+      "decoded_sha256": "12d125853e0728044af59c5f3bc3fa98430243ebb8c5e99c65ca71a23086f127"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/refusal-mutant.xml.gz",
+      "sha256": "70090154d66ef59de1ddcc21679ab7430a9a843db99455f3b4f6b73aac880dc9",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/refusal-mutant.xml",
+      "decoded_sha256": "6db1bc967807dc5930d41153424a623131b65ac24d421781e632eedd0c8ea752"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/ruff.txt.gz",
+      "sha256": "f3af4d142827f5aad2eb0c72d556d325488a57fb6219aac10afeb51085667d53",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/ruff.txt",
+      "decoded_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    }
+  ]
+}

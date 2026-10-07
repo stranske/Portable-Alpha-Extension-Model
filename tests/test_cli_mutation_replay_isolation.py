@@ -29,16 +29,60 @@ def checkout(tmp_path):
         target = active / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((root / relative).read_bytes())
+    cache = active / "pa_core/__pycache__/cli.cpython-312.pyc"
+    cache.parent.mkdir(parents=True)
+    cache.write_bytes(b"existing caller cache")
     return active, files
 
 
-def test_phase_failure_mutates_only_private_tree_and_preserves_active_source(
+def checkout_bytes(active):
+    return {
+        path.relative_to(active): path.read_bytes() for path in active.rglob("*") if path.is_file()
+    }
+
+
+def assert_checkout_unchanged(active, original):
+    current = checkout_bytes(active)
+    assert current.keys() == original.keys()
+    for relative, content in original.items():
+        assert current[relative] == content, str(relative)
+
+
+def test_existing_output_refused_before_copying_or_mutating_checkout(
     checkout, tmp_path, monkeypatch
+):
+    active, _ = checkout
+    _, module = load_driver()
+    original = checkout_bytes(active)
+    output = tmp_path / "output"
+    output.mkdir()
+    proof = output / "controls.json"
+    proof.write_bytes(b"existing proof must survive")
+    monkeypatch.setattr(module, "__file__", str(active / REPLAY))
+    monkeypatch.setattr(sys, "argv", ["replay.py", "--output", str(output)])
+
+    def cannot_start(*args, **kwargs):
+        pytest.fail("Existing proof must be refused before snapshotting or running mutations")
+
+    monkeypatch.setattr(module.subprocess, "check_output", cannot_start)
+    monkeypatch.setattr(module.subprocess, "run", cannot_start)
+    with pytest.raises(FileExistsError):
+        module.main()
+    assert {path.name: path.read_bytes() for path in output.iterdir()} == {
+        "controls.json": b"existing proof must survive"
+    }
+    assert_checkout_unchanged(active, original)
+
+
+@pytest.mark.parametrize("interruption", ["timeout", "keyboard"])
+def test_phase_failure_mutates_only_private_tree_and_preserves_active_source(
+    checkout, tmp_path, monkeypatch, interruption
 ):
     active, files = checkout
     _, module = load_driver()
     source = active / files[0]
     original = source.read_bytes()
+    active_bytes = checkout_bytes(active)
     monkeypatch.setattr(module, "__file__", str(active / REPLAY))
     monkeypatch.setattr(sys, "argv", ["replay.py", "--output", str(tmp_path / "output")])
     monkeypatch.setattr(
@@ -53,13 +97,16 @@ def test_phase_failure_mutates_only_private_tree_and_preserves_active_source(
         assert (cwd / files[0]).read_bytes() != original
         assert source.read_bytes() == original
         private.append(cwd)
-        raise subprocess.TimeoutExpired(argv, 90)
+        if interruption == "timeout":
+            raise subprocess.TimeoutExpired(argv, 90)
+        raise KeyboardInterrupt
 
     monkeypatch.setattr(module.subprocess, "run", fail)
-    with pytest.raises(subprocess.TimeoutExpired):
+    expected = subprocess.TimeoutExpired if interruption == "timeout" else KeyboardInterrupt
+    with pytest.raises(expected):
         module.main()
     assert private and all(not p.exists() for p in private)
-    assert source.read_bytes() == original
+    assert_checkout_unchanged(active, active_bytes)
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX SIGTERM contract")
@@ -67,6 +114,7 @@ def test_sigterm_after_mutation_leaves_active_source_unchanged(checkout, tmp_pat
     active, files = checkout
     root, _ = load_driver()
     original = (active / files[0]).read_bytes()
+    active_bytes = checkout_bytes(active)
     marker = tmp_path / "private-tree.txt"
     helper = tmp_path / "interrupt.py"
     helper.write_text(
@@ -94,4 +142,4 @@ def test_sigterm_after_mutation_leaves_active_source_unchanged(checkout, tmp_pat
     private = Path(marker.read_text())
     assert private != active
     assert (private / files[0]).read_bytes() != original
-    assert (active / files[0]).read_bytes() == original
+    assert_checkout_unchanged(active, active_bytes)
