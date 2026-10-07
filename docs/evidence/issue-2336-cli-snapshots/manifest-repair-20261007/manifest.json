@@ -236,6 +236,11 @@
       "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/prior-manifest.json",
       "bytes": 21513,
       "sha256": "9a452e7ae5b2dab8f0e923979b4e8970939ddc2c5ff361ce60208e992abcee57"
+    },
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/manifest-repair-20261007/acceptance-revalidation-20261007/README.md",
+      "bytes": 119,
+      "sha256": "ef0f0457d8a42d2ecbd6cba2904913be9eb2bc5c0a8e32ac0a66b9c7a4c394cc"
     }
   ]
 }
