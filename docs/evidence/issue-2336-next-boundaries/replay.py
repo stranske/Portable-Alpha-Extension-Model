@@ -4,6 +4,8 @@ import argparse
 import hashlib
 import json
 import subprocess
+import shutil
+import tempfile
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -22,6 +24,21 @@ def main():
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[3]
+    # Copy tracked checkout bytes before any mutation. Each invocation owns its
+    # private tree, so exceptions, SIGTERM and concurrent runs cannot mutate the
+    # caller's source or caches. Temporary trees may survive an uncatchable kill.
+    with tempfile.TemporaryDirectory(prefix="cli-mutation-replay-") as temporary:
+        isolated = Path(temporary) / "checkout"
+        tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root).split(b"\0")
+        for raw in filter(None, tracked):
+            relative = Path(raw.decode("utf-8"))
+            target = isolated / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(root / relative, target)
+        replay(isolated, output, args.python)
+
+
+def replay(root, output, python):
     source = root / "pa_core/cli.py"
     test = root / "tests/test_cli_observability_boundaries.py"
     original = source.read_bytes()
@@ -91,7 +108,7 @@ def main():
                     cache.unlink()
                 stem = f"{index:02d}-{phase}"
                 junit = output / (stem + ".xml")
-                argv = [args.python, "-m", "pytest", node, "-q", "--junitxml=" + str(junit)]
+                argv = [python, "-m", "pytest", node, "-q", "--junitxml=" + str(junit)]
                 started = time.time()
                 with (output / (stem + ".txt")).open("w", encoding="utf-8") as stream:
                     proc = subprocess.run(

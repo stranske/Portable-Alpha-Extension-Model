@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "docs/evidence/issue-2336-next-boundaries/README.md",
-      "sha256": "df4ea88372bde6a043f14e1f64c1fd0faeb1d17b080e82b1183c02960787a16f"
+      "sha256": "e19c5cccf160358eb93b1ef6d3741881fba1dc6b0e2024221004a86a087895b5"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/baseline-console.txt.gz",
@@ -602,7 +602,7 @@
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/replay.py",
-      "sha256": "3776f97c68ea6b802dbdade2a2b059cec5b6136806884deeb61def92daa5cd6a"
+      "sha256": "61dc6b24bec8d65a60716eacf8a5a5a131d4e80b74e2757100af5084ee32d526"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/ruff-check.txt.gz",
@@ -612,23 +612,7 @@
     },
     {
       "path": "tests/test_cli_observability_boundaries.py",
-      "sha256": "f9caea23a289efc473ec76f881d4d10d2d69fb9e0a189aa051900f4d6c16dbf3"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/README.md",
-      "sha256": "41753716a016e907624a7d4a44ba26d6ff54c69eb1d6f63cc8239bed8aafc885"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/manifest.json",
-      "sha256": "7dd34b1052317344a0d8d8d742309b073da06268bf17b1e7f2a6ac9481af4e89"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/phase-artifacts.json.gz",
-      "sha256": "412d1a3ccb592361e125f91c74bc28412b2dec4a6fd92f396ab53445235247b4"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/original-manifest.json",
-      "sha256": "542a2daeef4f794347d34965ee216ac02bdab003a405d87f66da152d08144447"
+      "sha256": "6b706b2075d184aef35add65ce21f7a17e5184382534b42a2c273cac9dfc819b"
     }
   ]
 }
