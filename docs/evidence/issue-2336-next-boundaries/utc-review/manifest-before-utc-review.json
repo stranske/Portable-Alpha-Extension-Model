@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "docs/evidence/issue-2336-next-boundaries/README.md",
-      "sha256": "4490906f4da4ffb8187dfb7ef1534a4dfa1ba2860cfb4b70e198a97ce6f7ad18"
+      "sha256": "0f7b9a9890b75d95158347156f6388cef8a9fe958c3f16ba6518bad1b186ed30"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/baseline-console.txt.gz",
@@ -612,7 +612,7 @@
     },
     {
       "path": "tests/test_cli_observability_boundaries.py",
-      "sha256": "97b14e2b59538c92d4ac08358b95556c2a02eee270ede1906f7a9e73267c7067"
+      "sha256": "f9caea23a289efc473ec76f881d4d10d2d69fb9e0a189aa051900f4d6c16dbf3"
     },
     {
       "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/README.md",
@@ -695,50 +695,6 @@
     {
       "path": "docs/evidence/issue-2336-next-boundaries/acceptance-revalidation/verification.json",
       "sha256": "12a09f886a5c30b96e86167840e2a5e3d9ee68fdf0381f9166dcc1f10862d225"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/focused.stderr.gz",
-      "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/local-time-mutant.stdout.gz",
-      "sha256": "ad588d78717fbe5e3e9fb2bc3b294ac7b3d641bbdc6616f30f2d63bedf203a9f"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/restored-utc.stderr.gz",
-      "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/focused.xml.gz",
-      "sha256": "d948d95cd1d76e05fdc44598609d4361037dc6b29b32ad67ac1a217a23f86a98"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/manifest-before-utc-review.json",
-      "sha256": "a4df4015b971245bc25f1f5fbc6d3b72ce08cce65c58cb4f200bf2aad03d4ff9"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/local-time-mutant.xml.gz",
-      "sha256": "533e1844bd460b4d518e06f29f74cdb0bb784b7b395144e20c446ffd177b371f"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/focused.stdout.gz",
-      "sha256": "f4e0d231fca3f82af4c2b8bd17dd92f6a0f1836e7df14801e0c0e175227b787d"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/validation.json",
-      "sha256": "53d65344c5699300fb7a5a1605c6adab94197d7f5b77fce6b8e32b61b3da3c8b"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/restored-utc.stdout.gz",
-      "sha256": "51961475d374d28bf3e6268351bc660f6ba9d0bfd7e793e08a75816b3d50f4ea"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/restored-utc.xml.gz",
-      "sha256": "95b6843458b372360723af6b04b6ee0b818ee4649d7cc607769f5d4087181ac8"
-    },
-    {
-      "path": "docs/evidence/issue-2336-next-boundaries/utc-review/local-time-mutant.stderr.gz",
-      "sha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
     }
   ]
 }

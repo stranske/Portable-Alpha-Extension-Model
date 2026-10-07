@@ -17,3 +17,11 @@ Both full runs used the same existing isolated Python3.12 environment with xarra
 Raw console, coverage JSON and JUnit captures are preserved losslessly as gzip. `manifest.json` maps every stored file to stored and decompressed SHA256; receipt filenames refer to the decoded names. Decode with `gzip -dc FILE.gz` or Python gzip without changing the preserved capture. Ranking/commands/controls/comparison remain plain JSON/text where useful. Focused Black/Ruff pass.
 
 `acceptance-revalidation/` records the verified acceptance checklist, the blocked remote PR-body update, automated output refusal, KeyboardInterrupt and caller-cache isolation checks, two isolated replay-driver mutation controls, and 12 passing focused cases. Historical coverage remains distinct from the new targeted verification.
+
+UTC review reconciliation: `utc-review/` retains an actual production mutation
+that removes only the explicit UTC timezone from JsonFormatter's timestamp
+conversion. The strengthened named test models a non-UTC host without mutating
+process-global timezone state: the local-time mutant fails, byte-identical
+production restoration passes, and all12 focused cases pass. Both epoch and
+fractional-second expectations remain. The previous manifest is preserved
+verbatim in that directory; this manifest binds the current test and receipts.

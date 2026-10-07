@@ -3,7 +3,7 @@
 import json
 import logging
 import warnings
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import pytest
@@ -136,7 +136,16 @@ def test_warning_snapshot_does_not_expose_mutable_message_records():
         collector.uninstall()
 
 
-def test_json_formatter_preserves_utc_and_interpolates_arguments():
+def test_json_formatter_preserves_utc_and_interpolates_arguments(monkeypatch):
+    class NonUtcDatetime(datetime):
+        @classmethod
+        def fromtimestamp(cls, timestamp, tz=None):
+            local_zone = timezone(timedelta(hours=-5))
+            return super().fromtimestamp(timestamp, tz=tz if tz is not None else local_zone)
+
+    # Model a non-UTC host without changing process-global TZ or requiring tzset.
+    assert NonUtcDatetime.fromtimestamp(0).utcoffset() == timedelta(hours=-5)
+    monkeypatch.setattr(cli, "datetime", NonUtcDatetime)
     record = logging.LogRecord("pa.output", logging.ERROR, __file__, 1, "scenario %s", ("α",), None)
     # Include fractional seconds so truncating real log timestamps cannot pass.
     for created, expected_time in [
