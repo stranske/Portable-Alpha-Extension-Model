@@ -1,0 +1,574 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______ test_snapshot_replay_restores_source_after_phase_failure[timeout] _______
+
+checkout = (PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-1896/test_snapshot_replay_restores_0/active'), [PosixPath('pa_core/cli.py'), PosixPath('tests/test_cli_observability_boundaries.py')])
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-1896/test_snapshot_replay_restores_0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11e494590>
+interruption = 'timeout'
+
+    @pytest.mark.parametrize("interruption", ["timeout", "keyboard"])
+    def test_snapshot_replay_restores_source_after_phase_failure(
+        checkout, tmp_path, monkeypatch, interruption
+    ):
+        active, files = checkout
+        path = Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-cli-snapshots/replay.py"
+        spec = importlib.util.spec_from_file_location("snapshot_cli_replay", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        source, test = active / files[0], active / files[1]
+        original, original_test = source.read_bytes(), test.read_bytes()
+        output = tmp_path / "snapshot-output"
+        output.mkdir()
+    
+        def fail(argv, *, cwd, **kwargs):
+            assert cwd == active
+            assert source.read_bytes() != original
+            if interruption == "timeout":
+                raise subprocess.TimeoutExpired(argv, 90)
+            raise KeyboardInterrupt
+    
+        monkeypatch.setattr(module.subprocess, "run", fail)
+        expected = subprocess.TimeoutExpired if interruption == "timeout" else KeyboardInterrupt
+        with pytest.raises(expected):
+            module.replay(active, output, sys.executable)
+    
+>       assert source.read_bytes() == original
+E       assert b'"""Command-...n    main()\n' == b'"""Command-...n    main()\n'
+E         
+E         At index 6395 diff: b'[' != b'd'
+E         Use -v to get more diff
+
+tests/test_cli_mutation_replay_isolation.py:191: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/anaconda3/lib/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(_console_main())
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 253, in _console_main
+    code = _main(prog=_get_prog_name(sys.argv))
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 229, in _main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 377, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 330, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 384, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 408, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 132, in runtestprotocol
+    rep = call_and_report(item, "setup", log)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 249, in call_and_report
+    call = CallInfo.from_call(
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 361, in from_call
+    result: TResult | None = func()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 250, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 170, in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 536, in setup
+    col.setup()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/python.py", line 1710, in setup
+    self._request._fillfixtures()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 806, in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 630, in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 726, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1232, in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1328, in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 998, in call_fixture_func
+    fixture_result = next(generator)
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/tests/conftest.py", line 138, in _restore_viz_theme_globals
+    from pa_core.viz import theme
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/__init__.py", line 3, in <module>
+    from . import (
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/animation.py", line 4, in <module>
+    import pandas as pd
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/__init__.py", line 46, in <module>
+    from pandas.core.api import (
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/api.py", line 27, in <module>
+    from pandas.core.arrays import Categorical
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/__init__.py", line 1, in <module>
+    from pandas.core.arrays.arrow import ArrowExtensionArray
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/arrow/__init__.py", line 5, in <module>
+    from pandas.core.arrays.arrow.array import ArrowExtensionArray
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/arrow/array.py", line 65, in <module>
+    from pandas.core import (
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/ops/__init__.py", line 9, in <module>
+    from pandas.core.ops.array_ops import (
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/ops/array_ops.py", line 55, in <module>
+    from pandas.core.computation import expressions
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/computation/expressions.py", line 23, in <module>
+    from pandas.core.computation.check import NUMEXPR_INSTALLED
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/computation/check.py", line 5, in <module>
+    ne = import_optional_dependency("numexpr", errors="warn")
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/compat/_optional.py", line 158, in import_optional_dependency
+    module = importlib.import_module(name)
+  File "/opt/anaconda3/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/opt/anaconda3/lib/python3.12/site-packages/numexpr/__init__.py", line 24, in <module>
+    from numexpr.interpreter import MAX_THREADS, use_vml, __BLOCK_SIZE1__
+AttributeError: _ARRAY_API not found
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/anaconda3/lib/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(_console_main())
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 253, in _console_main
+    code = _main(prog=_get_prog_name(sys.argv))
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 229, in _main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 377, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 330, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 384, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 408, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 132, in runtestprotocol
+    rep = call_and_report(item, "setup", log)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 249, in call_and_report
+    call = CallInfo.from_call(
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 361, in from_call
+    result: TResult | None = func()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 250, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 170, in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 536, in setup
+    col.setup()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/python.py", line 1710, in setup
+    self._request._fillfixtures()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 806, in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 630, in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 726, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1232, in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1328, in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 998, in call_fixture_func
+    fixture_result = next(generator)
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/tests/conftest.py", line 138, in _restore_viz_theme_globals
+    from pa_core.viz import theme
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/__init__.py", line 3, in <module>
+    from . import (
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/animation.py", line 4, in <module>
+    import pandas as pd
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/__init__.py", line 46, in <module>
+    from pandas.core.api import (
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/api.py", line 27, in <module>
+    from pandas.core.arrays import Categorical
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/__init__.py", line 1, in <module>
+    from pandas.core.arrays.arrow import ArrowExtensionArray
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/arrow/__init__.py", line 5, in <module>
+    from pandas.core.arrays.arrow.array import ArrowExtensionArray
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/arrow/array.py", line 79, in <module>
+    from pandas.core.arrays.masked import BaseMaskedArray
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/masked.py", line 56, in <module>
+    from pandas.core import (
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/core/nanops.py", line 54, in <module>
+    bn = import_optional_dependency("bottleneck", errors="warn")
+  File "/opt/anaconda3/lib/python3.12/site-packages/pandas/compat/_optional.py", line 158, in import_optional_dependency
+    module = importlib.import_module(name)
+  File "/opt/anaconda3/lib/python3.12/importlib/__init__.py", line 90, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/opt/anaconda3/lib/python3.12/site-packages/bottleneck/__init__.py", line 7, in <module>
+    from .move import (move_argmax, move_argmin, move_max, move_mean, move_median,
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/site-packages/numpy/core/_multiarray_umath.py", line 46, in __getattr__
+    raise ImportError(msg)
+ImportError: 
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/anaconda3/lib/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(_console_main())
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 253, in _console_main
+    code = _main(prog=_get_prog_name(sys.argv))
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 229, in _main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 377, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 330, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 384, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 408, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 132, in runtestprotocol
+    rep = call_and_report(item, "setup", log)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 249, in call_and_report
+    call = CallInfo.from_call(
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 361, in from_call
+    result: TResult | None = func()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 250, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 170, in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 536, in setup
+    col.setup()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/python.py", line 1710, in setup
+    self._request._fillfixtures()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 806, in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 630, in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 726, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1232, in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1328, in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 998, in call_fixture_func
+    fixture_result = next(generator)
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/tests/conftest.py", line 138, in _restore_viz_theme_globals
+    from pa_core.viz import theme
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/__init__.py", line 3, in <module>
+    from . import (
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/geo_exposure.py", line 4, in <module>
+    import plotly.express as px
+  File "/opt/anaconda3/lib/python3.12/site-packages/plotly/express/__init__.py", line 27, in <module>
+    from ._imshow import imshow
+  File "/opt/anaconda3/lib/python3.12/site-packages/plotly/express/_imshow.py", line 11, in <module>
+    import xarray
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/__init__.py", line 3, in <module>
+    from xarray import coders, groupers, indexes, testing, tutorial, ufuncs
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/coders.py", line 6, in <module>
+    from xarray.coding.times import CFDatetimeCoder, CFTimedeltaCoder
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/coding/times.py", line 15, in <module>
+    from xarray.coding.common import (
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/coding/common.py", line 8, in <module>
+    from xarray.core import indexing
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/core/indexing.py", line 20, in <module>
+    from xarray.core import duck_array_ops
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/core/duck_array_ops.py", line 27, in <module>
+    from xarray.compat import dask_array_compat, dask_array_ops
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/compat/dask_array_ops.py", line 8, in <module>
+    from xarray.core import dtypes, nputils
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/core/nputils.py", line 33, in <module>
+    import bottleneck as bn
+  File "/opt/anaconda3/lib/python3.12/site-packages/bottleneck/__init__.py", line 7, in <module>
+    from .move import (move_argmax, move_argmin, move_max, move_mean, move_median,
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/site-packages/numpy/core/_multiarray_umath.py", line 46, in __getattr__
+    raise ImportError(msg)
+ImportError: 
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+
+
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/opt/anaconda3/lib/python3.12/site-packages/pytest/__main__.py", line 9, in <module>
+    raise SystemExit(_console_main())
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 253, in _console_main
+    code = _main(prog=_get_prog_name(sys.argv))
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/config/__init__.py", line 229, in _main
+    ret: ExitCode | int = config.hook.pytest_cmdline_main(config=config)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 377, in pytest_cmdline_main
+    return wrap_session(config, _main)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 330, in wrap_session
+    session.exitstatus = doit(config, session) or 0
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 384, in _main
+    config.hook.pytest_runtestloop(session=session)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/main.py", line 408, in pytest_runtestloop
+    item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 118, in pytest_runtest_protocol
+    runtestprotocol(item, nextitem=nextitem)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 132, in runtestprotocol
+    rep = call_and_report(item, "setup", log)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 249, in call_and_report
+    call = CallInfo.from_call(
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 361, in from_call
+    result: TResult | None = func()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 250, in <lambda>
+    lambda: runtest_hook(item=item, **kwds),
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 170, in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/runner.py", line 536, in setup
+    col.setup()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/python.py", line 1710, in setup
+    self._request._fillfixtures()
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 806, in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 630, in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 726, in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1232, in execute
+    result: FixtureValue = ihook.pytest_fixture_setup(
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_hooks.py", line 512, in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_manager.py", line 120, in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+  File "/opt/anaconda3/lib/python3.12/site-packages/pluggy/_callers.py", line 121, in _multicall
+    res = hook_impl.function(*args)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 1328, in pytest_fixture_setup
+    result = call_fixture_func(fixturefunc, request, kwargs)
+  File "/opt/anaconda3/lib/python3.12/site-packages/_pytest/fixtures.py", line 998, in call_fixture_func
+    fixture_result = next(generator)
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/tests/conftest.py", line 138, in _restore_viz_theme_globals
+    from pa_core.viz import theme
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/__init__.py", line 3, in <module>
+    from . import (
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae2342-review-20261007T1239Z/pa_core/viz/geo_exposure.py", line 4, in <module>
+    import plotly.express as px
+  File "/opt/anaconda3/lib/python3.12/site-packages/plotly/express/__init__.py", line 27, in <module>
+    from ._imshow import imshow
+  File "/opt/anaconda3/lib/python3.12/site-packages/plotly/express/_imshow.py", line 11, in <module>
+    import xarray
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/__init__.py", line 3, in <module>
+    from xarray import coders, groupers, indexes, testing, tutorial, ufuncs
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/coders.py", line 6, in <module>
+    from xarray.coding.times import CFDatetimeCoder, CFTimedeltaCoder
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/coding/times.py", line 15, in <module>
+    from xarray.coding.common import (
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/coding/common.py", line 9, in <module>
+    from xarray.core.variable import Variable
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/core/variable.py", line 19, in <module>
+    from xarray.computation import ops
+  File "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261007T1020Z/python-overlay/xarray/computation/ops.py", line 18, in <module>
+    import bottleneck as bn
+  File "/opt/anaconda3/lib/python3.12/site-packages/bottleneck/__init__.py", line 7, in <module>
+    from .move import (move_argmax, move_argmin, move_max, move_mean, move_median,
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.12/site-packages/numpy/core/_multiarray_umath.py", line 46, in __getattr__
+    raise ImportError(msg)
+ImportError: 
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.5.0 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+
+______ test_snapshot_replay_restores_source_after_phase_failure[keyboard] ______
+
+checkout = (PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-1896/test_snapshot_replay_restores_1/active'), [PosixPath('pa_core/cli.py'), PosixPath('tests/test_cli_observability_boundaries.py')])
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-1896/test_snapshot_replay_restores_1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11e494a40>
+interruption = 'keyboard'
+
+    @pytest.mark.parametrize("interruption", ["timeout", "keyboard"])
+    def test_snapshot_replay_restores_source_after_phase_failure(
+        checkout, tmp_path, monkeypatch, interruption
+    ):
+        active, files = checkout
+        path = Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-cli-snapshots/replay.py"
+        spec = importlib.util.spec_from_file_location("snapshot_cli_replay", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        source, test = active / files[0], active / files[1]
+        original, original_test = source.read_bytes(), test.read_bytes()
+        output = tmp_path / "snapshot-output"
+        output.mkdir()
+    
+        def fail(argv, *, cwd, **kwargs):
+            assert cwd == active
+            assert source.read_bytes() != original
+            if interruption == "timeout":
+                raise subprocess.TimeoutExpired(argv, 90)
+            raise KeyboardInterrupt
+    
+        monkeypatch.setattr(module.subprocess, "run", fail)
+        expected = subprocess.TimeoutExpired if interruption == "timeout" else KeyboardInterrupt
+        with pytest.raises(expected):
+            module.replay(active, output, sys.executable)
+    
+>       assert source.read_bytes() == original
+E       assert b'"""Command-...n    main()\n' == b'"""Command-...n    main()\n'
+E         
+E         At index 6395 diff: b'[' != b'd'
+E         Use -v to get more diff
+
+tests/test_cli_mutation_replay_isolation.py:191: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cli_mutation_replay_isolation.py::test_snapshot_replay_restores_source_after_phase_failure[timeout]
+FAILED tests/test_cli_mutation_replay_isolation.py::test_snapshot_replay_restores_source_after_phase_failure[keyboard]
+2 failed, 4 deselected in 2.46s
