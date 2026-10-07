@@ -1,0 +1,128 @@
+"""Protect CLI diagnostics and warning collection at failure boundaries."""
+
+import json
+import logging
+import warnings
+from datetime import datetime, timezone
+
+import pandas as pd
+import pytest
+
+from pa_core import cli
+
+
+@pytest.mark.parametrize("error", [KeyError, TypeError, ValueError], ids=["key", "type", "value"])
+def test_run_diff_expected_error_is_logged_without_rendering(monkeypatch, caplog, error):
+    from pa_core.reporting import console, run_diff
+
+    def fail(*args):
+        raise error("previous run unavailable")
+
+    def cannot_render(*args):
+        pytest.fail("A failed run comparison must not render a partial diff")
+
+    monkeypatch.setattr(run_diff, "build_run_diff", fail)
+    monkeypatch.setattr(console, "print_run_diff", cannot_render)
+    with caplog.at_level(logging.WARNING, logger="pa_core.cli"):
+        cli._maybe_print_run_diff(
+            current_manifest={"run": "current"},
+            prev_manifest={"run": "previous"},
+            current_summary=pd.DataFrame({"Agent": ["Base"]}),
+            prev_summary=None,
+        )
+    assert len(caplog.records) == 1
+    assert caplog.records[0].name == "pa_core.cli"
+    assert caplog.records[0].levelno == logging.WARNING
+    assert "Run diff unavailable:" in caplog.records[0].getMessage()
+    assert "previous run unavailable" in caplog.records[0].getMessage()
+
+
+def test_run_diff_unexpected_error_propagates(monkeypatch):
+    from pa_core.reporting import run_diff
+
+    def fail(*args):
+        raise RuntimeError("unexpected comparison defect")
+
+    monkeypatch.setattr(run_diff, "build_run_diff", fail)
+    with pytest.raises(RuntimeError, match="unexpected comparison defect"):
+        cli._maybe_print_run_diff(
+            current_manifest={},
+            prev_manifest={},
+            current_summary=pd.DataFrame(),
+            prev_summary=None,
+        )
+
+
+def test_warning_collector_double_install_captures_once_and_restores(monkeypatch):
+    forwarded = []
+
+    def previous_hook(*args):
+        forwarded.append(args)
+
+    monkeypatch.setattr(warnings, "showwarning", previous_hook)
+    root = logging.getLogger()
+    original_handlers = tuple(root.handlers)
+    collector = cli._WarningCollector()
+    try:
+        collector.install()
+        collector.install()
+        logging.getLogger("pa.boundary").warning("run %s failed", "alpha")
+        warning = UserWarning("source warning")
+        warnings.showwarning(warning, UserWarning, "scenario.yml", 17)
+        records = collector.snapshot()
+        assert [(r["code"], r["severity"], r["message"]) for r in records] == [
+            ("pa.boundary", "warning", "run alpha failed"),
+            ("UserWarning", "warning", "source warning"),
+        ]
+        assert records[0]["context"]["source"] == "logging"
+        assert records[1]["context"] == {
+            "source": "warnings",
+            "category": "UserWarning",
+            "filename": "scenario.yml",
+            "lineno": 17,
+        }
+        assert forwarded == [(warning, UserWarning, "scenario.yml", 17, None, None)]
+        collector.uninstall()
+        collector.uninstall()
+        assert tuple(root.handlers) == original_handlers
+        assert warnings.showwarning is previous_hook
+    finally:
+        collector.uninstall()
+        collector.uninstall()
+        # Clean leaked handlers even if the deliberately broken implementation fails.
+        root.handlers[:] = list(original_handlers)
+        warnings.showwarning = previous_hook
+
+
+def test_warning_snapshot_does_not_expose_mutable_message_records():
+    collector = cli._WarningCollector()
+    try:
+        collector.install()
+        logging.getLogger("pa.snapshot").warning("original warning")
+        snapshot = collector.snapshot()
+        snapshot[0]["message"] = "tampered"
+        snapshot.clear()
+        assert collector.snapshot()[0]["message"] == "original warning"
+    finally:
+        collector.uninstall()
+
+
+def test_json_formatter_preserves_utc_and_interpolates_arguments():
+    record = logging.LogRecord("pa.output", logging.ERROR, __file__, 1, "scenario %s", ("α",), None)
+    record.created = 0
+    result = json.loads(cli.JsonFormatter().format(record))
+    assert result == {
+        "level": "ERROR",
+        "timestamp": datetime(1970, 1, 1, tzinfo=timezone.utc).isoformat(),
+        "module": "pa.output",
+        "message": "scenario α",
+    }
+
+
+def test_invalid_utf8_config_snapshot_is_unavailable(tmp_path, caplog):
+    path = tmp_path / "private.yml"
+    path.write_bytes(b"secret: \xff")
+    with caplog.at_level(logging.DEBUG, logger="pa_core.cli"):
+        assert cli._read_config_snapshot(path) == (None, None)
+    assert "Unable to read config snapshot" in caplog.text
+    assert "secret:" not in caplog.text

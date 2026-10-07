@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+    "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-next-boundaries/docs/evidence/issue-2336-next-boundaries/replay.py",
+    "--output",
+    "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-next-boundaries/docs/evidence/issue-2336-next-boundaries/mutation-final"
+  ],
+  "cwd": "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-next-boundaries",
+  "exit": 1,
+  "source_before": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "source_after": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "all_prior_proof_bytes_unchanged": true
+}

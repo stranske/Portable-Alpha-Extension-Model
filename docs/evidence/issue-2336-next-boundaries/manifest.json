@@ -1,0 +1,618 @@
+{
+  "base": "d4ed680e7b362c78e43a9a4d4d54b6b65c2b9e44",
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "files": [
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/README.md",
+      "sha256": "e19c5cccf160358eb93b1ef6d3741881fba1dc6b0e2024221004a86a087895b5"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/baseline-console.txt.gz",
+      "sha256": "3a4d9b4d2980d6bfcf8540e25f6f4ebbc2207848f3a57be7c7a76042af27626e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/baseline-console.txt",
+      "decoded_sha256": "441f94f3d4758ce4b87acfd585aea52a3d2cf82e41600ee6d67f46c23cbefac2"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/baseline-coverage.json.gz",
+      "sha256": "b72dea5cfb8d5a1df6770123882a693c8c20fc7317d6f7e21d1735cbf7f0225e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/baseline-coverage.json",
+      "decoded_sha256": "1ba3b13c2d78c321ece6803c792f9222a404638b56106a579ea8a1d000a9b07c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/baseline-junit.xml.gz",
+      "sha256": "ccb81e4247869787ee3ee48ae69113044b4327fbec7001a77d7ce71d09a445b1",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/baseline-junit.xml",
+      "decoded_sha256": "2882fbf6b6b1e6dae57a1392a8f6b09e8fbf1182c351eb94e9a8e4cf58f4ea36"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/baseline-process.json",
+      "sha256": "dfa618bde74adc0105ffedfc9b472eee221b5c50bc8e211b078d01829e39e292"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/black-check.txt.gz",
+      "sha256": "0a0a9bb638d1f13c6840fa914ccbda96e09fdc8367e602d6961843fca866cfe9",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/black-check.txt",
+      "decoded_sha256": "b9cf511501d306d2bd8355ccb165c8ddc0a6fdd62d7c72c4a7b1795cf8934c8c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/candidate-console.txt.gz",
+      "sha256": "7d5ce3a6e0d92a42ae164f49c7d9eedfab5647b8f55957ff7e944d2be7581035",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/candidate-console.txt",
+      "decoded_sha256": "624364fd7a5573f6ba949c42fa15fbb686f4bb4dc77a84a62f606145572a8db3"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/candidate-coverage.json.gz",
+      "sha256": "657fefb33528d4c2ab4c981a489ac3bda4b73f30750bea5f6211fd3c0b4e4e51",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/candidate-coverage.json",
+      "decoded_sha256": "e82446d27173b5ac57e783cd61996ccc92e3408cbfbf18046496569c2bb7bf32"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/candidate-junit.xml.gz",
+      "sha256": "1605f0040688a73f269a3d17b6fe33ba2f5440c9618458dc4745042d27cad5d6",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/candidate-junit.xml",
+      "decoded_sha256": "647226b2f407dc32137f855a57e4eba1d1c8ff9ef321c3830471ffb4b0dabc5c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/candidate-process.json",
+      "sha256": "b3d61294a9b1b32f6af8c76dbea9267d0077681897f592670907bdd873eaad0e"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/comparison.json",
+      "sha256": "1668f8a658fee9459c230ed7cf6cda3c7ed51fa98089e25dbdc7df45ff051f6a"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/existing-output-console.txt.gz",
+      "sha256": "63bdd4a34698c19777c5da1c280097afea14b466d2c90433fbe7470c54033325",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/existing-output-console.txt",
+      "decoded_sha256": "ea6e6201a8d8c6e6528a4e9f3d1fb4a0ac6b73639f69cc1fc4053a0f64c04beb"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/existing-output-receipt.json",
+      "sha256": "78bc384d8263beed2f81e90ba0c7cb334893dfebefde08ff8c7fb0073ad45d45"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/focused-console.txt.gz",
+      "sha256": "52741a37609b7cef678b5b6ee14fa6aba2a536ea9480e3fa22bdd52a9f18bc33",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/focused-console.txt",
+      "decoded_sha256": "73b221e6d7d98312361db1335c985083b2cb96409cbab7e601476e8275190aa3"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/issue-body.md",
+      "sha256": "e4692917c9b43538cfe7aba08a4e82026039c23a8fa230a381228e4a66533646"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-console.txt.gz",
+      "sha256": "de75c99359aae6b3b63a490e06cbdf87a306a7b6e0a6e237970ec96ac5879eeb",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-console.txt",
+      "decoded_sha256": "d156dcf88eb3e1811e234a8dbb7f45f99122643c18178fafeee3eb4680dc521b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-green.txt.gz",
+      "sha256": "2655f60db8c7391238887508e55b43de32e5ea386f906cd2a757d3e874464cd2",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-green.txt",
+      "decoded_sha256": "96a8cb52be1ed2c3302d2e9f6528eca38c1cf7c2462ec7201e826ec440278f9d"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-green.xml.gz",
+      "sha256": "afcc2858672a34452de8a6437c62b38b44de88aad93eb27fd5206c5f31252438",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-green.xml",
+      "decoded_sha256": "fba439db886afeda5d637f7b7848b18e5e38d7e04dab0077e82f3222593bc9c8"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-red.txt.gz",
+      "sha256": "4daf91d6bd0be69afa83d11f4206d1cc66f076cdfc57f14ccabd938b3a7c8a3e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-red.txt",
+      "decoded_sha256": "94874b1f8dd379eca4b657283bc3bd5a06b0fa52602495db8d0a7af2eb2b6756"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-red.xml.gz",
+      "sha256": "3982f1821151f366f1030862d58f31f6b3a65664f0ea0c029b08b9ee641eca0d",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/00-red.xml",
+      "decoded_sha256": "2426d04d51a60422d86969114c9629f87df31f65659a122944fba1b636914f09"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-green.txt.gz",
+      "sha256": "6aa313dcc254ac6c8b4ead67714e80290995de0411ccbdc2ab7731371a806a12",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-green.txt",
+      "decoded_sha256": "0cd644fd40330429ec4c9aedb5c39f6dfd25770b8a253697bc892efb822968d7"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-green.xml.gz",
+      "sha256": "d62fe2c02894d7d86e25326b68e63df9151324115cd38a9f6ef0490a94b83af7",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-green.xml",
+      "decoded_sha256": "da489847239661d7c08c238a83e9d1471a435f7fc4ffb52cd1f22cf5c0a15771"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-red.txt.gz",
+      "sha256": "1f7a39bdb1d2ff7bf549e3faa1dafcd17ce4c282ce6ddcd7ebb6f50e4017004a",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-red.txt",
+      "decoded_sha256": "c468d8e2d9248e5d41a590d89802c9ed4706222b7d1541727635a84d6aa22d49"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-red.xml.gz",
+      "sha256": "bc546b8e824d068cc154331373c128872cd333ae36785c4d68b4052e6d218300",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/01-red.xml",
+      "decoded_sha256": "1a68a82bbc457478c50f330287c885e3420dfa95db76a7f0996af994ecdf8942"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-green.txt.gz",
+      "sha256": "309cff6ae1d8bd6f7d99bac6bdc0d15c414dcbdeac071fbb6b7b43f5695d4849",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-green.txt",
+      "decoded_sha256": "18f46c04e14671be81e081e7cd3910b913bc643549561cc325d37b98e03206e1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-green.xml.gz",
+      "sha256": "60ff831ac286f4d56cddf681e72c396fc0a4df41b83a510a75960f48c4b09c74",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-green.xml",
+      "decoded_sha256": "97fae8bd9977f3c23be1e123b202da68d443cac1aa663816bfb72d7d51813f52"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-red.txt.gz",
+      "sha256": "937aea871e3489f15bd5646656afc39e42e31b43850c36087cbc487ac7d10d66",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-red.txt",
+      "decoded_sha256": "889d1ae1aff515eb884a4f43cfae93bc30d9eeeaed8f5597dd5d405370583c45"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-red.xml.gz",
+      "sha256": "aeddc25d1e0cb4bc280c847fc64063722c1f89f6ad45eb2bceabc8c8210aaddd",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/02-red.xml",
+      "decoded_sha256": "4dc445a8b6910c29f99ddd7ba4e69c910ddffa39438368e5741591798ee67186"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-green.txt.gz",
+      "sha256": "27b597be25935f766d0e06cff14309f7a237784f33802112ddcc71696fa7b455",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-green.txt",
+      "decoded_sha256": "d4d8bec58329c891fa8379b6ddc7c3aa83907b0034facabf7d9cb4c9eab75bde"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-green.xml.gz",
+      "sha256": "e949a90d2b657eb722afd7d000134375977ab89824a62de948900073b8f4237a",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-green.xml",
+      "decoded_sha256": "6fe1e9fa3f8aea615d3a6b38da31c9749fa74ed70143c5cedceb1a160c4bc45d"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-red.txt.gz",
+      "sha256": "d45b329ae69a0e133fecdc01886cf1994ec7230597dedc5eedccb0ea3ddf17e2",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-red.txt",
+      "decoded_sha256": "743044b3f948ae65ffed8736f063d8e37e2aaf14147a059d1edc135404bf1bbc"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-red.xml.gz",
+      "sha256": "902dd90a02fd4ef193e6dc3e2f05b56fb7edf83fa7ec6a8216c688750dfac9e0",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/03-red.xml",
+      "decoded_sha256": "16b44acbe169a467ade6427fcf19f10e2f4b7e269cd6f60b0ccd7d78d5501f7b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-green.txt.gz",
+      "sha256": "27b597be25935f766d0e06cff14309f7a237784f33802112ddcc71696fa7b455",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-green.txt",
+      "decoded_sha256": "d4d8bec58329c891fa8379b6ddc7c3aa83907b0034facabf7d9cb4c9eab75bde"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-green.xml.gz",
+      "sha256": "f191ed207760f634b054a11e03b98b6470911bac5bf96c5e4586bbbc272ad531",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-green.xml",
+      "decoded_sha256": "5e85e04e8278a365e3f5062bbd6e462239b0cb180a1fbf862d2bcf3770be3fd0"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-red.txt.gz",
+      "sha256": "505a2b2a26f54ea94d45156219e3e8b675134fc6ef26dff118f1bcd4401a977e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-red.txt",
+      "decoded_sha256": "730a80ef9d2ccea535c281fd1a2539c086dd1c7492126e20b3fe9889a7799d25"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-red.xml.gz",
+      "sha256": "652f2b1960e226ece8935ff98e008f5b9ae3786c70096089064bf58be64530e7",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/04-red.xml",
+      "decoded_sha256": "c7550f96f57f8132ba90ef7af97ebc46a7d6695155207f191b9b0b687d0101fe"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-green.txt.gz",
+      "sha256": "f10fa1c7f5ae5e97e5be7ecf6efb59f25fa4be190c22cf83371527e17d96ab00",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-green.txt",
+      "decoded_sha256": "33b662fdd3508192388779035d895f2d57122672755940fd2356172dbe21537b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-green.xml.gz",
+      "sha256": "b155c0210062943587806c9c9271ba333d53a1a992b6784998bdba35e3372288",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-green.xml",
+      "decoded_sha256": "f0807288cb9c460eb8ee9b79e37456f1afb02c8d8d3cb0d83aadeaed56eae4c0"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-red.txt.gz",
+      "sha256": "5d38fe68d2bedabcf4a907f550d28c6d2ff6948b44ed6ddd3b192692a68f7811",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-red.txt",
+      "decoded_sha256": "ebece89ee90c19dc46884ac5d31269d50a17f9be005e727b6910fe725f7efbea"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-red.xml.gz",
+      "sha256": "a7cfdb5d987295970e6cee08326526b30e63217d4cd1b3e74a5120517e994fcf",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/05-red.xml",
+      "decoded_sha256": "f262a815d03d0866f9d1aaf7325f3eaf8713db857f7f76776abc74bcac92d8b4"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-green.txt.gz",
+      "sha256": "415eb72d44b657917a32a67dcdb73d794bd45f2c48b6933cd2ff0e70a3dbd4c8",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-green.txt",
+      "decoded_sha256": "a855b3c5f70f8cab19bae7fe75831012c6b74396f5ebb0b0985cd31c75146cd9"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-green.xml.gz",
+      "sha256": "90d1abcdf7da83800140417068056c4ce349023ba944c48caa9bf2fc5446bd80",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-green.xml",
+      "decoded_sha256": "5f40f9e94a0318b391b4111d5750917cf27340c70497275effa2d2e187ea4200"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-red.txt.gz",
+      "sha256": "af16184abd807afb36eadc5b7483bb4aa60b26f29b0158f7a073e6950144e750",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-red.txt",
+      "decoded_sha256": "05e3ac7b63526f7e0b49265a64ef6ffe0080975d5b5b2b76de227c2a3c667a18"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-red.xml.gz",
+      "sha256": "82fd51a57bbfcebd219d9617189a72536b1bb3b5c49abd21d4370749d2a2f006",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/06-red.xml",
+      "decoded_sha256": "622b9c766ff50e2cea2ede1ab2bf108f55867980f2c68ed96d344f146235beed"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-green.txt.gz",
+      "sha256": "58f6c41c78acf5b47d1568a0cb7c6ed5b6fd58698abf5468427a80e7dfcfbe8f",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-green.txt",
+      "decoded_sha256": "9d4474c1854330fc4444795c311f0e51551c123f8d28e9b45daa4f405550c218"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-green.xml.gz",
+      "sha256": "48d794909e0de2f02dccdd0271e003815931ae9c8991cbfda6ad266f93e380dc",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-green.xml",
+      "decoded_sha256": "0f35c8a3fd4dd2f941d28cdb36f04bf3361dd3e071d905d2039a34cdcdc010af"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-red.txt.gz",
+      "sha256": "66e19a452e9cebc92ad3a97b445a0d6a68be30c3a7de44b27e1f9983def67699",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-red.txt",
+      "decoded_sha256": "551c5580687684e1a7fc7131173e38c8ae3b67926d6ee529ffdda04ea574ac91"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-red.xml.gz",
+      "sha256": "fdf5563e4e3aa45e91d68c7e2b49a1cb6f033871acf22a1122ab7f3511f89d27",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final/07-red.xml",
+      "decoded_sha256": "7affd4a2916e16867d929b275c7cad664ab43fdf3661f445fd86da52db6deca4"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final/controls.json",
+      "sha256": "cacf1c1cbaf964ee874b4b55f5da4c6715cbed6a759e8eb7f8aff22b257766e5"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-final-console.txt.gz",
+      "sha256": "e5a7a5b54f4fd37e48bac28d34ccc8ad5ff45d6b34c432f5080977046a032326",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-final-console.txt",
+      "decoded_sha256": "9c88fe6a9f5c1c374f994e5d822295811c368b25455e76fa43ffec217a1debc4"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-green.txt.gz",
+      "sha256": "aaa93698b2da86ca2f98a92958fc4a151105778e5a7702125fbe599ab0a666b3",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-green.txt",
+      "decoded_sha256": "6a188187cc4acf92013e1fe24b04baf7dba1edd907ad7d4feecc4ff2465c741f"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-green.xml.gz",
+      "sha256": "96471b65c940773290fa68c8c3d730e870584be367cc0d2a294c72ad0c8bdf40",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-green.xml",
+      "decoded_sha256": "44481d7e29969570d74c1c921e7c1e90f13997874fcbe04e21ac7bc524d18a89"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-red.txt.gz",
+      "sha256": "9f4fa059fa3d5ce2f28584d7d182ea3aac6e9037a237190dbc271a3b65709b4b",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-red.txt",
+      "decoded_sha256": "12d2042a8f20d8130dfdab6915dfc5245d0e69e097ea913595c961b7a51dd4dd"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-red.xml.gz",
+      "sha256": "eddd7affc1b4fa9fc4aeb3230985c71ec07aefcc00e07a6db6acf967f36b236c",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/00-red.xml",
+      "decoded_sha256": "be3c6bbd4cd116f53a85e5e7e15bf1a61daf8eb3ecbc306ef278a7d2fdbcc925"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-green.txt.gz",
+      "sha256": "fe8cd0bcc20444438e1cd1d8451ccb3fbab9f52b23ed42bc04c6336ec1e4a593",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-green.txt",
+      "decoded_sha256": "7b0ddc0b4048defd352f92b4341837f207c70d0027eba8f89af2aee50355f0fb"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-green.xml.gz",
+      "sha256": "51e6dd583205f53297fdbdaa70413f3907566afcb6d2738c3e84eb2dc589ebcb",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-green.xml",
+      "decoded_sha256": "0c7bf5363519f08bdb179b0bc390a3099b2e0013bd80035f5d5287674258444b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-red.txt.gz",
+      "sha256": "13e2b8431d7cbc69327332e82f5b00b18bd6a925bd9e01d9d7ee0be9b2324e75",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-red.txt",
+      "decoded_sha256": "4c37b5411824b3a3a35f72d1f45dcdccfa40453dda53e8b44226cab9e021a36c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-red.xml.gz",
+      "sha256": "d21b05cb8361ee5847c6bbf81c72b27815b1962fd5ad236fc63dada4b16feb3b",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/01-red.xml",
+      "decoded_sha256": "1becfb00765f379e6ae12b3da05f6550feba0e31c2ef301c3d5168d3a5b34a26"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-green.txt.gz",
+      "sha256": "68fb5b6cdcc405c979eb5f70cb0a2dca335a8cc29af301d0305299a8385e6f0b",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-green.txt",
+      "decoded_sha256": "271e673dafc49d58dd8cc057b3c73869f6a08dac635fba8173269f7a3b981495"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-green.xml.gz",
+      "sha256": "616036de34cd5f283eb5e696ba0047a841cfa32a27b6aacdd65249a86a240e4a",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-green.xml",
+      "decoded_sha256": "7f402ae732ee1548a6d06233db8920c624f79ccd6d64eaec1a335f3e2b8c9d71"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-red.txt.gz",
+      "sha256": "2ea0e699a9544a4df18ef48d85c1454fa0430b65694c5ef5b4aa4de4ffc92ef7",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-red.txt",
+      "decoded_sha256": "2fab763a529d1863394153ce99e502ab7775ccac9e224f503059b7924c052944"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-red.xml.gz",
+      "sha256": "18ebda343d0d5f6f05d9050f91de7543a7ac9a96e560a27641fe5df37226e1dd",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/02-red.xml",
+      "decoded_sha256": "592f103a6bea7baf198e6554f656cd5dce1fed603ddc7ee31f9d9bccb80e4721"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-green.txt.gz",
+      "sha256": "0da3e6c6a313160c900fec172cb76951f7d888a87a365c6cd87eac12daac079c",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-green.txt",
+      "decoded_sha256": "8964ec0c2d96a99a0012763cb299d0385e0125f9a98c492b18fdae2e013f728a"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-green.xml.gz",
+      "sha256": "545e29b5eb2cea9f5c6954c9218c304cbdb9b7a2e821ecd21821dbaa2c186636",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-green.xml",
+      "decoded_sha256": "99f1f2e583891eb8eb74eb5f93db129295e5c3c6bbff9e4e1431eb5faf793906"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-red.txt.gz",
+      "sha256": "862317ae3c8369a6154c6987fb09007e2fe309fa6c267c307dcec2d68ccdb5a2",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-red.txt",
+      "decoded_sha256": "c8f8cb904b9fe1362e27d0cb6f6ed92efba07cba364fab0b01f80b245d713710"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-red.xml.gz",
+      "sha256": "cd55c7f1b4ef4b59d6e736cfac656e0a9c3a89a7511ad596b0bb7c09573e9d7f",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/03-red.xml",
+      "decoded_sha256": "7b6a5fd1cd0e3dfc5bb08728c0b63085cd55729912cf340f5b59b0e0c1482129"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-green.txt.gz",
+      "sha256": "58c7accddffd9b44265d7d97fffd9f44250cc797be4dbf8d83057a92e14e71f1",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-green.txt",
+      "decoded_sha256": "fb9eab2e9be43235f832f2e1ea81774c6515d986b40a1f7f9489b4fb98f9c9bc"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-green.xml.gz",
+      "sha256": "c5b2c19b2b016c0cfa01cf0b1b02bf39fec28519b21c8a7372b4df0f68310eb0",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-green.xml",
+      "decoded_sha256": "2aacb227088cdcbda4d394b42812a84195d3de2190161dcca8084db2ba64fdd0"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-red.txt.gz",
+      "sha256": "f352fbbddefbb5298d29fcedfe8a2c6b4c1a5be549c7a17ec451be1b342718e5",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-red.txt",
+      "decoded_sha256": "4536a578b84c6ae5dca7f1e3f82f33e1ec024687fb2a327d6e159a1f2f181ec1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-red.xml.gz",
+      "sha256": "3ecd076c2a463ba565bfc88841ab8a615681e9c3aec178495ccc6ea43b58f65e",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/04-red.xml",
+      "decoded_sha256": "77de3163bb0a0d5e6ee1c780ede21f4aedee5077419193c185f5948656d907ac"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-green.txt.gz",
+      "sha256": "fe8cd0bcc20444438e1cd1d8451ccb3fbab9f52b23ed42bc04c6336ec1e4a593",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-green.txt",
+      "decoded_sha256": "7b0ddc0b4048defd352f92b4341837f207c70d0027eba8f89af2aee50355f0fb"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-green.xml.gz",
+      "sha256": "bd6aa340573711a4b5f03450d85e23af10f1515b5df942497f5ab0b5f0392edb",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-green.xml",
+      "decoded_sha256": "bc34268194f46c3034586daf5fc799db8d8fecc9201dabe9edff6b75e2edb79c"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-red.txt.gz",
+      "sha256": "5d38fe68d2bedabcf4a907f550d28c6d2ff6948b44ed6ddd3b192692a68f7811",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-red.txt",
+      "decoded_sha256": "ebece89ee90c19dc46884ac5d31269d50a17f9be005e727b6910fe725f7efbea"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-red.xml.gz",
+      "sha256": "0fdc6077a984a4d7c8049cb9d569960342295998c54c13dc87054d4b30dd5b5c",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-run/05-red.xml",
+      "decoded_sha256": "d07199c1c99f1dc8f9fd1392451a0665c8e6dc282d40a15be686d83becfd16ac"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-run/controls.json",
+      "sha256": "65a50b7ab388bbb90d3cb23120f1f9146cb4c8fd9f1b3cf7f499e61ea9a8baa1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-green.txt.gz",
+      "sha256": "309cff6ae1d8bd6f7d99bac6bdc0d15c414dcbdeac071fbb6b7b43f5695d4849",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-green.txt",
+      "decoded_sha256": "18f46c04e14671be81e081e7cd3910b913bc643549561cc325d37b98e03206e1"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-green.xml.gz",
+      "sha256": "29228459a7cb6799e57224d3fccd53e3e627f32431101a7599c0f4b4a1140fe9",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-green.xml",
+      "decoded_sha256": "e57d040050e961e1e05744413a4c29bfb7569f8ee97f4e97e3d3d32fc644feee"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-red.txt.gz",
+      "sha256": "e924035d2bafc676f3f71ad69501f90437231d7f09813f12e7483205023c8f50",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-red.txt",
+      "decoded_sha256": "1cb7d8ff5652aab0fd88a7a9b121ffd1abb145daaf8525a3676ec466faa496c0"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-red.xml.gz",
+      "sha256": "2de6f3a8b0995b4f742d012395cdb59f1b15e9d212033553bb5271523e9f60f2",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/00-red.xml",
+      "decoded_sha256": "9d06b7d602ab0fe7d201109e2129a1b7aa82593700812493a010cf2b600041e5"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-green.txt.gz",
+      "sha256": "9a5293daf3c44a113240b4bc37f6f5f1d83e9aade8346240e09181c6861b5719",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-green.txt",
+      "decoded_sha256": "d712501db6a5dd648dfe7d9ad8c2bf2d7c16acd6d77e574e1749d0cd9084e473"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-green.xml.gz",
+      "sha256": "07d67c51a4192b02d0ea30fb66d8605beaeb2e382bda31bd149d593bfccffc1f",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-green.xml",
+      "decoded_sha256": "0514704ccb95525517c6b9bf742be55aa87d12863e20223f6273d81fa79b5631"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-red.txt.gz",
+      "sha256": "0bb7473ebc8389fc960244304e7b1847bb41c30da2620c01cd5e7830183018c3",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-red.txt",
+      "decoded_sha256": "74995a9e22b724a179741e076baf932690f9c79a9ea755d2d684ef72bb122b73"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-red.xml.gz",
+      "sha256": "7559c8ece3e3fe031f1faf797798263f686bfea80135232f7ee623f74b56504c",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/01-red.xml",
+      "decoded_sha256": "cf72f56ada32be64acd7a7823c1516e77248723908cdf99ec286942e0db64f3e"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-green.txt.gz",
+      "sha256": "58c7accddffd9b44265d7d97fffd9f44250cc797be4dbf8d83057a92e14e71f1",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-green.txt",
+      "decoded_sha256": "fb9eab2e9be43235f832f2e1ea81774c6515d986b40a1f7f9489b4fb98f9c9bc"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-green.xml.gz",
+      "sha256": "3b9cacad901a8d6b8ee2ecacdc36856e45d96e2a342b90bd37e1d426f12946e8",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-green.xml",
+      "decoded_sha256": "fb26f7bd7bb60da7f422f8c4ab7539b0a35b21f4aa7ce99a3c453b4c67c5da45"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-red.txt.gz",
+      "sha256": "9ad09df716602570bf2c93d15ed0dc5b92ce2a22b57ae37f588106b2c0e279fd",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-red.txt",
+      "decoded_sha256": "d09cb767dceccc6d9e0316186e0f8e84ead273fd449836d4f4d8dfdadbc91dee"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-red.xml.gz",
+      "sha256": "4d1467e4a25c390d4ba17f265685128a7282ad528b3a27aed6ec40de3beca378",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/02-red.xml",
+      "decoded_sha256": "7100be32b51e7751303808ab47630121f23d4f07911a1ba2943d6fa4a0968ad5"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-green.txt.gz",
+      "sha256": "2655f60db8c7391238887508e55b43de32e5ea386f906cd2a757d3e874464cd2",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-green.txt",
+      "decoded_sha256": "96a8cb52be1ed2c3302d2e9f6528eca38c1cf7c2462ec7201e826ec440278f9d"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-green.xml.gz",
+      "sha256": "0d2b43c223875e30c5307659ec4ec1d5fd911dbaac8d6b8b1184b6d42f903fa2",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-green.xml",
+      "decoded_sha256": "2fef31f77394736a327cf27d9ae69982e17ef5be2430602a66a47a76f142e740"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-red.txt.gz",
+      "sha256": "455d7d7e682d042937523e7ba4429d6700914c011d8cac0d98fe5254149d1ebb",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-red.txt",
+      "decoded_sha256": "82a220453714d9c35eba2807f8e535909134b789adc97427994d4e6111c0bc11"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-red.xml.gz",
+      "sha256": "812dcc4e2e46e1e7c4f478699e5f4348713cfd9cbd40c9b6a3e268d3d36bb6e7",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/03-red.xml",
+      "decoded_sha256": "74c6060c5252c448ddc11fec42231d021cdae31a3afc72f5f9431f6957b57069"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-green.txt.gz",
+      "sha256": "415eb72d44b657917a32a67dcdb73d794bd45f2c48b6933cd2ff0e70a3dbd4c8",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-green.txt",
+      "decoded_sha256": "a855b3c5f70f8cab19bae7fe75831012c6b74396f5ebb0b0985cd31c75146cd9"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-green.xml.gz",
+      "sha256": "79e3a6bae36ad94f7bb20f031c5305e03120d34dfc179a98fecbd35f6cbcf736",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-green.xml",
+      "decoded_sha256": "89db67e934d3258136c4fd053bf946f454c164bedc263d2b59e9b21c881c7e2a"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-red.txt.gz",
+      "sha256": "69dc1ab7e653f38db4e62d05869a05a23e813270e0a2b711d7cfc723f21c2661",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-red.txt",
+      "decoded_sha256": "a5c6a4a3a8147ee23bde59cdb9fd23d2e8dee0668ca12660b2987028473e36cf"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-red.xml.gz",
+      "sha256": "b58612598716b12bbae6bd7537adee486ba2c62d696f47f25ac0a491b0d206c6",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/04-red.xml",
+      "decoded_sha256": "c39f95bc85fc50892edc1f5c7e42b8cb1797de0374736763b9b1f4d9f2883ab2"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-green.txt.gz",
+      "sha256": "4a1b0549939f7ee186c20eeb9f52f1e7829497a15d875b2756f6e0013d0bb05c",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-green.txt",
+      "decoded_sha256": "49ae1d28768606678fb46a3a1115bec23f60c30f324650f113d9783ee5d44d57"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-green.xml.gz",
+      "sha256": "caaf19ecf79668b3c1e7c620ef7715cf4cd6df72d730a1c720c4f9caf1f100ee",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-green.xml",
+      "decoded_sha256": "f70fb46fec625d8adab8e14e77ee4274459669ab14518dedce3efbe5a8b49b22"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-red.txt.gz",
+      "sha256": "969b07329d25e485bf23f1d45c8b0fdf139b003087e56a08ac18c81c943b9d70",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-red.txt",
+      "decoded_sha256": "d22dd98db8a948de72ae0d0eea68f4e68b67647225d9d21a6a28550ef94bbada"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-red.xml.gz",
+      "sha256": "05df45bf5c0322e381580d7336be00fef0748c3749d35caa17e30b5133532749",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/05-red.xml",
+      "decoded_sha256": "d86eefbd984aaf2cf68493dd378f63355548f39a04347f3d8e1d1e24a2801981"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified/controls.json",
+      "sha256": "84699a22b9a117c6c5f56421d1f26ed273d66ee818e42676f72ef0cddb7ca6ac"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/mutation-verified-console.txt.gz",
+      "sha256": "de75c99359aae6b3b63a490e06cbdf87a306a7b6e0a6e237970ec96ac5879eeb",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/mutation-verified-console.txt",
+      "decoded_sha256": "d156dcf88eb3e1811e234a8dbb7f45f99122643c18178fafeee3eb4680dc521b"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/ranking-history.txt.gz",
+      "sha256": "c0c43c01f0a18964d44167a6ec04b2eada78f406786c9c3006f4819cd843d015",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/ranking-history.txt",
+      "decoded_sha256": "aea8107bd40749f0e72801fb85236a5318516457f94b117fa0e1ab1977a876ba"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/ranking.json",
+      "sha256": "76ec21ba1843e72c56485a7074858ff3b602b76bd276295760993908b50ffe15"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay.py",
+      "sha256": "61dc6b24bec8d65a60716eacf8a5a5a131d4e80b74e2757100af5084ee32d526"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/ruff-check.txt.gz",
+      "sha256": "7162964741fdb747d7ab27df2d1a1b64fa0636c4b7fe50ea8493de14cb62cbd4",
+      "decoded_path": "docs/evidence/issue-2336-next-boundaries/ruff-check.txt",
+      "decoded_sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    {
+      "path": "tests/test_cli_observability_boundaries.py",
+      "sha256": "6b706b2075d184aef35add65ce21f7a17e5184382534b42a2c273cac9dfc819b"
+    }
+  ]
+}

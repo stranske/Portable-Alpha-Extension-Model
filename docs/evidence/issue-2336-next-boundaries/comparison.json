@@ -1,0 +1,95 @@
+{
+  "base": "d4ed680e7b362c78e43a9a4d4d54b6b65c2b9e44",
+  "baseline": {
+    "covered_lines": 12133,
+    "num_statements": 14553,
+    "percent_covered": 83.37112622826909,
+    "percent_covered_display": "83",
+    "missing_lines": 2420,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.37112622826909,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate": {
+    "covered_lines": 12140,
+    "num_statements": 14553,
+    "percent_covered": 83.41922627636913,
+    "percent_covered_display": "83",
+    "missing_lines": 2413,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.41922627636913,
+    "percent_statements_covered_display": "83"
+  },
+  "same_source_files": 186,
+  "same_excluded_lines": 181,
+  "no_executed_line_regressions": true,
+  "junit": {
+    "baseline": {
+      "cases": 1595,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1
+    },
+    "candidate": {
+      "cases": 1603,
+      "failures": 0,
+      "errors": 0,
+      "skips": 1
+    }
+  },
+  "new_cases": [
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_run_diff_expected_error_is_logged_without_rendering[key]"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_run_diff_expected_error_is_logged_without_rendering[type]"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_run_diff_expected_error_is_logged_without_rendering[value]"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_run_diff_unexpected_error_propagates"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_warning_collector_double_install_captures_once_and_restores"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_warning_snapshot_does_not_expose_mutable_message_records"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_json_formatter_preserves_utc_and_interpolates_arguments"
+    ],
+    [
+      "tests.test_cli_observability_boundaries",
+      "test_invalid_utf8_config_snapshot_is_unavailable"
+    ]
+  ],
+  "selected_source": "pa_core/cli.py",
+  "selected_baseline": {
+    "covered_lines": 794,
+    "num_statements": 1106,
+    "percent_covered": 71.79023508137432,
+    "percent_covered_display": "72",
+    "missing_lines": 312,
+    "excluded_lines": 17,
+    "percent_statements_covered": 71.79023508137432,
+    "percent_statements_covered_display": "72"
+  },
+  "selected_candidate": {
+    "covered_lines": 801,
+    "num_statements": 1106,
+    "percent_covered": 72.42314647377938,
+    "percent_covered_display": "72",
+    "missing_lines": 305,
+    "excluded_lines": 17,
+    "percent_statements_covered": 72.42314647377938,
+    "percent_statements_covered_display": "72"
+  }
+}

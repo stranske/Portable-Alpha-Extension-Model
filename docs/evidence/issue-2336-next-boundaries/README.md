@@ -1,0 +1,17 @@
+# CLI diagnostic boundaries: bounded coverage chunk for #2336
+
+The CLI must report an unavailable prior-run comparison without rendering a partial diff, propagate unexpected defects, capture warnings exactly once across repeated installation, protect captured message records, emit interpolated UTC JSON logs, and refuse undecodable configuration snapshots without exposing contents. Eight new named cases protect these behaviors. Production is unchanged; no application bug was found.
+
+Current baseline `d4ed680e7b362c78e43a9a4d4d54b6b65c2b9e44` used the literal full scope `python -m pytest --cov=pa_core --cov=dashboard --cov-report=json:<capture> tests/`, adding only JUnit and the same diagnostic timeout. Exact argv/cwd/exit/duration are in each process receipt. Baseline:1594PASS; candidate:1602PASS. Both:1skip and2default-deselected, zero errors/failures, exit0. The JUnit comparison proves the original cases remain and exactly eight cases were added.
+
+Covered statements 12133→12140 / 14553; whole-source coverage 83.37112622826909%→83.41922627636913%. Same 186 source files, 181 excluded lines, and no covered-line regression. This modest gain leaves the broad 90% initiative OPEN. No scope, floor, marker, exclusion, dependency policy, or production change. CLI source SHA256 `265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f` matches the base exactly.
+
+`ranking.json` uses the last500 source-touching Git commits: repair-subject proxy, then churn, then current uncovered statements. CLI ranks first:26proxy matches,132touches,312missing statements. The proxy is not verified escaped incidents and size is not a ranking criterion. The complete history is retained.
+
+`mutation-final/controls.json` records eight actual production mutations, each selected explicit pytest node with exactly one JUnit failure/exit1, followed by byte-identical source restoration and one passing JUnit testcase/exit0; errors/skips are refused. Every phase retains argv/cwd/source hash and full console/JUnit. Two earlier incomplete attempts stopped at the formatter anchor after six valid cases: the first edit did not apply, then the anchor was corrected and verified unique. Both incomplete attempts and restoration receipts are retained; neither is represented as the complete proof.
+
+Replay with a compatible environment: `python docs/evidence/issue-2336-next-boundaries/replay.py --output /absolute/new-proof-directory`. The output directory must not exist. `existing-output-receipt.json` records actual exit1 refusal with all previous proof bytes and production unchanged. The driver restores production in `finally`. This is an explicit controlled-mutation replay, not a claimed invocation of the Orchestrator standard default-base verifier.
+
+Both full runs used the same existing isolated Python3.12 environment with xarray2026.9 overlay over shared installed packages, as disclosed by the previous full-suite receipt. Shared NumPy2.5/native extension compatibility diagnostics were emitted, but both full pytest processes exited0. No global installation, package-policy change or CI parity claim. Hosted Gate and review remain asynchronous keepalive/closer work.
+
+Raw console, coverage JSON and JUnit captures are preserved losslessly as gzip. `manifest.json` maps every stored file to stored and decompressed SHA256; receipt filenames refer to the decoded names. Decode with `gzip -dc FILE.gz` or Python gzip without changing the preserved capture. Ranking/commands/controls/comparison remain plain JSON/text where useful. Focused Black/Ruff pass.
