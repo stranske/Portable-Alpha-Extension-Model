@@ -1,0 +1,375 @@
+{
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "test_sha256": "db486f7b1ce988378848915a309aba9ca25f6b8662fbfc6744af3b349740ac4d",
+  "cases": [
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[key]",
+      "mutant_sha256": "5eb70b7142f58d8a00ed95100155d470ce3d8499758cc73525a92f3015992d51",
+      "before": "except (KeyError, TypeError, ValueError) as exc:",
+      "after": "except (TypeError, ValueError) as exc:",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[key]",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/00-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 3.1209754943847656,
+          "source_sha256": "5eb70b7142f58d8a00ed95100155d470ce3d8499758cc73525a92f3015992d51",
+          "console": "00-red.txt",
+          "junit": "00-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[key]",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/00-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 3.0724611282348633,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "00-green.txt",
+          "junit": "00-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[type]",
+      "mutant_sha256": "9f5414d2ab65fcccd08742dfed4f3c55ef33ac93f3f6e69aec2f54aec27e3fc6",
+      "before": "except (KeyError, TypeError, ValueError) as exc:",
+      "after": "except (KeyError, ValueError) as exc:",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[type]",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/01-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 3.1725552082061768,
+          "source_sha256": "9f5414d2ab65fcccd08742dfed4f3c55ef33ac93f3f6e69aec2f54aec27e3fc6",
+          "console": "01-red.txt",
+          "junit": "01-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[type]",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/01-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 3.0698750019073486,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "01-green.txt",
+          "junit": "01-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[value]",
+      "mutant_sha256": "f0aeb488be656fbcfa33575d11256d35f131662351c7ce0f5ceb9a1374f977a9",
+      "before": "except (KeyError, TypeError, ValueError) as exc:",
+      "after": "except (KeyError, TypeError) as exc:",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[value]",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/02-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 3.0700061321258545,
+          "source_sha256": "f0aeb488be656fbcfa33575d11256d35f131662351c7ce0f5ceb9a1374f977a9",
+          "console": "02-red.txt",
+          "junit": "02-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_expected_error_is_logged_without_rendering[value]",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/02-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 3.120664596557617,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "02-green.txt",
+          "junit": "02-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_run_diff_unexpected_error_propagates",
+      "mutant_sha256": "f693d40f26c369aef783a2972551423280395f0dc037589258b0f1716220850a",
+      "before": "except (KeyError, TypeError, ValueError) as exc:",
+      "after": "except Exception as exc:",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_unexpected_error_propagates",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/03-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 3.02315092086792,
+          "source_sha256": "f693d40f26c369aef783a2972551423280395f0dc037589258b0f1716220850a",
+          "console": "03-red.txt",
+          "junit": "03-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_run_diff_unexpected_error_propagates",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/03-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 2.9195079803466797,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "03-green.txt",
+          "junit": "03-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+      "mutant_sha256": "b453faac0119a8ea71483b7d3f705eee27a0150ff41925313df5fd5c62fc19fe",
+      "before": "if self._installed:\n            return\n        self._installed = True",
+      "after": "if False:\n            return\n        self._installed = True",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/04-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 3.0228774547576904,
+          "source_sha256": "b453faac0119a8ea71483b7d3f705eee27a0150ff41925313df5fd5c62fc19fe",
+          "console": "04-red.txt",
+          "junit": "04-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/04-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 2.9200732707977295,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "04-green.txt",
+          "junit": "04-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_warning_snapshot_does_not_expose_mutable_message_records",
+      "mutant_sha256": "96cca25c5e7c1484a7573fa6c7a489a7942942685a9e9f7f2c7a112cceea7a8a",
+      "before": "return [dict(rec) for rec in self.records]",
+      "after": "return list(self.records)",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_does_not_expose_mutable_message_records",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/05-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 2.8697776794433594,
+          "source_sha256": "96cca25c5e7c1484a7573fa6c7a489a7942942685a9e9f7f2c7a112cceea7a8a",
+          "console": "05-red.txt",
+          "junit": "05-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_warning_snapshot_does_not_expose_mutable_message_records",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/05-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 2.9196338653564453,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "05-green.txt",
+          "junit": "05-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_json_formatter_preserves_utc_and_interpolates_arguments",
+      "mutant_sha256": "603002a5475977b5049157abb9275cd0c72fdfe71a8275c9a99f5d94128e7da1",
+      "before": "\"module\": record.name,\n            \"message\": record.getMessage(),",
+      "after": "\"module\": record.name,\n            \"message\": str(record.msg),",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_json_formatter_preserves_utc_and_interpolates_arguments",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/06-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 2.870600938796997,
+          "source_sha256": "603002a5475977b5049157abb9275cd0c72fdfe71a8275c9a99f5d94128e7da1",
+          "console": "06-red.txt",
+          "junit": "06-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_json_formatter_preserves_utc_and_interpolates_arguments",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/06-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 2.8705556392669678,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "06-green.txt",
+          "junit": "06-green.xml"
+        }
+      ]
+    },
+    {
+      "node": "tests/test_cli_observability_boundaries.py::test_invalid_utf8_config_snapshot_is_unavailable",
+      "mutant_sha256": "063dbb474a90e43f46e5ad5c03e435941f35d64b4498ff0a44050ce7cfb1ac13",
+      "before": "return raw.decode(), raw",
+      "after": "return raw.decode(errors=\"replace\"), raw",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_invalid_utf8_config_snapshot_is_unavailable",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/07-red.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 1,
+          "elapsed_seconds": 3.0206410884857178,
+          "source_sha256": "063dbb474a90e43f46e5ad5c03e435941f35d64b4498ff0a44050ce7cfb1ac13",
+          "console": "07-red.txt",
+          "junit": "07-red.xml"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_observability_boundaries.py::test_invalid_utf8_config_snapshot_is_unavailable",
+            "-q",
+            "-m",
+            "not slow and not live_llm",
+            "--junitxml=/tmp/cli-boundary-recheck/mutation-recheck/07-green.xml"
+          ],
+          "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+          "exit": 0,
+          "elapsed_seconds": 2.9212677478790283,
+          "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+          "console": "07-green.txt",
+          "junit": "07-green.xml"
+        }
+      ]
+    }
+  ],
+  "restored_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f"
+}

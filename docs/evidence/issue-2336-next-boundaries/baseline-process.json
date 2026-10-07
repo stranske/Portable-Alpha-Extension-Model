@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-next-boundaries/docs/evidence/issue-2336-next-boundaries/baseline-coverage.json",
+    "tests/",
+    "-o",
+    "faulthandler_timeout=120",
+    "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-next-boundaries/docs/evidence/issue-2336-next-boundaries/baseline-junit.xml"
+  ],
+  "cwd": "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pae-2336-next-boundaries",
+  "exit": 0,
+  "elapsed": 182.56932592391968
+}

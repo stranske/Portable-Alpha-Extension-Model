@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "black",
+    "--check",
+    "--line-length",
+    "100",
+    "--exclude",
+    "(\\.workflows-lib|node_modules)",
+    "."
+  ],
+  "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+  "python": "3.14.7 (main, Aug  6 2026, 02:19:46) [GCC 13.3.0]",
+  "exit_code": 0,
+  "elapsed_seconds": 0.5835257279999837,
+  "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "test_sha256": "f9caea23a289efc473ec76f881d4d10d2d69fb9e0a189aa051900f4d6c16dbf3"
+}

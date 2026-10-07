@@ -1,0 +1,69 @@
+{
+  "node": "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+  "before": "        self._installed = False\n        if self._handler is not None:\n",
+  "after": "        if self._handler is not None:\n",
+  "phases": [
+    {
+      "phase": "old-test-green",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+        "-q",
+        "-m",
+        "not slow and not live_llm",
+        "--junitxml=/tmp/cli-boundary-recheck/reinstall-mutation/old-test-green.xml"
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 0,
+      "elapsed_seconds": 2.9210442830000147,
+      "source_sha256": "ec1fa98af05f92a11e5e0ecfa90b2174fc8d04edfe7a3750bf302651392805a3",
+      "test_sha256": "6b706b2075d184aef35add65ce21f7a17e5184382534b42a2c273cac9dfc819b",
+      "console": "old-test-green.txt",
+      "junit": "old-test-green.xml"
+    },
+    {
+      "phase": "new-test-red",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+        "-q",
+        "-m",
+        "not slow and not live_llm",
+        "--junitxml=/tmp/cli-boundary-recheck/reinstall-mutation/new-test-red.xml"
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 1,
+      "elapsed_seconds": 3.023575789000006,
+      "source_sha256": "ec1fa98af05f92a11e5e0ecfa90b2174fc8d04edfe7a3750bf302651392805a3",
+      "test_sha256": "db486f7b1ce988378848915a309aba9ca25f6b8662fbfc6744af3b349740ac4d",
+      "console": "new-test-red.txt",
+      "junit": "new-test-red.xml"
+    },
+    {
+      "phase": "new-test-restored-green",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.7/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py::test_warning_collector_double_install_captures_once_and_restores",
+        "-q",
+        "-m",
+        "not slow and not live_llm",
+        "--junitxml=/tmp/cli-boundary-recheck/reinstall-mutation/new-test-restored-green.xml"
+      ],
+      "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+      "exit": 0,
+      "elapsed_seconds": 2.9203567959999646,
+      "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+      "test_sha256": "db486f7b1ce988378848915a309aba9ca25f6b8662fbfc6744af3b349740ac4d",
+      "console": "new-test-restored-green.txt",
+      "junit": "new-test-restored-green.xml"
+    }
+  ],
+  "restored_source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "restored_test_sha256": "db486f7b1ce988378848915a309aba9ca25f6b8662fbfc6744af3b349740ac4d"
+}

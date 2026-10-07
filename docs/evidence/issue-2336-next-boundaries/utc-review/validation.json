@@ -1,0 +1,70 @@
+{
+  "captured_at": "2026-10-07T10:34:23.579650+00:00",
+  "source_before_after_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f",
+  "test_sha256": "97b14e2b59538c92d4ac08358b95556c2a02eee270ede1906f7a9e73267c7067",
+  "environment": "round-local xarray2026.9 overlay; global packages unchanged",
+  "mutation": "remove only tz=timezone.utc from real JsonFormatter.fromtimestamp call",
+  "records": [
+    {
+      "phase": "local-time-mutant",
+      "argv": [
+        "/opt/anaconda3/bin/python3",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py::test_json_formatter_preserves_utc_and_interpolates_arguments",
+        "-q",
+        "--junitxml=/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2341-replay-0920/docs/evidence/issue-2336-next-boundaries/utc-review/local-time-mutant.xml"
+      ],
+      "cwd": "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2341-replay-0920",
+      "exit": 1,
+      "junit": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skips": 0
+      },
+      "source_sha256": "01eea5564d4582534d18782085989f0b68a97b20a52cd29d7f1e26e121d02ffc"
+    },
+    {
+      "phase": "restored-utc",
+      "argv": [
+        "/opt/anaconda3/bin/python3",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py::test_json_formatter_preserves_utc_and_interpolates_arguments",
+        "-q",
+        "--junitxml=/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2341-replay-0920/docs/evidence/issue-2336-next-boundaries/utc-review/restored-utc.xml"
+      ],
+      "cwd": "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2341-replay-0920",
+      "exit": 0,
+      "junit": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f"
+    },
+    {
+      "phase": "focused",
+      "argv": [
+        "/opt/anaconda3/bin/python3",
+        "-m",
+        "pytest",
+        "tests/test_cli_observability_boundaries.py",
+        "tests/test_cli_mutation_replay_isolation.py",
+        "-q",
+        "--junitxml=/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2341-replay-0920/docs/evidence/issue-2336-next-boundaries/utc-review/focused.xml"
+      ],
+      "cwd": "/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pae-2341-replay-0920",
+      "exit": 0,
+      "junit": {
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      "source_sha256": "265d1891f50333a994458086cf0c4260d580971c710ea181f99e68582e5c899f"
+    }
+  ]
+}

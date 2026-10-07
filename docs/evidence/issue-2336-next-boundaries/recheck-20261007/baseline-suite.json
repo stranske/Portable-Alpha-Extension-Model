@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "python",
+    "-m",
+    "pytest",
+    "tests/",
+    "-q",
+    "-m",
+    "not slow and not live_llm",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:/tmp/cli-boundary-recheck/baseline-coverage.json",
+    "--junitxml=/tmp/cli-boundary-recheck/baseline-suite.xml",
+    "-o",
+    "faulthandler_timeout=120"
+  ],
+  "exit": 130,
+  "completed": false,
+  "reason": "Interrupted after faulthandler trace showed Kaleido PNG export stalled in tests/test_cli.py::test_main_with_png; no complete JUnit or coverage report produced."
+}

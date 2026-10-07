@@ -1,0 +1,24 @@
+{
+  "files": [
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/phase-artifacts.json.gz",
+      "sha256": "412d1a3ccb592361e125f91c74bc28412b2dec4a6fd92f396ab53445235247b4"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/isolation-revalidation/README.md",
+      "sha256": "41753716a016e907624a7d4a44ba26d6ff54c69eb1d6f63cc8239bed8aafc885"
+    },
+    {
+      "path": "docs/evidence/issue-2336-next-boundaries/replay.py",
+      "sha256": "3776f97c68ea6b802dbdade2a2b059cec5b6136806884deeb61def92daa5cd6a"
+    },
+    {
+      "path": "tests/test_cli_mutation_replay_isolation.py",
+      "sha256": "67c8638b5b3cdef31637ab4cd09893b11af307ff33c8e82bbce8223fce6f0387"
+    },
+    {
+      "path": "tests/test_cli_observability_boundaries.py",
+      "sha256": "f9caea23a289efc473ec76f881d4d10d2d69fb9e0a189aa051900f4d6c16dbf3"
+    }
+  ]
+}
