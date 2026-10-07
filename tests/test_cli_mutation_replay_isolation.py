@@ -6,6 +6,7 @@ import os
 import signal
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -173,26 +174,62 @@ def test_snapshot_replay_restores_source_after_phase_failure(
     spec.loader.exec_module(module)
     source, test = active / files[0], active / files[1]
     original, original_test = source.read_bytes(), test.read_bytes()
-    output = tmp_path / "snapshot-output"
-    output.mkdir()
+    # Interrupt the first RED, its restored GREEN, then the next case's RED.
+    # Receipts must retain completed phases without claiming the interrupted one.
+    for fail_at in range(3):
+        output = tmp_path / f"snapshot-output-{fail_at}"
+        output.mkdir()
+        calls = []
 
-    def fail(argv, *, cwd, **kwargs):
-        assert cwd == active
-        assert source.read_bytes() != original
-        if interruption == "timeout":
-            raise subprocess.TimeoutExpired(argv, 90)
-        raise KeyboardInterrupt
+        def fail(argv, *, cwd, **kwargs):
+            assert cwd == active
+            index = len(calls)
+            calls.append(argv)
+            red = index % 2 == 0
+            assert (source.read_bytes() != original) == red
+            if index == fail_at:
+                if interruption == "timeout":
+                    raise subprocess.TimeoutExpired(argv, 90)
+                raise KeyboardInterrupt
+            name = argv[3].split("::", 1)[1]
+            suite = ET.Element("testsuite")
+            result = ET.SubElement(suite, "testcase", name=name)
+            if red:
+                ET.SubElement(result, "failure", message="simulated production regression")
+            junit = Path(
+                next(arg.split("=", 1)[1] for arg in argv if arg.startswith("--junitxml="))
+            )
+            ET.ElementTree(suite).write(junit, encoding="utf-8")
+            return subprocess.CompletedProcess(argv, 1 if red else 0)
 
-    monkeypatch.setattr(module.subprocess, "run", fail)
-    expected = subprocess.TimeoutExpired if interruption == "timeout" else KeyboardInterrupt
-    with pytest.raises(expected):
-        module.replay(active, output, sys.executable)
+        monkeypatch.setattr(module.subprocess, "run", fail)
+        expected = subprocess.TimeoutExpired if interruption == "timeout" else KeyboardInterrupt
+        with pytest.raises(expected):
+            module.replay(active, output, sys.executable)
 
-    assert source.read_bytes() == original
-    assert test.read_bytes() == original_test
-    controls = json.loads((output / "controls.json").read_text(encoding="utf-8"))
-    assert controls["source_sha256"] == module.digest(original)
-    assert controls["restored_sha256"] == module.digest(original)
-    assert controls["test_sha256"] == module.digest(original_test)
-    assert len(controls["cases"]) == 1
-    assert controls["cases"][0]["phases"] == []
+        assert len(calls) == fail_at + 1
+        assert source.read_bytes() == original
+        assert test.read_bytes() == original_test
+        controls = json.loads((output / "controls.json").read_text(encoding="utf-8"))
+        assert controls["source_sha256"] == module.digest(original)
+        assert controls["restored_sha256"] == module.digest(original)
+        assert controls["test_sha256"] == module.digest(original_test)
+        assert len(controls["cases"]) == fail_at // 2 + 1
+        phases = [phase for case in controls["cases"] for phase in case["phases"]]
+        assert len(phases) == fail_at
+        for index, phase in enumerate(phases):
+            red = index % 2 == 0
+            assert phase["phase"] == ("red" if red else "green")
+            assert phase["exit"] == (1 if red else 0)
+            case = controls["cases"][index // 2]
+            assert phase["source_sha256"] == (
+                case["mutant_sha256"] if red else controls["source_sha256"]
+            )
+            assert phase["argv"] == calls[index]
+            assert Path(phase["cwd"]) == active
+            assert (output / phase["console"]).is_file()
+            assert (output / phase["junit"]).is_file()
+        assert controls["cases"][-1]["phases"] == (phases if fail_at == 1 else [])
+        pending = f"{fail_at // 2:02d}-{'red' if fail_at % 2 == 0 else 'green'}"
+        assert (output / f"{pending}.txt").is_file()
+        assert not (output / f"{pending}.xml").exists()

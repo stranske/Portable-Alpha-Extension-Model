@@ -1,0 +1,40 @@
+{
+  "mutation": "Discard completed phase receipts in actual snapshot replay driver",
+  "driver_sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671",
+  "mutant_sha256": "4d2d132057dd71f0f4cc4be07b057cd96c0dbe79262a20d201d023bd64c1cd93",
+  "phases": [
+    {
+      "phase": "red",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.8/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_snapshot_replay_restores_source_after_phase_failure",
+        "-m",
+        "not slow",
+        "-q",
+        "--junitxml=/tmp/2342-completed-receipts-final-proof/red.xml"
+      ],
+      "cwd": "/tmp/2342-completed-receipts-final-proof/checkout",
+      "exit": 1,
+      "named_failures": 2
+    },
+    {
+      "phase": "green",
+      "argv": [
+        "/opt/hostedtoolcache/Python/3.14.8/x64/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_mutation_replay_isolation.py::test_snapshot_replay_restores_source_after_phase_failure",
+        "-m",
+        "not slow",
+        "-q",
+        "--junitxml=/tmp/2342-completed-receipts-final-proof/green.xml"
+      ],
+      "cwd": "/tmp/2342-completed-receipts-final-proof/checkout",
+      "exit": 0,
+      "named_failures": 0
+    }
+  ],
+  "restored_sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671"
+}
