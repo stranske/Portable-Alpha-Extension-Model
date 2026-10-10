@@ -6,11 +6,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
+import pytest
 
 from pa_core.cli import main
 
 
-def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
+@pytest.mark.parametrize(
+    "read_error",
+    [None, ImportError, OSError, PermissionError, ValueError],
+    ids=["available", "missing-engine", "io-error", "permission-error", "invalid-workbook"],
+)
+def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path, read_error):
     config_path = tmp_path / "cfg.yaml"
     config_path.write_text(
         yaml.safe_dump(
@@ -33,6 +39,15 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
     )
     prev_output = tmp_path / "prev.xlsx"
     prev_summary.to_excel(prev_output, sheet_name="Summary", index=False)
+
+    read_calls = []
+    if read_error is not None:
+
+        def unavailable_summary(path, *, sheet_name):
+            read_calls.append((path, sheet_name))
+            raise read_error("previous workbook unavailable")
+
+        monkeypatch.setattr(pd, "read_excel", unavailable_summary)
 
     prev_manifest = {
         "cli_args": {"output": str(prev_output)},
@@ -99,7 +114,15 @@ def test_sweep_packet_passes_prev_diff(monkeypatch, tmp_path):
 
     assert "prev_summary_df" in captured
     assert "prev_manifest" in captured
-    pd.testing.assert_frame_equal(captured["prev_summary_df"], prev_summary)
+    if read_error is None:
+        pd.testing.assert_frame_equal(captured["prev_summary_df"], prev_summary)
+    else:
+        assert read_calls == [(str(prev_output), "Summary")]
+        assert isinstance(captured["prev_summary_df"], pd.DataFrame)
+        assert captured[
+            "prev_summary_df"
+        ].empty, "unavailable summary must not invent prior metrics"
+        assert captured["prev_summary_df"].columns.empty
     assert captured["prev_manifest"] == prev_manifest
 
 

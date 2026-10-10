@@ -1,0 +1,1122 @@
+{
+  "basis": "Repair-subject proxy, not verified escaped incidents; then source-touch churn, then measured uncovered statements. Last 500 source-touch commits.",
+  "selected": "pa_core/cli.py",
+  "rows": [
+    {
+      "path": "pa_core/cli.py",
+      "touches": 133,
+      "repair_proxy": 27,
+      "uncovered": 299
+    },
+    {
+      "path": "dashboard/pages/3_Scenario_Wizard.py",
+      "touches": 65,
+      "repair_proxy": 24,
+      "uncovered": 338
+    },
+    {
+      "path": "pa_core/config.py",
+      "touches": 53,
+      "repair_proxy": 17,
+      "uncovered": 41
+    },
+    {
+      "path": "pa_core/sweep.py",
+      "touches": 44,
+      "repair_proxy": 13,
+      "uncovered": 41
+    },
+    {
+      "path": "dashboard/pages/1_Asset_Library.py",
+      "touches": 21,
+      "repair_proxy": 11,
+      "uncovered": 33
+    },
+    {
+      "path": "pa_core/__main__.py",
+      "touches": 37,
+      "repair_proxy": 10,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/wizard_schema.py",
+      "touches": 26,
+      "repair_proxy": 8,
+      "uncovered": 2
+    },
+    {
+      "path": "dashboard/pages/6_Stress_Lab.py",
+      "touches": 18,
+      "repair_proxy": 7,
+      "uncovered": 91
+    },
+    {
+      "path": "pa_core/presets.py",
+      "touches": 15,
+      "repair_proxy": 7,
+      "uncovered": 3
+    },
+    {
+      "path": "dashboard/pages/5_Scenario_Grid.py",
+      "touches": 27,
+      "repair_proxy": 6,
+      "uncovered": 200
+    },
+    {
+      "path": "pa_core/validators.py",
+      "touches": 26,
+      "repair_proxy": 6,
+      "uncovered": 12
+    },
+    {
+      "path": "pa_core/reporting/export_packet.py",
+      "touches": 21,
+      "repair_proxy": 6,
+      "uncovered": 30
+    },
+    {
+      "path": "pa_core/manifest.py",
+      "touches": 18,
+      "repair_proxy": 6,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/reporting/excel.py",
+      "touches": 31,
+      "repair_proxy": 5,
+      "uncovered": 49
+    },
+    {
+      "path": "pa_core/sim/paths.py",
+      "touches": 22,
+      "repair_proxy": 5,
+      "uncovered": 70
+    },
+    {
+      "path": "pa_core/pa.py",
+      "touches": 19,
+      "repair_proxy": 5,
+      "uncovered": 27
+    },
+    {
+      "path": "dashboard/app.py",
+      "touches": 17,
+      "repair_proxy": 5,
+      "uncovered": 25
+    },
+    {
+      "path": "dashboard/pages/2_Portfolio_Builder.py",
+      "touches": 16,
+      "repair_proxy": 5,
+      "uncovered": 5
+    },
+    {
+      "path": "pa_core/sleeve_suggestor.py",
+      "touches": 14,
+      "repair_proxy": 5,
+      "uncovered": 104
+    },
+    {
+      "path": "pa_core/units.py",
+      "touches": 12,
+      "repair_proxy": 5,
+      "uncovered": 13
+    },
+    {
+      "path": "pa_core/reporting/run_diff.py",
+      "touches": 11,
+      "repair_proxy": 5,
+      "uncovered": 12
+    },
+    {
+      "path": "pa_core/facade.py",
+      "touches": 26,
+      "repair_proxy": 4,
+      "uncovered": 23
+    },
+    {
+      "path": "dashboard/pages/4_Results.py",
+      "touches": 20,
+      "repair_proxy": 4,
+      "uncovered": 136
+    },
+    {
+      "path": "pa_core/sim/metrics.py",
+      "touches": 19,
+      "repair_proxy": 4,
+      "uncovered": 29
+    },
+    {
+      "path": "pa_core/schema.py",
+      "touches": 13,
+      "repair_proxy": 4,
+      "uncovered": 60
+    },
+    {
+      "path": "pa_core/data/importer.py",
+      "touches": 13,
+      "repair_proxy": 4,
+      "uncovered": 8
+    },
+    {
+      "path": "pa_core/__init__.py",
+      "touches": 13,
+      "repair_proxy": 4,
+      "uncovered": 5
+    },
+    {
+      "path": "pa_core/reporting/console.py",
+      "touches": 13,
+      "repair_proxy": 4,
+      "uncovered": 2
+    },
+    {
+      "path": "dashboard/utils.py",
+      "touches": 11,
+      "repair_proxy": 4,
+      "uncovered": 8
+    },
+    {
+      "path": "pa_core/reporting/attribution.py",
+      "touches": 17,
+      "repair_proxy": 3,
+      "uncovered": 11
+    },
+    {
+      "path": "pa_core/simulations.py",
+      "touches": 9,
+      "repair_proxy": 3,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/agents/registry.py",
+      "touches": 8,
+      "repair_proxy": 3,
+      "uncovered": 8
+    },
+    {
+      "path": "pa_core/viz/utils.py",
+      "touches": 8,
+      "repair_proxy": 3,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/sim/covariance.py",
+      "touches": 7,
+      "repair_proxy": 3,
+      "uncovered": 19
+    },
+    {
+      "path": "pa_core/data/calibration.py",
+      "touches": 7,
+      "repair_proxy": 3,
+      "uncovered": 7
+    },
+    {
+      "path": "dashboard/pages/7_Run_Logs.py",
+      "touches": 6,
+      "repair_proxy": 3,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/data/convert.py",
+      "touches": 6,
+      "repair_proxy": 3,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/viz/breach_calendar.py",
+      "touches": 6,
+      "repair_proxy": 3,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/validate.py",
+      "touches": 6,
+      "repair_proxy": 3,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/reporting/sweep_excel.py",
+      "touches": 15,
+      "repair_proxy": 2,
+      "uncovered": 31
+    },
+    {
+      "path": "pa_core/data/loaders.py",
+      "touches": 10,
+      "repair_proxy": 2,
+      "uncovered": 41
+    },
+    {
+      "path": "pa_core/backend.py",
+      "touches": 9,
+      "repair_proxy": 2,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/stress.py",
+      "touches": 8,
+      "repair_proxy": 2,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/llm/compare_runs.py",
+      "touches": 7,
+      "repair_proxy": 2,
+      "uncovered": 11
+    },
+    {
+      "path": "pa_core/viz/pdf_report.py",
+      "touches": 6,
+      "repair_proxy": 2,
+      "uncovered": 32
+    },
+    {
+      "path": "pa_core/viz/tornado.py",
+      "touches": 6,
+      "repair_proxy": 2,
+      "uncovered": 5
+    },
+    {
+      "path": "pa_core/llm/result_explain.py",
+      "touches": 6,
+      "repair_proxy": 2,
+      "uncovered": 4
+    },
+    {
+      "path": "pa_core/viz/rolling_panel.py",
+      "touches": 6,
+      "repair_proxy": 2,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/agents/risk_metrics.py",
+      "touches": 5,
+      "repair_proxy": 2,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/sim/financing.py",
+      "touches": 4,
+      "repair_proxy": 2,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/viz/waterfall.py",
+      "touches": 4,
+      "repair_proxy": 2,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/risk_return_bubble.py",
+      "touches": 4,
+      "repair_proxy": 2,
+      "uncovered": 0
+    },
+    {
+      "path": "dashboard/validation_ui.py",
+      "touches": 3,
+      "repair_proxy": 2,
+      "uncovered": 7
+    },
+    {
+      "path": "pa_core/llm/provider.py",
+      "touches": 3,
+      "repair_proxy": 2,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/agents/active_ext.py",
+      "touches": 3,
+      "repair_proxy": 2,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/agents/external_pa.py",
+      "touches": 3,
+      "repair_proxy": 2,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/beta_scatter.py",
+      "touches": 3,
+      "repair_proxy": 2,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/fan.py",
+      "touches": 2,
+      "repair_proxy": 2,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/viz/moments_panel.py",
+      "touches": 2,
+      "repair_proxy": 2,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/orchestrator.py",
+      "touches": 17,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/sim/regimes.py",
+      "touches": 7,
+      "repair_proxy": 1,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/random.py",
+      "touches": 7,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/sim/__init__.py",
+      "touches": 7,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/reporting/stress_delta.py",
+      "touches": 6,
+      "repair_proxy": 1,
+      "uncovered": 10
+    },
+    {
+      "path": "pa_core/viz/pdf_export.py",
+      "touches": 6,
+      "repair_proxy": 1,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/portfolio/__init__.py",
+      "touches": 6,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/__init__.py",
+      "touches": 6,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/llm/config_patch_chain.py",
+      "touches": 5,
+      "repair_proxy": 1,
+      "uncovered": 55
+    },
+    {
+      "path": "pa_core/llm/config_patch.py",
+      "touches": 5,
+      "repair_proxy": 1,
+      "uncovered": 40
+    },
+    {
+      "path": "pa_core/logging_utils.py",
+      "touches": 5,
+      "repair_proxy": 1,
+      "uncovered": 4
+    },
+    {
+      "path": "dashboard/components/llm_settings.py",
+      "touches": 5,
+      "repair_proxy": 1,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/widgets.py",
+      "touches": 5,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/llm/tracing.py",
+      "touches": 4,
+      "repair_proxy": 1,
+      "uncovered": 33
+    },
+    {
+      "path": "pa_core/viz/risk_return.py",
+      "touches": 4,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/compare_scenarios.py",
+      "touches": 3,
+      "repair_proxy": 1,
+      "uncovered": 42
+    },
+    {
+      "path": "pa_core/sim/sensitivity.py",
+      "touches": 3,
+      "repair_proxy": 1,
+      "uncovered": 24
+    },
+    {
+      "path": "pa_core/reporting/constraints.py",
+      "touches": 3,
+      "repair_proxy": 1,
+      "uncovered": 11
+    },
+    {
+      "path": "pa_core/reporting/disclaimers.py",
+      "touches": 3,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/types.py",
+      "touches": 3,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/quantile_band.py",
+      "touches": 3,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/export_backend.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 28
+    },
+    {
+      "path": "pa_core/agents/types.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/data_table.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/agents/internal_pa.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/llm/langsmith_fleet.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/llm/scenario_fleet.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/sim/simulation_initialization.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/corr_network.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/funnel.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/live.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/te_cvar_scatter.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/triple_scatter.py",
+      "touches": 2,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/capital_treemap.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/scenario_slider.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/agents/base.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/data/__init__.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/beta_heatmap.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/corr_heatmap.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/inset.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/multi_fan.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/parallel_coords.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/quantile_fan.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/spark_matrix.py",
+      "touches": 1,
+      "repair_proxy": 1,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/sim/params.py",
+      "touches": 8,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/contracts.py",
+      "touches": 7,
+      "repair_proxy": 0,
+      "uncovered": 12
+    },
+    {
+      "path": "pa_core/viz/pptx_export.py",
+      "touches": 7,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "dashboard/glossary.py",
+      "touches": 5,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/grid_heatmap.py",
+      "touches": 4,
+      "repair_proxy": 0,
+      "uncovered": 8
+    },
+    {
+      "path": "pa_core/viz/export_bundle.py",
+      "touches": 4,
+      "repair_proxy": 0,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/llm/__init__.py",
+      "touches": 4,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/calibration.py",
+      "touches": 3,
+      "repair_proxy": 0,
+      "uncovered": 25
+    },
+    {
+      "path": "dashboard/components/config_chat.py",
+      "touches": 3,
+      "repair_proxy": 0,
+      "uncovered": 15
+    },
+    {
+      "path": "pa_core/reporting/agent_semantics.py",
+      "touches": 3,
+      "repair_proxy": 0,
+      "uncovered": 6
+    },
+    {
+      "path": "pa_core/sim/internal_pa_financing.py",
+      "touches": 3,
+      "repair_proxy": 0,
+      "uncovered": 4
+    },
+    {
+      "path": "dashboard/components/comparison_llm.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 12
+    },
+    {
+      "path": "pa_core/llm/prompts.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 11
+    },
+    {
+      "path": "dashboard/components/explain_results.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 10
+    },
+    {
+      "path": "pa_core/llm/config_chat.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 7
+    },
+    {
+      "path": "pa_core/portfolio/core.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 7
+    },
+    {
+      "path": "pa_core/viz/frontier.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 5
+    },
+    {
+      "path": "dashboard/cli.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/portfolio/constraints.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/data/index_financing_curves.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/sensitivity.py",
+      "touches": 2,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "dashboard/browser_exports.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 50
+    },
+    {
+      "path": "pa_core/scenario_registry.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 25
+    },
+    {
+      "path": "pa_core/viz/regime_timeline.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 14
+    },
+    {
+      "path": "pa_core/multi_objective.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 12
+    },
+    {
+      "path": "pa_core/run_artifact_bundle.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 10
+    },
+    {
+      "path": "pa_core/portfolio/aggregator.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 4
+    },
+    {
+      "path": "pa_core/viz/theme.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 4
+    },
+    {
+      "path": "dashboard/theme.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/fees.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/wizard/session_state.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 2
+    },
+    {
+      "path": "dashboard/components/__init__.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/regime_presets.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/reporting/__init__.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/share_utils.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/tool_descriptor.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/html_export.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/rank_table.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/rolling_var.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/sharpe_ladder.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/wizard/__init__.py",
+      "touches": 1,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/metric_selector.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 4
+    },
+    {
+      "path": "pa_core/viz/overlay.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 2
+    },
+    {
+      "path": "pa_core/viz/boxplot.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/crossfilter.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/factor_bar.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/rolling_corr_heatmap.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/sunburst.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 1
+    },
+    {
+      "path": "pa_core/viz/violin.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 1
+    },
+    {
+      "path": "dashboard/__init__.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "dashboard/pages/__init__.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/agents/__init__.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/agents/internal_beta.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/run_flags.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/animation.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/beta_te_scatter.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/bookmark.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/category_pie.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/dashboard_templates.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/data_quality.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/delta_heatmap.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/exposure_timeline.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/factor_matrix.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/factor_timeline.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/gauge.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/geo_exposure.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/grid_panel.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/horizon_slicer.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/hover_sync.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/milestone_timeline.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/mosaic.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/overlay_weighted.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/panel.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/path_dist.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/radar.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/scatter_matrix.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/scenario_play.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/scenario_viewer.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/seasonality_heatmap.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/surface.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/surface_animation.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/surface_slice.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    },
+    {
+      "path": "pa_core/viz/weighted_stack.py",
+      "touches": 0,
+      "repair_proxy": 0,
+      "uncovered": 0
+    }
+  ]
+}

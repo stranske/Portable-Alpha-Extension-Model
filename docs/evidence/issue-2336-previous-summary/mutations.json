@@ -1,0 +1,155 @@
+{
+  "pairs": [
+    {
+      "node": "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[missing-engine]",
+      "production_mutation": "Replace only the previous-summary read fallback exception tuple with RuntimeError",
+      "original_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+      "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[missing-engine]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-missing-engine-red.xml"
+          ],
+          "exit": 1,
+          "seconds": 3.375133991241455,
+          "production_sha256": "12574bfc294e12d25a68e9d0c7af34ccc2b5a98d0d85d87055f7bf9fcfd1aa19"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[missing-engine]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-missing-engine-green.xml"
+          ],
+          "exit": 0,
+          "seconds": 3.1413187980651855,
+          "production_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+        }
+      ],
+      "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+    },
+    {
+      "node": "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[io-error]",
+      "production_mutation": "Replace only the previous-summary read fallback exception tuple with RuntimeError",
+      "original_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+      "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[io-error]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-io-error-red.xml"
+          ],
+          "exit": 1,
+          "seconds": 3.0964250564575195,
+          "production_sha256": "12574bfc294e12d25a68e9d0c7af34ccc2b5a98d0d85d87055f7bf9fcfd1aa19"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[io-error]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-io-error-green.xml"
+          ],
+          "exit": 0,
+          "seconds": 2.9112179279327393,
+          "production_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+        }
+      ],
+      "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+    },
+    {
+      "node": "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]",
+      "production_mutation": "Replace only the previous-summary read fallback exception tuple with RuntimeError",
+      "original_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+      "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-permission-error-red.xml"
+          ],
+          "exit": 1,
+          "seconds": 3.112576961517334,
+          "production_sha256": "12574bfc294e12d25a68e9d0c7af34ccc2b5a98d0d85d87055f7bf9fcfd1aa19"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-permission-error-green.xml"
+          ],
+          "exit": 0,
+          "seconds": 2.958850145339966,
+          "production_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+        }
+      ],
+      "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+    },
+    {
+      "node": "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[invalid-workbook]",
+      "production_mutation": "Replace only the previous-summary read fallback exception tuple with RuntimeError",
+      "original_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+      "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38",
+      "phases": [
+        {
+          "phase": "red",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[invalid-workbook]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-invalid-workbook-red.xml"
+          ],
+          "exit": 1,
+          "seconds": 5.110208034515381,
+          "production_sha256": "12574bfc294e12d25a68e9d0c7af34ccc2b5a98d0d85d87055f7bf9fcfd1aa19"
+        },
+        {
+          "phase": "green",
+          "argv": [
+            "/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261006T2020Z/pae-env/bin/python",
+            "-m",
+            "pytest",
+            "tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[invalid-workbook]",
+            "-q",
+            "--junitxml=/Users/teacher/.codex/automations/pd-workloop-resume/evidence/20261010T1800Z/mutation-invalid-workbook-green.xml"
+          ],
+          "exit": 0,
+          "seconds": 3.01609206199646,
+          "production_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+        }
+      ],
+      "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+    }
+  ],
+  "original_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38"
+}
