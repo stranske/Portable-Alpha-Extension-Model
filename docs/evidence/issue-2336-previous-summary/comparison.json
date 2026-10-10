@@ -1,0 +1,44 @@
+{
+  "base": "994403190daac95bdaf11fad2b1661589d4a9622",
+  "baseline_totals": {
+    "covered_lines": 12147,
+    "num_statements": 14554,
+    "percent_covered": 83.46159131510238,
+    "percent_covered_display": "83",
+    "missing_lines": 2407,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.46159131510238,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate_totals": {
+    "covered_lines": 12149,
+    "num_statements": 14554,
+    "percent_covered": 83.47533324172049,
+    "percent_covered_display": "83",
+    "missing_lines": 2405,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.47533324172049,
+    "percent_statements_covered_display": "83"
+  },
+  "source_file_count": 186,
+  "gained_lines": {
+    "pa_core/cli.py": [
+      1014,
+      1015
+    ]
+  },
+  "lost_lines": {},
+  "changed_test_inputs": [
+    "tests/test_cli_packet_diff.py"
+  ],
+  "prior_outcomes_preserved": 1620,
+  "renamed_control": "test_sweep_packet_passes_prev_diff -> test_sweep_packet_passes_prev_diff[available]",
+  "new_passing_nodes": {
+    "tests.test_cli_packet_diff::test_sweep_packet_passes_prev_diff[missing-engine]": "passed",
+    "tests.test_cli_packet_diff::test_sweep_packet_passes_prev_diff[io-error]": "passed",
+    "tests.test_cli_packet_diff::test_sweep_packet_passes_prev_diff[permission-error]": "passed",
+    "tests.test_cli_packet_diff::test_sweep_packet_passes_prev_diff[invalid-workbook]": "passed"
+  },
+  "production_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38"
+}

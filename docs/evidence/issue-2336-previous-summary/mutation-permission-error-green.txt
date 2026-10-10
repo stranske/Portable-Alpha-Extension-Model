@@ -1,0 +1,16 @@
+.                                                                        [100%]
+=============================== warnings summary ===============================
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]
+  /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pa2336-summary-candidate-20261010T1800Z/tests/test_cli_packet_diff.py:101: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]
+  /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pa2336-summary-candidate-20261010T1800Z/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]
+  /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pa2336-summary-candidate-20261010T1800Z/pa_core/cli.py:1302: UserWarning: Run executed without an explicit --seed (seed=None): results use a non-deterministic RNG and cannot be reproduced. Pass --seed to make the run reproducible.
+    mw.write(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 3 warnings in 1.67s

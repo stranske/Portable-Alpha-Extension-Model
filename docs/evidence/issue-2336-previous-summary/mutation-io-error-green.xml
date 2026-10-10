@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.586" timestamp="2026-10-10T13:06:49.470171-05:00" hostname="server.trs.private"><testcase classname="tests.test_cli_packet_diff" name="test_sweep_packet_passes_prev_diff[io-error]" time="1.165" /></testsuite></testsuites>

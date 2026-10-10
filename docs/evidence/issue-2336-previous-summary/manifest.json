@@ -1,0 +1,156 @@
+{
+  "schema": "issue-2336-previous-summary-proof/v1",
+  "archive_sha256": "7dcbeb21def35a65e760429ec0a8f3d616ef3cb38be1f334ee4a6ab6aac7b112",
+  "members": {
+    "comparison.json": {
+      "sha256": "b9e132b819b670eaa59e34f75f3c8e53cac9abc87a40912873d3e6b0fdb31e43",
+      "bytes": 320324
+    },
+    "history-500.txt": {
+      "sha256": "75136351622359342be85ee592da00095710f5f36a128801d658e60aecc98fe0",
+      "bytes": 59650
+    },
+    "history-rank.json": {
+      "sha256": "c2350f56ca777712ed04fe15efda54967c9804ea93c54e4841af07aa88c0e9d9",
+      "bytes": 11608
+    },
+    "mutation-invalid-workbook-green.txt": {
+      "sha256": "9f1e92c7b4f9ff5b8a275896ab8d68b852960f00dee5b9ac55c8601914b8e19a",
+      "bytes": 1424
+    },
+    "mutation-invalid-workbook-green.xml": {
+      "sha256": "f45641002351ac49d00b4d5c4ffa7689e18baabd97be72781fae0aafa8b756d5",
+      "bytes": 378
+    },
+    "mutation-invalid-workbook-red.txt": {
+      "sha256": "e1c820d0f1a425c84b16dec57f1c8beacd91e35ace4f8bf01b9940487e7c2264",
+      "bytes": 24315
+    },
+    "mutation-invalid-workbook-red.xml": {
+      "sha256": "e4ee5c8753cb6a82fe6f9bde6ae9bacbedd9d1629a64d1123bbfdb2a8bc4f91b",
+      "bytes": 5377
+    },
+    "mutation-io-error-green.txt": {
+      "sha256": "87b65216ef856d84244256e0a78eb9d0ef92c7e4785bdac83288e60658b6c62f",
+      "bytes": 1400
+    },
+    "mutation-io-error-green.xml": {
+      "sha256": "32c5501ec9bbf4fa8e12f43d7e6b28afd00b9a117067e2674235466c51605dc6",
+      "bytes": 370
+    },
+    "mutation-io-error-red.txt": {
+      "sha256": "ed841053d3bad3bf1d51d1f16292259ade324e1c89f2e4d49ef5f797406f3d26",
+      "bytes": 25598
+    },
+    "mutation-io-error-red.xml": {
+      "sha256": "71f1fe7ff0faa1fe4d076e908770cf9967a001efa1e3620d87336971a4db653d",
+      "bytes": 5570
+    },
+    "mutation-missing-engine-green.txt": {
+      "sha256": "763f327da74b8a19f60d08fcdb55a78ae46a6cf0f11585df5d7f3a8a72888396",
+      "bytes": 1418
+    },
+    "mutation-missing-engine-green.xml": {
+      "sha256": "811dec8b4390c2aa6bed53da264077d0fb1a5926a8959d4d01005f42bbbc67ea",
+      "bytes": 376
+    },
+    "mutation-missing-engine-red.txt": {
+      "sha256": "8657ace2c242cc6972ac4b329a346ebef9c3fd7a10411171b4e5c17e6a49ebed",
+      "bytes": 24314
+    },
+    "mutation-missing-engine-red.xml": {
+      "sha256": "580318a715dc73d81355995670ddbded32b351684c6eeaf9dab5663f847e4844",
+      "bytes": 5379
+    },
+    "mutation-permission-error-green.txt": {
+      "sha256": "c23bf2d059074c1e614cca9505931a9c94be9dd38f1791fd83531ce63fc1160b",
+      "bytes": 1424
+    },
+    "mutation-permission-error-green.xml": {
+      "sha256": "6d7f91bdc3cc1be00cdf3b2432d46287be9d427c9cb1c49afa36b43c145003a0",
+      "bytes": 378
+    },
+    "mutation-permission-error-red.txt": {
+      "sha256": "321e067b1663bd397c117ad62c44e1bdf2b5e8fe75d7f3279ec036ed0b8e5aae",
+      "bytes": 25638
+    },
+    "mutation-permission-error-red.xml": {
+      "sha256": "7e3c8aed186c205ffa86dbba1a4c69eb942cf7eacbdf720264a5c73c8635ea05",
+      "bytes": 5586
+    },
+    "mutations.json": {
+      "sha256": "c3e60c782d2952d9b6e645dc73a8283b81a7ecfd24a21e7bfc74c7e12ad7193d",
+      "bytes": 7515
+    },
+    "pa-baseline-coverage.json": {
+      "sha256": "e236e96c927809027ecb0ec8928725a29011ee661a9ff6e1c698e1c340f0cb6b",
+      "bytes": 735053
+    },
+    "pa-baseline-process.json": {
+      "sha256": "c1d70de5333a233dd6172cbe8f34ba0b689c679285dbe30c64fe98de59b9e27d",
+      "bytes": 649
+    },
+    "pa-baseline-source-inventory.json": {
+      "sha256": "a26763f9e1eacf273db0ed400cb6f382be4fdc9369e36aadc44ef18ae60a13d9",
+      "bytes": 40637
+    },
+    "pa-baseline.txt": {
+      "sha256": "1c4d0cf537505456a5d216bedcf7cb6249f6b495228c33a75680cc47c6a711d1",
+      "bytes": 50797
+    },
+    "pa-baseline.xml": {
+      "sha256": "cbda334f12d138bc819889e549595c65f946e91ed2bf76c326e503e4ec292ee4",
+      "bytes": 205802
+    },
+    "pa-environment.json": {
+      "sha256": "b9f612b8766e16480aa2b36d613cddd82515e33ae5595a7b6d09079525b0438a",
+      "bytes": 427
+    },
+    "pa-final-coverage.json": {
+      "sha256": "36c3c1fcc716fbd4193a686be29199f1cd0dee002bde8adfee4161e45457360a",
+      "bytes": 735069
+    },
+    "pa-final-process.json": {
+      "sha256": "8995052e6513f8b1f0f46ea3e58dfba27735c2b616d5b1306fd857e08f10706f",
+      "bytes": 652
+    },
+    "pa-final-source-inventory.json": {
+      "sha256": "bdbc49fc0d3c6640abe6e8f5b33d76d2932ff482504ba32f888dea321da1500b",
+      "bytes": 40637
+    },
+    "pa-final-suite.py": {
+      "sha256": "7ab824ba05e7bd0f8774b5108ae4dbcacf48165c9279becc7368d2993a881c09",
+      "bytes": 1199
+    },
+    "pa-final.txt": {
+      "sha256": "5af6f24248f4bc3df59c68c841c0d808157f1e38c5ba930ccd437150915a2792",
+      "bytes": 51850
+    },
+    "pa-final.xml": {
+      "sha256": "8224ea2642f60214051bf948890e70e88495e7750839478a5a937fb00f4716e0",
+      "bytes": 206308
+    },
+    "pa-focused.txt": {
+      "sha256": "515099c060d9debead25b1e7e719bc0208986ba102b53d4dc97d187148d5b290",
+      "bytes": 3876
+    },
+    "pa-focused.xml": {
+      "sha256": "35a3e1ee654fec3d9a446cd7fd23eae4b40c6b79127a1cac1208f6fd3602b35d",
+      "bytes": 1078
+    },
+    "pa-mutations.py": {
+      "sha256": "2f0bd45dc1de9eef8930ac91fbd6260c51a8cf6c70bad6d6238f1743ce4e038e",
+      "bytes": 2059
+    },
+    "pa-suite.py": {
+      "sha256": "2acc4cb7248591c1f709146cf7626c5e37129fa9fec93185cbad31d9bca7a6f7",
+      "bytes": 1190
+    },
+    "ranking.json": {
+      "sha256": "74ae070572a37851ea91fa179ab299c3c31e9d494da05c9d52b473521e63f5b8",
+      "bytes": 23168
+    }
+  },
+  "production_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "586ccc6546c7eb3e9b84a35aa22d8ea6106e6a7f7aea95c10d76172c0a234b38"
+}
