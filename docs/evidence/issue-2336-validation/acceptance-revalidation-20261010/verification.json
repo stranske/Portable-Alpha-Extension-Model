@@ -1,0 +1,52 @@
+{
+  "focused_passes": 6,
+  "focused_errors_failures_skips": 0,
+  "targeted_cli_coverage": {
+    "covered_lines": 223,
+    "num_statements": 1107,
+    "percent_covered": 20.14453477868112,
+    "percent_covered_display": "20",
+    "missing_lines": 884,
+    "excluded_lines": 17,
+    "percent_statements_covered": 20.14453477868112,
+    "percent_statements_covered_display": "20"
+  },
+  "verified_production_mutation_pairs": 8,
+  "historical": {
+    "historical_comparison_verified": true,
+    "historical_mutations_verified": 5,
+    "new_testcases": 5,
+    "pre_existing_outcome_changes": {},
+    "baseline_outcomes": {
+      "skip": 1,
+      "pass": 1614
+    },
+    "candidate_outcomes": {
+      "skip": 1,
+      "pass": 1619
+    },
+    "covered_lines": [
+      12143,
+      12147
+    ],
+    "statements": 14554,
+    "files": 186,
+    "exclusions": 181,
+    "line_deltas": {
+      "pa_core/cli.py": {
+        "new": [
+          820,
+          821,
+          1047,
+          1048
+        ],
+        "lost": []
+      }
+    }
+  },
+  "full_suite_current_snapshot_completed": false,
+  "full_suite_blocker": "Existing PNG export probe timed out in Kaleido.",
+  "original_production_and_coverage_config_unchanged": true,
+  "remote_pr_state_verified": false,
+  "workspace_git_writable": false
+}

@@ -25,4 +25,6 @@ The interpreter is an existing isolated Python 3.12.2 environment with pytest 9.
 
 ## Evidence integrity
 
-`raw-proof.tar.gz` contains lossless paired coverage JSON, JUnit, console output, process metadata, source inventories, ranking, environment, and mutation captures. `manifest.json` hashes every member, archive, and current bound source/test/config. `comparison.json` summarizes unchanged outcomes, denominator/exclusions, and exact gained lines. Archive extraction is sufficient to inspect evidence; its capture scripts retain original absolute paths and require explicit adaptation before rerunning elsewhere.
+`raw-proof.tar.gz` contains lossless paired coverage JSON, JUnit, console output, process metadata, source inventories, ranking, environment, and mutation captures. `manifest.json` hashes every member, archive, and the originally bound source/test/config. `comparison.json` summarizes unchanged outcomes, denominator/exclusions, and exact gained lines. Archive extraction is sufficient to inspect evidence; its capture scripts retain original absolute paths and require explicit adaptation before rerunning elsewhere.
+
+The [acceptance revalidation](acceptance-revalidation-20261010/README.md) strengthens the same five test cases, verifies all 41 original archive members and the historical comparisons, and binds fresh focused and mutation receipts to the updated tests. The original full-suite captures remain historical evidence; the supplemental report records the current runner's PNG export timeout separately.

@@ -20,11 +20,30 @@ def validation_config(monkeypatch):
 
 
 def invoke_validation():
+    root = logging.getLogger()
+    handler = logging.NullHandler()
+    original_showwarning = warnings.showwarning
+
+    def caller_showwarning(*args, **kwargs):
+        return original_showwarning(*args, **kwargs)
+
+    root.addHandler(handler)
+    handlers = tuple(root.handlers)
+    warnings.showwarning = caller_showwarning
     try:
-        cli.main(["--config", "cfg.yaml", "--validate-only"], emit_deprecation_warning=False)
-    except SystemExit as exc:
-        return exc.code
-    return None
+        exit_code = None
+        try:
+            cli.main(["--config", "cfg.yaml", "--validate-only"], emit_deprecation_warning=False)
+        except SystemExit as exc:
+            exit_code = exc.code
+        assert tuple(root.handlers) == handlers, "validation changed caller logging handlers"
+        assert (
+            warnings.showwarning is caller_showwarning
+        ), "validation changed caller warning handler"
+        return exit_code
+    finally:
+        root.removeHandler(handler)
+        warnings.showwarning = original_showwarning
 
 
 def test_capital_exception_is_a_failed_result_with_original_details(
@@ -42,8 +61,6 @@ def test_capital_exception_is_a_failed_result_with_original_details(
 
     monkeypatch.setattr(validators, "validate_capital_allocation", fail_capital)
     monkeypatch.setattr(validators, "format_validation_messages", format_results)
-    root = logging.getLogger()
-    handlers, showwarning = tuple(root.handlers), warnings.showwarning
     assert invoke_validation() == 1, "capital validator exceptions must reject validation"
     errors = [result for result in captured if not result.is_valid and result.severity == "error"]
     assert len(errors) == 1
@@ -54,8 +71,6 @@ def test_capital_exception_is_a_failed_result_with_original_details(
     output = capsys.readouterr().out
     assert "Capital validation failed: margin schedule unavailable" in output
     assert "Validation completed successfully." not in output
-    assert tuple(root.handlers) == handlers
-    assert warnings.showwarning is showwarning
 
 
 @pytest.mark.parametrize(
@@ -75,12 +90,34 @@ def test_validation_only_rejects_errors_without_rejecting_advisories(
 
 
 def test_validation_forwards_effective_financing_and_simulation_settings(
-    validation_config, monkeypatch
+    validation_config, monkeypatch, tmp_path
 ):
+    schedule = tmp_path / "margin.csv"
+    schedule.write_text("term,multiplier\n1,2\n24,4\n")
     cfg = validation_config.model_copy(
-        update={"financing_term_months": 18, "external_step_size_pct": 7.0}
+        update={
+            "financing_model": "schedule",
+            "financing_schedule_path": schedule,
+            "financing_term_months": 18,
+            "N_SIMULATIONS": 321,
+            "external_step_size_pct": 7.0,
+            "in_house_return_step_pct": 3.0,
+            "in_house_vol_step_pct": 0.5,
+            "alpha_ext_return_step_pct": 4.0,
+            "alpha_ext_vol_step_pct": 0.75,
+            "external_pa_alpha_step_pct": 6.0,
+            "active_share_step_pct": 8.0,
+            "sd_multiple_step": 0.5,
+        }
     )
-    monkeypatch.setattr("pa_core.config.load_config", lambda _: cfg)
+    applied_configs = []
+
+    def apply_options(config, options):
+        applied_configs.append(config)
+        return cfg
+
+    # Keep loaded defaults distinct from the facade's effective configuration.
+    monkeypatch.setattr("pa_core.facade.apply_run_options", apply_options)
     capital_calls, simulation_calls = [], []
     original_capital = validators.validate_capital_allocation
     original_simulation = validators.validate_simulation_parameters
@@ -96,6 +133,8 @@ def test_validation_forwards_effective_financing_and_simulation_settings(
     monkeypatch.setattr(validators, "validate_capital_allocation", capital)
     monkeypatch.setattr(validators, "validate_simulation_parameters", simulation)
     assert invoke_validation() is None
+    assert len(applied_configs) == 1
+    assert applied_configs[0] is validation_config
     assert capital_calls == [
         {
             "external_pa_capital": cfg.external_pa_capital,
