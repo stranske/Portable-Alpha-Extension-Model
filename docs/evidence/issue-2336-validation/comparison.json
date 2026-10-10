@@ -1,0 +1,52 @@
+{
+  "base": "c569018fda1433c0696febbb498ff2b522616fac",
+  "baseline": {
+    "covered_lines": 12143,
+    "num_statements": 14554,
+    "percent_covered": 83.43410746186615,
+    "percent_covered_display": "83",
+    "missing_lines": 2411,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.43410746186615,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate": {
+    "covered_lines": 12147,
+    "num_statements": 14554,
+    "percent_covered": 83.46159131510238,
+    "percent_covered_display": "83",
+    "missing_lines": 2407,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.46159131510238,
+    "percent_statements_covered_display": "83"
+  },
+  "same_file_set": true,
+  "same_exclusions": true,
+  "baseline_outcomes": {
+    "skip": 1,
+    "pass": 1614
+  },
+  "candidate_outcomes": {
+    "skip": 1,
+    "pass": 1619
+  },
+  "existing_outcome_changes": {},
+  "new_tests": [
+    "tests.test_cli_validation_boundaries::test_capital_exception_is_a_failed_result_with_original_details",
+    "tests.test_cli_validation_boundaries::test_validation_forwards_effective_financing_and_simulation_settings",
+    "tests.test_cli_validation_boundaries::test_validation_only_rejects_errors_without_rejecting_advisories[error-1]",
+    "tests.test_cli_validation_boundaries::test_validation_only_rejects_errors_without_rejecting_advisories[info-None]",
+    "tests.test_cli_validation_boundaries::test_validation_only_rejects_errors_without_rejecting_advisories[warning-None]"
+  ],
+  "line_deltas": {
+    "pa_core/cli.py": {
+      "new": [
+        820,
+        821,
+        1047,
+        1048
+      ],
+      "lost": []
+    }
+  }
+}
