@@ -233,3 +233,68 @@ def test_snapshot_replay_restores_source_after_phase_failure(
         pending = f"{fail_at // 2:02d}-{'red' if fail_at % 2 == 0 else 'green'}"
         assert (output / f"{pending}.txt").is_file()
         assert not (output / f"{pending}.xml").exists()
+
+
+@pytest.mark.parametrize("interruption", ["timeout", "keyboard"])
+@pytest.mark.parametrize("cleanup_failure", ["cache_removed", "cache_denied", "source_read"])
+def test_snapshot_cleanup_preserves_original_error_and_partial_receipt(
+    checkout, tmp_path, monkeypatch, interruption, cleanup_failure
+):
+    active, files = checkout
+    path = Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-cli-snapshots/replay.py"
+    spec = importlib.util.spec_from_file_location("snapshot_cleanup_replay", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    source = active / files[0]
+    original = source.read_bytes()
+    output = tmp_path / "cleanup-output"
+    output.mkdir()
+    interrupted = False
+    cache = active / "pa_core/__pycache__/cli.concurrent.pyc"
+    original_unlink, original_read = Path.unlink, Path.read_bytes
+    expected = (
+        subprocess.TimeoutExpired(["pytest"], 90)
+        if interruption == "timeout"
+        else KeyboardInterrupt()
+    )
+
+    def fail(argv, **kwargs):
+        nonlocal interrupted
+        cache.write_bytes(b"cache created during interrupted phase")
+        interrupted = True
+        raise expected
+
+    def unlink(item, *args, **kwargs):
+        if interrupted and item == cache:
+            if cleanup_failure == "cache_denied":
+                raise PermissionError("injected cache cleanup failure")
+            if cleanup_failure == "cache_removed" and item.exists():
+                original_unlink(item)
+        return original_unlink(item, *args, **kwargs)
+
+    def read(item):
+        if interrupted and item == source and cleanup_failure == "source_read":
+            raise OSError("injected restoration read failure")
+        return original_read(item)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(module.subprocess, "run", fail)
+        patch.setattr(Path, "unlink", unlink)
+        patch.setattr(Path, "read_bytes", read)
+        with pytest.raises(type(expected)) as caught:
+            module.replay(active, output, sys.executable)
+        assert caught.value is expected
+
+    assert source.read_bytes() == original
+    controls = json.loads((output / "controls.json").read_text())
+    assert controls["source_sha256"] == module.digest(original)
+    assert controls["cases"][0]["phases"] == []
+    if cleanup_failure == "source_read":
+        assert controls["restored_sha256"] is None
+        assert controls["cleanup_errors"][0]["stage"] == "read_restored_source"
+    else:
+        assert controls["restored_sha256"] == module.digest(original)
+        if cleanup_failure == "cache_denied":
+            assert controls["cleanup_errors"][0]["stage"] == "remove_cache"
+        else:
+            assert controls.get("cleanup_errors", []) == []

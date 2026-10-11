@@ -98,7 +98,7 @@ def replay(root, output, python):
                 source.write_bytes(content)
                 # Avoid timestamp/size cache aliasing when a restored source has the same size.
                 for cache in (root / "pa_core/__pycache__").glob("cli.*.pyc"):
-                    cache.unlink()
+                    cache.unlink(missing_ok=True)
                 stem = f"{index:02d}-{phase}"
                 junit = output / (stem + ".xml")
                 argv = [
@@ -143,11 +143,41 @@ def replay(root, output, python):
                 if proc.returncode != expected:
                     raise RuntimeError("Unexpected exit: " + node)
     finally:
-        source.write_bytes(original)
-        for cache in (root / "pa_core/__pycache__").glob("cli.*.pyc"):
-            cache.unlink()
-        controls["restored_sha256"] = digest(source.read_bytes())
-        (output / "controls.json").write_text(json.dumps(controls, indent=2), encoding="utf-8")
+        original_error = sys.exc_info()[1]
+        cleanup_errors = []
+        controls["restored_sha256"] = None
+
+        def attempt(stage, operation):
+            try:
+                return operation()
+            except BaseException as error:
+                cleanup_errors.append((stage, error))
+                return None
+
+        attempt("restore_source", lambda: source.write_bytes(original))
+        caches = attempt(
+            "list_cache", lambda: list((root / "pa_core/__pycache__").glob("cli.*.pyc"))
+        )
+        for cache in caches or []:
+            attempt("remove_cache", lambda: cache.unlink(missing_ok=True))
+        restored = attempt("read_restored_source", source.read_bytes)
+        if restored is not None:
+            controls["restored_sha256"] = digest(restored)
+        if cleanup_errors:
+            controls["cleanup_errors"] = [
+                {"stage": stage, "error": f"{type(error).__name__}: {error}"}
+                for stage, error in cleanup_errors
+            ]
+        # Always attempt the receipt, even after restoration or cache failures.
+        # If the phase was interrupted, its original exception must survive.
+        attempt(
+            "write_controls",
+            lambda: (output / "controls.json").write_text(
+                json.dumps(controls, indent=2), encoding="utf-8"
+            ),
+        )
+        if cleanup_errors and original_error is None:
+            raise cleanup_errors[0][1]
     if source.read_bytes() != original or digest(test.read_bytes()) != controls["test_sha256"]:
         raise RuntimeError("Source/test restoration failed")
     print("6 named nodes: actual production RED then byte-identical restored GREEN")
