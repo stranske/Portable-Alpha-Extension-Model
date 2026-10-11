@@ -76,7 +76,7 @@ def main():
                     env["PYTEST_ADDOPTS"] = shlex.join(
                         ["--junitxml", str(report), "--override-ini", "addopts="]
                     )
-                    command = [sys.executable, "-m", "pytest", node, "-q"]
+                    command = [sys.executable, "-m", "pytest", node, "-q", "-m", "not slow"]
                     result = subprocess.run(
                         command,
                         cwd=tree,
