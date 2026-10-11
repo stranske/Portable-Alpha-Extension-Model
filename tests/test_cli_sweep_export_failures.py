@@ -17,16 +17,16 @@ from pa_core.cli import main
 @pytest.mark.parametrize(
     "error_type, diagnostic, guidance",
     [
-        (RuntimeError, "Export packet failed: export unavailable", None),
+        (RuntimeError, "Export packet failed", None),
         (
             ImportError,
             "Export packet failed due to missing dependency",
-            "Install required packages",
+            "Install required packages: pip install plotly kaleido openpyxl",
         ),
         (
             ModuleNotFoundError,
             "Export packet failed due to missing dependency",
-            "Install required packages",
+            "Install required packages: pip install plotly kaleido openpyxl",
         ),
         (
             ValueError,
@@ -83,6 +83,7 @@ def test_sweep_packet_export_failure_is_truthful(
     calls = []
     workbook_before_failure = []
     manifest_before_failure = []
+    error = error_type("export unavailable")
 
     def fail_packet(**kwargs):
         calls.append(kwargs)
@@ -92,7 +93,7 @@ def test_sweep_packet_export_failure_is_truthful(
         snapshot = json.loads(manifest_path.read_text())
         assert snapshot == kwargs["manifest"]
         manifest_before_failure.append(snapshot)
-        raise error_type("export unavailable")
+        raise error
 
     monkeypatch.setattr("pa_core.reporting.export_packet.create_export_packet", fail_packet)
     figure = object()
@@ -118,16 +119,16 @@ def test_sweep_packet_export_failure_is_truthful(
             "--packet",
         ]
     )
-    stdout = capsys.readouterr().out
+    captured = capsys.readouterr()
+    stdout = captured.out
     assert len(calls) == 1
     assert calls[0]["figs"] == [figure]
     pd.testing.assert_frame_equal(calls[0]["summary_df"][list(summary.columns)], summary)
-    assert diagnostic in stdout
-    assert "export unavailable" in stdout
-    for remediation in ("Install required packages", "Check your configuration and data inputs"):
-        assert (remediation in stdout) == (remediation == guidance)
-    assert stdout.count("Export packet failed") == 1
-    assert "Parameter sweep export packet created" not in stdout
+    failure_lines = [line for line in stdout.splitlines() if "Export packet failed" in line]
+    assert failure_lines == [f"❌ {diagnostic}: {error}"]
+    guidance_lines = [line for line in stdout.splitlines() if line.startswith("💡 ")]
+    assert guidance_lines == ([] if guidance is None else [f"💡 {guidance}"])
+    assert "Parameter sweep export packet created" not in stdout + captured.err
     assert output.read_bytes() == workbook_before_failure[0] == b"sweep output"
     manifest = json.loads(manifest_path.read_text())
     # Finalization may update timing, warnings and cost. All other contents,

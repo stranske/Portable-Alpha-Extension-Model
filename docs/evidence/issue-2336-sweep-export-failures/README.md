@@ -169,3 +169,34 @@ authorization. PR #2348 was verified open and ready for review. The live
 acceptance-checkbox update was rejected again because the GitHub tool requires
 approval and this run's policy is `never`; a reconciled PR body is retained
 in the review archive for an authorized update.
+
+## Exact diagnostic and remediation validation
+
+The six cases now require one complete diagnostic line, including the exception
+message, and the exact remediation line. Dependency guidance must name `plotly`,
+`kaleido` and `openpyxl`; runtime failures must have no remediation line. Packet
+success announcements are rejected on both stdout and stderr. Production remains
+unchanged, and the existing workbook, manifest and rendering assertions remain.
+
+`exact-guidance-validation.tar.gz` and `exact-guidance-manifest.json` retain the
+current test, targeted coverage, focused JUnit, handler mutations, formatting
+receipts and the reconciled PR body. All **15** focused cases pass. The six cases
+cover **361/1107 CLI statements (32.61%, displayed as 33%)**, including all ten
+handler lines. Six handler mutations fail their exact nodes and byte-identical
+restorations pass; existing output is refused with receipts and caller preserved.
+Full Black passes for **493** workspace files with the documented sequential adapter.
+
+An additional private mutation removes `kaleido openpyxl` from the dependency
+guidance. All six previous tests pass; the strengthened `import` and `module`
+nodes fail specifically on remediation, and all six restored cases pass. Extract
+the archived `verify_sweep_guidance.py` and run it from the repository root with
+`python3 /tmp/verify_sweep_guidance.py --output /tmp/new-sweep-guidance-proof`.
+The previous-test control is pinned to `088f2bbd`.
+
+Recent commits and all four preceding archives were reviewed before continuing;
+their hashes and historical baseline/candidate outcomes and coverage were verified.
+All five acceptance checkboxes are supported by that evidence. Updating the live
+PR body was rejected because the connector requires approval and this run's policy
+is `never`; the archived reconciled body records the remaining tracking action.
+Historical broader source coverage remains **83.5440%, below 90%**. These local
+checks establish neither hosted-environment parity nor authorization to merge.
