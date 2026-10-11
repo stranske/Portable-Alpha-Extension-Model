@@ -296,3 +296,35 @@ PR-body update, blocker comment and `needs-human` label because it requires
 approval under this run's `never` policy. The reconciled body is archived for an
 authorized writer. Historical broader source coverage remains **83.5440%, below
 90%**; these local checks establish neither hosted parity nor merge authorization.
+
+## Error log severity validation
+
+The same six cases now check log severity alongside the diagnostic text.
+Dependency and data failures must remain at ERROR level so that collectors
+filtering out INFO messages still receive them. Runtime failures retain their
+existing console-only behavior. Production remains unchanged.
+
+`severity-validation.tar.gz` and `severity-manifest.json` retain the current
+test, focused JUnit, targeted coverage, mutation receipts, formatting output and
+reconciled PR body. All **15** focused cases pass. A private production mutation
+downgrades both dependency/data handlers to INFO: all six previous cases pass,
+the five affected current cases fail at the log assertion, and all six current
+cases pass after byte-identical restoration. Reproduce from the repository root:
+
+```sh
+tar -xzf docs/evidence/issue-2336-sweep-export-failures/severity-validation.tar.gz -C /tmp verify_sweep_log_severity.py
+python3 /tmp/verify_sweep_log_severity.py --output /tmp/new-sweep-severity-proof
+```
+
+The handler replay also yields six exact-node failures and six restored passes;
+existing output is refused with caller files and evidence preserved. Targeted
+CLI coverage remains **361/1107 (32.61%)**, covering all ten handler lines.
+Full Black checks **493** workspace files and focused Ruff passes. The preceding
+eight archives retain their historical snapshots; **557** archive/member/input
+SHA256 bindings and their raw baseline/candidate comparisons were reverified.
+
+All six acceptance checkboxes are supported locally. The PR-body update, blocker
+comment and `needs-human` label were each rejected because the connector requires
+approval under this run's `never` policy. The reconciled body is archived for an
+authorized writer. Historical broader source coverage remains **83.5440%, below
+90%**; this evidence establishes neither hosted parity nor merge authorization.

@@ -135,11 +135,14 @@ def test_sweep_packet_export_failure_is_truthful(
     # Dependency and data failures are also logged for users collecting CLI
     # diagnostics. A truthful console message must not hide an incorrect log.
     export_logs = [
-        record.getMessage()
+        (record.levelno, record.getMessage())
         for record in caplog.records
         if "export packet" in record.getMessage().casefold()
     ]
-    assert export_logs == ([] if error_type is RuntimeError else [f"{diagnostic}: {error}"])
+    # ERROR-level collectors must receive dependency/data diagnostics too.
+    assert export_logs == (
+        [] if error_type is RuntimeError else [(logging.ERROR, f"{diagnostic}: {error}")]
+    )
     # Both the sweep-specific and shared packet success messages are false
     # after an export failure, regardless of which output stream carries them.
     assert "export packet created" not in (captured.out + captured.err).casefold()
