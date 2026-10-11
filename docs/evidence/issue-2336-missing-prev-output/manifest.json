@@ -23,10 +23,6 @@
       "sha256": "9e3a9b27a9a653425ca19f36c0b937f5c02ca72386a926599ad069df8b9eff89",
       "bytes": 882
     },
-    "isolated-replay/isolation.log": {
-      "sha256": "0070cef265f08f77714bf204f2b5ad05eaab6f86a6935182169f1cd39354af96",
-      "bytes": 99
-    },
     "isolated-replay/isolation.xml": {
       "sha256": "a5340384a9c3bf72f7d1faf76f5084959e23e4e10e794dde8a2ff699bb8f3fd0",
       "bytes": 2566
@@ -90,6 +86,10 @@
     "replay.py": {
       "sha256": "fc9c33b475e873b150d6fe0d67e82b0279e129ef4e43cca709811d59079dfb75",
       "bytes": 4577
+    },
+    "isolated-replay/isolation-tests.txt": {
+      "sha256": "0070cef265f08f77714bf204f2b5ad05eaab6f86a6935182169f1cd39354af96",
+      "bytes": 99
     }
   }
 }
