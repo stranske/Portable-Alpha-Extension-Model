@@ -81,10 +81,16 @@ def test_sweep_packet_export_failure_is_truthful(
     manifest_path = tmp_path / "manifest.json"
     calls = []
     workbook_before_failure = []
+    manifest_before_failure = []
 
     def fail_packet(**kwargs):
         calls.append(kwargs)
         workbook_before_failure.append(output.read_bytes())
+        # Read an independent snapshot so later in-place edits cannot change
+        # both the expected manifest and the final manifest under test.
+        snapshot = json.loads(manifest_path.read_text())
+        assert snapshot == kwargs["manifest"]
+        manifest_before_failure.append(snapshot)
         raise error_type("export unavailable")
 
     monkeypatch.setattr("pa_core.reporting.export_packet.create_export_packet", fail_packet)
@@ -118,10 +124,12 @@ def test_sweep_packet_export_failure_is_truthful(
     assert "Parameter sweep export packet created" not in stdout
     assert output.read_bytes() == workbook_before_failure[0] == b"sweep output"
     manifest = json.loads(manifest_path.read_text())
-    # Finalization may update timing, warnings and cost; reproducibility inputs
-    # must survive unchanged from the manifest passed to the failing exporter.
-    for field in ("config", "config_hash", "seed", "substream_ids", "cli_args", "data_files"):
-        assert manifest[field] == calls[0]["manifest"][field]
+    # Finalization may update timing, warnings and cost. All other contents,
+    # including provenance and data quality, must survive the failed export.
+    finalized_fields = {"run_timing", "warnings", "cost"}
+    assert {k: v for k, v in manifest.items() if k not in finalized_fields} == {
+        k: v for k, v in manifest_before_failure[0].items() if k not in finalized_fields
+    }
     assert manifest["seed"] == 123
     assert manifest["cli_args"]["output"] == str(output)
     assert manifest["cli_args"]["packet"] is True

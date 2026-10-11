@@ -40,8 +40,8 @@ now explicitly selects `-m "not slow"`; production remains byte-identical.
 The reproduction command above also excludes slow tests, so its selection need
 not match the historical default-selection counts.
 
-Current receipts are in `acceptance-validation.tar.gz`, with archive, member and
-current-input hashes in `acceptance-manifest.json`. They retain the focused test
+Receipts for that follow-up are in `acceptance-validation.tar.gz`, with archive, member and
+input-snapshot hashes in `acceptance-manifest.json`. They retain the focused test
 logs/JUnit and six individual real handler mutations followed by restored passes.
 Export and rendering remain stubbed; these checks do not demonstrate physical
 Office exports or hosted-environment parity.
@@ -87,3 +87,36 @@ document exclude them, so they are not a claim of identical historical totals.
 - [x] Documented the remaining limitation: broader measured source coverage is
   **83.5440%, below 90%**. Issue #2336 remains open; these local receipts establish
   neither hosted-environment parity nor authorization to merge.
+
+## Independent manifest snapshot validation
+
+The six cases now read the on-disk manifest inside the failing exporter, verify
+that it matches the exporter argument, and retain that independent snapshot.
+After finalization they compare every field except `run_timing`, `warnings` and
+`cost`, which finalization legitimately updates. This also protects provenance,
+backend and data-quality fields that the earlier six-field comparison omitted.
+Production and the six named nodes remain unchanged.
+
+`snapshot-validation.tar.gz` and `snapshot-manifest.json` bind the latest test
+snapshot, targeted coverage, focused JUnit, Black output, and mutation receipts.
+The preceding two archives remain historical snapshots; their test input hashes
+are not hashes of the current test file. All **15** focused cases pass. Targeted
+CLI coverage remains **361/1107 (32.61%)**, with all ten handler lines covered;
+this is not a new matched full-suite coverage measurement.
+
+A private source mutation removes `backend` during manifest finalization. All
+six parent cases pass with that mutation, all six strengthened cases fail on
+their manifest comparison, and all six pass after byte-identical restoration.
+The archived `verify_manifest_mutation.py` reproduces this control when run from
+the repository root with its output directory set to a fresh location. The
+existing handler replay also produces six exact-node failures and six restored
+passes; output reuse is refused with caller files and receipts preserved.
+Full Black passes for **493** files with the previously documented sequential
+adapter; focused Ruff and `git diff --check` pass.
+
+The PR-body reconciliation was attempted after reviewing commits `943d00cc`
+and `60f1950e` and verifying their receipts. The GitHub update tool requires
+approval, which this run's `never` approval policy blocks. The tests and
+documentation criteria are verified locally; the live PR acceptance checkboxes
+still need to be applied. Broader source coverage remains **83.5440%, below 90%**;
+these local receipts establish neither hosted parity nor merge authorization.
