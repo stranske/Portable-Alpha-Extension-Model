@@ -3,6 +3,42 @@
   "evaluated_merge": "6ae00f715a91ad8681fce971aff22a737e6f7a23",
   "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
   "members": {
+    "isolated-replay/00-green.txt": {
+      "sha256": "b2a3e014b1487516bb628cb47005413b42ea5e4b9663c2a1bbaa2e941bcd684e",
+      "bytes": 2565
+    },
+    "isolated-replay/00-red.txt": {
+      "sha256": "3112b2396b7f6500e91d0ae7a52a382c70b6906420740e6fe57179130dd8d578",
+      "bytes": 22361
+    },
+    "isolated-replay/controls.json": {
+      "sha256": "923069ebc9c68cf7ddb97b29b73d10c3aba42a4bc9ed9f8edf2ac4c5c9cf8366",
+      "bytes": 1439
+    },
+    "isolated-replay/green-command.json": {
+      "sha256": "dc55c8d3cc8c4424fc5551074e978e9fffe04eb4e464ed776cbb94c7d85c2eaf",
+      "bytes": 381
+    },
+    "isolated-replay/green.xml": {
+      "sha256": "9e3a9b27a9a653425ca19f36c0b937f5c02ca72386a926599ad069df8b9eff89",
+      "bytes": 882
+    },
+    "isolated-replay/isolation.log": {
+      "sha256": "0070cef265f08f77714bf204f2b5ad05eaab6f86a6935182169f1cd39354af96",
+      "bytes": 99
+    },
+    "isolated-replay/isolation.xml": {
+      "sha256": "a5340384a9c3bf72f7d1faf76f5084959e23e4e10e794dde8a2ff699bb8f3fd0",
+      "bytes": 2566
+    },
+    "isolated-replay/red-command.json": {
+      "sha256": "6d260359d1239816c3ed414af3029d5b54c4d7295dfd4916e9d277d92b3b5dd6",
+      "bytes": 379
+    },
+    "isolated-replay/red.xml": {
+      "sha256": "029119722e51043d187015fcf26a29c9e7f292eb2440aa6118e6c54ad3d2893f",
+      "bytes": 15108
+    },
     "mutation-green.txt": {
       "sha256": "df8f45f8b1245cbb9ff198bee28fc5362a53d38b9b12c0cab25aeedcf3b44d0c",
       "bytes": 2562
@@ -52,8 +88,8 @@
       "bytes": 255
     },
     "replay.py": {
-      "sha256": "b57e0006607f9b9794a2e5a95faf36762aa936a92ea2c7d15b452124232aa3d8",
-      "bytes": 1712
+      "sha256": "fc9c33b475e873b150d6fe0d67e82b0279e129ef4e43cca709811d59079dfb75",
+      "bytes": 4577
     }
   }
 }
