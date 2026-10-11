@@ -1,0 +1,91 @@
+{
+  "baseline_totals": {
+    "covered_lines": 12149,
+    "num_statements": 14554,
+    "percent_covered": 83.47533324172049,
+    "percent_covered_display": "83",
+    "missing_lines": 2405,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.47533324172049,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate_totals": {
+    "covered_lines": 12159,
+    "num_statements": 14554,
+    "percent_covered": 83.54404287481105,
+    "percent_covered_display": "84",
+    "missing_lines": 2395,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.54404287481105,
+    "percent_statements_covered_display": "84"
+  },
+  "baseline_outcomes": {
+    "PASS": 1643,
+    "SKIP": 1
+  },
+  "candidate_outcomes": {
+    "PASS": 1649,
+    "SKIP": 1
+  },
+  "new_nodes": [
+    [
+      "tests.test_cli_sweep_export_failures",
+      "test_sweep_packet_export_failure_is_truthful[import]"
+    ],
+    [
+      "tests.test_cli_sweep_export_failures",
+      "test_sweep_packet_export_failure_is_truthful[key]"
+    ],
+    [
+      "tests.test_cli_sweep_export_failures",
+      "test_sweep_packet_export_failure_is_truthful[module]"
+    ],
+    [
+      "tests.test_cli_sweep_export_failures",
+      "test_sweep_packet_export_failure_is_truthful[runtime]"
+    ],
+    [
+      "tests.test_cli_sweep_export_failures",
+      "test_sweep_packet_export_failure_is_truthful[type]"
+    ],
+    [
+      "tests.test_cli_sweep_export_failures",
+      "test_sweep_packet_export_failure_is_truthful[value]"
+    ]
+  ],
+  "unchanged_old_outcomes": true,
+  "identical_source_universe": true,
+  "no_covered_line_regression": true,
+  "cli_before": {
+    "covered_lines": 810,
+    "num_statements": 1107,
+    "percent_covered": 73.17073170731707,
+    "percent_covered_display": "73",
+    "missing_lines": 297,
+    "excluded_lines": 17,
+    "percent_statements_covered": 73.17073170731707,
+    "percent_statements_covered_display": "73"
+  },
+  "cli_after": {
+    "covered_lines": 820,
+    "num_statements": 1107,
+    "percent_covered": 74.07407407407408,
+    "percent_covered_display": "74",
+    "missing_lines": 287,
+    "excluded_lines": 17,
+    "percent_statements_covered": 74.07407407407408,
+    "percent_statements_covered_display": "74"
+  },
+  "new_cli_lines": [
+    1487,
+    1488,
+    1489,
+    1490,
+    1491,
+    1492,
+    1493,
+    1494,
+    1495,
+    1496
+  ]
+}
