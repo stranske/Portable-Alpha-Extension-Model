@@ -1,0 +1,10 @@
+{
+  "exits": [
+    1,
+    0
+  ],
+  "restored": true,
+  "caller_unchanged": true,
+  "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "caller_sha256": "b04a7cb8dde17884035226ed4b0b9b8fefd46780188a0ffacf95b6e9354162d0"
+}

@@ -1,0 +1,56 @@
+...................                                                      [100%]
+=============================== warnings summary ===============================
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[available]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[missing-engine]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[io-error]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[invalid-workbook]
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/tests/test_cli_packet_diff.py:101: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py: 39 warnings
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[available]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[missing-engine]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[io-error]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[permission-error]
+tests/test_cli_packet_diff.py::test_sweep_packet_passes_prev_diff[invalid-workbook]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-file]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-parent]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-file]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-parent]
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/pa_core/cli.py:1302: UserWarning: Run executed without an explicit --seed (seed=None): results use a non-deterministic RNG and cannot be reproduced. Pass --seed to make the run reproducible.
+    mw.write(
+
+tests/test_cli_packet_diff.py::test_packet_includes_stress_delta
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/tests/test_cli_packet_diff.py:203: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_packet_includes_stress_delta
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/tests/test_cli_packet_diff.py:203: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_packet_diff.py::test_packet_includes_stress_delta
+tests/test_cli_packet_diff.py::test_stress_delta_written_to_output_workbook
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/pa_core/cli.py:1855: UserWarning: Run executed without an explicit --seed (seed=None): results use a non-deterministic RNG and cannot be reproduced. Pass --seed to make the run reproducible.
+    mw.write(
+
+tests/test_cli_packet_diff.py::test_stress_delta_written_to_output_workbook
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/tests/test_cli_packet_diff.py:314: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_packet_diff.py::test_stress_delta_written_to_output_workbook
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/tests/test_cli_packet_diff.py:314: UserWarning: Base-only configuration: Total excludes Base, so Total will report zero overlay contribution rather than the index return. Use the Base row for benchmark return.
+    main(
+
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-file]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-parent]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-file]
+tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-parent]
+  /Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-qualify-20261011T0215Z/tests/test_cli_packet_diff.py:428: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+19 passed, 63 warnings in 3.62s
