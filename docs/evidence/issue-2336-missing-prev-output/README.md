@@ -12,7 +12,7 @@ The follow-up also compares the previous summary against a canonical empty DataF
 - [x] Assert export receives an empty `prev_summary_df` with no rows or columns while passing through `prev_manifest`.
 - [x] Document the increment in this evidence directory.
 - [x] Run the focused acceptance test.
-- [ ] Hosted Gate / keepalive on this PR: unverified; this environment cannot reach `api.github.com`.
+- [x] Hosted Gate / keepalive on this PR: recorded complete in the task prompt and the live PR body; not rerun locally.
 
 ## Task reconciliation follow-up
 
@@ -32,3 +32,12 @@ After strengthening the export assertions, verification again passed: the focuse
 Hosted CI is authoritative for full-suite and coverage deltas on this PR.
 
 The repository's `.git` directory is mounted read-only in this run, so updating its index or branch is blocked. The tested changes remain in the working tree; a commit and portable patch are prepared with isolated Git metadata under `/tmp` for automation handoff.
+
+## Relative output path increment
+
+The focused regression now parametrizes absolute and relative manifest output paths across both missing-file and missing-parent cases. Each invocation runs from the temporary directory so relative paths refer to the same absent workbook as their absolute counterparts. All four cases verify that workbook loading is skipped, export receives a canonical empty prior summary, current metrics remain intact, and the previous manifest (including its original path spelling) reaches export unchanged.
+
+- Focused acceptance command with `-m 'not slow'`: **4 passed**.
+- Packet regression modules with `-m 'not slow'`: **19 passed**.
+- Black formatted the changed test and the required repository-wide check passed: **489 files unchanged**, exit code 0. The check used `BLACK_NUM_WORKERS=1 PYTHONPATH=/tmp/issue-2336-relative-black-runtime` with a temporary `sitecustomize.py` that adds an asyncio heartbeat. Formatting rules and file selection were unchanged.
+- The GitHub connector confirmed [PR #2345](https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2345) remains open and ready for review (`draft=false`). Its acceptance checkboxes are already checked; no remote PR changes were needed.

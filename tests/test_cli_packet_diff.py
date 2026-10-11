@@ -382,9 +382,12 @@ def _stub_sweep_packet_cli(monkeypatch, tmp_path, captured):
     ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
     ids=["missing-file", "missing-parent"],
 )
+@pytest.mark.parametrize("relative_output", [False, True], ids=["absolute", "relative"])
 def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
-    monkeypatch, tmp_path, prev_output_path
+    monkeypatch, tmp_path, prev_output_path, relative_output
 ):
+    # Relative output paths in a saved manifest are resolved from the CLI's working directory.
+    monkeypatch.chdir(tmp_path)
     config_path = tmp_path / "cfg.yaml"
     config_path.write_text(
         yaml.safe_dump(
@@ -408,7 +411,7 @@ def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
 
     monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
     prev_manifest = {
-        "cli_args": {"output": str(missing_prev_output)},
+        "cli_args": {"output": prev_output_path if relative_output else str(missing_prev_output)},
         "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
         "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
     }
