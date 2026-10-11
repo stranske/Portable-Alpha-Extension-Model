@@ -11,18 +11,18 @@ Run with:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import io
 import json
 import logging
 import os
 import re
-import shlex
 import sys
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 from scripts import api_client
@@ -39,6 +39,7 @@ from scripts.langchain.verifier_config import (
     VERIFIER_DIFF_BUDGET_TOKENS,
     SchemaRepairPolicy,
 )
+from tools.llm_registry import NativeCapacityFacts, native_capacity_facts_for
 
 # The shared client builder returns the ClientInfo ``provider_label`` for the
 # verifier (the historical ``_get_llm_client`` returned that field). Bound under
@@ -412,6 +413,7 @@ def _get_chain_depth() -> int:
 VERIFIER_CONTEXT_TITLE = "# Verifier context"
 CI_SECTION = "## CI Information"
 ACCEPTANCE_SECTION = "## Plan sources (scope, tasks, acceptance)"
+ACCEPTANCE_EVIDENCE_SECTION = "## Acceptance evidence"
 DIFF_SUMMARY_SECTION = "## PR Diff Summary"
 FULL_DIFF_SECTION = "## PR Diff (full)"
 UPSTREAM_DIFF_TRUNCATION = re.compile(r"\.\.\.diff truncated after \d+ characters\.")
@@ -433,12 +435,14 @@ class PromptCoverage:
     """What the model actually receives, computed before any model call."""
 
     acceptance: CoverageStatus
+    acceptance_evidence: CoverageStatus
     code: CoverageStatus
     files: tuple[FileCoverage, ...]
     code_included_chars: int
     code_total_chars: int
     context_truncated: bool
     reasons: tuple[str, ...]
+    acceptance_source_discovery: CoverageStatus = "not_declared"
 
     @property
     def sufficient(self) -> bool:
@@ -458,6 +462,8 @@ class PromptCoverage:
         return {
             "sufficient": self.sufficient,
             "acceptance": self.acceptance,
+            "acceptance_evidence": self.acceptance_evidence,
+            "acceptance_source_discovery": self.acceptance_source_discovery,
             "code": self.code,
             "files_total": len(self.files),
             "files_complete": status_counts["complete"],
@@ -479,6 +485,8 @@ class PromptCoverage:
             "which evidence below is complete. Text that is not shown was not reviewed.",
             "",
             f"- Acceptance / plan sources: {self.acceptance}",
+            f"- Linked-issue acceptance discovery: {self.acceptance_source_discovery}",
+            f"- Acceptance evidence: {self.acceptance_evidence}",
             (
                 f"- Changed code: {self.code} — {len(self.files)} file(s); "
                 f"{sum(1 for f in self.files if f.status == 'complete')} complete, "
@@ -518,30 +526,97 @@ def _budget_from_env(name: str, default: int) -> int:
     return value if value > 0 else default
 
 
+def _code_fence_marker(line: str) -> tuple[str, bool, int] | None:
+    """Inspect a fence without treating an info string as a closing marker.
+
+    Retain indentation for nested/indented source snippets; their literal
+    headings must remain inert too. A root fence cannot close at four spaces.
+    """
+    match = re.match(r"^([ \t]*)(`{3,}|~{3,})(.*)$", line.rstrip("\r\n"))
+    if not match:
+        return None
+    indent, marker, suffix = match.groups()
+    if marker[0] == "`" and "`" in suffix:
+        return None
+    return marker, not suffix.strip(" \t"), len(indent.expandtabs(4))
+
+
 def _split_verifier_context(context: str) -> list[tuple[str, str]] | None:
     """Split a structured verifier context into its builder sections.
 
     Returns ``None`` for free-form context. Plan sources embed PR/issue bodies
     that may contain arbitrary ``##`` headings, so only the builder's own
     headings are used, located in the order the builder writes them: the
-    full diff is always last, and the summary is the last one before it.
+    full diff is always last, and the summary is the last one before it.  The
+    generated acceptance-evidence block follows plan sources and must be
+    split independently: large untrusted comments or artifacts must not spend
+    the acceptance-plan budget.
     """
     text = "\n" + context
-    ci = text.find("\n" + CI_SECTION + "\n")
-    plan = text.find("\n" + ACCEPTANCE_SECTION + "\n", max(ci, 0))
+    # Evidence payloads are fenced with a fence longer than any backtick run
+    # in the payload. Only builder headings outside those fences are structural.
+    headings: dict[str, list[int]] = {
+        heading: []
+        for heading in (
+            CI_SECTION,
+            ACCEPTANCE_SECTION,
+            ACCEPTANCE_EVIDENCE_SECTION,
+            DIFF_SUMMARY_SECTION,
+            FULL_DIFF_SECTION,
+        )
+    }
+    offset = 0
+    fence_char = ""
+    fence_length = 0
+    fence_indent = 0
+    for line in text.splitlines(keepends=True):
+        stripped = line.strip()
+        fence = _code_fence_marker(line)
+        if fence:
+            marker, closing, indent = fence
+            if not fence_char:
+                fence_char, fence_length = marker[0], len(marker)
+                fence_indent = indent
+            elif (
+                marker[0] == fence_char
+                and len(marker) >= fence_length
+                and closing
+                and indent <= max(3, fence_indent)
+            ):
+                fence_char, fence_length = "", 0
+                fence_indent = 0
+        elif not fence_char and stripped in headings:
+            headings[stripped].append(offset)
+        offset += len(line)
+    ci = next(iter(headings[CI_SECTION]), -1)
+    plan = next((pos for pos in headings[ACCEPTANCE_SECTION] if pos > ci), -1)
     anchor = max(ci, plan, 0)
-    full = text.rfind("\n" + FULL_DIFF_SECTION + "\n")
-    if full < anchor:
-        full = -1
+    full = next((pos for pos in reversed(headings[FULL_DIFF_SECTION]) if pos > anchor), -1)
     summary_end = full if full >= 0 else len(text)
-    summary = text.rfind("\n" + DIFF_SUMMARY_SECTION + "\n", anchor, summary_end)
-    if not context.startswith(VERIFIER_CONTEXT_TITLE) and max(ci, plan, summary, full) < 0:
+    summary = next(
+        (pos for pos in reversed(headings[DIFF_SUMMARY_SECTION]) if anchor < pos < summary_end), -1
+    )
+    evidence_end = summary if summary >= 0 else summary_end
+    evidence = next(
+        (
+            pos
+            for pos in reversed(headings[ACCEPTANCE_EVIDENCE_SECTION])
+            if max(plan, 0) < pos < evidence_end
+        ),
+        -1,
+    )
+    if (
+        not context.startswith(VERIFIER_CONTEXT_TITLE)
+        and max(ci, plan, evidence, summary, full) < 0
+    ):
         return None
     marks = [("preamble", 0)]
     if ci >= 0:
         marks.append(("ci", ci))
     if plan >= 0:
         marks.append(("acceptance", plan))
+    if evidence >= 0:
+        marks.append(("acceptance_evidence", evidence))
     if summary >= 0:
         marks.append(("diff_summary", summary))
     if full >= 0:
@@ -565,53 +640,130 @@ def _strip_diff_fence(section: str) -> str:
     return body.strip("\n")
 
 
-def _split_diff_files(diff: str) -> list[tuple[str, str]]:
-    def normalized_path(raw: str) -> str:
-        value = raw.rstrip("\n")
+def _split_diff_files(diff: str) -> list[tuple[str | None, str]]:
+    def decode_quoted_path(raw: str) -> tuple[str, str] | None:
+        if not raw.startswith('"'):
+            return None
+        chunks: list[bytes] = []
+        index = 1
+        escapes = {
+            "a": "\a",
+            "b": "\b",
+            "f": "\f",
+            "n": "\n",
+            "r": "\r",
+            "t": "\t",
+            "v": "\v",
+            "\\": "\\",
+            '"': '"',
+        }
+        while index < len(raw):
+            char = raw[index]
+            if char == '"':
+                try:
+                    return b"".join(chunks).decode("utf-8"), raw[index + 1 :]
+                except UnicodeDecodeError:
+                    return None
+            if char != "\\":
+                chunks.append(char.encode("utf-8"))
+                index += 1
+                continue
+            if index + 1 >= len(raw):
+                return None
+            escaped = raw[index + 1]
+            if escaped in "01234567":
+                octal = raw[index + 1 : index + 4]
+                if len(octal) != 3 or not all(char in "01234567" for char in octal):
+                    return None
+                byte = int(octal, 8)
+                if byte > 0xFF:
+                    return None
+                chunks.append(bytes([byte]))
+                index += 4
+                continue
+            if escaped not in escapes:
+                return None
+            chunks.append(escapes[escaped].encode("utf-8"))
+            index += 2
+        return None
+
+    def normalized_path(raw: str, *, strip_prefix: bool = True) -> str | None:
+        value = raw.rstrip("\n").split("\t", 1)[0]
         if value == "/dev/null":
             return ""
         if value.startswith('"'):
-            try:
-                parsed = shlex.split(value)
-            except ValueError:
-                parsed = []
-            if len(parsed) == 1:
-                value = parsed[0]
-        return value.removeprefix("a/").removeprefix("b/")
+            parsed = decode_quoted_path(value)
+            if parsed is None or parsed[1].strip():
+                return None
+            value = parsed[0]
+        return value[2:] if strip_prefix and value.startswith(("a/", "b/")) else value
 
-    def destination_from_git_header(line: str) -> str:
+    def destination_from_git_header(line: str) -> str | None:
         payload = line.removeprefix("diff --git ").rstrip("\n")
-        if payload.startswith('"'):
-            try:
-                parsed = shlex.split(payload)
-            except ValueError:
-                parsed = []
-            if len(parsed) >= 2:
-                return normalized_path(parsed[-1])
-        marker = " b/"
-        if marker in payload:
-            return normalized_path("b/" + payload.rsplit(marker, 1)[1])
-        return normalized_path(payload)
 
-    files: list[tuple[str, str]] = []
+        # Mode-only changes have no +++ or rename metadata. Prefer the
+        # unambiguous identical-path split rather than an embedded " b/".
+        if payload.startswith("a/"):
+            identical = [
+                payload[match.start() + 3 :]
+                for match in re.finditer(r" b/", payload)
+                if payload[2 : match.start()] == payload[match.start() + 3 :]
+            ]
+            if len(identical) == 1:
+                return identical[0]
+
+        separator = max(payload.rfind(" b/"), payload.rfind(' "b/'))
+        source = (
+            decode_quoted_path(payload)
+            if payload.startswith('"')
+            else (payload[:separator], payload[separator:]) if separator > 0 else None
+        )
+        if source is None or not source[1].startswith(" "):
+            return None
+        destination = source[1].lstrip()
+        decoded = (
+            decode_quoted_path(destination) if destination.startswith('"') else (destination, "")
+        )
+        if decoded is None or decoded[1].strip():
+            return None
+        if not source[0].startswith("a/") or not decoded[0].startswith("b/"):
+            return None
+        return decoded[0][2:]
+
+    files: list[tuple[str | None, str]] = []
     current: list[str] = []
-    path = ""
+    path: str | None = None
+    in_hunk = False
     for line in diff.splitlines(keepends=True):
         if line.startswith("diff --git "):
             if current:
                 files.append((path, "".join(current)))
             current = [line]
-            path = destination_from_git_header(line)
+            path = destination_from_git_header(line) or None
+            in_hunk = False
         elif current:
             current.append(line)
+            if line.startswith("@@"):
+                in_hunk = True
+            if path is None or in_hunk:
+                continue
             if line.startswith("--- "):
                 source = normalized_path(line[4:])
-                if source:
+                if source is None:
+                    path = None
+                elif source:
                     path = source
             elif line.startswith("+++ "):
                 destination = normalized_path(line[4:])
-                if destination:
+                if destination is None:
+                    path = None
+                elif destination:
                     path = destination
+            elif line.startswith(("rename to ", "copy to ")):
+                # Git's metadata is repo-relative and unambiguous even when an
+                # unquoted header contains an embedded " b/" separator.
+                destination = normalized_path(line.split(" to ", 1)[1], strip_prefix=False)
+                path = destination or None
     if current:
         files.append((path, "".join(current)))
     return files
@@ -630,6 +782,19 @@ def _summary_destination_paths(summary: str) -> list[str]:
             break
         if not in_file_changes or not line.startswith("- "):
             continue
+        encoded_path = re.search(r' <!-- verifier-file-path:v1 ("(?:[^"\\]|\\.)*") -->$', line)
+        if encoded_path:
+            try:
+                destination = json.loads(encoded_path.group(1))
+            except (ValueError, TypeError) as error:
+                raise ValueError("Malformed encoded summary destination") from error
+            if isinstance(destination, str) and destination:
+                paths.append(destination)
+            else:
+                raise ValueError("Empty or non-string encoded summary destination")
+            continue
+        if " <!-- verifier-file-path:v1 " in line:
+            raise ValueError("Malformed encoded summary destination")
         label = SUMMARY_DELTA_SUFFIX.sub("", line[2:].strip())
         for marker in (" (added)", " (deleted)"):
             if label.endswith(marker):
@@ -664,12 +829,27 @@ def _fair_shares(sizes: list[int], budget: int) -> list[int]:
     return shares
 
 
+def _diff_file_is_binary_descriptor(text: str) -> bool:
+    """True when Git reports a binary change without inspectable text hunks."""
+    has_hunk = False
+    has_binary_marker = False
+    for line in text.splitlines():
+        if line.startswith("@@"):
+            has_hunk = True
+        elif line.startswith("Binary files ") or line.startswith("GIT binary patch"):
+            has_binary_marker = True
+    return has_binary_marker and not has_hunk
+
+
 def _excerpt_file(path: str, text: str, share: int) -> tuple[str, FileCoverage]:
     total = len(text)
+    if _diff_file_is_binary_descriptor(text):
+        return "", FileCoverage(path, "omitted", 0, total)
     if share >= total:
         return text, FileCoverage(path, "complete", total, total)
     omitted_note = "[... remaining lines of {path} omitted: verifier prompt budget ...]\n"
-    reserve = len(omitted_note.format(path=path))
+    # Reserve the separator too if the excerpt ends in the middle of a line.
+    reserve = len(omitted_note.format(path=path)) + 1
     header_end = text.find("\n@@")
     header_len = header_end + 1 if header_end >= 0 else min(total, 200)
     if share - reserve <= header_len:
@@ -690,22 +870,34 @@ def _build_code_block(
 ) -> tuple[str, CoverageStatus, tuple[FileCoverage, ...], int, int]:
     files = _split_diff_files(diff)
     if not files:
+        if diff.strip():
+            return "(diff unavailable)", "unavailable", (), 0, 0
         block = _cap_prompt_text(diff, max(1, budget_chars // TOKEN_CHARS))
         status: CoverageStatus = "complete" if block == diff else "truncated"
         return block, status, (), min(len(diff), len(block)), len(diff)
-    shares = _fair_shares([len(text) for _, text in files], budget_chars)
+    if any(path is None for path, _ in files):
+        return "(diff unavailable)", "unavailable", (), 0, 0
+    # Doc-Lineage#81 review finding (discussion_r4169521235): appending
+    # omitted paths after fair-share allocation exceeded the diff budget.
+    # Fit text first, then use spare budget for a count-only diagnostic.
+    # Omitted paths remain in FileCoverage metadata and still prevent PASS.
+    sizes = [0 if _diff_file_is_binary_descriptor(text) else len(text) for _, text in files]
+    omission_note = "[{count} changed file(s) omitted entirely — not shown to the reviewer]\n"
+    shares = _fair_shares(sizes, max(0, budget_chars))
     parts: list[str] = []
     coverage: list[FileCoverage] = []
-    omitted: list[str] = []
+    omitted = 0
     for (path, text), share in zip(files, shares, strict=True):
+        assert path is not None  # Parse failures were rejected above.
         excerpt, item = _excerpt_file(path, text, share)
         coverage.append(item)
         if excerpt:
             parts.append(excerpt)
         else:
-            omitted.append(path)
+            omitted += 1
     if omitted:
-        parts.append("[omitted entirely — not shown to the reviewer: " + ", ".join(omitted) + "]\n")
+        note_budget = max(0, budget_chars - sum(len(part) for part in parts))
+        parts.append(omission_note.format(count=omitted)[:note_budget])
     included = sum(item.included_chars for item in coverage)
     total = sum(item.total_chars for item in coverage)
     status = "complete" if all(item.status == "complete" for item in coverage) else "truncated"
@@ -737,10 +929,3517 @@ def _fit_context_sections(
     return [fitted[i] for i in range(len(sections)) if i in fitted], status
 
 
+def _acceptance_criteria_sections(plan_sources: str) -> str:
+    """Return only acceptance-criteria subsections from structured plan sources."""
+    lines: list[str] = []
+    fence_char: str | None = None
+    fence_len = 0
+    fence_indent = 0
+    for raw_line in plan_sources.splitlines():
+        fence = _code_fence_marker(raw_line)
+        if fence:
+            marker, closing, indent = fence
+            if fence_char is None:
+                fence_char = marker[0]
+                fence_len = len(marker)
+                fence_indent = indent
+            elif (
+                marker[0] == fence_char
+                and len(marker) >= fence_len
+                and closing
+                and indent <= max(3, fence_indent)
+            ):
+                fence_char = None
+                fence_len = 0
+                fence_indent = 0
+            lines.append("")
+            continue
+        lines.append("" if fence_char is not None else raw_line)
+    captured: list[str] = []
+    index = 0
+    while index < len(lines):
+        heading = re.match(
+            r"^(#{1,6})\s+acceptance[\s_-]*criteria\s*:?[\s]*$",
+            lines[index].strip(),
+            flags=re.I,
+        )
+        if not heading:
+            index += 1
+            continue
+        level = len(heading.group(1))
+        section: list[str] = []
+        index += 1
+        while index < len(lines):
+            next_heading = re.match(r"^(#{1,6})\s+", lines[index].strip())
+            if next_heading and len(next_heading.group(1)) <= level:
+                break
+            section.append(lines[index])
+            index += 1
+        captured.append("\n".join(section).strip())
+    return "\n\n".join(part for part in captured if part)
+
+
+_QUOTED_EVIDENCE_LITERAL = (
+    r"`+[^`]*`+|\"[^\"]*\"|"
+    r"(?<!\w)'(?:[^']|(?<=\w)'(?=\w))*'(?!\w)|"
+    r"“[^”]*”|(?<!\w)‘(?:[^’]|(?<=\w)’(?=\w))*’(?!\w)"
+)
+
+
+_MANDATORY_EVIDENCE_AUXILIARY = (
+    r"(?:(?:must|shall|needs?\s+to)|"
+    r"(?:(?:is|are)\s+)?(?:required|needed|mandated|expected|supposed|obliged)\s+to|"
+    r"(?:has|have)\s+to)"
+)
+_EVIDENCE_DELIVERY_ADVERB = r"(?:also|now|still|already|yet|always|[\w-]+ly)"
+_EVIDENCE_DELIVERY_ADVERBS = r"(?:" + _EVIDENCE_DELIVERY_ADVERB + r"\s+){0,3}"
+_EVIDENCE_DELIVERY_OPERATION = r"(?:prov(?:e|ing)|provid(?:e|ing)|return|display|show|emit|render|expos(?:e|ing)|stor(?:e|ing)|upload|attach|publish|post|record|captur(?:e|ing)|includ(?:e|ing)|contain|hav(?:e|ing)|document|generat(?:e|ing)|link|add|leav(?:e|ing)|left)\w*\b"
+_EVIDENCE_DELIVERY_PARTICIPLE_START = r"(?=(?:\w*(?:ed|en)|left)\b)"
+_EVIDENCE_OBJECT_MODIFIER_WORD = (
+    r"(?!(?:and|or|but|must|shall|is|are|not|never|may|can)\b)" r"(?=[\w/-]*\w)[\w/-]+"
+)
+_EVIDENCE_OBJECT_MODIFIERS = r"(?:" + _EVIDENCE_OBJECT_MODIFIER_WORD + r"\s+){0,6}"
+_EVIDENCE_RECIPIENT_PREFIX = (
+    r"(?:(?:all|any|some|each|every)\s+)?"
+    r"(?:(?:the|its|our|their|your|an?)\s+)?"
+    r"(?:(?!(?:and|or|but|must|shall|is|are|not|never|may|can|to|of|for|by|with|who|that|which|lets?|allows?|enables?)\b)[\w/-]+\s+){0,4}"
+)
+_EVIDENCE_ACTOR_NOUN = r"\b(?:reviewers?|maintainers?|authors?|operators?|agents?|bots?|runners?|developers?|engineers?|testers?|auditors?|verifiers?|teams?|users?|ui|api|application|service|endpoint)"
+_EVIDENCE_ACTOR_QUALIFIER = (
+    r"(?:\s+(?:of|for|used\s+by|managed\s+by|using|testing|accessing|operating)\s+"
+    r"(?:(?!(?:and|or|but|must|shall|is|are|not|never|may|can|has|have)\b)[\w/-]+\s+){0,4}"
+    r"(?!(?:and|or|but|must|shall|is|are|not|never|may|can|has|have)\b)[\w/-]+)?"
+)
+_EVIDENCE_PROOF_ALIAS_NOUN = r"(?:(?:test|validation)\s+(?:results?|logs?|outputs?)|(?:ci|build|execution)\s+logs?|(?:(?:workflow|ci|github actions)\s+)?artifacts?\s+provenance|screenshots?|recordings)"
+_EVIDENCE_OPTIONAL_MODAL = r"(?:may|can|could|would|should)"
+_EVIDENCE_PASSIVE_PREFIX = (
+    r"(?:be|been|being|have\s+" + _EVIDENCE_DELIVERY_ADVERBS + r"been)"
+    r"(?:\s+" + _EVIDENCE_DELIVERY_ADVERBS + r"being)?\s+"
+)
+_EVIDENCE_ADDITIVE_CONTRAST = r"(?:only|merely|just)"
+_NEGATIVE_EVIDENCE_ADJECTIVE_TAIL = (
+    r"(?:not|never|no\s+longer)\s+"
+    + r"(?:(?!"
+    + _EVIDENCE_ADDITIVE_CONTRAST
+    + r"\b)"
+    + _EVIDENCE_DELIVERY_ADVERB
+    + r"\s+){0,3}"
+    + r"(?:required|needed|mandated|expected|supposed|obliged|allowed|permitted)"
+)
+_NEGATIVE_EVIDENCE_ADJECTIVE_GOVERNOR = (
+    r"(?:is|are|was|were)\s+" + _EVIDENCE_DELIVERY_ADVERBS + _NEGATIVE_EVIDENCE_ADJECTIVE_TAIL
+)
+_NEGATIVE_EVIDENCE_REQUIREMENT_GOVERNOR = (
+    r"(?:" + _NEGATIVE_EVIDENCE_ADJECTIVE_GOVERNOR + r"\s+to|"
+    r"(?:does|do|did)\s+(?:not|never)\s+(?:need|have)\s+to|"
+    r"(?:never|no\s+longer)\s+(?:has|have|needs?)\s+to|needs?\s+not)"
+)
+_INDEPENDENT_REVIEW_PREDICATE = (
+    r"(?:"
+    + _MANDATORY_EVIDENCE_AUXILIARY
+    + r"|"
+    + _NEGATIVE_EVIDENCE_REQUIREMENT_GOVERNOR
+    + r"|is|are|will|should|may|can)\b"
+)
+_ATTACHED_REVIEW_AVAILABILITY = (
+    r"(?:that|which)\s+"
+    + _EVIDENCE_DELIVERY_ADVERBS
+    + _INDEPENDENT_REVIEW_PREDICATE
+    + r"\s+"
+    + _EVIDENCE_DELIVERY_ADVERBS
+    + r"(?:remain|stay|be)\s+(?:available|accessible|present)\b|"
+    r"(?:that|which)\s+"
+    + _EVIDENCE_DELIVERY_ADVERBS
+    + r"(?:is|are)\s+"
+    + _EVIDENCE_DELIVERY_ADVERBS
+    + r"(?:available|accessible|present)\b"
+)
+_INDEPENDENT_REVIEW_CLAUSE = (
+    # An attached availability qualifier does not introduce another delivery.
+    r"(?!" + _ATTACHED_REVIEW_AVAILABILITY + r")"
+    r"(?:(?:that|which)\s+)?" + _EVIDENCE_DELIVERY_ADVERBS + _INDEPENDENT_REVIEW_PREDICATE
+)
+
+_EVIDENCE_DESTINATION_PREPOSITION = r"(?:in|into|to|within|for|as|through|via)"
+_REVIEW_BODY_COMPONENT_TEMPORAL = (
+    r"before|after|now|today|tomorrow|again|here|there|soon|always|daily|weekly|[\w-]+ly"
+)
+_REVIEW_CONTENT_PARTICIPLE = (
+    r"containing|including|showing|displaying|summarizing|presenting|listing|describing"
+)
+_REVIEW_BODY_COMPONENT_CONTENT = (
+    r"contains?|includes?|requires?|needs?|" + _REVIEW_CONTENT_PARTICIPLE
+)
+_REVIEW_BODY_COMPONENT_WORD = (
+    r"(?!(?:and|or|but|on|by|with|when|if|that|which|where|"
+    r"is|are|was|were|must|shall|will|should|can|may|has|have|"
+    r"not|never|no|optional|required|mandatory|expected|supposed|"
+    + _REVIEW_BODY_COMPONENT_CONTENT
+    + r"|"
+    + _EVIDENCE_DESTINATION_PREPOSITION
+    + r"|"
+    + _REVIEW_BODY_COMPONENT_TEMPORAL
+    + r")\b)[\w-]+"
+)
+# One to three same-line words, bounded by a clause/list/availability boundary.
+# The classifier and OR expander must recognize identical component spans.
+_REVIEW_BODY_COMPONENT = (
+    _REVIEW_BODY_COMPONENT_WORD
+    + r"(?:[ \t]+"
+    + _REVIEW_BODY_COMPONENT_WORD
+    + r"){0,2}"
+    + r"(?=[ \t]*(?:$|[;,.!?\n]|(?:and|or|but|by|if|when|that|which|where|"
+    + _EVIDENCE_DESTINATION_PREPOSITION
+    + r"|"
+    + _REVIEW_BODY_COMPONENT_CONTENT
+    + r"|"
+    + _REVIEW_BODY_COMPONENT_TEMPORAL
+    + r")\b))"
+)
+
+
+_EVIDENCE_ARTIFACT_DESTINATION = r"(?:workflow|ci|github actions)\s+artifacts?\b"
+_EVIDENCE_REVIEW_DESTINATION = (
+    r"(?:(?:the|an?)\s+)?(?:"
+    r"(?:pr|pull request)\s+(?:body|description)\b(?:\s+" + _REVIEW_BODY_COMPONENT + r")?|"
+    r"(?:pr|pull request)\s+comments?\b(?:\s+"
+    + _REVIEW_BODY_COMPONENT
+    + r")?|"
+    + _EVIDENCE_ARTIFACT_DESTINATION
+    + r"|(?:pr|pull request)\b)"
+)
+_EVIDENCE_DESTINATION_SEPARATOR_BASE = r"(?:\s*,\s*(?:(?:and|or)\s+)?|\s+(?:and|or)\s+)"
+_EVIDENCE_PRODUCT_ACTOR = (
+    _EVIDENCE_RECIPIENT_PREFIX
+    + r"(?:application|app|service|api|endpoint|ui|interface|cli|renderer)\b"
+    + _EVIDENCE_ACTOR_QUALIFIER
+)
+_EVIDENCE_PRODUCT_RECIPIENT = (
+    _EVIDENCE_RECIPIENT_PREFIX + r"(?:clients?|users?|consumers?)\b" + _EVIDENCE_ACTOR_QUALIFIER
+)
+_EVIDENCE_PRODUCT_STORAGE = (
+    r"(?:(?:its|the|an?)\s+)?(?:database|audit log|storage|application log)\b"
+)
+_EVIDENCE_PRODUCT_DESTINATION = (
+    r"(?:"
+    + _EVIDENCE_DESTINATION_PREPOSITION
+    + r"\s+"
+    + _EVIDENCE_PRODUCT_STORAGE
+    + r"|(?:to|for)\s+"
+    + _EVIDENCE_PRODUCT_RECIPIENT
+    + r")"
+)
+_EVIDENCE_CONDITIONAL = (
+    r"\b(?:(?:only|solely)\s+)?(?:if|when)\s+(?:produced|available|present|uploaded|generated)\b"
+)
+
+
+_EVIDENCE_RECORD_ALIASES = {
+    "share": "record",
+    "shares": "records",
+    "shared": "recorded",
+    "sharing": "recording",
+    "paste": "record",
+    "put": "record",
+    "puts": "records",
+    "putting": "recording",
+    "place": "record",
+    "places": "records",
+    "placed": "recorded",
+    "placing": "recording",
+    "pastes": "records",
+    "pasted": "recorded",
+    "pasting": "recording",
+    "write": "record",
+    "writes": "records",
+    "written": "recorded",
+    "writing": "recording",
+    "wrote": "recorded",
+    "submit": "record",
+    "submits": "records",
+    "submitted": "recorded",
+    "submitting": "recording",
+    "deliver": "record",
+    "delivers": "records",
+    "delivered": "recorded",
+    "delivering": "recording",
+    "supply": "record",
+    "supplies": "records",
+    "supplied": "recorded",
+    "supplying": "recording",
+}
+
+
+_RELATIVE_REVIEW_PRESENCE_PREDICATE = (
+    _EVIDENCE_DELIVERY_ADVERBS
+    + _INDEPENDENT_REVIEW_PREDICATE
+    + r"\s+"
+    + _EVIDENCE_DELIVERY_ADVERBS
+    + r"(?:(?:not|never|no\s+longer)\s+"
+    + _EVIDENCE_DELIVERY_ADVERBS
+    + r")?(?:"
+    + _EVIDENCE_PASSIVE_PREFIX
+    + r")?(?:contain|includ(?:e|ing)|hav(?:e|ing))\w*\s+"
+    r"(?:(?:the|an?|any|no)\s+)?"
+    + _EVIDENCE_OBJECT_MODIFIERS
+    + r"(?:evidence|artifacts?|transcripts?|command outputs?|"
+    + _EVIDENCE_PROOF_ALIAS_NOUN
+    + r")\b"
+)
+
+
+def _normalize_passive_review_agents(acceptance: str) -> str:
+    """Retain passive actor/governor binding for both channels and OR expansion."""
+    # Separate real criteria before restoring an actor. Preserve soft wrapping
+    # inside a criterion and quoted examples, but never borrow a prior bullet.
+    literals = [match.span() for match in re.finditer(_QUOTED_EVIDENCE_LITERAL, acceptance)]
+    boundaries = sorted(
+        {
+            match.start()
+            for match in re.finditer(
+                r"(?m)^[ \t]*(?:[-*+]|\d+[.)])[ \t]+|\r?\n[ \t]*\r?\n", acceptance
+            )
+            if 0 < match.start() < len(acceptance)
+            and not any(start <= match.start() < end for start, end in literals)
+        }
+    )
+    if boundaries:
+        points = [0, *boundaries, len(acceptance)]
+        return "".join(
+            _normalize_passive_review_agents(acceptance[start:end])
+            for start, end in zip(points[:-1], points[1:], strict=True)
+        )
+    actor = (
+        _EVIDENCE_RECIPIENT_PREFIX
+        + r"(?:"
+        + _EVIDENCE_ACTOR_NOUN
+        + r"|app|interface|cli|renderer)\b"
+        + _EVIDENCE_ACTOR_QUALIFIER
+    )
+    object_ = (
+        r"(?:(?:the|an?|any|no)\s+)?"
+        + _EVIDENCE_OBJECT_MODIFIERS
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|"
+        + _EVIDENCE_PROOF_ALIAS_NOUN
+        + r"|recording)\b"
+    )
+    governor = (
+        r"(?:"
+        + _MANDATORY_EVIDENCE_AUXILIARY
+        + r"|"
+        + _NEGATIVE_EVIDENCE_REQUIREMENT_GOVERNOR
+        + r"|"
+        + _EVIDENCE_OPTIONAL_MODAL
+        + r"|will)\s+"
+        + _EVIDENCE_DELIVERY_ADVERBS
+        + r"(?:(?:not|never|no\s+longer)\s+"
+        + _EVIDENCE_DELIVERY_ADVERBS
+        + r")?"
+    )
+    separator = (
+        _EVIDENCE_DESTINATION_SEPARATOR_BASE + r"(?:" + _EVIDENCE_DESTINATION_PREPOSITION + r"\s+)?"
+    )
+    attachment = (
+        r"(?:"
+        + _ATTACHED_REVIEW_AVAILABILITY
+        + r"|(?:that|which)\s+"
+        + _RELATIVE_REVIEW_PRESENCE_PREDICATE
+        + r")"
+        + r"(?:\s*,?\s*"
+        + _EVIDENCE_CONDITIONAL
+        + r")?"
+    )
+    destination_item = (
+        r"(?:"
+        + _EVIDENCE_REVIEW_DESTINATION
+        + r"|"
+        + _EVIDENCE_PRODUCT_STORAGE
+        + r"|"
+        + _EVIDENCE_PRODUCT_RECIPIENT
+        + r")"
+        + r"(?:\s*,?\s*"
+        + attachment
+        + r")?"
+    )
+    destination = (
+        r"(?:(?:either|both)\s+"
+        + _EVIDENCE_DESTINATION_PREPOSITION
+        + r"\s+|"
+        + _EVIDENCE_DESTINATION_PREPOSITION
+        + r"\s+(?:(?:either|both)\s+)?)"
+        + destination_item
+        + r"(?:"
+        + separator
+        + destination_item
+        + r")*"
+    )
+    predicate = (
+        r"\b(?P<object>"
+        + object_
+        + r")\s+(?P<governor>"
+        + governor
+        + r")"
+        + _EVIDENCE_PASSIVE_PREFIX
+        + _EVIDENCE_DELIVERY_ADVERBS
+        + r"(?P<operation>"
+        + r"(?:"
+        + _EVIDENCE_DELIVERY_OPERATION
+        + r"|"
+        + "|".join(_EVIDENCE_RECORD_ALIASES)
+        + r"\b)"
+        + r")\s+"
+    )
+    for agent_first in (True, False):
+        tail = (
+            r"by\s+(?P<actor>" + actor + r")\s+(?P<destination>" + destination + r")"
+            if agent_first
+            else r"(?P<destination>" + destination + r")\s+by\s+(?P<actor>" + actor + r")"
+        )
+        acceptance = re.sub(
+            r"(?P<literal>" + _QUOTED_EVIDENCE_LITERAL + r")|" + predicate + tail,
+            lambda match: (
+                match[0]
+                if match["literal"]
+                else " ".join(
+                    (
+                        match["actor"].strip(),
+                        match["governor"].strip(),
+                        _EVIDENCE_RECORD_ALIASES.get(
+                            match["operation"].lower(), match["operation"]
+                        ),
+                        match["object"].strip(),
+                        re.sub(
+                            r"^(either|both)\s+(" + _EVIDENCE_DESTINATION_PREPOSITION + r")\s+",
+                            r"\2 \1 ",
+                            match["destination"],
+                            flags=re.I,
+                        ),
+                    )
+                )
+            ),
+            acceptance,
+            flags=re.I,
+        )
+    return acceptance
+
+
+def _normalize_relative_review_presence(acceptance: str) -> str:
+    """Retain parent lists and distinguish bare-channel duties from component content."""
+    # Soft line wraps may belong to one criterion; a blank paragraph cannot.
+    # Keep quoted examples intact even when the example spans paragraphs.
+    literals = [match.span() for match in re.finditer(_QUOTED_EVIDENCE_LITERAL, acceptance)]
+    paragraphs = [
+        match
+        for match in re.finditer(r"\r?\n[ \t]*\r?\n", acceptance)
+        if not any(start <= match.start() < end for start, end in literals)
+    ]
+    if paragraphs:
+        pieces = []
+        cursor = 0
+        for paragraph in paragraphs:
+            pieces.extend(
+                (
+                    _normalize_relative_review_presence(acceptance[cursor : paragraph.start()]),
+                    paragraph[0],
+                )
+            )
+            cursor = paragraph.end()
+        pieces.append(_normalize_relative_review_presence(acceptance[cursor:]))
+        return "".join(pieces)
+    presence = (
+        r"(?P<destination>(?:pr|pull request)\s+(?:body|description|comments?)\b"
+        r"(?P<presence_component>\s+" + _REVIEW_BODY_COMPONENT + r")?)"
+        r"\s*,?\s*(?:that|which)\s+(?P<predicate>" + _RELATIVE_REVIEW_PRESENCE_PREDICATE + r")"
+    )
+    availability = (
+        r"(?P<availability_destination>(?:pr|pull request)\s+(?:body|description|comments?)\b"
+        r"(?:\s+" + _REVIEW_BODY_COMPONENT + r")?)"
+        r"\s*,?\s*(?P<availability>" + _ATTACHED_REVIEW_AVAILABILITY + r")"
+    )
+    destination_tail = re.compile(
+        r"(?:"
+        + _EVIDENCE_DESTINATION_SEPARATOR_BASE
+        + r"(?:"
+        + _EVIDENCE_DESTINATION_PREPOSITION
+        + r"\s+)?"
+        + _EVIDENCE_REVIEW_DESTINATION
+        + r")*",
+        re.I,
+    )
+    matches = list(
+        re.finditer(
+            r"(?P<literal>" + _QUOTED_EVIDENCE_LITERAL + r")|" + presence + "|" + availability,
+            acceptance,
+            re.I,
+        )
+    )
+    # Handle later qualifiers first so an earlier parent's complete destination
+    # tail is visible after those qualifiers have been separated. Earlier
+    # immutable offsets remain valid because all edits are to their right.
+    for match in reversed(matches):
+        if match["literal"]:
+            continue
+        conditional = re.compile(r"\s*,?\s*" + _EVIDENCE_CONDITIONAL, re.I)
+        condition = conditional.match(acceptance, match.end())
+        tail = destination_tail.match(acceptance, condition.end() if condition else match.end())
+        assert tail is not None
+        parent_condition = (
+            conditional.match(acceptance, tail.end())
+            if tail[0]
+            else condition if not match["predicate"] else None
+        )
+        destination = match["destination"] or match["availability_destination"]
+        parent = destination + tail[0] + (parent_condition[0] if parent_condition else "")
+        if match["predicate"] and match["presence_component"]:
+            # Component content is product behavior, not another review-channel
+            # delivery. Keep the parent's complete destinations and governor;
+            # the original criterion remains unchanged in the review prompt.
+            replacement = parent
+        elif match["predicate"]:
+            replacement = (
+                parent
+                + "; "
+                + destination
+                + " "
+                + match["predicate"]
+                + (condition[0] if condition else "")
+            )
+        else:
+            # Availability metadata must not obstruct the parent's condition or
+            # migrate onto a separately governed bare-channel presence duty.
+            replacement = parent
+        end = parent_condition.end() if parent_condition else tail.end()
+        acceptance = acceptance[: match.start()] + replacement + acceptance[end:]
+    return acceptance
+
+
+def _normalize_review_content_qualifiers(acceptance: str) -> str:
+    """Keep bounded destination content from becoming a second proof delivery."""
+    modifier = (
+        r"(?!(?:if|when|only|solely|that|which|where|before|after)\b)"
+        + r"(?:"
+        + _NEGATIVE_EVIDENCE_ADJECTIVE_TAIL.replace(r"\s+", r"[ \t]+")
+        + r"|"
+        + _EVIDENCE_OBJECT_MODIFIER_WORD
+        + r")"
+        + r"[ \t]+"
+    )
+    content = (
+        r"(?:"
+        + modifier
+        + r"){0,6}(?:"
+        + _EVIDENCE_PROOF_ALIAS_NOUN
+        + r"|evidence|artifacts?|transcripts?|command outputs?|logs?|failures?|results?)\b"
+    )
+    return re.sub(
+        r"(?P<literal>" + _QUOTED_EVIDENCE_LITERAL + r")|"
+        r"(?P<destination>\b(?:pr|pull request)\s+(?:body|description|comments?)\b"
+        r"(?:[ \t]+" + _REVIEW_BODY_COMPONENT + r")?)"
+        r"[ \t]+(?:" + _REVIEW_CONTENT_PARTICIPLE + r")[ \t]+" + content,
+        lambda match: match["literal"] or match["destination"],
+        acceptance,
+        flags=re.I,
+    )
+
+
+def _required_evidence_channels(acceptance: str, *, _bind_attached: bool = True) -> set[str]:
+    """Identify explicit evidence deliverables without treating negations as requirements."""
+
+    acceptance = _normalize_review_content_qualifiers(acceptance)
+    acceptance = _normalize_passive_review_agents(acceptance)
+    acceptance = _normalize_relative_review_presence(acceptance)
+    channels: set[str] = set()
+    response_operation = (
+        r"(?:include|contain|have|return|display|show|store|emit|render|expose|provide)\w*\b"
+    )
+    delivery_operation = _EVIDENCE_DELIVERY_OPERATION
+    capability_operation = r"(?:(?:allow|enable|support|permit)\w*|let(?:s|ting)?)"
+    evidence_modifiers = _EVIDENCE_OBJECT_MODIFIERS
+    mandatory_auxiliary = _MANDATORY_EVIDENCE_AUXILIARY
+    delivery_adverb = _EVIDENCE_DELIVERY_ADVERB
+    delivery_adverbs = _EVIDENCE_DELIVERY_ADVERBS
+    possession_modifiers = r"(?:(?:not|never|no\s+longer|" + delivery_adverb + r")\s+){0,3}"
+    passive_delivery_prefix = _EVIDENCE_PASSIVE_PREFIX
+    delivery_action_prefix = (
+        r"(?:" + passive_delivery_prefix + r"|have\s+" + delivery_adverbs + r")"
+    )
+    negative_adjective_governor = _NEGATIVE_EVIDENCE_ADJECTIVE_GOVERNOR
+    negative_requirement_governor = _NEGATIVE_EVIDENCE_REQUIREMENT_GOVERNOR
+    optional_delivery_modal = _EVIDENCE_OPTIONAL_MODAL
+    delivery_governor_auxiliary = (
+        r"(?:"
+        + mandatory_auxiliary
+        + r"|will|"
+        + optional_delivery_modal
+        + r"|has|have|had|is|are|was|were|do|does|did)"
+    )
+    quoted_evidence_literal = _QUOTED_EVIDENCE_LITERAL
+    # Canonical governors precede every normalization; quoted input stays literal.
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"\b(?P<auxiliary>is|are|does|do|did|must|should|could|would|need|has|have|had|was|were|ca)n['’]t\b",
+        lambda match: (
+            match[0]
+            if match["literal"]
+            else ("can" if match["auxiliary"].lower() == "ca" else match["auxiliary"]) + " not"
+        ),
+        acceptance,
+        flags=re.I,
+    )
+    # Lexical aliases share obligation, negation, destination and product rules,
+    # including the earlier proof-pronoun antecedent path.
+    record_aliases = _EVIDENCE_RECORD_ALIASES
+    shared_proof_delivery_operation = (
+        r"(?:" + delivery_operation + r"|" + "|".join(record_aliases) + r"\b)"
+    )
+    # A comment contained by the PR is a PR comment, not an overall/body
+    # deliverable. Preserve its actual governor for the shared polarity pass.
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"(?P<prefix>\b(?:pr|pull request)\s+(?:"
+        + mandatory_auxiliary
+        + r"|"
+        + negative_requirement_governor
+        + r"|may|can|should|will)\s+"
+        + delivery_adverbs
+        + r"(?:(?:not|never)\s+)?(?:include|contain|have)\s+(?:(?:an?|the)\s+)?)"
+        r"comments?\b(?=\s*(?:$|[;,.!?\n]|(?:with|containing|that|which|"
+        r"in|on|for|to|and|or|but)\b))",
+        lambda match: (
+            match[0]
+            if match["literal"]
+            else re.sub(
+                r"\b(?:contain|have)\b(?=\s+(?:(?:an?|the)\s+)?$)",
+                "include",
+                match["prefix"],
+                flags=re.I,
+            )
+            + "PR comment"
+        ),
+        acceptance,
+        flags=re.I,
+    )
+    conditional_evidence = _EVIDENCE_CONDITIONAL
+    recipient_prefix = _EVIDENCE_RECIPIENT_PREFIX
+    recipient_noun = _EVIDENCE_PRODUCT_RECIPIENT
+    product_recipient = r"(?:to|for)\s+" + recipient_noun
+    product_actor = _EVIDENCE_PRODUCT_ACTOR
+    product_destination = _EVIDENCE_PRODUCT_DESTINATION
+    artifact_destination_object = _EVIDENCE_ARTIFACT_DESTINATION
+    body_component = _REVIEW_BODY_COMPONENT
+    review_destination_noun = _EVIDENCE_REVIEW_DESTINATION
+    independent_review_predicate = _INDEPENDENT_REVIEW_PREDICATE
+    destination_preposition_head = _EVIDENCE_DESTINATION_PREPOSITION
+    destination_preposition = destination_preposition_head + r"\s+"
+    delivery_destination_item = r"(?:" + review_destination_noun + "|" + recipient_noun + ")"
+    delivery_destination_separator_base = _EVIDENCE_DESTINATION_SEPARATOR_BASE
+    delivery_destination_separator = (
+        delivery_destination_separator_base + r"(?:" + destination_preposition + r")?"
+    )
+    shared_storage_separator_base = delivery_destination_separator_base.replace("(?:and|or)", "and")
+    shared_storage_separator = (
+        shared_storage_separator_base + r"(?:" + destination_preposition + r")?"
+    )
+    bound_review_destinations = (
+        destination_preposition + r"(?:both\s+)?"
+        r"(?=(?:"
+        + delivery_destination_item
+        + delivery_destination_separator
+        + r")*"
+        + review_destination_noun
+        + r")"
+        + delivery_destination_item
+        + r"(?:"
+        + delivery_destination_separator
+        + r"(?!"
+        + delivery_destination_item
+        + r"\s+"
+        + _INDEPENDENT_REVIEW_CLAUSE
+        + r")"
+        + delivery_destination_item
+        + r")*"
+    )
+
+    # Common proof nouns reuse shared polarity/product/literal grammar, but
+    # destinations must belong to this object's own finite actor clause.
+    parenthetical_actor = _EVIDENCE_ACTOR_NOUN
+    independent_proof_actor = recipient_prefix + (
+        r"(?:" + parenthetical_actor + r"|clients?|consumers?|interface|cli|renderer|"
+        r"(?:pr|pull request)(?:\s+body)?)\b"
+    )
+    independent_proof_predicate = (
+        r"(?:"
+        + delivery_governor_auxiliary
+        + r"|"
+        + negative_requirement_governor
+        + r"|"
+        + shared_proof_delivery_operation
+        + r")"
+    )
+    proof_actor_boundary = (
+        r"(?:(?:,?\s+)(?:and|or|but)\s+|;\s*|[.!?]\s+)(?="
+        + independent_proof_actor
+        + _EVIDENCE_ACTOR_QUALIFIER
+        + r"\s+(?!"
+        + _ATTACHED_REVIEW_AVAILABILITY
+        + r")(?:(?:that|which)\s+)?"
+        + delivery_adverbs
+        + independent_proof_predicate
+        + r")"
+    )
+
+    # Checklist shorthand is a bounded delivery predicate. Reuse the normal
+    # destination grammar so AND/OR lists retain their established semantics.
+    def normalize_checklist_delivery(match: re.Match) -> str:
+        if match["literal"] or re.search(r"\r?\n[ \t]*\r?\n", match[0]):
+            return match[0]
+        subject = match["checklist"] + match["object"]
+        following = re.sub(
+            r"(?P<literal>" + quoted_evidence_literal + r")|" + proof_actor_boundary,
+            lambda boundary: boundary[0] if boundary["literal"] else "; ",
+            match["following"] or "",
+            flags=re.I,
+        )
+        if match["relative_negative"]:
+            return (
+                subject
+                + " "
+                + match["relative_negative"]
+                + " to be "
+                + match["destinations"]
+                + " "
+                + match["relative_negative_adverbs"]
+                + following
+            )
+        if match["relative_predicate"]:
+            return (
+                subject
+                + " "
+                + match["relative_predicate"]
+                + " "
+                + match["destinations"]
+                + " "
+                + match["relative_adverbs"]
+                + following
+            )
+        if match["conditional"]:
+            # Scope boundary normalization to this postposed condition only.
+            # Product capability clauses elsewhere keep their governing actor.
+            qualification = re.sub(
+                r"(?P<literal>" + quoted_evidence_literal + r")|" + proof_actor_boundary,
+                lambda boundary: boundary[0] if boundary["literal"] else "; ",
+                match["qualification"],
+                flags=re.I,
+            )
+            return subject + " may be " + match["destinations"] + qualification + following
+        if match["negative"]:
+            return (
+                subject
+                + " is "
+                + match["negative"]
+                + " to be "
+                + match["destinations"]
+                + " "
+                + match["qualifier_adverbs"]
+                + following
+            )
+        return match["checklist"] + "Provide " + match["object"] + " " + match["destinations"]
+
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"(?P<checklist>^[ \t]*(?:[-*+]|\d+[.)])[ \t]*\[[ xX]\][ \t]*(?:\r?\n[ \t]*)?)"
+        r"(?P<object>(?:(?:test|validation|CI|build|execution)\s+){0,3}"
+        r"(?:evidence|command outputs?|transcripts?))\s+"
+        r"(?P<destinations>" + bound_review_destinations + r")"
+        r"(?P<qualification>\s+(?:"
+        r"(?:that|which)\s+(?P<relative_negative_adverbs>"
+        + delivery_adverbs
+        + r")(?P<relative_negative>"
+        + negative_adjective_governor
+        + r")|"
+        r"(?:that|which)\s+(?P<relative_adverbs>"
+        + delivery_adverbs
+        + r")(?P<relative_predicate>(?:"
+        + negative_requirement_governor
+        + r"|"
+        + optional_delivery_modal
+        + r"(?:\s+(?:not|never|no\s+longer))?|"
+        + mandatory_auxiliary
+        + r"\s+(?:not|never|no\s+longer))\s+"
+        + delivery_adverbs
+        + r"(?:"
+        + delivery_action_prefix
+        + r")?(?:"
+        + shared_proof_delivery_operation
+        + r"|omit\w*\b))|"
+        r"(?P<conditional>(?:only|solely)\s+(?:if|when)\b[^\n;.!]*)|"
+        r"(?P<qualifier_adverbs>" + delivery_adverbs + r")"
+        r"(?P<negative>" + _NEGATIVE_EVIDENCE_ADJECTIVE_TAIL + r")))?"
+        r"(?=[ \t]*(?:[,;.!]|$|(?:and|or|but|if|when|that|which|where|"
+        + _REVIEW_BODY_COMPONENT_TEMPORAL
+        + r")\b))(?(qualification)(?P<following>[^\n]*))",
+        normalize_checklist_delivery,
+        acceptance,
+        flags=re.I | re.M,
+    )
+
+    # Enforcing provenance at a storage location is a property, not delivery.
+    # Bind only that property's own enforcement predicate/destination; never
+    # suppress independent actual deliveries elsewhere in the same criterion.
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"(?P<property>\b(?:(?:workflow|ci|github actions)\s+)?artifact\s+provenance\s+"
+        r"(?:(?:must|shall|will|should)\s+)?(?:(?:remain|remains|be|is)\s+)?enforced\s+"
+        r"(?:in|within)\s+(?:the\s+)?)(?:workflow|ci|github actions)\s+artifacts?\b",
+        lambda match: match[0] if match["literal"] else match["property"] + "workflow storage",
+        acceptance,
+        flags=re.I,
+    )
+    # Keep offsets but exclude literals from all contextual destination/actor tests.
+    proof_context = re.sub(quoted_evidence_literal, lambda match: " " * len(match[0]), acceptance)
+
+    def normalize_proof_object(match: re.Match[str]) -> str:
+        if match["literal"]:
+            return match[0]
+        before = re.split(
+            r"[;\n.!?]|" + proof_actor_boundary, proof_context[: match.start()], flags=re.I
+        )[-1]
+        tail = proof_context[match.end() :]
+        after = re.split(r"[;\n.!?]|" + proof_actor_boundary, tail, flags=re.I)[0]
+        provenance_property = bool(
+            re.fullmatch(
+                r"(?:(?:workflow|ci|github actions)\s+)?artifacts?\s+provenance", match[0], re.I
+            )
+        )
+        # A qualified property noun is not its own review destination.
+        clause = before + ("" if provenance_property else match[0]) + after
+        # Keep an introduced proof object available to the shared antecedent
+        # resolver only when the next actor actually delivers that pronoun.
+        following = re.split(proof_actor_boundary, tail, maxsplit=1, flags=re.I)
+        pronoun_delivery = len(following) == 2 and re.search(
+            r"\b"
+            + shared_proof_delivery_operation
+            + r"\s+(?:it|them|this|these|those|both)\s+"
+            + destination_preposition
+            + review_destination_noun,
+            re.split(r"[;\n.!?]", following[1])[0],
+            re.I,
+        )
+        return (
+            "evidence"
+            if pronoun_delivery
+            or re.search(
+                r"\b(?:(?:pr|pull request)\s+(?:body|description|comments?)|"
+                r"comments?\s+(?:in|on)\s+(?:the\s+)?(?:pr|pull request)|"
+                r"(?:workflow|ci|github actions)\s+artifacts?)\b",
+                clause,
+                re.I,
+            )
+            else ("provenance" if provenance_property else match[0])
+        )
+
+    proof_object_boundary = (
+        r"(?:"
+        + delivery_governor_auxiliary
+        + r"(?=\s+)"
+        + r"|"
+        + negative_requirement_governor
+        + r"(?=\s+)"
+        + r"|"
+        + destination_preposition_head
+        + r"(?=\s+)"
+        + r"|"
+        + shared_proof_delivery_operation
+        + r"(?=\s+"
+        + bound_review_destinations
+        + r"))\b"
+    )
+    proof_qualifier_word = r"(?!(?:and|or|but)(?=\s+)|" + proof_object_boundary + r")[\w/-]+"
+    proof_qualifier = (
+        r"(?:\s+of\s+(?:"
+        + proof_qualifier_word
+        + r"\s+){0,4}"
+        + proof_qualifier_word
+        + r"(?=\s+"
+        + proof_object_boundary
+        + r"))?"
+    )
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"\b(?:"
+        + _EVIDENCE_PROOF_ALIAS_NOUN
+        + proof_qualifier
+        + r"|recording"
+        + proof_qualifier
+        + r"(?=\s+(?:of|and|or|"
+        + proof_object_boundary
+        + r")\b))\b",
+        normalize_proof_object,
+        acceptance,
+        flags=re.I,
+    )
+    # Normalize equivalent destinations before presence predicates, not after.
+    acceptance = re.sub(
+        r"\bcomments?\s+(?:on|in)\s+(?:(?:the|an?)\s+)?(?:pr|pull request)\b",
+        "PR comment",
+        acceptance,
+        flags=re.I,
+    )
+    # Bare negative presence uses the same adjective/modal vocabulary as
+    # explicit delivery; a checkbox must not revive its residual nouns.
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"(?P<prefix>\b"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|command outputs?|transcripts?)\s+"
+        + negative_adjective_governor
+        + r")\s+(?="
+        + bound_review_destinations
+        + r")",
+        lambda match: match[0] if match["literal"] else match["prefix"] + " to be recorded ",
+        acceptance,
+        flags=re.I,
+    )
+    # Presence predicates use the existing passive-delivery grammar, including
+    # governing negation and modality, instead of a second affirmative regex.
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"(?P<prefix>\b(?:no\s+|neither\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|command outputs?|transcripts?)\s+nor\s+)?"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|command outputs?|transcripts?)\s+"
+        + r"(?:"
+        + mandatory_auxiliary
+        + r"|"
+        + optional_delivery_modal
+        + r"|"
+        + negative_requirement_governor
+        + r")"
+        + r"\s+"
+        + delivery_adverbs
+        + r"(?:not\s+)?)"
+        r"(?:appear|be(?:\s+present)?)"
+        r"(?:\s+either)?"
+        r"(?P<destination>\s+" + bound_review_destinations + r")",
+        lambda match: (
+            match[0]
+            if match["literal"]
+            else (
+                match["prefix"] + "be recorded" + match["destination"]
+                if not re.match(r"(?:no|neither)\s+", match["prefix"], re.I)
+                else " "
+            )
+        ),
+        acceptance,
+        flags=re.I,
+    )
+    qualified_delivery_actor = (
+        r"(?:(?:the|an?)\s+)?"
+        r"(?:(?:assigned|responsible|authorized|experienced|designated|senior|lead|primary|current|CI|API|"
+        r"release|security|compliance|quality|platform|infrastructure|deployment|operations|"
+        r"finance|data|privacy|audit|risk|project|independent)\s+){0,3}"
+        + parenthetical_actor
+        + r"\b\s+"
+        + delivery_adverbs
+    )
+    parenthetical_aside = (
+        r"(?!(?:(?:and|or)\s+)?"
+        + r"(?:"
+        + destination_preposition
+        + r")?"
+        + review_destination_noun
+        + r")"
+        r"(?:(?!(?:"
+        + mandatory_auxiliary
+        + r"|must|shall|will|can|could|would|should|may|is|are|was|were|has|have|had|"
+        r"required|needed|mandatory|optional|if|when|without|unless|until|not|never|no)\b)"
+        r"(?!(?:"
+        + delivery_operation
+        + "|"
+        + "|".join(record_aliases)
+        + r")\s+(?:"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?)\b|"
+        + destination_preposition
+        + review_destination_noun
+        + r"))"
+        r"[\w-]+(?=\s|,)\s*){1,12}"
+    )
+    acceptance = re.sub(
+        r"(?P<literal>"
+        + quoted_evidence_literal
+        + r")|(?P<actor>"
+        + parenthetical_actor
+        + r")\s*,\s*"
+        + parenthetical_aside
+        + r"\s*,\s*",
+        lambda match: match[0] if match["literal"] else match["actor"] + " ",
+        acceptance,
+        flags=re.I,
+    )
+
+    # Additive contrast is not negation. Normalize before aliases so finite
+    # words such as "just" cannot hide the supply alias's governing auxiliary.
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r")|"
+        r"\bnot\s+"
+        + _EVIDENCE_ADDITIVE_CONTRAST
+        + r"(?=\s+"
+        + delivery_adverbs
+        + r"(?:"
+        + passive_delivery_prefix
+        + r")?"
+        + delivery_adverbs
+        + r"(?:"
+        + delivery_operation
+        + "|"
+        + "|".join(record_aliases)
+        + r"))",
+        lambda match: match[0] if match["literal"] else "also",
+        acceptance,
+        flags=re.I,
+    )
+
+    def normalize_record_alias(match: re.Match[str]) -> str:
+        """Preserve literals and participial modifiers of a prior governing verb."""
+        alias = match["alias"]
+        if not alias:
+            return match[0]
+        if alias.lower() in {"supply", "supplies", "supplying", "share", "shares", "sharing"}:
+            prefix = re.split(
+                r"[;,.!?\n]|\b(?:and|or|but|while|whereas)\b",
+                acceptance[: match.start()],
+                flags=re.I,
+            )[-1]
+            prefix = re.sub(
+                r"^\s*(?:(?:[-*+]|\d+[.)])\s*(?:\[[ xX]\]\s*)?|\[[ xX]\]\s*)?",
+                "",
+                prefix,
+            )
+            imperative = not prefix.strip()
+            # Alias recognition precedes clause-level contraction expansion.
+            # Normalize only the inspected governor, never quoted input bytes.
+            prefix = re.sub(
+                r"\b(does|do|did)n['’]t\b",
+                lambda match: match[1] + " not",
+                prefix,
+                flags=re.I,
+            )
+            # Base supply/supplies following bare possession auxiliaries is a
+            # noun phrase, not perfect delivery (which requires supplied).
+            verbal_governor = mandatory_auxiliary + r"|will|may|can|could|would|should|do|does|did"
+            if alias.lower() in {"supplying", "sharing"}:
+                verbal_governor += r"|is|are|was|were|be|been|being"
+            governed = bool(
+                re.search(
+                    r"\b(?:" + verbal_governor + r")\s+"
+                    r"(?:(?:not|never|no\s+longer|" + delivery_adverb + r")\s+)*$",
+                    prefix,
+                    re.I,
+                )
+            )
+            actor = bool(
+                re.fullmatch(
+                    r"\s*"
+                    + qualified_delivery_actor
+                    + r"(?:(?:never|no\s+longer)\s+"
+                    + delivery_adverbs
+                    + r")?",
+                    prefix,
+                    re.I,
+                )
+            )
+            if not (imperative or governed or actor):
+                return match[0]
+        if alias.lower() in {
+            "written",
+            "pasted",
+            "placed",
+            "submitted",
+            "delivered",
+            "supplied",
+            "shared",
+        }:
+            prefix = re.split(
+                r"[;,.!?\n]|\b(?:and|or|but|that|which|who|while|after|once|before|when|until|unless|if|since|because|whereas|although)\b",
+                acceptance[: match.start()],
+                flags=re.I,
+            )[-1]
+            # Inspect the actor without altering the original checklist semantics.
+            prefix = re.sub(
+                r"^\s*(?:(?:[-*+]|\d+[.)])\s*(?:\[[ xX]\]\s*)?|\[[ xX]\]\s*)?",
+                "",
+                prefix,
+            )
+            active_delivery_subject = (
+                alias.lower() in {"placed", "submitted", "delivered", "supplied", "shared"}
+                and bool(
+                    re.fullmatch(
+                        r"\s*" + qualified_delivery_actor + r"\s*",
+                        prefix,
+                        re.I,
+                    )
+                )
+                and not bool(re.search(response_operation + "|" + delivery_operation, prefix, re.I))
+            )
+            if not active_delivery_subject and not re.search(
+                r"\b(?:" + mandatory_auxiliary + r"|is|are|was|were|be|been|being|has|have|had)\s+"
+                r"(?:(?:not|never|no\s+longer|" + delivery_adverb + r")\s+)*$",
+                prefix,
+                re.I,
+            ):
+                return match[0]
+        if alias.lower() == "put" and re.search(
+            r"\b(?:(?:is|are|was|were)(?:n['’]t)?|be|been|being)\s+"
+            r"(?:(?:not|never|no\s+longer|" + delivery_adverb + r")\s+)*$",
+            acceptance[: match.start()],
+            re.I,
+        ):
+            return "recorded"
+        return record_aliases[alias.lower()]
+
+    acceptance = re.sub(
+        r"(?P<literal>" + quoted_evidence_literal + r"|"
+        r"\b(?:the|an?)\s+(?:write|paste|put|place|submit|deliver|supply|share)\b"
+        r"(?:\s+(?!(?:and|or|must|shall|will)\b)[\w-]+){0,6}\s+command\b"
+        r"(?=\s+(?:(?:must|shall|will)\s+output|outputs)\b))|"
+        r"(?P<alias>\b(?:" + "|".join(record_aliases) + r")\b)"
+        r"(?=\s+"
+        + r"(?:it|them|this|these|those|both)\s+"
+        + bound_review_destinations
+        + r"|\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|pr comments?|pull request comments?)\b"
+        r"|\s+"
+        + destination_preposition
+        + r"(?:both\s+)?"
+        + delivery_destination_item
+        + r"|\s+"
+        + product_destination
+        + r"\s+by\s+"
+        + product_actor
+        + r")",
+        normalize_record_alias,
+        acceptance,
+        flags=re.I,
+    )
+    # Use the same product-response operation vocabulary when coalescing object
+    # groups and when excluding response fields from review deliverables.
+    response_subject = r"(?:responses?|payloads?|return\s+values?|reports?|exports?)"
+    product_auxiliary = (
+        r"(?:" + mandatory_auxiliary + r"|will|" + optional_delivery_modal + r"|do|does|did)\s+"
+    )
+    product_aspect = (
+        r"(?:"
+        + delivery_governor_auxiliary
+        + r"\s+)?"
+        + delivery_adverbs
+        + r"(?:have\s+)?(?:be\s+|been\s+)?(?:being\s+)?"
+        + delivery_adverbs
+    )
+    product_evidence_object = (
+        r"(?:(?:the|an?)\s+)?"
+        + evidence_modifiers
+        + r"(?:transcripts?|command outputs?|evidence|artifacts?)\s+"
+    )
+    bound_product_delivery = re.compile(
+        r"\b"
+        + product_actor
+        + r"\s+"
+        + product_aspect
+        + delivery_operation
+        + r"\s+"
+        + product_evidence_object
+        + product_destination
+        + r"(?!"
+        + delivery_destination_separator
+        + review_destination_noun
+        + r")"
+        + r"|\b"
+        + product_evidence_object
+        + product_aspect
+        + delivery_operation
+        + r"\s+"
+        + product_destination
+        + r"\s+by\s+"
+        + product_actor
+        + r"\b(?!"
+        + delivery_destination_separator
+        + review_destination_noun
+        + r")",
+        re.I,
+    )
+    shared_storage_review_destination = re.compile(
+        r"(?P<predicate>\b"
+        + product_actor
+        + r"\s+"
+        + product_aspect
+        + r"(?:record|capture|attach|generate)\w*\s+"
+        + product_evidence_object
+        + r")"
+        r"(?:in|into|to|as)\s+(?:(?:its|the|an?)\s+)?"
+        r"(?:database|audit log|storage|application log)"
+        + shared_storage_separator_base
+        + r"(?P<preposition>"
+        + destination_preposition
+        + r")?(?P<destination>"
+        + review_destination_noun
+        + r")",
+        re.I,
+    )
+    coordinated_governor = (
+        r"(?:"
+        + delivery_governor_auxiliary
+        + r"\s+)?"
+        + delivery_adverbs
+        + r"(?:(?:not|never|no\s+longer)\s+)?"
+        + delivery_adverbs
+        + r"(?:have\s+)?(?:be\s+|been\s+)?(?:being\s+)?"
+        + delivery_adverbs
+    )
+    coordinated_aspect = (
+        delivery_adverbs + r"(?:have\s+)?(?:be\s+|been\s+)?(?:being\s+)?" + delivery_adverbs
+    )
+    coordinated_capability = (
+        r"(?:"
+        + capability_operation
+        + r"\s+"
+        + recipient_prefix
+        + _EVIDENCE_ACTOR_NOUN
+        + r"\b"
+        + _EVIDENCE_ACTOR_QUALIFIER
+        + r"\s+(?:to\s+)?)?"
+    )
+    coordinated_operation = (
+        coordinated_aspect
+        + coordinated_capability
+        + delivery_operation
+        + r"\s+"
+        + product_evidence_object
+    )
+    component_destination = (
+        _EVIDENCE_DESTINATION_PREPOSITION
+        + r"\s+(?:(?:the|an?)\s+)?(?:pr|pull request)\s+(?:body|description|comments?)\s+"
+        + body_component
+    )
+    explicit_chain_governor = (
+        r"(?:"
+        + negative_requirement_governor
+        + r"|"
+        + mandatory_auxiliary
+        + r"|"
+        + optional_delivery_modal
+        + r"|will|is|are|was|were|do|does|did"
+        + r")\s+"
+        + delivery_adverbs
+        + r"(?:(?:not|never|no\s+longer)\s+)?"
+        + delivery_adverbs
+    )
+    shared_review_tail = r"(?:" + shared_storage_separator + review_destination_noun + r"){0,3}"
+    shared_passive_product_review_destination = re.compile(
+        r"(?P<predicate>\b"
+        + product_evidence_object
+        + coordinated_governor
+        + r"(?:recorded|captured|attached|generated|returned|displayed|emitted|rendered|exposed|provided)\s+)"
+        + product_destination
+        + r"\s+by\s+"
+        + product_actor
+        + shared_storage_separator_base
+        + r"(?P<preposition>"
+        + destination_preposition
+        + r")?"
+        + r"(?P<destination>"
+        + review_destination_noun
+        + r")",
+        re.I,
+    )
+    product_chain_head = re.compile(
+        r"\b(?P<actor>"
+        + product_actor
+        + r")\s+"
+        + r"(?P<governor>"
+        + r"(?:"
+        + negative_requirement_governor
+        + r"\s+"
+        + delivery_adverbs
+        + r"|"
+        + coordinated_governor
+        + r")"
+        + r")"
+        + coordinated_operation
+        + r"(?P<destinations>(?:"
+        + product_destination
+        + r"|"
+        + component_destination
+        + r")"
+        + shared_review_tail
+        + r")",
+        re.I,
+    )
+    product_chain_member = re.compile(
+        r"\s+(?P<conjunction>and|or)\s+(?P<predicate>"
+        + r"(?P<explicit_governor>"
+        + explicit_chain_governor
+        + r")?"
+        + coordinated_operation
+        + r"(?P<destinations>"
+        + r"(?:"
+        + product_destination
+        + shared_review_tail
+        + r"|(?:in|into|to|as)\s+"
+        + review_destination_noun
+        + r")))",
+        re.I,
+    )
+
+    def normalize_product_coordination(text: str) -> str:
+        """Restore a bounded elided product actor/governor before clause splitting."""
+        literals = [match.span() for match in re.finditer(quoted_evidence_literal, text)]
+        output: list[str] = []
+        consumed = 0
+        for head in product_chain_head.finditer(text):
+            if head.start() < consumed or any(
+                start <= head.start() < end for start, end in literals
+            ):
+                continue
+            cursor = head.end()
+            members = []
+
+            def product_only(destinations: str) -> bool:
+                # Product components are not valid proof alternatives. A bare
+                # review destination in any earlier member retains real OR
+                # semantics and prevents this product-only coalescing shortcut.
+                return all(
+                    re.fullmatch(
+                        r"(?:(?:the|an?)\s+)?(?:pr|pull request)\s+"
+                        r"(?:body|description|comments?)\s+" + body_component,
+                        match[0],
+                        re.I,
+                    )
+                    for match in re.finditer(review_destination_noun, destinations, re.I)
+                )
+
+            only_product = product_only(head["destinations"])
+            while member := product_chain_member.match(text, cursor):
+                if any(start < member.end() and member.start() < end for start, end in literals):
+                    break
+                member_product = product_only(member["destinations"])
+                if member["conjunction"].lower() == "or" and not (only_product or member_product):
+                    break
+                members.append(member)
+                only_product = only_product and member_product
+                cursor = member.end()
+            output.extend((text[consumed : head.end()],))
+            inherited_governor = head["governor"]
+            for member in members:
+                explicit = member["explicit_governor"] or ""
+                predicate = member["predicate"][len(explicit) :]
+                governor = explicit or inherited_governor
+                aspect = re.match(coordinated_aspect, predicate, re.I)
+                if aspect and re.search(r"\b(?:have|be|been|being)\b", aspect[0], re.I):
+                    # An explicit repeated aspect replaces the inherited aspect,
+                    # but never the head's modality, polarity, or product actor.
+                    governor = re.sub(
+                        r"(?:have|be|been|being)\s+(?:(?:be|been|being)\s+)*"
+                        + delivery_adverbs
+                        + r"$",
+                        "",
+                        governor,
+                        flags=re.I,
+                    )
+                    inherited_governor = governor + aspect[0]
+                else:
+                    inherited_governor = governor
+                # Later elided predicates inherit the most recent explicit
+                # governor/aspect, not the original chain head's stale state.
+                output.append(
+                    "; "
+                    + head["actor"]
+                    + " "
+                    + ("" if explicit else governor)
+                    + member["predicate"]
+                )
+            consumed = cursor
+            reset = re.match(
+                r"\s+(?:and|or)\s+(?=(?:" + mandatory_auxiliary + r"|will)\s+)",
+                text[cursor:],
+                re.I,
+            )
+            if reset:
+                # A new explicit governor starts a separate obligation. Do not
+                # inherit the preceding product modality or negation into it.
+                output.append("; ")
+                consumed += reset.end()
+        return "".join(output) + text[consumed:] if output else text
+
+    # Positive and negated obligations must recognize the same passive aspects.
+    evidence_term = re.compile(
+        r"\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+        r"pr comments?|pull request comments?)\b",
+        re.I,
+    )
+    requirement = re.compile(
+        r"\b(?:"
+        + mandatory_auxiliary
+        + r"|required|mandatory|(?:is|are)\s+needed|must|shall|needs? to|"
+        r"publish(?:es|ed)?|upload(?:s|ed)?|"
+        r"attach(?:es|ed)?|captur(?:e|es|ed)|record(?:s|ed|ing)?|provid(?:e|es|ed)|"
+        r"includ(?:e|es|ed)|link(?:s|ed)?|post(?:s|ed)?|"
+        r"(?:add(?:s|ed)?|leav(?:e|es)|left)\s+(?:(?:an?|the)\s+)?"
+        r"(?:pr|pull request)\s+comments?|"
+        r"document(?:s|ed)?|prov(?:e|es|ed)|show(?:s|ed)?)\b",
+        re.I,
+    )
+
+    attached_object_pattern = re.compile(
+        r"\b(?P<object>evidence|artifacts?|transcripts?|command outputs?|pr comments?|pull request comments?)\b",
+        re.I,
+    )
+    attached_delivery_pattern = re.compile(
+        r"(?:\s*,\s*(?:that|which)\s+|\s+(?:(?:that|which)\s+)?)"
+        r"(?P<actor>(?:(?!(?:and|or|that|which|must|shall|needs?|has|have|is|are)\b)[\w/-]+\s+){0,6})"
+        + r"(?P<auxiliary>"
+        + r"(?:"
+        + mandatory_auxiliary
+        + r"|will)"
+        + r")\s+"
+        + delivery_adverbs
+        + r"(?P<aspect>"
+        + passive_delivery_prefix
+        + r")?"
+        + delivery_adverbs
+        + r"(?P<operation>"
+        + delivery_operation
+        + r")",
+        re.I,
+    )
+
+    def body_occurrences(text: str, gate: bool) -> tuple[list[dict[str, Any]], str]:
+        """Classify complete, bounded body predicates before residual evidence gating."""
+        body = r"(?:pr|pull request)\s+(?:body|description)\b"
+        qualified_object = (
+            evidence_modifiers + r"(?:evidence|artifacts?|transcripts?|command outputs?)\b"
+        )
+        noun = r"(?:(?:the|an?|any|no)\s+)?" + qualified_object
+        noun = r"(?:" + noun + r")(?:\s+(?:and|or)\s+(?:" + noun + r")){0,3}"
+        noun = r"(?P<body_object>" + noun + r")"
+        exclusion_operation = (
+            r"(?:exclude\w*|omit\w*|remove\w*|avoid\w*|suppress\w*|leave\s+out|left\s+out)\b"
+        )
+        operation = (
+            r"(?:"
+            + exclusion_operation
+            + "|"
+            + response_operation
+            + r"|"
+            + delivery_operation
+            + r"|left)\b"
+        )
+        auxiliary = (
+            r"(?:"
+            + negative_requirement_governor
+            + r"|"
+            + mandatory_auxiliary
+            + r"|is|are|was|were|has|have|had|will|"
+            + optional_delivery_modal
+            + r")"
+        )
+        polarity = r"(?:(?:not|never|no\s+longer)\s+)?"
+        aspect = (
+            delivery_adverbs
+            + r"(?:"
+            + delivery_action_prefix
+            + r"|been\s+"
+            + delivery_adverbs
+            + r")?"
+            + delivery_adverbs
+        )
+        body_destination = r"(?:(?:the|an?)\s+)?" + body + r"(?:\s+" + body_component + r")?"
+        destination_item = delivery_destination_item
+        destination_separator = delivery_destination_separator
+        destination = (
+            destination_preposition + r"(?:(?:both|either)\s+)?"
+            r"(?=(?:"
+            + destination_item
+            + destination_separator
+            + r")*"
+            + body_destination
+            + r")"
+            + destination_item
+            + r"(?:"
+            + destination_separator
+            + destination_item
+            + r")*"
+        )
+        families = [
+            r"\b"
+            + noun
+            + r"\s+"
+            + destination
+            + r"\s+(?:(?:is|are)|"
+            + mandatory_auxiliary
+            + r")\s+"
+            + polarity
+            + r"(?:be\s+)?"
+            + r"(?:required|needed|mandatory|optional)\b",
+            r"\b" + mandatory_auxiliary + r"\s+" + polarity + operation + r"\s+" + destination,
+            r"\b"
+            + body
+            + r"\s+(?:(?:that|which)\s+)?"
+            + delivery_adverbs
+            + auxiliary
+            + r"\s+"
+            + polarity
+            + operation
+            + r"\s+"
+            + noun,
+            r"\bthere\s+" + auxiliary + r"\s+" + polarity + r"be\s+" + noun + r"\s+" + destination,
+            r"\b"
+            + noun
+            + r"\s+(?:is|are)\s+"
+            + polarity
+            + r"(?:required|needed|mandatory|optional)\s+"
+            + destination,
+            r"\b"
+            + noun
+            + r"\s+"
+            + auxiliary
+            + r"\s+"
+            + polarity
+            + aspect
+            + operation
+            + r"\s+"
+            + destination,
+            r"\b(?:"
+            + auxiliary
+            + r"\s+)?"
+            + polarity
+            + aspect
+            + operation
+            + r"\s+"
+            + noun
+            + r"\s+"
+            + destination,
+            r"\b"
+            + body
+            + r"\s+(?:is|are)\s+"
+            + polarity
+            + r"(?:required|needed|mandatory|optional)\b",
+        ]
+        if gate:
+            families.insert(0, r"\b(?:without|unless|until)\s+" + noun + r"\s+" + destination)
+        candidates = sorted(
+            (match for family in families for match in re.finditer(family, text, re.I)),
+            key=lambda match: (match.start(), -len(match[0])),
+        )
+        records: list[dict[str, Any]] = []
+        consumed_end = -1
+        residual = list(text)
+        for match in candidates:
+            independent_relative_presence = re.match(
+                body + r"\s+(?:that|which)\s+" + delivery_adverbs + auxiliary + r"\s+",
+                match[0],
+                re.I,
+            )
+            if match.start() < consumed_end and not independent_relative_presence:
+                continue
+            if _bind_attached and match.groupdict().get("body_object") is None:
+                # Do not consume an attached predicate without its antecedent.
+                # The shared attached-delivery pass must bind and remove the
+                # complete object/predicate/destination before product suppression.
+                attached_predicates = (
+                    attached_delivery_pattern.match(text, obj.end())
+                    for obj in attached_object_pattern.finditer(text, 0, match.start())
+                )
+                if any(
+                    predicate and predicate.start() <= match.start() < predicate.end()
+                    for predicate in attached_predicates
+                ):
+                    continue
+            clause = match[0]
+            # Object qualifiers are not governing polarity/modality predicates.
+            # For example, excluded-case or optional-case evidence is still a
+            # mandatory deliverable. Keep the predicate and post-object state.
+            polarity_clause = clause
+            object_prohibited = False
+            if match.groupdict().get("body_object") is not None:
+                start, end = match.span("body_object")
+                polarity_clause = clause[: start - match.start()] + clause[end - match.start() :]
+                object_prohibited = bool(
+                    re.search(
+                        r"\bno\s+"
+                        + evidence_modifiers
+                        + r"(?:evidence|artifacts?|transcripts?|command outputs?)\b",
+                        match["body_object"],
+                        re.I,
+                    )
+                )
+            body_match = re.search(body, clause, re.I)
+            assert body_match is not None
+            if product_comment_object(
+                text[: match.start() + body_match.start()],
+                "in " + clause[body_match.start() :],
+            ):
+                # A capability's upload destination remains product behavior.
+                # Preserve the full clause for shared product suppression,
+                # rather than consuming its body tail as a separate delivery.
+                continue
+            is_gate = gate and bool(re.match(r"(?:without|unless|until)\b", clause, re.I))
+            prohibited = not is_gate and (
+                object_prohibited
+                or bool(
+                    re.search(
+                        r"\b(?:not|never|no\s+longer)\b",
+                        polarity_clause,
+                        re.I,
+                    )
+                )
+            )
+            if not is_gate and re.search(exclusion_operation, polarity_clause, re.I):
+                prohibited = not prohibited
+            mandatory_optionality = bool(
+                re.search(
+                    r"\b(?:(?:is|are)|"
+                    + mandatory_auxiliary
+                    + r")\s+(?:not|never|no\s+longer)\s+(?:be\s+)?optional\b",
+                    polarity_clause,
+                    re.I,
+                )
+            )
+            if mandatory_optionality:
+                prohibited = False
+            optional = (
+                not is_gate
+                and bool(
+                    re.search(
+                        r"\b(?:optional|" + optional_delivery_modal + r")\b", polarity_clause, re.I
+                    )
+                    or re.match(r"\s*,?\s*" + conditional_evidence, text[match.end() :], re.I)
+                )
+                and not mandatory_optionality
+            )
+            component = re.match(r"\s+" + body_component, clause[body_match.end() :], re.I)
+            product = bool(component) and product_comment_object(
+                text[: match.start() + body_match.start()], clause[body_match.end() :]
+            )
+            # A product-owned terminal component noun is structural, not an
+            # ever-growing UI suffix allowlist. Human deliveries and a true
+            # destination followed by a preposition/governor stay authoritative.
+            component_tail = text[match.start() + body_match.end() :]
+            structural_component = re.match(
+                r"\s+" + body_component,
+                component_tail,
+                re.I,
+            )
+            product = (
+                product
+                or bool(structural_component)
+                and product_comment_object(text[: match.start() + body_match.start()], "")
+            )
+            clause_end = match.end()
+            if structural_component:
+                coordinated_tail = re.match(
+                    r"\s+"
+                    + body_component
+                    + r"(?:"
+                    + destination_separator
+                    + destination_item
+                    + r")*",
+                    component_tail,
+                    re.I,
+                )
+                if coordinated_tail:
+                    clause_end = match.start() + body_match.end() + coordinated_tail.end()
+                    clause = text[match.start() : clause_end]
+                    # Conditional availability belongs to the full coordinated
+                    # delivery, including a structurally recognized UI component.
+                    if not is_gate and not mandatory_optionality:
+                        optional = optional or bool(
+                            re.match(r"\s*,?\s*" + conditional_evidence, text[clause_end:], re.I)
+                        )
+            disposition = (
+                "prohibited"
+                if prohibited
+                else "product" if product else "optional" if optional else "required"
+            )
+            destinations = set()
+            product_surface = False
+            for item in re.finditer(
+                r"\b(?:pr|pull request)\s+(?P<channel>body|description|comments?)\b"
+                r"(?P<component>\s+" + body_component + r")?|"
+                r"(?P<artifact>" + artifact_destination_object + r")",
+                clause,
+                re.I,
+            ):
+                if item["artifact"]:
+                    destinations.add("artifacts")
+                    continue
+                if item["component"] and product_comment_object(
+                    text[: match.start() + item.start()], item["component"]
+                ):
+                    product_surface = True
+                    continue
+                destinations.add(
+                    "comments" if item["channel"].lower().startswith("comment") else "body"
+                )
+            if product_surface and not prohibited:
+                # Classify each coordinated item, not an entire channel. A
+                # structural component cannot consume a bare sibling delivery.
+                disposition = (
+                    ("optional" if optional else "required") if destinations else "product"
+                )
+            records.append(
+                {
+                    "span": (match.start(), clause_end),
+                    "disposition": disposition,
+                    "destinations": destinations,
+                }
+            )
+            residual[match.start() : clause_end] = " " * len(clause)
+            consumed_end = max(consumed_end, clause_end)
+        return records, "".join(residual)
+
+    def remaining_delivery(text: str) -> bool:
+        # Product object-field nouns are not requests to deliver evidence.
+        actions = re.sub(
+            r"\bevidence\s+(?:links?|records?)\b"
+            r"(?:\s+(?:and|or)\s+(?:links?|records?)\b"
+            r"(?=\s*(?:$|[;,.!?]|(?:and|or)\b|(?:to|of|for)\s+evidence\b)))*",
+            "evidence",
+            text,
+            flags=re.I,
+        )
+        # Adjectives on product subjects/fields are not independent delivery
+        # predicates. Preserve a post-object passive requirement instead.
+        passive_requirement = re.search(
+            r"\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+            r"pr comments?|pull request comments?)\b(?:\s+(?:links?|records?))?\s+"
+            r"(?:(?:is|are)\s+)?(?:required|mandatory|needed)\b",
+            text,
+            re.I,
+        )
+        actions = re.sub(r"\b(?:required|mandatory)\b", " ", actions, flags=re.I)
+        return bool(
+            evidence_term.search(text) and (requirement.search(actions) or passive_requirement)
+        )
+
+    def normalize_product_capability(text: str) -> str:
+        """Canonicalize product recognition only, not the original obligation text."""
+        text = re.sub(
+            r"\b(?:won['’]t|can['’]t|couldn['’]t|wouldn['’]t|shouldn['’]t|"
+            r"mustn['’]t|shan['’]t|doesn['’]t|don['’]t|didn['’]t)\s+"
+            r"(?=" + capability_operation + r"\b)",
+            "",
+            text,
+            flags=re.I,
+        )
+        text = re.sub(
+            r"\b(?:(?P<modal>must|shall|will|should|can|may)\s+(?:not|never)|"
+            r"(?:does|do|did)\s+(?:not|never)|cannot)\s+(?=" + capability_operation + r"\b)",
+            lambda match: (match["modal"] or "") + " ",
+            text,
+            flags=re.I,
+        )
+        return re.sub(
+            r"\b(?:(?:is|are|was|were)|(?:has|have|had)\s+(?:(?:not|never)\s+)?been|"
+            r"support(?:s|ed|ing)?)\s+"
+            r"(?:(?:not|never|now|currently|already|still|[\w-]+ly)\s+){0,3}letting\b",
+            "let",
+            text,
+            flags=re.I,
+        )
+
+    def product_comment_object(prefix: str, destination: str) -> bool:
+        """Classify the governing operation's subject, not domain words anywhere."""
+        prefix = normalize_product_capability(prefix)
+        operations = list(
+            re.finditer(
+                r"\b(?!renderer\b)(?:"
+                + response_operation
+                + r"|"
+                + capability_operation
+                + r"|"
+                + delivery_operation
+                + r"|left)\w*\b",
+                prefix,
+                re.I,
+            )
+        )
+        if not operations:
+            return False
+        # Perfect aspect's have is an auxiliary, not a second product
+        # operation or a new subject boundary. Possession of an evidence
+        # object remains an operation when no following delivery verb exists.
+        operations = [
+            operation
+            for operation in operations
+            if not (
+                operation[0].lower() == "have"
+                and re.match(
+                    r"\s+" + delivery_adverbs + r"(?:(?:been|being)\s+)?" + delivery_operation,
+                    prefix[operation.end() :],
+                    re.I,
+                )
+            )
+        ]
+        if not operations:
+            return False
+        capability = bool(re.fullmatch(capability_operation, operations[0][0], re.I))
+        if capability:
+            actor = (
+                recipient_prefix + r"(?:(?:api|ui)\s+)?"
+                r"(?:users?|clients?|consumers?|reviewers?|maintainers?|authors?|operators?)"
+                + _EVIDENCE_ACTOR_QUALIFIER
+            )
+            base_operations = {
+                "display",
+                "show",
+                "store",
+                "include",
+                "contain",
+                "attach",
+                "upload",
+                "add",
+                "leave",
+                "post",
+                "publish",
+                "provide",
+                "document",
+                "record",
+                "capture",
+                "generate",
+                "prove",
+                "return",
+                "emit",
+                "render",
+                "expose",
+                "have",
+                "link",
+            }
+            for index, current in enumerate(operations[1:], start=1):
+                current_capability = bool(re.fullmatch(capability_operation, current[0], re.I))
+                if current[0].lower() not in base_operations and not current_capability:
+                    return False
+                previous = operations[index - 1]
+                between = prefix[previous.end() : current.start()]
+                if re.fullmatch(capability_operation, previous[0], re.I):
+                    if current_capability:
+                        return False
+                    complement = (
+                        r"\s+"
+                        if re.fullmatch(r"let(?:s|ting)?", previous[0], re.I)
+                        else r"\s+to\s*"
+                    )
+                    recognized = re.fullmatch(r"\s*" + actor + complement, between, re.I)
+                else:
+                    # Consume only an entire recognized preceding object.
+                    # An unknown intervening clause may never be skipped or
+                    # have capability inheritance restored by a later link.
+                    between = re.sub(
+                        r"^\s*"
+                        + evidence_modifiers
+                        + r"(?:evidence|artifacts?|transcripts?|command outputs?|pr comments?|pull request comments?)\b",
+                        "",
+                        between,
+                        count=1,
+                        flags=re.I,
+                    )
+                    recognized = re.fullmatch(
+                        r"\s*,?\s*(?:and|or)\s+"
+                        + delivery_adverbs
+                        + ("" if current_capability else r"(?:(?:" + actor + r"\s+)?to\s*)?")
+                        + r"\s*",
+                        between,
+                        re.I,
+                    )
+                if not recognized:
+                    # Decline before subject heuristics can rescue an
+                    # unrecognized affirmative delivery as product behavior.
+                    return False
+        operation = operations[0] if capability else operations[-1]
+        subject = prefix[: operation.start()]
+        if capability:
+            subject = re.sub(r"\b(?:does|do|did)\s+not\s*$", "", subject, flags=re.I)
+        if not capability and len(operations) > 1:
+            between = prefix[operations[-2].end() : operation.start()]
+            prior_comments = list(
+                re.finditer(r"\b(?:pr|pull request)\s+comments?\b", between, re.I)
+            )
+            if prior_comments:
+                between = between[prior_comments[-1].end() :]
+            if not re.fullmatch(r"\s*(?:and|or)\s*", between, re.I):
+                # A later delivery has its own subject; do not inherit an
+                # earlier UI/API actor across "transcript that must be posted".
+                subject = re.split(
+                    r"\b(?:and|or|that|which|who|while|after|once|before|when|until|unless|if|since|because|whereas)\b",
+                    between,
+                    flags=re.I,
+                )[-1]
+        nested_subject = re.search(
+            r"\b(?:(?P<explicit>that|whether)|(?P<implicit>"
+            + product_auxiliary
+            + r"(?:verify|check|assert))(?!\s+(?:that|whether)\b))"
+            r"\s+(?P<subject>(?:(?:the|an?)\s+)?"
+            r"(?:[\w-]+\s+)*?(?:ui|api|application|interface|service|cli|endpoint|renderer|"
+            r"reviewers?|maintainers?|authors?|operators?))\s+(?P<nested_aux>"
+            + product_auxiliary
+            + r")?\s*$",
+            subject,
+            re.I,
+        )
+        if (
+            nested_subject
+            and nested_subject["implicit"]
+            and (
+                nested_subject["nested_aux"]
+                or re.search(r"\b(?:who|which|that)\b", subject[: nested_subject.start()], re.I)
+            )
+        ):
+            # A check predicate inside a relative qualifier cannot supply
+            # the outer delivery's actor. Decline ambiguous attachment.
+            nested_subject = None
+        if nested_subject:
+            # A direct nested clause's actor governs this operation, not a
+            # reviewer merely asked to verify that product behavior. An outer
+            # relative clause with another verb cannot match this boundary.
+            subject = nested_subject["subject"]
+        subject = re.split(product_auxiliary, subject, maxsplit=1, flags=re.I)[0]
+        plain_subject = re.sub(r"^\s*(?:[-*]\s*(?:\[[ xX]\]\s*)?)?", "", subject)
+        if re.match(
+            r"(?:for|when|while|during|after|before|if|once|under|with|without|upon)\b",
+            plain_subject,
+            re.I,
+        ):
+            fronted = re.match(
+                r"(?P<adjunct>.*?)\s+(?P<subject>(?:the|an?)\s+.+)$", plain_subject, re.I
+            )
+            supported_adjunct = (
+                r"for reviewers? access|for backward compatibility|under reviewers? supervision|"
+                r"when reviewers? requests? access|"
+                r"(?:when|while) (?:using|testing|accessing|operating) [\w-]+"
+            )
+            if not fronted or not re.fullmatch(supported_adjunct, fronted["adjunct"], re.I):
+                # A partial grammar must decline unknown attachments. In
+                # particular, never consume "maintainers of" or an unknown
+                # human role to reach a product noun in its modifier.
+                return False
+            subject = fronted["subject"]
+        actor_head = re.search(
+            r"\b(?:(?:api|ui)\s+)?(?:reviewers?|maintainers?|authors?|operators?)\b"
+            r"|\b(?:ui|api|application|interface|service|cli|endpoint|renderer)\b",
+            subject,
+            re.I,
+        )
+        if actor_head and re.search(
+            r"\b(?:reviewers?|maintainers?|authors?|operators?)\b", actor_head[0], re.I
+        ):
+            # Preserve the initial human head regardless of later modifiers;
+            # a product noun inside that modifier cannot change the actor.
+            return False
+        # A participial modifier can qualify an already named actor, but an
+        # introductory "When using OAuth" precedes the actual actor. Never
+        # discard a later subject merely because the introduction uses a verb.
+        for qualifier in re.finditer(r"\b(?:using|testing|accessing|operating)\b", subject, re.I):
+            if re.search(
+                r"\b(?:reviewers?|maintainers?|authors?|operators?|ui|api|application|"
+                r"interface|service|cli|endpoint|renderer)\b",
+                subject[: qualifier.start()],
+                re.I,
+            ):
+                subject = subject[: qualifier.start()]
+                break
+        # Relative/prepositional modifiers do not change the subject head:
+        # "reviewer of the endpoint" is human; "endpoint used by reviewers"
+        # is a product. Introductory words need no arbitrary length ceiling.
+        subject = re.split(
+            r"\b(?:of|that|which|who|" r"(?:used|operated|provided|managed)\s+by)\b",
+            subject,
+            maxsplit=1,
+            flags=re.I,
+        )[0]
+        words = re.findall(r"[\w-]+", subject.lower())
+        product_destination = bool(
+            re.search(
+                r"^\s*(?:in|into|to|as)\s+(?:(?:its|the|an?)\s+)?"
+                r"(?:(?:json|api|audit|output)\s+)*"
+                r"(?:responses?|payloads?|outputs?|fields?|records?|storage|data)\b"
+                r"|^\s*(?:fields?|metadata)\b|^\s+" + body_component,
+                destination,
+                re.I,
+            )
+        )
+        field_operation = bool(
+            re.fullmatch(
+                r"(?:include|contain|display|show|store|return|emit|render|expose|link)\w*",
+                operation[0],
+                re.I,
+            )
+        )
+        review_destination = bool(
+            re.search(
+                r"\b(?:with|containing|including)\s+(?:[\w-]+\s+)*?"
+                r"(?:results?|evidence|transcripts?|command outputs?)\b"
+                r"|\b(?:on|in|to)\s+(?:(?:the|this|reviewing)\s+)?(?:pr|pull request)\b",
+                destination,
+                re.I,
+            )
+            or (
+                re.fullmatch(
+                    r"\s*"
+                    + evidence_modifiers
+                    + r"(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+                    + destination_preposition_head
+                    + r"\s+(?:(?:the|an?)\s+)?",
+                    prefix[operation.end() :],
+                    re.I,
+                )
+                and not re.match(r"\s+" + body_component, destination, re.I)
+            )
+        )
+        return bool(
+            words
+            and words[-1]
+            in {
+                "ui",
+                "api",
+                "application",
+                "interface",
+                "service",
+                "cli",
+                "endpoint",
+                "renderer",
+            }
+            and (capability or product_destination or (field_operation and not review_destination))
+        )
+
+    perfect_delivery_prohibition = re.compile(
+        r"\b(?:has|have|had|will)\s+"
+        + delivery_adverbs
+        + r"(?:not|never|no\s+longer)\s+"
+        + delivery_adverbs
+        + r"(?:have\s+"
+        + delivery_adverbs
+        + r")?"
+        + r"(?:been\s+(?:being\s+)?"
+        + delivery_adverbs
+        + r")?"
+        + delivery_operation,
+        re.I,
+    )
+    progressive_delivery_prohibition = (
+        r"\b(?:is|are|was|were|will|must|shall)\s+"
+        + delivery_adverbs
+        + r"(?:not|never|no\s+longer)\s+"
+        + delivery_adverbs
+        + r"(?:be\s+|been\s+)?(?:being\s+)?"
+        + delivery_adverbs
+        + r"(?=\w*ing\b)"
+        + delivery_operation
+    )
+    aspect_delivery_prohibition = re.compile(
+        perfect_delivery_prohibition.pattern
+        + "|"
+        + progressive_delivery_prohibition
+        + r"|\b(?:is|are|was|were)\s+"
+        + delivery_adverbs
+        + r"(?:not|never|no\s+longer)\s+"
+        + delivery_adverbs
+        + r"(?:being\s+)?"
+        + delivery_adverbs
+        + _EVIDENCE_DELIVERY_PARTICIPLE_START
+        + delivery_operation,
+        re.I,
+    )
+    negative_requirement_action = (
+        r"\b"
+        + negative_requirement_governor
+        + r"\s+"
+        + delivery_adverbs
+        + r"(?:"
+        + delivery_action_prefix
+        + r")?"
+        + delivery_adverbs
+        + delivery_operation
+    )
+    evidence_prohibition = re.compile(
+        negative_requirement_action + r"|" + aspect_delivery_prohibition.pattern + r"|"
+        r"\b"
+        + negative_requirement_governor
+        + r"\s+"
+        + delivery_adverbs
+        + r"be\s+(?="
+        + destination_preposition
+        + delivery_destination_item
+        + r")|"
+        r"\b(?:(?:do|does|did)\s+not|never|no\s+longer)\s+"
+        + mandatory_auxiliary
+        + r"\s+"
+        + delivery_adverbs
+        + r"(?:"
+        + passive_delivery_prefix
+        + r")?"
+        + delivery_adverbs
+        + delivery_operation
+        + r"(?:\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|pr comments?|pull request comments?))?|"
+        r"\b(?:(?:do|does|did)\s+not|never|no\s+longer)\s+"
+        + mandatory_auxiliary
+        + r"\s+be\s+(?="
+        + destination_preposition
+        + delivery_destination_item
+        + r")|"
+        r"\b(?:never|no\s+longer)\s+" + delivery_adverbs + delivery_operation + r"|"
+        r"\b(?:"
+        + delivery_governor_auxiliary
+        + r")\s+"
+        + delivery_adverbs
+        + r"(?:not|never|no\s+longer)\s+"
+        + delivery_adverbs
+        + r"(?:"
+        + passive_delivery_prefix
+        + r")?"
+        + delivery_adverbs
+        + delivery_operation
+        + r"(?:\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|pr comments?|pull request comments?))?"
+        + r"|"
+        r"\b(?:must|shall|may|should|can|do|does|did|will)\s+"
+        + r"(?=(?:(?:not|never|be|have|been|being)\s+){0,5}"
+        + r"(?:also|now|still|already|[\w-]+ly)\s+)"
+        + delivery_adverbs
+        + r"(?:not|never)\s+"
+        + delivery_adverbs
+        + r"(?:"
+        + passive_delivery_prefix
+        + r")?"
+        + delivery_adverbs
+        + delivery_operation
+        + r"(?:\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|pr comments?|pull request comments?))?"
+        + r"|"
+        r"\b(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+        r"(?:has|have|had|can|could|would|will|should|may|must|shall)\s+(?:not|never)\s+"
+        r"(?:been|be)\s+(?:(?:being|\w+ly)\s+)*" + delivery_operation + r"|"
+        r"\b(?:"
+        + mandatory_auxiliary
+        + r"|may|should|can|do|does|did)\s+(?:not|never)\s+(?:be\s+)?"
+        + response_operation
+        + r"(?:\s+(?:[\w/-]+\s+){0,4}(?:evidence|artifacts?|transcripts?|command outputs?|pr comments?|pull request comments?)\b)?|"
+        r"\b(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+        r"(?:does|do|did)\s+(?:not|never)\s+(?:need|have)\s+to\s+"
+        + passive_delivery_prefix
+        + response_operation
+        + r"|"
+        r"\bnever\s+(?:upload|attach|provide|publish|post|record|capture|include|document|generate|link|add|leave)\w*\b|"
+        r"\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+        r"pr comments?|pull request comments?)\s+(?:is|are|was|were)\s+"
+        r"(?:not|never|no\s+longer)\s+(?:being\s+)?"
+        r"(?:uploaded|attached|provided|published|posted|recorded|captured|included|documented|generated|linked)\b|"
+        r"\b(?:(?:is|are|was|were)\s+(?:not|never|no\s+longer)\s+"
+        r"(?:required|needed|mandated|expected|supposed|obliged|allowed|permitted)\s+to|"
+        r"(?:does|do|did)\s+not\s+(?:need|have)\s+to|needs?\s+not)\s+"
+        + r"(?:"
+        + passive_delivery_prefix
+        + r")?"
+        + delivery_operation
+        + r"|"
+        r"\bno\s+(?:\w+\s+){0,3}(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)"
+        r"\s+(?:is|are)\s+(?:required|needed|mandatory)\b"
+        r"|\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+        r"pr comments?|pull request comments?)"
+        r"\s+(?:is|are)\s+not\s+(?:required|needed|mandatory)\b"
+        r"(?:\s+to\s+(?:" + delivery_action_prefix + r")?" + delivery_operation + r")?"
+        r"|\b(?:must|shall|may|should|can|do|does|did)\s+not\s+"
+        r"(?:upload|attach|provide|publish|post|record|capture|include|document|generate|link|add|leave)\b"
+        r"(?:\s+(?:the\s+|an?\s+|any\s+)?(?:[\w-]+\s+){0,4}"
+        r"(?:evidence|artifacts?|transcripts?|"
+        r"command outputs?|workflow runs?|pr comments?|pull request comments?))?"
+        r"|\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+        r"pr comments?|pull request comments?)\s+"
+        r"(?:must|shall|may|should)\s+not\s+be\s+"
+        r"(?:uploaded|attached|provided|published|posted|recorded|captured|"
+        r"included|documented|generated|linked)\b"
+        r"|\bneither\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)\s+nor\s+"
+        + evidence_modifiers
+        + r"(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)\s+"
+        r"(?:is|are)\s+(?:required|needed|mandatory)\b"
+        r"|\bno\s+(?:\w+\s+){0,4}(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)\s+"
+        r"(?:(?:must|shall|may|should)\s+(?:not\s+)?be|was|were|is|are)\s+"
+        r"(?:left|added)\b"
+        r"|\bno\s+(?:\w+\s+){0,4}(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)\s+"
+        r"(?:must|shall|may|should)\s+(?:not\s+)?(?:be\s+)?"
+        r"(?:uploaded|attached|provided|published|posted|recorded|captured|"
+        r"included|documented)\b"
+        r"|\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+        r"pr comments?|pull request comments?)\s+need\s+not\s+(?:be\s+)?"
+        r"(?:uploaded|attached|provided|published|posted|recorded|captured|"
+        r"included|documented)\b"
+        r"|\bno\s+(?:\w+\s+){0,4}(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)\s+is\s+generated\b"
+        r"|\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+        r"pr comments?|pull request comments?)\s+(?:does|do)\s+not\s+need\s+(?:to\s+be\s+)?"
+        r"(?:uploaded|attached|provided|published|posted|recorded|captured|"
+        r"included|documented|generated)\b"
+        r"|\bno\s+(?:\w+\s+){0,4}(?:evidence|artifacts?|transcripts?|command outputs?|"
+        r"workflow runs?|pr comments?|pull request comments?)\s+needs?\s+to\s+be\s+"
+        r"(?:uploaded|attached|provided|published|posted|recorded|captured|"
+        r"included|documented|generated)\b",
+        re.I,
+    )
+    negative_gate = re.compile(
+        r"(?:\b(?:must\s+not|shall\s+not|may\s+not|can\s+not|cannot|can't|"
+        r"do\s+not|does\s+not|no|never)\s+"
+        r"(?:\w+\s+){0,3}(?:proceed\w*|merge\w*|ship\w*|release\w*|complete\w*|pass\w*)\b"
+        r"|\bnever\s+(?:\w+\s+){0,5}proceed\w*\b)"
+        r".{0,160}\b(?:without|unless|until)\b.{0,160}"
+        r"\b(?:attach\w*|upload\w*|evidence|artifacts?|transcripts?|"
+        r"command outputs?|workflow runs?|pr comments?|pull request comments?)\b",
+        re.I,
+    )
+    criteria: list[str] = []
+    paragraph_break = False
+    # A literal may contain apparent list items and blank paragraphs. Keep it
+    # intact until the literal-aware removal below; only unquoted newlines may
+    # split criteria. Do not change the original text used by other guards.
+    criterion_input = re.sub(
+        quoted_evidence_literal,
+        lambda match: re.sub(r"\r\n|\r|\n", " ", match[0]),
+        acceptance,
+    )
+    for raw_line in criterion_input.splitlines():
+        line = raw_line.strip()
+        if not line:
+            paragraph_break = True
+            continue
+        if criteria and not paragraph_break and not re.match(r"^(?:[-*+]|\d+[.)])\s+", line):
+            criteria[-1] += " " + line
+        else:
+            criteria.append(line)
+        paragraph_break = False
+    for criterion in criteria:
+        # Canonicalize supported list markers once so every downstream negation,
+        # product-output and checklist guard uses the same established syntax.
+        criterion = re.sub(r"^\s*(?:[-*+]|\d+[.)])(?=\s)", "-", criterion)
+        criterion = re.sub(r"\bcannot\b", "can not", criterion, flags=re.I)
+        criterion = re.sub(r"\bwon['’]t\b", "will not", criterion, flags=re.I)
+        criterion_checklist = bool(re.match(r"^\s*(?:[-*+]|\d+[.)])\s*\[[ xX]\]", criterion))
+        criterion_bullet = bool(re.match(r"^\s*(?:[-*+]|\d+[.)])\s+", criterion))
+        # Quoted parser inputs are examples, including their verbs and clause
+        # delimiters. Remove only the literal following the parser operation;
+        # an actual delivery instruction after the example still applies.
+        criterion = re.sub(
+            r"\bquot(?:e|es|ed|ing)\s+(?:the\s+(?:phrase|string|text)\s+)?"
+            r"(?P<example>" + quoted_evidence_literal + r")",
+            lambda match: match.group(0)[: match.start("example") - match.start()] + " ",
+            criterion,
+            flags=re.I,
+        )
+        criterion = re.sub(
+            r"\b(?:parser|verifier|code|script|implementation)\b.{0,80}?"
+            r"\b(?:recogniz|pars|detect|classif|match|identif|support|handl|validat)\w*\b\s*"
+            r"(?:(?:the|a|an|phrase|syntax|example|literal|string|text|quoted|following)\b\s*){0,4}"
+            r"(?::\s*)?"
+            r"(?P<example>" + quoted_evidence_literal + r")",
+            lambda match: match.group(0)[: match.start("example") - match.start()] + " ",
+            criterion,
+            flags=re.I,
+        )
+        # Exact quoted destination names remain destinations. Parser examples
+        # were removed above; longer quoted labels/instructions stay opaque so
+        # their verbs and conjunctions cannot create delivery obligations.
+        criterion = re.sub(
+            quoted_evidence_literal,
+            lambda match: (
+                match[0][1:-1]
+                if re.fullmatch(review_destination_noun, match[0][1:-1], re.I)
+                else " " * len(match[0])
+            ),
+            criterion,
+        )
+        criterion = normalize_product_coordination(criterion)
+        # A bare review channel's relative presence predicate has its own
+        # governor. Separate it before enclosing prohibitions/alternatives can
+        # consume its antecedent; named product components and availability
+        # qualifiers are not presence deliveries. Quoted examples are already
+        # protected above. Keep the destination in the enclosing clause too.
+        criterion = _normalize_relative_review_presence(criterion)
+        criterion = shared_passive_product_review_destination.sub(
+            lambda match: match["predicate"]
+            + (match["preposition"] or "in ")
+            + match["destination"],
+            criterion,
+        )
+        # Shared destinations retain their predicate after actor inheritance.
+        criterion = shared_storage_review_destination.sub(
+            lambda match: match["predicate"]
+            + (match["preposition"] or "in ")
+            + match["destination"],
+            criterion,
+        )
+        # Split independent mandatory clauses after optional evidence, including
+        # named actors and modified subjects. Extra noun modifiers need a modal
+        # so adjective lists such as "failing and restored passing transcript"
+        # stay attached to their delivery verb.
+        named_actor_delivery_predicate = (
+            r"(?:(?!(?:and|or|but|while|whereas)\b)[\w-]+\s+){1,6}(?="
+            + delivery_governor_auxiliary
+            + r"\s+)"
+            + coordinated_governor
+            + delivery_operation
+            + r"|"
+            + qualified_delivery_actor
+            + r"(?:(?:not|never|no\s+longer)\s+"
+            + delivery_adverbs
+            + r")?"
+            + delivery_operation
+        )
+        elided_review_delivery_predicate = (
+            delivery_adverbs
+            + passive_delivery_prefix
+            + delivery_adverbs
+            + delivery_operation
+            + r"\s+"
+            + bound_review_destinations
+            + r"|"
+            + delivery_adverbs
+            + r"have\s+"
+            + delivery_adverbs
+            + _EVIDENCE_DELIVERY_PARTICIPLE_START
+            + delivery_operation
+            + r"\s+"
+            + evidence_modifiers
+            + r"(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+            + bound_review_destinations
+        )
+        clause_boundary = (
+            r"\s*;\s*|,?\s+(?:but|whereas)\s+|"
+            r"(?:,?\s+(?:and|or)\s+)(?=(?:" + elided_review_delivery_predicate + r"))|"
+            r"(?:,?\s+(?:and|while)\s+)(?="
+            + delivery_governor_auxiliary
+            + r"\s+)(?="
+            + coordinated_governor
+            + delivery_operation
+            + r")|"
+            r"(?:,?\s+(?:and|while)\s+)(?="
+            + review_destination_noun
+            + r"\s+"
+            + independent_review_predicate
+            + r")|"
+            r"(?:,?\s+(?:and|while)\s+|[,.!?]\s+)(?="
+            r"(?:optionally\s+)?(?:"
+            r"(?:an?\s+|the\s+)?(?:validation\s+|exact-head\s+)?"
+            r"(?:evidence|artifacts?|transcripts?|command outputs?|"
+            r"workflow runs?|pr comments?|pull request comments?)|"
+            r"(?:an?\s+|the\s+)?(?:[\w-]+\s+){1,4}?"
+            r"(?:evidence|artifacts?|transcripts?|command outputs?|"
+            r"workflow runs?|pr comments?|pull request comments?)\s+"
+            r"(?:must|shall|needs?\s+to|(?:is|are)\s+(?:required|mandatory|needed))\b|"
+            + named_actor_delivery_predicate
+            + r"|"
+            r"(?:publish|upload|attach|capture|record|provide|include|post|document|prove|show|link|add|leave)\b"
+            r"))"
+        )
+        clause_evidence_antecedent: str | None = None
+        pronoun_pr_delivery = re.compile(
+            r"\b(?:attach|upload|publish|post|record|capture|provide|include|document|link)\w*\b"
+            r".{0,40}\b(?:it|them|this|they|these|those|both)\b.{0,40}\b(?:pr|pull request)\b"
+            r"|\b(?:it|them|this|they|these|those|both)\b.{0,40}"
+            r"\b(?:attached|uploaded|published|posted|recorded|captured|provided|"
+            r"included|documented|linked)\b.{0,40}\b(?:pr|pull request)\b",
+            re.I,
+        )
+        fragments = []
+        # Shared-predicate destination lists are not independent clauses.
+        # Preserve their original text and delimiters using recognized spans,
+        # rather than making later noun-only fragments infer a missing verb.
+        criterion_body_records, _ = body_occurrences(
+            criterion, bool(negative_gate.search(criterion))
+        )
+        split_parts = []
+        split_start = 0
+        review_destination_spans = [
+            match.span() for match in re.finditer(bound_review_destinations, criterion, re.I)
+        ]
+        for boundary_match in re.finditer(clause_boundary, criterion, re.I):
+            if re.fullmatch(r",\s+", boundary_match[0]) and re.match(
+                r"(?:that|which)\b", criterion[boundary_match.end() :], re.I
+            ):
+                # A punctuated relative predicate still belongs to its noun.
+                continue
+            independent_predicate = re.match(
+                r"(?:"
+                + review_destination_noun
+                + r"\s+"
+                + independent_review_predicate
+                + r"|"
+                + named_actor_delivery_predicate
+                + r"|"
+                + elided_review_delivery_predicate
+                + r"|"
+                + delivery_governor_auxiliary
+                + r"\s+)",
+                criterion[boundary_match.end() :],
+                re.I,
+            )
+            if not independent_predicate and (
+                any(
+                    record["span"][0] <= boundary_match.start()
+                    and boundary_match.end() <= record["span"][1]
+                    for record in criterion_body_records
+                )
+                or any(
+                    start <= boundary_match.start() and boundary_match.end() <= end
+                    for start, end in review_destination_spans
+                )
+            ):
+                continue
+            split_parts.extend((criterion[split_start : boundary_match.start()], boundary_match[0]))
+            split_start = boundary_match.end()
+        split_parts.append(criterion[split_start:])
+        for part_index in range(0, len(split_parts), 2):
+            fragment = split_parts[part_index]
+            boundary = split_parts[part_index - 1] if part_index else ""
+            if (
+                fragments
+                and re.fullmatch(r"\s*,?\s*(?:and|or|but)\s+", boundary, re.I)
+                and re.fullmatch(
+                    r"\s*(?:" + elided_review_delivery_predicate + r")\s*[.!]?\s*",
+                    fragment,
+                    re.I,
+                )
+            ):
+                prior_passive = re.search(
+                    r"(?P<object>\b"
+                    + evidence_modifiers
+                    + r"(?:evidence|artifacts?|transcripts?|command outputs?))\s+"
+                    + r"(?P<governor>"
+                    + r"(?:"
+                    + negative_requirement_governor
+                    + r"|"
+                    + delivery_governor_auxiliary
+                    + r")"
+                    + r"\s+"
+                    + delivery_adverbs
+                    + r"(?:(?:not|never|no\s+longer)\s+)?"
+                    + delivery_adverbs
+                    + r")"
+                    + passive_delivery_prefix
+                    + delivery_adverbs
+                    + delivery_operation
+                    + r"\s+"
+                    + bound_review_destinations,
+                    fragments[-1],
+                    re.I,
+                )
+                prior_active = re.search(
+                    r"(?P<actor>"
+                    + qualified_delivery_actor
+                    + r")"
+                    + r"(?P<governor>(?:"
+                    + negative_requirement_governor
+                    + r"|"
+                    + delivery_governor_auxiliary
+                    + r")\s+"
+                    + delivery_adverbs
+                    + r"(?:(?:not|never|no\s+longer)\s+)?"
+                    + delivery_adverbs
+                    + r")"
+                    + r"have\s+"
+                    + delivery_adverbs
+                    + _EVIDENCE_DELIVERY_PARTICIPLE_START
+                    + delivery_operation
+                    + r"\s+"
+                    + evidence_modifiers
+                    + r"(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+                    + bound_review_destinations,
+                    fragments[-1],
+                    re.I,
+                )
+                prior_delivery = prior_passive or prior_active
+                if prior_delivery:
+                    # Elided review delivery retains its passive object or
+                    # bounded active actor and governor, never product storage.
+                    governor = prior_delivery["governor"]
+                    if re.fullmatch(r"\s*,?\s*but\s+", boundary, re.I):
+                        # Contrast starts a positive delivery, not a second
+                        # prohibition. Preserve the modality, not its negation.
+                        governor = re.sub(
+                            r"\b(?:not|never|no\s+longer)\s+", "", governor, flags=re.I
+                        )
+                        governor = re.sub(r"\bdoes\s+need\s+to\b", "needs to", governor, flags=re.I)
+                    subject = (
+                        prior_passive["object"] + " " if prior_passive else prior_active["actor"]
+                    )
+                    fragment = subject + governor + fragment.lstrip()
+            if (
+                fragments
+                and re.fullmatch(r"\s*,?\s*and\s+", boundary, re.I)
+                and not re.match(r"\s*" + delivery_governor_auxiliary + r"\s+", fragment, re.I)
+                and re.fullmatch(
+                    r"\s*(?:(?!(?:and|or|but|must|shall|is|are|not|never)\b)[\w/-]+\s+){0,4}"
+                    r"(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+                    + bound_review_destinations
+                    + r"\s*[.!]?\s*",
+                    fragment,
+                    re.I,
+                )
+            ):
+                predicates = list(
+                    re.finditer(
+                        r"\b(?P<predicate>(?:"
+                        + mandatory_auxiliary
+                        + r"\s+)?(?:(?:not|never)\s+)?"
+                        + delivery_operation
+                        + r")\s+",
+                        fragments[-1],
+                        re.I,
+                    )
+                )
+                if predicates:
+                    fragment = predicates[-1]["predicate"] + " " + fragment.lstrip()
+            if (
+                fragments
+                and re.fullmatch(r"\s*(?:,\s*(?:(?:and|or)\s*)?|(?:and|or)\s*)", boundary, re.I)
+                and re.fullmatch(
+                    r"\s*(?:(?:the|an?)\s+)?(?:pr comments?|pull request comments?|workflow artifacts?)"
+                    r"(?:\s*,\s*(?:(?:and|or)\s+)?(?:(?:the|an?)\s+)?"
+                    r"(?:pr comments?|pull request comments?|workflow artifacts?))*\s*",
+                    fragment,
+                    re.I,
+                )
+                and body_occurrences(fragments[-1] + boundary + fragment, False)[0]
+            ):
+                fragments[-1] += boundary + fragment
+                continue
+            if (
+                fragments
+                and re.fullmatch(r"\s*,?\s*(?:and|or)\s+", boundary, re.I)
+                and re.search(r"\b" + capability_operation + r"\b", fragments[-1], re.I)
+            ):
+                combined = fragments[-1] + boundary + fragment
+                capability_objects = list(
+                    re.finditer(
+                        r"\b(?:evidence|artifacts?|transcripts?|command outputs?|pr comments?|pull request comments?)\b",
+                        combined,
+                        re.I,
+                    )
+                )
+                if capability_objects:
+                    last_object = capability_objects[-1]
+                    if last_object.start() >= len(
+                        fragments[-1] + boundary
+                    ) and product_comment_object(
+                        combined[: last_object.start()], combined[last_object.end() :]
+                    ):
+                        # Only positive whole-chain recognition can preserve
+                        # bare shared verbs across a coordination boundary.
+                        # Semicolons and unknown/finite clauses stay separate.
+                        fragments[-1] = combined
+                        continue
+            noun_only = re.fullmatch(
+                r"\s*(?:(?:an?|the|validation|workflow|exact-head|evidence)\s+)*"
+                r"(?:artifacts?|command outputs?|transcripts?|evidence\s+(?:links?|records?))\s*",
+                fragment,
+                re.I,
+            )
+            prior_product = fragments and re.search(
+                r"\b"
+                + response_subject
+                + r"\s+"
+                + "(?:"
+                + product_auxiliary
+                + ")?"
+                + response_operation
+                + r"|\b(?:[\w-]+\s+){1,6}"
+                + product_auxiliary
+                + r"(?:return|display|emit|render|expose)\w*\b",
+                fragments[-1],
+                re.I,
+            )
+            if noun_only and prior_product:
+                fragments[-1] += " and " + fragment
+            else:
+                fragments.append(fragment)
+        for line in fragments:
+            objects = [
+                m.group(0)
+                for m in evidence_term.finditer(line)
+                if not re.search(r"(?:pr|pull request) comments?", m.group(0), re.I)
+            ]
+            if objects:
+                clause_evidence_antecedent = " and ".join(objects)
+            resolved_antecedent = None
+            working_line = line
+            if (
+                clause_evidence_antecedent
+                and not evidence_term.search(line)
+                and pronoun_pr_delivery.search(line)
+            ):
+                working_line = re.sub(
+                    r"\b(?:it|them|this|they|these|those|both)\b",
+                    clause_evidence_antecedent,
+                    line,
+                    count=1,
+                    flags=re.I,
+                )
+                resolved_antecedent = clause_evidence_antecedent
+            # Excluded destinations are not delivery targets. Keep the
+            # generic evidence object and other independent deliveries.
+            # Optional inspection of a possession noun is not a delivery.
+            # Match only the bounded subordinate supply noun clause so a
+            # separate positive reviewer requirement remains authoritative.
+            working_line = re.sub(
+                qualified_delivery_actor
+                + optional_delivery_modal
+                + r"\s+"
+                + delivery_adverbs
+                + r"(?:inspect|review|check)\s+whether\s+"
+                + product_actor
+                + r"\s+"
+                + possession_modifiers
+                + r"(?:has|have|had)\s+"
+                + possession_modifiers
+                + r"(?:supply|supplies)\s+"
+                + evidence_modifiers
+                + r"(?:evidence|artifacts?|transcripts?|command outputs?)\s+"
+                + bound_review_destinations,
+                " ",
+                working_line,
+                flags=re.I,
+            )
+            working_line = re.sub(
+                r"\b(?:outside|rather\s+than|instead\s+of)\s+"
+                r"(?:(?:the|an?)\s+)?(?:pr|pull request)\s+comments?\b",
+                "excluded destination",
+                working_line,
+                flags=re.I,
+            )
+            gate = bool(negative_gate.search(working_line))
+            requirement_text = working_line if gate else evidence_prohibition.sub(" ", working_line)
+            body_records, body_residual = body_occurrences(working_line, gate)
+            # An optional evidence noun can be the object of a mandatory
+            # explanation (for example, "a PR comment must explain why
+            # artifacts are optional"). Remove only that optional subject;
+            # do not discard a separate required channel in the same clause.
+            requirement_text = re.sub(
+                r"\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+                r"pr comments?|pull request comments?)(?:\s+(?:upload|attachment|publication|"
+                r"posting|capture|recording|generation))?\s+(?:is|are)\s+optional\b",
+                " ",
+                requirement_text,
+                flags=re.I,
+            )
+            if not evidence_term.search(requirement_text) and not body_records:
+                continue
+            checklist = criterion_checklist
+            bullet = criterion_bullet
+            # Object adjectives do not make their governing delivery optional.
+            # Keep pre-operation modals and post-object conditions untouched.
+            optional_requirement_text = re.sub(
+                r"(?P<operation>\b"
+                + mandatory_auxiliary
+                + r"\s+"
+                + delivery_adverbs
+                + r"(?:"
+                + passive_delivery_prefix
+                + r")?"
+                + delivery_adverbs
+                + delivery_operation
+                + r"\s+)"
+                + evidence_modifiers
+                + r"(?:evidence|artifacts?|transcripts?|command outputs?)\b",
+                lambda match: match["operation"] + "evidence",
+                requirement_text,
+                flags=re.I,
+            )
+            optional_evidence = bool(
+                re.search(
+                    r"\boptional(?:ly)?\b(?![-/])|"
+                    r"\b"
+                    + optional_delivery_modal
+                    + r"\s+"
+                    + delivery_adverbs
+                    + r"(?:(?:not|never|no\s+longer)\s+)?"
+                    + delivery_adverbs
+                    + r"(?:"
+                    + passive_delivery_prefix
+                    + r")?"
+                    + delivery_adverbs
+                    + delivery_operation
+                    + r"|"
+                    + conditional_evidence,
+                    optional_requirement_text,
+                    re.I,
+                )
+            )
+            explanatory_comment = bool(
+                re.search(
+                    r"\b(?:pr comments?|pull request comments?)\b.{0,80}"
+                    r"\b(?:explain|document)\w*\b.{0,80}\boptional\b",
+                    requirement_text,
+                    re.I,
+                )
+            )
+            # Optional/conditional evidence clauses never create a hard floor,
+            # whether or not the source used checklist syntax. Clause splitting
+            # preserves a separate required comment/transcript on the same item.
+            if (
+                optional_evidence
+                and not explanatory_comment
+                and not any(record["disposition"] == "required" for record in body_records)
+            ):
+                continue
+            meta_behavior = bool(
+                re.search(
+                    r"\b(?:parser|verifier|code|script|implementation)\b.{0,80}"
+                    r"\b(?:recogniz|pars|detect|classif|match|identif|support|handl|validat)\w*\b"
+                    r".{0,80}\b(?:evidence|artifacts?|transcripts?|command outputs?|"
+                    r"workflow runs?|pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+                or re.search(
+                    r"\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+                    r"pr comments?|pull request comments?)\b.{0,40}"
+                    r"\b(?:parser|verifier|code|script|implementation)\b.{0,80}"
+                    r"\b(?:recogniz|pars|detect|classif|match|identif|support|handl|validat)\w*\b",
+                    requirement_text,
+                    re.I,
+                )
+                or re.search(
+                    r"\b(?:parser|verifier|code|script|implementation)\b.{0,40}"
+                    r"\b(?:evidence|artifacts?|transcripts?|command outputs?|workflow runs?|"
+                    r"pr comments?|pull request comments?)\b.{0,80}"
+                    r"\b(?:recogniz|pars|detect|classif|match|identif|support|handl|validat)\w*\b",
+                    requirement_text,
+                    re.I,
+                )
+            )
+            # Requirements about understanding evidence syntax are software
+            # behavior, not evidence-delivery requirements. Nominal upload
+            # nouns (for example, "supports artifact uploads") are not delivery
+            # verbs unless the criterion explicitly mandates upload/attach/etc.
+            if meta_behavior:
+                explicit_delivery = bool(
+                    re.search(
+                        r"\b(?:must|shall|required|needs? to)\s+(?:\w+\s+){0,4}"
+                        r"(?:upload|attach|publish|post|record|capture|provide|include|document)\b",
+                        requirement_text,
+                        re.I,
+                    )
+                )
+                if not explicit_delivery:
+                    continue
+            checklist_deliverable = bool(
+                checklist
+                # Removing a complete negative action leaves its object nouns.
+                # A checkbox cannot turn those residual nouns into an obligation.
+                # Explicit positive predicates and body records still gate below.
+                and (gate or not evidence_prohibition.search(working_line))
+                and evidence_term.search(requirement_text)
+                and not re.match(r"^\s*[-*]\s*\[[ xX]\]\s*no\s", requirement_text, re.I)
+            )
+            if not (
+                gate
+                or any(record["disposition"] == "required" for record in body_records)
+                or checklist_deliverable
+                or (checklist and requirement.search(requirement_text))
+                or (bullet and requirement.search(requirement_text))
+                or requirement.search(requirement_text)
+            ):
+                continue
+            if body_records:
+                for record in body_records:
+                    if record["disposition"] == "required":
+                        channels.update(record["destinations"])
+                requirement_text = (
+                    body_residual if gate else evidence_prohibition.sub(" ", body_residual)
+                )
+                if optional_evidence and not explanatory_comment:
+                    continue
+                if not evidence_term.search(requirement_text):
+                    continue
+            # Remove only a delivery object governed by a recognized product
+            # capability. Qualifiers such as "validation" do not turn that
+            # product input into workflow evidence. Classify the residual so
+            # a separate reviewer obligation retains its own destination.
+            bound_spans = []
+            bound_end = -1
+            for attached_object in (
+                attached_object_pattern.finditer(requirement_text)
+                if _bind_attached and not resolved_antecedent
+                else ()
+            ):
+                if attached_object.start() < bound_end:
+                    continue
+                attached_delivery = attached_delivery_pattern.match(
+                    requirement_text[attached_object.end() :]
+                )
+                if attached_delivery and evidence_term.fullmatch(
+                    attached_delivery["actor"].strip()
+                ):
+                    # A noun qualifier is not a second actor/antecedent.
+                    continue
+                bound_destination = (
+                    re.match(
+                        r"\s+(?P<destination>" + bound_review_destinations + r")",
+                        requirement_text[attached_object.end() + attached_delivery.end() :],
+                        re.I,
+                    )
+                    if attached_delivery
+                    else None
+                )
+                if attached_delivery and bound_destination:
+                    # Bind the antecedent, mandatory predicate and destination
+                    # before capability suppression. Reuse the same classifier
+                    # on this isolated obligation, without inventing an actor
+                    # or maintaining an artifact-only destination grammar.
+                    # Actor qualifiers identify who delivers, not what is
+                    # delivered. Keep only the bound object/predicate in the
+                    # classifier input so "artifact reviewer" cannot replace
+                    # a transcript or evidence object with an artifact channel.
+                    predicate = " ".join(
+                        part.strip()
+                        for part in (
+                            attached_delivery["auxiliary"],
+                            attached_delivery["aspect"] or "",
+                            attached_delivery["operation"],
+                        )
+                        if part.strip()
+                    )
+                    obligation = (
+                        f"{attached_object['object']} {predicate}"
+                        if attached_delivery["aspect"]
+                        else f"{predicate} {attached_object['object']}"
+                    )
+                    destination = bound_destination["destination"]
+                    destination_channels = set()
+                    if re.search(
+                        r"\b(?:pr|pull request)\s+(?:body|description)\b", destination, re.I
+                    ):
+                        destination_channels.add("body")
+                    if re.search(r"\b(?:pr|pull request)\s+comments?\b", destination, re.I):
+                        destination_channels.add("comments")
+                    if re.search(artifact_destination_object, destination, re.I):
+                        destination_channels.add("artifacts")
+                    bare_pr = bool(
+                        re.search(
+                            r"\b(?:pr|pull request)\b(?!\s+(?:body|description|comments?)\b)",
+                            destination,
+                            re.I,
+                        )
+                    )
+                    # A named destination selects its channel; an artifact
+                    # antecedent is not a second upload obligation. A generic
+                    # PR destination still needs object-specific classification.
+                    if bare_pr or not destination_channels:
+                        destination_channels.update(
+                            _required_evidence_channels(
+                                f"{obligation} {destination}", _bind_attached=False
+                            )
+                        )
+                    channels.update(destination_channels)
+                    bound_end = (
+                        attached_object.end() + attached_delivery.end() + bound_destination.end()
+                    )
+                    bound_spans.append(
+                        (
+                            attached_object.start(),
+                            bound_end,
+                            " ",
+                        )
+                    )
+                    continue
+            for start, end, replacement in reversed(bound_spans):
+                requirement_text = requirement_text[:start] + replacement + requirement_text[end:]
+            product_spans = []
+            for product_delivery in re.finditer(
+                r"\b(?P<operation>"
+                + delivery_operation
+                + r")\s+(?P<object>"
+                + evidence_modifiers
+                + r"(?:evidence|artifacts?|transcripts?|command outputs?|pr comments?|pull request comments?)\b)",
+                requirement_text,
+                re.I,
+            ):
+                prefix = requirement_text[: product_delivery.end()]
+                if re.search(capability_operation, prefix, re.I) and product_comment_object(
+                    requirement_text[: product_delivery.start()] + product_delivery["operation"],
+                    requirement_text[product_delivery.end() :],
+                ):
+                    attached_delivery = attached_delivery_pattern.match(
+                        requirement_text[product_delivery.end() :]
+                    )
+                    product_spans.append(
+                        (
+                            *product_delivery.span(),
+                            product_delivery["object"] if attached_delivery else " ",
+                        )
+                    )
+            for start, end, replacement in reversed(product_spans):
+                requirement_text = requirement_text[:start] + replacement + requirement_text[end:]
+            if (bound_spans or product_spans) and not remaining_delivery(requirement_text):
+                continue
+            lower = requirement_text.lower()
+            delivery_object = r"(?:command outputs?|transcripts?|artifacts?|evidence)\b"
+            # Bind the destination to the immediate positive delivery object,
+            # not a later prohibited pronoun clause such as 'do not attach it'.
+            explicit_review_destination = bool(
+                re.search(
+                    r"\b(?:provide|upload|attach|publish|post|record|capture|document)\w*\b\s+"
+                    r"(?:(?:the|an?|any)\s+)?" + artifact_destination_object + "|"
+                    r"\b" + delivery_operation + r"\s+"
+                    r"(?:(?!(?:and|or|but|must|shall|is|are|not|never)\b)[\w/-]+\s+){0,4}"
+                    + delivery_object
+                    + r"\s+"
+                    + bound_review_destinations
+                    + "|"
+                    + delivery_object
+                    + r"\s+(?:"
+                    + delivery_governor_auxiliary
+                    + r"\s+"
+                    + delivery_adverbs
+                    + passive_delivery_prefix
+                    + delivery_adverbs
+                    + r")?"
+                    + delivery_operation
+                    + r"\s+"
+                    + bound_review_destinations,
+                    requirement_text,
+                    re.I,
+                )
+            )
+            response_prefix = re.compile(
+                r"\b(?:" + response_subject + r"|(?:command[- ]?outputs?|transcripts?)\s+api"
+                r"|api\s+(?:command[- ]?outputs?|transcripts?)(?:\s+\w+){0,3}"
+                r")\b\s+" + "(?:" + product_auxiliary + ")?" + response_operation,
+                re.I,
+            )
+            response_match = response_prefix.search(requirement_text)
+            if response_match and not explicit_review_destination:
+                # Only the immediate object of this product operation is a
+                # field noun. A later reviewer predicate must remain gating.
+                response_object = requirement_text[response_match.end() :]
+                # Normalize only bounded object nouns, never a later finite
+                # predicate such as "records evidence in a PR comment".
+                field_noun = (
+                    r"(?:(?:links?|records?)(?:\s+(?:and|or)\s+(?:links?|records?))*"
+                    r"\s+(?:to|of|for)\s+(?:(?:the|an?)\s+)?"
+                    r"(?:(?:supporting|execution|validation|test|review|collected|recorded)\s+){0,3}evidence\b"
+                    r"|(?:links?|records?)\s+as\s+fields?\b"
+                    r"|evidence\s+(?:links?|records?)\b"
+                    r"|(?:links?|records?)\b(?=\s*(?:$|[;,.!?]|(?:and|or)\b)))"
+                )
+                response_object = re.sub(
+                    r"^\s+(?:(?:the|a|an)\s+)?"
+                    + field_noun
+                    + r"(?:\s*(?:,\s*(?:(?:and|or)\s+)?|(?:and|or)\s+)"
+                    + r"(?:(?:the|a|an)\s+)?"
+                    + field_noun
+                    + r")*",
+                    " evidence",
+                    response_object,
+                    count=1,
+                    flags=re.I,
+                )
+                delivery_text = requirement_text[: response_match.start()] + response_object
+                if not remaining_delivery(delivery_text):
+                    continue
+                requirement_text = delivery_text
+                lower = requirement_text.lower()
+            response_destination = re.search(
+                r"\b(?:transcripts?|command outputs?)\b.{0,40}"
+                r"\b(?:in|into|to)\b.{0,30}"
+                r"\b(?:responses?|payloads?|return\s+values?)\b",
+                requirement_text,
+                re.I,
+            )
+            review_delivery = re.search(
+                r"\b(?:attach|upload|publish|post|record|capture|provide|include|document)\w*"
+                r"\b.{0,80}\b(?:in|into|to)\s+(?:the\s+)?(?:pr|pull request)\b",
+                requirement_text,
+                re.I,
+            )
+            if response_destination and not review_delivery:
+                continue
+            line_channels: set[str] = set()
+            # Artifact domain nouns in product acceptance (UI, storage, icons)
+            # are not workflow evidence deliverables. An explicit delivery into
+            # PR content wins even when an API is the actor; otherwise a product
+            # actor or product destination is application behavior, not evidence.
+            if re.search(r"\b(?:workflow\s+)?artifacts?\b", lower):
+                explicit_artifact_delivery = bool(
+                    re.search(
+                        r"\b(?:upload|attach|publish|post|record|capture|provide|include|document)"
+                        r"(?:s)?\s+(?:(?:an?|the|any|workflow|validation|exact-head|evidence)\s+){0,4}"
+                        r"artifacts?\b",
+                        requirement_text,
+                        re.I,
+                    )
+                    or re.search(
+                        r"\b"
+                        + mandatory_auxiliary
+                        + r"\s+"
+                        + passive_delivery_prefix
+                        + r"(?:uploaded|attached|published|posted|recorded|captured|provided|"
+                        r"included|documented)\s+as\s+(?:(?:an?|the)\s+)?"
+                        r"(?:(?:workflow|validation|exact-head|evidence)\s+)?artifacts?\b",
+                        requirement_text,
+                        re.I,
+                    )
+                    or re.search(
+                        r"\bartifacts?\b.{0,60}\b(?:must|shall|is|required|needs? to)"
+                        r"(?:\s+\w+){0,3}\s+be\s+"
+                        r"(?:uploaded|attached|published|posted|recorded|captured|provided|"
+                        r"included|documented)\b",
+                        requirement_text,
+                        re.I,
+                    )
+                )
+                product_artifact_destination = bool(
+                    re.search(r"\bproduct\s+(?:upload|artifacts?)\b", lower)
+                    or re.search(
+                        r"\b(?:upload|attach|publish|post|record|capture|provide|include|document)"
+                        r"\w*\b.{0,40}\bartifacts?\b"
+                        r".{0,30}\b(?:through|to|into|in|via)\b.{0,30}"
+                        r"\b(?:storage|database|data\s+store|object\s+store|bucket|"
+                        r"filesystem|file\s+system|ui|interface|application|users?|"
+                        r"responses?|payloads?|return\s+values?)\b",
+                        requirement_text,
+                        re.I,
+                    )
+                    or re.search(
+                        r"\bartifacts?\b.{0,60}\b(?:uploaded|attached|published|posted|"
+                        r"recorded|captured|provided|included|documented)\b.{0,40}"
+                        r"\b(?:by|through|to|into|in|via)\b.{0,30}"
+                        r"\b(?:storage|database|data\s+store|object\s+store|bucket|"
+                        r"filesystem|file\s+system|ui|interface|application|users?|"
+                        r"responses?|payloads?|return\s+values?)\b",
+                        requirement_text,
+                        re.I,
+                    )
+                )
+                artifact_delivery_into_pr = bool(
+                    re.search(
+                        r"\b(?:upload|attach|publish|post|record|capture|provide|include|document)"
+                        r"\w*\b.{0,60}\bartifacts?\b.{0,40}"
+                        r"\b(?:to|into|in)\s+(?:the\s+)?(?:pr|pull request)\b",
+                        requirement_text,
+                        re.I,
+                    )
+                    or re.search(
+                        r"\b(?:pr|pull request)\b.{0,40}"
+                        r"\b(?:must\s+)?(?:include|contain|have)\b.{0,40}\bartifacts?\b",
+                        requirement_text,
+                        re.I,
+                    )
+                    or re.search(
+                        r"\bartifacts?\b\s+(?:"
+                        + mandatory_auxiliary
+                        + r"|is|are|will)\s+(?:"
+                        + passive_delivery_prefix
+                        + r")?"
+                        + delivery_operation
+                        + r"\s+"
+                        + bound_review_destinations,
+                        requirement_text,
+                        re.I,
+                    )
+                    or (
+                        gate
+                        and bool(re.search(r"\bartifacts?\b", lower))
+                        and bool(re.search(r"\b(?:pr|pull request)\b", lower))
+                    )
+                )
+                product_artifact_actor = bool(
+                    re.search(
+                        r"\b(?:ui|api|application|interface|service|worker|cli|database|"
+                        r"users?|endpoint|renderer)\b\s+"
+                        + "(?:"
+                        + product_auxiliary
+                        + ")?"
+                        + r"(?:(?:"
+                        + capability_operation
+                        + r")\s+(?:"
+                        + recipient_noun
+                        + r"\s+(?:to\s+)?)?)?"
+                        + r"(?:upload|attach|publish|post|record|capture|"
+                        r"provide|include|document)\w*\b.{0,60}\bartifacts?\b",
+                        normalize_product_capability(requirement_text),
+                        re.I,
+                    )
+                )
+                evidence_named_artifact = bool(
+                    re.search(artifact_destination_object, lower)
+                    or re.search(
+                        r"\b(?:failing and passing |validation |exact-head |workflow |ci |build )artifacts?\b",
+                        lower,
+                    )
+                    or re.search(r"\bvalidation artifacts?\b", lower)
+                    or re.search(r"\brequired\s+evidence\s+artifacts?\b", lower)
+                    or re.search(r"\bevidence\s+artifacts?\s*:", lower)
+                    or re.search(
+                        r"\bevidence\s+artifacts?\s+(?:is|are)\s+"
+                        r"(?:required|mandatory|needed)\b",
+                        lower,
+                    )
+                    or re.search(
+                        r"\b(?:evidence\s+)?artifacts?\s+"
+                        r"(?:upload|attachment|publication|posting|capture|recording|generation)"
+                        r"\s+(?:is|are)\s+(?:required|mandatory|needed)\b",
+                        lower,
+                    )
+                    or re.search(
+                        r"\b(?:upload|attachment|publication|posting|capture|recording|generation)"
+                        r"\s+of\s+(?:(?:an?|the|any|evidence|validation|workflow)\s+){0,4}"
+                        r"artifacts?\s+(?:is|are)\s+(?:required|mandatory|needed)\b",
+                        lower,
+                    )
+                )
+                if (
+                    artifact_delivery_into_pr
+                    or evidence_named_artifact
+                    or (
+                        explicit_artifact_delivery
+                        and not (product_artifact_actor or product_artifact_destination)
+                    )
+                ):
+                    artifact_description = bool(
+                        re.search(
+                            r"\bartifacts?\s+(?:metadata|preview|icon|schema|parser)\b", lower
+                        )
+                    )
+                    if not artifact_description and (
+                        artifact_delivery_into_pr
+                        or evidence_named_artifact
+                        or not (product_artifact_actor or product_artifact_destination)
+                    ):
+                        line_channels.add("artifacts")
+                    elif not re.search(r"\b(?:pr comments?|pull request comments?)\b", lower):
+                        continue
+                elif not re.search(r"\b(?:pr comments?|pull request comments?)\b", lower):
+                    continue
+            comment_objects = list(
+                re.finditer(
+                    r"\b(?:pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+            )
+            # Union delivery occurrences: a product object cannot erase an
+            # earlier mandatory comment, and unresolved subjects keep the floor.
+            product_comment_behavior = bool(comment_objects) and all(
+                product_comment_object(
+                    requirement_text[: item.start()],
+                    requirement_text[
+                        item.end() : (
+                            comment_objects[index + 1].start()
+                            if index + 1 < len(comment_objects)
+                            else len(requirement_text)
+                        )
+                    ],
+                )
+                for index, item in enumerate(comment_objects)
+            )
+            explicit_comment_delivery = bool(
+                (
+                    explicit_review_destination
+                    and re.search(
+                        r"\b(?:pr comments?|pull request comments?)\b", requirement_text, re.I
+                    )
+                )
+                or re.search(
+                    r"\b(?:attach|upload|include|post|publish|record|capture|provide|document|add|leave|left|link)\w*\b"
+                    r"(?:\s+\w+){0,10}\s+\b(?:pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+                or re.search(
+                    r"\b(?:pr comments?|pull request comments?)\b.{0,40}"
+                    r"\b(?:(?:is|are)\s+(?:required|mandatory|needed)|"
+                    + mandatory_auxiliary
+                    + r"\b|"
+                    r"(?:is|are|must|shall|needs? to)\s+(?:be\s+)?(?:posted|published)\b)",
+                    requirement_text,
+                    re.I,
+                )
+                or re.search(
+                    r"\b(?:evidence|command outputs?|transcripts?)\b.{0,40}"
+                    r"\b(?:(?:is|are)\s+(?:required|mandatory|needed)|"
+                    + mandatory_auxiliary
+                    + r"\s+"
+                    + passive_delivery_prefix
+                    + r"(?:provided|posted|published|recorded|captured|returned|displayed))"
+                    r"\s+in\s+(?:an?\s+|the\s+)?(?:pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+                or re.search(
+                    r"\b(?:evidence|command outputs?|transcripts?)\b.{0,40}\b"
+                    + mandatory_auxiliary
+                    + r"\s+be\s+in\s+(?:an?\s+|the\s+)?(?:pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+                or re.search(
+                    r"\bexact-head\s+(?:pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+                or (gate and bool(re.search(r"\b(?:pr comments?|pull request comments?)\b", lower)))
+                or re.search(
+                    r"\bthere\s+"
+                    + mandatory_auxiliary
+                    + r"\s+be\s+(?:(?:an?|the)\s+)?(?:pr comments?|pull request comments?)\b",
+                    requirement_text,
+                    re.I,
+                )
+            )
+            # Consume one product persistence operation and its immediate
+            # storage destination, not later reviewer delivery predicates.
+            if bound_product_delivery.search(requirement_text):
+                delivery_text = bound_product_delivery.sub(" ", requirement_text, count=1)
+                if not remaining_delivery(delivery_text):
+                    continue
+                requirement_text = delivery_text
+                lower = requirement_text.lower()
+            storage_operation = re.compile(
+                r"\b(?:(?:the|an?)\s+)?(?:application|app|service|api|endpoint)\s+"
+                + "(?:"
+                + product_auxiliary
+                + r"|(?:has|have|had|(?:will|won['’]t)\s+(?:(?:not|never|no\s+longer|"
+                + delivery_adverb
+                + r")\s+)*have)\s+(?:(?:not|never|no\s+longer|"
+                + delivery_adverb
+                + r")\s+)*)?"
+                + r"(?:have\s+"
+                + delivery_adverbs
+                + r")?"
+                + r"(?:"
+                + passive_delivery_prefix
+                + r")?"
+                + delivery_adverbs
+                + r"(?:record|capture|attach|generate)\w*\s+"
+                + r"(?:(?:the|an?)\s+)?"
+                + evidence_modifiers
+                + r"(?:transcripts?|command outputs?|evidence|artifacts?)\s+"
+                r"(?:in|into|to|as)\s+(?:(?:its|the|an?)\s+)?"
+                r"(?:database|audit log|storage|application log)\b"
+                + r"(?!\s+(?:and|or)\s+(?:(?:in|into|to|for|as)\b|"
+                + review_destination_noun
+                + r"))",
+                re.I,
+            )
+            if storage_operation.search(requirement_text):
+                delivery_text = storage_operation.sub(" ", requirement_text, count=1)
+                if not remaining_delivery(delivery_text):
+                    continue
+                requirement_text = delivery_text
+                lower = requirement_text.lower()
+            # Record aliases are product output only with an immediate bounded
+            # product recipient, never merely because the actor is a service.
+            product_output_operation = (
+                response_operation + "|"
+                r"record\w*\b(?=\s+(?:(?:the|an?)\s+)?"
+                + evidence_modifiers
+                + r"(?:command outputs?|transcripts?|evidence)\s+"
+                + product_recipient
+                + ")"
+            )
+            product_output_prefix = re.compile(
+                r"^\s*(?:[-*]\s*(?:\[[ xX]\]\s*)?)?"
+                r"(?!(?:[\w-]+\s+){0,5}(?:reviewers?|authors?|maintainers?|operators?|"
+                r"validation|evidence)\b)"
+                r"(?:[\w-]+\s+){1,6}"
+                + product_auxiliary
+                + r"(?:return|display|emit|render|expose)\w*\b|"
+                r"\b(?:ui|api|application|interface|service|cli|endpoint|renderer)\b\s+"
+                + "(?:"
+                + product_auxiliary
+                + ")?"
+                + "(?:"
+                + product_output_operation
+                + ")",
+                re.I,
+            )
+            product_output_match = product_output_prefix.search(requirement_text)
+            reverse_product_output = bool(
+                re.search(
+                    r"\b(?:command outputs?|transcripts?)\b.{0,60}"
+                    + "(?:"
+                    + product_output_operation
+                    + r"|record\w*\b(?=\s+"
+                    + product_recipient
+                    + ")"
+                    + ")"
+                    + r".{0,60}"
+                    r"\b(?:ui|api|application|interface|service|cli|endpoint|renderer)\b",
+                    requirement_text,
+                    re.I,
+                )
+            )
+            preserve_explicit_comment_delivery = bool(
+                explicit_comment_delivery and not product_comment_behavior
+            )
+            if (
+                product_output_match
+                and not preserve_explicit_comment_delivery
+                and not explicit_review_destination
+            ):
+                delivery_text = product_output_prefix.sub(" ", requirement_text, count=1)
+                if not remaining_delivery(delivery_text):
+                    continue
+                requirement_text = delivery_text
+                lower = requirement_text.lower()
+            elif (
+                reverse_product_output
+                and not line_channels
+                and not preserve_explicit_comment_delivery
+                and not explicit_review_destination
+            ):
+                continue
+            if re.search(r"\b(?:pr comments?|pull request comments?)\b", lower):
+                if explicit_comment_delivery and not product_comment_behavior:
+                    line_channels.add("comments")
+                elif not line_channels:
+                    continue
+            if not line_channels:
+                command_behavior = bool(
+                    re.search(
+                        r"\b(?:cli\s+)?command\b\s+(?:(?:must|shall|will)\s+output|outputs)\b",
+                        requirement_text,
+                        re.I,
+                    )
+                )
+                if command_behavior and not explicit_review_destination:
+                    # A command that outputs JSON describes product behavior;
+                    # it is not itself a request to deliver command output.
+                    # Preserve a separate downstream evidence requirement.
+                    delivery_text = re.sub(
+                        r"\b(?:cli\s+)?command\b\s+(?:(?:must|shall|will)\s+output|outputs)\b",
+                        " ",
+                        requirement_text,
+                        count=1,
+                        flags=re.I,
+                    )
+                    if not remaining_delivery(delivery_text):
+                        continue
+                if re.search(r"\bworkflow runs?\b", lower):
+                    without_workflow_run = re.sub(r"\bworkflow runs?\b", " ", lower)
+                    workflow_status_only = bool(
+                        re.fullmatch(
+                            r"\s*(?:[-*]\s*(?:\[[ x]\]\s*)?)?"
+                            r"(?:[\w-]+\s+){0,5}workflow runs?\s+"
+                            r"(?:(?:must|shall|should|will)\s+(?:pass|succeed|finish|complete|"
+                            r"be\s+(?:green|successful|passing|complete))|"
+                            r"(?:is|are)\s+(?:required|needed|successful|passing|complete))"
+                            r"(?:\s+[\w-]+)*\s*[.!]?\s*",
+                            lower,
+                        )
+                        and not re.search(
+                            r"\b(?:link\w*|urls?|provide\w*|include\w*|attach\w*|"
+                            r"upload\w*|publish\w*|post\w*|record\w*|capture\w*)\b",
+                            lower,
+                        )
+                    )
+                    if workflow_status_only and not evidence_term.search(without_workflow_run):
+                        # CI/workflow success belongs in the CI section, not
+                        # artifact retrieval. Preserve a transcript/output named
+                        # in the same clause rather than discarding the clause.
+                        continue
+                line_channels.add("overall")
+            if (
+                resolved_antecedent
+                and "artifacts" in line_channels
+                and re.search(r"\b(?:command outputs?|transcripts?)\b", resolved_antecedent, re.I)
+                and not re.search(r"\b(?:pr comments?|pull request comments?)\b", lower)
+            ):
+                line_channels.add("overall")
+            channels.update(line_channels)
+    return channels
+
+
+def _required_evidence_options(acceptance: str) -> list[set[str]]:
+    """Bounded destination ORs; every variant retains all independent clauses.
+
+    Expand only concrete destination lists outside literals, then use the same
+    actor/polarity/modality grammar for every complete acceptance variant. This
+    is DNF (OR of AND channel sets), not a global any-channel presence shortcut.
+    Ambiguous mixed conjunctions or excessive expansion retain the strict legacy
+    requirement rather than dropping an obligation.
+    """
+    acceptance = _normalize_review_content_qualifiers(acceptance)
+    acceptance = _normalize_passive_review_agents(acceptance)
+    acceptance = _normalize_relative_review_presence(acceptance)
+    preposition = _EVIDENCE_DESTINATION_PREPOSITION
+    destination = (
+        r"(?:(?:the|an?)\s+)?(?:(?:pr|pull request)\s+(?:(?:body|description)\b"
+        r"(?:\s+" + _REVIEW_BODY_COMPONENT + r")?|comments?\b"
+        r"(?:\s+" + _REVIEW_BODY_COMPONENT + r")?)|"
+        r"(?:workflow|ci|github actions)\s+artifacts?\b)"
+    )
+    member = r"(?:" + preposition + r"\s+)?" + destination
+    destination_list = re.compile(
+        r"\b(?P<prep>"
+        + preposition
+        + r")\s+(?:either\s+)?(?P<items>"
+        + destination
+        + r"(?:(?:\s*,\s*(?:(?:and|or)\s+)?|\s+(?:and|or)\s+)"
+        + r"(?!"
+        + member
+        + r"\s+"
+        + _INDEPENDENT_REVIEW_CLAUSE
+        + r")"
+        + member
+        + r")+)",
+        re.I,
+    )
+    masked = re.sub(_QUOTED_EVIDENCE_LITERAL, lambda m: " " * len(m[0]), acceptance)
+    variants = [acceptance]
+    # Right-to-left replacement keeps all original offsets valid.
+    for match in reversed(list(destination_list.finditer(masked))):
+        items = match["items"]
+        if re.search(r"\band\b", items, re.I):
+            continue
+        # A comma-only list has no explicit alternative semantics.
+        if not re.search(r"\bor\b", items, re.I):
+            continue
+        alternatives = re.split(r"\s*,\s*(?:or\s+)?|\s+or\s+", items, flags=re.I)
+        # Product components are not alternative evidence deliveries. Classify
+        # each bounded member with its original governing prefix before adding
+        # independent trailing duties; those duties must not make a product
+        # alternative appear nonempty and thereby waive its bare sibling.
+        clause_start = (
+            max(masked.rfind(";", 0, match.start()), masked.rfind("\n", 0, match.start())) + 1
+        )
+        governing_prefix = acceptance[clause_start : match.start()] + match["prep"] + " "
+        deliveries = []
+        for item in alternatives:
+            component = re.search(
+                r"\b(?:pr|pull request)\s+(?P<channel>body|description|comments?)\b"
+                r"\s+" + _REVIEW_BODY_COMPONENT,
+                item,
+                re.I,
+            )
+            if component:
+                channel = (
+                    "comments" if component["channel"].lower().startswith("comment") else "body"
+                )
+                isolated = governing_prefix + re.sub(
+                    r"^" + preposition + r"\s+", "", item, flags=re.I
+                )
+                if channel not in _required_evidence_channels(isolated):
+                    continue
+            deliveries.append(item)
+        if deliveries:
+            alternatives = deliveries
+        if len(variants) * len(alternatives) > 32:
+            return [_required_evidence_channels(acceptance)]
+        variants = [
+            variant[: match.start()]
+            + match["prep"]
+            + " "
+            + re.sub(r"^" + preposition + r"\s+", "", item, flags=re.I)
+            + variant[match.end() :]
+            for variant in variants
+            for item in alternatives
+        ]
+    options = []
+    for variant in variants:
+        channels = _required_evidence_channels(variant)
+        if channels not in options:
+            options.append(channels)
+    if not all(options):
+        # Partial recognition is ambiguous, never permission to drop all
+        # evidence. Retain original requirements, plus recognized obligations.
+        return [_required_evidence_channels(acceptance) | set().union(*options)]
+    # Splitting a product component away from its coordinated review delivery
+    # may suppress that delivery in every variant. Independent obligations can
+    # make every variant nonempty, so the empty-option guard alone is insufficient.
+    # Preserve original obligations absent from the union of recognized options.
+    unrepresented = _required_evidence_channels(acceptance) - set().union(*options)
+    return [option | unrepresented for option in options]
+
+
+def _required_evidence_is_missing(evidence: str, channels: set[str]) -> bool:
+    """Read only builder-owned statuses for the required retrieval channels."""
+    # Comment and artifact bodies are untrusted. Their status-looking lines
+    # cannot overwrite the builder's own preamble.
+    preamble = re.split(
+        r"\n### Bounded (?:PR body|PR comments|referenced workflow artifacts)\n",
+        evidence,
+        maxsplit=1,
+    )[0]
+    labels = {
+        "overall": "Overall retrieval status",
+        "comments": "PR comments",
+        "body": "PR body",
+        "artifacts": "Referenced workflow artifacts",
+    }
+    for channel in channels:
+        match = re.search(
+            rf"^- {labels[channel]}:\s*\*\*(present|absent|unavailable)\*\*",
+            preamble,
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+        if not match or match.group(1).lower() != "present":
+            return True
+    return False
+
+
+def _acceptance_discovery_coverage(
+    sections: list[tuple[str, str]] | None,
+) -> CoverageStatus:
+    # Only the builder-owned inventory before CI is authoritative. An issue
+    # body or retained comment cannot replace it with its own status block.
+    preamble = next((body for name, body in sections or [] if name == "preamble"), "")
+    marker = "## Context source coverage"
+    if marker not in preamble:
+        return "not_declared"
+    match = re.search(
+        r"^## Context source coverage\n.*?^```json\n(.*?)\n```", preamble, re.M | re.S
+    )
+    if not match:
+        return "unavailable"
+    try:
+        inventory = json.loads(match.group(1))
+        discovery = inventory.get("acceptance_source_discovery")
+        if discovery is None:
+            return "not_declared"
+        if not isinstance(discovery, dict) or not isinstance(discovery.get("required", True), bool):
+            return "unavailable"
+        if discovery.get("required") is False:
+            return "not_declared"
+        if discovery.get("status") == "included":
+            return "complete"
+        if discovery.get("status") == "truncated":
+            return "truncated"
+        return "unavailable"
+    except (ValueError, AttributeError, TypeError):
+        return "unavailable"
+
+
 def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
     """Bound the context and diff blocks and report what reaches the model."""
     context_budget = (
         _budget_from_env("VERIFIER_CONTEXT_BUDGET_TOKENS", VERIFIER_CONTEXT_BUDGET_TOKENS)
+        * TOKEN_CHARS
+    )
+    evidence_budget = (
+        _budget_from_env(
+            "VERIFIER_ACCEPTANCE_EVIDENCE_BUDGET_TOKENS", VERIFIER_CONTEXT_BUDGET_TOKENS
+        )
         * TOKEN_CHARS
     )
     diff_budget = (
@@ -750,9 +4449,18 @@ def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
     diff_text = diff.strip() if diff and diff.strip() else ""
     sections = _split_verifier_context(context_text) if context_text else None
     reasons: list[str] = []
+    acceptance_source_discovery = _acceptance_discovery_coverage(sections)
+    if acceptance_source_discovery in {"truncated", "unavailable"}:
+        reasons.append(
+            "Required linked-issue acceptance discovery is "
+            f"{acceptance_source_discovery}; completeness cannot be judged."
+        )
 
     code_source = diff_text if "diff --git " in diff_text else ""
+    non_diff_file_input = bool(diff_text) and not code_source
     upstream_truncated = False
+    acceptance_source = ""
+    evidence_source = ""
     if sections is not None:
         full = next((body for name, body in sections if name == "full_diff"), "")
         if full:
@@ -760,7 +4468,15 @@ def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
             if not code_source:
                 upstream_truncated = bool(UPSTREAM_DIFF_TRUNCATION.search(context_diff))
                 code_source = UPSTREAM_DIFF_TRUNCATION.sub("", context_diff).strip()
-        sections = [(name, body) for name, body in sections if name != "full_diff"]
+        acceptance_source = next((body for name, body in sections if name == "acceptance"), "")
+        evidence_source = next(
+            (body for name, body in sections if name == "acceptance_evidence"), ""
+        )
+        sections = [
+            (name, body)
+            for name, body in sections
+            if name not in {"full_diff", "acceptance_evidence"}
+        ]
     if not code_source:
         code_source = diff_text
 
@@ -770,22 +4486,40 @@ def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
         )
         context_truncated = bool(context_text) and context_block != context_text
         acceptance: CoverageStatus = "truncated" if context_truncated else "not_declared"
+        acceptance_evidence: CoverageStatus = "not_declared"
     else:
         fitted, section_status = _fit_context_sections(sections, context_budget)
         context_block = "\n\n".join(fitted)
         context_truncated = any(value != "complete" for value in section_status.values())
         acceptance = section_status.get("acceptance", "unavailable")  # type: ignore[assignment]
+        if evidence_source:
+            evidence_block = _cap_prompt_text(evidence_source, evidence_budget // TOKEN_CHARS)
+            acceptance_evidence = "complete" if evidence_block == evidence_source else "truncated"
+            context_block = "\n\n".join(part for part in (context_block, evidence_block) if part)
+        else:
+            acceptance_evidence = "not_declared"
     if acceptance == "truncated":
         reasons.append("Acceptance/plan sources were truncated to fit the prompt budget.")
     elif acceptance == "unavailable":
         reasons.append("Acceptance/plan sources do not fit or are unavailable.")
+    required_evidence_options = _required_evidence_options(
+        _acceptance_criteria_sections(acceptance_source)
+    )
+    if all(required_evidence_options):
+        if acceptance_evidence in {"not_declared", "unavailable"} or all(
+            _required_evidence_is_missing(evidence_source, channels)
+            for channels in required_evidence_options
+        ):
+            reasons.append(
+                "Required acceptance evidence is unavailable; completeness cannot be judged."
+            )
+        elif acceptance_evidence == "truncated":
+            reasons.append("Required acceptance evidence was truncated to fit the prompt budget.")
 
     if code_source:
         diff_block, code, files, included, total = _build_code_block(code_source, diff_budget)
     else:
         diff_block, code, files, included, total = "(diff unavailable)", "unavailable", (), 0, 0
-        if sections is None:
-            code = "not_declared"
     if upstream_truncated:
         code = "truncated"
         reasons.append("The context builder truncated the PR diff before the verifier received it.")
@@ -793,9 +4527,16 @@ def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
     summary_body = next((body for name, body in sections or [] if name == "diff_summary"), "")
     if files and summary_body:
         diff_paths = {item.path for item in files}
-        missing = [
-            path for path in _summary_destination_paths(summary_body) if path not in diff_paths
-        ]
+        try:
+            missing = [
+                path for path in _summary_destination_paths(summary_body) if path not in diff_paths
+            ]
+        except ValueError:
+            missing = []
+            code = "truncated"
+            reasons.append(
+                "Encoded summary destination metadata is malformed; coverage is unknown."
+            )
         if missing:
             code = "truncated"
             reasons.append(
@@ -803,9 +4544,17 @@ def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
                 + ", ".join(missing[:10])
             )
     if code == "unavailable":
+        if non_diff_file_input:
+            reasons.append(
+                "Supplied --diff-file is not a complete Git diff; changed code is unavailable."
+            )
         reasons.append("Changed code is unavailable; completeness cannot be judged.")
     elif omitted:
         reasons.append(f"{len(omitted)} changed file(s) are omitted from the prompt entirely.")
+    elif code == "truncated":
+        reasons.append(
+            "Changed code was truncated to fit the prompt budget; a PASS is not allowed."
+        )
     if total and included / total < MIN_CODE_COVERAGE_RATIO:
         reasons.append(
             f"Only {included}/{total} changed-code characters fit the prompt "
@@ -816,12 +4565,14 @@ def build_prompt_inputs(context: str, diff: str | None) -> PromptInputs:
 
     coverage = PromptCoverage(
         acceptance=acceptance,
+        acceptance_evidence=acceptance_evidence,
         code=code,
         files=files,
         code_included_chars=included,
         code_total_chars=total,
         context_truncated=context_truncated,
         reasons=tuple(reasons),
+        acceptance_source_discovery=acceptance_source_discovery,
     )
     context_block = coverage.render() + "\n\n" + (context_block or "(context unavailable)")
     return PromptInputs(context_block=context_block, diff_block=diff_block, coverage=coverage)
@@ -845,6 +4596,39 @@ def _apply_coverage_floor(
     result.concerns = [note, *result.concerns]
     result.summary = f"{note}\n\n{result.summary}" if result.summary else note
     return result
+
+
+def _evaluation_output_text(result: EvaluationResult) -> str:
+    """CLI/file text aligned with the structured verdict after post-processing."""
+    if result.verdict != "PASS":
+        parts = [result.summary] if result.summary else []
+        if result.concerns:
+            parts.append("Concerns:\n" + "\n".join(f"- {item}" for item in result.concerns))
+        raw_detail = result.raw_content or ""
+        stale_spans: list[tuple[int, int]] = []
+        if result.raw_content:
+            decoder = json.JSONDecoder()
+            for index, char in enumerate(result.raw_content):
+                if char != "{":
+                    continue
+                try:
+                    raw_result, end = decoder.raw_decode(result.raw_content, index)
+                except json.JSONDecodeError:
+                    continue
+                if (
+                    isinstance(raw_result, dict)
+                    and raw_result.get("verdict") == "PASS"
+                    and (not stale_spans or index >= stale_spans[-1][1])
+                ):
+                    stale_spans.append((index, end))
+            for start, end in reversed(stale_spans):
+                raw_detail = raw_detail[:start] + raw_detail[end:]
+            raw_detail = raw_detail.strip()
+        if raw_detail and raw_detail != result.summary:
+            parts.append("Raw model detail (prior to verdict post-processing):\n" + raw_detail)
+        body = "\n\n".join(parts)
+        return f"Verdict: {result.verdict}\n\n{body}"
+    return result.raw_content or result.summary or ""
 
 
 def _prepare_prompt(context: str, diff: str | None) -> str:
@@ -978,6 +4762,273 @@ def _build_llm_config(
     return {"metadata": metadata, "tags": tags}
 
 
+class InputCapacityError(ValueError):
+    """No provider generation is authorized for an uncounted or oversized input."""
+
+
+def _capacity_facts_for(provider: str, model: str) -> NativeCapacityFacts:
+    try:
+        return native_capacity_facts_for(provider, model)
+    except ValueError as exc:
+        raise InputCapacityError(str(exc)) from exc
+
+
+def _prepare_capacity_client(client: object) -> object:
+    """Prepare a registry-authorized Responses copy without mutating its owner.
+
+    Standard never calls this helper. Registry facts cannot choose adapter/SDK
+    types or endpoints; the native contract independently checks those bindings.
+    """
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        return client
+    if type(client) is ChatOpenAI:
+        facts = _capacity_facts_for("openai", client.model_name)
+        updates = {"use_responses_api": True}
+        if client.max_tokens is None:
+            updates["max_tokens"] = facts.max_output_tokens
+        return client.model_copy(update=updates)
+    return client
+
+
+def _native_capacity_contract(client: object) -> dict[str, object]:
+    """Bind validated exact registry facts to generation/count on the same SDK.
+
+    Capacity data and dated official provenance live in model_registry.json.
+    Transport implementations/types and payload validation remain code-owned.
+    """
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        ChatOpenAI = None
+    try:
+        from langchain_anthropic import ChatAnthropic
+    except ImportError:
+        ChatAnthropic = None
+    if type(client) is ChatOpenAI:
+        from openai import OpenAI
+
+        provider, model = "openai", client.model_name
+        native = client.root_client
+        facts = _capacity_facts_for(provider, model)
+        if (
+            type(native) is not OpenAI
+            or str(native.base_url).rstrip("/") != facts.api_root
+            or native.responses._client is not native
+            or native.responses.input_tokens._client is not native
+            or not client.use_responses_api
+        ):
+            raise InputCapacityError("OpenAI native generation/count transport mismatch")
+        profile = {
+            "max_input_tokens": facts.max_input_tokens,
+            "max_context_tokens": facts.max_context_tokens,
+            "max_output_tokens": facts.max_output_tokens,
+        }
+    elif type(client) is ChatAnthropic:
+        from anthropic import Anthropic
+
+        provider, model = "anthropic", client.model
+        native = client._client
+        facts = _capacity_facts_for(provider, model)
+        if (
+            type(native) is not Anthropic
+            or str(native.base_url).rstrip("/") != facts.api_root
+            or native.messages._client is not native
+            or native.models._client is not native
+        ):
+            raise InputCapacityError("Anthropic native generation/count transport mismatch")
+        metadata = native.models.retrieve(model)
+        window = getattr(metadata, "max_input_tokens", None)
+        output = getattr(metadata, "max_tokens", None)
+        if getattr(metadata, "id", None) != model or any(
+            type(value) is not int or value <= 0 for value in (window, output)
+        ):
+            raise InputCapacityError("malformed or mismatched exact-model native metadata")
+        profile = {
+            "max_input_tokens": window,
+            "max_context_tokens": facts.max_context_tokens,
+            "max_output_tokens": min(output, facts.max_output_tokens),
+        }
+    else:
+        raise InputCapacityError("unsupported native capacity client/provider")
+    if native.default_query:
+        raise InputCapacityError("uncounted native transport query fields")
+    supplied = getattr(client, "profile", None)
+    if isinstance(supplied, dict) and (
+        supplied.get("model", model) != model or supplied.get("provider", provider) != provider
+    ):
+        raise InputCapacityError("capacity profile model/provider mismatch")
+    return {
+        "provider": provider,
+        "model": model,
+        "profile": profile,
+        "provenance": facts.provenance,
+        "endpoint": facts.count_endpoint,
+    }
+
+
+def _preflight_input_capacity(client: object, prompt: str) -> dict[str, object]:
+    """Count the complete native request; never substitute four-character estimates.
+
+    Capacity comes from the source-owned exact-model native contract. No model aliases,
+    larger-model retry, tokenizer fallback or operator-supplied guessed limit is used.
+    Native SDK count endpoints include all supported model-visible request fields.
+    Older SDKs, unknown models and chat-only counters remain NON_PASS.
+    """
+    receipt: dict[str, object] = {"status": "unavailable", "prompt_chars": len(prompt)}
+    try:
+        contract = _native_capacity_contract(client)
+        profile = contract["profile"]
+        if not isinstance(profile, dict):
+            raise InputCapacityError("model-specific capacity profile unavailable")
+        window = profile.get("max_input_tokens")
+        context = profile.get("max_context_tokens")
+        # Only legacy synthetic fixtures may reuse the input bound as context.
+        # Every real native contract must establish all three independent facts.
+        if (
+            "max_context_tokens" not in profile
+            and contract.get("provenance") == "synthetic-unit-test-only"
+        ):
+            context = window
+        ceiling = profile.get("max_output_tokens")
+        if type(context) is not int or context <= 0:
+            raise InputCapacityError("native context capacity unavailable or invalid")
+        if any(type(value) is not int or value <= 0 for value in (window, ceiling)):
+            raise InputCapacityError("input capacity or output ceiling unavailable")
+        receipt.update({key: value for key, value in contract.items() if key != "profile"})
+        receipt.update(input_limit=window, context_limit=context, output_limit=ceiling)
+        payload = client._get_request_payload(prompt)
+        if not isinstance(payload, dict) or not isinstance(payload.get("model"), str):
+            raise InputCapacityError("native request capacity binding unavailable")
+        if payload["model"] != contract["model"]:
+            raise InputCapacityError("native payload/model capacity mismatch")
+        output_limits = []
+        for name in ("max_output_tokens", "max_tokens", "max_completion_tokens"):
+            if payload.get(name) is not None:
+                value = payload[name]
+                if type(value) is not int or value <= 0:
+                    raise InputCapacityError("native output capacity ceiling is invalid")
+                output_limits.append(value)
+        if not output_limits:
+            raise InputCapacityError("actual native request output ceiling unavailable")
+        output = max(output_limits)
+        receipt.update(model=payload["model"], output_reserve=output)
+        if output > ceiling:
+            raise InputCapacityError("native output capacity exceeds exact-model ceiling")
+        if payload.get("truncation") not in (None, "disabled"):
+            raise InputCapacityError("automatic input truncation is forbidden by capacity policy")
+        if payload.get("previous_response_id") or payload.get("conversation"):
+            raise InputCapacityError("stateful input capacity cannot be established")
+        if contract["provider"] == "openai" and "input" in payload and "messages" not in payload:
+            root = getattr(client, "root_client", None)
+            counter = getattr(
+                getattr(getattr(root, "responses", None), "input_tokens", None), "count", None
+            )
+            names = {
+                "model",
+                "input",
+                "instructions",
+                "tools",
+                "tool_choice",
+                "reasoning",
+                "text",
+                "parallel_tool_calls",
+                "truncation",
+            }
+            method = "native_response_input_tokens"
+        elif (
+            contract["provider"] == "anthropic" and "messages" in payload and "input" not in payload
+        ):
+            native = getattr(client, "_client", None)
+            counter = getattr(getattr(native, "messages", None), "count_tokens", None)
+            names = {
+                "model",
+                "messages",
+                "system",
+                "tools",
+                "tool_choice",
+                "thinking",
+                "output_config",
+                "output_format",
+                "cache_control",
+            }
+            method = "native_message_count_tokens"
+        else:
+            raise InputCapacityError("native provider/payload capacity mismatch")
+        if not callable(counter):
+            raise InputCapacityError("native input capacity counter unavailable")
+        non_input = {
+            "max_tokens",
+            "max_output_tokens",
+            "max_completion_tokens",
+            "temperature",
+            "top_p",
+            "top_k",
+            "stop",
+            "stop_sequences",
+            "stream",
+            "timeout",
+            "metadata",
+            "store",
+            "service_tier",
+            "truncation",
+        }
+        unknown = set(payload) - names - non_input
+        if unknown:
+            raise InputCapacityError(f"uncounted native capacity fields: {sorted(unknown)}")
+        request_bytes = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
+        receipt["request_sha256"] = hashlib.sha256(request_bytes).hexdigest()
+        counted = counter(**{key: value for key, value in payload.items() if key in names})
+        tokens = getattr(counted, "input_tokens", None)
+        if type(tokens) is not int or tokens <= 0:
+            raise InputCapacityError("native capacity count returned invalid input_tokens")
+        current = client._get_request_payload(prompt)
+        if json.dumps(current, sort_keys=True, separators=(",", ":")).encode() != request_bytes:
+            raise InputCapacityError("native generation payload changed during count")
+        # Reserve the actual request output ceiling, including thinking tokens,
+        # against context, independently of the exact model's input-only bound.
+        receipt.update(input_tokens=tokens, counting_method=method)
+        if tokens > window or tokens + output > context:
+            receipt["status"] = "overflow"
+            raise InputCapacityError(
+                f"input/context capacity overflow: input {tokens} <= {window} and "
+                f"input + output {tokens} + {output} <= {context} required"
+            )
+        receipt["status"] = "PASS"
+        return receipt
+    except Exception as exc:
+        receipt["reason"] = str(exc)
+        raise InputCapacityError(f"Verifier input capacity blocked: {exc}") from exc
+    finally:
+        LOGGER.info("Verifier input capacity: %s", json.dumps(receipt, sort_keys=True))
+        report = os.environ.get("VERIFIER_CAPACITY_REPORT_PATH")
+        if report:
+            try:
+                with Path(report).open("a", encoding="utf-8") as stream:
+                    stream.write(json.dumps(receipt, sort_keys=True) + "\n")
+            except OSError as exc:
+                LOGGER.warning(
+                    "Verifier capacity receipt write failed (%s): %s", type(exc).__name__, exc
+                )
+
+
+class _CapacityCheckedRepairClient:
+    """Schema repair is another provider invocation with its own full input."""
+
+    def __init__(self, client: object) -> None:
+        self.client = client
+
+    def invoke(self, prompt: str, **kwargs: Any) -> Any:
+        client = self.client
+        if os.environ.get("VERIFIER_EVIDENCE_PROFILE") == "expanded":
+            client = _prepare_capacity_client(client)
+            if set(kwargs) - {"config"}:
+                raise InputCapacityError("uncounted schema repair generation kwargs")
+            _preflight_input_capacity(client, prompt)
+        return client.invoke(prompt, **kwargs)
+
+
 def _invoke_llm(
     client: object,
     prompt: str,
@@ -992,6 +5043,11 @@ def _invoke_llm(
     Returns:
         Tuple of (response, trace_id, trace_url)
     """
+    # Native counting is an explicit expanded-recovery contract. Standard keeps
+    # its existing adapter behavior without claiming native capacity proof.
+    if os.environ.get("VERIFIER_EVIDENCE_PROFILE") == "expanded":
+        client = _prepare_capacity_client(client)
+        _preflight_input_capacity(client, prompt)
     config = _build_llm_config(
         operation=operation,
         context=context,
@@ -1245,7 +5301,7 @@ def _parse_llm_response(
 
 
 def _build_verifier_repair_callback(client: object) -> Callable[[str, str, str], str | None]:
-    repair = build_repair_callback(client)
+    repair = build_repair_callback(_CapacityCheckedRepairClient(client))
 
     def _repair(schema_json: str, validation_errors: str, raw_response: str) -> str | None:
         repaired = repair(
@@ -1317,7 +5373,12 @@ def evaluate_pr(
         )
     except Exception as exc:  # pragma: no cover - exercised in integration
         # If auth error and not explicitly requesting a provider, try fallback
-        if _is_auth_error(exc) and provider is None:
+        if (
+            os.environ.get("VERIFIER_EVIDENCE_PROFILE") != "expanded"
+            and not isinstance(exc, InputCapacityError)
+            and _is_auth_error(exc)
+            and provider is None
+        ):
             fallback_provider = "openai" if "github-models" in provider_name else "github-models"
             fallback_resolved = _get_llm_client(model=model, provider=fallback_provider)
             if fallback_resolved is not None:
@@ -1390,6 +5451,51 @@ def evaluate_pr_multiple(
         result.change_type = change_type
         results.append(result)
     return results
+
+
+def expanded_comparison_verdict(
+    data: object, *, model1: str | None = None, model2: str | None = None
+) -> str:
+    """Require one complete PASS per configured comparison slot, without filtering.
+
+    Compare uses two slots. Resolve their identities before credential/client
+    availability filtering, so a missing native judge cannot be replaced by an
+    available fallback or hidden by the other judge's PASS. Model overrides
+    follow build_chat_clients; no client is constructed and no provider is called.
+    """
+    from tools.llm_registry import resolve_slots
+
+    slots = resolve_slots()[:2]
+    overrides = [model1 or os.environ.get("LANGCHAIN_MODEL"), model2 or model1]
+    expected = [
+        (slot.provider, override or slot.model)
+        for slot, override in zip(slots, overrides, strict=False)
+    ]
+    if len(expected) != 2 or len({provider for provider, _ in expected}) != 2:
+        return "CONCERNS"
+    if not isinstance(data, dict) or not isinstance(data.get("results"), list):
+        return "CONCERNS"
+    results = data["results"]
+    if len(results) != len(expected):
+        return "CONCERNS"
+    observed = []
+    for arm in results:
+        if (
+            not isinstance(arm, dict)
+            or not {"provider_used", "model", "verdict", "used_llm"} <= arm.keys()
+        ):
+            return "CONCERNS"
+        try:
+            result = EvaluationResult.model_validate(arm, strict=True, extra="forbid")
+        except ValueError:
+            return "CONCERNS"
+        if result.used_llm is not True or result.verdict != "PASS" or result.error:
+            return "CONCERNS"
+        identity = (result.provider_used, result.model)
+        if identity not in expected or identity in observed:
+            return "CONCERNS"
+        observed.append(identity)
+    return "PASS" if set(observed) == set(expected) else "CONCERNS"
 
 
 def _provider_family(provider: str) -> str:
@@ -1727,7 +5833,7 @@ def main() -> None:
         except Exception as exc:
             print(f"Failed to create follow-up issue: {exc}", file=sys.stderr)
 
-    output_text = result.raw_content or result.summary or ""
+    output_text = _evaluation_output_text(result)
 
     if args.output_file:
         Path(args.output_file).write_text(output_text, encoding="utf-8")
