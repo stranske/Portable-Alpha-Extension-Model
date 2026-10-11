@@ -409,7 +409,8 @@ def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
     monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
     prev_manifest = {
         "cli_args": {"output": str(missing_prev_output)},
-        "config": {"N_SIMULATIONS": 1},
+        "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
+        "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
     }
     prev_manifest_path = tmp_path / "manifest.json"
     prev_manifest_path.write_text(json.dumps(prev_manifest))
@@ -441,4 +442,18 @@ def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
     assert isinstance(captured["prev_summary_df"], pd.DataFrame)
     assert captured["prev_summary_df"].empty
     assert captured["prev_summary_df"].columns.empty
+    pd.testing.assert_frame_equal(captured["prev_summary_df"], pd.DataFrame())
+    # Missing prior metrics must not clear or reuse the current sweep summary.
+    pd.testing.assert_frame_equal(
+        captured["summary_df"],
+        pd.DataFrame(
+            {
+                "Agent": ["Base"],
+                "terminal_AnnReturn": [0.06],
+                "monthly_AnnVol": [0.11],
+                "terminal_ShortfallProb": [0.08],
+            }
+        ).assign(Combination="Run1"),
+    )
+    assert captured["prev_summary_df"] is not captured["summary_df"]
     assert captured["prev_manifest"] == prev_manifest

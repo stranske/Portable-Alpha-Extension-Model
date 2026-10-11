@@ -4,6 +4,8 @@ Increment after merged #2344: when `prev_manifest.cli_args.output` points at a p
 
 The focused regression now covers both a missing workbook in an existing directory and a workbook whose parent directory is missing. It checks that the path remains absent and `pd.read_excel` is never called. The read stub records calls before raising `FileNotFoundError`, so the assertion also detects an unnecessary read that the CLI's error fallback would otherwise hide.
 
+The follow-up also compares the previous summary against a canonical empty DataFrame and checks that the current summary still contains the sweep's actual metrics and combination label. The two frames must be distinct objects. The prior manifest contains different configuration values and nested RNG metadata, all of which must reach export unchanged despite the missing workbook.
+
 ## Verified tasks
 
 - [x] Add a focused sweep `--packet` test for manifests whose `cli_args.output` path is missing on disk.
@@ -11,6 +13,14 @@ The focused regression now covers both a missing workbook in an existing directo
 - [x] Document the increment in this evidence directory.
 - [x] Run the focused acceptance test.
 - [ ] Hosted Gate / keepalive on this PR: unverified; this environment cannot reach `api.github.com`.
+
+## Task reconciliation follow-up
+
+Reviewed `ca0931c0` and `9d036635` and reran the focused acceptance test before extending it: **2 passed**. Both commits changed only this README and the packet test; the reported 35 changed files include untracked runtime artifacts. The three implementation tasks above were already complete, but the live PR body had plain summary bullets and an unchecked acceptance command.
+
+The GitHub connector confirmed PR #2345 is open and ready for review (`draft=false`), with Hosted Gate / keepalive already checked in its body. Direct access through `gh` is unavailable. Updating the PR body through the connector was rejected because approval is required and this run's approval policy is `never`. A reconciled replacement body is prepared at `/tmp/issue-2336-pr-2345-body.md`; the remote checkboxes have not been changed.
+
+After strengthening the export assertions, verification again passed: the focused command with `-m 'not slow'` reports **2 passed**, and both packet test modules report **17 passed**. Black formatted the changed Python file and its repository-wide check passed for **489 files**, using `BLACK_NUM_WORKERS=1` and the scheduling-only helper at `/tmp/issue-2336-black-runtime/sitecustomize.py`. The helper is outside the repository and does not alter formatting checks.
 
 ## Validation
 
