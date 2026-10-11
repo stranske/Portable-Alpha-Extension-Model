@@ -10,9 +10,8 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
-
-from defusedxml import ElementTree as ET
 
 SOURCE = "pa_core/cli.py"
 TEST = "tests/test_cli_sweep_export_failures.py"

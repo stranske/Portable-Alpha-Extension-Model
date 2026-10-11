@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 import yaml
 
+import pa_core
 from pa_core.cli import main
 
 
@@ -94,11 +95,15 @@ def test_sweep_packet_export_failure_is_truthful(
         raise error_type("export unavailable")
 
     monkeypatch.setattr("pa_core.reporting.export_packet.create_export_packet", fail_packet)
+    figure = object()
     viz = types.ModuleType("pa_core.viz")
-    viz.risk_return = types.SimpleNamespace(make=lambda _df: object())
-    viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: object())
+    viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+    viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
     viz.theme = types.SimpleNamespace(DEFAULT_SHORTFALL_PROB=0.1)
     monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+    # The autouse theme fixture has already imported the real package. Relative
+    # imports in main also consult its attribute on pa_core, not only sys.modules.
+    monkeypatch.setattr(pa_core, "viz", viz)
     index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
     main(
         [
@@ -115,6 +120,7 @@ def test_sweep_packet_export_failure_is_truthful(
     )
     stdout = capsys.readouterr().out
     assert len(calls) == 1
+    assert calls[0]["figs"] == [figure]
     pd.testing.assert_frame_equal(calls[0]["summary_df"][list(summary.columns)], summary)
     assert diagnostic in stdout
     assert "export unavailable" in stdout
