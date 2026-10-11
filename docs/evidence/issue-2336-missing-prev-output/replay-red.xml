@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="2.259" timestamp="2026-10-10T22:24:52.362704-05:00" hostname="server.trs.private"><testcase classname="tests.test_cli_packet_diff" name="test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-file]" time="1.087"><failure message="AssertionError: missing previous output must be skipped before workbook loading&#10;assert [('/private/v...', 'Summary')] == []&#10;  &#10;  Left contains one more item: ('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary0/missing-prev.xlsx', 'Summary')&#10;  Use -v to get more diff">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x103ca6570&gt;
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary0')
+prev_output_path = 'missing-prev.xlsx', relative_output = False
+
+    @pytest.mark.parametrize(
+        "prev_output_path",
+        ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
+        ids=["missing-file", "missing-parent"],
+    )
+    @pytest.mark.parametrize("relative_output", [False, True], ids=["absolute", "relative"])
+    def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
+        monkeypatch, tmp_path, prev_output_path, relative_output
+    ):
+        # Relative output paths in a saved manifest are resolved from the CLI's working directory.
+        monkeypatch.chdir(tmp_path)
+        config_path = tmp_path / "cfg.yaml"
+        config_path.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "returns",
+                }
+            )
+        )
+    
+        missing_prev_output = tmp_path / prev_output_path
+        assert not missing_prev_output.exists()
+    
+        read_calls = []
+    
+        def _unexpected_read_excel(path, *, sheet_name):
+            read_calls.append((path, sheet_name))
+            raise FileNotFoundError("previous workbook does not exist")
+    
+        monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
+        prev_manifest = {
+            "cli_args": {"output": prev_output_path if relative_output else str(missing_prev_output)},
+            "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
+            "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
+        }
+        prev_manifest_path = tmp_path / "manifest.json"
+        prev_manifest_path.write_text(json.dumps(prev_manifest))
+    
+        captured: dict[str, object] = {}
+        _stub_sweep_packet_cli(monkeypatch, tmp_path, captured)
+    
+        repo_root = Path(__file__).resolve().parents[1]
+        idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+        out_file = tmp_path / "sweep.xlsx"
+    
+        main(
+            [
+                "--config",
+                str(config_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--prev-manifest",
+                str(prev_manifest_path),
+                "--packet",
+            ]
+        )
+    
+        assert not missing_prev_output.exists()
+&gt;       assert read_calls == [], "missing previous output must be skipped before workbook loading"
+E       AssertionError: missing previous output must be skipped before workbook loading
+E       assert [('/private/v...', 'Summary')] == []
+E         
+E         Left contains one more item: ('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary0/missing-prev.xlsx', 'Summary')
+E         Use -v to get more diff
+
+/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-proof-20261011T0320Z/tests/test_cli_packet_diff.py:443: AssertionError</failure></testcase><testcase classname="tests.test_cli_packet_diff" name="test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-parent]" time="0.037"><failure message="AssertionError: missing previous output must be skipped before workbook loading&#10;assert [('/private/v...', 'Summary')] == []&#10;  &#10;  Left contains one more item: ('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary1/missing-directory/prev.xlsx', 'Summary')&#10;  Use -v to get more diff">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x114c782f0&gt;
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary1')
+prev_output_path = 'missing-directory/prev.xlsx', relative_output = False
+
+    @pytest.mark.parametrize(
+        "prev_output_path",
+        ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
+        ids=["missing-file", "missing-parent"],
+    )
+    @pytest.mark.parametrize("relative_output", [False, True], ids=["absolute", "relative"])
+    def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
+        monkeypatch, tmp_path, prev_output_path, relative_output
+    ):
+        # Relative output paths in a saved manifest are resolved from the CLI's working directory.
+        monkeypatch.chdir(tmp_path)
+        config_path = tmp_path / "cfg.yaml"
+        config_path.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "returns",
+                }
+            )
+        )
+    
+        missing_prev_output = tmp_path / prev_output_path
+        assert not missing_prev_output.exists()
+    
+        read_calls = []
+    
+        def _unexpected_read_excel(path, *, sheet_name):
+            read_calls.append((path, sheet_name))
+            raise FileNotFoundError("previous workbook does not exist")
+    
+        monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
+        prev_manifest = {
+            "cli_args": {"output": prev_output_path if relative_output else str(missing_prev_output)},
+            "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
+            "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
+        }
+        prev_manifest_path = tmp_path / "manifest.json"
+        prev_manifest_path.write_text(json.dumps(prev_manifest))
+    
+        captured: dict[str, object] = {}
+        _stub_sweep_packet_cli(monkeypatch, tmp_path, captured)
+    
+        repo_root = Path(__file__).resolve().parents[1]
+        idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+        out_file = tmp_path / "sweep.xlsx"
+    
+        main(
+            [
+                "--config",
+                str(config_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--prev-manifest",
+                str(prev_manifest_path),
+                "--packet",
+            ]
+        )
+    
+        assert not missing_prev_output.exists()
+&gt;       assert read_calls == [], "missing previous output must be skipped before workbook loading"
+E       AssertionError: missing previous output must be skipped before workbook loading
+E       assert [('/private/v...', 'Summary')] == []
+E         
+E         Left contains one more item: ('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary1/missing-directory/prev.xlsx', 'Summary')
+E         Use -v to get more diff
+
+/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-proof-20261011T0320Z/tests/test_cli_packet_diff.py:443: AssertionError</failure></testcase><testcase classname="tests.test_cli_packet_diff" name="test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-file]" time="0.036"><failure message="AssertionError: missing previous output must be skipped before workbook loading&#10;assert [('missing-pr...', 'Summary')] == []&#10;  &#10;  Left contains one more item: ('missing-prev.xlsx', 'Summary')&#10;  Use -v to get more diff">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x114b942c0&gt;
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary2')
+prev_output_path = 'missing-prev.xlsx', relative_output = True
+
+    @pytest.mark.parametrize(
+        "prev_output_path",
+        ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
+        ids=["missing-file", "missing-parent"],
+    )
+    @pytest.mark.parametrize("relative_output", [False, True], ids=["absolute", "relative"])
+    def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
+        monkeypatch, tmp_path, prev_output_path, relative_output
+    ):
+        # Relative output paths in a saved manifest are resolved from the CLI's working directory.
+        monkeypatch.chdir(tmp_path)
+        config_path = tmp_path / "cfg.yaml"
+        config_path.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "returns",
+                }
+            )
+        )
+    
+        missing_prev_output = tmp_path / prev_output_path
+        assert not missing_prev_output.exists()
+    
+        read_calls = []
+    
+        def _unexpected_read_excel(path, *, sheet_name):
+            read_calls.append((path, sheet_name))
+            raise FileNotFoundError("previous workbook does not exist")
+    
+        monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
+        prev_manifest = {
+            "cli_args": {"output": prev_output_path if relative_output else str(missing_prev_output)},
+            "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
+            "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
+        }
+        prev_manifest_path = tmp_path / "manifest.json"
+        prev_manifest_path.write_text(json.dumps(prev_manifest))
+    
+        captured: dict[str, object] = {}
+        _stub_sweep_packet_cli(monkeypatch, tmp_path, captured)
+    
+        repo_root = Path(__file__).resolve().parents[1]
+        idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+        out_file = tmp_path / "sweep.xlsx"
+    
+        main(
+            [
+                "--config",
+                str(config_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--prev-manifest",
+                str(prev_manifest_path),
+                "--packet",
+            ]
+        )
+    
+        assert not missing_prev_output.exists()
+&gt;       assert read_calls == [], "missing previous output must be skipped before workbook loading"
+E       AssertionError: missing previous output must be skipped before workbook loading
+E       assert [('missing-pr...', 'Summary')] == []
+E         
+E         Left contains one more item: ('missing-prev.xlsx', 'Summary')
+E         Use -v to get more diff
+
+/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-proof-20261011T0320Z/tests/test_cli_packet_diff.py:443: AssertionError</failure></testcase><testcase classname="tests.test_cli_packet_diff" name="test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-parent]" time="0.036"><failure message="AssertionError: missing previous output must be skipped before workbook loading&#10;assert [('missing-di...', 'Summary')] == []&#10;  &#10;  Left contains one more item: ('missing-directory/prev.xlsx', 'Summary')&#10;  Use -v to get more diff">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x114b96cc0&gt;
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-255/test_sweep_packet_prev_summary3')
+prev_output_path = 'missing-directory/prev.xlsx', relative_output = True
+
+    @pytest.mark.parametrize(
+        "prev_output_path",
+        ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
+        ids=["missing-file", "missing-parent"],
+    )
+    @pytest.mark.parametrize("relative_output", [False, True], ids=["absolute", "relative"])
+    def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
+        monkeypatch, tmp_path, prev_output_path, relative_output
+    ):
+        # Relative output paths in a saved manifest are resolved from the CLI's working directory.
+        monkeypatch.chdir(tmp_path)
+        config_path = tmp_path / "cfg.yaml"
+        config_path.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "returns",
+                }
+            )
+        )
+    
+        missing_prev_output = tmp_path / prev_output_path
+        assert not missing_prev_output.exists()
+    
+        read_calls = []
+    
+        def _unexpected_read_excel(path, *, sheet_name):
+            read_calls.append((path, sheet_name))
+            raise FileNotFoundError("previous workbook does not exist")
+    
+        monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
+        prev_manifest = {
+            "cli_args": {"output": prev_output_path if relative_output else str(missing_prev_output)},
+            "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
+            "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
+        }
+        prev_manifest_path = tmp_path / "manifest.json"
+        prev_manifest_path.write_text(json.dumps(prev_manifest))
+    
+        captured: dict[str, object] = {}
+        _stub_sweep_packet_cli(monkeypatch, tmp_path, captured)
+    
+        repo_root = Path(__file__).resolve().parents[1]
+        idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+        out_file = tmp_path / "sweep.xlsx"
+    
+        main(
+            [
+                "--config",
+                str(config_path),
+                "--index",
+                str(idx_csv),
+                "--output",
+                str(out_file),
+                "--prev-manifest",
+                str(prev_manifest_path),
+                "--packet",
+            ]
+        )
+    
+        assert not missing_prev_output.exists()
+&gt;       assert read_calls == [], "missing previous output must be skipped before workbook loading"
+E       AssertionError: missing previous output must be skipped before workbook loading
+E       assert [('missing-di...', 'Summary')] == []
+E         
+E         Left contains one more item: ('missing-directory/prev.xlsx', 'Summary')
+E         Use -v to get more diff
+
+/Users/teacher/.codex/automations/imi-merge-verify-closer/worktrees/pa2345-proof-20261011T0320Z/tests/test_cli_packet_diff.py:443: AssertionError</failure></testcase></testsuite></testsuites>

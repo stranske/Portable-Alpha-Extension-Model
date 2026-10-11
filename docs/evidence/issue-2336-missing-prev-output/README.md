@@ -1,43 +1,9 @@
-# Issue 2336 — missing previous workbook path fallback
+# Missing previous workbook: bounded evidence for issue 2336
 
-Increment after merged #2344: when `prev_manifest.cli_args.output` points at a path that does not exist, sweep `--packet` must pass an empty `prev_summary_df` (no fabricated metrics) while preserving `prev_manifest`.
+Merged PR #2345 (`6ae00f715a91ad8681fce971aff22a737e6f7a23`, original head `661f3ba3fe9fb92ef56353ba04ab3a795196bca4`) adds four regression cases: absolute/relative paths and missing file/missing parent. Each proves no workbook read occurs, export receives a distinct canonical empty previous summary, current metrics remain intact, and the previous manifest passes through unchanged.
 
-The focused regression now covers both a missing workbook in an existing directory and a workbook whose parent directory is missing. It checks that the path remains absent and `pd.read_excel` is never called. The read stub records calls before raising `FileNotFoundError`, so the assertion also detects an unnecessary read that the CLI's error fallback would otherwise hide.
+The production guard in `pa_core/cli.py` is `if prev_out and Path(prev_out).exists():`. Removing only the existence check produces four failures at the no-read assertion even though the exception fallback still exports successfully. Byte-identical restoration produces four passes. Both packet modules produce 19 passes. Raw captures, exact commands, JUnit, source/caller hashes and restoration results are published here; `manifest.json` binds the files. `replay.py` recreates RED then restored GREEN in a disposable clean checkout using its interpreter. Pass an output directory outside the checkout. It exports a specific Git commit with `git archive` into a private temporary tree and records `snapshot_commit` before mutation; dirty index/worktree bytes are excluded. Caller source and caches are never written, including on SIGTERM. It refuses an existing output directory, bounds pytest to 300 seconds, and requires exactly all four named failures in RED and all four named passes in GREEN. Timeouts retain incomplete controls and cannot produce a successful receipt. Run `python docs/evidence/issue-2336-missing-prev-output/replay.py --output /new/evidence/path`. Fresh private-tree replay captures and 15 passing isolation/validation tests are in `isolated-replay/`; tests cover existing-output preservation, timeout, KeyboardInterrupt, SIGTERM, and malformed/missing/partial JUnit outcomes.
 
-The follow-up also compares the previous summary against a canonical empty DataFrame and checks that the current summary still contains the sweep's actual metrics and combination label. The two frames must be distinct objects. The prior manifest contains different configuration values and nested RNG metadata, all of which must reach export unchanged despite the missing workbook.
+The original provider report https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2345#issuecomment-6104630782 remains CONCERNS/CONCERNS. This follow-up repairs its missing raw four-case evidence and obsolete process prose; it is not a provider PASS. Earlier full-suite coverage/ranking and four reader-error mutations remain in [the original evidence directory](../issue-2336-previous-summary/README.md), including its hash-bound archive. Those measurements belong to the earlier increment and are not a new full-suite measurement for #2345. Issue #2336 remains open below its broader coverage target. Simulation/export rendering are stubbed; this is CLI contract evidence, not installed Excel or rendered Office acceptance.
 
-## Verified tasks
-
-- [x] Add a focused sweep `--packet` test for manifests whose `cli_args.output` path is missing on disk.
-- [x] Assert export receives an empty `prev_summary_df` with no rows or columns while passing through `prev_manifest`.
-- [x] Document the increment in this evidence directory.
-- [x] Run the focused acceptance test.
-- [x] Hosted Gate / keepalive on this PR: recorded complete in the task prompt and the live PR body; not rerun locally.
-
-## Task reconciliation follow-up
-
-Reviewed `ca0931c0` and `9d036635` and reran the focused acceptance test before extending it: **2 passed**. Both commits changed only this README and the packet test; the reported 35 changed files include untracked runtime artifacts. The three implementation tasks above were already complete, but the live PR body had plain summary bullets and an unchecked acceptance command.
-
-The GitHub connector confirmed PR #2345 is open and ready for review (`draft=false`), with Hosted Gate / keepalive already checked in its body. Direct access through `gh` is unavailable. Updating the PR body through the connector was rejected because approval is required and this run's approval policy is `never`. A reconciled replacement body is prepared at `/tmp/issue-2336-pr-2345-body.md`; the remote checkboxes have not been changed.
-
-After strengthening the export assertions, verification again passed: the focused command with `-m 'not slow'` reports **2 passed**, and both packet test modules report **17 passed**. Black formatted the changed Python file and its repository-wide check passed for **489 files**, using `BLACK_NUM_WORKERS=1` and the scheduling-only helper at `/tmp/issue-2336-black-runtime/sitecustomize.py`. The helper is outside the repository and does not alter formatting checks.
-
-## Validation
-
-- Focused: `python -m pytest tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing -q` — **2 passed**.
-- Packet regression tests: `python -m pytest tests/test_cli_packet_diff.py tests/test_export_packet.py -q -m 'not slow'` — **17 passed**.
-- Formatting: `black --line-length 100 tests/test_cli_packet_diff.py`, then `black --check --line-length 100 --exclude '(\.workflows-lib|node_modules)' .` — **489 files unchanged**, exit code 0. The sandbox blocks the default multiprocessing socket and the single-worker event loop stalls; the successful check used `BLACK_NUM_WORKERS=1` and a temporary `/tmp` startup helper that adds an event-loop heartbeat. The helper changes scheduling only and is not part of the repository.
-- Deliberate mutation: temporarily replace `if prev_out and Path(prev_out).exists():` with `if prev_out:` in `pa_core/cli.py`. Both cases fail at the assertion that no workbook reads occur (**2 failed**, pytest exit code 1). The exception fallback still allows packet export, which is why the read-call assertion is necessary. Restore the production source and rerun the focused acceptance command: **2 passed**. No production mutation is retained.
-
-Hosted CI is authoritative for full-suite and coverage deltas on this PR.
-
-The repository's `.git` directory is mounted read-only in this run, so updating its index or branch is blocked. The tested changes remain in the working tree; a commit and portable patch are prepared with isolated Git metadata under `/tmp` for automation handoff.
-
-## Relative output path increment
-
-The focused regression now parametrizes absolute and relative manifest output paths across both missing-file and missing-parent cases. Each invocation runs from the temporary directory so relative paths refer to the same absent workbook as their absolute counterparts. All four cases verify that workbook loading is skipped, export receives a canonical empty prior summary, current metrics remain intact, and the previous manifest (including its original path spelling) reaches export unchanged.
-
-- Focused acceptance command with `-m 'not slow'`: **4 passed**.
-- Packet regression modules with `-m 'not slow'`: **19 passed**.
-- Black formatted the changed test and the required repository-wide check passed: **489 files unchanged**, exit code 0. The check used `BLACK_NUM_WORKERS=1 PYTHONPATH=/tmp/issue-2336-relative-black-runtime` with a temporary `sitecustomize.py` that adds an asyncio heartbeat. Formatting rules and file selection were unchanged.
-- The GitHub connector confirmed [PR #2345](https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2345) remains open and ready for review (`draft=false`). Its acceptance checkboxes are already checked; no remote PR changes were needed.
+The `pinned-replay/` capture binds snapshot `3632a0fb5762b9c2eeb7535277c5858883471d6b` and the unchanged production/caller hashes. Its fresh four-case RED/GREEN proof and 16 passing isolation/JUnit tests include a real dirty-index plus dirty-worktree Git fixture that exports only committed bytes. Earlier private-copy captures are retained as historical evidence, not current snapshot provenance.

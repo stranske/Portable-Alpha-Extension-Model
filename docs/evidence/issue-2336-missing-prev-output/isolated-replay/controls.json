@@ -1,0 +1,33 @@
+{
+  "source_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+  "test_sha256": "b04a7cb8dde17884035226ed4b0b9b8fefd46780188a0ffacf95b6e9354162d0",
+  "cases": [
+    {
+      "mutant_sha256": "52b4cb34dfdf61e3a13d99fe5f5d9c8c1cdba0d68a249fa929b94f59ef734f34",
+      "phases": [
+        {
+          "phase": "red",
+          "exit": 1,
+          "nodes": [
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-file]",
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-parent]",
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-file]",
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-parent]"
+          ]
+        },
+        {
+          "phase": "green",
+          "exit": 0,
+          "nodes": [
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-file]",
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[absolute-missing-parent]",
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-file]",
+            "test_sweep_packet_prev_summary_empty_when_prev_output_missing[relative-missing-parent]"
+          ]
+        }
+      ]
+    }
+  ],
+  "complete": true,
+  "restored_sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+}

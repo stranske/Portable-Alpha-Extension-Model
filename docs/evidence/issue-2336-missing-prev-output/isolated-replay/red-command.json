@@ -1,0 +1,10 @@
+[
+  "/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python",
+  "-m",
+  "pytest",
+  "tests/test_cli_packet_diff.py::test_sweep_packet_prev_summary_empty_when_prev_output_missing",
+  "-q",
+  "-m",
+  "not slow",
+  "--junitxml=/Users/teacher/.codex/automations/imi-merge-verify-closer/work/20261011T0335Z/isolated-replay/red.xml"
+]
