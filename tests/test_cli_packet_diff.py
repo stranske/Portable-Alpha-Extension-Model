@@ -377,7 +377,14 @@ def _stub_sweep_packet_cli(monkeypatch, tmp_path, captured):
     )
 
 
-def test_sweep_packet_prev_summary_empty_when_prev_output_missing(monkeypatch, tmp_path):
+@pytest.mark.parametrize(
+    "prev_output_path",
+    ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
+    ids=["missing-file", "missing-parent"],
+)
+def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
+    monkeypatch, tmp_path, prev_output_path
+):
     config_path = tmp_path / "cfg.yaml"
     config_path.write_text(
         yaml.safe_dump(
@@ -390,7 +397,16 @@ def test_sweep_packet_prev_summary_empty_when_prev_output_missing(monkeypatch, t
         )
     )
 
-    missing_prev_output = tmp_path / "missing-prev.xlsx"
+    missing_prev_output = tmp_path / prev_output_path
+    assert not missing_prev_output.exists()
+
+    read_calls = []
+
+    def _unexpected_read_excel(path, *, sheet_name):
+        read_calls.append((path, sheet_name))
+        raise FileNotFoundError("previous workbook does not exist")
+
+    monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
     prev_manifest = {
         "cli_args": {"output": str(missing_prev_output)},
         "config": {"N_SIMULATIONS": 1},
@@ -420,6 +436,7 @@ def test_sweep_packet_prev_summary_empty_when_prev_output_missing(monkeypatch, t
     )
 
     assert not missing_prev_output.exists()
+    assert read_calls == [], "missing previous output must be skipped before workbook loading"
     assert "prev_summary_df" in captured
     assert isinstance(captured["prev_summary_df"], pd.DataFrame)
     assert captured["prev_summary_df"].empty
