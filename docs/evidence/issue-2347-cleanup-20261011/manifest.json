@@ -1,0 +1,72 @@
+{
+  "baseline": "747ae47e86a51289ab319762a39dcf778b03fe63",
+  "red_exit": 1,
+  "red_failed": 6,
+  "green_exit": 0,
+  "green_passed": 22,
+  "baseline_driver_sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671",
+  "current_inputs": [
+    {
+      "path": "docs/evidence/issue-2336-cli-snapshots/replay.py",
+      "bytes": 7785,
+      "sha256": "2de5c825b2faf8a88120838c530ae2cf0648c84f4ee0502e46ea3e22f86fca73"
+    },
+    {
+      "path": "tests/test_cli_mutation_replay_isolation.py",
+      "bytes": 12603,
+      "sha256": "83cf57c7e1c2ef76c02fd38a295aa18ef0bb24135b2ed17e7c5b5a406281ed49"
+    },
+    {
+      "path": "pa_core/cli.py",
+      "bytes": 93209,
+      "sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+    },
+    {
+      "path": "tests/test_cli_observability_boundaries.py",
+      "bytes": 11156,
+      "sha256": "276c3229c5eaab92436b9627d4d49eeeff7cc45cddbaf1191afec7b4474b9f24"
+    }
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1746,
+      "sha256": "1a5cf0bd7caee9cde4f762c62a298db38f5130782e309cb2ef823b3c9c29aacf"
+    },
+    {
+      "path": "baseline-replay.py.gz",
+      "bytes": 2205,
+      "sha256": "c92703e5387aca617ae14eb882cb4744478926ae027bd5052abe151a012c55b4",
+      "decoded_bytes": 6607,
+      "decoded_sha256": "06c612a5c651e6aec50862e485e543bdb66ea47f3ab5b76c11b0559319499671"
+    },
+    {
+      "path": "pa-cleanup-green.log.gz",
+      "bytes": 52,
+      "sha256": "dd9aa76acfdd0c12ab226aed4f764c1892b5bd369d0caaed1ac13d99c5b20cdc",
+      "decoded_bytes": 99,
+      "decoded_sha256": "4963c9e0434c0187ef032c37d8855c9e850ac2e483d527809155fb55386a03e9"
+    },
+    {
+      "path": "pa-cleanup-green.xml.gz",
+      "bytes": 603,
+      "sha256": "07d5cd248abf252538554df82010f401f1b91e790ea0947a5434a17650aa7d8e",
+      "decoded_bytes": 3765,
+      "decoded_sha256": "91556d4f737460617dc93e45070c452f59273f496cdb73594296758a4db542e4"
+    },
+    {
+      "path": "pa-cleanup-red.log.gz",
+      "bytes": 2239,
+      "sha256": "c1df37a8d96fe819ece3863aa781fa54c33a93a7d38dbe76b2d08f20068c5eba",
+      "decoded_bytes": 29185,
+      "decoded_sha256": "42074ecb40a4fdeac46491ac2eee1386f79b1f6d15d0562d3bc3a81518c86da5"
+    },
+    {
+      "path": "pa-cleanup-red.xml.gz",
+      "bytes": 2344,
+      "sha256": "96da768bc5fc140c460537ff42d6113788b4d91e26d856cec82a232c6a67db3e",
+      "decoded_bytes": 29752,
+      "decoded_sha256": "63f5d6212942ff6623ea8b718466b419e7c0279e44bee29548c5038f5e3ec704"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "number": 2342,
+  "state": "closed",
+  "merged": true,
+  "isDraft": false,
+  "head_sha": "58e7978355bc67ec1406acf7b735a7dc27201c2f",
+  "merge_commit_sha": "c569018fda1433c0696febbb498ff2b522616fac",
+  "supplemental_change_in_merged_pr": false,
+  "pr_body_update_applied": false
+}
