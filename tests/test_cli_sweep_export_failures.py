@@ -130,7 +130,9 @@ def test_sweep_packet_export_failure_is_truthful(
     assert failure_lines == [f"❌ {diagnostic}: {error}"]
     guidance_lines = [line for line in messages if line.startswith("💡 ")]
     assert guidance_lines == ([] if guidance is None else [f"💡 {guidance}"])
-    assert "Parameter sweep export packet created" not in captured.out + captured.err
+    # Both the sweep-specific and shared packet success messages are false
+    # after an export failure, regardless of which output stream carries them.
+    assert "export packet created" not in (captured.out + captured.err).casefold()
     assert output.read_bytes() == workbook_before_failure[0] == b"sweep output"
     manifest = json.loads(manifest_path.read_text())
     # Finalization may update timing, warnings and cost. All other contents,

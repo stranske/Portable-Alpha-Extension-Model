@@ -234,3 +234,32 @@ update because it requires approval under this run's `never` approval policy.
 PR #2348 was verified open and ready for review. The full-suite comparisons remain
 historical evidence; broader measured coverage remains **83.5440%, below 90%**.
 These local checks establish neither hosted parity nor authorization to merge.
+
+## Generic packet success announcements
+
+The same six cases now reject both sweep-specific and generic `Export packet
+created` announcements on either output stream, regardless of capitalization.
+Previously, the shared packet success message could accompany the correct failure
+diagnostic without failing the regression test. Production remains unchanged.
+
+`success-validation.tar.gz` and `success-manifest.json` bind the current test,
+focused JUnit, targeted coverage, mutation controls and formatting receipts.
+All **15** focused cases pass. Two private production mutants emit the generic
+success message on stdout or stderr: each passes the previous six tests, fails
+all six strengthened cases at the success assertion, and passes all six after
+byte-identical restoration. Extract `verify_sweep_success.py` from that archive
+and run it from the repository root with `--output /tmp/new-sweep-success-proof`.
+The previous-test control is pinned to `22e54a14`.
+
+The original handler replay also returns six exact-node failures and six restored
+passes. Output reuse is refused with caller files and receipts preserved.
+Targeted CLI coverage remains **361/1107 (32.61%)**, including all ten handler
+lines; full Black checks **493** workspace files, and focused Ruff passes.
+Historical full-suite comparisons remain bound to their original snapshots.
+
+Recent commits and all six preceding archive manifests were reconciled against
+raw evidence. All six acceptance checkboxes are verified locally. The connector
+rejected the PR-body update, blocker comment and `needs-human` label because it
+requires approval under this run's `never` policy. The reconciled body is archived
+for an authorized writer. Broader measured source coverage remains **83.5440%,
+below 90%**; local evidence establishes neither hosted parity nor merge authorization.
