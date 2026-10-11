@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 import sys
 import types
 from pathlib import Path
@@ -47,8 +48,9 @@ from pa_core.cli import main
     ids=["runtime", "import", "module", "value", "type", "key"],
 )
 def test_sweep_packet_export_failure_is_truthful(
-    monkeypatch, tmp_path, capsys, error_type, diagnostic, guidance
+    monkeypatch, tmp_path, capsys, caplog, error_type, diagnostic, guidance
 ):
+    caplog.set_level(logging.INFO, logger="pa_core.cli")
     monkeypatch.chdir(tmp_path)
     config = tmp_path / "config.yaml"
     config.write_text(
@@ -130,6 +132,14 @@ def test_sweep_packet_export_failure_is_truthful(
     assert failure_lines == [f"❌ {diagnostic}: {error}"]
     guidance_lines = [line for line in messages if line.startswith("💡 ")]
     assert guidance_lines == ([] if guidance is None else [f"💡 {guidance}"])
+    # Dependency and data failures are also logged for users collecting CLI
+    # diagnostics. A truthful console message must not hide an incorrect log.
+    export_logs = [
+        record.getMessage()
+        for record in caplog.records
+        if "export packet" in record.getMessage().casefold()
+    ]
+    assert export_logs == ([] if error_type is RuntimeError else [f"{diagnostic}: {error}"])
     # Both the sweep-specific and shared packet success messages are false
     # after an export failure, regardless of which output stream carries them.
     assert "export packet created" not in (captured.out + captured.err).casefold()

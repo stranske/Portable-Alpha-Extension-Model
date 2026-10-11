@@ -263,3 +263,36 @@ rejected the PR-body update, blocker comment and `needs-human` label because it
 requires approval under this run's `never` policy. The reconciled body is archived
 for an authorized writer. Broader measured source coverage remains **83.5440%,
 below 90%**; local evidence establishes neither hosted parity nor merge authorization.
+
+## Logged diagnostic validation
+
+The same six cases now capture CLI logs through INFO level and verify the packet
+diagnostics there, including rejection of contradictory errors and false success
+logs. Console diagnostics, single-attempt, rendering, workbook and manifest
+assertions remain in place. Production remains unchanged.
+
+`log-validation.tar.gz` and `log-manifest.json` bind the current test, focused
+JUnit, targeted coverage, mutation controls, formatting results and reconciled
+PR body. All **15** focused cases pass. Two private mutants add a contradictory
+error log or an INFO success log to the three handlers. Each passes all six
+previous cases, fails all six strengthened cases at the log assertion, and passes
+all six after byte-identical restoration. Reproduce from the repository root:
+
+```sh
+tar -xzf docs/evidence/issue-2336-sweep-export-failures/log-validation.tar.gz -C /tmp verify_sweep_logs.py
+python /tmp/verify_sweep_logs.py --output /tmp/new-sweep-log-proof
+```
+
+The original handler replay also yields six exact-node failures and six restored
+passes; existing output is refused with caller files and evidence preserved.
+Targeted CLI coverage remains **361/1107 (32.61%)**, covering all ten handler
+lines. Full Black checks **493** workspace files; focused Ruff passes.
+
+Recent commits and all seven preceding archives were reconciled, verifying
+**480** archive/member/input SHA256 bindings, the raw historical full-suite and
+coverage comparison, and the latest archived handler mutations. All six acceptance
+checkboxes are supported by this evidence. The GitHub connector rejected the
+PR-body update, blocker comment and `needs-human` label because it requires
+approval under this run's `never` policy. The reconciled body is archived for an
+authorized writer. Historical broader source coverage remains **83.5440%, below
+90%**; these local checks establish neither hosted parity nor merge authorization.
