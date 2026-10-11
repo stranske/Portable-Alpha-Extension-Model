@@ -335,3 +335,128 @@ def test_stress_delta_written_to_output_workbook(monkeypatch, tmp_path):
     assert "Agent" in stressed_sheet.columns
     assert "Driver" in base_breaches.columns
     assert "Driver" in stressed_breaches.columns
+
+
+def _stub_sweep_packet_cli(monkeypatch, tmp_path, captured):
+    """Shared stubs for sweep --packet CLI tests."""
+
+    def _stub_run_parameter_sweep(*_args, **_kwargs):
+        summary = pd.DataFrame(
+            {
+                "Agent": ["Base"],
+                "terminal_AnnReturn": [0.06],
+                "monthly_AnnVol": [0.11],
+                "terminal_ShortfallProb": [0.08],
+            }
+        )
+        return [{"summary": summary, "combination_id": 1}]
+
+    def _stub_export_sweep_results(_results, filename="Sweep.xlsx", **_kwargs):
+        Path(filename).write_text("stub")
+
+    def _stub_create_export_packet(**kwargs):
+        captured.update(kwargs)
+        return (str(tmp_path / "out.pptx"), str(tmp_path / "out.xlsx"))
+
+    viz_stub = types.ModuleType("pa_core.viz")
+    viz_stub.risk_return = types.SimpleNamespace(make=lambda _df: object())
+    viz_stub.sharpe_ladder = types.SimpleNamespace(make=lambda _df: object())
+    viz_stub.theme = types.SimpleNamespace(DEFAULT_SHORTFALL_PROB=0.1)
+    viz_utils_stub = types.ModuleType("pa_core.viz.utils")
+    viz_utils_stub.safe_to_numpy = lambda x: x
+    monkeypatch.setitem(sys.modules, "pa_core.viz", viz_stub)
+    monkeypatch.setitem(sys.modules, "pa_core.viz.utils", viz_utils_stub)
+    monkeypatch.setattr("pa_core.sweep.run_parameter_sweep", _stub_run_parameter_sweep)
+    monkeypatch.setattr(
+        "pa_core.reporting.sweep_excel.export_sweep_results",
+        _stub_export_sweep_results,
+    )
+    monkeypatch.setattr(
+        "pa_core.reporting.export_packet.create_export_packet",
+        _stub_create_export_packet,
+    )
+
+
+@pytest.mark.parametrize(
+    "prev_output_path",
+    ["missing-prev.xlsx", "missing-directory/prev.xlsx"],
+    ids=["missing-file", "missing-parent"],
+)
+@pytest.mark.parametrize("relative_output", [False, True], ids=["absolute", "relative"])
+def test_sweep_packet_prev_summary_empty_when_prev_output_missing(
+    monkeypatch, tmp_path, prev_output_path, relative_output
+):
+    # Relative output paths in a saved manifest are resolved from the CLI's working directory.
+    monkeypatch.chdir(tmp_path)
+    config_path = tmp_path / "cfg.yaml"
+    config_path.write_text(
+        yaml.safe_dump(
+            {
+                "N_SIMULATIONS": 1,
+                "N_MONTHS": 1,
+                "financing_mode": "broadcast",
+                "analysis_mode": "returns",
+            }
+        )
+    )
+
+    missing_prev_output = tmp_path / prev_output_path
+    assert not missing_prev_output.exists()
+
+    read_calls = []
+
+    def _unexpected_read_excel(path, *, sheet_name):
+        read_calls.append((path, sheet_name))
+        raise FileNotFoundError("previous workbook does not exist")
+
+    monkeypatch.setattr(pd, "read_excel", _unexpected_read_excel)
+    prev_manifest = {
+        "cli_args": {"output": prev_output_path if relative_output else str(missing_prev_output)},
+        "config": {"N_SIMULATIONS": 2, "mu_H_annual": 0.05},
+        "rng": {"seed": 42, "streams": {"market": "previous-market-stream"}},
+    }
+    prev_manifest_path = tmp_path / "manifest.json"
+    prev_manifest_path.write_text(json.dumps(prev_manifest))
+
+    captured: dict[str, object] = {}
+    _stub_sweep_packet_cli(monkeypatch, tmp_path, captured)
+
+    repo_root = Path(__file__).resolve().parents[1]
+    idx_csv = repo_root / "data" / "sp500tr_fred_divyield.csv"
+    out_file = tmp_path / "sweep.xlsx"
+
+    main(
+        [
+            "--config",
+            str(config_path),
+            "--index",
+            str(idx_csv),
+            "--output",
+            str(out_file),
+            "--prev-manifest",
+            str(prev_manifest_path),
+            "--packet",
+        ]
+    )
+
+    assert not missing_prev_output.exists()
+    assert read_calls == [], "missing previous output must be skipped before workbook loading"
+    assert "prev_summary_df" in captured
+    assert isinstance(captured["prev_summary_df"], pd.DataFrame)
+    assert captured["prev_summary_df"].empty
+    assert captured["prev_summary_df"].columns.empty
+    pd.testing.assert_frame_equal(captured["prev_summary_df"], pd.DataFrame())
+    # Missing prior metrics must not clear or reuse the current sweep summary.
+    pd.testing.assert_frame_equal(
+        captured["summary_df"],
+        pd.DataFrame(
+            {
+                "Agent": ["Base"],
+                "terminal_AnnReturn": [0.06],
+                "monthly_AnnVol": [0.11],
+                "terminal_ShortfallProb": [0.08],
+            }
+        ).assign(Combination="Run1"),
+    )
+    assert captured["prev_summary_df"] is not captured["summary_df"]
+    assert captured["prev_manifest"] == prev_manifest
