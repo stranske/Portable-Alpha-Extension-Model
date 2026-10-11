@@ -4,7 +4,8 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
-import shutil
+import io
+import tarfile
 import subprocess
 import sys
 import tempfile
@@ -46,16 +47,24 @@ def main():
     # The caller's source and caches are never written, including on SIGTERM.
     with tempfile.TemporaryDirectory(prefix="missing-workbook-replay-") as temporary:
         private = Path(temporary) / "checkout"
-        tracked = subprocess.check_output(["git", "ls-files", "-z"], cwd=root, timeout=30)
-        for raw in filter(None, tracked.split(b"\0")):
-            relative = Path(raw.decode("utf-8"))
-            target = private / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(root / relative, target)
-        replay(private, output, args.timeout)
+        revision = snapshot(root, private)
+        replay(private, output, args.timeout, revision)
 
 
-def replay(root, output, timeout):
+def snapshot(root, private):
+    revision = (
+        subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, timeout=30).decode().strip()
+    )
+    archive = subprocess.check_output(
+        ["git", "archive", "--format=tar", revision], cwd=root, timeout=30
+    )
+    private.mkdir(parents=True)
+    with tarfile.open(fileobj=io.BytesIO(archive)) as tree:
+        tree.extractall(private, filter="data")
+    return revision
+
+
+def replay(root, output, timeout, revision):
     source = root / "pa_core/cli.py"
     caller = root / "tests/test_cli_packet_diff.py"
     before = source.read_bytes()
@@ -70,6 +79,7 @@ def replay(root, output, timeout):
         "test_sha256": digest(caller_before),
         "cases": [case],
         "complete": False,
+        "snapshot_commit": revision,
     }
     try:
         for phase, content, expected in [("red", mutant, 1), ("green", before, 0)]:

@@ -1,6 +1,8 @@
 """Mutation replay must never write the caller's source, including on interruption."""
 
 import importlib.util
+import io
+import tarfile
 import json
 import os
 import signal
@@ -34,6 +36,14 @@ def checkout(tmp_path):
     cache.parent.mkdir(parents=True)
     cache.write_bytes(b"existing caller cache")
     return active, files
+
+
+def fixture_archive(active, files):
+    data = io.BytesIO()
+    with tarfile.open(fileobj=data, mode="w") as archive:
+        for relative in files:
+            archive.add(active / relative, arcname=str(relative))
+    return data.getvalue()
 
 
 def checkout_bytes(active):
@@ -93,7 +103,9 @@ def test_phase_failure_mutates_only_private_tree_and_preserves_active_source(
     monkeypatch.setattr(
         module.subprocess,
         "check_output",
-        lambda *a, **kw: b"\0".join(str(p).encode() for p in files),
+        lambda argv, **kw: (
+            b"fixture-commit" if argv[1] == "rev-parse" else fixture_archive(active, files)
+        ),
     )
     private = []
     mutant_hashes = []
@@ -141,7 +153,7 @@ def test_sigterm_after_mutation_leaves_active_source_unchanged(checkout, tmp_pat
         "module = importlib.util.module_from_spec(spec)\n"
         "spec.loader.exec_module(module)\n"
         f"module.__file__ = {str(active / REPLAY)!r}\n"
-        f"module.subprocess.check_output = lambda *a, **kw: {b'pa_core/cli.py' + bytes([0]) + b'tests/test_cli_packet_diff.py'!r}\n"
+        f"module.subprocess.check_output = lambda argv, **kw: b'fixture-commit' if argv[1] == 'rev-parse' else {fixture_archive(active, files)!r}\n"
         "def interrupt(argv, *, cwd, **kwargs):\n"
         f"    Path({str(marker)!r}).write_text(str(cwd))\n"
         "    os.kill(os.getpid(), signal.SIGTERM)\n"
@@ -183,3 +195,29 @@ def test_junit_rejects_incomplete_or_wrong_outcomes(tmp_path, defect):
     ET.ElementTree(suite).write(path)
     with pytest.raises(RuntimeError):
         module.validate_junit(path, "red")
+
+
+def test_snapshot_uses_pinned_commit_with_dirty_index_and_worktree(tmp_path):
+    _, module = load_driver()
+    root = tmp_path / "repo"
+    root.mkdir()
+
+    def git(*args):
+        return subprocess.check_output(["git", *args], cwd=root, stderr=subprocess.STDOUT)
+
+    git("init")
+    git("config", "user.email", "test@example.invalid")
+    git("config", "user.name", "Isolation test")
+    source = root / "source.txt"
+    source.write_text("committed")
+    git("add", "source.txt")
+    git("-c", "core.hooksPath=/dev/null", "commit", "-m", "fixture")
+    revision = git("rev-parse", "HEAD").decode().strip()
+    source.write_text("dirty index")
+    git("add", "source.txt")
+    source.write_text("dirty worktree")
+    private = tmp_path / "private"
+    assert module.snapshot(root, private) == revision
+    assert (private / "source.txt").read_text() == "committed"
+    assert source.read_text() == "dirty worktree"
+    assert git("show", ":source.txt") == b"dirty index"
