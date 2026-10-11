@@ -200,3 +200,37 @@ PR body was rejected because the connector requires approval and this run's poli
 is `never`; the archived reconciled body records the remaining tracking action.
 Historical broader source coverage remains **83.5440%, below 90%**. These local
 checks establish neither hosted-environment parity nor authorization to merge.
+
+## Diagnostics on both output streams
+
+The existing six cases now check diagnostic and remediation lines across both
+stdout and stderr. Previously, a correct stdout message could conceal contradictory
+stderr guidance or a second failure diagnostic. Production remains unchanged.
+
+`stderr-validation.tar.gz` and `stderr-manifest.json` bind the test snapshot,
+focused JUnit, targeted coverage, mutation receipts and formatting output.
+All **15** focused cases pass. The six cases cover **361/1107 CLI statements
+(32.61%, displayed as 33%)**, including all ten handler lines. Full Black passes
+for **493** workspace files using the documented sequential adapter; Ruff and
+`git diff --check` pass.
+
+Two private production mutations add either a conflicting diagnostic or incorrect
+guidance to stderr in each sweep failure handler. Each mutant passes all six
+previous cases, fails all six strengthened cases at the relevant assertion, and
+passes all six cases after byte-identical restoration. The original handler replay
+also yields six exact-node failures and six restored passes. Existing output is
+refused before mutation, preserving receipts and caller bytes. Reproduce the new
+controls from the repository root:
+
+```sh
+tar -xzf docs/evidence/issue-2336-sweep-export-failures/stderr-validation.tar.gz -C /tmp verify_sweep_stderr.py
+python /tmp/verify_sweep_stderr.py --output /tmp/new-sweep-stderr-proof
+```
+
+Commits `943d00cc` through `29ab2016` and all five preceding archive manifests
+were reconciled. All six acceptance checkboxes are supported by the verified
+evidence; the reconciled PR body is archived. The connector rejected the live
+update because it requires approval under this run's `never` approval policy.
+PR #2348 was verified open and ready for review. The full-suite comparisons remain
+historical evidence; broader measured coverage remains **83.5440%, below 90%**.
+These local checks establish neither hosted parity nor authorization to merge.

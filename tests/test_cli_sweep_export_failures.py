@@ -120,15 +120,17 @@ def test_sweep_packet_export_failure_is_truthful(
         ]
     )
     captured = capsys.readouterr()
-    stdout = captured.out
+    # Both streams are visible to users; conflicting stderr diagnostics or
+    # remediation must not pass alongside the expected stdout message.
+    messages = captured.out.splitlines() + captured.err.splitlines()
     assert len(calls) == 1
     assert calls[0]["figs"] == [figure]
     pd.testing.assert_frame_equal(calls[0]["summary_df"][list(summary.columns)], summary)
-    failure_lines = [line for line in stdout.splitlines() if "Export packet failed" in line]
+    failure_lines = [line for line in messages if "Export packet failed" in line]
     assert failure_lines == [f"❌ {diagnostic}: {error}"]
-    guidance_lines = [line for line in stdout.splitlines() if line.startswith("💡 ")]
+    guidance_lines = [line for line in messages if line.startswith("💡 ")]
     assert guidance_lines == ([] if guidance is None else [f"💡 {guidance}"])
-    assert "Parameter sweep export packet created" not in stdout + captured.err
+    assert "Parameter sweep export packet created" not in captured.out + captured.err
     assert output.read_bytes() == workbook_before_failure[0] == b"sweep output"
     manifest = json.loads(manifest_path.read_text())
     # Finalization may update timing, warnings and cost. All other contents,
