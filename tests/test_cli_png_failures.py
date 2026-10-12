@@ -146,6 +146,7 @@ def test_single_run_png_failure_preserves_results(
     assert [line for line in lines if line.startswith("💡 ")] == (
         [] if guidance is None else [f"💡 {guidance}"]
     )
+    assert sum(record.levelno == logging.ERROR for record in caplog.records) == 1
     assert [
         (record.levelno, record.getMessage())
         for record in caplog.records
