@@ -66,10 +66,38 @@ workbook or manifest assertion. Every restoration matches original production SH
 `validation.tar.gz` retains 51 raw files: complete baseline/candidate console, JUnit and
 coverage JSON; the focused result; all eight mutant source files; 16 exact-node console/JUnit
 pairs; per-phase argv, exits and source hashes; command metadata and source ranking.
-`manifest.json` binds every member's bytes/SHA256 and the current production/test/replay inputs.
+`manifest.json` binds every member's bytes/SHA256 and the production/test/replay inputs at the original implementation head `276f66c1d95e5895f249cb5c75e84756004a64d6`. Those historical hashes are retained; the review repairs below changed the test and replay inputs.
 `comparison.json` records every new node, incumbent outcome comparison and new covered line.
 Earlier evidence directories keep their original execution identities.
 
 Hosted CI, reviews, expected check topology, the seven-minute review floor, guarded merge and
 actual post-merge comparison remain the keepalive/closer lifecycle. This evidence does not
 claim those stages, provider approval, installed deployment or completion of the broader #2336.
+
+## Current review repair and replay
+
+The `d9f63594` review repair added the single-ERROR assertion and strict JUnit validation.
+A fresh replay exposed a validator defect: pytest writes `assert 0 == 1` in the XML
+`message` and places `AssertionError` in the terminal traceback line. Searching only the
+message rejects a real assertion; a substring search also accepts a `ValueError` whose
+message merely mentions `AssertionError`. The corrected validator accepts an explicit
+assertion type or the terminal pytest traceback type. Two regressions invoke real pytest
+in disposable directories: both fail against the old validator and pass after the fix.
+No production CLI code changed.
+
+`current-validation.tar.gz` retains the current eight exact-node production RED/restored
+GREEN pairs, raw validator regression RED/GREEN logs and JUnit, and the complete final
+candidate suite log, JUnit and coverage JSON. `current-manifest.json` binds every member
+and the current production, CLI-test, validator-test and replay inputs.
+`current-comparison.json` compares every old testcase outcome and covered line against
+the original baseline; the original archive and comparison keep their original identity.
+The local SciPy/NumPy failure remains an explicit non-PASS full-suite result. Broader
+#2336, native renderer/Office exports, hosted acceptance and provider disposition remain
+separate from this bounded proof.
+
+Final candidate full suite: **1,674 passed, 1 failed, 1 skipped, 2 deselected**.
+Against the original baseline there are 20 new PASS nodes (eight CLI cases and
+12 validator cases), zero changed/removed old outcomes, unchanged statement/exclusion
+scope and zero covered-line regressions. Production coverage remains
+12,191 / 14,554 statements (83.76391370070084%). The current archive has 49 members
+and four current input bindings. Focused validator/CLI validation reports **20 passed**.

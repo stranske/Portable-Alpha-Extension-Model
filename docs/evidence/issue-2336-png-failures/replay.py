@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -41,7 +42,12 @@ def validate_junit_proof(junit_path, expected_test_name, phase, returncode, case
         valid = (
             returncode == 1
             and len(failures) == 1
-            and "AssertionError" in failures[0].get("message", "")
+            and (
+                failures[0].get("message", "").startswith("AssertionError:")
+                or re.search(
+                    r"^.+:\d+: AssertionError(?::|$)", failures[0].text or "", re.MULTILINE
+                )
+            )
         )
     else:
         valid = returncode == 0 and not failures

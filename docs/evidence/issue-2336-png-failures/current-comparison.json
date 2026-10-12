@@ -1,0 +1,120 @@
+{
+  "baseline_revision": "f9853be5b782d0ddc63d5bd1505cd3e686f87d80",
+  "pre_repair_head": "d9f635944a50e0379b44a7296b2554084418029f",
+  "baseline_counts": {
+    "PASS": 1654,
+    "SKIP": 1,
+    "FAIL": 1
+  },
+  "candidate_counts": {
+    "PASS": 1674,
+    "SKIP": 1,
+    "FAIL": 1
+  },
+  "new_nodes": [
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[renderer]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[module]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[io]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[permission]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[value]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[type]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[runtime-renderer]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[runtime-other]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_accepts_red_and_green"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[extra-node-1-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[wrong-name-1-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[missing-node-1-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[skipped-1-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[error-1-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[red-without-assertion-1-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[red-exit-zero-0-red]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[green-with-failure-0-green]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_rejects_invalid_outcomes[green-nonzero-exit-1-green]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_reads_actual_pytest_assertion_type[assert False-True]"
+    ],
+    [
+      "tests.test_png_replay_junit_validation",
+      "test_validate_junit_proof_reads_actual_pytest_assertion_type[raise ValueError(\"AssertionError: decoy\")-False]"
+    ]
+  ],
+  "changed_old_outcomes": [],
+  "covered_line_regressions": [],
+  "identical_source_universe": true,
+  "baseline_totals": {
+    "covered_lines": 12166,
+    "num_statements": 14554,
+    "percent_covered": 83.59213961797444,
+    "percent_covered_display": "84",
+    "missing_lines": 2388,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.59213961797444,
+    "percent_statements_covered_display": "84"
+  },
+  "candidate_totals": {
+    "covered_lines": 12191,
+    "num_statements": 14554,
+    "percent_covered": 83.76391370070084,
+    "percent_covered_display": "84",
+    "missing_lines": 2363,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.76391370070084,
+    "percent_statements_covered_display": "84"
+  },
+  "scope": "All final candidate tests plus authentic historical baseline; original local SciPy/NumPy FAIL and SKIP retained, no full-suite PASS or 90% claim."
+}

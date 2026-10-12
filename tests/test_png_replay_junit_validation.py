@@ -1,6 +1,9 @@
 """JUnit outcome checks for the PNG failure replay driver."""
 
 import importlib.util
+import os
+import subprocess
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -82,3 +85,37 @@ def test_validate_junit_proof_rejects_invalid_outcomes(tmp_path, defect, returnc
         raise AssertionError(defect)
     with pytest.raises(RuntimeError):
         module.validate_junit_proof(path, EXPECTED_NAME, phase, returncode, "renderer")
+
+
+@pytest.mark.parametrize(
+    "exception,accepted",
+    [("assert False", True), ('raise ValueError("AssertionError: decoy")', False)],
+)
+def test_validate_junit_proof_reads_actual_pytest_assertion_type(tmp_path, exception, accepted):
+    test = tmp_path / "test_actual.py"
+    test.write_text("def test_actual():\n    " + exception + "\n")
+    report = tmp_path / "actual.xml"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pytest",
+            "-q",
+            "-o",
+            "addopts=",
+            str(test),
+            "--junitxml=" + str(report),
+        ],
+        cwd=tmp_path,
+        env={**os.environ, "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"},
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+    module = load_replay()
+    if accepted:
+        module.validate_junit_proof(report, "test_actual", "red", result.returncode, "actual")
+    else:
+        with pytest.raises(RuntimeError):
+            module.validate_junit_proof(report, "test_actual", "red", result.returncode, "actual")
