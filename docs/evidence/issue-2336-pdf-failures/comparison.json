@@ -1,0 +1,103 @@
+{
+  "baseline_totals": {
+    "covered_lines": 12147,
+    "num_statements": 14554,
+    "percent_covered": 83.46159131510238,
+    "percent_covered_display": "83",
+    "missing_lines": 2407,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.46159131510238,
+    "percent_statements_covered_display": "83"
+  },
+  "candidate_totals": {
+    "covered_lines": 12166,
+    "num_statements": 14554,
+    "percent_covered": 83.59213961797444,
+    "percent_covered_display": "84",
+    "missing_lines": 2388,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.59213961797444,
+    "percent_statements_covered_display": "84"
+  },
+  "identical_source_universe": true,
+  "covered_line_regressions": [],
+  "changed_old_outcomes": [],
+  "new_nodes": [
+    [
+      "tests.test_cli_pdf_failures",
+      "test_single_run_pdf_failure_preserves_results[renderer]"
+    ],
+    [
+      "tests.test_cli_pdf_failures",
+      "test_single_run_pdf_failure_preserves_results[module]"
+    ],
+    [
+      "tests.test_cli_pdf_failures",
+      "test_single_run_pdf_failure_preserves_results[io]"
+    ],
+    [
+      "tests.test_cli_pdf_failures",
+      "test_single_run_pdf_failure_preserves_results[permission]"
+    ],
+    [
+      "tests.test_cli_pdf_failures",
+      "test_single_run_pdf_failure_preserves_results[value]"
+    ],
+    [
+      "tests.test_cli_pdf_failures",
+      "test_single_run_pdf_failure_preserves_results[type]"
+    ]
+  ],
+  "baseline_counts": {
+    "PASS": 1648,
+    "FAIL": 1,
+    "ERROR": 0,
+    "SKIP": 1
+  },
+  "candidate_counts": {
+    "PASS": 1654,
+    "FAIL": 1,
+    "ERROR": 0,
+    "SKIP": 1
+  },
+  "cli_before": {
+    "covered_lines": 820,
+    "num_statements": 1107,
+    "percent_covered": 74.07407407407408,
+    "percent_covered_display": "74",
+    "missing_lines": 287,
+    "excluded_lines": 17,
+    "percent_statements_covered": 74.07407407407408,
+    "percent_statements_covered_display": "74"
+  },
+  "cli_after": {
+    "covered_lines": 838,
+    "num_statements": 1107,
+    "percent_covered": 75.70009033423668,
+    "percent_covered_display": "76",
+    "missing_lines": 269,
+    "excluded_lines": 17,
+    "percent_statements_covered": 75.70009033423668,
+    "percent_statements_covered_display": "76"
+  },
+  "new_cli_lines": [
+    1947,
+    2079,
+    2080,
+    2081,
+    2082,
+    2083,
+    2084,
+    2085,
+    2089,
+    2090,
+    2091,
+    2092,
+    2093,
+    2094,
+    2095,
+    2096,
+    2097,
+    2098
+  ]
+}
