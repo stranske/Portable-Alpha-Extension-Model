@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+from collections.abc import Iterator
 from typing import Any
 
 import pytest
@@ -120,13 +122,21 @@ def test_render_png_download_browser_prepares_async_task(
         calls.append(("prerender", figs, opts))
         return cache
 
-    def fake_use_cache(used: Any) -> Any:
+    active: list[dict[str, bytes]] = []
+
+    @contextlib.contextmanager
+    def fake_use_cache(used: dict[str, bytes]) -> Iterator[None]:
         calls.append(("use_cache", used, {}))
-        return _null_context()
+        active.append(used)
+        try:
+            yield
+        finally:
+            active.pop()
 
     def fake_png(f: Any, **opts: Any) -> bytes:
         calls.append(("render", f, opts))
-        return b"browser-png"
+        # Only a render made inside the prepared cache's context gets the cached bytes.
+        return active[-1]["k"] if active else b"uncached"
 
     monkeypatch.setattr(browser_exports, "prerender_png_cache", fake_prerender)
     monkeypatch.setattr(browser_exports, "use_png_cache", fake_use_cache)
@@ -146,7 +156,7 @@ def test_render_png_download_browser_prepares_async_task(
         assert task_key in st.session_state
         task = st.session_state[task_key]
         assert isinstance(task, asyncio.Task)
-        assert await task == b"browser-png"
+        assert await task == b"cached"
 
     asyncio.run(exercise())
     # Both rendering stages see the requested options, and the render reads the cache that the
