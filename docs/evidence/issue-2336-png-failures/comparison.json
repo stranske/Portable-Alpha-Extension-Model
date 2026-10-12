@@ -1,0 +1,122 @@
+{
+  "baseline_totals": {
+    "covered_lines": 12166,
+    "num_statements": 14554,
+    "percent_covered": 83.59213961797444,
+    "percent_covered_display": "84",
+    "missing_lines": 2388,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.59213961797444,
+    "percent_statements_covered_display": "84"
+  },
+  "candidate_totals": {
+    "covered_lines": 12191,
+    "num_statements": 14554,
+    "percent_covered": 83.76391370070084,
+    "percent_covered_display": "84",
+    "missing_lines": 2363,
+    "excluded_lines": 181,
+    "percent_statements_covered": 83.76391370070084,
+    "percent_statements_covered_display": "84"
+  },
+  "identical_source_universe": true,
+  "covered_line_regressions": [],
+  "changed_old_outcomes": [],
+  "new_nodes": [
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[runtime-renderer]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[renderer]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[io]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[module]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[type]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[permission]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[value]"
+    ],
+    [
+      "tests.test_cli_png_failures",
+      "test_single_run_png_failure_preserves_results[runtime-other]"
+    ]
+  ],
+  "baseline_counts": {
+    "PASS": 1654,
+    "SKIP": 1,
+    "FAIL": 1
+  },
+  "candidate_counts": {
+    "PASS": 1662,
+    "SKIP": 1,
+    "FAIL": 1
+  },
+  "cli_before": {
+    "covered_lines": 838,
+    "num_statements": 1107,
+    "percent_covered": 75.70009033423668,
+    "percent_covered_display": "76",
+    "missing_lines": 269,
+    "excluded_lines": 17,
+    "percent_statements_covered": 75.70009033423668,
+    "percent_statements_covered_display": "76"
+  },
+  "cli_after": {
+    "covered_lines": 863,
+    "num_statements": 1107,
+    "percent_covered": 77.95844625112917,
+    "percent_covered_display": "78",
+    "missing_lines": 244,
+    "excluded_lines": 17,
+    "percent_statements_covered": 77.95844625112917,
+    "percent_statements_covered_display": "78"
+  },
+  "new_cli_lines": [
+    1945,
+    2048,
+    2049,
+    2050,
+    2051,
+    2052,
+    2053,
+    2054,
+    2058,
+    2059,
+    2060,
+    2061,
+    2062,
+    2063,
+    2064,
+    2065,
+    2066,
+    2067,
+    2068,
+    2069,
+    2070,
+    2071,
+    2072,
+    2073,
+    2077
+  ],
+  "failure_nodes": [
+    [
+      "tests.test_sleeve_suggestor",
+      "test_suggest_sleeve_sizes_optimize_prefers_best"
+    ]
+  ]
+}
