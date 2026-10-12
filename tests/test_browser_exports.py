@@ -75,16 +75,26 @@ class _FailedTask:
 def test_render_png_download_server_uses_kaleido_path(monkeypatch: pytest.MonkeyPatch) -> None:
     st = _FakeSt()
     fig = object()
+    rendered: list[tuple[Any, dict[str, Any]]] = []
     monkeypatch.setattr(browser_exports, "is_browser_runtime", lambda: False)
-    monkeypatch.setattr(browser_exports, "figure_to_png_bytes", lambda f, **_: b"png-bytes")
 
+    def fake_png(f: Any, **opts: Any) -> bytes:
+        rendered.append((f, opts))
+        return b"png-bytes"
+
+    monkeypatch.setattr(browser_exports, "figure_to_png_bytes", fake_png)
+
+    # The Scenario Grid page passes scale=2; the export must render at the scale it asked for.
     browser_exports.render_png_download(
         st,
         key="chart",
         label="Download chart",
         fig=fig,
         file_name="chart.png",
+        scale=2,
     )
+
+    assert rendered == [(fig, {"scale": 2})]
 
     assert st.download_calls == [
         {
@@ -102,19 +112,25 @@ def test_render_png_download_browser_prepares_async_task(
 ) -> None:
     st = _FakeSt()
     fig = object()
+    cache = {"k": b"cached"}
+    calls: list[tuple[str, Any, dict[str, Any]]] = []
     monkeypatch.setattr(browser_exports, "is_browser_runtime", lambda: True)
 
-    async def fake_prerender(figs: list[Any], **_: Any) -> dict[str, bytes]:
-        assert figs == [fig]
-        return {"k": b"cached"}
+    async def fake_prerender(figs: list[Any], **opts: Any) -> dict[str, bytes]:
+        calls.append(("prerender", figs, opts))
+        return cache
+
+    def fake_use_cache(used: Any) -> Any:
+        calls.append(("use_cache", used, {}))
+        return _null_context()
+
+    def fake_png(f: Any, **opts: Any) -> bytes:
+        calls.append(("render", f, opts))
+        return b"browser-png"
 
     monkeypatch.setattr(browser_exports, "prerender_png_cache", fake_prerender)
-    monkeypatch.setattr(browser_exports, "use_png_cache", lambda cache: _null_context())
-    monkeypatch.setattr(
-        browser_exports,
-        "figure_to_png_bytes",
-        lambda f, **_: b"browser-png",
-    )
+    monkeypatch.setattr(browser_exports, "use_png_cache", fake_use_cache)
+    monkeypatch.setattr(browser_exports, "figure_to_png_bytes", fake_png)
     st.button_handlers["chart_prepare"] = True
 
     async def exercise() -> None:
@@ -124,14 +140,22 @@ def test_render_png_download_browser_prepares_async_task(
             label="Download chart",
             fig=fig,
             file_name="chart.png",
+            scale=2,
         )
         task_key = "_browser_png_export_task_chart"
         assert task_key in st.session_state
         task = st.session_state[task_key]
         assert isinstance(task, asyncio.Task)
-        await task
+        assert await task == b"browser-png"
 
     asyncio.run(exercise())
+    # Both rendering stages see the requested options, and the render reads the cache that the
+    # prerender built with those same options.
+    assert calls == [
+        ("prerender", [fig], {"scale": 2}),
+        ("use_cache", cache, {}),
+        ("render", fig, {"scale": 2}),
+    ]
     assert st.info_messages == ["Preparing image export..."]
     assert st.rerun_count == 1
 
