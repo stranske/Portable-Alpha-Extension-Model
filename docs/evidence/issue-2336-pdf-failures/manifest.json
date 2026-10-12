@@ -1,0 +1,219 @@
+{
+  "revision": "395fcd394e185cd5042ca6f90569928f2f037844",
+  "archive_sha256": "636d8478bfdfac6c22fb3b72a3907f11736e5c437087d0890e689922bb6a8dcf",
+  "members": {
+    "baseline.txt": {
+      "sha256": "df979a081e196be881873e9dc18abc03f0d155471b5042d426838bff561d3a06",
+      "bytes": 42474
+    },
+    "baseline.xml": {
+      "sha256": "0190c281537bab348019fc80eb57f88efd050dfcf700b516c6b5be91c48e1b47",
+      "bytes": 214694
+    },
+    "baseline-coverage.json": {
+      "sha256": "8c773cee07baf5d3f3763db8bf6f78cad2d5b2009cfadd8cd62cbfe7f37112c1",
+      "bytes": 735003
+    },
+    "baseline-command.json": {
+      "sha256": "5b62a006e11da22c1dcdae2184cd061838ded196949314731fafa2e33cf1d956",
+      "bytes": 1930
+    },
+    "candidate.txt": {
+      "sha256": "61ea2c4bc811defc4291ee6ec65e1fe5bb80fe1731f3fcd04c80f05b54c5b4ee",
+      "bytes": 43252
+    },
+    "candidate.xml": {
+      "sha256": "d2d528711ccf8a3e30fb7a547a8b9efc4003c3dd6deb8a98b218e00325b4edfc",
+      "bytes": 215457
+    },
+    "candidate-coverage.json": {
+      "sha256": "76988ef7ea54081c304c65e47ffad0f1f22b0ec9febd30662e5793b810cbabd3",
+      "bytes": 734993
+    },
+    "candidate-command.json": {
+      "sha256": "cd2f3db2978e3f4b500da8ae7c72f2e9050879e3d8f6328a5ce8f9d044d21bd1",
+      "bytes": 1933
+    },
+    "focused.txt": {
+      "sha256": "f33f92d85bc6ffc8d4ae5b95856d54c510d054a5b3bab9859c58ff99e4e54d88",
+      "bytes": 2070
+    },
+    "focused.xml": {
+      "sha256": "edf0a22ebfd011b6a9d82244f32ac648cf94ce2b8c2495e992d31ac0ca849aa2",
+      "bytes": 1009
+    },
+    "final-focused.txt": {
+      "sha256": "1c3d5faa756bd29128027c92227536c3f7061733ffcf3bd7157d4e6d8c97bc29",
+      "bytes": 6354
+    },
+    "final-focused.xml": {
+      "sha256": "d20684f5015071ee522e4c3ceb8a1194782d46378274f7365f943251fc96abd0",
+      "bytes": 2462
+    },
+    "ranking.json": {
+      "sha256": "d8ed2ef5b6901bb836d4be713f0977ba58b988146cda5974af306f195960123d",
+      "bytes": 19365
+    },
+    "history.txt": {
+      "sha256": "bd6e8d35b761710ad6ce6ec1a93d6247846bcec22bbfc2ab9e6dd408f74c5963",
+      "bytes": 76650
+    },
+    "comparison.json": {
+      "sha256": "aa7038a1078127954a884f268efcec26bc5dbcc8bf81ec94b864e0834cd9a093",
+      "bytes": 2435
+    },
+    "reuse.json": {
+      "sha256": "9a0449cf6a140457416c86609e2207a5e5122c97b9dc7cb57a8effe28248b3c4",
+      "bytes": 758
+    },
+    "environment.txt": {
+      "sha256": "e42b7b620046fb42fac855920382f2c0d43c4765dcbe665335fae88db8efc42e",
+      "bytes": 805
+    },
+    "black.txt": {
+      "sha256": "56bb67cc0a436f5a61438ee8cacd80c8a42a0474c37baec8e9ad83a54d9756a6",
+      "bytes": 184
+    },
+    "production-source.py": {
+      "sha256": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+      "bytes": 93209
+    },
+    "candidate-test.py": {
+      "sha256": "577c68835bcc92e66c8929b23fdf0c41fd3902fbf4517751f36bbd157513f807",
+      "bytes": 4432
+    },
+    "replay-snapshot.py": {
+      "sha256": "a7c1beb5838e96b6a81e4371baf14a956a1e10102e3edea1203d1778ad22e69c",
+      "bytes": 5723
+    },
+    "pdf-mutations/module-red.txt": {
+      "sha256": "3660f3884199628178b5f9997b26c7ac7c9c07ba22382dbd21162a5048213265",
+      "bytes": 7174
+    },
+    "pdf-mutations/type-green.xml": {
+      "sha256": "9f9dfb2edd8274d811ba54403e52c5371e322a27cb74073d0576c7212c506f8a",
+      "bytes": 378
+    },
+    "pdf-mutations/permission-red.xml": {
+      "sha256": "748ae89d05e75e96b751dec3f3911139a905910d4f7bc7b34ce885a1e8610e54",
+      "bytes": 5568
+    },
+    "pdf-mutations/renderer-green.xml": {
+      "sha256": "4f681bcd1646e56212cb50f674685457aa2a05b66ed8db0ed3aac224cd5de40a",
+      "bytes": 382
+    },
+    "pdf-mutations/type-red.txt": {
+      "sha256": "64eeaf7e9eefc744109e75038ccb2444be710be772dfa5090042261314ba1f4d",
+      "bytes": 7155
+    },
+    "pdf-mutations/io-green.xml": {
+      "sha256": "68fa2313b872bd98e4f030cccac2021f8952ec1e3d44db1f641f66d6e3d296d3",
+      "bytes": 376
+    },
+    "pdf-mutations/io-red.xml": {
+      "sha256": "4e207ec2b097b208303bb9755adb429ebeb94cf53ca386abb0e6fa999fb1f806",
+      "bytes": 5552
+    },
+    "pdf-mutations/permission-red.txt": {
+      "sha256": "ae292263038b4a21f00468b386728308d42941fd50a5b4878bbf3eed50a8d61d",
+      "bytes": 7220
+    },
+    "pdf-mutations/type-green.txt": {
+      "sha256": "9394739ce49296d0cee89588d6c0bc52b84acd0ef9a27887f252d9b26c709b0a",
+      "bytes": 1625
+    },
+    "pdf-mutations/module-red.xml": {
+      "sha256": "eeb6c901d88cc1137c7e58f22d63d10e3b992231661f3ee3b869ddb9b52346b0",
+      "bytes": 5535
+    },
+    "pdf-mutations/renderer-green.txt": {
+      "sha256": "6477f674c5d73a9119bee3fa88cb60e1608efdf0b9c465653862015f6ab252be",
+      "bytes": 1629
+    },
+    "pdf-mutations/results.json": {
+      "sha256": "041b595cfadd923ddab9e76abb90a6b5c23ca4845c0c35cf12a2d0888eafffc3",
+      "bytes": 11166
+    },
+    "pdf-mutations/io-green.txt": {
+      "sha256": "8149a220ece54589fb17218500f8e345ca20f24d4b638b50ad7ff2a5d87dc28c",
+      "bytes": 1623
+    },
+    "pdf-mutations/type-red.xml": {
+      "sha256": "169e67ea55bf706f3e7972731310aeb7d18e30f06c5b5292fd3ed93c6ad4bc35",
+      "bytes": 5511
+    },
+    "pdf-mutations/io-red.txt": {
+      "sha256": "5bd28697643f0ee1717ddbd424cae5b1728e0ee0cedb47ab8683f24c650c38eb",
+      "bytes": 7196
+    },
+    "pdf-mutations/module-green.txt": {
+      "sha256": "c9e3a8c2892211737014946e950dead7a1e1d615d6dd642379bcfb34a91ff4c3",
+      "bytes": 1627
+    },
+    "pdf-mutations/value-green.xml": {
+      "sha256": "01c32608d6406d0f844bad0cfdacb14aacaa2465ad0beb13694c4362a8366ace",
+      "bytes": 379
+    },
+    "pdf-mutations/permission-green.txt": {
+      "sha256": "d1a05c4056fffa1dd3cd0823525e839e10095d8b6b461f7bb9beed2ebd6da690",
+      "bytes": 1631
+    },
+    "pdf-mutations/value-red.xml": {
+      "sha256": "0108f6c9a6f5ce900a315a33d955bdc49b64441fa0978dcb842d27184b0ea224",
+      "bytes": 5513
+    },
+    "pdf-mutations/value-mutant-source.py": {
+      "sha256": "ff072d5693773fc0245dba42bf6301c0ebaadbf5ffff7dd373a1851f4aba3e00",
+      "bytes": 93206
+    },
+    "pdf-mutations/type-mutant-source.py": {
+      "sha256": "ff072d5693773fc0245dba42bf6301c0ebaadbf5ffff7dd373a1851f4aba3e00",
+      "bytes": 93206
+    },
+    "pdf-mutations/renderer-red.xml": {
+      "sha256": "d9f18758af15d97800f4203f95453b287b9cb490e244c30edf60b9c9f162840d",
+      "bytes": 5574
+    },
+    "pdf-mutations/module-green.xml": {
+      "sha256": "6b0e67f06a538c856dbf0e0693a2012d4b56d0ecd8432f6812fd412e25736ba4",
+      "bytes": 380
+    },
+    "pdf-mutations/module-mutant-source.py": {
+      "sha256": "4ee292dc04063b6fb16e89425ea1b42f768639dbc5249db161bcf4b90edc2fa4",
+      "bytes": 93195
+    },
+    "pdf-mutations/value-green.txt": {
+      "sha256": "29d43328ffd6c3ea51c241ffc6de190502c8d92225a6b8877f59654b68d139f9",
+      "bytes": 1626
+    },
+    "pdf-mutations/permission-green.xml": {
+      "sha256": "b03332b8046fb0098c6ee2c875ee144125ef90e4e001d332484efc9acfe0a62a",
+      "bytes": 384
+    },
+    "pdf-mutations/value-red.txt": {
+      "sha256": "224e558abdeafb6a2c1a066b89cb0c005d3b3119b8a90642a28236de9af90e1f",
+      "bytes": 7158
+    },
+    "pdf-mutations/io-mutant-source.py": {
+      "sha256": "3c15d2d6e69d0cc96541ada2f315010f507317d724f3effd85c7bdb76904d571",
+      "bytes": 93201
+    },
+    "pdf-mutations/renderer-mutant-source.py": {
+      "sha256": "db63773f10e4fc875acc9ef4a5108b596cc4c91d571aa12bab8822ded034ee89",
+      "bytes": 93189
+    },
+    "pdf-mutations/permission-mutant-source.py": {
+      "sha256": "3c15d2d6e69d0cc96541ada2f315010f507317d724f3effd85c7bdb76904d571",
+      "bytes": 93201
+    },
+    "pdf-mutations/renderer-red.txt": {
+      "sha256": "4d9f8dd8aa0cba6b66fe383905413a56bb67da2a8f58bc769333dcefff76f5e7",
+      "bytes": 7229
+    }
+  },
+  "current_inputs": {
+    "pa_core/cli.py": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+    "tests/test_cli_pdf_failures.py": "577c68835bcc92e66c8929b23fdf0c41fd3902fbf4517751f36bbd157513f807",
+    "docs/evidence/issue-2336-pdf-failures/replay.py": "a7c1beb5838e96b6a81e4371baf14a956a1e10102e3edea1203d1778ad22e69c"
+  }
+}
