@@ -81,6 +81,24 @@ markers = [
     "slow: slower or externally dependent tests skipped by routine keepalive commands",
 ]
 
+# Coverage counts PRODUCT code only: pa_core/, dashboard/ and design-system/ (the vendored
+# Streamlit adapter that dashboard/theme.py imports at runtime). Owner decision 2026-10-16:
+# tests, docs, scripts/ tooling (most of it byte-copies of stranske/Workflows files), workflow
+# helpers and data/templates are not product code, and measuring every file the run imported
+# let the test suite's own near-total coverage inflate the headline. `source` also makes
+# coverage report a never-imported .py file under these directories at 0%, so an untested
+# module cannot hide by never being imported.
+#
+# This changes what the number MEANS. Readings taken before this change (the Gate's coverage
+# trend history, config/coverage-baseline.json before 2026-10-16) were all-files readings and
+# are not comparable with readings taken after it.
+[tool.coverage.run]
+source = ["pa_core", "dashboard", "design-system"]
+# Line coverage, as before. The Gate's coverage-min reads coverage.xml `line-rate`; keeping
+# branch coverage off keeps that equal to `totals.percent_covered`, which is what
+# config/coverage-baseline.json and Maint Coverage Guard compare.
+branch = false
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["pa_core*", "archive*", "scripts*", "dashboard*", "data*", "templates*"]
