@@ -67,6 +67,18 @@ jobs:
     with:
       python-versions: '["3.12"]' # Single version, no multi-platform
       typecheck: true
+      # RESET 86 -> 84 on 2026-10-16 because the MEASURE changed, not because coverage fell
+      # and not to make a run pass (owner decision 2026-10-16: count product code only).
+      # [tool.coverage.run] source in pyproject.toml now limits coverage to pa_core/,
+      # dashboard/ and design-system/; tests, docs, scripts/ and the other tooling no longer
+      # count. On that basis the same code reads 84.02% (Gate run 38964793528). It read
+      # 88.81% while every imported file counted, the tests' own ~98% among them. The
+      # floor is that reading rounded down, the same rule as below, and it matches
+      # config/coverage-baseline.json, reset in the same change. Readings from before this
+      # date are on the old basis and are not comparable with it. The value is per-repo
+      # config, which is the documented reason this file differs from the standard gate.
+      #
+      # Earlier history, on the old all-files basis, unchanged:
       # RAISED 60 -> 86 on 2026-08-26, and the stale comment removed with it. That comment
       # read "Target: 85% - tracking issue to be created" while measured coverage is 86.25%:
       # the target was already MET, and had been for as long as reporting was off. A number
@@ -77,7 +89,7 @@ jobs:
       # config/coverage-baseline.json, set at the same measured current in #2245, so the soft
       # gate and Maint Coverage Guard agree about this repo. 86 rather than 86.25 leaves the
       # jitter tolerance where it belongs, in the guard's warn_drop of 1.0.
-      coverage-min: "86"
+      coverage-min: "84"
       # Only the REPORTING leg was off: `enable-soft-gate` defaults to false upstream, so
       # the Gate computed a coverage number every run and discarded it -- no trend
       # artifact, no hotspot table, nothing for Maint Coverage Guard to read. Report-only:
