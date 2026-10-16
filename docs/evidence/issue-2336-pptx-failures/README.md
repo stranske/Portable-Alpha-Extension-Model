@@ -20,11 +20,15 @@ The current last-500-source-commit ranking selects CLI first: 27 repair-subject 
 
 ## Reproduce the causal proof
 
-Use Python 3.12 or newer with the repository's test dependencies installed. The recorded local run used the owner-default `/opt/anaconda3/bin/python3` in a linked worktree with no selected virtual environment. The canonical checkout's old virtual environment lacks `coverage`; it was not altered. Keep runtime-specific invocation paths separate from these portable commands.
+Use Python 3.12 or newer with the repository's test dependencies installed. The confirmed target has a non-PATH, application-bundled Python interpreter (see `docs/TARGET_WORK_ENVIRONMENT.md`). Obtain its absolute executable path from that application's runtime configuration or dependency information, then set `PA_PYTHON` below; do not assume a bare `python3` command resolves to it. Verify the selected executable's version and location before running the tests.
+
+In this Codex app task, the verified executable was the owner-default `/opt/anaconda3/bin/python3` in a linked worktree with no selected virtual environment. The canonical checkout's old virtual environment lacks `coverage`; it was not altered. Use that verified path for this host, or replace it with the confirmed bundled interpreter on another host.
 
 ```sh
-python3 -m pytest tests/test_cli_pptx_failures.py tests/test_cli_png_failures.py tests/test_cli_pdf_failures.py tests/test_cli_sweep_png_export.py -q
-python3 docs/evidence/issue-2336-pptx-failures/replay.py --output /tmp/pa-pptx-proof-new
+PA_PYTHON="/absolute/path/from-your-application-runtime-configuration"
+"$PA_PYTHON" -c 'import sys; print(sys.executable); print(sys.version)'
+"$PA_PYTHON" -m pytest tests/test_cli_pptx_failures.py tests/test_cli_png_failures.py tests/test_cli_pdf_failures.py tests/test_cli_sweep_png_export.py -q
+"$PA_PYTHON" docs/evidence/issue-2336-pptx-failures/replay.py --output /tmp/pa-pptx-proof-new
 ```
 
 Choose a fresh output path. Replay creates a private snapshot of the pinned base, overlays the current test, and strips Git repository-location environment variables before archiving. Each exact parametrized node fails by assertion (exit 1, no errors/skips) after its production ERROR log is changed to DEBUG, then passes (exit 0) after byte-identical restoration. Eight pairs cover six distinct logging anchors. Original, mutant, test and driver bytes, exact argv/cwd, raw console, named-module JUnit and phase/source digests are retained. The caller stays unchanged. Reusing an output path fails before mutation and preserves all 44 proof files. Five malformed JUnit controls are rejected.
