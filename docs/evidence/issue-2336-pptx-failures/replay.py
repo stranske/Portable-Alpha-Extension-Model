@@ -32,6 +32,15 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def final_exception_is_assertion(failure):
+    """Judge only the final exception, so a chained earlier AssertionError cannot pass."""
+    message = failure.get("message", "")
+    if message:
+        return message.startswith("AssertionError:")
+    finals = re.findall(r"^.+:\d+: (\w+)(?::|$)", failure.text or "", re.MULTILINE)
+    return bool(finals) and finals[-1] == "AssertionError"
+
+
 def validate_junit_proof(junit_path, expected_test_name, phase, returncode, case):
     """Validate a single-node JUnit report and subprocess exit for RED/GREEN proof."""
     tests = ET.parse(junit_path).getroot().findall(".//testcase")
@@ -43,16 +52,7 @@ def validate_junit_proof(junit_path, expected_test_name, phase, returncode, case
         raise RuntimeError("JUnit collection/setup error")
     failures = tests[0].findall("failure")
     if phase == "red":
-        valid = (
-            returncode == 1
-            and len(failures) == 1
-            and (
-                failures[0].get("message", "").startswith("AssertionError:")
-                or re.search(
-                    r"^.+:\d+: AssertionError(?::|$)", failures[0].text or "", re.MULTILINE
-                )
-            )
-        )
+        valid = returncode == 1 and len(failures) == 1 and final_exception_is_assertion(failures[0])
     else:
         valid = returncode == 0 and not failures
     if tests[0].find("error") is not None or tests[0].find("skipped") is not None or not valid:
@@ -64,9 +64,11 @@ def main():
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
     output = args.output.resolve()
-    output.mkdir(parents=True, exist_ok=False)
     repo = Path(__file__).resolve().parents[3]
     caller_inputs = {p: (repo / p).read_bytes() for p in ("pa_core/cli.py", TEST)}
+    if digest(caller_inputs["pa_core/cli.py"]) != SOURCE_SHA256:
+        raise RuntimeError("Caller pa_core/cli.py digest mismatch")
+    output.mkdir(parents=True, exist_ok=False)
     git_env = os.environ.copy()
     for key in (
         "GIT_DIR",

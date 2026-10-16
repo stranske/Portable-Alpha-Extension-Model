@@ -9,6 +9,11 @@ import pytest
 
 REPLAY = Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-pptx-failures/replay.py"
 EXPECTED_NAME = "test_single_run_pptx_failure_preserves_results[renderer]"
+CHAINED = (
+    "tests/test_cli_pptx_failures.py:151: AssertionError\n"
+    "During handling of the above exception, another exception occurred:\n"
+    "pa_core/cli.py:99: ValueError: boom"
+)
 ASSERTION = '<failure message="AssertionError: missing ERROR diagnostic" />'
 
 
@@ -61,6 +66,7 @@ def test_pptx_proof_accepts_exact_node_outcomes(replay, tmp_path, phase, returnc
         (report(), "red", 1),
         (report('<failure message="ValueError: AssertionError: decoy" />'), "red", 1),
         (report(ASSERTION + ASSERTION), "red", 1),
+        (report("<failure>" + CHAINED + "</failure>"), "red", 1),
         (report(ASSERTION), "red", 0),
         (report(ASSERTION), "red", 2),
         (report(ASSERTION), "green", 0),
@@ -78,6 +84,7 @@ def test_pptx_proof_accepts_exact_node_outcomes(replay, tmp_path, phase, returnc
         "red-without-failure",
         "non-assertion-decoy",
         "duplicate-failures",
+        "chained-final-non-assertion",
         "red-exit-zero",
         "red-exit-two",
         "green-failure",
@@ -114,3 +121,21 @@ def test_pptx_proof_refuses_output_reuse_before_archiving(replay, tmp_path, monk
 
     assert list(output.iterdir()) == [sentinel]
     assert sentinel.read_bytes() == b"existing proof must survive"
+
+
+def test_pptx_proof_refuses_mismatched_caller_before_archive_or_mutation(
+    replay, tmp_path, monkeypatch
+):
+    output = tmp_path / "new-proof"
+
+    def unexpected(*args, **kwargs):
+        pytest.fail("Caller mismatch must be refused before archiving or mutation")
+
+    monkeypatch.setattr(sys, "argv", [str(REPLAY), "--output", str(output)])
+    monkeypatch.setattr(replay, "SOURCE_SHA256", "0" * 64)
+    monkeypatch.setattr(replay.subprocess, "check_output", unexpected)
+    monkeypatch.setattr(replay.subprocess, "run", unexpected)
+    with pytest.raises(RuntimeError, match="Caller"):
+        replay.main()
+
+    assert not output.exists()
