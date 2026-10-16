@@ -1,4 +1,5 @@
 import runpy
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -102,9 +103,13 @@ class _FakeStreamlit:
         self.calls.append(("dataframe", value))
 
 
+WIZARD_PAGE = Path(__file__).resolve().parents[1] / "dashboard" / "pages" / "3_Scenario_Wizard.py"
+
+
 @pytest.fixture
 def wizard_module() -> dict[str, Any]:
-    return runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    # A fresh namespace per test (so a patched `st` cannot leak), found from this file, not from the working directory.
+    return runpy.run_path(str(WIZARD_PAGE))
 
 
 def test_progress_bar_marks_completed_current_and_future_steps(wizard_module: dict[str, Any]) -> None:
@@ -178,17 +183,34 @@ def test_capital_step_handles_uploaded_and_persisted_margin_schedules(
         fake_st.file_uploader = lambda *args, **kwargs: type(
             "Upload", (), {"getvalue": lambda self: b"term,multiplier\n1,3\n"}
         )()
+    loaded = wizard_module["pd"].DataFrame({"term": [1.0], "multiplier": [3.0]})
+    margin_calls: list[dict[str, Any]] = []
+
+    def fake_margin(**kwargs: Any) -> float:
+        margin_calls.append(kwargs)
+        return 5.0
+
     func_globals = wizard_module["_render_step_2_capital"].__globals__
     func_globals["st"] = fake_st
-    func_globals["load_margin_schedule"] = lambda _path: wizard_module["pd"].DataFrame(
-        {"term": [1.0], "multiplier": [3.0]}
-    )
-    func_globals["calculate_margin_requirement"] = lambda **_kwargs: 5.0
+    func_globals["load_margin_schedule"] = lambda _path: loaded
+    func_globals["calculate_margin_requirement"] = fake_margin
 
     wizard_module["_render_step_2_capital"](get_default_config(AnalysisMode.RETURNS))
 
-    assert any(kind == "dataframe" for kind, _value in fake_st.calls)
-    assert any(kind == "metric" and value[0] == "Interpolated k (multiplier)" for kind, value in fake_st.calls)
+    # Every margin computation on this page uses the schedule model with the LOADED schedule; the last one is the
+    # interpolation the "Interpolated k" metric is derived from.
+    assert margin_calls
+    assert all(call["financing_model"] == "schedule" for call in margin_calls)
+    assert all(call["margin_schedule"] is loaded for call in margin_calls)
+    interpolation = margin_calls[-1]
+    assert interpolation["term_months"] == 1.0
+    assert interpolation["reference_sigma"] == 0.01
+    # k = margin / (reference_sigma * total capital): the metric carries that value, not merely its label.
+    expected_k = 5.0 / (0.01 * interpolation["total_capital"])
+    assert ("metric", ("Interpolated k (multiplier)", f"{expected_k:.2f}")) in fake_st.calls
+    assert ("metric", ("Estimated Margin Requirement", "$5.0M")) in fake_st.calls
+    tables = [value for kind, value in fake_st.calls if kind == "dataframe"]
+    assert len(tables) == 1 and tables[0] is loaded
     if uploaded:
         assert ("success", "Schedule validated ✓") in fake_st.calls
     else:
@@ -209,6 +231,11 @@ def test_sleeve_suggestor_explains_missing_or_empty_results(
 
     if suggestions is None:
         assert not any(kind == "warning" for kind, _value in fake_st.calls)
+        # Positive evidence that the renderer reached the end of its inputs (the last widget before the "Run Suggestor"
+        # button stored its value) and that no suggestions were produced or stored.
+        assert ("subheader", "Sleeve Suggestor") in fake_st.calls
+        assert fake_st.session_state["sleeve_validate_on_run"] is False
+        assert "sleeve_suggestions" not in fake_st.session_state
     else:
         assert ("warning", "No feasible sleeve allocations found.") in fake_st.calls
 
