@@ -1,0 +1,11 @@
+{
+  "schema": "pptx-proof-current-bindings/v1",
+  "historical_archive_sha256": "8a859ae73a6283b920e99ce37de7899e6c04f69978325e3ff598e2209bf6f57d",
+  "historical_manifest_members": 66,
+  "current_inputs": {
+    "pa_core/cli.py": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+    "tests/test_cli_pptx_failures.py": "f0c6b70e19089b5a8233b9c402dae61eebc3cbde7be0d1ce9ce1a2637aedd0b9",
+    "docs/evidence/issue-2336-pptx-failures/replay.py": "f65a1cf1dd2feef21f889dad8196c91cc52f41e2d2ecd9d39f380ff046b357f9",
+    "tests/test_pptx_replay_junit_validation.py": "7a332dfea6ac3ba25b69339a23ba8fd0b68f26d549c1dd25a1af0ad058e904d1"
+  }
+}
