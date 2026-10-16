@@ -105,7 +105,20 @@ def test_pptx_proof_rejects_truncated_junit(replay, tmp_path):
         replay.validate_junit_proof(path, EXPECTED_NAME, "red", 1, "renderer")
 
 
-def test_pptx_proof_refuses_output_reuse_before_archiving(replay, tmp_path, monkeypatch):
+@pytest.mark.parametrize("caller_revision", ["current", "future-legitimate-edit"])
+def test_pptx_proof_refuses_output_reuse_before_archiving(
+    replay, tmp_path, monkeypatch, caller_revision
+):
+    source = REPLAY.resolve().parents[3] / "pa_core/cli.py"
+    read_bytes = Path.read_bytes
+    caller_bytes = read_bytes(source)
+    if caller_revision == "future-legitimate-edit":
+        caller_bytes += b"\n# A future legitimate CLI edit.\n"
+        monkeypatch.setattr(
+            Path, "read_bytes", lambda path: caller_bytes if path == source else read_bytes(path)
+        )
+    # This test exercises output reuse, independently of the historical replay pin.
+    monkeypatch.setattr(replay, "SOURCE_SHA256", replay.digest(caller_bytes))
     output = tmp_path / "existing-proof"
     output.mkdir()
     sentinel = output / "renderer-red.xml"

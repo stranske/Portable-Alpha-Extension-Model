@@ -42,3 +42,10 @@ Its `manifest.json` binds 66 members by path, byte length and SHA256. Every memb
 The keepalive follow-up adds 20 CI regression cases in `tests/test_pptx_replay_junit_validation.py` for the proof validator and output-reuse refusal. They accept both assertion-report formats and a restored pass, reject wrong identities, missing/extra nodes, errors, skips, non-assertion failures, duplicate failures, inconsistent exits and truncated XML, and preserve existing output before Git archiving. All 63 focused PPTX/PNG proof and related CLI export tests pass locally with `-m "not slow"`. The archived full-suite counts and coverage above describe the original eight-test capture, before these 20 additional proof checks; they are not a new full-suite result. The original archive and its source/test/driver bindings are unchanged.
 
 The optional PowerPoint export is fault-injected. No real browser renderer or Office execution, hosted CI success, provider PASS, branch coverage measurement, or 90% source completion is claimed. #2336 remains open for its broader goal. Matching keepalive owns hosted checks and review findings; closer owns exact-head delivery and actual comparison.
+
+
+## Post-merge verification follow-up
+
+The original binary archive, its 66-member manifest and `summary.json` input digests describe the original eight-test capture. They remain historical; the captured replay digest predates later validator hardening. `current-bindings.json` separately binds the current CLI, original eight-case test, current replay and replay regression module without rebinding historical execution results.
+
+The output-reuse regression now binds the caller digest for the specific test invocation. It verifies both current CLI bytes and a simulated future legitimate CLI edit, so a stale historical pin cannot hide the output-reuse boundary. The separate mismatched-caller regression deliberately supplies a wrong digest and continues to require refusal before archive/mutation. No production behavior, acceptance floor or historical archive is changed.
