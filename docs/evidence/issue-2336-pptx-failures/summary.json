@@ -1,0 +1,139 @@
+{
+  "base_revision": "0e98dcaf6b43a6320ce5e3c74d764d182701d04a",
+  "runtime": "/opt/anaconda3/bin/python3",
+  "python": "3.12.2",
+  "production_unchanged": true,
+  "source_files": 186,
+  "baseline": {
+    "outcomes": {
+      "failed": 1,
+      "passed": 1685,
+      "skipped": 1
+    },
+    "exit": 1,
+    "coverage": {
+      "covered_lines": 12241,
+      "num_statements": 14554,
+      "percent_covered": 84.10746186615363,
+      "percent_covered_display": "84",
+      "missing_lines": 2313,
+      "excluded_lines": 181,
+      "percent_statements_covered": 84.10746186615363,
+      "percent_statements_covered_display": "84"
+    }
+  },
+  "candidate": {
+    "outcomes": {
+      "failed": 1,
+      "passed": 1693,
+      "skipped": 1
+    },
+    "exit": 1,
+    "coverage": {
+      "covered_lines": 12274,
+      "num_statements": 14554,
+      "percent_covered": 84.33420365535248,
+      "percent_covered_display": "84",
+      "missing_lines": 2280,
+      "excluded_lines": 181,
+      "percent_statements_covered": 84.33420365535248,
+      "percent_statements_covered_display": "84"
+    }
+  },
+  "added_nodes": [
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[io]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[module]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[permission]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[python-pptx]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[renderer]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[runtime-renderer]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[type]",
+    "tests.test_cli_pptx_failures::test_single_run_pptx_failure_preserves_results[value]"
+  ],
+  "removed_nodes": [],
+  "changed_old_outcomes": [],
+  "coverage_gained_lines": {
+    "pa_core/cli.py": [
+      1949,
+      2100,
+      2101,
+      2102,
+      2103,
+      2104,
+      2105,
+      2106,
+      2107,
+      2108,
+      2113,
+      2114,
+      2115,
+      2116,
+      2117,
+      2120,
+      2121,
+      2122,
+      2123,
+      2125,
+      2126,
+      2127,
+      2128,
+      2129,
+      2130,
+      2131,
+      2132,
+      2133,
+      2134,
+      2135,
+      2138,
+      2139,
+      2140
+    ]
+  },
+  "coverage_lost_lines": {},
+  "current_input_sha256": {
+    "pa_core/cli.py": "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e",
+    "tests/test_cli_pptx_failures.py": "f0c6b70e19089b5a8233b9c402dae61eebc3cbde7be0d1ce9ce1a2637aedd0b9",
+    "docs/evidence/issue-2336-pptx-failures/replay.py": "befc29465271480a1d133a00669c8ee1197b7569718ccd0df14ed22733194fa8"
+  },
+  "proof_pairs": 8,
+  "distinct_mutation_anchors": 6,
+  "related_passed": 31,
+  "output_reuse": {
+    "exit": 1,
+    "refused_before_mutation": true,
+    "existing_files_unchanged": 44,
+    "stderr": "Traceback (most recent call last):\n  File \"/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pa2336-diagnostics-20261016/docs/evidence/issue-2336-pptx-failures/replay.py\", line 179, in <module>\n    main()\n  File \"/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/pa2336-diagnostics-20261016/docs/evidence/issue-2336-pptx-failures/replay.py\", line 67, in main\n    output.mkdir(parents=True, exist_ok=False)\n  File \"/opt/anaconda3/lib/python3.12/pathlib.py\", line 1311, in mkdir\n    os.mkdir(self, mode)\nFileExistsError: [Errno 17] File exists: '/Users/teacher/.codex/automations/pd-workloop-resume/run-20261016T1605/pptx-proof'\n"
+  },
+  "malformed_junit_controls": [
+    {
+      "case": "wrong-node",
+      "rejected": true,
+      "error": "Wrong or incomplete JUnit node: wrong-node/red"
+    },
+    {
+      "case": "wrong-module",
+      "rejected": true,
+      "error": "Wrong JUnit module"
+    },
+    {
+      "case": "setup-error",
+      "rejected": true,
+      "error": "JUnit collection/setup error"
+    },
+    {
+      "case": "skipped",
+      "rejected": true,
+      "error": "Invalid proof outcome: skipped/red"
+    },
+    {
+      "case": "empty",
+      "rejected": true,
+      "error": "Wrong or incomplete JUnit node: empty/red"
+    }
+  ],
+  "limits": [
+    "Full suites retain the same local SciPy/NumPy sleeve-suggestor failure; neither full suite passed.",
+    "Optional PowerPoint export is fault-injected; no real browser render, Office execution, hosted CI, provider verdict or 90% source completion is claimed.",
+    "Repair-subject matches are history proxies, not verified escaped incidents."
+  ]
+}
