@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from typing import Any
 
 import pandas as pd
+import pytest
 
 import dashboard.components.explain_results as explain_module
 
@@ -199,3 +200,85 @@ def test_render_explain_results_panel_reports_missing_llm_extra(monkeypatch) -> 
     assert any(
         kind == "error" and "install .[llm]" in text.lower() for kind, text in fake_st.messages
     )
+
+
+@pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
+def test_provider_defaults_switches_and_secret_free_exports(
+    monkeypatch, socket_connect_guard, destination
+):
+    from dashboard.components import llm_settings
+    import pa_core.llm.result_explain as core
+
+    env = {
+        "PA_LLM_PROVIDER": "anthropic",
+        "OPENAI_API_KEY": "synthetic-openai",
+        "CLAUDE_API_STRANSKE": "synthetic-anthropic",
+        "AZURE_OPENAI_API_KEY": "synthetic-azure",
+        "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+        "PA_LLM_API_VERSION": "2025-01-01",
+    }
+    monkeypatch.setattr(llm_settings, "read_secret", env.get)
+    fake = FakeStreamlit(button_value=True)
+    fake.session_state[explain_module._API_KEY_KEY] = "synthetic-legacy-openai"
+    monkeypatch.setattr(explain_module, "st", fake)
+    captured = []
+
+    def factory(config):
+        captured.append(config)
+        return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="Safe explanation"))
+
+    monkeypatch.setattr(core, "create_llm", factory)
+    monkeypatch.setattr(core, "_is_tracing_enabled", lambda enabled: False)
+    monkeypatch.setattr(core, "record_fleet_event", lambda *args, **kwargs: None)
+
+    def render():
+        fake.session_state[explain_module._CACHE_KEY] = {}
+        explain_module.render_explain_results_panel(
+            summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+            manifest={"seed": 1},
+            xlsx_path="/tmp/results.xlsx",
+        )
+
+    render()
+    assert fake.session_state[explain_module._PROVIDER_KEY] == "anthropic"
+    assert captured[-1].credentials["api_key"] == "synthetic-anthropic"
+    assert explain_module._API_KEY_KEY not in fake.session_state
+    fake.session_state[explain_module._PROVIDER_KEY] = "openai"
+    fake.session_state[f"{explain_module._API_KEY_KEY}::openai"] = "synthetic-typed-openai"
+    render()
+    assert captured[-1].credentials["api_key"] == "synthetic-typed-openai"
+    fake.session_state[explain_module._PROVIDER_KEY] = destination
+    if destination == "azure_openai":
+        # Azure has no automatic provider key in this dashboard's contract.
+        render()
+        assert len(captured) == 2
+        fake.session_state[f"{explain_module._API_KEY_KEY}::azure_openai"] = "synthetic-azure"
+    render()
+    assert captured[-1].provider_name == destination
+    assert (
+        captured[-1].credentials["api_key"]
+        == env["CLAUDE_API_STRANSKE" if destination == "anthropic" else "AZURE_OPENAI_API_KEY"]
+    )
+    if destination == "azure_openai":
+        assert captured[-1].credentials["azure_endpoint"] == env["PA_LLM_BASE_URL"]
+        assert captured[-1].credentials["api_version"] == env["PA_LLM_API_VERSION"]
+    assert all("synthetic" not in item.data for item in fake.downloads)
+    assert socket_connect_guard[0] == []
+
+
+def test_tracing_only_never_constructs_explanation_client(monkeypatch, socket_connect_guard):
+    from dashboard.components import llm_settings
+    import pa_core.llm.result_explain as core
+
+    monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+    fake = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(explain_module, "st", fake)
+    calls = []
+    monkeypatch.setattr(core, "create_llm", lambda config: calls.append(config))
+    explain_module.render_explain_results_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest={}, xlsx_path="/tmp/results.xlsx"
+    )
+    assert calls == []
+    assert any("No API key found" in message for _, message in fake.messages)
+    assert fake.downloads == []
+    assert socket_connect_guard[0] == []

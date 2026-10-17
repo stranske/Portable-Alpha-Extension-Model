@@ -1,0 +1,11 @@
+# Provider credential isolation evidence
+
+Explain and Compare now derive the initial provider from PA_LLM_PROVIDER, resolve environment defaults at request time, and use provider-specific API-key widget identities. Legacy unscoped values are discarded because their provider is unknown. Explicit overrides remain scoped to the selected provider. Azure retains its existing explicit/dashboard key contract, endpoint and version requirements; no provider or model default was added. Config Chat also uses the shared first-use provider. LANGSMITH_API_KEY no longer authorizes a model client and tracing code is unchanged.
+
+The selected repository `.venv/bin/python` ran all five named acceptance suites with a per-test socket.connect guard:105 passed/0 skipped/0 connection attempts.16 tracing tests pass separately. Pinned Black26.10.1 and Ruff pass; product diff whitespace checks pass. Mypy is absent from this repository virtual environment; changed dashboard paths are outside the repository's configured Mypy scope. No type-check pass is claimed.
+
+Actual fake client factories run through the production Explain/Compare helpers. They capture initial Anthropic, explicit OpenAI and switched Anthropic/Azure configurations; Azure refuses until its explicit key is supplied. Synthetic tracing-only settings construct zero clients in Explain, Compare and Config Chat. TXT/JSON downloads contain no synthetic credentials. Prompt and client doubles avoid optional SDK installation and perform no provider calls.
+
+The actual four original production files were reinstalled together: all13 selected new regressions failed/0errors. Restoring the fixed files byte-for-byte passed all13. Source/test SHA256, exact argv, raw JUnit/logs and reproduction scripts are retained here. Final qualification ran after restoration and formatting. Initial tests depended on missing optional langchain_core; those doubles were made self-contained. An initial Azure fixture incorrectly assumed an automatic environment-key mapping; it was corrected to exercise the existing explicit-key contract, not expand product scope.
+
+This is local acceptance evidence. Current-head hosted CI, independent review, the seven-minute review floor, guarded merge and original issue comparison remain with keepalive/closer. No provider, deployment or original-source acceptance is inferred.

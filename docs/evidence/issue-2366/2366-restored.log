@@ -1,0 +1,15 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.0, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/portable-2366-credential-isolation-0900
+configfile: pyproject.toml
+plugins: timeout-2.4.0
+collected 105 items / 92 deselected / 13 selected
+
+tests/test_dashboard_llm_settings.py ...                                 [ 23%]
+tests/test_dashboard_explain_results.py ...                              [ 46%]
+tests/test_dashboard_comparison_llm.py ...                               [ 69%]
+tests/test_llm_provider_missing_keys.py ...                              [ 92%]
+tests/test_wizard_config_chat_flow.py .                                  [100%]
+
+- generated xml file: /Users/teacher/.codex/automations/pd-workloop-resume/run-20261017T0900/2366-restored.xml -
+====================== 13 passed, 92 deselected in 0.97s =======================

@@ -24,8 +24,9 @@ PA_LLM_API_VERSION   – Azure OpenAI API version when provider is azure_openai
 PA_LLM_ORG           – optional organisation id
 PA_STREAMLIT_API_KEY  – explicit API key for Streamlit dashboard use
 
-Fallback key lookup: OPENAI_API_KEY (openai), CLAUDE_API_STRANSKE
-(anthropic), LANGSMITH_API_KEY (LangSmith tracing).
+Provider key lookup: OPENAI_API_KEY (openai), CLAUDE_API_STRANSKE
+(anthropic). Azure uses the dashboard-specific or explicit key.
+LANGSMITH_API_KEY is reserved for independent tracing configuration.
 """
 
 from __future__ import annotations
@@ -195,8 +196,6 @@ def default_api_key(provider: str | None = None) -> str | None:
     1. ``PA_STREAMLIT_API_KEY``
     2. The provider-specific env var (``OPENAI_API_KEY`` for openai,
        ``CLAUDE_API_STRANSKE`` for anthropic).
-    3. ``LANGSMITH_API_KEY`` (only when no provider key found – useful
-       for tracing configuration).
 
     Returns ``None`` when no key is available.
     """
@@ -213,8 +212,8 @@ def default_api_key(provider: str | None = None) -> str | None:
         if key:
             return key
 
-    # 3. LangSmith fallback (tracing use-case)
-    return read_secret(ENV_LANGSMITH_API_KEY)
+    # Tracing credentials never authorize model-provider requests.
+    return None
 
 
 # ---------------------------------------------------------------------------

@@ -82,3 +82,49 @@ def test_revert_restores_previous_config_and_session_mirrors(monkeypatch) -> Non
         assert st.session_state["wizard_total_fund_capital"] == 700.0
     finally:
         st.session_state.clear()
+
+
+def test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_client(
+    monkeypatch, socket_connect_guard
+):
+    from dashboard.components import llm_settings
+    import sys
+    from types import SimpleNamespace
+
+    class Prompt:
+        @staticmethod
+        def from_messages(messages):
+            return Prompt()
+
+        def __or__(self, client):
+            return client
+
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=Prompt)
+    )
+
+    st.session_state.clear()
+    env = {"PA_LLM_PROVIDER": "anthropic", "CLAUDE_API_STRANSKE": "synthetic-anthropic"}
+    monkeypatch.setattr(llm_settings, "read_secret", env.get)
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        captured = []
+
+        def factory(config):
+            captured.append(config)
+            return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="safe"))
+
+        # runpy returns the globals mapping used by the builder.
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = factory
+        invoke, provider, _ = module["_build_config_chat_llm_invoke"]()
+        assert invoke is not None
+        assert provider == "anthropic"
+        assert captured[-1].credentials["api_key"] == "synthetic-anthropic"
+        env.clear()
+        env["LANGSMITH_API_KEY"] = "synthetic-tracing"
+        invoke, _, _ = module["_build_config_chat_llm_invoke"]()
+        assert invoke is None
+        assert len(captured) == 1
+        assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()

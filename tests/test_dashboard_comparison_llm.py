@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import pandas as pd
+import pytest
 
 import dashboard.components.comparison_llm as comparison_module
 
@@ -145,7 +146,9 @@ def test_render_comparison_llm_panel_passes_azure_provider_config(monkeypatch) -
     fake_st = FakeStreamlit(button_value=True)
     run_key = "run-a-vs-run-b"
     fake_st.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] = "azure_openai"
-    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "sk-azure-test"
+    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}::azure_openai"] = (
+        "sk-azure-test"
+    )
     fake_st.session_state[f"{comparison_module._BASE_URL_KEY}::{run_key}"] = (
         "https://example.openai.azure.com"
     )
@@ -191,7 +194,7 @@ def test_render_comparison_llm_panel_ignores_stale_azure_fields_for_openai(monke
     fake_st = FakeStreamlit(button_value=True)
     run_key = "run-a-vs-run-b"
     fake_st.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] = "openai"
-    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "sk-openai-test"
+    fake_st.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}::openai"] = "sk-openai-test"
     fake_st.session_state[f"{comparison_module._BASE_URL_KEY}::{run_key}"] = (
         "https://example.openai.azure.com"
     )
@@ -235,3 +238,117 @@ def test_render_comparison_llm_panel_ignores_stale_azure_fields_for_openai(monke
     assert captured_config_kwargs["provider"] == "openai"
     assert captured_config_kwargs["base_url"] is None
     assert captured_config_kwargs["api_version"] is None
+
+
+@pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
+def test_comparison_provider_defaults_switches_and_secret_free_exports(
+    monkeypatch, socket_connect_guard, destination
+):
+    import importlib
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+    from dashboard.components import llm_settings
+    import pa_core.llm.provider as provider_module
+
+    import sys
+
+    class Prompt:
+        @staticmethod
+        def from_messages(messages):
+            return Prompt()
+
+        def __or__(self, client):
+            return client
+
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=Prompt)
+    )
+    core = importlib.import_module("pa_core.llm.compare_runs")
+    env = {
+        "PA_LLM_PROVIDER": "anthropic",
+        "OPENAI_API_KEY": "synthetic-openai",
+        "CLAUDE_API_STRANSKE": "synthetic-anthropic",
+        "AZURE_OPENAI_API_KEY": "synthetic-azure",
+        "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+        "PA_LLM_API_VERSION": "2025-01-01",
+    }
+    monkeypatch.setattr(llm_settings, "read_secret", env.get)
+    fake = FakeStreamlit(button_value=True)
+    run_key = "credential-switch"
+    fake.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "synthetic-legacy-openai"
+    monkeypatch.setattr(comparison_module, "st", fake)
+
+    def prior(manifest):
+        return {"seed": 0}, None
+
+    monkeypatch.setattr(comparison_module, "load_prior_manifest", prior)
+    monkeypatch.setattr(core, "load_prior_manifest", prior)
+    monkeypatch.setattr(
+        core,
+        "load_prior_summary",
+        lambda *args, **kwargs: (pd.DataFrame({"monthly_TE": [0.01]}), None),
+    )
+    monkeypatch.setattr(core, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(core, "record_fleet_event", lambda *args, **kwargs: None)
+    captured = []
+
+    def factory(config):
+        captured.append(config)
+        return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="Safe comparison"))
+
+    monkeypatch.setattr(provider_module, "create_llm", factory)
+
+    def render():
+        comparison_module.render_comparison_llm_panel(
+            summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+            manifest_data={"seed": 1},
+            run_key=run_key,
+        )
+
+    render()
+    assert fake.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] == "anthropic"
+    assert captured[-1].credentials["api_key"] == "synthetic-anthropic"
+    assert f"{comparison_module._API_KEY_KEY}::{run_key}" not in fake.session_state
+    fake.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] = "openai"
+    fake.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}::openai"] = (
+        "synthetic-typed-openai"
+    )
+    render()
+    assert captured[-1].credentials["api_key"] == "synthetic-typed-openai"
+    fake.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] = destination
+    if destination == "azure_openai":
+        # Azure has no automatic provider key in this dashboard's contract.
+        render()
+        assert len(captured) == 2
+        fake.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}::azure_openai"] = (
+            "synthetic-azure"
+        )
+    render()
+    assert captured[-1].provider_name == destination
+    assert (
+        captured[-1].credentials["api_key"]
+        == env["CLAUDE_API_STRANSKE" if destination == "anthropic" else "AZURE_OPENAI_API_KEY"]
+    )
+    if destination == "azure_openai":
+        assert captured[-1].credentials["azure_endpoint"] == env["PA_LLM_BASE_URL"]
+        assert captured[-1].credentials["api_version"] == env["PA_LLM_API_VERSION"]
+    assert all("synthetic" not in item.data for item in fake.downloads)
+    assert socket_connect_guard[0] == []
+
+
+def test_tracing_only_never_constructs_comparison_client(monkeypatch, socket_connect_guard):
+    from dashboard.components import llm_settings
+
+    monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+    fake = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(comparison_module, "st", fake)
+    monkeypatch.setattr(comparison_module, "load_prior_manifest", lambda manifest: ({}, None))
+    calls = []
+    monkeypatch.setattr(comparison_module, "compare_runs", lambda **kwargs: calls.append(kwargs))
+    comparison_module.render_comparison_llm_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest_data={}, run_key="tracing-only"
+    )
+    assert calls == []
+    assert any("No API key found" in message for _, message in fake.messages)
+    assert fake.downloads == []
+    assert socket_connect_guard[0] == []
