@@ -335,10 +335,10 @@ class TestDefaultApiKey:
         with mock.patch.dict(os.environ, env, clear=True):
             assert default_api_key("anthropic") == "claude-key"
 
-    def test_langsmith_fallback(self) -> None:
-        env = {**self._clean_env(), "LANGSMITH_API_KEY": "langsmith-key"}
-        with mock.patch.dict(os.environ, env, clear=True):
-            assert default_api_key("openai") == "langsmith-key"
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_langsmith_is_never_a_provider_credential(self, provider: str) -> None:
+        with mock.patch.dict(os.environ, {"LANGSMITH_API_KEY": "synthetic-tracing"}, clear=True):
+            assert default_api_key(provider) is None
 
     def test_no_key_returns_none(self) -> None:
         with mock.patch.dict(os.environ, self._clean_env(), clear=True):

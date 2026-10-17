@@ -1,0 +1,23 @@
+# Provider credential isolation evidence
+
+Explain and Compare now derive the initial provider from PA_LLM_PROVIDER, resolve environment defaults at request time, and use provider-specific API-key widget identities. Legacy unscoped values are discarded because their provider is unknown. Explicit overrides remain scoped to the selected provider. Azure retains its existing explicit/dashboard key contract, endpoint and version requirements; no provider or model default was added. Config Chat also uses the shared first-use provider. LANGSMITH_API_KEY no longer authorizes a model client and tracing code is unchanged.
+
+The selected repository `.venv/bin/python` ran all five named acceptance suites with a per-test socket.connect guard:105 passed/0 skipped/0 connection attempts.16 tracing tests pass separately. Pinned Black26.10.1 and Ruff pass; product diff whitespace checks pass. Mypy is absent from this repository virtual environment; changed dashboard paths are outside the repository's configured Mypy scope. No type-check pass is claimed.
+
+Actual fake client factories run through the production Explain/Compare helpers. They capture initial Anthropic, explicit OpenAI and switched Anthropic/Azure configurations; Azure refuses until its explicit key is supplied. Synthetic tracing-only settings construct zero clients in Explain, Compare and Config Chat. TXT/JSON downloads contain no synthetic credentials. Prompt and client doubles avoid optional SDK installation and perform no provider calls.
+
+The actual four original production files were reinstalled together: all13 selected new regressions failed/0errors. Restoring the fixed files byte-for-byte passed all13. Source/test SHA256, exact argv, raw JUnit/logs and reproduction scripts are retained here. Final qualification ran after restoration and formatting. Initial tests depended on missing optional langchain_core; those doubles were made self-contained. An initial Azure fixture incorrectly assumed an automatic environment-key mapping; it was corrected to exercise the existing explicit-key contract, not expand product scope.
+
+This is local acceptance evidence. Current-head hosted CI, independent review, the seven-minute review floor, guarded merge and original issue comparison remain with keepalive/closer. No provider, deployment or original-source acceptance is inferred.
+
+## Hosted lint recovery
+
+The initial local Ruff gate covered nine production/test files, but omitted the two newly committed evidence scripts. Hosted whole-tree Ruff failed11 E401/E701/E702 diagnostics in those scripts. After all-head serial refresh proved no native incumbent and future starts were paused, the same owner split imports and formatted both scripts. The identical whole-tree command fails before and exits0 after; both scripts compile. Production/test hashes still match the original causal manifest. Raw output and exact command/return codes are retained. No workflow/lint-policy change or gate suppression was made.
+
+Advisory08604937 found no credential P0/P1 defect. Its P2 qualification is retained: combined provider-switch tests fail first on the original initial-provider assertion; their green execution covers switching/exports, but the original-source red result does not independently establish each later assertion's causal sensitivity. Dedicated tracing-only assertions are discriminating. The review is advisory and exact-old-head only, not CodeRabbit/provider/source acceptance.
+
+## Real widget-lifecycle recovery
+
+CodeRabbit discussions4302205852/4302205856 exposed a real lifecycle defect: unrendered provider widgets lose their Session State. Both panels now copy explicit overrides to independent non-widget, provider-scoped Session State and restore the selected widget when it reappears. This uses the existing API supported by the repository's Streamlit minimum, rather than a newly introduced persist_state option. Source: https://docs.streamlit.io/develop/concepts/architecture/widget-behavior .
+
+Two actual streamlit.testing.v1.AppTest cases reproduce the OpenAI-to-Anthropic-to-OpenAI loss in the actual old c81e143 files. Both fail at the missing typed value, with no errors. Byte-identical restored source passes both, including the return to Anthropic with its own override. Full credential/Wizard/real-widget suites:107PASS/0SKIP; both real-widget tests use the socket guard with0attempts. Raw receipts and new current producer/test hashes are in2383-widget-causal.json. Original2366 receipts remain historical evidence at their recorded source/test hashes; the new source binding is the widget recovery receipt.

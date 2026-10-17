@@ -132,3 +132,7 @@ Provider environment variables:
 
 The default `python -m pytest` path excludes `live_llm` tests with pytest
 addopts, so the normal suite remains offline and key-free.
+
+Provider credentials are isolated per selected provider in Explain and Compare. Environment defaults are resolved when a request is made, without copying keys into widget state. Switching providers never reuses an unscoped credential; enter an explicit override for the selected provider if needed. `LANGSMITH_API_KEY` configures tracing only and cannot authorize a model request. Explain, Compare and Config Chat honor `PA_LLM_PROVIDER` on first use.
+
+Explicit provider overrides are stored independently of transient widget state, so switching away and back restores each provider's own value without copying it to another provider.

@@ -1,0 +1,55 @@
+{
+  "command": [
+    "/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_dashboard_llm_settings.py",
+    "tests/test_dashboard_explain_results.py",
+    "tests/test_dashboard_comparison_llm.py",
+    "tests/test_llm_provider_missing_keys.py",
+    "tests/test_wizard_config_chat_flow.py",
+    "-k",
+    "provider_defaults_switches or tracing_only or wizard_initial_provider or langsmith_is_never"
+  ],
+  "original_source_ref": "origin/main at b6a4c1a",
+  "red": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "13",
+    "skipped": "0",
+    "tests": "13",
+    "time": "1.490",
+    "timestamp": "2026-10-17T04:21:03.535045-05:00",
+    "hostname": "server.trs.private"
+  },
+  "restored_returncode": 0,
+  "sources": {
+    "dashboard/components/llm_settings.py": {
+      "original": "6072468474fe0f9d52bc8b867e3f354fbc98b02254859a187111c9dca4c99243",
+      "fixed": "919a4b5a9f67b4f871a7bbfca675b9dddf9665ce6b86da28c68a50cd6a1e978a",
+      "restored": "919a4b5a9f67b4f871a7bbfca675b9dddf9665ce6b86da28c68a50cd6a1e978a"
+    },
+    "dashboard/components/explain_results.py": {
+      "original": "f38449d572deaa9e7d4e4c376c21418e66aaece8c25f761a7b93237b187ede51",
+      "fixed": "757faa421e6054b34443fe337908d3f6e8485b8d98b04793fc2a8f150f260825",
+      "restored": "757faa421e6054b34443fe337908d3f6e8485b8d98b04793fc2a8f150f260825"
+    },
+    "dashboard/components/comparison_llm.py": {
+      "original": "7e5b5ea032541ae7225a0dd32af3d7f033c055114e3829d2cc7286d8c89b2ea7",
+      "fixed": "f101404700671f6cc6362e7fe6139f1cf2c1b6592ea10226b98fa32d861a8e72",
+      "restored": "f101404700671f6cc6362e7fe6139f1cf2c1b6592ea10226b98fa32d861a8e72"
+    },
+    "dashboard/pages/3_Scenario_Wizard.py": {
+      "original": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654",
+      "fixed": "4687fd4e62c288bd40197912e1e9de4426281b2fe0d8473a43f5278b4d7c8c8d",
+      "restored": "4687fd4e62c288bd40197912e1e9de4426281b2fe0d8473a43f5278b4d7c8c8d"
+    }
+  },
+  "test_sources": {
+    "tests/test_dashboard_llm_settings.py": "16eaf908a51feed61e52a8f5334b07d79f4853994f33f63113cdd36eafe5eca6",
+    "tests/test_dashboard_explain_results.py": "1055f01fff942bebfb1d24beca6009d622161c31022912d45ffdc707d1463fcb",
+    "tests/test_dashboard_comparison_llm.py": "22ee4fc7672a292586a76b865b98f4dd23b97986d8c5416f42093bf652966021",
+    "tests/test_llm_provider_missing_keys.py": "724bf5ecc5b053e1002b0bb4ef649431ca091f00088a1d8a1134ede2fa09bc53",
+    "tests/test_wizard_config_chat_flow.py": "14b3c484963c27b3b294925302bacef6c61dad6ac151d8a254908fab0e228815"
+  }
+}

@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.0, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/portable-2366-credential-isolation-0900
+configfile: pyproject.toml
+plugins: timeout-2.4.0
+collected 16 items
+
+tests/test_tracing.py ..                                                 [ 12%]
+tests/test_llm_tracing_noop.py ..............                            [100%]
+
+- generated xml file: /Users/teacher/.codex/automations/pd-workloop-resume/run-20261017T0900/2366-tracing.xml -
+============================== 16 passed in 0.87s ==============================

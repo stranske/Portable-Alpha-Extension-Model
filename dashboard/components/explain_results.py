@@ -13,6 +13,7 @@ import streamlit as st
 
 from dashboard.components.llm_settings import (
     default_api_key,
+    default_provider,
     resolve_api_key_input,
     resolve_llm_provider_config,
 )
@@ -100,30 +101,33 @@ def render_explain_results_panel(
 
     with st.expander("LLM Settings", expanded=False):
         provider_options = ["openai", "anthropic", "azure_openai"]
-        default_provider = str(st.session_state.get(_PROVIDER_KEY, "openai")).lower()
-        if default_provider not in provider_options:
-            default_provider = "openai"
+        provider_default = str(st.session_state.get(_PROVIDER_KEY, default_provider())).lower()
+        if provider_default not in provider_options:
+            provider_default = "openai"
 
         st.selectbox(
             "Provider",
             provider_options,
-            index=provider_options.index(default_provider),
+            index=provider_options.index(provider_default),
             key=_PROVIDER_KEY,
         )
 
-        current_provider = str(st.session_state.get(_PROVIDER_KEY, default_provider)).lower()
-        if not st.session_state.get(_API_KEY_KEY):
-            env_key = default_api_key(current_provider)
-            if env_key:
-                st.session_state[_API_KEY_KEY] = env_key
-
-        st.text_input(
+        current_provider = str(st.session_state.get(_PROVIDER_KEY, provider_default)).lower()
+        api_key_key = f"{_API_KEY_KEY}::{current_provider}"
+        # Legacy unscoped keys have no trustworthy provider binding.
+        st.session_state.pop(_API_KEY_KEY, None)
+        saved_key = f"{api_key_key}::saved"
+        if api_key_key not in st.session_state:
+            st.session_state[api_key_key] = st.session_state.get(saved_key, "")
+        override = st.text_input(
             "API Key",
             value="",
-            key=_API_KEY_KEY,
+            key=api_key_key,
             type="password",
             help="Enter a literal key or an environment variable name.",
         )
+        # Streamlit removes unrendered widget keys; this key is not a widget.
+        st.session_state[saved_key] = override
         st.text_input(
             "Model (optional)",
             value=st.session_state.get(_MODEL_KEY, ""),
@@ -131,7 +135,7 @@ def render_explain_results_panel(
         )
 
     questions = st.session_state.get(_QUESTIONS_KEY) or DEFAULT_QUESTIONS
-    provider = str(st.session_state.get(_PROVIDER_KEY, "openai")).lower()
+    provider = str(st.session_state.get(_PROVIDER_KEY, default_provider())).lower()
     model = str(st.session_state.get(_MODEL_KEY, "")).strip()
 
     cache = _cache_bucket()
@@ -148,7 +152,7 @@ def render_explain_results_panel(
         with st.spinner("Generating explanation..."):
             if cached is None:
                 try:
-                    raw_key = st.session_state.get(_API_KEY_KEY)
+                    raw_key = st.session_state.get(api_key_key)
                     resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)
                     config = resolve_llm_provider_config(
                         provider=provider,

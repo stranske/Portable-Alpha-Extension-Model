@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="13" skipped="0" tests="13" time="1.490" timestamp="2026-10-17T04:21:03.535045-05:00" hostname="server.trs.private"><testcase classname="tests.test_dashboard_llm_settings.TestDefaultApiKey" name="test_langsmith_is_never_a_provider_credential[openai]" time="0.228"><failure message="AssertionError: assert 'synthetic-tracing' is None&#10; +  where 'synthetic-tracing' = default_api_key('openai')">self = &lt;test_dashboard_llm_settings.TestDefaultApiKey object at 0x110d7bcb0&gt;
+provider = 'openai'
+
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_langsmith_is_never_a_provider_credential(self, provider: str) -&gt; None:
+        with mock.patch.dict(os.environ, {"LANGSMITH_API_KEY": "synthetic-tracing"}, clear=True):
+&gt;           assert default_api_key(provider) is None
+E           AssertionError: assert 'synthetic-tracing' is None
+E            +  where 'synthetic-tracing' = default_api_key('openai')
+
+tests/test_dashboard_llm_settings.py:341: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_llm_settings.TestDefaultApiKey" name="test_langsmith_is_never_a_provider_credential[anthropic]" time="0.001"><failure message="AssertionError: assert 'synthetic-tracing' is None&#10; +  where 'synthetic-tracing' = default_api_key('anthropic')">self = &lt;test_dashboard_llm_settings.TestDefaultApiKey object at 0x110d7be60&gt;
+provider = 'anthropic'
+
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_langsmith_is_never_a_provider_credential(self, provider: str) -&gt; None:
+        with mock.patch.dict(os.environ, {"LANGSMITH_API_KEY": "synthetic-tracing"}, clear=True):
+&gt;           assert default_api_key(provider) is None
+E           AssertionError: assert 'synthetic-tracing' is None
+E            +  where 'synthetic-tracing' = default_api_key('anthropic')
+
+tests/test_dashboard_llm_settings.py:341: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_llm_settings.TestDefaultApiKey" name="test_langsmith_is_never_a_provider_credential[azure_openai]" time="0.001"><failure message="AssertionError: assert 'synthetic-tracing' is None&#10; +  where 'synthetic-tracing' = default_api_key('azure_openai')">self = &lt;test_dashboard_llm_settings.TestDefaultApiKey object at 0x110d7bf20&gt;
+provider = 'azure_openai'
+
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_langsmith_is_never_a_provider_credential(self, provider: str) -&gt; None:
+        with mock.patch.dict(os.environ, {"LANGSMITH_API_KEY": "synthetic-tracing"}, clear=True):
+&gt;           assert default_api_key(provider) is None
+E           AssertionError: assert 'synthetic-tracing' is None
+E            +  where 'synthetic-tracing' = default_api_key('azure_openai')
+
+tests/test_dashboard_llm_settings.py:341: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_explain_results" name="test_provider_defaults_switches_and_secret_free_exports[anthropic]" time="0.017"><failure message="AssertionError: assert 'openai' == 'anthropic'&#10;  &#10;  - anthropic&#10;  + openai">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x1278de570&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x1278d6f20&gt;)
+destination = 'anthropic'
+
+    @pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
+    def test_provider_defaults_switches_and_secret_free_exports(
+        monkeypatch, socket_connect_guard, destination
+    ):
+        from dashboard.components import llm_settings
+        import pa_core.llm.result_explain as core
+    
+        env = {
+            "PA_LLM_PROVIDER": "anthropic",
+            "OPENAI_API_KEY": "synthetic-openai",
+            "CLAUDE_API_STRANSKE": "synthetic-anthropic",
+            "AZURE_OPENAI_API_KEY": "synthetic-azure",
+            "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+            "PA_LLM_API_VERSION": "2025-01-01",
+        }
+        monkeypatch.setattr(llm_settings, "read_secret", env.get)
+        fake = FakeStreamlit(button_value=True)
+        fake.session_state[explain_module._API_KEY_KEY] = "synthetic-legacy-openai"
+        monkeypatch.setattr(explain_module, "st", fake)
+        captured = []
+    
+        def factory(config):
+            captured.append(config)
+            return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="Safe explanation"))
+    
+        monkeypatch.setattr(core, "create_llm", factory)
+        monkeypatch.setattr(core, "_is_tracing_enabled", lambda enabled: False)
+        monkeypatch.setattr(core, "record_fleet_event", lambda *args, **kwargs: None)
+    
+        def render():
+            fake.session_state[explain_module._CACHE_KEY] = {}
+            explain_module.render_explain_results_panel(
+                summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+                manifest={"seed": 1},
+                xlsx_path="/tmp/results.xlsx",
+            )
+    
+        render()
+&gt;       assert fake.session_state[explain_module._PROVIDER_KEY] == "anthropic"
+E       AssertionError: assert 'openai' == 'anthropic'
+E         
+E         - anthropic
+E         + openai
+
+tests/test_dashboard_explain_results.py:243: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_explain_results" name="test_provider_defaults_switches_and_secret_free_exports[azure_openai]" time="0.003"><failure message="AssertionError: assert 'openai' == 'anthropic'&#10;  &#10;  - anthropic&#10;  + openai">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127bfdf40&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf0220&gt;)
+destination = 'azure_openai'
+
+    @pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
+    def test_provider_defaults_switches_and_secret_free_exports(
+        monkeypatch, socket_connect_guard, destination
+    ):
+        from dashboard.components import llm_settings
+        import pa_core.llm.result_explain as core
+    
+        env = {
+            "PA_LLM_PROVIDER": "anthropic",
+            "OPENAI_API_KEY": "synthetic-openai",
+            "CLAUDE_API_STRANSKE": "synthetic-anthropic",
+            "AZURE_OPENAI_API_KEY": "synthetic-azure",
+            "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+            "PA_LLM_API_VERSION": "2025-01-01",
+        }
+        monkeypatch.setattr(llm_settings, "read_secret", env.get)
+        fake = FakeStreamlit(button_value=True)
+        fake.session_state[explain_module._API_KEY_KEY] = "synthetic-legacy-openai"
+        monkeypatch.setattr(explain_module, "st", fake)
+        captured = []
+    
+        def factory(config):
+            captured.append(config)
+            return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="Safe explanation"))
+    
+        monkeypatch.setattr(core, "create_llm", factory)
+        monkeypatch.setattr(core, "_is_tracing_enabled", lambda enabled: False)
+        monkeypatch.setattr(core, "record_fleet_event", lambda *args, **kwargs: None)
+    
+        def render():
+            fake.session_state[explain_module._CACHE_KEY] = {}
+            explain_module.render_explain_results_panel(
+                summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+                manifest={"seed": 1},
+                xlsx_path="/tmp/results.xlsx",
+            )
+    
+        render()
+&gt;       assert fake.session_state[explain_module._PROVIDER_KEY] == "anthropic"
+E       AssertionError: assert 'openai' == 'anthropic'
+E         
+E         - anthropic
+E         + openai
+
+tests/test_dashboard_explain_results.py:243: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_explain_results" name="test_tracing_only_never_constructs_explanation_client" time="0.003"><failure message="AssertionError: assert [LLMProviderC...nt_kwargs={})] == []&#10;  &#10;  Left contains one more item: LLMProviderConfig(provider_name='openai', credentials={'api_key': 'synthetic-tracing'}, model_name=None, client_kwargs={})&#10;  Use -v to get more diff">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127bfdc70&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf00e0&gt;)
+
+    def test_tracing_only_never_constructs_explanation_client(monkeypatch, socket_connect_guard):
+        from dashboard.components import llm_settings
+        import pa_core.llm.result_explain as core
+    
+        monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        calls = []
+        monkeypatch.setattr(core, "create_llm", lambda config: calls.append(config))
+        explain_module.render_explain_results_panel(
+            summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest={}, xlsx_path="/tmp/results.xlsx"
+        )
+&gt;       assert calls == []
+E       AssertionError: assert [LLMProviderC...nt_kwargs={})] == []
+E         
+E         Left contains one more item: LLMProviderConfig(provider_name='openai', credentials={'api_key': 'synthetic-tracing'}, model_name=None, client_kwargs={})
+E         Use -v to get more diff
+
+tests/test_dashboard_explain_results.py:281: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_comparison_llm" name="test_comparison_provider_defaults_switches_and_secret_free_exports[anthropic]" time="0.001"><failure message="AssertionError: assert 'openai' == 'anthropic'&#10;  &#10;  - anthropic&#10;  + openai">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127bff500&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf0360&gt;)
+destination = 'anthropic'
+
+    @pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
+    def test_comparison_provider_defaults_switches_and_secret_free_exports(
+        monkeypatch, socket_connect_guard, destination
+    ):
+        import importlib
+        from contextlib import nullcontext
+        from types import SimpleNamespace
+        from dashboard.components import llm_settings
+        import pa_core.llm.provider as provider_module
+    
+        import sys
+    
+        class Prompt:
+            @staticmethod
+            def from_messages(messages):
+                return Prompt()
+    
+            def __or__(self, client):
+                return client
+    
+        monkeypatch.setitem(
+            sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=Prompt)
+        )
+        core = importlib.import_module("pa_core.llm.compare_runs")
+        env = {
+            "PA_LLM_PROVIDER": "anthropic",
+            "OPENAI_API_KEY": "synthetic-openai",
+            "CLAUDE_API_STRANSKE": "synthetic-anthropic",
+            "AZURE_OPENAI_API_KEY": "synthetic-azure",
+            "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+            "PA_LLM_API_VERSION": "2025-01-01",
+        }
+        monkeypatch.setattr(llm_settings, "read_secret", env.get)
+        fake = FakeStreamlit(button_value=True)
+        run_key = "credential-switch"
+        fake.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "synthetic-legacy-openai"
+        monkeypatch.setattr(comparison_module, "st", fake)
+    
+        def prior(manifest):
+            return {"seed": 0}, None
+    
+        monkeypatch.setattr(comparison_module, "load_prior_manifest", prior)
+        monkeypatch.setattr(core, "load_prior_manifest", prior)
+        monkeypatch.setattr(
+            core,
+            "load_prior_summary",
+            lambda *args, **kwargs: (pd.DataFrame({"monthly_TE": [0.01]}), None),
+        )
+        monkeypatch.setattr(core, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+        monkeypatch.setattr(core, "record_fleet_event", lambda *args, **kwargs: None)
+        captured = []
+    
+        def factory(config):
+            captured.append(config)
+            return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="Safe comparison"))
+    
+        monkeypatch.setattr(provider_module, "create_llm", factory)
+    
+        def render():
+            comparison_module.render_comparison_llm_panel(
+                summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+                manifest_data={"seed": 1},
+                run_key=run_key,
+            )
+    
+        render()
+&gt;       assert fake.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] == "anthropic"
+E       AssertionError: assert 'openai' == 'anthropic'
+E         
+E         - anthropic
+E         + openai
+
+tests/test_dashboard_comparison_llm.py:309: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_comparison_llm" name="test_comparison_provider_defaults_switches_and_secret_free_exports[azure_openai]" time="0.001"><failure message="AssertionError: assert 'openai' == 'anthropic'&#10;  &#10;  - anthropic&#10;  + openai">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127bff5c0&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf07c0&gt;)
+destination = 'azure_openai'
+
+    @pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
+    def test_comparison_provider_defaults_switches_and_secret_free_exports(
+        monkeypatch, socket_connect_guard, destination
+    ):
+        import importlib
+        from contextlib import nullcontext
+        from types import SimpleNamespace
+        from dashboard.components import llm_settings
+        import pa_core.llm.provider as provider_module
+    
+        import sys
+    
+        class Prompt:
+            @staticmethod
+            def from_messages(messages):
+                return Prompt()
+    
+            def __or__(self, client):
+                return client
+    
+        monkeypatch.setitem(
+            sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=Prompt)
+        )
+        core = importlib.import_module("pa_core.llm.compare_runs")
+        env = {
+            "PA_LLM_PROVIDER": "anthropic",
+            "OPENAI_API_KEY": "synthetic-openai",
+            "CLAUDE_API_STRANSKE": "synthetic-anthropic",
+            "AZURE_OPENAI_API_KEY": "synthetic-azure",
+            "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+            "PA_LLM_API_VERSION": "2025-01-01",
+        }
+        monkeypatch.setattr(llm_settings, "read_secret", env.get)
+        fake = FakeStreamlit(button_value=True)
+        run_key = "credential-switch"
+        fake.session_state[f"{comparison_module._API_KEY_KEY}::{run_key}"] = "synthetic-legacy-openai"
+        monkeypatch.setattr(comparison_module, "st", fake)
+    
+        def prior(manifest):
+            return {"seed": 0}, None
+    
+        monkeypatch.setattr(comparison_module, "load_prior_manifest", prior)
+        monkeypatch.setattr(core, "load_prior_manifest", prior)
+        monkeypatch.setattr(
+            core,
+            "load_prior_summary",
+            lambda *args, **kwargs: (pd.DataFrame({"monthly_TE": [0.01]}), None),
+        )
+        monkeypatch.setattr(core, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+        monkeypatch.setattr(core, "record_fleet_event", lambda *args, **kwargs: None)
+        captured = []
+    
+        def factory(config):
+            captured.append(config)
+            return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="Safe comparison"))
+    
+        monkeypatch.setattr(provider_module, "create_llm", factory)
+    
+        def render():
+            comparison_module.render_comparison_llm_panel(
+                summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+                manifest_data={"seed": 1},
+                run_key=run_key,
+            )
+    
+        render()
+&gt;       assert fake.session_state[f"{comparison_module._PROVIDER_KEY}::{run_key}"] == "anthropic"
+E       AssertionError: assert 'openai' == 'anthropic'
+E         
+E         - anthropic
+E         + openai
+
+tests/test_dashboard_comparison_llm.py:309: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_comparison_llm" name="test_tracing_only_never_constructs_comparison_client" time="0.007"><failure message="AssertionError: assert [{'current_su...openai', ...}] == []&#10;  &#10;  Left contains one more item: {'current_summary':    monthly_TE\n0        0.02, 'current_manifest': {}, 'questions': 'Compare the current and previou...r changes likely improved risk-adjusted outcomes.\n4. One practical next run to test.', 'provider_name': 'openai', ...}&#10;  Use -v to get more diff">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127c5aba0&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf0d60&gt;)
+
+    def test_tracing_only_never_constructs_comparison_client(monkeypatch, socket_connect_guard):
+        from dashboard.components import llm_settings
+    
+        monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(comparison_module, "st", fake)
+        monkeypatch.setattr(comparison_module, "load_prior_manifest", lambda manifest: ({}, None))
+        calls = []
+        monkeypatch.setattr(comparison_module, "compare_runs", lambda **kwargs: calls.append(kwargs))
+        comparison_module.render_comparison_llm_panel(
+            summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest_data={}, run_key="tracing-only"
+        )
+&gt;       assert calls == []
+E       AssertionError: assert [{'current_su...openai', ...}] == []
+E         
+E         Left contains one more item: {'current_summary':    monthly_TE\n0        0.02, 'current_manifest': {}, 'questions': 'Compare the current and previou...r changes likely improved risk-adjusted outcomes.\n4. One practical next run to test.', 'provider_name': 'openai', ...}
+E         Use -v to get more diff
+
+tests/test_dashboard_comparison_llm.py:351: AssertionError</failure></testcase><testcase classname="tests.test_llm_provider_missing_keys" name="test_tracing_only_is_not_model_authorization[openai]" time="0.000"><failure message="Failed: DID NOT RAISE ValueError">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127c59d00&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf1c60&gt;)
+provider = 'openai'
+
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_tracing_only_is_not_model_authorization(monkeypatch, socket_connect_guard, provider):
+        from dashboard.components import llm_settings
+    
+        monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+&gt;       with pytest.raises(ValueError, match="No API key found for provider"):
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_llm_provider_missing_keys.py:124: Failed</failure></testcase><testcase classname="tests.test_llm_provider_missing_keys" name="test_tracing_only_is_not_model_authorization[anthropic]" time="0.000"><failure message="Failed: DID NOT RAISE ValueError">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127c59df0&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf25c0&gt;)
+provider = 'anthropic'
+
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_tracing_only_is_not_model_authorization(monkeypatch, socket_connect_guard, provider):
+        from dashboard.components import llm_settings
+    
+        monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+&gt;       with pytest.raises(ValueError, match="No API key found for provider"):
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_llm_provider_missing_keys.py:124: Failed</failure></testcase><testcase classname="tests.test_llm_provider_missing_keys" name="test_tracing_only_is_not_model_authorization[azure_openai]" time="0.000"><failure message="AssertionError: Regex pattern did not match.&#10;  Expected regex: 'No API key found for provider'&#10;  Actual message: 'Azure OpenAI settings are incomplete. Missing base_url (PA_LLM_BASE_URL) and api_version (PA_LLM_API_VERSION or AZURE_OPENAI_API_VERSION). Set the matching environment variable or provide the missing dashboard setting.'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127c5a930&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf2700&gt;)
+provider = 'azure_openai'
+
+    @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+    def test_tracing_only_is_not_model_authorization(monkeypatch, socket_connect_guard, provider):
+        from dashboard.components import llm_settings
+    
+        monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+&gt;       with pytest.raises(ValueError, match="No API key found for provider"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'No API key found for provider'
+E         Actual message: 'Azure OpenAI settings are incomplete. Missing base_url (PA_LLM_BASE_URL) and api_version (PA_LLM_API_VERSION or AZURE_OPENAI_API_VERSION). Set the matching environment variable or provide the missing dashboard setting.'
+
+tests/test_llm_provider_missing_keys.py:124: AssertionError</failure></testcase><testcase classname="tests.test_wizard_config_chat_flow" name="test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_client" time="0.057"><failure message="assert None is not None">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x127bff470&gt;
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x127bf1d00&gt;)
+
+    def test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_client(
+        monkeypatch, socket_connect_guard
+    ):
+        from dashboard.components import llm_settings
+        import sys
+        from types import SimpleNamespace
+    
+        class Prompt:
+            @staticmethod
+            def from_messages(messages):
+                return Prompt()
+    
+            def __or__(self, client):
+                return client
+    
+        monkeypatch.setitem(
+            sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=Prompt)
+        )
+    
+        st.session_state.clear()
+        env = {"PA_LLM_PROVIDER": "anthropic", "CLAUDE_API_STRANSKE": "synthetic-anthropic"}
+        monkeypatch.setattr(llm_settings, "read_secret", env.get)
+        try:
+            module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+            captured = []
+    
+            def factory(config):
+                captured.append(config)
+                return SimpleNamespace(invoke=lambda prompt: SimpleNamespace(content="safe"))
+    
+            # runpy returns the globals mapping used by the builder.
+            module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = factory
+            invoke, provider, _ = module["_build_config_chat_llm_invoke"]()
+&gt;           assert invoke is not None
+E           assert None is not None
+
+tests/test_wizard_config_chat_flow.py:120: AssertionError</failure></testcase></testsuite></testsuites>

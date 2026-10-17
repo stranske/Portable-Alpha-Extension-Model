@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_dashboard_provider_widget_lifecycle.py"
+  ],
+  "old_head": "c81e14368ceca68ac6c95bfb98a41e12fa229bef",
+  "old_rc": 1,
+  "restored_rc": 0,
+  "test_sha256": "d3c492b53ad98817daf605268c5ca77b04cea955010221ac4e60fc298edb3b96",
+  "sources": {
+    "dashboard/components/explain_results.py": {
+      "old": "757faa421e6054b34443fe337908d3f6e8485b8d98b04793fc2a8f150f260825",
+      "fixed": "dffa41cf618c17855c2ddfc9cebde00a8d1141de47ee6455cb57acba53fb49c7",
+      "restored": "dffa41cf618c17855c2ddfc9cebde00a8d1141de47ee6455cb57acba53fb49c7"
+    },
+    "dashboard/components/comparison_llm.py": {
+      "old": "f101404700671f6cc6362e7fe6139f1cf2c1b6592ea10226b98fa32d861a8e72",
+      "fixed": "a496d269efb187fd98e01b1352ce0621c5ce77b9f0956aa8c2d8df77657814c9",
+      "restored": "a496d269efb187fd98e01b1352ce0621c5ce77b9f0956aa8c2d8df77657814c9"
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "scripts": [
+    {
+      "script": "2366-proof.py",
+      "sha256": "7aa92db98d29bdd4d35b07b80d6d19e8b1e6b2464d66915bdc616f40db2a2b0b",
+      "pinned_ref": "b6a4c1a6a6c61bc856c4f6db89ca7cbf36eaddac",
+      "historical_baseline_hashes_verified": true,
+      "root": "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/portable-2366-credential-isolation-0900",
+      "historical_receipt_preserved": "2366-causal.json"
+    },
+    {
+      "script": "2383-widget-proof.py",
+      "sha256": "6e8b0bb66ece013ea3b3ef0d03b51d56c10378cf646d1f496daf9e69eb9ef8ae",
+      "pinned_ref": "c81e14368ceca68ac6c95bfb98a41e12fa229bef",
+      "historical_baseline_hashes_verified": true,
+      "root": "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/portable-2366-credential-isolation-0900",
+      "historical_receipt_preserved": "2383-widget-causal.json"
+    }
+  ],
+  "no_source_mutation_executed": true,
+  "production_and_regression_test_bytes_equal_eea99696": [
+    "dashboard/components/llm_settings.py",
+    "dashboard/components/explain_results.py",
+    "dashboard/components/comparison_llm.py",
+    "dashboard/pages/3_Scenario_Wizard.py",
+    "tests/test_dashboard_provider_widget_lifecycle.py"
+  ]
+}

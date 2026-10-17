@@ -23,6 +23,7 @@ from dashboard.theme import apply_theme as apply_ds_theme
 from dashboard.components.config_chat import render_config_chat_panel
 from dashboard.components.llm_settings import (
     default_api_key,
+    default_provider,
     resolve_api_key_input,
     resolve_llm_provider_config,
 )
@@ -319,7 +320,9 @@ def _heuristic_config_patch_result(
 
 
 def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | None, str | None]:
-    provider = str(st.session_state.get(_CONFIG_CHAT_PROVIDER_KEY, "openai")).strip().lower()
+    provider = (
+        str(st.session_state.get(_CONFIG_CHAT_PROVIDER_KEY, default_provider())).strip().lower()
+    )
     model = str(st.session_state.get(_CONFIG_CHAT_MODEL_KEY, "")).strip() or None
     raw_key = st.session_state.get(_CONFIG_CHAT_API_KEY_KEY)
     resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)

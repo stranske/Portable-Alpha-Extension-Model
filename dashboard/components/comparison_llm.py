@@ -15,6 +15,7 @@ from dashboard.components.llm_settings import (
     default_api_key,
     default_api_version,
     default_base_url,
+    default_provider,
     resolve_api_key_input,
     resolve_llm_provider_config,
 )
@@ -112,32 +113,33 @@ def render_comparison_llm_panel(
     with st.expander("LLM Settings", expanded=False):
         provider_options = ["openai", "anthropic", "azure_openai"]
         provider_key = f"{_PROVIDER_KEY}::{run_key}"
-        api_key_key = f"{_API_KEY_KEY}::{run_key}"
         base_url_key = f"{_BASE_URL_KEY}::{run_key}"
         api_version_key = f"{_API_VERSION_KEY}::{run_key}"
         model_key = f"{_MODEL_KEY}::{run_key}"
 
-        default_provider = str(st.session_state.get(provider_key, "openai")).lower()
-        if default_provider not in provider_options:
-            default_provider = "openai"
+        provider_default = str(st.session_state.get(provider_key, default_provider())).lower()
+        if provider_default not in provider_options:
+            provider_default = "openai"
         st.selectbox(
             "Provider",
             provider_options,
-            index=provider_options.index(default_provider),
+            index=provider_options.index(provider_default),
             key=provider_key,
         )
-        provider = str(st.session_state.get(provider_key, default_provider)).lower()
-        if not st.session_state.get(api_key_key):
-            env_key = default_api_key(provider)
-            if env_key:
-                st.session_state[api_key_key] = env_key
-        st.text_input(
+        provider = str(st.session_state.get(provider_key, provider_default)).lower()
+        api_key_key = f"{_API_KEY_KEY}::{run_key}::{provider}"
+        st.session_state.pop(f"{_API_KEY_KEY}::{run_key}", None)
+        saved_key = f"{api_key_key}::saved"
+        if api_key_key not in st.session_state:
+            st.session_state[api_key_key] = st.session_state.get(saved_key, "")
+        override = st.text_input(
             "API Key",
             value="",
             key=api_key_key,
             type="password",
             help="Enter a literal key or env var name.",
         )
+        st.session_state[saved_key] = override
         st.text_input(
             "Model (optional)",
             value=st.session_state.get(model_key, ""),
@@ -171,12 +173,12 @@ def render_comparison_llm_panel(
                     return
                 questions_key = f"{_QUESTIONS_KEY}::{run_key}"
                 provider_key = f"{_PROVIDER_KEY}::{run_key}"
-                api_key_key = f"{_API_KEY_KEY}::{run_key}"
                 base_url_key = f"{_BASE_URL_KEY}::{run_key}"
                 api_version_key = f"{_API_VERSION_KEY}::{run_key}"
                 model_key = f"{_MODEL_KEY}::{run_key}"
 
-                provider = str(st.session_state.get(provider_key, "openai")).lower()
+                provider = str(st.session_state.get(provider_key, default_provider())).lower()
+                api_key_key = f"{_API_KEY_KEY}::{run_key}::{provider}"
                 model = str(st.session_state.get(model_key, "")).strip() or None
                 raw_key = st.session_state.get(api_key_key)
                 resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)

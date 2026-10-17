@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="1.379" timestamp="2026-10-17T04:35:23.856790-05:00" hostname="server.trs.private"><testcase classname="tests.test_dashboard_provider_widget_lifecycle" name="test_provider_roundtrip_preserves_override_after_real_widget_cleanup[explain]" time="0.995"><failure message="AssertionError: assert '' == 'synthetic-typed-openai'&#10;  &#10;  - synthetic-typed-openai">panel = 'explain'
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x106e69120&gt;)
+
+    @pytest.mark.parametrize("panel", ["explain", "compare"])
+    def test_provider_roundtrip_preserves_override_after_real_widget_cleanup(
+        panel, socket_connect_guard
+    ):
+        code = """
+    import pandas as pd
+    from dashboard.components import llm_settings
+    from dashboard.components.explain_results import render_explain_results_panel
+    from dashboard.components.comparison_llm import render_comparison_llm_panel
+    original_read = llm_settings.read_secret
+    llm_settings.read_secret = lambda name: "openai" if name == "PA_LLM_PROVIDER" else None
+    try:
+        if PANEL == "explain":
+            render_explain_results_panel(summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest={}, xlsx_path="/tmp/results.xlsx")
+        else:
+            render_comparison_llm_panel(summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest_data={}, run_key="roundtrip")
+    finally:
+        llm_settings.read_secret = original_read
+    """
+        app = AppTest.from_string(code.replace("PANEL", repr(panel))).run()
+        assert not app.exception
+        api_key = next(item for item in app.text_input if item.label == "API Key")
+        api_key.input("synthetic-typed-openai").run()
+        provider = next(item for item in app.selectbox if item.label == "Provider")
+        provider.select("anthropic").run()
+        assert not app.exception
+        assert next(item for item in app.text_input if item.label == "API Key").value == ""
+        next(item for item in app.text_input if item.label == "API Key").input(
+            "synthetic-typed-anthropic"
+        ).run()
+        next(item for item in app.selectbox if item.label == "Provider").select("openai").run()
+        assert not app.exception
+&gt;       assert (
+            next(item for item in app.text_input if item.label == "API Key").value
+            == "synthetic-typed-openai"
+        )
+E       AssertionError: assert '' == 'synthetic-typed-openai'
+E         
+E         - synthetic-typed-openai
+
+tests/test_dashboard_provider_widget_lifecycle.py:39: AssertionError</failure></testcase><testcase classname="tests.test_dashboard_provider_widget_lifecycle" name="test_provider_roundtrip_preserves_override_after_real_widget_cleanup[compare]" time="0.019"><failure message="AssertionError: assert '' == 'synthetic-typed-openai'&#10;  &#10;  - synthetic-typed-openai">panel = 'compare'
+socket_connect_guard = ([], &lt;function socket_connect_guard.&lt;locals&gt;._blocked_connect at 0x11778fec0&gt;)
+
+    @pytest.mark.parametrize("panel", ["explain", "compare"])
+    def test_provider_roundtrip_preserves_override_after_real_widget_cleanup(
+        panel, socket_connect_guard
+    ):
+        code = """
+    import pandas as pd
+    from dashboard.components import llm_settings
+    from dashboard.components.explain_results import render_explain_results_panel
+    from dashboard.components.comparison_llm import render_comparison_llm_panel
+    original_read = llm_settings.read_secret
+    llm_settings.read_secret = lambda name: "openai" if name == "PA_LLM_PROVIDER" else None
+    try:
+        if PANEL == "explain":
+            render_explain_results_panel(summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest={}, xlsx_path="/tmp/results.xlsx")
+        else:
+            render_comparison_llm_panel(summary_df=pd.DataFrame({"monthly_TE": [0.02]}), manifest_data={}, run_key="roundtrip")
+    finally:
+        llm_settings.read_secret = original_read
+    """
+        app = AppTest.from_string(code.replace("PANEL", repr(panel))).run()
+        assert not app.exception
+        api_key = next(item for item in app.text_input if item.label == "API Key")
+        api_key.input("synthetic-typed-openai").run()
+        provider = next(item for item in app.selectbox if item.label == "Provider")
+        provider.select("anthropic").run()
+        assert not app.exception
+        assert next(item for item in app.text_input if item.label == "API Key").value == ""
+        next(item for item in app.text_input if item.label == "API Key").input(
+            "synthetic-typed-anthropic"
+        ).run()
+        next(item for item in app.selectbox if item.label == "Provider").select("openai").run()
+        assert not app.exception
+&gt;       assert (
+            next(item for item in app.text_input if item.label == "API Key").value
+            == "synthetic-typed-openai"
+        )
+E       AssertionError: assert '' == 'synthetic-typed-openai'
+E         
+E         - synthetic-typed-openai
+
+tests/test_dashboard_provider_widget_lifecycle.py:39: AssertionError</failure></testcase></testsuite></testsuites>

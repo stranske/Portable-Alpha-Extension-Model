@@ -1,0 +1,24 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.12.2, pytest-9.1.0, pluggy-1.6.0
+rootdir: /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/portable-2366-credential-isolation-0900
+configfile: pyproject.toml
+plugins: timeout-2.4.0
+collected 105 items
+
+tests/test_dashboard_llm_settings.py ................................... [ 33%]
+.....................................                                    [ 68%]
+tests/test_dashboard_explain_results.py ......                           [ 74%]
+tests/test_dashboard_comparison_llm.py .......                           [ 80%]
+tests/test_llm_provider_missing_keys.py ................                 [ 96%]
+tests/test_wizard_config_chat_flow.py ....                               [100%]
+
+=============================== warnings summary ===============================
+tests/test_wizard_config_chat_flow.py::test_preview_generates_diff_without_mutating_live_config
+tests/test_wizard_config_chat_flow.py::test_apply_validate_blocks_invalid_patch_without_mutation
+  /Users/teacher/.codex/automations/pd-workloop-resume/worktrees/portable-2366-credential-isolation-0900/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: /Users/teacher/.codex/automations/pd-workloop-resume/run-20261017T0900/2366-offline.xml -
+======================= 105 passed, 2 warnings in 1.10s ========================
+OFFLINE_SOCKET_ATTEMPTS 0

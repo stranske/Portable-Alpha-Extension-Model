@@ -114,3 +114,13 @@ def test_is_claude5_family(model: str, expected: bool) -> None:
     from pa_core.llm.provider import _is_claude5_family
 
     assert _is_claude5_family(model) is expected
+
+
+@pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+def test_tracing_only_is_not_model_authorization(monkeypatch, socket_connect_guard, provider):
+    from dashboard.components import llm_settings
+
+    monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
+    with pytest.raises(ValueError, match="No API key found for provider"):
+        llm_settings.resolve_llm_provider_config(provider=provider)
+    assert socket_connect_guard[0] == []
