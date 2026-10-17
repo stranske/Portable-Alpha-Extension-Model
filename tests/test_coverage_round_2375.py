@@ -21,6 +21,7 @@ from pa_core.llm.compare_runs import (
     load_prior_manifest,
     load_prior_summary,
 )
+from pa_core.viz import utils as viz_utils
 
 
 def test_compare_run_helpers_reject_unusable_artifacts(tmp_path) -> None:
@@ -114,7 +115,34 @@ def _write_single_run_config(tmp_path: Path) -> tuple[Path, Path, Path]:
     return config, index, tmp_path / "result.xlsx"
 
 
+def _single_run_argv(config: Path, index: Path, output: Path, *extra: str) -> list[str]:
+    """`--sensitivity` keeps the CLI out of the parameter-sweep branch.
+
+    `--mode` defaults to `returns` and replaces the config's `analysis_mode`, so without this flag
+    every case below would take the sweep route and return before the single-run code under test.
+    """
+    return [
+        "--config",
+        str(config),
+        "--index",
+        str(index),
+        "--output",
+        str(output),
+        "--seed",
+        "123",
+        "--sensitivity",
+        *extra,
+    ]
+
+
+def _stub_sensitivity(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "pa_core.sim.sensitivity.one_factor_deltas", lambda *_args, **_kwargs: pd.DataFrame()
+    )
+
+
 def _install_fake_viz(monkeypatch: pytest.MonkeyPatch) -> None:
+    _stub_sensitivity(monkeypatch)
     figure = object()
     viz = types.ModuleType("pa_core.viz")
     viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
@@ -150,7 +178,7 @@ def test_single_run_packet_failure_reports_the_failure_class(
 
     monkeypatch.setattr("pa_core.reporting.export_packet.create_export_packet", fail_packet)
 
-    main(["--config", str(config), "--index", str(index), "--output", str(output), "--packet"])
+    main(_single_run_argv(config, index, output, "--packet"))
 
     assert f"❌ {expected}" in capsys.readouterr().out
 
@@ -162,12 +190,14 @@ def test_single_run_gif_conversion_error_is_reported(
     monkeypatch.chdir(tmp_path)
     _install_fake_viz(monkeypatch)
     config, index, output = _write_single_run_config(tmp_path)
+    # `pa_core.viz` is a fake module here, so the real utils module is patched by object, not by path.
     monkeypatch.setattr(
-        "pa_core.viz.utils.safe_to_numpy",
+        viz_utils,
+        "safe_to_numpy",
         lambda _value: (_ for _ in ()).throw(ValueError("not numeric")),
     )
 
-    main(["--config", str(config), "--index", str(index), "--output", str(output), "--gif"])
+    main(_single_run_argv(config, index, output, "--gif"))
 
     assert "❌ GIF export failed: Data conversion error - not numeric" in capsys.readouterr().out
 
@@ -180,7 +210,7 @@ def test_single_run_dashboard_missing_file_is_reported(
     _install_fake_viz(monkeypatch)
     config, index, output = _write_single_run_config(tmp_path)
 
-    main(["--config", str(config), "--index", str(index), "--output", str(output), "--dashboard"])
+    main(_single_run_argv(config, index, output, "--dashboard"))
 
     assert "❌ Dashboard launch failed: Dashboard file not found" in capsys.readouterr().out
 
@@ -193,18 +223,8 @@ def test_single_run_bundle_contains_the_completed_artifacts(
     config, index, output = _write_single_run_config(tmp_path)
     bundle_dir = tmp_path / "bundle"
     monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_args, **_kwargs: None)
+    _stub_sensitivity(monkeypatch)
 
-    main(
-        [
-            "--config",
-            str(config),
-            "--index",
-            str(index),
-            "--output",
-            str(output),
-            "--bundle",
-            str(bundle_dir),
-        ]
-    )
+    main(_single_run_argv(config, index, output, "--bundle", str(bundle_dir)))
 
     assert (bundle_dir / "bundle.json").is_file()
