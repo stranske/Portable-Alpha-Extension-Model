@@ -113,6 +113,99 @@ class _FakeStreamlit:
         self.infos.append(message)
 
 
+class _ResultsContainer:
+    def __enter__(self) -> "_ResultsContainer":
+        return self
+
+    def __exit__(self, *args: object) -> bool:
+        return False
+
+    def metric(self, *args: object, **kwargs: object) -> None:
+        return None
+
+
+class _ResultsStreamlit:
+    def __init__(self) -> None:
+        self.session_state: dict[str, object] = {}
+        self.sidebar = self
+        self.titles: list[str] = []
+        self.plot_count = 0
+        self.downloads: list[str] = []
+
+    def title(self, value: str) -> None:
+        self.titles.append(value)
+
+    def slider(self, *_args: object, **kwargs: object) -> object:
+        return kwargs.get("value", _args[-1])
+
+    def multiselect(self, _label: str, _options: list[str], default: list[str]) -> list[str]:
+        return default
+
+    def number_input(self, *_args: object, **kwargs: object) -> object:
+        return kwargs.get("value", _args[-1])
+
+    def checkbox(self, *_args: object, **_kwargs: object) -> bool:
+        return False
+
+    def subheader(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def columns(self, count: int) -> list[_ResultsContainer]:
+        return [_ResultsContainer() for _ in range(count)]
+
+    def tabs(self, names: list[str]) -> list[_ResultsContainer]:
+        return [_ResultsContainer() for _ in names]
+
+    def plotly_chart(self, *_args: object, **_kwargs: object) -> None:
+        self.plot_count += 1
+
+    def dataframe(self, *_args: object, **_kwargs: object) -> None:
+        return None
+
+    def download_button(self, label: str, *_args: object, **_kwargs: object) -> None:
+        self.downloads.append(label)
+
+
+def test_main_renders_data_and_export_controls(tmp_path) -> None:
+    """Exercise the results page's normal, artifact-backed rendering path."""
+    module = _load_results_module()
+    main = module["main"]
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"placeholder")
+    summary = pd.DataFrame(
+        {
+            "monthly_TE": [0.01],
+            "monthly_CVaR": [0.02],
+            "monthly_BreachProb": [0.03],
+            "Agent": ["Total"],
+            "AnnReturn": [0.04],
+        }
+    )
+    globals_ = main.__globals__
+    globals_.update(
+        {
+            "st": fake_st,
+            "render_settings_sidebar": lambda _default: (str(workbook), "theme.toml"),
+            "apply_theme": lambda _theme: None,
+            "load_data": lambda _xlsx: (summary, None),
+            "manifest_path_for_output": lambda _xlsx: tmp_path / "missing-manifest.json",
+            "_render_explain_results": lambda **_kwargs: None,
+            "_render_comparison_panel": lambda **_kwargs: None,
+            "PLOTS": {"Headline": "headline"},
+            "_get_plot_fn": lambda _name: lambda frame: {"rows": len(frame)},
+            "render_png_download": lambda *_args, **_kwargs: None,
+            "render_async_export_button": lambda *_args, **_kwargs: None,
+        }
+    )
+
+    main()
+
+    assert fake_st.titles == ["Results"]
+    assert fake_st.plot_count == 1
+    assert fake_st.downloads == ["Download XLSX"]
+
+
 def test_render_comparison_panel_calls_component_when_previous_run_readable(tmp_path) -> None:
     module = _load_results_module()
     render_comparison = module["_render_comparison_panel"]
