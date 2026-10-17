@@ -35,6 +35,8 @@ class _ResultsStreamlit:
         self.subheaders: list[str] = []
         self.frames: list[pd.DataFrame] = []
         self.errors: list[str] = []
+        self.charts: list[object] = []
+        self.downloads: list[tuple[str, str]] = []
 
     def title(self, value: str) -> None:
         self.titles.append(value)
@@ -60,14 +62,14 @@ class _ResultsStreamlit:
     def checkbox(self, _: str) -> bool:
         return False
 
-    def plotly_chart(self, *_: object, **__: object) -> None:
-        return None
+    def plotly_chart(self, figure: object, **_: object) -> None:
+        self.charts.append(figure)
 
     def dataframe(self, value: pd.DataFrame) -> None:
         self.frames.append(value)
 
-    def download_button(self, *_: object, **__: object) -> None:
-        return None
+    def download_button(self, label: str, *_: object, **kwargs: object) -> None:
+        self.downloads.append((label, str(kwargs.get("file_name"))))
 
     def caption(self, _: str) -> None:
         return None
@@ -126,3 +128,8 @@ def test_results_main_renders_metrics_plots_and_download_for_available_workbook(
     assert fake_st.titles == ["Results"]
     assert fake_st.subheaders == ["Key Metrics"]
     assert fake_st.frames == [summary]
+    assert fake_st.errors == []
+    assert len(fake_st.charts) == 2
+    assert fake_st.charts[0] is summary
+    assert list(fake_st.charts[1].columns) == ["Base"]
+    assert ("Download XLSX", "results.xlsx") in fake_st.downloads
