@@ -8,6 +8,9 @@ from pydantic import ValidationError
 
 from pa_core.config import (
     ModelConfig,
+    RegimeConfig,
+    SweepConfig,
+    SweepParameter,
     annual_mean_to_monthly,
     annual_vol_to_monthly,
     load_config,
@@ -15,6 +18,50 @@ from pa_core.config import (
 from pa_core.data.convert import convert
 
 yaml: Any = pytest.importorskip("yaml")
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({}, "requires values or min/max"),
+        ({"values": [1.0], "min": 0.0}, "cannot mix"),
+        ({"values": []}, "must be non-empty"),
+        ({"min": 2.0, "max": 1.0}, "min must be <= max"),
+        ({"min": 1.0, "max": 2.0, "step": 0.0}, "step must be positive"),
+    ],
+)
+def test_sweep_parameter_rejects_invalid_definitions(kwargs, message):
+    with pytest.raises(ValidationError, match=message):
+        SweepParameter(**kwargs)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"parameters": {}}, "parameters must not be empty"),
+        ({"parameters": {"x": SweepParameter(values=[1.0])}, "samples": 1}, "only supported"),
+        (
+            {"parameters": {"x": SweepParameter(min=1.0, max=2.0)}, "method": "grid"},
+            "requires step",
+        ),
+        (
+            {"parameters": {"x": SweepParameter(values=[1.0])}, "method": "random"},
+            "samples must be positive",
+        ),
+    ],
+)
+def test_sweep_config_rejects_invalid_sampling_combinations(kwargs, message):
+    with pytest.raises(ValidationError, match=message):
+        SweepConfig(**kwargs)
+
+
+def test_return_unit_helpers_handle_non_mapping_and_regime_instances() -> None:
+    assert ModelConfig.normalize_share_inputs("not-a-mapping") == "not-a-mapping"
+    assert ModelConfig.normalize_return_units("not-a-mapping") == "not-a-mapping"
+    regime = RegimeConfig(name="stress", sigma_H=0.24)
+    normalized = ModelConfig._normalize_regime_sigma_overrides([regime, "keep"])
+    assert normalized[0].sigma_H == pytest.approx(annual_vol_to_monthly(0.24))
+    assert normalized[1] == "keep"
 
 
 def test_load_yaml(tmp_path):

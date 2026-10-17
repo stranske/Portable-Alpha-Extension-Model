@@ -2,7 +2,155 @@
 
 from __future__ import annotations
 
-from pa_core.llm.config_patch_chain import parse_chain_output, run_config_patch_chain
+from contextlib import nullcontext
+
+import pytest
+
+from pa_core.llm.config_patch import ConfigPatchValidationError
+from pa_core.llm.config_patch_chain import (
+    _build_validation_error,
+    _extract_trace_candidate,
+    _split_trace_metadata,
+    build_config_patch_prompt,
+    parse_chain_output,
+    run_config_patch_chain,
+)
+
+
+def test_build_prompt_validates_inputs_and_includes_custom_rules() -> None:
+    with pytest.raises(TypeError, match="current_config"):
+        build_config_patch_prompt(current_config=[], instruction="adjust")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="instruction"):
+        build_config_patch_prompt(current_config={}, instruction="  ")
+
+    prompt = build_config_patch_prompt(
+        current_config={"n_simulations": 100}, instruction="  adjust  ", safety_rules=["No writes"]
+    )
+
+    assert '"n_simulations": 100' in prompt
+    assert '[\n  "No writes"\n]' in prompt
+    assert prompt.endswith("Instruction:\nadjust")
+
+
+@pytest.mark.parametrize(
+    ("raw_output", "expected_flags"),
+    [
+        ('{"patch": {"set": {"n_simulations": 5}}}', []),
+        ("patch:\n  set:\n    n_simulations: 5", []),
+        ({"patch": {}, "risk_flags": None}, []),
+        ({"patch": {}, "risk_flags": "review"}, ["review"]),
+        ({"patch": {}, "risk_flags": [" review ", "", "review", 3]}, ["review", "3"]),
+    ],
+)
+def test_parse_chain_output_accepts_json_yaml_and_normalizes_risk_flags(
+    raw_output, expected_flags
+) -> None:
+    assert parse_chain_output(raw_output).risk_flags == expected_flags
+
+
+@pytest.mark.parametrize("raw_output", ["", "[]", 3, ("not", "a supported tuple")])
+def test_parse_chain_output_rejects_non_mapping_payloads(raw_output) -> None:
+    with pytest.raises(ValueError, match="mapping"):
+        parse_chain_output(raw_output)  # type: ignore[arg-type]
+
+
+def test_validation_error_includes_optional_type_metadata() -> None:
+    error = ConfigPatchValidationError(
+        "bad type", field_name="n_simulations", expected_type="integer", actual_type="string"
+    )
+
+    assert _build_validation_error(error) == {
+        "kind": "validation_error",
+        "message": "bad type",
+        "unknown_keys": [],
+        "unknown_paths": [],
+        "field_name": "n_simulations",
+        "expected_type": "integer",
+        "actual_type": "string",
+    }
+
+
+def test_split_trace_metadata_handles_tuple_and_nested_candidates(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "pa_core.llm.config_patch_chain._resolve_trace_url",
+        lambda candidate: f"resolved:{candidate}" if candidate == "run-object" else None,
+    )
+
+    payload, trace_url = _split_trace_metadata(
+        ({"patch": {}, "trace": {"nested": [None, "run-object"]}}, "fallback")
+    )
+
+    assert payload == {"patch": {}}
+    assert trace_url == "resolved:run-object"
+    assert _extract_trace_candidate(None) is None
+    assert _extract_trace_candidate([{}, ["run-object"]]) == "resolved:run-object"
+
+
+def test_split_trace_metadata_handles_string_tuple_alternate_url_and_missing_resolver(
+    monkeypatch,
+) -> None:
+    # `_resolve_trace_url` honours LANGSMITH_TRACE_BASE_URL: pin it so a shell that sets it
+    # cannot change the default URL asserted below.
+    monkeypatch.delenv("LANGSMITH_TRACE_BASE_URL", raising=False)
+    payload, trace_url = _split_trace_metadata(("payload", "trace-url"))
+    assert payload == "payload"
+    assert trace_url == "https://smith.langchain.com/r/trace-url"
+
+    payload, trace_url = _split_trace_metadata(
+        {"patch": {}, "langsmith_trace_url": " https://trace "}
+    )
+    assert payload == {"patch": {}}
+    assert trace_url == "https://trace"
+
+    assert _split_trace_metadata(3) == (3, None)
+    monkeypatch.setattr("pa_core.llm.config_patch_chain._resolve_trace_url", None)
+    assert _extract_trace_candidate({"first": "unresolved", "second": ["also-unresolved"]}) is None
+
+
+def test_trace_candidate_skips_unresolved_metadata_before_using_next_match(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "pa_core.llm.config_patch_chain._resolve_trace_url",
+        lambda candidate: "resolved" if candidate == "good" else None,
+    )
+
+    assert _extract_trace_candidate({"trace_id": None, "run_id": "good"}) == "resolved"
+
+
+def test_run_chain_records_rejections_errors_and_recording_failures(monkeypatch, caplog) -> None:
+    recorded = []
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
+    monkeypatch.setattr(
+        "pa_core.llm.config_patch_chain._langsmith_tracing_context", lambda **_: nullcontext()
+    )
+    monkeypatch.setattr("pa_core.llm.config_patch_chain.record_fleet_event", recorded.append)
+
+    rejected = run_config_patch_chain(
+        current_config={"n_simulations": 5},
+        instruction="adjust",
+        provider_name="provider",
+        model_name="model",
+        invoke_llm=lambda _: {"patch": {"set": {"unknown": 1}}},
+    )
+    assert rejected.status == "rejected"
+    assert recorded[-1].status == "validation_failed"
+    assert recorded[-1].error_category == "validation_error"
+
+    def fail_record(_event) -> None:
+        raise RuntimeError("telemetry unavailable")
+
+    monkeypatch.setattr("pa_core.llm.config_patch_chain.record_fleet_event", fail_record)
+    with pytest.raises(RuntimeError, match="provider failed"):
+        run_config_patch_chain(
+            current_config={},
+            instruction="adjust",
+            invoke_llm=lambda _: (_ for _ in ()).throw(RuntimeError("provider failed")),
+        )
+    assert "Failed to record config-patch-chain fleet event" in caplog.text
+
+
+def test_run_chain_rejects_non_callable_provider() -> None:
+    with pytest.raises(TypeError, match="invoke_llm"):
+        run_config_patch_chain(current_config={}, instruction="adjust", invoke_llm=None)  # type: ignore[arg-type]
 
 
 def test_parse_chain_output_strips_unknown_keys_and_flags_risk() -> None:
