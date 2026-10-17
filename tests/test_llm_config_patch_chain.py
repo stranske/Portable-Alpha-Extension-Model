@@ -89,6 +89,9 @@ def test_split_trace_metadata_handles_tuple_and_nested_candidates(monkeypatch) -
 def test_split_trace_metadata_handles_string_tuple_alternate_url_and_missing_resolver(
     monkeypatch,
 ) -> None:
+    # `_resolve_trace_url` honours LANGSMITH_TRACE_BASE_URL: pin it so a shell that sets it
+    # cannot change the default URL asserted below.
+    monkeypatch.delenv("LANGSMITH_TRACE_BASE_URL", raising=False)
     payload, trace_url = _split_trace_metadata(("payload", "trace-url"))
     assert payload == "payload"
     assert trace_url == "https://smith.langchain.com/r/trace-url"
