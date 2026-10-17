@@ -1,0 +1,12 @@
+{
+  "exact_command": "ruff check --output-format github --extend-exclude .workflows-lib .",
+  "before_exit": 1,
+  "before_diagnostics": 11,
+  "after_exit": 0,
+  "files": [
+    "2366-offline.py",
+    "2366-proof.py"
+  ],
+  "production_and_tests_unchanged": true,
+  "old_head": "d4bfe004b134cdc1b578091a677eb94d5aee8127"
+}
