@@ -116,14 +116,18 @@ def render_explain_results_panel(
         api_key_key = f"{_API_KEY_KEY}::{current_provider}"
         # Legacy unscoped keys have no trustworthy provider binding.
         st.session_state.pop(_API_KEY_KEY, None)
-
-        st.text_input(
+        saved_key = f"{api_key_key}::saved"
+        if api_key_key not in st.session_state:
+            st.session_state[api_key_key] = st.session_state.get(saved_key, "")
+        override = st.text_input(
             "API Key",
             value="",
             key=api_key_key,
             type="password",
             help="Enter a literal key or an environment variable name.",
         )
+        # Streamlit removes unrendered widget keys; this key is not a widget.
+        st.session_state[saved_key] = override
         st.text_input(
             "Model (optional)",
             value=st.session_state.get(_MODEL_KEY, ""),

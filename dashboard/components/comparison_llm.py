@@ -129,13 +129,17 @@ def render_comparison_llm_panel(
         provider = str(st.session_state.get(provider_key, provider_default)).lower()
         api_key_key = f"{_API_KEY_KEY}::{run_key}::{provider}"
         st.session_state.pop(f"{_API_KEY_KEY}::{run_key}", None)
-        st.text_input(
+        saved_key = f"{api_key_key}::saved"
+        if api_key_key not in st.session_state:
+            st.session_state[api_key_key] = st.session_state.get(saved_key, "")
+        override = st.text_input(
             "API Key",
             value="",
             key=api_key_key,
             type="password",
             help="Enter a literal key or env var name.",
         )
+        st.session_state[saved_key] = override
         st.text_input(
             "Model (optional)",
             value=st.session_state.get(model_key, ""),
