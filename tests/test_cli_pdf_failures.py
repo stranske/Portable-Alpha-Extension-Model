@@ -6,8 +6,8 @@ import sys
 import types
 from pathlib import Path
 
-import pytest
 import pandas as pd
+import pytest
 import yaml
 
 import pa_core

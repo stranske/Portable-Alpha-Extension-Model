@@ -1996,9 +1996,7 @@ def _main(
                 except (AttributeError, TypeError) as e:
                     logger.debug("Skipping sunburst figure due to data issue", exc_info=e)
                 # Late-bind create_export_packet to allow test monkeypatching
-                from .reporting.export_packet import (
-                    create_export_packet as create_export_packet_fn,
-                )
+                from .reporting.export_packet import create_export_packet as create_export_packet_fn
 
                 pptx_path, excel_path = create_export_packet_fn(
                     figs=figs,

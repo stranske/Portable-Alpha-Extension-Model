@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
 import warnings
+from collections.abc import Mapping, Sequence
 from typing import Literal
 
 import numpy as np

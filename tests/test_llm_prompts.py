@@ -74,3 +74,13 @@ def test_build_config_wizard_prompt_rejects_none():
 def test_build_config_wizard_prompt_rejects_empty_string():
     with pytest.raises(ValueError, match="config_context is required"):
         build_config_wizard_prompt("")
+
+
+@pytest.mark.parametrize("question", ["Why did risk rise?", "", " \t\n"])
+def test_comparison_prompt_normalizes_optional_questions(question):
+    prompt = build_comparison_prompt({"current": 1}, {"prior": 2}, questions=question)
+    if question.strip():
+        assert "Questions:\n- " + question.strip() in prompt
+    else:
+        assert "Questions:" not in prompt
+    assert '"current": 1' in prompt and '"prior": 2' in prompt

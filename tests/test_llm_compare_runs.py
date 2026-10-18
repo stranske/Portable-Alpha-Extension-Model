@@ -455,3 +455,162 @@ def test_comparison_fallback_redacts_credentials_and_chained_errors(
     assert "synthetic-cause-secret-2363" not in caplog.text
     assert "[REDACTED]" in caplog.text
     assert all(record.exc_info is None for record in caplog.records)
+
+
+def _question_comparison_input(tmp_path):
+    prior_output = tmp_path / "question-prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
+        prior_output, sheet_name="Summary", index=False
+    )
+    prior_manifest = tmp_path / "question-prior.json"
+    prior_manifest.write_text(json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1}))
+    return {"previous_run": str(prior_manifest), "seed": 2}
+
+
+@pytest.mark.parametrize("question", ["Why did tracking error rise?", "", " \t\n"])
+def test_comparison_question_reaches_provider_prompt(monkeypatch, tmp_path, question):
+    import importlib
+    from contextlib import nullcontext
+
+    from pa_core.llm.compare_runs import DEFAULT_COMPARISON_QUESTIONS
+
+    module = importlib.import_module("pa_core.llm.compare_runs")
+    captured = []
+    monkeypatch.setattr(
+        module,
+        "_invoke_comparison_llm",
+        lambda prompt, **kwargs: captured.append(prompt) or "Provider comparison",
+    )
+    monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
+    text, _, payload = compare_runs(
+        current_summary=pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]}),
+        current_manifest=_question_comparison_input(tmp_path),
+        questions=question,
+    )
+    expected = question.strip() or DEFAULT_COMPARISON_QUESTIONS
+    assert text == "Provider comparison"
+    assert captured == [payload.prompt]
+    assert expected in captured[0] and payload.questions == expected
+    assert '"label": "current"' in captured[0] and '"label": "prior"' in captured[0]
+    assert '"monthly_TE": 0.03' in captured[0] and '"monthly_TE": 0.01' in captured[0]
+
+
+def test_dashboard_question_changes_actual_provider_prompt(
+    monkeypatch, tmp_path, socket_connect_guard
+):
+    import importlib
+    from contextlib import nullcontext
+
+    from test_dashboard_comparison_llm import FakeStreamlit
+
+    import dashboard.components.comparison_llm as panel
+    import pa_core.llm.provider as provider
+
+    module = importlib.import_module("pa_core.llm.compare_runs")
+    fake = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(panel, "st", fake)
+    monkeypatch.setattr(panel, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(panel, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        panel,
+        "resolve_llm_provider_config",
+        lambda **kwargs: LLMProviderConfig(
+            provider_name="openai", credentials={"api_key": "test-key"}
+        ),
+    )
+    monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
+    captured = []
+
+    class FakeProvider:
+        def invoke(self, messages):
+            assert len(messages) == 1
+            assert messages[0].type == "system"
+            captured.append(messages[0].content)
+            return types.SimpleNamespace(content="Provider comparison")
+
+    class FakeChatPromptTemplate:
+        @staticmethod
+        def from_messages(messages):
+            assert messages == [("system", "{prompt}")]
+            return FakeChatPromptTemplate()
+
+        def __or__(self, client):
+            class Chain:
+                def invoke(self, payload):
+                    return client.invoke(
+                        [types.SimpleNamespace(type="system", content=payload["prompt"])]
+                    )
+
+            return Chain()
+
+    fake_prompts = types.ModuleType("langchain_core.prompts")
+    fake_prompts.ChatPromptTemplate = FakeChatPromptTemplate
+    monkeypatch.setitem(sys.modules, "langchain_core.prompts", fake_prompts)
+    monkeypatch.setattr(provider, "create_llm", lambda config: FakeProvider())
+    manifest = _question_comparison_input(tmp_path)
+    summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    questions = ["Explain tracking error changes", "Explain downside risk changes"]
+    payloads = []
+    for question in questions:
+        fake.session_state[f"{panel._QUESTIONS_KEY}::questions"] = question
+        panel.render_comparison_llm_panel(
+            summary_df=summary,
+            manifest_data=manifest,
+            run_key="questions",
+        )
+        payloads.append(fake.session_state["comparison_payload::questions"])
+
+    assert len(captured) == 2
+    assert [payload.status for payload in payloads] == ["success", "success"]
+    assert [payload.questions for payload in payloads] == questions
+    assert [payload.prompt for payload in payloads] == captured
+    prompt_data = []
+    for prompt, question in zip(captured, questions, strict=True):
+        data, separator, question_block = prompt.partition("\n\nQuestions:\n")
+        assert separator
+        assert question_block == f"- {question}"
+        prompt_data.append(data)
+        current_data, prior_data = data.split("\n\nItem B:\n", maxsplit=1)
+        assert '"label": "current"' in current_data
+        assert '"monthly_TE": 0.03' in current_data
+        assert '"monthly_CVaR": -0.05' in current_data
+        assert '"label": "prior"' in prior_data
+        assert '"monthly_TE": 0.01' in prior_data
+        assert '"monthly_CVaR": -0.04' in prior_data
+    assert prompt_data[0] == prompt_data[1]
+    assert captured[0] != captured[1]
+
+    exports = [json.loads(item.data) for item in fake.downloads if item.mime == "application/json"]
+    assert len(exports) == 2
+    for export, payload, question in zip(exports, payloads, questions, strict=True):
+        assert export["questions"] == question
+        assert export["metric_catalog_a"] == payload.metric_catalog_a
+        assert export["metric_catalog_b"] == payload.metric_catalog_b
+    assert socket_connect_guard[0] == []
+
+
+def test_empty_question_fallback_uses_same_default(monkeypatch, tmp_path):
+    import importlib
+    from contextlib import nullcontext
+
+    from pa_core.llm.compare_runs import DEFAULT_COMPARISON_QUESTIONS
+
+    module = importlib.import_module("pa_core.llm.compare_runs")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("offline")
+
+    monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+    monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
+    text, _, payload = compare_runs(
+        current_summary=pd.DataFrame({"monthly_TE": [0.03]}),
+        current_manifest=_question_comparison_input(tmp_path),
+        questions=" ",
+    )
+    assert text.startswith("Run-to-run comparison summary:")
+    assert f"Questions: {DEFAULT_COMPARISON_QUESTIONS}" in text
+    assert "Config differences:" in text and "Metric deltas:" in text
+    assert payload.questions == DEFAULT_COMPARISON_QUESTIONS

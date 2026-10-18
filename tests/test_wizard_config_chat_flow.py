@@ -87,9 +87,10 @@ def test_revert_restores_previous_config_and_session_mirrors(monkeypatch) -> Non
 def test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_client(
     monkeypatch, socket_connect_guard
 ):
-    from dashboard.components import llm_settings
     import sys
     from types import SimpleNamespace
+
+    from dashboard.components import llm_settings
 
     class Prompt:
         @staticmethod

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 import logging
 import math
 import warnings
+from collections.abc import Sequence
 from pathlib import Path
 from typing import (
     Any,

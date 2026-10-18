@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import sys
 import asyncio
 import base64
+import sys
 import tomllib
 import types
 import zipfile
@@ -11,8 +11,7 @@ from pathlib import Path
 import pytest
 from packaging.requirements import Requirement
 
-from pa_core.viz import export_backend
-from pa_core.viz import pptx_export
+from pa_core.viz import export_backend, pptx_export
 
 
 class _Figure:

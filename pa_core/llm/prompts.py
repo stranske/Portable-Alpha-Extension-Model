@@ -53,16 +53,20 @@ def build_result_explanation_prompt(
     )
 
 
-def build_comparison_prompt(item_a: Any, item_b: Any) -> str:
+def build_comparison_prompt(item_a: Any, item_b: Any, *, questions: str | None = None) -> str:
     """Build a prompt that compares two inputs objectively."""
 
     _require_present("item_a", item_a)
     _require_present("item_b", item_b)
+    question_lines = _normalize_questions(questions)
+    question_block = ""
+    if question_lines:
+        question_block = "\n\nQuestions:\n" + "\n".join(f"- {line}" for line in question_lines)
     return (
         "Compare Item A and Item B. Highlight the top 3 differences, trade-offs, "
         "and when each is preferable.\n\n"
         f"Item A:\n{_to_json(item_a)}\n\n"
-        f"Item B:\n{_to_json(item_b)}"
+        f"Item B:\n{_to_json(item_b)}{question_block}"
     )
 
 
