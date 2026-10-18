@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from pa_core.agents import AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
+from pa_core.agents import Agent, AgentParams, BaseAgent, ExternalPAAgent, InternalBetaAgent
 from pa_core.config import ModelConfig, load_config
 from pa_core.facade import RunOptions, run_single, run_sweep
 from pa_core.random import spawn_agent_rngs
@@ -202,6 +202,15 @@ def test_simulate_agents_vectorised():
     assert set(results) == {"Base", "ExternalPA", "InternalBeta", "Total"}
     for arr in results.values():
         assert arr.shape == (n_sim, n_months)
+
+
+def test_simulate_agents_rejects_an_unregistered_agent_type():
+    """An unknown sleeve must not silently receive a mismatched alpha stream."""
+    unknown = Agent(AgentParams("Unknown", 1.0, 0.5, 0.5, {}))
+    values = np.ones((1, 1))
+
+    with pytest.raises(TypeError, match="Unsupported agent type"):
+        simulate_agents([unknown], values, values, values, values, values, values, values)
 
 
 def test_total_returns_sum_weighted_sleeves():
