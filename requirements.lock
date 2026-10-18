@@ -543,7 +543,7 @@ pyarrow==25.0.0
     #   streamlit
 pycodestyle==2.14.0
     # via flake8
-pycparser==3.0 ; implementation_name != 'PyPy'
+pycparser==3.0 ; (implementation_name != 'PyPy' and platform_machine == 'ppc64le') or (implementation_name != 'PyPy' and platform_machine == 's390x') or (implementation_name != 'PyPy' and platform_machine != 'ppc64le' and platform_machine != 's390x') or (implementation_name != 'PyPy' and sys_platform != 'linux')
     # via cffi
 pydantic==2.13.4
     # via
@@ -685,7 +685,7 @@ rpds-py==2026.6.3
     # via
     #   jsonschema
     #   referencing
-ruff==0.17.0
+ruff==0.17.1
     # via portable-alpha-extension-model (pyproject.toml)
 secretstorage==3.5.0 ; platform_machine != 'ppc64le' and platform_machine != 's390x' and sys_platform == 'linux'
     # via keyring
@@ -800,11 +800,8 @@ types-pyyaml==6.0.12.20260724
     # via portable-alpha-extension-model (pyproject.toml)
 typing-extensions==4.16.0
     # via
-    #   aiohttp
-    #   aiosignal
     #   altair
     #   anthropic
-    #   anyio
     #   beautifulsoup4
     #   jupyter-client
     #   langchain-core
@@ -815,9 +812,7 @@ typing-extensions==4.16.0
     #   pydantic
     #   pydantic-core
     #   python-pptx
-    #   referencing
     #   sqlalchemy
-    #   starlette
     #   streamlit
     #   typing-inspection
 typing-inspection==0.4.2
