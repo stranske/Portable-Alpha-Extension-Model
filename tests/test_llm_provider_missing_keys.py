@@ -2,12 +2,25 @@
 
 from __future__ import annotations
 
+import importlib.util
 import socket
 
 import pytest
 
 from dashboard.components.llm_settings import resolve_llm_provider_config
 from pa_core.llm.provider import LLMProviderConfig, create_llm
+
+
+def _require_real_provider_clients() -> None:
+    missing = [
+        module
+        for module in ("langchain_openai", "langchain_anthropic")
+        if importlib.util.find_spec(module) is None
+    ]
+    if missing:
+        pytest.skip(
+            f"real provider option matrix requires optional LLM extras: {', '.join(missing)}"
+        )
 
 
 def test_create_llm_missing_credentials_raises_value_error(socket_connect_guard):
@@ -102,6 +115,7 @@ def test_create_llm_provider_options_keep_supported_fields_out_of_anthropic_payl
 ):
     """Real SDK clients accept only their supported resolver options without network I/O."""
 
+    _require_real_provider_clients()
     attempts, blocked = socket_connect_guard
     openai = create_llm(
         resolve_llm_provider_config(provider="openai", api_key="sk-synthetic", org="org-openai")
@@ -139,6 +153,13 @@ def test_create_llm_provider_options_keep_supported_fields_out_of_anthropic_payl
     assert "organization" not in azure._get_request_payload([("human", "hello")])
     assert socket.socket.connect is blocked
     assert attempts == []
+
+
+def test_real_provider_option_matrix_skips_when_optional_sdk_is_unavailable(monkeypatch):
+    monkeypatch.setattr(importlib.util, "find_spec", lambda module: None)
+
+    with pytest.raises(pytest.skip.Exception, match="optional LLM extras"):
+        _require_real_provider_clients()
 
 
 @pytest.mark.parametrize(
