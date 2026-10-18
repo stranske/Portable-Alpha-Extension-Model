@@ -1,0 +1,460 @@
+DISCONNECTED FALLBACK RED
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+__ test_comparison_fallback_redacts_credentials_and_chained_errors[explicit] ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ad73380>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x11ac68e00>
+credential_source = 'explicit'
+
+    @pytest.mark.parametrize(
+        "credential_source", ["explicit", "credentials", "config", "environment", "bearer"]
+    )
+    def test_comparison_fallback_redacts_credentials_and_chained_errors(
+        monkeypatch, caplog, credential_source
+    ):
+        import importlib
+        from contextlib import nullcontext
+    
+        module = importlib.import_module("pa_core.llm.compare_runs")
+        marker = "synthetic-secret-2363"
+        bearer = "header+secret/2363~=="
+        options = {"provider_name": "openai"}
+        if credential_source == "explicit":
+            options["api_key"] = marker
+        elif credential_source == "credentials":
+            options["provider_credentials"] = {"api_key": marker}
+        elif credential_source == "config":
+            options["provider_config"] = LLMProviderConfig(
+                provider_name="openai", credentials={"api_key": marker}, model_name=None
+            )
+        elif credential_source == "environment":
+            monkeypatch.setenv("OPENAI_API_KEY", marker)
+        else:
+            marker = bearer
+        monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
+        monkeypatch.setattr(
+            module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+        )
+        monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
+        monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
+        monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    
+        def fail(*args, **kwargs):
+            try:
+                raise ValueError("cause contains synthetic-cause-secret-2363")
+            except ValueError as cause:
+                message = f"provider rejected {marker}; Bearer {bearer}"
+                if credential_source == "bearer":
+                    message = f"provider rejected Bearer {bearer}"
+                raise RuntimeError(message) from cause
+    
+        monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+        with caplog.at_level("WARNING", logger=module.__name__):
+            text, trace, payload = module.compare_runs(
+                current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+                current_manifest={},
+                questions="What changed?",
+                **options,
+            )
+        assert payload.status == "fallback"
+        assert payload.error_category == "RuntimeError"
+        assert trace is None
+        assert text.startswith("Run-to-run comparison summary:")
+>       assert marker not in caplog.text and bearer not in caplog.text
+E       assert ('synthetic-secret-2363' not in 'WARNING  pa...et/2363~==\n'
+E         
+E         'synthetic-secret-2363' is contained here:
+E            rejected synthetic-secret-2363; Bearer header+secret/2363~==
+E         ?           +++++++++++++++++++++
+E           Traceback (most recent call last):
+E             File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+E               raise ValueError("cause contains synthetic-cause-secret-2363")...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show)
+
+tests/test_llm_compare_runs.py:454: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  pa_core.llm.compare_runs:compare_runs.py:387 LLM comparison fell back: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+    raise ValueError("cause contains synthetic-cause-secret-2363")
+ValueError: cause contains synthetic-cause-secret-2363
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/pa_core/llm/compare_runs.py", line 362, in compare_runs
+    llm_text = _invoke_comparison_llm(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 440, in fail
+    raise RuntimeError(message) from cause
+RuntimeError: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+_ test_comparison_fallback_redacts_credentials_and_chained_errors[credentials] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11ac404a0>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x11b36e9c0>
+credential_source = 'credentials'
+
+    @pytest.mark.parametrize(
+        "credential_source", ["explicit", "credentials", "config", "environment", "bearer"]
+    )
+    def test_comparison_fallback_redacts_credentials_and_chained_errors(
+        monkeypatch, caplog, credential_source
+    ):
+        import importlib
+        from contextlib import nullcontext
+    
+        module = importlib.import_module("pa_core.llm.compare_runs")
+        marker = "synthetic-secret-2363"
+        bearer = "header+secret/2363~=="
+        options = {"provider_name": "openai"}
+        if credential_source == "explicit":
+            options["api_key"] = marker
+        elif credential_source == "credentials":
+            options["provider_credentials"] = {"api_key": marker}
+        elif credential_source == "config":
+            options["provider_config"] = LLMProviderConfig(
+                provider_name="openai", credentials={"api_key": marker}, model_name=None
+            )
+        elif credential_source == "environment":
+            monkeypatch.setenv("OPENAI_API_KEY", marker)
+        else:
+            marker = bearer
+        monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
+        monkeypatch.setattr(
+            module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+        )
+        monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
+        monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
+        monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    
+        def fail(*args, **kwargs):
+            try:
+                raise ValueError("cause contains synthetic-cause-secret-2363")
+            except ValueError as cause:
+                message = f"provider rejected {marker}; Bearer {bearer}"
+                if credential_source == "bearer":
+                    message = f"provider rejected Bearer {bearer}"
+                raise RuntimeError(message) from cause
+    
+        monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+        with caplog.at_level("WARNING", logger=module.__name__):
+            text, trace, payload = module.compare_runs(
+                current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+                current_manifest={},
+                questions="What changed?",
+                **options,
+            )
+        assert payload.status == "fallback"
+        assert payload.error_category == "RuntimeError"
+        assert trace is None
+        assert text.startswith("Run-to-run comparison summary:")
+>       assert marker not in caplog.text and bearer not in caplog.text
+E       assert ('synthetic-secret-2363' not in 'WARNING  pa...et/2363~==\n'
+E         
+E         'synthetic-secret-2363' is contained here:
+E            rejected synthetic-secret-2363; Bearer header+secret/2363~==
+E         ?           +++++++++++++++++++++
+E           Traceback (most recent call last):
+E             File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+E               raise ValueError("cause contains synthetic-cause-secret-2363")...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show)
+
+tests/test_llm_compare_runs.py:454: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  pa_core.llm.compare_runs:compare_runs.py:387 LLM comparison fell back: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+    raise ValueError("cause contains synthetic-cause-secret-2363")
+ValueError: cause contains synthetic-cause-secret-2363
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/pa_core/llm/compare_runs.py", line 362, in compare_runs
+    llm_text = _invoke_comparison_llm(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 440, in fail
+    raise RuntimeError(message) from cause
+RuntimeError: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+___ test_comparison_fallback_redacts_credentials_and_chained_errors[config] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11b36c5f0>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x11b36ebd0>
+credential_source = 'config'
+
+    @pytest.mark.parametrize(
+        "credential_source", ["explicit", "credentials", "config", "environment", "bearer"]
+    )
+    def test_comparison_fallback_redacts_credentials_and_chained_errors(
+        monkeypatch, caplog, credential_source
+    ):
+        import importlib
+        from contextlib import nullcontext
+    
+        module = importlib.import_module("pa_core.llm.compare_runs")
+        marker = "synthetic-secret-2363"
+        bearer = "header+secret/2363~=="
+        options = {"provider_name": "openai"}
+        if credential_source == "explicit":
+            options["api_key"] = marker
+        elif credential_source == "credentials":
+            options["provider_credentials"] = {"api_key": marker}
+        elif credential_source == "config":
+            options["provider_config"] = LLMProviderConfig(
+                provider_name="openai", credentials={"api_key": marker}, model_name=None
+            )
+        elif credential_source == "environment":
+            monkeypatch.setenv("OPENAI_API_KEY", marker)
+        else:
+            marker = bearer
+        monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
+        monkeypatch.setattr(
+            module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+        )
+        monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
+        monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
+        monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    
+        def fail(*args, **kwargs):
+            try:
+                raise ValueError("cause contains synthetic-cause-secret-2363")
+            except ValueError as cause:
+                message = f"provider rejected {marker}; Bearer {bearer}"
+                if credential_source == "bearer":
+                    message = f"provider rejected Bearer {bearer}"
+                raise RuntimeError(message) from cause
+    
+        monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+        with caplog.at_level("WARNING", logger=module.__name__):
+            text, trace, payload = module.compare_runs(
+                current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+                current_manifest={},
+                questions="What changed?",
+                **options,
+            )
+        assert payload.status == "fallback"
+        assert payload.error_category == "RuntimeError"
+        assert trace is None
+        assert text.startswith("Run-to-run comparison summary:")
+>       assert marker not in caplog.text and bearer not in caplog.text
+E       assert ('synthetic-secret-2363' not in 'WARNING  pa...et/2363~==\n'
+E         
+E         'synthetic-secret-2363' is contained here:
+E            rejected synthetic-secret-2363; Bearer header+secret/2363~==
+E         ?           +++++++++++++++++++++
+E           Traceback (most recent call last):
+E             File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+E               raise ValueError("cause contains synthetic-cause-secret-2363")...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show)
+
+tests/test_llm_compare_runs.py:454: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  pa_core.llm.compare_runs:compare_runs.py:387 LLM comparison fell back: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+    raise ValueError("cause contains synthetic-cause-secret-2363")
+ValueError: cause contains synthetic-cause-secret-2363
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/pa_core/llm/compare_runs.py", line 362, in compare_runs
+    llm_text = _invoke_comparison_llm(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 440, in fail
+    raise RuntimeError(message) from cause
+RuntimeError: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+_ test_comparison_fallback_redacts_credentials_and_chained_errors[environment] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11b36f0b0>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x11b3a0110>
+credential_source = 'environment'
+
+    @pytest.mark.parametrize(
+        "credential_source", ["explicit", "credentials", "config", "environment", "bearer"]
+    )
+    def test_comparison_fallback_redacts_credentials_and_chained_errors(
+        monkeypatch, caplog, credential_source
+    ):
+        import importlib
+        from contextlib import nullcontext
+    
+        module = importlib.import_module("pa_core.llm.compare_runs")
+        marker = "synthetic-secret-2363"
+        bearer = "header+secret/2363~=="
+        options = {"provider_name": "openai"}
+        if credential_source == "explicit":
+            options["api_key"] = marker
+        elif credential_source == "credentials":
+            options["provider_credentials"] = {"api_key": marker}
+        elif credential_source == "config":
+            options["provider_config"] = LLMProviderConfig(
+                provider_name="openai", credentials={"api_key": marker}, model_name=None
+            )
+        elif credential_source == "environment":
+            monkeypatch.setenv("OPENAI_API_KEY", marker)
+        else:
+            marker = bearer
+        monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
+        monkeypatch.setattr(
+            module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+        )
+        monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
+        monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
+        monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    
+        def fail(*args, **kwargs):
+            try:
+                raise ValueError("cause contains synthetic-cause-secret-2363")
+            except ValueError as cause:
+                message = f"provider rejected {marker}; Bearer {bearer}"
+                if credential_source == "bearer":
+                    message = f"provider rejected Bearer {bearer}"
+                raise RuntimeError(message) from cause
+    
+        monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+        with caplog.at_level("WARNING", logger=module.__name__):
+            text, trace, payload = module.compare_runs(
+                current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+                current_manifest={},
+                questions="What changed?",
+                **options,
+            )
+        assert payload.status == "fallback"
+        assert payload.error_category == "RuntimeError"
+        assert trace is None
+        assert text.startswith("Run-to-run comparison summary:")
+>       assert marker not in caplog.text and bearer not in caplog.text
+E       assert ('synthetic-secret-2363' not in 'WARNING  pa...et/2363~==\n'
+E         
+E         'synthetic-secret-2363' is contained here:
+E            rejected synthetic-secret-2363; Bearer header+secret/2363~==
+E         ?           +++++++++++++++++++++
+E           Traceback (most recent call last):
+E             File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+E               raise ValueError("cause contains synthetic-cause-secret-2363")...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show)
+
+tests/test_llm_compare_runs.py:454: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  pa_core.llm.compare_runs:compare_runs.py:387 LLM comparison fell back: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+    raise ValueError("cause contains synthetic-cause-secret-2363")
+ValueError: cause contains synthetic-cause-secret-2363
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/pa_core/llm/compare_runs.py", line 362, in compare_runs
+    llm_text = _invoke_comparison_llm(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 440, in fail
+    raise RuntimeError(message) from cause
+RuntimeError: provider rejected synthetic-secret-2363; Bearer header+secret/2363~==
+___ test_comparison_fallback_redacts_credentials_and_chained_errors[bearer] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11b3a0830>
+caplog = <_pytest.logging.LogCaptureFixture object at 0x11b3a3c80>
+credential_source = 'bearer'
+
+    @pytest.mark.parametrize(
+        "credential_source", ["explicit", "credentials", "config", "environment", "bearer"]
+    )
+    def test_comparison_fallback_redacts_credentials_and_chained_errors(
+        monkeypatch, caplog, credential_source
+    ):
+        import importlib
+        from contextlib import nullcontext
+    
+        module = importlib.import_module("pa_core.llm.compare_runs")
+        marker = "synthetic-secret-2363"
+        bearer = "header+secret/2363~=="
+        options = {"provider_name": "openai"}
+        if credential_source == "explicit":
+            options["api_key"] = marker
+        elif credential_source == "credentials":
+            options["provider_credentials"] = {"api_key": marker}
+        elif credential_source == "config":
+            options["provider_config"] = LLMProviderConfig(
+                provider_name="openai", credentials={"api_key": marker}, model_name=None
+            )
+        elif credential_source == "environment":
+            monkeypatch.setenv("OPENAI_API_KEY", marker)
+        else:
+            marker = bearer
+        monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
+        monkeypatch.setattr(
+            module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+        )
+        monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
+        monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
+        monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    
+        def fail(*args, **kwargs):
+            try:
+                raise ValueError("cause contains synthetic-cause-secret-2363")
+            except ValueError as cause:
+                message = f"provider rejected {marker}; Bearer {bearer}"
+                if credential_source == "bearer":
+                    message = f"provider rejected Bearer {bearer}"
+                raise RuntimeError(message) from cause
+    
+        monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+        with caplog.at_level("WARNING", logger=module.__name__):
+            text, trace, payload = module.compare_runs(
+                current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+                current_manifest={},
+                questions="What changed?",
+                **options,
+            )
+        assert payload.status == "fallback"
+        assert payload.error_category == "RuntimeError"
+        assert trace is None
+        assert text.startswith("Run-to-run comparison summary:")
+>       assert marker not in caplog.text and bearer not in caplog.text
+E       assert ('header+secret/2363~==' not in 'WARNING  pa...et/2363~==\n'
+E         
+E         'header+secret/2363~==' is contained here:
+E           ed Bearer header+secret/2363~==
+E           Traceback (most recent call last):
+E             File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+E               raise ValueError("cause contains synthetic-cause-secret-2363")
+E           ValueError: cause contains synthetic-cause-secret-2363...
+E         
+E         ...Full output truncated (10 lines hidden), use '-vv' to show)
+
+tests/test_llm_compare_runs.py:454: AssertionError
+------------------------------ Captured log call -------------------------------
+WARNING  pa_core.llm.compare_runs:compare_runs.py:387 LLM comparison fell back: provider rejected Bearer header+secret/2363~==
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 435, in fail
+    raise ValueError("cause contains synthetic-cause-secret-2363")
+ValueError: cause contains synthetic-cause-secret-2363
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/pa_core/llm/compare_runs.py", line 362, in compare_runs
+    llm_text = _invoke_comparison_llm(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/teacher/.codex/automations/pd-workloop-resume/worktrees/Portable-Alpha-issue-2363-redaction/tests/test_llm_compare_runs.py", line 440, in fail
+    raise RuntimeError(message) from cause
+RuntimeError: provider rejected Bearer header+secret/2363~==
+=========================== short test summary info ============================
+FAILED tests/test_llm_compare_runs.py::test_comparison_fallback_redacts_credentials_and_chained_errors[explicit]
+FAILED tests/test_llm_compare_runs.py::test_comparison_fallback_redacts_credentials_and_chained_errors[credentials]
+FAILED tests/test_llm_compare_runs.py::test_comparison_fallback_redacts_credentials_and_chained_errors[config]
+FAILED tests/test_llm_compare_runs.py::test_comparison_fallback_redacts_credentials_and_chained_errors[environment]
+FAILED tests/test_llm_compare_runs.py::test_comparison_fallback_redacts_credentials_and_chained_errors[bearer]
+5 failed, 16 deselected in 1.51s
+
+EXACT BYTE RESTORED GREEN
+........................................................................ [ 90%]
+........                                                                 [100%]
+80 passed in 9.27s

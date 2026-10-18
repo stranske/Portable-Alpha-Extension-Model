@@ -352,3 +352,42 @@ def test_tracing_only_never_constructs_comparison_client(monkeypatch, socket_con
     assert any("No API key found" in message for _, message in fake.messages)
     assert fake.downloads == []
     assert socket_connect_guard[0] == []
+
+
+def test_comparison_fallback_keeps_display_downloads_and_logs_secret_free(monkeypatch, caplog):
+    import importlib
+    from contextlib import nullcontext
+
+    backend = importlib.import_module("pa_core.llm.compare_runs")
+    fake_st = FakeStreamlit(button_value=True)
+    marker = "synthetic-dashboard-secret-2363"
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "default_api_key", lambda provider: marker)
+    monkeypatch.setattr(comparison_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(comparison_module, "load_prior_manifest", lambda _: ({}, None))
+    monkeypatch.setattr(backend, "load_prior_manifest", lambda _: ({}, None))
+    monkeypatch.setattr(
+        backend, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+    )
+    monkeypatch.setattr(backend, "langsmith_tracing_context", lambda **k: nullcontext())
+    monkeypatch.setattr(backend, "record_fleet_event", lambda *a, **k: None)
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+
+    def fail(*args, **kwargs):
+        raise RuntimeError(f"authentication failed for {marker}")
+
+    monkeypatch.setattr(backend, "_invoke_comparison_llm", fail)
+    with caplog.at_level("WARNING", logger=backend.__name__):
+        comparison_module.render_comparison_llm_panel(
+            summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+            manifest_data={"previous_run": "prior.json"},
+            run_key="redaction-2363",
+        )
+    assert any(
+        kind == "markdown" and "Run-to-run comparison" in text for kind, text in fake_st.messages
+    )
+    assert len(fake_st.downloads) == 2
+    assert all(marker not in text for _, text in fake_st.messages)
+    assert all(marker not in item.data for item in fake_st.downloads)
+    assert marker not in caplog.text
+    assert fake_st.session_state["comparison_payload::redaction-2363"].status == "fallback"

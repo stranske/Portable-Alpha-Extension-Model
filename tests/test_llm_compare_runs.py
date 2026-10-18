@@ -395,3 +395,63 @@ def test_invoke_comparison_llm_threads_azure_provider_credentials(monkeypatch) -
     assert captured["config"].credentials["api_key"] == "sk-azure-test"
     assert captured["config"].credentials["azure_endpoint"] == "https://example.openai.azure.com"
     assert captured["config"].credentials["api_version"] == "2025-01-01-preview"
+
+
+@pytest.mark.parametrize(
+    "credential_source", ["explicit", "credentials", "config", "environment", "bearer"]
+)
+def test_comparison_fallback_redacts_credentials_and_chained_errors(
+    monkeypatch, caplog, credential_source
+):
+    import importlib
+    from contextlib import nullcontext
+
+    module = importlib.import_module("pa_core.llm.compare_runs")
+    marker = "synthetic-secret-2363"
+    bearer = "header+secret/2363~=="
+    options = {"provider_name": "openai"}
+    if credential_source == "explicit":
+        options["api_key"] = marker
+    elif credential_source == "credentials":
+        options["provider_credentials"] = {"api_key": marker}
+    elif credential_source == "config":
+        options["provider_config"] = LLMProviderConfig(
+            provider_name="openai", credentials={"api_key": marker}, model_name=None
+        )
+    elif credential_source == "environment":
+        monkeypatch.setenv("OPENAI_API_KEY", marker)
+    else:
+        marker = bearer
+    monkeypatch.setattr(module, "load_prior_manifest", lambda _: ({}, None))
+    monkeypatch.setattr(
+        module, "load_prior_summary", lambda *a, **k: (pd.DataFrame({"monthly_TE": [0.01]}), None)
+    )
+    monkeypatch.setattr(module, "langsmith_tracing_context", lambda **k: nullcontext())
+    monkeypatch.setattr(module, "record_fleet_event", lambda *a, **k: None)
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+
+    def fail(*args, **kwargs):
+        try:
+            raise ValueError("cause contains synthetic-cause-secret-2363")
+        except ValueError as cause:
+            message = f"provider rejected {marker}; Bearer {bearer}"
+            if credential_source == "bearer":
+                message = f"provider rejected Bearer {bearer}"
+            raise RuntimeError(message) from cause
+
+    monkeypatch.setattr(module, "_invoke_comparison_llm", fail)
+    with caplog.at_level("WARNING", logger=module.__name__):
+        text, trace, payload = module.compare_runs(
+            current_summary=pd.DataFrame({"monthly_TE": [0.02]}),
+            current_manifest={},
+            questions="What changed?",
+            **options,
+        )
+    assert payload.status == "fallback"
+    assert payload.error_category == "RuntimeError"
+    assert trace is None
+    assert text.startswith("Run-to-run comparison summary:")
+    assert marker not in caplog.text and bearer not in caplog.text
+    assert "synthetic-cause-secret-2363" not in caplog.text
+    assert "[REDACTED]" in caplog.text
+    assert all(record.exc_info is None for record in caplog.records)

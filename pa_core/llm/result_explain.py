@@ -224,7 +224,7 @@ def _redact_sensitive(text: str, *, secrets: Sequence[str]) -> str:
         if isinstance(secret, str) and secret:
             redacted = redacted.replace(secret, _REDACTION_TOKEN)
     redacted = re.sub(
-        r"\bbearer\b\s+[A-Za-z0-9._\-]+",
+        r"\bbearer\b\s+[A-Za-z0-9._~+/\-]+=*",
         _REDACTION_TOKEN,
         redacted,
         flags=re.IGNORECASE,

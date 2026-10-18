@@ -791,3 +791,16 @@ def test_coerce_metric_value_column_not_in_df_returns_none() -> None:
     df = _toy_df()
     result = result_explain._coerce_metric_value(df, "nonexistent_column")
     assert result is None
+
+
+def test_comparison_and_explanation_share_bearer_redaction():
+    import importlib
+
+    comparison = importlib.import_module("pa_core.llm.compare_runs")
+    error = RuntimeError(
+        "auth rejected Bearer synthetic+header/secret~==; credentials={'api_key':'explicit-marker'}"
+    )
+    expected = result_explain._sanitize_error_message(error, secrets=["explicit-marker"])
+    assert comparison._sanitize_error_message(error, secrets=["explicit-marker"]) == expected
+    assert "synthetic" not in expected and "explicit-marker" not in expected
+    assert result_explain._REDACTION_TOKEN in expected
