@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -146,6 +147,67 @@ def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch)
     assert '"trace_url": "https://smith.langchain.com/r/trace-id"' in json_export.data
 
     assert captured["questions"] == question
+
+
+def test_comparison_panel_passes_config_snapshot_diff_to_provider_and_exports(
+    monkeypatch, tmp_path
+):
+    import pa_core.llm.compare_runs as backend
+    from contextlib import nullcontext
+
+    from pa_core.llm.provider import LLMProviderConfig
+
+    prior_output = tmp_path / "prior.xlsx"
+    pd.DataFrame({"monthly_TE": [0.01]}).to_excel(prior_output, sheet_name="Summary", index=False)
+    prior_manifest_path = tmp_path / "prior.json"
+    prior_manifest_path.write_text(
+        json.dumps(
+            {
+                "seed": 17,
+                "config": {"theta_extpa": 0.2},
+                "cli_args": {"output": str(prior_output)},
+            }
+        )
+    )
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(comparison_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        comparison_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: LLMProviderConfig(
+            provider_name="openai", credentials={"api_key": "test-key"}
+        ),
+    )
+    monkeypatch.setattr(backend, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+    monkeypatch.setattr(backend, "record_fleet_event", lambda *args, **kwargs: None)
+    captured_prompts: list[str] = []
+    monkeypatch.setattr(
+        backend,
+        "_invoke_comparison_llm",
+        lambda prompt, **kwargs: captured_prompts.append(prompt) or "Provider comparison",
+    )
+
+    comparison_module.render_comparison_llm_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+        manifest_data={
+            "seed": 17,
+            "config": {"theta_extpa": 0.8},
+            "previous_run": str(prior_manifest_path),
+        },
+        run_key="config-snapshot",
+    )
+
+    payload = fake_st.session_state["comparison_payload::config-snapshot"]
+    assert captured_prompts == [payload.prompt]
+    assert "config.theta_extpa: 0.2 -> 0.8" in captured_prompts[0]
+    txt_export = next(item.data for item in fake_st.downloads if item.mime == "text/plain")
+    json_export = json.loads(
+        next(item.data for item in fake_st.downloads if item.mime == "application/json")
+    )
+    assert "config.theta_extpa: 0.2 -> 0.8" in txt_export
+    assert "config.theta_extpa: 0.2 -> 0.8" in json_export["config_diff"]
 
 
 def test_render_comparison_llm_panel_passes_azure_provider_config(monkeypatch) -> None:
