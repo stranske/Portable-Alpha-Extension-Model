@@ -45,6 +45,19 @@ def _manifest_seed(manifest: Mapping[str, Any] | None) -> Any:
     return None
 
 
+def _payload_fingerprint(summary_df: pd.DataFrame, manifest: Mapping[str, Any] | None) -> str:
+    """Bind narratives to summary values and the manifest's reproducible inputs."""
+    identity = (
+        {key: manifest.get(key) for key in ("seed", "run_name", "config_hash", "data_files")}
+        if isinstance(manifest, Mapping)
+        else {}
+    )
+    payload = {"summary": summary_df.to_dict(orient="split"), "manifest_identity": identity}
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, ensure_ascii=True, default=str).encode("utf-8")
+    ).hexdigest()
+
+
 def _cache_key(
     *,
     xlsx_path: str,
@@ -52,6 +65,7 @@ def _cache_key(
     provider: str,
     model: str,
     questions: str,
+    payload_fingerprint: str,
 ) -> str:
     payload = {
         "xlsx_path": xlsx_path,
@@ -59,6 +73,7 @@ def _cache_key(
         "provider": provider,
         "model": model,
         "questions": questions,
+        "payload_fingerprint": payload_fingerprint,
     }
     digest = hashlib.sha256(
         json.dumps(payload, sort_keys=True, ensure_ascii=True, default=str).encode("utf-8")
@@ -73,6 +88,7 @@ def _inputs_summary(
     provider: str,
     model: str,
     questions: str,
+    payload_fingerprint: str,
 ) -> dict[str, Any]:
     return {
         "xlsx_path": str(Path(xlsx_path)),
@@ -80,6 +96,7 @@ def _inputs_summary(
         "provider": provider,
         "model": model,
         "questions": questions,
+        "payload_fingerprint": payload_fingerprint,
     }
 
 
@@ -139,12 +156,14 @@ def render_explain_results_panel(
     model = str(st.session_state.get(_MODEL_KEY, "")).strip()
 
     cache = _cache_bucket()
+    payload_fingerprint = _payload_fingerprint(summary_df, manifest)
     cache_key = _cache_key(
         xlsx_path=xlsx_path,
         manifest=manifest,
         provider=provider,
         model=model,
         questions=questions,
+        payload_fingerprint=payload_fingerprint,
     )
     cached = cache.get(cache_key)
 
@@ -168,6 +187,7 @@ def render_explain_results_panel(
                     )
                     cached = {
                         "text": text,
+                        "payload_fingerprint": payload_fingerprint,
                         "trace_url": trace_url,
                         "payload": payload,
                         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -177,6 +197,7 @@ def render_explain_results_panel(
                             provider=config.provider_name,
                             model=config.model_name or "",
                             questions=questions,
+                            payload_fingerprint=payload_fingerprint,
                         ),
                     }
                     cache[cache_key] = cached
@@ -203,6 +224,7 @@ def render_explain_results_panel(
 
     json_payload = {
         "text": cached["text"],
+        "payload_fingerprint": cached["payload_fingerprint"],
         "trace_url": cached.get("trace_url"),
         "created_at": cached["created_at"],
         "inputs_summary": cached["inputs_summary"],
@@ -213,7 +235,7 @@ def render_explain_results_panel(
     with col1:
         st.download_button(
             "Download TXT",
-            data=cached["text"],
+            data=f"Input fingerprint: {cached['payload_fingerprint']}\n\n{cached['text']}",
             file_name=txt_name,
             mime="text/plain",
         )

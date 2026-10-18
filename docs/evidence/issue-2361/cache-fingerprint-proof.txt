@@ -1,0 +1,178 @@
+Issue2361: Explain Results cache binding
+
+Acceptance: python -m pytest tests/test_dashboard_explain_results.py tests/test_dashboard_results_previous_run.py -q
+18 passed offline. Black and Ruff passed.
+
+Mutation: replace render-time payload fingerprint with a constant; exact byte restoration follows.
+Command: python -m pytest tests/test_dashboard_explain_results.py -q -k cache_tracks_current_run
+
+--- 2361-deliberate-red.txt ---
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_______ test_explanation_cache_tracks_current_run_and_downloads[summary] _______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x114f89850>
+changed_input = 'summary'
+
+    @pytest.mark.parametrize("changed_input", ["summary", "config_hash", "data_files"])
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {"seed": 123, "config_hash": "config-a", "data_files": {"returns.csv": "data-a"}}
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        else:
+            manifest["data_files"] = {"returns.csv": "data-b"}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1237d5700>)
+
+tests/test_dashboard_explain_results.py:329: AssertionError
+_____ test_explanation_cache_tracks_current_run_and_downloads[config_hash] _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x12383bcb0>
+changed_input = 'config_hash'
+
+    @pytest.mark.parametrize("changed_input", ["summary", "config_hash", "data_files"])
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {"seed": 123, "config_hash": "config-a", "data_files": {"returns.csv": "data-a"}}
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        else:
+            manifest["data_files"] = {"returns.csv": "data-b"}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1238936b0>)
+
+tests/test_dashboard_explain_results.py:329: AssertionError
+_____ test_explanation_cache_tracks_current_run_and_downloads[data_files] ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x12383b350>
+changed_input = 'data_files'
+
+    @pytest.mark.parametrize("changed_input", ["summary", "config_hash", "data_files"])
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {"seed": 123, "config_hash": "config-a", "data_files": {"returns.csv": "data-a"}}
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        else:
+            manifest["data_files"] = {"returns.csv": "data-b"}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1238d4930>)
+
+tests/test_dashboard_explain_results.py:329: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[summary]
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[config_hash]
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[data_files]
+3 failed, 7 deselected in 1.40s
+
+--- 2361-restored-green.txt ---
+...                                                                      [100%]
+3 passed, 7 deselected in 0.79s
+
+Restored source SHA256: 30b058c815d20804719c3fabda6bf251e7e1e1a7d0558b662fee62ded5d134b3
