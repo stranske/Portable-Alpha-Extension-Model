@@ -39,6 +39,11 @@ def _cache_bucket() -> dict[str, dict[str, Any]]:
     return cache
 
 
+def _is_error_payload(payload: object) -> bool:
+    """Recognize structured failures, including legacy empty-message error payloads."""
+    return isinstance(payload, Mapping) and (payload.get("status") == "error" or "error" in payload)
+
+
 def _manifest_seed(manifest: Mapping[str, Any] | None) -> Any:
     if isinstance(manifest, Mapping):
         return manifest.get("seed")
@@ -172,6 +177,11 @@ def render_explain_results_panel(
         payload_fingerprint=payload_fingerprint,
     )
     cached = cache.get(cache_key)
+    if isinstance(cached, Mapping) and _is_error_payload(cached.get("payload")):
+        # Older releases cached helper failures as normal output. Drop those entries so an upgraded
+        # panel retries instead of showing a stale error with completed-result downloads.
+        cache.pop(cache_key, None)
+        cached = None
 
     if st.button("Explain Results", key=f"explain_results_btn_{cache_key}"):
         with st.spinner("Generating explanation..."):
@@ -191,6 +201,14 @@ def render_explain_results_panel(
                         questions=questions,
                         llm_config=config,
                     )
+                    if _is_error_payload(payload):
+                        if payload.get("error_category") == "missing_extra":
+                            st.error(
+                                "LLM features unavailable. Install .[llm] to enable Explain Results."
+                            )
+                        else:
+                            st.error("Failed to generate explanation.")
+                        return
                     cached = {
                         "text": text,
                         "payload_fingerprint": payload_fingerprint,
