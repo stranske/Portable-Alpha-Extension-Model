@@ -17,7 +17,7 @@ from dashboard.components.llm_settings import (
     resolve_api_key_input,
     resolve_llm_provider_config,
 )
-from pa_core.llm.result_explain import explain_results_details
+from pa_core.llm.result_explain import _manifest_highlights, explain_results_details
 
 DEFAULT_QUESTIONS = (
     "Summarize the key drivers of risk and return. Highlight tracking error, CVaR, "
@@ -52,7 +52,13 @@ def _payload_fingerprint(summary_df: pd.DataFrame, manifest: Mapping[str, Any] |
         if isinstance(manifest, Mapping)
         else {}
     )
-    payload = {"summary": summary_df.to_dict(orient="split"), "manifest_identity": identity}
+    payload = {
+        "summary": summary_df.to_dict(orient="split"),
+        "manifest_identity": identity,
+        # Reuse the prompt projection so its CLI provenance cannot drift from
+        # the cache binding when a new prompt-relevant field is added.
+        "prompt_manifest": _manifest_highlights(manifest),
+    }
     return hashlib.sha256(
         json.dumps(payload, sort_keys=True, ensure_ascii=True, default=str).encode("utf-8")
     ).hexdigest()

@@ -284,7 +284,21 @@ def test_tracing_only_never_constructs_explanation_client(monkeypatch, socket_co
     assert socket_connect_guard[0] == []
 
 
-@pytest.mark.parametrize("changed_input", ["summary", "config_hash", "data_files"])
+@pytest.mark.parametrize(
+    "changed_input",
+    [
+        "summary",
+        "config_hash",
+        "data_files",
+        "run_name",
+        "seed",
+        "cli_n_sims",
+        "cli_horizon_months",
+        "cli_output",
+        "cli_benchmark",
+        "cli_config",
+    ],
+)
 def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
     fake = FakeStreamlit(button_value=True)
     monkeypatch.setattr(explain_module, "st", fake)
@@ -304,7 +318,19 @@ def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed
 
     monkeypatch.setattr(explain_module, "explain_results_details", explain)
     summary = pd.DataFrame({"monthly_TE": [0.01]})
-    manifest = {"seed": 123, "config_hash": "config-a", "data_files": {"returns.csv": "data-a"}}
+    manifest = {
+        "seed": 123,
+        "run_name": "run-a",
+        "config_hash": "config-a",
+        "data_files": {"returns.csv": "data-a"},
+        "cli_args": {
+            "n_sims": 100,
+            "horizon_months": 12,
+            "output": "Outputs.xlsx",
+            "benchmark": "benchmark.csv",
+            "config": "config.yaml",
+        },
+    }
 
     def render():
         explain_module.render_explain_results_panel(
@@ -319,8 +345,17 @@ def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed
         summary.loc[0, "monthly_TE"] = 0.09
     elif changed_input == "config_hash":
         manifest["config_hash"] = "config-b"
-    else:
+    elif changed_input == "data_files":
         manifest["data_files"] = {"returns.csv": "data-b"}
+    elif changed_input == "run_name":
+        manifest["run_name"] = "run-b"
+    elif changed_input == "seed":
+        manifest["seed"] = 456
+    else:
+        key = changed_input.removeprefix("cli_")
+        old_value = manifest["cli_args"][key]
+        new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+        manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
 
     fake.button_value = False
     fake.messages.clear()
