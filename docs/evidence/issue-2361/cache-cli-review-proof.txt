@@ -1,0 +1,459 @@
+Review recovery: bind every prompt-relevant manifest CLI field via the actual prompt projection. Independent run_name and seed invalidation cases are included.
+
+Acceptance: python -m pytest tests/test_dashboard_explain_results.py tests/test_dashboard_results_previous_run.py -q
+25 passed. Black/Ruff passed.
+
+Mutation: disconnect only prompt_manifest from the fingerprint.
+Command: python -m pytest tests/test_dashboard_explain_results.py -q -k "cache_tracks_current_run and cli_"
+
+--- 2361-cli-red.txt ---
+FFFFF                                                                    [100%]
+=================================== FAILURES ===================================
+_____ test_explanation_cache_tracks_current_run_and_downloads[cli_n_sims] ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1120a3ec0>
+changed_input = 'cli_n_sims'
+
+    @pytest.mark.parametrize(
+        "changed_input",
+        [
+            "summary",
+            "config_hash",
+            "data_files",
+            "run_name",
+            "seed",
+            "cli_n_sims",
+            "cli_horizon_months",
+            "cli_output",
+            "cli_benchmark",
+            "cli_config",
+        ],
+    )
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {
+            "seed": 123,
+            "run_name": "run-a",
+            "config_hash": "config-a",
+            "data_files": {"returns.csv": "data-a"},
+            "cli_args": {
+                "n_sims": 100,
+                "horizon_months": 12,
+                "output": "Outputs.xlsx",
+                "benchmark": "benchmark.csv",
+                "config": "config.yaml",
+            },
+        }
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        elif changed_input == "data_files":
+            manifest["data_files"] = {"returns.csv": "data-b"}
+        elif changed_input == "run_name":
+            manifest["run_name"] = "run-b"
+        elif changed_input == "seed":
+            manifest["seed"] = 456
+        else:
+            key = changed_input.removeprefix("cli_")
+            old_value = manifest["cli_args"][key]
+            new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+            manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1262a5be0>)
+
+tests/test_dashboard_explain_results.py:364: AssertionError
+_ test_explanation_cache_tracks_current_run_and_downloads[cli_horizon_months] __
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x12630bd40>
+changed_input = 'cli_horizon_months'
+
+    @pytest.mark.parametrize(
+        "changed_input",
+        [
+            "summary",
+            "config_hash",
+            "data_files",
+            "run_name",
+            "seed",
+            "cli_n_sims",
+            "cli_horizon_months",
+            "cli_output",
+            "cli_benchmark",
+            "cli_config",
+        ],
+    )
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {
+            "seed": 123,
+            "run_name": "run-a",
+            "config_hash": "config-a",
+            "data_files": {"returns.csv": "data-a"},
+            "cli_args": {
+                "n_sims": 100,
+                "horizon_months": 12,
+                "output": "Outputs.xlsx",
+                "benchmark": "benchmark.csv",
+                "config": "config.yaml",
+            },
+        }
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        elif changed_input == "data_files":
+            manifest["data_files"] = {"returns.csv": "data-b"}
+        elif changed_input == "run_name":
+            manifest["run_name"] = "run-b"
+        elif changed_input == "seed":
+            manifest["seed"] = 456
+        else:
+            key = changed_input.removeprefix("cli_")
+            old_value = manifest["cli_args"][key]
+            new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+            manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x126363e00>)
+
+tests/test_dashboard_explain_results.py:364: AssertionError
+_____ test_explanation_cache_tracks_current_run_and_downloads[cli_output] ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x126325eb0>
+changed_input = 'cli_output'
+
+    @pytest.mark.parametrize(
+        "changed_input",
+        [
+            "summary",
+            "config_hash",
+            "data_files",
+            "run_name",
+            "seed",
+            "cli_n_sims",
+            "cli_horizon_months",
+            "cli_output",
+            "cli_benchmark",
+            "cli_config",
+        ],
+    )
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {
+            "seed": 123,
+            "run_name": "run-a",
+            "config_hash": "config-a",
+            "data_files": {"returns.csv": "data-a"},
+            "cli_args": {
+                "n_sims": 100,
+                "horizon_months": 12,
+                "output": "Outputs.xlsx",
+                "benchmark": "benchmark.csv",
+                "config": "config.yaml",
+            },
+        }
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        elif changed_input == "data_files":
+            manifest["data_files"] = {"returns.csv": "data-b"}
+        elif changed_input == "run_name":
+            manifest["run_name"] = "run-b"
+        elif changed_input == "seed":
+            manifest["seed"] = 456
+        else:
+            key = changed_input.removeprefix("cli_")
+            old_value = manifest["cli_args"][key]
+            new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+            manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1263c4d40>)
+
+tests/test_dashboard_explain_results.py:364: AssertionError
+____ test_explanation_cache_tracks_current_run_and_downloads[cli_benchmark] ____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1120a3ec0>
+changed_input = 'cli_benchmark'
+
+    @pytest.mark.parametrize(
+        "changed_input",
+        [
+            "summary",
+            "config_hash",
+            "data_files",
+            "run_name",
+            "seed",
+            "cli_n_sims",
+            "cli_horizon_months",
+            "cli_output",
+            "cli_benchmark",
+            "cli_config",
+        ],
+    )
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {
+            "seed": 123,
+            "run_name": "run-a",
+            "config_hash": "config-a",
+            "data_files": {"returns.csv": "data-a"},
+            "cli_args": {
+                "n_sims": 100,
+                "horizon_months": 12,
+                "output": "Outputs.xlsx",
+                "benchmark": "benchmark.csv",
+                "config": "config.yaml",
+            },
+        }
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        elif changed_input == "data_files":
+            manifest["data_files"] = {"returns.csv": "data-b"}
+        elif changed_input == "run_name":
+            manifest["run_name"] = "run-b"
+        elif changed_input == "seed":
+            manifest["seed"] = 456
+        else:
+            key = changed_input.removeprefix("cli_")
+            old_value = manifest["cli_args"][key]
+            new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+            manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1263c5e50>)
+
+tests/test_dashboard_explain_results.py:364: AssertionError
+_____ test_explanation_cache_tracks_current_run_and_downloads[cli_config] ______
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x126325610>
+changed_input = 'cli_config'
+
+    @pytest.mark.parametrize(
+        "changed_input",
+        [
+            "summary",
+            "config_hash",
+            "data_files",
+            "run_name",
+            "seed",
+            "cli_n_sims",
+            "cli_horizon_months",
+            "cli_output",
+            "cli_benchmark",
+            "cli_config",
+        ],
+    )
+    def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(explain_module, "st", fake)
+        monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            explain_module,
+            "resolve_llm_provider_config",
+            lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+        )
+        calls = []
+    
+        def explain(summary, manifest, **kwargs):
+            text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+            calls.append((summary.copy(), dict(manifest)))
+            return text, None, {"rows": len(summary)}
+    
+        monkeypatch.setattr(explain_module, "explain_results_details", explain)
+        summary = pd.DataFrame({"monthly_TE": [0.01]})
+        manifest = {
+            "seed": 123,
+            "run_name": "run-a",
+            "config_hash": "config-a",
+            "data_files": {"returns.csv": "data-a"},
+            "cli_args": {
+                "n_sims": 100,
+                "horizon_months": 12,
+                "output": "Outputs.xlsx",
+                "benchmark": "benchmark.csv",
+                "config": "config.yaml",
+            },
+        }
+    
+        def render():
+            explain_module.render_explain_results_panel(
+                summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+            )
+    
+        render()
+        first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+        render()
+        assert len(calls) == 1
+        if changed_input == "summary":
+            summary.loc[0, "monthly_TE"] = 0.09
+        elif changed_input == "config_hash":
+            manifest["config_hash"] = "config-b"
+        elif changed_input == "data_files":
+            manifest["data_files"] = {"returns.csv": "data-b"}
+        elif changed_input == "run_name":
+            manifest["run_name"] = "run-b"
+        elif changed_input == "seed":
+            manifest["seed"] = 456
+        else:
+            key = changed_input.removeprefix("cli_")
+            old_value = manifest["cli_args"][key]
+            new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+            manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
+    
+        fake.button_value = False
+        fake.messages.clear()
+        fake.downloads.clear()
+        render()
+>       assert not any(kind == "markdown" for kind, _ in fake.messages)
+E       assert not True
+E        +  where True = any(<generator object test_explanation_cache_tracks_current_run_and_downloads.<locals>.<genexpr> at 0x1262a5f20>)
+
+tests/test_dashboard_explain_results.py:364: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[cli_n_sims]
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[cli_horizon_months]
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[cli_output]
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[cli_benchmark]
+FAILED tests/test_dashboard_explain_results.py::test_explanation_cache_tracks_current_run_and_downloads[cli_config]
+5 failed, 12 deselected in 1.05s
+
+--- 2361-cli-restored.txt ---
+.....                                                                    [100%]
+5 passed, 12 deselected in 0.80s
+
+Restored source SHA256: 3b63fe577196560751ccd12aec7760ea572fd792ec9ec9fa9eebe01cad745cae

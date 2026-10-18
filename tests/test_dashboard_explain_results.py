@@ -282,3 +282,111 @@ def test_tracing_only_never_constructs_explanation_client(monkeypatch, socket_co
     assert any("No API key found" in message for _, message in fake.messages)
     assert fake.downloads == []
     assert socket_connect_guard[0] == []
+
+
+@pytest.mark.parametrize(
+    "changed_input",
+    [
+        "summary",
+        "config_hash",
+        "data_files",
+        "run_name",
+        "seed",
+        "cli_n_sims",
+        "cli_horizon_months",
+        "cli_output",
+        "cli_benchmark",
+        "cli_config",
+    ],
+)
+def test_explanation_cache_tracks_current_run_and_downloads(monkeypatch, changed_input):
+    fake = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(explain_module, "st", fake)
+    monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        explain_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="test-model"),
+    )
+    calls = []
+
+    def explain(summary, manifest, **kwargs):
+        text = f"Explanation {len(calls) + 1}: TE={summary.iloc[0]['monthly_TE']}"
+        calls.append((summary.copy(), dict(manifest)))
+        return text, None, {"rows": len(summary)}
+
+    monkeypatch.setattr(explain_module, "explain_results_details", explain)
+    summary = pd.DataFrame({"monthly_TE": [0.01]})
+    manifest = {
+        "seed": 123,
+        "run_name": "run-a",
+        "config_hash": "config-a",
+        "data_files": {"returns.csv": "data-a"},
+        "cli_args": {
+            "n_sims": 100,
+            "horizon_months": 12,
+            "output": "Outputs.xlsx",
+            "benchmark": "benchmark.csv",
+            "config": "config.yaml",
+        },
+    }
+
+    def render():
+        explain_module.render_explain_results_panel(
+            summary_df=summary, manifest=manifest, xlsx_path="/tmp/Outputs.xlsx"
+        )
+
+    render()
+    first_payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+    render()
+    assert len(calls) == 1
+    if changed_input == "summary":
+        summary.loc[0, "monthly_TE"] = 0.09
+    elif changed_input == "config_hash":
+        manifest["config_hash"] = "config-b"
+    elif changed_input == "data_files":
+        manifest["data_files"] = {"returns.csv": "data-b"}
+    elif changed_input == "run_name":
+        manifest["run_name"] = "run-b"
+    elif changed_input == "seed":
+        manifest["seed"] = 456
+    else:
+        key = changed_input.removeprefix("cli_")
+        old_value = manifest["cli_args"][key]
+        new_value = old_value + 1 if isinstance(old_value, int) else old_value + ".changed"
+        manifest["cli_args"] = {**manifest["cli_args"], key: new_value}
+
+    fake.button_value = False
+    fake.messages.clear()
+    fake.downloads.clear()
+    render()
+    assert not any(kind == "markdown" for kind, _ in fake.messages)
+    assert not fake.downloads
+    assert len(calls) == 1
+
+    fake.button_value = True
+    render()
+    assert len(calls) == 2
+    current_text = next(text for kind, text in fake.messages if kind == "markdown")
+    assert current_text.startswith("Explanation 2:")
+    payload = json.loads(next(d.data for d in fake.downloads if d.mime == "application/json"))
+    fingerprint = payload["payload_fingerprint"]
+    assert fingerprint != first_payload["payload_fingerprint"]
+    assert payload["inputs_summary"]["payload_fingerprint"] == fingerprint
+    assert payload["text"] == current_text
+    txt = next(d.data for d in fake.downloads if d.mime == "text/plain")
+    assert fingerprint in txt and current_text in txt
+    bucket = fake.session_state[explain_module._CACHE_KEY]
+    assert any(entry["payload_fingerprint"] == fingerprint for entry in bucket.values())
+    render()
+    assert len(calls) == 2
+
+
+def test_payload_fingerprint_is_stable_for_equivalent_manifest_order():
+    summary = pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [float("nan")]})
+    first = {"config_hash": "config-a", "data_files": {"a.csv": "a", "b.csv": "b"}, "seed": 1}
+    reordered = {"seed": 1, "data_files": {"b.csv": "b", "a.csv": "a"}, "config_hash": "config-a"}
+    assert explain_module._payload_fingerprint(
+        summary, first
+    ) == explain_module._payload_fingerprint(summary.copy(), reordered)
