@@ -1,0 +1,78 @@
+Command: .venv/bin/python -m pytest tests/test_llm_compare_runs.py::test_dashboard_question_changes_actual_provider_prompt -q
+Mutation: replace dashboard question forwarding with unchanged default question.
+Actual REDexit1; exact bytes restored; GREENexit0.
+SourceSHA256:c1fc69fac425fb589619fb05da7363c5ac79673c412dc33260ca9ea0ea80c19c
+
+RED
+F                                                                        [100%]
+=================================== FAILURES ===================================
+____________ test_dashboard_question_changes_actual_provider_prompt ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x12f7812e0>
+tmp_path = PosixPath('/private/var/folders/qm/w0dtc0j132gd6ymf1hxtd2p00000gp/T/pytest-of-teacher/pytest-6643/test_dashboard_question_change0')
+
+    def test_dashboard_question_changes_actual_provider_prompt(monkeypatch, tmp_path):
+        import importlib
+        from contextlib import nullcontext
+        from test_dashboard_comparison_llm import FakeStreamlit
+        import dashboard.components.comparison_llm as panel
+    
+        module = importlib.import_module("pa_core.llm.compare_runs")
+        fake = FakeStreamlit(button_value=True)
+        monkeypatch.setattr(panel, "st", fake)
+        monkeypatch.setattr(panel, "default_api_key", lambda provider: "test-key")
+        monkeypatch.setattr(panel, "resolve_api_key_input", lambda raw: raw)
+        monkeypatch.setattr(
+            panel,
+            "resolve_llm_provider_config",
+            lambda **kwargs: LLMProviderConfig(
+                provider_name="openai", credentials={"api_key": "test-key"}
+            ),
+        )
+        monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
+        monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
+        captured = []
+        monkeypatch.setattr(
+            module,
+            "_invoke_comparison_llm",
+            lambda prompt, **kwargs: captured.append(prompt) or "Provider comparison",
+        )
+        manifest = _question_comparison_input(tmp_path)
+        for question in ["Explain tracking error changes", "Explain downside risk changes"]:
+            fake.session_state[f"{panel._QUESTIONS_KEY}::questions"] = question
+            panel.render_comparison_llm_panel(
+                summary_df=pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]}),
+                manifest_data=manifest,
+                run_key="questions",
+            )
+>           assert question in captured[-1]
+E           AssertionError: assert 'Explain tracking error changes' in 'Compare Item A and Item B. Highlight the top 3 differences, trade-offs, and when each is preferable.\n\nItem A:\n{\n ...y, and CVaR.\n3. Whether parameter changes likely improved risk-adjusted outcomes.\n4. One practical next run to test.'
+
+tests/test_llm_compare_runs.py:532: AssertionError
+=============================== warnings summary ===============================
+../../../../../../../opt/anaconda3/lib/python3.12/site-packages/pandas/core/computation/expressions.py:23
+  /opt/anaconda3/lib/python3.12/site-packages/pandas/core/computation/expressions.py:23: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.8.7' currently installed).
+    from pandas.core.computation.check import NUMEXPR_INSTALLED
+
+../../../../../../../opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/masked.py:56
+  /opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/masked.py:56: UserWarning: Pandas requires version '1.4.2' or newer of 'bottleneck' (version '1.3.7' currently installed).
+    from pandas.core import (
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_llm_compare_runs.py::test_dashboard_question_changes_actual_provider_prompt
+1 failed, 2 warnings in 2.97s
+
+GREEN
+.                                                                        [100%]
+=============================== warnings summary ===============================
+../../../../../../../opt/anaconda3/lib/python3.12/site-packages/pandas/core/computation/expressions.py:23
+  /opt/anaconda3/lib/python3.12/site-packages/pandas/core/computation/expressions.py:23: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.8.7' currently installed).
+    from pandas.core.computation.check import NUMEXPR_INSTALLED
+
+../../../../../../../opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/masked.py:56
+  /opt/anaconda3/lib/python3.12/site-packages/pandas/core/arrays/masked.py:56: UserWarning: Pandas requires version '1.4.2' or newer of 'bottleneck' (version '1.3.7' currently installed).
+    from pandas.core import (
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 2 warnings in 1.99s

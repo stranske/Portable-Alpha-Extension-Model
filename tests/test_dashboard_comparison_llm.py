@@ -96,6 +96,9 @@ def test_render_comparison_llm_panel_shows_default_message(monkeypatch) -> None:
 
 def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch) -> None:
     fake_st = FakeStreamlit(button_value=True)
+    question = "Explain the rise in tracking error"
+    fake_st.session_state[f"{comparison_module._QUESTIONS_KEY}::run-a-vs-run-b"] = question
+    captured: dict[str, Any] = {}
     monkeypatch.setattr(comparison_module, "st", fake_st)
     monkeypatch.setattr(comparison_module, "default_api_key", lambda provider: "test-key")
     monkeypatch.setattr(comparison_module, "resolve_api_key_input", lambda raw: raw)
@@ -103,7 +106,8 @@ def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch)
     monkeypatch.setattr(
         comparison_module,
         "compare_runs",
-        lambda **kwargs: (
+        lambda **kwargs: captured.update(kwargs)
+        or (
             "Generated comparison",
             "https://smith.langchain.com/r/trace-id",
             comparison_module.CompareRunsPayload(
@@ -140,6 +144,8 @@ def test_render_comparison_llm_panel_generates_output_and_downloads(monkeypatch)
     json_export = next(item for item in fake_st.downloads if item.label == "Download JSON")
     assert '"config_diff": "- seed: 1 -> 2"' in json_export.data
     assert '"trace_url": "https://smith.langchain.com/r/trace-id"' in json_export.data
+
+    assert captured["questions"] == question
 
 
 def test_render_comparison_llm_panel_passes_azure_provider_config(monkeypatch) -> None:
@@ -245,12 +251,12 @@ def test_comparison_provider_defaults_switches_and_secret_free_exports(
     monkeypatch, socket_connect_guard, destination
 ):
     import importlib
+    import sys
     from contextlib import nullcontext
     from types import SimpleNamespace
-    from dashboard.components import llm_settings
-    import pa_core.llm.provider as provider_module
 
-    import sys
+    import pa_core.llm.provider as provider_module
+    from dashboard.components import llm_settings
 
     class Prompt:
         @staticmethod

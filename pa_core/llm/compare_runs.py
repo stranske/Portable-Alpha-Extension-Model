@@ -33,6 +33,12 @@ from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_COMPARISON_QUESTIONS = """Compare the current and previous runs and explain:
+1. Main performance drivers and constraint effects.
+2. Changes in tracking error, breach probability, and CVaR.
+3. Whether parameter changes likely improved risk-adjusted outcomes.
+4. One practical next run to test."""
+
 _CLI_DIFF_KEYS: tuple[str, ...] = (
     "capital",
     "total_capital",
@@ -317,6 +323,7 @@ def compare_runs(
 ) -> tuple[str, str | None, CompareRunsPayload]:
     """Generate run comparison output and optional trace URL for Results panel."""
 
+    questions = questions.strip() or DEFAULT_COMPARISON_QUESTIONS
     prior_manifest, prior_manifest_path = load_prior_manifest(current_manifest)
     if prior_manifest is None:
         raise ValueError("No readable prior manifest found from manifest_data['previous_run'].")
@@ -335,6 +342,7 @@ def compare_runs(
     prompt = build_comparison_prompt(
         item_a={"config_diff": config_diff, "metric_catalog": metrics_a, "label": "current"},
         item_b={"metric_catalog": metrics_b, "label": "prior"},
+        questions=questions,
     )
     text = _heuristic_compare_text(
         config_diff=config_diff,

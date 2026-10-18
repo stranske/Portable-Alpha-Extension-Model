@@ -19,13 +19,12 @@ from dashboard.components.llm_settings import (
     resolve_api_key_input,
     resolve_llm_provider_config,
 )
-from pa_core.llm.compare_runs import CompareRunsPayload, compare_runs, load_prior_manifest
-
-DEFAULT_COMPARISON_QUESTIONS = """Compare the current and previous runs and explain:
-1. Main performance drivers and constraint effects.
-2. Changes in tracking error, breach probability, and CVaR.
-3. Whether parameter changes likely improved risk-adjusted outcomes.
-4. One practical next run to test."""
+from pa_core.llm.compare_runs import (
+    DEFAULT_COMPARISON_QUESTIONS,
+    CompareRunsPayload,
+    compare_runs,
+    load_prior_manifest,
+)
 
 _PROVIDER_KEY = "comparison_llm_provider"
 _API_KEY_KEY = "comparison_llm_api_key"
