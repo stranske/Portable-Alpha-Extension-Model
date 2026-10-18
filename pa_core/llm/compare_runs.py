@@ -28,6 +28,7 @@ from pa_core.llm.langsmith_fleet import (
 )
 from pa_core.llm.prompts import build_comparison_prompt
 from pa_core.llm.provider import LLMProviderConfig
+from pa_core.llm.result_explain import _sanitize_error_message
 from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
 
 logger = logging.getLogger(__name__)
@@ -372,7 +373,18 @@ def compare_runs(
             # Keep dashboard responsive even without llm extras/credentials.
             status = "fallback"
             error_category = type(exc).__name__
-            logger.warning("LLM comparison fell back without extras/credentials", exc_info=True)
+            secrets = [api_key, _default_provider_api_key(trace_provider)]
+            secrets.extend((provider_credentials or {}).values())
+            if provider_config is not None:
+                secrets.extend(provider_config.credentials.values())
+            safe_error = _sanitize_error_message(
+                exc,
+                secrets=sorted(
+                    (s for s in secrets if isinstance(s, str) and s), key=len, reverse=True
+                ),
+            )
+            # Tracebacks include unsanitized chained causes and must never reach this log.
+            logger.warning("LLM comparison fell back (%s): %s", error_category, safe_error)
 
     if trace_id:
         trace_url = resolve_trace_url(trace_id)
