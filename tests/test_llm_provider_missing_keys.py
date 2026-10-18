@@ -6,6 +6,7 @@ import socket
 
 import pytest
 
+from dashboard.components.llm_settings import resolve_llm_provider_config
 from pa_core.llm.provider import LLMProviderConfig, create_llm
 
 
@@ -94,6 +95,50 @@ def test_create_llm_anthropic_claude5_defaults(monkeypatch):
         )
     )
     assert captured["max_tokens"] == 2048  # an explicit caller value wins
+
+
+def test_create_llm_provider_options_keep_supported_fields_out_of_anthropic_payload(
+    socket_connect_guard,
+):
+    """Real SDK clients accept only their supported resolver options without network I/O."""
+
+    attempts, blocked = socket_connect_guard
+    openai = create_llm(
+        resolve_llm_provider_config(provider="openai", api_key="sk-synthetic", org="org-openai")
+    )
+    anthropic = create_llm(
+        resolve_llm_provider_config(
+            provider="anthropic",
+            api_key="sk-synthetic",
+            base_url="https://anthropic.example.test",
+            org="org-anthropic",
+        )
+    )
+    azure = create_llm(
+        resolve_llm_provider_config(
+            provider="azure_openai",
+            api_key="sk-synthetic",
+            base_url="https://portable-alpha.openai.azure.com",
+            api_version="2024-10-21",
+            org="org-azure",
+        )
+    )
+
+    assert openai.openai_organization == "org-openai"
+    assert "organization" not in openai.model_kwargs
+    assert "organization" not in openai._get_request_payload([("human", "hello")])
+
+    assert anthropic.anthropic_api_url == "https://anthropic.example.test"
+    assert "organization" not in anthropic.model_kwargs
+    assert "organization" not in anthropic._get_request_payload([("human", "hello")])
+
+    assert azure.openai_organization == "org-azure"
+    assert azure.azure_endpoint == "https://portable-alpha.openai.azure.com"
+    assert azure.openai_api_version == "2024-10-21"
+    assert "organization" not in azure.model_kwargs
+    assert "organization" not in azure._get_request_payload([("human", "hello")])
+    assert socket.socket.connect is blocked
+    assert attempts == []
 
 
 @pytest.mark.parametrize(
