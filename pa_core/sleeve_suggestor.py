@@ -484,7 +484,9 @@ def _grid_sleeve_sizes(
 def _load_minimize() -> _MinimizeFunc | None:
     try:
         from scipy.optimize import minimize
-    except ImportError:
+    except (ImportError, AttributeError):
+        # An optional SciPy installation can be present but incompatible with
+        # the active NumPy version. Preserve the documented grid fallback.
         return None
     return cast(_MinimizeFunc, minimize)
 

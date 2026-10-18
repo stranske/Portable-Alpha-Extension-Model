@@ -1,3 +1,4 @@
+import builtins
 from pathlib import Path
 from typing import Any
 
@@ -708,6 +709,22 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
     )
     assert not df.empty
     assert str(df.loc[0, "optimizer_status"]).startswith("grid_fallback")
+
+
+def test_load_minimize_falls_back_when_scipy_import_is_incompatible(monkeypatch):
+    """An installed but incompatible optional optimizer must not break suggestions."""
+    from pa_core import sleeve_suggestor
+
+    real_import = builtins.__import__
+
+    def incompatible_scipy(name, *args, **kwargs):
+        if name == "scipy.optimize":
+            raise AttributeError("module 'numpy' has no attribute 'long'")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", incompatible_scipy)
+
+    assert sleeve_suggestor._load_minimize() is None
 
 
 def test_suggest_sleeve_sizes_infeasible_constraints_returns_status(monkeypatch):
