@@ -260,7 +260,11 @@ def _config_snapshot_diff(
         old = prior_flat.get(path, _MISSING)
         new = current_flat.get(path, _MISSING)
         if old != new:
-            lines.append(_diff_line(_config_snapshot_path_label(path), old, new))
+            # Snapshot floats must round-trip: the compact legacy formatter can
+            # make distinct persisted values appear identical in prompts/exports.
+            old_text = "<missing>" if old is _MISSING else str(old)
+            new_text = "<missing>" if new is _MISSING else str(new)
+            lines.append(f"- {_config_snapshot_path_label(path)}: {old_text} -> {new_text}")
     return lines
 
 

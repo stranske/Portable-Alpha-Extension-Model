@@ -544,7 +544,7 @@ def test_comparison_fallback_redacts_credentials_and_chained_errors(
     assert all(record.exc_info is None for record in caplog.records)
 
 
-def _question_comparison_input(tmp_path):
+def _question_comparison_input(tmp_path, prior_theta=0.2, current_theta=0.8):
     prior_output = tmp_path / "question-prior.xlsx"
     pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
@@ -555,14 +555,14 @@ def _question_comparison_input(tmp_path):
             {
                 "cli_args": {"output": str(prior_output)},
                 "seed": 1,
-                "config": {"theta_extpa": 0.2},
+                "config": {"theta_extpa": prior_theta},
             }
         )
     )
     return {
         "previous_run": str(prior_manifest),
         "seed": 2,
-        "config": {"theta_extpa": 0.8},
+        "config": {"theta_extpa": current_theta},
     }
 
 
@@ -595,8 +595,9 @@ def test_comparison_question_reaches_provider_prompt(monkeypatch, tmp_path, ques
     assert '"monthly_TE": 0.03' in captured[0] and '"monthly_TE": 0.01' in captured[0]
 
 
+@pytest.mark.parametrize("prior_theta,current_theta", [(0.2, 0.8), (1.0000001, 1.0000002)])
 def test_dashboard_question_changes_actual_provider_prompt(
-    monkeypatch, tmp_path, socket_connect_guard
+    monkeypatch, tmp_path, socket_connect_guard, prior_theta, current_theta
 ):
     import importlib
     from contextlib import nullcontext
@@ -648,7 +649,8 @@ def test_dashboard_question_changes_actual_provider_prompt(
     fake_prompts.ChatPromptTemplate = FakeChatPromptTemplate
     monkeypatch.setitem(sys.modules, "langchain_core.prompts", fake_prompts)
     monkeypatch.setattr(provider, "create_llm", lambda config: FakeProvider())
-    manifest = _question_comparison_input(tmp_path)
+    manifest = _question_comparison_input(tmp_path, prior_theta, current_theta)
+    expected_diff = f"config.theta_extpa: {prior_theta} -> {current_theta}"
     summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     questions = ["Explain tracking error changes", "Explain downside risk changes"]
     payloads = []
@@ -665,7 +667,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
     assert [payload.status for payload in payloads] == ["success", "success"]
     assert [payload.questions for payload in payloads] == questions
     assert [payload.prompt for payload in payloads] == captured
-    assert all("config.theta_extpa: 0.2 -> 0.8" in payload.config_diff for payload in payloads)
+    assert all(expected_diff in payload.config_diff for payload in payloads)
     prompt_data = []
     for prompt, question in zip(captured, questions, strict=True):
         data, separator, question_block = prompt.partition("\n\nQuestions:\n")
@@ -679,7 +681,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
         assert '"label": "prior"' in prior_data
         assert '"monthly_TE": 0.01' in prior_data
         assert '"monthly_CVaR": -0.04' in prior_data
-        assert "config.theta_extpa: 0.2 -> 0.8" in prompt
+        assert expected_diff in prompt
     assert prompt_data[0] == prompt_data[1]
     assert captured[0] != captured[1]
 
@@ -689,10 +691,10 @@ def test_dashboard_question_changes_actual_provider_prompt(
         assert export["questions"] == question
         assert export["metric_catalog_a"] == payload.metric_catalog_a
         assert export["metric_catalog_b"] == payload.metric_catalog_b
-        assert "config.theta_extpa: 0.2 -> 0.8" in export["config_diff"]
+        assert expected_diff in export["config_diff"]
     txt_exports = [item.data for item in fake.downloads if item.mime == "text/plain"]
     assert len(txt_exports) == 2
-    assert all("config.theta_extpa: 0.2 -> 0.8" in export for export in txt_exports)
+    assert all(expected_diff in export for export in txt_exports)
     assert socket_connect_guard[0] == []
 
 
