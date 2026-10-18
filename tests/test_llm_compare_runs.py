@@ -496,7 +496,9 @@ def test_comparison_question_reaches_provider_prompt(monkeypatch, tmp_path, ques
     assert '"monthly_TE": 0.03' in captured[0] and '"monthly_TE": 0.01' in captured[0]
 
 
-def test_dashboard_question_changes_actual_provider_prompt(monkeypatch, tmp_path):
+def test_dashboard_question_changes_actual_provider_prompt(
+    monkeypatch, tmp_path, socket_connect_guard
+):
     import importlib
     from contextlib import nullcontext
 
@@ -525,16 +527,44 @@ def test_dashboard_question_changes_actual_provider_prompt(monkeypatch, tmp_path
         lambda prompt, **kwargs: captured.append(prompt) or "Provider comparison",
     )
     manifest = _question_comparison_input(tmp_path)
-    for question in ["Explain tracking error changes", "Explain downside risk changes"]:
+    summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
+    questions = ["Explain tracking error changes", "Explain downside risk changes"]
+    payloads = []
+    for question in questions:
         fake.session_state[f"{panel._QUESTIONS_KEY}::questions"] = question
         panel.render_comparison_llm_panel(
-            summary_df=pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]}),
+            summary_df=summary,
             manifest_data=manifest,
             run_key="questions",
         )
-        assert question in captured[-1]
-        assert fake.session_state["comparison_payload::questions"].questions == question
-    assert len(captured) == 2 and captured[0] != captured[1]
+        payloads.append(fake.session_state["comparison_payload::questions"])
+
+    assert len(captured) == 2
+    assert [payload.questions for payload in payloads] == questions
+    assert [payload.prompt for payload in payloads] == captured
+    prompt_data = []
+    for prompt, question in zip(captured, questions, strict=True):
+        data, separator, question_block = prompt.partition("\n\nQuestions:\n")
+        assert separator
+        assert question_block == f"- {question}"
+        prompt_data.append(data)
+        current_data, prior_data = data.split("\n\nItem B:\n", maxsplit=1)
+        assert '"label": "current"' in current_data
+        assert '"monthly_TE": 0.03' in current_data
+        assert '"monthly_CVaR": -0.05' in current_data
+        assert '"label": "prior"' in prior_data
+        assert '"monthly_TE": 0.01' in prior_data
+        assert '"monthly_CVaR": -0.04' in prior_data
+    assert prompt_data[0] == prompt_data[1]
+    assert captured[0] != captured[1]
+
+    exports = [json.loads(item.data) for item in fake.downloads if item.mime == "application/json"]
+    assert len(exports) == 2
+    for export, payload, question in zip(exports, payloads, questions, strict=True):
+        assert export["questions"] == question
+        assert export["metric_catalog_a"] == payload.metric_catalog_a
+        assert export["metric_catalog_b"] == payload.metric_catalog_b
+    assert socket_connect_guard[0] == []
 
 
 def test_empty_question_fallback_uses_same_default(monkeypatch, tmp_path):

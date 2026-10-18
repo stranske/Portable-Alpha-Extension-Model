@@ -112,7 +112,9 @@ def wizard_module() -> dict[str, Any]:
     return runpy.run_path(str(WIZARD_PAGE))
 
 
-def test_progress_bar_marks_completed_current_and_future_steps(wizard_module: dict[str, Any]) -> None:
+def test_progress_bar_marks_completed_current_and_future_steps(
+    wizard_module: dict[str, Any],
+) -> None:
     fake_st = _FakeStreamlit()
     wizard_module["_render_progress_bar"].__globals__["st"] = fake_st
 
@@ -157,7 +159,9 @@ def test_capital_step_reports_allocation_status_and_balanced_chart(
 
     assert rendered is config
     assert any(kind == "success" and "Buffer after margin" in text for kind, text in fake_st.calls)
-    assert any(kind == expected_status and "Capital allocation" in text for kind, text in fake_st.calls)
+    assert any(
+        kind == expected_status and "Capital allocation" in text for kind, text in fake_st.calls
+    )
     if internal_capital == 60.0:
         chart = next(value for kind, value in fake_st.calls if kind == "plotly_chart")
         assert chart["data"][0]["values"] == [20.0, 20.0, 60.0]
