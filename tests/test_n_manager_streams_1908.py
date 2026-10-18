@@ -5,15 +5,14 @@ import warnings
 import numpy as np
 import pytest
 
-from pa_core.sim import paths as paths_module
 from pa_core.sim import (
     build_cov_matrix,
     build_generic_cov_matrix,
     draw_named_returns,
     map_sleeve_alpha_streams,
-    prepare_mc_universe,
-    simulate_alpha_streams,
 )
+from pa_core.sim import paths as paths_module
+from pa_core.sim import prepare_mc_universe, simulate_alpha_streams
 
 
 def _rank_deficient_float32_covariance() -> np.ndarray:

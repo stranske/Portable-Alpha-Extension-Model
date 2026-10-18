@@ -7,13 +7,12 @@ import sys
 import types
 from pathlib import Path
 
-import pa_core
 import pandas as pd
 import pytest
 import yaml
 
+import pa_core
 from pa_core.cli import main
-
 from pa_core.llm.compare_runs import (
     _largest_metric_delta,
     build_metric_catalog,

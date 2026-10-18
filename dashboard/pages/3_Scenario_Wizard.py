@@ -19,7 +19,6 @@ import yaml
 from dashboard import cli as dashboard_cli
 from dashboard import validation_ui
 from dashboard.app import _DEF_XLSX, apply_theme, render_settings_sidebar
-from dashboard.theme import apply_theme as apply_ds_theme
 from dashboard.components.config_chat import render_config_chat_panel
 from dashboard.components.llm_settings import (
     default_api_key,
@@ -28,6 +27,7 @@ from dashboard.components.llm_settings import (
     resolve_llm_provider_config,
 )
 from dashboard.glossary import tooltip
+from dashboard.theme import apply_theme as apply_ds_theme
 from dashboard.utils import (
     friendly_validation_error_message,
     remember_current_scenario,
@@ -39,27 +39,16 @@ from pa_core.backend import SUPPORTED_BACKENDS
 from pa_core.config import load_config
 from pa_core.data import load_index_returns
 from pa_core.llm import ConfigPatchChainResult, create_llm, run_config_patch_chain
-from pa_core.llm.config_chat import (
-    apply_config_chat_preview as apply_config_chat_preview_core,
-)
-from pa_core.llm.config_chat import (
-    snapshot_wizard_session_state,
-)
+from pa_core.llm.config_chat import apply_config_chat_preview as apply_config_chat_preview_core
+from pa_core.llm.config_chat import snapshot_wizard_session_state
 from pa_core.llm.config_patch import (
     ALLOWED_WIZARD_FIELDS,
-    empty_patch,
-    round_trip_validate_config,
-    validate_patch_dict,
 )
-from pa_core.llm.config_patch import (
-    apply_patch as apply_config_patch,
-)
-from pa_core.llm.config_patch import (
-    diff_config as diff_wizard_config,
-)
-from pa_core.llm.config_patch import (
-    side_by_side_diff_config as side_by_side_diff_wizard_config,
-)
+from pa_core.llm.config_patch import apply_patch as apply_config_patch
+from pa_core.llm.config_patch import diff_config as diff_wizard_config
+from pa_core.llm.config_patch import empty_patch, round_trip_validate_config
+from pa_core.llm.config_patch import side_by_side_diff_config as side_by_side_diff_wizard_config
+from pa_core.llm.config_patch import validate_patch_dict
 from pa_core.validators import calculate_margin_requirement, load_margin_schedule
 from pa_core.viz import frontier as frontier_viz
 from pa_core.wizard.session_state import restore_wizard_session_snapshot

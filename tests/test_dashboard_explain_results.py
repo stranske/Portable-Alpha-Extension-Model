@@ -206,8 +206,8 @@ def test_render_explain_results_panel_reports_missing_llm_extra(monkeypatch) -> 
 def test_provider_defaults_switches_and_secret_free_exports(
     monkeypatch, socket_connect_guard, destination
 ):
-    from dashboard.components import llm_settings
     import pa_core.llm.result_explain as core
+    from dashboard.components import llm_settings
 
     env = {
         "PA_LLM_PROVIDER": "anthropic",
@@ -267,8 +267,8 @@ def test_provider_defaults_switches_and_secret_free_exports(
 
 
 def test_tracing_only_never_constructs_explanation_client(monkeypatch, socket_connect_guard):
-    from dashboard.components import llm_settings
     import pa_core.llm.result_explain as core
+    from dashboard.components import llm_settings
 
     monkeypatch.setattr(llm_settings, "read_secret", {"LANGSMITH_API_KEY": "synthetic-tracing"}.get)
     fake = FakeStreamlit(button_value=True)

@@ -1,14 +1,15 @@
 Command: /opt/hostedtoolcache/Python/3.14.8/x64/bin/python -m pytest tests/test_llm_compare_runs.py::test_dashboard_question_changes_actual_provider_prompt -q --tb=short -m 'not slow and not live_llm'
+Capture: fake provider invoke, through real compare_runs and _invoke_comparison_llm.
 Mutation: replace dashboard question forwarding with unchanged default question.
 RED exit: 1; exact bytes restored; GREEN exit: 0.
 Source SHA256 before and after: c1fc69fac425fb589619fb05da7363c5ac79673c412dc33260ca9ea0ea80c19c
-Restoration verified by byte-for-byte equality before GREEN.
+Restoration verified by byte-for-byte equality before and after GREEN.
 
 RED
 F                                                                        [100%]
 =================================== FAILURES ===================================
 ____________ test_dashboard_question_changes_actual_provider_prompt ____________
-tests/test_llm_compare_runs.py:543: in test_dashboard_question_changes_actual_provider_prompt
+tests/test_llm_compare_runs.py:567: in test_dashboard_question_changes_actual_provider_prompt
     assert [payload.questions for payload in payloads] == questions
 E   AssertionError: assert ['Compare the...run to test.'] == ['Explain tra...risk changes']
 E
@@ -49,8 +50,8 @@ FAILED tests/test_llm_compare_runs.py::test_dashboard_question_changes_actual_pr
   +     '3. Whether parameter changes likely improved risk-adjusted outcomes.\n'
   +     '4. One practical next run to test.',
     ]
-1 failed in 1.91s
+1 failed in 2.25s
 
 GREEN
 .                                                                        [100%]
-1 passed in 1.72s
+1 passed in 2.11s

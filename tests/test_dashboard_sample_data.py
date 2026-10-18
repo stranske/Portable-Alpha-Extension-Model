@@ -21,8 +21,8 @@ import pandas as pd
 import pytest
 
 from dashboard.utils import (
-    SAMPLE_INDEX_FILENAME,
     SAMPLE_FINANCING_MODE,
+    SAMPLE_INDEX_FILENAME,
     build_sample_model_config,
     bundled_sample_index_path,
     load_bundled_sample_index,

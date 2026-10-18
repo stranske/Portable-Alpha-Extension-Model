@@ -2,12 +2,12 @@
 
 import importlib.util
 import io
-import tarfile
 import json
 import os
 import signal
 import subprocess
 import sys
+import tarfile
 from pathlib import Path
 
 import pytest

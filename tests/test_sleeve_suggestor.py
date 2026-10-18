@@ -11,9 +11,9 @@ from pa_core.config import ModelConfig, load_config
 from pa_core.data import load_index_returns
 from pa_core.sim.metrics import summary_table
 from pa_core.sleeve_suggestor import (
-    _StreamCache,
     _coerce_metric,
     _extract_metrics,
+    _StreamCache,
     suggest_sleeve_sizes,
 )
 

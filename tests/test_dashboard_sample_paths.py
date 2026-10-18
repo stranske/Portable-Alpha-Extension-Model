@@ -20,9 +20,9 @@ from pa_core.schema import load_scenario
 from tests.test_portfolio_builder_page import (
     FakeStreamlit,
     _Asset,
+    _load_module,
     _patch_module_global,
     _Scenario,
-    _load_module,
 )
 
 

@@ -5,8 +5,8 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import yaml
 import pytest
+import yaml
 
 from pa_core.cli import main
 

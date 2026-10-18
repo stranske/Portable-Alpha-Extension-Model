@@ -505,6 +505,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
     from test_dashboard_comparison_llm import FakeStreamlit
 
     import dashboard.components.comparison_llm as panel
+    import pa_core.llm.provider as provider
 
     module = importlib.import_module("pa_core.llm.compare_runs")
     fake = FakeStreamlit(button_value=True)
@@ -521,11 +522,33 @@ def test_dashboard_question_changes_actual_provider_prompt(
     monkeypatch.setattr(module, "langsmith_tracing_context", lambda **kwargs: nullcontext())
     monkeypatch.setattr(module, "record_fleet_event", lambda *args, **kwargs: None)
     captured = []
-    monkeypatch.setattr(
-        module,
-        "_invoke_comparison_llm",
-        lambda prompt, **kwargs: captured.append(prompt) or "Provider comparison",
-    )
+
+    class FakeProvider:
+        def invoke(self, messages):
+            assert len(messages) == 1
+            assert messages[0].type == "system"
+            captured.append(messages[0].content)
+            return types.SimpleNamespace(content="Provider comparison")
+
+    class FakeChatPromptTemplate:
+        @staticmethod
+        def from_messages(messages):
+            assert messages == [("system", "{prompt}")]
+            return FakeChatPromptTemplate()
+
+        def __or__(self, client):
+            class Chain:
+                def invoke(self, payload):
+                    return client.invoke(
+                        [types.SimpleNamespace(type="system", content=payload["prompt"])]
+                    )
+
+            return Chain()
+
+    fake_prompts = types.ModuleType("langchain_core.prompts")
+    fake_prompts.ChatPromptTemplate = FakeChatPromptTemplate
+    monkeypatch.setitem(sys.modules, "langchain_core.prompts", fake_prompts)
+    monkeypatch.setattr(provider, "create_llm", lambda config: FakeProvider())
     manifest = _question_comparison_input(tmp_path)
     summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     questions = ["Explain tracking error changes", "Explain downside risk changes"]
@@ -540,6 +563,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
         payloads.append(fake.session_state["comparison_payload::questions"])
 
     assert len(captured) == 2
+    assert [payload.status for payload in payloads] == ["success", "success"]
     assert [payload.questions for payload in payloads] == questions
     assert [payload.prompt for payload in payloads] == captured
     prompt_data = []
