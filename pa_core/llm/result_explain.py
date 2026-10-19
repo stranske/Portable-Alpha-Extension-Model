@@ -20,7 +20,7 @@ from pa_core.llm.langsmith_fleet import (
 )
 from pa_core.llm.prompts import build_result_explanation_prompt
 from pa_core.llm.provider import LLMProviderConfig, create_llm
-from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
+from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_reference
 
 logger = logging.getLogger(__name__)
 
@@ -369,6 +369,7 @@ def explain_results_details(
     api_key = config.credentials.get("api_key", "")
     request_id = uuid4().hex
     trace_url: str | None = None
+    trace_id: str | None = None
     started = time.perf_counter()
     status = "success"
     error_category: str | None = None
@@ -382,6 +383,7 @@ def explain_results_details(
         use_tracing = _is_tracing_enabled(tracing_enabled)
         tracing_cm = (
             langsmith_tracing_context(
+                name="portable-alpha-result-explanation",
                 project_name="portable-alpha-explain-results",
                 tags=["explain_results"],
                 metadata={
@@ -393,12 +395,12 @@ def explain_results_details(
             if use_tracing
             else nullcontext()
         )
-        with tracing_cm:
+        with tracing_cm as run:
             response = llm.invoke(prompt)
         text = _extract_response_text(response)
         output_hash = hash_reference(text)
         if use_tracing:
-            trace_url = resolve_trace_url(request_id)
+            trace_id, trace_url = resolve_trace_reference(run)
             payload["trace_url"] = trace_url
     except Exception as exc:  # pragma: no cover - behavior validated by tests
         safe_error = _sanitize_error_message(exc, secrets=[api_key])
@@ -419,7 +421,7 @@ def explain_results_details(
                     run_id=str(_manifest_highlights(manifest).get("run_name") or request_id),
                     provider=config.provider_name,
                     model=config.model_name,
-                    trace_id=request_id if trace_url else None,
+                    trace_id=trace_id,
                     trace_url=trace_url,
                     latency_ms=int((time.perf_counter() - started) * 1000),
                     status=status if os.getenv("LANGSMITH_API_KEY") else "no_secret",

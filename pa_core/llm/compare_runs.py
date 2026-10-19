@@ -29,7 +29,7 @@ from pa_core.llm.langsmith_fleet import (
 from pa_core.llm.prompts import build_comparison_prompt
 from pa_core.llm.provider import LLMProviderConfig
 from pa_core.llm.result_explain import _sanitize_error_message
-from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_url
+from pa_core.llm.tracing import langsmith_tracing_context, resolve_trace_reference
 
 logger = logging.getLogger(__name__)
 
@@ -426,12 +426,11 @@ def compare_runs(
         provider_config.provider_name if provider_config is not None else provider_name or "openai"
     )
     with langsmith_tracing_context(
+        name="portable-alpha-run-comparison",
         project_name="portable-alpha-results-compare",
         tags=("results", "comparison"),
         metadata={"provider": trace_provider},
-    ):
-        if os.getenv("LANGSMITH_API_KEY"):
-            trace_id = uuid4().hex
+    ) as run:
         try:
             llm_text = _invoke_comparison_llm(
                 prompt,
@@ -460,8 +459,7 @@ def compare_runs(
             # Tracebacks include unsanitized chained causes and must never reach this log.
             logger.warning("LLM comparison fell back (%s): %s", error_category, safe_error)
 
-    if trace_id:
-        trace_url = resolve_trace_url(trace_id)
+    trace_id, trace_url = resolve_trace_reference(run)
 
     payload = CompareRunsPayload(
         config_diff=config_diff,
