@@ -202,6 +202,176 @@ def test_render_explain_results_panel_reports_missing_llm_extra(monkeypatch) -> 
     )
 
 
+def test_explain_results_missing_extra_is_not_cached_and_retries(monkeypatch) -> None:
+    import pa_core.llm.result_explain as result_explain
+
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(explain_module, "st", fake_st)
+    monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        explain_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: SimpleNamespace(
+            provider_name="openai",
+            model_name="gpt-4o-mini",
+            credentials={"api_key": "test-key"},
+        ),
+    )
+    monkeypatch.setattr(result_explain, "_is_tracing_enabled", lambda enabled: False)
+    monkeypatch.setattr(result_explain, "record_fleet_event", lambda *args, **kwargs: None)
+
+    attempts = 0
+
+    def fake_create_llm(config):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise ModuleNotFoundError("langchain_openai")
+        return SimpleNamespace(
+            invoke=lambda prompt: SimpleNamespace(content="Recovered explanation")
+        )
+
+    monkeypatch.setattr(result_explain, "create_llm", fake_create_llm)
+    kwargs = {
+        "summary_df": pd.DataFrame({"monthly_TE": [0.01]}),
+        "manifest": {"seed": 1},
+        "xlsx_path": "/tmp/Outputs.xlsx",
+    }
+
+    explain_module.render_explain_results_panel(**kwargs)
+
+    assert attempts == 1
+    assert fake_st.session_state[explain_module._CACHE_KEY] == {}
+    assert fake_st.downloads == []
+    assert any(
+        kind == "error" and "install .[llm]" in text.lower() for kind, text in fake_st.messages
+    )
+
+    explain_module.render_explain_results_panel(**kwargs)
+
+    assert attempts == 2
+    assert fake_st.downloads
+    assert any(
+        kind == "markdown" and "Recovered explanation" in text for kind, text in fake_st.messages
+    )
+
+
+def test_explain_results_empty_error_is_not_cached_and_retries(monkeypatch) -> None:
+    import pa_core.llm.result_explain as result_explain
+
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(explain_module, "st", fake_st)
+    monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        explain_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: SimpleNamespace(
+            provider_name="openai",
+            model_name="gpt-4o-mini",
+            credentials={"api_key": "test-key"},
+        ),
+    )
+    monkeypatch.setattr(result_explain, "_is_tracing_enabled", lambda enabled: False)
+    monkeypatch.setattr(result_explain, "record_fleet_event", lambda *args, **kwargs: None)
+
+    attempts = 0
+
+    def fake_create_llm(config):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise RuntimeError()
+        return SimpleNamespace(
+            invoke=lambda prompt: SimpleNamespace(content="Recovered empty-error explanation")
+        )
+
+    monkeypatch.setattr(result_explain, "create_llm", fake_create_llm)
+    kwargs = {
+        "summary_df": pd.DataFrame({"monthly_TE": [0.01]}),
+        "manifest": {"seed": 1},
+        "xlsx_path": "/tmp/Outputs.xlsx",
+    }
+
+    explain_module.render_explain_results_panel(**kwargs)
+
+    assert attempts == 1
+    assert fake_st.session_state[explain_module._CACHE_KEY] == {}
+    assert fake_st.downloads == []
+    assert any(
+        kind == "error" and text == "Failed to generate explanation."
+        for kind, text in fake_st.messages
+    )
+
+    explain_module.render_explain_results_panel(**kwargs)
+
+    assert attempts == 2
+    assert fake_st.downloads
+    assert any(
+        kind == "markdown" and "Recovered empty-error explanation" in text
+        for kind, text in fake_st.messages
+    )
+
+
+def test_explain_results_evicts_legacy_error_cache_and_retries(monkeypatch) -> None:
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(explain_module, "st", fake_st)
+    monkeypatch.setattr(explain_module, "default_api_key", lambda provider: "test-key")
+    monkeypatch.setattr(explain_module, "resolve_api_key_input", lambda raw: raw)
+    monkeypatch.setattr(
+        explain_module,
+        "resolve_llm_provider_config",
+        lambda **kwargs: SimpleNamespace(provider_name="openai", model_name="gpt-4o-mini"),
+    )
+
+    calls = 0
+
+    def fake_explain(*args: Any, **kwargs: Any):
+        nonlocal calls
+        calls += 1
+        return "Recovered legacy-cache explanation", None, {"status": "success"}
+
+    monkeypatch.setattr(explain_module, "explain_results_details", fake_explain)
+    summary_df = pd.DataFrame({"monthly_TE": [0.01]})
+    manifest = {"seed": 1}
+    questions = explain_module.DEFAULT_QUESTIONS
+    payload_fingerprint = explain_module._payload_fingerprint(summary_df, manifest)
+    cache_key = explain_module._cache_key(
+        xlsx_path="/tmp/Outputs.xlsx",
+        manifest=manifest,
+        provider="openai",
+        model="",
+        questions=questions,
+        payload_fingerprint=payload_fingerprint,
+    )
+    fake_st.session_state[explain_module._CACHE_KEY] = {
+        cache_key: {
+            "text": "Legacy error output",
+            "payload_fingerprint": payload_fingerprint,
+            "trace_url": None,
+            "payload": {"error": ""},
+            "created_at": "2026-10-18T00:00:00+00:00",
+            "inputs_summary": {},
+        }
+    }
+
+    explain_module.render_explain_results_panel(
+        summary_df=summary_df,
+        manifest=manifest,
+        xlsx_path="/tmp/Outputs.xlsx",
+    )
+
+    assert calls == 1
+    assert fake_st.downloads
+    assert not any(
+        kind == "markdown" and text == "Legacy error output" for kind, text in fake_st.messages
+    )
+    cached = fake_st.session_state[explain_module._CACHE_KEY][cache_key]
+    assert cached["text"] == "Recovered legacy-cache explanation"
+    assert cached["payload"] == {"status": "success"}
+
+
 @pytest.mark.parametrize("destination", ["anthropic", "azure_openai"])
 def test_provider_defaults_switches_and_secret_free_exports(
     monkeypatch, socket_connect_guard, destination

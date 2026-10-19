@@ -397,3 +397,51 @@ def test_comparison_fallback_keeps_display_downloads_and_logs_secret_free(monkey
     assert all(marker not in item.data for item in fake_st.downloads)
     assert marker not in caplog.text
     assert fake_st.session_state["comparison_payload::redaction-2363"].status == "fallback"
+
+
+def test_comparison_missing_extra_labels_fallback_and_keeps_offline_output(monkeypatch) -> None:
+    fake_st = FakeStreamlit(button_value=True)
+    monkeypatch.setattr(comparison_module, "st", fake_st)
+    monkeypatch.setattr(comparison_module, "load_prior_manifest", lambda _: ({}, None))
+    monkeypatch.setattr(comparison_module, "resolve_llm_provider_config", lambda **kwargs: object())
+    monkeypatch.setattr(
+        comparison_module,
+        "compare_runs",
+        lambda **kwargs: (
+            "Offline comparison remains available.",
+            None,
+            comparison_module.CompareRunsPayload(
+                config_diff="- seed: 1 -> 2",
+                metric_catalog_a={},
+                metric_catalog_b={},
+                prompt="prompt",
+                questions="questions",
+                prior_manifest_path="prior.json",
+                prior_summary_path="prior.xlsx",
+                status="fallback",
+                error_category="ModuleNotFoundError",
+            ),
+        ),
+    )
+
+    comparison_module.render_comparison_llm_panel(
+        summary_df=pd.DataFrame({"monthly_TE": [0.02]}),
+        manifest_data={"previous_run": "prior.json"},
+        run_key="missing-extra",
+    )
+
+    assert any(
+        kind == "markdown" and "Offline comparison remains available" in text
+        for kind, text in fake_st.messages
+    )
+    assert any(
+        kind == "caption" and "fallback (ModuleNotFoundError)" in text
+        for kind, text in fake_st.messages
+    )
+    assert any(
+        kind == "info" and "install .[llm]" in text.lower() for kind, text in fake_st.messages
+    )
+    assert len(fake_st.downloads) == 2
+    json_download = next(item for item in fake_st.downloads if item.mime == "application/json")
+    assert '"status": "fallback"' in json_download.data
+    assert '"error_category": "ModuleNotFoundError"' in json_download.data

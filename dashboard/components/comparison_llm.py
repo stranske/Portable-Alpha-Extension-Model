@@ -73,6 +73,8 @@ def _payload_to_json_dict(
         "questions": payload.questions,
         "prior_manifest_path": payload.prior_manifest_path,
         "prior_summary_path": payload.prior_summary_path,
+        "status": payload.status,
+        "error_category": payload.error_category,
     }
 
 
@@ -87,6 +89,14 @@ def _payload_to_txt(payload: CompareRunsPayload, result: ComparisonLLMResult) ->
     ]
     if result.trace_url:
         sections.extend(["", f"Trace URL: {result.trace_url}"])
+    if payload.status != "success":
+        sections.extend(
+            [
+                "",
+                f"Status: {payload.status}",
+                f"Error category: {payload.error_category or 'unknown'}",
+            ]
+        )
     return "\n".join(sections)
 
 
@@ -226,11 +236,6 @@ def render_comparison_llm_panel(
     if cached is None:
         st.info(_DEFAULT_TEXT)
         return
-    st.markdown(cached.text)
-    if cached.trace_url:
-        st.caption(f"Trace URL: {cached.trace_url}")
-    st.caption(f"Generated: {cached.created_at}")
-
     if payload is None:
         payload = CompareRunsPayload(
             config_diff=cached.config_diff,
@@ -241,6 +246,15 @@ def render_comparison_llm_panel(
             prior_manifest_path=None,
             prior_summary_path=None,
         )
+
+    st.markdown(cached.text)
+    if payload.status != "success":
+        st.caption(f"LLM fallback: {payload.status} ({payload.error_category or 'unknown'}).")
+        if payload.error_category in {"ModuleNotFoundError", "missing_extra"}:
+            st.info("LLM features unavailable. Install .[llm] to enable LLM Comparison.")
+    if cached.trace_url:
+        st.caption(f"Trace URL: {cached.trace_url}")
+    st.caption(f"Generated: {cached.created_at}")
 
     stem = Path(str(run_key).split("::")[0]).stem if run_key else "comparison"
     txt_body = _payload_to_txt(payload, cached)

@@ -329,6 +329,8 @@ def explain_results_details(
         "analysis_output": analysis_output,
         "metric_catalog": metric_catalog,
         "trace_url": None,
+        "status": "success",
+        "error_category": None,
     }
 
     prompt_input = {
@@ -402,6 +404,10 @@ def explain_results_details(
         safe_error = _sanitize_error_message(exc, secrets=[api_key])
         text = f"Failed to generate explanation: {safe_error}"
         payload["error"] = safe_error
+        payload["status"] = "error"
+        payload["error_category"] = (
+            "missing_extra" if isinstance(exc, ModuleNotFoundError) else type(exc).__name__
+        )
         status = "error"
         error_category = type(exc).__name__
         trace_url = None
