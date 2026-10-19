@@ -130,5 +130,13 @@ def test_emit_coverage_report():
         "it makes no repository-wide coverage or universal parameter-influence claim.",
     ]
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_PATH.write_text("\n".join(lines) + "\n")
+    expected = "\n".join(lines) + "\n"
+    REPORT_PATH.write_text(expected)
+    emitted = REPORT_PATH.read_text()
+    assert emitted == expected
+    assert (
+        "| `internal_pa_financing_mean_month` | yes | yes | enforced directional scenario |"
+        in emitted
+    )
+    assert "| `active_share` | yes | not observed | unproven / report-only |" in emitted
     assert manifest.read_keys
