@@ -549,3 +549,113 @@ class TestNoSecretsLeaked:
         assert key not in captured.out
         assert key not in captured.err
         assert not _SECRET_PATTERN.search(captured.out)
+
+
+# Source #2370: offline settings-to-factory contracts. These execute real SDK
+# constructors only; any socket or HTTP attempt is a test failure.
+@pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+def test_audit_provider_options_reach_real_offline_constructor(monkeypatch, provider):
+    import socket
+
+    import httpx
+
+    from dashboard.components import llm_settings
+    from pa_core.llm.provider import create_llm
+
+    attempted = []
+
+    def deny_network(*args, **kwargs):
+        attempted.append("network")
+        raise AssertionError("offline constructor audit must not contact a provider")
+
+    monkeypatch.setattr(socket, "getaddrinfo", deny_network)
+    monkeypatch.setattr(socket.socket, "connect", deny_network)
+    monkeypatch.setattr(httpx.Client, "send", deny_network)
+    monkeypatch.setattr(httpx.AsyncClient, "send", deny_network)
+    monkeypatch.setattr(llm_settings, "read_secret", lambda name: None)
+    with mock.patch.dict(os.environ, {}, clear=True):
+        config = llm_settings.resolve_llm_provider_config(
+            provider=provider,
+            model="audit-model",
+            api_key="audit-explicit-provider-key",
+            base_url="https://audit.example.invalid",
+            api_version="2024-10-21",
+            org="audit-organization",
+        )
+        if provider == "anthropic":
+            assert "organization" not in config.client_kwargs
+        client = create_llm(config)
+    assert (client.model if provider == "anthropic" else client.model_name) == "audit-model"
+    assert config.credentials["api_key"] == "audit-explicit-provider-key"
+    if provider == "anthropic":
+        assert config.client_kwargs == {"base_url": "https://audit.example.invalid"}
+        assert client.anthropic_api_key.get_secret_value() == "audit-explicit-provider-key"
+        assert client.anthropic_api_url == "https://audit.example.invalid"
+        assert "organization" not in client.model_kwargs
+    else:
+        assert config.client_kwargs["organization"] == "audit-organization"
+        assert client.openai_api_key.get_secret_value() == "audit-explicit-provider-key"
+        assert client.openai_organization == "audit-organization"
+        if provider == "azure_openai":
+            assert "base_url" not in config.client_kwargs
+            assert client.azure_endpoint == "https://audit.example.invalid"
+            assert client.openai_api_version == "2024-10-21"
+        else:
+            assert client.openai_api_base == "https://audit.example.invalid"
+    assert attempted == []
+
+
+@pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
+def test_audit_tracing_only_key_never_authorizes_provider(monkeypatch, provider):
+    from dashboard.components import llm_settings
+
+    secrets = {"LANGSMITH_API_KEY": "audit-tracing-only-key"}
+    monkeypatch.setattr(llm_settings, "read_secret", secrets.get)
+    with pytest.raises(ValueError, match="No API key found") as error:
+        llm_settings.resolve_llm_provider_config(provider=provider)
+    assert "audit-tracing-only-key" not in str(error.value)
+
+
+def test_audit_resolver_switch_has_no_sticky_provider_key(monkeypatch):
+    from dashboard.components import llm_settings
+
+    secrets = {
+        "OPENAI_API_KEY": "audit-openai-only",
+        "CLAUDE_API_STRANSKE": "audit-anthropic-only",
+        "AZURE_OPENAI_API_KEY": "audit-not-an-automatic-azure-default",
+        "LANGSMITH_API_KEY": "audit-tracing-only",
+    }
+    monkeypatch.setattr(llm_settings, "read_secret", secrets.get)
+    for provider in ("openai", "anthropic", "openai"):
+        config = llm_settings.resolve_llm_provider_config(provider=provider)
+        assert (
+            config.credentials["api_key"]
+            == secrets["OPENAI_API_KEY" if provider == "openai" else "CLAUDE_API_STRANSKE"]
+        )
+    # This dashboard intentionally requires Azure's explicit key/shared override.
+    with pytest.raises(ValueError, match="No API key found"):
+        llm_settings.resolve_llm_provider_config(provider="azure_openai")
+    secrets["PA_STREAMLIT_API_KEY"] = "audit-explicit-shared-override"
+    assert llm_settings.default_api_key("anthropic") == "audit-explicit-shared-override"
+
+
+def test_audit_dashboard_resolver_entrypoint_inventory_is_complete():
+    import ast
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    observed = set()
+    for path in (root / "dashboard").rglob("*.py"):
+        tree = ast.parse(path.read_text())
+        if any(
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "resolve_llm_provider_config"
+            for node in ast.walk(tree)
+        ):
+            observed.add(path.relative_to(root).as_posix())
+    assert observed == {
+        "dashboard/components/explain_results.py",
+        "dashboard/components/comparison_llm.py",
+        "dashboard/pages/3_Scenario_Wizard.py",
+    }, "Update the provider settings audit when a dashboard resolver caller changes"
