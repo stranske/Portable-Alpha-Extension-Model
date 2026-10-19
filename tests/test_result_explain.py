@@ -775,3 +775,18 @@ def test_comparison_and_explanation_share_bearer_redaction():
     assert comparison._sanitize_error_message(error, secrets=["explicit-marker"]) == expected
     assert "synthetic" not in expected and "explicit-marker" not in expected
     assert result_explain._REDACTION_TOKEN in expected
+
+
+@pytest.mark.parametrize("phase", ["enter", "exit"])
+def test_explanation_survives_trace_lifecycle_failure(monkeypatch, fake_langsmith_run, phase):
+    fake_langsmith_run.fail_on = phase
+    llm = _StaticLLM("MODEL_RESPONSE")
+    monkeypatch.setattr(result_explain, "create_llm", lambda config: llm)
+    text, url, payload = result_explain.explain_results_details(
+        _toy_df(), llm_config=_config(), tracing_enabled=True
+    )
+    assert len(llm.prompts) == 1
+    assert text.startswith("MODEL_RESPONSE")
+    assert "error" not in payload
+    if phase == "enter":
+        assert url is payload["trace_url"] is None

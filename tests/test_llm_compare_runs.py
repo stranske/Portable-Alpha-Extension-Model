@@ -270,7 +270,11 @@ def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
     assert payload.prior_manifest_path == str(prior_manifest_path)
 
 
-def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path, fake_langsmith_run):
+@pytest.mark.parametrize("trace_failure", [None, "enter", "exit"])
+def test_compare_runs_prefers_llm_text_when_available(
+    monkeypatch, tmp_path, fake_langsmith_run, trace_failure
+):
+    fake_langsmith_run.fail_on = trace_failure
     current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     prior_output = tmp_path / "prior.xlsx"
     pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
@@ -285,7 +289,8 @@ def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path, fak
     monkeypatch.setattr("pa_core.llm.compare_runs.record_fleet_event", events.append)
 
     def invoke(*args, **kwargs):
-        assert fake_langsmith_run.active is fake_langsmith_run.run
+        expected = None if trace_failure == "enter" else fake_langsmith_run.run
+        assert fake_langsmith_run.active is expected
         return "LLM generated run comparison explanation."
 
     monkeypatch.setattr("pa_core.llm.compare_runs._invoke_comparison_llm", invoke)
@@ -300,8 +305,8 @@ def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path, fak
     )
 
     assert text == "LLM generated run comparison explanation."
-    assert trace_url == fake_langsmith_run.run.url
-    assert events[0].trace_id == fake_langsmith_run.run.id
+    assert trace_url == (None if trace_failure == "enter" else fake_langsmith_run.run.url)
+    assert events[0].trace_id == (None if trace_failure == "enter" else fake_langsmith_run.run.id)
     assert events[0].trace_url == trace_url
     assert fake_langsmith_run.calls[0]["name"] == "portable-alpha-run-comparison"
     assert fake_langsmith_run.active is None

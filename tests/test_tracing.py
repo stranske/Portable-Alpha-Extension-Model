@@ -150,3 +150,12 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
             indent=2,
         )
     )
+
+
+def test_telemetry_exit_failure_preserves_original_operation_error(fake_langsmith_run):
+    from pa_core.llm.tracing import langsmith_tracing_context
+
+    fake_langsmith_run.fail_on = "exit"
+    with pytest.raises(ValueError, match="original operation"):
+        with langsmith_tracing_context(name="synthetic"):
+            raise ValueError("original operation")

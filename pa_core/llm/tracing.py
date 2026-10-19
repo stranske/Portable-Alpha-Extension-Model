@@ -43,6 +43,31 @@ def maybe_enable_langsmith_tracing() -> bool:
 
 
 @contextmanager
+def _optional_trace_lifecycle(trace_cm: Any) -> Iterator[Any]:
+    """Keep optional telemetry failures separate from operation failures."""
+    try:
+        run = trace_cm.__enter__()
+    except Exception:
+        logger.warning("Unable to enter optional trace context", exc_info=False)
+        yield None
+        return
+    try:
+        yield run
+    except BaseException as operation_error:
+        try:
+            trace_cm.__exit__(type(operation_error), operation_error, operation_error.__traceback__)
+        except Exception:
+            logger.warning("Unable to close optional trace context", exc_info=False)
+        # Telemetry must neither replace nor suppress the original operation error.
+        raise
+    else:
+        try:
+            trace_cm.__exit__(None, None, None)
+        except Exception:
+            logger.warning("Unable to close optional trace context", exc_info=False)
+
+
+@contextmanager
 def langsmith_tracing_context(
     *,
     name: str | None = None,
@@ -87,10 +112,10 @@ def langsmith_tracing_context(
                 tags=list(tags or []),
             )
         except Exception:
-            logger.warning("Failed to start LangSmith trace context", exc_info=True)
+            logger.warning("Failed to start LangSmith trace context", exc_info=False)
             yield None
             return
-        with trace_cm as run:
+        with _optional_trace_lifecycle(trace_cm) as run:
             yield run
         return
 
@@ -103,7 +128,7 @@ def langsmith_tracing_context(
     if metadata:
         context_kwargs["metadata"] = dict(metadata)
 
-    with run_helpers.tracing_context(**context_kwargs):
+    with _optional_trace_lifecycle(run_helpers.tracing_context(**context_kwargs)):
         yield None
 
 
