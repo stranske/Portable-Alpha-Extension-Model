@@ -253,78 +253,49 @@ def test_create_llm_receives_dashboard_config_and_api_key_not_exposed(monkeypatc
     assert "SECRET123" not in dumped
 
 
-def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch) -> None:
-    trace_calls: dict[str, int] = {}
-    resolve_calls: list[str | None] = []
+def test_langsmith_tracing_enabled_returns_trace_url(monkeypatch, fake_langsmith_run) -> None:
+    events = []
 
-    monkeypatch.setattr(
-        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
-    )
-    monkeypatch.setattr(result_explain, "create_llm", lambda config: _StaticLLM("ok"))
-    monkeypatch.setattr(
-        result_explain,
-        "langsmith_tracing_context",
-        lambda **_kwargs: _FakeContext(trace_calls),
-    )
+    class CorrelatedLLM:
+        def invoke(self, prompt):
+            assert fake_langsmith_run.active is fake_langsmith_run.run
+            return SimpleNamespace(content="TRACED_RESPONSE")
 
-    def _fake_resolve(trace_id: str | None) -> str:
-        resolve_calls.append(trace_id)
-        return "https://smith.langchain.com/r/mock-trace"
-
-    monkeypatch.setattr(result_explain, "resolve_trace_url", _fake_resolve)
-
-    _text, trace_url, payload = result_explain.explain_results_details(
-        _toy_df(),
-        llm_config=_config(),
-        tracing_enabled=True,
-    )
-
-    assert trace_calls["entered"] == 1
-    assert len(resolve_calls) == 1
-    assert isinstance(resolve_calls[0], str) and resolve_calls[0]
-    assert trace_url == "https://smith.langchain.com/r/mock-trace"
-    assert payload["trace_url"] == "https://smith.langchain.com/r/mock-trace"
-
-
-def test_langsmith_tracing_wraps_llm_invoke(monkeypatch) -> None:
-    trace_state = {"inside": False}
-
-    class _StatefulContext:
-        def __enter__(self):
-            trace_state["inside"] = True
-            return self
-
-        def __exit__(self, exc_type, exc, tb) -> bool:
-            trace_state["inside"] = False
-            return False
-
-    monkeypatch.setattr(
-        result_explain, "build_result_explanation_prompt", lambda *_a, **_k: "prompt"
-    )
-    monkeypatch.setattr(
-        result_explain,
-        "create_llm",
-        lambda _config: _ContextAwareLLM(trace_state, text="TRACED_RESPONSE"),
-    )
-    monkeypatch.setattr(
-        result_explain,
-        "langsmith_tracing_context",
-        lambda **_kwargs: _StatefulContext(),
-    )
-    monkeypatch.setattr(
-        result_explain,
-        "resolve_trace_url",
-        lambda _trace_id: "https://smith.langchain.com/r/context-verified",
-    )
-
-    text, trace_url, _payload = result_explain.explain_results_details(
+    monkeypatch.setattr(result_explain, "create_llm", lambda config: CorrelatedLLM())
+    monkeypatch.setattr(result_explain, "record_fleet_event", events.append)
+    text, trace_url, payload = result_explain.explain_results_details(
         _toy_df(), llm_config=_config(), tracing_enabled=True
     )
-
     assert text.startswith("TRACED_RESPONSE")
-    assert result_explain.EXPLAIN_RESULTS_DISCLAIMER in text
-    assert trace_url == "https://smith.langchain.com/r/context-verified"
-    assert trace_state["inside"] is False
+    assert trace_url == payload["trace_url"] == fake_langsmith_run.run.url
+    assert events[0].trace_id == fake_langsmith_run.run.id
+    assert events[0].trace_url == trace_url
+    assert fake_langsmith_run.active is None
+    assert fake_langsmith_run.calls[0]["name"] == "portable-alpha-result-explanation"
+    assert fake_langsmith_run.calls[0]["tags"] == ["explain_results"]
+    assert fake_langsmith_run.calls[0]["metadata"]["request_id"] != events[0].trace_id
+
+
+@pytest.mark.parametrize("mode", ["missing-sdk", "disabled", "no-key"])
+def test_explanation_does_not_invent_a_trace(monkeypatch, fake_langsmith_run, mode) -> None:
+    import sys
+
+    if mode == "missing-sdk":
+        monkeypatch.setitem(sys.modules, "langsmith", None)
+    elif mode == "disabled":
+        monkeypatch.setenv("LANGSMITH_TRACING", "false")
+    else:
+        monkeypatch.delenv("LANGSMITH_API_KEY")
+    events = []
+    monkeypatch.setattr(result_explain, "create_llm", lambda config: _StaticLLM("ok"))
+    monkeypatch.setattr(result_explain, "record_fleet_event", events.append)
+    text, url, payload = result_explain.explain_results_details(
+        _toy_df(), llm_config=_config(), tracing_enabled=True
+    )
+    assert text.startswith("ok")
+    assert url is payload["trace_url"] is events[0].trace_url is None
+    assert events[0].trace_id is None
+    assert fake_langsmith_run.calls == []
 
 
 def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
@@ -339,12 +310,12 @@ def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
         trace_calls["context"] += 1
         return _FakeContext({})
 
-    def _fake_resolve(trace_id: str | None) -> str:
+    def _fake_resolve(run):
         trace_calls["resolve"] += 1
-        return "https://smith.langchain.com/r/should-not-be-called"
+        raise AssertionError("disabled tracing must not resolve a reference")
 
     monkeypatch.setattr(result_explain, "langsmith_tracing_context", _fake_context)
-    monkeypatch.setattr(result_explain, "resolve_trace_url", _fake_resolve)
+    monkeypatch.setattr(result_explain, "resolve_trace_reference", _fake_resolve)
 
     _text, trace_url, payload = result_explain.explain_results_details(
         _toy_df(),

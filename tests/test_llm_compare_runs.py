@@ -244,7 +244,15 @@ def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
         json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
     )
 
-    monkeypatch.setenv("LANGSMITH_API_KEY", "test-langsmith-key")
+    from contextlib import nullcontext
+
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs.langsmith_tracing_context", lambda **kwargs: nullcontext()
+    )
+    monkeypatch.setattr(
+        "pa_core.llm.compare_runs._invoke_comparison_llm",
+        lambda *a, **k: (_ for _ in ()).throw(RuntimeError("offline fallback")),
+    )
 
     text, trace_url, payload = compare_runs(
         current_summary=current_summary,
@@ -256,12 +264,13 @@ def test_compare_runs_returns_text_trace_and_payload(monkeypatch, tmp_path):
 
     assert isinstance(text, str)
     assert "comparison" in text.lower() or len(text) > 0
-    assert trace_url is not None
+    assert trace_url is None
+    assert payload.status == "fallback"
     assert payload.config_diff
     assert payload.prior_manifest_path == str(prior_manifest_path)
 
 
-def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path):
+def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path, fake_langsmith_run):
     current_summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     prior_output = tmp_path / "prior.xlsx"
     pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
@@ -272,11 +281,14 @@ def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path):
         json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1})
     )
 
-    monkeypatch.setenv("LANGSMITH_API_KEY", "test-langsmith-key")
-    monkeypatch.setattr(
-        "pa_core.llm.compare_runs._invoke_comparison_llm",
-        lambda *args, **kwargs: "LLM generated run comparison explanation.",
-    )
+    events = []
+    monkeypatch.setattr("pa_core.llm.compare_runs.record_fleet_event", events.append)
+
+    def invoke(*args, **kwargs):
+        assert fake_langsmith_run.active is fake_langsmith_run.run
+        return "LLM generated run comparison explanation."
+
+    monkeypatch.setattr("pa_core.llm.compare_runs._invoke_comparison_llm", invoke)
 
     text, trace_url, payload = compare_runs(
         current_summary=current_summary,
@@ -288,8 +300,11 @@ def test_compare_runs_prefers_llm_text_when_available(monkeypatch, tmp_path):
     )
 
     assert text == "LLM generated run comparison explanation."
-    assert trace_url is not None
-    assert trace_url.startswith("https://smith.langchain.com/r/")
+    assert trace_url == fake_langsmith_run.run.url
+    assert events[0].trace_id == fake_langsmith_run.run.id
+    assert events[0].trace_url == trace_url
+    assert fake_langsmith_run.calls[0]["name"] == "portable-alpha-run-comparison"
+    assert fake_langsmith_run.active is None
     assert payload.prior_manifest_path == str(prior_manifest_path)
 
 

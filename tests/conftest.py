@@ -144,3 +144,34 @@ def _restore_viz_theme_globals():
     finally:
         for name, value in saved.items():
             setattr(theme, name, value)
+
+
+@pytest.fixture
+def fake_langsmith_run(monkeypatch):
+    """Exercise the real tracing helper against an offline created-run SDK double."""
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+
+    run = SimpleNamespace(
+        id="11111111-2222-4333-8444-555555555555",
+        url="https://smith.langchain.com/r/11111111-2222-4333-8444-555555555555",
+    )
+    state = SimpleNamespace(run=run, active=None, calls=[])
+
+    @contextmanager
+    def trace(name, **kwargs):
+        state.calls.append({"name": name, **kwargs})
+        state.active = run
+        try:
+            yield run
+        finally:
+            state.active = None
+
+    monkeypatch.setitem(
+        sys.modules, "langsmith", SimpleNamespace(run_helpers=SimpleNamespace(trace=trace))
+    )
+    monkeypatch.setenv("LANGSMITH_API_KEY", "offline-sdk-double")
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    monkeypatch.delenv("LANGCHAIN_API_KEY", raising=False)
+    monkeypatch.setenv("LANGCHAIN_TRACING_V2", "true")
+    return state

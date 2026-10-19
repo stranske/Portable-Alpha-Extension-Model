@@ -138,3 +138,38 @@ Provider credentials are isolated per selected provider in Explain and Compare. 
 Explicit provider overrides are stored independently of transient widget state, so switching away and back restores each provider's own value without copying it to another provider.
 
 Explain Results binds its session cache to a SHA-256 fingerprint of the summary values and manifest seed, run name, config hash, data-file identities and the CLI provenance fields included in the prompt. Replacing a workbook at the same path invalidates the old narrative when these inputs change; identical inputs reuse it. The displayed explanation and TXT/JSON downloads share the recorded input fingerprint.
+
+### Invocation-bound trace references
+
+Explain and Compare open named SDK `trace(...)` contexts around their actual
+invocations. Results URLs and fleet IDs come from the yielded RunTree's `id`
+and URL accessor. A request UUID is metadata only; it cannot manufacture a link.
+Missing SDK/key, disabled tracing, or a context without a created run yields no
+trace reference. A heuristic provider fallback without a created trace also has
+no link. Existing fleet/payload schemas are unchanged.
+
+The optional LLM extra pins `langsmith==0.10.15`; the core-only local environment
+used for this repair does not install it. The reviewed
+[pinned SDK context contract](https://github.com/langchain-ai/langsmith-sdk/blob/v0.10.15/python/langsmith/run_helpers.py)
+creates a RunTree and makes it the parent of nested traced invocations. SDK-double
+checks prove correlation offline, including the active context during invocation;
+they do not prove hosted trace persistence or link accessibility.
+
+```bash
+python -m pytest tests/test_result_explain.py tests/test_llm_compare_runs.py tests/test_tracing.py tests/test_llm_tracing_noop.py tests/test_langsmith_fleet.py -q
+```
+
+Live link acceptance remains **UNKNOWN** until a separately authorized synthetic
+invocation is retrieved with the same identity. With the reviewed optional SDK
+and authorized tracing credentials already configured, opt in explicitly:
+
+```bash
+PAEM_LIVE_TRACE_ACCEPTANCE=1 PAEM_LIVE_TRACE_EVIDENCE=/absolute/path/trace-live-acceptance.json \
+  python -m pytest tests/test_tracing.py -m live_llm -k authorized_synthetic_trace_live_retrieval -q
+```
+
+This opt-in writes a synthetic trace to LangSmith and makes one authenticated
+retrieval. It invokes no model provider. The receipt records PASS only when the
+retrieved ID equals the ID captured inside that invocation and its fleet/payload
+references match; unavailable SDK/access/persistence produces UNKNOWN, never an
+inferred live PASS. Routine CI excludes `live_llm` tests and requires no credentials.
