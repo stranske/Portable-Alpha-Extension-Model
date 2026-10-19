@@ -568,6 +568,7 @@ def test_audit_provider_saved_override_survives_widget_cleanup(monkeypatch):
     monkeypatch.setattr(explain_module, "st", fake)
     fake.session_state[explain_module._PROVIDER_KEY] = "openai"
     key = f"{explain_module._API_KEY_KEY}::openai"
+    anthropic_key = f"{explain_module._API_KEY_KEY}::anthropic"
     fake.session_state[key] = "synthetic-audit-openai"
 
     def render():
@@ -579,8 +580,15 @@ def test_audit_provider_saved_override_survives_widget_cleanup(monkeypatch):
     del fake.session_state[key]  # Streamlit removes widgets not rendered on a rerun.
     fake.session_state[explain_module._PROVIDER_KEY] = "anthropic"
     render()
-    assert fake.session_state[f"{explain_module._API_KEY_KEY}::anthropic"] == ""
+    assert fake.session_state[anthropic_key] == ""
+    fake.session_state[anthropic_key] = "synthetic-audit-anthropic"
+    render()
+    del fake.session_state[anthropic_key]
     fake.session_state[explain_module._PROVIDER_KEY] = "openai"
     render()
     assert fake.session_state[key] == "synthetic-audit-openai"
+    del fake.session_state[key]
+    fake.session_state[explain_module._PROVIDER_KEY] = "anthropic"
+    render()
+    assert fake.session_state[anthropic_key] == "synthetic-audit-anthropic"
     assert not fake.downloads
