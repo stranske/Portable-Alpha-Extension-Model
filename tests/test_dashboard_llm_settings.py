@@ -555,9 +555,10 @@ class TestNoSecretsLeaked:
 # constructors only; any socket or HTTP attempt is a test failure.
 @pytest.mark.parametrize("provider", ["openai", "anthropic", "azure_openai"])
 def test_audit_provider_options_reach_real_offline_constructor(monkeypatch, provider):
+    pytest.importorskip("langchain_anthropic" if provider == "anthropic" else "langchain_openai")
     import socket
 
-    import httpx
+    httpx = pytest.importorskip("httpx")
 
     from dashboard.components import llm_settings
     from pa_core.llm.provider import create_llm

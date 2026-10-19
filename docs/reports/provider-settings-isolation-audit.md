@@ -142,3 +142,30 @@ mutation: 3 expected refusal failures → exact restore 3 PASS. Black100, Ruff a
 diff checks pass. Installed constructor versions are retained separately in
 `provider-settings-sdk-versions.json`. These are local observed results, not
 current-head hosted CI, review closure, merge or live endpoint acceptance.
+
+
+## Optional-extra and pinned-runtime review recovery
+
+The real-constructor cases now use `pytest.importorskip` for their provider SDK
+and HTTPX. Base/development installations without `.[llm]` skip exactly those
+three matrix rows; resolver, inventory, credential and payload tests still run.
+A controlled missing-provider import run of the complete settings suite passed
+78 and skipped 3. A skip is explicitly not a real-constructor compatibility PASS.
+
+Initial SDK evidence above used older locally installed provider versions and
+is superseded for supported-runtime constructor claims. The final run used a
+clean Anaconda-derived virtual environment without system-site-packages and
+installed the complete repository `requirements.lock`. The retained version
+receipt records `langchain-openai==1.4.1`, `langchain-anthropic==1.5.3`,
+`langchain-core==1.5.3`, `openai==2.48.0`, `anthropic==0.120.0`, and the lock
+file SHA-256. `pip check` reports no broken requirements. The final pinned
+settings/panel/provider-key suite passed all 129, with zero skips, in 21.64s.
+The required unfiltered settings command is also rerun separately on that
+interpreter. This establishes the constructor matrix for the repository pins.
+
+Actual CI job `118258616727` stopped before pytest: the dependency verifier
+reported a newly undeclared direct `httpx` test import. The test now obtains it
+through the explicit optional-extra guard. The exact failing command,
+`python scripts/sync_test_dependencies.py --verify`, passes without changing
+project dependencies, lock files, synced scripts or workflow gates. The clean
+venv is test-only; no shared interpreter or launcher setting was changed.

@@ -1,6 +1,16 @@
 {
-  "langchain-openai": "1.3.2",
-  "langchain-anthropic": "1.4.6",
+  "langchain": "1.3.14",
+  "langchain-core": "1.5.3",
+  "langchain-community": "0.4.2",
+  "langchain-openai": "1.4.1",
+  "langchain-anthropic": "1.5.3",
+  "openai": "2.48.0",
+  "anthropic": "0.120.0",
   "pydantic": "2.13.4",
-  "httpx": "0.28.1"
+  "httpx": "0.28.1",
+  "numpy": "2.5.1",
+  "pandas": "3.0.5",
+  "python": "3.12.2",
+  "environment": "Clean Anaconda-derived venv without system-site-packages, full requirements.lock installed",
+  "requirements_lock_sha256": "87d78228921e99cee6ac0284fa5cbbf26ebcfaca74acb391a3abb093e600a895"
 }
