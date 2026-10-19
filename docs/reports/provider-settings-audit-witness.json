@@ -1,0 +1,17 @@
+{
+  "source_revision": "e1070935532bf1afc2f32ac9853a36fdd8b70c99",
+  "source_file": "dashboard/pages/3_Scenario_Wizard.py",
+  "source_sha256": "5ba0c81b79b74f8128ac57346918fa7bbbc15b58e7fcf202d3e875ecea1cde98",
+  "function": "_build_config_chat_llm_invoke",
+  "line": 311,
+  "scope": "Executed exact AST-extracted construction helper with synthetic session state, real resolver, recording factory; page rendering and model invocation not executed",
+  "providers_observed": [
+    "openai",
+    "anthropic"
+  ],
+  "same_unscoped_override_reused": true,
+  "client_factories_called": 2,
+  "network_or_model_requests": 0,
+  "existing_owner": "stranske/Portable-Alpha-Extension-Model#2365",
+  "production_changes": false
+}
