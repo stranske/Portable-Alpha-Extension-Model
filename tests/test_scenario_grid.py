@@ -151,6 +151,26 @@ def test_extract_plotly_click(monkeypatch) -> None:
     assert module["_extract_plotly_click"]({"selection": {"points": []}}) is None
 
 
+def test_grid_helpers_handle_legacy_and_malformed_cache_state(monkeypatch) -> None:
+    module, fake_st = _load_module(monkeypatch)
+    frame = pd.DataFrame({"value": [1.0]})
+
+    legacy = {"key": "legacy", "grid_df": frame, "y_col": "value", "total_fund": 10.0}
+    fake_st.session_state[module["_GRID_CACHE_KEY"]] = legacy
+    assert module["_get_grid_cache"]("legacy") is legacy
+
+    fake_st.session_state[module["_GRID_CACHE_KEY"]] = {"entries": [], "order": {"bad"}}
+    module["_set_grid_cache"]("repaired", frame, "value", 10.0)
+    repaired = fake_st.session_state[module["_GRID_CACHE_KEY"]]
+    assert repaired["order"] == ["repaired"]
+    assert module["_get_grid_cache"]("repaired")["grid_df"].equals(frame)
+
+    assert (
+        module["_extract_plotly_click"]({"selection": {"points": [{"x": object(), "y": 1}]}})
+        is None
+    )
+
+
 def test_read_csv_from_bytes(monkeypatch) -> None:
     module, _ = _load_module(monkeypatch)
 
