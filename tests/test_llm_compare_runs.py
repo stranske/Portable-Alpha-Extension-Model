@@ -18,6 +18,7 @@ from pa_core.llm.compare_runs import (
     load_prior_summary,
 )
 from pa_core.llm.provider import LLMProviderConfig
+from pa_core.manifest import ManifestWriter
 
 
 def test_load_prior_manifest_reads_previous_run_file(tmp_path):
@@ -103,11 +104,97 @@ def test_format_config_diff_reports_no_differences_when_manifests_match():
         "seed": 7,
         "cli_args": {"capital": 750000, "distribution": "student_t"},
         "wizard_config": {"risk": {"cvar_limit": 0.09}},
+        "config": {"nested": {"theta_extpa": 0.2}},
     }
 
     text = format_config_diff(manifest, manifest)
 
     assert text == "No config differences detected."
+
+
+def test_format_config_diff_compares_manifest_writer_config_snapshots(tmp_path):
+    def write_manifest(name: str, snapshot: str) -> dict[str, object]:
+        config_path = tmp_path / f"{name}.yaml"
+        config_path.write_text(snapshot)
+        manifest_path = tmp_path / f"{name}.json"
+        ManifestWriter(manifest_path).write(
+            config_path=config_path,
+            data_files=[],
+            seed=17,
+            cli_args={"output": f"{name}.xlsx"},
+        )
+        return json.loads(manifest_path.read_text())
+
+    prior = write_manifest("prior", "theta_extpa: 0.2\n")
+    current = write_manifest("current", "theta_extpa: 0.8\n")
+
+    text = format_config_diff(current, prior)
+
+    assert "config.theta_extpa: 0.2 -> 0.8" in text
+
+
+def test_format_config_diff_sorts_nested_config_changes_and_preserves_missing_vs_null():
+    current_manifest = {
+        "config": {
+            "alpha": {"added": None, "shared": 2},
+            "zeta": {"stable": True},
+        }
+    }
+    prior_manifest = {
+        "config": {
+            "alpha": {"removed": None, "shared": 1},
+            "zeta": {"stable": True},
+        }
+    }
+
+    lines = format_config_diff(current_manifest, prior_manifest).splitlines()
+
+    assert lines == [
+        "- config.alpha.added: <missing> -> None",
+        "- config.alpha.removed: None -> <missing>",
+        "- config.alpha.shared: 1 -> 2",
+    ]
+
+
+def test_format_config_diff_preserves_empty_mapping_additions_and_removals():
+    current_manifest = {"config": {"added": {}, "stable": {"value": 1}}}
+    prior_manifest = {"config": {"removed": {}, "stable": {"value": 1}}}
+
+    lines = format_config_diff(current_manifest, prior_manifest).splitlines()
+
+    assert lines == [
+        "- config.added: <missing> -> {}",
+        "- config.removed: {} -> <missing>",
+    ]
+
+
+def test_format_config_diff_keeps_literal_dot_keys_distinct_from_nested_paths():
+    current_manifest = {"config": {"a.b": 3, "a": {"b": 4}}}
+    prior_manifest = {"config": {"a.b": 1, "a": {"b": 2}}}
+
+    lines = format_config_diff(current_manifest, prior_manifest).splitlines()
+
+    assert lines == [
+        "- config.a.b: 2 -> 4",
+        '- config["a.b"]: 1 -> 3',
+    ]
+
+
+def test_format_config_diff_empty_root_reports_only_changed_child_paths():
+    empty = {"config": {}}
+    populated = {"config": {"theta_extpa": 0.8}}
+
+    assert format_config_diff(populated, empty) == "- config.theta_extpa: <missing> -> 0.8"
+    assert format_config_diff(empty, populated) == "- config.theta_extpa: 0.8 -> <missing>"
+
+
+def test_format_config_diff_skips_config_for_legacy_non_mapping_snapshot():
+    current_manifest = {"seed": 7, "cli_args": {"capital": 2}, "config": "unavailable"}
+    prior_manifest = {"seed": 7, "cli_args": {"capital": 1}, "config": {"theta_extpa": 0.2}}
+
+    text = format_config_diff(current_manifest, prior_manifest)
+
+    assert text == "- cli_args.capital: 1 -> 2"
 
 
 def test_format_config_diff_handles_missing_manifest_inputs():
@@ -457,14 +544,26 @@ def test_comparison_fallback_redacts_credentials_and_chained_errors(
     assert all(record.exc_info is None for record in caplog.records)
 
 
-def _question_comparison_input(tmp_path):
+def _question_comparison_input(tmp_path, prior_theta=0.2, current_theta=0.8):
     prior_output = tmp_path / "question-prior.xlsx"
     pd.DataFrame({"monthly_TE": [0.01], "monthly_CVaR": [-0.04]}).to_excel(
         prior_output, sheet_name="Summary", index=False
     )
     prior_manifest = tmp_path / "question-prior.json"
-    prior_manifest.write_text(json.dumps({"cli_args": {"output": str(prior_output)}, "seed": 1}))
-    return {"previous_run": str(prior_manifest), "seed": 2}
+    prior_manifest.write_text(
+        json.dumps(
+            {
+                "cli_args": {"output": str(prior_output)},
+                "seed": 1,
+                "config": {"theta_extpa": prior_theta},
+            }
+        )
+    )
+    return {
+        "previous_run": str(prior_manifest),
+        "seed": 2,
+        "config": {"theta_extpa": current_theta},
+    }
 
 
 @pytest.mark.parametrize("question", ["Why did tracking error rise?", "", " \t\n"])
@@ -496,8 +595,9 @@ def test_comparison_question_reaches_provider_prompt(monkeypatch, tmp_path, ques
     assert '"monthly_TE": 0.03' in captured[0] and '"monthly_TE": 0.01' in captured[0]
 
 
+@pytest.mark.parametrize("prior_theta,current_theta", [(0.2, 0.8), (1.0000001, 1.0000002)])
 def test_dashboard_question_changes_actual_provider_prompt(
-    monkeypatch, tmp_path, socket_connect_guard
+    monkeypatch, tmp_path, socket_connect_guard, prior_theta, current_theta
 ):
     import importlib
     from contextlib import nullcontext
@@ -549,7 +649,8 @@ def test_dashboard_question_changes_actual_provider_prompt(
     fake_prompts.ChatPromptTemplate = FakeChatPromptTemplate
     monkeypatch.setitem(sys.modules, "langchain_core.prompts", fake_prompts)
     monkeypatch.setattr(provider, "create_llm", lambda config: FakeProvider())
-    manifest = _question_comparison_input(tmp_path)
+    manifest = _question_comparison_input(tmp_path, prior_theta, current_theta)
+    expected_diff = f"config.theta_extpa: {prior_theta} -> {current_theta}"
     summary = pd.DataFrame({"monthly_TE": [0.03], "monthly_CVaR": [-0.05]})
     questions = ["Explain tracking error changes", "Explain downside risk changes"]
     payloads = []
@@ -566,6 +667,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
     assert [payload.status for payload in payloads] == ["success", "success"]
     assert [payload.questions for payload in payloads] == questions
     assert [payload.prompt for payload in payloads] == captured
+    assert all(expected_diff in payload.config_diff for payload in payloads)
     prompt_data = []
     for prompt, question in zip(captured, questions, strict=True):
         data, separator, question_block = prompt.partition("\n\nQuestions:\n")
@@ -579,6 +681,7 @@ def test_dashboard_question_changes_actual_provider_prompt(
         assert '"label": "prior"' in prior_data
         assert '"monthly_TE": 0.01' in prior_data
         assert '"monthly_CVaR": -0.04' in prior_data
+        assert expected_diff in prompt
     assert prompt_data[0] == prompt_data[1]
     assert captured[0] != captured[1]
 
@@ -588,6 +691,10 @@ def test_dashboard_question_changes_actual_provider_prompt(
         assert export["questions"] == question
         assert export["metric_catalog_a"] == payload.metric_catalog_a
         assert export["metric_catalog_b"] == payload.metric_catalog_b
+        assert expected_diff in export["config_diff"]
+    txt_exports = [item.data for item in fake.downloads if item.mime == "text/plain"]
+    assert len(txt_exports) == 2
+    assert all(expected_diff in export for export in txt_exports)
     assert socket_connect_guard[0] == []
 
 

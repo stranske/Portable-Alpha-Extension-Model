@@ -53,6 +53,7 @@ _WIZARD_KEYS: tuple[str, ...] = (
     "wizard_config",
     "wizard_inputs",
 )
+_MISSING = object()
 
 
 @dataclass(frozen=True)
@@ -135,6 +136,8 @@ def load_prior_summary(
 
 
 def _format_value(value: Any) -> str:
+    if value is _MISSING:
+        return "<missing>"
     if isinstance(value, float):
         return f"{value:.6g}"
     return str(value)
@@ -203,11 +206,73 @@ def _wizard_diff(
     return lines
 
 
+def _config_snapshot_path_label(path: tuple[str, ...]) -> str:
+    """Render a config path without conflating literal dots and nesting."""
+
+    label = "config"
+    for key in path:
+        if key.isidentifier():
+            label += f".{key}"
+        else:
+            label += f"[{json.dumps(key, ensure_ascii=False)}]"
+    return label
+
+
+def _flatten_config_snapshot(
+    value: Mapping[str, Any],
+    path: tuple[str, ...],
+    out: dict[tuple[str, ...], Any],
+) -> None:
+    """Flatten persisted config mappings while retaining empty mapping leaves."""
+
+    if not value:
+        # The root exists in both manifests; only nested empty mappings are leaves.
+        if path:
+            out[path] = {}
+        return
+    for key in sorted(value, key=str):
+        child = value[key]
+        child_path = (*path, str(key))
+        if isinstance(child, Mapping):
+            _flatten_config_snapshot(child, child_path, out)
+        else:
+            out[child_path] = child
+
+
+def _config_snapshot_diff(
+    current_manifest: Mapping[str, Any],
+    prior_manifest: Mapping[str, Any],
+) -> list[str]:
+    """Compare persisted configuration snapshots without consulting mutable YAML files."""
+
+    current_config = current_manifest.get("config")
+    prior_config = prior_manifest.get("config")
+    if not isinstance(current_config, Mapping) or not isinstance(prior_config, Mapping):
+        return []
+
+    current_flat: dict[tuple[str, ...], Any] = {}
+    prior_flat: dict[tuple[str, ...], Any] = {}
+    _flatten_config_snapshot(current_config, (), current_flat)
+    _flatten_config_snapshot(prior_config, (), prior_flat)
+
+    lines: list[str] = []
+    for path in sorted(set(current_flat) | set(prior_flat)):
+        old = prior_flat.get(path, _MISSING)
+        new = current_flat.get(path, _MISSING)
+        if old != new:
+            # Snapshot floats must round-trip: the compact legacy formatter can
+            # make distinct persisted values appear identical in prompts/exports.
+            old_text = "<missing>" if old is _MISSING else str(old)
+            new_text = "<missing>" if new is _MISSING else str(new)
+            lines.append(f"- {_config_snapshot_path_label(path)}: {old_text} -> {new_text}")
+    return lines
+
+
 def format_config_diff(
     current_manifest: Mapping[str, Any] | None,
     prior_manifest: Mapping[str, Any] | None,
 ) -> str:
-    """Build one human-readable diff block across seed, CLI args, and wizard fields."""
+    """Build one human-readable diff block across persisted run inputs."""
 
     if not isinstance(current_manifest, Mapping) or not isinstance(prior_manifest, Mapping):
         return "No config differences available."
@@ -216,6 +281,7 @@ def format_config_diff(
         _seed_diff(current_manifest, prior_manifest)
         + _cli_args_diff(current_manifest, prior_manifest)
         + _wizard_diff(current_manifest, prior_manifest)
+        + _config_snapshot_diff(current_manifest, prior_manifest)
     )
     if not lines:
         return "No config differences detected."
