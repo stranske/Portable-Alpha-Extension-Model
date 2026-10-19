@@ -31,11 +31,14 @@ LANGSMITH_API_KEY is reserved for independent tracing configuration.
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 from typing import Any
 
 from pa_core.llm.provider import LLMProviderConfig
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Environment variable names
@@ -285,8 +288,10 @@ def resolve_llm_provider_config(
     client_kwargs: dict[str, Any] = {}
     if resolved_base_url and resolved_provider != "azure_openai":
         client_kwargs["base_url"] = resolved_base_url
-    if resolved_org:
+    if resolved_org and resolved_provider in {"openai", "azure_openai"}:
         client_kwargs["organization"] = resolved_org
+    elif resolved_org and resolved_provider == "anthropic":
+        logger.info("Ignoring PA_LLM_ORG for Anthropic because organization is unsupported.")
 
     credentials: dict[str, str] = {"api_key": resolved_key}
     if resolved_provider == "azure_openai":

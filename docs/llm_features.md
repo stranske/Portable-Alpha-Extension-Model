@@ -42,7 +42,7 @@ Use environment variables for shared or repeated runs:
 | `PA_STREAMLIT_API_KEY` | Dashboard-specific provider key. |
 | `OPENAI_API_KEY` | OpenAI fallback key. |
 | `CLAUDE_API_STRANSKE` | Anthropic fallback key. |
-| `PA_LLM_ORG` | Optional organization ID for providers that require one. |
+| `PA_LLM_ORG` | Optional organization ID honored by OpenAI and Azure OpenAI. Anthropic ignores it safely and logs that unsupported setting without its value. |
 | `PA_LLM_BASE_URL` | Azure OpenAI endpoint or custom OpenAI-compatible base URL. |
 | `PA_LLM_API_VERSION` | Azure OpenAI API version. |
 | `AZURE_OPENAI_API_VERSION` | Azure API-version fallback. |

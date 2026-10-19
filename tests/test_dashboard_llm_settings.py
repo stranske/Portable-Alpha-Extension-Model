@@ -428,6 +428,19 @@ class TestResolveLlmProviderConfig:
         assert config.client_kwargs["base_url"] == "https://custom.api.com"
         assert config.client_kwargs["organization"] == "org-123"
 
+    def test_anthropic_ignores_organization_and_retains_custom_base_url(self, caplog) -> None:
+        with caplog.at_level("INFO", logger="dashboard.components.llm_settings"):
+            config = resolve_llm_provider_config(
+                provider="anthropic",
+                api_key="anthropic-key",
+                base_url="https://anthropic.example.test",
+                org="org-not-for-anthropic",
+            )
+
+        assert config.client_kwargs == {"base_url": "https://anthropic.example.test"}
+        assert "PA_LLM_ORG" in caplog.text
+        assert "org-not-for-anthropic" not in caplog.text
+
     def test_azure_openai_config_populates_required_provider_credentials(self) -> None:
         config = resolve_llm_provider_config(
             provider="azure_openai",
@@ -435,6 +448,7 @@ class TestResolveLlmProviderConfig:
             api_key="azure-key",
             base_url="https://portable-alpha.openai.azure.com",
             api_version="2024-10-21",
+            org="org-azure",
         )
 
         assert config.provider_name == "azure_openai"
@@ -444,6 +458,7 @@ class TestResolveLlmProviderConfig:
             "api_version": "2024-10-21",
         }
         assert "base_url" not in config.client_kwargs
+        assert config.client_kwargs["organization"] == "org-azure"
 
     def test_azure_openai_missing_endpoint_raises_without_secret_leak(self) -> None:
         with pytest.raises(ValueError) as exc_info:
