@@ -55,14 +55,36 @@ def base_field(name: str) -> float:
     return float(getattr(_base_config(), name))
 
 
-def run(patch: Mapping[str, Any] | None = None) -> pd.DataFrame:
+class ReadRecordingConfig:
+    """Forward validated config reads, excluding its bound serialization methods.
+
+    Install only after model validation and only for the real run_single call.
+    A recorded read is evidence of access, never numerical influence.
+    """
+
+    def __init__(self, config, read_keys: set[str]):
+        self._config = config
+        self._read_keys = read_keys
+        self._fields = set(type(config).model_fields)
+
+    def __getattr__(self, name):
+        value = getattr(self._config, name)
+        if name in self._fields:
+            self._read_keys.add(name)
+        return value
+
+
+def run(
+    patch: Mapping[str, Any] | None = None, *, read_keys: set[str] | None = None
+) -> pd.DataFrame:
     """Run the simulation with an input patch; return the summary indexed by Agent."""
     from pa_core.facade import RunOptions, run_single
 
     data = _base_config().model_dump()
     data.update({**BASE_PATCH, **(patch or {})})
     cfg = _base_config().__class__.model_validate(data)
-    artifacts = run_single(cfg, INDEX, RunOptions(seed=SEED))
+    observed_cfg = ReadRecordingConfig(cfg, read_keys) if read_keys is not None else cfg
+    artifacts = run_single(observed_cfg, INDEX, RunOptions(seed=SEED))
     return artifacts.summary.set_index("Agent")
 
 

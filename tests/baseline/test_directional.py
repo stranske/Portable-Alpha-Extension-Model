@@ -36,3 +36,14 @@ def test_directional(scen, baseline_summary, record_property):
         assert holds, "Economically wrong direction -- " + msg
     elif not holds:
         pytest.skip("[report-only / finding] " + msg)
+
+
+def test_internal_financing_contribution_reaches_internal_pa(baseline_summary):
+    """Real funded consumer must respond even though a config read alone could pass."""
+    field = "internal_pa_financing_mean_month"
+    reads: set[str] = set()
+    variant = adapter.run({field: 0.004}, read_keys=reads)
+    assert field in reads
+    control = adapter.metric(baseline_summary, "InternalPA", "terminal_AnnReturn")
+    financed = adapter.metric(variant, "InternalPA", "terminal_AnnReturn")
+    assert financed < control - 0.001, (control, financed)
