@@ -560,3 +560,27 @@ def test_payload_fingerprint_is_stable_for_equivalent_manifest_order():
     assert explain_module._payload_fingerprint(
         summary, first
     ) == explain_module._payload_fingerprint(summary.copy(), reordered)
+
+
+def test_audit_provider_saved_override_survives_widget_cleanup(monkeypatch):
+    """A provider switch must neither adopt nor erase another provider's override."""
+    fake = FakeStreamlit(button_value=False)
+    monkeypatch.setattr(explain_module, "st", fake)
+    fake.session_state[explain_module._PROVIDER_KEY] = "openai"
+    key = f"{explain_module._API_KEY_KEY}::openai"
+    fake.session_state[key] = "synthetic-audit-openai"
+
+    def render():
+        explain_module.render_explain_results_panel(
+            summary_df=pd.DataFrame({"x": [1]}), manifest={}, xlsx_path="audit.xlsx"
+        )
+
+    render()
+    del fake.session_state[key]  # Streamlit removes widgets not rendered on a rerun.
+    fake.session_state[explain_module._PROVIDER_KEY] = "anthropic"
+    render()
+    assert fake.session_state[f"{explain_module._API_KEY_KEY}::anthropic"] == ""
+    fake.session_state[explain_module._PROVIDER_KEY] = "openai"
+    render()
+    assert fake.session_state[key] == "synthetic-audit-openai"
+    assert not fake.downloads

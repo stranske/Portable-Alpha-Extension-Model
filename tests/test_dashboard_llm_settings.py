@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import ast
 import os
 import re
 import sys
 import types
+from pathlib import Path
 from unittest import mock
 
 import pytest
@@ -549,3 +551,83 @@ class TestNoSecretsLeaked:
         assert key not in captured.out
         assert key not in captured.err
         assert not _SECRET_PATTERN.search(captured.out)
+
+
+# Bounded audit guard: explicit session-key assignments and provider-exception logs.
+# This is not a general Python taint analyzer; behavioral probes remain necessary.
+def _credential_boundary_findings(source: str) -> set[str]:
+    tree = ast.parse(source)
+    findings = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == "api_key_key" for t in node.targets
+        ):
+            names = {part.id for part in ast.walk(node.value) if isinstance(part, ast.Name)}
+            if not names.intersection({"provider", "current_provider"}):
+                findings.add("unscoped-api-key-assignment")
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "get"
+            and node.args
+        ):
+            if (
+                ast.unparse(node.func.value) == "st.session_state"
+                and ast.unparse(node.args[0]) == "_CONFIG_CHAT_API_KEY_KEY"
+            ):
+                findings.add("config-chat-unscoped-key")
+        if isinstance(node, ast.ExceptHandler) and node.name:
+            for call in ast.walk(node):
+                if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Attribute):
+                    continue
+                if ast.unparse(call.func.value) != "logger":
+                    continue
+                names = {
+                    part.id
+                    for arg in call.args
+                    for part in ast.walk(arg)
+                    if isinstance(part, ast.Name)
+                }
+                traceback = call.func.attr == "exception" or any(
+                    k.arg == "exc_info"
+                    and not (isinstance(k.value, ast.Constant) and k.value.value is False)
+                    for k in call.keywords
+                )
+                if node.name in names or traceback:
+                    findings.add("raw-provider-exception-log")
+    return findings
+
+
+def test_credential_audit_guard_matches_only_documented_existing_gap() -> None:
+    root = Path(__file__).resolve().parents[1]
+    allowed = {"dashboard/pages/3_Scenario_Wizard.py": {"config-chat-unscoped-key"}}
+    paths = [
+        "dashboard/components/explain_results.py",
+        "dashboard/components/comparison_llm.py",
+        "dashboard/pages/3_Scenario_Wizard.py",
+        "pa_core/llm/compare_runs.py",
+        "pa_core/llm/result_explain.py",
+    ]
+    for relative in paths:
+        actual = _credential_boundary_findings((root / relative).read_text())
+        assert actual == allowed.get(relative, set()), (relative, actual)
+    # The sole allowed gap is reproduced offline and has a scoped, unpublished
+    # proposal in docs/llm-credential-isolation-audit.md; no broad path exemption.
+
+
+@pytest.mark.parametrize(
+    "source,expected",
+    [
+        ('api_key_key = f"api::{run_key}"', "unscoped-api-key-assignment"),
+        (
+            'try:\n    invoke()\nexcept Exception as exc:\n    logger.warning("failed %s", str(exc))',
+            "raw-provider-exception-log",
+        ),
+        (
+            'try:\n    invoke()\nexcept Exception as exc:\n    logger.warning("failed", exc_info=True)',
+            "raw-provider-exception-log",
+        ),
+    ],
+)
+def test_credential_audit_guard_rejects_unscoped_keys_and_raw_logs(source, expected):
+    assert expected in _credential_boundary_findings(source)
