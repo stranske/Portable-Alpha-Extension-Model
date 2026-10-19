@@ -590,7 +590,7 @@ def _credential_boundary_findings(source: str) -> list[str]:
                     continue
                 names = {
                     part.id
-                    for arg in call.args
+                    for arg in [*call.args, *(keyword.value for keyword in call.keywords)]
                     for part in ast.walk(arg)
                     if isinstance(part, ast.Name)
                 }
@@ -615,7 +615,7 @@ def test_credential_audit_guard_matches_only_documented_existing_gap() -> None:
         "pa_core/llm/result_explain.py",
     ]
     for relative in paths:
-        actual = _credential_boundary_findings((root / relative).read_text())
+        actual = _credential_boundary_findings((root / relative).read_text(encoding="utf-8"))
         assert sorted(actual) == allowed.get(relative, []), (relative, actual)
     # Preserve multiplicity: a second read in the same file must fail this equality.
     # The sole allowed gap is reproduced offline and has a scoped, unpublished
@@ -635,6 +635,10 @@ def test_credential_audit_guard_matches_only_documented_existing_gap() -> None:
             'try:\n    invoke()\nexcept Exception as exc:\n    logger.warning("failed", exc_info=True)',
             "raw-provider-exception-log",
         ),
+        (
+            'try:\n    invoke()\nexcept Exception as exc:\n    logger.warning("failed", extra={"error": str(exc)})',
+            "raw-provider-exception-log",
+        ),
     ],
 )
 def test_credential_audit_guard_rejects_unscoped_keys_and_raw_logs(source, expected):
@@ -651,6 +655,27 @@ def new_path():
 """
     findings = _credential_boundary_findings(source)
     assert sum(finding == "config-chat-unscoped-key" for finding in findings) == 2
+
+
+def test_credential_audit_guard_survives_non_utf8_locale(monkeypatch):
+    original_read = Path.read_text
+    scanned = []
+
+    def locale_read(path, encoding=None, errors=None):
+        if path.name in {
+            "explain_results.py",
+            "comparison_llm.py",
+            "3_Scenario_Wizard.py",
+            "compare_runs.py",
+            "result_explain.py",
+        }:
+            scanned.append(path.name)
+            return original_read(path, encoding=encoding or "ascii", errors=errors)
+        return original_read(path, encoding=encoding, errors=errors)
+
+    monkeypatch.setattr(Path, "read_text", locale_read)
+    test_credential_audit_guard_matches_only_documented_existing_gap()
+    assert len(scanned) == 5
 
 
 # Source #2370: offline settings-to-factory contracts. These execute real SDK

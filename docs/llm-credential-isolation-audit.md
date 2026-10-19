@@ -31,3 +31,15 @@ A. **Config Chat private override identity** (confirmed function-level reproduct
 B. **Telemetry exception/extra boundary** (needs-investigation). Inject synthetic markers through fleet failure exceptions and extra metadata; inspect actual local record/log output with no remote tracing. Only a reproduced unresolved exposure warrants a proposed instance. Do not infer exposure solely from `exc_info=True`, or infer safety from SecretStr/hashes.
 
 No new issues were published; no per-instance fixes, provider changes, shared infrastructure changes or review-hold release are bundled. Report, tests, proposals and exact delivery receipt are the audit output. Hosted CI/review and live-provider security remain separate gates.
+
+## Review guard follow-through (2026-10-19)
+
+The bounded named-exception guard now walks logger keyword values as well as
+positional arguments. The source inventory reads UTF-8 explicitly. Two added
+regressions first reproduced the old behavior: an exception under `extra` escaped
+the detector, and a simulated ASCII locale failed while reading the actual UTF-8
+Wizard source. `pytest tests/test_dashboard_llm_settings.py -k credential_audit_guard -q`
+reported **2 failed, 6 passed** before the fixes and **8 passed** afterward.
+The three scoped dashboard/Wizard test modules report **112 passed, 3 skipped**
+(optional SDK coverage); Black, Ruff and diff checks pass. This remains a test-only
+audit correction, with no production credential behavior or policy change.
