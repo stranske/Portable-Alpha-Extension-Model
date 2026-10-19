@@ -311,11 +311,13 @@ def test_read_index_csv_accepts_getvalue_and_rejects_non_numeric() -> None:
 def test_stress_lab_main_runs_sample_flow_and_exposes_all_downloads(monkeypatch) -> None:
     stress_lab = load_stress_lab_module()
     fake_st = _StressLabStreamlit(run=True, use_sample=True)
+    sample_returns = pd.Series([0.01, 0.02])
     summary = pd.DataFrame({"Agent": ["Base"], "Return": [0.01]})
+    constructor_index_series = []
 
     class _Orchestrator:
-        def __init__(self, *_args) -> None:
-            pass
+        def __init__(self, _config, index_series) -> None:
+            constructor_index_series.append(index_series)
 
         def run(self, *, seed: int):
             assert seed == 42
@@ -336,7 +338,7 @@ def test_stress_lab_main_runs_sample_flow_and_exposes_all_downloads(monkeypatch)
             "internal_pa_capital": 30.0,
         },
     )
-    monkeypatch.setattr(stress_lab, "load_bundled_sample_index", lambda: pd.Series([0.01, 0.02]))
+    monkeypatch.setattr(stress_lab, "load_bundled_sample_index", lambda: sample_returns)
     monkeypatch.setattr(stress_lab, "build_sample_model_config", lambda **_kwargs: object())
     monkeypatch.setattr(stress_lab, "apply_stress_preset", lambda config, _preset: config)
     monkeypatch.setattr(stress_lab, "SimulatorOrchestrator", _Orchestrator)
@@ -357,6 +359,8 @@ def test_stress_lab_main_runs_sample_flow_and_exposes_all_downloads(monkeypatch)
         "Download config diff",
         "Download stress results (Excel)",
     ]
+    assert constructor_index_series == [sample_returns, sample_returns]
+    assert all(index_series is sample_returns for index_series in constructor_index_series)
 
 
 def test_stress_lab_main_explains_missing_input(monkeypatch) -> None:

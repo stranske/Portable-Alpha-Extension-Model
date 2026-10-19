@@ -50,6 +50,16 @@ def test_named_returns_and_sleeve_mapping_cover_mixed_stream_sources() -> None:
         return_distribution="normal",
         seed=7,
     )
+    mixed_streams = draw_named_returns(
+        n_months=3,
+        n_sim=2,
+        stream_names=("index", "manager_a", "portfolio:trend"),
+        means={"index": 0.0, "manager_a": 0.01, "portfolio:trend": 0.02},
+        cov=np.eye(3) * 0.0001,
+        return_distribution="normal",
+        return_distributions={"manager_a": "student_t"},
+        seed=7,
+    )
 
     mapped = map_sleeve_alpha_streams(
         {"plain": "manager_a", "prefixed": "portfolio:trend", "derived": "trend"}, streams
@@ -57,6 +67,7 @@ def test_named_returns_and_sleeve_mapping_cover_mixed_stream_sources() -> None:
 
     assert set(streams) == {"index", "manager_a", "portfolio:trend"}
     assert all(values.shape == (2, 3) for values in streams.values())
+    assert not np.array_equal(mixed_streams["manager_a"], streams["manager_a"])
     assert mapped["plain"] is streams["manager_a"]
     assert mapped["prefixed"] is streams["portfolio:trend"]
     assert mapped["derived"] is streams["portfolio:trend"]

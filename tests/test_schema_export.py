@@ -74,4 +74,4 @@ def test_schema_export_supports_all_formats_and_cli_writes_requested_output(tmp_
     output = tmp_path / "schema.yaml"
     main(["--export", "--schema", "scenario", "--format", "yaml", "--output", str(output)])
 
-    assert "Scenario:" in output.read_text()
+    assert output.read_text() == _dump_payload(export_schema_definitions(schema="scenario"), "yaml")
