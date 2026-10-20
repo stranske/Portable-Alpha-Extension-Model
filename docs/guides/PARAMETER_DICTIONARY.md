@@ -36,7 +36,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `internal_pa_capital` | `Internal PA capital (mm)` | `<class 'float'>` | no | `0.0` |  |
 | `total_fund_capital` | `Total fund capital (mm)` | `<class 'float'>` | no | `1000.0` |  |
 | `agents` | `agents` | `List[pa_core.config.AgentConfig]` | no | `default_factory: list` |  |
-| `fee_schedule` | `fee_schedule` | `Optional[Dict[str, pa_core.fees.FeeSchedule]]` | no | `None` | Optional per-sleeve management/performance fee schedule keyed by agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's returns are reported net of fees (issue #1904). None or empty keeps the historical gross-of-fee behaviour. |
+| `fee_schedule` | `fee_schedule` | `Dict[str, pa_core.fees.FeeSchedule] \| None` | no | `None` | Optional per-sleeve management/performance fee schedule keyed by agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's returns are reported net of fees (issue #1904). None or empty keeps the historical gross-of-fee behaviour. |
 | `w_beta_H` | `In-House beta share` | `<class 'float'>` | no | `0.5` |  |
 | `w_alpha_H` | `In-House alpha share` | `<class 'float'>` | no | `0.5` |  |
 | `theta_extpa` | `External PA alpha fraction` | `<class 'float'>` | no | `0.5` |  |
@@ -69,7 +69,7 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `internal_spike_factor` | `Internal spike multiplier` | `<class 'float'>` | no | `0.0` |  |
 | `internal_pa_financing_mean_month` | `Internal PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` | Deterministic monthly internal-PA financing cost; may be negative. |
 | `internal_pa_financing_sigma_month` | `Internal PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` | Optional monthly stochastic vol for the internal-PA financing cost. |
-| `internal_pa_financing_series` | `Internal PA financing series (monthly)` | `Optional[List[float]]` | no | `None` | Explicit monthly internal-PA financing cost series (negatives allowed). |
+| `internal_pa_financing_series` | `Internal PA financing series (monthly)` | `List[float] \| None` | no | `None` | Explicit monthly internal-PA financing cost series (negatives allowed). |
 | `internal_pa_financing_index` | `Internal PA financing index` | `str \| None` | no | `None` | Named index futures/swap financing curve to source internal-PA costs from. |
 | `ext_pa_financing_mean_month` | `External PA financing mean (monthly %)` | `<class 'float'>` | no | `0.0` |  |
 | `ext_pa_financing_sigma_month` | `External PA financing vol (monthly %)` | `<class 'float'>` | no | `0.0` |  |
@@ -110,9 +110,9 @@ This reference lists canonical field names, accepted aliases, and defaults for s
 | `financing_model` | `financing_model` | `<class 'str'>` | no | `simple_proxy` |  |
 | `financing_schedule_path` | `financing_schedule_path` | `pathlib.Path \| None` | no | `None` |  |
 | `financing_term_months` | `financing_term_months` | `<class 'float'>` | no | `1.0` |  |
-| `regimes` | `regimes` | `Optional[List[pa_core.config.RegimeConfig]]` | no | `None` | List of regime configurations for regime-switching models. |
+| `regimes` | `regimes` | `List[pa_core.config.RegimeConfig] \| None` | no | `None` | List of regime configurations for regime-switching models. |
 | `regime_start` | `regime_start` | `str \| None` | no | `None` | Initial regime name for regime-switching simulations. |
-| `regime_transition` | `regime_transition` | `Optional[List[List[float]]]` | no | `None` | Markov transition matrix for regime switching (n_regimes x n_regimes). |
+| `regime_transition` | `regime_transition` | `List[List[float]] \| None` | no | `None` | Markov transition matrix for regime switching (n_regimes x n_regimes). |
 | `risk_metrics` | `risk_metrics` | `List[str]` | no | `default_factory: <lambda>` | Advisory list selecting which metrics are reported/displayed. It does not change how the simulation runs (must include 'terminal_ShortfallProb'). See README 'Model Limitations & Caveats'. |
 | `sleeve_max_te` | `sleeve_max_te` | `float \| None` | no | `None` | Maximum tracking error constraint for sleeves (monthly). |
 | `sleeve_max_breach` | `sleeve_max_breach` | `float \| None` | no | `None` | Maximum breach probability constraint for sleeves (monthly). |

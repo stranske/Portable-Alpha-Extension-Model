@@ -26,6 +26,9 @@ def test_return_distribution_helpers_validate_and_fill_overrides() -> None:
     assert _resolve_stream_return_distributions(
         "normal", ("index", "alpha"), {"alpha": "student_t"}
     ) == ("normal", "student_t")
+    assert _resolve_stream_return_distributions(
+        "normal", ("index", "alpha"), (None, "student_t")
+    ) == ("normal", "student_t")
     assert _validate_return_draw_settings(("normal", "student_t"), "t", "5") == 5.0
 
     with pytest.raises(ValueError, match="length 4"):
@@ -34,6 +37,8 @@ def test_return_distribution_helpers_validate_and_fill_overrides() -> None:
         _resolve_stream_return_distributions("normal", ("index", "alpha"), ("normal",))
     with pytest.raises(ValueError, match="one of"):
         _validate_return_draw_settings("lognormal", "gaussian", 5)
+    with pytest.raises(ValueError, match="return_copula must be one of"):
+        _validate_return_draw_settings("student_t", "clayton", 5)
     with pytest.raises(ValueError, match="gaussian"):
         _validate_return_draw_settings("normal", "t", 5)
     with pytest.raises(ValueError, match="greater than 2"):
@@ -88,9 +93,32 @@ def test_named_returns_rejects_invalid_dimensions_means_and_covariance() -> None
     }
     with pytest.raises(ValueError, match="must be positive"):
         draw_named_returns(**(kwargs | {"n_months": 0}))
+    with pytest.raises(ValueError, match="at least one alpha"):
+        draw_named_returns(
+            **(kwargs | {"stream_names": ("index",), "means": (0.0,), "cov": np.eye(1)})
+        )
     with pytest.raises(ValueError, match="must be unique"):
         draw_named_returns(**(kwargs | {"stream_names": ("index", "index")}))
     with pytest.raises(ValueError, match="cov shape"):
         draw_named_returns(**(kwargs | {"cov": np.eye(3)}))
     with pytest.raises(ValueError, match="missing mean"):
         draw_named_returns(**(kwargs | {"means": {"index": 0.0}}))
+    with pytest.raises(ValueError, match="same length as stream_names"):
+        draw_named_returns(**(kwargs | {"means": (0.0,)}))
+
+
+def test_named_returns_supports_all_student_t_streams() -> None:
+    streams = draw_named_returns(
+        n_months=2,
+        n_sim=3,
+        stream_names=("index", "alpha"),
+        means=(0.0, 0.01),
+        cov=np.eye(2) * 0.0001,
+        return_distribution="student_t",
+        return_copula="t",
+        return_t_df=5,
+        seed=11,
+    )
+
+    assert set(streams) == {"index", "alpha"}
+    assert all(values.shape == (3, 2) for values in streams.values())
