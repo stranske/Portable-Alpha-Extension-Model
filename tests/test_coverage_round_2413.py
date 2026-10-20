@@ -59,20 +59,20 @@ def test_main_routes_each_step_to_its_renderer(step: int) -> None:
     """A wizard step must render its matching page without advancing by itself."""
     module = runpy.run_path(str(WIZARD))
     fake_st = _Streamlit(step)
-    calls: list[int] = []
+    calls: list[tuple[str, int]] = []
     globals_ = module["main"].__globals__
     globals_["st"] = fake_st
     globals_["render_settings_sidebar"] = lambda: (None, None)
     globals_["apply_theme"] = lambda _path: None
     globals_["_render_config_chat_sidebar"] = lambda: None
-    globals_["_render_progress_bar"] = lambda current: calls.append(current)
+    globals_["_render_progress_bar"] = lambda current: calls.append(("progress", current))
     for number in range(1, 5):
         globals_[
             f"_render_step_{number}_{['analysis_mode', 'capital', 'returns_risk', 'correlations'][number - 1]}"
-        ] = lambda config, number=number: calls.append(number) or config
-    globals_["_render_step_5_review"] = lambda _config: calls.append(5) or False
+        ] = (lambda config, number=number: calls.append(("renderer", number)) or config)
+    globals_["_render_step_5_review"] = lambda _config: calls.append(("renderer", 5)) or False
 
     module["main"]()
 
-    assert calls == [step, step]
+    assert calls == [("progress", step), ("renderer", step)]
     assert fake_st.session_state.wizard_step == step
