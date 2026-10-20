@@ -71,6 +71,20 @@ def test_pdf_report_merges_and_async_uses_cache(
     assert appended == [b"pdf", b"pdf"]
     assert output.read_bytes() == b"merged"
 
+    def fail_pdf_bytes(_figure: go.Figure) -> bytes:
+        raise RuntimeError("pdf bytes unavailable")
+
+    monkeypatch.setattr(pdf_report, "figure_to_pdf_bytes", fail_pdf_bytes)
+    with pytest.warns(RuntimeWarning, match="writing all figure JSON fallbacks"):
+        pdf_report.save([go.Figure(), go.Figure()], output)
+    assert output.read_text().startswith("[")
+
+    monkeypatch.setenv("PAEM_SKIP_PDF_EXPORT", "1")
+    skip_output = tmp_path / "skipped.pdf"
+    pdf_report.save([go.Figure()], skip_output)
+    assert skip_output.read_text().startswith("[")
+    monkeypatch.delenv("PAEM_SKIP_PDF_EXPORT", raising=False)
+
     cached: list[int] = []
 
     async def cache(figures: list[go.Figure], action: Any) -> None:
@@ -112,6 +126,48 @@ def test_sweep_excel_metadata_image_and_async_paths(
     assert len(workbook["Summary"]._images) == 1
     workbook.close()
 
+    empty_output = tmp_path / "empty_sweep.xlsx"
+    sweep_excel.export_sweep_results([], str(empty_output), metadata={"note": "plain"})
+    empty_book = sweep_excel.openpyxl.load_workbook(empty_output)
+    assert empty_book["Metadata"]["B2"].value == "plain"
+    assert empty_book["Summary"].max_row == 1
+    assert len(empty_book["Summary"]._images) == 0
+    empty_book.close()
+
+    mixed_output = tmp_path / "mixed_sweep.xlsx"
+    real_aggregate = sweep_excel.aggregate_sweep_results
+    monkeypatch.setattr(
+        sweep_excel,
+        "aggregate_sweep_results",
+        lambda _results: pd.DataFrame(
+            columns=["Agent", "Metric", "Mean", "Std", "P10", "P50", "P90"]
+        ),
+    )
+    sweep_excel.export_sweep_results(
+        [
+            {"combination_id": 4, "summary": summary},
+            {"combination_id": 9, "summary": "not-a-frame"},
+        ],
+        str(mixed_output),
+    )
+    mixed_book = sweep_excel.openpyxl.load_workbook(mixed_output)
+    assert "Run4" in mixed_book.sheetnames
+    assert "Run9" not in mixed_book.sheetnames
+    mixed_book.close()
+    monkeypatch.setattr(sweep_excel, "aggregate_sweep_results", real_aggregate)
+
+    fail_output = tmp_path / "image_fail.xlsx"
+
+    def boom_png(_figure: go.Figure) -> bytes:
+        raise RuntimeError("png unavailable")
+
+    monkeypatch.setattr(sweep_excel, "figure_to_png_bytes", boom_png)
+    sweep_excel.export_sweep_results(results, str(fail_output))
+    fail_book = sweep_excel.openpyxl.load_workbook(fail_output)
+    assert len(fail_book["Summary"]._images) == 0
+    fail_book.close()
+    monkeypatch.setattr(sweep_excel, "figure_to_png_bytes", lambda figure: png.getvalue())
+
     cached: list[int] = []
 
     async def cache(figures: list[go.Figure], action: Any) -> None:
@@ -124,7 +180,28 @@ def test_sweep_excel_metadata_image_and_async_paths(
     workbook = sweep_excel.openpyxl.load_workbook(output)
     assert len(workbook["Summary"]._images) == 1
     workbook.close()
+
+    async_fail_cached: list[int] = []
+
+    async def cache_empty(figures: list[go.Figure], action: Any) -> None:
+        async_fail_cached.append(len(figures))
+        action()
+
+    monkeypatch.setattr(sweep_excel, "run_with_browser_png_cache", cache_empty)
+    monkeypatch.setattr(
+        sweep_excel.risk_return,
+        "make",
+        lambda _frame: (_ for _ in ()).throw(ValueError("bad summary")),
+    )
+    asyncio.run(
+        sweep_excel.export_sweep_results_async(
+            [{"combination_id": 1, "summary": summary}],
+            str(tmp_path / "async_fail.xlsx"),
+        )
+    )
+    assert async_fail_cached == [0]
     assert sweep_excel._serialize_metadata_value(("a", 1)) == '["a", 1]'
+    assert sweep_excel._serialize_metadata_value("plain") == "plain"
 
 
 def test_export_packet_render_figure_branches_and_async(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -149,6 +226,16 @@ def test_export_packet_render_figure_branches_and_async(monkeypatch: pytest.Monk
     )
     assert len(rendered) >= 1
 
+    existing = go.Figure()
+    existing.update_layout(title="Sensitivity Tornado")
+    with_existing = export_packet._packet_render_figures(
+        figs=[existing],
+        summary_df=pd.DataFrame(),
+        inputs_dict={"_sensitivity_df": sensitivity},
+    )
+    assert len(with_existing) == len(rendered)
+    assert with_existing[0] is existing
+
     calls: list[list[Any]] = []
 
     async def cache(figures: list[Any], action: Any) -> tuple[str, str]:
@@ -170,13 +257,36 @@ def test_export_packet_render_figure_branches_and_async(monkeypatch: pytest.Monk
     assert len(calls[0]) == len(rendered) == 2
     assert [fig.to_plotly_json() for fig in calls[0]] == [fig.to_plotly_json() for fig in rendered]
 
+    import pa_core.viz.tornado as tornado_mod
+
+    def boom_series(_df: pd.DataFrame) -> Any:
+        raise ValueError("sensitivity series unavailable")
+
+    monkeypatch.setattr(tornado_mod, "series_from_sensitivity", boom_series)
+    assert (
+        export_packet._packet_render_figures(
+            figs=[], summary_df=pd.DataFrame(), inputs_dict={"_sensitivity_df": sensitivity}
+        )
+        == []
+    )
+
 
 def test_wizard_value_normalizers_cover_mapping_tuple_and_unique_values() -> None:
+    from pa_core.wizard_schema import AnalysisMode, RiskMetric
+
     wizard = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
     normalize = wizard["_normalize_config_chat_value"]
     unique = wizard["_stable_unique_text_items"]
 
     assert normalize({"items": ("one", "two")}) == {"items": ["one", "two"]}
+    assert normalize([AnalysisMode.RETURNS, RiskMetric.RISK]) == [
+        AnalysisMode.RETURNS.value,
+        RiskMetric.RISK.value,
+    ]
+    assert normalize({"nested": [RiskMetric.RETURN, ("a", AnalysisMode.CAPITAL)]}) == {
+        "nested": [RiskMetric.RETURN.value, ["a", AnalysisMode.CAPITAL.value]]
+    }
     assert unique(None) == []
     assert unique(" one ") == ["one"]
     assert unique([" one ", "", "one", 2]) == ["one", "2"]
+    assert unique(7) == ["7"]
