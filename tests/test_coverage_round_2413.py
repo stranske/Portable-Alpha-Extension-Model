@@ -144,7 +144,7 @@ def test_main_cold_start_initializes_and_routes_to_step_1() -> None:
     module["main"]()
 
     assert fake_st.session_state.wizard_step == 1
-    assert "wizard_config" in fake_st.session_state
+    assert fake_st.session_state.wizard_config == get_default_config(AnalysisMode.RETURNS)
     assert calls == [("progress", 1), ("renderer", 1)]
     assert fake_st.rerun_count == 0
 
