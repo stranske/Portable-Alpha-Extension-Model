@@ -198,6 +198,13 @@ def test_metrics_cover_registration_plugins_and_boundary_paths(
     _EXTRA_METRIC_DEFINITIONS.pop(plugin_name)
     _load_metric_plugins()
     assert loaded == ["CoverageRound2421_PluginMetric"]
+    assert plugin_name in _EXTRA_METRICS
+    assert _EXTRA_METRICS[plugin_name] is _metric
+    assert _EXTRA_METRIC_DEFINITIONS[plugin_name] == {
+        "Metric": plugin_name,
+        "MetricType": "diagnostic",
+        "Description": "User-registered metric.",
+    }
 
     strategy = np.array([0.01, 0.02, -0.01])
     benchmark = np.array([0.0, 0.01, 0.0])
