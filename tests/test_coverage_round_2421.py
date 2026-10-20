@@ -169,13 +169,13 @@ def test_metrics_cover_registration_plugins_and_boundary_paths(
     def _metric(arr: np.ndarray) -> float:
         return float(np.mean(arr))
 
-    _EXTRA_METRICS.pop(name, None)
-    _EXTRA_METRIC_DEFINITIONS.pop(name, None)
+    monkeypatch.setitem(_EXTRA_METRICS, name, _metric)
+    monkeypatch.setitem(_EXTRA_METRIC_DEFINITIONS, name, {})
+    _EXTRA_METRICS.pop(name)
+    _EXTRA_METRIC_DEFINITIONS.pop(name)
     register_metric(name, _metric)
     with pytest.raises(KeyError, match="already registered"):
         register_metric(name, _metric)
-    _EXTRA_METRICS.pop(name, None)
-    _EXTRA_METRIC_DEFINITIONS.pop(name, None)
 
     loaded: list[str] = []
 
@@ -191,12 +191,13 @@ def test_metrics_cover_registration_plugins_and_boundary_paths(
         "pa_core.sim.metrics.entry_points",
         lambda group="pa_core.risk_metrics": [_EP("CoverageRound2421_PluginMetric")],
     )
-    _EXTRA_METRICS.pop("CoverageRound2421_PluginMetric", None)
-    _EXTRA_METRIC_DEFINITIONS.pop("CoverageRound2421_PluginMetric", None)
+    plugin_name = "CoverageRound2421_PluginMetric"
+    monkeypatch.setitem(_EXTRA_METRICS, plugin_name, _metric)
+    monkeypatch.setitem(_EXTRA_METRIC_DEFINITIONS, plugin_name, {})
+    _EXTRA_METRICS.pop(plugin_name)
+    _EXTRA_METRIC_DEFINITIONS.pop(plugin_name)
     _load_metric_plugins()
     assert loaded == ["CoverageRound2421_PluginMetric"]
-    _EXTRA_METRICS.pop("CoverageRound2421_PluginMetric", None)
-    _EXTRA_METRIC_DEFINITIONS.pop("CoverageRound2421_PluginMetric", None)
 
     strategy = np.array([0.01, 0.02, -0.01])
     benchmark = np.array([0.0, 0.01, 0.0])
@@ -225,6 +226,9 @@ def test_metrics_cover_registration_plugins_and_boundary_paths(
         one_path, metric="terminal_AnnReturn", checkpoints=(1.0,)
     )
     assert list(ann["metric"]) == ["terminal_AnnReturn"]
+    # Three monthly returns annualize over four independent repetitions.
+    expected_annual = (1.01 * 0.98 * 1.015) ** 4 - 1.0
+    assert ann["estimate"].iloc[0] == pytest.approx(expected_annual)
 
     with pytest.raises(ValueError, match="returns must not be empty"):
         max_cumulative_sum_drawdown(np.array([]))
