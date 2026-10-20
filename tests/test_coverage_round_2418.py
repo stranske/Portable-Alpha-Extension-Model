@@ -274,7 +274,8 @@ def test_export_packet_render_figure_branches_and_async(monkeypatch: pytest.Monk
 def test_wizard_value_normalizers_cover_mapping_tuple_and_unique_values() -> None:
     from pa_core.wizard_schema import AnalysisMode, RiskMetric
 
-    wizard = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+    page = Path(__file__).resolve().parents[1] / "dashboard" / "pages" / "3_Scenario_Wizard.py"
+    wizard = runpy.run_path(str(page))
     normalize = wizard["_normalize_config_chat_value"]
     unique = wizard["_stable_unique_text_items"]
 
