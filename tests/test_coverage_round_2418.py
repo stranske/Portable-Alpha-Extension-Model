@@ -11,6 +11,7 @@ from typing import Any
 import pandas as pd
 import plotly.graph_objects as go
 import pytest
+from PIL import Image
 
 
 def test_pdf_report_export_and_fallback_branches(
@@ -77,8 +78,16 @@ def test_pdf_report_merges_and_async_uses_cache(
         action()
 
     monkeypatch.setattr(pdf_report, "run_with_browser_png_cache", cache)
+    written: list[tuple[Any, Path, str]] = []
+    monkeypatch.setattr(
+        pdf_report,
+        "write_figure_image",
+        lambda figure, path, format: written.append((figure, path, format)),
+    )
     asyncio.run(pdf_report.save_async([go.Figure()], output))
     assert cached == [1]
+    assert len(written) == 1
+    assert written[0][1:] == (output, "pdf")
 
 
 def test_sweep_excel_metadata_image_and_async_paths(
@@ -87,16 +96,21 @@ def test_sweep_excel_metadata_image_and_async_paths(
     from pa_core.reporting import sweep_excel
 
     monkeypatch.delenv("PYTEST_CURRENT_TEST", raising=False)
+    monkeypatch.delenv("CI", raising=False)
     output = tmp_path / "sweep.xlsx"
     summary = pd.DataFrame({"Agent": ["Base"], "terminal_AnnReturn": [0.05]})
     results = [{"combination_id": 4, "summary": summary}]
     monkeypatch.setattr(sweep_excel.risk_return, "make", lambda frame: go.Figure())
-    monkeypatch.setattr(sweep_excel, "figure_to_png_bytes", lambda figure: b"not-a-real-image")
+    png = io.BytesIO()
+    Image.new("RGB", (1, 1), color="white").save(png, format="PNG")
+    monkeypatch.setattr(sweep_excel, "figure_to_png_bytes", lambda figure: png.getvalue())
 
     sweep_excel.export_sweep_results(results, str(output), metadata={"labels": ["a", "b"]})
     workbook = sweep_excel.openpyxl.load_workbook(output)
     assert {"Metadata", "Run4", "Summary", "SummaryStats"} <= set(workbook.sheetnames)
     assert workbook["Metadata"]["B2"].value == '["a", "b"]'
+    assert len(workbook["Summary"]._images) == 1
+    workbook.close()
 
     cached: list[int] = []
 
@@ -107,6 +121,9 @@ def test_sweep_excel_metadata_image_and_async_paths(
     monkeypatch.setattr(sweep_excel, "run_with_browser_png_cache", cache)
     asyncio.run(sweep_excel.export_sweep_results_async(results, str(output)))
     assert cached == [1]
+    workbook = sweep_excel.openpyxl.load_workbook(output)
+    assert len(workbook["Summary"]._images) == 1
+    workbook.close()
     assert sweep_excel._serialize_metadata_value(("a", 1)) == '["a", 1]'
 
 
@@ -132,10 +149,10 @@ def test_export_packet_render_figure_branches_and_async(monkeypatch: pytest.Monk
     )
     assert len(rendered) >= 1
 
-    calls: list[int] = []
+    calls: list[list[Any]] = []
 
     async def cache(figures: list[Any], action: Any) -> tuple[str, str]:
-        calls.append(len(figures))
+        calls.append(list(figures))
         return action()
 
     monkeypatch.setattr(export_packet, "run_with_browser_png_cache", cache)
@@ -145,11 +162,13 @@ def test_export_packet_render_figure_branches_and_async(monkeypatch: pytest.Monk
             figs=[],
             summary_df=pd.DataFrame(),
             raw_returns_dict={},
-            inputs_dict={},
+            inputs_dict={"_sensitivity_df": sensitivity},
         )
     )
     assert result == ("deck", "book")
-    assert calls == [0]
+    assert len(calls) == 1
+    assert len(calls[0]) == len(rendered) == 2
+    assert [fig.to_plotly_json() for fig in calls[0]] == [fig.to_plotly_json() for fig in rendered]
 
 
 def test_wizard_value_normalizers_cover_mapping_tuple_and_unique_values() -> None:
