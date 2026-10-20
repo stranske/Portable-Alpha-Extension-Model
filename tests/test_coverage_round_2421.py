@@ -2,24 +2,35 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from pa_core import units
 from pa_core.llm import result_explain
+from pa_core.llm.provider import LLMProviderConfig
 from pa_core.sim import internal_pa_financing
 from pa_core.sim.metrics import (
+    _EXTRA_METRICS,
+    _EXTRA_METRIC_DEFINITIONS,
     _cvar_tail_values,
+    _load_metric_plugins,
     active_return_volatility,
     annualised_return_percentile,
     breach_count_path0,
     conditional_value_at_risk,
     cvar_confidence_interval,
+    cvar_monthly,
     cvar_terminal,
+    max_cumulative_sum_drawdown,
     metric_standard_error,
     monte_carlo_convergence_diagnostic,
     per_path_active_return_volatility,
+    register_metric,
+    terminal_return_below_threshold_prob,
     value_at_risk,
 )
 
@@ -35,6 +46,39 @@ def test_result_helpers_preserve_json_lists_and_prefer_total_metric_row() -> Non
     assert result_explain._find_metric_column(details, ("not a metric",)) is None
 
 
+def test_result_explain_tolerates_llm_path_telemetry_failure_and_non_mapping_summary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _StaticLLM:
+        def invoke(self, prompt: str) -> Any:
+            return SimpleNamespace(content="ok")
+
+    monkeypatch.setattr(result_explain, "create_llm", lambda _config: _StaticLLM())
+    monkeypatch.setattr(
+        result_explain,
+        "record_fleet_event",
+        lambda *_a, **_k: (_ for _ in ()).throw(RuntimeError("fleet down")),
+    )
+
+    text, trace_url, payload = result_explain.explain_results_details(
+        pd.DataFrame({"value": [1.0]}),
+        llm_config=LLMProviderConfig(
+            provider_name="openai",
+            credentials={"api_key": "sk-test"},
+            model_name="gpt-4o-mini",
+        ),
+        tracing_enabled=False,
+    )
+
+    assert text.startswith("ok")
+    assert trace_url is None
+    assert payload["status"] == "success"
+    assert (
+        result_explain._extract_metric_delta({"stress_delta_summary": {"summary": "missing"}})
+        is None
+    )
+
+
 def test_units_cover_monthly_to_annual_covariance_and_identity_series() -> None:
     covariance = np.eye(2) / 12.0
     assert np.allclose(
@@ -45,6 +89,15 @@ def test_units_cover_monthly_to_annual_covariance_and_identity_series() -> None:
     converted = units.convert_return_series(series, from_unit="monthly", to_unit="monthly")
     assert converted.equals(series)
     assert converted is not series
+
+    monthly = 0.01
+    annual_geom = units.convert_mean(
+        monthly, from_unit="monthly", to_unit="annual", method="geometric"
+    )
+    assert annual_geom == pytest.approx((1.0 + monthly) ** 12 - 1.0)
+    assert units.convert_return_series(
+        series, from_unit="monthly", to_unit="annual", method="geometric"
+    ).tolist() == pytest.approx(((1.0 + series) ** 12 - 1.0).tolist())
 
 
 def test_internal_financing_uses_default_rng_when_stochastic_rng_is_omitted(
@@ -106,3 +159,73 @@ def test_convergence_diagnostic_rejects_invalid_requests() -> None:
         monte_carlo_convergence_diagnostic(returns, checkpoints=(0.0,))
     with pytest.raises(ValueError, match="metric must be one of"):
         monte_carlo_convergence_diagnostic(returns, metric="unsupported")
+
+
+def test_metrics_cover_registration_plugins_and_boundary_paths(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    name = "CoverageRound2421_DuplicateMetric"
+
+    def _metric(arr: np.ndarray) -> float:
+        return float(np.mean(arr))
+
+    _EXTRA_METRICS.pop(name, None)
+    _EXTRA_METRIC_DEFINITIONS.pop(name, None)
+    register_metric(name, _metric)
+    with pytest.raises(KeyError, match="already registered"):
+        register_metric(name, _metric)
+    _EXTRA_METRICS.pop(name, None)
+    _EXTRA_METRIC_DEFINITIONS.pop(name, None)
+
+    loaded: list[str] = []
+
+    class _EP:
+        def __init__(self, ep_name: str) -> None:
+            self.name = ep_name
+
+        def load(self) -> Any:
+            loaded.append(self.name)
+            return _metric
+
+    monkeypatch.setattr(
+        "pa_core.sim.metrics.entry_points",
+        lambda group="pa_core.risk_metrics": [_EP("CoverageRound2421_PluginMetric")],
+    )
+    _EXTRA_METRICS.pop("CoverageRound2421_PluginMetric", None)
+    _EXTRA_METRIC_DEFINITIONS.pop("CoverageRound2421_PluginMetric", None)
+    _load_metric_plugins()
+    assert loaded == ["CoverageRound2421_PluginMetric"]
+    _EXTRA_METRICS.pop("CoverageRound2421_PluginMetric", None)
+    _EXTRA_METRIC_DEFINITIONS.pop("CoverageRound2421_PluginMetric", None)
+
+    strategy = np.array([0.01, 0.02, -0.01])
+    benchmark = np.array([0.0, 0.01, 0.0])
+    assert per_path_active_return_volatility(strategy, benchmark) == pytest.approx(
+        active_return_volatility(strategy, benchmark)
+    )
+
+    # Single-month 1D input forces the window==1 branch; -2% is below the
+    # horizon-scaled annual hurdle for one month, so shortfall probability is 1.
+    shortfall = terminal_return_below_threshold_prob(
+        np.array([-0.02]), threshold=-0.05, periods_per_year=12
+    )
+    assert shortfall == pytest.approx(1.0)
+    assert terminal_return_below_threshold_prob(
+        np.array([0.0]), threshold=-0.05, periods_per_year=12
+    ) == pytest.approx(0.0)
+
+    one_path = np.array([0.01, -0.02, 0.015])
+    terminal = float(np.prod(1.0 + one_path) - 1.0)
+    assert cvar_terminal(one_path) == pytest.approx(terminal)
+
+    diag = monte_carlo_convergence_diagnostic(one_path, metric="monthly_CVaR", checkpoints=(1.0,))
+    assert list(diag["metric"]) == ["monthly_CVaR"]
+    assert diag["estimate"].iloc[0] == pytest.approx(cvar_monthly(one_path))
+    ann = monte_carlo_convergence_diagnostic(
+        one_path, metric="terminal_AnnReturn", checkpoints=(1.0,)
+    )
+    assert list(ann["metric"]) == ["terminal_AnnReturn"]
+
+    with pytest.raises(ValueError, match="returns must not be empty"):
+        max_cumulative_sum_drawdown(np.array([]))
+    assert max_cumulative_sum_drawdown(np.array([0.1, -0.05])) < 0.0
