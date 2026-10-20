@@ -74,7 +74,8 @@ def test_asset_library_calibration(monkeypatch):
 def test_asset_library_bundled_sample_at_real_defaults():
     from streamlit.testing.v1 import AppTest
 
-    app = AppTest.from_file("dashboard/pages/1_Asset_Library.py").run()
+    page = Path(__file__).resolve().parents[1] / "dashboard" / "pages" / "1_Asset_Library.py"
+    app = AppTest.from_file(str(page)).run()
     assert not app.exception
     sample_toggle = next(
         checkbox
@@ -124,7 +125,8 @@ def test_asset_library_insufficient_upload_guidance(monkeypatch, tmp_path):
         return fd, path
 
     monkeypatch.setattr(tempfile, "mkstemp", track_mkstemp)
-    app = AppTest.from_file("dashboard/pages/1_Asset_Library.py").run()
+    page = Path(__file__).resolve().parents[1] / "dashboard" / "pages" / "1_Asset_Library.py"
+    app = AppTest.from_file(str(page)).run()
 
     assert not app.exception
     assert not app.success
