@@ -95,19 +95,23 @@ def test_facade_normalizes_scalars_and_applies_all_run_overrides() -> None:
 def test_units_cover_annual_round_trips_and_invalid_units() -> None:
     series = pd.Series([0.01, 0.02])
 
-    assert (
-        units.convert_mean(0.01, from_unit="monthly", to_unit="annual", method="geometric") > 0.12
+    assert np.isclose(
+        units.convert_mean(0.01, from_unit="monthly", to_unit="annual", method="geometric"),
+        1.01**12 - 1,
     )
-    assert units.convert_volatility(0.02, from_unit="monthly", to_unit="annual") > 0.02
+    assert np.isclose(
+        units.convert_volatility(0.02, from_unit="monthly", to_unit="annual"),
+        0.02 * np.sqrt(12),
+    )
     assert np.allclose(
         units.convert_covariance(np.eye(2), from_unit="annual", to_unit="monthly"),
         np.eye(2) / 12,
     )
-    assert (
+    assert np.allclose(
         units.convert_return_series(
             series, from_unit="monthly", to_unit="annual", method="geometric"
-        ).iloc[0]
-        > 0.12
+        ),
+        (1.0 + series) ** 12 - 1.0,
     )
     assert units.get_config_unit() == "monthly"
     with pytest.raises(ValueError, match="unit must be"):
