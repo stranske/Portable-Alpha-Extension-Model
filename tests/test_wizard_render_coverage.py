@@ -1,4 +1,5 @@
 import runpy
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -92,6 +93,9 @@ class _FakeStreamlit:
 
     def subheader(self, value: str, *args: Any, **kwargs: Any) -> None:
         self.calls.append(("subheader", value))
+
+    def caption(self, value: str, *args: Any, **kwargs: Any) -> None:
+        self.calls.append(("caption", value))
 
     def plotly_chart(self, value: dict[str, Any], *args: Any, **kwargs: Any) -> None:
         self.calls.append(("plotly_chart", value))
@@ -256,3 +260,246 @@ def test_margin_schedule_loader_hides_invalid_schedule_errors(
 
     assert schedule is None
     assert resolved_path is None
+
+
+def test_sleeve_suggestor_ranks_frontier_and_applies_confirmed_selection(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit(
+        {
+            "Constraint Scope": "both",
+            "Show top results": 1,
+            "Select rank to apply": 2,
+            "Confirm apply selected suggestion": True,
+            "Apply suggestion": True,
+        }
+    )
+    suggestions = wizard_module["pd"].DataFrame(
+        [
+            {
+                "external_pa_capital": 10.0,
+                "active_ext_capital": 20.0,
+                "internal_pa_capital": 70.0,
+                "risk_score": 0.2,
+            },
+            {
+                "external_pa_capital": 30.0,
+                "active_ext_capital": 40.0,
+                "internal_pa_capital": 30.0,
+                "risk_score": 0.1,
+            },
+        ]
+    )
+    frontier = wizard_module["pd"].DataFrame({"tracking_error": [0.01], "return": [0.02]})
+    func_globals = wizard_module["_render_sleeve_suggestor"].__globals__
+    func_globals["st"] = fake_st
+    func_globals["frontier_viz"] = type("Frontier", (), {"make": lambda *_args, **_kwargs: "chart"})
+    fake_st.session_state["sleeve_suggestions"] = suggestions
+    fake_st.session_state["sleeve_frontier"] = frontier
+
+    config = get_default_config(AnalysisMode.RETURNS)
+    wizard_module["_render_sleeve_suggestor"](config)
+
+    # Ranking is ascending by risk score, so rank 2 is the first input row.
+    assert (config.external_pa_capital, config.active_ext_capital, config.internal_pa_capital) == (
+        10.0,
+        20.0,
+        70.0,
+    )
+    assert fake_st.session_state["sleeve_constraint_scope"] == "both"
+    assert fake_st.session_state["suggestion_applied"] is True
+    assert ("plotly_chart", "chart") in fake_st.calls
+
+
+def test_sleeve_suggestor_records_results_when_frontier_calculation_fails(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit({"Run Suggestor": True})
+    func_globals = wizard_module["_render_sleeve_suggestor"].__globals__
+    func_globals["st"] = fake_st
+    func_globals["_build_yaml_from_config"] = lambda _config: {"valid": True}
+    func_globals["load_config"] = lambda payload: payload
+    func_globals["load_index_returns"] = lambda _path: "index-returns"
+    func_globals["run_sleeve_suggestions"] = lambda *_args, **_kwargs: wizard_module[
+        "pd"
+    ].DataFrame(
+        [
+            {
+                "risk_score": 0.1,
+                "external_pa_capital": 20.0,
+                "active_ext_capital": 30.0,
+                "internal_pa_capital": 50.0,
+            }
+        ]
+    )
+    func_globals["run_sleeve_frontier"] = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+        RuntimeError("frontier unavailable")
+    )
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    wizard_module["_render_sleeve_suggestor"](config)
+
+    assert fake_st.session_state["sleeve_suggestions"].shape == (1, 4)
+    assert fake_st.session_state["sleeve_frontier"].empty
+    assert ("error", "Frontier computation failed: frontier unavailable") in fake_st.calls
+
+
+def test_sleeve_suggestor_falls_back_when_constraint_scope_is_unknown(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.session_state["sleeve_constraint_scope"] = "not-a-scope"
+    func_globals = wizard_module["_render_sleeve_suggestor"].__globals__
+    func_globals["st"] = fake_st
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    wizard_module["_render_sleeve_suggestor"](config)
+
+    assert fake_st.session_state["sleeve_constraint_scope"] == "sleeves"
+    assert config.sleeve_constraint_scope == "per_sleeve"
+
+
+def test_sleeve_suggestor_stores_frontier_when_calculation_succeeds(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit({"Run Suggestor": True})
+    frontier = wizard_module["pd"].DataFrame({"tracking_error": [0.01], "return": [0.03]})
+    suggestions = wizard_module["pd"].DataFrame(
+        [
+            {
+                "risk_score": 0.1,
+                "external_pa_capital": 20.0,
+                "active_ext_capital": 30.0,
+                "internal_pa_capital": 50.0,
+            }
+        ]
+    )
+    func_globals = wizard_module["_render_sleeve_suggestor"].__globals__
+    func_globals["st"] = fake_st
+    func_globals["_build_yaml_from_config"] = lambda _config: {"valid": True}
+    func_globals["load_config"] = lambda payload: payload
+    func_globals["load_index_returns"] = lambda _path: "index-returns"
+    func_globals["run_sleeve_suggestions"] = lambda *_args, **_kwargs: suggestions
+    func_globals["run_sleeve_frontier"] = lambda *_args, **_kwargs: frontier
+    func_globals["frontier_viz"] = type("Frontier", (), {"make": lambda *_args, **_kwargs: "chart"})
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    wizard_module["_render_sleeve_suggestor"](config)
+
+    assert fake_st.session_state["sleeve_frontier"] is frontier
+    assert ("plotly_chart", "chart") in fake_st.calls
+    assert not any(kind == "error" for kind, _text in fake_st.calls)
+
+
+def test_correlation_step_warns_for_an_indefinite_matrix(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit(
+        {
+            "Index ↔ In-House Alpha": 0.99,
+            "Index ↔ Extension Alpha": 0.99,
+            "In-House ↔ Extension Alpha": -0.99,
+        }
+    )
+    func_globals = wizard_module["_render_step_4_correlations"].__globals__
+    func_globals["st"] = fake_st
+    validated: list[Any] = []
+    func_globals["_render_validation_panel"] = validated.append
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    rendered = wizard_module["_render_step_4_correlations"](config)
+
+    assert rendered is config
+    assert validated == [config]
+    assert any(
+        kind == "warning" and "not be positive definite" in text for kind, text in fake_st.calls
+    )
+
+
+def test_correlation_step_confirms_a_valid_matrix(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit()
+    func_globals = wizard_module["_render_step_4_correlations"].__globals__
+    func_globals["st"] = fake_st
+    func_globals["_render_validation_panel"] = lambda _config: None
+    config = get_default_config(AnalysisMode.RETURNS)
+
+    rendered = wizard_module["_render_step_4_correlations"](config)
+
+    assert rendered is config
+    assert ("success", "✅ Correlation matrix is valid") in fake_st.calls
+
+
+def test_review_step_shows_financing_and_differences_before_a_disabled_run(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit()
+    config = get_default_config(AnalysisMode.RETURNS)
+    previous = deepcopy(config)
+    config.n_simulations = previous.n_simulations + 100
+    fake_st.session_state["financing_settings"] = {
+        "financing_model": "simple_proxy",
+        "reference_sigma": 0.02,
+        "volatility_multiple": 4.0,
+    }
+    fake_st.session_state["last_wizard_config"] = previous
+    func_globals = wizard_module["_render_step_5_review"].__globals__
+    func_globals["st"] = fake_st
+
+    run_simulation = wizard_module["_render_step_5_review"](config)
+
+    assert run_simulation is False
+    assert ("markdown", "**Financing & Margin:**") in fake_st.calls
+    assert ("markdown", "• **Simulations**: 1 → 101") in fake_st.calls
+    assert any(
+        kind == "success" and "Configuration is valid" in text for kind, text in fake_st.calls
+    )
+
+
+def test_review_step_shows_schedule_financing_and_matching_previous_config(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit()
+    config = get_default_config(AnalysisMode.RETURNS)
+    fake_st.session_state["financing_settings"] = {
+        "financing_model": "schedule",
+        "reference_sigma": 0.015,
+        "term_months": 3.0,
+        "schedule_path": "/tmp/margin.csv",
+    }
+    fake_st.session_state["last_wizard_config"] = deepcopy(config)
+    func_globals = wizard_module["_render_step_5_review"].__globals__
+    func_globals["st"] = fake_st
+
+    run_simulation = wizard_module["_render_step_5_review"](config)
+
+    assert run_simulation is False
+    assert any(kind == "write" and "Term (months): 3.0" in text for kind, text in fake_st.calls)
+    assert any(kind == "write" and "Schedule file: set" in text for kind, text in fake_st.calls)
+    assert ("info", "💡 Configuration matches last run") in fake_st.calls
+
+
+def test_main_keeps_wizard_available_when_uploaded_yaml_is_invalid(
+    wizard_module: dict[str, Any],
+) -> None:
+    fake_st = _FakeStreamlit()
+    fake_st.sidebar = fake_st
+    fake_st.file_uploader = lambda label, **_kwargs: (
+        type("Upload", (), {"getvalue": lambda self: b"["})()
+        if label == "Upload Scenario YAML"
+        else None
+    )
+    main_globals = wizard_module["main"].__globals__
+    main_globals["st"] = fake_st
+    main_globals["render_settings_sidebar"] = lambda: (None, "theme-path")
+    main_globals["apply_theme"] = lambda _path: None
+    main_globals["_render_config_chat_sidebar"] = lambda: None
+    main_globals["_render_progress_bar"] = lambda _step: None
+    main_globals["_render_step_1_analysis_mode"] = lambda config: config
+
+    wizard_module["main"]()
+
+    assert fake_st.session_state.wizard_step == 1
+    assert "wizard_config" in fake_st.session_state
+    assert any(kind == "error" for kind, _text in fake_st.calls)
