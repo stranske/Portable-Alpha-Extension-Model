@@ -1,8 +1,12 @@
 """Tests for the Stress Lab dashboard functionality."""
 
 import importlib.util
+import io
 from pathlib import Path
 from types import ModuleType
+
+import pandas as pd
+import pytest
 
 from pa_core.config import ModelConfig
 from pa_core.stress import apply_stress_preset
@@ -240,3 +244,260 @@ def test_config_diff_detects_all_key_differences():
     assert "param_removed" in new_diffs  # NEW LOGIC CATCHES THIS
 
     # This proves our fix addresses the original issue
+
+
+class _StressLabContainer:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return False
+
+
+class _StressLabStreamlit:
+    def __init__(
+        self,
+        *,
+        run: bool,
+        use_sample: bool,
+        uploaded_file=None,
+    ) -> None:
+        self.session_state = {}
+        self.sidebar = self
+        self.run = run
+        self.use_sample = use_sample
+        self.uploaded_file = uploaded_file
+        self.calls: list[tuple[str, str]] = []
+        self.info_messages: list[str] = []
+
+    def __getattr__(self, name: str):
+        if name in {"title", "markdown", "subheader", "dataframe"}:
+            return lambda *_args, **_kwargs: None
+        raise AttributeError(name)
+
+    def file_uploader(self, *_args, **_kwargs):
+        return self.uploaded_file
+
+    def checkbox(self, *_args, **_kwargs) -> bool:
+        return self.use_sample
+
+    def info(self, message: str) -> None:
+        self.info_messages.append(message)
+        self.calls.append(("info", message))
+
+    def number_input(self, _label: str, *, value, **_kwargs):
+        return value
+
+    def slider(self, _label: str, *, value, **_kwargs):
+        return value
+
+    def selectbox(self, _label: str, *, options, index: int, **_kwargs):
+        return options[index]
+
+    def button(self, *_args, **_kwargs) -> bool:
+        return self.run
+
+    def columns(self, count: int):
+        return tuple(_StressLabContainer() for _ in range(count))
+
+    def download_button(self, label: str, *_args, **_kwargs) -> None:
+        self.calls.append(("download", label))
+
+    def error(self, message: str) -> None:
+        self.calls.append(("error", message))
+
+
+def _patch_stress_lab_shell(
+    monkeypatch, stress_lab, fake_st, *, session_cfg=None, session_index=None
+):
+    monkeypatch.setattr(stress_lab, "st", fake_st)
+    monkeypatch.setattr(stress_lab, "render_settings_sidebar", lambda: (None, "theme.yml"))
+    monkeypatch.setattr(stress_lab, "apply_theme", lambda _path: None)
+    monkeypatch.setattr(stress_lab, "current_scenario_config", lambda _state: session_cfg)
+    monkeypatch.setattr(stress_lab, "current_index_returns", lambda _state: session_index)
+    monkeypatch.setattr(
+        stress_lab,
+        "config_capital_defaults",
+        lambda _config: {
+            "total_fund_capital": 100.0,
+            "external_pa_capital": 30.0,
+            "active_ext_capital": 30.0,
+            "internal_pa_capital": 30.0,
+        },
+    )
+
+
+def test_read_index_csv_accepts_getvalue_and_rejects_non_numeric() -> None:
+    stress_lab = load_stress_lab_module()
+
+    series = stress_lab._read_index_csv(io.BytesIO(b"date,return\n2026-01-01,0.01\n2026-02-01,\n"))
+
+    assert series.tolist() == [0.01]
+    with pytest.raises(ValueError, match="No numeric columns"):
+        stress_lab._read_index_csv(io.BytesIO(b"date,label\n2026-01-01,calm\n"))
+
+
+def test_stress_lab_main_runs_sample_flow_and_exposes_all_downloads(monkeypatch) -> None:
+    stress_lab = load_stress_lab_module()
+    fake_st = _StressLabStreamlit(run=True, use_sample=True)
+    sample_returns = pd.Series([0.01, 0.02])
+    summary = pd.DataFrame({"Agent": ["Base"], "Return": [0.01]})
+    constructor_index_series = []
+
+    class _Orchestrator:
+        def __init__(self, _config, index_series) -> None:
+            constructor_index_series.append(index_series)
+
+        def run(self, *, seed: int):
+            assert seed == 42
+            return {}, summary
+
+    _patch_stress_lab_shell(monkeypatch, stress_lab, fake_st)
+    monkeypatch.setattr(stress_lab, "load_bundled_sample_index", lambda: sample_returns)
+    monkeypatch.setattr(stress_lab, "build_sample_model_config", lambda **_kwargs: object())
+    monkeypatch.setattr(stress_lab, "apply_stress_preset", lambda config, _preset: config)
+    monkeypatch.setattr(stress_lab, "SimulatorOrchestrator", _Orchestrator)
+    monkeypatch.setattr(
+        stress_lab, "build_constraint_report", lambda *_args, **_kwargs: pd.DataFrame()
+    )
+    monkeypatch.setattr(
+        stress_lab, "build_delta_table", lambda *_args: pd.DataFrame({"delta": [0.0]})
+    )
+    monkeypatch.setattr(stress_lab, "format_delta_table", lambda frame: frame)
+    monkeypatch.setattr(stress_lab, "build_stress_workbook", lambda *_args: b"workbook")
+    monkeypatch.setattr(stress_lab, "_config_diff", lambda *_args: pd.DataFrame())
+
+    stress_lab.main()
+
+    assert [label for kind, label in fake_st.calls if kind == "download"] == [
+        "Download deltas as CSV",
+        "Download config diff",
+        "Download stress results (Excel)",
+    ]
+    assert constructor_index_series == [sample_returns, sample_returns]
+    assert all(index_series is sample_returns for index_series in constructor_index_series)
+    assert "No base constraint breaches." in fake_st.info_messages
+    assert "No stressed constraint breaches." in fake_st.info_messages
+
+
+def test_stress_lab_main_explains_missing_input(monkeypatch) -> None:
+    stress_lab = load_stress_lab_module()
+    fake_st = _StressLabStreamlit(run=False, use_sample=False)
+    _patch_stress_lab_shell(monkeypatch, stress_lab, fake_st)
+
+    stress_lab.main()
+
+    assert fake_st.calls == [
+        (
+            "info",
+            "Upload an index CSV, tick 'Use bundled sample data', or run a scenario first to simulate.",
+        )
+    ]
+
+
+def test_stress_lab_main_parses_uploaded_csv_and_shows_constraint_deltas(monkeypatch) -> None:
+    """CSV upload path, non-empty constraint tables, and empty delta messaging."""
+    stress_lab = load_stress_lab_module()
+    uploaded = io.BytesIO(b"date,return\n2026-01-01,0.01\n2026-02-01,0.02\n")
+    fake_st = _StressLabStreamlit(run=True, use_sample=False, uploaded_file=uploaded)
+    summary = pd.DataFrame({"Agent": ["Base"], "Return": [0.01]})
+    constraint_rows = pd.DataFrame({"metric": ["TE"], "breached": [True]})
+    config_overrides: list[dict] = []
+    used_index: list[pd.Series] = []
+
+    class _Orchestrator:
+        def __init__(self, _config, index_series) -> None:
+            used_index.append(index_series)
+
+        def run(self, *, seed: int):
+            return {}, summary
+
+    class _SessionCfg:
+        N_SIMULATIONS = 500
+        N_MONTHS = 6
+        theta_extpa = 0.4
+        active_share = 0.6
+        financing_mode = "broadcast"
+
+    _patch_stress_lab_shell(monkeypatch, stress_lab, fake_st, session_cfg=_SessionCfg())
+    monkeypatch.setattr(
+        stress_lab,
+        "build_sample_model_config",
+        lambda **kwargs: config_overrides.append(kwargs) or object(),
+    )
+    monkeypatch.setattr(stress_lab, "apply_stress_preset", lambda config, _preset: config)
+    monkeypatch.setattr(stress_lab, "SimulatorOrchestrator", _Orchestrator)
+    monkeypatch.setattr(
+        stress_lab, "build_constraint_report", lambda *_args, **_kwargs: constraint_rows
+    )
+    monkeypatch.setattr(stress_lab, "build_delta_table", lambda *_args: pd.DataFrame())
+    monkeypatch.setattr(stress_lab, "format_delta_table", lambda frame: frame)
+    monkeypatch.setattr(stress_lab, "build_stress_workbook", lambda *_args: b"workbook")
+    monkeypatch.setattr(stress_lab, "_config_diff", lambda *_args: pd.DataFrame())
+
+    stress_lab.main()
+
+    assert len(used_index) == 2
+    assert used_index[0].tolist() == [0.01, 0.02]
+    assert used_index[1].tolist() == [0.01, 0.02]
+    assert config_overrides
+    expected = {
+        "Number of simulations": 500,
+        "Number of months": 6,
+        "External PA alpha fraction": 0.4,
+        "Active share": 0.6,
+        "financing_mode": "broadcast",
+    }
+    assert {key: config_overrides[0][key] for key in expected} == expected
+    assert "No shared numeric metrics to compare." in fake_st.info_messages
+    assert [label for kind, label in fake_st.calls if kind == "download"] == [
+        "Download deltas as CSV",
+        "Download config diff",
+        "Download stress results (Excel)",
+    ]
+
+
+def test_stress_lab_main_uses_session_index_when_no_upload(monkeypatch) -> None:
+    stress_lab = load_stress_lab_module()
+    fake_st = _StressLabStreamlit(run=True, use_sample=False)
+    session_returns = pd.Series([0.03, -0.01])
+    used_index: list[pd.Series] = []
+
+    class _Orchestrator:
+        def __init__(self, _config, index_series) -> None:
+            used_index.append(index_series)
+
+        def run(self, *, seed: int):
+            return {}, pd.DataFrame({"Agent": ["Base"], "Return": [0.01]})
+
+    _patch_stress_lab_shell(monkeypatch, stress_lab, fake_st, session_index=session_returns)
+    monkeypatch.setattr(stress_lab, "build_sample_model_config", lambda **_kwargs: object())
+    monkeypatch.setattr(stress_lab, "apply_stress_preset", lambda config, _preset: config)
+    monkeypatch.setattr(stress_lab, "SimulatorOrchestrator", _Orchestrator)
+    monkeypatch.setattr(
+        stress_lab, "build_constraint_report", lambda *_args, **_kwargs: pd.DataFrame()
+    )
+    monkeypatch.setattr(
+        stress_lab, "build_delta_table", lambda *_args: pd.DataFrame({"delta": [0.1]})
+    )
+    monkeypatch.setattr(stress_lab, "format_delta_table", lambda frame: frame)
+    monkeypatch.setattr(stress_lab, "build_stress_workbook", lambda *_args: b"workbook")
+    monkeypatch.setattr(stress_lab, "_config_diff", lambda *_args: pd.DataFrame())
+
+    stress_lab.main()
+
+    assert used_index == [session_returns, session_returns]
+
+
+def test_stress_lab_main_errors_when_index_resolves_to_none(monkeypatch) -> None:
+    stress_lab = load_stress_lab_module()
+    # use_sample True avoids the early return, but load returns None to hit the ValueError.
+    fake_st = _StressLabStreamlit(run=True, use_sample=True)
+    _patch_stress_lab_shell(monkeypatch, stress_lab, fake_st)
+    monkeypatch.setattr(stress_lab, "load_bundled_sample_index", lambda: None)
+
+    stress_lab.main()
+
+    assert any(
+        kind == "error" and "Provide an index CSV" in message for kind, message in fake_st.calls
+    )
