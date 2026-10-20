@@ -129,3 +129,33 @@ def test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_clie
         assert socket_connect_guard[0] == []
     finally:
         st.session_state.clear()
+
+
+def test_audit_reproduces_config_chat_unscoped_override_without_network(
+    monkeypatch, socket_connect_guard
+):
+    """Characterize the reported, unfixed gap; do not declare provider isolation."""
+    import sys
+    from types import SimpleNamespace
+    from dashboard.components import llm_settings
+
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=object)
+    )
+    monkeypatch.setattr(llm_settings, "read_secret", lambda name: None)
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        captured = []
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = (
+            lambda config: captured.append(config)
+        )
+        st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-audit-openai"
+        for provider in ("openai", "anthropic"):
+            st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = provider
+            module["_build_config_chat_llm_invoke"]()
+        assert [c.provider_name for c in captured] == ["openai", "anthropic"]
+        assert [c.credentials["api_key"] for c in captured] == ["synthetic-audit-openai"] * 2
+        assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()
