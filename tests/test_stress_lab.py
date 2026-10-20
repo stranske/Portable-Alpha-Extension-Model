@@ -439,7 +439,16 @@ def test_stress_lab_main_parses_uploaded_csv_and_shows_constraint_deltas(monkeyp
 
     assert len(used_index) == 2
     assert used_index[0].tolist() == [0.01, 0.02]
-    assert config_overrides and config_overrides[0]["financing_mode"] == "broadcast"
+    assert used_index[1].tolist() == [0.01, 0.02]
+    assert config_overrides
+    expected = {
+        "Number of simulations": 500,
+        "Number of months": 6,
+        "External PA alpha fraction": 0.4,
+        "Active share": 0.6,
+        "financing_mode": "broadcast",
+    }
+    assert {key: config_overrides[0][key] for key in expected} == expected
     assert "No shared numeric metrics to compare." in fake_st.info_messages
     assert [label for kind, label in fake_st.calls if kind == "download"] == [
         "Download deltas as CSV",
