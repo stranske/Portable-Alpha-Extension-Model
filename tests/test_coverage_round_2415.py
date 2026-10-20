@@ -76,6 +76,7 @@ def test_excel_normalizes_and_serializes_nested_agent_semantics() -> None:
     result = _ensure_agent_semantics_df(inputs)
     assert result is not None
     assert inputs["_agent_semantics_df"] == [{"Agent": "A", "Weight": 1.0}]
+    assert type(inputs["_agent_semantics_df"][0]["Weight"]) is float
 
     frame_inputs = {
         "_agent_semantics_df": pd.DataFrame({"Agent": ["F"], "Weight": [np.float64(4)]})
