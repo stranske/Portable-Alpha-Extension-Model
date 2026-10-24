@@ -123,8 +123,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="pa")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("describe", help="Emit the static tool descriptor as JSON")
-    sub.add_parser("run", help="Run simulation")
-    sub.add_parser("validate", help="Validate scenario YAML")
+    # Leave help parsing to each canonical command, alongside its real flags.
+    sub.add_parser("run", help="Run simulation", add_help=False)
+    sub.add_parser("validate", help="Validate scenario YAML", add_help=False)
     sweep_parser = sub.add_parser("sweep", help="Run parameter sweep from sweep configuration")
     sweep_parser.add_argument("--config", required=True, help="Sweep YAML configuration")
     sweep_parser.add_argument("--index", help="Index returns CSV (optional if set in config)")
@@ -279,11 +280,11 @@ def main(argv: Sequence[str] | None = None) -> None:
     elif args.command == "run":
         from .cli import main as run_main
 
-        run_main(list(remaining), emit_deprecation_warning=False)
+        run_main(list(remaining) or ["--help"], emit_deprecation_warning=False)
     elif args.command == "validate":
         from .validate import main as validate_main
 
-        validate_main(list(remaining))
+        validate_main(list(remaining) or ["--help"])
     elif args.command == "sweep":
         from .backend import get_backend, resolve_and_set_backend
         from .config import load_config
