@@ -115,7 +115,7 @@ jobs:
       }}
     uses: stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main
     with:
-      python-versions: '["3.12"]' # Single version, no multi-platform
+      python-versions: '["3.14"]' # Single version, no multi-platform
       typecheck: true
       # RESET 86 -> 84 on 2026-10-16 because the MEASURE changed, not because coverage fell
       # and not to make a run pass (owner decision 2026-10-16: count product code only).
