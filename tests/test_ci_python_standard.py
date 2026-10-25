@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
 WORKFLOWS = Path(__file__).resolve().parents[1] / ".github" / "workflows"
@@ -20,16 +21,22 @@ RUNTIME_KEYS = {
 }
 
 
-def _runtime_pins(node: Any, location: str) -> Iterator[tuple[str, Any]]:
+def _runtime_pins(
+    node: Any, location: str, *, in_matrix: bool = False
+) -> Iterator[tuple[str, Any]]:
     if isinstance(node, dict):
         for key, value in node.items():
             path = f"{location}.{key}"
-            if key in RUNTIME_KEYS:
+            if key in RUNTIME_KEYS or (in_matrix and key == "python"):
                 yield path, value
-            yield from _runtime_pins(value, path)
+            yield from _runtime_pins(
+                value,
+                path,
+                in_matrix=in_matrix or (key == "matrix" and location.endswith(".strategy")),
+            )
     elif isinstance(node, list):
         for index, value in enumerate(node):
-            yield from _runtime_pins(value, f"{location}[{index}]")
+            yield from _runtime_pins(value, f"{location}[{index}]", in_matrix=in_matrix)
 
 
 def _contains_old_runtime(value: Any) -> bool:
@@ -64,3 +71,31 @@ def test_workflow_python_pins_follow_standard() -> None:
         config = workflows[filename]["jobs"][job]
         assert json.loads(config["with"]["python-versions"]) == ["3.14"]
         assert not config.get("continue-on-error", False)
+
+
+@pytest.mark.parametrize(
+    "matrix",
+    [
+        {"python": ["3.12"]},
+        {"python": ["3.12.9", "3.14"]},
+        {"include": [{"python": "3.12", "os": "ubuntu-latest"}]},
+    ],
+)
+def test_named_python_matrix_cannot_hide_old_runtime(matrix: dict[str, Any]) -> None:
+    workflow = {
+        "jobs": {
+            "test": {
+                "strategy": {"matrix": matrix},
+                "steps": [{"with": {"python-version": "${{ matrix.python }}"}}],
+            }
+        }
+    }
+    offenders = [
+        path for path, value in _runtime_pins(workflow, "ci.yml") if _contains_old_runtime(value)
+    ]
+    assert len(offenders) == 1
+    assert ".strategy.matrix." in offenders[0]
+
+
+def test_unrelated_python_metadata_is_not_a_runtime_pin() -> None:
+    assert list(_runtime_pins({"metadata": {"python": "3.12"}}, "ci.yml")) == []
