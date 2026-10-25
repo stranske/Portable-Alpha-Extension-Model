@@ -6,7 +6,7 @@
 # - Type check (mypy)
 # - Tests (pytest) with coverage
 #
-# NOTE: PAEM uses single Python version (3.12) on Linux only
+# NOTE: PAEM uses single Python version (3.14) on Linux only
 # Multi-platform matrix dropped per transition decision 2025-12-29
 #
 # IMPORTANT: This workflow runs on push to main ONLY.
