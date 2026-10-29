@@ -1,7 +1,11 @@
+import inspect
+import sys
 import zipfile
 from pathlib import Path
 
 from scripts.make_portable_zip import (
+    DEFAULT_EMBEDDED_PYTHON,
+    build_windows_portable_zip,
     create_filtered_zip,
     get_default_excludes,
     should_exclude_path,
@@ -56,3 +60,29 @@ def test_create_filtered_zip_includes_and_excludes(tmp_path: Path) -> None:
     assert ".git/" not in names
     assert "build/lib/stale.py" not in names
     assert "scratch.log" not in names
+
+
+def test_embedded_python_default_meets_the_supported_floor() -> None:
+    major, minor, *_ = (int(part) for part in DEFAULT_EMBEDDED_PYTHON.split("."))
+    assert (major, minor) >= (3, 13)
+
+
+def test_build_function_defaults_to_the_embedded_python_constant() -> None:
+    parameter = inspect.signature(build_windows_portable_zip).parameters["python_version"]
+    assert parameter.default == DEFAULT_EMBEDDED_PYTHON
+
+
+def test_cli_defaults_to_the_embedded_python_constant(monkeypatch, tmp_path: Path) -> None:
+    import scripts.make_portable_zip as module
+
+    seen = {}
+
+    def fake_build(root, output_path, *, python_version, verbose):
+        seen["python_version"] = python_version
+
+    monkeypatch.setattr(module, "build_windows_portable_zip", fake_build)
+    monkeypatch.setattr(
+        sys, "argv", ["pa-make-zip", "--with-python", "--output", str(tmp_path / "out.zip")]
+    )
+    assert module.main() == 0
+    assert seen == {"python_version": DEFAULT_EMBEDDED_PYTHON}

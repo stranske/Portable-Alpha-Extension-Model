@@ -16,6 +16,9 @@ import zipfile
 from pathlib import Path
 from typing import Set
 
+# Owner standard (2026-10-28): Python 3.14 first, 3.13 backup; never 3.12. Embeddable CPython shipped to users.
+DEFAULT_EMBEDDED_PYTHON = "3.14.10"
+
 
 def get_default_excludes() -> Set[str]:
     """Return patterns to exclude from the portable archive."""
@@ -207,7 +210,7 @@ def build_windows_portable_zip(
     project_root: Path,
     output_path: Path,
     *,
-    python_version: str = "3.12.11",
+    python_version: str = DEFAULT_EMBEDDED_PYTHON,
     verbose: bool = False,
 ) -> None:  # pragma: no cover - platform/network
     """Build a Windows portable zip including embeddable Python and deps.
@@ -331,7 +334,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--python-version",
-        default="3.12.11",
+        default=DEFAULT_EMBEDDED_PYTHON,
         help="Python version for embeddable runtime (Windows only)",
     )
     args = parser.parse_args()

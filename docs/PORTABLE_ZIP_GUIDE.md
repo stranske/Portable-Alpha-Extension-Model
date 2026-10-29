@@ -18,7 +18,7 @@ python scripts/make_portable_zip.py --verbose
 python scripts/make_portable_zip.py --exclude-pattern "*.log" --exclude-pattern "temp_*"
 
 # Windows only: include embeddable Python and create .bat launchers
-pa-make-zip --with-python --python-version 3.12.11 --output portable_windows.zip
+pa-make-zip --with-python --python-version 3.14.10 --output portable_windows.zip
 ```
 
 ## What Gets Included
