@@ -7,7 +7,7 @@ This project can generate a self-contained Windows zip that runs without a prior
 - Source-only archive (any OS):
   - pa-make-zip --output portable_windows.zip
 - Windows portable with embeddable Python:
-  - pa-make-zip --with-python --python-version 3.14.3 --output portable_windows.zip
+  - pa-make-zip --with-python --python-version 3.14.10 --output portable_windows.zip
 
 ## Contents (Windows portable)
 - python/ (CPython embeddable runtime)

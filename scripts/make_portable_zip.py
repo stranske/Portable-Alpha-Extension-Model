@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Set
 
 # Owner standard (2026-10-28): Python 3.14 first, 3.13 backup; never 3.12. Embeddable CPython shipped to users.
-DEFAULT_EMBEDDED_PYTHON = "3.14.3"
+DEFAULT_EMBEDDED_PYTHON = "3.14.10"
 
 
 def get_default_excludes() -> Set[str]:
