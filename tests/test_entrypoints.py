@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-try:  # Python 3.11+
-    import tomllib
-except ModuleNotFoundError:  # pragma: no cover - fallback for <3.11
-    import tomli as tomllib
 import os
 import subprocess
+import tomllib
 import venv
 from importlib import import_module
 from importlib.metadata import PackageNotFoundError, distribution
