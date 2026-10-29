@@ -401,7 +401,7 @@ multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-mypy==2.4.0
+mypy==2.4.1
     # via portable-alpha-extension-model (pyproject.toml)
 mypy-extensions==1.1.0
     # via
@@ -580,7 +580,7 @@ pypdf==6.14.2
     # via portable-alpha-extension-model (pyproject.toml)
 pyproject-hooks==1.2.0
     # via build
-pytest==9.1.1
+pytest==9.2.0
     # via
     #   portable-alpha-extension-model (pyproject.toml)
     #   app-baseline-kit
