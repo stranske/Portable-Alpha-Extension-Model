@@ -2,6 +2,7 @@ import zipfile
 from pathlib import Path
 
 from scripts.make_portable_zip import (
+    DEFAULT_EMBEDDED_PYTHON,
     create_filtered_zip,
     get_default_excludes,
     should_exclude_path,
@@ -56,3 +57,8 @@ def test_create_filtered_zip_includes_and_excludes(tmp_path: Path) -> None:
     assert ".git/" not in names
     assert "build/lib/stale.py" not in names
     assert "scratch.log" not in names
+
+
+def test_embedded_python_default_meets_the_supported_floor() -> None:
+    major, minor, *_ = (int(part) for part in DEFAULT_EMBEDDED_PYTHON.split("."))
+    assert (major, minor) >= (3, 13)
