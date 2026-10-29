@@ -179,7 +179,7 @@ Create a portable Windows archive of the project:
 ```bash
 pa-make-zip --output portable_windows.zip
 # Windows: include the embeddable Python runtime and launchers
-pa-make-zip --with-python --python-version 3.12.11 --output portable_windows.zip
+pa-make-zip --with-python --python-version 3.14.3 --output portable_windows.zip
 # or using Make
 make portable-zip
 ```
