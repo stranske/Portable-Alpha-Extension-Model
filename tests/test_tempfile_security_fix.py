@@ -16,73 +16,63 @@ from pa_core.data import load_index_returns
 from pa_core.pa import _convert_csv_to_yaml
 
 
-def test_load_index_returns_leaves_no_temp_files():
+def test_load_index_returns_leaves_no_temp_files(monkeypatch):
     """Test that load_index_returns doesn't leave temporary files behind."""
-    # Get the temp directory before the test
-    temp_dir = tempfile.gettempdir()
-    temp_files_before = set(os.listdir(temp_dir))
+    # Isolate from shared system temp to avoid races with parallel xdist workers
+    with tempfile.TemporaryDirectory() as isolated_temp_dir:
+        monkeypatch.setenv("TMPDIR", isolated_temp_dir)
+        monkeypatch.setenv("TEMP", isolated_temp_dir)
+        monkeypatch.setenv("TMP", isolated_temp_dir)
+        tempfile.tempdir = None  # force re-resolution of gettempdir()
 
-    # Create a simple CSV file and test loading
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
-        f.write("Date,Monthly_TR\n")
-        f.write("2020-01-01,0.01\n")
-        f.write("2020-02-01,0.02\n")
-        f.write("2020-03-01,0.03\n")
-        csv_path = f.name
+        csv_path = os.path.join(isolated_temp_dir, "test_input.csv")
+        with open(csv_path, "w", encoding="utf-8") as f:
+            f.write("Date,Monthly_TR\n")
+            f.write("2020-01-01,0.01\n")
+            f.write("2020-02-01,0.02\n")
+            f.write("2020-03-01,0.03\n")
 
-    try:
-        # This function should not create any persistent temp files
         series = load_index_returns(csv_path)
         assert isinstance(series, pd.Series)
-    finally:
-        os.remove(csv_path)
 
-    # Check that no new temporary files were created
-    temp_files_after = set(os.listdir(temp_dir))
-    new_files = temp_files_after - temp_files_before
+        remaining_files = os.listdir(isolated_temp_dir)
+        suspicious_files = [
+            f
+            for f in remaining_files
+            if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
+        ]
 
-    # Filter out files that might be created by other processes
-    # We only care about files that look like our temp files
-    suspicious_files = [
-        f for f in new_files if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
-    ]
-
-    assert len(suspicious_files) == 0, f"Temporary files left behind: {suspicious_files}"
+        assert len(suspicious_files) == 0, f"Temporary files left behind: {suspicious_files}"
 
 
-def test_csv_to_yaml_conversion_leaves_no_temp_files():
+def test_csv_to_yaml_conversion_leaves_no_temp_files(monkeypatch):
     """Test that CSV to YAML conversion doesn't leave temporary files behind."""
-    temp_dir = tempfile.gettempdir()
-    temp_files_before = set(os.listdir(temp_dir))
+    # Isolate from shared system temp to avoid races with parallel xdist workers
+    with tempfile.TemporaryDirectory() as isolated_temp_dir:
+        monkeypatch.setenv("TMPDIR", isolated_temp_dir)
+        monkeypatch.setenv("TEMP", isolated_temp_dir)
+        monkeypatch.setenv("TMP", isolated_temp_dir)
+        tempfile.tempdir = None  # force re-resolution of gettempdir()
 
-    # Test the CSV to YAML conversion function
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as csv_f:
-        csv_f.write("Parameter,Value\n")
-        csv_f.write("Analysis mode,returns\n")
-        csv_f.write("Number of simulations,100\n")
-        csv_path = csv_f.name
+        csv_path = os.path.join(isolated_temp_dir, "params.csv")
+        yaml_path = os.path.join(isolated_temp_dir, "params.yml")
 
-    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".yml") as yaml_f:
-        yaml_path = yaml_f.name
+        with open(csv_path, "w", encoding="utf-8") as csv_f:
+            csv_f.write("Parameter,Value\n")
+            csv_f.write("Analysis mode,returns\n")
+            csv_f.write("Number of simulations,100\n")
 
-    try:
-        # This should not create any persistent temp files
         _convert_csv_to_yaml(csv_path, yaml_path)
         assert Path(yaml_path).exists()
-    finally:
-        os.remove(csv_path)
-        os.remove(yaml_path)
 
-    # Check that no new temporary files were created
-    temp_files_after = set(os.listdir(temp_dir))
-    new_files = temp_files_after - temp_files_before
+        remaining_files = os.listdir(isolated_temp_dir)
+        suspicious_files = [
+            f
+            for f in remaining_files
+            if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
+        ]
 
-    # Filter out files that might be created by other processes
-    suspicious_files = [
-        f for f in new_files if f.startswith("tmp") and (".csv" in f or ".yml" in f or ".yaml" in f)
-    ]
-
-    assert len(suspicious_files) == 0, f"Temporary files left behind: {suspicious_files}"
+        assert len(suspicious_files) == 0, f"Temporary files left behind: {suspicious_files}"
 
 
 def test_temp_files_auto_cleanup_on_exception():
