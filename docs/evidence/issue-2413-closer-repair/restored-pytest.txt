@@ -1,0 +1,3 @@
+$ /Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python -m pytest tests/test_coverage_round_2413.py -q
+.......................                                                  [100%]
+23 passed in 1.12s

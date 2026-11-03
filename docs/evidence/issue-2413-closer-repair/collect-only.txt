@@ -1,0 +1,26 @@
+$ /Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python -m pytest tests/test_coverage_round_2413.py --collect-only -q
+tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[1]
+tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[2]
+tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[3]
+tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[4]
+tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[5]
+tests/test_coverage_round_2413.py::test_main_cold_start_initializes_and_routes_to_step_1
+tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[0]
+tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[6]
+tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[99]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[1-\u27a1\ufe0f Next: Capital Allocation-2]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[2-\u2b05\ufe0f Back: Analysis Mode-1]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[2-\u27a1\ufe0f Next: Return & Risk-3]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[3-\u2b05\ufe0f Back: Capital Allocation-2]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[3-\u27a1\ufe0f Next: Correlations-4]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[4-\u2b05\ufe0f Back: Return & Risk-3]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[4-\u27a1\ufe0f Next: Review & Run-5]
+tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[5-\u2b05\ufe0f Back: Correlations-4]
+tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[2]
+tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[3]
+tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[4]
+tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[5]
+tests/test_coverage_round_2413.py::test_main_step_5_run_gate_opens_index_upload_without_executing
+tests/test_coverage_round_2413.py::test_main_step_5_run_gate_stops_when_loaded_config_is_invalid
+
+23 tests collected in 0.18s
