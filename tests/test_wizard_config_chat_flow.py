@@ -176,6 +176,58 @@ def test_config_chat_provider_scoped_credentials_with_fake_client_captures(
         st.session_state.clear()
 
 
+def test_config_chat_openai_anthropic_azure_switch_uses_scoped_keys_and_env_endpoint(
+    monkeypatch, socket_connect_guard
+):
+    """OpenAI -> Anthropic -> Azure must not reuse the previous provider's key."""
+    import sys
+    from types import SimpleNamespace
+
+    from dashboard.components import llm_settings
+
+    env = {
+        "PA_LLM_BASE_URL": "https://example.openai.azure.com",
+        "PA_LLM_API_VERSION": "2025-01-01",
+    }
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=object)
+    )
+    monkeypatch.setattr(llm_settings, "read_secret", env.get)
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        captured = []
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = (
+            lambda config: captured.append(config)
+        )
+
+        base = module["_CONFIG_CHAT_API_KEY_KEY"]
+        st.session_state[f"{base}::openai"] = "synthetic-openai-key"
+        st.session_state[f"{base}::anthropic"] = "synthetic-anthropic-key"
+        st.session_state[f"{base}::azure_openai"] = "synthetic-azure-key"
+
+        for provider in ("openai", "anthropic", "azure_openai"):
+            st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = provider
+            module["_build_config_chat_llm_invoke"]()
+
+        assert [c.provider_name for c in captured] == [
+            "openai",
+            "anthropic",
+            "azure_openai",
+        ]
+        assert [c.credentials["api_key"] for c in captured] == [
+            "synthetic-openai-key",
+            "synthetic-anthropic-key",
+            "synthetic-azure-key",
+        ]
+        azure_config = captured[-1]
+        assert azure_config.credentials["azure_endpoint"] == env["PA_LLM_BASE_URL"]
+        assert azure_config.credentials["api_version"] == env["PA_LLM_API_VERSION"]
+        assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()
+
+
 def test_config_chat_missing_destination_key_constructs_zero_clients(
     monkeypatch, socket_connect_guard
 ):
