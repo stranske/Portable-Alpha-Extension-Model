@@ -1,0 +1,124 @@
+{
+  "wizard_sha256": "5ba0c81b79b74f8128ac57346918fa7bbbc15b58e7fcf202d3e875ecea1cde98",
+  "results": [
+    {
+      "node": "test_progress_bar_marks_completed_current_and_future_steps",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E        +  where [('markdown', '### \ud83d\udccb Scenario Configuration Wizard'), ('progress', 0.4), ('success', '\u2705 1. Analysis Mode'), ('success', '\ud83d\udccd 2. Capital Allocation'), ('write', '\u2b55 3. Return & Risk'), ('write', '\u2b55 4. Correlations'), ...] = <test_wizard_render_coverage._FakeStreamlit object at 0x119e8e660>.calls\n\ntests/test_wizard_render_coverage.py:129: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:28.956 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_progress_bar_marks_completed_current_and_future_steps\n1 failed in 1.84s",
+      "green_tail": "1 passed in 0.93s"
+    },
+    {
+      "node": "test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E        +  where False = any(<generator object test_capital_step_reports_allocation_status_and_balanced_chart.<locals>.<genexpr> at 0x11c3a6b20>)\n\ntests/test_wizard_render_coverage.py:166: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:32.193 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]\n1 failed in 0.96s",
+      "green_tail": "1 passed in 0.87s"
+    },
+    {
+      "node": "test_capital_step_reports_allocation_status_and_balanced_chart[60.0-success]",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E           StopIteration\n\ntests/test_wizard_render_coverage.py:170: StopIteration\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:35.326 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_capital_step_reports_allocation_status_and_balanced_chart[60.0-success]\n1 failed in 0.95s",
+      "green_tail": "1 passed in 0.94s"
+    },
+    {
+      "node": "test_capital_step_handles_uploaded_and_persisted_margin_schedules[True]",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E            +  where [('subheader', 'Step 2: Capital Allocation'), ('markdown', '**Fund Capital ($ millions):**'), ('markdown', '**Portfoli...fter margin: $35.0M (3.5%) after $5.0M estimated margin'), ('success', '\u2705 Capital allocation balanced: $1000.0M'), ...] = <test_wizard_render_coverage._FakeStreamlit object at 0x119bc9fd0>.calls\n\ntests/test_wizard_render_coverage.py:223: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:38.763 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_capital_step_handles_uploaded_and_persisted_margin_schedules[True]\n1 failed in 1.05s",
+      "green_tail": "1 passed in 1.36s"
+    },
+    {
+      "node": "test_capital_step_handles_uploaded_and_persisted_margin_schedules[False]",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E            +  where False = any(<generator object test_capital_step_handles_uploaded_and_persisted_margin_schedules.<locals>.<genexpr> at 0x11caac820>)\n\ntests/test_wizard_render_coverage.py:225: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:42.683 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_capital_step_handles_uploaded_and_persisted_margin_schedules[False]\n1 failed in 1.15s",
+      "green_tail": "1 passed in 0.88s"
+    },
+    {
+      "node": "test_sleeve_suggestor_explains_missing_or_empty_results[None]",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E            +  where True = any(<generator object test_sleeve_suggestor_explains_missing_or_empty_results.<locals>.<genexpr> at 0x11a7aab20>)\n\ntests/test_wizard_render_coverage.py:241: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:45.895 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_explains_missing_or_empty_results[None]\n1 failed in 1.02s",
+      "green_tail": "1 passed in 0.81s"
+    },
+    {
+      "node": "test_sleeve_suggestor_explains_missing_or_empty_results[empty]",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E            +  where [('subheader', 'Sleeve Suggestor'), ('markdown', 'Provide risk constraints and generate ranked sleeve allocations.'), ...5.00% | Max Shortfall: 5.00% | Scope: Total portfolio constraints'), ('info', 'No feasible sleeve allocations found.')] = <test_wizard_render_coverage._FakeStreamlit object at 0x11a3a2120>.calls\n\ntests/test_wizard_render_coverage.py:248: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:48.884 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_explains_missing_or_empty_results[empty]\n1 failed in 0.88s",
+      "green_tail": "1 passed in 0.86s"
+    },
+    {
+      "node": "test_margin_schedule_loader_hides_invalid_schedule_errors",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E       assert    x\\n0  1 is None\n\ntests/test_wizard_render_coverage.py:261: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:52.027 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_margin_schedule_loader_hides_invalid_schedule_errors\n1 failed in 1.03s",
+      "green_tail": "1 passed in 0.92s"
+    },
+    {
+      "node": "test_sleeve_suggestor_ranks_frontier_and_applies_confirmed_selection",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E         Use -v to get more diff\n\ntests/test_wizard_render_coverage.py:304: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:55.333 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_ranks_frontier_and_applies_confirmed_selection\n1 failed in 1.10s",
+      "green_tail": "1 passed in 0.96s"
+    },
+    {
+      "node": "test_sleeve_suggestor_records_results_when_frontier_calculation_fails",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E        +  where False =    x\\n0  1.empty\n\ntests/test_wizard_render_coverage.py:343: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:41:58.680 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_records_results_when_frontier_calculation_fails\n1 failed in 1.01s",
+      "green_tail": "1 passed in 0.98s"
+    },
+    {
+      "node": "test_sleeve_suggestor_falls_back_when_constraint_scope_is_unknown",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E         + total\n\ntests/test_wizard_render_coverage.py:358: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:42:01.975 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_falls_back_when_constraint_scope_is_unknown\n1 failed in 0.99s",
+      "green_tail": "1 passed in 0.88s"
+    },
+    {
+      "node": "test_sleeve_suggestor_stores_frontier_when_calculation_succeeds",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E       assert Empty DataFrame\\nColumns: []\\nIndex: [] is    tracking_error  return\\n0            0.01    0.03\n\ntests/test_wizard_render_coverage.py:389: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:42:05.208 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_stores_frontier_when_calculation_succeeds\n1 failed in 0.97s",
+      "green_tail": "1 passed in 0.77s"
+    },
+    {
+      "node": "test_correlation_step_warns_for_an_indefinite_matrix",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E        +  where False = any(<generator object test_correlation_step_warns_for_an_indefinite_matrix.<locals>.<genexpr> at 0x11aae0580>)\n\ntests/test_wizard_render_coverage.py:414: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:42:08.046 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_correlation_step_warns_for_an_indefinite_matrix\n1 failed in 0.91s",
+      "green_tail": "1 passed in 1.00s"
+    },
+    {
+      "node": "test_correlation_step_confirms_a_valid_matrix",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E        +  where [('subheader', 'Step 4: Correlation Parameters'), ('markdown', '*Set correlations between different alpha sources and ...   0.1\\nExtension     0.00      0.10        1.0          0.0\\nExternal PA   0.00      0.10        0.0          1.0), ...] = <test_wizard_render_coverage._FakeStreamlit object at 0x119bb67b0>.calls\n\ntests/test_wizard_render_coverage.py:431: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:42:11.280 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_correlation_step_confirms_a_valid_matrix\n1 failed in 0.96s",
+      "green_tail": "1 passed in 0.93s"
+    },
+    {
+      "node": "test_review_step_shows_financing_and_differences_before_a_disabled_run",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "tests/test_wizard_render_coverage.py::test_review_step_shows_financing_and_differences_before_a_disabled_run\n  /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2360__opener/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.\n    data = transform(data)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_review_step_shows_financing_and_differences_before_a_disabled_run\n1 failed, 1 warning in 0.90s",
+      "green_tail": "1 passed, 1 warning in 0.81s"
+    },
+    {
+      "node": "test_review_step_shows_schedule_financing_and_matching_previous_config",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "tests/test_wizard_render_coverage.py::test_review_step_shows_schedule_financing_and_matching_previous_config\n  /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2360__opener/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.\n    data = transform(data)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_review_step_shows_schedule_financing_and_matching_previous_config\n1 failed, 1 warning in 0.89s",
+      "green_tail": "1 passed, 1 warning in 0.84s"
+    },
+    {
+      "node": "test_main_keeps_wizard_available_when_uploaded_yaml_is_invalid",
+      "red_exit": 1,
+      "green_exit": 0,
+      "red_tail": "E        +  where False = any(<generator object test_main_keeps_wizard_available_when_uploaded_yaml_is_invalid.<locals>.<genexpr> at 0x11cefadc0>)\n\ntests/test_wizard_render_coverage.py:505: AssertionError\n---------------------------- Captured stderr setup -----------------------------\n2026-11-02 22:42:20.284 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager\n=========================== short test summary info ============================\nFAILED tests/test_wizard_render_coverage.py::test_main_keeps_wizard_available_when_uploaded_yaml_is_invalid\n1 failed in 0.92s",
+      "green_tail": "1 passed in 0.87s"
+    }
+  ]
+}
