@@ -29,6 +29,19 @@ Existing PR #2416 proof records and all partial-coverage disclosures are retaine
 Target before/after uncovered-unit figures remain UNKNOWN; this repair does not
 expand the original scope or claim repository-wide coverage completion.
 
+## Target ranking provenance
+
+Issue [#2415](https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2415)
+(`coverage-autopilot:chunk-round`, opened 2026-10-20) states the ranked target
+order is the Orchestrator's own ranking: escaped defects, then churn, then
+uncovered mass (unchanged from prior fleet rounds). The five listed modules and
+their CI uncovered statement+branch counts (48 / 43 / 42 / 40 / 33) are copied
+from that issue body. PR #2416 verified the first three targets only; ranks
+four and five were deferred in the original PR partial-coverage disclosure. No
+earlier machine-readable ranking artifact (coverage JSON snapshot or bot comment
+with timestamps) was recovered in this repair; the issue body is the authoritative
+published provenance available here.
+
 ## Results
 
 | Exact test name | Mutation | Named RED assertion | Restored result |
@@ -54,27 +67,24 @@ for `test_distribution_helpers_handle_empty_constant_and_large_samples`
 (disabled non-finite guard: NaN does not raise). These historical proofs are
 retained, not rerun or represented as newly observed output.
 
-## Publication and remaining criteria
+## Publication and hosted pytest
 
-Repair PR: https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2462
-(open, ready for review; evidence-only diff).
+Repair PR [#2462](https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2462)
+merged 2026-11-03 (evidence-only diff on main). Follow-up repair PR
+`closer-r2/issue-2415` appends the three missing mutation transcripts to
+[#2416](https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2416)
+(preserving its original body and partial-coverage disclosures) and corrects
+#2462's criteria checkboxes to match the published bodies.
 
-The GitHub connector rejected the requested append to original PR #2416:
-`MCP tool call requires approval, but approval policy is never`.
-The same connector rejected correcting the repair PR's first checkbox and
-adding `verify:full`. Therefore:
+**Original hosted pytest success (PR #2416, counts as pytest PASS):**
+[Gate run 39454791657](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/39454791657)
+on head `a8adf27df9689ea9b592404757ea46327417480b`, job **Python CI / python
+3.12** — `platform linux -- Python 3.12.15, pytest-9.1.1` —
+`1907 passed, 1 skipped` in 164.87s. This is the last successful full Gate
+pytest leg before merge; it is not inferred from skipped docs-only jobs.
 
-- #2416's existing proofs and partial-coverage disclosures remain unchanged;
-  the three new proofs are committed here and included in repair PR #2462.
-- **The first checked criterion in #2462's initial body is inaccurate**:
-  recording the missing proofs in #2416's original body remains incomplete.
-  A correction was attempted and rejected by the same approval restriction.
-- The repair's Gate run is https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41626835314 .
-  Its docs-only path classification may skip pytest. Skipping is not pytest PASS.
-  The full hosted pytest criterion is not yet established for this repair.
-
-No approval bypass or alternate write route was attempted. The authorized
-follow-through is to append the committed transcripts to #2416 (preserving
-its entire original body), correct #2462's criteria, request existing full Gate
-validation, and read back the results in a session where those metadata
-updates are allowed. No additional production or test implementation is needed.
+Repair PR #2462 Gate run
+[41626835314](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41626835314)
+was docs-only classified; pytest there was skipped and is **not** counted as
+pytest PASS. Local focused runs (repository `.venv`, Python 3.12.2) confirm the
+six #2416 tests only; they do not replace hosted CI.
