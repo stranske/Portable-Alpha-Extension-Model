@@ -307,12 +307,13 @@ def calibrate_returns(
         off_diag = sample_corr.where(~np.eye(n_features, dtype=bool))
         off_diag_values = off_diag.stack().dropna()
         constant = float(off_diag_values.mean()) if not off_diag_values.empty else 0.0
+        target_array = np.full((n_features, n_features), constant)
+        np.fill_diagonal(target_array, 1.0)
         target = pd.DataFrame(
-            np.full((n_features, n_features), constant),
+            target_array,
             index=sample_corr.index,
             columns=sample_corr.columns,
         )
-        np.fill_diagonal(target.values, 1.0)
     sample_corr = sample_corr.where(~sample_corr.isna(), target)
 
     correlations: list[CorrelationEstimate] = []
