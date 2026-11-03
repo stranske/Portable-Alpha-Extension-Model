@@ -8,6 +8,8 @@ from pathlib import Path
 
 from packaging.requirements import Requirement
 
+from scripts.fetch_offline_web_runtime import offline_runtime_marker_environment
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 WEB_DIR = REPO_ROOT / "web"
 WEB_HTML = WEB_DIR / "index.html"
@@ -58,7 +60,7 @@ def _wheel_metadata_requires(wheel: Path) -> list[Requirement]:
     for value in metadata.get_all("Requires-Dist", []):
         requirement = Requirement(value)
         if requirement.marker is None or requirement.marker.evaluate(
-            {"python_version": "3.12", "extra": ""}
+            offline_runtime_marker_environment()
         ):
             requirements.append(requirement)
     return requirements

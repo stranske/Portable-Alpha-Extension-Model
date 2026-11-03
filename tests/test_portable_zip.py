@@ -1,8 +1,13 @@
 import inspect
+import json
 import sys
 import zipfile
 from pathlib import Path
 
+from scripts.fetch_offline_web_runtime import (
+    PYODIDE_VENDOR_DIR,
+    offline_runtime_marker_environment,
+)
 from scripts.make_portable_zip import (
     DEFAULT_EMBEDDED_PYTHON,
     build_windows_portable_zip,
@@ -65,6 +70,17 @@ def test_create_filtered_zip_includes_and_excludes(tmp_path: Path) -> None:
 def test_embedded_python_default_meets_the_supported_floor() -> None:
     major, minor, *_ = (int(part) for part in DEFAULT_EMBEDDED_PYTHON.split("."))
     assert (major, minor) >= (3, 13)
+
+
+def test_offline_runtime_marker_environment_matches_pyodide_lock() -> None:
+    lock_python = json.loads((PYODIDE_VENDOR_DIR / "pyodide-lock.json").read_text())["info"][
+        "python"
+    ]
+    major, minor, *_ = lock_python.split(".")
+    assert offline_runtime_marker_environment() == {
+        "python_version": f"{major}.{minor}",
+        "extra": "",
+    }
 
 
 def test_build_function_defaults_to_the_embedded_python_constant() -> None:
