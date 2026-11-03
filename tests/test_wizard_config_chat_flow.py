@@ -131,10 +131,141 @@ def test_wizard_initial_provider_honors_environment_and_tracing_only_has_no_clie
         st.session_state.clear()
 
 
+def test_config_chat_provider_scoped_credentials_with_fake_client_captures(
+    monkeypatch, socket_connect_guard
+):
+    """Test that provider-scoped credentials are used correctly."""
+    import sys
+    from types import SimpleNamespace
+    from dashboard.components import llm_settings
+
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=object)
+    )
+    monkeypatch.setattr(llm_settings, "read_secret", lambda name: None)
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        captured = []
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = (
+            lambda config: captured.append(config)
+        )
+
+        # Set provider-scoped API keys for OpenAI and Anthropic
+        openai_key = f'{module["_CONFIG_CHAT_API_KEY_KEY"]}::openai'
+        anthropic_key = f'{module["_CONFIG_CHAT_API_KEY_KEY"]}::anthropic'
+        st.session_state[openai_key] = "synthetic-openai-key"
+        st.session_state[anthropic_key] = "synthetic-anthropic-key"
+
+        # Test OpenAI
+        st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = "openai"
+        module["_build_config_chat_llm_invoke"]()
+
+        # Test Anthropic
+        st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = "anthropic"
+        module["_build_config_chat_llm_invoke"]()
+
+        # Verify each provider uses its own key
+        assert [c.provider_name for c in captured] == ["openai", "anthropic"]
+        assert [c.credentials["api_key"] for c in captured] == [
+            "synthetic-openai-key",
+            "synthetic-anthropic-key",
+        ]
+        assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()
+
+
+def test_config_chat_missing_destination_key_constructs_zero_clients(
+    monkeypatch, socket_connect_guard
+):
+    """Test that missing destination credentials construct zero clients."""
+    import sys
+    from types import SimpleNamespace
+    from dashboard.components import llm_settings
+
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=object)
+    )
+    monkeypatch.setattr(llm_settings, "read_secret", lambda name: None)
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        captured = []
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = (
+            lambda config: captured.append(config)
+        )
+
+        # Set provider-scoped API key for OpenAI but not for Anthropic
+        openai_key = f'{module["_CONFIG_CHAT_API_KEY_KEY"]}::openai'
+        st.session_state[openai_key] = "synthetic-openai-key"
+
+        # Test OpenAI - should construct a client
+        st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = "openai"
+        result = module["_build_config_chat_llm_invoke"]()
+        assert result[0] is not None  # invoke_llm is not None
+        assert len(captured) == 1
+
+        # Test Anthropic - should NOT construct a client (no key)
+        st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = "anthropic"
+        result = module["_build_config_chat_llm_invoke"]()
+        assert result[0] is None  # invoke_llm is None
+        assert len(captured) == 1  # No new client captured
+
+        assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()
+
+
+def test_config_chat_return_to_provider_restores_override(monkeypatch, socket_connect_guard):
+    """Test that returning to a provider restores its explicit override."""
+    import sys
+    from types import SimpleNamespace
+    from dashboard.components import llm_settings
+
+    monkeypatch.setitem(
+        sys.modules, "langchain_core.prompts", SimpleNamespace(ChatPromptTemplate=object)
+    )
+    monkeypatch.setattr(llm_settings, "read_secret", lambda name: None)
+    st.session_state.clear()
+    try:
+        module = runpy.run_path("dashboard/pages/3_Scenario_Wizard.py")
+        captured = []
+        module["_build_config_chat_llm_invoke"].__globals__["create_llm"] = (
+            lambda config: captured.append(config)
+        )
+
+        # Set provider-scoped API keys
+        openai_key = f'{module["_CONFIG_CHAT_API_KEY_KEY"]}::openai'
+        anthropic_key = f'{module["_CONFIG_CHAT_API_KEY_KEY"]}::anthropic'
+        st.session_state[openai_key] = "synthetic-openai-key"
+        st.session_state[anthropic_key] = "synthetic-anthropic-key"
+
+        # OpenAI -> Anthropic -> OpenAI
+        for provider in ("openai", "anthropic", "openai"):
+            st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = provider
+            module["_build_config_chat_llm_invoke"]()
+
+        # Verify the keys are used correctly
+        assert [c.provider_name for c in captured] == ["openai", "anthropic", "openai"]
+        assert [c.credentials["api_key"] for c in captured] == [
+            "synthetic-openai-key",
+            "synthetic-anthropic-key",
+            "synthetic-openai-key",  # Returning to OpenAI restores its key
+        ]
+        assert socket_connect_guard[0] == []
+    finally:
+        st.session_state.clear()
+
+
 def test_audit_reproduces_config_chat_unscoped_override_without_network(
     monkeypatch, socket_connect_guard
 ):
-    """Characterize the reported, unfixed gap; do not declare provider isolation."""
+    """Characterize the reported, unfixed gap; now confirms the fix is in place.
+
+    The legacy unscoped key is discarded and without provider-scoped keys,
+    no LLM clients are constructed (both return None).
+    """
     import sys
     from types import SimpleNamespace
     from dashboard.components import llm_settings
@@ -151,11 +282,16 @@ def test_audit_reproduces_config_chat_unscoped_override_without_network(
             lambda config: captured.append(config)
         )
         st.session_state[module["_CONFIG_CHAT_API_KEY_KEY"]] = "synthetic-audit-openai"
+
+        # Both providers should return None (no client) because the unscoped key is discarded
+        # and there are no provider-scoped keys
         for provider in ("openai", "anthropic"):
             st.session_state[module["_CONFIG_CHAT_PROVIDER_KEY"]] = provider
-            module["_build_config_chat_llm_invoke"]()
-        assert [c.provider_name for c in captured] == ["openai", "anthropic"]
-        assert [c.credentials["api_key"] for c in captured] == ["synthetic-audit-openai"] * 2
+            result = module["_build_config_chat_llm_invoke"]()
+            assert result[0] is None  # invoke_llm is None for both
+
+        # No clients should have been created
+        assert len(captured) == 0
         assert socket_connect_guard[0] == []
     finally:
         st.session_state.clear()
