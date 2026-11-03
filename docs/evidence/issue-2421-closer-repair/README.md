@@ -154,7 +154,7 @@ line-only Gate percentage. Partial-branch counts in the terminal report are not
 missing-branch counts; the table uses JSON `missing_branches`.
 
 The four remaining result-explanation exits are skipping an invalid/empty secret,
-falling through an empty response-content list, ignoring a non-string/non-mapping
+falling through non-list response content (for example `None`), ignoring a non-string/non-mapping
 content item, and ignoring a non-mapping delta item. They were not exercised by
 these seven existing tests, not established to be untestable. Metrics retains the
 unreachable defensive mode exit (268 -> 270) and the valid but unexercised path
