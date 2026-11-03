@@ -3,47 +3,79 @@
   "merged_delivery_pr": 2372,
   "merged_delivery_commit": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
   "repair_baseline_commit": "10ac6839518576d4dc5199a24392eadfc388c713",
-  "checked_at": "2026-11-03T04:45:00Z",
-  "dispatch_target_order": [
-    {
-      "rank": 1,
-      "path": "dashboard/pages/3_Scenario_Wizard.py",
-      "issue_body_units": 338,
-      "notes": "Only ranked target in issue #2360 scope; lane B round 1."
-    }
-  ],
+  "checked_at": "2026-11-03",
   "repository_ranking_sources": [
     {
       "path": "docs/evidence/issue-2336-next-boundaries/ranking.json",
-      "entry": {
+      "history_window": "last 500 commits touching pa_core or dashboard",
+      "sort_order": [
+        "repair_subject_proxy descending",
+        "churn descending",
+        "uncovered_statements descending"
+      ],
+      "proxy_caveat": "Repair subjects are a proxy, not verified escaped incidents. File size is not a ranking criterion.",
+      "selected_in_that_snapshot": "pa_core/cli.py",
+      "wizard_entry": {
+        "rank": 2,
         "source": "dashboard/pages/3_Scenario_Wizard.py",
         "repair_subject_proxy": 23,
         "churn": 65,
+        "uncovered_statements": 338
+      },
+      "first_entry": {
+        "source": "pa_core/cli.py",
+        "repair_subject_proxy": 26,
+        "churn": 132,
         "uncovered_statements": 312
-      }
-    },
-    {
-      "path": "docs/COVERAGE_GAPS.md",
-      "entry": {
-        "coverage_percent": 6,
-        "missing_line_range": "936-1194",
-        "note": "Stale 2025-01 snapshot; retained as secondary corroboration only."
-      }
-    },
-    {
-      "path": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2360",
-      "entry": {
-        "escaped_defect_signals": 1,
-        "churn": 1,
-        "uncovered_statements_branches_blended": 338
-      }
+      },
+      "limitation": "Independent older corroboration only; different counts from issue-2360 dispatch."
     }
   ],
-  "selected_interpreter": ".venv/bin/python (CPython 3.14.3, uv-created in worktree)",
+  "selected_interpreter": ".venv/bin/python (CPython 3.14.3; temporary symlink to existing repository opener environment, removed after validation)",
   "configured_commands": {
     "focused_pytest": ".venv/bin/python -m pytest -q tests/test_wizard_render_coverage.py",
-    "gate_pytest": ".venv/bin/python -m pytest -m \"not live_llm\" --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=json:coverage.json",
-    "formatter": ".venv/bin/ruff check tests/test_wizard_render_coverage.py && .venv/bin/ruff format --check tests/test_wizard_render_coverage.py",
-    "coverage_source": "pyproject.toml [tool.coverage.run] source = pa_core, dashboard, design-system; branch = false (Gate line-rate)"
+    "gate_pytest": "pytest -p ci_test_growth --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup",
+    "formatter": ".venv/bin/python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
+    "coverage_source": "pyproject.toml [tool.coverage.run] source = pa_core, dashboard, design-system; branch = false (Gate line-rate)",
+    "execution_scope": "Full workflow pytest in GitHub only; focused wizard module locally."
+  },
+  "dispatch_claim": {
+    "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2360",
+    "selection_order": [
+      "escaped-defect priority",
+      "churn",
+      "uncovered mass"
+    ],
+    "path": "dashboard/pages/3_Scenario_Wizard.py",
+    "reported_values": {
+      "escaped_defect_signals": 1,
+      "churn": 1,
+      "uncovered_statements_branches_blended": 338
+    },
+    "status": "Dispatch claim verified in live issue body; not independent selection provenance"
+  },
+  "historical_dispatch_provenance": {
+    "status": "UNKNOWN",
+    "unavailable": [
+      "original candidate set",
+      "identified fix commit and incident mapping",
+      "history window",
+      "matching executable ranking receipt"
+    ],
+    "limitation": "The older issue-2336 archive cannot establish the selection basis of the later issue-2360 dispatch."
+  },
+  "coverage_attribution": {
+    "measurement_range": "10ac6839518576d4dc5199a24392eadfc388c713..cc7042594111cf6dc7ca4728c72e7ab271a0330f",
+    "kind": "historical cumulative, not isolated #2372 gain",
+    "wizard_missing_statement_reduction": 237,
+    "wizard_missing_branch_reduction": 84,
+    "wizard_combined_reduction": 321,
+    "included_prs": [
+      2372,
+      2397,
+      2411
+    ],
+    "isolated_2372_measured_gain": null,
+    "limitation": "#2397 is formatting only; #2411 adds nine cases. Other intervening changes also fall within the measured range. #2372 reports a 54-line crosswalk projection, not a full-suite before/after measurement."
   }
 }
