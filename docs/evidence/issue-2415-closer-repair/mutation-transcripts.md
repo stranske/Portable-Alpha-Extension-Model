@@ -40,9 +40,9 @@ ____ test_compare_scenarios_builds_all_optional_figures_from_mapping_inputs ____
                 "regime_labels": {"Regime": ["stress", "normal", "normal"]},
             },
         ]
-    
+
         figures = module.compare_scenarios(scenarios)
-    
+
 >       assert set(figures) == {
             "risk_return",
             "cvar_return",
@@ -51,7 +51,7 @@ ____ test_compare_scenarios_builds_all_optional_figures_from_mapping_inputs ____
             "regime_timeline",
         }
 E       AssertionError: assert {'cvar_return...'risk_return'} == {'cvar_return...'risk_return'}
-E         
+E
 E         Extra items in the right set:
 E         'regime_timeline'
 E         Use -v to get more diff
@@ -98,7 +98,7 @@ __ test_compare_scenarios_supports_summary_frames_and_reports_invalid_inputs ___
         figures = module.compare_scenarios([_summary()], include_returns=False)
 >       assert set(figures) == {"risk_return", "cvar_return", "risk_metrics"}
 E       AssertionError: assert {'cvar_return', 'risk_return'} == {'cvar_return...'risk_return'}
-E         
+E
 E         Extra items in the right set:
 E         'risk_metrics'
 E         Use -v to get more diff

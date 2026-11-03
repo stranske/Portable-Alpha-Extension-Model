@@ -39,10 +39,11 @@ expand the original scope or claim repository-wide coverage completion.
 
 All RED runs exit 1 with the named assertion; all restored runs exit 0.
 No test strengthening was required. Production and test files are unchanged.
-Full exact commands, mutations, assertion output, restored output and hashes:
+Full exact commands, mutations, assertion output, restored output and hashes
+(output trailing whitespace removed):
 [mutation-transcripts.md](mutation-transcripts.md), [mutations.json](mutations.json).
-Baseline: [baseline-pytest.log](baseline-pytest.log), 6 passed in 2.08s.
-Final required command: [restored-pytest.log](restored-pytest.log), **6 passed in 0.96s**.
+Baseline: [baseline-pytest.txt](baseline-pytest.txt), 6 passed in 2.08s.
+Final required command: [restored-pytest.txt](restored-pytest.txt), **6 passed in 0.96s**.
 
 The original PR body already records valid deliberate-break/restored-pass proofs
 for `test_distribution_helpers_handle_empty_constant_and_large_samples`

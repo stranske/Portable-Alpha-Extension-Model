@@ -1,0 +1,5 @@
+$ /Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python -m pytest -q tests/test_compare_scenarios_coverage_2415.py tests/test_coverage_round_2415.py
+......                                                                   [100%]
+6 passed in 2.08s
+
+exit=0
