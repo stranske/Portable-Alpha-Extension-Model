@@ -1,3 +1,8 @@
+"""Focused Scenario Wizard render coverage for #2360.
+
+Evidence: docs/evidence/issue-2360-closer-repair/README.md.
+"""
+
 import runpy
 from copy import deepcopy
 from pathlib import Path
