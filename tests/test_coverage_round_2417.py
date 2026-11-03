@@ -1,4 +1,7 @@
-"""Focused regression coverage for the ranked #2417 coverage targets."""
+"""Focused regression coverage for the ranked #2417 coverage targets.
+
+Acceptance evidence: docs/coverage-round-2417-evidence.md.
+"""
 
 from __future__ import annotations
 
