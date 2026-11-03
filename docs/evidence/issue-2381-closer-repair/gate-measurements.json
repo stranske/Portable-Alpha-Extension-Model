@@ -1,0 +1,23 @@
+{
+  "checked": "2026-11-03 America/Chicago",
+  "round_baseline_commit": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+  "before_repair_commit": "cec2fe3c64fd909e795d0f881a73540cf4c35269",
+  "gate_pytest_command": ".venv/bin/python -m pytest --cov --cov-config=pyproject.toml --cov-report=json:coverage.json -q -n 2 --dist=loadgroup",
+  "lint_format_command": ".venv/bin/black --check --line-length 100 tests/test_coverage_round_2381.py tests/test_dashboard_results_previous_run.py",
+  "lint_ruff_command": ".venv/bin/ruff check tests/test_coverage_round_2381.py tests/test_dashboard_results_previous_run.py",
+  "focused_pytest_command": ".venv/bin/python -m pytest -q tests/test_coverage_round_2381.py tests/test_dashboard_results_previous_run.py",
+  "issue_dispatch_combined_uncovered": 209,
+  "round_baseline_selected_missing_statements": 209,
+  "before_repair_selected_missing_statements": 116,
+  "after_repair_selected_missing_statements": 20,
+  "repair_statement_reduction_on_selected_targets": 96,
+  "total_statement_reduction_from_round_baseline": 189,
+  "whole_product_missing_statements_before_repair": 1311,
+  "whole_product_missing_statements_after_repair": 1258,
+  "saturated_targets_at_repair_start": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py"
+  ]
+}

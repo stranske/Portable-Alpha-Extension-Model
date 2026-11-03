@@ -2,13 +2,22 @@ from __future__ import annotations
 
 import json
 import runpy
+import sys
+import types
 from pathlib import Path
 
 import pandas as pd
 
 
 def _load_results_module() -> dict[str, object]:
-    return runpy.run_path(str(Path("dashboard/pages/4_Results.py")))
+    module_name = "dashboard.pages.page_4_Results"
+    module_path = str(Path("dashboard/pages/4_Results.py"))
+    module_dict = runpy.run_path(module_path, run_name=module_name)
+    if module_name not in sys.modules:
+        module = types.ModuleType(module_name)
+        module.__dict__.update(module_dict)
+        sys.modules[module_name] = module
+    return module_dict
 
 
 def test_check_previous_run_availability_missing_field() -> None:

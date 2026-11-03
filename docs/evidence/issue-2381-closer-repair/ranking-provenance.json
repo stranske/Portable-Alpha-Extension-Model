@@ -1,0 +1,45 @@
+{
+  "issue": "stranske/Portable-Alpha-Extension-Model#2381",
+  "merged_opener_pr": 2384,
+  "dispatch_record": "issue body coverage-autopilot:chunk-round (opened 2026-10-17)",
+  "ranking_policy": "escaped-defect priority, then churn, then uncovered mass (orchestrator ranking; unchanged from initiative)",
+  "selected_targets_in_order": [
+    {
+      "path": "pa_core/llm/result_explain.py",
+      "uncovered_units_at_dispatch": 4,
+      "churn": 3
+    },
+    {
+      "path": "pa_core/pa.py",
+      "uncovered_units_at_dispatch": 27,
+      "churn": 2
+    },
+    {
+      "path": "pa_core/facade.py",
+      "uncovered_units_at_dispatch": 23,
+      "churn": 2
+    },
+    {
+      "path": "pa_core/units.py",
+      "uncovered_units_at_dispatch": 13,
+      "churn": 2
+    },
+    {
+      "path": "pa_core/sim/internal_pa_financing.py",
+      "uncovered_units_at_dispatch": 4,
+      "churn": 2
+    },
+    {
+      "path": "pa_core/manifest.py",
+      "uncovered_units_at_dispatch": 2,
+      "churn": 2
+    },
+    {
+      "path": "dashboard/pages/4_Results.py",
+      "uncovered_units_at_dispatch": 136,
+      "churn": 1
+    }
+  ],
+  "combined_uncovered_at_dispatch": 209,
+  "repair_scope": "Finish remainder after #2384 on current main: strengthen Results smoke test, then cover still-missing ranked modules (1–6 already saturated on main; pa.py, facade.py, and 4_Results.py remain)."
+}
