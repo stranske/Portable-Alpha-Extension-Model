@@ -54,9 +54,27 @@ for `test_distribution_helpers_handle_empty_constant_and_large_samples`
 (disabled non-finite guard: NaN does not raise). These historical proofs are
 retained, not rerun or represented as newly observed output.
 
-## Applicable hosted CI
+## Publication and remaining criteria
 
-Pending on the repair PR. This evidence-only diff would normally skip pytest;
-`verify:full` is requested to run the existing full Gate instead. A skipped
-pytest job is not treated as a pass. Hosted CI results will be recorded in the
-repair PR and appended to #2416's body after inspection.
+Repair PR: https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2462
+(open, ready for review; evidence-only diff).
+
+The GitHub connector rejected the requested append to original PR #2416:
+`MCP tool call requires approval, but approval policy is never`.
+The same connector rejected correcting the repair PR's first checkbox and
+adding `verify:full`. Therefore:
+
+- #2416's existing proofs and partial-coverage disclosures remain unchanged;
+  the three new proofs are committed here and included in repair PR #2462.
+- **The first checked criterion in #2462's initial body is inaccurate**:
+  recording the missing proofs in #2416's original body remains incomplete.
+  A correction was attempted and rejected by the same approval restriction.
+- The repair's Gate run is https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41626835314 .
+  Its docs-only path classification may skip pytest. Skipping is not pytest PASS.
+  The full hosted pytest criterion is not yet established for this repair.
+
+No approval bypass or alternate write route was attempted. The authorized
+follow-through is to append the committed transcripts to #2416 (preserving
+its entire original body), correct #2462's criteria, request existing full Gate
+validation, and read back the results in a session where those metadata
+updates are allowed. No additional production or test implementation is needed.
