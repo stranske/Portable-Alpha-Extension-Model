@@ -1,0 +1,38 @@
+[
+  {
+    "name": "regime-timeline",
+    "file": "pa_core/viz/compare_scenarios.py",
+    "node": "tests/test_compare_scenarios_coverage_2415.py::test_compare_scenarios_builds_all_optional_figures_from_mapping_inputs",
+    "mutation_before": "        output[\"regime_timeline\"] = _make_regime_timeline(regime_rows)",
+    "mutation_after": "        pass  # deliberate break: suppress regime_timeline",
+    "command": "/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python -m pytest -q tests/test_compare_scenarios_coverage_2415.py::test_compare_scenarios_builds_all_optional_figures_from_mapping_inputs",
+    "red_exit": 1,
+    "green_exit": 0,
+    "restored_sha256": "0e2b0bff6ce1dd207659953f0707f6b8c4c1a314846e1eecf8dbf517d7a44743",
+    "byte_identical_restoration": true
+  },
+  {
+    "name": "risk-metrics",
+    "file": "pa_core/viz/compare_scenarios.py",
+    "node": "tests/test_compare_scenarios_coverage_2415.py::test_compare_scenarios_supports_summary_frames_and_reports_invalid_inputs",
+    "mutation_before": "    output[\"risk_metrics\"] = _make_risk_metric_bars(compare_df)",
+    "mutation_after": "    pass  # deliberate break: suppress risk_metrics",
+    "command": "/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python -m pytest -q tests/test_compare_scenarios_coverage_2415.py::test_compare_scenarios_supports_summary_frames_and_reports_invalid_inputs",
+    "red_exit": 1,
+    "green_exit": 0,
+    "restored_sha256": "0e2b0bff6ce1dd207659953f0707f6b8c4c1a314846e1eecf8dbf517d7a44743",
+    "byte_identical_restoration": true
+  },
+  {
+    "name": "agents-fallback",
+    "file": "pa_core/reporting/excel.py",
+    "node": "tests/test_coverage_round_2415.py::test_excel_builds_agent_semantics_from_agents_when_frame_missing",
+    "mutation_before": "    df = build_agent_semantics(cast(ModelConfig, cfg))\n    inputs_dict[\"_agent_semantics_df\"] = _records_to_builtin(df.to_dict(orient=\"records\"))\n    return df",
+    "mutation_after": "    df = build_agent_semantics(cast(ModelConfig, cfg))\n    inputs_dict[\"_agent_semantics_df\"] = _records_to_builtin(df.to_dict(orient=\"records\"))\n    return None  # deliberate break: discard agents-derived fallback",
+    "command": "/Users/teacher/Library/CloudStorage/Dropbox/Learning/Code/Portable-Alpha-Extension-Model/.venv/bin/python -m pytest -q tests/test_coverage_round_2415.py::test_excel_builds_agent_semantics_from_agents_when_frame_missing",
+    "red_exit": 1,
+    "green_exit": 0,
+    "restored_sha256": "9aac72804481848252673e177ab0a85b0d5240f178084021d1b7992f569a2f41",
+    "byte_identical_restoration": true
+  }
+]
