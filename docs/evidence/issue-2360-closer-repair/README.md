@@ -147,4 +147,43 @@ pytest -p ci_test_growth --junitxml=pytest-junit.xml --cov \
   -n auto --dist=loadgroup
 ```
 
-Final-head CI receipt: pending; replace only after observing successful runs.
+### Successful CI receipt (2026-11-03)
+
+Validated evidence head: `d98fed55d7cfa17ce40171282db4a7a60b6deaf0`.
+[Dispatched CI run 41660173230](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41660173230)
+completed **successfully** on that exact SHA:
+
+```text
+Python CI / lint-format: success (Black; 521 files unchanged)
+Python CI / lint-ruff: success
+Python CI / typecheck-mypy: success
+Python CI / python 3.14: success (runner CPython 3.14.9)
+1969 passed, 1 skipped, 995 warnings in 92.78s
+Coverage 91.25% meets minimum 60.00%
+```
+
+[Test job](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41660173230/job/126001402506)
+and [Black job](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41660173230/job/126001094995).
+[PR Gate 41660160636](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41660160636)
+and [dispatched Gate 41660180292](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41660180292)
+also passed on this SHA, but both classified the change as docs-only and skipped
+pytest. They are not the source of the pytest result above. CI's 60% floor is
+unchanged; observed coverage also exceeds the configured PR Gate floor of 84%.
+
+The receipt-only commit changes this README after that tested SHA. Its own SHA
+cannot be embedded in itself. Final-head CI is rerun after the receipt push;
+the exact final SHA, immutable run URL and results are recorded in
+[PR #2467](https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2467).
+Resolve that final-head binding directly (do not treat a prior-head run as current):
+
+```sh
+gh pr view 2467 --repo stranske/Portable-Alpha-Extension-Model \
+  --json headRefOid,state,isDraft,body
+gh run list --repo stranske/Portable-Alpha-Extension-Model \
+  --workflow ci.yml --branch closer-r2/issue-2360 \
+  --json databaseId,headSha,status,conclusion,url
+```
+
+Require a successful completed CI run whose `headSha` equals `headRefOid`.
+The historical cumulative coverage table above is retained unchanged; this CI
+percentage is a current result, not an isolated #2372 coverage gain.
