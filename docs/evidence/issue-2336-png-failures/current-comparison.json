@@ -7,9 +7,9 @@
     "FAIL": 1
   },
   "candidate_counts": {
-    "PASS": 1674,
-    "SKIP": 1,
-    "FAIL": 1
+    "PASS": 1990,
+    "SKIP": 0,
+    "FAIL": 4
   },
   "new_nodes": [
     [
@@ -107,14 +107,24 @@
     "percent_statements_covered_display": "84"
   },
   "candidate_totals": {
-    "covered_lines": 12191,
-    "num_statements": 14554,
-    "percent_covered": 83.76391370070084,
-    "percent_covered_display": "84",
-    "missing_lines": 2363,
-    "excluded_lines": 181,
-    "percent_statements_covered": 83.76391370070084,
-    "percent_statements_covered_display": "84"
+    "covered_lines": 13537,
+    "num_statements": 14670,
+    "percent_covered": 92.27675528289025,
+    "percent_covered_display": "92",
+    "missing_lines": 1133,
+    "excluded_lines": 183,
+    "percent_statements_covered": 92.27675528289025,
+    "percent_statements_covered_display": "92"
   },
-  "scope": "All final candidate tests plus authentic historical baseline; original local SciPy/NumPy FAIL and SKIP retained, no full-suite PASS or 90% claim."
+  "scope": "All final candidate tests plus authentic historical baseline; 4 local FAIL(s) retained, no full-suite PASS or 90% claim.",
+  "cli_after": {
+    "covered_lines": 942,
+    "num_statements": 1107,
+    "percent_covered": 85.09485094850949,
+    "percent_covered_display": "85",
+    "missing_lines": 165,
+    "excluded_lines": 17,
+    "percent_statements_covered": 85.09485094850949,
+    "percent_statements_covered_display": "85"
+  }
 }

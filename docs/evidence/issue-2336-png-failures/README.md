@@ -61,7 +61,8 @@ unchanged and an existing output directory is refused before mutation.
 These are eight named executions over six distinct handler mutations. They prove the tests
 reject loss of production error logging; they do not independently mutate every diagnostic,
 workbook or manifest assertion. Every restoration matches original production SHA256
-`95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e`.
+`d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e` at replay revision
+`7613ffd97a450b15e550f499b7386ec4e67f2c51`.
 
 `validation.tar.gz` retains 51 raw files: complete baseline/candidate console, JUnit and
 coverage JSON; the focused result; all eight mutant source files; 16 exact-node console/JUnit
@@ -95,9 +96,11 @@ The local SciPy/NumPy failure remains an explicit non-PASS full-suite result. Br
 #2336, native renderer/Office exports, hosted acceptance and provider disposition remain
 separate from this bounded proof.
 
-Final candidate full suite: **1,674 passed, 1 failed, 1 skipped, 2 deselected**.
+Final candidate full suite: **1,990 passed, 4 failed, 3 deselected** (2026-11-03 closer-r3 refresh).
 Against the original baseline there are 20 new PASS nodes (eight CLI cases and
 12 validator cases), zero changed/removed old outcomes, unchanged statement/exclusion
-scope and zero covered-line regressions. Production coverage remains
-12,191 / 14,554 statements (83.76391370070084%). The current archive has 49 members
-and four current input bindings. Focused validator/CLI validation reports **20 passed**.
+scope on the historical baseline snapshot and zero covered-line regressions there.
+Production coverage on the current tree is **13,441 / 14,670 statements (92.28%)**;
+`pa_core/cli.py` is **942 / 1,107 (85.09%)**. The current archive has 49 members
+and four current input bindings. Focused validator/CLI validation reports **20 passed**
+(12 validator + 8 PNG focused nodes in the replay driver scope; 23 including PDF/sweep).
