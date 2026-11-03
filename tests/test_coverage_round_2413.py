@@ -2,6 +2,7 @@
 
 import runpy
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -215,9 +216,12 @@ def test_main_step_5_run_gate_opens_index_upload_without_executing() -> None:
     recorded: list[str] = []
     fake_st.text_input = lambda label, *_a, **_k: recorded.append(label) or "out.xlsx"
     calls = _install_main_fakes(module, fake_st, step_5_returns=True)
+    executor_calls: list[Any] = []
+    module["main"].__globals__["pa_cli"] = SimpleNamespace(main=executor_calls.append)
 
     module["main"]()
 
+    assert executor_calls == [], "Missing index must not invoke pa_cli.main"
     assert calls == [("progress", 5), ("renderer", 5)]
     assert fake_st.session_state.last_wizard_config is fake_st.session_state.wizard_config
     assert recorded == ["Output workbook"]
