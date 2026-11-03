@@ -1,0 +1,94 @@
+## paths-helpers
+node: tests/test_paths_coverage_2403.py::test_return_distribution_helpers_validate_and_fill_overrides
+mutation: pa_core/sim/paths.py
+break rc: 1
+break: E   AssertionError: assert ('broken', 'b...en', 'broken') == ('normal', 'n...al', 'normal')
+break: /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2403__opener/tests/test_paths_coverage_2403.py:19: AssertionError: assert ('broken', 'b...en', 'broken') == ('normal', 'n...al', 'normal')
+break: FAILED tests/test_paths_coverage_2403.py::test_return_distribution_helpers_validate_and_fill_overrides
+restore rc: 0
+
+## paths-mapping
+node: tests/test_paths_coverage_2403.py::test_named_returns_and_sleeve_mapping_cover_mixed_stream_sources
+mutation: pa_core/sim/paths.py
+break rc: 1
+break: FAILED tests/test_paths_coverage_2403.py::test_named_returns_and_sleeve_mapping_cover_mixed_stream_sources
+restore rc: 0
+
+## paths-invalid
+node: tests/test_paths_coverage_2403.py::test_named_returns_rejects_invalid_dimensions_means_and_covariance
+mutation: pa_core/sim/paths.py
+break rc: 1
+break: E   Failed: DID NOT RAISE ValueError
+break: /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2403__opener/tests/test_paths_coverage_2403.py:94: Failed: DID NOT RAISE ValueError
+break: FAILED tests/test_paths_coverage_2403.py::test_named_returns_rejects_invalid_dimensions_means_and_covariance
+restore rc: 0
+
+## paths-student-t
+node: tests/test_paths_coverage_2403.py::test_named_returns_supports_all_student_t_streams
+mutation: pa_core/sim/paths.py
+break rc: 1
+break: FAILED tests/test_paths_coverage_2403.py::test_named_returns_supports_all_student_t_streams
+restore rc: 0
+
+## schema-export
+node: tests/test_schema_export.py::test_schema_export_supports_all_formats_and_cli_writes_requested_output
+mutation: pa_core/schema.py
+break rc: 1
+break: FAILED tests/test_schema_export.py::test_schema_export_supports_all_formats_and_cli_writes_requested_output
+restore rc: 0
+
+## schema-markdown
+node: tests/test_schema_export.py::test_format_default_for_markdown_handles_collections
+mutation: pa_core/schema.py
+break rc: 1
+break: E   AssertionError: assert '[]' == '[1, 2]'
+break: /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2403__opener/tests/test_schema_export.py:118: AssertionError: assert '[]' == '[1, 2]'
+break: FAILED tests/test_schema_export.py::test_format_default_for_markdown_handles_collections
+restore rc: 0
+
+## stress-read-csv
+node: tests/test_stress_lab.py::test_read_index_csv_accepts_getvalue_and_rejects_non_numeric
+mutation: dashboard/pages/6_Stress_Lab.py
+break rc: 1
+break: FAILED tests/test_stress_lab.py::test_read_index_csv_accepts_getvalue_and_rejects_non_numeric
+restore rc: 0
+
+## stress-sample
+node: tests/test_stress_lab.py::test_stress_lab_main_runs_sample_flow_and_exposes_all_downloads
+mutation: dashboard/pages/6_Stress_Lab.py
+break rc: 1
+break: E   AssertionError: assert [] == ['Download de...ults (Excel)']
+break: /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2403__opener/tests/test_stress_lab.py:372: AssertionError: assert [] == ['Download de...ults (Excel)']
+break: FAILED tests/test_stress_lab.py::test_stress_lab_main_runs_sample_flow_and_exposes_all_downloads
+restore rc: 0
+
+## stress-missing
+node: tests/test_stress_lab.py::test_stress_lab_main_explains_missing_input
+mutation: dashboard/pages/6_Stress_Lab.py
+break rc: 1
+break: FAILED tests/test_stress_lab.py::test_stress_lab_main_explains_missing_input
+restore rc: 0
+
+## stress-upload
+node: tests/test_stress_lab.py::test_stress_lab_main_parses_uploaded_csv_and_shows_constraint_deltas
+mutation: dashboard/pages/6_Stress_Lab.py
+break rc: 1
+break: FAILED tests/test_stress_lab.py::test_stress_lab_main_parses_uploaded_csv_and_shows_constraint_deltas
+restore rc: 0
+
+## stress-session
+node: tests/test_stress_lab.py::test_stress_lab_main_uses_session_index_when_no_upload
+mutation: dashboard/pages/6_Stress_Lab.py
+break rc: 1
+break: E   ValueError: Can only compare identically-labeled Series objects
+break: /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2403__opener/.venv/lib/python3.14/site-packages/pandas/core/series.py:6730: ValueError: Can only compare identically-labeled Series objects
+break: FAILED tests/test_stress_lab.py::test_stress_lab_main_uses_session_index_when_no_upload
+restore rc: 0
+
+## stress-none-index
+node: tests/test_stress_lab.py::test_stress_lab_main_errors_when_index_resolves_to_none
+mutation: dashboard/pages/6_Stress_Lab.py
+break rc: 1
+break: FAILED tests/test_stress_lab.py::test_stress_lab_main_errors_when_index_resolves_to_none
+restore rc: 0
+

@@ -133,6 +133,18 @@ def test_named_returns_supports_all_student_t_streams() -> None:
     student_t = draw_named_returns(**matched, return_distribution="student_t")
     normal = draw_named_returns(**matched, return_distribution="normal")
     assert any(not np.array_equal(student_t[name], normal[name]) for name in student_t)
+    normal_same_seed = draw_named_returns(
+        n_months=2,
+        n_sim=3,
+        stream_names=("index", "alpha"),
+        means=(0.0, 0.01),
+        cov=np.eye(2) * 0.0001,
+        return_distribution="normal",
+        return_copula="gaussian",
+        return_t_df=5,
+        seed=11,
+    )
+    assert any(not np.array_equal(streams[name], normal_same_seed[name]) for name in streams)
 
     assert set(streams) == {"index", "alpha"}
     assert all(values.shape == (3, 2) for values in streams.values())
