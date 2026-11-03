@@ -1,0 +1,90 @@
+{
+  "selection_source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2421",
+  "selection_date": "2026-10-20T18:41:36Z",
+  "policy": "escaped-defect priority, then churn, then uncovered mass; preserve issue order, exclude reserved and zero-gap targets",
+  "selected": [
+    {
+      "path": "pa_core/llm/result_explain.py",
+      "dispatch_order": 1,
+      "reported_uncovered_units": 3,
+      "reason": "churn 3"
+    },
+    {
+      "path": "pa_core/units.py",
+      "dispatch_order": 2,
+      "reported_uncovered_units": 2,
+      "reason": "churn 2"
+    },
+    {
+      "path": "pa_core/sim/internal_pa_financing.py",
+      "dispatch_order": 3,
+      "reported_uncovered_units": 1,
+      "reason": "churn 2"
+    },
+    {
+      "path": "pa_core/sim/metrics.py",
+      "dispatch_order": 4,
+      "reported_uncovered_units": 29,
+      "reason": "uncovered mass"
+    }
+  ],
+  "dispatch_log": {
+    "path": "/Users/teacher/.codex/orchestrator/coverage_autopilot.log",
+    "line": 1799,
+    "text": "2026-10-20T13:41:37-0500 [Portable-Alpha-Extension-Model#B] opened issue #2421 (lane B, 12 target(s), 188 units)"
+  },
+  "later_cache": {
+    "path": "/Users/teacher/.codex/orchestrator/lanes/Portable-Alpha-Extension-Model.targets.json",
+    "sha256": "e19c6de951f5cfa502775ca9c5ac23ba035f2be792c1a92dc415b13db63335d3",
+    "fetched_at": 1792524132.0165892,
+    "meta": {
+      "path": "/Users/teacher/.codex/orchestrator/covjson/stranske__Portable-Alpha-Extension-Model.json",
+      "name": "gate-coverage-3.12-2",
+      "branch": "codex/issue-2421",
+      "sha": "63a1c574",
+      "created_at": "2026-10-20T19:15:46Z"
+    },
+    "warning": "Post-first-commit snapshot; corroborates rank tiers, not the original dispatch input or its exact raw ranks. Units and internal financing now have zero gap. Do not substitute this ordering for the frozen issue order.",
+    "selected_rows": [
+      {
+        "path": "pa_core/llm/result_explain.py",
+        "tier1_escaped_defects": 0.0,
+        "tier2_churn": 3,
+        "evidence": [],
+        "raw_rank": 4,
+        "uncovered_units": 3
+      },
+      {
+        "path": "pa_core/sim/internal_pa_financing.py",
+        "tier1_escaped_defects": 0.0,
+        "tier2_churn": 2,
+        "evidence": [],
+        "raw_rank": 9,
+        "uncovered_units": 0
+      },
+      {
+        "path": "pa_core/units.py",
+        "tier1_escaped_defects": 0.0,
+        "tier2_churn": 2,
+        "evidence": [],
+        "raw_rank": 10,
+        "uncovered_units": 0
+      },
+      {
+        "path": "pa_core/sim/metrics.py",
+        "tier1_escaped_defects": 0.0,
+        "tier2_churn": 0,
+        "evidence": [],
+        "raw_rank": 50,
+        "uncovered_units": 11
+      }
+    ]
+  },
+  "older_repo_records_inspected": [
+    "docs/COVERAGE_GAPS.md (2025-01-27, obsolete for this dispatch)",
+    "docs/evidence/issue-2336-previous-summary/ranking.json (older repair-subject proxy and 500-commit history, different round)",
+    "docs/evidence/issue-2336-next-boundaries/ranking.json",
+    "docs/evidence/issue-2336-cli-snapshots/ranking.json"
+  ],
+  "unknown": "Original pre-dispatch raw ranker JSON and tier-1 incident evidence were not recovered; issue 2421 is the retained ordered dispatch record."
+}

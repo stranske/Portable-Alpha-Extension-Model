@@ -1,0 +1,293 @@
+{
+  "authority": "Supplementary branch diagnostic; NOT Gate, whose branch=false configuration remains unchanged.",
+  "command": "<python> -m pytest --junitxml=pytest-junit-branches.xml --cov --cov-branch --cov-config=pyproject.toml --cov-report=xml:coverage-branches.xml --cov-report=term-missing --cov-report=json:coverage-branches.json -n 2 --dist=loadgroup",
+  "environment": "Same historical environment and exact checkouts as gate-measurements.json",
+  "runs": {
+    "before": {
+      "coverage_json_sha256": "5466b5e31531b75c40bfa86a4822ffe40dfc3a0df2ae97032bccf59fb5fd73db",
+      "result": "1921 passed, 1 skipped, 953 warnings in 144.81s (0:02:24)",
+      "exit": 0,
+      "totals": {
+        "covered_lines": 13383,
+        "num_statements": 14775,
+        "percent_covered": 87.90285858841386,
+        "percent_covered_display": "88",
+        "missing_lines": 1392,
+        "excluded_lines": 184,
+        "percent_statements_covered": 90.57868020304568,
+        "percent_statements_covered_display": "91",
+        "num_branches": 4990,
+        "num_partial_branches": 761,
+        "covered_branches": 3991,
+        "missing_branches": 999,
+        "percent_branches_covered": 79.97995991983969,
+        "percent_branches_covered_display": "80"
+      },
+      "targets": {
+        "pa_core/llm/result_explain.py": {
+          "statements": 227,
+          "missing_statements": 3,
+          "branches": 102,
+          "missing_branches": 5,
+          "missing_branch_arcs": [
+            [
+              224,
+              223
+            ],
+            [
+              277,
+              289
+            ],
+            [
+              282,
+              279
+            ],
+            [
+              455,
+              456
+            ],
+            [
+              459,
+              458
+            ]
+          ]
+        },
+        "pa_core/units.py": {
+          "statements": 81,
+          "missing_statements": 2,
+          "branches": 30,
+          "missing_branches": 2,
+          "missing_branch_arcs": [
+            [
+              198,
+              200
+            ],
+            [
+              213,
+              214
+            ]
+          ]
+        },
+        "pa_core/sim/internal_pa_financing.py": {
+          "statements": 35,
+          "missing_statements": 1,
+          "branches": 18,
+          "missing_branches": 1,
+          "missing_branch_arcs": [
+            [
+              80,
+              81
+            ]
+          ]
+        },
+        "pa_core/sim/metrics.py": {
+          "statements": 288,
+          "missing_statements": 29,
+          "branches": 118,
+          "missing_branches": 30,
+          "missing_branch_arcs": [
+            [
+              57,
+              58
+            ],
+            [
+              68,
+              69
+            ],
+            [
+              116,
+              117
+            ],
+            [
+              151,
+              152
+            ],
+            [
+              202,
+              203
+            ],
+            [
+              268,
+              270
+            ],
+            [
+              298,
+              299
+            ],
+            [
+              341,
+              342
+            ],
+            [
+              344,
+              345
+            ],
+            [
+              374,
+              375
+            ],
+            [
+              401,
+              402
+            ],
+            [
+              403,
+              404
+            ],
+            [
+              419,
+              420
+            ],
+            [
+              421,
+              422
+            ],
+            [
+              427,
+              428
+            ],
+            [
+              430,
+              431
+            ],
+            [
+              492,
+              493
+            ],
+            [
+              516,
+              517
+            ],
+            [
+              518,
+              519
+            ],
+            [
+              520,
+              521
+            ],
+            [
+              522,
+              523
+            ],
+            [
+              524,
+              525
+            ],
+            [
+              528,
+              530
+            ],
+            [
+              530,
+              531
+            ],
+            [
+              530,
+              532
+            ],
+            [
+              532,
+              533
+            ],
+            [
+              532,
+              534
+            ],
+            [
+              566,
+              567
+            ],
+            [
+              568,
+              569
+            ],
+            [
+              888,
+              887
+            ]
+          ]
+        }
+      }
+    },
+    "after": {
+      "coverage_json_sha256": "7729b85448041636a2d2adeaf5d7c3ad8388b270dff7558ff5c38201b2116fb4",
+      "result": "1928 passed, 1 skipped, 953 warnings in 145.05s (0:02:25)",
+      "exit": 0,
+      "totals": {
+        "covered_lines": 13417,
+        "num_statements": 14775,
+        "percent_covered": 88.23678219074121,
+        "percent_covered_display": "88",
+        "missing_lines": 1358,
+        "excluded_lines": 184,
+        "percent_statements_covered": 90.80879864636209,
+        "percent_statements_covered_display": "91",
+        "num_branches": 4990,
+        "num_partial_branches": 733,
+        "covered_branches": 4023,
+        "missing_branches": 967,
+        "percent_branches_covered": 80.62124248496994,
+        "percent_branches_covered_display": "81"
+      },
+      "targets": {
+        "pa_core/llm/result_explain.py": {
+          "statements": 227,
+          "missing_statements": 0,
+          "branches": 102,
+          "missing_branches": 4,
+          "missing_branch_arcs": [
+            [
+              224,
+              223
+            ],
+            [
+              277,
+              289
+            ],
+            [
+              282,
+              279
+            ],
+            [
+              459,
+              458
+            ]
+          ]
+        },
+        "pa_core/units.py": {
+          "statements": 81,
+          "missing_statements": 0,
+          "branches": 30,
+          "missing_branches": 0,
+          "missing_branch_arcs": []
+        },
+        "pa_core/sim/internal_pa_financing.py": {
+          "statements": 35,
+          "missing_statements": 0,
+          "branches": 18,
+          "missing_branches": 0,
+          "missing_branch_arcs": []
+        },
+        "pa_core/sim/metrics.py": {
+          "statements": 288,
+          "missing_statements": 1,
+          "branches": 118,
+          "missing_branches": 2,
+          "missing_branch_arcs": [
+            [
+              268,
+              270
+            ],
+            [
+              888,
+              887
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "selected_statement_plus_branch_reduction": 66,
+  "shortfall_from_180": 114
+}

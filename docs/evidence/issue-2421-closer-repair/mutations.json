@@ -1,0 +1,65 @@
+[
+  {
+    "test": "test_result_helpers_preserve_json_lists_and_prefer_total_metric_row",
+    "module": "pa_core/llm/result_explain.py",
+    "original": "if isinstance(value, list):\n        return [_to_json_safe(v) for v in value]",
+    "mutation": "if isinstance(value, list):\n        return []",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "green_exit": 0
+  },
+  {
+    "test": "test_result_explain_tolerates_llm_path_telemetry_failure_and_non_mapping_summary",
+    "module": "pa_core/llm/result_explain.py",
+    "original": "except Exception:\n            logger.warning(\"Failed to record result-explanation fleet event\", exc_info=True)\n    return",
+    "mutation": "except Exception:\n            payload[\"status\"] = \"error\"\n    return",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "green_exit": 0
+  },
+  {
+    "test": "test_units_cover_monthly_to_annual_covariance_and_identity_series",
+    "module": "pa_core/units.py",
+    "original": "return np.asarray(cov, dtype=float) * MONTHS_PER_YEAR",
+    "mutation": "return np.asarray(cov, dtype=float)",
+    "restored_sha256": "4dac096784e2f79f663e0daf42a7ad037ee19a4bae55a5c43d02d573ff1810b5",
+    "red_exit": 1,
+    "green_exit": 0
+  },
+  {
+    "test": "test_internal_financing_uses_default_rng_when_stochastic_rng_is_omitted",
+    "module": "pa_core/sim/internal_pa_financing.py",
+    "original": "rng = spawn_rngs(None, 1)[0]",
+    "mutation": "rng = spawn_rngs(123, 1)[0]",
+    "restored_sha256": "40d4cad40f4ae20195787d9e0ea64ecf057c8a640dfbd2bfb0e02e3fa8a667ba",
+    "red_exit": 1,
+    "green_exit": 0
+  },
+  {
+    "test": "test_metrics_reject_invalid_inputs_and_handle_small_samples",
+    "module": "pa_core/sim/metrics.py",
+    "original": "if not 0 < confidence < 1:",
+    "mutation": "if not 0 < confidence <= 1:",
+    "restored_sha256": "8c828e8525a61c2606824b825e90711fb642c334670661fa8e652fa16ae58599",
+    "red_exit": 1,
+    "green_exit": 0
+  },
+  {
+    "test": "test_convergence_diagnostic_rejects_invalid_requests",
+    "module": "pa_core/sim/metrics.py",
+    "original": "checkpoint <= 0.0 or checkpoint > 1.0",
+    "mutation": "checkpoint < 0.0 or checkpoint > 1.0",
+    "restored_sha256": "8c828e8525a61c2606824b825e90711fb642c334670661fa8e652fa16ae58599",
+    "red_exit": 1,
+    "green_exit": 0
+  },
+  {
+    "test": "test_metrics_cover_registration_plugins_and_boundary_paths",
+    "module": "pa_core/sim/metrics.py",
+    "original": "register_metric(ep.name, ep.load())",
+    "mutation": "ep.load()",
+    "restored_sha256": "8c828e8525a61c2606824b825e90711fb642c334670661fa8e652fa16ae58599",
+    "red_exit": 1,
+    "green_exit": 0
+  }
+]

@@ -1,4 +1,7 @@
-"""Focused boundary coverage for the ranked #2421 modules."""
+"""Focused boundary coverage for the ranked #2421 modules.
+
+Evidence: docs/evidence/issue-2421-closer-repair/README.md.
+"""
 
 from __future__ import annotations
 
