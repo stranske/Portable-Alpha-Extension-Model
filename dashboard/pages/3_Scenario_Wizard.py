@@ -313,7 +313,11 @@ def _build_config_chat_llm_invoke() -> tuple[Callable[[str], str] | None, str | 
         str(st.session_state.get(_CONFIG_CHAT_PROVIDER_KEY, default_provider())).strip().lower()
     )
     model = str(st.session_state.get(_CONFIG_CHAT_MODEL_KEY, "")).strip() or None
-    raw_key = st.session_state.get(_CONFIG_CHAT_API_KEY_KEY)
+    # Use provider-scoped API key
+    api_key_key = f"{_CONFIG_CHAT_API_KEY_KEY}::{provider}"
+    # Legacy unscoped keys have no trustworthy provider binding.
+    st.session_state.pop(_CONFIG_CHAT_API_KEY_KEY, None)
+    raw_key = st.session_state.get(api_key_key)
     resolved_key = resolve_api_key_input(raw_key) or default_api_key(provider)
     if not resolved_key:
         return None, provider, model

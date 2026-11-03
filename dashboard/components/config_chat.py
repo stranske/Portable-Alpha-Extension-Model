@@ -6,12 +6,19 @@ from typing import Any, Callable, Mapping
 
 import streamlit as st
 
+from dashboard.components.llm_settings import default_provider
+
 _INSTRUCTION_KEY = "config_chat_instruction"
 _PREVIEW_KEY = "config_chat_preview"
 _STATUS_KEY = "config_chat_status"
 _PREVIEW_PATCH_KEY = "preview_patch"
 _PREVIEW_UNIFIED_DIFF_KEY = "preview_unified_diff"
 _PREVIEW_SIDEBYSIDE_DIFF_KEY = "preview_sidebyside_diff"
+
+# Provider/model/API key settings for Config Chat
+_PROVIDER_KEY = "config_chat_provider"
+_API_KEY_KEY = "config_chat_api_key"
+_MODEL_KEY = "config_chat_model"
 
 
 PreviewHandler = Callable[[str], Mapping[str, Any]]
@@ -32,6 +39,11 @@ def render_config_chat_panel(
     preview_key = f"{key_prefix}_{_PREVIEW_KEY}"
     status_key = f"{key_prefix}_{_STATUS_KEY}"
 
+    # Define provider/model/api_key keys with the prefix
+    provider_key = f"{key_prefix}_{_PROVIDER_KEY}"
+    api_key_key_base = f"{key_prefix}_{_API_KEY_KEY}"
+    model_key = f"{key_prefix}_{_MODEL_KEY}"
+
     st.subheader("Config Chat")
     st.caption("Describe a config change in plain English, then preview before applying.")
     st.text_area(
@@ -40,6 +52,42 @@ def render_config_chat_panel(
         key=instruction_key,
         help="Example: increase simulations to 5000 and reduce breach tolerance.",
     )
+
+    # LLM Settings expander
+    with st.expander("LLM Settings", expanded=False):
+        provider_options = ["openai", "anthropic", "azure_openai"]
+        provider_default = str(st.session_state.get(provider_key, default_provider())).lower()
+        if provider_default not in provider_options:
+            provider_default = "openai"
+
+        st.selectbox(
+            "Provider",
+            provider_options,
+            index=provider_options.index(provider_default),
+            key=provider_key,
+        )
+
+        current_provider = str(st.session_state.get(provider_key, provider_default)).lower()
+        api_key_key = f"{api_key_key_base}::{current_provider}"
+        # Legacy unscoped keys have no trustworthy provider binding.
+        st.session_state.pop(api_key_key_base, None)
+        saved_key = f"{api_key_key}::saved"
+        if api_key_key not in st.session_state:
+            st.session_state[api_key_key] = st.session_state.get(saved_key, "")
+        override = st.text_input(
+            "API Key",
+            value="",
+            key=api_key_key,
+            type="password",
+            help="Enter a literal key or an environment variable name.",
+        )
+        # Streamlit removes unrendered widget keys; this key is not a widget.
+        st.session_state[saved_key] = override
+        st.text_input(
+            "Model (optional)",
+            value=st.session_state.get(model_key, ""),
+            key=model_key,
+        )
 
     col_preview, col_apply, col_apply_validate, col_revert = st.columns(4)
     with col_preview:

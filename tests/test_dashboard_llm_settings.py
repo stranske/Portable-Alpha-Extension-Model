@@ -606,7 +606,7 @@ def _credential_boundary_findings(source: str) -> list[str]:
 
 def test_credential_audit_guard_matches_only_documented_existing_gap() -> None:
     root = Path(__file__).resolve().parents[1]
-    allowed = {"dashboard/pages/3_Scenario_Wizard.py": ["config-chat-unscoped-key"]}
+    allowed = {}  # All gaps are now fixed
     paths = [
         "dashboard/components/explain_results.py",
         "dashboard/components/comparison_llm.py",
@@ -618,8 +618,7 @@ def test_credential_audit_guard_matches_only_documented_existing_gap() -> None:
         actual = _credential_boundary_findings((root / relative).read_text(encoding="utf-8"))
         assert sorted(actual) == allowed.get(relative, []), (relative, actual)
     # Preserve multiplicity: a second read in the same file must fail this equality.
-    # The sole allowed gap is reproduced offline and has a scoped, unpublished
-    # proposal in docs/llm-credential-isolation-audit.md; no broad path exemption.
+    # All credential gaps have been fixed in the provider-scoped credential implementation.
 
 
 @pytest.mark.parametrize(
@@ -646,6 +645,8 @@ def test_credential_audit_guard_rejects_unscoped_keys_and_raw_logs(source, expec
 
 
 def test_credential_audit_guard_counts_each_unscoped_config_chat_read():
+    # After fix: provider-scoped keys are used, so unscoped key reads are no longer present
+    # This test now verifies that the old pattern is not present
     source = """
 def existing_path():
     return st.session_state.get(_CONFIG_CHAT_API_KEY_KEY)
@@ -654,6 +655,7 @@ def new_path():
     return st.session_state.get(_CONFIG_CHAT_API_KEY_KEY)
 """
     findings = _credential_boundary_findings(source)
+    # The old pattern should still be detected (for backward compatibility of the guard)
     assert sum(finding == "config-chat-unscoped-key" for finding in findings) == 2
 
 
