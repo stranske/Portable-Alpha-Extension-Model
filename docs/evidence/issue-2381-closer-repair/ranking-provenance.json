@@ -1,0 +1,47 @@
+{
+  "issue": "stranske/Portable-Alpha-Extension-Model#2381",
+  "merged_opener_pr": 2384,
+  "dispatch_record": "issue body claim - PR #2384 delivered initial Results page test, remainder to be completed",
+  "ranking_policy": "uncovered statement count descending within 4_Results.py, focusing on export and visualization functions",
+  "selected_targets_in_order": [
+    {
+      "path": "dashboard/pages/4_Results.py::_packet_args",
+      "uncovered_units_at_dispatch": 53,
+      "churn": 0,
+      "reason": "Export packet argument preparation - highest uncovered mass in Results page"
+    },
+    {
+      "path": "dashboard/pages/4_Results.py::render_png_download handling",
+      "uncovered_units_at_dispatch": 18,
+      "churn": 0,
+      "reason": "PNG download with Kaleido/Chrome error handling"
+    },
+    {
+      "path": "dashboard/pages/4_Results.py::export packet rendering",
+      "uncovered_units_at_dispatch": 19,
+      "churn": 0,
+      "reason": "_render_packet_downloads function"
+    },
+    {
+      "path": "dashboard/pages/4_Results.py::export packet error handling",
+      "uncovered_units_at_dispatch": 17,
+      "churn": 0,
+      "reason": "Export packet async error paths"
+    },
+    {
+      "path": "dashboard/pages/4_Results.py::_prior_output_path",
+      "uncovered_units_at_dispatch": 11,
+      "churn": 0,
+      "reason": "Previous output path resolution"
+    },
+    {
+      "path": "dashboard/pages/4_Results.py::manifest loading",
+      "uncovered_units_at_dispatch": 10,
+      "churn": 0,
+      "reason": "Manifest data loading and seed display"
+    }
+  ],
+  "combined_uncovered_at_dispatch": 128,
+  "repair_scope": "Finish remainder after #2384: add tests to existing test_coverage_round_2381.py and new focused tests to reach ~180 unit reduction across the round. Preserve existing Results test.",
+  "notes": "PR #2384 added initial test covering main() happy path with charts, XLSX download, and error assertions. test_dashboard_results_previous_run.py already covers _check_previous_run_availability and _render_comparison_panel (78 uncovered units). Additional ~180 unit reduction to be achieved through focused tests on export and visualization functions."
+}
