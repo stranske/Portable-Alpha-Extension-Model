@@ -1,0 +1,15 @@
+{
+  "issue": "stranske/Portable-Alpha-Extension-Model#2382",
+  "merged_opener_pr": 2385,
+  "dispatch_record": "issue body 2026-10-17T11:53:42Z claim",
+  "ranking_policy": "escaped-defect priority, then churn, then uncovered mass (orchestrator ranking; unchanged from initiative)",
+  "selected_targets_in_order": [
+    {"path": "pa_core/llm/config_patch_chain.py", "uncovered_units_at_dispatch": 55, "churn": 1},
+    {"path": "pa_core/config.py", "uncovered_units_at_dispatch": 41, "churn": 1},
+    {"path": "pa_core/data/loaders.py", "uncovered_units_at_dispatch": 41, "churn": 1},
+    {"path": "pa_core/sweep.py", "uncovered_units_at_dispatch": 41, "churn": 1},
+    {"path": "pa_core/calibration.py", "uncovered_units_at_dispatch": 25, "churn": 1}
+  ],
+  "combined_uncovered_at_dispatch": 203,
+  "repair_scope": "Finish remainder after #2385 without redoing merged tests; additional targets only via this ordered list."
+}
