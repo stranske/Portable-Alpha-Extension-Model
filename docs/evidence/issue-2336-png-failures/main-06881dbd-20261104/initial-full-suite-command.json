@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "timeout",
+    "--signal=INT",
+    "--kill-after=30s",
+    "600s",
+    "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/main-06881dbd-20261104/coverage.json",
+    "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/main-06881dbd-20261104/full-suite.xml",
+    "-m",
+    "not slow and not live_llm",
+    "-o",
+    "faulthandler_timeout=60",
+    "tests/"
+  ],
+  "cwd": "/tmp/issue2336-main-jttv7uz1",
+  "main_revision": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "pr_head": "831f4e03a7000f8c8a40f041e5f985eba9fe159e",
+  "python": "3.14.9 (main, Oct 21 2026, 14:48:41) [GCC 15.2.0]",
+  "versions": {
+    "coverage": "7.17.0",
+    "pytest": "9.2.0",
+    "pytest-cov": "7.1.0",
+    "numpy": "2.5.4",
+    "kaleido": "1.5.0"
+  },
+  "overlay": {
+    "path": "tests/test_cli.py",
+    "sha256": "b22607cc77698d6405ae098de5b16bc808239f476d3bf17a1764a9bc77ac850e"
+  },
+  "selection": "Current main snapshot with only the inherited bounded native PNG test overlaid; mandatory not slow and default not live_llm. Installed coverage 7.17.0 differs from main dev pin 7.17.1.",
+  "archive_sha256": "f029c7defd763da50f06f469479ccc45c502fb320968126d21453121d40bb033",
+  "exit": 1,
+  "elapsed_seconds": 214.29
+}

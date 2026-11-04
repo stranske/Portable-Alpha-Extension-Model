@@ -1,5 +1,15 @@
 # Single-run PNG failure evidence for #2336
 
+## Current-main PNG replay — 2026-11-04
+
+The [main `06881dbd` capture](main-06881dbd-20261104/README.md) re-runs all eight
+assertion RED/restored GREEN pairs against the current main revision, with raw
+console logs, named-node JUnit, argv and hashes retained individually. The focused
+PNG/PDF/sweep suite passes all 23 tests. The replay driver now resolves an explicit
+revision once and rejects a caller CLI that differs from that snapshot; its two
+new regressions fail before the change and pass afterward. Historical failure
+dispositions and issue closure remain open.
+
 ## Installed-wheel failure diagnostics — 2026-11-04
 
 The [install diagnostic repair](install-diagnostics-20261104/README.md) preserves
