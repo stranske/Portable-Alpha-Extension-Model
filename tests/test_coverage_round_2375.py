@@ -20,6 +20,7 @@ from pa_core.llm.compare_runs import (
     load_prior_manifest,
     load_prior_summary,
 )
+from pa_core.run_artifact_bundle import RunArtifactBundle
 from pa_core.viz import utils as viz_utils
 
 
@@ -226,4 +227,26 @@ def test_single_run_bundle_contains_the_completed_artifacts(
 
     main(_single_run_argv(config, index, output, "--bundle", str(bundle_dir)))
 
-    assert (bundle_dir / "bundle.json").is_file()
+    meta_path = bundle_dir / RunArtifactBundle._META_FILE
+    assert meta_path.is_file()
+    bundle_meta = json.loads(meta_path.read_text())
+    assert bundle_meta["config_path"] == RunArtifactBundle._CONFIG_FILE
+    assert bundle_meta["manifest_path"] == RunArtifactBundle._MANIFEST_FILE
+    assert bundle_meta["seed"] == 123
+    assert bundle_meta["index_hash"]
+
+    outputs_meta = bundle_meta["outputs"]
+    assert isinstance(outputs_meta, dict) and outputs_meta
+    assert output.name in outputs_meta
+
+    assert (bundle_dir / bundle_meta["config_path"]).is_file()
+    assert (bundle_dir / bundle_meta["manifest_path"]).is_file()
+
+    output_hashes = bundle_meta["hashes"]["outputs"]
+    for name, relpath in outputs_meta.items():
+        artifact_path = bundle_dir / relpath
+        assert artifact_path.is_file(), name
+        assert output_hashes.get(name)
+
+    loaded = RunArtifactBundle.load(bundle_dir)
+    assert loaded.verify()
