@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -45,6 +46,13 @@ def summarize(coverage_path: Path, junit_path: Path, returncode: int) -> dict:
             raise ValueError(f"Coverage file summaries disagree with totals.{key}")
     if totals["covered_lines"] + totals["missing_lines"] != totals["num_statements"]:
         raise ValueError("Covered plus missing statements disagree with total statements")
+    for summary in [totals, *modules]:
+        statements = summary["num_statements"]
+        expected = 100.0 * summary["covered_lines"] / statements if statements else 100.0
+        if not math.isclose(summary["percent_covered"], expected, rel_tol=0, abs_tol=1e-12):
+            raise ValueError(
+                f"Coverage percentage disagrees with statements: {summary.get('path', 'totals')}"
+            )
 
     root = ET.parse(junit_path).getroot()
     suites = [root] if root.tag == "testsuite" else root.findall("testsuite")

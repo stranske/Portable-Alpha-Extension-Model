@@ -1,0 +1,5 @@
+Skipping .ipynb files as Jupyter dependencies are not installed.
+You can fix this by running ``pip install "black[jupyter]"``
+Aborted!
+All done! ✨ 🍰 ✨
+534 files would be left unchanged.

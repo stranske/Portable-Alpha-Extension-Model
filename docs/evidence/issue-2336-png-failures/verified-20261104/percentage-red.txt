@@ -1,0 +1,136 @@
+FFFFFF.                                                                  [100%]
+=================================== FAILURES ===================================
+___ test_summary_rejects_percentage_disagreeing_with_statements[74.0-totals] ___
+
+evidence = (<module 'png_evidence_summary' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/...ects_percentag0/coverage.json'), PosixPath('/tmp/pytest-of-runner/pytest-1/test_summary_rejects_percentag0/junit.xml'))
+location = 'totals', percentage = 74.0
+
+    @pytest.mark.parametrize("location", ["totals", "module"])
+    @pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+    def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+        module, coverage, junit = evidence
+        data = json.loads(coverage.read_text())
+        summary = (
+            data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+        )
+        summary["percent_covered"] = percentage
+        coverage.write_text(json.dumps(data))
+>       with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_png_evidence_summary.py:87: Failed
+___ test_summary_rejects_percentage_disagreeing_with_statements[74.0-module] ___
+
+evidence = (<module 'png_evidence_summary' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/...ects_percentag1/coverage.json'), PosixPath('/tmp/pytest-of-runner/pytest-1/test_summary_rejects_percentag1/junit.xml'))
+location = 'module', percentage = 74.0
+
+    @pytest.mark.parametrize("location", ["totals", "module"])
+    @pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+    def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+        module, coverage, junit = evidence
+        data = json.loads(coverage.read_text())
+        summary = (
+            data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+        )
+        summary["percent_covered"] = percentage
+        coverage.write_text(json.dumps(data))
+>       with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_png_evidence_summary.py:87: Failed
+___ test_summary_rejects_percentage_disagreeing_with_statements[nan-totals] ____
+
+evidence = (<module 'png_evidence_summary' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/...ects_percentag2/coverage.json'), PosixPath('/tmp/pytest-of-runner/pytest-1/test_summary_rejects_percentag2/junit.xml'))
+location = 'totals', percentage = nan
+
+    @pytest.mark.parametrize("location", ["totals", "module"])
+    @pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+    def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+        module, coverage, junit = evidence
+        data = json.loads(coverage.read_text())
+        summary = (
+            data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+        )
+        summary["percent_covered"] = percentage
+        coverage.write_text(json.dumps(data))
+>       with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_png_evidence_summary.py:87: Failed
+___ test_summary_rejects_percentage_disagreeing_with_statements[nan-module] ____
+
+evidence = (<module 'png_evidence_summary' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/...ects_percentag3/coverage.json'), PosixPath('/tmp/pytest-of-runner/pytest-1/test_summary_rejects_percentag3/junit.xml'))
+location = 'module', percentage = nan
+
+    @pytest.mark.parametrize("location", ["totals", "module"])
+    @pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+    def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+        module, coverage, junit = evidence
+        data = json.loads(coverage.read_text())
+        summary = (
+            data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+        )
+        summary["percent_covered"] = percentage
+        coverage.write_text(json.dumps(data))
+>       with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_png_evidence_summary.py:87: Failed
+___ test_summary_rejects_percentage_disagreeing_with_statements[inf-totals] ____
+
+evidence = (<module 'png_evidence_summary' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/...ects_percentag4/coverage.json'), PosixPath('/tmp/pytest-of-runner/pytest-1/test_summary_rejects_percentag4/junit.xml'))
+location = 'totals', percentage = inf
+
+    @pytest.mark.parametrize("location", ["totals", "module"])
+    @pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+    def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+        module, coverage, junit = evidence
+        data = json.loads(coverage.read_text())
+        summary = (
+            data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+        )
+        summary["percent_covered"] = percentage
+        coverage.write_text(json.dumps(data))
+>       with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_png_evidence_summary.py:87: Failed
+___ test_summary_rejects_percentage_disagreeing_with_statements[inf-module] ____
+
+evidence = (<module 'png_evidence_summary' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/...ects_percentag5/coverage.json'), PosixPath('/tmp/pytest-of-runner/pytest-1/test_summary_rejects_percentag5/junit.xml'))
+location = 'module', percentage = inf
+
+    @pytest.mark.parametrize("location", ["totals", "module"])
+    @pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+    def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+        module, coverage, junit = evidence
+        data = json.loads(coverage.read_text())
+        summary = (
+            data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+        )
+        summary["percent_covered"] = percentage
+        coverage.write_text(json.dumps(data))
+>       with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_png_evidence_summary.py:87: Failed
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_png_evidence_summary.py::test_summary_rejects_percentage_disagreeing_with_statements[74.0-totals] - Failed: DID NOT RAISE ValueError
+FAILED tests/test_png_evidence_summary.py::test_summary_rejects_percentage_disagreeing_with_statements[74.0-module] - Failed: DID NOT RAISE ValueError
+FAILED tests/test_png_evidence_summary.py::test_summary_rejects_percentage_disagreeing_with_statements[nan-totals] - Failed: DID NOT RAISE ValueError
+FAILED tests/test_png_evidence_summary.py::test_summary_rejects_percentage_disagreeing_with_statements[nan-module] - Failed: DID NOT RAISE ValueError
+FAILED tests/test_png_evidence_summary.py::test_summary_rejects_percentage_disagreeing_with_statements[inf-totals] - Failed: DID NOT RAISE ValueError
+FAILED tests/test_png_evidence_summary.py::test_summary_rejects_percentage_disagreeing_with_statements[inf-module] - Failed: DID NOT RAISE ValueError
+6 failed, 1 passed, 19 deselected, 13 warnings in 3.08s

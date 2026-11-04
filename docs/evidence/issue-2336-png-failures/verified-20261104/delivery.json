@@ -1,0 +1,54 @@
+{
+  "checkout_commit_attempt": {
+    "argv": [
+      "git",
+      "add",
+      "docs/evidence/issue-2336-png-failures/README.md",
+      "docs/evidence/issue-2336-png-failures/summarize.py",
+      "tests/test_png_evidence_summary.py",
+      "docs/evidence/issue-2336-png-failures/verified-20261104"
+    ],
+    "exit": 128,
+    "reason": "Unable to create .git/index.lock: Read-only file system"
+  },
+  "temporary_commit": {
+    "git_dir": "/tmp/issue2336-verified.git",
+    "work_tree": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+    "branch": "evidence-2477",
+    "patch": "/tmp/issue2336-verified.patch",
+    "bundle": "/tmp/issue2336-verified.bundle",
+    "checkout_branch_advanced": false,
+    "published": false
+  },
+  "remote_updates": [
+    {
+      "action": "Reconcile 14 verified PR task checkboxes, leaving both historical-disposition and issue-closure tasks unchecked",
+      "success": false,
+      "reason": "MCP tool call requires approval, but approval policy is never"
+    },
+    {
+      "action": "Add needs-human label",
+      "success": false,
+      "reason": "MCP tool call requires approval, but approval policy is never"
+    },
+    {
+      "action": "Post evidence and Git metadata blocker comment",
+      "success": false,
+      "reason": "MCP tool call requires approval, but approval policy is never"
+    }
+  ],
+  "reconciled_pr_body": "/tmp/issue2336-verified-pr-body.md",
+  "pr_status_after_attempts": {
+    "number": 2478,
+    "state": "open",
+    "isDraft": false,
+    "head": "9ff81e446e598f118a04363cb7072f65955e1f87",
+    "base": "7613ffd97a450b15e550f499b7386ec4e67f2c51"
+  },
+  "issue_2336_closed": false,
+  "remaining": [
+    "Conclusive historical optimizer failure disposition with compatible SciPy/NumPy",
+    "Conclusive historical wheel-build failure disposition",
+    "Publish delivery and reconcile remote task state in an authorized writable environment"
+  ]
+}

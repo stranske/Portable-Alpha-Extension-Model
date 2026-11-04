@@ -1,0 +1,18 @@
+{
+  "archive": "../main-20261104/png-proof.tar.gz",
+  "sha256": "6ce57ffc8901f7a5a5f65fa51560a74c5d8a94dea3346b937158a0692d95deca",
+  "verified_members": 41,
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "main_revision": "7613ffd97a450b15e550f499b7386ec4e67f2c51",
+  "pairs_verified": [
+    "renderer",
+    "module",
+    "io",
+    "permission",
+    "value",
+    "type",
+    "runtime-renderer",
+    "runtime-other"
+  ],
+  "execution": "Validated retained pairs and current source/test hashes; no new mutation execution."
+}

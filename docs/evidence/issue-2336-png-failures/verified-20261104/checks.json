@@ -1,0 +1,95 @@
+{
+  "percentage_red": {
+    "argv": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_png_evidence_summary.py",
+      "-q",
+      "-m",
+      "not slow",
+      "-k",
+      "percentage_disagreeing or empty_module"
+    ],
+    "exit": 1,
+    "outcome": "6 failed, 1 passed, 19 deselected",
+    "console": "percentage-red.txt"
+  },
+  "before_fix": {
+    "argv": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_png_evidence_summary.py",
+      "-q",
+      "-m",
+      "not slow"
+    ],
+    "exit": 1,
+    "outcome": "6 failed, 20 passed; the seven new cases were collected before the helper fix",
+    "console": "before-fix.txt"
+  },
+  "percentage_green": {
+    "argv": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_png_evidence_summary.py",
+      "-q",
+      "-m",
+      "not slow",
+      "--cov",
+      "--cov-config=/tmp/issue2336-summary.coveragerc",
+      "--cov-report=term-missing",
+      "--junitxml=docs/evidence/issue-2336-png-failures/verified-20261104/percentage-green.xml"
+    ],
+    "environment": {
+      "COVERAGE_FILE": "/tmp/issue2336-summary.coverage"
+    },
+    "coverage_configuration": "[run]\ninclude = */issue-2336-png-failures/summarize.py\n",
+    "exit": 0,
+    "outcome": "26 passed; helper-only statement coverage 80%, separate from product coverage",
+    "console": "percentage-green.txt"
+  },
+  "black": {
+    "argv": [
+      "black",
+      "--check",
+      "--line-length",
+      "100",
+      "--exclude",
+      "(\\.workflows-lib|node_modules)",
+      "."
+    ],
+    "environment": {
+      "BLACK_CACHE_DIR": "/tmp/issue2336-verified-black",
+      "BLACK_NUM_WORKERS": "1"
+    },
+    "exit": 0,
+    "console": "black-final.txt",
+    "outcome": "534 files would be left unchanged",
+    "cache_priming": "black-prime.txt: 531 rg-discovered Python files checked individually; the required whole-tree check then reports 534 unchanged files.",
+    "initial_attempt": {
+      "exit": 124,
+      "timeout_seconds": 55,
+      "console": "black-check.txt",
+      "cause": "Started before cache priming finished; restricted multiprocessing sockets prevent Black workers from completing."
+    }
+  },
+  "ruff": {
+    "argv": [
+      "ruff",
+      "check",
+      "docs/evidence/issue-2336-png-failures/summarize.py",
+      "tests/test_png_evidence_summary.py"
+    ],
+    "exit": 0,
+    "outcome": "All checks passed!"
+  },
+  "before_fix_summary_sha256": "8fd3fc2af2b31ac8a747152f1dd0023defaf1571e786640a619ab3fbb87ba12f",
+  "candidate_summary_sha256": "9a84cc128a3f9fcbf0b9ff3ba06de7383eb7cdf046cda4a2fe0b6b24ede90ea3",
+  "diff_check": {
+    "scope": "All staged changes except full-suite.txt and full-suite.xml",
+    "reason": "Raw pytest traceback lines contain trailing whitespace. Preserve their original bytes and hashes; check source, documentation and structured metadata normally."
+  }
+}

@@ -74,6 +74,33 @@ def test_summary_rejects_inconsistent_coverage_totals(evidence, key):
         module.summarize(coverage, junit, 1)
 
 
+@pytest.mark.parametrize("location", ["totals", "module"])
+@pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
+def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
+    module, coverage, junit = evidence
+    data = json.loads(coverage.read_text())
+    summary = (
+        data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
+    )
+    summary["percent_covered"] = percentage
+    coverage.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
+        module.summarize(coverage, junit, 1)
+
+
+def test_summary_accepts_empty_module_at_full_coverage(evidence):
+    module, coverage, junit = evidence
+    data = json.loads(coverage.read_text())
+    data["files"]["pa_core/empty.py"] = {
+        "summary": dict(covered_lines=0, num_statements=0, missing_lines=0, percent_covered=100.0),
+        "missing_lines": [],
+    }
+    coverage.write_text(json.dumps(data))
+    report = module.summarize(coverage, junit, 1)
+    assert report["totals"]["percent_covered"] == 75.0
+    assert report["modules"][0]["percent_covered"] == 100.0
+
+
 @pytest.mark.parametrize("attribute", ["tests", "failures", "errors", "skipped"])
 def test_summary_rejects_partial_or_inconsistent_junit(evidence, attribute):
     module, coverage, junit = evidence

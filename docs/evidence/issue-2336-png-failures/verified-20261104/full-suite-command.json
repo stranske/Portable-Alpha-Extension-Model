@@ -1,0 +1,45 @@
+{
+  "argv": [
+    "timeout",
+    "--signal=INT",
+    "--kill-after=30s",
+    "600s",
+    "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:docs/evidence/issue-2336-png-failures/verified-20261104/coverage.json",
+    "--junitxml=docs/evidence/issue-2336-png-failures/verified-20261104/full-suite.xml",
+    "-m",
+    "not slow and not live_llm",
+    "-o",
+    "faulthandler_timeout=60",
+    "tests/"
+  ],
+  "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+  "head": "9ff81e446e598f118a04363cb7072f65955e1f87",
+  "main_revision": "7613ffd97a450b15e550f499b7386ec4e67f2c51",
+  "product_diff_from_main": "",
+  "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+  "versions": {
+    "pytest": "9.2.0",
+    "pytest-cov": "7.1.0",
+    "coverage": "7.17.0",
+    "numpy": "2.5.4",
+    "kaleido": "1.5.0"
+  },
+  "input_sha256": {
+    "pa_core/cli.py": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+    "pyproject.toml": "8ecbb7dfdc8246d554ef083faa01c6088901efa217efef745bf4f665a4848271",
+    "tests/test_cli.py": "b22607cc77698d6405ae098de5b16bc808239f476d3bf17a1764a9bc77ac850e",
+    "tests/test_png_evidence_summary.py": "3819a5584e551623cac43586a9aec6823e8e1e25ed851da2d94224a1f10b6f9a",
+    "docs/evidence/issue-2336-png-failures/summarize.py": "9a84cc128a3f9fcbf0b9ff3ba06de7383eb7cdf046cda4a2fe0b6b24ede90ea3"
+  },
+  "environment": {
+    "COVERAGE_FILE": "/tmp/issue2336-verified.coverage"
+  },
+  "selection": "Required not slow; preserve default not live_llm. Includes inherited 30-second native PNG subprocess bound and installed-wheel offline test. New summary regressions do not change product code.",
+  "exit": 1,
+  "elapsed_seconds": 214.2
+}

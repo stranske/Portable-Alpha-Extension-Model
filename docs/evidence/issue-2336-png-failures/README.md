@@ -1,5 +1,14 @@
 # Single-run PNG failure evidence for #2336
 
+## Verified coverage capture — 2026-11-04
+
+The [fresh completed capture](verified-20261104/README.md) reports **2,018 passed,
+2 failed, 3 skipped, 4 deselected** and **13,493 / 14,626 covered statements
+(92.25352112676056%)** on unchanged current-main production. The evidence helper
+now rejects percentages inconsistent with statement counts; all 26 helper tests
+pass. The retained eight PNG pairs still match current-main hashes. Historical
+optimizer and wheel-build causes remain unresolved, so #2336 stays open.
+
 ## Offline installed-wheel verification — 2026-11-04
 
 The [installed-wheel follow-up](offline-install-20261104/README.md) adds a supported-
