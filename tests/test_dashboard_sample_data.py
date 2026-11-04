@@ -35,10 +35,12 @@ from pa_core.orchestrator import SimulatorOrchestrator
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _run_build_step(argv: list, *, cwd: Path | None = None) -> None:
+def _run_build_step(
+    argv: list, *, cwd: Path | None = None, env: dict[str, str] | None = None
+) -> None:
     """Keep subprocess diagnostics in pytest's failure report, including JUnit."""
     try:
-        subprocess.run(argv, check=True, capture_output=True, text=True, cwd=cwd)
+        subprocess.run(argv, check=True, capture_output=True, text=True, cwd=cwd, env=env)
     except subprocess.CalledProcessError as exc:
         pytest.fail(
             f"Packaging command failed (exit {exc.returncode}): {exc.cmd}\n"
@@ -86,6 +88,37 @@ def test_build_wheel_retains_failed_command_output(tmp_path, monkeypatch, failin
     assert str(calls[-1]) in message
     assert "exit 1" in message
     assert len(calls) == (1 if failing_step == "install" else 2)
+
+
+@pytest.mark.parametrize("offline", [False, True])
+def test_installed_wheel_retains_failed_install_output(tmp_path, monkeypatch, offline):
+    """A wheel installation failure needs the same diagnostics as a build failure."""
+    wheel_path = tmp_path / "sample.whl"
+    with zipfile.ZipFile(wheel_path, "w") as archive:
+        archive.writestr("sample.dist-info/METADATA", "Name: sample\nVersion: 1\n")
+    monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
+    calls = []
+
+    def fail_install(argv, **kwargs):
+        calls.append((argv, kwargs))
+        raise subprocess.CalledProcessError(
+            1, argv, output="wheel installation output", stderr="unsupported Python version"
+        )
+
+    monkeypatch.setattr(subprocess, "run", fail_install)
+    with pytest.raises(pytest.fail.Exception) as caught:
+        _assert_installed_wheel_samples(wheel_path, tmp_path, offline=offline)
+    message = str(caught.value)
+    assert "wheel installation output" in message
+    assert "unsupported Python version" in message
+    assert "exit 1" in message
+    assert len(calls) == 1
+    argv, options = calls[0]
+    assert str(argv) in message
+    assert argv[1:5] == ["-I", "-m", "pip", "install"]
+    assert ("--no-index" in argv) is offline
+    assert options["cwd"] == tmp_path
+    assert options["env"]["PYTHONPATH"] == str(tmp_path / "metadata-decoy")
 
 
 @pytest.mark.slow
@@ -147,11 +180,8 @@ def _assert_installed_wheel_samples(
         metadata_path.write_bytes(archive.read(metadata_name))
     install_env = {**os.environ, "PYTHONPATH": str(metadata_decoy)}
     install_options = ["--no-index", "--no-deps", "--ignore-installed"] if offline else []
-    subprocess.run(
+    _run_build_step(
         [python, "-I", "-m", "pip", "install", *install_options, str(wheel_path)],
-        check=True,
-        capture_output=True,
-        text=True,
         cwd=tmp_path,
         env=install_env,
     )

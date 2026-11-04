@@ -1,5 +1,13 @@
 # Single-run PNG failure evidence for #2336
 
+## Installed-wheel failure diagnostics — 2026-11-04
+
+The [install diagnostic repair](install-diagnostics-20261104/README.md) preserves
+pip stdout/stderr for installed-wheel failures in both online and offline probes.
+Two new cases fail before the repair and pass afterward; focused regressions
+report **85 passed, 1 skipped, 1 deselected**. Retained coverage and all eight PNG
+pairs were independently revalidated. Historical failure dispositions remain open.
+
 ## Verified coverage capture — 2026-11-04
 
 The [fresh completed capture](verified-20261104/README.md) reports **2,018 passed,

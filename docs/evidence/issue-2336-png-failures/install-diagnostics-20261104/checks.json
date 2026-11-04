@@ -1,0 +1,129 @@
+{
+  "head": "9dd05c84ce50271a029c6a13313569786d18323e",
+  "main_revision": "7613ffd97a450b15e550f499b7386ec4e67f2c51",
+  "python": "3.14.9 (main, Oct 21 2026, 14:48:41) [GCC 15.2.0]",
+  "input_sha256": {
+    "tests/test_dashboard_sample_data.py": "8bd6af8654803ca581c29898ff16b2baad7c7933187465354ab17022c3cdd64a",
+    "pa_core/cli.py": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+    "pyproject.toml": "8ecbb7dfdc8246d554ef083faa01c6088901efa217efef745bf4f665a4848271"
+  },
+  "baseline_test_sha256": "b975d20632f924dbea82ce29d20aca66a7b31a144d1f1025750037672da01604",
+  "red": {
+    "argv": [
+      "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_dashboard_sample_data.py",
+      "-q",
+      "-m",
+      "not slow",
+      "-k",
+      "retains_failed_install_output"
+    ],
+    "exit": 1,
+    "outcome": "2 failed, 8 deselected",
+    "console": "red.txt"
+  },
+  "green": {
+    "argv": [
+      "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_dashboard_sample_data.py",
+      "tests/test_sleeve_suggestor.py",
+      "tests/test_schema_export.py",
+      "tests/test_png_evidence_summary.py",
+      "tests/test_cli_png_failures.py",
+      "tests/test_cli_pdf_failures.py",
+      "tests/test_cli_sweep_png_export.py",
+      "-q",
+      "-m",
+      "not slow and not live_llm",
+      "--junitxml=docs/evidence/issue-2336-png-failures/install-diagnostics-20261104/regressions.xml"
+    ],
+    "exit": 0,
+    "outcome": "85 passed, 1 skipped, 1 deselected",
+    "console": "regressions.txt"
+  },
+  "retained_coverage": {
+    "path": "../verified-20261104/coverage.json",
+    "manifest_verified": true,
+    "counts": {
+      "passed": 2018,
+      "failed": 2,
+      "skipped": 3
+    },
+    "covered_lines": 13493,
+    "num_statements": 14626,
+    "percent_covered": 92.25352112676056
+  },
+  "retained_png": {
+    "archive": "../main-20261104/png-proof.tar.gz",
+    "verified_members": 41,
+    "verified_pairs": 8,
+    "source_test_and_restored_hashes_match": true
+  },
+  "scipy_install_attempt": {
+    "argv": [
+      "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+      "-m",
+      "pip",
+      "install",
+      "--target",
+      "/tmp/issue2336-scipy",
+      "--only-binary=:all:",
+      "--disable-pip-version-check",
+      "--retries",
+      "0",
+      "--timeout",
+      "10",
+      "scipy"
+    ],
+    "exit": 1,
+    "error": "Could not find a version that satisfies the requirement scipy (from versions: none); No matching distribution found for scipy"
+  },
+  "ruff": {
+    "argv": [
+      "ruff",
+      "check",
+      "tests/test_dashboard_sample_data.py"
+    ],
+    "exit": 0
+  },
+  "black": {
+    "argv": [
+      "black",
+      "--check",
+      "--line-length",
+      "100",
+      "--exclude",
+      "(\\.workflows-lib|node_modules)",
+      "."
+    ],
+    "environment": {
+      "BLACK_CACHE_DIR": "/tmp/issue2336-install-black",
+      "BLACK_NUM_WORKERS": "1"
+    },
+    "exit": 0,
+    "outcome": "534 files would be left unchanged",
+    "console": "black-final.txt",
+    "initial_attempt": {
+      "timeout_seconds": 55,
+      "exit": 124,
+      "console": "black-check.txt"
+    },
+    "serial_cache_priming": {
+      "method": "black.get_sources and black.reformat_one with WriteBack.CHECK, line_length=100, target PY313 and the same exclusions; no files rewritten",
+      "exit": 0,
+      "outcome": "534 files left unchanged",
+      "console": "black-prime.txt"
+    }
+  },
+  "pr_status": {
+    "number": 2478,
+    "state": "open",
+    "isDraft": false,
+    "head": "9dd05c84ce50271a029c6a13313569786d18323e",
+    "base": "7613ffd97a450b15e550f499b7386ec4e67f2c51"
+  }
+}
