@@ -226,4 +226,57 @@ def test_single_run_bundle_contains_the_completed_artifacts(
 
     main(_single_run_argv(config, index, output, "--bundle", str(bundle_dir)))
 
+    # Verify bundle.json exists
     assert (bundle_dir / "bundle.json").is_file()
+
+    # Load and verify bundle.json schema
+    bundle_meta = json.loads((bundle_dir / "bundle.json").read_text())
+
+    # Verify required fields in bundle.json
+    assert "config_path" in bundle_meta
+    assert "index_hash" in bundle_meta
+    assert "seed" in bundle_meta
+    assert "outputs" in bundle_meta
+    assert "hashes" in bundle_meta
+    assert "config" in bundle_meta["hashes"]
+    assert "outputs" in bundle_meta["hashes"]
+
+    # Verify config.yaml exists and is referenced
+    config_path = bundle_dir / bundle_meta["config_path"]
+    assert config_path.is_file()
+    assert config_path.name == "config.yaml"
+
+    # Verify outputs entries are present and valid
+    outputs = bundle_meta["outputs"]
+    assert isinstance(outputs, dict)
+    assert len(outputs) > 0
+
+    # Verify each output entry references an existing file
+    for name, relpath in outputs.items():
+        output_path = bundle_dir / relpath
+        assert output_path.exists(), f"Referenced output {relpath} does not exist"
+
+    # Verify hashes for outputs match actual files
+    output_hashes = bundle_meta["hashes"]["outputs"]
+    for name, expected_hash in output_hashes.items():
+        assert name in outputs, f"Hash entry {name} has no corresponding output"
+        output_path = bundle_dir / outputs[name]
+        # Verify the hash matches
+        from pa_core.run_artifact_bundle import RunArtifactBundle
+
+        actual_hash = RunArtifactBundle._hash_file(output_path)
+        assert (
+            actual_hash == expected_hash
+        ), f"Hash mismatch for {name}: expected {expected_hash}, got {actual_hash}"
+
+    # Verify manifest_path if present
+    manifest_path_str = bundle_meta.get("manifest_path")
+    if manifest_path_str:
+        manifest_path = bundle_dir / manifest_path_str
+        assert manifest_path.is_file()
+
+    # Verify the bundle can be loaded and validated
+    from pa_core.run_artifact_bundle import RunArtifactBundle
+
+    loaded_bundle = RunArtifactBundle.load(bundle_dir)
+    assert loaded_bundle.verify()
