@@ -57,6 +57,62 @@ def test_capture_rejects_changed_product_before_creating_output(capture_module, 
     assert not output.exists()
 
 
+@pytest.mark.parametrize(
+    "name",
+    [
+        "pyproject.toml",
+        "pytest.toml",
+        ".pytest.toml",
+        "pytest.ini",
+        ".pytest.ini",
+        "tox.ini",
+        "setup.cfg",
+        ".coveragerc",
+    ],
+)
+def test_capture_rejects_configuration_drift_before_running_pytest(
+    capture_module, source, monkeypatch, name
+):
+    (source / name).write_text("# changed coverage or pytest configuration\n")
+    output = source.parent / "evidence"
+    real_run = subprocess.run
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+            pytest.fail("Configuration drift reached pytest")
+        return real_run(argv, **kwargs)
+
+    monkeypatch.setattr(capture_module.subprocess, "run", run)
+    with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+        capture_module.capture(source, output, "HEAD", 10)
+    assert not output.exists()
+
+
+def test_capture_rejects_gitignored_configuration(capture_module, source, monkeypatch):
+    (source / ".git/info/exclude").write_text(".coveragerc\n")
+    (source / ".coveragerc").write_text("[run]\nomit = pa_core/cli.py\n")
+    output = source.parent / "evidence"
+    real_run = subprocess.run
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+            pytest.fail("Gitignored coverage configuration reached pytest")
+        return real_run(argv, **kwargs)
+
+    monkeypatch.setattr(capture_module.subprocess, "run", run)
+    with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+        capture_module.capture(source, output, "HEAD", 10)
+    assert not output.exists()
+
+
+def test_capture_rejects_deleted_configuration(capture_module, source):
+    (source / "pyproject.toml").unlink()
+    output = source.parent / "evidence"
+    with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+        capture_module.capture(source, output, "HEAD", 10)
+    assert not output.exists()
+
+
 @pytest.mark.parametrize("returncode", [0, 1, 124, 137])
 def test_capture_records_inputs_and_rejects_timeout(
     capture_module, source, monkeypatch, returncode

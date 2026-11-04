@@ -1,0 +1,300 @@
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+_ test_capture_rejects_configuration_drift_before_running_pytest[pyproject.toml] _
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura0/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x745a6c087ce0>
+name = 'pyproject.toml'
+
+    @pytest.mark.parametrize(
+        "name", ["pyproject.toml", "pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg", ".coveragerc"]
+    )
+    def test_capture_rejects_configuration_drift_before_running_pytest(
+        capture_module, source, monkeypatch, name
+    ):
+        (source / name).write_text("# changed coverage or pytest configuration\n")
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail("Configuration drift reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:98: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.10/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura0/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura0/evidence/full-suite.txt'>, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+>           pytest.fail("Configuration drift reached pytest")
+E           Failed: Configuration drift reached pytest
+
+tests/test_png_coverage_capture.py:72: Failed
+__ test_capture_rejects_configuration_drift_before_running_pytest[pytest.ini] __
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura1/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x745a6be4c9d0>
+name = 'pytest.ini'
+
+    @pytest.mark.parametrize(
+        "name", ["pyproject.toml", "pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg", ".coveragerc"]
+    )
+    def test_capture_rejects_configuration_drift_before_running_pytest(
+        capture_module, source, monkeypatch, name
+    ):
+        (source / name).write_text("# changed coverage or pytest configuration\n")
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail("Configuration drift reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:98: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.10/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura1/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura1/evidence/full-suite.txt'>, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+>           pytest.fail("Configuration drift reached pytest")
+E           Failed: Configuration drift reached pytest
+
+tests/test_png_coverage_capture.py:72: Failed
+_ test_capture_rejects_configuration_drift_before_running_pytest[.pytest.ini] __
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura2/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x745a6be3deb0>
+name = '.pytest.ini'
+
+    @pytest.mark.parametrize(
+        "name", ["pyproject.toml", "pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg", ".coveragerc"]
+    )
+    def test_capture_rejects_configuration_drift_before_running_pytest(
+        capture_module, source, monkeypatch, name
+    ):
+        (source / name).write_text("# changed coverage or pytest configuration\n")
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail("Configuration drift reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:98: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.10/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura2/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura2/evidence/full-suite.txt'>, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+>           pytest.fail("Configuration drift reached pytest")
+E           Failed: Configuration drift reached pytest
+
+tests/test_png_coverage_capture.py:72: Failed
+___ test_capture_rejects_configuration_drift_before_running_pytest[tox.ini] ____
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura3/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x745a6be5a7a0>
+name = 'tox.ini'
+
+    @pytest.mark.parametrize(
+        "name", ["pyproject.toml", "pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg", ".coveragerc"]
+    )
+    def test_capture_rejects_configuration_drift_before_running_pytest(
+        capture_module, source, monkeypatch, name
+    ):
+        (source / name).write_text("# changed coverage or pytest configuration\n")
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail("Configuration drift reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:98: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.10/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura3/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura3/evidence/full-suite.txt'>, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+>           pytest.fail("Configuration drift reached pytest")
+E           Failed: Configuration drift reached pytest
+
+tests/test_png_coverage_capture.py:72: Failed
+__ test_capture_rejects_configuration_drift_before_running_pytest[setup.cfg] ___
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura4/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x745a6be5af10>
+name = 'setup.cfg'
+
+    @pytest.mark.parametrize(
+        "name", ["pyproject.toml", "pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg", ".coveragerc"]
+    )
+    def test_capture_rejects_configuration_drift_before_running_pytest(
+        capture_module, source, monkeypatch, name
+    ):
+        (source / name).write_text("# changed coverage or pytest configuration\n")
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail("Configuration drift reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:98: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.10/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura4/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura4/evidence/full-suite.txt'>, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+>           pytest.fail("Configuration drift reached pytest")
+E           Failed: Configuration drift reached pytest
+
+tests/test_png_coverage_capture.py:72: Failed
+_ test_capture_rejects_configuration_drift_before_running_pytest[.coveragerc] __
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura5/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x745a6bd49d50>
+name = '.coveragerc'
+
+    @pytest.mark.parametrize(
+        "name", ["pyproject.toml", "pytest.ini", ".pytest.ini", "tox.ini", "setup.cfg", ".coveragerc"]
+    )
+    def test_capture_rejects_configuration_drift_before_running_pytest(
+        capture_module, source, monkeypatch, name
+    ):
+        (source / name).write_text("# changed coverage or pytest configuration\n")
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail("Configuration drift reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:98: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.10/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura5/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_configura5/evidence/full-suite.txt'>, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+>           pytest.fail("Configuration drift reached pytest")
+E           Failed: Configuration drift reached pytest
+
+tests/test_png_coverage_capture.py:72: Failed
+__________________ test_capture_rejects_deleted_configuration __________________
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_deleted_c0/repo')
+
+    def test_capture_rejects_deleted_configuration(capture_module, source):
+        (source / "pyproject.toml").unlink()
+        output = source.parent / "evidence"
+        with pytest.raises(ValueError, match="Test or coverage configuration differs"):
+>           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:84: in capture
+    "pyproject_sha256": hashlib.sha256((repo / "pyproject.toml").read_bytes()).hexdigest(),
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/pathlib/__init__.py:777: in read_bytes
+    with self.open(mode='rb', buffering=0) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_deleted_c0/repo/pyproject.toml')
+mode = 'rb', buffering = 0, encoding = None, errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-runner/pytest-1/test_capture_rejects_deleted_c0/repo/pyproject.toml'
+
+/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_configuration_drift_before_running_pytest[pyproject.toml] - Failed: Configuration drift reached pytest
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_configuration_drift_before_running_pytest[pytest.ini] - Failed: Configuration drift reached pytest
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_configuration_drift_before_running_pytest[.pytest.ini] - Failed: Configuration drift reached pytest
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_configuration_drift_before_running_pytest[tox.ini] - Failed: Configuration drift reached pytest
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_configuration_drift_before_running_pytest[setup.cfg] - Failed: Configuration drift reached pytest
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_configuration_drift_before_running_pytest[.coveragerc] - Failed: Configuration drift reached pytest
+FAILED tests/test_png_coverage_capture.py::test_capture_rejects_deleted_configuration - FileNotFoundError: [Errno 2] No such file or directory: '/tmp/pytest-of-runner/pytest-1/test_capture_rejects_deleted_c0/repo/pyproject.toml'
+7 failed, 7 deselected, 13 warnings in 2.35s

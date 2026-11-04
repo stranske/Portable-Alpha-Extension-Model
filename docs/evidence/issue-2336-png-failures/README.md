@@ -1,5 +1,16 @@
 # Single-run PNG failure evidence for #2336
 
+## Configuration guard and main-only capture — 2026-11-04
+
+The [isolated main capture](config-guard-20261104/README.md) reports **1,988 passed,
+2 failed, 3 skipped, 4 deselected** and **13,493 / 14,626 covered statements
+(92.25352112676056%)**. Product files and configuration match main `06881dbd`;
+only the existing native PNG subprocess bound overlays its test tree. The capture
+helper now rejects test/coverage configuration drift, including gitignored files,
+with ten new regressions and **69 passing focused helper tests**. The 23 export
+tests pass, and all eight retained same-main PNG pairs were independently checked.
+Historical optimizer and wheel-build causes remain unresolved, so #2336 stays open.
+
 ## Reproducible bounded capture — 2026-11-04
 
 The [automated capture](automated-capture-20261104/README.md) completes with

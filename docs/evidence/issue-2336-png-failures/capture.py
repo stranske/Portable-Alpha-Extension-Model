@@ -34,6 +34,22 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
     untracked_product = git("ls-files", "--others", "--exclude-standard", "pa_core", "dashboard")
     if product_patch or untracked_product:
         raise ValueError("Product source differs from selected main revision")
+    # These files can alter test selection or the coverage denominator even when
+    # every product byte matches main. Do not present such a run as main coverage.
+    configuration = (
+        "pyproject.toml",
+        "pytest.toml",
+        ".pytest.toml",
+        "pytest.ini",
+        ".pytest.ini",
+        "tox.ini",
+        "setup.cfg",
+        ".coveragerc",
+    )
+    if git("diff", main_sha, "--", *configuration) or git(
+        "ls-files", "--others", "--", *configuration
+    ):
+        raise ValueError("Test or coverage configuration differs from selected main revision")
     test_patch = git("diff", main_sha, "--", "tests")
     for name in git("ls-files", "--others", "--exclude-standard", "tests").decode().splitlines():
         test_patch += "".join(
