@@ -1,0 +1,111 @@
+{
+  "starting_head": "cf626eb058d25fc33fb6e07bc14547a659b7d8ee",
+  "main_revision": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "verified_task_count": 14,
+  "total_task_count_including_duplicates": 18,
+  "baseline": {
+    "argv": [
+      "python",
+      "-m",
+      "pytest",
+      "tests/test_png_coverage_capture.py",
+      "-q",
+      "-m",
+      "not slow and not live_llm"
+    ],
+    "exit": 0,
+    "passed": 17
+  },
+  "new_regression_red": {
+    "selection": "tests/test_png_coverage_capture.py::test_capture_rejects_environment_overrides_before_running_pytest",
+    "exit": 1,
+    "failed": 3
+  },
+  "helper_regressions": {
+    "exit": 0,
+    "passed": 72,
+    "coverage_source": "docs/evidence/issue-2336-png-failures",
+    "tooling_coverage_excluded_from_product_totals": true
+  },
+  "focused_exports": {
+    "argv": [
+      "python",
+      "-m",
+      "pytest",
+      "tests/test_cli_png_failures.py",
+      "tests/test_cli_pdf_failures.py",
+      "tests/test_cli_sweep_png_export.py",
+      "-q",
+      "-m",
+      "not slow and not live_llm",
+      "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/environment-guard-20261104/focused.xml"
+    ],
+    "exit": 0,
+    "passed": 23
+  },
+  "png_replay": {
+    "argv": [
+      "python",
+      "docs/evidence/issue-2336-png-failures/replay.py",
+      "--revision",
+      "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+      "--output",
+      "/tmp/issue2336-environment-png"
+    ],
+    "exit": 0,
+    "pairs": 8
+  },
+  "black": {
+    "argv": [
+      "black",
+      "--check",
+      "--line-length",
+      "100",
+      "--exclude",
+      "(\\.workflows-lib|node_modules)",
+      "."
+    ],
+    "environment": {
+      "BLACK_CACHE_DIR": "/tmp/issue2336-black-cache",
+      "BLACK_NUM_WORKERS": "1"
+    },
+    "exit": 0,
+    "files": 536
+  },
+  "ruff": {
+    "argv": [
+      "ruff",
+      "check",
+      "docs/evidence/issue-2336-png-failures/capture.py",
+      "tests/test_png_coverage_capture.py"
+    ],
+    "exit": 0
+  },
+  "scipy_install": {
+    "argv": [
+      "timeout",
+      "--signal=INT",
+      "--kill-after=3s",
+      "35s",
+      "python",
+      "-m",
+      "pip",
+      "install",
+      "--disable-pip-version-check",
+      "--no-input",
+      "--no-deps",
+      "--retries",
+      "0",
+      "--timeout",
+      "10",
+      "--target",
+      "/tmp/issue2336-scipy",
+      "scipy"
+    ],
+    "result": "No matching distribution found; compatible optimizer integration unavailable"
+  },
+  "source_sha256": {
+    "docs/evidence/issue-2336-png-failures/capture.py": "2e8b3358e0f8c7938acf68d952bad9783f669889a349142e0e794e66e8b2ad62",
+    "tests/test_png_coverage_capture.py": "83f2e39ab581fe1974a655cf922fa9eb38de9b8d2ab64a7b3a527f385ab07c5b"
+  }
+}

@@ -21,6 +21,13 @@ from summarize import summarize
 def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> int:
     if timeout_seconds <= 0:
         raise ValueError("Timeout must be positive")
+    environment = os.environ.copy()
+    # A clean tree alone does not guarantee the recorded command's selection or
+    # denominator. In particular, inherited -x can leave valid partial JUnit and
+    # coverage reports with exit 1, which the summary otherwise accepts.
+    for name in ("PYTEST_ADDOPTS", "COVERAGE_RCFILE", "COVERAGE_PROCESS_START"):
+        if environment.get(name):
+            raise ValueError(f"Environment override changes test or coverage settings: {name}")
     repo = repo.resolve()
     output = output.resolve()
 
@@ -114,7 +121,7 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
         result = subprocess.run(
             argv,
             cwd=repo,
-            env={**os.environ, **metadata["environment"]},
+            env={**environment, **metadata["environment"]},
             stdout=log,
             stderr=subprocess.STDOUT,
         )

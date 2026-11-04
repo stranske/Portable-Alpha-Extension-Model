@@ -1,5 +1,17 @@
 # Single-run PNG failure evidence for #2336
 
+## Environment guard and fresh main capture — 2026-11-04
+
+The [environment guard follow-up](environment-guard-20261104/README.md) rejects
+inherited pytest/coverage overrides that could make a partial run appear complete.
+Three new regressions fail before the repair; all 72 helper regressions pass
+afterward. A fresh main-only capture completes with **1,988 passed, 2 environmental
+failures, 3 skipped, 4 deselected** and **13,493 / 14,626 covered statements
+(92.25352112676056%)**. All 23 export tests and eight fresh PNG assertion RED /
+restored GREEN pairs pass at current main's CLI hash. Historical optimizer and
+wheel-build causes remain unresolved. GitHub reports #2336 already closed; this
+round made no issue-state change and does not establish those missing dispositions.
+
 ## Optimizer failure-path verification — 2026-11-04
 
 The [optimizer follow-up](optimizer-disposition-20261104/README.md) verifies

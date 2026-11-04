@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.959" timestamp="2026-11-04T17:31:20.666721+00:00" hostname="ip-10-0-139-159"><testcase classname="tests.test_png_coverage_capture" name="test_capture_rejects_environment_overrides_before_running_pytest[PYTEST_ADDOPTS--x -k test_example]" time="0.780"><failure message="Failed: Inherited PYTEST_ADDOPTS reached pytest">capture_module = &lt;module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'&gt;
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme0/repo')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7317983fba80&gt;
+name = 'PYTEST_ADDOPTS', value = '-x -k test_example'
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("PYTEST_ADDOPTS", "-x -k test_example"),
+            ("COVERAGE_RCFILE", "alternative.coveragerc"),
+            ("COVERAGE_PROCESS_START", "alternative.coveragerc"),
+        ],
+    )
+    def test_capture_rejects_environment_overrides_before_running_pytest(
+        capture_module, source, monkeypatch, name, value
+    ):
+        """Inherited options can make a partial or differently measured suite look complete."""
+        monkeypatch.setenv(name, value)
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail(f"Inherited {name} reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match=f"Environment override changes test or coverage settings: {name}"):
+&gt;           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:114: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme0/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme0/evidence/full-suite.txt'&gt;, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+&gt;           pytest.fail(f"Inherited {name} reached pytest")
+E           Failed: Inherited PYTEST_ADDOPTS reached pytest
+
+tests/test_png_coverage_capture.py:134: Failed</failure></testcase><testcase classname="tests.test_png_coverage_capture" name="test_capture_rejects_environment_overrides_before_running_pytest[COVERAGE_RCFILE-alternative.coveragerc]" time="0.019"><failure message="Failed: Inherited COVERAGE_RCFILE reached pytest">capture_module = &lt;module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'&gt;
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme1/repo')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7317981bce90&gt;
+name = 'COVERAGE_RCFILE', value = 'alternative.coveragerc'
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("PYTEST_ADDOPTS", "-x -k test_example"),
+            ("COVERAGE_RCFILE", "alternative.coveragerc"),
+            ("COVERAGE_PROCESS_START", "alternative.coveragerc"),
+        ],
+    )
+    def test_capture_rejects_environment_overrides_before_running_pytest(
+        capture_module, source, monkeypatch, name, value
+    ):
+        """Inherited options can make a partial or differently measured suite look complete."""
+        monkeypatch.setenv(name, value)
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail(f"Inherited {name} reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match=f"Environment override changes test or coverage settings: {name}"):
+&gt;           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:114: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme1/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme1/evidence/full-suite.txt'&gt;, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+&gt;           pytest.fail(f"Inherited {name} reached pytest")
+E           Failed: Inherited COVERAGE_RCFILE reached pytest
+
+tests/test_png_coverage_capture.py:134: Failed</failure></testcase><testcase classname="tests.test_png_coverage_capture" name="test_capture_rejects_environment_overrides_before_running_pytest[COVERAGE_PROCESS_START-alternative.coveragerc]" time="0.018"><failure message="Failed: Inherited COVERAGE_PROCESS_START reached pytest">capture_module = &lt;module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'&gt;
+source = PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme2/repo')
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x7317981add90&gt;
+name = 'COVERAGE_PROCESS_START', value = 'alternative.coveragerc'
+
+    @pytest.mark.parametrize(
+        ("name", "value"),
+        [
+            ("PYTEST_ADDOPTS", "-x -k test_example"),
+            ("COVERAGE_RCFILE", "alternative.coveragerc"),
+            ("COVERAGE_PROCESS_START", "alternative.coveragerc"),
+        ],
+    )
+    def test_capture_rejects_environment_overrides_before_running_pytest(
+        capture_module, source, monkeypatch, name, value
+    ):
+        """Inherited options can make a partial or differently measured suite look complete."""
+        monkeypatch.setenv(name, value)
+        output = source.parent / "evidence"
+        real_run = subprocess.run
+    
+        def run(argv, **kwargs):
+            if argv[0] == "timeout":
+                pytest.fail(f"Inherited {name} reached pytest")
+            return real_run(argv, **kwargs)
+    
+        monkeypatch.setattr(capture_module.subprocess, "run", run)
+        with pytest.raises(ValueError, match=f"Environment override changes test or coverage settings: {name}"):
+&gt;           capture_module.capture(source, output, "HEAD", 10)
+
+tests/test_png_coverage_capture.py:139: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+docs/evidence/issue-2336-png-failures/capture.py:114: in capture
+    result = subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = ['timeout', '--signal=INT', '--kill-after=10s', '10s', '/opt/hostedtoolcache/Python/3.14.8/x64/bin/python', '-m', ...]
+kwargs = {'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme2/repo'), 'env': {'SHELL': '/bin/bash'...redWriter name='/tmp/pytest-of-runner/pytest-1/test_capture_rejects_environme2/evidence/full-suite.txt'&gt;, 'stderr': -2}
+
+    def run(argv, **kwargs):
+        if argv[0] == "timeout":
+&gt;           pytest.fail(f"Inherited {name} reached pytest")
+E           Failed: Inherited COVERAGE_PROCESS_START reached pytest
+
+tests/test_png_coverage_capture.py:134: Failed</failure></testcase></testsuite></testsuites>
