@@ -1,0 +1,41 @@
+{
+  "argv": [
+    "timeout",
+    "--signal=INT",
+    "--kill-after=10s",
+    "600s",
+    "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/entrypoints-offline-20261104/candidate-coverage.json",
+    "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/entrypoints-offline-20261104/candidate.xml",
+    "-m",
+    "not slow and not live_llm",
+    "tests/"
+  ],
+  "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+  "head": "202f6728bbef45a26daadb82ba0b62d58978cd88",
+  "main_revision": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "measurement": "Candidate tests; production is byte-identical to current main",
+  "python": "3.14.9 (main, Oct 21 2026, 14:48:41) [GCC 15.2.0]",
+  "versions": {
+    "pytest": "9.2.0",
+    "pytest-cov": "7.1.0",
+    "coverage": "7.17.0",
+    "setuptools": "84.2.1"
+  },
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "test_sha256": "0a2762790bb126f91def83bd5d597cdc66442470ef503f5390a8a87bd3943e9c",
+  "patch_sha256": "10efa96c4d47943eab06e1625e505683d3620c6f9968d5a37ebe9d70f455da3f",
+  "pyproject_sha256": "8ecbb7dfdc8246d554ef083faa01c6088901efa217efef745bf4f665a4848271",
+  "environment": {
+    "COVERAGE_FILE": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/entrypoints-offline-20261104/.coverage"
+  },
+  "completed": true,
+  "exit": 1,
+  "elapsed_seconds": 192.17,
+  "retained_coverage": "candidate-coverage.json.gz",
+  "uncompressed_coverage_sha256": "973251922917cdc70c80137f09056f182be4a49a7a0b15d9bc3a087d8ab97100"
+}

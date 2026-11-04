@@ -1,5 +1,15 @@
 # Single-run PNG failure evidence for #2336
 
+## Offline clean-venv entrypoints — 2026-11-04
+
+The [entrypoint repair](entrypoints-offline-20261104/README.md) removes an unnecessary
+setuptools download from the clean-venv help test. Its seven tests pass; the completed
+candidate suite reports **2,040 passed, 1 failed, 3 skipped, 4 deselected** and
+**13,493 / 14,626 covered statements (92.25352112676056%)**. The remaining failure
+is the documented native PNG timeout. The prior main-only capture and all eight
+same-main PNG pairs were independently revalidated. Historical optimizer and
+wheel-build causes still require disposition before closing #2336.
+
 ## Configuration guard and main-only capture — 2026-11-04
 
 The [isolated main capture](config-guard-20261104/README.md) reports **1,988 passed,

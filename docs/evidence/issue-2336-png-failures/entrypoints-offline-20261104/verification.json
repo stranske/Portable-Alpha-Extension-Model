@@ -1,0 +1,31 @@
+{
+  "main_revision": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "main_product_unchanged": true,
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "retained_main_capture": "docs/evidence/issue-2336-png-failures/config-guard-20261104/main-capture",
+  "main_counts": {
+    "passed": 1988,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 3
+  },
+  "main_coverage_totals": {
+    "covered_lines": 13493,
+    "num_statements": 14626,
+    "percent_covered": 92.25352112676056,
+    "percent_covered_display": "92",
+    "missing_lines": 1133,
+    "excluded_lines": 192,
+    "percent_statements_covered": 92.25352112676056,
+    "percent_statements_covered_display": "92"
+  },
+  "retained_png_pairs_verified": 8,
+  "fresh_png_execution": false,
+  "historical_dispositions_remaining": [
+    "tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples",
+    "tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best"
+  ],
+  "pr_update_result": "Automatic approval review rejected: MCP tool call requires approval, but approval policy is never",
+  "verified_checkboxes": 14,
+  "total_checkboxes_in_prompt": 18
+}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import tomllib
 import venv
 from importlib import import_module
@@ -127,33 +128,51 @@ def test_console_scripts_work_in_clean_venv(
     tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
 ) -> None:
     source = stage_packaging_source(Path(__file__).resolve().parents[1], tmp_path / "source")
+    wheel_dir = tmp_path / "wheels"
+    # Build with the test interpreter's backend so the dependency-free help
+    # probe does not require network access or setuptools in the clean venv.
+    build = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-m",
+            "pip",
+            "wheel",
+            "--no-deps",
+            "--no-build-isolation",
+            "--no-index",
+            "--wheel-dir",
+            str(wheel_dir),
+            str(source),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        cwd=tmp_path,
+    )
+    assert build.returncode == 0, f"wheel build failed\n{build.stdout}\n{build.stderr}"
+    (wheel_path,) = wheel_dir.glob("portable_alpha_extension_model-*.whl")
     venv_dir = tmp_path / "entrypoint-venv"
     venv.EnvBuilder(with_pip=True).create(venv_dir)
     python = _venv_python(venv_dir)
 
-    # Install setuptools first (not included by default in Python 3.12+ venvs)
-    # This is required for --no-build-isolation to work
-    subprocess.run(
-        [str(python), "-m", "pip", "install", "--quiet", "setuptools"],
-        env={**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"},
-        check=True,
-    )
-
-    subprocess.run(
+    install = subprocess.run(
         [
             str(python),
+            "-I",
             "-m",
             "pip",
             "install",
             "--no-deps",
-            "--no-build-isolation",
-            "--no-cache-dir",
-            str(source),
+            "--no-index",
+            str(wheel_path),
         ],
-        env={**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"},
-        check=True,
+        check=False,
+        capture_output=True,
+        text=True,
         cwd=tmp_path,
     )
+    assert install.returncode == 0, f"wheel install failed\n{install.stdout}\n{install.stderr}"
 
     pa = _console_script_path(venv_dir, "pa")
     dashboard = _console_script_path(venv_dir, "pa-dashboard")

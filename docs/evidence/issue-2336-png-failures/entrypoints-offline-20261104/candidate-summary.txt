@@ -1,0 +1,1 @@
+13493 / 14626 statements (92.25352112676056%); {'passed': 2040, 'failed': 1, 'errors': 0, 'skipped': 3}
