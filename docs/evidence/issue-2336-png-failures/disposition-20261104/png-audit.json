@@ -1,0 +1,7 @@
+{
+  "verified_members": 41,
+  "verified_pairs": 8,
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "archive_sha256": "6ce57ffc8901f7a5a5f65fa51560a74c5d8a94dea3346b937158a0692d95deca",
+  "note": "Audit of retained execution, not a new mutation replay."
+}

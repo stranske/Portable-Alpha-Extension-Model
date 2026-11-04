@@ -34,28 +34,57 @@ from pa_core.orchestrator import SimulatorOrchestrator
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def _run_build_step(argv: list, *, cwd: Path | None = None) -> None:
+    """Keep subprocess diagnostics in pytest's failure report, including JUnit."""
+    try:
+        subprocess.run(argv, check=True, capture_output=True, text=True, cwd=cwd)
+    except subprocess.CalledProcessError as exc:
+        pytest.fail(
+            f"Packaging command failed (exit {exc.returncode}): {exc.cmd}\n"
+            f"stdout:\n{exc.stdout}\nstderr:\n{exc.stderr}",
+            pytrace=False,
+        )
+
+
 def _build_wheel(destination: Path, source: Path) -> Path:
     environment = destination / "wheel-build-env"
     venv.EnvBuilder(with_pip=True).create(environment)
     python = environment / "bin" / "python"
-    subprocess.run(
-        [python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    _run_build_step([python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"])
     wheel_dir = destination / "wheels"
     wheel_dir.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
+    _run_build_step(
         [python, "-m", "pip", "wheel", str(source), "--no-deps", "-w", str(wheel_dir)],
-        check=True,
-        capture_output=True,
-        text=True,
         cwd=destination,
     )
     wheels = sorted(wheel_dir.glob("portable_alpha_extension_model-*.whl"))
     assert wheels, "expected a built project wheel"
     return wheels[-1]
+
+
+@pytest.mark.parametrize("failing_step", ["install", "wheel"])
+def test_build_wheel_retains_failed_command_output(tmp_path, monkeypatch, failing_step):
+    """Build failures must retain the cause needed to disposition packaging evidence."""
+    monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
+    calls = []
+
+    def run(argv, **kwargs):
+        calls.append(argv)
+        if argv[3] == failing_step:
+            raise subprocess.CalledProcessError(
+                1, argv, output="build stage output", stderr="incompatible build environment"
+            )
+        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    with pytest.raises(pytest.fail.Exception) as caught:
+        _build_wheel(tmp_path, tmp_path / "source")
+    message = str(caught.value)
+    assert "build stage output" in message
+    assert "incompatible build environment" in message
+    assert str(calls[-1]) in message
+    assert "exit 1" in message
+    assert len(calls) == (1 if failing_step == "install" else 2)
 
 
 @pytest.mark.slow

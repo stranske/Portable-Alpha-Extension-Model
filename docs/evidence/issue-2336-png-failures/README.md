@@ -1,5 +1,15 @@
 # Single-run PNG failure evidence for #2336
 
+## Packaging diagnostic repair — 2026-11-04
+
+The [disposition follow-up](disposition-20261104/README.md) preserves wheel-build
+stdout/stderr in pytest failure reports, verifies both failure stages with two
+regressions, and records a successful offline wheel build on Python 3.14.10.
+The focused suite passes **56 tests, with 1 skipped and 1 deselected**. This does
+not establish the historical wheel or optimizer failure causes; those tasks and
+the issue closure remain open. The reconciled checklist is retained locally
+because the GitHub PR-body update requires unavailable approval.
+
 ## Retained recheck — 2026-11-04
 
 The [fresh bounded capture](recheck-20261104/README.md) retains console output,

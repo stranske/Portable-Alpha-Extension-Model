@@ -1,0 +1,96 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_build_wheel_retains_failed_command_output[install] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7b0f40361e00>
+failing_step = 'install'
+
+    @pytest.mark.parametrize("failing_step", ["install", "wheel"])
+    def test_build_wheel_retains_failed_command_output(tmp_path, monkeypatch, failing_step):
+        """Build failures must retain the cause needed to disposition packaging evidence."""
+        monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
+        calls = []
+    
+        def run(argv, **kwargs):
+            calls.append(argv)
+            if argv[3] == failing_step:
+                raise subprocess.CalledProcessError(
+                    1, argv, output="build stage output", stderr="incompatible build environment"
+                )
+            return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+    
+        monkeypatch.setattr(subprocess, "run", run)
+        with pytest.raises(pytest.fail.Exception) as caught:
+>           _build_wheel(tmp_path, tmp_path / "source")
+
+tests/test_dashboard_sample_data.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_dashboard_sample_data.py:41: in _build_wheel
+    subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = [PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile0/wheel-build-env/bin/python'), '-m', 'pip', 'install', 'setuptools>=82.0.1', 'wheel']
+kwargs = {'check': True, 'capture_output': True, 'text': True}
+
+    def run(argv, **kwargs):
+        calls.append(argv)
+        if argv[3] == failing_step:
+>           raise subprocess.CalledProcessError(
+                1, argv, output="build stage output", stderr="incompatible build environment"
+            )
+E           subprocess.CalledProcessError: Command '[PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile0/wheel-build-env/bin/python'), '-m', 'pip', 'install', 'setuptools>=82.0.1', 'wheel']' returned non-zero exit status 1.
+
+tests/test_dashboard_sample_data.py:70: CalledProcessError
+____________ test_build_wheel_retains_failed_command_output[wheel] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7b0f40361cd0>
+failing_step = 'wheel'
+
+    @pytest.mark.parametrize("failing_step", ["install", "wheel"])
+    def test_build_wheel_retains_failed_command_output(tmp_path, monkeypatch, failing_step):
+        """Build failures must retain the cause needed to disposition packaging evidence."""
+        monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
+        calls = []
+    
+        def run(argv, **kwargs):
+            calls.append(argv)
+            if argv[3] == failing_step:
+                raise subprocess.CalledProcessError(
+                    1, argv, output="build stage output", stderr="incompatible build environment"
+                )
+            return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
+    
+        monkeypatch.setattr(subprocess, "run", run)
+        with pytest.raises(pytest.fail.Exception) as caught:
+>           _build_wheel(tmp_path, tmp_path / "source")
+
+tests/test_dashboard_sample_data.py:77: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_dashboard_sample_data.py:49: in _build_wheel
+    subprocess.run(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+argv = [PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/wheel-build-env/bin/python'), '-m', 'pip', 'wheel', '/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/source', '--no-deps', ...]
+kwargs = {'check': True, 'capture_output': True, 'text': True, 'cwd': PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1')}
+
+    def run(argv, **kwargs):
+        calls.append(argv)
+        if argv[3] == failing_step:
+>           raise subprocess.CalledProcessError(
+                1, argv, output="build stage output", stderr="incompatible build environment"
+            )
+E           subprocess.CalledProcessError: Command '[PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/wheel-build-env/bin/python'), '-m', 'pip', 'wheel', '/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/source', '--no-deps', '-w', '/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/wheels']' returned non-zero exit status 1.
+
+tests/test_dashboard_sample_data.py:70: CalledProcessError
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_dashboard_sample_data.py::test_build_wheel_retains_failed_command_output[install] - subprocess.CalledProcessError: Command '[PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile0/wheel-build-env/bin/python'), '-m', 'pip', 'install', 'setuptools>=82.0.1', 'wheel']' returned non-zero exit status 1.
+FAILED tests/test_dashboard_sample_data.py::test_build_wheel_retains_failed_command_output[wheel] - subprocess.CalledProcessError: Command '[PosixPath('/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/wheel-build-env/bin/python'), '-m', 'pip', 'wheel', '/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/source', '--no-deps', '-w', '/tmp/pytest-of-runner/pytest-1/test_build_wheel_retains_faile1/wheels']' returned non-zero exit status 1.
+2 failed, 5 deselected, 13 warnings in 2.02s
