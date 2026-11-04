@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "black",
+    "--check",
+    "--line-length",
+    "100",
+    "--exclude",
+    "(\\.workflows-lib|node_modules)",
+    "."
+  ],
+  "environment": {
+    "BLACK_CACHE_DIR": "/tmp/issue2336-black-cache",
+    "BLACK_NUM_WORKERS": "1"
+  },
+  "exit": 0,
+  "sources": 534,
+  "note": "The sandbox rejects multiprocessing IPC sockets and stalls the thread pool. Primed the temporary cache using individual-file CLI checks, including the 11 ignored reference-pack files. Initial full check timed out before reference-pack priming."
+}

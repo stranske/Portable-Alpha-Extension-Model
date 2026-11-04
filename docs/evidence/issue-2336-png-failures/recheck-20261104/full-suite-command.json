@@ -1,0 +1,38 @@
+{
+  "argv": [
+    "timeout",
+    "--signal=INT",
+    "--kill-after=30s",
+    "600s",
+    "env",
+    "COVERAGE_FILE=/tmp/issue2336-recheck.coverage",
+    "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+    "-m",
+    "pytest",
+    "--cov=pa_core",
+    "--cov=dashboard",
+    "--cov-report=json:docs/evidence/issue-2336-png-failures/recheck-20261104/coverage.json",
+    "--junitxml=docs/evidence/issue-2336-png-failures/recheck-20261104/full-suite.xml",
+    "-m",
+    "not slow and not live_llm",
+    "-o",
+    "faulthandler_timeout=60",
+    "tests/"
+  ],
+  "cwd": "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model",
+  "head": "e3605c43efddc59fb3a8f207729fb58d96f1752c",
+  "main_revision": "7613ffd97a450b15e550f499b7386ec4e67f2c51",
+  "product_diff_from_main": "",
+  "input_sha256": {
+    "docs/evidence/issue-2336-png-failures/summarize.py": "8fd3fc2af2b31ac8a747152f1dd0023defaf1571e786640a619ab3fbb87ba12f",
+    "tests/test_png_evidence_summary.py": "a90037050f09ae476385d1d92d24600d407a2eaec03b6139ab260e5344325c76",
+    "tests/test_sleeve_suggestor.py": "cd898b22f99f343c8665558cb256dd089de95bddce1242256b9596767ec8f680",
+    "tests/test_cli.py": "b22607cc77698d6405ae098de5b16bc808239f476d3bf17a1764a9bc77ac850e",
+    "pa_core/cli.py": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+    "pyproject.toml": "8ecbb7dfdc8246d554ef083faa01c6088901efa217efef745bf4f665a4848271"
+  },
+  "python": "3.14.9 (main, Oct 21 2026, 14:48:41) [GCC 15.2.0]",
+  "test_changes": "30-second native PNG subprocess bound inherited from e3605c43; six new evidence-manifest tests and one additional optimizer-import fallback case in this revision; slow/live_llm excluded as required.",
+  "exit": 1,
+  "elapsed_seconds": 178.01
+}

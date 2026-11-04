@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_cli_png_failures.py",
+    "tests/test_cli_pdf_failures.py",
+    "tests/test_cli_sweep_png_export.py",
+    "-q",
+    "-m",
+    "not slow and not live_llm",
+    "--junitxml=docs/evidence/issue-2336-png-failures/recheck-20261104/focused.xml"
+  ],
+  "exit": 0
+}

@@ -1,0 +1,33 @@
+{
+  "missing": [
+    "black-check.log",
+    "browser-probe.log",
+    "completed-suite.log",
+    "focused.log",
+    "full-suite.log",
+    "pr2475-full-suite.log",
+    "regressions.log",
+    "replay.log",
+    "summary-targeted-coverage.log"
+  ],
+  "verified": [
+    "README.md",
+    "commands.json",
+    "completed-suite.exit",
+    "completed-suite.xml",
+    "coverage-tool-comparison.json",
+    "coverage.json",
+    "focused.exit",
+    "focused.xml",
+    "full-suite.exit",
+    "png-proof-manifest.json",
+    "png-proof.tar.gz",
+    "png-results.json",
+    "pr2475-reconciliation.json",
+    "regressions.exit",
+    "regressions.xml",
+    "replay.exit",
+    "summary.json"
+  ],
+  "mismatched": []
+}

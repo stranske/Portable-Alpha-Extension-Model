@@ -1,0 +1,100 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 9325,
+      "sha256": "2f65e7719952c6ddaf52bad652726f9270b9db531bbd221641c1fdd857c7b899"
+    },
+    "black-check.txt": {
+      "bytes": 184,
+      "sha256": "e1750f1cc73c1302dde066ccf2058561f016c916aa2ab112285b854b52a9a31e"
+    },
+    "black-command.json": {
+      "bytes": 538,
+      "sha256": "dfbf022b7b5574da7e691e0296c6aeac68b95e529766d1c54f4c26fa1a6abea5"
+    },
+    "browser-probe.txt": {
+      "bytes": 3028,
+      "sha256": "e57f65c6a14217b36bb66a3e60cd93d35db767d5a0a31e1c47d1cce6bc55c193"
+    },
+    "coverage.json": {
+      "bytes": 737408,
+      "sha256": "ee22940cbda8fd2c58af57ece73c0074acfe0198e2d6df97cd45d9c42836a8cd"
+    },
+    "environment-commands.json": {
+      "bytes": 727,
+      "sha256": "4bdfa42977bbd4ed5d52d83b7880ecb579f273619b99396cf786eef9aaf415ef"
+    },
+    "focused-command.json": {
+      "bytes": 369,
+      "sha256": "6643479c8dab9e237d94271bd365221be63acf10a3313192ad329a0966542962"
+    },
+    "focused.txt": {
+      "bytes": 5305,
+      "sha256": "49477e360468dad7f64b6ac0f19cef453a01fbbf785d5d835d0a6be180e4c980"
+    },
+    "focused.xml": {
+      "bytes": 3119,
+      "sha256": "9e156b6b297ed342c8c578478e9a8444e7af857ba0a41969f4fdbe5ef634aa13"
+    },
+    "full-suite-command.json": {
+      "bytes": 1766,
+      "sha256": "634be69d22540eab3c6fb21c813af193dea9bdd729cb8eb52ba8d59360bbfbb1"
+    },
+    "full-suite.exit": {
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    "full-suite.txt": {
+      "bytes": 74795,
+      "sha256": "b3c7f8373700459eb0cb9f26966d3f81ffe118f17f43830732ba69fd02742d5f"
+    },
+    "full-suite.xml": {
+      "bytes": 270630,
+      "sha256": "d44bb6e88f2f8e69371b9fcc916cad8a29654a5691090353bcb8078955c6513a"
+    },
+    "manifest-check.txt": {
+      "bytes": 104,
+      "sha256": "2696d1b255f3453b63b828f5a620e4644d4ca15c39e6b21f542987f0f6607261"
+    },
+    "png-audit.json": {
+      "bytes": 2500,
+      "sha256": "aed8e5d97ea2fc8c1a74779c9646efd27e01fd90eba6727064e336365e5ea0a1"
+    },
+    "pr-status.json": {
+      "bytes": 231,
+      "sha256": "1f701631a9e9d78f716b156f2507fc6986ae052b0722ad6c174954d995d2993f"
+    },
+    "pr2475-full-suite.txt": {
+      "bytes": 62706,
+      "sha256": "d28f3eb0664197015fad24c3ff8600e168d838a8c15e67c7a5c227e3a0ecd12e"
+    },
+    "previous-capture-audit.json": {
+      "bytes": 697,
+      "sha256": "cef8d5f90538e5c91c2a5be446796582719d7e0617169eb771703c995a7eeb45"
+    },
+    "regression-commands.json": {
+      "bytes": 818,
+      "sha256": "f11b4dd86b5c62d4d77647f2f8c5cdee7d54a44101c2c72580c17effd9660395"
+    },
+    "regressions.txt": {
+      "bytes": 5203,
+      "sha256": "7ac3238986c7f6db951295529e9c24ed0a79f934e96a04c2d68e1fbf37ad0c14"
+    },
+    "regressions.xml": {
+      "bytes": 8324,
+      "sha256": "4ac7b674405d420c790db10c5dd64bd63d2aa643ec2cda9e5045fe06c84214ac"
+    },
+    "scipy-install.txt": {
+      "bytes": 404,
+      "sha256": "5b84854daaf765f885ba18aa3c159895f75de07007d2c9a553ed8ff2eddb2008"
+    },
+    "summary.json": {
+      "bytes": 68529,
+      "sha256": "21810b47f97195bdcef701bc4a1a4f6420b2d146aefdc1818f6f02f4da831fba"
+    },
+    "tooling-coverage.txt": {
+      "bytes": 1360,
+      "sha256": "a183e3cbbb0710b62311664d63697bfaefa6cb0d7b25dc24ba24677afee29b5d"
+    }
+  }
+}

@@ -655,7 +655,7 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
     )
     assert not df.empty
     row = df.iloc[0]
-    assert row["optimizer_success"]
+    assert row["optimizer_success"], row.to_dict()
     assert row["constraints_satisfied"]
     assert row["external_pa_capital"] == pytest.approx(80.0)
     assert row["active_ext_capital"] == pytest.approx(0.0)
@@ -673,7 +673,8 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
     assert row["objective_value"] >= max(random_scores)
 
 
-def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
+@pytest.mark.parametrize("import_error", [ImportError, AttributeError])
+def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch, import_error):
     cfg = ModelConfig(
         N_SIMULATIONS=1,
         N_MONTHS=1,
@@ -694,7 +695,16 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
             return {}, _make_linear_summary(self.cfg)
 
     monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
-    monkeypatch.setattr("pa_core.sleeve_suggestor._load_minimize", lambda: None)
+    real_import = builtins.__import__
+    optimize_imports = []
+
+    def unavailable_optimizer(name, *args, **kwargs):
+        if name == "scipy.optimize":
+            optimize_imports.append(name)
+            raise import_error("optimizer unavailable or incompatible with NumPy")
+        return real_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", unavailable_optimizer)
 
     df = suggest_sleeve_sizes(
         cfg,
@@ -708,7 +718,10 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
         objective="total_return",
     )
     assert not df.empty
-    assert str(df.loc[0, "optimizer_status"]).startswith("grid_fallback")
+    assert optimize_imports == ["scipy.optimize"]
+    assert not df["optimizer_success"].any()
+    assert df["constraints_satisfied"].all()
+    assert df["optimizer_status"].eq("grid_fallback:missing_scipy").all()
 
 
 def test_load_minimize_falls_back_when_scipy_import_is_incompatible(monkeypatch):

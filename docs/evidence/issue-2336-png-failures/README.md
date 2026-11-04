@@ -1,5 +1,16 @@
 # Single-run PNG failure evidence for #2336
 
+## Retained recheck — 2026-11-04
+
+The [fresh bounded capture](recheck-20261104/README.md) retains console output,
+JUnit and raw coverage JSON: **2,008 passed, 2 failed, 3 skipped, 4 deselected**;
+**13,493 / 14,626 covered statements (92.25352112676056%)**. It also identifies
+nine ignored console logs absent from the previous commit, recovers PR #2475's
+historical console from its archive, and validates all eight archived PNG pairs.
+The new manifest validator rejects missing or altered evidence files. The two
+current failures are environmental; historical optimizer and wheel verification
+remain outstanding, so #2336 is not closed.
+
 ## Current main measurement — 2026-11-04
 
 The new [capture and failure dispositions](main-20261104/README.md) measure production

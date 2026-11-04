@@ -1,8 +1,11 @@
 """Coverage evidence must reconcile counts and reject incomplete captures."""
 
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
+import subprocess
+import sys
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -86,3 +89,83 @@ def test_summary_rejects_success_exit_with_failed_tests(evidence):
     module, coverage, junit = evidence
     with pytest.raises(ValueError, match="exit disagrees"):
         module.summarize(coverage, junit, 0)
+
+
+@pytest.mark.parametrize("defect", [None, "missing", "size", "hash"])
+def test_manifest_requires_retained_artifact_bytes(evidence, defect):
+    module, coverage, _ = evidence
+    artifact = coverage.parent / "completed-suite.txt"
+    artifact.write_bytes(b"pytest output\n")
+    manifest = coverage.parent / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "files": {
+                    artifact.name: {
+                        "bytes": artifact.stat().st_size,
+                        "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+                    }
+                }
+            }
+        )
+    )
+    if defect == "missing":
+        artifact.unlink()
+    elif defect == "size":
+        artifact.write_bytes(b"truncated")
+    elif defect == "hash":
+        artifact.write_bytes(b"altered text!\n")
+    if defect is None:
+        module.validate_manifest(manifest)
+    else:
+        with pytest.raises(ValueError, match="artifact.*completed-suite.txt"):
+            module.validate_manifest(manifest)
+
+
+@pytest.mark.parametrize("missing_artifact", [False, True])
+def test_summary_cli_verifies_manifest_before_writing_report(evidence, missing_artifact):
+    module, coverage, junit = evidence
+    content = coverage.read_bytes()
+    manifest = coverage.parent / "manifest.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "files": {
+                    coverage.name: {
+                        "bytes": len(content),
+                        "sha256": hashlib.sha256(content).hexdigest(),
+                    }
+                }
+            }
+        )
+    )
+    if missing_artifact:
+        coverage.unlink()
+    output = coverage.parent / "summary.json"
+    result = subprocess.run(
+        [
+            sys.executable,
+            module.__file__,
+            "--coverage",
+            str(coverage),
+            "--junit",
+            str(junit),
+            "--exit-code",
+            "1",
+            "--output",
+            str(output),
+            "--manifest",
+            str(manifest),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=15,
+    )
+    if missing_artifact:
+        assert result.returncode != 0
+        assert "Missing evidence artifact: coverage.json" in result.stderr
+        assert not output.exists()
+    else:
+        assert result.returncode == 0, result.stderr
+        assert "3 / 4 statements (75.0%)" in result.stdout
+        assert json.loads(output.read_text())["counts"]["failed"] == 1

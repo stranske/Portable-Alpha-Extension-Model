@@ -1,9 +1,24 @@
 """Reconcile a completed pytest coverage capture without hand-copied totals."""
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
+
+
+def validate_manifest(manifest_path: Path) -> None:
+    """Require every declared evidence artifact to exist with its recorded bytes."""
+    manifest = json.loads(manifest_path.read_text())
+    for name, expected in manifest["files"].items():
+        path = manifest_path.parent / name
+        if not path.is_file():
+            raise ValueError(f"Missing evidence artifact: {name}")
+        content = path.read_bytes()
+        if len(content) != expected["bytes"]:
+            raise ValueError(f"Evidence artifact size mismatch: {name}")
+        if hashlib.sha256(content).hexdigest() != expected["sha256"]:
+            raise ValueError(f"Evidence artifact hash mismatch: {name}")
 
 
 def summarize(coverage_path: Path, junit_path: Path, returncode: int) -> dict:
@@ -77,7 +92,12 @@ def main() -> None:
     parser.add_argument("--junit", type=Path, required=True)
     parser.add_argument("--exit-code", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--manifest", type=Path, help="Verify retained artifacts before summarizing"
+    )
     args = parser.parse_args()
+    if args.manifest is not None:
+        validate_manifest(args.manifest)
     report = summarize(args.coverage, args.junit, args.exit_code)
     args.output.write_text(json.dumps(report, indent=2) + "\n")
     totals = report["totals"]
