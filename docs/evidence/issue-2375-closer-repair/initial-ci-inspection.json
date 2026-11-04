@@ -1,0 +1,23 @@
+{
+  "pr": 2460,
+  "checked": "2026-11-03",
+  "state": "open",
+  "merged": false,
+  "head": "fd0f7328c078528fca2e46c783193707474250e1",
+  "gate_run": 41579542074,
+  "gate_conclusion": "failure",
+  "pytest_job": 125731050730,
+  "pytest_result": "1962 passed, 1 skipped, 995 warnings in 137.36s",
+  "lint_job": 125731013737,
+  "lint_errors": [
+    "docs/evidence/issue-2375-closer-repair/run_mutations.py:8 F401 unused sys",
+    "docs/evidence/issue-2375-closer-repair/run_mutations.py:122 F841 unused viz"
+  ],
+  "retained": "Existing schema assertions and all historical mutation transcripts; r1 hash-validation intent with independent hashlib digest",
+  "discarded": "Duplicate weaker schema checks, private production hash used as own oracle, unsupported acceptance/ranking claims, and dead runner helpers preventing clean evidence capture",
+  "local_branches_merged": [
+    "closer/issue-2375@fd0f7328",
+    "closer-r1/issue-2375@aac4e80b"
+  ],
+  "note": "Previous bundle mutation forced verify=False; it did not prove artifact registration was necessary. The current runner removes CLI workbook registration."
+}

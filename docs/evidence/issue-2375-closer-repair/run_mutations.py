@@ -4,21 +4,25 @@
 from __future__ import annotations
 
 import shutil
+import shlex
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PY = ROOT / ".venv" / "bin" / "python"
-OUT = ROOT / "docs/evidence/issue-2375-closer-repair/mutation-transcripts.md"
+if not PY.is_file():
+    PY = Path("/opt/anaconda3/bin/python3")
+OUT = ROOT / "docs/evidence/issue-2375-closer-repair/current-mutation-transcripts.md"
 
 
 def run_pytest(nodeid: str) -> tuple[int, str]:
     proc = subprocess.run(
-        [str(PY), "-m", "pytest", "-q", nodeid],
+        [str(PY), "-m", "pytest", "-q", "--tb=short", "--disable-warnings", nodeid],
         cwd=ROOT,
         capture_output=True,
         text=True,
+        timeout=110,
     )
     text = (proc.stdout or "") + (proc.stderr or "")
     return proc.returncode, text
@@ -36,55 +40,43 @@ def restore(path: Path, backup: Path) -> None:
     backup.unlink()
 
 
-def case(title: str, nodeid: str, mutations: list[tuple[Path, str, str]]) -> None:
-    lines: list[str] = [f"## {title}", "", "```text", f"$ {PY.relative_to(ROOT)} -m pytest -q {nodeid}"]
-    backups: list[tuple[Path, Path]] = []
-    try:
-        for path, old, new in mutations:
-            backup = path.with_suffix(path.suffix + ".mutbak")
-            shutil.copy2(path, backup)
-            backups.append((path, backup))
-            mutate(path, old, new)
-        code, text = run_pytest(nodeid)
-        lines.append(text.rstrip())
-        lines.append(f"exit={code}")
-        lines.append("```")
-        lines.append("")
-        lines.append("```text")
-        lines.append(f"$ {PY.relative_to(ROOT)} -m pytest -q {nodeid}  # restored")
-        for path, backup in backups:
-            restore(path, backup)
-        code2, text2 = run_pytest(nodeid)
-        lines.append(text2.rstrip())
-        lines.append(f"exit={code2}")
-        lines.append("```")
-        lines.append("")
-        if code == 0:
-            raise SystemExit(f"mutation did not fail test: {nodeid}")
-        if code2 != 0:
-            raise SystemExit(f"restored test still failing: {nodeid}")
-    finally:
-        for path, backup in backups:
-            if backup.exists():
-                restore(path, backup)
-
-
 def main() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     chunks: list[str] = [
         "# Mutation transcripts",
         "",
-        "Check date: 2026-11-02 America/Chicago.",
+        "Check date: 2026-11-03 America/Chicago.",
+        f"Interpreter: {PY}; Python {sys.version.split()[0]}. Production baseline is main 7613ffd9",
+        "plus the one-token attribution fix (np -> _np). Historical evidence is retained separately.",
         "",
     ]
 
-    def record(title: str, nodeid: str, mutations: list[tuple[Path, str, str]]) -> None:
-        case(title, nodeid, mutations)
-        # re-run case to capture - case writes to stdout; refactor
-
-    # Inline implementation writing to chunks
     def run(title: str, nodeid: str, mutations: list[tuple[Path, str, str]]) -> None:
-        block: list[str] = [f"## {title}", "", "```text", f"$ .venv/bin/python -m pytest -q {nodeid}"]
+        print(f"Mutate / restore: {title}", flush=True)
+        command = shlex.join(
+            [str(PY), "-m", "pytest", "-q", "--tb=short", "--disable-warnings", nodeid]
+        )
+        block: list[str] = [f"## {title}", ""]
+        for path, old, new in mutations:
+            block.extend(
+                [
+                    f"Production mutation: `{path.relative_to(ROOT)}`",
+                    "",
+                    "```diff",
+                    "-" + old.replace("\n", "\n-"),
+                    "+" + new.replace("\n", "\n+"),
+                    "```",
+                    "",
+                ]
+            )
+        block.extend(
+            [
+                "Expected: the selected test reports FAILED (exit 1); restored: exit 0.",
+                "",
+                "```text",
+                f"$ {command}",
+            ]
+        )
         backups: list[tuple[Path, Path]] = []
         try:
             for path, old, new in mutations:
@@ -98,7 +90,7 @@ def main() -> None:
             block.append("```")
             block.append("")
             block.append("```text")
-            block.append(f"$ .venv/bin/python -m pytest -q {nodeid}  # restored")
+            block.append(f"$ {command}  # restored")
             for path, backup in backups:
                 restore(path, backup)
             code2, text2 = run_pytest(nodeid)
@@ -107,7 +99,8 @@ def main() -> None:
             block.append("```")
             block.append("")
             chunks.extend(block)
-            if code == 0:
+            OUT.write_text("\n".join(chunks))
+            if code != 1 or f"FAILED {nodeid}" not in text:
                 raise SystemExit(f"mutation did not fail: {nodeid}")
             if code2 != 0:
                 raise SystemExit(f"restore failed: {nodeid}")
@@ -118,13 +111,17 @@ def main() -> None:
 
     compare = ROOT / "pa_core/llm/compare_runs.py"
     cli = ROOT / "pa_core/cli.py"
-    bundle = ROOT / "pa_core/run_artifact_bundle.py"
-    viz = ROOT / "pa_core/viz/utils.py"
 
     run(
         "test_compare_run_helpers_reject_unusable_artifacts",
         "tests/test_coverage_round_2375.py::test_compare_run_helpers_reject_unusable_artifacts",
-        [(compare, "    if not isinstance(loaded, dict):\n        return None, prev_manifest_path", "    if not isinstance(loaded, dict):\n        return {}, prev_manifest_path")],
+        [
+            (
+                compare,
+                "    if not isinstance(loaded, dict):\n        return None, prev_manifest_path",
+                "    if not isinstance(loaded, dict):\n        return {}, prev_manifest_path",
+            )
+        ],
     )
     run(
         "test_compare_runs_explains_missing_prior_summary",
@@ -143,7 +140,7 @@ def main() -> None:
         [
             (
                 compare,
-                'raise ValueError("No readable prior manifest found from manifest_data[\'previous_run\'].")',
+                "raise ValueError(\"No readable prior manifest found from manifest_data['previous_run'].\")",
                 "pass  # mutation",
             )
         ],
@@ -154,7 +151,7 @@ def main() -> None:
         [
             (
                 compare,
-                "    except Exception:\n        logger.warning(\"Failed to record run-comparison fleet event\", exc_info=True)",
+                '    except Exception:\n        logger.warning("Failed to record run-comparison fleet event", exc_info=True)',
                 "    except Exception:\n        raise",
             )
         ],
@@ -162,7 +159,13 @@ def main() -> None:
     run(
         "test_metric_catalog_rejects_non_dataframe_and_empty_delta",
         "tests/test_coverage_round_2375.py::test_metric_catalog_rejects_non_dataframe_and_empty_delta",
-        [(compare, '        raise TypeError("summary_df must be a pandas DataFrame")', "        return {}")],
+        [
+            (
+                compare,
+                '        raise TypeError("summary_df must be a pandas DataFrame")',
+                "        return {}",
+            )
+        ],
     )
 
     packet_msgs = [
@@ -219,8 +222,89 @@ def main() -> None:
     run(
         "test_single_run_bundle_contains_the_completed_artifacts",
         "tests/test_coverage_round_2375.py::test_single_run_bundle_contains_the_completed_artifacts",
-        [(bundle, "        return True", "        return False",)],
+        [
+            (
+                cli,
+                '    _record_artifact(flags.save_xlsx or "Outputs.xlsx")',
+                "    pass  # omitted completed workbook registration",
+            )
+        ],
     )
+
+    def cli_case(name: str, parameter: str, old: str, new: str) -> None:
+        node = f"tests/test_coverage_round_2375.py::{name}{parameter}"
+        run(name + parameter, node, [(cli, old, new)])
+
+    cli_case(
+        "test_single_run_rejects_daily_index_before_simulation",
+        "",
+        '        raise SystemExit(f"Error: {e}") from None',
+        '        raise ValueError(f"Error: {e}") from None',
+    )
+    dashboard_messages = [
+        ("exit-code", 'print(f"❌ Dashboard launch failed with exit code {e.returncode}")'),
+        ("dependency", 'print(f"❌ Dashboard launch failed: Streamlit not available - {e}")'),
+        ("permission", 'print(f"❌ Dashboard launch failed: System/permission error - {e}")'),
+    ]
+    for parameter, message in dashboard_messages:
+        cli_case(
+            "test_single_run_dashboard_launch_failure",
+            f"[{parameter}]",
+            message,
+            'print("mutated dashboard diagnosis")',
+        )
+    cli_case(
+        "test_single_run_gif_export_failure",
+        "[renderer]",
+        '                    print("❌ GIF export failed: Chrome/Chromium required")',
+        '                    print("mutated renderer diagnosis")',
+    )
+    cli_case(
+        "test_single_run_gif_export_failure",
+        "[encoder]",
+        '                    print(f"❌ GIF export failed: {e}")',
+        '                    print("mutated encoder diagnosis")',
+    )
+    cli_case(
+        "test_single_run_attribution_fallback_exports_totals",
+        "",
+        "                mean_month = float(_np.asarray(arr).mean())",
+        "                mean_month = float(np.asarray(arr).mean())",
+    )
+    cli_case(
+        "test_single_run_tradeoff_table",
+        "[export]",
+        "trade_df.head(max(1, args.tradeoff_top)).reset_index(",
+        "trade_df.reset_index(",
+    )
+    cli_case(
+        "test_single_run_tradeoff_table",
+        "[failure]",
+        "Trade-off table computation failed.",
+        "Trade-off table warning suppressed.",
+    )
+    cli_case(
+        "test_single_run_registry_is_optional",
+        "[registered]",
+        'print(f"[REGISTRY] Scenario ID: {scenario_id}")',
+        'print("registry ID lost")',
+    )
+    cli_case(
+        "test_single_run_registry_is_optional",
+        "[unavailable]",
+        'logger.warning(f"Failed to register scenario: {exc}")',
+        'logger.debug(f"Failed to register scenario: {exc}")',
+    )
+    for parameter, message in [
+        ("grid-fallback", 'print(f"Optimizer unavailable; using grid fallback ({status}).")'),
+        ("failed-fallback", 'print(f"Optimizer failed without grid fallback ({status}).")'),
+    ]:
+        cli_case(
+            "test_single_run_suggestion_eof_aborts",
+            f"[{parameter}]",
+            message,
+            'print("optimizer status lost")',
+        )
 
     OUT.write_text("\n".join(chunks))
     print(f"Wrote {OUT}")

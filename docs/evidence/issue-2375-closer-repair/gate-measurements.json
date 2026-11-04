@@ -1,0 +1,41 @@
+{
+  "checked": "2026-11-03 America/Chicago",
+  "starting_main": "7613ffd97a450b15e550f499b7386ec4e67f2c51",
+  "controlled_gate_baseline": {
+    "run": 41696059356,
+    "artifact": 13261601545,
+    "head": "ff7cb957809395a064cb334e52732a22cad105a9",
+    "tree_equal_to_starting_main": true,
+    "python": "3.14.9",
+    "coverage": "7.17.0",
+    "workers": "-n auto (2 workers observed)",
+    "branch": false,
+    "source": [
+      "pa_core",
+      "dashboard",
+      "design-system"
+    ],
+    "missing": {
+      "pa_core/llm/compare_runs.py": 1,
+      "pa_core/cli.py": 165
+    }
+  },
+  "final_gate": "See PR body for final exact head, hosted artifact and measured values; not yet run when this evidence was committed.",
+  "hosted_pytest_command": "pytest -p ci_test_growth --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup",
+  "historical_round_baseline": {
+    "run": 38971176069,
+    "job": 117210972329,
+    "python": "3.12",
+    "missing": {
+      "pa_core/llm/compare_runs.py": 11,
+      "pa_core/cli.py": 211
+    },
+    "note": "Confirmed in hosted log 2026-10-16. Runtime and comparison source have since changed, so this is historical round context, not the controlled repair comparison."
+  },
+  "exceptions": {
+    "pa_core/llm/compare_runs.py:140": "The _MISSING sentinel is only passed through _config_snapshot_diff, which now formats it directly at lines 265-266. _format_value callers (_seed_diff, _cli_args_diff, _wizard_diff) use .get() without the sentinel. Hitting line 140 requires a synthetic private sentinel call, not a real input. No padding test added.",
+    "pa_core/cli.py:1500-1522": "Sweep route requires not args.sensitivity, while this nested branch requires args.sensitivity. Unreachable for real CLI argv; do not change production routing merely to cover it.",
+    "Gate branches": "Gate explicitly sets branch=false. Full-suite missing-branch counts are unavailable, not zero. Identical focused --cov-branch probes are stored separately and never substituted for Gate totals."
+  },
+  "scope": "Only tests/test_coverage_round_2375.py plus one-token real attribution fix; no threshold, source exclusion, workflow or production refactor."
+}

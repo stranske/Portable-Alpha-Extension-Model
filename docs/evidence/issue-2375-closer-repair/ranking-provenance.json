@@ -1,0 +1,22 @@
+{
+  "issue": "stranske/Portable-Alpha-Extension-Model#2375",
+  "opener_pr": 2380,
+  "prior_repair_pr": 2460,
+  "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2375",
+  "policy": "escaped defects, then churn, then uncovered mass",
+  "targets": [
+    {
+      "rank": 1,
+      "path": "pa_core/llm/compare_runs.py",
+      "dispatch_missing_units": 11,
+      "churn": 5
+    },
+    {
+      "rank": 2,
+      "path": "pa_core/cli.py",
+      "dispatch_missing_units": 211,
+      "churn": 4
+    }
+  ],
+  "note": "Dispatch called these statements+branches. The current Gate and downloaded baseline actually use branch=false; measure line deltas separately and report focused branch probe separately. This repair adds no unranked production target."
+}

@@ -1,0 +1,9 @@
+Check date: 2026-11-03 America/Chicago.
+Outcome 1: real single-run input emits a bundle containing the completed workbook and manifest; references and byte hashes agree, and removal of their production registration fails this regression test.
+Acceptance command: /opt/anaconda3/bin/python3 -m pytest -q tests/test_coverage_round_2375.py
+Outcome 2: every collected case has an exact production mutation, named failure and restored pass.
+Outcome 3: identical-settings hosted Gate baseline/final coverage or specific meaningful exceptions for both issue-ranked targets.
+Outcome 4: final-head required CI including exact Ruff and hosted pytest passes.
+Stop rule: stop after three failures at the same step or 75 minutes from the recorded start time; report first broken step and ask should I stop. No local full-suite or release/verify runs.
+
+Start recorded: 2026-11-03T18:23:05-06:00; clock stop: 2026-11-03T19:38:05-06:00.

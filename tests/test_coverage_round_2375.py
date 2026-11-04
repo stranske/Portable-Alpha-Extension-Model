@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import subprocess
 import sys
 import types
 from pathlib import Path
@@ -22,6 +23,7 @@ from pa_core.llm.compare_runs import (
     load_prior_summary,
 )
 from pa_core.run_artifact_bundle import RunArtifactBundle
+from pa_core.viz import export_backend as viz_export_backend
 from pa_core.viz import utils as viz_utils
 
 
@@ -238,7 +240,7 @@ def test_single_run_bundle_contains_the_completed_artifacts(
 
     outputs_meta = bundle_meta["outputs"]
     assert isinstance(outputs_meta, dict) and outputs_meta
-    assert output.name in outputs_meta
+    assert set(outputs_meta) == {output.name}
 
     assert (bundle_dir / bundle_meta["config_path"]).is_file()
     assert (bundle_dir / bundle_meta["manifest_path"]).is_file()
@@ -247,7 +249,190 @@ def test_single_run_bundle_contains_the_completed_artifacts(
     for name, relpath in outputs_meta.items():
         artifact_path = bundle_dir / relpath
         assert artifact_path.is_file(), name
+        assert artifact_path.read_bytes() == output.read_bytes()
         assert output_hashes[name] == hashlib.sha256(artifact_path.read_bytes()).hexdigest()
 
     loaded = RunArtifactBundle.load(bundle_dir)
     assert loaded.verify()
+
+
+def test_single_run_rejects_daily_index_before_simulation(monkeypatch, tmp_path) -> None:
+    monkeypatch.chdir(tmp_path)
+    config, _, output = _write_single_run_config(tmp_path)
+    index = tmp_path / "daily.csv"
+    pd.DataFrame(
+        {"Date": pd.date_range("2026-01-01", periods=10, freq="D"), "Monthly_TR": [0.01] * 10}
+    ).to_csv(index, index=False)
+
+    with pytest.raises(SystemExit, match="Expected monthly data, got daily"):
+        main(_single_run_argv(config, index, output))
+
+    assert not output.exists()
+
+
+@pytest.mark.parametrize(
+    ("error", "expected"),
+    [
+        (subprocess.CalledProcessError(7, ["streamlit"]), "with exit code 7"),
+        (ImportError("streamlit missing"), "Streamlit not available - streamlit missing"),
+        (PermissionError("launch denied"), "System/permission error - launch denied"),
+    ],
+    ids=["exit-code", "dependency", "permission"],
+)
+def test_single_run_dashboard_launch_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys, error, expected
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    _install_fake_viz(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    (tmp_path / "dashboard").mkdir()
+    (tmp_path / "dashboard/app.py").write_text("# launcher fixture\n")
+    calls = []
+    real_run = subprocess.run
+
+    def launch(command, **kwargs):
+        if command[1:3] != ["-m", "streamlit"]:
+            return real_run(command, **kwargs)
+        calls.append((command, kwargs))
+        raise error
+
+    monkeypatch.setattr(subprocess, "run", launch)
+    main(_single_run_argv(config, index, output, "--dashboard"))
+
+    assert (
+        f"❌ Dashboard launch failed{' ' if expected.startswith('with') else ': '}{expected}"
+        in capsys.readouterr().out
+    )
+    assert calls == [
+        (
+            [sys.executable, "-m", "streamlit", "run", "dashboard/app.py"],
+            {"check": True, "cwd": str(tmp_path)},
+        )
+    ]
+    assert output.is_file()
+
+
+@pytest.mark.parametrize(
+    ("message", "expected"),
+    [("Kaleido missing", "Chrome/Chromium required"), ("encoder failed", "encoder failed")],
+    ids=["renderer", "encoder"],
+)
+def test_single_run_gif_export_failure(monkeypatch, tmp_path, capsys, message, expected) -> None:
+    monkeypatch.chdir(tmp_path)
+    _install_fake_viz(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    animation = object()
+    calls = []
+    monkeypatch.setattr(
+        pa_core.viz, "animation", types.SimpleNamespace(make=lambda arr: animation), raising=False
+    )
+
+    def export(fig, path, **kwargs):
+        calls.append((fig, path, kwargs))
+        raise RuntimeError(message)
+
+    monkeypatch.setattr(viz_export_backend, "write_figure_image", export)
+    main(_single_run_argv(config, index, output, "--gif"))
+
+    assert f"❌ GIF export failed: {expected}" in capsys.readouterr().out
+    assert calls == [(animation, Path("plots/paths.gif"), {"format": "gif"})]
+    assert output.is_file()
+
+
+def test_single_run_attribution_fallback_exports_totals(monkeypatch, tmp_path) -> None:
+    monkeypatch.chdir(tmp_path)
+    _stub_sensitivity(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+
+    def unavailable(*args):
+        raise TypeError("detailed attribution unavailable")
+
+    monkeypatch.setattr(
+        "pa_core.reporting.attribution.compute_sleeve_return_attribution", unavailable
+    )
+    main(_single_run_argv(config, index, output))
+
+    attribution = pd.read_excel(output, sheet_name="Attribution")
+    assert set(attribution["Sub"]) == {"Total"}
+    assert set(attribution["Agent"]) == set(pd.read_excel(output, sheet_name="Summary")["Agent"])
+    for row in attribution.itertuples():
+        raw = pd.read_excel(output, sheet_name=row.Agent, index_col=0)
+        assert row.Return == pytest.approx(12 * raw.to_numpy().mean())
+
+
+@pytest.mark.parametrize("fails", [False, True], ids=["export", "failure"])
+def test_single_run_tradeoff_table(monkeypatch, tmp_path, capsys, fails) -> None:
+    monkeypatch.chdir(tmp_path)
+    _stub_sensitivity(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    suggestions = pd.DataFrame({"external_pa_capital": [10.0, 20.0], "tracking_error": [0.1, 0.2]})
+    calls = []
+
+    def suggest(cfg, series, **kwargs):
+        calls.append(kwargs)
+        if fails:
+            raise ValueError("no tradeoff data")
+        return suggestions
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.suggest_sleeve_sizes", suggest)
+    main(_single_run_argv(config, index, output, "--tradeoff-table", "--tradeoff-top", "1"))
+
+    assert len(calls) == 1 and calls[0]["seed"] == 123
+    if fails:
+        assert "Trade-off table computation failed" in capsys.readouterr().out
+        assert "SleeveTradeoffs" not in pd.ExcelFile(output).sheet_names
+    else:
+        actual = pd.read_excel(output, sheet_name="SleeveTradeoffs", index_col=0)
+        pd.testing.assert_frame_equal(actual, suggestions.head(1), check_dtype=False)
+
+
+@pytest.mark.parametrize("fails", [False, True], ids=["registered", "unavailable"])
+def test_single_run_registry_is_optional(monkeypatch, tmp_path, capsys, caplog, fails) -> None:
+    monkeypatch.chdir(tmp_path)
+    _stub_sensitivity(monkeypatch)
+    config, index, output = _write_single_run_config(tmp_path)
+    calls = []
+
+    def register(cfg, series, seed):
+        calls.append(seed)
+        if fails:
+            raise OSError("registry offline")
+        return "scenario-123"
+
+    monkeypatch.setattr("pa_core.scenario_registry.register", register)
+    main(_single_run_argv(config, index, output, "--register"))
+
+    assert calls == [123]
+    if fails:
+        assert "Failed to register scenario: registry offline" in caplog.text
+    else:
+        assert "[REGISTRY] Scenario ID: scenario-123" in capsys.readouterr().out
+    assert output.is_file()
+
+
+@pytest.mark.parametrize(
+    ("status", "expected"),
+    [
+        ("grid_fallback:missing", "Optimizer unavailable; using grid fallback"),
+        ("fallback_failed:invalid", "Optimizer failed without grid fallback"),
+    ],
+    ids=["grid-fallback", "failed-fallback"],
+)
+def test_single_run_suggestion_eof_aborts(monkeypatch, tmp_path, capsys, status, expected) -> None:
+    monkeypatch.chdir(tmp_path)
+    config, index, output = _write_single_run_config(tmp_path)
+    monkeypatch.setattr(
+        "pa_core.sleeve_suggestor.suggest_sleeve_sizes",
+        lambda *a, **kw: pd.DataFrame({"optimizer_status": [status]}),
+    )
+
+    def no_input(prompt):
+        raise EOFError
+
+    monkeypatch.setattr("builtins.input", no_input)
+    main(_single_run_argv(config, index, output, "--suggest-sleeves"))
+
+    text = capsys.readouterr().out
+    assert expected in text
+    assert "No selection provided. Aborting run." in text
+    assert not output.exists()
