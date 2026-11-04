@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import types
@@ -246,7 +247,7 @@ def test_single_run_bundle_contains_the_completed_artifacts(
     for name, relpath in outputs_meta.items():
         artifact_path = bundle_dir / relpath
         assert artifact_path.is_file(), name
-        assert output_hashes.get(name)
+        assert output_hashes[name] == hashlib.sha256(artifact_path.read_bytes()).hexdigest()
 
     loaded = RunArtifactBundle.load(bundle_dir)
     assert loaded.verify()
