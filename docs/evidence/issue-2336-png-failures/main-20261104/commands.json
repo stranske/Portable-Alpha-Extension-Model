@@ -1,0 +1,212 @@
+{
+  "main_revision": "7613ffd97a450b15e550f499b7386ec4e67f2c51",
+  "starting_head": "4344002a5a0d2a012d33f86ac3ca3a18ea445b5a",
+  "main_verified_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/branches/main",
+  "python": "3.14.9 (main, Oct 21 2026, 14:48:41) [GCC 15.2.0]",
+  "executable": "/opt/hostedtoolcache/Python/3.14.9/x64/bin/python",
+  "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.43",
+  "package_versions": {
+    "numpy": "2.5.4",
+    "plotly": "6.9.0",
+    "kaleido": "1.5.0",
+    "pydantic": "2.14.2",
+    "pytest": "9.2.0",
+    "pytest-cov": "7.1.0",
+    "coverage": "7.17.0",
+    "black": "26.10.1"
+  },
+  "missing_optional_dependencies": [
+    "scipy",
+    "langchain_anthropic"
+  ],
+  "product_diff_from_main": "",
+  "input_sha256": {
+    "pa_core/cli.py": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+    "tests/test_cli.py": "b22607cc77698d6405ae098de5b16bc808239f476d3bf17a1764a9bc77ac850e",
+    "tests/test_cli_png_failures.py": "fef801ac24c71a8a928f958959861ad372f7663982d338ee7a096da11a061dab",
+    "tests/test_cli_pdf_failures.py": "cffa2f11e3fd801f3eda166c4576a86e801f21f830b70fd45544af5611e01f5f",
+    "tests/test_cli_sweep_png_export.py": "403e38ed13d633e22f16e1687fb58cb9b91fea2a16df3692124b4f14a1d3a29b",
+    "tests/test_png_evidence_summary.py": "f4535ab0f87618056c1b47d1c7ad7002373fbaddf15c9e388326a22877c9eaf2",
+    "tests/test_png_replay_junit_validation.py": "3f47ca320146d20d888862eee169174815c6f5dc08aecf2c3837e30f14651353",
+    "docs/evidence/issue-2336-png-failures/replay.py": "7a1f0beafcb0b636b16139bac165b95b3df5136ca4103dc762ca817ea68f10a2",
+    "docs/evidence/issue-2336-png-failures/summarize.py": "9d32e76b77dc5220513ddebbe1341a2bd86d2fd1a4c9dca22f1a0d61e2796159",
+    "pyproject.toml": "8ecbb7dfdc8246d554ef083faa01c6088901efa217efef745bf4f665a4848271"
+  },
+  "original_suite": {
+    "argv": [
+      "timeout",
+      "--signal=INT",
+      "--kill-after=30s",
+      "600s",
+      "python",
+      "-m",
+      "pytest",
+      "--cov=pa_core",
+      "--cov=dashboard",
+      "--cov-report=json:coverage.json",
+      "--junitxml=docs/evidence/issue-2336-png-failures/main-20261104/full-suite.xml",
+      "-m",
+      "not slow and not live_llm",
+      "-o",
+      "faulthandler_timeout=60",
+      "tests/"
+    ],
+    "exit": 137,
+    "completed": false,
+    "reason": "native Kaleido hang; no completed coverage report"
+  },
+  "completed_suite": {
+    "argv": [
+      "timeout",
+      "--signal=INT",
+      "--kill-after=30s",
+      "600s",
+      "env",
+      "COVERAGE_FILE=/tmp/issue-2336-completed.coverage",
+      "python",
+      "-m",
+      "pytest",
+      "--cov=pa_core",
+      "--cov=dashboard",
+      "--cov-report=json:docs/evidence/issue-2336-png-failures/main-20261104/coverage.json",
+      "--junitxml=docs/evidence/issue-2336-png-failures/main-20261104/completed-suite.xml",
+      "-m",
+      "not slow and not live_llm",
+      "-o",
+      "faulthandler_timeout=60",
+      "tests/"
+    ],
+    "exit": 1,
+    "completed": true,
+    "elapsed_seconds": 219.08,
+    "test_delta": "Bound native PNG CLI test in a subprocess (30 seconds); add 13 summary-validator tests. Production and coverage policy unchanged."
+  },
+  "deselected_nodes": [
+    "tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples",
+    "tests/test_llm_live_smoke.py::test_explain_results_live",
+    "tests/test_llm_live_smoke.py::test_compare_runs_live",
+    "tests/test_tracing.py::test_authorized_synthetic_trace_live_retrieval"
+  ],
+  "focused": {
+    "argv": [
+      "python",
+      "-m",
+      "pytest",
+      "tests/test_cli_png_failures.py",
+      "tests/test_cli_pdf_failures.py",
+      "tests/test_cli_sweep_png_export.py",
+      "-q",
+      "-m",
+      "not slow and not live_llm",
+      "--junitxml=docs/evidence/issue-2336-png-failures/main-20261104/focused.xml"
+    ],
+    "exit": 0,
+    "passed": 23
+  },
+  "replay": {
+    "argv": [
+      "python",
+      "docs/evidence/issue-2336-png-failures/replay.py",
+      "--output",
+      "/tmp/issue-2336-main-20261104-proof"
+    ],
+    "exit": 0,
+    "pairs": 8
+  },
+  "regressions": {
+    "argv": [
+      "python",
+      "-m",
+      "pytest",
+      "tests/test_png_evidence_summary.py",
+      "tests/test_png_replay_junit_validation.py",
+      "tests/test_schema_export.py",
+      "tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best",
+      "tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back",
+      "tests/test_sleeve_suggestor.py::test_load_minimize_falls_back_when_scipy_import_is_incompatible",
+      "-q",
+      "-m",
+      "not slow and not live_llm",
+      "--junitxml=docs/evidence/issue-2336-png-failures/main-20261104/regressions.xml"
+    ],
+    "exit": 0,
+    "passed": 34,
+    "skipped": 1
+  },
+  "summary": {
+    "argv": [
+      "python",
+      "docs/evidence/issue-2336-png-failures/summarize.py",
+      "--coverage",
+      "docs/evidence/issue-2336-png-failures/main-20261104/coverage.json",
+      "--junit",
+      "docs/evidence/issue-2336-png-failures/main-20261104/completed-suite.xml",
+      "--exit-code",
+      "1",
+      "--output",
+      "docs/evidence/issue-2336-png-failures/main-20261104/summary.json"
+    ],
+    "exit": 0
+  },
+  "targeted_tooling_coverage": {
+    "argv": [
+      "env",
+      "COVERAGE_FILE=/tmp/issue2336-summary.coverage",
+      "python",
+      "-m",
+      "pytest",
+      "tests/test_png_evidence_summary.py",
+      "-q",
+      "-m",
+      "not slow",
+      "--cov=docs/evidence/issue-2336-png-failures",
+      "--cov-report=term-missing"
+    ],
+    "exit": 0,
+    "note": "Tooling coverage only; not part of the product coverage target."
+  },
+  "black": {
+    "argv": [
+      "black",
+      "--check",
+      "--line-length",
+      "100",
+      "--exclude",
+      "(\\.workflows-lib|node_modules)",
+      "."
+    ],
+    "env": {
+      "BLACK_CACHE_DIR": "/tmp/issue2336-black-cache",
+      "BLACK_NUM_WORKERS": "1"
+    },
+    "exit": 0,
+    "checked_python_files": 534,
+    "note": "Temporary cache primed by individual-file Black checks because sandbox process workers cannot bind their IPC socket and the single worker threadpool stalls."
+  },
+  "commit": {
+    "attempted_argv": [
+      "git",
+      "add",
+      "tests/test_cli.py",
+      "tests/test_png_evidence_summary.py",
+      "docs/evidence/issue-2336-png-failures/README.md",
+      "docs/evidence/issue-2336-png-failures/replay.py",
+      "docs/evidence/issue-2336-png-failures/summarize.py",
+      "docs/evidence/issue-2336-png-failures/main-20261104/"
+    ],
+    "exit": 128,
+    "committed": false,
+    "reason": "fatal: Unable to create '.git/index.lock': Read-only file system"
+  },
+  "github_blocker_notice": {
+    "pr": 2478,
+    "attempts": [
+      "add needs-human label",
+      "post blocker comment"
+    ],
+    "succeeded": false,
+    "reason": "MCP tool call requires approval, but approval policy is never",
+    "final_pr_state": "open",
+    "final_pr_isDraft": false
+  }
+}

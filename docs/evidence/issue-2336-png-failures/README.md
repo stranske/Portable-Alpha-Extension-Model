@@ -1,5 +1,36 @@
 # Single-run PNG failure evidence for #2336
 
+## Current main measurement — 2026-11-04
+
+The new [capture and failure dispositions](main-20261104/README.md) measure production
+at main `7613ffd97a450b15e550f499b7386ec4e67f2c51`, with production code unchanged.
+The completed run reports **2,001 passed, 2 failed, 3 skipped, 4 deselected** and
+**13,493 / 14,626 covered statements (92.25352112676056%)**. These numbers come
+directly from [coverage.json](main-20261104/coverage.json) and the reconciled
+[per-module summary](main-20261104/summary.json).
+
+The two failures are the native Kaleido renderer timeout and a network-blocked
+setuptools installation. The PNG test now runs its native CLI invocation in a
+30-second subprocess; the initial run with untouched tests hung in that renderer
+and is retained separately, not presented as a completed measurement. The completed
+run includes 13 new evidence-validator tests. As required for this keepalive run,
+the slow wheel installation and three live-provider tests are deselected.
+
+All eight current-main PNG assertion RED/restored GREEN pairs passed, as did all
+23 focused PNG/PDF/sweep tests. The replay driver now pins the main revision and CLI
+SHA256 `d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e`.
+The new capture preserves the historical archives below, and all PDF and
+next-boundaries evidence, unchanged.
+
+PR #2475's archived JSON actually contains **13,537 / 14,670 (92.27675528289025%)**;
+its 13,441 numerator is a prose error of 96 statements. It is a separate capture,
+not the source of the new measurement. The new Python 3.14.9 / coverage 7.17.0
+capture has 44 fewer covered and total statements in `pa_core/wizard_schema.py`
+than that Python 3.12 / coverage 7.16.2 capture. The measured file set is identical;
+[module deltas](main-20261104/coverage-tool-comparison.json) preserve this distinction.
+
+## Historical evidence
+
 Eight tests run the real CLI simulation/report/manifest path while substituting only the
 optional image exporter and visualization objects. They exercise renderer imports, unrelated
 missing modules, filesystem and permission errors, invalid values and types, renderer runtime

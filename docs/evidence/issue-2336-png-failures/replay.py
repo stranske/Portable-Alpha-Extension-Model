@@ -13,8 +13,8 @@ import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
 
-REVISION = "f9853be5b782d0ddc63d5bd1505cd3e686f87d80"
-SOURCE_SHA256 = "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
+REVISION = "7613ffd97a450b15e550f499b7386ec4e67f2c51"
+SOURCE_SHA256 = "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e"
 TEST = "tests/test_cli_png_failures.py"
 CASES = {
     "renderer": 'logger.error(f"PNG export failed due to missing dependency: {e}")',
@@ -107,6 +107,8 @@ def main():
                         "pytest",
                         node,
                         "-q",
+                        "-m",
+                        "not slow and not live_llm",
                         "--junitxml=" + str(junit),
                     ]
                     with (output / f"{case}-{phase}.txt").open("w") as log:

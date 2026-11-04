@@ -1,0 +1,40 @@
+{
+  "revision": "d112c2238441e3f9035f42360f5cf1e51839f5ea",
+  "archive_git_path": "docs/evidence/issue-2336-png-failures/current-validation.tar.gz",
+  "archive_sha256": "7b8f6122b0e69e310693676459e886b7c6a9e1014c6bc114198fe516a8583e91",
+  "coverage_sha256": "6be66c3a4a3daa0834a4032f997b841c0ac318d778c8f7bbf4c861a9130ce99f",
+  "totals": {
+    "covered_lines": 13537,
+    "num_statements": 14670,
+    "percent_covered": 92.27675528289025,
+    "percent_covered_display": "92",
+    "missing_lines": 1133,
+    "excluded_lines": 183,
+    "percent_statements_covered": 92.27675528289025,
+    "percent_statements_covered_display": "92"
+  },
+  "failures": [
+    {
+      "classname": "tests.test_dashboard_sample_data",
+      "name": "test_wheel_install_exposes_bundled_dashboard_samples",
+      "message": "subprocess.CalledProcessError: Command '[PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/cursor/tmp/pytest-of-teacher/pytest-1533/test_wheel_install_exposes_bun0/wheel-build-env/bin/python'), '-m', 'pip', 'wheel', '/Users/teacher/.codex/orchestrator/agent-runtime/cursor/tmp/pytest-of-teacher/pytest-1533/test_wheel_install_exposes_bun0/source', '--no-deps', '-w', '/Users/teacher/.codex/orchestrator/agent-runtime/cursor/tmp/pytest-of-teacher/pytest-1533/test_wheel_install_exposes_bun0/wheels']' returned non-zero exit status 1."
+    },
+    {
+      "classname": "tests.test_entrypoints",
+      "name": "test_console_scripts_work_in_clean_venv",
+      "message": "subprocess.CalledProcessError: Command '['/Users/teacher/.codex/orchestrator/agent-runtime/cursor/tmp/pytest-of-teacher/pytest-1533/test_console_scripts_work_in_c0/entrypoint-venv/bin/python', '-m', 'pip', 'install', '--no-deps', '--no-build-isolation', '--no-cache-dir', '/Users/teacher/.codex/orchestrator/agent-runtime/cursor/tmp/pytest-of-teacher/pytest-1533/test_console_scripts_work_in_c0/source']' returned non-zero exit status 1."
+    },
+    {
+      "classname": "tests.test_schema_export",
+      "name": "test_parameter_dictionary_matches_schema",
+      "message": "AssertionError: Parameter dictionary drift detected; re-run `python -m pa_core.schema --generate-parameter-dictionary`.\nassert '# Parameter ...hen true. |\\n' == '# Parameter ...hen true. |\\n'\n  \n  Skipping 2753 identical leading characters in diff, use -v to show\n  - edule` | `Dict[str, pa_core.fees.FeeSchedule] \\| None` | no | `None` | Optional per-sleeve management/performance fee schedule keyed by agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's returns are reported net of fees (issue #1904). None or empty keeps the historical gross-of-fee behaviour. |\n  ?                                              ^^^^       --------------\n  + edule` | `Optional[Dict[str, pa_core.fees.FeeSchedule]]` | no | `None` | Optional per-sleeve management/performance fee s...\n  \n  ...Full output truncated (94 lines hidden), use '-vv' to show"
+    },
+    {
+      "classname": "tests.test_sleeve_suggestor",
+      "name": "test_suggest_sleeve_sizes_optimize_prefers_best",
+      "message": "assert False"
+    }
+  ],
+  "incorrect_prose_numerator": 13441,
+  "numerator_difference": 96
+}
