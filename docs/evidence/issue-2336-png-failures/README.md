@@ -1,5 +1,16 @@
 # Single-run PNG failure evidence for #2336
 
+## Reproducible bounded capture — 2026-11-04
+
+The [automated capture](automated-capture-20261104/README.md) completes with
+**2,029 passed, 2 failed, 3 skipped, 4 deselected** and **13,493 / 14,626 covered
+statements (92.25352112676056%)**. Production matches main `06881dbd`; the exact
+candidate test overlay, including the existing native PNG subprocess bound, is
+retained. The new capture driver records argv, revisions and input hashes before
+starting pytest, isolates coverage data, and rejects timed-out captures. Its seven
+tests pass, including a real stalled process; all 47 capture/summary/replay tests
+pass. Historical optimizer and wheel-build dispositions still prevent issue closure.
+
 ## Current-main PNG replay — 2026-11-04
 
 The [main `06881dbd` capture](main-06881dbd-20261104/README.md) re-runs all eight
