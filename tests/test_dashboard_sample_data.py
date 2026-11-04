@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import venv
 import zipfile
 from pathlib import Path
@@ -94,8 +95,44 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
     """Non-editable installs must resolve index, asset, and portfolio samples (#2285)."""
     source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
     wheel_path = _build_wheel(tmp_path, source)
+    _assert_installed_wheel_samples(wheel_path, tmp_path)
+
+
+def test_offline_wheel_install_exposes_bundled_dashboard_samples(
+    tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
+) -> None:
+    """Verify installed product files offline using the interpreter's dependencies.
+
+    This complements the slow fresh-dependency installation above. The isolated
+    probe still requires both product packages to come from the new venv.
+    """
+    source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
+    wheel_dir = tmp_path / "wheels"
+    _run_build_step(
+        [
+            sys.executable,
+            "-I",
+            "-m",
+            "pip",
+            "wheel",
+            str(source),
+            "--no-deps",
+            "--no-build-isolation",
+            "--no-index",
+            "-w",
+            str(wheel_dir),
+        ],
+        cwd=tmp_path,
+    )
+    (wheel_path,) = wheel_dir.glob("portable_alpha_extension_model-*.whl")
+    _assert_installed_wheel_samples(wheel_path, tmp_path, offline=True)
+
+
+def _assert_installed_wheel_samples(
+    wheel_path: Path, tmp_path: Path, *, offline: bool = False
+) -> None:
     install_root = tmp_path / "install-env"
-    venv.EnvBuilder(with_pip=True).create(install_root)
+    venv.EnvBuilder(with_pip=True, system_site_packages=offline).create(install_root)
     python = install_root / "bin" / "python"
     # An inherited source distribution can make pip report the wheel as already
     # installed even in this fresh venv. Reproduce that metadata-only decoy so
@@ -109,8 +146,9 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
         metadata_path.parent.mkdir(parents=True)
         metadata_path.write_bytes(archive.read(metadata_name))
     install_env = {**os.environ, "PYTHONPATH": str(metadata_decoy)}
+    install_options = ["--no-index", "--no-deps", "--ignore-installed"] if offline else []
     subprocess.run(
-        [python, "-I", "-m", "pip", "install", str(wheel_path)],
+        [python, "-I", "-m", "pip", "install", *install_options, str(wheel_path)],
         check=True,
         capture_output=True,
         text=True,
@@ -141,16 +179,18 @@ from dashboard.utils import (
     bundled_portfolio_template_path,
     bundled_sample_index_path,
     load_bundled_asset_returns,
+    load_bundled_sample_index,
 )
 from pa_core.schema import load_scenario
 
 index_path = bundled_sample_index_path()
 asset_path = bundled_asset_timeseries_path()
 portfolio_path = bundled_portfolio_template_path()
-assert index_path.is_file(), index_path
-assert asset_path.is_file(), asset_path
-assert portfolio_path.is_file(), portfolio_path
-load_bundled_asset_returns()
+for path in (index_path, asset_path, portfolio_path):
+    assert path.is_file(), path
+    assert path.resolve().is_relative_to(Path(sys.prefix).resolve()), path
+assert not load_bundled_sample_index().empty
+assert not load_bundled_asset_returns().empty
 load_scenario(portfolio_path)
 print("ok")
 """

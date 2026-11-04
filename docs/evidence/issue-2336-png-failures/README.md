@@ -1,5 +1,13 @@
 # Single-run PNG failure evidence for #2336
 
+## Offline installed-wheel verification — 2026-11-04
+
+The [installed-wheel follow-up](offline-install-20261104/README.md) adds a supported-
+Python offline installation test. It verifies that product modules and all three
+bundled sample paths come from the installed wheel and parses the sample data.
+The focused regressions report **57 passed, 1 skipped, 1 deselected**. Historical
+optimizer and wheel-build causes remain unresolved, so #2336 stays open.
+
 ## Packaging diagnostic repair — 2026-11-04
 
 The [disposition follow-up](disposition-20261104/README.md) preserves wheel-build
