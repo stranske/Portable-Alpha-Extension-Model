@@ -1,0 +1,30 @@
+.                                                                        [100%]
+=============================== warnings summary ===============================
+../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]
+  /tmp/pa-png-proof-tv6vplhk/tests/test_cli_png_failures.py:127: DeprecationWarning: Direct use of pa_core.cli is deprecated; use `pa run` instead.
+    main(
+
+tests/test_cli_png_failures.py: 14 warnings
+  /tmp/pa-png-proof-tv6vplhk/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]
+  /tmp/pa-png-proof-tv6vplhk/pa_core/data/loaders.py:71: Pandas4Warning: A future version of pandas will return a BaseOffset object instead of a string from infer_freq. Use pd.set_option('future.infer_freq_returns_offset', True) to get the future behavior, or set to False to keep the old behavior and silence this warning. To preserve the string representation, use ``infer_freq(...).freqstr``.
+    inferred = pd.infer_freq(date_values_sorted)
+
+tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]
+  /tmp/pa-png-proof-tv6vplhk/pa_core/cli.py:1750: Pandas4Warning: The inplace keyword in DataFrame.sort_values is deprecated and will be removed in a future version (PDEP-8).
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecation-inplace for more details.
+    sens_df.sort_values(
+
+tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]
+  /tmp/pa-png-proof-tv6vplhk/pa_core/cli.py:1756: Pandas4Warning: The inplace keyword in DataFrame.reset_index is deprecated and will be removed in a future version (PDEP-8).
+  See https://pandas.pydata.org/docs/dev/whatsnew/v3.1.0.html#deprecation-inplace for more details.
+    sens_df.reset_index(drop=True, inplace=True)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+1 passed, 31 warnings in 1.74s

@@ -1,0 +1,25 @@
+{
+  "head": "2665e675ba42511e69fc7fa256a8aa64a9dd358b",
+  "main": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "focused": [
+    "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_cli_png_failures.py",
+    "tests/test_cli_pdf_failures.py",
+    "tests/test_cli_sweep_png_export.py",
+    "-q",
+    "-m",
+    "not slow and not live_llm",
+    "--junitxml=/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/completion-20261104/focused.xml"
+  ],
+  "replay": [
+    "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+    "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/replay.py",
+    "--revision",
+    "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+    "--output",
+    "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/completion-20261104/png-proof"
+  ]
+}

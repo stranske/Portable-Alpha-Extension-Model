@@ -1,0 +1,64 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________ test_capture_requires_all_selected_nodes_to_finish[True] ___________
+
+capture_module = <module 'png_coverage_capture' from '/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/docs/evidence/issue-2336-png-failures/capture.py'>
+source = PosixPath('/tmp/pytest-of-runner/pytest-12/test_capture_requires_all_sele0/repo')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x796e96eefbb0>
+stop_early = True
+
+    @pytest.mark.parametrize("stop_early", [False, True])
+    def test_capture_requires_all_selected_nodes_to_finish(
+        capture_module, source, monkeypatch, stop_early
+    ):
+        """Exit 1 plus consistent JUnit/coverage can still describe a truncated suite."""
+        monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+        monkeypatch.delenv("COVERAGE_RCFILE", raising=False)
+        monkeypatch.delenv("COVERAGE_PROCESS_START", raising=False)
+        (source / "pa_core/__init__.py").write_text("")
+        (source / "pa_core/cli.py").write_text("value = 1\n")
+        (source / "dashboard").mkdir()
+        (source / "dashboard/__init__.py").write_text("")
+        (source / "tests/test_example.py").write_text(
+            "from pa_core.cli import value\n"
+            "def test_first(request):\n"
+            + ("    del request.session.items[1:]\n" if stop_early else "")
+            + "    assert value == 2\n"
+            "def test_second():\n"
+            "    assert value == 1\n"
+            "def test_third():\n"
+            "    assert value == 1\n"
+        )
+        subprocess.run(["git", "add", "."], cwd=source, check=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.com",
+                "commit",
+                "-qm",
+                "capture inputs",
+            ],
+            cwd=source,
+            check=True,
+        )
+        output = source.parent / "evidence"
+        assert capture_module.capture(source, output, "HEAD", 30) == 1
+        metadata = json.loads((output / "command.json").read_text())
+>       assert metadata["completed"] is (not stop_early)
+E       assert True is not True
+
+tests/test_png_coverage_capture.py:276: AssertionError
+----------------------------- Captured stdout call -----------------------------
+1 / 1 statements (100.0%); {'passed': 0, 'failed': 1, 'errors': 0, 'skipped': 0}
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_png_coverage_capture.py::test_capture_requires_all_selected_nodes_to_finish[True] - assert True is not True
+1 failed, 21 deselected, 13 warnings in 4.53s

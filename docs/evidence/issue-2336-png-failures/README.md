@@ -1,5 +1,17 @@
 # Single-run PNG failure evidence for #2336
 
+## Selected-node completion verification — 2026-11-04
+
+The [completion follow-up](completion-20261104/README.md) prevents a truncated
+pytest run with consistent JUnit and coverage from being accepted as complete.
+The real-pytest regression fails against the old helper; **62 helper tests pass**
+after repair. A fresh main capture finishes all **1,993 selected nodes**, with
+**1,988 passed, 2 environmental failures, 3 skipped, 4 deselected**, and
+**13,493 / 14,626 covered statements (92.25352112676056%)**. All 23 focused export
+tests and eight fresh PNG assertion RED/restored GREEN pairs pass at current
+main's CLI hash. Historical wheel-build and optimizer causes remain unresolved.
+GitHub reports #2336 already closed; this run does not establish those causes.
+
 ## Environment guard and fresh main capture — 2026-11-04
 
 The [environment guard follow-up](environment-guard-20261104/README.md) rejects

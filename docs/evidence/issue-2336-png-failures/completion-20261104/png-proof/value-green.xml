@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.437" timestamp="2026-11-04T18:35:27.483244+00:00" hostname="ip-10-0-134-221"><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[value]" time="0.309" /></testsuite></testsuites>

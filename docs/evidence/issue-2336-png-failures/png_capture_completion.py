@@ -1,0 +1,47 @@
+"""Pytest receipt for selected nodes and finished runtest protocols."""
+
+import json
+from pathlib import Path
+
+
+class _CompletionRecorder:
+    """Record collection and completed runtest protocols independently of JUnit."""
+
+    def __init__(self, output: Path):
+        self.output = output
+        self.selected = None
+        self.finished = []
+        self.deselected = 0
+
+    def pytest_collection_finish(self, session):
+        self.selected = [item.nodeid for item in session.items]
+
+    def pytest_deselected(self, items):
+        self.deselected += len(items)
+
+    def pytest_runtest_logfinish(self, nodeid, location):
+        self.finished.append(nodeid)
+
+    def pytest_sessionfinish(self, session, exitstatus):
+        self.output.write_text(
+            json.dumps(
+                dict(
+                    selected=self.selected,
+                    finished=self.finished,
+                    deselected=self.deselected,
+                    exit=int(exitstatus),
+                ),
+                indent=2,
+            )
+            + "\n"
+        )
+
+
+def pytest_addoption(parser):
+    parser.addoption("--capture-completion-json", type=Path, default=None)
+
+
+def pytest_configure(config):
+    output = config.getoption("--capture-completion-json")
+    if output is not None:
+        config.pluginmanager.register(_CompletionRecorder(output), "capture-completion")

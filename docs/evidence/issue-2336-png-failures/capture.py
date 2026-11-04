@@ -5,6 +5,7 @@ changes relative to the selected main revision are rejected before pytest runs.
 """
 
 import argparse
+from collections import Counter
 import difflib
 import hashlib
 import importlib.metadata
@@ -77,6 +78,9 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
         sys.executable,
         "-m",
         "pytest",
+        "-p",
+        "png_capture_completion",
+        "--capture-completion-json=" + str(output / "completion.json"),
         "--cov=pa_core",
         "--cov=dashboard",
         "--cov-report=json:" + str(output / "coverage.json"),
@@ -103,9 +107,20 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
             .decode()
             .splitlines()
         },
+        "completion_plugin_sha256": hashlib.sha256(
+            Path(__file__).with_name("png_capture_completion.py").read_bytes()
+        ).hexdigest(),
         "capture_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "pyproject_sha256": hashlib.sha256((repo / "pyproject.toml").read_bytes()).hexdigest(),
-        "environment": {"COVERAGE_FILE": str(output / ".coverage")},
+        "environment": {
+            "COVERAGE_FILE": str(output / ".coverage"),
+            "PYTHONPATH": os.pathsep.join(
+                [
+                    str(Path(__file__).resolve().parent),
+                    *filter(None, [environment.get("PYTHONPATH")]),
+                ]
+            ),
+        },
         "selection": "Exclude slow tests and preserve the default live_llm exclusion",
         "completed": False,
     }
@@ -129,6 +144,18 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
     save_metadata()
     try:
         report = summarize(output / "coverage.json", output / "full-suite.xml", result.returncode)
+        completion = json.loads((output / "completion.json").read_text())
+        if completion["selected"] is None or Counter(completion["selected"]) != Counter(
+            completion["finished"]
+        ):
+            raise ValueError("Selected tests did not finish; partial suite evidence rejected")
+        if completion["exit"] != result.returncode:
+            raise ValueError("Completion recorder exit disagrees with pytest")
+        metadata["test_selection"] = {
+            "selected": len(completion["selected"]),
+            "deselected": completion["deselected"],
+            "finished": len(completion["finished"]),
+        }
     except (ValueError, OSError) as exc:
         metadata["incomplete_reason"] = str(exc)
         save_metadata()

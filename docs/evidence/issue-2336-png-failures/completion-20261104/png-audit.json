@@ -1,0 +1,54 @@
+{
+  "main": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "cases": [
+    {
+      "case": "renderer",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "module",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "io",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "permission",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "value",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "type",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "runtime-renderer",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    },
+    {
+      "case": "runtime-other",
+      "red_assertion": true,
+      "green_pass": true,
+      "byte_identical_restoration": true
+    }
+  ]
+}

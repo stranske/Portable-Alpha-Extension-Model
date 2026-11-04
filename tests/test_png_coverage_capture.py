@@ -175,6 +175,16 @@ def test_capture_records_inputs_and_rejects_timeout(
                 }
             )
         )
+        (output / "completion.json").write_text(
+            json.dumps(
+                {
+                    "selected": ["tests/test_example.py::test_example"],
+                    "finished": ["tests/test_example.py::test_example"],
+                    "deselected": 0,
+                    "exit": returncode,
+                }
+            )
+        )
         failed = int(returncode == 1)
         (output / "full-suite.xml").write_text(
             f'<testsuite tests="1" failures="{failed}" errors="0" skipped="0">'
@@ -221,3 +231,55 @@ def test_capture_bounds_a_real_stalled_process(capture_module, source, monkeypat
     assert "Incomplete pytest run" in metadata["incomplete_reason"]
     assert "stalled pytest witness" in (output / "full-suite.txt").read_text()
     assert not (output / "summary.json").exists()
+
+
+@pytest.mark.parametrize("stop_early", [False, True])
+def test_capture_requires_all_selected_nodes_to_finish(
+    capture_module, source, monkeypatch, stop_early
+):
+    """Exit 1 plus consistent JUnit/coverage can still describe a truncated suite."""
+    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
+    monkeypatch.delenv("COVERAGE_RCFILE", raising=False)
+    monkeypatch.delenv("COVERAGE_PROCESS_START", raising=False)
+    (source / "pa_core/__init__.py").write_text("")
+    (source / "pa_core/cli.py").write_text("value = 1\n")
+    (source / "dashboard").mkdir()
+    (source / "dashboard/__init__.py").write_text("")
+    (source / "tests/test_example.py").write_text(
+        "from pa_core.cli import value\n"
+        "def test_first(request):\n"
+        + ("    del request.session.items[1:]\n" if stop_early else "")
+        + "    assert value == 2\n"
+        "def test_second():\n"
+        "    assert value == 1\n"
+        "def test_third():\n"
+        "    assert value == 1\n"
+    )
+    subprocess.run(["git", "add", "."], cwd=source, check=True)
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.com",
+            "commit",
+            "-qm",
+            "capture inputs",
+        ],
+        cwd=source,
+        check=True,
+    )
+    output = source.parent / "evidence"
+    assert capture_module.capture(source, output, "HEAD", 30) == 1
+    metadata = json.loads((output / "command.json").read_text())
+    assert metadata["completed"] is (not stop_early)
+    assert (output / "summary.json").exists() is (not stop_early)
+    completion = json.loads((output / "completion.json").read_text())
+    assert len(completion["selected"]) == 3
+    if stop_early:
+        assert completion["finished"] == ["tests/test_example.py::test_first"]
+        assert "Selected tests did not finish" in metadata["incomplete_reason"]
+    else:
+        assert completion["finished"] == completion["selected"]
+        assert metadata["test_selection"] == {"selected": 3, "deselected": 0, "finished": 3}
