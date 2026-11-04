@@ -1,5 +1,18 @@
 # Single-run PNG failure evidence for #2336
 
+## Optimizer failure-path verification — 2026-11-04
+
+The [optimizer follow-up](optimizer-disposition-20261104/README.md) verifies
+the distinction between solver nonconvergence and an unavailable optimizer,
+using the real surrogate, allocation evaluation and grid fallback. Both new
+cases pass; removing the convergence guard produces an assertion failure and
+byte-identical restoration passes. The optimizer module reports **22 passed,
+1 skipped**; export and evidence-helper regressions report **80 passed**.
+The existing completed main coverage and eight PNG pairs were independently
+revalidated. Historical optimizer and wheel-build causes remain unresolved;
+#2336 remains open. The reconciled PR checklist could not be published because
+automatic approval review rejected the update.
+
 ## Offline clean-venv entrypoints — 2026-11-04
 
 The [entrypoint repair](entrypoints-offline-20261104/README.md) removes an unnecessary

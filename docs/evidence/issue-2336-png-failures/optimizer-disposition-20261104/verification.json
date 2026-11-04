@@ -1,0 +1,22 @@
+{
+  "main_revision": "06881dbdf0e915c305669e7fe3f8baa7d8a21ec4",
+  "cli_sha256": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+  "main_capture_totals": {
+    "covered_lines": 13493,
+    "num_statements": 14626,
+    "percent_covered": 92.25352112676056,
+    "percent_covered_display": "92",
+    "missing_lines": 1133,
+    "excluded_lines": 192,
+    "percent_statements_covered": 92.25352112676056,
+    "percent_statements_covered_display": "92"
+  },
+  "main_capture_counts": {
+    "passed": 1988,
+    "failed": 2,
+    "errors": 0,
+    "skipped": 3
+  },
+  "validated_png_pairs": 8,
+  "pr_checklist_update": "Rejected: MCP tool call requires approval, but approval policy is never"
+}

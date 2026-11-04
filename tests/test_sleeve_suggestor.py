@@ -1,5 +1,6 @@
 import builtins
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import numpy as np
@@ -722,6 +723,88 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch, imp
     assert not df["optimizer_success"].any()
     assert df["constraints_satisfied"].all()
     assert df["optimizer_status"].eq("grid_fallback:missing_scipy").all()
+
+
+@pytest.mark.parametrize("success", [True, False])
+def test_feasible_optimizer_result_distinguishes_convergence_from_grid_fallback(
+    monkeypatch, success
+):
+    """A feasible allocation alone must not turn nonconvergence into optimizer success.
+
+    PR #2475's bare ``optimizer_success=False`` did not distinguish this path
+    from an unavailable SciPy import. Exercise the solver handoff independently
+    of that optional dependency, retaining the real surrogate and grid paths.
+    """
+    cfg = ModelConfig(
+        N_SIMULATIONS=1,
+        N_MONTHS=1,
+        financing_mode="broadcast",
+        total_fund_capital=100.0,
+        external_pa_capital=40.0,
+        active_ext_capital=30.0,
+        internal_pa_capital=30.0,
+    )
+
+    class LinearOrchestrator:
+        def __init__(self, cfg, _index):
+            self.cfg = cfg
+
+        def run(self, seed=None):
+            return {}, _make_linear_summary(self.cfg)
+
+    calls = []
+
+    def minimize(fun, x0, *, method, bounds, constraints, options):
+        calls.append(x0.copy())
+        assert method == "SLSQP"
+        assert bounds == [(0.0, 80.0), (0.0, 80.0)]
+        assert options == {"maxiter": 17}
+        # Analytic optimum for the linear return fixture: ExternalPA has the
+        # highest return per unit of capital, followed by InternalPA.
+        optimum = np.array([80.0, 0.0])
+        assert fun(optimum) == pytest.approx(-2.8)
+        assert fun(optimum) < fun(x0)
+        assert all(constraint["fun"](optimum) >= 0 for constraint in constraints)
+        return SimpleNamespace(x=optimum, success=success, message="solver diagnostic")
+
+    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", LinearOrchestrator)
+    monkeypatch.setattr("pa_core.sleeve_suggestor._load_minimize", lambda: minimize)
+    result = suggest_sleeve_sizes(
+        cfg,
+        pd.Series([0.0]),
+        max_te=0.05,
+        max_breach=0.05,
+        max_cvar=0.05,
+        max_shortfall=0.05,
+        step=0.5,
+        max_external=80.0,
+        max_active=80.0,
+        optimize=True,
+        optimizer_maxiter=17,
+        objective="total_return",
+    )
+
+    assert len(calls) == 1
+    np.testing.assert_array_equal(calls[0], [40.0, 30.0])
+    assert not result.empty
+    assert result["constraints_satisfied"].all()
+    assert result["optimizer_success"].eq(success).all()
+    assert result["objective"].eq("total_return").all()
+    if success:
+        assert len(result) == 1
+        assert result.loc[0, "optimizer_status"] == "solver diagnostic"
+        assert result.loc[0, "external_pa_capital"] == pytest.approx(80.0)
+        assert result.loc[0, "active_ext_capital"] == pytest.approx(0.0)
+        assert result.loc[0, "internal_pa_capital"] == pytest.approx(20.0)
+        assert result.loc[0, "objective_value"] == pytest.approx(2.8)
+    else:
+        assert result["optimizer_status"].eq("grid_fallback:optimizer_failed").all()
+        # A failed solver's feasible 80/0/20 candidate must not escape in place
+        # of the requested 50-unit grid; the best grid allocation is 50/0/50.
+        assert result.loc[0, "external_pa_capital"] == pytest.approx(50.0)
+        assert result.loc[0, "active_ext_capital"] == pytest.approx(0.0)
+        assert result.loc[0, "internal_pa_capital"] == pytest.approx(50.0)
+        assert result.loc[0, "objective_value"] == pytest.approx(2.5)
 
 
 def test_load_minimize_falls_back_when_scipy_import_is_incompatible(monkeypatch):

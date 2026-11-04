@@ -1,0 +1,56 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 5833,
+      "sha256": "6cfe5f254b9e1dbfdf8b6c5b059eb5271bfc703087abd51e374f49d7e3db45e4"
+    },
+    "black-check.txt": {
+      "bytes": 184,
+      "sha256": "ca9b64968fff6cc7151bab1bb76c2c9b90c0d5f561acd68a7ab85fc068a5ecb3"
+    },
+    "checks.json": {
+      "bytes": 3411,
+      "sha256": "816aef6dfabc624debcc6a953d9bfb27f7af92b34a6007a47a218c3091a146df"
+    },
+    "nonconvergence-green.txt": {
+      "bytes": 695,
+      "sha256": "6236b596ad072ba879fb8a84b878a5a7839e31398b6b0d945be5f6e8477cd038"
+    },
+    "nonconvergence-green.xml": {
+      "bytes": 558,
+      "sha256": "984cd44d072fb3dd50f549389b9b87da242b8de6700a193f85887df29e5c6623"
+    },
+    "nonconvergence-red.txt": {
+      "bytes": 5121,
+      "sha256": "5efef3184538be448fb81dec6eb44a4255eb587c1b0080f87d0b154a11c9398f"
+    },
+    "nonconvergence-red.xml": {
+      "bytes": 4668,
+      "sha256": "34cc411f4affe4b7ae8654d464b3da589f9f0b1497584c49d0be03e5f2815282"
+    },
+    "optimizer.txt": {
+      "bytes": 5918,
+      "sha256": "fe311bcc4b194e487cbc69a18d0b7f238747dec8476bc2f84a2a12fd14ebe8d9"
+    },
+    "optimizer.xml": {
+      "bytes": 3445,
+      "sha256": "f6bd5d99da20af2b54842af8316be59e0f59b03955a73c345985e100ff47a972"
+    },
+    "regressions.txt": {
+      "bytes": 5387,
+      "sha256": "a83b152038deac010855693ad0fd3b31624736d210181b9c8d9a1735ba129e1c"
+    },
+    "regressions.xml": {
+      "bytes": 11181,
+      "sha256": "ad1481a1756eaee3e7c0fb8c31721ea21558a47a7fbeb3d097228e96df345819"
+    },
+    "ruff-check.txt": {
+      "bytes": 19,
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
+    },
+    "verification.json": {
+      "bytes": 703,
+      "sha256": "5a7da7f52609af83a49aee3bf85dab0598d842272e21bc4a97f6fd2ef13578c3"
+    }
+  }
+}
