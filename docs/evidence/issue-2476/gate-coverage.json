@@ -2536,15 +2536,23 @@
       "command": "./.venv/bin/python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' ."
     },
     "final_head_lint_format": {
-      "status": "pending_dispatch",
-      "route": ".github/workflows/ci.yml workflow_dispatch on branch cursor/issue-2476 (format_check default true; pr-00-gate.yml:151 format_check false)",
-      "local_black_check": "success on continuation closer head before push",
-      "note": "Populate run_url and job conclusion after dispatch completes."
+      "status": "success",
+      "route": ".github/workflows/ci.yml workflow_dispatch on branch cursor/issue-2476",
+      "run_id": 42059572274,
+      "run_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42059572274",
+      "head_sha": "9a9362ddc83b4a5d6d68264155539605b152c127",
+      "job_name": "Python CI / lint-format",
+      "job_id": 127357266056,
+      "conclusion": "success",
+      "gate_note": "pr-00-gate.yml:151 format_check false skips lint-format on PR gate; this dispatch uses ci.yml default format_check true.",
+      "local_black_check": "success on same head before dispatch (521 files unchanged)"
     },
     "closer_handoff": {
       "owner": "original authorized closer for PR #2484",
-      "status": "ready_after_ci_evidence",
-      "required": "Reread final head, checks, current review threads and seven-minute post-push review floor. Retry guarded delivery only when eligible. Preserve writer ownership."
+      "status": "returned",
+      "required": "Reread final head, checks, current review threads and seven-minute post-push review floor. Retry guarded delivery only when eligible. Preserve writer ownership.",
+      "returned_at": "2026-11-05",
+      "final_head_sha": "9a9362ddc83b4a5d6d68264155539605b152c127"
     }
   }
 }
