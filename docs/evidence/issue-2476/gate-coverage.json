@@ -2552,7 +2552,7 @@
       "status": "returned",
       "required": "Reread final head, checks, current review threads and seven-minute post-push review floor. Retry guarded delivery only when eligible. Preserve writer ownership.",
       "returned_at": "2026-11-05",
-      "final_head_sha": "9a9362ddc83b4a5d6d68264155539605b152c127"
+      "final_head_sha": "69c68f5181640db45ac75c61588762a56f0b03da"
     }
   }
 }
