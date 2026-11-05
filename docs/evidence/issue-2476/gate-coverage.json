@@ -1,0 +1,2499 @@
+{
+  "checked": "2026-11-05",
+  "gate": {
+    "workflow": ".github/workflows/ci.yml and .github/workflows/pr-00-gate.yml job python-ci",
+    "reusable_workflow": "stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main",
+    "pytest_command": "pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup",
+    "marker": "pyproject addopts -m 'not live_llm'; measurements passed -m 'not live_llm' explicitly",
+    "coverage_config": "pyproject.toml [tool.coverage.run] source=['pa_core','dashboard','design-system'], branch=false",
+    "branch_supplement": "same command plus --cov-branch, because the Gate config does not collect branches",
+    "workers_note": "after_2384 branch supplement used -n 2; every other full-suite measurement used -n auto",
+    "stop_rule": "One full-suite attempt per revision. Stop if a command exceeds 3 minutes or the same step fails three times. Focused acceptance command must finish in under 2 minutes.",
+    "focused_acceptance_command": "python -m pytest -q tests/test_coverage_round_2381.py",
+    "focused_result": "52 passed in 2.19s (wall 3.77s) on 2026-11-05"
+  },
+  "ranking": {
+    "source": "issue #2381 body, order unchanged",
+    "dispatch_uncovered_units": {
+      "pa_core/llm/result_explain.py": 4,
+      "pa_core/pa.py": 27,
+      "pa_core/facade.py": 23,
+      "pa_core/units.py": 13,
+      "pa_core/sim/internal_pa_financing.py": 4,
+      "pa_core/manifest.py": 2,
+      "dashboard/pages/4_Results.py": 136
+    },
+    "dispatch_total": 209,
+    "selection_deviation": "Merged PR #2384 added a Results-page smoke test and did not add tests for ranked targets 1-6. The historical reason for that skip is unknown.",
+    "remeasured_target_7": "dashboard/pages/4_Results.py was 136 missing statements at bf424ec6, 78 after #2384, 18 before this commit, and 0 after this commit. The historical 136 figure is not the current count."
+  },
+  "snapshots": {
+    "round_baseline": {
+      "revision": "bf424ec6ff58bb88b6431acf7809d42b2c59f95d",
+      "role": "parent of merged PR #2384",
+      "statements": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 226,
+            "missing_statements": 4,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              437,
+              438,
+              448,
+              456
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 27,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              94,
+              97,
+              105,
+              116,
+              122,
+              299,
+              334,
+              335,
+              337,
+              338,
+              339,
+              340,
+              342,
+              343,
+              344,
+              348,
+              349,
+              350,
+              365,
+              366,
+              368,
+              374,
+              422,
+              464,
+              466,
+              473,
+              474
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 23,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              50,
+              51,
+              63,
+              87,
+              88,
+              243,
+              245,
+              247,
+              363,
+              364,
+              365,
+              367,
+              430,
+              629,
+              630,
+              631,
+              633,
+              746,
+              752,
+              814,
+              815,
+              820,
+              823
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 13,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              153,
+              177,
+              194,
+              195,
+              196,
+              197,
+              198,
+              199,
+              200,
+              214,
+              216,
+              218,
+              237
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 4,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              55,
+              57,
+              59,
+              81
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 2,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              88,
+              89
+            ],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 136,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              51,
+              54,
+              57,
+              67,
+              160,
+              161,
+              178,
+              179,
+              193,
+              197,
+              198,
+              199,
+              200,
+              201,
+              202,
+              203,
+              206,
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              213,
+              214,
+              215,
+              217,
+              219,
+              220,
+              221,
+              222,
+              223,
+              224,
+              225,
+              226,
+              227,
+              230,
+              231,
+              236,
+              237,
+              242,
+              243,
+              244,
+              250,
+              251,
+              253,
+              254,
+              255,
+              257,
+              258,
+              260,
+              261,
+              262,
+              263,
+              264,
+              266,
+              267,
+              269,
+              270,
+              271,
+              272,
+              273,
+              274,
+              275,
+              276,
+              278,
+              279,
+              282,
+              284,
+              286,
+              287,
+              294,
+              295,
+              296,
+              299,
+              303,
+              305,
+              307,
+              308,
+              310,
+              312,
+              313,
+              314,
+              315,
+              316,
+              322,
+              323,
+              330,
+              331,
+              332,
+              333,
+              334,
+              339,
+              341,
+              342,
+              343,
+              344,
+              345,
+              346,
+              347,
+              348,
+              349,
+              350,
+              351,
+              352,
+              353,
+              358,
+              359,
+              360,
+              361,
+              362,
+              364,
+              365,
+              366,
+              367,
+              368,
+              369,
+              370,
+              372,
+              384,
+              385,
+              387,
+              388,
+              390,
+              398,
+              399,
+              404,
+              407,
+              411,
+              412,
+              413,
+              414,
+              416,
+              417,
+              418,
+              422
+            ],
+            "missing_branch_arcs": []
+          }
+        },
+        "selected_missing_statements": 209,
+        "selected_missing_branches": null
+      },
+      "branches": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 226,
+            "missing_statements": 4,
+            "branches": 102,
+            "missing_branches": 7,
+            "missing_statement_lines": [
+              437,
+              438,
+              448,
+              456
+            ],
+            "missing_branch_arcs": [
+              [
+                224,
+                223
+              ],
+              [
+                277,
+                289
+              ],
+              [
+                282,
+                279
+              ],
+              [
+                447,
+                448
+              ],
+              [
+                451,
+                450
+              ],
+              [
+                453,
+                450
+              ],
+              [
+                455,
+                456
+              ]
+            ]
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 27,
+            "branches": 68,
+            "missing_branches": 24,
+            "missing_statement_lines": [
+              94,
+              97,
+              105,
+              116,
+              122,
+              299,
+              334,
+              335,
+              337,
+              338,
+              339,
+              340,
+              342,
+              343,
+              344,
+              348,
+              349,
+              350,
+              365,
+              366,
+              368,
+              374,
+              422,
+              464,
+              466,
+              473,
+              474
+            ],
+            "missing_branch_arcs": [
+              [
+                93,
+                94
+              ],
+              [
+                96,
+                97
+              ],
+              [
+                104,
+                105
+              ],
+              [
+                115,
+                116
+              ],
+              [
+                121,
+                122
+              ],
+              [
+                298,
+                299
+              ],
+              [
+                329,
+                331
+              ],
+              [
+                333,
+                334
+              ],
+              [
+                337,
+                338
+              ],
+              [
+                337,
+                348
+              ],
+              [
+                339,
+                340
+              ],
+              [
+                339,
+                342
+              ],
+              [
+                342,
+                -120
+              ],
+              [
+                342,
+                343
+              ],
+              [
+                348,
+                -120
+              ],
+              [
+                348,
+                349
+              ],
+              [
+                351,
+                464
+              ],
+              [
+                363,
+                365
+              ],
+              [
+                365,
+                366
+              ],
+              [
+                365,
+                368
+              ],
+              [
+                370,
+                374
+              ],
+              [
+                405,
+                407
+              ],
+              [
+                408,
+                410
+              ],
+              [
+                421,
+                422
+              ]
+            ]
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 23,
+            "branches": 120,
+            "missing_branches": 22,
+            "missing_statement_lines": [
+              50,
+              51,
+              63,
+              87,
+              88,
+              243,
+              245,
+              247,
+              363,
+              364,
+              365,
+              367,
+              430,
+              629,
+              630,
+              631,
+              633,
+              746,
+              752,
+              814,
+              815,
+              820,
+              823
+            ],
+            "missing_branch_arcs": [
+              [
+                62,
+                63
+              ],
+              [
+                242,
+                243
+              ],
+              [
+                244,
+                245
+              ],
+              [
+                246,
+                247
+              ],
+              [
+                362,
+                363
+              ],
+              [
+                364,
+                365
+              ],
+              [
+                364,
+                369
+              ],
+              [
+                366,
+                367
+              ],
+              [
+                429,
+                430
+              ],
+              [
+                490,
+                493
+              ],
+              [
+                501,
+                527
+              ],
+              [
+                504,
+                527
+              ],
+              [
+                628,
+                629
+              ],
+              [
+                630,
+                631
+              ],
+              [
+                630,
+                635
+              ],
+              [
+                632,
+                633
+              ],
+              [
+                745,
+                746
+              ],
+              [
+                751,
+                752
+              ],
+              [
+                780,
+                785
+              ],
+              [
+                804,
+                814
+              ],
+              [
+                819,
+                820
+              ],
+              [
+                822,
+                823
+              ]
+            ]
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 13,
+            "branches": 30,
+            "missing_branches": 10,
+            "missing_statement_lines": [
+              153,
+              177,
+              194,
+              195,
+              196,
+              197,
+              198,
+              199,
+              200,
+              214,
+              216,
+              218,
+              237
+            ],
+            "missing_branch_arcs": [
+              [
+                152,
+                153
+              ],
+              [
+                176,
+                177
+              ],
+              [
+                196,
+                197
+              ],
+              [
+                196,
+                198
+              ],
+              [
+                198,
+                199
+              ],
+              [
+                198,
+                200
+              ],
+              [
+                213,
+                214
+              ],
+              [
+                215,
+                216
+              ],
+              [
+                217,
+                218
+              ],
+              [
+                236,
+                237
+              ]
+            ]
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 4,
+            "branches": 18,
+            "missing_branches": 4,
+            "missing_statement_lines": [
+              55,
+              57,
+              59,
+              81
+            ],
+            "missing_branch_arcs": [
+              [
+                54,
+                55
+              ],
+              [
+                56,
+                57
+              ],
+              [
+                58,
+                59
+              ],
+              [
+                80,
+                81
+              ]
+            ]
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 2,
+            "branches": 4,
+            "missing_branches": 0,
+            "missing_statement_lines": [
+              88,
+              89
+            ],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 136,
+            "branches": 70,
+            "missing_branches": 56,
+            "missing_statement_lines": [
+              51,
+              54,
+              57,
+              67,
+              160,
+              161,
+              178,
+              179,
+              193,
+              197,
+              198,
+              199,
+              200,
+              201,
+              202,
+              203,
+              206,
+              207,
+              208,
+              209,
+              210,
+              211,
+              212,
+              213,
+              214,
+              215,
+              217,
+              219,
+              220,
+              221,
+              222,
+              223,
+              224,
+              225,
+              226,
+              227,
+              230,
+              231,
+              236,
+              237,
+              242,
+              243,
+              244,
+              250,
+              251,
+              253,
+              254,
+              255,
+              257,
+              258,
+              260,
+              261,
+              262,
+              263,
+              264,
+              266,
+              267,
+              269,
+              270,
+              271,
+              272,
+              273,
+              274,
+              275,
+              276,
+              278,
+              279,
+              282,
+              284,
+              286,
+              287,
+              294,
+              295,
+              296,
+              299,
+              303,
+              305,
+              307,
+              308,
+              310,
+              312,
+              313,
+              314,
+              315,
+              316,
+              322,
+              323,
+              330,
+              331,
+              332,
+              333,
+              334,
+              339,
+              341,
+              342,
+              343,
+              344,
+              345,
+              346,
+              347,
+              348,
+              349,
+              350,
+              351,
+              352,
+              353,
+              358,
+              359,
+              360,
+              361,
+              362,
+              364,
+              365,
+              366,
+              367,
+              368,
+              369,
+              370,
+              372,
+              384,
+              385,
+              387,
+              388,
+              390,
+              398,
+              399,
+              404,
+              407,
+              411,
+              412,
+              413,
+              414,
+              416,
+              417,
+              418,
+              422
+            ],
+            "missing_branch_arcs": [
+              [
+                50,
+                51
+              ],
+              [
+                53,
+                54
+              ],
+              [
+                56,
+                57
+              ],
+              [
+                66,
+                67
+              ],
+              [
+                175,
+                178
+              ],
+              [
+                178,
+                179
+              ],
+              [
+                178,
+                180
+              ],
+              [
+                189,
+                193
+              ],
+              [
+                191,
+                193
+              ],
+              [
+                200,
+                201
+              ],
+              [
+                200,
+                203
+              ],
+              [
+                208,
+                209
+              ],
+              [
+                208,
+                217
+              ],
+              [
+                212,
+                213
+              ],
+              [
+                212,
+                217
+              ],
+              [
+                222,
+                223
+              ],
+              [
+                222,
+                224
+              ],
+              [
+                224,
+                225
+              ],
+              [
+                224,
+                226
+              ],
+              [
+                226,
+                227
+              ],
+              [
+                226,
+                230
+              ],
+              [
+                230,
+                231
+              ],
+              [
+                230,
+                236
+              ],
+              [
+                236,
+                237
+              ],
+              [
+                236,
+                242
+              ],
+              [
+                243,
+                244
+              ],
+              [
+                243,
+                250
+              ],
+              [
+                253,
+                254
+              ],
+              [
+                253,
+                257
+              ],
+              [
+                257,
+                258
+              ],
+              [
+                257,
+                260
+              ],
+              [
+                269,
+                270
+              ],
+              [
+                269,
+                278
+              ],
+              [
+                272,
+                273
+              ],
+              [
+                272,
+                274
+              ],
+              [
+                274,
+                269
+              ],
+              [
+                274,
+                275
+              ],
+              [
+                295,
+                296
+              ],
+              [
+                295,
+                303
+              ],
+              [
+                344,
+                345
+              ],
+              [
+                344,
+                350
+              ],
+              [
+                346,
+                347
+              ],
+              [
+                346,
+                350
+              ],
+              [
+                348,
+                349
+              ],
+              [
+                348,
+                350
+              ],
+              [
+                350,
+                351
+              ],
+              [
+                350,
+                364
+              ],
+              [
+                358,
+                359
+              ],
+              [
+                358,
+                364
+              ],
+              [
+                367,
+                368
+              ],
+              [
+                367,
+                372
+              ],
+              [
+                399,
+                404
+              ],
+              [
+                399,
+                411
+              ],
+              [
+                416,
+                -196
+              ],
+              [
+                416,
+                417
+              ],
+              [
+                421,
+                422
+              ]
+            ]
+          }
+        },
+        "selected_missing_statements": 209,
+        "selected_missing_branches": 123
+      },
+      "suite_note": "3 tests failed from environment drift and are outside the seven targets: tests/test_dashboard_asset_library.py AppTest path resolution (2) and tests/test_schema_export.py parameter-dictionary repr under Python 3.14. Ranked statement misses still matched issue #2381 exactly."
+    },
+    "after_2384": {
+      "revision": "1b7f97a1c640ef69efe6a6750cf93f23a105000e",
+      "role": "merge commit of PR #2384",
+      "statements": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 226,
+            "missing_statements": 4,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              437,
+              438,
+              448,
+              456
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 27,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              94,
+              97,
+              105,
+              116,
+              122,
+              299,
+              334,
+              335,
+              337,
+              338,
+              339,
+              340,
+              342,
+              343,
+              344,
+              348,
+              349,
+              350,
+              365,
+              366,
+              368,
+              374,
+              422,
+              464,
+              466,
+              473,
+              474
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 23,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              50,
+              51,
+              63,
+              87,
+              88,
+              243,
+              245,
+              247,
+              363,
+              364,
+              365,
+              367,
+              430,
+              629,
+              630,
+              631,
+              633,
+              746,
+              752,
+              814,
+              815,
+              820,
+              823
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 13,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              153,
+              177,
+              194,
+              195,
+              196,
+              197,
+              198,
+              199,
+              200,
+              214,
+              216,
+              218,
+              237
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 4,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              55,
+              57,
+              59,
+              81
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 2,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              88,
+              89
+            ],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 78,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              51,
+              54,
+              57,
+              67,
+              160,
+              161,
+              178,
+              179,
+              193,
+              201,
+              202,
+              209,
+              210,
+              211,
+              212,
+              213,
+              214,
+              215,
+              224,
+              225,
+              257,
+              258,
+              260,
+              261,
+              294,
+              295,
+              296,
+              299,
+              303,
+              313,
+              314,
+              315,
+              316,
+              322,
+              323,
+              331,
+              332,
+              333,
+              334,
+              339,
+              341,
+              342,
+              343,
+              344,
+              345,
+              346,
+              347,
+              348,
+              349,
+              350,
+              351,
+              352,
+              353,
+              358,
+              359,
+              360,
+              361,
+              362,
+              364,
+              365,
+              366,
+              367,
+              368,
+              369,
+              370,
+              372,
+              388,
+              398,
+              399,
+              404,
+              407,
+              411,
+              412,
+              413,
+              414,
+              417,
+              418,
+              422
+            ],
+            "missing_branch_arcs": []
+          }
+        },
+        "selected_missing_statements": 151,
+        "selected_missing_branches": null
+      },
+      "branches": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 226,
+            "missing_statements": 4,
+            "branches": 102,
+            "missing_branches": 7,
+            "missing_statement_lines": [
+              437,
+              438,
+              448,
+              456
+            ],
+            "missing_branch_arcs": [
+              [
+                224,
+                223
+              ],
+              [
+                277,
+                289
+              ],
+              [
+                282,
+                279
+              ],
+              [
+                447,
+                448
+              ],
+              [
+                451,
+                450
+              ],
+              [
+                453,
+                450
+              ],
+              [
+                455,
+                456
+              ]
+            ]
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 27,
+            "branches": 68,
+            "missing_branches": 24,
+            "missing_statement_lines": [
+              94,
+              97,
+              105,
+              116,
+              122,
+              299,
+              334,
+              335,
+              337,
+              338,
+              339,
+              340,
+              342,
+              343,
+              344,
+              348,
+              349,
+              350,
+              365,
+              366,
+              368,
+              374,
+              422,
+              464,
+              466,
+              473,
+              474
+            ],
+            "missing_branch_arcs": [
+              [
+                93,
+                94
+              ],
+              [
+                96,
+                97
+              ],
+              [
+                104,
+                105
+              ],
+              [
+                115,
+                116
+              ],
+              [
+                121,
+                122
+              ],
+              [
+                298,
+                299
+              ],
+              [
+                329,
+                331
+              ],
+              [
+                333,
+                334
+              ],
+              [
+                337,
+                338
+              ],
+              [
+                337,
+                348
+              ],
+              [
+                339,
+                340
+              ],
+              [
+                339,
+                342
+              ],
+              [
+                342,
+                -120
+              ],
+              [
+                342,
+                343
+              ],
+              [
+                348,
+                -120
+              ],
+              [
+                348,
+                349
+              ],
+              [
+                351,
+                464
+              ],
+              [
+                363,
+                365
+              ],
+              [
+                365,
+                366
+              ],
+              [
+                365,
+                368
+              ],
+              [
+                370,
+                374
+              ],
+              [
+                405,
+                407
+              ],
+              [
+                408,
+                410
+              ],
+              [
+                421,
+                422
+              ]
+            ]
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 23,
+            "branches": 120,
+            "missing_branches": 22,
+            "missing_statement_lines": [
+              50,
+              51,
+              63,
+              87,
+              88,
+              243,
+              245,
+              247,
+              363,
+              364,
+              365,
+              367,
+              430,
+              629,
+              630,
+              631,
+              633,
+              746,
+              752,
+              814,
+              815,
+              820,
+              823
+            ],
+            "missing_branch_arcs": [
+              [
+                62,
+                63
+              ],
+              [
+                242,
+                243
+              ],
+              [
+                244,
+                245
+              ],
+              [
+                246,
+                247
+              ],
+              [
+                362,
+                363
+              ],
+              [
+                364,
+                365
+              ],
+              [
+                364,
+                369
+              ],
+              [
+                366,
+                367
+              ],
+              [
+                429,
+                430
+              ],
+              [
+                490,
+                493
+              ],
+              [
+                501,
+                527
+              ],
+              [
+                504,
+                527
+              ],
+              [
+                628,
+                629
+              ],
+              [
+                630,
+                631
+              ],
+              [
+                630,
+                635
+              ],
+              [
+                632,
+                633
+              ],
+              [
+                745,
+                746
+              ],
+              [
+                751,
+                752
+              ],
+              [
+                780,
+                785
+              ],
+              [
+                804,
+                814
+              ],
+              [
+                819,
+                820
+              ],
+              [
+                822,
+                823
+              ]
+            ]
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 13,
+            "branches": 30,
+            "missing_branches": 10,
+            "missing_statement_lines": [
+              153,
+              177,
+              194,
+              195,
+              196,
+              197,
+              198,
+              199,
+              200,
+              214,
+              216,
+              218,
+              237
+            ],
+            "missing_branch_arcs": [
+              [
+                152,
+                153
+              ],
+              [
+                176,
+                177
+              ],
+              [
+                196,
+                197
+              ],
+              [
+                196,
+                198
+              ],
+              [
+                198,
+                199
+              ],
+              [
+                198,
+                200
+              ],
+              [
+                213,
+                214
+              ],
+              [
+                215,
+                216
+              ],
+              [
+                217,
+                218
+              ],
+              [
+                236,
+                237
+              ]
+            ]
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 4,
+            "branches": 18,
+            "missing_branches": 4,
+            "missing_statement_lines": [
+              55,
+              57,
+              59,
+              81
+            ],
+            "missing_branch_arcs": [
+              [
+                54,
+                55
+              ],
+              [
+                56,
+                57
+              ],
+              [
+                58,
+                59
+              ],
+              [
+                80,
+                81
+              ]
+            ]
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 2,
+            "branches": 4,
+            "missing_branches": 0,
+            "missing_statement_lines": [
+              88,
+              89
+            ],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 78,
+            "branches": 70,
+            "missing_branches": 42,
+            "missing_statement_lines": [
+              51,
+              54,
+              57,
+              67,
+              160,
+              161,
+              178,
+              179,
+              193,
+              201,
+              202,
+              209,
+              210,
+              211,
+              212,
+              213,
+              214,
+              215,
+              224,
+              225,
+              257,
+              258,
+              260,
+              261,
+              294,
+              295,
+              296,
+              299,
+              303,
+              313,
+              314,
+              315,
+              316,
+              322,
+              323,
+              331,
+              332,
+              333,
+              334,
+              339,
+              341,
+              342,
+              343,
+              344,
+              345,
+              346,
+              347,
+              348,
+              349,
+              350,
+              351,
+              352,
+              353,
+              358,
+              359,
+              360,
+              361,
+              362,
+              364,
+              365,
+              366,
+              367,
+              368,
+              369,
+              370,
+              372,
+              388,
+              398,
+              399,
+              404,
+              407,
+              411,
+              412,
+              413,
+              414,
+              417,
+              418,
+              422
+            ],
+            "missing_branch_arcs": [
+              [
+                50,
+                51
+              ],
+              [
+                53,
+                54
+              ],
+              [
+                56,
+                57
+              ],
+              [
+                66,
+                67
+              ],
+              [
+                175,
+                178
+              ],
+              [
+                178,
+                179
+              ],
+              [
+                178,
+                180
+              ],
+              [
+                189,
+                193
+              ],
+              [
+                191,
+                193
+              ],
+              [
+                200,
+                201
+              ],
+              [
+                208,
+                209
+              ],
+              [
+                212,
+                213
+              ],
+              [
+                212,
+                217
+              ],
+              [
+                222,
+                224
+              ],
+              [
+                224,
+                225
+              ],
+              [
+                224,
+                226
+              ],
+              [
+                226,
+                230
+              ],
+              [
+                230,
+                236
+              ],
+              [
+                236,
+                242
+              ],
+              [
+                243,
+                250
+              ],
+              [
+                253,
+                257
+              ],
+              [
+                257,
+                258
+              ],
+              [
+                257,
+                260
+              ],
+              [
+                274,
+                269
+              ],
+              [
+                295,
+                296
+              ],
+              [
+                295,
+                303
+              ],
+              [
+                344,
+                345
+              ],
+              [
+                344,
+                350
+              ],
+              [
+                346,
+                347
+              ],
+              [
+                346,
+                350
+              ],
+              [
+                348,
+                349
+              ],
+              [
+                348,
+                350
+              ],
+              [
+                350,
+                351
+              ],
+              [
+                350,
+                364
+              ],
+              [
+                358,
+                359
+              ],
+              [
+                358,
+                364
+              ],
+              [
+                367,
+                368
+              ],
+              [
+                367,
+                372
+              ],
+              [
+                399,
+                404
+              ],
+              [
+                399,
+                411
+              ],
+              [
+                416,
+                417
+              ],
+              [
+                421,
+                422
+              ]
+            ]
+          }
+        },
+        "selected_missing_statements": 151,
+        "selected_missing_branches": 109
+      },
+      "suite_note": "Same three environment-drift failures as the baseline checkout. Ranked-target statement misses are otherwise comparable."
+    },
+    "before_this_work": {
+      "revision": "cb7143b4688af9dfffd4b2d0f074de0abaf69790",
+      "main_revision": "524a505897d44e53ca3f2476f369aed0a06eb5e6",
+      "role": "current main plus the empty #2476 bootstrap, before the tests in this commit",
+      "statements": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 227,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 2,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              746,
+              752
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 18,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              214,
+              215,
+              360,
+              361,
+              362,
+              367,
+              368,
+              398,
+              399,
+              404,
+              407,
+              411,
+              412,
+              413,
+              414,
+              417,
+              418,
+              422
+            ],
+            "missing_branch_arcs": []
+          }
+        },
+        "selected_missing_statements": 20,
+        "selected_missing_branches": null
+      },
+      "branches": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 227,
+            "missing_statements": 0,
+            "branches": 102,
+            "missing_branches": 4,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": [
+              [
+                224,
+                223
+              ],
+              [
+                277,
+                289
+              ],
+              [
+                282,
+                279
+              ],
+              [
+                459,
+                458
+              ]
+            ]
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 0,
+            "branches": 68,
+            "missing_branches": 2,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": [
+              [
+                330,
+                332
+              ],
+              [
+                349,
+                -120
+              ]
+            ]
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 2,
+            "branches": 120,
+            "missing_branches": 8,
+            "missing_statement_lines": [
+              746,
+              752
+            ],
+            "missing_branch_arcs": [
+              [
+                364,
+                369
+              ],
+              [
+                490,
+                493
+              ],
+              [
+                501,
+                527
+              ],
+              [
+                504,
+                527
+              ],
+              [
+                630,
+                635
+              ],
+              [
+                745,
+                746
+              ],
+              [
+                751,
+                752
+              ],
+              [
+                780,
+                785
+              ]
+            ]
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 0,
+            "branches": 30,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 0,
+            "branches": 18,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 0,
+            "branches": 4,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 18,
+            "branches": 70,
+            "missing_branches": 16,
+            "missing_statement_lines": [
+              214,
+              215,
+              360,
+              361,
+              362,
+              367,
+              368,
+              398,
+              399,
+              404,
+              407,
+              411,
+              412,
+              413,
+              414,
+              417,
+              418,
+              422
+            ],
+            "missing_branch_arcs": [
+              [
+                178,
+                180
+              ],
+              [
+                212,
+                217
+              ],
+              [
+                224,
+                226
+              ],
+              [
+                226,
+                230
+              ],
+              [
+                274,
+                269
+              ],
+              [
+                344,
+                350
+              ],
+              [
+                346,
+                350
+              ],
+              [
+                348,
+                350
+              ],
+              [
+                350,
+                364
+              ],
+              [
+                358,
+                364
+              ],
+              [
+                367,
+                368
+              ],
+              [
+                367,
+                372
+              ],
+              [
+                399,
+                404
+              ],
+              [
+                399,
+                411
+              ],
+              [
+                416,
+                417
+              ],
+              [
+                421,
+                422
+              ]
+            ]
+          }
+        },
+        "selected_missing_statements": 20,
+        "selected_missing_branches": 30
+      },
+      "suite_note": "1991 passed, 3 skipped on 2026-11-05."
+    },
+    "delivered": {
+      "revision": "working tree that this commit records; product sources unchanged from before_this_work",
+      "role": "tests/test_coverage_round_2381.py strengthened on the before_this_work tree",
+      "statements": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 227,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 2,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              746,
+              752
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          }
+        },
+        "selected_missing_statements": 2,
+        "selected_missing_branches": null
+      },
+      "branches": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 227,
+            "missing_statements": 0,
+            "branches": 102,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 0,
+            "branches": 68,
+            "missing_branches": 1,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": [
+              [
+                349,
+                -120
+              ]
+            ]
+          },
+          "pa_core/facade.py": {
+            "statements": 332,
+            "missing_statements": 2,
+            "branches": 120,
+            "missing_branches": 2,
+            "missing_statement_lines": [
+              746,
+              752
+            ],
+            "missing_branch_arcs": [
+              [
+                745,
+                746
+              ],
+              [
+                751,
+                752
+              ]
+            ]
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 0,
+            "branches": 30,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 0,
+            "branches": 18,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 0,
+            "branches": 4,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 0,
+            "branches": 70,
+            "missing_branches": 1,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": [
+              [
+                178,
+                180
+              ]
+            ]
+          }
+        },
+        "selected_missing_statements": 2,
+        "selected_missing_branches": 4
+      },
+      "suite_note": "2018 passed, 3 skipped. Focused acceptance pytest tests/test_coverage_round_2381.py: 52 passed in 2.19s, wall 3.77s."
+    }
+  },
+  "statement_reductions": {
+    "round_baseline_to_after_2384": 58,
+    "after_2384_to_before_this_work": 131,
+    "this_work": 18,
+    "round_baseline_to_delivered": 207
+  },
+  "branch_reductions": {
+    "round_baseline_to_after_2384": 14,
+    "after_2384_to_before_this_work": 79,
+    "this_work": 26,
+    "round_baseline_to_delivered": 119
+  },
+  "exceptions_still_uncovered": {
+    "pa_core/facade.py": {
+      "missing_statements": [
+        746,
+        752
+      ],
+      "missing_branch_arcs": [
+        [
+          745,
+          746
+        ],
+        [
+          751,
+          752
+        ]
+      ],
+      "reason": "export() calls _serialize_agent_semantics_input first. That helper converts a DataFrame and a tuple into a list and returns. The later DataFrame body and tuple-to-list conversion are not reachable on the production path. test_export_normalizes_tuple_agent_semantics_to_a_list shows numpy scalars in a tuple are converted to builtin ints, and these two statements stayed uncovered."
+    },
+    "pa_core/pa.py": {
+      "missing_statements": [],
+      "missing_branch_arcs": [
+        [
+          349,
+          -120
+        ]
+      ],
+      "reason": "registry subparsers are required and only list and get exist. The false exit from `elif args.registry_cmd == 'get'` cannot be produced by main(). Statements on pa.py are saturated."
+    },
+    "dashboard/pages/4_Results.py": {
+      "missing_statements": [],
+      "missing_branch_arcs": [
+        [
+          178,
+          180
+        ]
+      ],
+      "reason": "_render_comparison_panel reaches the no-message fallthrough only when availability is false and message is empty. Every unavailable _PreviousRunAvailability constructed by _check_previous_run_availability includes a message, and the available return includes a prior path. Statements on 4_Results.py are saturated."
+    }
+  },
+  "saturation": {
+    "pa_core/llm/result_explain.py": "Statements were already saturated before this commit. Four missing branches were covered here.",
+    "pa_core/units.py": "Statement and branch saturated before this commit. No new test was required.",
+    "pa_core/sim/internal_pa_financing.py": "Statement and branch saturated before this commit. No new test was required.",
+    "pa_core/manifest.py": "Statement saturated before this commit. Branches were already saturated at the round baseline. No new test was required.",
+    "pa_core/pa.py": "Statements saturated before this commit. This commit covered the empty substream_ids export branch. One argparse else-exit remains and is documented above.",
+    "pa_core/facade.py": "Two statements and their two branch arcs remain. They are the dead post-serialization branches documented above. The other facade gaps found on the pre-change head were covered here."
+  },
+  "lint_format": {
+    "job": "Python CI / lint-format in reusable-10-ci-python.yml, invoked by ci.yml",
+    "historical_failing_run": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/39044091242",
+    "historical_job": "117429268297 on merge commit 1b7f97a1c640ef69efe6a6750cf93f23a105000e",
+    "command": "black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
+    "failing_file": "tests/test_wizard_render_coverage.py",
+    "log_line": "would reformat tests/test_wizard_render_coverage.py; 1 file would be reformatted, 504 files would be left unchanged.",
+    "disposition": "Not attributable to this work or to tests/test_coverage_round_2381.py. The file is outside the ranked targets. Current tree black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' . reports 532 files unchanged on 2026-11-05. No production or unrelated test file was reformatted here."
+  },
+  "production_changes": []
+}
