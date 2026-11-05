@@ -1,0 +1,6 @@
+{
+  "coverage": "python -m pytest --cov=pa_core --cov=dashboard --cov-report=json:coverage.json tests/ -q",
+  "focused": "python -m pytest tests/test_cli_png_failures.py tests/test_cli_pdf_failures.py tests/test_cli_sweep_png_export.py -q --junitxml=pa-focused.xml",
+  "replay": "python docs/evidence/issue-2336-png-failures/replay.py --output /tmp/new-png-evidence",
+  "validator": "python -m pytest tests/test_png_replay_junit_validation.py -q --junitxml=validator.xml"
+}
