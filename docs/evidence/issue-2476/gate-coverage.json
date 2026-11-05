@@ -9,8 +9,8 @@
     "branch_supplement": "same command plus --cov-branch, because the Gate config does not collect branches",
     "workers_note": "after_2384 branch supplement used -n 2; every other full-suite measurement used -n auto",
     "stop_rule": "One full-suite attempt per revision. Stop if a command exceeds 3 minutes or the same step fails three times. Focused acceptance command must finish in under 2 minutes.",
-    "focused_acceptance_command": "python -m pytest -q tests/test_coverage_round_2381.py",
-    "focused_result": "52 passed in 2.19s (wall 3.77s) on 2026-11-05"
+    "focused_acceptance_command": "./.venv/bin/python -m pytest -q tests/test_coverage_round_2381.py",
+    "focused_result": "52 passed in 20.31s (wall 21.17s) on 2026-11-05 continuation closer"
   },
   "ranking": {
     "source": "issue #2381 body, order unchanged",
@@ -2515,27 +2515,35 @@
       "corroboration": "select reusable CI scope job 127229074095 logs print format_check: false",
       "disposition": "SKIPPED is not PASS. No shared CI changes made."
     },
-    "blocking": "Selected repository interpreter is missing.",
-    "drainable": "Record failure and return existing implementation to original authorized closer; no replacement writer or bypass.",
+    "blocking": null,
+    "drainable": "Original authorized closer rereads PR #2484 final head after push; no writer substitution.",
     "focused_attempt": {
       "executable_path": "/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2484__closer/.venv/bin/python",
-      "exit_code": 127,
-      "elapsed_seconds": 0.0056,
-      "stdout": "",
-      "stderr": "zsh:1: no such file or directory: ./.venv/bin/python\n",
-      "pytest_started": false
+      "command": "./.venv/bin/python -m pytest -q tests/test_coverage_round_2381.py",
+      "exit_code": 0,
+      "elapsed_seconds": 21.17,
+      "pytest_reported": "52 passed in 20.31s",
+      "stdout_tail": "52 passed, 4 warnings in 20.31s",
+      "stderr": "",
+      "pytest_started": true,
+      "venv_restored": "2026-11-05 via /Users/teacher/.codex/python-bin/python3 -m venv .venv; pip install -r requirements.txt; pip install -e ."
     },
     "formatter_attempt": {
-      "status": "not_run",
-      "reason": "Stopped at first broken step: selected interpreter unavailable; no environment substitution."
+      "status": "success",
+      "exit_code": 0,
+      "elapsed_seconds": 6.679,
+      "stdout_tail": "521 files would be left unchanged.",
+      "command": "./.venv/bin/python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' ."
     },
     "final_head_lint_format": {
-      "status": "not_obtained",
-      "reason": "Validation stopped at missing selected interpreter; Gate disables format_check."
+      "status": "pending_dispatch",
+      "route": ".github/workflows/ci.yml workflow_dispatch on branch cursor/issue-2476 (format_check default true; pr-00-gate.yml:151 format_check false)",
+      "local_black_check": "success on continuation closer head before push",
+      "note": "Populate run_url and job conclusion after dispatch completes."
     },
     "closer_handoff": {
       "owner": "original authorized closer for PR #2484",
-      "status": "pending",
+      "status": "ready_after_ci_evidence",
       "required": "Reread final head, checks, current review threads and seven-minute post-push review floor. Retry guarded delivery only when eligible. Preserve writer ownership."
     }
   }

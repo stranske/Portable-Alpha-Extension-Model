@@ -540,7 +540,7 @@ Mutation:
 Command:
 
 ```sh
-python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc0-Export packet requires Kaleido or Chrome/Chromium-pip install kaleido]
+python -m pytest -q --tb=line -p no:cacheprovider 'tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc0-Export packet requires Kaleido or Chrome/Chromium-pip install kaleido]'
 ```
 
 ## `test_results_main_reports_packet_export_failures[exc1-Export packet requires Kaleido or Chrome/Chromium-pip install kaleido]`
@@ -561,7 +561,7 @@ Mutation:
 Command:
 
 ```sh
-python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc1-Export packet requires Kaleido or Chrome/Chromium-pip install kaleido]
+python -m pytest -q --tb=line -p no:cacheprovider 'tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc1-Export packet requires Kaleido or Chrome/Chromium-pip install kaleido]'
 ```
 
 ## `test_results_main_reports_packet_export_failures[exc2-Export packet failed: disk full-None]`
@@ -582,7 +582,7 @@ Mutation:
 Command:
 
 ```sh
-python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc2-Export packet failed: disk full-None]
+python -m pytest -q --tb=line -p no:cacheprovider 'tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc2-Export packet failed: disk full-None]'
 ```
 
 ## `test_results_main_reports_packet_export_failures[exc3-Unexpected error creating export packet: bad packet-individual exports]`
@@ -603,7 +603,7 @@ Mutation:
 Command:
 
 ```sh
-python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc3-Unexpected error creating export packet: bad packet-individual exports]
+python -m pytest -q --tb=line -p no:cacheprovider 'tests/test_coverage_round_2381.py::test_results_main_reports_packet_export_failures[exc3-Unexpected error creating export packet: bad packet-individual exports]'
 ```
 
 ## `test_results_main_auto_refresh_sleeps_then_reruns`
