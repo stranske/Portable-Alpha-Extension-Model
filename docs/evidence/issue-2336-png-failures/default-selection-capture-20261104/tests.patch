@@ -1,0 +1,1077 @@
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index 00953d85..50902ba7 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -1,3 +1,6 @@
++import os
++import subprocess
++import sys
+ from pathlib import Path
+ 
+ import yaml
+@@ -25,15 +28,20 @@ def test_main_with_yaml(tmp_path):
+     assert out_file.exists()
+ 
+ 
+-def test_main_with_png(tmp_path, monkeypatch):
++def test_main_with_png(tmp_path):
+     cfg = {"N_SIMULATIONS": 2, "N_MONTHS": 1, "financing_mode": "broadcast"}
+     cfg_path = tmp_path / "cfg.yaml"
+     cfg_path.write_text(yaml.safe_dump(cfg))
+     idx_csv = Path(__file__).resolve().parents[1] / "data" / "sp500tr_fred_divyield.csv"
+     out_file = tmp_path / "out.xlsx"
+-    monkeypatch.chdir(tmp_path)
+-    main(
++    # A wedged native renderer must fail this test without blocking the suite.
++    # Keep the renderer in a child process so its worker threads cannot prevent
++    # pytest from completing or writing its coverage/JUnit evidence.
++    result = subprocess.run(
+         [
++            sys.executable,
++            "-m",
++            "pa_core.cli",
+             "--config",
+             str(cfg_path),
+             "--index",
+@@ -41,8 +49,14 @@ def test_main_with_png(tmp_path, monkeypatch):
+             "--output",
+             str(out_file),
+             "--png",
+-        ]
++        ],
++        cwd=tmp_path,
++        env={**os.environ, "PYTHONPATH": str(Path(__file__).resolve().parents[1])},
++        capture_output=True,
++        text=True,
++        timeout=30,
+     )
++    assert result.returncode == 0, result.stdout + result.stderr
+     assert out_file.exists()
+ 
+ 
+diff --git a/tests/test_dashboard_sample_data.py b/tests/test_dashboard_sample_data.py
+index 3b5c8c67..3abfaea9 100644
+--- a/tests/test_dashboard_sample_data.py
++++ b/tests/test_dashboard_sample_data.py
+@@ -12,6 +12,7 @@ from __future__ import annotations
+ 
+ import os
+ import subprocess
++import sys
+ import venv
+ import zipfile
+ from pathlib import Path
+@@ -34,23 +35,29 @@ from pa_core.orchestrator import SimulatorOrchestrator
+ REPO_ROOT = Path(__file__).resolve().parents[1]
+ 
+ 
++def _run_build_step(
++    argv: list, *, cwd: Path | None = None, env: dict[str, str] | None = None
++) -> None:
++    """Keep subprocess diagnostics in pytest's failure report, including JUnit."""
++    try:
++        subprocess.run(argv, check=True, capture_output=True, text=True, cwd=cwd, env=env)
++    except subprocess.CalledProcessError as exc:
++        pytest.fail(
++            f"Packaging command failed (exit {exc.returncode}): {exc.cmd}\n"
++            f"stdout:\n{exc.stdout}\nstderr:\n{exc.stderr}",
++            pytrace=False,
++        )
++
++
+ def _build_wheel(destination: Path, source: Path) -> Path:
+     environment = destination / "wheel-build-env"
+     venv.EnvBuilder(with_pip=True).create(environment)
+     python = environment / "bin" / "python"
+-    subprocess.run(
+-        [python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"],
+-        check=True,
+-        capture_output=True,
+-        text=True,
+-    )
++    _run_build_step([python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"])
+     wheel_dir = destination / "wheels"
+     wheel_dir.mkdir(parents=True, exist_ok=True)
+-    subprocess.run(
++    _run_build_step(
+         [python, "-m", "pip", "wheel", str(source), "--no-deps", "-w", str(wheel_dir)],
+-        check=True,
+-        capture_output=True,
+-        text=True,
+         cwd=destination,
+     )
+     wheels = sorted(wheel_dir.glob("portable_alpha_extension_model-*.whl"))
+@@ -58,6 +65,62 @@ def _build_wheel(destination: Path, source: Path) -> Path:
+     return wheels[-1]
+ 
+ 
++@pytest.mark.parametrize("failing_step", ["install", "wheel"])
++def test_build_wheel_retains_failed_command_output(tmp_path, monkeypatch, failing_step):
++    """Build failures must retain the cause needed to disposition packaging evidence."""
++    monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
++    calls = []
++
++    def run(argv, **kwargs):
++        calls.append(argv)
++        if argv[3] == failing_step:
++            raise subprocess.CalledProcessError(
++                1, argv, output="build stage output", stderr="incompatible build environment"
++            )
++        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
++
++    monkeypatch.setattr(subprocess, "run", run)
++    with pytest.raises(pytest.fail.Exception) as caught:
++        _build_wheel(tmp_path, tmp_path / "source")
++    message = str(caught.value)
++    assert "build stage output" in message
++    assert "incompatible build environment" in message
++    assert str(calls[-1]) in message
++    assert "exit 1" in message
++    assert len(calls) == (1 if failing_step == "install" else 2)
++
++
++@pytest.mark.parametrize("offline", [False, True])
++def test_installed_wheel_retains_failed_install_output(tmp_path, monkeypatch, offline):
++    """A wheel installation failure needs the same diagnostics as a build failure."""
++    wheel_path = tmp_path / "sample.whl"
++    with zipfile.ZipFile(wheel_path, "w") as archive:
++        archive.writestr("sample.dist-info/METADATA", "Name: sample\nVersion: 1\n")
++    monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
++    calls = []
++
++    def fail_install(argv, **kwargs):
++        calls.append((argv, kwargs))
++        raise subprocess.CalledProcessError(
++            1, argv, output="wheel installation output", stderr="unsupported Python version"
++        )
++
++    monkeypatch.setattr(subprocess, "run", fail_install)
++    with pytest.raises(pytest.fail.Exception) as caught:
++        _assert_installed_wheel_samples(wheel_path, tmp_path, offline=offline)
++    message = str(caught.value)
++    assert "wheel installation output" in message
++    assert "unsupported Python version" in message
++    assert "exit 1" in message
++    assert len(calls) == 1
++    argv, options = calls[0]
++    assert str(argv) in message
++    assert argv[1:5] == ["-I", "-m", "pip", "install"]
++    assert ("--no-index" in argv) is offline
++    assert options["cwd"] == tmp_path
++    assert options["env"]["PYTHONPATH"] == str(tmp_path / "metadata-decoy")
++
++
+ @pytest.mark.slow
+ def test_wheel_install_exposes_bundled_dashboard_samples(
+     tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
+@@ -65,8 +128,44 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
+     """Non-editable installs must resolve index, asset, and portfolio samples (#2285)."""
+     source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
+     wheel_path = _build_wheel(tmp_path, source)
++    _assert_installed_wheel_samples(wheel_path, tmp_path)
++
++
++def test_offline_wheel_install_exposes_bundled_dashboard_samples(
++    tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
++) -> None:
++    """Verify installed product files offline using the interpreter's dependencies.
++
++    This complements the slow fresh-dependency installation above. The isolated
++    probe still requires both product packages to come from the new venv.
++    """
++    source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
++    wheel_dir = tmp_path / "wheels"
++    _run_build_step(
++        [
++            sys.executable,
++            "-I",
++            "-m",
++            "pip",
++            "wheel",
++            str(source),
++            "--no-deps",
++            "--no-build-isolation",
++            "--no-index",
++            "-w",
++            str(wheel_dir),
++        ],
++        cwd=tmp_path,
++    )
++    (wheel_path,) = wheel_dir.glob("portable_alpha_extension_model-*.whl")
++    _assert_installed_wheel_samples(wheel_path, tmp_path, offline=True)
++
++
++def _assert_installed_wheel_samples(
++    wheel_path: Path, tmp_path: Path, *, offline: bool = False
++) -> None:
+     install_root = tmp_path / "install-env"
+-    venv.EnvBuilder(with_pip=True).create(install_root)
++    venv.EnvBuilder(with_pip=True, system_site_packages=offline).create(install_root)
+     python = install_root / "bin" / "python"
+     # An inherited source distribution can make pip report the wheel as already
+     # installed even in this fresh venv. Reproduce that metadata-only decoy so
+@@ -80,11 +179,9 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
+         metadata_path.parent.mkdir(parents=True)
+         metadata_path.write_bytes(archive.read(metadata_name))
+     install_env = {**os.environ, "PYTHONPATH": str(metadata_decoy)}
+-    subprocess.run(
+-        [python, "-I", "-m", "pip", "install", str(wheel_path)],
+-        check=True,
+-        capture_output=True,
+-        text=True,
++    install_options = ["--no-index", "--no-deps", "--ignore-installed"] if offline else []
++    _run_build_step(
++        [python, "-I", "-m", "pip", "install", *install_options, str(wheel_path)],
+         cwd=tmp_path,
+         env=install_env,
+     )
+@@ -112,16 +209,18 @@ from dashboard.utils import (
+     bundled_portfolio_template_path,
+     bundled_sample_index_path,
+     load_bundled_asset_returns,
++    load_bundled_sample_index,
+ )
+ from pa_core.schema import load_scenario
+ 
+ index_path = bundled_sample_index_path()
+ asset_path = bundled_asset_timeseries_path()
+ portfolio_path = bundled_portfolio_template_path()
+-assert index_path.is_file(), index_path
+-assert asset_path.is_file(), asset_path
+-assert portfolio_path.is_file(), portfolio_path
+-load_bundled_asset_returns()
++for path in (index_path, asset_path, portfolio_path):
++    assert path.is_file(), path
++    assert path.resolve().is_relative_to(Path(sys.prefix).resolve()), path
++assert not load_bundled_sample_index().empty
++assert not load_bundled_asset_returns().empty
+ load_scenario(portfolio_path)
+ print("ok")
+ """
+diff --git a/tests/test_entrypoints.py b/tests/test_entrypoints.py
+index 0a7b3aef..a5f772fe 100644
+--- a/tests/test_entrypoints.py
++++ b/tests/test_entrypoints.py
+@@ -2,6 +2,7 @@ from __future__ import annotations
+ 
+ import os
+ import subprocess
++import sys
+ import tomllib
+ import venv
+ from importlib import import_module
+@@ -127,33 +128,51 @@ def test_console_scripts_work_in_clean_venv(
+     tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
+ ) -> None:
+     source = stage_packaging_source(Path(__file__).resolve().parents[1], tmp_path / "source")
++    wheel_dir = tmp_path / "wheels"
++    # Build with the test interpreter's backend so the dependency-free help
++    # probe does not require network access or setuptools in the clean venv.
++    build = subprocess.run(
++        [
++            sys.executable,
++            "-I",
++            "-m",
++            "pip",
++            "wheel",
++            "--no-deps",
++            "--no-build-isolation",
++            "--no-index",
++            "--wheel-dir",
++            str(wheel_dir),
++            str(source),
++        ],
++        check=False,
++        capture_output=True,
++        text=True,
++        cwd=tmp_path,
++    )
++    assert build.returncode == 0, f"wheel build failed\n{build.stdout}\n{build.stderr}"
++    (wheel_path,) = wheel_dir.glob("portable_alpha_extension_model-*.whl")
+     venv_dir = tmp_path / "entrypoint-venv"
+     venv.EnvBuilder(with_pip=True).create(venv_dir)
+     python = _venv_python(venv_dir)
+ 
+-    # Install setuptools first (not included by default in Python 3.12+ venvs)
+-    # This is required for --no-build-isolation to work
+-    subprocess.run(
+-        [str(python), "-m", "pip", "install", "--quiet", "setuptools"],
+-        env={**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"},
+-        check=True,
+-    )
+-
+-    subprocess.run(
++    install = subprocess.run(
+         [
+             str(python),
++            "-I",
+             "-m",
+             "pip",
+             "install",
+             "--no-deps",
+-            "--no-build-isolation",
+-            "--no-cache-dir",
+-            str(source),
++            "--no-index",
++            str(wheel_path),
+         ],
+-        env={**os.environ, "PIP_DISABLE_PIP_VERSION_CHECK": "1"},
+-        check=True,
++        check=False,
++        capture_output=True,
++        text=True,
+         cwd=tmp_path,
+     )
++    assert install.returncode == 0, f"wheel install failed\n{install.stdout}\n{install.stderr}"
+ 
+     pa = _console_script_path(venv_dir, "pa")
+     dashboard = _console_script_path(venv_dir, "pa-dashboard")
+diff --git a/tests/test_png_coverage_capture.py b/tests/test_png_coverage_capture.py
+new file mode 100644
+index 00000000..9817c9a0
+--- /dev/null
++++ b/tests/test_png_coverage_capture.py
+@@ -0,0 +1,286 @@
++"""A timed-out capture must never be reported as completed full-suite evidence."""
++
++import importlib.util
++import json
++from pathlib import Path
++import shutil
++import subprocess
++import sys
++
++import pytest
++
++
++@pytest.fixture
++def capture_module(monkeypatch):
++    directory = Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-png-failures"
++    monkeypatch.syspath_prepend(str(directory))
++    spec = importlib.util.spec_from_file_location("png_coverage_capture", directory / "capture.py")
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++@pytest.fixture
++def source(tmp_path):
++    repo = tmp_path / "repo"
++    (repo / "pa_core").mkdir(parents=True)
++    (repo / "pa_core/cli.py").write_text("# original product\n")
++    (repo / "tests").mkdir()
++    (repo / "pyproject.toml").write_text("# capture configuration\n")
++    (repo / "tests/test_example.py").write_text("def test_example():\n    assert True\n")
++    subprocess.run(["git", "init", "-q", str(repo)], check=True)
++    subprocess.run(["git", "add", "."], cwd=repo, check=True)
++    subprocess.run(
++        [
++            "git",
++            "-c",
++            "user.name=Test",
++            "-c",
++            "user.email=test@example.com",
++            "commit",
++            "-qm",
++            "base",
++        ],
++        cwd=repo,
++        check=True,
++    )
++    return repo
++
++
++@pytest.mark.parametrize("untracked", [False, True])
++def test_capture_rejects_changed_product_before_creating_output(capture_module, source, untracked):
++    changed = source / ("pa_core/new.py" if untracked else "pa_core/cli.py")
++    changed.write_text("# changed\n")
++    output = source.parent / "evidence"
++    with pytest.raises(ValueError, match="Product source differs"):
++        capture_module.capture(source, output, "HEAD", 10)
++    assert not output.exists()
++
++
++@pytest.mark.parametrize(
++    "name",
++    [
++        "pyproject.toml",
++        "pytest.toml",
++        ".pytest.toml",
++        "pytest.ini",
++        ".pytest.ini",
++        "tox.ini",
++        "setup.cfg",
++        ".coveragerc",
++    ],
++)
++def test_capture_rejects_configuration_drift_before_running_pytest(
++    capture_module, source, monkeypatch, name
++):
++    (source / name).write_text("# changed coverage or pytest configuration\n")
++    output = source.parent / "evidence"
++    real_run = subprocess.run
++
++    def run(argv, **kwargs):
++        if argv[0] == "timeout":
++            pytest.fail("Configuration drift reached pytest")
++        return real_run(argv, **kwargs)
++
++    monkeypatch.setattr(capture_module.subprocess, "run", run)
++    with pytest.raises(ValueError, match="Test or coverage configuration differs"):
++        capture_module.capture(source, output, "HEAD", 10)
++    assert not output.exists()
++
++
++def test_capture_rejects_gitignored_configuration(capture_module, source, monkeypatch):
++    (source / ".git/info/exclude").write_text(".coveragerc\n")
++    (source / ".coveragerc").write_text("[run]\nomit = pa_core/cli.py\n")
++    output = source.parent / "evidence"
++    real_run = subprocess.run
++
++    def run(argv, **kwargs):
++        if argv[0] == "timeout":
++            pytest.fail("Gitignored coverage configuration reached pytest")
++        return real_run(argv, **kwargs)
++
++    monkeypatch.setattr(capture_module.subprocess, "run", run)
++    with pytest.raises(ValueError, match="Test or coverage configuration differs"):
++        capture_module.capture(source, output, "HEAD", 10)
++    assert not output.exists()
++
++
++def test_capture_rejects_deleted_configuration(capture_module, source):
++    (source / "pyproject.toml").unlink()
++    output = source.parent / "evidence"
++    with pytest.raises(ValueError, match="Test or coverage configuration differs"):
++        capture_module.capture(source, output, "HEAD", 10)
++    assert not output.exists()
++
++
++@pytest.mark.parametrize(
++    ("name", "value"),
++    [
++        ("PYTEST_ADDOPTS", "-x -k test_example"),
++        ("COVERAGE_RCFILE", "alternative.coveragerc"),
++        ("COVERAGE_PROCESS_START", "alternative.coveragerc"),
++    ],
++)
++def test_capture_rejects_environment_overrides_before_running_pytest(
++    capture_module, source, monkeypatch, name, value
++):
++    """Inherited options can make a partial or differently measured suite look complete."""
++    monkeypatch.setenv(name, value)
++    output = source.parent / "evidence"
++    real_run = subprocess.run
++
++    def run(argv, **kwargs):
++        if argv[0] == "timeout":
++            pytest.fail(f"Inherited {name} reached pytest")
++        return real_run(argv, **kwargs)
++
++    monkeypatch.setattr(capture_module.subprocess, "run", run)
++    with pytest.raises(
++        ValueError, match=f"Environment override changes test or coverage settings: {name}"
++    ):
++        capture_module.capture(source, output, "HEAD", 10)
++    assert not output.exists()
++
++
++@pytest.mark.parametrize("returncode", [0, 1, 124, 137])
++def test_capture_records_inputs_and_rejects_timeout(
++    capture_module, source, monkeypatch, returncode
++):
++    output = source.parent / "evidence"
++    (source / "tests/test_example.py").write_text("def test_example():\n    assert False\n")
++    (source / "tests/test_added.py").write_text("def test_added():\n    assert True\n")
++    real_run = subprocess.run
++
++    def run(argv, **kwargs):
++        if argv[0] != "timeout":
++            return real_run(argv, **kwargs)
++        assert argv[:4] == ["timeout", "--signal=INT", "--kill-after=10s", "10s"]
++        assert argv[4:7] == [sys.executable, "-m", "pytest"]
++        assert argv[-1] == "tests/"
++        assert argv.count("-m") == 1  # Python module flag only; pytest uses repository defaults.
++        assert kwargs["env"]["COVERAGE_FILE"] == str(output / ".coverage")
++        assert json.loads((output / "command.json").read_text())["completed"] is False
++        assert b"assert False" in (output / "tests.patch").read_bytes()
++        assert b"+++ b/tests/test_added.py" in (output / "tests.patch").read_bytes()
++        assert (
++            "tests/test_added.py"
++            in json.loads((output / "command.json").read_text())["test_sha256"]
++        )
++        kwargs["stdout"].write(b"retained stdout and stderr\n")
++        summary = dict(covered_lines=3, num_statements=4, missing_lines=1, percent_covered=75.0)
++        (output / "coverage.json").write_text(
++            json.dumps(
++                {
++                    "totals": summary,
++                    "files": {"pa_core/cli.py": {"summary": summary, "missing_lines": [4]}},
++                }
++            )
++        )
++        (output / "completion.json").write_text(
++            json.dumps(
++                {
++                    "selected": ["tests/test_example.py::test_example"],
++                    "finished": ["tests/test_example.py::test_example"],
++                    "deselected": 0,
++                    "exit": returncode,
++                }
++            )
++        )
++        failed = int(returncode == 1)
++        (output / "full-suite.xml").write_text(
++            f'<testsuite tests="1" failures="{failed}" errors="0" skipped="0">'
++            '<testcase classname="tests.test_example" name="test_example">'
++            + ('<failure message="AssertionError"/>' if failed else "")
++            + "</testcase></testsuite>"
++        )
++        return subprocess.CompletedProcess(argv, returncode)
++
++    monkeypatch.setattr(capture_module.subprocess, "run", run)
++    assert capture_module.capture(source, output, "HEAD", 10) == returncode
++    metadata = json.loads((output / "command.json").read_text())
++    assert metadata["exit"] == returncode
++    assert metadata["completed"] is (returncode in (0, 1))
++    assert (output / "summary.json").exists() is (returncode in (0, 1))
++    assert (output / "full-suite.txt").read_text() == "retained stdout and stderr\n"
++    if returncode not in (0, 1):
++        assert "Incomplete pytest run" in metadata["incomplete_reason"]
++    else:
++        assert json.loads((output / "summary.json").read_text())["counts"]["failed"] == int(
++            returncode == 1
++        )
++    with pytest.raises(FileExistsError):
++        capture_module.capture(source, output, "HEAD", 10)
++
++
++def test_capture_bounds_a_real_stalled_process(capture_module, source, monkeypatch):
++    if shutil.which("timeout") is None:
++        pytest.skip("Capture driver requires GNU timeout")
++    interpreter = source.parent / "stalled-python"
++    interpreter.write_text(
++        "#!" + sys.executable + "\n"
++        "import time\n"
++        "print('stalled pytest witness', flush=True)\n"
++        "time.sleep(60)\n"
++    )
++    interpreter.chmod(0o755)
++    monkeypatch.setattr(sys, "executable", str(interpreter))
++    output = source.parent / "evidence"
++    # A renderer may ignore SIGINT and require timeout's subsequent SIGKILL.
++    assert capture_module.capture(source, output, "HEAD", 1) in (124, 137)
++    metadata = json.loads((output / "command.json").read_text())
++    assert metadata["completed"] is False
++    assert "Incomplete pytest run" in metadata["incomplete_reason"]
++    assert "stalled pytest witness" in (output / "full-suite.txt").read_text()
++    assert not (output / "summary.json").exists()
++
++
++@pytest.mark.parametrize("stop_early", [False, True])
++def test_capture_requires_all_selected_nodes_to_finish(
++    capture_module, source, monkeypatch, stop_early
++):
++    """Exit 1 plus consistent JUnit/coverage can still describe a truncated suite."""
++    monkeypatch.delenv("PYTEST_ADDOPTS", raising=False)
++    monkeypatch.delenv("COVERAGE_RCFILE", raising=False)
++    monkeypatch.delenv("COVERAGE_PROCESS_START", raising=False)
++    (source / "pa_core/__init__.py").write_text("")
++    (source / "pa_core/cli.py").write_text("value = 1\n")
++    (source / "dashboard").mkdir()
++    (source / "dashboard/__init__.py").write_text("")
++    (source / "tests/test_example.py").write_text(
++        "from pa_core.cli import value\n"
++        "def test_first(request):\n"
++        + ("    del request.session.items[1:]\n" if stop_early else "")
++        + "    assert value == 2\n"
++        "def test_second():\n"
++        "    assert value == 1\n"
++        "def test_third():\n"
++        "    assert value == 1\n"
++    )
++    subprocess.run(["git", "add", "."], cwd=source, check=True)
++    subprocess.run(
++        [
++            "git",
++            "-c",
++            "user.name=Test",
++            "-c",
++            "user.email=test@example.com",
++            "commit",
++            "-qm",
++            "capture inputs",
++        ],
++        cwd=source,
++        check=True,
++    )
++    output = source.parent / "evidence"
++    assert capture_module.capture(source, output, "HEAD", 30) == 1
++    metadata = json.loads((output / "command.json").read_text())
++    assert metadata["completed"] is (not stop_early)
++    assert (output / "summary.json").exists() is (not stop_early)
++    completion = json.loads((output / "completion.json").read_text())
++    assert len(completion["selected"]) == 3
++    if stop_early:
++        assert completion["finished"] == ["tests/test_example.py::test_first"]
++        assert "Selected tests did not finish" in metadata["incomplete_reason"]
++    else:
++        assert completion["finished"] == completion["selected"]
++        assert metadata["test_selection"] == {"selected": 3, "deselected": 0, "finished": 3}
+diff --git a/tests/test_png_evidence_summary.py b/tests/test_png_evidence_summary.py
+new file mode 100644
+index 00000000..494de10d
+--- /dev/null
++++ b/tests/test_png_evidence_summary.py
+@@ -0,0 +1,198 @@
++"""Coverage evidence must reconcile counts and reject incomplete captures."""
++
++import importlib.util
++import hashlib
++import json
++from pathlib import Path
++import subprocess
++import sys
++import xml.etree.ElementTree as ET
++
++import pytest
++
++
++@pytest.fixture
++def evidence(tmp_path):
++    path = (
++        Path(__file__).resolve().parents[1] / "docs/evidence/issue-2336-png-failures/summarize.py"
++    )
++    spec = importlib.util.spec_from_file_location("png_evidence_summary", path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    summary = dict(covered_lines=3, num_statements=4, missing_lines=1, percent_covered=75.0)
++    coverage = tmp_path / "coverage.json"
++    coverage.write_text(
++        json.dumps(
++            {
++                "totals": summary,
++                "files": {"pa_core/example.py": {"summary": summary, "missing_lines": [9]}},
++            }
++        )
++    )
++    junit = tmp_path / "junit.xml"
++    suite = ET.Element("testsuite", tests="3", failures="1", errors="0", skipped="1")
++    for name in ("passing", "failing", "skipped"):
++        node = ET.SubElement(suite, "testcase", classname="tests.test_example", name=name)
++        if name == "failing":
++            ET.SubElement(node, "failure", message="AssertionError: mismatch")
++        elif name == "skipped":
++            ET.SubElement(node, "skipped")
++    ET.ElementTree(suite).write(junit)
++    return module, coverage, junit
++
++
++def test_summary_preserves_exact_totals_and_named_failures(evidence):
++    module, coverage, junit = evidence
++    report = module.summarize(coverage, junit, 1)
++    assert report["counts"] == dict(passed=1, failed=1, errors=0, skipped=1)
++    assert report["totals"] == json.loads(coverage.read_text())["totals"]
++    assert report["failures"] == [
++        {
++            "node": "tests/test_example.py::failing",
++            "outcome": "failed",
++            "message": "AssertionError: mismatch",
++        }
++    ]
++    assert report["largest_gaps"][0]["path"] == "pa_core/example.py"
++    assert report["modules"][0]["missing_line_numbers"] == [9]
++
++
++@pytest.mark.parametrize("returncode", [2, 124, 130, -9])
++def test_summary_rejects_interrupted_runs(evidence, returncode):
++    module, coverage, junit = evidence
++    with pytest.raises(ValueError, match="Incomplete pytest run"):
++        module.summarize(coverage, junit, returncode)
++
++
++@pytest.mark.parametrize("key", ["covered_lines", "num_statements", "missing_lines"])
++def test_summary_rejects_inconsistent_coverage_totals(evidence, key):
++    module, coverage, junit = evidence
++    data = json.loads(coverage.read_text())
++    data["totals"][key] += 1
++    coverage.write_text(json.dumps(data))
++    with pytest.raises(ValueError, match=f"totals.{key}"):
++        module.summarize(coverage, junit, 1)
++
++
++@pytest.mark.parametrize("location", ["totals", "module"])
++@pytest.mark.parametrize("percentage", [74.0, float("nan"), float("inf")])
++def test_summary_rejects_percentage_disagreeing_with_statements(evidence, location, percentage):
++    module, coverage, junit = evidence
++    data = json.loads(coverage.read_text())
++    summary = (
++        data["totals"] if location == "totals" else data["files"]["pa_core/example.py"]["summary"]
++    )
++    summary["percent_covered"] = percentage
++    coverage.write_text(json.dumps(data))
++    with pytest.raises(ValueError, match="Coverage percentage disagrees with statements"):
++        module.summarize(coverage, junit, 1)
++
++
++def test_summary_accepts_empty_module_at_full_coverage(evidence):
++    module, coverage, junit = evidence
++    data = json.loads(coverage.read_text())
++    data["files"]["pa_core/empty.py"] = {
++        "summary": dict(covered_lines=0, num_statements=0, missing_lines=0, percent_covered=100.0),
++        "missing_lines": [],
++    }
++    coverage.write_text(json.dumps(data))
++    report = module.summarize(coverage, junit, 1)
++    assert report["totals"]["percent_covered"] == 75.0
++    assert report["modules"][0]["percent_covered"] == 100.0
++
++
++@pytest.mark.parametrize("attribute", ["tests", "failures", "errors", "skipped"])
++def test_summary_rejects_partial_or_inconsistent_junit(evidence, attribute):
++    module, coverage, junit = evidence
++    tree = ET.parse(junit)
++    root = tree.getroot()
++    root.set(attribute, str(int(root.get(attribute)) + 1))
++    tree.write(junit)
++    with pytest.raises(ValueError, match="JUnit"):
++        module.summarize(coverage, junit, 1)
++
++
++def test_summary_rejects_success_exit_with_failed_tests(evidence):
++    module, coverage, junit = evidence
++    with pytest.raises(ValueError, match="exit disagrees"):
++        module.summarize(coverage, junit, 0)
++
++
++@pytest.mark.parametrize("defect", [None, "missing", "size", "hash"])
++def test_manifest_requires_retained_artifact_bytes(evidence, defect):
++    module, coverage, _ = evidence
++    artifact = coverage.parent / "completed-suite.txt"
++    artifact.write_bytes(b"pytest output\n")
++    manifest = coverage.parent / "manifest.json"
++    manifest.write_text(
++        json.dumps(
++            {
++                "files": {
++                    artifact.name: {
++                        "bytes": artifact.stat().st_size,
++                        "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
++                    }
++                }
++            }
++        )
++    )
++    if defect == "missing":
++        artifact.unlink()
++    elif defect == "size":
++        artifact.write_bytes(b"truncated")
++    elif defect == "hash":
++        artifact.write_bytes(b"altered text!\n")
++    if defect is None:
++        module.validate_manifest(manifest)
++    else:
++        with pytest.raises(ValueError, match="artifact.*completed-suite.txt"):
++            module.validate_manifest(manifest)
++
++
++@pytest.mark.parametrize("missing_artifact", [False, True])
++def test_summary_cli_verifies_manifest_before_writing_report(evidence, missing_artifact):
++    module, coverage, junit = evidence
++    content = coverage.read_bytes()
++    manifest = coverage.parent / "manifest.json"
++    manifest.write_text(
++        json.dumps(
++            {
++                "files": {
++                    coverage.name: {
++                        "bytes": len(content),
++                        "sha256": hashlib.sha256(content).hexdigest(),
++                    }
++                }
++            }
++        )
++    )
++    if missing_artifact:
++        coverage.unlink()
++    output = coverage.parent / "summary.json"
++    result = subprocess.run(
++        [
++            sys.executable,
++            module.__file__,
++            "--coverage",
++            str(coverage),
++            "--junit",
++            str(junit),
++            "--exit-code",
++            "1",
++            "--output",
++            str(output),
++            "--manifest",
++            str(manifest),
++        ],
++        capture_output=True,
++        text=True,
++        timeout=15,
++    )
++    if missing_artifact:
++        assert result.returncode != 0
++        assert "Missing evidence artifact: coverage.json" in result.stderr
++        assert not output.exists()
++    else:
++        assert result.returncode == 0, result.stderr
++        assert "3 / 4 statements (75.0%)" in result.stdout
++        assert json.loads(output.read_text())["counts"]["failed"] == 1
+diff --git a/tests/test_png_replay_junit_validation.py b/tests/test_png_replay_junit_validation.py
+index 3dfa3672..40d4cdec 100644
+--- a/tests/test_png_replay_junit_validation.py
++++ b/tests/test_png_replay_junit_validation.py
+@@ -1,9 +1,12 @@
+ """JUnit outcome checks for the PNG failure replay driver."""
+ 
+ import importlib.util
++import io
++import json
+ import os
+ import subprocess
+ import sys
++import tarfile
+ import xml.etree.ElementTree as ET
+ from pathlib import Path
+ 
+@@ -119,3 +122,93 @@ def test_validate_junit_proof_reads_actual_pytest_assertion_type(tmp_path, excep
+     else:
+         with pytest.raises(RuntimeError):
+             module.validate_junit_proof(report, "test_actual", "red", result.returncode, "actual")
++
++
++@pytest.fixture
++def revision_snapshot(tmp_path, monkeypatch):
++    module = load_replay()
++    repo = tmp_path / "caller"
++    source = repo / "pa_core/cli.py"
++    source.parent.mkdir(parents=True)
++    original = (REPLAY.parents[3] / "pa_core/cli.py").read_bytes()
++    source.write_bytes(original)
++    test = repo / module.TEST
++    test.parent.mkdir(parents=True)
++    test.write_text("# caller's strengthened boundary test\n")
++    monkeypatch.setattr(module, "__file__", str(repo / REPLAY.relative_to(REPLAY.parents[3])))
++    revision = "a" * 40
++    calls = []
++
++    def git_output(argv, *, cwd):
++        assert cwd == repo
++        calls.append(argv)
++        if argv[1] == "rev-parse":
++            return (revision + "\n").encode()
++        assert argv[1] == "archive"
++        archive = io.BytesIO()
++        with tarfile.open(fileobj=archive, mode="w") as bundle:
++            for name, content in (("pa_core/cli.py", original), (module.TEST, b"# main test\n")):
++                info = tarfile.TarInfo(name)
++                info.size = len(content)
++                bundle.addfile(info, io.BytesIO(content))
++        return archive.getvalue()
++
++    monkeypatch.setattr(module.subprocess, "check_output", git_output)
++    return module, source, original, revision, calls
++
++
++def test_replay_rejects_caller_drift_before_running_mutations(
++    revision_snapshot, tmp_path, monkeypatch
++):
++    module, source, original, _, _ = revision_snapshot
++    source.write_bytes(original + b"\n# uncommitted production edit\n")
++    output = tmp_path / "proof"
++    monkeypatch.setattr(sys, "argv", [str(REPLAY), "--output", str(output)])
++
++    def unexpected_run(*args, **kwargs):
++        pytest.fail("A different caller revision must not be presented as current-source proof")
++
++    monkeypatch.setattr(module.subprocess, "run", unexpected_run)
++    with pytest.raises(RuntimeError, match="Caller production source differs"):
++        module.main()
++    assert source.read_bytes() == original + b"\n# uncommitted production edit\n"
++    assert not (output / "results.json").exists()
++
++
++def test_replay_freezes_selected_revision_and_records_restoration(
++    revision_snapshot, tmp_path, monkeypatch
++):
++    module, source, original, revision, calls = revision_snapshot
++    output = tmp_path / "proof"
++    monkeypatch.setattr(
++        sys, "argv", [str(REPLAY), "--output", str(output), "--revision", "origin/main"]
++    )
++    monkeypatch.setattr(module, "CASES", {"renderer": module.CASES["renderer"]})
++    phases = []
++
++    def run_phase(argv, *, cwd, **kwargs):
++        private_source = (cwd / "pa_core/cli.py").read_bytes()
++        assert source.read_bytes() == original
++        assert cwd != source.parents[1]
++        assert (cwd / module.TEST).read_bytes() == (source.parents[1] / module.TEST).read_bytes()
++        report = Path(next(arg.split("=", 1)[1] for arg in argv if arg.startswith("--junitxml=")))
++        red = not phases
++        assert (private_source != original) == red
++        write_junit(report, names=[EXPECTED_NAME], failures=(0,) if red else ())
++        phases.append(private_source)
++        return subprocess.CompletedProcess(argv, 1 if red else 0)
++
++    monkeypatch.setattr(module.subprocess, "run", run_phase)
++    module.main()
++    assert calls == [
++        ["git", "rev-parse", "--verify", "--end-of-options", "origin/main^{commit}"],
++        ["git", "archive", revision],
++    ]
++    proof = json.loads((output / "results.json").read_text())
++    assert proof["revision"] == revision
++    assert proof["requested_revision"] == "origin/main"
++    row = proof["results"][0]
++    assert row["original_sha256"] == row["restored_sha256"] == module.digest(original)
++    assert row["green"]["source_sha256"] == module.digest(original)
++    assert row["red"]["source_sha256"] == module.digest(phases[0])
++    assert source.read_bytes() == original
+diff --git a/tests/test_sleeve_suggestor.py b/tests/test_sleeve_suggestor.py
+index 80e50bd4..85c81f98 100644
+--- a/tests/test_sleeve_suggestor.py
++++ b/tests/test_sleeve_suggestor.py
+@@ -1,5 +1,6 @@
+ import builtins
+ from pathlib import Path
++from types import SimpleNamespace
+ from typing import Any
+ 
+ import numpy as np
+@@ -655,7 +656,7 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
+     )
+     assert not df.empty
+     row = df.iloc[0]
+-    assert row["optimizer_success"]
++    assert row["optimizer_success"], row.to_dict()
+     assert row["constraints_satisfied"]
+     assert row["external_pa_capital"] == pytest.approx(80.0)
+     assert row["active_ext_capital"] == pytest.approx(0.0)
+@@ -673,7 +674,8 @@ def test_suggest_sleeve_sizes_optimize_prefers_best(monkeypatch):
+     assert row["objective_value"] >= max(random_scores)
+ 
+ 
+-def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
++@pytest.mark.parametrize("import_error", [ImportError, AttributeError])
++def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch, import_error):
+     cfg = ModelConfig(
+         N_SIMULATIONS=1,
+         N_MONTHS=1,
+@@ -694,7 +696,16 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
+             return {}, _make_linear_summary(self.cfg)
+ 
+     monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", DummyOrchestrator)
+-    monkeypatch.setattr("pa_core.sleeve_suggestor._load_minimize", lambda: None)
++    real_import = builtins.__import__
++    optimize_imports = []
++
++    def unavailable_optimizer(name, *args, **kwargs):
++        if name == "scipy.optimize":
++            optimize_imports.append(name)
++            raise import_error("optimizer unavailable or incompatible with NumPy")
++        return real_import(name, *args, **kwargs)
++
++    monkeypatch.setattr(builtins, "__import__", unavailable_optimizer)
+ 
+     df = suggest_sleeve_sizes(
+         cfg,
+@@ -708,7 +719,92 @@ def test_suggest_sleeve_sizes_optimize_missing_scipy_falls_back(monkeypatch):
+         objective="total_return",
+     )
+     assert not df.empty
+-    assert str(df.loc[0, "optimizer_status"]).startswith("grid_fallback")
++    assert optimize_imports == ["scipy.optimize"]
++    assert not df["optimizer_success"].any()
++    assert df["constraints_satisfied"].all()
++    assert df["optimizer_status"].eq("grid_fallback:missing_scipy").all()
++
++
++@pytest.mark.parametrize("success", [True, False])
++def test_feasible_optimizer_result_distinguishes_convergence_from_grid_fallback(
++    monkeypatch, success
++):
++    """A feasible allocation alone must not turn nonconvergence into optimizer success.
++
++    PR #2475's bare ``optimizer_success=False`` did not distinguish this path
++    from an unavailable SciPy import. Exercise the solver handoff independently
++    of that optional dependency, retaining the real surrogate and grid paths.
++    """
++    cfg = ModelConfig(
++        N_SIMULATIONS=1,
++        N_MONTHS=1,
++        financing_mode="broadcast",
++        total_fund_capital=100.0,
++        external_pa_capital=40.0,
++        active_ext_capital=30.0,
++        internal_pa_capital=30.0,
++    )
++
++    class LinearOrchestrator:
++        def __init__(self, cfg, _index):
++            self.cfg = cfg
++
++        def run(self, seed=None):
++            return {}, _make_linear_summary(self.cfg)
++
++    calls = []
++
++    def minimize(fun, x0, *, method, bounds, constraints, options):
++        calls.append(x0.copy())
++        assert method == "SLSQP"
++        assert bounds == [(0.0, 80.0), (0.0, 80.0)]
++        assert options == {"maxiter": 17}
++        # Analytic optimum for the linear return fixture: ExternalPA has the
++        # highest return per unit of capital, followed by InternalPA.
++        optimum = np.array([80.0, 0.0])
++        assert fun(optimum) == pytest.approx(-2.8)
++        assert fun(optimum) < fun(x0)
++        assert all(constraint["fun"](optimum) >= 0 for constraint in constraints)
++        return SimpleNamespace(x=optimum, success=success, message="solver diagnostic")
++
++    monkeypatch.setattr("pa_core.sleeve_suggestor.SimulatorOrchestrator", LinearOrchestrator)
++    monkeypatch.setattr("pa_core.sleeve_suggestor._load_minimize", lambda: minimize)
++    result = suggest_sleeve_sizes(
++        cfg,
++        pd.Series([0.0]),
++        max_te=0.05,
++        max_breach=0.05,
++        max_cvar=0.05,
++        max_shortfall=0.05,
++        step=0.5,
++        max_external=80.0,
++        max_active=80.0,
++        optimize=True,
++        optimizer_maxiter=17,
++        objective="total_return",
++    )
++
++    assert len(calls) == 1
++    np.testing.assert_array_equal(calls[0], [40.0, 30.0])
++    assert not result.empty
++    assert result["constraints_satisfied"].all()
++    assert result["optimizer_success"].eq(success).all()
++    assert result["objective"].eq("total_return").all()
++    if success:
++        assert len(result) == 1
++        assert result.loc[0, "optimizer_status"] == "solver diagnostic"
++        assert result.loc[0, "external_pa_capital"] == pytest.approx(80.0)
++        assert result.loc[0, "active_ext_capital"] == pytest.approx(0.0)
++        assert result.loc[0, "internal_pa_capital"] == pytest.approx(20.0)
++        assert result.loc[0, "objective_value"] == pytest.approx(2.8)
++    else:
++        assert result["optimizer_status"].eq("grid_fallback:optimizer_failed").all()
++        # A failed solver's feasible 80/0/20 candidate must not escape in place
++        # of the requested 50-unit grid; the best grid allocation is 50/0/50.
++        assert result.loc[0, "external_pa_capital"] == pytest.approx(50.0)
++        assert result.loc[0, "active_ext_capital"] == pytest.approx(0.0)
++        assert result.loc[0, "internal_pa_capital"] == pytest.approx(50.0)
++        assert result.loc[0, "objective_value"] == pytest.approx(2.5)
+ 
+ 
+ def test_load_minimize_falls_back_when_scipy_import_is_incompatible(monkeypatch):
