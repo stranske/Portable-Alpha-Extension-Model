@@ -1,5 +1,49 @@
 # Single-run PNG failure evidence for #2336
 
+## Default-selection continuation — 2026-11-04
+
+**Completed default-selection coverage runs: 0 (remaining task blocked).**
+The capture driver now delegates marker selection to main's pytest configuration
+(`not live_llm`), including the slow installed-wheel test. It no longer supplies
+`not slow and not live_llm`. Current main was read back as
+`06881dbdf0e915c305669e7fe3f8baa7d8a21ec4`; production CLI is unchanged, so
+no PNG mutations were repeated.
+
+The supported interpreter `/opt/homebrew/bin/python3.13` reports Python 3.13.13.
+The required `timeout` executable is absent from this host's PATH. The focused
+command `python -m pytest tests/test_png_coverage_capture.py -q` reports
+**19 passed, 2 failed, 1 skipped**; both failures are the real-pytest completion
+cases raising `FileNotFoundError: 'timeout'`, and the stalled-process case skips
+because GNU timeout is unavailable. Raw output is retained in
+[focused.txt](default-selection-20261104/focused.txt). These are environment
+prerequisite failures, not completed capture results. No full suite was launched;
+no replacement JUnit, completion accounting or coverage totals are claimed.
+
+The required next run is:
+
+```sh
+timeout --signal=INT --kill-after=10s 600s python -m pytest --cov=pa_core --cov=dashboard --cov-report=json:coverage.json --junitxml=full-suite.xml tests/
+```
+
+Use `capture.py --output <fresh-directory> --revision <recorded-main-SHA>` on a
+host with GNU timeout and supported Python. It additionally records the completion
+plugin and absolute report paths. Use an isolated main checkout with main's
+configuration and only the disclosed existing 30-second PNG subprocess test
+bound: this branch's coverage dependency pin differs from main and the capture
+guard correctly rejects that configuration drift. Retain command metadata,
+versions, input hashes, test patch, console, JUnit, completion and coverage.
+Stop after two attempts or 20 minutes. No capture attempts were consumed here:
+the first broken prerequisite was identified before launching the suite.
+
+The latest retained completed measurement remains **13,493 / 14,626 statements
+(92.25352112676056%), 1,988 passed, 2 failed, 3 skipped, 4 deselected** in the
+[environment-guard capture](environment-guard-20261104/main-capture/command.json).
+It excludes the slow installed-wheel test and therefore does **not** satisfy the
+remaining default-selection requirement. Its native renderer timeout and packaging
+failure are retained historical observations; the new selection has no measured
+failure list yet. [dispositions.xml](dispositions.xml) remains evidence of two
+current non-skipped passes, not proof of unavailable historical failure causes.
+
 ## PR #2478 continuation — proven dispositions — 2026-11-04
 
 A supported-Python environment (Python 3.13.13) with compatible NumPy 2.5.4 and SciPy 1.18.1
@@ -19,10 +63,10 @@ These results establish that:
 - The optimizer function works correctly with a compatible SciPy/NumPy stack
 - The wheel installation and bundled sample resolution work on supported Python
 
-**Historical uncertainty retained**: Prior failures with incompatible NumPy/SciPy versions (e.g.,
-NumPy 1.26.4 with SciPy 1.18.0) and Python version mismatches (Python 3.12 with `requires-python >= 3.13`)
-are **environmental causes**, not irreducible defects. Where stderr was lost in earlier runs,
-that historical gap remains irrecoverable and is explicitly preserved as uncertainty.
+**Historical uncertainty retained**: These current passes demonstrate behavior on the recorded
+supported stack. They do not establish causes for earlier optimizer or wheel-build
+failures whose stderr is unavailable. A recorded Python version below `requires-python`
+is an observed incompatibility, but does not reconstruct missing historical diagnostics.
 
 ## Selected-node completion verification — 2026-11-04
 
@@ -207,8 +251,9 @@ retained in the archive. The previous PDF chunk (#2350) is already merged and is
 The complete baseline and candidate each exit 1 because
 `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best` hits the
 pre-existing local SciPy/NumPy import incompatibility (NumPy 1.26.4 + SciPy 1.18.0 on Python 3.12).
-PR #2478 demonstrates this is an **environmental limitation**, not an irreducible defect:
-with NumPy 2.5.4 + SciPy 1.18.1 on Python 3.13, the same test passes with `optimizer_success=True`.
+The historical record attributes this failure to the local stack; the present pass
+with NumPy 2.5.4 + SciPy 1.18.1 on Python 3.13 and `optimizer_success=True`
+does not independently establish the earlier cause.
 No existing testcase outcome changed, no covered line regressed, and statement/exclusion scope
 is identical. Neither historical result is a full-suite PASS or 90% acceptance.
 The focused export suite reports **23 passed**.
@@ -274,9 +319,9 @@ candidate suite log, JUnit and coverage JSON. `current-manifest.json` binds ever
 and the current production, CLI-test, validator-test and replay inputs.
 `current-comparison.json` compares every old testcase outcome and covered line against
 the original baseline; the original archive and comparison keep their original identity.
-The local SciPy/NumPy failure is **resolved as an environmental issue** in PR #2478
-(see proven dispositions above). The historical non-PASS result on incompatible stacks
-remains documented but is not irreducible. Broader #2336, native renderer/Office exports,
+The current supported-stack optimizer test passes (see dispositions above).
+The historical non-PASS result remains documented; its unavailable diagnostics
+prevent a conclusive historical cause determination. Broader #2336, native renderer/Office exports,
 hosted acceptance and provider disposition remain separate from this bounded proof.
 
 Final candidate full suite: **1,674 passed, 1 failed, 1 skipped, 2 deselected**.

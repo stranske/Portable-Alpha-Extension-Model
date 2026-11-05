@@ -85,8 +85,6 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
         "--cov=dashboard",
         "--cov-report=json:" + str(output / "coverage.json"),
         "--junitxml=" + str(output / "full-suite.xml"),
-        "-m",
-        "not slow and not live_llm",
         "tests/",
     ]
     metadata = {
@@ -121,7 +119,7 @@ def capture(repo: Path, output: Path, revision: str, timeout_seconds: int) -> in
                 ]
             ),
         },
-        "selection": "Exclude slow tests and preserve the default live_llm exclusion",
+        "selection": "Repository default selection (not live_llm), including slow tests",
         "completed": False,
     }
     command_path = output / "command.json"

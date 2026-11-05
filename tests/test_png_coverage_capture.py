@@ -156,7 +156,8 @@ def test_capture_records_inputs_and_rejects_timeout(
             return real_run(argv, **kwargs)
         assert argv[:4] == ["timeout", "--signal=INT", "--kill-after=10s", "10s"]
         assert argv[4:7] == [sys.executable, "-m", "pytest"]
-        assert argv[-3:] == ["-m", "not slow and not live_llm", "tests/"]
+        assert argv[-1] == "tests/"
+        assert argv.count("-m") == 1  # Python module flag only; pytest uses repository defaults.
         assert kwargs["env"]["COVERAGE_FILE"] == str(output / ".coverage")
         assert json.loads((output / "command.json").read_text())["completed"] is False
         assert b"assert False" in (output / "tests.patch").read_bytes()
