@@ -1,5 +1,29 @@
 # Single-run PNG failure evidence for #2336
 
+## PR #2478 continuation — proven dispositions — 2026-11-04
+
+A supported-Python environment (Python 3.13.13) with compatible NumPy 2.5.4 and SciPy 1.18.1
+produces **non-skipped real-SciPy optimizer results** and **installed-wheel integration results**.
+
+- `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best`: PASSED
+  with `optimizer_success=True`, `constraints_satisfied=True`, and optimal allocation
+  `external_pa_capital=80.0`, `active_ext_capital=0.0`, `internal_pa_capital=20.0`.
+- `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples`: PASSED
+  with successful wheel build and installed-wheel sample resolution.
+
+JUnit evidence: [dispositions.xml](dispositions.xml) reports **2 passed, 0 failed, 0 skipped, 0 errors**.
+
+argv: `/opt/homebrew/bin/python3.13 -m pytest -o addopts='' tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples -q --junitxml=docs/evidence/issue-2336-png-failures/dispositions.xml`
+
+These results establish that:
+- The optimizer function works correctly with a compatible SciPy/NumPy stack
+- The wheel installation and bundled sample resolution work on supported Python
+
+**Historical uncertainty retained**: Prior failures with incompatible NumPy/SciPy versions (e.g.,
+NumPy 1.26.4 with SciPy 1.18.0) and Python version mismatches (Python 3.12 with `requires-python >= 3.13`)
+are **environmental causes**, not irreducible defects. Where stderr was lost in earlier runs,
+that historical gap remains irrecoverable and is explicitly preserved as uncertainty.
+
 ## Selected-node completion verification — 2026-11-04
 
 The [completion follow-up](completion-20261104/README.md) prevents a truncated
@@ -182,9 +206,12 @@ retained in the archive. The previous PDF chunk (#2350) is already merged and is
 
 The complete baseline and candidate each exit 1 because
 `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best` hits the
-pre-existing local SciPy/NumPy import incompatibility. No existing testcase outcome changed,
-no covered line regressed, and statement/exclusion scope is identical. Neither result is a
-full-suite PASS or 90% acceptance. The focused export suite reports **23 passed**.
+pre-existing local SciPy/NumPy import incompatibility (NumPy 1.26.4 + SciPy 1.18.0 on Python 3.12).
+PR #2478 demonstrates this is an **environmental limitation**, not an irreducible defect:
+with NumPy 2.5.4 + SciPy 1.18.1 on Python 3.13, the same test passes with `optimizer_success=True`.
+No existing testcase outcome changed, no covered line regressed, and statement/exclusion scope
+is identical. Neither historical result is a full-suite PASS or 90% acceptance.
+The focused export suite reports **23 passed**.
 
 Commands used with `/opt/anaconda3/bin/python3`:
 
@@ -247,9 +274,10 @@ candidate suite log, JUnit and coverage JSON. `current-manifest.json` binds ever
 and the current production, CLI-test, validator-test and replay inputs.
 `current-comparison.json` compares every old testcase outcome and covered line against
 the original baseline; the original archive and comparison keep their original identity.
-The local SciPy/NumPy failure remains an explicit non-PASS full-suite result. Broader
-#2336, native renderer/Office exports, hosted acceptance and provider disposition remain
-separate from this bounded proof.
+The local SciPy/NumPy failure is **resolved as an environmental issue** in PR #2478
+(see proven dispositions above). The historical non-PASS result on incompatible stacks
+remains documented but is not irreducible. Broader #2336, native renderer/Office exports,
+hosted acceptance and provider disposition remain separate from this bounded proof.
 
 Final candidate full suite: **1,674 passed, 1 failed, 1 skipped, 2 deselected**.
 Against the original baseline there are 20 new PASS nodes (eight CLI cases and
