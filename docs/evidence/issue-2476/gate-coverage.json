@@ -2273,8 +2273,8 @@
       "suite_note": "1991 passed, 3 skipped on 2026-11-05."
     },
     "delivered": {
-      "revision": "working tree that this commit records; product sources unchanged from before_this_work",
-      "role": "tests/test_coverage_round_2381.py strengthened on the before_this_work tree",
+        "revision": "07b11c91eed145a3cb595b777265fe9f4525690c",
+        "role": "tests/test_coverage_round_2381.py strengthened on the before_this_work tree. Coverage was measured on these test and product bytes. A later evidence-only commit records this SHA and does not change them.",
       "statements": {
         "targets": {
           "pa_core/llm/result_explain.py": {
