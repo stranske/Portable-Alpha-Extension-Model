@@ -1,0 +1,462 @@
+[
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[1]",
+    "mutation": "Route step 1 through step 99 guard",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:134: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:27.350 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[1]",
+      "1 failed in 1.95s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.82s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[2]",
+    "mutation": "Route step 2 through step 99 guard",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:134: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:29.721 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[2]",
+      "1 failed in 0.91s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.88s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[3]",
+    "mutation": "Route step 3 through step 99 guard",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:134: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:32.165 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[3]",
+      "1 failed in 0.92s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.83s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[4]",
+    "mutation": "Route step 4 through step 99 guard",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:134: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:34.518 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[4]",
+      "1 failed in 0.90s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.82s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[5]",
+    "mutation": "Route step 5 through step 99 guard",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:134: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:36.878 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_routes_each_step_to_its_renderer[5]",
+      "1 failed in 0.90s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.82s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_cold_start_initializes_and_routes_to_step_1",
+    "mutation": "Cold start lands on step 99 instead of 1",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:147: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:39.218 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_cold_start_initializes_and_routes_to_step_1",
+      "1 failed in 0.91s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.83s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[0]",
+    "mutation": "Unknown step 0 falls into step-1 renderer",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:162: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:41.560 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[0]",
+      "1 failed in 0.89s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.83s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[6]",
+    "mutation": "Unknown step 6 falls into step-1 renderer",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:162: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:43.945 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[6]",
+      "1 failed in 0.91s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.82s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[99]",
+    "mutation": "Unknown step 99 falls into step-1 renderer",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:162: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:46.290 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_unknown_step_renders_progress_without_step_body[99]",
+      "1 failed in 0.91s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.86s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[1-\\u27a1\\ufe0f Next: Capital Allocation-2]",
+    "mutation": "Step-1 Next writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:48.761 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[1-\\u27a1\\ufe0f Next: Capital Allocation-2]",
+      "1 failed in 0.96s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.84s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[2-\\u2b05\\ufe0f Back: Analysis Mode-1]",
+    "mutation": "Step-2 Back writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:51.225 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[2-\\u2b05\\ufe0f Back: Analysis Mode-1]",
+      "1 failed in 0.93s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.84s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[2-\\u27a1\\ufe0f Next: Return & Risk-3]",
+    "mutation": "Step-2 Next writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:53.583 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[2-\\u27a1\\ufe0f Next: Return & Risk-3]",
+      "1 failed in 0.91s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.82s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[3-\\u2b05\\ufe0f Back: Capital Allocation-2]",
+    "mutation": "Step-3 Back writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:55.941 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[3-\\u2b05\\ufe0f Back: Capital Allocation-2]",
+      "1 failed in 0.89s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.82s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[3-\\u27a1\\ufe0f Next: Correlations-4]",
+    "mutation": "Step-3 Next writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:35:58.300 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[3-\\u27a1\\ufe0f Next: Correlations-4]",
+      "1 failed in 0.93s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.88s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[4-\\u2b05\\ufe0f Back: Return & Risk-3]",
+    "mutation": "Step-4 Back writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:00.786 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[4-\\u2b05\\ufe0f Back: Return & Risk-3]",
+      "1 failed in 0.93s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.83s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[4-\\u27a1\\ufe0f Next: Review & Run-5]",
+    "mutation": "Step-4 Next writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:03.127 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[4-\\u27a1\\ufe0f Next: Review & Run-5]",
+      "1 failed in 0.90s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.83s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[5-\\u2b05\\ufe0f Back: Correlations-4]",
+    "mutation": "Step-5 Back writes wizard_step 99",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:192: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:05.478 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_buttons_route_to_adjacent_steps[5-\\u2b05\\ufe0f Back: Correlations-4]",
+      "1 failed in 0.91s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.83s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[2]",
+    "mutation": "Reset button writes wizard_step 3",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:207: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:07.850 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[2]",
+      "1 failed in 0.90s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.89s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[3]",
+    "mutation": "Reset button writes wizard_step 3",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:207: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:10.396 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[3]",
+      "1 failed in 0.97s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.92s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[4]",
+    "mutation": "Reset button writes wizard_step 3",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:207: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:13.049 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[4]",
+      "1 failed in 0.95s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.90s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[5]",
+    "mutation": "Reset button writes wizard_step 3",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:207: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:15.565 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_sidebar_reset_routes_to_step_1[5]",
+      "1 failed in 0.92s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.91s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_5_run_gate_opens_index_upload_without_executing",
+    "mutation": "Missing-index run gate invokes pa_cli.main unconditionally",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:224: AssertionError",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:18.144 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_5_run_gate_opens_index_upload_without_executing",
+      "1 failed in 0.97s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.87s"
+    ]
+  },
+  {
+    "node": "tests/test_coverage_round_2413.py::test_main_step_5_run_gate_stops_when_loaded_config_is_invalid",
+    "mutation": "Invalid YAML no longer stops execution",
+    "fail_exit": 1,
+    "pass_exit": 0,
+    "fail_output_tail": [
+      "tests/test_coverage_round_2413.py:245: Failed",
+      "----------------------------- Captured stderr call -----------------------------",
+      "2026-11-03 12:36:20.706 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager",
+      "------------------------------ Captured log call -------------------------------",
+      "WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:372 No runtime found, using MemoryCacheStorageManager",
+      "=========================== short test summary info ============================",
+      "FAILED tests/test_coverage_round_2413.py::test_main_step_5_run_gate_stops_when_loaded_config_is_invalid",
+      "1 failed in 0.98s"
+    ],
+    "pass_output_tail": [
+      ".                                                                        [100%]",
+      "1 passed in 0.87s"
+    ]
+  }
+]
