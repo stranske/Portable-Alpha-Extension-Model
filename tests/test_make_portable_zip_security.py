@@ -14,6 +14,8 @@ from unittest import mock
 
 import pytest
 
+from scripts.make_portable_zip import DEFAULT_EMBEDDED_PYTHON
+
 
 def _load_make_portable_zip_module():
     """Load make_portable_zip module using importlib.util to avoid sys.path pollution."""
@@ -61,7 +63,7 @@ def test_build_windows_portable_zip_uses_subprocess_not_os_system(tmp_path: Path
 
         # Call the function
         make_portable_zip.build_windows_portable_zip(
-            temp_project, temp_output, python_version="3.12.11", verbose=False
+            temp_project, temp_output, python_version=DEFAULT_EMBEDDED_PYTHON, verbose=False
         )
 
         # Verify subprocess.run was called for both pip bootstrap and requirements install
@@ -147,7 +149,7 @@ def test_error_handling_in_subprocess_calls(tmp_path: Path):
         # The function should catch the error and raise RuntimeError
         with pytest.raises(RuntimeError, match="Failed to bootstrap pip"):
             make_portable_zip.build_windows_portable_zip(
-                temp_project, temp_output, python_version="3.12.11", verbose=False
+                temp_project, temp_output, python_version=DEFAULT_EMBEDDED_PYTHON, verbose=False
             )
 
 

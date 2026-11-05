@@ -177,6 +177,15 @@ def _vendor_stlite() -> None:
         source_map.unlink()
 
 
+def offline_runtime_marker_environment() -> dict[str, str]:
+    """PEP 508 environment for the committed Pyodide runtime (not the repo Python floor)."""
+    runtime_python = json.loads((PYODIDE_VENDOR_DIR / "pyodide-lock.json").read_text())["info"][
+        "python"
+    ]
+    major, minor, *_ = runtime_python.split(".")
+    return {"python_version": f"{major}.{minor}", "extra": ""}
+
+
 def _wheel_metadata_requires(wheel: Path) -> list[Requirement]:
     with zipfile.ZipFile(wheel) as archive:
         metadata_name = next(
@@ -187,7 +196,7 @@ def _wheel_metadata_requires(wheel: Path) -> list[Requirement]:
     for value in metadata.get_all("Requires-Dist", []):
         requirement = Requirement(value)
         if requirement.marker is None or requirement.marker.evaluate(
-            {"python_version": "3.12", "extra": ""}
+            offline_runtime_marker_environment()
         ):
             requirements.append(requirement)
     return requirements
