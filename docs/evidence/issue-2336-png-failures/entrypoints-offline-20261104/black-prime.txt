@@ -1,2 +1,0 @@
-All 525 tracked Python files checked individually; writable cache primed.
-All 11 reference-pack Python files checked individually; writable cache primed.

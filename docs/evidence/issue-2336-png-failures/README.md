@@ -1,223 +1,111 @@
 # Single-run PNG failure evidence for #2336
 
-## Default-selection bounded capture — 2026-11-04
+This directory retains evidence only. It contains no live helper or test changes.
+The **supported-runtime current-main acceptance run is still outstanding.** No run
+retained here is a coverage acceptance run on current main with Python >=3.13
+(`requires-python`). That run, and the per-failure classification that depends on
+it, are tracked as follow-up work on #2477.
 
-**Completed default-selection coverage runs: 1.** The capture driver delegates
-marker selection to main's pytest configuration (`not live_llm`), including the
-slow installed-wheel test. Current main is
-`06881dbdf0e915c305669e7fe3f8baa7d8a21ec4`. Production CLI is unchanged, so the
-eight retained PNG mutation pairs were not repeated.
+## Dated historical coverage snapshots — 2026-11-04
 
-The [default-selection capture](default-selection-capture-20261104/README.md)
-completes with **2,048 passed, 4 failed, 0 skipped, 3 deselected** and
-**13,550 / 14,670 covered statements (92.3653715064758%)**. All **2,052**
-selected nodes finish; [completion.json](default-selection-capture-20261104/completion.json)
-matches [command.json](default-selection-capture-20261104/command.json) selection
-accounting. Totals equal [coverage.json](default-selection-capture-20261104/coverage.json)
-and [summary.json](default-selection-capture-20261104/summary.json).
+Each row is a raw `coverage.json` from one completed bounded pytest run on
+2026-11-04. Each is kept with its command record, which holds argv, interpreter,
+package versions and the measured main revision. Its summary and, where the run
+recorded one, its completion receipt or exit file are kept with it. All of them are
+**historical measurements of the revision named**. None of them measures current
+main or a supported Python. Every run exited 1. Pass/fail counts come from each
+run's JUnit, which this reduction does not keep. The consoles, JUnit, helper
+scripts and regressions remain in this PR's history at `5621ee8d`.
 
-GNU `timeout` 9.12 and `/opt/anaconda3/bin/python3` (Python 3.12.2) ran the suite
-from an isolated main checkout with only the disclosed 30-second PNG subprocess
-test overlay; this branch's coverage pin drift correctly blocks capture from the
-PR checkout itself. Focused helper regressions report **22 passed** in
-[focused.txt](default-selection-20261104/focused.txt).
+| Snapshot | Main revision | Python | Selection | Passed / failed / skipped | Covered statements |
+| --- | --- | --- | --- | --- | --- |
+| [main-20261104](main-20261104/coverage.json) ([command](main-20261104/commands.json), [summary](main-20261104/summary.json), [exit](main-20261104/completed-suite.exit)) | `7613ffd9` | 3.14.9 | `not slow and not live_llm` | 2,001 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [recheck-20261104](recheck-20261104/coverage.json) ([command](recheck-20261104/full-suite-command.json), [summary](recheck-20261104/summary.json), [exit](recheck-20261104/full-suite.exit)) | `7613ffd9` | 3.14.9 | `not slow and not live_llm` | 2,008 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [verified-20261104](verified-20261104/coverage.json) ([command](verified-20261104/full-suite-command.json), [summary](verified-20261104/summary.json), [exit](verified-20261104/full-suite.exit)) | `7613ffd9` | 3.14.10 | `not slow and not live_llm` | 2,018 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [main-06881dbd-20261104](main-06881dbd-20261104/coverage.json) ([command](main-06881dbd-20261104/full-suite-command.json), [summary](main-06881dbd-20261104/summary.json), [exit](main-06881dbd-20261104/full-suite.exit)) | `06881dbd` | 3.14.9 | `not slow and not live_llm` | 1,988 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [automated-capture-20261104](automated-capture-20261104/coverage.json) ([command](automated-capture-20261104/command.json), [summary](automated-capture-20261104/summary.json), [test overlay](automated-capture-20261104/tests.patch)) | `06881dbd` | 3.14.9 | `not slow and not live_llm` | 2,029 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [config-guard-20261104](config-guard-20261104/main-capture/coverage.json) ([command](config-guard-20261104/main-capture/command.json), [summary](config-guard-20261104/main-capture/summary.json), [exit](config-guard-20261104/main-capture/full-suite.exit), [test overlay](config-guard-20261104/main-capture/tests.patch)) | `06881dbd` | 3.14.10 | `not slow and not live_llm` | 1,988 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [environment-guard-20261104](environment-guard-20261104/main-capture/coverage.json) ([command](environment-guard-20261104/main-capture/command.json), [summary](environment-guard-20261104/main-capture/summary.json), [test overlay](environment-guard-20261104/main-capture/tests.patch)) | `06881dbd` | 3.14.8 | `not slow and not live_llm` | 1,988 / 2 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [completion-20261104](completion-20261104/main-capture/coverage.json) ([command](completion-20261104/main-capture/command.json), [completion](completion-20261104/main-capture/completion.json), [summary](completion-20261104/main-capture/summary.json), [test overlay](completion-20261104/main-capture/tests.patch)) | `06881dbd` | 3.14.10 | `not slow and not live_llm` | 1,988 / 2 / 3; 1,993 of 1,993 selected nodes finished | 13,493 / 14,626 (92.25352112676056%) |
+| [entrypoints-offline-20261104](entrypoints-offline-20261104/candidate-coverage.json.gz) ([command](entrypoints-offline-20261104/candidate-command.json), [summary](entrypoints-offline-20261104/candidate-summary.json)) | `06881dbd` plus PR test changes | 3.14.9 | `not slow and not live_llm` | 2,040 / 1 / 3 | 13,493 / 14,626 (92.25352112676056%) |
+| [default-selection-capture-20261104](default-selection-capture-20261104/coverage.json) ([command](default-selection-capture-20261104/command.json), [completion](default-selection-capture-20261104/completion.json), [summary](default-selection-capture-20261104/summary.json), [test overlay](default-selection-capture-20261104/tests.patch)) | `06881dbd` | 3.12.2 (below `requires-python`) | repository default (`not live_llm`) | 2,048 / 4 / 0; 2,052 of 2,052 selected nodes finished | 13,550 / 14,670 (92.3653715064758%) |
 
-| Test | Disposition |
-| --- | --- |
-| `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples` | Pip stderr: Python 3.12.2 below `requires-python >=3.13` in the wheel build env. Observed incompatibility in this capture; historical cause not established. |
-| `tests/test_dashboard_sample_data.py::test_offline_wheel_install_exposes_bundled_dashboard_samples` | Same Python floor stderr as the online wheel test. Observed incompatibility; historical stderr unavailable. |
-| `tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv` | Wheel build fails with the same Python floor before entrypoints run. Environmental for this interpreter; historical network/setuptools causes unresolved. |
-| `tests/test_schema_export.py::test_parameter_dictionary_matches_schema` | Golden parameter dictionary drift under this interpreter. Environmental rendering mismatch; historical cause not established. |
+These are the failures as recorded. They are not classified as causes:
 
-`tests/test_cli.py::test_main_with_png` passed within the 30-second bound.
-`tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best`
-passed with real SciPy. Those passes do not reconstruct unavailable historical
-diagnostics. [dispositions.xml](dispositions.xml) still records separate
-supported-Python 3.13 optimizer/wheel passes; it is not proof of historical causes.
+- The `not slow and not live_llm` runs failed `tests/test_cli.py::test_main_with_png`
+  and `tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv`. The
+  entrypoints candidate run failed only the first of these.
+- The default-selection run failed both installed-wheel sample tests in
+  `tests/test_dashboard_sample_data.py`,
+  `tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv` and
+  `tests/test_schema_export.py::test_parameter_dictionary_matches_schema`. It ran
+  on Python 3.12.2, below the package's `requires-python >=3.13`, so it is not a
+  supported-runtime measurement.
 
-The prior slow-excluding capture **13,493 / 14,626 (92.25352112676056%)** remains
-in [environment-guard-20261104/main-capture/command.json](environment-guard-20261104/main-capture/command.json)
-for comparison; it is not the default-selection measurement.
+The test overlays are the disclosed 30-second subprocess bound on
+`test_main_with_png` that was applied while capturing. Some command records refer to
+helper scripts (`capture.py`, `png_capture_completion.py`, `summarize.py`) by hash.
+Those scripts are not part of this reduction. In the completion run, the bytes they
+had at capture time are kept as
+[capture-input.txt](completion-20261104/main-capture/capture-input.txt) and
+[completion-plugin-input.txt](completion-20261104/main-capture/completion-plugin-input.txt).
 
-## PR #2478 continuation — proven dispositions — 2026-11-04
+## Current-CLI PNG failure-path proof — completion-20261104
 
-A supported-Python environment (Python 3.13.13) with compatible NumPy 2.5.4 and SciPy 1.18.1
-produces **non-skipped real-SciPy optimizer results** and **installed-wheel integration results**.
+[png-proof/](completion-20261104/png-proof/) re-runs all eight
+`tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results`
+assertion RED / restored GREEN pairs against main `06881dbd`. It keeps the raw
+consoles, JUnit and mutant sources for each case, plus
+[results.json](completion-20261104/png-proof/results.json).
+[png-audit.json](completion-20261104/png-audit.json) records that all eight cases
+had a RED assertion, a GREEN pass and a byte-identical restoration. The focused
+PNG/PDF/sweep export receipt, [focused.txt](completion-20261104/focused.txt) and
+[focused.xml](completion-20261104/focused.xml), reports **23 passed**. Its argv is in
+[commands.json](completion-20261104/commands.json).
 
-- `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best`: PASSED
-  with `optimizer_success=True`, `constraints_satisfied=True`, and optimal allocation
-  `external_pa_capital=80.0`, `active_ext_capital=0.0`, `internal_pa_capital=20.0`.
-- `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples`: PASSED
-  with successful wheel build and installed-wheel sample resolution.
+The proof's input bindings are `pa_core/cli.py` SHA256
+`d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e` and
+`tests/test_cli_png_failures.py` SHA256
+`fef801ac24c71a8a928f958959861ad372f7663982d338ee7a096da11a061dab`. Both are
+byte-identical on main `c3190d76` (2026-11-04), so the proof applies to the current
+CLI. This is failure-path coverage. It is not evidence that native PNG export works.
+[manifest.json](completion-20261104/manifest.json) binds the bytes and SHA256 of
+every retained file in this directory. Entries for files this reduction did not keep
+were dropped, and the 52 remaining hashes were re-verified. Its `inputs` block keeps
+the historical helper/test hashes from capture time unchanged.
 
-JUnit evidence: [dispositions.xml](dispositions.xml) reports **2 passed, 0 failed, 0 skipped, 0 errors**.
+## Supported-stack dispositions — 2026-11-04
 
-argv: `/opt/homebrew/bin/python3.13 -m pytest -o addopts='' tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples -q --junitxml=docs/evidence/issue-2336-png-failures/dispositions.xml`
+[dispositions.xml](dispositions.xml) reports **2 passed, 0 failed, 0 skipped,
+0 errors** on Python 3.13.13 with NumPy 2.5.4 and SciPy 1.18.1:
 
-These results establish that:
-- The optimizer function works correctly with a compatible SciPy/NumPy stack
-- The wheel installation and bundled sample resolution work on supported Python
+- `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best`
+- `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples`
 
-**Historical uncertainty retained**: These current passes demonstrate behavior on the recorded
-supported stack. They do not establish causes for earlier optimizer or wheel-build
-failures whose stderr is unavailable. A recorded Python version below `requires-python`
-is an observed incompatibility, but does not reconstruct missing historical diagnostics.
+Recorded command:
 
-## Selected-node completion verification — 2026-11-04
+```sh
+/opt/homebrew/bin/python3.13 -m pytest -o addopts='' tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples -q --junitxml=docs/evidence/issue-2336-png-failures/dispositions.xml
+```
 
-The [completion follow-up](completion-20261104/README.md) prevents a truncated
-pytest run with consistent JUnit and coverage from being accepted as complete.
-The real-pytest regression fails against the old helper; **62 helper tests pass**
-after repair. A fresh main capture finishes all **1,993 selected nodes**, with
-**1,988 passed, 2 environmental failures, 3 skipped, 4 deselected**, and
-**13,493 / 14,626 covered statements (92.25352112676056%)**. All 23 focused export
-tests and eight fresh PNG assertion RED/restored GREEN pairs pass at current
-main's CLI hash. Historical wheel-build and optimizer causes remain unresolved.
-GitHub reports #2336 already closed; this run does not establish those causes.
+These are two current passes on the recorded stack and nothing more. They do not
+establish causes for earlier optimizer or wheel-build failures whose diagnostics are
+unavailable.
 
-## Environment guard and fresh main capture — 2026-11-04
+## Outstanding (follow-up on #2477)
 
-The [environment guard follow-up](environment-guard-20261104/README.md) rejects
-inherited pytest/coverage overrides that could make a partial run appear complete.
-Three new regressions fail before the repair; all 72 helper regressions pass
-afterward. A fresh main-only capture completes with **1,988 passed, 2 environmental
-failures, 3 skipped, 4 deselected** and **13,493 / 14,626 covered statements
-(92.25352112676056%)**. All 23 export tests and eight fresh PNG assertion RED /
-restored GREEN pairs pass at current main's CLI hash. Historical optimizer and
-wheel-build causes remain unresolved. GitHub reports #2336 already closed; this
-round made no issue-state change and does not establish those missing dispositions.
+- A coverage run on the then-current main SHA with a repository-selected Python >=3.13
+  and its pinned coverage dependency, using the repository's default marker selection
+  and a recorded 600-second timeout. It should keep argv, interpreter, dependency
+  versions, completion receipt, console and JUnit.
+- Classification of `test_main_with_png` under the reviewed 30-second bound, if
+  native rendering prevents completion.
+- Supported-stack reruns of the wheel and optimizer tests that keep subprocess stderr
+  and optimizer diagnostics.
+- A README update from that new `coverage.json` that lists every current failure and
+  separates observed causes from historical uncertainty.
 
-## Optimizer failure-path verification — 2026-11-04
-
-The [optimizer follow-up](optimizer-disposition-20261104/README.md) verifies
-the distinction between solver nonconvergence and an unavailable optimizer,
-using the real surrogate, allocation evaluation and grid fallback. Both new
-cases pass; removing the convergence guard produces an assertion failure and
-byte-identical restoration passes. The optimizer module reports **22 passed,
-1 skipped**; export and evidence-helper regressions report **80 passed**.
-The existing completed main coverage and eight PNG pairs were independently
-revalidated. Historical optimizer and wheel-build causes remain unresolved;
-#2336 remains open. The reconciled PR checklist could not be published because
-automatic approval review rejected the update.
-
-## Offline clean-venv entrypoints — 2026-11-04
-
-The [entrypoint repair](entrypoints-offline-20261104/README.md) removes an unnecessary
-setuptools download from the clean-venv help test. Its seven tests pass; the completed
-candidate suite reports **2,040 passed, 1 failed, 3 skipped, 4 deselected** and
-**13,493 / 14,626 covered statements (92.25352112676056%)**. The remaining failure
-is the documented native PNG timeout. The prior main-only capture and all eight
-same-main PNG pairs were independently revalidated. Historical optimizer and
-wheel-build causes still require disposition before closing #2336.
-
-## Configuration guard and main-only capture — 2026-11-04
-
-The [isolated main capture](config-guard-20261104/README.md) reports **1,988 passed,
-2 failed, 3 skipped, 4 deselected** and **13,493 / 14,626 covered statements
-(92.25352112676056%)**. Product files and configuration match main `06881dbd`;
-only the existing native PNG subprocess bound overlays its test tree. The capture
-helper now rejects test/coverage configuration drift, including gitignored files,
-with ten new regressions and **69 passing focused helper tests**. The 23 export
-tests pass, and all eight retained same-main PNG pairs were independently checked.
-Historical optimizer and wheel-build causes remain unresolved, so #2336 stays open.
-
-## Reproducible bounded capture — 2026-11-04
-
-The [automated capture](automated-capture-20261104/README.md) completes with
-**2,029 passed, 2 failed, 3 skipped, 4 deselected** and **13,493 / 14,626 covered
-statements (92.25352112676056%)**. Production matches main `06881dbd`; the exact
-candidate test overlay, including the existing native PNG subprocess bound, is
-retained. The new capture driver records argv, revisions and input hashes before
-starting pytest, isolates coverage data, and rejects timed-out captures. Its seven
-tests pass, including a real stalled process; all 47 capture/summary/replay tests
-pass. Historical optimizer and wheel-build dispositions still prevent issue closure.
-
-## Current-main PNG replay — 2026-11-04
-
-The [main `06881dbd` capture](main-06881dbd-20261104/README.md) re-runs all eight
-assertion RED/restored GREEN pairs against the current main revision, with raw
-console logs, named-node JUnit, argv and hashes retained individually. The focused
-PNG/PDF/sweep suite passes all 23 tests. The replay driver now resolves an explicit
-revision once and rejects a caller CLI that differs from that snapshot; its two
-new regressions fail before the change and pass afterward. Historical failure
-dispositions and issue closure remain open.
-
-## Installed-wheel failure diagnostics — 2026-11-04
-
-The [install diagnostic repair](install-diagnostics-20261104/README.md) preserves
-pip stdout/stderr for installed-wheel failures in both online and offline probes.
-Two new cases fail before the repair and pass afterward; focused regressions
-report **85 passed, 1 skipped, 1 deselected**. Retained coverage and all eight PNG
-pairs were independently revalidated. Historical failure dispositions remain open.
-
-## Verified coverage capture — 2026-11-04
-
-The [fresh completed capture](verified-20261104/README.md) reports **2,018 passed,
-2 failed, 3 skipped, 4 deselected** and **13,493 / 14,626 covered statements
-(92.25352112676056%)** on unchanged current-main production. The evidence helper
-now rejects percentages inconsistent with statement counts; all 26 helper tests
-pass. The retained eight PNG pairs still match current-main hashes. Historical
-optimizer and wheel-build causes remain unresolved, so #2336 stays open.
-
-## Offline installed-wheel verification — 2026-11-04
-
-The [installed-wheel follow-up](offline-install-20261104/README.md) adds a supported-
-Python offline installation test. It verifies that product modules and all three
-bundled sample paths come from the installed wheel and parses the sample data.
-The focused regressions report **57 passed, 1 skipped, 1 deselected**. Historical
-optimizer and wheel-build causes remain unresolved, so #2336 stays open.
-
-## Packaging diagnostic repair — 2026-11-04
-
-The [disposition follow-up](disposition-20261104/README.md) preserves wheel-build
-stdout/stderr in pytest failure reports, verifies both failure stages with two
-regressions, and records a successful offline wheel build on Python 3.14.10.
-The focused suite passes **56 tests, with 1 skipped and 1 deselected**. This does
-not establish the historical wheel or optimizer failure causes; those tasks and
-the issue closure remain open. The reconciled checklist is retained locally
-because the GitHub PR-body update requires unavailable approval.
-
-## Retained recheck — 2026-11-04
-
-The [fresh bounded capture](recheck-20261104/README.md) retains console output,
-JUnit and raw coverage JSON: **2,008 passed, 2 failed, 3 skipped, 4 deselected**;
-**13,493 / 14,626 covered statements (92.25352112676056%)**. It also identifies
-nine ignored console logs absent from the previous commit, recovers PR #2475's
-historical console from its archive, and validates all eight archived PNG pairs.
-The new manifest validator rejects missing or altered evidence files. The two
-current failures are environmental; historical optimizer and wheel verification
-remain outstanding, so #2336 is not closed.
-
-## Current main measurement — 2026-11-04
-
-The new [capture and failure dispositions](main-20261104/README.md) measure production
-at main `7613ffd97a450b15e550f499b7386ec4e67f2c51`, with production code unchanged.
-The completed run reports **2,001 passed, 2 failed, 3 skipped, 4 deselected** and
-**13,493 / 14,626 covered statements (92.25352112676056%)**. These numbers come
-directly from [coverage.json](main-20261104/coverage.json) and the reconciled
-[per-module summary](main-20261104/summary.json).
-
-The two failures are the native Kaleido renderer timeout and a network-blocked
-setuptools installation. The PNG test now runs its native CLI invocation in a
-30-second subprocess; the initial run with untouched tests hung in that renderer
-and is retained separately, not presented as a completed measurement. The completed
-run includes 13 new evidence-validator tests. As required for this keepalive run,
-the slow wheel installation and three live-provider tests are deselected.
-
-All eight current-main PNG assertion RED/restored GREEN pairs passed, as did all
-23 focused PNG/PDF/sweep tests. The replay driver now pins the main revision and CLI
-SHA256 `d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e`.
-The new capture preserves the historical archives below, and all PDF and
-next-boundaries evidence, unchanged.
-
-PR #2475's archived JSON actually contains **13,537 / 14,670 (92.27675528289025%)**;
-its 13,441 numerator is a prose error of 96 statements. It is a separate capture,
-not the source of the new measurement. The new Python 3.14.9 / coverage 7.17.0
-capture has 44 fewer covered and total statements in `pa_core/wizard_schema.py`
-than that Python 3.12 / coverage 7.16.2 capture. The measured file set is identical;
-[module deltas](main-20261104/coverage-tool-comparison.json) preserve this distinction.
-
-## Historical evidence
+## Original #2336 evidence
 
 Eight tests run the real CLI simulation/report/manifest path while substituting only the
 optional image exporter and visualization objects. They exercise renderer imports, unrelated
@@ -245,13 +133,9 @@ retained in the archive. The previous PDF chunk (#2350) is already merged and is
 
 The complete baseline and candidate each exit 1 because
 `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best` hits the
-pre-existing local SciPy/NumPy import incompatibility (NumPy 1.26.4 + SciPy 1.18.0 on Python 3.12).
-The historical record attributes this failure to the local stack; the present pass
-with NumPy 2.5.4 + SciPy 1.18.1 on Python 3.13 and `optimizer_success=True`
-does not independently establish the earlier cause.
-No existing testcase outcome changed, no covered line regressed, and statement/exclusion scope
-is identical. Neither historical result is a full-suite PASS or 90% acceptance.
-The focused export suite reports **23 passed**.
+pre-existing local SciPy/NumPy import incompatibility. No existing testcase outcome changed,
+no covered line regressed, and statement/exclusion scope is identical. Neither result is a
+full-suite PASS or 90% acceptance. The focused export suite reports **23 passed**.
 
 Commands used with `/opt/anaconda3/bin/python3`:
 
@@ -314,10 +198,9 @@ candidate suite log, JUnit and coverage JSON. `current-manifest.json` binds ever
 and the current production, CLI-test, validator-test and replay inputs.
 `current-comparison.json` compares every old testcase outcome and covered line against
 the original baseline; the original archive and comparison keep their original identity.
-The current supported-stack optimizer test passes (see dispositions above).
-The historical non-PASS result remains documented; its unavailable diagnostics
-prevent a conclusive historical cause determination. Broader #2336, native renderer/Office exports,
-hosted acceptance and provider disposition remain separate from this bounded proof.
+The local SciPy/NumPy failure remains an explicit non-PASS full-suite result. Broader
+#2336, native renderer/Office exports, hosted acceptance and provider disposition remain
+separate from this bounded proof.
 
 Final candidate full suite: **1,674 passed, 1 failed, 1 skipped, 2 deselected**.
 Against the original baseline there are 20 new PASS nodes (eight CLI cases and

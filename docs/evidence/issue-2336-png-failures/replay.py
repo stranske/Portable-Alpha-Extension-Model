@@ -13,6 +13,8 @@ import tarfile
 import tempfile
 import xml.etree.ElementTree as ET
 
+REVISION = "f9853be5b782d0ddc63d5bd1505cd3e686f87d80"
+SOURCE_SHA256 = "95f0e38b1e2491ff23fe4f278c2d5c5d29a6293bfbf5ef14b64795a4c954906e"
 TEST = "tests/test_cli_png_failures.py"
 CASES = {
     "renderer": 'logger.error(f"PNG export failed due to missing dependency: {e}")',
@@ -56,22 +58,12 @@ def validate_junit_proof(junit_path, expected_test_name, phase, returncode, case
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--revision", default="origin/main", help="Git revision to measure")
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     repo = Path(__file__).resolve().parents[3]
     caller_inputs = {p: (repo / p).read_bytes() for p in ("pa_core/cli.py", TEST)}
-    # Freeze a branch name once, so a moving ref cannot change the measured snapshot.
-    revision = (
-        subprocess.check_output(
-            ["git", "rev-parse", "--verify", "--end-of-options", args.revision + "^{commit}"],
-            cwd=repo,
-        )
-        .decode()
-        .strip()
-    )
-    archive = subprocess.check_output(["git", "archive", revision], cwd=repo)
+    archive = subprocess.check_output(["git", "archive", REVISION], cwd=repo)
     results = []
     with tempfile.TemporaryDirectory(prefix="pa-png-proof-") as temp:
         private = Path(temp)
@@ -80,8 +72,8 @@ def main():
         (private / TEST).write_bytes(caller_inputs[TEST])
         source = private / "pa_core/cli.py"
         original = source.read_bytes()
-        if original != caller_inputs["pa_core/cli.py"]:
-            raise RuntimeError("Caller production source differs from selected revision")
+        if digest(original) != SOURCE_SHA256:
+            raise RuntimeError("Pinned production source digest mismatch")
         env = os.environ.copy()
         env["PYTHONPATH"] = str(private)
         env["PATH"] = str(Path(sys.executable).parent) + os.pathsep + env["PATH"]
@@ -115,8 +107,6 @@ def main():
                         "pytest",
                         node,
                         "-q",
-                        "-m",
-                        "not slow and not live_llm",
                         "--junitxml=" + str(junit),
                     ]
                     with (output / f"{case}-{phase}.txt").open("w") as log:
@@ -150,8 +140,7 @@ def main():
     (output / "results.json").write_text(
         json.dumps(
             {
-                "revision": revision,
-                "requested_revision": args.revision,
+                "revision": REVISION,
                 "caller_unchanged": True,
                 "inputs": {p: digest(content) for p, content in caller_inputs.items()},
                 "results": results,

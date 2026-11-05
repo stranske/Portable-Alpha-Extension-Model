@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import os
 import subprocess
-import sys
 import venv
 import zipfile
 from pathlib import Path
@@ -35,90 +34,28 @@ from pa_core.orchestrator import SimulatorOrchestrator
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _run_build_step(
-    argv: list, *, cwd: Path | None = None, env: dict[str, str] | None = None
-) -> None:
-    """Keep subprocess diagnostics in pytest's failure report, including JUnit."""
-    try:
-        subprocess.run(argv, check=True, capture_output=True, text=True, cwd=cwd, env=env)
-    except subprocess.CalledProcessError as exc:
-        pytest.fail(
-            f"Packaging command failed (exit {exc.returncode}): {exc.cmd}\n"
-            f"stdout:\n{exc.stdout}\nstderr:\n{exc.stderr}",
-            pytrace=False,
-        )
-
-
 def _build_wheel(destination: Path, source: Path) -> Path:
     environment = destination / "wheel-build-env"
     venv.EnvBuilder(with_pip=True).create(environment)
     python = environment / "bin" / "python"
-    _run_build_step([python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"])
+    subprocess.run(
+        [python, "-m", "pip", "install", "setuptools>=82.0.1", "wheel"],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
     wheel_dir = destination / "wheels"
     wheel_dir.mkdir(parents=True, exist_ok=True)
-    _run_build_step(
+    subprocess.run(
         [python, "-m", "pip", "wheel", str(source), "--no-deps", "-w", str(wheel_dir)],
+        check=True,
+        capture_output=True,
+        text=True,
         cwd=destination,
     )
     wheels = sorted(wheel_dir.glob("portable_alpha_extension_model-*.whl"))
     assert wheels, "expected a built project wheel"
     return wheels[-1]
-
-
-@pytest.mark.parametrize("failing_step", ["install", "wheel"])
-def test_build_wheel_retains_failed_command_output(tmp_path, monkeypatch, failing_step):
-    """Build failures must retain the cause needed to disposition packaging evidence."""
-    monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
-    calls = []
-
-    def run(argv, **kwargs):
-        calls.append(argv)
-        if argv[3] == failing_step:
-            raise subprocess.CalledProcessError(
-                1, argv, output="build stage output", stderr="incompatible build environment"
-            )
-        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
-
-    monkeypatch.setattr(subprocess, "run", run)
-    with pytest.raises(pytest.fail.Exception) as caught:
-        _build_wheel(tmp_path, tmp_path / "source")
-    message = str(caught.value)
-    assert "build stage output" in message
-    assert "incompatible build environment" in message
-    assert str(calls[-1]) in message
-    assert "exit 1" in message
-    assert len(calls) == (1 if failing_step == "install" else 2)
-
-
-@pytest.mark.parametrize("offline", [False, True])
-def test_installed_wheel_retains_failed_install_output(tmp_path, monkeypatch, offline):
-    """A wheel installation failure needs the same diagnostics as a build failure."""
-    wheel_path = tmp_path / "sample.whl"
-    with zipfile.ZipFile(wheel_path, "w") as archive:
-        archive.writestr("sample.dist-info/METADATA", "Name: sample\nVersion: 1\n")
-    monkeypatch.setattr(venv.EnvBuilder, "create", lambda *_args: None)
-    calls = []
-
-    def fail_install(argv, **kwargs):
-        calls.append((argv, kwargs))
-        raise subprocess.CalledProcessError(
-            1, argv, output="wheel installation output", stderr="unsupported Python version"
-        )
-
-    monkeypatch.setattr(subprocess, "run", fail_install)
-    with pytest.raises(pytest.fail.Exception) as caught:
-        _assert_installed_wheel_samples(wheel_path, tmp_path, offline=offline)
-    message = str(caught.value)
-    assert "wheel installation output" in message
-    assert "unsupported Python version" in message
-    assert "exit 1" in message
-    assert len(calls) == 1
-    argv, options = calls[0]
-    assert str(argv) in message
-    assert argv[1:5] == ["-I", "-m", "pip", "install"]
-    assert ("--no-index" in argv) is offline
-    assert options["cwd"] == tmp_path
-    assert options["env"]["PYTHONPATH"] == str(tmp_path / "metadata-decoy")
 
 
 @pytest.mark.slow
@@ -128,44 +65,8 @@ def test_wheel_install_exposes_bundled_dashboard_samples(
     """Non-editable installs must resolve index, asset, and portfolio samples (#2285)."""
     source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
     wheel_path = _build_wheel(tmp_path, source)
-    _assert_installed_wheel_samples(wheel_path, tmp_path)
-
-
-def test_offline_wheel_install_exposes_bundled_dashboard_samples(
-    tmp_path: Path, stage_packaging_source: Callable[[Path, Path], Path]
-) -> None:
-    """Verify installed product files offline using the interpreter's dependencies.
-
-    This complements the slow fresh-dependency installation above. The isolated
-    probe still requires both product packages to come from the new venv.
-    """
-    source = stage_packaging_source(REPO_ROOT, tmp_path / "source")
-    wheel_dir = tmp_path / "wheels"
-    _run_build_step(
-        [
-            sys.executable,
-            "-I",
-            "-m",
-            "pip",
-            "wheel",
-            str(source),
-            "--no-deps",
-            "--no-build-isolation",
-            "--no-index",
-            "-w",
-            str(wheel_dir),
-        ],
-        cwd=tmp_path,
-    )
-    (wheel_path,) = wheel_dir.glob("portable_alpha_extension_model-*.whl")
-    _assert_installed_wheel_samples(wheel_path, tmp_path, offline=True)
-
-
-def _assert_installed_wheel_samples(
-    wheel_path: Path, tmp_path: Path, *, offline: bool = False
-) -> None:
     install_root = tmp_path / "install-env"
-    venv.EnvBuilder(with_pip=True, system_site_packages=offline).create(install_root)
+    venv.EnvBuilder(with_pip=True).create(install_root)
     python = install_root / "bin" / "python"
     # An inherited source distribution can make pip report the wheel as already
     # installed even in this fresh venv. Reproduce that metadata-only decoy so
@@ -179,9 +80,11 @@ def _assert_installed_wheel_samples(
         metadata_path.parent.mkdir(parents=True)
         metadata_path.write_bytes(archive.read(metadata_name))
     install_env = {**os.environ, "PYTHONPATH": str(metadata_decoy)}
-    install_options = ["--no-index", "--no-deps", "--ignore-installed"] if offline else []
-    _run_build_step(
-        [python, "-I", "-m", "pip", "install", *install_options, str(wheel_path)],
+    subprocess.run(
+        [python, "-I", "-m", "pip", "install", str(wheel_path)],
+        check=True,
+        capture_output=True,
+        text=True,
         cwd=tmp_path,
         env=install_env,
     )
@@ -209,18 +112,16 @@ from dashboard.utils import (
     bundled_portfolio_template_path,
     bundled_sample_index_path,
     load_bundled_asset_returns,
-    load_bundled_sample_index,
 )
 from pa_core.schema import load_scenario
 
 index_path = bundled_sample_index_path()
 asset_path = bundled_asset_timeseries_path()
 portfolio_path = bundled_portfolio_template_path()
-for path in (index_path, asset_path, portfolio_path):
-    assert path.is_file(), path
-    assert path.resolve().is_relative_to(Path(sys.prefix).resolve()), path
-assert not load_bundled_sample_index().empty
-assert not load_bundled_asset_returns().empty
+assert index_path.is_file(), index_path
+assert asset_path.is_file(), asset_path
+assert portfolio_path.is_file(), portfolio_path
+load_bundled_asset_returns()
 load_scenario(portfolio_path)
 print("ok")
 """

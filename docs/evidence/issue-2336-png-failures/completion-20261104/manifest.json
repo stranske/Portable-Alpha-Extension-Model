@@ -1,28 +1,8 @@
 {
   "files": {
-    "README.md": {
-      "bytes": 8595,
-      "sha256": "21ba09f550630c5a8406bb561def22634c183a7ac78225192b8cb2bfdc67526c"
-    },
-    "black-check.txt": {
-      "bytes": 184,
-      "sha256": "0b0699ce437a6e3b7cf4252a71c3e7cf026e92028963d25cf5bfc9fc120ab02a"
-    },
-    "black-serial.txt": {
-      "bytes": 35,
-      "sha256": "de3f2eed6749a0c46dde6be8a0dbfa7c0d23591e7ed54301794c1ddf10a15fdd"
-    },
-    "capture-summary.txt": {
-      "bytes": 159,
-      "sha256": "cfc311c414e02f5a1868fe26b274f28aca6c9008c33492dd65f95bc5a09aa0e8"
-    },
     "commands.json": {
       "bytes": 1083,
       "sha256": "1b4e317303cbcdddd3d15a2351bb723b1b9ff8e3989004dd37486a0fbf910980"
-    },
-    "driver-red.txt": {
-      "bytes": 3446,
-      "sha256": "8f428fc35350267fa369f267b91157ba6e7257d164cb2d72fd896bfd985081d0"
     },
     "focused.txt": {
       "bytes": 5307,
@@ -51,14 +31,6 @@
     "main-capture/coverage.json": {
       "bytes": 737408,
       "sha256": "d071674fc0135fd67b776460e1fab842117c393efb18cdadb916884ecb9fa423"
-    },
-    "main-capture/full-suite.txt": {
-      "bytes": 70128,
-      "sha256": "46492ea385ffa829e03d2659037067d42fafe2433c738301b86759df6d5a8216"
-    },
-    "main-capture/full-suite.xml": {
-      "bytes": 267737,
-      "sha256": "724963930d46ff94206f171b8ed156e2d7ad12838b7a743f62c5547675aaef66"
     },
     "main-capture/summary.json": {
       "bytes": 68481,
@@ -235,28 +207,12 @@
     "png-proof/value-red.xml": {
       "bytes": 6279,
       "sha256": "34123e20c194636a6e765c2d60dba36c98d3488983c04b5337bc9ffbd8823488"
-    },
-    "regressions.txt": {
-      "bytes": 705,
-      "sha256": "e339508bf812908d999931473e3b84c842f7203faae51296664c641239b0c635"
-    },
-    "regressions.xml": {
-      "bytes": 9126,
-      "sha256": "fc1b57f486b29e736518760656aef03eb1c9c5d0777f6b23d00ba4d8e8e51d30"
-    },
-    "replay.txt": {
-      "bytes": 83,
-      "sha256": "0ee6ef5125afd5e921f8aee14cdcc505239e595d7386d45a083be64410f7c84c"
-    },
-    "ruff.txt": {
-      "bytes": 19,
-      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18"
     }
   },
   "inputs": {
     "docs/evidence/issue-2336-png-failures/capture.py": "50f730f3ba4b6c6e1e76ebdb16ded7f8541fb4aefd185707f37e64644d77f8eb",
     "docs/evidence/issue-2336-png-failures/png_capture_completion.py": "d9f695860fc9124e380504693328f815ba518e68fccac2d4ce6d116002538a62",
-    "tests/test_png_coverage_capture.py": "a6dfe6afca414cd276f75706ebcaa485d14a609b59098e244f67af00833d88a5",
-    "pa_core/cli.py": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e"
+    "pa_core/cli.py": "d979ab73274b096be0f5f0f90edf7644550aba09ac8b4d3b50b058780dba567e",
+    "tests/test_png_coverage_capture.py": "a6dfe6afca414cd276f75706ebcaa485d14a609b59098e244f67af00833d88a5"
   }
 }

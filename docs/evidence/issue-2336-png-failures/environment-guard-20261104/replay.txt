@@ -1,1 +1,0 @@
-Eight exact assertion RED / byte-identical restored GREEN pairs; caller unchanged.
