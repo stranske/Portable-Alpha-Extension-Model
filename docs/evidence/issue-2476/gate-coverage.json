@@ -2273,8 +2273,8 @@
       "suite_note": "1991 passed, 3 skipped on 2026-11-05."
     },
     "delivered": {
-      "revision": "07b11c91eed145a3cb595b777265fe9f4525690c",
-      "role": "tests/test_coverage_round_2381.py strengthened on the before_this_work tree. Coverage was measured on these test and product bytes. A later evidence-only commit records this SHA and does not change them.",
+        "revision": "07b11c91eed145a3cb595b777265fe9f4525690c",
+        "role": "tests/test_coverage_round_2381.py strengthened on the before_this_work tree. Coverage was measured on these test and product bytes. A later evidence-only commit records this SHA and does not change them.",
       "statements": {
         "targets": {
           "pa_core/llm/result_explain.py": {
@@ -2498,7 +2498,7 @@
   "production_changes": [],
   "continuation_acceptance": {
     "check_date": "2026-11-05",
-    "outcome": "Focused behavioral tests pass on the selected repository interpreter in under 120 seconds; final-head Python CI / lint-format concludes success.",
+    "required_outcome": "Focused behavioral tests pass on the selected repository interpreter in under 120 seconds; final-head Python CI / lint-format concludes success.",
     "outcome_command": "./.venv/bin/python -m pytest -q tests/test_coverage_round_2381.py",
     "stop_rule": "One focused acceptance attempt and one formatter attempt, each bounded to 120 seconds. Stop validation on the first failure without widening scope.",
     "selected_interpreter": "/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2484__closer/.venv/bin/python",
