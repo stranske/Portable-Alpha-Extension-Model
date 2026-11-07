@@ -13,6 +13,7 @@ DEFAULT = ROOT / "docs/evidence/issue-2360-closer-repair"
 BASE = "10ac6839518576d4dc5199a24392eadfc388c713"
 MERGED = "e8967edb2aa1bdbc1a68ea58ed241cf205915d03"
 ASSESSED = "a2f4ef50403a0a90e8535e4daef5e6c691037bd2"
+REPOSITORY = "stranske/Portable-Alpha-Extension-Model"
 WIZARD_SHA256 = "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
 ORIGINAL_CASES = (
     "test_progress_bar_marks_completed_current_and_future_steps",
@@ -45,17 +46,37 @@ def check_revisions(directory: Path) -> tuple[str, str]:
 def check_ci(directory: Path) -> tuple[str, str]:
     run = read_json(directory, "recheck/ci-run.json")
     jobs = read_json(directory, "recheck/ci-jobs.json")["jobs"]
+    receipt = read_json(directory, "recheck/ci-pytest-job.json")
+    pytest_job = receipt["job"]
+    run_url = f"https://github.com/{REPOSITORY}/actions/runs/{run['id']}"
+    api_run_url = f"https://api.github.com/repos/{REPOSITORY}/actions/runs/{run['id']}"
     excerpt = (directory / "recheck/ci-pytest-excerpt.txt").read_text()
     valid = (
         run["head_sha"] == ASSESSED
         and run["status"] == "completed"
         and run["conclusion"] == "success"
-        and run["html_url"].endswith(f"/actions/runs/{run['id']}")
+        and run["html_url"] == run_url
+        and receipt["source_url"] == f"{api_run_url}/jobs"
+        and pytest_job["run_id"] == run["id"]
+        and pytest_job["run_url"] == api_run_url
+        and pytest_job["head_sha"] == ASSESSED
+        and pytest_job["run_attempt"] == run["run_attempt"]
+        and pytest_job["html_url"] == f"{run_url}/job/{pytest_job['id']}"
+        and pytest_job["status"] == "completed"
+        and pytest_job["conclusion"] == "success"
+        and any(
+            step["name"] == "Pytest (unit tests with coverage)"
+            and step["status"] == "completed"
+            and step["conclusion"] == "success"
+            for step in pytest_job.get("steps") or []
+        )
         and ASSESSED in excerpt
         and 'pytest -p ci_test_growth "${args[@]}"' in excerpt
         and re.search(r"\b\d+ passed\b", excerpt) is not None
         and any(
-            job["run_id"] == run["id"]
+            job.get("id") == pytest_job["id"]
+            and job["name"] == pytest_job["name"]
+            and job["run_id"] == run["id"]
             and job["status"] == "completed"
             and job["conclusion"] == "success"
             and any(

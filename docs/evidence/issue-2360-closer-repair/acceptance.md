@@ -21,6 +21,28 @@ historical execution**, and **45 minutes total** for this round. A missing
 receipt stays UNKNOWN; failed tests stay FAIL. Stop retries at that boundary,
 record the failing command and limitation, and do not mark blocked tasks done.
 
+## Follow-up reconciliation contract (2026-11-07 UTC)
+
+Reviewed commit `5946ea205281269d8dcda53c73d1293b79e0df22` before
+changing source. Its receipts already implement the six distinct tasks above;
+the repeated unchecked tasks in PR #2485 are stale. The recorded verification
+command exits 0 and all 17 existing evidence tests pass. Reconciliation applies
+to the 22 current task/acceptance checkboxes, preserving the quoted original
+issue as historical text. No full-suite or ranking compliance is inferred.
+
+The follow-up uses the same verification command, required PASS/FAIL/UNKNOWN
+output, and finite stop rule (two remote attempts per receipt, 45 minutes).
+The expected outcome is PASS for inspected receipts and FAIL if a successful
+job is bound to another SHA, run, attempt, or repository. Before implementation,
+the connector re-read run 41661022529 and its jobs: completed success at the
+assessed SHA, with the pytest job and step successful. `gh run list` and
+`gh run view` again exited 1 because shell network access is unavailable.
+
+Updating PR #2485's body was rejected with `MCP tool call requires approval,
+but approval policy is never`. The verified checkbox reconciliation cannot be
+published from this environment. This local record retains the completed work;
+the remote checkbox update remains a delivery blocker.
+
 ## Initial inspection
 
 The requested `gh issue view 2360`, `gh pr view 2372`, and `gh pr view 2467`
@@ -95,6 +117,12 @@ and tested head `a2f4ef50403a0a90e8535e4daef5e6c691037bd2`.
 `Python CI / python 3.14`, completed successfully. Its step
 `Pytest (unit tests with coverage)` also completed with `success`.
 [ci-jobs.json](./recheck/ci-jobs.json) preserves job/step results;
+[ci-pytest-job.json](./recheck/ci-pytest-job.json) preserves selected raw REST
+job fields and the pytest step, including the job's own head SHA, run attempt,
+run URL and job URL. Unlike the normalized connector list, these fields bind
+the successful job independently to the assessed run and repository. The
+follow-up verifier rejects a different SHA, attempt, run, repository, unlisted
+job or unsuccessful pytest step, and fails overall if this receipt is missing.
 [ci-pytest-excerpt.txt](./recheck/ci-pytest-excerpt.txt) preserves selected actual
 log lines showing checkout SHA, argument construction, invocation, and result:
 

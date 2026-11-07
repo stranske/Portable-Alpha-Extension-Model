@@ -47,6 +47,63 @@ def test_ci_requires_exact_head_and_executed_pytest(evidence: Path, breakage: st
     assert verifier.check_ci(evidence)[0] == "FAIL"
 
 
+@pytest.mark.parametrize(
+    "breakage",
+    [
+        "stale_job_head",
+        "other_attempt",
+        "other_run",
+        "unlisted_job",
+        "failed_job",
+        "skipped_pytest",
+        "other_job_repository",
+        "other_run_repository",
+        "other_source",
+    ],
+)
+def test_ci_rejects_mixed_run_and_job_receipts(evidence: Path, breakage: str) -> None:
+    # A successful run and normalized job list must not mask a mismatched raw job.
+    def update(record):
+        job = record["job"]
+        if breakage == "stale_job_head":
+            job["head_sha"] = "0" * 40
+        elif breakage == "other_attempt":
+            job["run_attempt"] += 1
+        elif breakage == "other_run":
+            job["run_id"] += 1
+        elif breakage == "unlisted_job":
+            job["id"] += 1
+            job["html_url"] = job["html_url"].rsplit("/", 1)[0] + f"/{job['id']}"
+        elif breakage == "failed_job":
+            job["conclusion"] = "failure"
+        elif breakage == "skipped_pytest":
+            for step in job["steps"]:
+                if step["name"] == "Pytest (unit tests with coverage)":
+                    step["conclusion"] = "skipped"
+        elif breakage == "other_job_repository":
+            job["html_url"] = job["html_url"].replace("stranske/", "unrelated/")
+        elif breakage == "other_run_repository":
+            change_json(
+                evidence,
+                "recheck/ci-run.json",
+                lambda run: run.update(html_url=run["html_url"].replace("stranske/", "unrelated/")),
+            )
+        else:
+            record["source_url"] = record["source_url"].replace("stranske/", "unrelated/")
+
+    change_json(evidence, "recheck/ci-pytest-job.json", update)
+    assert verifier.check_ci(evidence)[0] == "FAIL"
+
+
+def test_missing_raw_ci_job_prevents_overall_pass(evidence: Path, capsys) -> None:
+    (evidence / "recheck/ci-pytest-job.json").unlink()
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: CI:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 @pytest.mark.parametrize("breakage", ["missing", "duplicate", "wrong_failure", "not_restored"])
 def test_mutations_require_each_original_named_failure_and_restoration(
     evidence: Path, breakage: str
