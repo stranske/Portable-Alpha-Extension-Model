@@ -151,6 +151,31 @@ def test_missing_raw_ci_job_prevents_overall_pass(evidence: Path, capsys) -> Non
     assert "OVERALL PASS" not in output
 
 
+@pytest.mark.parametrize(
+    "summary",
+    [
+        "========== 0 passed in 0.01s ==========",
+        "========== 1 passed, 1 failed in 0.01s ==========",
+        "========== 1 failed, 1 passed in 0.01s ==========",
+        "========== 1 passed, 1 error in 0.01s ==========",
+        "========== 1 passed, 2 errors in 0.01s ==========",
+        "Progress report: 1 passed",
+    ],
+)
+def test_ci_requires_successful_terminal_pytest_result(
+    evidence: Path, summary: str, capsys
+) -> None:
+    path = evidence / "recheck/ci-pytest-excerpt.txt"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    lines = [summary if "1969 passed" in line else line for line in lines]
+    path.write_text("\n".join(lines), encoding="utf-8")
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: CI:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 @pytest.mark.parametrize("breakage", ["missing", "duplicate", "wrong_failure", "not_restored"])
 def test_mutations_require_each_original_named_failure_and_restoration(
     evidence: Path, breakage: str

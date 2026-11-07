@@ -89,6 +89,41 @@ branch or publish changes to PR #2485.
 
 ## Initial inspection
 
+### CI terminal-result follow-up (2026-11-07 UTC)
+
+Before source or test edits, reviewed commits `5946ea20`, `c62ed299`,
+`692a0b68` and `8897f8f7`. The retained verifier prints six PASS results and
+OVERALL PASS (exit 0); all 54 evidence tests pass. Live connector reads confirm
+the original issue requirements, both merged PR revisions and successful run
+`41661022529` at the assessed head. Requested `gh` reads still exit 1 because
+shell network access is unavailable. PR #2485 is open, `draft=false`, at
+`8897f8f7dbba3fd3a4bae6dde43414be72b639d1`.
+
+The six unchecked current task/acceptance entries duplicate verified work.
+Attempting to reconcile those entries while preserving the nested original
+issue was rejected: `MCP tool call requires approval, but approval policy is
+never`. Remote checkbox publication remains blocked; no update is claimed.
+
+Continue with the next unchecked task's CI validation: its log check currently
+accepts zero passing tests or a summary containing both passing and failed tests.
+Add regression cases and require a successful terminal pytest summary consistent
+with the successful job receipt. Expected output from
+`python scripts/verify_issue_2360_evidence.py` remains PASS/FAIL/UNKNOWN per
+requirement and OVERALL FAIL (exit 1) for contradictory or missing CI results.
+Stop after two attempts per unavailable receipt or 45 minutes total. Retained
+historical measurements will not be repeated unless inspection invalidates them.
+
+Verified: all six new regression cases failed before the fix; all **77** targeted
+tests pass afterward, with 97% verifier statement coverage. The acceptance command
+prints six PASS results and OVERALL PASS; Ruff and the full repository Black check
+pass (535 files unchanged, using the temporary runtime accommodation above).
+Live job `126004180807` and its pytest step both report completed success at the
+assessed SHA. See `ci_terminal_result_followup` in
+[validation.json](./recheck/validation.json). No historical coverage or ranking
+finding changed. Staging exited 128 because `.git/index.lock` is read-only;
+a source commit and patch are prepared in a writable disposable clone under
+`/tmp/issue2360-ci-delivery`, without advancing the working branch.
+
 ### Coverage validation follow-up (2026-11-07 UTC)
 
 Before source edits, reviewed `5946ea20` and `c62ed299`, reran the recorded

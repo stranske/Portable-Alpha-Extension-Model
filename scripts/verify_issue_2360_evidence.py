@@ -76,7 +76,14 @@ def check_ci(directory: Path) -> tuple[str, str]:
     pytest_job = receipt["job"]
     run_url = f"https://github.com/{REPOSITORY}/actions/runs/{run['id']}"
     api_run_url = f"https://api.github.com/repos/{REPOSITORY}/actions/runs/{run['id']}"
-    excerpt = (directory / "recheck/ci-pytest-excerpt.txt").read_text()
+    excerpt = (directory / "recheck/ci-pytest-excerpt.txt").read_text(encoding="utf-8")
+    # A progress message or mixed passing/failing result is not successful pytest.
+    summaries = re.findall(
+        r"=+[ \t]+([^\r\n]*\bin \d+(?:\.\d+)?s(?: \([^\r\n)]+\))?)[ \t]+=+[ \t]*$",
+        excerpt,
+        re.MULTILINE,
+    )
+    summary = summaries[-1] if summaries else ""
     valid = (
         run["head_sha"] == ASSESSED
         and run["status"] == "completed"
@@ -98,7 +105,8 @@ def check_ci(directory: Path) -> tuple[str, str]:
         )
         and ASSESSED in excerpt
         and 'pytest -p ci_test_growth "${args[@]}"' in excerpt
-        and re.search(r"\b\d+ passed\b", excerpt) is not None
+        and re.search(r"\b[1-9]\d* passed\b", summary) is not None
+        and re.search(r"\b\d+ (?:failed|errors?)\b", summary) is None
         and any(
             job.get("id") == pytest_job["id"]
             and job["name"] == pytest_job["name"]
