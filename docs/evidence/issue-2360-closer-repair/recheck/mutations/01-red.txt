@@ -1,0 +1,31 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_progress_bar_marks_completed_current_and_future_steps __________
+
+wizard_module = {'__name__': '<run_path>', '__doc__': '5-Step Wizard for guided scenario creation with validation.', '__package__': '', '__loader__': None, ...}
+
+    def test_progress_bar_marks_completed_current_and_future_steps(wizard_module: dict[str, Any]) -> None:
+        fake_st = _FakeStreamlit()
+        wizard_module["_render_progress_bar"].__globals__["st"] = fake_st
+
+        wizard_module["_render_progress_bar"](2)
+
+        assert ("progress", 0.4) in fake_st.calls
+        assert ("success", "✅ 1. Analysis Mode") in fake_st.calls
+>       assert ("info", "📍 2. Capital Allocation") in fake_st.calls
+E       AssertionError: assert ('info', '📍 2. Capital Allocation') in [('markdown', '### 📋 Scenario Configuration Wizard'), ('progress', 0.4), ('success', '✅ 1. Analysis Mode'), ('write', '📍 2. Capital Allocation'), ('write', '⭕ 3. Return & Risk'), ('write', '⭕ 4. Correlations'), ...]
+E        +  where [('markdown', '### 📋 Scenario Configuration Wizard'), ('progress', 0.4), ('success', '✅ 1. Analysis Mode'), ('write', '📍 2. Capital Allocation'), ('write', '⭕ 3. Return & Risk'), ('write', '⭕ 4. Correlations'), ...] = <test_wizard_render_coverage._FakeStreamlit object at 0x72d91f7a01a0>.calls
+
+tests/test_wizard_render_coverage.py:123: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-11-07 04:32:34.029 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_wizard_render_coverage.py::test_progress_bar_marks_completed_current_and_future_steps - AssertionError: assert ('info', '📍 2. Capital Allocation') in [('markdown', '### 📋 Scenario Configuration Wizard'), ('progress', 0.4), ('success', '✅ 1. Analysis Mode'), ('write', '📍 2. Capital Allocation'), ('write', '⭕ 3. Return & Risk'), ('write', '⭕ 4. Correlations'), ...]
+ +  where [('markdown', '### 📋 Scenario Configuration Wizard'), ('progress', 0.4), ('success', '✅ 1. Analysis Mode'), ('write', '📍 2. Capital Allocation'), ('write', '⭕ 3. Return & Risk'), ('write', '⭕ 4. Correlations'), ...] = <test_wizard_render_coverage._FakeStreamlit object at 0x72d91f7a01a0>.calls
+1 failed, 13 warnings in 2.34s

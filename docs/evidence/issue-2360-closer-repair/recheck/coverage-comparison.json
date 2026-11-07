@@ -1,0 +1,47 @@
+{
+  "status": "measured",
+  "scope": "isolated wizard-selected suite, not a full-suite or Gate measurement",
+  "python": "3.14.10",
+  "pytest": "9.2.0",
+  "coverage": "7.17.2",
+  "before": {
+    "revision": "10ac6839518576d4dc5199a24392eadfc388c713",
+    "exit_code": 0,
+    "selection": "tests/ -k wizard -m 'not slow and not live_llm'",
+    "settings": {
+      "branch": true,
+      "config": "pyproject.toml",
+      "source": [
+        "pa_core",
+        "dashboard",
+        "design-system"
+      ]
+    },
+    "command": "python -m pytest tests/ -q -k wizard -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-base-wizard-coverage.json --cov-report=term-missing",
+    "coverage_record": "recheck/coverage-base.json",
+    "output": "recheck/base-wizard-coverage.txt"
+  },
+  "after": {
+    "revision": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+    "exit_code": 0,
+    "selection": "tests/ -k wizard -m 'not slow and not live_llm'",
+    "settings": {
+      "branch": true,
+      "config": "pyproject.toml",
+      "source": [
+        "pa_core",
+        "dashboard",
+        "design-system"
+      ]
+    },
+    "command": "python -m pytest tests/ -q -k wizard -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-merged-wizard-coverage.json --cov-report=term-missing",
+    "coverage_record": "recheck/coverage-merged.json",
+    "output": "recheck/merged-wizard-coverage.txt"
+  },
+  "full_suite_attempt": {
+    "exit_code": 130,
+    "before_command": "python -m pytest tests/ -q -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-base-coverage.json --cov-report=term-missing -n 2 --dist=loadgroup",
+    "after_command": "python -m pytest tests/ -q -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-merged-coverage.json --cov-report=term-missing -n 2 --dist=loadgroup",
+    "limitation": "Both reported failures and stopped progressing near completion; manually interrupted (exit 130). No terminal coverage JSON recovered. Failure causes were not diagnosed. The current Python 3.14.10 interpreter and dependency set were used, not a recovered historical CI environment. Partial output is not attributed."
+  }
+}

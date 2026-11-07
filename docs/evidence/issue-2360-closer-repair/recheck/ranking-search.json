@@ -1,0 +1,44 @@
+{
+  "checked_at": "2026-11-07",
+  "status": "UNKNOWN",
+  "matching_dispatch_receipt": null,
+  "matching_incident_mapping": null,
+  "sources_checked": [
+    {
+      "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2360",
+      "result": "Issue body supplies dispatch values 1/1/338 and ordering, but no candidate receipt, incident ID or fix SHA."
+    },
+    {
+      "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2360#issuecomment-6233853935",
+      "result": "Original acceptance reopened pending durable evidence; no ranking receipt in any of the three issue comments."
+    },
+    {
+      "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2372",
+      "result": "PR body and retrieved comments contain no causally matched ranking receipt or incident mapping."
+    },
+    {
+      "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2467",
+      "result": "Acknowledges original provenance UNKNOWN; older ranking archive is independent corroboration only."
+    },
+    {
+      "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/38976251518",
+      "endpoint": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38976251518/artifacts",
+      "result": "Artifact listing contains only langsmith-fleet.ndjson, no ranking dispatch receipt."
+    },
+    {
+      "source": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/39032467779",
+      "endpoint": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/actions/runs/39032467779/artifacts",
+      "result": "Artifact listing contains only langsmith-fleet.ndjson, no ranking dispatch receipt."
+    },
+    {
+      "source": "docs/evidence/issue-2336-next-boundaries/ranking.json",
+      "result": "Older candidate ranking: wizard rank 2, repair-subject proxy 23, churn 65, uncovered statements 338. No binding to #2360 dispatch."
+    },
+    {
+      "source": "rg -l '2360' docs/evidence --glob '*.json' --glob '*.md' --glob '*.txt'",
+      "result": "Broad numeric hits in older #2336 manifests and #2382 coverage JSON were not issue identifiers. A follow-up search for issue/path identifiers found no #2360 dispatch binding there; only the existing repair record identifies this issue.",
+      "followup_command": "rg -n --max-columns 200 --max-columns-preview 'issue.?2360|issues/2360|#2360|issue-2360|orchestrator/issue-2360' docs/evidence/issue-2336-next-boundaries/manifest.json docs/evidence/issue-2336-cli-snapshots/prior-manifest.json docs/evidence/issue-2382-closer-repair"
+    }
+  ],
+  "limitation": "Bounded search exhausted inspectable issue/PR records, two linked Gate artifact listings, and local evidence. Original dispatch provenance unrecoverable from those sources; no ranking compliance claimed."
+}

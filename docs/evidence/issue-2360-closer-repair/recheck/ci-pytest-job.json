@@ -1,0 +1,26 @@
+{
+  "source_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529/jobs",
+  "checked_at": "2026-11-07",
+  "job": {
+    "id": 126004180807,
+    "run_id": 41661022529,
+    "run_url": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529",
+    "head_sha": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+    "run_attempt": 1,
+    "html_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529/job/126004180807",
+    "name": "Python CI / python 3.14",
+    "status": "completed",
+    "conclusion": "success",
+    "steps": [
+      {
+        "name": "Pytest (unit tests with coverage)",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 20,
+        "started_at": "2026-11-03T15:11:23Z",
+        "completed_at": "2026-11-03T15:13:39Z"
+      }
+    ]
+  },
+  "representation": "Selected job fields and pytest step copied from the raw REST jobs response."
+}

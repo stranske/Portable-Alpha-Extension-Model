@@ -1,0 +1,32 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__________ test_margin_schedule_loader_hides_invalid_schedule_errors ___________
+
+wizard_module = {'__name__': '<run_path>', '__doc__': '5-Step Wizard for guided scenario creation with validation.', '__package__': '', '__loader__': None, ...}
+tmp_path = PosixPath('/tmp/pytest-of-runner/pytest-8/test_margin_schedule_loader_hi0')
+
+    def test_margin_schedule_loader_hides_invalid_schedule_errors(
+        wizard_module: dict[str, Any], tmp_path: Any
+    ) -> None:
+        schedule_path = tmp_path / "invalid.csv"
+        schedule_path.write_text("not,a,schedule\n")
+        func_globals = wizard_module["_load_margin_schedule_from_path"].__globals__
+        func_globals["load_margin_schedule"] = lambda _path: (_ for _ in ()).throw(ValueError("bad"))
+
+        schedule, resolved_path = wizard_module["_load_margin_schedule_from_path"](schedule_path)
+
+>       assert schedule is None
+E       assert Empty DataFrame\nColumns: []\nIndex: [] is None
+
+tests/test_wizard_render_coverage.py:253: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-11-07 04:34:24.533 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_wizard_render_coverage.py::test_margin_schedule_loader_hides_invalid_schedule_errors - assert Empty DataFrame\nColumns: []\nIndex: [] is None
+1 failed, 13 warnings in 2.38s

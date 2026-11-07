@@ -1,0 +1,104 @@
+{
+  "revision": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+  "wizard_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654",
+  "checkout": "disposable clone; original bytes restored in finally after every case",
+  "results": [
+    {
+      "node": "test_progress_bar_marks_completed_current_and_future_steps",
+      "name": "current step uses wrong status",
+      "before": "st.info(f\"\ud83d\udccd {i + 1}. {step_name}\")",
+      "after": "st.write(f\"\ud83d\udccd {i + 1}. {step_name}\")",
+      "red_exit": 1,
+      "red_output": "01-red.txt",
+      "green_exit": 0,
+      "green_output": "01-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' tests/test_wizard_render_coverage.py::test_progress_bar_marks_completed_current_and_future_steps",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]",
+      "name": "mismatched allocation uses warning instead of error",
+      "before": "st.error(\n            f\"\u274c Capital allocation mismatch!",
+      "after": "st.warning(\n            f\"\u274c Capital allocation mismatch!",
+      "red_exit": 1,
+      "red_output": "02-red.txt",
+      "green_exit": 0,
+      "green_output": "02-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' 'tests/test_wizard_render_coverage.py::test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]'",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_capital_step_reports_allocation_status_and_balanced_chart[60.0-success]",
+      "name": "balanced allocation chart suppressed",
+      "before": "if total_allocated > 0:\n            allocation_data = {",
+      "after": "if total_allocated < 0:\n            allocation_data = {",
+      "red_exit": 1,
+      "red_output": "03-red.txt",
+      "green_exit": 0,
+      "green_output": "03-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' 'tests/test_wizard_render_coverage.py::test_capital_step_reports_allocation_status_and_balanced_chart[60.0-success]'",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_capital_step_handles_uploaded_and_persisted_margin_schedules[True]",
+      "name": "uploaded schedule loses validation success",
+      "before": "st.success(\"Schedule validated \u2713\")",
+      "after": "st.info(\"Schedule validated \u2713\")",
+      "red_exit": 1,
+      "red_output": "04-red.txt",
+      "green_exit": 0,
+      "green_output": "04-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' 'tests/test_wizard_render_coverage.py::test_capital_step_handles_uploaded_and_persisted_margin_schedules[True]'",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_capital_step_handles_uploaded_and_persisted_margin_schedules[False]",
+      "name": "persisted schedule loses info",
+      "before": "st.info(f\"Using schedule at {schedule_path}\")",
+      "after": "st.write(f\"Using schedule at {schedule_path}\")",
+      "red_exit": 1,
+      "red_output": "05-red.txt",
+      "green_exit": 0,
+      "green_output": "05-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' 'tests/test_wizard_render_coverage.py::test_capital_step_handles_uploaded_and_persisted_margin_schedules[False]'",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_sleeve_suggestor_explains_missing_or_empty_results[None]",
+      "name": "missing suggestions raises spurious warning",
+      "before": "if suggestions is None:\n        return",
+      "after": "if suggestions is None:\n        st.warning(\"Unexpected missing suggestions\")\n        return",
+      "red_exit": 1,
+      "red_output": "06-red.txt",
+      "green_exit": 0,
+      "green_output": "06-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' 'tests/test_wizard_render_coverage.py::test_sleeve_suggestor_explains_missing_or_empty_results[None]'",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_sleeve_suggestor_explains_missing_or_empty_results[empty]",
+      "name": "empty suggestions loses warning",
+      "before": "st.warning(\"No feasible sleeve allocations found.\")",
+      "after": "st.info(\"No feasible sleeve allocations found.\")",
+      "red_exit": 1,
+      "red_output": "07-red.txt",
+      "green_exit": 0,
+      "green_output": "07-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' 'tests/test_wizard_render_coverage.py::test_sleeve_suggestor_explains_missing_or_empty_results[empty]'",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    },
+    {
+      "node": "test_margin_schedule_loader_hides_invalid_schedule_errors",
+      "name": "loader returns invalid schedule instead of hiding error",
+      "before": "return load_margin_schedule(path), path\n    except Exception:\n        return None, None",
+      "after": "return load_margin_schedule(path), path\n    except Exception:\n        return pd.DataFrame(), path",
+      "red_exit": 1,
+      "red_output": "08-red.txt",
+      "green_exit": 0,
+      "green_output": "08-green.txt",
+      "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -B -m pytest -q -m 'not slow and not live_llm' tests/test_wizard_render_coverage.py::test_margin_schedule_loader_hides_invalid_schedule_errors",
+      "restored_sha256": "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+    }
+  ],
+  "output_normalization": "Trailing whitespace removed from console lines only"
+}
