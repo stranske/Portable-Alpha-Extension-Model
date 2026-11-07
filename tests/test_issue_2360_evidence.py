@@ -27,6 +27,7 @@ def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_revisions(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_ci(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_mutations(verifier.DEFAULT)[0] == "PASS"
+    assert verifier.check_coverage(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_contract(verifier.DEFAULT)[0] == "PASS"
 
 
@@ -156,41 +157,81 @@ def test_ranking_unknown_is_not_reported_as_historical_compliance() -> None:
     assert "no selection compliance claim" in detail
 
 
-@pytest.mark.parametrize(
-    "breakage", [None, "later_revision", "selection", "denominator", "shortfall"]
-)
+@pytest.mark.parametrize("breakage", [None, "later_revision", "selection", "denominator"])
 def test_coverage_requires_isolated_comparable_execution(evidence: Path, breakage: str) -> None:
-    # This synthetic pair exercises validation; it is never written to durable evidence.
-    entries = []
-    for index, revision in enumerate((verifier.BASE, verifier.MERGED)):
-        name = f"synthetic-{index}.json"
-        summary = {
-            "num_statements": 100,
-            "num_branches": 40,
-            "missing_lines": 80 if index == 0 else 20,
-            "missing_branches": 30 if index == 0 else 20,
-        }
-        if index == 1 and breakage == "denominator":
-            summary["num_statements"] += 1
-        if index == 1 and breakage == "shortfall":
-            summary["missing_lines"] = 75
-        (evidence / name).write_text(
-            json.dumps({"files": {"dashboard/pages/3_Scenario_Wizard.py": {"summary": summary}}})
-        )
-        entries.append(
-            {
-                "revision": revision,
-                "exit_code": 0,
-                "selection": "tests/ -m 'not slow and not live_llm'",
-                "settings": {"branch": True},
-                "coverage_record": name,
-            }
-        )
     if breakage == "later_revision":
-        entries[1]["revision"] = "cc7042594111cf6dc7ca4728c72e7ab271a0330f"
-    if breakage == "selection":
-        entries[1]["selection"] = "tests/test_wizard_render_coverage.py"
-    (evidence / "recheck/coverage-comparison.json").write_text(
-        json.dumps({"status": "measured", "before": entries[0], "after": entries[1]})
+        change_json(
+            evidence,
+            "recheck/coverage-comparison.json",
+            lambda record: record["after"].update(revision="cc704259"),
+        )
+    elif breakage == "selection":
+        change_json(
+            evidence,
+            "recheck/coverage-comparison.json",
+            lambda record: record["after"].update(selection="tests/test_wizard_render_coverage.py"),
+        )
+    elif breakage == "denominator":
+        change_json(
+            evidence,
+            "recheck/coverage-merged.json",
+            lambda data: data["files"]["dashboard/pages/3_Scenario_Wizard.py"]["summary"].update(
+                num_statements=1051
+            ),
+        )
+    assert verifier.verify(evidence)["coverage attribution"][0] == (
+        "PASS" if breakage is None else "FAIL"
     )
-    assert verifier.check_coverage(evidence)[0] == ("PASS" if breakage is None else "FAIL")
+
+
+@pytest.mark.parametrize(
+    "breakage",
+    [
+        "line_only",
+        "summary_only",
+        "missing_count",
+        "duplicate_line",
+        "overlap_line",
+        "duplicate_branch",
+        "overlap_branch",
+        "different_lines",
+        "different_branches",
+    ],
+)
+def test_coverage_rejects_unsupported_blended_gain(evidence: Path, breakage: str) -> None:
+    def update(data):
+        target = data["files"]["dashboard/pages/3_Scenario_Wizard.py"]
+        if breakage == "line_only":
+            data["meta"]["branch_coverage"] = False
+        elif breakage == "summary_only":
+            del target["missing_branches"]
+        elif breakage == "missing_count":
+            target["summary"]["missing_branches"] -= 1
+        elif breakage == "duplicate_line":
+            target["missing_lines"].append(target["missing_lines"][0])
+        elif breakage == "overlap_line":
+            target["missing_lines"][0] = target["executed_lines"][0]
+        elif breakage == "duplicate_branch":
+            target["missing_branches"].append(target["missing_branches"][0])
+        elif breakage == "overlap_branch":
+            target["missing_branches"][0] = target["executed_branches"][0]
+        elif breakage == "different_lines":
+            # Equal denominator sizes cannot establish equal coverage boundaries.
+            target["executed_lines"][0] = 99999
+        else:
+            target["executed_branches"][0] = [99999, -99999]
+
+    change_json(evidence, "recheck/coverage-merged.json", update)
+    results = verifier.verify(evidence)
+    assert results["coverage attribution"][0] == "FAIL"
+
+
+def test_coverage_shortfall_does_not_pass_using_other_requirements(evidence: Path, capsys) -> None:
+    # Restore the baseline's complete raw report: there is now zero measured gain.
+    shutil.copyfile(
+        evidence / "recheck/coverage-base.json", evidence / "recheck/coverage-merged.json"
+    )
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "isolated measured reduction 0 units" in output
+    assert "OVERALL FAIL" in output

@@ -36,5 +36,30 @@
     "formatter_result": "535 files would be left unchanged",
     "ruff_exit_code": 0,
     "pr_body_reconciliation": "Verified tasks complete; connector write rejected because approval policy is never; remote checkboxes remain unchanged."
+  },
+  "coverage_validation_followup": {
+    "checked_at": "2026-11-07",
+    "change": "Validate raw statement and branch coverage identities, counts and comparable boundaries before accepting isolated coverage gain.",
+    "baseline_tests": "27 passed",
+    "regression_before_fix": "9 failed, 27 deselected; exit 1 (unsupported_blended_gain cases)",
+    "pytest_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow and not live_llm' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+    "pytest_exit_code": 0,
+    "pytest_result": "53 passed, 15 warnings in 2.60s",
+    "verifier_coverage": {
+      "statements": 113,
+      "missing": 3,
+      "cover_percent": 97
+    },
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit_code": 0,
+    "coverage_result": "Same raw statement and branch boundaries: 1050 statements plus 284 branches; missing units 463 before, 390 after; reduction 73 in wizard-selected suite only.",
+    "formatter_command": "PYTHONPATH=/tmp/issue2360-black-runtime BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "formatter_exit_code": 0,
+    "formatter_result": "535 files would be left unchanged",
+    "formatter_runtime_note": "Used a temporary standard asyncio event-loop factory with a 50 ms wake-up timer and one Black worker to support restricted local event notification. Formatting rules, files checked and installed packages unchanged.",
+    "ruff_command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+    "ruff_exit_code": 0,
+    "pr_body_reconciliation": "All 22 current checkboxes verified from retained evidence; update rejected: MCP tool call requires approval, but approval policy is never.",
+    "commit_limitation": "git add exited 128: checkout .git/index.lock is on a read-only filesystem. Prepare source commit and patch in a writable disposable clone."
   }
 }

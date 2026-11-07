@@ -45,6 +45,47 @@ the remote checkbox update remains a delivery blocker.
 
 ## Initial inspection
 
+### Coverage validation follow-up (2026-11-07 UTC)
+
+Before source edits, reviewed `5946ea20` and `c62ed299`, reran the recorded
+verification command (exit 0) and all 27 evidence tests (pass), and re-read
+#2360, #2372, #2467 and #2485 through the connector. The original eight cases,
+exact-head CI, measured wizard-selected coverage and explicit ranking UNKNOWN
+disclosure are already verified. All 22 current task/acceptance checkboxes can
+be reconciled from these receipts; the nested original issue remains historical.
+The PR body update was attempted and rejected with `MCP tool call requires
+approval, but approval policy is never`; its remote checkboxes remain stale.
+PR #2485 is open and `draft=false` at `c62ed299`.
+
+This follow-up strengthens coverage attribution validation: require real branch
+data, check counts against the recorded statement/branch identities, and reject
+changed coverage boundaries even when their sizes match. Expected output remains
+requirement-by-requirement PASS/FAIL/UNKNOWN from
+`python scripts/verify_issue_2360_evidence.py`, with OVERALL FAIL for invalid
+coverage evidence. The stop rule remains two attempts per unavailable receipt
+or historical execution, 45 minutes total. No historical measurement will be
+rerun unless the retained receipts fail inspection.
+
+`gh run list/view` again exited 1 because shell network access is unavailable.
+The connector independently read run `41661022529` and its jobs: completed
+success at `a2f4ef50403a0a90e8535e4daef5e6c691037bd2`, with job `126004180807`
+and its pytest step successful. Existing immutable receipts remain unchanged.
+
+Verified result: nine new corrupted-receipt cases failed before the fix. After
+the fix, all 53 targeted tests pass, verifier statement coverage is 97%, Ruff
+passes and the required repository Black check reports 535 files unchanged
+(one worker and the temporary asyncio timer described in `validation.json`).
+The acceptance command still exits 0 with six PASS results. Raw statement and
+branch identities confirm the retained 1050 + 284 boundary and 463 to 390
+uncovered units: **73 fewer units in the wizard selection only**. Missing or
+inconsistent raw branch data now prevents acceptance. No later tests contribute
+to that historical measurement. See
+[validation.json](./recheck/validation.json), `coverage_validation_followup`.
+
+Staging this follow-up again failed (exit 128): `.git/index.lock` is read-only.
+The working files remain available for automation to commit; a source commit
+and importable patch will also be prepared in a writable disposable clone.
+
 The requested `gh issue view 2360`, `gh pr view 2372`, and `gh pr view 2467`
 commands were attempted with JSON fields on 2026-11-07. Each exited 1 with
 `error connecting to api.github.com`. Read-only GitHub connector requests then

@@ -127,28 +127,59 @@ def check_mutations(directory: Path) -> tuple[str, str]:
     )
 
 
+def coverage_units(data: dict) -> tuple[set, set, int]:
+    """Validate the target's raw coverage units before trusting summary counts."""
+    if data["meta"]["branch_coverage"] is not True:
+        raise ValueError("statement-plus-branch attribution requires branch coverage")
+    target = data["files"]["dashboard/pages/3_Scenario_Wizard.py"]
+    summary = target["summary"]
+    boundaries = []
+    uncovered = 0
+    for kind, denominator, covered in (
+        ("lines", "num_statements", "covered_lines"),
+        ("branches", "num_branches", "covered_branches"),
+    ):
+        executed_rows = target[f"executed_{kind}"]
+        missing_rows = target[f"missing_{kind}"]
+        executed = set(map(tuple, executed_rows)) if kind == "branches" else set(executed_rows)
+        missing = set(map(tuple, missing_rows)) if kind == "branches" else set(missing_rows)
+        if (
+            len(executed) != len(executed_rows)
+            or len(missing) != len(missing_rows)
+            or executed & missing
+            or len(executed) != summary[covered]
+            or len(missing) != summary[f"missing_{kind}"]
+            or len(executed | missing) != summary[denominator]
+        ):
+            raise ValueError(f"inconsistent raw coverage {kind} and summary")
+        boundaries.append(executed | missing)
+        uncovered += len(missing)
+    return boundaries[0], boundaries[1], uncovered
+
+
 def check_coverage(directory: Path) -> tuple[str, str]:
     record = read_json(directory, "recheck/coverage-comparison.json")
     if record["status"] == "UNKNOWN":
         return "UNKNOWN", record["limitation"]
     before, after = record["before"], record["after"]
     valid = (
-        before["revision"] == BASE
+        record["status"] == "measured"
+        and before["revision"] == BASE
         and after["revision"] == MERGED
         and before["exit_code"] == after["exit_code"] == 0
         and before["selection"] == after["selection"]
         and before["settings"] == after["settings"]
         and before["settings"]["branch"] is True
     )
-    summaries = []
+    measurements = []
     for entry in (before, after):
         data = read_json(directory, entry["coverage_record"])
-        summaries.append(data["files"]["dashboard/pages/3_Scenario_Wizard.py"]["summary"])
-    first, last = summaries
-    valid = valid and all(first[key] == last[key] for key in ("num_statements", "num_branches"))
-    reduction = sum(first[key] - last[key] for key in ("missing_lines", "missing_branches"))
+        measurements.append(coverage_units(data))
+    first, last = measurements
+    valid = valid and first[:2] == last[:2]
+    reduction = first[2] - last[2]
     if not valid:
-        return "FAIL", "coverage revisions, execution, selection or denominators differ"
+        return "FAIL", "coverage revisions, execution, selection or unit boundaries differ"
     if reduction < 60:
         return "FAIL", f"isolated measured reduction {reduction} units; target about 60"
     return (
