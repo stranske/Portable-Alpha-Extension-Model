@@ -61,5 +61,28 @@
     "ruff_exit_code": 0,
     "pr_body_reconciliation": "All 22 current checkboxes verified from retained evidence; update rejected: MCP tool call requires approval, but approval policy is never.",
     "commit_limitation": "git add exited 128: checkout .git/index.lock is on a read-only filesystem. Prepare source commit and patch in a writable disposable clone."
+  },
+  "revision_binding_followup": {
+    "checked_at": "2026-11-07",
+    "change": "Bind issue identity and both PRs to exact API base/head/merge revisions, closed merged state, URLs and changed files; reject duplicate PR receipts.",
+    "baseline_tests": "36 passed",
+    "regression_command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k revision_receipts",
+    "regression_before_fix": "12 failed, 6 passed, 36 deselected; exit 1",
+    "pytest_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow and not live_llm'",
+    "pytest_exit_code": 0,
+    "pytest_result": "71 passed, 15 warnings in 3.12s",
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit_code": 0,
+    "acceptance_result": "Six PASS results; OVERALL PASS. Historical full-suite attribution and ranking provenance remain UNKNOWN as disclosed.",
+    "formatter_command": "PYTHONPATH=/tmp/issue2360-revision-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "formatter_exit_code": 0,
+    "formatter_result": "535 files would be left unchanged",
+    "formatter_runtime_note": "Default process pool cannot bind its forkserver socket. Single-worker run stalled; temporary standard asyncio event-loop factory with 50 ms wake-up timer completed the same full repository check without changing rules or installed packages.",
+    "ruff_command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+    "ruff_exit_code": 0,
+    "remote_reads": "gh issue/pr reads exit 1 (shell network unavailable); GitHub connector fetched issue #2360, PR metadata for #2372/#2467 and paginated changed filenames. Values match recheck/revisions.json.",
+    "pr_readiness": "PR #2485 open, draft=false at 692a0b6877a6c536ed97c9d55e3bcc8fca3e4502 before local changes.",
+    "pr_body_reconciliation": "First repeated unchecked task verified. Previously rejected connector write remains blocked by approval policy never; no remote checkbox update claimed.",
+    "commit_limitation": "git add exited 128: checkout .git/index.lock is read-only. Source commit prepared in a writable disposable clone; importable patch /tmp/issue2360-revision-binding.patch. Main checkout branch cannot be advanced."
   }
 }

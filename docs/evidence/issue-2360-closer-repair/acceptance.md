@@ -43,6 +43,50 @@ but approval policy is never`. The verified checkbox reconciliation cannot be
 published from this environment. This local record retains the completed work;
 the remote checkbox update remains a delivery blocker.
 
+## Revision binding follow-up (2026-11-07 UTC)
+
+Before code or test changes, re-read #2360 and #2372/#2467 using the GitHub
+connector, including exact base/head/merge SHAs and changed files. The requested
+`gh issue view 2360`, `gh pr view 2372`, and `gh pr view 2467` reads exited 1
+because shell network access remains unavailable. The connector metadata agrees
+with [revisions.json](./recheck/revisions.json). PR #2485 remains open and
+`draft=false` at `692a0b6877a6c536ed97c9d55e3bcc8fca3e4502`.
+
+The first repeated unchecked task has retained evidence, but its validator only
+checks some recorded fields. This follow-up will reject altered issue identity,
+PR base/head/merge SHAs, merged state, source URLs and changed-file lists, and
+duplicate PR entries. The adjacent squash parent used for coverage remains
+distinct from the API base of #2372. Baseline: all 36 evidence tests pass and
+the acceptance command prints six PASS results.
+
+Expected output: `python scripts/verify_issue_2360_evidence.py` prints one
+PASS/FAIL/UNKNOWN per requirement and OVERALL PASS only for valid receipts;
+altered revision evidence must print FAIL and OVERALL FAIL with exit 1.
+Finite stop rule: two attempts per unavailable remote receipt, 45 minutes total.
+No historical measurement is repeated unless retained evidence fails inspection.
+Remote checkbox publication remains blocked by the previously recorded approval
+policy rejection; no checkbox is newly marked before validation.
+
+- [x] Re-read requirements, merged state, exact base/head/merge revisions and
+  changed files for the first repeated unchecked task, and record this dated
+  contract before code/test changes. Verified against live connector reads.
+
+Twelve new regression cases reproduced incorrect acceptance of altered receipts
+before the fix (12 failed, 6 passed). After the fix, all **71** targeted evidence
+and wizard tests pass; the recorded acceptance command prints six PASS results
+and OVERALL PASS, and Ruff passes. Black formatted each changed Python file and
+its full repository check passed with **535 files unchanged**, using the same
+temporary single-worker/event-loop timer accommodation documented above.
+See [validation.json](./recheck/validation.json), `revision_binding_followup`,
+for commands and exits. No coverage measurement or ranking claim was changed.
+Remote task checkboxes remain unchanged because publication is blocked.
+
+Staging this follow-up exited 128: `.git/index.lock` is read-only. The verified
+source and test changes remain in the working checkout; a writable disposable
+clone under `/tmp` holds the source commit, with an importable patch at
+`/tmp/issue2360-revision-binding.patch`. This does not advance the checkout's
+branch or publish changes to PR #2485.
+
 ## Initial inspection
 
 ### Coverage validation follow-up (2026-11-07 UTC)

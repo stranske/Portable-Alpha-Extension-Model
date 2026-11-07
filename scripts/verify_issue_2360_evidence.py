@@ -33,12 +33,38 @@ def read_json(directory: Path, name: str):
 
 def check_revisions(directory: Path) -> tuple[str, str]:
     record = read_json(directory, "recheck/revisions.json")
+    # Pin API base revisions separately from the squash parent used for coverage.
+    expected = {
+        2372: {
+            "base_sha": "e7c898dea47be8871dac1a29610be6679cdcbd57",
+            "head_sha": "9bfb197c8ebb6f84f48b9beeac4e8cf6263d9847",
+            "merge_sha": MERGED,
+            "files": ["tests/test_wizard_render_coverage.py"],
+        },
+        2467: {
+            "base_sha": "6abacb50a941ce1286e74afb5782d3c804427418",
+            "head_sha": ASSESSED,
+            "merge_sha": "bb8dd930e085b5c3bbc02b30b9f890eac537328c",
+            "files": [
+                "docs/evidence/issue-2360-closer-repair/README.md",
+                "docs/evidence/issue-2360-closer-repair/ranking-provenance.json",
+            ],
+        },
+    }
     prs = {pr["number"]: pr for pr in record["pull_requests"]}
     valid = (
-        prs[2372]["merge_sha"] == MERGED
-        and prs[2467]["head_sha"] == ASSESSED
-        and all(prs[n]["merged"] for n in (2372, 2467))
-        and prs[2372]["files"] == ["tests/test_wizard_render_coverage.py"]
+        record["issue"]["number"] == 2360
+        and record["issue"]["url"] == f"https://github.com/{REPOSITORY}/issues/2360"
+        and len(record["pull_requests"]) == len(prs) == len(expected)
+        and prs.keys() == expected.keys()
+        and all(
+            prs[number]["merged"] is True
+            and prs[number]["state"] == "closed"
+            and prs[number]["url"] == f"https://github.com/{REPOSITORY}/pull/{number}"
+            and all(prs[number][key] == value for key, value in fields.items() if key != "files")
+            and sorted(prs[number]["files"]) == fields["files"]
+            for number, fields in expected.items()
+        )
     )
     return ("PASS" if valid else "FAIL", "original delivery and assessed repair revisions")
 

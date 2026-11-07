@@ -31,6 +31,52 @@ def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_contract(verifier.DEFAULT)[0] == "PASS"
 
 
+@pytest.mark.parametrize("number", [2372, 2467])
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("base_sha", "0" * 40),
+        ("head_sha", "0" * 40),
+        ("merge_sha", "0" * 40),
+        ("files", ["tests/unrelated.py"]),
+        ("url", "https://github.com/unrelated/repository/pull/1"),
+        ("state", "open"),
+        ("merged", False),
+    ],
+)
+def test_revision_receipts_reject_changed_pr_metadata(
+    evidence: Path, number: int, field: str, value: object, capsys
+) -> None:
+    def update(record):
+        pr = next(pr for pr in record["pull_requests"] if pr["number"] == number)
+        pr[field] = value
+
+    change_json(evidence, "recheck/revisions.json", update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: revisions:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize("breakage", ["issue_number", "issue_url", "duplicate_pr", "missing_pr"])
+def test_revision_receipts_require_original_issue_and_unique_prs(
+    evidence: Path, breakage: str
+) -> None:
+    def update(record):
+        if breakage == "issue_number":
+            record["issue"]["number"] = 2336
+        elif breakage == "issue_url":
+            record["issue"]["url"] = record["issue"]["url"].replace("stranske/", "unrelated/")
+        elif breakage == "duplicate_pr":
+            record["pull_requests"].append(record["pull_requests"][0].copy())
+        else:
+            record["pull_requests"].pop()
+
+    change_json(evidence, "recheck/revisions.json", update)
+    assert verifier.verify(evidence)["revisions"][0] == "FAIL"
+
+
 @pytest.mark.parametrize("breakage", ["stale", "skipped", "missing_log"])
 def test_ci_requires_exact_head_and_executed_pytest(evidence: Path, breakage: str) -> None:
     if breakage == "stale":
