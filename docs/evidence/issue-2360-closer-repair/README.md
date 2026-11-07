@@ -1,5 +1,11 @@
 # Issue #2360 closer repair evidence
 
+**2026-11-07 recheck:** see [acceptance.md](./acceptance.md) for the executable
+acceptance contract, final #2467 head/run binding, reproduced eight-case proofs,
+and isolated wizard-selected coverage comparison. The text below retains the
+2026-11-03 repair's historical results; its cumulative figures are not #2372's
+isolated gain.
+
 Records the missing acceptance evidence for merged
 [PR #2372](https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2372)
 and follow-on wizard render tests on `main` (`#2397`, `#2411`). Production

@@ -1,0 +1,18 @@
+2026-11-03T15:10:35.3675907Z a2f4ef50403a0a90e8535e4daef5e6c691037bd2
+2026-11-03T15:10:36.1962500Z a2f4ef50403a0a90e8535e4daef5e6c691037bd2
+2026-11-03T15:11:22.2025946Z   PYTEST_WORKERS: auto
+2026-11-03T15:11:23.6720622Z : "${PYTEST_WORKERS:?step env must supply PYTEST_WORKERS}"
+2026-11-03T15:11:23.6721172Z args=("--junitxml=pytest-junit.xml")
+2026-11-03T15:11:23.6722113Z   args+=("--cov")
+2026-11-03T15:11:23.6725780Z     args+=("--cov-config=pyproject.toml")
+2026-11-03T15:11:23.6726622Z   args+=("--cov-report=xml:coverage.xml")
+2026-11-03T15:11:23.6727093Z   args+=("--cov-report=term-missing")
+2026-11-03T15:11:23.6727563Z   args+=("--cov-report=json:coverage.json")
+2026-11-03T15:11:23.6729837Z   args+=("--no-cov")
+2026-11-03T15:11:23.6731294Z   args=("-m" "${PYTEST_MARKERS}" "${args[@]}")
+2026-11-03T15:11:23.6735095Z     args+=("${extra_args[@]}")
+2026-11-03T15:11:23.6737864Z   args+=("-n" "${PYTEST_WORKERS}" "--dist=loadgroup")
+2026-11-03T15:11:23.6850675Z pytest -p ci_test_growth "${args[@]}"
+2026-11-03T15:11:23.6891027Z   PYTEST_WORKERS: auto
+2026-11-03T15:13:39.1277700Z ========== 1969 passed, 1 skipped, 994 warnings in 132.84s (0:02:12) ===========
+2026-11-03T15:13:39.4338389Z Coverage 91.25% meets minimum 60.00%

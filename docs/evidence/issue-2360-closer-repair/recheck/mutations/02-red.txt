@@ -1,0 +1,57 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+__ test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error] __
+
+wizard_module = {'__name__': '<run_path>', '__doc__': '5-Step Wizard for guided scenario creation with validation.', '__package__': '', '__loader__': None, ...}
+internal_capital = 50.0, expected_status = 'error'
+
+    @pytest.mark.parametrize(
+        ("internal_capital", "expected_status"),
+        [(50.0, "error"), (60.0, "success")],
+    )
+    def test_capital_step_reports_allocation_status_and_balanced_chart(
+        wizard_module: dict[str, Any],
+        internal_capital: float,
+        expected_status: str,
+    ) -> None:
+        fake_st = _FakeStreamlit(
+            {
+                "Total Fund Capital": 100.0,
+                "External PA Capital [$M]": 20.0,
+                "Active Extension Capital [$M]": 20.0,
+                "Internal PA Capital [$M]": internal_capital,
+            }
+        )
+        fake_st.session_state.financing_settings = {
+            "financing_model": "simple_proxy",
+            "reference_sigma": 0.01,
+            "volatility_multiple": 3.0,
+            "term_months": 1.0,
+            "schedule_path": None,
+        }
+        func_globals = wizard_module["_render_step_2_capital"].__globals__
+        func_globals["st"] = fake_st
+        func_globals["calculate_margin_requirement"] = lambda **_kwargs: 5.0
+        config = get_default_config(AnalysisMode.RETURNS)
+
+        rendered = wizard_module["_render_step_2_capital"](config)
+
+        assert rendered is config
+        assert any(kind == "success" and "Buffer after margin" in text for kind, text in fake_st.calls)
+>       assert any(kind == expected_status and "Capital allocation" in text for kind, text in fake_st.calls)
+E       assert False
+E        +  where False = any(<generator object test_capital_step_reports_allocation_status_and_balanced_chart.<locals>.<genexpr> at 0x783f83bbc820>)
+
+tests/test_wizard_render_coverage.py:160: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-11-07 04:32:43.215 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_wizard_render_coverage.py::test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error] - assert False
+ +  where False = any(<generator object test_capital_step_reports_allocation_status_and_balanced_chart.<locals>.<genexpr> at 0x783f83bbc820>)
+1 failed, 13 warnings in 2.39s

@@ -1,5 +1,19 @@
 # Issue #2360 mutation transcripts
 
+Current acceptance recheck: [acceptance.md](./acceptance.md), checked
+**2026-11-07 UTC**. The original eight cases were reproduced at #2372's squash
+merge with [exact mutation definitions](./mutation-plan.json),
+[commands, exits and restoration hashes](./recheck/mutations/mutation-replay.json),
+and full `01-red.txt` / `01-green.txt` through `08-red.txt` / `08-green.txt`
+outputs in [recheck/mutations](./recheck/mutations/). Reproduce them with:
+
+```sh
+python scripts/replay_issue_2360_mutations.py --output /tmp/issue2360-mutation-replay
+```
+
+The following 2026-11-02 receipts remain historical; their later wizard hash
+must not be confused with the original merge's restored hash.
+
 Checked **2026-11-02, America/Chicago**. Each row is one temporary edit to
 `dashboard/pages/3_Scenario_Wizard.py`, a focused red run, byte-for-byte
 restoration, and a green rerun. Machine-readable mapping:
@@ -11,6 +25,8 @@ Command template:
 .venv/bin/python -m pytest -q -o addopts= tests/test_wizard_render_coverage.py::<node>
 ```
 
+## Eight original cases (#2372)
+
 | Node | Red exit | Named failure (abbrev.) | Green |
 | --- | ---: | --- | --- |
 | `test_progress_bar_marks_completed_current_and_future_steps` | 1 | `('info', '📍 2. Capital Allocation')` missing from calls | 1 passed |
@@ -21,6 +37,11 @@ Command template:
 | `test_sleeve_suggestor_explains_missing_or_empty_results[None]` | 1 | unexpected `warning` in calls | 1 passed |
 | `test_sleeve_suggestor_explains_missing_or_empty_results[empty]` | 1 | `warning` vs `info` for empty suggestions | 1 passed |
 | `test_margin_schedule_loader_hides_invalid_schedule_errors` | 1 | `schedule is None` expected, got DataFrame | 1 passed |
+
+## Nine later cases (#2411; excluded from #2372 attribution)
+
+| Node | Red exit | Named failure (abbrev.) | Green |
+| --- | ---: | --- | --- |
 | `test_sleeve_suggestor_ranks_frontier_and_applies_confirmed_selection` | 1 | capital tuple mismatch after apply | 1 passed |
 | `test_sleeve_suggestor_records_results_when_frontier_calculation_fails` | 1 | `sleeve_frontier` not empty | 1 passed |
 | `test_sleeve_suggestor_falls_back_when_constraint_scope_is_unknown` | 1 | scope `'total'` vs `'sleeves'` | 1 passed |

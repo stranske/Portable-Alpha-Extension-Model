@@ -1,0 +1,20 @@
+{
+  "checked_at": "2026-11-07",
+  "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+  "acceptance_exit_code": 0,
+  "pytest_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow and not live_llm' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+  "pytest_exit_code": 0,
+  "pytest_result": "34 passed, 15 warnings in 2.68s",
+  "verifier_coverage": {
+    "statements": 91,
+    "missing": 3,
+    "cover_percent": 97
+  },
+  "formatter_command": "PYTHONPATH=/tmp/issue2360-black-runtime BLACK_NUM_WORKERS=1 black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+  "formatter_exit_code": 0,
+  "formatter_result": "535 files would be left unchanged",
+  "formatter_runtime_note": "Default Black multiprocessing cannot bind its local forkserver socket in this sandbox. Single-worker Black required a temporary standard-asyncio timer to observe worker completion. Only event-loop scheduling changed; the same Black CLI/options checked every file. No repository formatter settings or installed packages were edited.",
+  "ruff_command": "ruff check scripts/verify_issue_2360_evidence.py scripts/replay_issue_2360_mutations.py tests/test_issue_2360_evidence.py",
+  "ruff_exit_code": 0,
+  "diff_check": "git diff --cached --check in disposable delivery clone, including new receipts"
+}

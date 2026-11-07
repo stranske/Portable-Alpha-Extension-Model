@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-11-07",
+  "source": "GitHub connector fetch_issue, fetch_pr, list_pr_changed_filenames; gh network unavailable",
+  "issue": {
+    "number": 2360,
+    "url": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2360",
+    "state": "closed"
+  },
+  "pull_requests": [
+    {
+      "number": 2372,
+      "url": "https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2372",
+      "state": "closed",
+      "merged": true,
+      "base_sha": "e7c898dea47be8871dac1a29610be6679cdcbd57",
+      "head_sha": "9bfb197c8ebb6f84f48b9beeac4e8cf6263d9847",
+      "merge_sha": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+      "files": [
+        "tests/test_wizard_render_coverage.py"
+      ]
+    },
+    {
+      "number": 2467,
+      "url": "https://github.com/stranske/Portable-Alpha-Extension-Model/pull/2467",
+      "state": "closed",
+      "merged": true,
+      "base_sha": "6abacb50a941ce1286e74afb5782d3c804427418",
+      "head_sha": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+      "merge_sha": "bb8dd930e085b5c3bbc02b30b9f890eac537328c",
+      "files": [
+        "docs/evidence/issue-2360-closer-repair/README.md",
+        "docs/evidence/issue-2360-closer-repair/ranking-provenance.json"
+      ]
+    }
+  ]
+}

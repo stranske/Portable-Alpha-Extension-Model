@@ -1,0 +1,176 @@
+{
+  "jobs": [
+    {
+      "id": 126003959496,
+      "name": "resolve Gate PR context",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        }
+      ]
+    },
+    {
+      "id": 126004032204,
+      "name": "classify changed paths",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Checkout repository",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Classify changed paths",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Post Checkout repository",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        }
+      ]
+    },
+    {
+      "id": 126004032335,
+      "name": "generated delivery seal",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Require an exact-head delivery seal",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        }
+      ]
+    },
+    {
+      "id": 126004199893,
+      "name": "gate-summary",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Summarize results",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Report Gate commit status",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Fail if Gate failed",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        }
+      ]
+    },
+    {
+      "id": 126004200584,
+      "name": "Integration Tests",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 126004201149,
+      "name": "Dashboard Smoke",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 126004201271,
+      "name": "Codespace Config",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": null
+    },
+    {
+      "id": 126004201574,
+      "name": "Python CI",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 41661029334,
+      "logs_url": null,
+      "steps": null
+    }
+  ]
+}
