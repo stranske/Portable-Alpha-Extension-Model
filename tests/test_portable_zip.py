@@ -83,6 +83,37 @@ def test_offline_runtime_marker_environment_matches_pyodide_lock() -> None:
     }
 
 
+def test_wheel_requirements_follow_the_lock_derived_marker(tmp_path, monkeypatch) -> None:
+    """The evaluator must select dependencies with the lock-derived marker, not a hard-coded one."""
+    import scripts.fetch_offline_web_runtime as fetch_runtime
+
+    wheel = tmp_path / "demo-1.0-py3-none-any.whl"
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.writestr(
+            "demo-1.0.dist-info/METADATA",
+            "Metadata-Version: 2.1\nName: demo\nVersion: 1.0\n"
+            'Requires-Dist: modern-only; python_version >= "3.13"\n'
+            'Requires-Dist: legacy-only; python_version < "3.13"\n'
+            "Requires-Dist: always\n",
+        )
+
+    def names() -> set[str]:
+        return {req.name for req in fetch_runtime._wheel_metadata_requires(wheel)}
+
+    monkeypatch.setattr(
+        fetch_runtime,
+        "offline_runtime_marker_environment",
+        lambda: {"python_version": "3.12", "extra": ""},
+    )
+    assert names() == {"legacy-only", "always"}
+    monkeypatch.setattr(
+        fetch_runtime,
+        "offline_runtime_marker_environment",
+        lambda: {"python_version": "3.13", "extra": ""},
+    )
+    assert names() == {"modern-only", "always"}
+
+
 def test_build_function_defaults_to_the_embedded_python_constant() -> None:
     parameter = inspect.signature(build_windows_portable_zip).parameters["python_version"]
     assert parameter.default == DEFAULT_EMBEDDED_PYTHON
