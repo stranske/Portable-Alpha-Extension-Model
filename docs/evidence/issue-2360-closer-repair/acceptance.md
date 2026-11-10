@@ -632,3 +632,56 @@ succeeded on both sides; see "Configured-suite attribution: paired CI
 six PASS results, `PASS: coverage attribution: configured suite: 73 fewer
 statement-plus-branch units`, and `OVERALL PASS`. The earlier UNKNOWN/OVERALL
 FAIL statements are retained as the dated record of the state before this run.
+
+### Configured-suite receipt verification follow-up (2026-11-10)
+
+Before source/test changes, inspected `69ad80d8` and the historical parent/merge
+diff: only the original eight-case test file changes. The retained paired run
+already supplies the missing measurement; baseline verification prints six PASS
+results and OVERALL PASS, and all 76 evidence tests pass. Live connector reads
+of #2360, #2372, #2467 and run 42887512783's jobs agree with retained identities
+and successful checkout/execution steps. `gh pr view 2372` exited 1 because
+shell network access is unavailable.
+
+This follow-up verifies that the actual recorded command cannot narrow the
+configured selection on both sides, and that each job is bound to the retained
+successful paired run and its exact historical checkout. Run
+`python scripts/verify_issue_2360_evidence.py`; expect six PASS results and
+OVERALL PASS for unchanged receipts, FAIL and exit 1 for narrowed selection or
+contradictory run/job evidence. Stop after two attempts per unavailable remote
+receipt or 45 minutes total. Reuse the completed paired execution rather than
+repeat historical suites; preserve focused, historical and ranking disclosures.
+
+Verified result: all 19 new regression cases failed before the fix; afterward,
+`python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py
+-q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing`
+exited 0 with **112 passed** and **98%** verifier coverage. The acceptance command
+prints six PASS results and OVERALL PASS (exit 0); Ruff and `git diff --check`
+pass. Black formatted the changed Python files individually; the required full
+repository check passed with **535 files unchanged**. As in previous rounds,
+the sandbox rejects Black's forkserver socket and the plain single-worker run
+stalled; a temporary standard asyncio loop with a 50 ms wake-up timer and one
+worker completed the same Black command without changing formatting settings.
+See `configured_suite_binding_followup` in [validation.json](./recheck/validation.json).
+
+- [x] Inspect configured pytest/coverage commands and verify comparable historical
+  coverage at adjacent parent `10ac6839` and original merge `e8967edb`, excluding
+  later tests. Both use 1050 statements and 284 branches in the target; missing
+  combined units fall from 463 to 390, a **73-unit** measured reduction.
+- [x] Configured-suite statement-plus-branch attribution measured at adjacent
+  parent/original merge. Retained paired run 42887512783's successful jobs and
+  raw coverage establish attribution independently of the supplemental slice.
+- [x] The recorded configured command is runnable on both assessed revisions;
+  isolated measured reduction exceeds the roughly 60-unit target. Original
+  mutation proofs, historical cumulative gain and ranking UNKNOWN stay separate.
+
+The checkout's `.git` directory is read-only. Deliver this follow-up as a source
+commit in `/tmp/issue2360-configured-suite-delivery` and an importable patch at
+`/tmp/issue2360-configured-suite.patch`; this does not advance the checkout's
+branch. PR #2485 was inspected open with `draft=false` at `69ad80d8`.
+
+The verified PR-body reconciliation (three current unchecked tasks, preserving
+the nested historical issue) was attempted after validation and rejected:
+`MCP tool call requires approval, but approval policy is never`. Remote task
+checkboxes and the obsolete PR-body UNKNOWN outcome remain unchanged. This is
+a publication blocker, separate from the verified local acceptance result.

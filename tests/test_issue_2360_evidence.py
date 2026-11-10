@@ -290,6 +290,7 @@ def test_coverage_rejects_unsupported_blended_gain(
     configured_evidence: Path, breakage: str
 ) -> None:
     evidence = configured_evidence
+
     def update(data):
         target = data["files"]["dashboard/pages/3_Scenario_Wizard.py"]
         if breakage == "line_only":
@@ -361,6 +362,83 @@ def _replace_text(path: Path, old: str, new: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "extra_args",
+    [
+        " -k wizard",
+        " --lf",
+        " --deselect=tests/test_wizard_render_coverage.py",
+        " -m 'not slow and not live_llm'",
+        " --cov=dashboard",
+    ],
+)
+def test_matching_filtered_commands_cannot_prove_configured_suite(
+    evidence: Path, extra_args: str, capsys
+) -> None:
+    for label in ("configured-parent", "configured-merge"):
+        command = evidence / PAIRED / label / "command.txt"
+        command.write_text(command.read_text().strip() + extra_args)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "OVERALL FAIL" in output
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("conclusion", "failure"),
+        ("headSha", "0" * 40),
+        ("attempt", 2),
+        ("event", "workflow_dispatch"),
+        ("url", "https://github.com/unrelated/repository/actions/runs/42887512783"),
+    ],
+)
+def test_coverage_binds_comparison_to_retained_run(evidence: Path, field: str, value) -> None:
+    change_json(evidence, f"{PAIRED}/run.json", lambda run: run.update({field: value}))
+    assert verifier.verify(evidence)["coverage attribution"][0] == "FAIL"
+
+
+@pytest.mark.parametrize(
+    "breakage",
+    [
+        "missing_job",
+        "job_url",
+        "job_id",
+        "job_name",
+        "job_status",
+        "job_failure",
+        "wrong_checkout",
+        "skipped_execution",
+        "missing_enforcement",
+    ],
+)
+def test_coverage_requires_successful_historical_job(evidence: Path, breakage: str) -> None:
+    def update(run):
+        job = run["jobs"][1]
+        if breakage == "missing_job":
+            run["jobs"].pop(1)
+        elif breakage == "job_url":
+            job["url"] += "0"
+        elif breakage == "job_id":
+            job["databaseId"] += 1
+        elif breakage == "job_name":
+            job["name"] = "Paired CI (configured-parent)"
+        elif breakage == "job_status":
+            job["status"] = "in_progress"
+        elif breakage == "job_failure":
+            job["conclusion"] = "failure"
+        elif breakage == "wrong_checkout":
+            job["steps"][3]["name"] = f"Create isolated checkout at {verifier.BASE}"
+        elif breakage == "skipped_execution":
+            job["steps"][6]["conclusion"] = "skipped"
+        else:
+            job["steps"].pop(8)
+
+    change_json(evidence, f"{PAIRED}/run.json", update)
+    assert verifier.verify(evidence)["coverage attribution"][0] == "FAIL"
+
+
+@pytest.mark.parametrize(
     "breakage",
     [
         "checkout_sha",
@@ -400,8 +478,11 @@ def test_coverage_requires_bound_paired_ci_receipts(
     elif breakage == "different_command":
         _replace_text(merge / "command.txt", "-n auto", "-n 2")
     elif breakage == "environment_mismatch":
-        change_json(evidence, f"{PAIRED}/configured-merge/environment-check.json",
-                    lambda record: record.update(identical=False, mismatches=["pytest"]))
+        change_json(
+            evidence,
+            f"{PAIRED}/configured-merge/environment-check.json",
+            lambda record: record.update(identical=False, mismatches=["pytest"]),
+        )
     elif breakage == "different_package":
         _replace_text(merge / "environment-freeze.txt", "pytest==9.1.1", "pytest==9.2.0")
     elif breakage == "nonzero_exit":
@@ -411,15 +492,25 @@ def test_coverage_requires_bound_paired_ci_receipts(
     elif breakage == "empty_junit":
         _replace_text(merge / "pytest-junit.xml", 'tests="1726"', 'tests="2"')
     elif breakage == "foreign_job":
-        change_json(evidence, comparison, lambda record: record["after"].update(
-            job_url="https://github.com/unrelated/repository/actions/runs/1/job/2"))
+        change_json(
+            evidence,
+            comparison,
+            lambda record: record["after"].update(
+                job_url="https://github.com/unrelated/repository/actions/runs/1/job/2"
+            ),
+        )
     elif breakage == "other_run":
         change_json(evidence, comparison, lambda record: record["run"].update(id=1))
     elif breakage == "coverage_outside_receipt":
-        change_json(evidence, comparison, lambda record: record["after"].update(
-            coverage_record="recheck/coverage-merged.json"))
+        change_json(
+            evidence,
+            comparison,
+            lambda record: record["after"].update(coverage_record="recheck/coverage-merged.json"),
+        )
     else:
+
         def update(data):
             data["files"]["pa_core/cli.py"]["executed_lines"][0] = 99999
+
         change_json(evidence, MERGE_COVERAGE, update)
     assert verifier.verify(evidence)["coverage attribution"][0] == "FAIL"

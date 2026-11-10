@@ -111,5 +111,52 @@
     "remote_reads": "Shell gh reads exit 1. Connector re-read issue #2360, merged PR #2372/#2467 metadata and file lists, run 41661022529, and successful pytest job 126004180807 at the exact assessed head.",
     "pr_body_reconciliation": "Six stale current checkboxes verified; update rejected: MCP tool call requires approval, but approval policy is never. Nested original-issue checkboxes preserved in proposed update.",
     "commit_limitation": "git add exited 128: .git/index.lock is read-only. Prepare source commit in writable disposable clone; working branch cannot be advanced."
+  },
+  "configured_suite_binding_followup": {
+    "checked_at": "2026-11-10",
+    "baseline": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow'",
+      "exit_code": 0,
+      "passed": 76
+    },
+    "regression_before_fix": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k 'matching_filtered or retained_run or successful_historical_job'",
+      "exit_code": 1,
+      "failed": 19
+    },
+    "validation": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 112,
+      "verifier_statement_coverage": 98
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "result": "six PASS results; OVERALL PASS"
+    },
+    "ruff": {
+      "command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "black": {
+      "command": "black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "unchanged_files": 535
+    },
+    "formatter_runtime_note": "Individual changed files formatted with Black. Default multiprocessing rejected by sandbox forkserver socket restriction; plain single-worker run stalled and was interrupted. Full check used BLACK_NUM_WORKERS=1 and temporary /tmp/issue2360-black-runtime/sitecustomize.py selecting a standard asyncio loop with a 50 ms wake-up timer. Same CLI, checked files and rules; installed packages and repository configuration unchanged.",
+    "historical_execution": "Reused retained successful run 42887512783; no historical suite rerun, synthetic measurement or workflow edit.",
+    "live_crosscheck": "Connector re-read #2360, #2372, #2467, #2485 and paired-run jobs; both historical checkout/execution steps completed successfully. PR #2485 open, draft=false, head 69ad80d8e73f7914ebe3fdbb0aed6f8268288104.",
+    "delivery": {
+      "checkout_git": "read-only",
+      "clone": "/tmp/issue2360-configured-suite-delivery",
+      "patch": "/tmp/issue2360-configured-suite.patch"
+    },
+    "publication": {
+      "pr": 2485,
+      "action": "Reconcile three current unchecked tasks and replace obsolete UNKNOWN outcome using retained paired-CI receipts",
+      "result": "rejected: MCP tool call requires approval, but approval policy is never",
+      "remote_body_changed": false
+    }
   }
 }

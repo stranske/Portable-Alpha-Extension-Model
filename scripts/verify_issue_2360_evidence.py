@@ -202,7 +202,13 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
         line.split() for line in (receipt / "hashes.txt").read_text().splitlines() if line
     )
     command = shlex.split((receipt / "command.txt").read_text())
-    selection = [command[i : i + 2] for i in range(len(command) - 1)]
+    # These are receipts for one completed replay, not a general pytest interface.
+    # Matching commands can still both narrow selection or override coverage sources.
+    expected_command = shlex.split(
+        "pytest tests/ -m 'not live_llm' --junitxml=pytest-junit.xml --cov "
+        "--cov-config=pyproject.toml --cov-branch --cov-report=json:coverage.json "
+        "--cov-report=term-missing -n auto --dist=loadgroup"
+    )
     suite = ET.parse(receipt / "pytest-junit.xml").getroot()
     suite = suite if suite.tag == "testsuite" else suite.find("testsuite")
     counts = {key: int(suite.get(key, 0)) for key in ("tests", "failures", "errors", "skipped")}
@@ -215,10 +221,7 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
         and hashes.get("pyproject.toml") == CONFIG_SHA256
         and (receipt / "exit-code.txt").read_text().strip() == str(entry["exit_code"]) == "0"
         and entry["coverage_record"] == f"{entry['receipt_dir']}/coverage.json"
-        and command[:2] == ["pytest", "tests/"]
-        and ["-m", "not live_llm"] in selection
-        and "--cov-branch" in command
-        and "--cov-config=pyproject.toml" in command
+        and command == expected_command
         and environment["identical"] is True
         and environment["mismatches"] == []
         and counts["tests"] > counts["skipped"]
@@ -238,6 +241,47 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
         ],
         "python": (receipt / "environment-platform.txt").read_text().splitlines()[0],
     }
+
+
+def check_paired_run(directory: Path, record: dict) -> bool:
+    """Require successful jobs for both exact checkouts in the retained run."""
+    run = read_json(directory, "recheck/paired-ci/run.json")
+    binding = record["run"]
+    run_url = f"https://github.com/{REPOSITORY}/actions/runs/{binding['id']}"
+    if not (
+        binding["conclusion"] == run["conclusion"] == "success"
+        and binding["url"] == run["url"] == run_url
+        and binding["head_sha"] == run["headSha"]
+        and binding["attempt"] == run["attempt"]
+        and binding["event"] == run["event"]
+    ):
+        return False
+    for side, label, revision in (
+        ("before", "configured-parent", BASE),
+        ("after", "configured-merge", MERGED),
+    ):
+        matches = [job for job in run["jobs"] if job["url"] == record[side]["job_url"]]
+        if len(matches) != 1:
+            return False
+        job = matches[0]
+        required_steps = {
+            f"Create isolated checkout at {revision}",
+            "Execute historical configured test suite (bounded)",
+            "Enforce complete successful suite",
+        }
+        if not (
+            job["url"] == f"{run_url}/job/{job['databaseId']}"
+            and job["name"] == f"Paired CI ({label})"
+            and job["status"] == "completed"
+            and job["conclusion"] == "success"
+            and required_steps.issubset(
+                step["name"]
+                for step in job["steps"]
+                if step["status"] == "completed" and step["conclusion"] == "success"
+            )
+        ):
+            return False
+    return True
 
 
 def check_coverage(directory: Path) -> tuple[str, str]:
@@ -264,6 +308,7 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         and before["selection"] == after["selection"]
         and before["settings"] == after["settings"]
         and before["settings"]["branch"] is True
+        and check_paired_run(directory, record)
     )
     receipts = [
         check_receipt(directory, before, BASE),
