@@ -44,8 +44,12 @@ def test_serialize_agent_semantics_from_mixed_frame_and_series_list() -> None:
 
 
 def test_serialize_agent_semantics_from_scalar_tuple_and_list() -> None:
-    assert _serialize((1, 2)) == [1, 2]
-    assert _serialize([1, 2]) == [1, 2]
+    from_tuple = _serialize((np.int64(1), np.float64(np.nan)))
+    assert from_tuple == [1, None]
+    assert type(from_tuple[0]) is int
+    from_list = _serialize([np.int64(2), float("inf")])
+    assert from_list == [2, None]
+    assert type(from_list[0]) is int
     assert _serialize([]) == []
 
 
@@ -54,8 +58,9 @@ def test_serialize_agent_semantics_from_ndarray() -> None:
 
 
 def test_serialize_agent_semantics_from_column_mapping() -> None:
-    result = _serialize({"Agent": ["A", "B"], "n": [1, 2]})
-    assert result == [{"Agent": "A", "n": 1}, {"Agent": "B", "n": 2}]
+    result = _serialize({"Agent": ["A", "B"], "n": [1, 2], "w": [0.5, np.nan]})
+    assert result == [{"Agent": "A", "n": 1, "w": 0.5}, {"Agent": "B", "n": 2, "w": None}]
+    assert type(result[0]["n"]) is int
 
 
 def test_serialize_agent_semantics_keeps_mapping_when_frame_build_fails() -> None:
