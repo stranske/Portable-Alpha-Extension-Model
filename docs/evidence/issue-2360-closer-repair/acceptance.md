@@ -420,3 +420,103 @@ exited 128 because `.git/index.lock` cannot be created on the checkout's
 read-only Git metadata. This run cannot advance the working checkout's branch.
 A source commit and importable patch can be prepared in a disposable clone
 under writable `/tmp`; that does not change the assessed historical revisions.
+
+## Configured-suite attribution continuation (2026-11-10)
+
+Outcome 1 before changes: configured-suite attribution UNKNOWN. The existing
+73-unit wizard-selected result is supplemental and cannot satisfy #2360's Gate
+configured-suite requirement. Earlier OVERALL PASS statements above describe
+historical verifier behavior and are superseded for this requirement.
+
+Acceptance command: `/opt/anaconda3/bin/python3 scripts/verify_issue_2360_evidence.py`.
+The outcome is requirement-by-requirement PASS/FAIL/UNKNOWN, with OVERALL FAIL
+(exit 1) while configured-suite attribution is unavailable. Focused regression:
+`/opt/anaconda3/bin/python3 -m pytest -q -o addopts= tests/test_issue_2360_evidence.py`.
+No local virtual environment is selected or present in this checkout; use the
+owner-selected fallback interpreter. Check date: 2026-11-10.
+
+Stop rule recorded before changes: two retrieval attempts per historical receipt,
+20 minutes for historical recovery, 45 minutes for this continuation excluding
+the required post-push observation floor. No local full-suite execution: the
+owner explicitly reserves that to CI. Recover historical Gate artifacts/logs at
+the adjacent parent and original merge, inspecting isolated checkouts' settings.
+If terminal comparable raw coverage is absent, stop recovery, keep UNKNOWN and
+OVERALL FAIL, and deliver the verifier correction without asserting attribution.
+Blocking/drainable: missing configured-suite receipts block acceptance; focused
+regression, honest evidence recording and PR delivery remain drainable.
+No production changes, dependency changes or repeated mutation/ranking work.
+
+### Historical recovery result
+
+Isolated detached checkouts were created at `/tmp/issue2360-configured-parent`
+and `/tmp/issue2360-configured-merge` from a shared disposable clone. All three
+clone/worktree commands exited 0. Both exact heads and identical pyproject hashes
+are recorded in `recheck/coverage-comparison.json`. Only the original eight-case
+test file differs; no later tests were copied. Historical pytest defaults select
+`tests/`, excluding `live_llm` only; **slow tests are included**. Both CI jobs used
+blank extra markers/arguments and the same coverage sources and configuration.
+
+Recovered main CI run `38971176069`, job `117210972329` at the adjacent parent,
+and run `38977412115`, job `117230894905` at the original merge. The run/job API
+receipts and timestamped command/environment/terminal excerpts are stored as
+`recheck/configured-{parent,merge}-*`. `gh api .../actions/jobs/<job>/logs` exited
+0 for each. Both pytest jobs succeeded: **1716 passed, 2 skipped** before and
+**1724 passed, 2 skipped** after. The merge run failed its separate format job;
+it is not claimed as overall successful CI. No Gate workflow run is indexed at
+either exact main SHA (both workflow-specific queries returned zero runs).
+These configured CI records are not relabeled as PR Gate records.
+
+The logged executed command is:
+
+```sh
+pytest --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml \
+  --cov-report=xml:coverage.xml --cov-report=term-missing \
+  --cov-report=json:coverage.json -n auto --dist=loadgroup
+```
+
+Environment: Linux, CPython 3.12.15, pytest 9.1.1, pytest-cov 7.1.0,
+xdist 3.8.0, two workers. Both records print 1050 wizard statements, with
+**338 missing before and 284 after: 54 fewer uncovered statements**.
+Historical `branch=false` is explicit in both isolated pyprojects. No combined
+statement-plus-branch delta can be calculated. In particular, the focused
+19-branch improvement cannot be added to this configured-suite line result.
+
+Run artifact inventories contain only the LangSmith artifact. Logs name original
+coverage artifacts `12077805365` and `12080251116`, but direct metadata queries
+for both exited 1 with HTTP 404. Raw executed/missing line and branch identities
+are unavailable, recorded as null. Literal compressed missing-line ranges from
+the logs are preserved; ranges must not be expanded into invented executable
+line identities. The recovered metadata and excerpts identify the exact source
+URLs/commands, exits and environment. No local full-suite run was attempted.
+
+The original alternative is **not substantiated**: the sole wizard target was
+meaningfully testable, as the preserved eight mutation proofs demonstrate.
+Unavailable coverage receipts do not establish an untestable target. Mandatory
+configured-suite combined attribution remains **UNKNOWN**, and the verifier
+must print **OVERALL FAIL**. The unmodified focused receipt is nested under
+`supplemental_focused`, preserving its commands, settings, exits and raw coverage
+file paths and its valid 73-unit result. Existing CI, mutation, ranking and raw
+coverage files are unchanged.
+
+### Repair validation
+
+Before the fix, the focused-receipt regression printed `PASS: coverage
+attribution: isolated wizard selection: 73 fewer statement-plus-branch units;
+not Gate` and `OVERALL PASS`, incorrectly returning 0. The focused run reported
+2 failed, 59 passed: that new regression plus the updated default-UNKNOWN
+expectation. The repair now rejects focused selection even if its scope label
+is changed. Synthetic configured-selection metadata is confined to temporary
+test fixtures so existing raw-unit corruption/shortfall regressions still test
+their intended checks; it is never published as measured evidence.
+
+Final focused validation (owner-selected `/opt/anaconda3/bin/python3`, CPython
+3.12.2, pytest 9.2.0): `-m pytest -q -o addopts=
+tests/test_issue_2360_evidence.py` exited 0: **62 passed, 2 warnings in 3.08s**.
+Warnings concern installed numexpr/bottleneck versions; pytest also prints an
+asyncio fixture-scope deprecation. No dependency pin was changed.
+`scripts/verify_issue_2360_evidence.py` exited **1**, printing five PASS results,
+**UNKNOWN: coverage attribution**, and **OVERALL FAIL**. Actual stdout replaces
+`recheck/verification-output.txt`. `git diff --check` passed. Outcome 1 remains
+UNKNOWN; configured-suite combined attribution is left undone. Historical
+retrieval stopped after the completed queries and both coverage-artifact 404s;
+no further local execution or invented alternative is warranted.

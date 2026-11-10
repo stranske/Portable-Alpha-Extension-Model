@@ -1,0 +1,181 @@
+﻿2026-10-16T22:48:21.6537024Z Current runner version: '2.337.0'
+2026-10-16T22:48:21.6577407Z ##[group]Operating System
+2026-10-16T22:48:21.6578174Z Ubuntu
+2026-10-16T22:48:21.6583923Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-16T22:48:28.2628973Z Successfully set up CPython (3.12.15)
+2026-10-16T22:48:28.2761683Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:28.2762125Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:48:28.2762540Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:28.2762985Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:28.2763372Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:28.2763763Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:48:32.3663004Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:32.3663485Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:48:32.3663944Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:32.3664366Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:32.3664787Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:32.3665193Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:48:33.9254254Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:33.9254708Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:48:33.9255134Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:33.9255638Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:33.9256028Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:33.9256420Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:48:34.8986931Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:34.8987369Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:48:34.8987789Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:34.8988184Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:34.8988587Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:48:34.8988983Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:00.0430153Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:00.0430823Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:00.0431287Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:00.0431699Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:00.0432100Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:00.0432503Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:00.1726308Z Using Python 3.12.15 environment at: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:08.6389098Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:08.6389539Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:08.6389970Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:08.6390480Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:08.6390910Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:08.6391313Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:14.9878655Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:14.9879102Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:14.9879536Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:14.9880033Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:14.9880707Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:14.9881121Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:15.3442930Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.3443542Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:15.3444122Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.3444703Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.3445340Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.3445909Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:15.4735545Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.4736050Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:15.4736479Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.4736893Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.4737295Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:15.4737695Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:16.5696893Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:16.5697332Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:16.5697772Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:16.5698182Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:16.5698589Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:16.5698994Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:17.7791799Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7792285Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:17.7792749Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7793180Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7793613Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7794050Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:17.7919977Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7920543Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:17.7921002Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7921423Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7921839Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.7922255Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:17.8312629Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.8313160Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:17.8313670Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.8314139Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.8314615Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:17.8315095Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:18.5141445Z [36;1margs=("--junitxml=pytest-junit.xml")[0m
+2026-10-16T22:49:18.5142200Z [36;1m  args+=("--cov")[0m
+2026-10-16T22:49:18.5144935Z [36;1m    args+=("--cov-config=pyproject.toml")[0m
+2026-10-16T22:49:18.5145732Z [36;1m  args+=("--cov-report=xml:coverage.xml")[0m
+2026-10-16T22:49:18.5146107Z [36;1m  args+=("--cov-report=term-missing")[0m
+2026-10-16T22:49:18.5146492Z [36;1m  args+=("--cov-report=json:coverage.json")[0m
+2026-10-16T22:49:18.5147527Z [36;1m  args=("-m" "${PYTEST_MARKERS}" "${args[@]}")[0m
+2026-10-16T22:49:18.5150818Z [36;1m    args+=("${extra_args[@]}")[0m
+2026-10-16T22:49:18.5152187Z [36;1m  args+=("-n" "auto" "--dist=loadgroup")[0m
+2026-10-16T22:49:18.5153392Z [36;1mpytest "${args[@]}"[0m
+2026-10-16T22:49:18.5195260Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:18.5195724Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:49:18.5196190Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:18.5196616Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:18.5197033Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:49:18.5197462Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:49:18.5197842Z   PYTEST_MARKERS: 
+2026-10-16T22:49:18.5198130Z   PYTEST_ARGS: 
+2026-10-16T22:49:18.5198421Z   COVERAGE_ENABLED: true
+2026-10-16T22:49:37.0906452Z platform linux -- Python 3.12.15, pytest-9.1.1, pluggy-1.6.0
+2026-10-16T22:49:37.0909594Z testpaths: tests
+2026-10-16T22:49:37.0910800Z plugins: regressions-2.11.0, langsmith-0.10.15, anyio-4.14.2, datadir-1.8.0, cov-7.1.0, hypothesis-6.161.5, xdist-3.8.0
+2026-10-16T22:49:37.0912271Z 2 workers [1726 items]
+2026-10-16T22:51:26.9142818Z   /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/numpy/_core/_methods.py:188: RuntimeWarning: invalid value encountered in subtract
+2026-10-16T22:51:26.9154195Z   /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/numpy/_core/_methods.py:219: RuntimeWarning: Degrees of freedom <= 0 for slice
+2026-10-16T22:51:26.9156072Z   /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/numpy/_core/_methods.py:211: RuntimeWarning: invalid value encountered in scalar divide
+2026-10-16T22:51:26.9270151Z   /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/site-packages/plotly/express/_core.py:2801: DeprecationWarning: The library used by the *country names* `locationmode` option is changing in an upcoming version. Country names in existing plots may not work in the new version. To ensure consistent behavior, consider setting `locationmode` to *ISO-3*.
+2026-10-16T22:51:26.9274268Z _______________ coverage: platform linux, python 3.12.15-final-0 _______________
+2026-10-16T22:51:26.9283999Z dashboard/pages/3_Scenario_Wizard.py        1050    284    73%   200, 204, 214, 218, 295, 329-346, 393, 413, 415, 451, 478, 482, 492, 496, 501-502, 535, 596, 643, 896, 941, 1068, 1113, 1190-1192, 1198-1200, 1208-1213, 1321, 1359-1399, 1418-1492, 1718, 1742-1744, 1780-1781, 1783-1784, 1788-1790, 1794-1796, 1799-1801, 1826-1922, 2002-2010, 2014-2070, 2081-2084, 2089, 2109-2114, 2126-2144, 2165-2166, 2201-2365
+2026-10-16T22:51:27.1268160Z ========== 1724 passed, 2 skipped, 827 warnings in 126.85s (0:02:06) ===========
+2026-10-16T22:51:27.4256278Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4256773Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:27.4257238Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4257662Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4258079Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4258504Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:27.4845446Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4845913Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:27.4846356Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4846793Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4847199Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.4847618Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:27.4847994Z   COVERAGE_ENABLED: true
+2026-10-16T22:51:27.5090816Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5091286Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:27.5091739Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5092180Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5092591Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5093010Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:27.5094252Z   COVERAGE_ENABLED: true
+2026-10-16T22:51:27.5719713Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5720205Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:27.5720905Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5721348Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5721786Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.5722196Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:27.5722861Z   COVERAGE_ENABLED: true
+2026-10-16T22:51:27.6072897Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.6073419Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:27.6073868Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.6074301Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.6074767Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:27.6075196Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:28.8469711Z Artifact gate-coverage-3.12-1 successfully finalized. Artifact ID 12080251116
+2026-10-16T22:51:28.8635685Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8636168Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:28.8636623Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8637047Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8637471Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8637890Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:28.8638876Z   COVERAGE_ENABLED: true
+2026-10-16T22:51:28.8702389Z Checking pytest: success
+2026-10-16T22:51:28.8702916Z Checking coverage minimum: success
+2026-10-16T22:51:28.8791874Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8792352Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:28.8792818Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8793245Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8793665Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.8794088Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:28.9270454Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9270960Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:28.9271440Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9271879Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9272301Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9272714Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:28.9762143Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9762614Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:28.9763076Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9763509Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9763938Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9764359Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+2026-10-16T22:51:28.9913549Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9914065Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+2026-10-16T22:51:28.9914549Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9915009Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9915465Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+2026-10-16T22:51:28.9915910Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib

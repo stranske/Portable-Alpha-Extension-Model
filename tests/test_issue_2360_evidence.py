@@ -27,7 +27,7 @@ def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_revisions(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_ci(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_mutations(verifier.DEFAULT)[0] == "PASS"
-    assert verifier.check_coverage(verifier.DEFAULT)[0] == "PASS"
+    assert verifier.check_coverage(verifier.DEFAULT)[0] == "UNKNOWN"
     assert verifier.check_contract(verifier.DEFAULT)[0] == "PASS"
 
 
@@ -228,8 +228,24 @@ def test_ranking_unknown_is_not_reported_as_historical_compliance() -> None:
     assert "no selection compliance claim" in detail
 
 
+@pytest.fixture
+def configured_evidence(evidence: Path) -> Path:
+    # Synthetic selection metadata isolates unit-validation tests; it is never
+    # persisted or offered as empirical configured-suite evidence.
+    record = verifier.read_json(evidence, "recheck/coverage-comparison.json")
+    record = record.get("supplemental_focused", record)
+    record["scope"] = "historical configured suite"
+    for side in ("before", "after"):
+        record[side]["selection"] = "tests/ -m 'not live_llm'"
+    (evidence / "recheck/coverage-comparison.json").write_text(json.dumps(record))
+    return evidence
+
+
 @pytest.mark.parametrize("breakage", [None, "later_revision", "selection", "denominator"])
-def test_coverage_requires_isolated_comparable_execution(evidence: Path, breakage: str) -> None:
+def test_coverage_requires_isolated_comparable_execution(
+    configured_evidence: Path, breakage: str
+) -> None:
+    evidence = configured_evidence
     if breakage == "later_revision":
         change_json(
             evidence,
@@ -269,7 +285,10 @@ def test_coverage_requires_isolated_comparable_execution(evidence: Path, breakag
         "different_branches",
     ],
 )
-def test_coverage_rejects_unsupported_blended_gain(evidence: Path, breakage: str) -> None:
+def test_coverage_rejects_unsupported_blended_gain(
+    configured_evidence: Path, breakage: str
+) -> None:
+    evidence = configured_evidence
     def update(data):
         target = data["files"]["dashboard/pages/3_Scenario_Wizard.py"]
         if breakage == "line_only":
@@ -297,7 +316,10 @@ def test_coverage_rejects_unsupported_blended_gain(evidence: Path, breakage: str
     assert results["coverage attribution"][0] == "FAIL"
 
 
-def test_coverage_shortfall_does_not_pass_using_other_requirements(evidence: Path, capsys) -> None:
+def test_coverage_shortfall_does_not_pass_using_other_requirements(
+    configured_evidence: Path, capsys
+) -> None:
+    evidence = configured_evidence
     # Restore the baseline's complete raw report: there is now zero measured gain.
     shutil.copyfile(
         evidence / "recheck/coverage-base.json", evidence / "recheck/coverage-merged.json"
@@ -306,3 +328,28 @@ def test_coverage_shortfall_does_not_pass_using_other_requirements(evidence: Pat
     output = capsys.readouterr().out
     assert "isolated measured reduction 0 units" in output
     assert "OVERALL FAIL" in output
+
+
+@pytest.mark.parametrize("relabel_scope", [False, True])
+def test_current_focused_receipt_cannot_satisfy_mandatory_attribution(
+    evidence: Path, monkeypatch: pytest.MonkeyPatch, capsys, relabel_scope: bool
+) -> None:
+    # Keep this real receipt as-is: it measured 73 units only in the wizard slice.
+    record = verifier.read_json(evidence, "recheck/coverage-comparison.json")
+    focused = record.get("supplemental_focused", record)
+    if relabel_scope:
+        focused["scope"] = "historical configured suite"
+    (evidence / "recheck/coverage-comparison.json").write_text(json.dumps(focused))
+    before = verifier.coverage_units(
+        verifier.read_json(evidence, focused["before"]["coverage_record"])
+    )
+    after = verifier.coverage_units(
+        verifier.read_json(evidence, focused["after"]["coverage_record"])
+    )
+    assert before[2] - after[2] == 73
+    monkeypatch.setattr(verifier, "CHECKS", {"coverage attribution": verifier.check_coverage})
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "focused-only" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output

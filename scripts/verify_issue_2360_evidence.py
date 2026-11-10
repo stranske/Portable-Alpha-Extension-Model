@@ -196,6 +196,17 @@ def check_coverage(directory: Path) -> tuple[str, str]:
     if record["status"] == "UNKNOWN":
         return "UNKNOWN", record["limitation"]
     before, after = record["before"], record["after"]
+    # The historical configured selection includes slow tests and excludes live_llm.
+    # Matching focused selections establish comparability, not target attribution.
+    if (
+        record.get("scope") != "historical configured suite"
+        or before["selection"] != "tests/ -m 'not live_llm'"
+        or after["selection"] != "tests/ -m 'not live_llm'"
+    ):
+        return (
+            "FAIL",
+            "focused-only or unverified selection cannot prove configured-suite attribution",
+        )
     valid = (
         record["status"] == "measured"
         and before["revision"] == BASE
@@ -218,7 +229,7 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         return "FAIL", f"isolated measured reduction {reduction} units; target about 60"
     return (
         "PASS",
-        f"isolated wizard selection: {reduction} fewer statement-plus-branch units; not Gate",
+        f"configured suite: {reduction} fewer statement-plus-branch units (branch diagnostic)",
     )
 
 

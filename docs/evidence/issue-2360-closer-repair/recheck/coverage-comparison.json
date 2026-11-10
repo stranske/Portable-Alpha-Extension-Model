@@ -1,47 +1,260 @@
 {
-  "status": "measured",
-  "scope": "isolated wizard-selected suite, not a full-suite or Gate measurement",
-  "python": "3.14.10",
-  "pytest": "9.2.0",
-  "coverage": "7.17.2",
-  "before": {
-    "revision": "10ac6839518576d4dc5199a24392eadfc388c713",
-    "exit_code": 0,
-    "selection": "tests/ -k wizard -m 'not slow and not live_llm'",
+  "status": "UNKNOWN",
+  "scope": "historical configured suite",
+  "checked_at": "2026-11-10",
+  "limitation": "Configured CI logs measure 54 fewer uncovered statements (338 to 284), with branch=false. Raw coverage artifacts return HTTP 404; no configured-suite branch identities or combined delta recovered. The 73-unit focused result is supplemental only. No concrete original alternative established; OVERALL FAIL.",
+  "historical_configured": {
+    "status": "partial historical recovery; combined attribution UNKNOWN",
+    "selection": "tests/ -m 'not live_llm'",
+    "command": "pytest --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup",
+    "environment": {
+      "os": "Ubuntu Linux",
+      "python": "3.12.15",
+      "pytest": "9.1.1",
+      "pytest_cov": "7.1.0",
+      "xdist": "3.8.0",
+      "workers": 2
+    },
     "settings": {
-      "branch": true,
-      "config": "pyproject.toml",
       "source": [
         "pa_core",
         "dashboard",
         "design-system"
-      ]
-    },
-    "command": "python -m pytest tests/ -q -k wizard -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-base-wizard-coverage.json --cov-report=term-missing",
-    "coverage_record": "recheck/coverage-base.json",
-    "output": "recheck/base-wizard-coverage.txt"
-  },
-  "after": {
-    "revision": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
-    "exit_code": 0,
-    "selection": "tests/ -k wizard -m 'not slow and not live_llm'",
-    "settings": {
-      "branch": true,
+      ],
+      "branch": false,
       "config": "pyproject.toml",
-      "source": [
-        "pa_core",
-        "dashboard",
-        "design-system"
-      ]
+      "extra_args": "",
+      "extra_markers": ""
     },
-    "command": "python -m pytest tests/ -q -k wizard -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-merged-wizard-coverage.json --cov-report=term-missing",
-    "coverage_record": "recheck/coverage-merged.json",
-    "output": "recheck/merged-wizard-coverage.txt"
+    "before": {
+      "revision": "10ac6839518576d4dc5199a24392eadfc388c713",
+      "checkout": "/tmp/issue2360-configured-parent",
+      "checkout_head": "10ac6839518576d4dc5199a24392eadfc388c713",
+      "config_sha256": "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4",
+      "pytest_config": {
+        "testpaths": [
+          "tests"
+        ],
+        "python_files": [
+          "test_*.py"
+        ],
+        "addopts": "-m 'not live_llm'",
+        "markers": [
+          "live_llm: opt-in test that calls a real LLM provider; deselected by default",
+          "slow: slower or externally dependent tests skipped by routine keepalive commands"
+        ]
+      },
+      "coverage_config": {
+        "source": [
+          "pa_core",
+          "dashboard",
+          "design-system"
+        ],
+        "branch": false
+      },
+      "run_id": 38971176069,
+      "job_id": 117210972329,
+      "pytest_exit_code": 0,
+      "log_command": "gh api repos/stranske/Portable-Alpha-Extension-Model/actions/jobs/117210972329/logs",
+      "log_exit_code": 0,
+      "log_excerpt": "recheck/configured-parent-ci-excerpt.txt",
+      "api_receipts": {
+        "run": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38971176069"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        "jobs": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38971176069/jobs"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        "artifacts": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38971176069/artifacts"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        "coverage_artifact": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/artifacts/12077805365"
+          ],
+          "exit_code": 1,
+          "stderr": "gh: Not Found (HTTP 404)"
+        },
+        "gate_runs": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/workflows/pr-00-gate.yml/runs?head_sha=10ac6839518576d4dc5199a24392eadfc388c713&per_page=100"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      },
+      "missing_statement_count": 338,
+      "raw_statement_identities": null,
+      "raw_branch_identities": null,
+      "missing_ranges_as_printed": "122-123, 200, 204, 214, 218, 295, 329-346, 393, 413, 415, 451, 478, 482, 492, 496, 501-502, 535, 596, 643, 844-866, 896, 941, 1068, 1070, 1079-1092, 1113, 1164-1235, 1321, 1359-1399, 1414-1492, 1718, 1742-1744, 1780-1781, 1783-1784, 1788-1790, 1794-1796, 1799-1801, 1826-1922, 2002-2010, 2014-2070, 2081-2084, 2089, 2109-2114, 2126-2144, 2165-2166, 2201-2365"
+    },
+    "after": {
+      "revision": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+      "checkout": "/tmp/issue2360-configured-merge",
+      "checkout_head": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+      "config_sha256": "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4",
+      "pytest_config": {
+        "testpaths": [
+          "tests"
+        ],
+        "python_files": [
+          "test_*.py"
+        ],
+        "addopts": "-m 'not live_llm'",
+        "markers": [
+          "live_llm: opt-in test that calls a real LLM provider; deselected by default",
+          "slow: slower or externally dependent tests skipped by routine keepalive commands"
+        ]
+      },
+      "coverage_config": {
+        "source": [
+          "pa_core",
+          "dashboard",
+          "design-system"
+        ],
+        "branch": false
+      },
+      "run_id": 38977412115,
+      "job_id": 117230894905,
+      "pytest_exit_code": 0,
+      "log_command": "gh api repos/stranske/Portable-Alpha-Extension-Model/actions/jobs/117230894905/logs",
+      "log_exit_code": 0,
+      "log_excerpt": "recheck/configured-merge-ci-excerpt.txt",
+      "api_receipts": {
+        "run": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38977412115"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        "jobs": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38977412115/jobs"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        "artifacts": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/runs/38977412115/artifacts"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        },
+        "coverage_artifact": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/artifacts/12080251116"
+          ],
+          "exit_code": 1,
+          "stderr": "gh: Not Found (HTTP 404)"
+        },
+        "gate_runs": {
+          "command": [
+            "gh",
+            "api",
+            "repos/stranske/Portable-Alpha-Extension-Model/actions/workflows/pr-00-gate.yml/runs?head_sha=e8967edb2aa1bdbc1a68ea58ed241cf205915d03&per_page=100"
+          ],
+          "exit_code": 0,
+          "stderr": ""
+        }
+      },
+      "missing_statement_count": 284,
+      "raw_statement_identities": null,
+      "raw_branch_identities": null,
+      "missing_ranges_as_printed": "200, 204, 214, 218, 295, 329-346, 393, 413, 415, 451, 478, 482, 492, 496, 501-502, 535, 596, 643, 896, 941, 1068, 1113, 1190-1192, 1198-1200, 1208-1213, 1321, 1359-1399, 1418-1492, 1718, 1742-1744, 1780-1781, 1783-1784, 1788-1790, 1794-1796, 1799-1801, 1826-1922, 2002-2010, 2014-2070, 2081-2084, 2089, 2109-2114, 2126-2144, 2165-2166, 2201-2365"
+    },
+    "statement_delta": 54,
+    "combined_delta": null,
+    "branch_diagnostic": "Historical configured jobs used branch=false. No --cov-branch reconstruction was run; owner prohibits local full-suite execution. Focused branch data is not attributed to this suite.",
+    "raw_identity_limitation": "Terminal reports retain compressed missing-line ranges only. Expanding them would include non-executable lines; raw executed/missing line and arc arrays remain unavailable.",
+    "alternative": {
+      "status": "not substantiated",
+      "reason": "The original sole target was meaningfully testable (eight retained mutation proofs); absent raw coverage records do not demonstrate an untestable target."
+    },
+    "checkout_command": "git clone --shared --no-checkout . /tmp/issue2360-configured-recovery; git -C /tmp/issue2360-configured-recovery worktree add --detach /tmp/issue2360-configured-{parent,merge} <exact revision> (two separate commands)",
+    "checkout_exits": [
+      0,
+      0,
+      0
+    ],
+    "local_suite_execution": "not run; explicitly prohibited by owner"
   },
-  "full_suite_attempt": {
-    "exit_code": 130,
-    "before_command": "python -m pytest tests/ -q -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-base-coverage.json --cov-report=term-missing -n 2 --dist=loadgroup",
-    "after_command": "python -m pytest tests/ -q -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-merged-coverage.json --cov-report=term-missing -n 2 --dist=loadgroup",
-    "limitation": "Both reported failures and stopped progressing near completion; manually interrupted (exit 130). No terminal coverage JSON recovered. Failure causes were not diagnosed. The current Python 3.14.10 interpreter and dependency set were used, not a recovered historical CI environment. Partial output is not attributed."
+  "supplemental_focused": {
+    "status": "measured",
+    "scope": "isolated wizard-selected suite, not a full-suite or Gate measurement",
+    "python": "3.14.10",
+    "pytest": "9.2.0",
+    "coverage": "7.17.2",
+    "before": {
+      "revision": "10ac6839518576d4dc5199a24392eadfc388c713",
+      "exit_code": 0,
+      "selection": "tests/ -k wizard -m 'not slow and not live_llm'",
+      "settings": {
+        "branch": true,
+        "config": "pyproject.toml",
+        "source": [
+          "pa_core",
+          "dashboard",
+          "design-system"
+        ]
+      },
+      "command": "python -m pytest tests/ -q -k wizard -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-base-wizard-coverage.json --cov-report=term-missing",
+      "coverage_record": "recheck/coverage-base.json",
+      "output": "recheck/base-wizard-coverage.txt"
+    },
+    "after": {
+      "revision": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+      "exit_code": 0,
+      "selection": "tests/ -k wizard -m 'not slow and not live_llm'",
+      "settings": {
+        "branch": true,
+        "config": "pyproject.toml",
+        "source": [
+          "pa_core",
+          "dashboard",
+          "design-system"
+        ]
+      },
+      "command": "python -m pytest tests/ -q -k wizard -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-merged-wizard-coverage.json --cov-report=term-missing",
+      "coverage_record": "recheck/coverage-merged.json",
+      "output": "recheck/merged-wizard-coverage.txt"
+    },
+    "full_suite_attempt": {
+      "exit_code": 130,
+      "before_command": "python -m pytest tests/ -q -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-base-coverage.json --cov-report=term-missing -n 2 --dist=loadgroup",
+      "after_command": "python -m pytest tests/ -q -m 'not slow and not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue2360-merged-coverage.json --cov-report=term-missing -n 2 --dist=loadgroup",
+      "limitation": "Both reported failures and stopped progressing near completion; manually interrupted (exit 130). No terminal coverage JSON recovered. Failure causes were not diagnosed. The current Python 3.14.10 interpreter and dependency set were used, not a recovered historical CI environment. Partial output is not attributed."
+    }
   }
 }
