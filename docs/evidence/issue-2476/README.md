@@ -128,6 +128,48 @@ The `TYPE_CHECKING` import block is `# pragma: no cover` and excluded from measu
 
 ## Lint-format disposition
 
-The historical `lint-format` failure (run 39044091242, `tests/test_wizard_render_coverage.py`)
-is retained as recorded in `gate-coverage.json` `lint_format`. That file is outside this
-work. The current black check above exits 0.
+Run [39044091242](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/39044091242)
+failed at `black --check --line-length 100 --exclude '(\.venv|\.workflows-lib|node_modules)' .`:
+`would reformat tests/test_wizard_render_coverage.py` (1 file would be reformatted,
+504 unchanged). Main fixed that file in `d82092b74c248cd73a8834e2b67d7d78f3754b6f`
+(PR #2397, 2026-10-18). Its current bytes match main; this continuation did not edit it.
+
+Independent check on 2026-11-10 at `24b5f415e2399322b5e8c03359edf8c3ae9b3cf5`,
+using `.venv/bin/python` (3.14.3), ran the exact Black command above with `-m black`:
+exit 0, **525 files would be left unchanged**.
+
+PR Gate run [42905705483](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42905705483)
+on that exact head reports pytest **SUCCESS**, `2034 passed, 1 skipped, 1014 warnings
+in 146.32s`, plus successful Ruff, mypy and gate-summary. The two local nested-venv
+ensurepip failures are absent in hosted CI; neither test was changed. Its lint-format
+job is **SKIPPED**, because `pr-00-gate.yml` explicitly sets `format_check: false`.
+A skipped job is not evidence that Black ran. The reusable lint-format job runs Black;
+Ruff and mypy have separate jobs. No workflow or dependency pin was changed.
+
+## Independent continuation spot-checks (2026-11-10)
+
+At `24b5f415e2399322b5e8c03359edf8c3ae9b3cf5`:
+
+- Focused command above: **63 passed, 18 warnings in 5.69s**, under two minutes.
+- Three transcript mutations reproduced in **34.23 seconds total**: redaction token,
+  explain-panel workbook forwarding, and mixed Series/dict facade serialization.
+  Each named test exited 1 with the recorded failure, then exited 0 after restoration.
+  All three mutated and restored sha256 values matched their transcript records.
+  The facade mutation reproduced `AttributeError: 'dict' object has no attribute 'dtype'`.
+- The headline Results test checks metric labels and values (2.00%, -1.00%, 3.00%,
+  4.00%), summary identity, manifest/workbook forwarding, and PNG/async export
+  arguments. Dedicated explain and sweep-export tests assert delegated arguments.
+  Some older visualization smoke tests check only output presence; they were left
+  unchanged and are not relied on for argument correctness.
+
+This continuation's final commit changes only `docs/evidence/issue-2476/`.
+Production and test bytes remain those of the checked head above. The original
+coverage measurements remain attributed to `54219bd7`; coverage was not remeasured.
+
+Explicit CI run [42924499448](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42924499448)
+on `24b5f415e2399322b5e8c03359edf8c3ae9b3cf5` ran **lint-format: SUCCESS**
+(job `130207525801`), **lint-ruff: SUCCESS**, and **typecheck-mypy: SUCCESS**.
+Its pytest job was still running at this evidence commit; the completed pytest
+result for the same head is run `42905705483` above. This dispatch exercises
+Black without changing the PR Gate policy. Fresh CI on the final evidence-only
+head is checked separately in the continuation result.

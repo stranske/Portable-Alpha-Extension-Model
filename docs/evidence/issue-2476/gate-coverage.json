@@ -2674,8 +2674,27 @@
     "command": "black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
     "failing_file": "tests/test_wizard_render_coverage.py",
     "log_line": "would reformat tests/test_wizard_render_coverage.py; 1 file would be reformatted, 504 files would be left unchanged.",
-    "disposition": "Not attributable to this work or to tests/test_coverage_round_2381.py. The file is outside the ranked targets. Current tree black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' . reports 532 files unchanged on 2026-11-05. No production or unrelated test file was reformatted here.",
-    "current": "2026-11-10 at 54219bd739793fa754c3fec319bb2c6b8f8dd898: python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' . exit 0, 525 files would be left unchanged. The historical failure disposition above is retained."
+    "disposition": "Fixed on main by d82092b74c248cd73a8834e2b67d7d78f3754b6f (PR #2397, 2026-10-18); origin/main and this branch have identical tests/test_wizard_render_coverage.py bytes. No unrelated file was edited in this continuation.",
+    "current": "2026-11-10 independent spot-check at 24b5f415e2399322b5e8c03359edf8c3ae9b3cf5 with .venv/bin/python (3.14.3): Black exit 0, 525 files would be left unchanged.",
+    "pr_gate": {
+      "head_sha": "24b5f415e2399322b5e8c03359edf8c3ae9b3cf5",
+      "run_id": 42905705483,
+      "lint_format": "SKIPPED: pr-00-gate.yml explicitly sets format_check: false; not a Black pass",
+      "pytest": "SUCCESS: 2034 passed, 1 skipped, 1014 warnings in 146.32s; no failing tests, including the two local nested-venv ensurepip cases",
+      "lint_ruff": "SUCCESS",
+      "typecheck_mypy": "SUCCESS",
+      "gate_summary": "SUCCESS"
+    },
+    "explicit_ci": {
+      "run_id": 42924499448,
+      "url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42924499448",
+      "head_sha": "24b5f415e2399322b5e8c03359edf8c3ae9b3cf5",
+      "lint_format": "SUCCESS (job 130207525801)",
+      "lint_ruff": "SUCCESS",
+      "typecheck_mypy": "SUCCESS",
+      "pytest": "Still in progress when evidence was committed; completed pytest SUCCESS for this same head is recorded in pr_gate (run 42905705483).",
+      "reason": "workflow_dispatch of ci.yml exercises Black, which PR Gate disables. Final evidence-only commit will receive fresh CI readback reported in the continuation result."
+    }
   },
   "production_changes": [
     {
@@ -2686,5 +2705,33 @@
       "fixed_result": "at 54219bd739793fa754c3fec319bb2c6b8f8dd898 (facade sha256 a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a): same test exit 0, 1 passed",
       "transcript": "docs/evidence/issue-2476/mutation-transcripts.md, section test_serialize_agent_semantics_from_series_and_dict_list"
     }
-  ]
+  ],
+  "continuation_spot_checks": {
+    "checked": "2026-11-10",
+    "head_sha": "24b5f415e2399322b5e8c03359edf8c3ae9b3cf5",
+    "focused": "63 passed, 18 warnings in 5.69s; under 120 seconds",
+    "mutations": [
+      {
+        "test": "test_redact_sensitive_ignores_blank_and_non_string_secrets",
+        "red_exit": 1,
+        "green_exit": 0,
+        "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841"
+      },
+      {
+        "test": "test_render_explain_results_forwards_summary_manifest_and_workbook",
+        "red_exit": 1,
+        "green_exit": 0,
+        "restored_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9"
+      },
+      {
+        "test": "test_serialize_agent_semantics_from_series_and_dict_list",
+        "red_exit": 1,
+        "green_exit": 0,
+        "restored_sha256": "a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a"
+      }
+    ],
+    "mutation_wall_seconds": 34.23,
+    "assertion_review": "Results headline metrics assert Tracking Error 2.00%, monthly_CVaR -1.00%, Breach Prob 3.00%, Overlay Total 4.00%; delegated summary identity, manifest, workbook, PNG and async export arguments are asserted. Dedicated explain and sweep-export forwarding tests assert arguments. Some older visualization smoke tests only assert output presence; left unchanged and not used as evidence of argument correctness.",
+    "scope": "This continuation changes only docs/evidence/issue-2476/; production/test bytes remain those of the independently checked head. Stop rule: 2 attempts or 30 minutes."
+  }
 }
