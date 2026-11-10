@@ -270,5 +270,62 @@
       "clone": "/tmp/issue2360-executed-cases-delivery",
       "patch": "/tmp/issue2360-executed-cases.patch"
     }
+  },
+  "terminal_receipt_consistency_followup": {
+    "checked_at": "2026-11-10",
+    "baseline": {
+      "command": "python -m pytest -q -o addopts= tests/test_issue_2360_evidence.py -m 'not slow'",
+      "exit_code": 0,
+      "passed": 113
+    },
+    "regression_before_fix": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -o addopts= -m 'not slow' -k configured_terminal_result",
+      "exit_code": 1,
+      "failed": 12,
+      "reason": "Missing, truncated, failing, contradictory-count or later-error terminal receipts incorrectly returned OVERALL PASS on both sides."
+    },
+    "tests": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 142,
+      "verifier_statements": 180,
+      "verifier_missing": 4,
+      "verifier_cover_percent": 98
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "result": "Six PASS results; OVERALL PASS; configured-suite target reduction 73 units (463 to 390 uncovered)."
+    },
+    "ruff": {
+      "command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "black": {
+      "command": "PYTHONPATH=/tmp/issue2360-terminal-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "unchanged_files": 535,
+      "runtime_note": "Both changed Python files formatted individually. Default multiprocessing rejected by sandbox forkserver socket restriction. Full check used one worker and a temporary standard asyncio loop with a 50ms wake-up timer; formatting rules and file selection unchanged."
+    },
+    "live_crosscheck": {
+      "run": 42887512783,
+      "job_ids": [
+        130079659001,
+        130079659222
+      ],
+      "result": "Both historical checkout, execution and enforcement jobs completed successfully. Connector re-read issue 2360 and merged PRs 2372/2467."
+    },
+    "historical_execution": "Reused retained measured paired CI; no historical full-suite replay or new coverage measurement.",
+    "publication": {
+      "pr": 2485,
+      "result": "MCP tool call requires approval, but approval policy is never",
+      "remote_body_changed": false,
+      "proposed_body": "/tmp/issue2360-reconciled-pr-body.md"
+    },
+    "delivery": {
+      "checkout_git": "read-only; git add exited 128",
+      "clone": "/tmp/issue2360-terminal-delivery",
+      "patch": "/tmp/issue2360-terminal.patch"
+    }
   }
 }

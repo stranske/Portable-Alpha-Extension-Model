@@ -223,6 +223,24 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> tuple[dict, di
         cases[identity] = case.find("skipped") is not None
     if len(cases) != counts["tests"] or sum(cases.values()) != counts["skipped"]:
         raise ValueError("paired-CI testcase counts differ from suite summary")
+    terminal = (receipt / "terminal-output.txt").read_text(encoding="utf-8")
+    summaries = re.findall(
+        r"=+[ \t]+([^\r\n]*\bin \d+(?:\.\d+)?s(?: \([^\r\n)]+\))?)[ \t]+=+[ \t]*$",
+        terminal,
+        re.MULTILINE,
+    )
+    # Use the final completed result; progress text or an earlier pass is insufficient.
+    result = re.fullmatch(
+        r"(\d+) passed(?:, (\d+) skipped)?(?:, \d+ warnings?)? in "
+        r"\d+(?:\.\d+)?s(?: \([^\r\n)]+\))?",
+        summaries[-1] if summaries else "",
+    )
+    if (
+        result is None
+        or int(result[1]) != counts["tests"] - counts["skipped"]
+        or int(result[2] or 0) != counts["skipped"]
+    ):
+        raise ValueError("paired-CI terminal pytest result differs from successful JUnit suite")
     environment = read_json(receipt, "environment-check.json")
     job = re.fullmatch(
         rf"https://github\.com/{REPOSITORY}/actions/runs/(\d+)/job/\d+", entry["job_url"]

@@ -1,5 +1,59 @@
 # Issue #2360 acceptance recheck
 
+## Terminal receipt consistency contract (2026-11-10 UTC)
+
+Before code/test changes, reviewed `9c896ff3`, `bd531f3d`, `efc96609` and
+`69ad80d8`, both historical pytest/coverage settings with `git show`, and their
+eight-case-only revision diff. Baseline: 113 evidence tests pass and the recorded
+verifier prints six PASS results and OVERALL PASS. Live connector reads confirm
+#2360, merged #2372/#2467, and both successful historical checkout/execution jobs
+in paired run 42887512783. The retained configured-suite measurement already
+satisfies the two unchecked coverage entries: 1050 statements plus 284 branches,
+463 to 390 uncovered units, a 73-unit reduction excluding later tests.
+
+Reconciled those two entries and the obsolete UNKNOWN continuation summary in
+a proposed PR body before continuing. Publication was rejected with
+`MCP tool call requires approval, but approval policy is never`; remote
+checkboxes remain unchanged. The proposed body is saved at
+`/tmp/issue2360-reconciled-pr-body.md`. PR #2485 is open, `draft=false`, at
+`9c896ff3eb799d0ebe61c704450189033d97529a`. Shell `gh pr view` exited 1 because
+network access is unavailable; the connector provided the live metadata.
+
+The remaining concrete verifier gap is terminal evidence consistency: paired
+coverage validation reads JUnit/exit receipts but ignores `terminal-output.txt`.
+This follow-up must reject absent, incomplete, failing or contradictory pytest
+terminal summaries. The final successful terminal passing/skipped counts must
+agree with the complete JUnit suite on each side. Run
+`python scripts/verify_issue_2360_evidence.py`; expect six PASS results and
+OVERALL PASS for retained evidence, coverage FAIL and exit 1 for contradictory
+terminal evidence. Stop after two attempts per unavailable receipt or 45 minutes
+total. Reuse the measured paired CI; no new historical suite run or production
+change is needed. Mutation, historical, focused and ranking findings stay separate.
+
+Verified result: all **12** new terminal-corruption cases incorrectly passed
+before the fix. After the fix, **142 targeted tests pass**, and targeted verifier
+coverage is **98%** (180 statements, 4 missing). The acceptance command prints
+six PASS results and OVERALL PASS, exit 0. Ruff and `git diff --check` pass.
+Black formatted both Python files individually; its required complete repository
+check passed with **535 files unchanged**. Default multiprocessing was rejected
+by the sandbox; the full check used one worker and a temporary standard asyncio
+loop with a 50 ms wake-up timer, preserving formatting rules and file selection.
+Commands/results are in `terminal_receipt_consistency_followup` in
+[validation.json](./recheck/validation.json). No new historical measurement is
+claimed; raw coverage, CI, mutation and ranking receipts were preserved.
+
+- [x] Verify comparable configured-suite statement-plus-branch records at the
+  adjacent parent/original merge, excluding later tests: 1050 statements plus
+  284 branches, 463 to 390 uncovered units, measured reduction 73.
+- [x] Verify the coverage acceptance criterion with successful terminal results
+  agreeing with the full JUnit suites on both historical revisions.
+
+The main checkout's `git add` exited 128: `.git/index.lock` is read-only.
+The verified source commit is prepared in `/tmp/issue2360-terminal-delivery`,
+with an importable patch at `/tmp/issue2360-terminal.patch`. The main branch
+cannot be advanced here. PR-body publication remains rejected by approval
+policy; local completion is not claimed as a remote checklist update.
+
 ## Coverage summary binding contract (2026-11-10 UTC)
 
 Before source/test edits, inspected both historical `pyproject.toml` revisions

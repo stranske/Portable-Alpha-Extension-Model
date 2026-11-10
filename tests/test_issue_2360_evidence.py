@@ -387,6 +387,35 @@ def _replace_text(path: Path, old: str, new: str) -> None:
     path.write_text(text.replace(old, new))
 
 
+@pytest.mark.parametrize("label", ["configured-parent", "configured-merge"])
+@pytest.mark.parametrize(
+    "breakage", ["missing", "truncated", "failed", "wrong_passed", "wrong_skipped", "later_error"]
+)
+def test_configured_terminal_result_must_agree_with_junit(
+    evidence: Path, label: str, breakage: str, capsys
+) -> None:
+    path = evidence / PAIRED / label / "terminal-output.txt"
+    passed = 1716 if label == "configured-parent" else 1724
+    if breakage == "missing":
+        path.unlink()
+    elif breakage == "truncated":
+        path.write_text(f"{passed} passed so far; waiting for remaining tests\n")
+    elif breakage == "failed":
+        _replace_text(path, f"{passed} passed,", f"1 failed, {passed} passed,")
+    elif breakage == "wrong_passed":
+        _replace_text(path, f"{passed} passed,", f"{passed - 1} passed,")
+    elif breakage == "wrong_skipped":
+        _replace_text(path, "2 skipped,", "1 skipped,")
+    else:
+        # Earlier success cannot hide the last, unsuccessful terminal result.
+        path.write_text(path.read_text() + "=== 1 error in 0.10s ===\n")
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 @pytest.mark.parametrize(
     "extra_args",
     [
