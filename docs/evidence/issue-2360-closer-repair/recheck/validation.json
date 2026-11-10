@@ -214,5 +214,61 @@
       "result": "Both jobs completed success; exact historical checkout steps, suite execution and enforcement completed success",
       "source": "GitHub connector fetch_workflow_run_jobs"
     }
+  },
+  "executed_case_attribution_followup": {
+    "checked_at": "2026-11-10",
+    "baseline": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow'",
+      "exit_code": 0,
+      "passed": 103
+    },
+    "regression_before_fix": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k exact_executed_case_delta",
+      "exit_code": 1,
+      "failed": 10,
+      "reason": "Nine contradictory case receipts incorrectly passed; malformed XML raised an uncaught exception."
+    },
+    "tests": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 130,
+      "verifier_statements": 175,
+      "verifier_missing": 4,
+      "verifier_cover_percent": 98
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "result": "Six PASS results; OVERALL PASS; configured-suite target reduction 73 units."
+    },
+    "case_attribution": {
+      "run_id": 42887512783,
+      "parent_junit_cases": 1718,
+      "merged_junit_cases": 1726,
+      "skipped_each": 2,
+      "only_added_cases": "The eight ORIGINAL_CASES in tests.test_wizard_render_coverage; all passed. Shared case identities and skipped status match."
+    },
+    "ruff": {
+      "command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "black": {
+      "command": "PYTHONPATH=/tmp/issue2360-case-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "unchanged_files": 535,
+      "runtime_note": "Formatted changed files individually. Default multiprocessing fails on restricted forkserver socket. Plain single-worker check timed out (124). Successful check used a temporary standard asyncio loop with a 50 ms wake-up timer; formatting rules and file selection unchanged."
+    },
+    "historical_execution": "Reused retained successful paired CI. No historical full-suite replay, new coverage measurement, or workflow edit.",
+    "publication": {
+      "pr": 2485,
+      "result": "MCP tool call requires approval, but approval policy is never",
+      "remote_body_changed": false,
+      "proposed_body": "/tmp/issue2360-executed-cases-pr-body.md"
+    },
+    "delivery": {
+      "checkout_git": "read-only; git add exited 128",
+      "clone": "/tmp/issue2360-executed-cases-delivery",
+      "patch": "/tmp/issue2360-executed-cases.patch"
+    }
   }
 }

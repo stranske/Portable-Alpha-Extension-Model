@@ -195,7 +195,7 @@ def coverage_units(data: dict, path: str = TARGET) -> tuple[set, set, int]:
     return boundaries[0], boundaries[1], uncovered
 
 
-def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
+def check_receipt(directory: Path, entry: dict, revision: str) -> tuple[dict, dict]:
     """Bind one paired-CI side to its checkout, command, environment and terminal result."""
     receipt = directory / entry["receipt_dir"]
     hashes = dict(
@@ -210,8 +210,19 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
         "--cov-report=term-missing -n auto --dist=loadgroup"
     )
     suite = ET.parse(receipt / "pytest-junit.xml").getroot()
-    suite = suite if suite.tag == "testsuite" else suite.find("testsuite")
+    suites = [suite] if suite.tag == "testsuite" else suite.findall("testsuite")
+    if len(suites) != 1:
+        raise ValueError("paired-CI receipt requires one complete pytest suite")
+    suite = suites[0]
     counts = {key: int(suite.get(key, 0)) for key in ("tests", "failures", "errors", "skipped")}
+    cases = {}
+    for case in suite.findall("testcase"):
+        identity = (case.attrib["classname"], case.attrib["name"])
+        if identity in cases or case.find("failure") is not None or case.find("error") is not None:
+            raise ValueError("duplicate or unsuccessful paired-CI testcase")
+        cases[identity] = case.find("skipped") is not None
+    if len(cases) != counts["tests"] or sum(cases.values()) != counts["skipped"]:
+        raise ValueError("paired-CI testcase counts differ from suite summary")
     environment = read_json(receipt, "environment-check.json")
     job = re.fullmatch(
         rf"https://github\.com/{REPOSITORY}/actions/runs/(\d+)/job/\d+", entry["job_url"]
@@ -240,7 +251,7 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
             line for line in freeze if not line.startswith("-e file:///tmp/issue2360-")
         ],
         "python": (receipt / "environment-platform.txt").read_text().splitlines()[0],
-    }
+    }, cases
 
 
 def check_paired_run(directory: Path, record: dict) -> bool:
@@ -310,13 +321,16 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         and before["settings"]["branch"] is True
         and check_paired_run(directory, record)
     )
-    receipts = [
-        check_receipt(directory, before, BASE),
-        check_receipt(directory, after, MERGED),
-    ]
+    parent_receipt, parent_cases = check_receipt(directory, before, BASE)
+    merged_receipt, merged_cases = check_receipt(directory, after, MERGED)
+    original_cases = {("tests.test_wizard_render_coverage", name): False for name in ORIGINAL_CASES}
+    if parent_cases.keys() & original_cases.keys() or merged_cases != parent_cases | original_cases:
+        return "FAIL", "executed suite delta must be exactly the eight successful original cases"
     # Both sides must come from one paired run with identical execution settings.
     valid = (
-        valid and receipts[0] == receipts[1] and receipts[0]["run_id"] == str(record["run"]["id"])
+        valid
+        and parent_receipt == merged_receipt
+        and parent_receipt["run_id"] == str(record["run"]["id"])
     )
     measurements = []
     reports = []
@@ -401,7 +415,7 @@ def verify(directory: Path) -> dict[str, tuple[str, str]]:
     for name, check in CHECKS.items():
         try:
             results[name] = check(directory)
-        except (OSError, ValueError, KeyError, TypeError) as error:
+        except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as error:
             results[name] = ("FAIL", f"missing or invalid evidence: {error}")
     return results
 

@@ -742,3 +742,57 @@ the nested historical issue) was attempted after validation and rejected:
 `MCP tool call requires approval, but approval policy is never`. Remote task
 checkboxes and the obsolete PR-body UNKNOWN outcome remain unchanged. This is
 a publication blocker, separate from the verified local acceptance result.
+
+## Executed-case attribution contract (2026-11-10 UTC)
+
+Before source/test edits, reviewed commits `bd531f3d`, `efc96609`, and
+`69ad80d8`, both historical pyprojects via `git show`, the adjacent revision
+diff (only the original eight-case file), and both retained JUnit reports.
+Live connector run 42887512783 confirms both exact historical checkout and
+execution jobs completed successfully. Baseline: 103 evidence tests pass; the
+acceptance command prints six PASS results and OVERALL PASS. The configured
+receipts already satisfy both remaining coverage checkboxes: 1050 statements
+plus 284 branches, 463 to 390 uncovered units, measured reduction 73.
+
+This follow-up binds that attribution to executed case identities: the merged
+JUnit report must contain precisely the parent cases plus the eight original
+successful cases, excluding later tests. Duplicate, skipped, failed, missing,
+or unrelated replacement cases must prevent coverage PASS. Run
+`python scripts/verify_issue_2360_evidence.py`; expect six PASS results and
+OVERALL PASS for retained receipts, coverage FAIL and exit 1 for contradictory
+case receipts. Stop after two retrieval attempts per unavailable receipt or
+45 minutes total. Reuse the completed paired CI; no local historical full-suite
+replay or new measurement is required.
+
+Before continuing, reconciled the two stale current PR #2485 checkboxes and
+obsolete top-level UNKNOWN result in a proposed body, preserving historical
+nested issue text. Publication was rejected: `MCP tool call requires approval,
+but approval policy is never`. Remote checkboxes remain unchanged. The PR was
+read open with `draft=false`. This is a publication limitation, separate from
+the retained measurements.
+
+Verified outcome: all ten new regression cases failed before implementation
+(nine contradictory receipts incorrectly passed; malformed XML escaped the
+verifier). After implementation, **130 targeted tests pass**, and the verifier
+module reports **98%** statement coverage (175 statements, 4 missing). The
+retained JUnit reports contain **1718 parent / 1726 merged cases**, with two
+skips each; all eight added original cases pass and all shared case identities
+and skipped statuses match. Acceptance prints six PASS results and OVERALL PASS.
+Ruff and `git diff --check` pass. Black formatted the two changed Python files
+individually; its full repository check passed with **535 files unchanged**.
+As in prior rounds, that check required one worker and a temporary standard
+asyncio loop with a 50 ms wake-up timer after default multiprocessing was
+restricted and the plain one-worker run timed out. See
+`executed_case_attribution_followup` in [validation.json](./recheck/validation.json).
+
+- [x] Verify configured-suite attribution using both historical raw coverage
+  records and exactly the original eight executed added cases.
+- [x] Verify the remaining coverage acceptance criterion: identical target
+  boundaries, uncovered counts 463 to 390, isolated measured reduction 73.
+
+The main checkout cannot stage changes: `git add` exited 128 because its
+`.git/index.lock` is read-only. The source commit is prepared in
+`/tmp/issue2360-executed-cases-delivery`, with an importable patch at
+`/tmp/issue2360-executed-cases.patch`. The reconciled PR body is saved at
+`/tmp/issue2360-executed-cases-pr-body.md`; the rejected remote update is not
+claimed as published. No workflow or production file changed.

@@ -2,6 +2,7 @@
 
 import json
 import shutil
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
@@ -539,3 +540,64 @@ def test_coverage_requires_bound_paired_ci_receipts(
 
         change_json(evidence, MERGE_COVERAGE, update)
     assert verifier.verify(evidence)["coverage attribution"][0] == "FAIL"
+
+
+@pytest.mark.parametrize(
+    "breakage",
+    [
+        "missing_original",
+        "later_case",
+        "skipped_original",
+        "failed_original",
+        "duplicate_original",
+        "missing_shared",
+        "changed_shared",
+        "summary_only",
+        "original_in_parent",
+        "malformed_report",
+    ],
+)
+def test_configured_attribution_requires_exact_executed_case_delta(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    path = evidence / PAIRED / "configured-merge" / "pytest-junit.xml"
+    tree = ET.parse(path)
+    suite = tree.getroot().find("testsuite")
+    original = next(case for case in suite if case.get("name") == verifier.ORIGINAL_CASES[0])
+    shared = next(case for case in suite if case.get("classname") != original.get("classname"))
+    if breakage == "missing_original":
+        suite.remove(original)
+        suite.set("tests", str(int(suite.get("tests")) - 1))
+    elif breakage == "later_case":
+        original.set("name", "test_added_after_original_merge")
+    elif breakage == "skipped_original":
+        ET.SubElement(original, "skipped")
+        suite.set("skipped", str(int(suite.get("skipped")) + 1))
+    elif breakage == "failed_original":
+        # A contradictory success summary must not hide a failing testcase.
+        ET.SubElement(original, "failure")
+    elif breakage == "duplicate_original":
+        suite.append(ET.fromstring(ET.tostring(original)))
+        suite.set("tests", str(int(suite.get("tests")) + 1))
+    elif breakage == "missing_shared":
+        suite.remove(shared)
+        suite.set("tests", str(int(suite.get("tests")) - 1))
+    elif breakage == "changed_shared":
+        shared.set("name", "unrelated_replacement_case")
+    elif breakage == "summary_only":
+        suite.remove(original)  # Leave the reported total untouched.
+    elif breakage == "original_in_parent":
+        parent_path = evidence / PAIRED / "configured-parent" / "pytest-junit.xml"
+        parent_tree = ET.parse(parent_path)
+        parent_suite = parent_tree.getroot().find("testsuite")
+        parent_suite.append(original)
+        parent_suite.set("tests", str(int(parent_suite.get("tests")) + 1))
+        parent_tree.write(parent_path)
+    tree.write(path)
+    if breakage == "malformed_report":
+        path.write_text("<testsuites>")
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
