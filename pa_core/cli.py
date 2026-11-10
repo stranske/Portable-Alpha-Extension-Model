@@ -1552,7 +1552,7 @@ def _main(
         try:
             rows: list[dict[str, object]] = []
             for agent, arr in returns.items():
-                mean_month = float(np.asarray(arr).mean())
+                mean_month = float(_np.asarray(arr).mean())
                 ann = 12.0 * mean_month
                 rows.append({"Agent": agent, "Sub": "Total", "Return": ann})
             inputs_dict["_attribution_df"] = pd.DataFrame(rows)
