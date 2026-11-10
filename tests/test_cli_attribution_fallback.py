@@ -35,7 +35,7 @@ def test_attribution_fallback_exports_annualised_totals(monkeypatch, tmp_path) -
         yaml.safe_dump(
             {
                 "N_SIMULATIONS": 1,
-                "N_MONTHS": 1,
+                "N_MONTHS": 3,
                 "financing_mode": "broadcast",
                 "analysis_mode": "single_with_sensitivity",
             }
@@ -63,4 +63,7 @@ def test_attribution_fallback_exports_annualised_totals(monkeypatch, tmp_path) -
     assert attribution["Agent"].is_unique
     for row in attribution.itertuples():
         raw = pd.read_excel(output, sheet_name=row.Agent, index_col=0)
+        # Three distinct months, so an annualised mean differs from an annualised sum.
+        assert raw.shape[1] == 3
+        assert raw.to_numpy().sum() != pytest.approx(raw.to_numpy().mean())
         assert row.Return == pytest.approx(12 * raw.to_numpy().mean())
