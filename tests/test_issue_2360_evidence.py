@@ -29,7 +29,8 @@ def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_mutations(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_coverage(verifier.DEFAULT) == (
         "PASS",
-        "configured suite: 73 fewer statement-plus-branch units (branch diagnostic)",
+        "configured suite: 73 fewer statement-plus-branch units "
+        "(463 to 390 uncovered; 1050 statements + 284 branches; branch diagnostic)",
     )
     assert verifier.check_contract(verifier.DEFAULT)[0] == "PASS"
 
@@ -324,10 +325,34 @@ def test_coverage_shortfall_does_not_pass_using_other_requirements(
     evidence = configured_evidence
     # Restore the baseline's complete raw report: there is now zero measured gain.
     shutil.copyfile(evidence / PARENT_COVERAGE, evidence / MERGE_COVERAGE)
+    change_json(
+        evidence,
+        "recheck/coverage-comparison.json",
+        lambda record: record["after"].update(target_units=record["before"]["target_units"]),
+    )
     assert verifier.main(["--evidence-dir", str(evidence)]) == 1
     output = capsys.readouterr().out
     assert "isolated measured reduction 0 units" in output
     assert "OVERALL FAIL" in output
+
+
+@pytest.mark.parametrize("side", ["before", "after"])
+@pytest.mark.parametrize("field", ["missing_lines", "missing_branches", "uncovered", None])
+def test_recorded_target_counts_must_match_raw_coverage(
+    evidence: Path, side: str, field: str | None, capsys
+) -> None:
+    def update(record):
+        if field is None:
+            del record[side]["target_units"]
+        else:
+            record[side]["target_units"][field] += 1
+
+    change_json(evidence, "recheck/coverage-comparison.json", update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
 
 
 @pytest.mark.parametrize("relabel_scope", [False, True])

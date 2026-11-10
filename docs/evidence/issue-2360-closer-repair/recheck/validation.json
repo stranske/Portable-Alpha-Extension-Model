@@ -158,5 +158,61 @@
       "result": "rejected: MCP tool call requires approval, but approval policy is never",
       "remote_body_changed": false
     }
+  },
+  "coverage_summary_binding_followup": {
+    "checked_at": "2026-11-10",
+    "baseline": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow'",
+      "exit_code": 0,
+      "passed": 95
+    },
+    "regression_before_fix": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k recorded_target_counts",
+      "exit_code": 1,
+      "failed": 8,
+      "reason": "Altered or absent target_units incorrectly produced OVERALL PASS"
+    },
+    "tests": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 120,
+      "verifier_statement_coverage_percent": 98
+    },
+    "verification": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "result": "six PASS results; OVERALL PASS",
+      "output": "recheck/verification-output.txt"
+    },
+    "ruff": {
+      "command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "black": {
+      "command": "PYTHONPATH=/tmp/issue2360-count-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "unchanged_files": 535,
+      "note": "Changed files formatted individually first. Default multiprocessing rejected by sandbox forkserver socket restriction. Temporary standard asyncio loop with 50ms wake-up timer and single worker; same formatting rules and repository selection."
+    },
+    "historical_checkouts": {
+      "parent": "/tmp/issue2360-count-parent",
+      "merge": "/tmp/issue2360-count-merge",
+      "clone_and_worktree_exits": [
+        0,
+        0,
+        0
+      ],
+      "pyproject_sha256_both": "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4",
+      "note": "Exact detached revisions BASE and MERGED; no local full-suite replay. Original measurement retained."
+    },
+    "live_ci_crosscheck": {
+      "run_id": 42887512783,
+      "job_ids": [
+        130079659001,
+        130079659222
+      ],
+      "result": "Both jobs completed success; exact historical checkout steps, suite execution and enforcement completed success",
+      "source": "GitHub connector fetch_workflow_run_jobs"
+    }
   }
 }

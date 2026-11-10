@@ -324,6 +324,14 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         data = read_json(directory, entry["coverage_record"])
         reports.append(data)
         measurements.append(coverage_units(data))
+        target = data["files"][TARGET]
+        recorded_counts = {
+            "missing_lines": len(target["missing_lines"]),
+            "missing_branches": len(target["missing_branches"]),
+            "uncovered": measurements[-1][2],
+        }
+        if entry["target_units"] != recorded_counts:
+            return "FAIL", "recorded target counts differ from raw coverage"
     first, last = measurements
     # Raw unit boundaries must match for every measured file, not only the target.
     valid = (
@@ -342,7 +350,9 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         return "FAIL", f"isolated measured reduction {reduction} units; target about 60"
     return (
         "PASS",
-        f"configured suite: {reduction} fewer statement-plus-branch units (branch diagnostic)",
+        f"configured suite: {reduction} fewer statement-plus-branch units "
+        f"({first[2]} to {last[2]} uncovered; "
+        f"{len(first[0])} statements + {len(first[1])} branches; branch diagnostic)",
     )
 
 

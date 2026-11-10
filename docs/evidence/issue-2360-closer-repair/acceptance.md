@@ -1,5 +1,62 @@
 # Issue #2360 acceptance recheck
 
+## Coverage summary binding contract (2026-11-10 UTC)
+
+Before source/test edits, inspected both historical `pyproject.toml` revisions
+with `git show`, their eight-case-only diff, retained paired-CI receipts and
+live run 42887512783's successful parent/merge jobs. Baseline: 95 evidence tests
+pass; the acceptance command prints six PASS results and OVERALL PASS. The
+remaining unchecked coverage entries have retained measurements, but the
+verifier does not bind the comparison's `target_units` counts to raw reports.
+
+Expected outcome from `python scripts/verify_issue_2360_evidence.py`: print
+statement/branch denominators, uncovered counts before/after and measured
+reduction; contradictory recorded counts must produce coverage FAIL and
+OVERALL FAIL (exit 1). Add focused regression tests rather than repeating the
+historical suite. Stop after two retrieval attempts per unavailable receipt or
+45 minutes total. `gh issue view 2360` and `gh pr view 2372` exited 1 because
+shell network access is unavailable; the connector re-read #2360 and confirmed
+PR #2485 is open with `draft=false` at `efc96609`. Prior CI, mutation and ranking
+findings remain separate, including explicit ranking provenance UNKNOWN.
+
+Verified result: all eight new corrupted-summary cases failed before the fix.
+After the fix, **120 targeted tests pass**, with **98%** verifier statement
+coverage. The recorded acceptance command prints six PASS results and
+OVERALL PASS; its coverage line now reports **463 to 390 uncovered units**, with
+**1050 statements + 284 branches**, and **73 fewer units**. Ruff and
+`git diff --check` pass. Both newly inspected isolated checkouts have the
+recorded identical `pyproject.toml` hash `b442a73d…`; only the original eight-case
+test file differs. Existing paired CI provides execution evidence; no local
+full-suite rerun or later test contribution is claimed.
+
+Black formatted both changed Python files individually. Its required repository
+check passed with **535 files unchanged**, using one worker and the temporary
+standard asyncio wake-up timer already described in this record. Default
+multiprocessing was rejected by the sandbox; an unnecessary subsequent diagnostic
+retry with a shorter 20-second bound timed out. The completed full check remains
+the formatting evidence. Commands and results are in `coverage_summary_binding_followup`
+in [validation.json](./recheck/validation.json); actual acceptance output is in
+[verification-output.txt](./recheck/verification-output.txt).
+
+- [x] Verify comparable configured-suite statement-plus-branch attribution at
+  adjacent parent/original merge, including raw denominators and uncovered
+  counts, without crediting later tests.
+- [x] Verify the acceptance coverage criterion: the retained configured-suite
+  command ran successfully on both revisions and measured a 73-unit reduction.
+
+Staging exited 128 because this checkout's `.git/index.lock` is read-only.
+Prepared the verified source commit in `/tmp/issue2360-count-binding` and an
+importable patch at `/tmp/issue2360-count-binding.patch`; the checkout's branch
+cannot be advanced here. This delivery constraint does not change attribution.
+
+After validation, attempted to reconcile only the two current unchecked PR
+coverage entries and replace the obsolete top-level UNKNOWN outcome, preserving
+the nested historical issue. The GitHub tool rejected publication with
+`MCP tool call requires approval, but approval policy is never`. Remote
+checkboxes remain unchanged. PR #2485 was re-read open with `draft=false` at
+`efc96609` immediately before that attempt. The source commit and patch remain
+available locally; no branch update or PR-body publication is claimed.
+
 Check date: **2026-11-07 UTC**. This contract was recorded before implementation
 or evidence changes for issue #2474. Historical receipts below this directory
 retain their original dates; they are not new measurements.
