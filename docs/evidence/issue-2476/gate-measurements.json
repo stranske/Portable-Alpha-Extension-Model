@@ -5,20 +5,35 @@
   "focused_test_functions": 49,
   "focused_cases_including_parametrization": 52,
   "added_this_round": "tests/test_coverage_round_2476_facade.py",
-  "measured_revision": "2a3e0210b9d4e68f7c3407eaa8f43a1b46cec17b",
+  "measured_revision": "54219bd739793fa754c3fec319bb2c6b8f8dd898",
   "acceptance_records": {
+    "interpreter": ".venv/bin/python, Python 3.14.3 (CI python-version is 3.14; .venv built with uv from requirements.lock plus .[dev])",
     "focused_pytest": {
       "command": "python -m pytest -q tests/test_coverage_round_2381.py tests/test_coverage_round_2476_facade.py",
-      "recorded_result": "63 passed in 2.53s"
+      "revision": "54219bd739793fa754c3fec319bb2c6b8f8dd898",
+      "recorded_result": "63 passed, 18 warnings in 5.00s",
+      "wall_s": 7.64,
+      "under_120s": true
     },
     "black_check": {
       "command": "python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
+      "revision": "54219bd739793fa754c3fec319bb2c6b8f8dd898",
+      "exit": 0,
       "recorded_result": "525 files would be left unchanged."
     },
     "gate_coverage": {
-      "recorded_duration_s": 74.97,
-      "recorded_result": "coverage artifacts emitted; 2021 passing tests, 3 expected local-environment failures",
-      "local_environment_note": "host Python 3.12 vs packaging requires-python >=3.13; hosted Python 3.14 CI is authoritative",
+      "command": "pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup",
+      "revision": "54219bd739793fa754c3fec319bb2c6b8f8dd898",
+      "recorded_result": "2 failed, 2032 passed, 1 skipped in 46.05s (wall 49s); TOTAL 14733 statements, 1169 missing, 92%",
+      "branch_supplement": {
+        "command": "same command plus --cov-branch",
+        "recorded_result": "2 failed, 2032 passed, 1 skipped in 43.82s (wall 46s); TOTAL 14733 statements, 1168 missing, 4990 branches, 658 partial, 90%"
+      },
+      "local_environment_failures": [
+        "tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples",
+        "tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv"
+      ],
+      "local_environment_note": "both failures are a nested venv ensurepip dying with SIGABRT on this host; neither test exercises the seven targets. Hosted Python 3.14 CI on the PR is authoritative for pass/fail.",
       "identical_baseline_head_config": true,
       "comparable_scope": true
     }
@@ -37,26 +52,110 @@
   "uncovered_statement_reduction": 207,
   "remaining_uncovered_statements": 2,
   "uncovered_branch_reduction": 119,
-  "branch_measurement_authority": "diagnostic only; authoritative Gate coverage is line-only (branch = false in pyproject.toml [tool.coverage.run])",
   "statement_attribution": {
-    "pa_core/llm/result_explain.py": {"statements": 58, "branches": 14},
-    "pa_core/pa.py": {"statements": 131, "branches": 79},
-    "pa_core/facade.py": {"statements": 18, "branches": 26}
+    "note": "corrected 2026-11-10: the earlier record listed the chronological step totals 58/131/18 (and branches 14/79/26) under three file names; they are steps, not per-file amounts",
+    "chronological": {
+      "round_baseline_to_after_2384 (merged PR #2384)": {
+        "statements": 58,
+        "branches": 14
+      },
+      "after_2384_to_before_this_work (main up to the #2476 bootstrap)": {
+        "statements": 131,
+        "branches": 79
+      },
+      "before_this_work_to_delivered (this PR)": {
+        "statements": 18,
+        "branches": 26
+      }
+    },
+    "per_target_round_baseline_to_delivered": {
+      "pa_core/llm/result_explain.py": {
+        "statements": 4,
+        "branches": 7
+      },
+      "pa_core/pa.py": {
+        "statements": 27,
+        "branches": 23
+      },
+      "pa_core/facade.py": {
+        "statements": 21,
+        "branches": 20
+      },
+      "pa_core/units.py": {
+        "statements": 13,
+        "branches": 10
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statements": 4,
+        "branches": 4
+      },
+      "pa_core/manifest.py": {
+        "statements": 2,
+        "branches": 0
+      },
+      "dashboard/pages/4_Results.py": {
+        "statements": 136,
+        "branches": 55
+      }
+    }
   },
   "remaining_exceptions": {
-    "facade": [
-      "numpy-ImportError fallbacks in _to_builtin_scalar and _serialize_agent_semantics_input (numpy is a hard dependency; exercised only via import mocking)",
-      "defensive except (ValueError, TypeError) mapping-serialization warning path in _serialize_agent_semantics_input (covered from this round by tests/test_coverage_round_2476_facade.py)",
-      "TYPE_CHECKING import block marked pragma: no cover, unreachable at runtime"
-    ],
-    "unreachable_or_runtime_only_branches": [
-      "dashboard/pages/4_Results.py __main__ script entrypoint arc (covered via runpy run_name=__main__)",
-      "dashboard/pages/4_Results.py auto-refresh st.rerun() arc requires live Streamlit runtime (covered with fake st)",
-      "empty-container truthiness short-circuits in _serialize_agent_semantics_input all(...) row-shape guards (both exits asserted)"
-    ],
-    "reconciliation": {
-      "dead_post_serialization_export_paths": "residual lines in facade.py are the defensive except block and TYPE_CHECKING import, not numpy fallbacks",
-      "numpy_fallbacks_clarification": "numpy is a hard dependency per pyproject.toml; ImportError paths are unreachable in Gate environment"
+    "pa_core/facade.py": {
+      "missing_statements": [
+        750,
+        756
+      ],
+      "missing_branch_arcs": [
+        [
+          749,
+          750
+        ],
+        [
+          755,
+          756
+        ]
+      ],
+      "reason": "dead post-serialization branches in export(): _serialize_agent_semantics_input has already turned DataFrame and tuple values into lists, so the DataFrame body (750) and tuple-to-list conversion (756) cannot run on the production path"
+    },
+    "pa_core/pa.py": {
+      "missing_statements": [],
+      "missing_branch_arcs": [
+        [
+          349,
+          -120
+        ]
+      ],
+      "reason": "the false exit of elif args.registry_cmd == 'get'; argparse requires a registry subcommand and only list and get exist"
+    },
+    "dashboard/pages/4_Results.py": {
+      "missing_statements": [],
+      "missing_branch_arcs": [
+        [
+          178,
+          180
+        ]
+      ],
+      "reason": "_render_comparison_panel no-message fallthrough; every unavailable _PreviousRunAvailability carries a message"
+    },
+    "covered_not_exceptions": [
+      "numpy ImportError fallbacks in pa_core/facade.py (lines 50-51, 87-88) are covered via import mocking (test_facade_scalar_helpers_tolerate_missing_numpy)",
+      "the except (ValueError, TypeError) mapping-serialization path in _serialize_agent_semantics_input is covered by test_serialize_agent_semantics_keeps_mapping_when_frame_build_fails",
+      "4_Results.py __main__ entrypoint and auto-refresh st.rerun() arcs are covered (runpy and fake st)"
+    ]
+  },
+  "focused_cases_including_parametrization_both_files": 63,
+  "measured_revision_note": "exact code commit measured on 2026-11-10; the commit after it on codex/issue-2476 changes only docs/evidence/issue-2476/ (README.md, gate-coverage.json, gate-measurements.json, mutation-transcripts.md)",
+  "round_baseline_uncovered_branches": 123,
+  "remaining_uncovered_branches": 4,
+  "production_changes": [
+    {
+      "file": "pa_core/facade.py",
+      "function": "_serialize_agent_semantics_input",
+      "change": "a list mixing pandas Series and dict rows is converted with Series.to_dict() row by row before pd.DataFrame(rows); previously pd.DataFrame(list_of_series_and_dicts) raised",
+      "original_failure": "on origin/main facade bytes (sha256 f41c355c331e5c6eaa308df594e6908eb7ec7c5e1321d3e165373a1151a2bc07): tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_series_and_dict_list exit 1, E   AttributeError: 'dict' object has no attribute 'dtype'",
+      "fixed_result": "at 54219bd739793fa754c3fec319bb2c6b8f8dd898 (facade sha256 a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a): same test exit 0, 1 passed",
+      "transcript": "docs/evidence/issue-2476/mutation-transcripts.md, section test_serialize_agent_semantics_from_series_and_dict_list"
     }
-  }
+  ],
+  "branch_measurement_authority": "diagnostic only; authoritative Gate coverage is line-only (branch = false in pyproject.toml [tool.coverage.run])"
 }

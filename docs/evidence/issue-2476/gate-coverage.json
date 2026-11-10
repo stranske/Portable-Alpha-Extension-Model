@@ -1,11 +1,11 @@
 {
-  "checked": "2026-11-05",
+  "checked": "2026-11-10",
   "restoration": {
     "restores": "reviewed #2476 test/evidence commit after closed PR #2484",
-    "focused_acceptance": "/opt/anaconda3/bin/python3 -m pytest -q tests/test_coverage_round_2381.py: 52 passed in 3.04s",
-    "black": "/opt/anaconda3/bin/python3 -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .: 524 files unchanged",
-    "gate_coverage": "completed in 74.97s and emitted coverage artifacts; 2021 passing tests and 3 expected local-environment failures because this host uses Python 3.12 while packaging declares >=3.13; hosted Python 3.14 CI is the authoritative required-CI gate",
-    "reductions_confirmed": "207 fewer uncovered statements and 119 fewer uncovered branches from the seven-target round baseline (see statement_reductions/branch_reductions); remaining exceptions in exceptions_still_uncovered"
+    "focused_acceptance": "python -m pytest -q tests/test_coverage_round_2381.py tests/test_coverage_round_2476_facade.py at 54219bd739793fa754c3fec319bb2c6b8f8dd898 on Python 3.14.3: 63 passed, 18 warnings in 5.00s (wall 7.64s), 2026-11-10",
+    "black": "python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' . at 54219bd739793fa754c3fec319bb2c6b8f8dd898: exit 0, 525 files would be left unchanged, 2026-11-10",
+    "gate_coverage": "2026-11-10, Python 3.14.3 (.venv created with uv from requirements.lock + .[dev]): line-only run 2 failed, 2032 passed, 1 skipped in 46.05s (wall 49s); --cov-branch run 2 failed, 2032 passed, 1 skipped in 43.82s (wall 46s). Both failures are local-environment: tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples and tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv, where a nested venv's ensurepip died with SIGABRT. Neither test covers the seven targets. Hosted CI on the PR head is authoritative for pass/fail.",
+    "reductions_confirmed": "207 fewer uncovered statements and 119 fewer uncovered branches from the seven-target round baseline, measured at 54219bd739793fa754c3fec319bb2c6b8f8dd898 (see statement_reductions/branch_reductions); remaining exceptions in exceptions_still_uncovered"
   },
   "gate": {
     "workflow": ".github/workflows/ci.yml and .github/workflows/pr-00-gate.yml job python-ci",
@@ -14,10 +14,10 @@
     "marker": "pyproject addopts -m 'not live_llm'; measurements passed -m 'not live_llm' explicitly",
     "coverage_config": "pyproject.toml [tool.coverage.run] source=['pa_core','dashboard','design-system'], branch=false",
     "branch_supplement": "same command plus --cov-branch, because the Gate config does not collect branches",
-    "workers_note": "after_2384 branch supplement used -n 2; every other full-suite measurement used -n auto",
+    "workers_note": "after_2384 branch supplement used -n 2; every other full-suite measurement, including both 2026-11-10 runs, used -n auto",
     "stop_rule": "One full-suite attempt per revision. Stop if a command exceeds 3 minutes or the same step fails three times. Focused acceptance command must finish in under 2 minutes.",
-    "focused_acceptance_command": "python -m pytest -q tests/test_coverage_round_2381.py",
-    "focused_result": "52 passed in 2.19s (wall 3.77s) on 2026-11-05"
+    "focused_acceptance_command": "python -m pytest -q tests/test_coverage_round_2381.py tests/test_coverage_round_2476_facade.py",
+    "focused_result": "63 passed, 18 warnings in 5.00s (wall 7.64s) on 2026-11-10 at 54219bd739793fa754c3fec319bb2c6b8f8dd898, interpreter .venv/bin/python (Python 3.14.3, the CI python-version)"
   },
   "ranking": {
     "source": "issue #2381 body, order unchanged",
@@ -2280,8 +2280,162 @@
       "suite_note": "1991 passed, 3 skipped on 2026-11-05."
     },
     "delivered": {
+      "revision": "54219bd739793fa754c3fec319bb2c6b8f8dd898",
+      "role": "exact measured code revision: restored #2476 tests, tests/test_coverage_round_2476_facade.py and the mixed Series/dict fix in pa_core/facade.py; later commits on the branch change only docs/evidence/issue-2476/",
+      "statements": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 227,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/facade.py": {
+            "statements": 333,
+            "missing_statements": 2,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [
+              750,
+              756
+            ],
+            "missing_branch_arcs": []
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 0,
+            "branches": null,
+            "missing_branches": null,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          }
+        },
+        "selected_missing_statements": 2,
+        "selected_missing_branches": null
+      },
+      "branches": {
+        "targets": {
+          "pa_core/llm/result_explain.py": {
+            "statements": 227,
+            "missing_statements": 0,
+            "branches": 102,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/pa.py": {
+            "statements": 222,
+            "missing_statements": 0,
+            "branches": 68,
+            "missing_branches": 1,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": [
+              [
+                349,
+                -120
+              ]
+            ]
+          },
+          "pa_core/facade.py": {
+            "statements": 333,
+            "missing_statements": 2,
+            "branches": 120,
+            "missing_branches": 2,
+            "missing_statement_lines": [
+              750,
+              756
+            ],
+            "missing_branch_arcs": [
+              [
+                749,
+                750
+              ],
+              [
+                755,
+                756
+              ]
+            ]
+          },
+          "pa_core/units.py": {
+            "statements": 81,
+            "missing_statements": 0,
+            "branches": 30,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/sim/internal_pa_financing.py": {
+            "statements": 35,
+            "missing_statements": 0,
+            "branches": 18,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "pa_core/manifest.py": {
+            "statements": 61,
+            "missing_statements": 0,
+            "branches": 4,
+            "missing_branches": 0,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": []
+          },
+          "dashboard/pages/4_Results.py": {
+            "statements": 210,
+            "missing_statements": 0,
+            "branches": 70,
+            "missing_branches": 1,
+            "missing_statement_lines": [],
+            "missing_branch_arcs": [
+              [
+                178,
+                180
+              ]
+            ]
+          }
+        },
+        "selected_missing_statements": 2,
+        "selected_missing_branches": 4
+      },
+      "suite_note": "2026-11-10, Python 3.14.3 (.venv created with uv from requirements.lock + .[dev]): line-only run 2 failed, 2032 passed, 1 skipped in 46.05s (wall 49s); --cov-branch run 2 failed, 2032 passed, 1 skipped in 43.82s (wall 46s). Both failures are local-environment: tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples and tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv, where a nested venv's ensurepip died with SIGABRT. Neither test covers the seven targets. Hosted CI on the PR head is authoritative for pass/fail."
+    },
+    "delivered_recorded_2026_11_05": {
       "revision": "working tree that this commit records; product sources unchanged from before_this_work",
-      "role": "tests/test_coverage_round_2381.py strengthened on the before_this_work tree",
+      "role": "superseded 2026-11-05 record of the working tree before tests/test_coverage_round_2476_facade.py and the mixed Series/dict facade fix; its revision field was not an exact commit",
       "statements": {
         "targets": {
           "pa_core/llm/result_explain.py": {
@@ -2438,31 +2592,51 @@
     "round_baseline_to_after_2384": 58,
     "after_2384_to_before_this_work": 131,
     "this_work": 18,
-    "round_baseline_to_delivered": 207
+    "round_baseline_to_delivered": 207,
+    "per_target_round_baseline_to_delivered": {
+      "pa_core/llm/result_explain.py": 4,
+      "pa_core/pa.py": 27,
+      "pa_core/facade.py": 21,
+      "pa_core/units.py": 13,
+      "pa_core/sim/internal_pa_financing.py": 4,
+      "pa_core/manifest.py": 2,
+      "dashboard/pages/4_Results.py": 136
+    },
+    "note": "round_baseline_to_after_2384, after_2384_to_before_this_work and this_work are chronological steps (snapshots round_baseline -> after_2384 -> before_this_work -> delivered), not per-file amounts; per_target_round_baseline_to_delivered gives the per-file deltas"
   },
   "branch_reductions": {
     "round_baseline_to_after_2384": 14,
     "after_2384_to_before_this_work": 79,
     "this_work": 26,
-    "round_baseline_to_delivered": 119
+    "round_baseline_to_delivered": 119,
+    "per_target_round_baseline_to_delivered": {
+      "pa_core/llm/result_explain.py": 7,
+      "pa_core/pa.py": 23,
+      "pa_core/facade.py": 20,
+      "pa_core/units.py": 10,
+      "pa_core/sim/internal_pa_financing.py": 4,
+      "pa_core/manifest.py": 0,
+      "dashboard/pages/4_Results.py": 55
+    },
+    "note": "round_baseline_to_after_2384, after_2384_to_before_this_work and this_work are chronological steps (snapshots round_baseline -> after_2384 -> before_this_work -> delivered), not per-file amounts; per_target_round_baseline_to_delivered gives the per-file deltas"
   },
   "exceptions_still_uncovered": {
     "pa_core/facade.py": {
       "missing_statements": [
-        746,
-        752
+        750,
+        756
       ],
       "missing_branch_arcs": [
         [
-          745,
-          746
+          749,
+          750
         ],
         [
-          751,
-          752
+          755,
+          756
         ]
       ],
-      "reason": "export() calls _serialize_agent_semantics_input first. That helper converts a DataFrame and a tuple into a list and returns. The later DataFrame body and tuple-to-list conversion are not reachable on the production path. test_export_normalizes_tuple_agent_semantics_to_a_list shows numpy scalars in a tuple are converted to builtin ints, and these two statements stayed uncovered."
+      "reason": "export() calls _serialize_agent_semantics_input first. That helper converts a DataFrame and a tuple into a list and returns. The later DataFrame body and tuple-to-list conversion are not reachable on the production path. test_export_normalizes_tuple_agent_semantics_to_a_list shows numpy scalars in a tuple are converted to builtin ints, and these two statements stayed uncovered. They were lines 746 and 752 before the mixed Series/dict fix added four lines above them."
     },
     "pa_core/pa.py": {
       "missing_statements": [],
@@ -2491,7 +2665,7 @@
     "pa_core/sim/internal_pa_financing.py": "Statement and branch saturated before this commit. No new test was required.",
     "pa_core/manifest.py": "Statement saturated before this commit. Branches were already saturated at the round baseline. No new test was required.",
     "pa_core/pa.py": "Statements saturated before this commit. This commit covered the empty substream_ids export branch. One argparse else-exit remains and is documented above.",
-    "pa_core/facade.py": "Two statements and their two branch arcs remain. They are the dead post-serialization branches documented above. The other facade gaps found on the pre-change head were covered here."
+    "pa_core/facade.py": "Two statements (750, 756) and their two branch arcs remain. They are the dead post-serialization branches documented above. All other facade statements, including the numpy ImportError fallbacks (50-51, 87-88, via import mocking) and the mapping-serialization except path, are covered at 54219bd7."
   },
   "lint_format": {
     "job": "Python CI / lint-format in reusable-10-ci-python.yml, invoked by ci.yml",
@@ -2500,7 +2674,17 @@
     "command": "black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
     "failing_file": "tests/test_wizard_render_coverage.py",
     "log_line": "would reformat tests/test_wizard_render_coverage.py; 1 file would be reformatted, 504 files would be left unchanged.",
-    "disposition": "Not attributable to this work or to tests/test_coverage_round_2381.py. The file is outside the ranked targets. Current tree black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' . reports 532 files unchanged on 2026-11-05. No production or unrelated test file was reformatted here."
+    "disposition": "Not attributable to this work or to tests/test_coverage_round_2381.py. The file is outside the ranked targets. Current tree black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' . reports 532 files unchanged on 2026-11-05. No production or unrelated test file was reformatted here.",
+    "current": "2026-11-10 at 54219bd739793fa754c3fec319bb2c6b8f8dd898: python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' . exit 0, 525 files would be left unchanged. The historical failure disposition above is retained."
   },
-  "production_changes": []
+  "production_changes": [
+    {
+      "file": "pa_core/facade.py",
+      "function": "_serialize_agent_semantics_input",
+      "change": "a list mixing pandas Series and dict rows is converted with Series.to_dict() row by row before pd.DataFrame(rows); previously pd.DataFrame(list_of_series_and_dicts) raised",
+      "original_failure": "on origin/main facade bytes (sha256 f41c355c331e5c6eaa308df594e6908eb7ec7c5e1321d3e165373a1151a2bc07): tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_series_and_dict_list exit 1, E   AttributeError: 'dict' object has no attribute 'dtype'",
+      "fixed_result": "at 54219bd739793fa754c3fec319bb2c6b8f8dd898 (facade sha256 a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a): same test exit 0, 1 passed",
+      "transcript": "docs/evidence/issue-2476/mutation-transcripts.md, section test_serialize_agent_semantics_from_series_and_dict_list"
+    }
+  ]
 }
