@@ -60,6 +60,7 @@ def test_attribution_fallback_exports_annualised_totals(monkeypatch, tmp_path) -
     attribution = pd.read_excel(output, sheet_name="Attribution")
     assert set(attribution["Sub"]) == {"Total"}
     assert set(attribution["Agent"]) == set(pd.read_excel(output, sheet_name="Summary")["Agent"])
+    assert attribution["Agent"].is_unique
     for row in attribution.itertuples():
         raw = pd.read_excel(output, sheet_name=row.Agent, index_col=0)
         assert row.Return == pytest.approx(12 * raw.to_numpy().mean())
