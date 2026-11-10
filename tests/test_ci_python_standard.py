@@ -60,9 +60,12 @@ def test_workflow_python_pins_follow_standard() -> None:
         if path.is_file() and path.suffix in {".yml", ".yaml"}
     }
     assert workflows, "No workflow YAML was inspected"
+    # Historical replay must reuse the runtime of the 2026-10-16 configured CI it reproduces.
+    historical_replays = {"issue-2360-paired-ci-attribution.yml"}
     offenders = [
         location
         for filename, workflow in workflows.items()
+        if filename not in historical_replays
         for location, value in _runtime_pins(workflow, filename)
         if _contains_old_runtime(value)
     ]

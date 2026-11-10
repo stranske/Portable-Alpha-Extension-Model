@@ -17,7 +17,7 @@
 #
 # Expected test counts: 1716 passed, 2 skipped (parent); 1724 passed, 2 skipped (merge)
 
-name: Issue #2360 Paired CI Attribution
+name: 'Issue #2360 Paired CI Attribution'
 
 on:
   workflow_dispatch:
@@ -128,6 +128,8 @@ jobs:
               return out
           expected, actual = parse(sys.argv[1]), parse(sys.argv[2])
           actual.pop("portable-alpha-extension-model", None)
+          # Installer bootstrap tools sit outside the historical resolved set; record, not compare.
+          bootstrap = {name: actual.pop(name, None) for name in ("pip", "uv")}
           def canon(spec):
               # uv freeze writes git URLs with the resolved commit; compare name and pin/commit.
               m = re.search(r"@([0-9a-f]{40})", spec)
@@ -137,7 +139,8 @@ jobs:
               if name not in expected or name not in actual or canon(expected[name]) != canon(actual[name])
           )
           result = {"expected_packages": len(expected), "actual_packages": len(actual),
-                    "mismatches": mismatches, "identical": not mismatches}
+                    "mismatches": mismatches, "identical": not mismatches,
+                    "bootstrap_excluded": bootstrap}
           json.dump(result, open(sys.argv[3], "w"), indent=2)
           print(json.dumps(result, indent=2))
           sys.exit(0 if not mismatches else 1)
