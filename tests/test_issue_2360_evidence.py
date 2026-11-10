@@ -27,7 +27,10 @@ def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_revisions(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_ci(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_mutations(verifier.DEFAULT)[0] == "PASS"
-    assert verifier.check_coverage(verifier.DEFAULT)[0] == "UNKNOWN"
+    assert verifier.check_coverage(verifier.DEFAULT) == (
+        "PASS",
+        "configured suite: 73 fewer statement-plus-branch units (branch diagnostic)",
+    )
     assert verifier.check_contract(verifier.DEFAULT)[0] == "PASS"
 
 
@@ -228,16 +231,14 @@ def test_ranking_unknown_is_not_reported_as_historical_compliance() -> None:
     assert "no selection compliance claim" in detail
 
 
+PAIRED = "recheck/paired-ci"
+PARENT_COVERAGE = f"{PAIRED}/configured-parent/coverage.json"
+MERGE_COVERAGE = f"{PAIRED}/configured-merge/coverage.json"
+
+
 @pytest.fixture
 def configured_evidence(evidence: Path) -> Path:
-    # Synthetic selection metadata isolates unit-validation tests; it is never
-    # persisted or offered as empirical configured-suite evidence.
-    record = verifier.read_json(evidence, "recheck/coverage-comparison.json")
-    record = record.get("supplemental_focused", record)
-    record["scope"] = "historical configured suite"
-    for side in ("before", "after"):
-        record[side]["selection"] = "tests/ -m 'not live_llm'"
-    (evidence / "recheck/coverage-comparison.json").write_text(json.dumps(record))
+    # The committed paired-CI receipts from run 42887512783, unchanged.
     return evidence
 
 
@@ -261,7 +262,7 @@ def test_coverage_requires_isolated_comparable_execution(
     elif breakage == "denominator":
         change_json(
             evidence,
-            "recheck/coverage-merged.json",
+            MERGE_COVERAGE,
             lambda data: data["files"]["dashboard/pages/3_Scenario_Wizard.py"]["summary"].update(
                 num_statements=1051
             ),
@@ -311,7 +312,7 @@ def test_coverage_rejects_unsupported_blended_gain(
         else:
             target["executed_branches"][0] = [99999, -99999]
 
-    change_json(evidence, "recheck/coverage-merged.json", update)
+    change_json(evidence, MERGE_COVERAGE, update)
     results = verifier.verify(evidence)
     assert results["coverage attribution"][0] == "FAIL"
 
@@ -321,9 +322,7 @@ def test_coverage_shortfall_does_not_pass_using_other_requirements(
 ) -> None:
     evidence = configured_evidence
     # Restore the baseline's complete raw report: there is now zero measured gain.
-    shutil.copyfile(
-        evidence / "recheck/coverage-base.json", evidence / "recheck/coverage-merged.json"
-    )
+    shutil.copyfile(evidence / PARENT_COVERAGE, evidence / MERGE_COVERAGE)
     assert verifier.main(["--evidence-dir", str(evidence)]) == 1
     output = capsys.readouterr().out
     assert "isolated measured reduction 0 units" in output
@@ -353,3 +352,74 @@ def test_current_focused_receipt_cannot_satisfy_mandatory_attribution(
     assert "focused-only" in output
     assert "OVERALL FAIL" in output
     assert "OVERALL PASS" not in output
+
+
+def _replace_text(path: Path, old: str, new: str) -> None:
+    text = path.read_text()
+    assert old in text
+    path.write_text(text.replace(old, new))
+
+
+@pytest.mark.parametrize(
+    "breakage",
+    [
+        "checkout_sha",
+        "config_hash",
+        "split_marker",
+        "no_branch",
+        "different_command",
+        "environment_mismatch",
+        "different_package",
+        "nonzero_exit",
+        "failing_junit",
+        "empty_junit",
+        "foreign_job",
+        "other_run",
+        "coverage_outside_receipt",
+        "other_file_boundary",
+    ],
+)
+def test_coverage_requires_bound_paired_ci_receipts(
+    configured_evidence: Path, breakage: str
+) -> None:
+    evidence = configured_evidence
+    parent = evidence / PAIRED / "configured-parent"
+    merge = evidence / PAIRED / "configured-merge"
+    comparison = "recheck/coverage-comparison.json"
+    if breakage == "checkout_sha":
+        (merge / "checkout-sha.txt").write_text(verifier.BASE + "\n")
+    elif breakage == "config_hash":
+        _replace_text(merge / "hashes.txt", verifier.CONFIG_SHA256, "0" * 64)
+    elif breakage == "split_marker":
+        for side in (parent, merge):
+            # Run 42874673712's scalar expansion gave -m the tokens "'not" and "live_llm'".
+            _replace_text(side / "command.txt", "-m not\\ live_llm", "-m \\'not live_llm\\'")
+    elif breakage == "no_branch":
+        for side in (parent, merge):
+            _replace_text(side / "command.txt", "--cov-branch ", "")
+    elif breakage == "different_command":
+        _replace_text(merge / "command.txt", "-n auto", "-n 2")
+    elif breakage == "environment_mismatch":
+        change_json(evidence, f"{PAIRED}/configured-merge/environment-check.json",
+                    lambda record: record.update(identical=False, mismatches=["pytest"]))
+    elif breakage == "different_package":
+        _replace_text(merge / "environment-freeze.txt", "pytest==9.1.1", "pytest==9.2.0")
+    elif breakage == "nonzero_exit":
+        (merge / "exit-code.txt").write_text("1\n")
+    elif breakage == "failing_junit":
+        _replace_text(merge / "pytest-junit.xml", 'failures="0"', 'failures="1"')
+    elif breakage == "empty_junit":
+        _replace_text(merge / "pytest-junit.xml", 'tests="1726"', 'tests="2"')
+    elif breakage == "foreign_job":
+        change_json(evidence, comparison, lambda record: record["after"].update(
+            job_url="https://github.com/unrelated/repository/actions/runs/1/job/2"))
+    elif breakage == "other_run":
+        change_json(evidence, comparison, lambda record: record["run"].update(id=1))
+    elif breakage == "coverage_outside_receipt":
+        change_json(evidence, comparison, lambda record: record["after"].update(
+            coverage_record="recheck/coverage-merged.json"))
+    else:
+        def update(data):
+            data["files"]["pa_core/cli.py"]["executed_lines"][0] = 99999
+        change_json(evidence, MERGE_COVERAGE, update)
+    assert verifier.verify(evidence)["coverage attribution"][0] == "FAIL"

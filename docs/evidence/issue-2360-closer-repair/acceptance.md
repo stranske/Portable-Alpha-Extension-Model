@@ -377,6 +377,64 @@ target could not meaningfully be tested; no such impossibility was established
 for the remaining wizard branches, so that alternative is **not claimed**.
 The older 321-unit cumulative reduction and 54-line projection remain separate.
 
+### Configured-suite attribution: paired CI (2026-11-10)
+
+Stop rule recorded before changes: two paired-CI attempts, 45 minutes. Run
+[42874673712](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42874673712)
+failed: the scalar `$TEST_COMMAND` split `-m 'not live_llm'` into `'not` and
+`live_llm'`, project dependencies were never installed, and pytest collected
+0 items (exit 5). Attempt 1,
+[42887268107](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42887268107),
+installed the 254 historical packages but its environment check compared the
+installer bootstrap tools `pip` and `uv`. Attempt 2,
+[42887512783](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42887512783)
+at `135c022a`, completed successfully:
+[parent job](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42887512783/job/130079659001),
+[merge job](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42887512783/job/130079659222).
+
+Each job verified its checkout SHA and `pyproject.toml` hash
+`b442a73d…`, then installed dependencies through the historical mechanism
+(`uv pip install --system -r requirements.lock -e .[app,dev]` plus the
+checkout's `autofix-versions.env` test pins), forced to the 253-package set
+resolved by historical parent job
+[117210972329](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/38971176069/job/117210972329)
+([resolved-overrides.txt](./recheck/paired-ci-input/resolved-overrides.txt)).
+Both actual environments match that set exactly (CPython 3.12.15, uv 0.13.1,
+pytest 9.1.1, pytest-cov 7.1.0, coverage 7.16.2, xdist 3.8.0, 4 workers).
+Disclosed differences from history: the historical merge job resolved
+`app-baseline-kit` 0.2.0 from Workflows `adb78bb`, the replay uses `2f9eb2d`
+for both sides; the runner image is ubuntu26 20261101.186.1. Pytest ran
+bounded (`timeout 25m`; job limit 45 minutes) with the command passed as a Bash
+array:
+
+```sh
+pytest tests/ -m 'not live_llm' --junitxml=pytest-junit.xml --cov \
+  --cov-config=pyproject.toml --cov-branch --cov-report=json:coverage.json \
+  --cov-report=term-missing -n auto --dist=loadgroup
+```
+
+| Wizard target | Parent `10ac6839` | Merge `e8967edb` | Reduction |
+| --- | ---: | ---: | ---: |
+| Suite result | 1716 passed, 2 skipped | 1724 passed, 2 skipped | +8 |
+| Statement / branch denominators | 1050 / 284 | 1050 / 284 | 0 |
+| Missing statements | 338 | 284 | **54** |
+| Missing branches | 125 | 106 | **19** |
+| Missing combined units | 463 | 390 | **73** |
+
+Suite counts and missing statements equal the historical branch=false CI logs,
+which cross-checks the replay. Raw statement and branch identities are
+identical in every measured file; repository totals fall from 3741 to 3668
+combined units, so the whole reduction is in the target. The **isolated
+combined reduction in the historical configured suite is 73 units**, above the
+roughly 60-unit target. Receipts (raw coverage JSON, JUnit, terminal output,
+commands, checkout and config hashes, actual environments, exit codes) are in
+[recheck/paired-ci/](./recheck/paired-ci/) and bound in
+[coverage-comparison.json](./recheck/coverage-comparison.json). The verifier now
+rejects a mismatched checkout, config hash, split marker, missing `--cov-branch`,
+differing command or environment, non-zero exit, failing or empty JUnit, foreign
+or mixed run/job URLs, coverage outside the receipt, and any differing raw
+file boundary. The focused 73-unit wizard result above remains supplemental.
+
 ### Ranking: permitted UNKNOWN disclosure
 
 [ranking-search.json](./recheck/ranking-search.json) records searched issue and PR
@@ -561,3 +619,16 @@ and workflow receipts are present and validated.
 Current status: Workflow file committed. Branch coverage measurement pending CI execution.
 Historical statement-only attribution (54 fewer uncovered statements) remains documented
 separately and does not satisfy the configured-suite branch requirement.
+
+### Paired-CI outcome (2026-11-10)
+
+The contract above was executed with two corrections: the dependency install
+uses the historical uv mechanism and the recorded 253-package resolved set (not
+the bare `pip install pytest pytest-cov pytest-xdist` above, which installed no
+project dependencies), the runner used 4 xdist workers, and receipts are stored under
+`recheck/paired-ci/<label>/` rather than the file names listed above. Run 42887512783
+succeeded on both sides; see "Configured-suite attribution: paired CI
+(2026-11-10)". `python scripts/verify_issue_2360_evidence.py` now exits 0 with
+six PASS results, `PASS: coverage attribution: configured suite: 73 fewer
+statement-plus-branch units`, and `OVERALL PASS`. The earlier UNKNOWN/OVERALL
+FAIL statements are retained as the dated record of the state before this run.

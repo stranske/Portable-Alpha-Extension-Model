@@ -1,7 +1,7 @@
 PASS: revisions: original delivery and assessed repair revisions
 PASS: CI: exact-head executed pytest; Gate skip is insufficient
 PASS: mutations: eight original red/green proofs; nine later cases separate
-UNKNOWN: coverage attribution: Configured CI logs measure 54 fewer uncovered statements (338 to 284), with branch=false. Raw coverage artifacts return HTTP 404; no configured-suite branch identities or combined delta recovered. The 73-unit focused result is supplemental only. No concrete original alternative established; OVERALL FAIL.
+PASS: coverage attribution: configured suite: 73 fewer statement-plus-branch units (branch diagnostic)
 PASS: ranking disclosure: provenance explicitly UNKNOWN (permitted disclosure); no selection compliance claim
 PASS: acceptance contract: dated contract, runnable command, finite stop rule
-OVERALL FAIL
+OVERALL PASS

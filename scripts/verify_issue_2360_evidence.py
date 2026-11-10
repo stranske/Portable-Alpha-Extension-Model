@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shlex
+import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
 
@@ -14,6 +16,8 @@ BASE = "10ac6839518576d4dc5199a24392eadfc388c713"
 MERGED = "e8967edb2aa1bdbc1a68ea58ed241cf205915d03"
 ASSESSED = "a2f4ef50403a0a90e8535e4daef5e6c691037bd2"
 REPOSITORY = "stranske/Portable-Alpha-Extension-Model"
+CONFIG_SHA256 = "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4"
+TARGET = "dashboard/pages/3_Scenario_Wizard.py"
 WIZARD_SHA256 = "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
 ORIGINAL_CASES = (
     "test_progress_bar_marks_completed_current_and_future_steps",
@@ -161,11 +165,11 @@ def check_mutations(directory: Path) -> tuple[str, str]:
     )
 
 
-def coverage_units(data: dict) -> tuple[set, set, int]:
+def coverage_units(data: dict, path: str = TARGET) -> tuple[set, set, int]:
     """Validate the target's raw coverage units before trusting summary counts."""
     if data["meta"]["branch_coverage"] is not True:
         raise ValueError("statement-plus-branch attribution requires branch coverage")
-    target = data["files"]["dashboard/pages/3_Scenario_Wizard.py"]
+    target = data["files"][path]
     summary = target["summary"]
     boundaries = []
     uncovered = 0
@@ -189,6 +193,51 @@ def coverage_units(data: dict) -> tuple[set, set, int]:
         boundaries.append(executed | missing)
         uncovered += len(missing)
     return boundaries[0], boundaries[1], uncovered
+
+
+def check_receipt(directory: Path, entry: dict, revision: str) -> dict:
+    """Bind one paired-CI side to its checkout, command, environment and terminal result."""
+    receipt = directory / entry["receipt_dir"]
+    hashes = dict(
+        line.split() for line in (receipt / "hashes.txt").read_text().splitlines() if line
+    )
+    command = shlex.split((receipt / "command.txt").read_text())
+    selection = [command[i : i + 2] for i in range(len(command) - 1)]
+    suite = ET.parse(receipt / "pytest-junit.xml").getroot()
+    suite = suite if suite.tag == "testsuite" else suite.find("testsuite")
+    counts = {key: int(suite.get(key, 0)) for key in ("tests", "failures", "errors", "skipped")}
+    environment = read_json(receipt, "environment-check.json")
+    job = re.fullmatch(
+        rf"https://github\.com/{REPOSITORY}/actions/runs/(\d+)/job/\d+", entry["job_url"]
+    )
+    valid = (
+        (receipt / "checkout-sha.txt").read_text().strip() == revision
+        and hashes.get("pyproject.toml") == CONFIG_SHA256
+        and (receipt / "exit-code.txt").read_text().strip() == str(entry["exit_code"]) == "0"
+        and entry["coverage_record"] == f"{entry['receipt_dir']}/coverage.json"
+        and command[:2] == ["pytest", "tests/"]
+        and ["-m", "not live_llm"] in selection
+        and "--cov-branch" in command
+        and "--cov-config=pyproject.toml" in command
+        and environment["identical"] is True
+        and environment["mismatches"] == []
+        and counts["tests"] > counts["skipped"]
+        and counts["failures"] == counts["errors"] == 0
+        and job is not None
+    )
+    if not valid:
+        raise ValueError(f"paired-CI receipt does not bind {revision}")
+    freeze = (receipt / "environment-freeze.txt").read_text().splitlines()
+    return {
+        "run_id": job.group(1),
+        "command": command,
+        "hashes": hashes,
+        # Only the editable checkout path differs; the resolved package set must not.
+        "environment": [
+            line for line in freeze if not line.startswith("-e file:///tmp/issue2360-")
+        ],
+        "python": (receipt / "environment-platform.txt").read_text().splitlines()[0],
+    }
 
 
 def check_coverage(directory: Path) -> tuple[str, str]:
@@ -216,12 +265,31 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         and before["settings"] == after["settings"]
         and before["settings"]["branch"] is True
     )
+    receipts = [
+        check_receipt(directory, before, BASE),
+        check_receipt(directory, after, MERGED),
+    ]
+    # Both sides must come from one paired run with identical execution settings.
+    valid = (
+        valid and receipts[0] == receipts[1] and receipts[0]["run_id"] == str(record["run"]["id"])
+    )
     measurements = []
+    reports = []
     for entry in (before, after):
         data = read_json(directory, entry["coverage_record"])
+        reports.append(data)
         measurements.append(coverage_units(data))
     first, last = measurements
-    valid = valid and first[:2] == last[:2]
+    # Raw unit boundaries must match for every measured file, not only the target.
+    valid = (
+        valid
+        and first[:2] == last[:2]
+        and reports[0]["files"].keys() == reports[1]["files"].keys()
+        and all(
+            coverage_units(reports[0], path)[:2] == coverage_units(reports[1], path)[:2]
+            for path in reports[0]["files"]
+        )
+    )
     reduction = first[2] - last[2]
     if not valid:
         return "FAIL", "coverage revisions, execution, selection or unit boundaries differ"
