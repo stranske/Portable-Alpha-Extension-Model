@@ -10,13 +10,15 @@ branches below, without changing the restored file's 52-case count.
 
 ## Acceptance records (as recorded for this PR)
 
-```text
-/opt/anaconda3/bin/python3 -m pytest -q tests/test_coverage_round_2381.py
-52 passed in 3.04s
+Measured revision: `2a3e0210b9d4e68f7c3407eaa8f43a1b46cec17b`
 
-/opt/anaconda3/bin/python3 -m black --check --line-length 100 \
+```text
+python -m pytest -q tests/test_coverage_round_2381.py tests/test_coverage_round_2476_facade.py
+63 passed in 2.53s
+
+python -m black --check --line-length 100 \
   --exclude '(\.venv|\.workflows-lib|node_modules)' .
-524 files unchanged
+525 files would be left unchanged.
 ```
 
 Gate coverage command completed in 74.97s and emitted coverage

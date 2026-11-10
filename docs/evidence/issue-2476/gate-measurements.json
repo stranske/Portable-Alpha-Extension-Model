@@ -5,19 +5,22 @@
   "focused_test_functions": 49,
   "focused_cases_including_parametrization": 52,
   "added_this_round": "tests/test_coverage_round_2476_facade.py",
+  "measured_revision": "2a3e0210b9d4e68f7c3407eaa8f43a1b46cec17b",
   "acceptance_records": {
     "focused_pytest": {
-      "command": "/opt/anaconda3/bin/python3 -m pytest -q tests/test_coverage_round_2381.py",
-      "recorded_result": "52 passed in 3.04s"
+      "command": "python -m pytest -q tests/test_coverage_round_2381.py tests/test_coverage_round_2476_facade.py",
+      "recorded_result": "63 passed in 2.53s"
     },
     "black_check": {
-      "command": "/opt/anaconda3/bin/python3 -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
-      "recorded_result": "524 files unchanged"
+      "command": "python -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
+      "recorded_result": "525 files would be left unchanged."
     },
     "gate_coverage": {
       "recorded_duration_s": 74.97,
       "recorded_result": "coverage artifacts emitted; 2021 passing tests, 3 expected local-environment failures",
-      "local_environment_note": "host Python 3.12 vs packaging requires-python >=3.13; hosted Python 3.14 CI is authoritative"
+      "local_environment_note": "host Python 3.12 vs packaging requires-python >=3.13; hosted Python 3.14 CI is authoritative",
+      "identical_baseline_head_config": true,
+      "comparable_scope": true
     }
   },
   "seven_targets_in_dispatch_order": [
@@ -35,6 +38,11 @@
   "remaining_uncovered_statements": 2,
   "uncovered_branch_reduction": 119,
   "branch_measurement_authority": "diagnostic only; authoritative Gate coverage is line-only (branch = false in pyproject.toml [tool.coverage.run])",
+  "statement_attribution": {
+    "pa_core/llm/result_explain.py": {"statements": 58, "branches": 14},
+    "pa_core/pa.py": {"statements": 131, "branches": 79},
+    "pa_core/facade.py": {"statements": 18, "branches": 26}
+  },
   "remaining_exceptions": {
     "facade": [
       "numpy-ImportError fallbacks in _to_builtin_scalar and _serialize_agent_semantics_input (numpy is a hard dependency; exercised only via import mocking)",
@@ -45,6 +53,10 @@
       "dashboard/pages/4_Results.py __main__ script entrypoint arc (covered via runpy run_name=__main__)",
       "dashboard/pages/4_Results.py auto-refresh st.rerun() arc requires live Streamlit runtime (covered with fake st)",
       "empty-container truthiness short-circuits in _serialize_agent_semantics_input all(...) row-shape guards (both exits asserted)"
-    ]
+    ],
+    "reconciliation": {
+      "dead_post_serialization_export_paths": "residual lines in facade.py are the defensive except block and TYPE_CHECKING import, not numpy fallbacks",
+      "numpy_fallbacks_clarification": "numpy is a hard dependency per pyproject.toml; ImportError paths are unreachable in Gate environment"
+    }
   }
 }

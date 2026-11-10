@@ -676,3 +676,304 @@ Command:
 ```sh
 python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381.py::test_results_main_renders_metrics_plots_and_download_for_available_workbook
 ```
+
+## `test_serialize_agent_semantics_from_series`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert [] == [{'Agent': 'Base', 'n': 2}]`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        if isinstance(agent_semantics_val, pd.Series):
+-            records = pd.DataFrame([agent_semantics_val]).to_dict(orient="records")
+-            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+-            return
++        if isinstance(agent_semantics_val, pd.Series):
++            inputs["_agent_semantics_df"] = []
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_series
+```
+
+## `test_serialize_agent_semantics_from_dataframe_list`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert [] == [{'Agent': 'A'}, {'Agent': 'B'}]`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        if agent_semantics_val and all(
+-            isinstance(item, pd.DataFrame) for item in agent_semantics_val
+-        ):
+-            records = pd.concat(agent_semantics_val, ignore_index=True).to_dict(orient="records")
+-            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+-            return
++        if agent_semantics_val and all(
++            isinstance(item, pd.DataFrame) for item in agent_semantics_val
++        ):
++            inputs["_agent_semantics_df"] = []
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_dataframe_list
+```
+
+## `test_serialize_agent_semantics_from_series_and_dict_list`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AttributeError: 'dict' object has no attribute 'dtype'`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        if agent_semantics_val and all(
+-            isinstance(item, (pd.Series, dict)) for item in agent_semantics_val
+-        ):
+-            rows = [
+-                item.to_dict() if isinstance(item, pd.Series) else item
+-                for item in agent_semantics_val
+-            ]
+-            records = pd.DataFrame(rows).to_dict(orient="records")
+-            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+-            return
++        if agent_semantics_val and all(
++            isinstance(item, (pd.Series, dict)) for item in agent_semantics_val
++        ):
++            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
++            inputs["_agent_semantics_df"] = _records_to_builtin(records)
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_series_and_dict_list
+```
+
+## `test_serialize_agent_semantics_from_mixed_frame_and_series_list`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert [] == [{'Agent': 'A'}, {'Agent': 'B'}]`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        if agent_semantics_val and all(
+-            isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in agent_semantics_val
+-        ):
+-            frames = []
+-            for item in agent_semantics_val:
+-                if isinstance(item, pd.DataFrame):
+-                    frames.append(item)
+-                else:
+-                    frames.append(pd.DataFrame([item]))
+-            records = pd.concat(frames, ignore_index=True).to_dict(orient="records")
+-            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+-            return
++        if agent_semantics_val and all(
++            isinstance(item, (pd.DataFrame, pd.Series, dict)) for item in agent_semantics_val
++        ):
++            inputs["_agent_semantics_df"] = []
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_mixed_frame_and_series_list
+```
+
+## `test_serialize_agent_semantics_from_scalar_tuple_and_list`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert [1, 2] == [1, 2]`
+- Green signal: `3 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        inputs["_agent_semantics_df"] = _to_builtin_scalar(list(agent_semantics_val))
+-        return
++        inputs["_agent_semantics_df"] = list(agent_semantics_val)
++        return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_scalar_tuple_and_list
+```
+
+## `test_serialize_agent_semantics_from_ndarray`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert '[[1 2]...' == [[1, 2], [3, 4]]`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-    if np_module is not None and isinstance(agent_semantics_val, np_module.ndarray):
+-        agent_semantics_val = agent_semantics_val.tolist()
++    if np_module is not None and isinstance(agent_semantics_val, np_module.ndarray):
++        pass
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_ndarray
+```
+
+## `test_serialize_agent_semantics_from_column_mapping`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert [{'Agent...'n': 1}] == [{'Agent': 'A', 'n': 1}, {'Agent': 'B', 'n': 2}]`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        if agent_semantics_val and _mapping_is_row(agent_semantics_val):
+-            inputs["_agent_semantics_df"] = _records_to_builtin([agent_semantics_val])
+-            return
++        if agent_semantics_val and _mapping_is_row(agent_semantics_val):
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_from_column_mapping
+```
+
+## `test_serialize_agent_semantics_keeps_mapping_when_frame_build_fails`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert None == {'a': [1, 2], 'b': [1]}`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        try:
+-            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
+-            inputs["_agent_semantics_df"] = _records_to_builtin(records)
+-        except (ValueError, TypeError):
+-            logger.warning(
+-                "Failed to serialize _agent_semantics_df mapping for export", exc_info=True
+-            )
+-            return
++        try:
++            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
++            inputs["_agent_semantics_df"] = _records_to_builtin(records)
++        except (ValueError, TypeError):
++            inputs["_agent_semantics_df"] = None
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_keeps_mapping_when_frame_build_fails
+```
+
+## `test_serialize_agent_semantics_empty_mapping_becomes_empty_records`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert {} == []`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-        if agent_semantics_val and _mapping_is_row(agent_semantics_val):
+-            inputs["_agent_semantics_df"] = _records_to_builtin([agent_semantics_val])
+-            return
++        if _mapping_is_row(agent_semantics_val):
++            inputs["_agent_semantics_df"] = _records_to_builtin([agent_semantics_val])
++            return
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_empty_mapping_becomes_empty_records
+```
+
+## `test_to_builtin_scalar_converts_numpy_and_non_finite_values`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   AssertionError: assert <NAN> is None`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-    if isinstance(value, float) and not math.isfinite(value):
+-        return None
++    if isinstance(value, float) and not math.isfinite(value):
++        return value
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_to_builtin_scalar_converts_numpy_and_non_finite_values
+```
+
+## `test_export_rejects_unsupported_artifacts_type`
+
+- File: `pa_core/facade.py`
+- Red exit: 1
+- Green exit: 0
+- Red signal: `E   Failed: DID NOT RAISE ValueError`
+- Green signal: `1 passed, 2 warnings in 0.70s`
+
+Mutation:
+
+```diff
+-    else:
+-        raise ValueError(f"Unsupported artifacts type: {type(artifacts)}")
++    else:
++        pass
+```
+
+Command:
+
+```sh
+python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476_facade.py::test_export_rejects_unsupported_artifacts_type
+```
