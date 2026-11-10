@@ -3,6 +3,47 @@
   "scope": "historical configured suite",
   "checked_at": "2026-11-10",
   "limitation": "Configured CI logs measure 54 fewer uncovered statements (338 to 284), with branch=false. Raw coverage artifacts return HTTP 404; no configured-suite branch identities or combined delta recovered. The 73-unit focused result is supplemental only. No concrete original alternative established; OVERALL FAIL.",
+  "workflow_attribution": {
+    "status": "pending CI execution",
+    "workflow_file": ".github/workflows/issue-2360-paired-ci-attribution.yml",
+    "workflow_name": "Issue #2360 Paired CI Attribution",
+    "description": "Workflow-based paired CI execution with --cov-branch to establish branch coverage boundaries",
+    "revisions": {
+      "parent": {
+        "sha": "10ac6839518576d4dc5199a24392eadfc388c713",
+        "label": "configured-parent",
+        "expected_coverage_file": "recheck/coverage-configured-parent-branch.json",
+        "expected_terminal_file": "recheck/coverage-configured-parent-branch-terminal.txt",
+        "expected_metadata_file": "recheck/coverage-configured-parent-branch-metadata.json"
+      },
+      "merge": {
+        "sha": "e8967edb2aa1bdbc1a68ea58ed241cf205915d03",
+        "label": "configured-merge",
+        "expected_coverage_file": "recheck/coverage-configured-merge-branch.json",
+        "expected_terminal_file": "recheck/coverage-configured-merge-branch-terminal.txt",
+        "expected_metadata_file": "recheck/coverage-configured-merge-branch-metadata.json"
+      }
+    },
+    "command": "pytest tests/ -m 'not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:coverage.json --cov-report=term-missing -n auto --dist=loadgroup",
+    "environment": {
+      "os": "Ubuntu Linux",
+      "python": "3.12.15",
+      "pytest": "9.1.1",
+      "pytest_cov": "7.1.0",
+      "xdist": "3.8.0",
+      "workers": 2
+    },
+    "config_hash": "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4",
+    "config_verified": true,
+    "selection": "tests/ -m 'not live_llm'",
+    "branch_coverage": true,
+    "target": "about 60 fewer uncovered statement-plus-branch units",
+    "expected_test_counts": {
+      "parent": "1716 passed, 2 skipped",
+      "merge": "1724 passed, 2 skipped"
+    },
+    "next_steps": "Workflow execution will populate raw branch coverage JSON files and enable comparison of statement and branch boundaries for isolated delta measurement."
+  },
   "historical_configured": {
     "status": "partial historical recovery; combined attribution UNKNOWN",
     "selection": "tests/ -m 'not live_llm'",

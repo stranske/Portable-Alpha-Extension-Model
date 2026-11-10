@@ -520,3 +520,44 @@ asyncio fixture-scope deprecation. No dependency pin was changed.
 UNKNOWN; configured-suite combined attribution is left undone. Historical
 retrieval stopped after the completed queries and both coverage-artifact 404s;
 no further local execution or invented alternative is warranted.
+
+## Paired-CI execution contract (2026-11-10)
+
+Finite paired-CI execution contract for issue #2360 attribution at historical
+revisions `10ac6839518576d4dc5199a24392eadfc388c713` (squash parent) and
+`e8967edb2aa1bdbc1a68ea58ed241cf205915d03` (PR #2372 merge).
+
+Workflow: `.github/workflows/issue-2360-paired-ci-attribution.yml`
+
+Contract terms:
+- **Revisions**: Two exact commits checked out separately in isolated environments
+- **SHA verification**: Both `git rev-parse HEAD` and pyproject.toml SHA-256 hash
+  `b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4` verified
+- **Dependencies**: Identical recorded dependencies installed via `pip install pytest pytest-cov pytest-xdist`
+- **Selection**: `tests/ -m 'not live_llm'` (includes slow tests, excludes live_llm only)
+- **Command**: `pytest tests/ -m 'not live_llm' --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:coverage.json --cov-report=term-missing -n auto --dist=loadgroup`
+- **Environment**: Ubuntu Linux, Python 3.12.15, pytest 9.1.1, pytest-cov 7.1.0, xdist 3.8.0, 2 workers
+- **Output**: Raw coverage JSON, terminal output, and metadata for both revisions
+- **Target**: About 60 fewer uncovered statement-plus-branch units measured
+- **Bounded execution**: Workflow triggered on branch push or manual dispatch only
+- **Artifact retention**: 90 days
+
+Expected outcomes:
+- Parent (10ac6839): ~1716 passed, 2 skipped, coverage JSON with branch data
+- Merge (e8967edb): ~1724 passed, 2 skipped, coverage JSON with branch data
+- Combined delta: Measured against 60-unit target using matching raw statement and branch boundaries
+
+Receipt storage: Terminal job receipts, executed commands, environments and raw
+coverage JSON stored under `docs/evidence/issue-2360-closer-repair/recheck/` as
+`coverage-{parent,merge}-branch.json` and related metadata files.
+
+Stop rule: Two retrieval attempts per historical receipt; 45 minutes total for this round.
+No local full-suite execution permitted per owner constraint.
+
+Acceptance: Workflow execution establishes comparable statement-plus-branch boundaries.
+Verifier updates to accept branch coverage attribution when raw coverage JSON files
+and workflow receipts are present and validated.
+
+Current status: Workflow file committed. Branch coverage measurement pending CI execution.
+Historical statement-only attribution (54 fewer uncovered statements) remains documented
+separately and does not satisfy the configured-suite branch requirement.
