@@ -767,7 +767,9 @@ def test_facade_run_single_requires_regime_transition_when_regimes_set() -> None
 def test_facade_run_sweep_rejects_scalar_index() -> None:
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     with pytest.raises(ValueError, match="must be a pandas Series"):
-        run_sweep(cfg, [0.01, 0.02], {"analysis_mode": "vol_mult"}, RunOptions(seed=1))  # type: ignore[arg-type]
+        run_sweep(
+            cfg, [0.01, 0.02], {"analysis_mode": "vol_mult"}, RunOptions(seed=1)
+        )  # type: ignore[arg-type]
 
 
 def test_export_run_artifacts_with_show_visualizations(
