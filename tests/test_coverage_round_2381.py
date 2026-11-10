@@ -1,6 +1,7 @@
 """Focused coverage for issue #2381 ranked targets (remainder after PR #2384).
 
-Evidence: docs/evidence/issue-2381-closer-repair/
+Restored for issue #2476 after closed PR #2484.
+Evidence: docs/evidence/issue-2476/
 """
 
 from __future__ import annotations

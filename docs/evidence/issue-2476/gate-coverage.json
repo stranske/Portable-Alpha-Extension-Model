@@ -1,5 +1,12 @@
 {
   "checked": "2026-11-05",
+  "restoration": {
+    "restores": "reviewed #2476 test/evidence commit after closed PR #2484",
+    "focused_acceptance": "/opt/anaconda3/bin/python3 -m pytest -q tests/test_coverage_round_2381.py: 52 passed in 3.04s",
+    "black": "/opt/anaconda3/bin/python3 -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .: 524 files unchanged",
+    "gate_coverage": "completed in 74.97s and emitted coverage artifacts; 2021 passing tests and 3 expected local-environment failures because this host uses Python 3.12 while packaging declares >=3.13; hosted Python 3.14 CI is the authoritative required-CI gate",
+    "reductions_confirmed": "207 fewer uncovered statements and 119 fewer uncovered branches from the seven-target round baseline (see statement_reductions/branch_reductions); remaining exceptions in exceptions_still_uncovered"
+  },
   "gate": {
     "workflow": ".github/workflows/ci.yml and .github/workflows/pr-00-gate.yml job python-ci",
     "reusable_workflow": "stranske/Workflows/.github/workflows/reusable-10-ci-python.yml@main",
