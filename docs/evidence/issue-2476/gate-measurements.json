@@ -1,0 +1,50 @@
+{
+  "issue": "stranske/Portable-Alpha-Extension-Model#2476",
+  "restores": "reviewed #2476 test/evidence commit after closed PR #2484",
+  "focused_test_file": "tests/test_coverage_round_2381.py",
+  "focused_test_functions": 49,
+  "focused_cases_including_parametrization": 52,
+  "added_this_round": "tests/test_coverage_round_2476_facade.py",
+  "acceptance_records": {
+    "focused_pytest": {
+      "command": "/opt/anaconda3/bin/python3 -m pytest -q tests/test_coverage_round_2381.py",
+      "recorded_result": "52 passed in 3.04s"
+    },
+    "black_check": {
+      "command": "/opt/anaconda3/bin/python3 -m black --check --line-length 100 --exclude '(\\.venv|\\.workflows-lib|node_modules)' .",
+      "recorded_result": "524 files unchanged"
+    },
+    "gate_coverage": {
+      "recorded_duration_s": 74.97,
+      "recorded_result": "coverage artifacts emitted; 2021 passing tests, 3 expected local-environment failures",
+      "local_environment_note": "host Python 3.12 vs packaging requires-python >=3.13; hosted Python 3.14 CI is authoritative"
+    }
+  },
+  "seven_targets_in_dispatch_order": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "baseline_provenance": "docs/evidence/issue-2381-closer-repair/ranking-provenance.json and gate-measurements.json (round_baseline_selected_missing_statements)",
+  "round_baseline_uncovered_statements": 209,
+  "uncovered_statement_reduction": 207,
+  "remaining_uncovered_statements": 2,
+  "uncovered_branch_reduction": 119,
+  "branch_measurement_authority": "diagnostic only; authoritative Gate coverage is line-only (branch = false in pyproject.toml [tool.coverage.run])",
+  "remaining_exceptions": {
+    "facade": [
+      "numpy-ImportError fallbacks in _to_builtin_scalar and _serialize_agent_semantics_input (numpy is a hard dependency; exercised only via import mocking)",
+      "defensive except (ValueError, TypeError) mapping-serialization warning path in _serialize_agent_semantics_input (covered from this round by tests/test_coverage_round_2476_facade.py)",
+      "TYPE_CHECKING import block marked pragma: no cover, unreachable at runtime"
+    ],
+    "unreachable_or_runtime_only_branches": [
+      "dashboard/pages/4_Results.py __main__ script entrypoint arc (covered via runpy run_name=__main__)",
+      "dashboard/pages/4_Results.py auto-refresh st.rerun() arc requires live Streamlit runtime (covered with fake st)",
+      "empty-container truthiness short-circuits in _serialize_agent_semantics_input all(...) row-shape guards (both exits asserted)"
+    ]
+  }
+}
