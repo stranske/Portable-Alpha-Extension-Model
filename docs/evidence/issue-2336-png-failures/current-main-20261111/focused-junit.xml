@@ -1,0 +1,2935 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="23" skipped="0" tests="23" time="1.787" timestamp="2026-11-11T15:15:58.439547-06:00" hostname="server.trs.private"><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[renderer]" time="0.036"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x108e22fd0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr0')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x10902c6e0&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118205fd0&gt;
+error_type = &lt;class 'ImportError'&gt;, message = 'kaleido unavailable'
+diagnostic = 'PNG export failed: Kaleido or Chrome/Chromium required'
+guidance = 'Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser'
+log_diagnostic = 'PNG export failed due to missing dependency'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[module]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118b91220&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr1')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118bb9d10&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118bb9bd0&gt;
+error_type = &lt;class 'ModuleNotFoundError'&gt;, message = 'png helper unavailable'
+diagnostic = 'PNG export failed due to missing dependency: png helper unavailable'
+guidance = None, log_diagnostic = 'PNG export failed due to missing module'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[io]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118bc20f0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr2')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118bbae90&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118bb91d0&gt;
+error_type = &lt;class 'OSError'&gt;, message = 'destination unavailable'
+diagnostic = 'PNG export failed: Cannot write file - destination unavailable'
+guidance = 'Check file permissions and available disk space'
+log_diagnostic = 'PNG export failed due to file system issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[permission]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118cc1260&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr3')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118b91a70&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118b91cd0&gt;
+error_type = &lt;class 'PermissionError'&gt;, message = 'destination unavailable'
+diagnostic = 'PNG export failed: Cannot write file - destination unavailable'
+guidance = 'Check file permissions and available disk space'
+log_diagnostic = 'PNG export failed due to file system issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[value]" time="0.004"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118cc19d0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr4')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118b92b10&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118b92fd0&gt;
+error_type = &lt;class 'ValueError'&gt;, message = 'invalid chart data'
+diagnostic = 'PNG export failed: Invalid data - invalid chart data'
+guidance = 'Check your visualization data and parameters'
+log_diagnostic = 'PNG export failed due to data issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[type]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118b72650&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr5')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118bc3650&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118bc2d50&gt;
+error_type = &lt;class 'TypeError'&gt;, message = 'invalid chart data'
+diagnostic = 'PNG export failed: Invalid data - invalid chart data'
+guidance = 'Check your visualization data and parameters'
+log_diagnostic = 'PNG export failed due to data issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[runtime-renderer]" time="0.004"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118cd8150&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr6')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118cc2e00&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118cc3570&gt;
+error_type = &lt;class 'RuntimeError'&gt;, message = 'chromium renderer cancelled'
+diagnostic = 'PNG export failed: Kaleido or Chrome/Chromium required'
+guidance = 'Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser'
+log_diagnostic = 'PNG export failed'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_png_failures" name="test_single_run_png_failure_preserves_results[runtime-other]" time="0.004"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118d71d60&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_png_failure_pr7')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118cc3f00&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118cf88d0&gt;
+error_type = &lt;class 'RuntimeError'&gt;, message = 'unrecognized renderer fault'
+diagnostic = 'PNG export failed: unrecognized renderer fault', guidance = None
+log_diagnostic = 'PNG export failed'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "png helper unavailable",
+                "PNG export failed due to missing dependency: png helper unavailable",
+                None,
+                "PNG export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PNG export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PNG export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PNG export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PNG export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+            (
+                RuntimeError,
+                "chromium renderer cancelled",
+                "PNG export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PNG export failed",
+            ),
+            (
+                RuntimeError,
+                "unrecognized renderer fault",
+                "PNG export failed: unrecognized renderer fault",
+                None,
+                "PNG export failed",
+            ),
+        ],
+        ids=[
+            "renderer",
+            "module",
+            "io",
+            "permission",
+            "value",
+            "type",
+            "runtime-renderer",
+            "runtime-other",
+        ],
+    )
+    def test_single_run_png_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        figure = object()
+        calls = []
+        before = []
+    
+        def fail_png(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr(export_backend, "write_figure_image", fail_png)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--png",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_png_failures.py:127: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_pdf_failures" name="test_single_run_pdf_failure_preserves_results[renderer]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118bcd130&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_pdf_failure_pr0')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118b73e50&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118b71e50&gt;
+error_type = &lt;class 'ImportError'&gt;, message = 'kaleido unavailable'
+diagnostic = 'PDF export failed: Kaleido or Chrome/Chromium required'
+guidance = 'Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser'
+log_diagnostic = 'PDF export failed due to missing dependency'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PDF export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PDF export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "pdf helper unavailable",
+                "PDF export failed due to missing dependency: pdf helper unavailable",
+                None,
+                "PDF export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PDF export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PDF export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PDF export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PDF export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+        ],
+        ids=["renderer", "module", "io", "permission", "value", "type"],
+    )
+    def test_single_run_pdf_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        calls = []
+        before = []
+        figure = object()
+    
+        def fail_pdf(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        viz.pdf_export = types.SimpleNamespace(save=fail_pdf)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--pdf",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_pdf_failures.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_pdf_failures" name="test_single_run_pdf_failure_preserves_results[module]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118d0eb30&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_pdf_failure_pr1')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118b72b50&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118a7c150&gt;
+error_type = &lt;class 'ModuleNotFoundError'&gt;, message = 'pdf helper unavailable'
+diagnostic = 'PDF export failed due to missing dependency: pdf helper unavailable'
+guidance = None, log_diagnostic = 'PDF export failed due to missing module'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PDF export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PDF export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "pdf helper unavailable",
+                "PDF export failed due to missing dependency: pdf helper unavailable",
+                None,
+                "PDF export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PDF export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PDF export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PDF export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PDF export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+        ],
+        ids=["renderer", "module", "io", "permission", "value", "type"],
+    )
+    def test_single_run_pdf_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        calls = []
+        before = []
+        figure = object()
+    
+        def fail_pdf(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        viz.pdf_export = types.SimpleNamespace(save=fail_pdf)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--pdf",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_pdf_failures.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_pdf_failures" name="test_single_run_pdf_failure_preserves_results[io]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118d0d710&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_pdf_failure_pr2')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118bccf50&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118bcdf40&gt;
+error_type = &lt;class 'OSError'&gt;, message = 'destination unavailable'
+diagnostic = 'PDF export failed: Cannot write file - destination unavailable'
+guidance = 'Check file permissions and available disk space'
+log_diagnostic = 'PDF export failed due to file system issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PDF export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PDF export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "pdf helper unavailable",
+                "PDF export failed due to missing dependency: pdf helper unavailable",
+                None,
+                "PDF export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PDF export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PDF export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PDF export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PDF export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+        ],
+        ids=["renderer", "module", "io", "permission", "value", "type"],
+    )
+    def test_single_run_pdf_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        calls = []
+        before = []
+        figure = object()
+    
+        def fail_pdf(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        viz.pdf_export = types.SimpleNamespace(save=fail_pdf)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--pdf",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_pdf_failures.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_pdf_failures" name="test_single_run_pdf_failure_preserves_results[permission]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118c32ea0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_pdf_failure_pr3')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118d709b0&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118d70320&gt;
+error_type = &lt;class 'PermissionError'&gt;, message = 'destination unavailable'
+diagnostic = 'PDF export failed: Cannot write file - destination unavailable'
+guidance = 'Check file permissions and available disk space'
+log_diagnostic = 'PDF export failed due to file system issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PDF export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PDF export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "pdf helper unavailable",
+                "PDF export failed due to missing dependency: pdf helper unavailable",
+                None,
+                "PDF export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PDF export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PDF export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PDF export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PDF export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+        ],
+        ids=["renderer", "module", "io", "permission", "value", "type"],
+    )
+    def test_single_run_pdf_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        calls = []
+        before = []
+        figure = object()
+    
+        def fail_pdf(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        viz.pdf_export = types.SimpleNamespace(save=fail_pdf)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--pdf",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_pdf_failures.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_pdf_failures" name="test_single_run_pdf_failure_preserves_results[value]" time="0.003"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118d4d190&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_pdf_failure_pr4')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118a826d0&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118a81b70&gt;
+error_type = &lt;class 'ValueError'&gt;, message = 'invalid chart data'
+diagnostic = 'PDF export failed: Invalid data - invalid chart data'
+guidance = 'Check your visualization data and parameters'
+log_diagnostic = 'PDF export failed due to data issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PDF export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PDF export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "pdf helper unavailable",
+                "PDF export failed due to missing dependency: pdf helper unavailable",
+                None,
+                "PDF export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PDF export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PDF export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PDF export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PDF export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+        ],
+        ids=["renderer", "module", "io", "permission", "value", "type"],
+    )
+    def test_single_run_pdf_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        calls = []
+        before = []
+        figure = object()
+    
+        def fail_pdf(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        viz.pdf_export = types.SimpleNamespace(save=fail_pdf)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--pdf",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_pdf_failures.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_pdf_failures" name="test_single_run_pdf_failure_preserves_results[type]" time="0.004"><failure message="ModuleNotFoundError: No module named 'openpyxl'">monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118bf7650&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_single_run_pdf_failure_pr5')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118ceea50&gt;
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x118ced470&gt;
+error_type = &lt;class 'TypeError'&gt;, message = 'invalid chart data'
+diagnostic = 'PDF export failed: Invalid data - invalid chart data'
+guidance = 'Check your visualization data and parameters'
+log_diagnostic = 'PDF export failed due to data issue'
+
+    @pytest.mark.parametrize(
+        "error_type, message, diagnostic, guidance, log_diagnostic",
+        [
+            (
+                ImportError,
+                "kaleido unavailable",
+                "PDF export failed: Kaleido or Chrome/Chromium required",
+                "Install with: pip install kaleido (preferred) or sudo apt-get install chromium-browser",
+                "PDF export failed due to missing dependency",
+            ),
+            (
+                ModuleNotFoundError,
+                "pdf helper unavailable",
+                "PDF export failed due to missing dependency: pdf helper unavailable",
+                None,
+                "PDF export failed due to missing module",
+            ),
+            *[
+                (
+                    error,
+                    "destination unavailable",
+                    "PDF export failed: Cannot write file - destination unavailable",
+                    "Check file permissions and available disk space",
+                    "PDF export failed due to file system issue",
+                )
+                for error in (OSError, PermissionError)
+            ],
+            *[
+                (
+                    error,
+                    "invalid chart data",
+                    "PDF export failed: Invalid data - invalid chart data",
+                    "Check your visualization data and parameters",
+                    "PDF export failed due to data issue",
+                )
+                for error in (ValueError, TypeError)
+            ],
+        ],
+        ids=["renderer", "module", "io", "permission", "value", "type"],
+    )
+    def test_single_run_pdf_failure_preserves_results(
+        monkeypatch,
+        tmp_path,
+        capsys,
+        caplog,
+        error_type,
+        message,
+        diagnostic,
+        guidance,
+        log_diagnostic,
+    ):
+        monkeypatch.chdir(tmp_path)
+        caplog.set_level(logging.INFO, logger="pa_core.cli")
+        config = tmp_path / "config.yaml"
+        config.write_text(
+            yaml.safe_dump(
+                {
+                    "N_SIMULATIONS": 1,
+                    "N_MONTHS": 1,
+                    "financing_mode": "broadcast",
+                    "analysis_mode": "single_with_sensitivity",
+                }
+            )
+        )
+        output = tmp_path / "result.xlsx"
+        manifest_path = tmp_path / "manifest.json"
+        calls = []
+        before = []
+        figure = object()
+    
+        def fail_pdf(fig, filename):
+            calls.append((fig, filename))
+            before.append((output.read_bytes(), json.loads(manifest_path.read_text())))
+            raise error_type(message)
+    
+        viz = types.ModuleType("pa_core.viz")
+        viz.risk_return = types.SimpleNamespace(make=lambda _df: figure)
+        viz.sharpe_ladder = types.SimpleNamespace(make=lambda _df: figure)
+        viz.pdf_export = types.SimpleNamespace(save=fail_pdf)
+        monkeypatch.setitem(sys.modules, "pa_core.viz", viz)
+        monkeypatch.setattr(pa_core, "viz", viz)
+        monkeypatch.setattr("pa_core.cli.print_enhanced_summary", lambda *_a, **_k: None)
+        monkeypatch.setattr(
+            "pa_core.sim.sensitivity.one_factor_deltas", lambda *_a, **_k: pd.DataFrame()
+        )
+        index = Path(__file__).resolve().parents[1] / "data/sp500tr_fred_divyield.csv"
+&gt;       main(
+            [
+                "--config",
+                str(config),
+                "--index",
+                str(index),
+                "--output",
+                str(output),
+                "--seed",
+                "123",
+                "--pdf",
+                "--sensitivity",
+            ]
+        )
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_cli_pdf_failures.py:103: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:399: in main
+    _main(argv, deps, warning_collector=warning_collector)
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/cli.py:1069: in _main
+    from .reporting.attribution import (
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/pa_core/reporting/excel.py:13: ModuleNotFoundError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_mode_honors_png_flag" time="0.018"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118daafc0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_mode_honors_png_fla0')
+
+    def test_sweep_mode_honors_png_flag(monkeypatch, tmp_path):
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--png")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:71: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_export_preserves_multi_dot_output_stem" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118dab800&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_export_preserves_mu0')
+
+    def test_sweep_export_preserves_multi_dot_output_stem(monkeypatch, tmp_path):
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--png", output_name="sweep.q3.xlsx")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:78: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_export_failure_does_not_abort_completed_run" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118cde3f0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_export_failure_does0')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x1190cea90&gt;
+
+    def test_sweep_export_failure_does_not_abort_completed_run(monkeypatch, tmp_path, capsys):
+        def fail_export(*_args, **_kwargs):
+            raise OSError("destination unavailable")
+    
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--png", png_exporter=fail_export)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:89: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_pptx_contains_one_figure_per_scenario" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118cdfb10&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_pptx_contains_one_f0')
+
+    def test_sweep_pptx_contains_one_figure_per_scenario(monkeypatch, tmp_path):
+        captured: dict[str, object] = {}
+    
+        def save_pptx(figures, path, **kwargs):
+            captured["figures"] = figures
+            captured["path"] = path
+            captured["kwargs"] = kwargs
+            Path(path).write_bytes(b"pptx")
+    
+        monkeypatch.setattr("pa_core.viz.pptx_export.save", save_pptx)
+&gt;       out_file, results = _run_sweep(monkeypatch, tmp_path, "--pptx", result_count=2)
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:105: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_mode_honors_pdf_flag" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118da2f00&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_mode_honors_pdf_fla0')
+
+    def test_sweep_mode_honors_pdf_flag(monkeypatch, tmp_path):
+        monkeypatch.setattr(
+            "pa_core.viz.pdf_export.save",
+            lambda _fig, path: Path(path).write_bytes(b"%PDF-1.7\n"),
+        )
+    
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--pdf")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:121: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_pdf_failure_does_not_record_invalid_artifact" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x11915a5d0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_pdf_failure_does_no0')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118d4cdd0&gt;
+
+    def test_sweep_pdf_failure_does_not_record_invalid_artifact(monkeypatch, tmp_path, capsys):
+        def fail_pdf(_fig, _path):
+            raise RuntimeError("static renderer unavailable")
+    
+        monkeypatch.setattr("pa_core.viz.pdf_export.save", fail_pdf)
+    
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--pdf")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_mode_honors_html_flag" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x11910bad0&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_mode_honors_html_fl0')
+
+    def test_sweep_mode_honors_html_flag(monkeypatch, tmp_path):
+        monkeypatch.setattr(
+            "pa_core.viz.html_export.save",
+            lambda _fig, path, **_kwargs: Path(path).write_text("&lt;html&gt;sweep&lt;/html&gt;"),
+        )
+    
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--html")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:145: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_html_failure_does_not_abort_completed_run" time="0.002"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118db7b60&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_html_failure_does_n0')
+capsys = &lt;_pytest.capture.CaptureFixture object at 0x118d4c710&gt;
+
+    def test_sweep_html_failure_does_not_abort_completed_run(monkeypatch, tmp_path, capsys):
+        def fail_html(_fig, _path, **_kwargs):
+            raise OSError("html destination unavailable")
+    
+        monkeypatch.setattr("pa_core.viz.html_export.save", fail_html)
+    
+&gt;       out_file, _results = _run_sweep(monkeypatch, tmp_path, "--html")
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cli_sweep_png_export.py:156: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_cli_sweep_png_export.py:42: in _run_sweep
+    monkeypatch.setattr(
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.sweep_excel'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase><testcase classname="tests.test_cli_sweep_png_export" name="test_sweep_pptx_and_packet_use_distinct_paths" time="0.001"><failure message="ImportError: import error in pa_core.reporting: No module named 'openpyxl'">name = 'pa_core.reporting', package = None
+
+    def import_module(name, package=None):
+        """Import a module.
+    
+        The 'package' argument is required when performing a relative import. It
+        specifies the package to use as the anchor point from which to resolve the
+        relative import to an absolute import.
+    
+        """
+        level = 0
+        if name.startswith('.'):
+            if not package:
+                raise TypeError("the 'package' argument is required to perform a "
+                                f"relative import for {name!r}")
+            for character in name:
+                if character != '.':
+                    break
+                level += 1
+&gt;       return _bootstrap._gcd_import(name[level:], package, level)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    from __future__ import annotations
+    
+    import base64
+    import io
+    import json
+    import logging
+    import math
+    import os
+    from types import SimpleNamespace
+    from typing import Any, Dict, Mapping, cast
+    
+    import numpy as np
+&gt;   import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'
+
+pa_core/reporting/excel.py:13: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+monkeypatch = &lt;_pytest.monkeypatch.MonkeyPatch object at 0x118c8bb60&gt;
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-16/test_sweep_pptx_and_packet_use0')
+
+    def test_sweep_pptx_and_packet_use_distinct_paths(monkeypatch, tmp_path):
+        def save_pptx(_figures, path, **_kwargs):
+            Path(path).write_bytes(b"individual-pptx")
+    
+        def create_packet(**kwargs):
+            packet_stem = Path(kwargs["base_filename"])
+            pptx_path = packet_stem.with_suffix(".pptx")
+            excel_path = packet_stem.with_suffix(".xlsx")
+            pptx_path.write_bytes(b"packet-pptx")
+            excel_path.write_bytes(b"packet-xlsx")
+            return str(pptx_path), str(excel_path)
+    
+        monkeypatch.setattr("pa_core.viz.pptx_export.save", save_pptx)
+&gt;       monkeypatch.setattr("pa_core.reporting.export_packet.create_export_packet", create_packet)
+
+tests/test_cli_sweep_png_export.py:176: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:107: in derive_importpath
+    target = resolve(module)
+             ^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'pa_core.reporting.export_packet'
+
+    def resolve(name: str) -&gt; object:
+        # Simplified from zope.dottedname.
+        parts = name.split(".")
+    
+        used = parts.pop(0)
+        found: object = importlib.import_module(used)
+        for part in parts:
+            used += "." + part
+            try:
+                found = getattr(found, part)
+            except AttributeError:
+                pass
+            else:
+                continue
+            # We use explicit un-nesting of the handling block in order
+            # to avoid nested exceptions.
+            try:
+                importlib.import_module(used)
+            except ImportError as ex:
+                expected = str(ex).split()[-1]
+                if expected == used:
+                    raise
+                else:
+&gt;                   raise ImportError(f"import error in {used}: {ex}") from ex
+E                   ImportError: import error in pa_core.reporting: No module named 'openpyxl'
+
+/opt/homebrew/lib/python3.13/site-packages/_pytest/monkeypatch.py:88: ImportError</failure></testcase></testsuite></testsuites>

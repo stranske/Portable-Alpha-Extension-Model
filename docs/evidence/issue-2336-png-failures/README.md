@@ -126,3 +126,55 @@ Commands (run from the repository root, serial because the issue names the exact
 python -m pytest --cov=pa_core --cov=dashboard --cov-report=json:coverage.json tests/ --junitxml=<evidence>/full-junit.xml
 python -m pytest tests/test_cli_png_failures.py tests/test_cli_pdf_failures.py tests/test_cli_sweep_png_export.py -q --junitxml=<evidence>/focused-junit.xml
 ```
+
+### Attempt 2 declared after attempt 1 stopped on the environment (recorded before execution)
+
+Attempt 1 (raw files directly in `current-main-20261111/`) completed inside the stop rule but
+measured the interpreter, not the code: bare `/opt/homebrew/bin/python3.13` has no `openpyxl`,
+so the full run stopped with 23 collection errors and the focused run failed 23 of 23. This
+second attempt changes only the environment, not the commands, code or tests: a fresh venv
+`/tmp/pae-2495-venv` from the same 3.13.13 interpreter, provisioned with
+`uv pip install -r requirements.txt -r requirements-dev.txt -e .`. SciPy is not declared by the
+repository and is not installed; `pa_core/sleeve_suggestor.py` treats it as optional.
+Same commands, same 600 s timeout, one attempt, output in `current-main-20261111/provisioned/`.
+
+### Results (raw files: `current-main-20261111/run.json` and `current-main-20261111/provisioned/run.json`)
+
+Production code under test is byte-identical to `5be77e15` in both attempts. Attempt 2's
+`run.json` records `4d04cef0`, the commit that added this plan; it changes only this directory.
+`pa_core/cli.py` SHA-256 was `f3ffec1a…40e26` before and after both attempts; no production
+file was modified, and `git status --porcelain -- pa_core dashboard tests` was empty.
+
+| Attempt | Command | Completed / timed out | Exit | Elapsed | Result |
+| --- | --- | --- | ---: | ---: | --- |
+| 1 (bare 3.13.13) | full coverage | completed | 2 | 7.1 s | collection interrupted: 23 errors, `ModuleNotFoundError: No module named 'openpyxl'`; no `coverage.json` written |
+| 1 (bare 3.13.13) | focused PNG/PDF/sweep | completed | 1 | 2.7 s | 23 failed, all `ModuleNotFoundError: No module named 'openpyxl'` |
+| 2 (provisioned venv) | full coverage | completed | 2 | 22.5 s | collection interrupted: 4 errors in `tests/baseline/`, `ModuleNotFoundError: No module named 'baseline_kit'`; no `coverage.json` written |
+| 2 (provisioned venv) | focused PNG/PDF/sweep | completed | 0 | 3.3 s | **23 passed** (named-node JUnit in `provisioned/focused-junit.xml`) |
+
+Attempt 2 dependency versions: pytest 9.2.0, pytest-cov 7.1.0, coverage 7.17.2, numpy 2.5.4,
+pandas 3.1.1, openpyxl 3.1.5, kaleido 1.5.0, plotly 6.9.0, SciPy absent.
+
+**First concrete failure of the full run:** `requirements-dev.txt` does not install the
+`app-baseline-kit` package (module `baseline_kit`) that `tests/baseline/*.py` import. It is
+declared only in the `dev` extra in `pyproject.toml`, as an unpinned
+`git+https://github.com/stranske/Workflows.git` reference. `pr-00-gate.yml` installs
+`requirements-dev.txt`. Whether hosted CI collects `tests/baseline/` some other way is not
+established here. This is an environment and declaration gap, not a code-under-test failure.
+The stop rule (one attempt per declared environment) tripped here, so no third run was made.
+
+Status against #2495 acceptance:
+
+- Completed full coverage run with committed `coverage.json`: **not met**. Both attempts
+  completed inside the stop rule, but both were interrupted at collection, so no coverage
+  total exists for current main. The historical 92%, 13,441 and 13,537 claims remain
+  unreconciled, and the 83.76% / 12,191 of 14,554 figure above remains the last measured total.
+- Focused PNG/PDF/sweep suite passes against unmodified production code with logs and
+  named-node JUnit: **met** (attempt 2).
+- Eight mutation pairs, the failure dispositions and the module increment below 90%: **not
+  attempted**. The #2495 triage scoped them out until the baseline above completes.
+- No deliberate mutation is present: production hashes are unchanged before and after. The
+  existing PDF and next-boundaries evidence directories are untouched by this change.
+- Closure eligibility: **false**. The next attempt needs an environment provisioned with
+  `-e '.[dev]'` (or with `app-baseline-kit` added to `requirements-dev.txt`), then the same
+  full coverage command under the same stop rule.

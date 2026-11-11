@@ -12,7 +12,7 @@ from importlib import metadata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[4]
-OUT = Path(__file__).resolve().parent
+OUT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parent
 TIMEOUT_SECONDS = 600
 PRODUCTION = ["pa_core/cli.py"]
 PACKAGES = ["pytest", "pytest-cov", "coverage", "numpy", "pandas", "scipy", "openpyxl", "kaleido", "plotly"]
@@ -68,6 +68,7 @@ def run(name: str, argv: list[str]) -> dict[str, object]:
 
 
 def main() -> int:
+    OUT.mkdir(parents=True, exist_ok=True)
     record: dict[str, object] = {
         "commit": git("rev-parse", "HEAD"),
         "working_tree_porcelain": git("status", "--porcelain", "--", "pa_core", "dashboard", "tests"),
