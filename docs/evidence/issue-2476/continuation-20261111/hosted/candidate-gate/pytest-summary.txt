@@ -1,0 +1,4 @@
+tests/test_cli.py::test_main_with_png
+[gw0] [  8%] PASSED tests/test_cli.py::test_main_with_png
+tests/test_cli.py::test_main_with_png
+========== 2057 passed, 1 skipped, 1014 warnings in 120.45s (0:02:00) ==========

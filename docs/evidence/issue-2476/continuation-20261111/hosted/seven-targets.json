@@ -1,0 +1,308 @@
+{
+  "baseline-branch": {
+    "revision": "def0eec035bdccfdebce62c0116aa468ed6fdd2f",
+    "exit_code": 0,
+    "coverage_json_sha256": "8d9d0969abaf33443e887f3c998182a8ba731cda15a3b6341413d83fac21bc0d",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 102,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 68,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            349,
+            -120
+          ]
+        ]
+      },
+      "pa_core/facade.py": {
+        "statement_count": 333,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          750,
+          756
+        ],
+        "branch_count": 120,
+        "uncovered_branch_count": 2,
+        "uncovered_branch_arcs": [
+          [
+            749,
+            750
+          ],
+          [
+            755,
+            756
+          ]
+        ]
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 30,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 18,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 70,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            178,
+            180
+          ]
+        ]
+      }
+    },
+    "branch_coverage": true
+  },
+  "baseline-gate": {
+    "revision": "def0eec035bdccfdebce62c0116aa468ed6fdd2f",
+    "exit_code": 0,
+    "coverage_json_sha256": "41935a64db2d7ccf6c6c0eb52de391967e22b880d742808d16bbf4193795d90a",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/facade.py": {
+        "statement_count": 333,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          750,
+          756
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      }
+    },
+    "branch_coverage": false
+  },
+  "candidate-branch": {
+    "revision": "4b1f5e4c4b5b1135fecf84adb04b44b8d15d7fe3",
+    "exit_code": 0,
+    "coverage_json_sha256": "5580ad533746716772f528b0922d8b59175b75e66e9c01c04f60b644560a9cf4",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 102,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 68,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            349,
+            -120
+          ]
+        ]
+      },
+      "pa_core/facade.py": {
+        "statement_count": 337,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          751,
+          757
+        ],
+        "branch_count": 124,
+        "uncovered_branch_count": 2,
+        "uncovered_branch_arcs": [
+          [
+            750,
+            751
+          ],
+          [
+            756,
+            757
+          ]
+        ]
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 30,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 18,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 4,
+        "uncovered_branch_count": 0,
+        "uncovered_branch_arcs": []
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": 70,
+        "uncovered_branch_count": 1,
+        "uncovered_branch_arcs": [
+          [
+            178,
+            180
+          ]
+        ]
+      }
+    },
+    "branch_coverage": true
+  },
+  "candidate-gate": {
+    "revision": "4b1f5e4c4b5b1135fecf84adb04b44b8d15d7fe3",
+    "exit_code": 0,
+    "coverage_json_sha256": "fd9861ada10f033282ac824cf17f2f6fed99d773f5d87e24578c8a27ba1cb2f3",
+    "targets": {
+      "pa_core/llm/result_explain.py": {
+        "statement_count": 227,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/pa.py": {
+        "statement_count": 222,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/facade.py": {
+        "statement_count": 337,
+        "uncovered_statement_count": 2,
+        "uncovered_statement_lines": [
+          751,
+          757
+        ],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/units.py": {
+        "statement_count": 81,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/sim/internal_pa_financing.py": {
+        "statement_count": 35,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "pa_core/manifest.py": {
+        "statement_count": 61,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      },
+      "dashboard/pages/4_Results.py": {
+        "statement_count": 210,
+        "uncovered_statement_count": 0,
+        "uncovered_statement_lines": [],
+        "branch_count": null,
+        "uncovered_branch_count": null,
+        "uncovered_branch_arcs": null
+      }
+    },
+    "branch_coverage": false
+  }
+}
