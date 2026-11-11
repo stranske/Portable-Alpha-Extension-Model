@@ -167,6 +167,8 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_run_single_and_sweep_accept_single_column_index_frame (run_single occurrence)`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:368`, the `run_single` occurrence (the identical
+  text at line 634 is the `run_sweep` occurrence and is not mutated)
 - Record: recorded text occurs in run_single and run_sweep; each occurrence mutated separately
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `a0dd401781293f8e7bb4b5435087f8e37023d0836ac29fa067d89cf41dce2e20`
@@ -193,6 +195,8 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_run_single_and_sweep_accept_single_column_index_frame (run_sweep occurrence)`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:634`, the `run_sweep` occurrence (the identical
+  text at line 368 is the `run_single` occurrence and is not mutated)
 - Record: recorded text occurs in run_single and run_sweep; each occurrence mutated separately
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `4ec687e2d9ecdbdc583c4948265811699ce2ffee53417bdc0e6629ad2048f525`
@@ -805,6 +809,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_serialize_agent_semantics_from_series`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:96`, the `pd.Series` branch (lines 95-97; the
+  assignment at line 97, whose identical text is at lines 93, 108, 118, 130
+  and 143, is the one mutated)
 - Record: recorded (indentation corrected to source)
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `e716af42cbfafdcf340964c0b0931462903ac528ee3f2bc44ab31e4c89676f3a`
@@ -832,6 +839,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_from_dataframe_list`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:107`, the `DataFrame`-list branch (lines 104-108;
+  the assignment at line 108, whose identical text is at lines 93, 97, 118,
+  130 and 143, is the one mutated)
 - Record: recorded
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `b596a4e6a12dfd8071865c213fcc23d002dea0049deae0d942b74f8921665acd`
@@ -859,6 +869,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_from_series_and_dict_list`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:113`, the `rows` list in the mixed `Series`/`dict`
+  branch (lines 110-118; the closing `]` at line 116 and the assignment at
+  line 118, whose identical text is elsewhere, are in this branch only)
 - Record: recorded
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `f41c355c331e5c6eaa308df594e6908eb7ec7c5e1321d3e165373a1151a2bc07`
@@ -889,6 +902,10 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_from_mixed_frame_and_series_list`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:123`, the `frames` list in the mixed
+  `DataFrame`/`Series`/`dict` branch (lines 120-130; the assignment at line
+  130, whose identical text is at lines 93, 97, 108, 118 and 143, is the one
+  mutated)
 - Record: recorded
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `75ae8e8a9cb6fb3e5164a07316a70f855db623c3106e1a48f7fd43fd17d77898`
@@ -1033,6 +1050,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_keeps_mapping_when_frame_build_fails`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:145`, the `logger.warning` call in the
+  `except (ValueError, TypeError)` block (lines 144-147; the identical
+  closing-parenthesis text at lines 752 and 762 is not mutated)
 - Record: recorded
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `d31c43fc08b4a24102d74910818e49a4c2b85dad7b46d2164f771a58908c2769`
