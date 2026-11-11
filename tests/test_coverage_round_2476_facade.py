@@ -36,6 +36,8 @@ def test_serialize_agent_semantics_from_dataframe_list() -> None:
 def test_serialize_agent_semantics_from_series_and_dict_list() -> None:
     result = _serialize([pd.Series({"Agent": "A"}), {"Agent": "B"}])
     assert result == [{"Agent": "A"}, {"Agent": "B"}]
+    from_tuple = _serialize((pd.Series({"Agent": "A", "w": np.nan}), {"Agent": "B", "w": 0.5}))
+    assert from_tuple == [{"Agent": "A", "w": None}, {"Agent": "B", "w": 0.5}]
 
 
 def test_serialize_agent_semantics_from_mixed_frame_and_series_list() -> None:
