@@ -162,16 +162,31 @@ def check_mutations(directory: Path) -> tuple[str, str]:
         green_path = directory / "recheck/mutations" / row["green_output"]
         red, green = red_path.read_text(), green_path.read_text()
         node = f"tests/test_wizard_render_coverage.py::{row['node']}"
+        command = shlex.split(row["command"])
+
+        def single_case_result(output: str, outcome: str) -> bool:
+            summaries = re.findall(
+                r"^(?:=+ )?(.+?) in \d+(?:\.\d+)?s(?: \([^\n)]+\))?(?: =+)?$",
+                output,
+                re.MULTILINE,
+            )
+            return (
+                bool(summaries)
+                and re.fullmatch(rf"1 {outcome}(?:, [1-9]\d* warnings?)?", summaries[-1])
+                is not None
+            )
+
         valid = valid and (
             row["red_exit"] == 1
             and row["green_exit"] == 0
             and row["before"] != row["after"]
             and bool(row["name"])
-            and node in row["command"]
-            and "not slow" in row["command"]
-            and f"FAILED {node}" in red
-            and "1 failed" in red
-            and "1 passed" in green
+            and bool(command)
+            and re.fullmatch(r"python(?:\d+(?:\.\d+)*)?", Path(command[0]).name) is not None
+            and command[1:] == ["-B", "-m", "pytest", "-q", "-m", "not slow and not live_llm", node]
+            and re.findall(r"^FAILED (\S+)(?: - .*)?$", red, re.MULTILINE) == [node]
+            and single_case_result(red, "failed")
+            and single_case_result(green, "passed")
             and "FAILED" not in green
             and row["restored_sha256"] == record["wizard_sha256"]
         )

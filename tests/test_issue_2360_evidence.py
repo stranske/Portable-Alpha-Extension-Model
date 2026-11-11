@@ -326,6 +326,61 @@ def test_mutations_require_each_original_named_failure_and_restoration(
     assert verifier.check_mutations(evidence)[0] == "FAIL"
 
 
+@pytest.mark.parametrize("phase", ["red", "green"])
+@pytest.mark.parametrize(
+    "breakage", ["progress_only", "eleven_results", "errors", "skipped", "later_error"]
+)
+def test_mutation_proof_requires_final_single_case_result(
+    evidence: Path, phase: str, breakage: str, capsys
+) -> None:
+    path = evidence / f"recheck/mutations/01-{phase}.txt"
+    text = path.read_text()
+    outcome = "failed" if phase == "red" else "passed"
+    summary = text.splitlines()[-1]
+    if breakage == "progress_only":
+        replacement = f"Progress report: 1 {outcome}"
+    elif breakage == "eleven_results":
+        replacement = summary.replace(f"1 {outcome}", f"11 {outcome}")
+    elif breakage in {"errors", "skipped"}:
+        replacement = summary.replace(f"1 {outcome}", f"1 {outcome}, 1 {breakage}")
+    else:
+        replacement = summary + "\n1 error in 0.01s"
+    path.write_text(text.replace(summary, replacement))
+
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: mutations:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize(
+    "breakage", ["echo", "echo_executable", "extra_case", "case_prefix", "marker_only"]
+)
+def test_mutation_command_must_execute_exactly_the_named_case(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    def update(record):
+        row = record["results"][0]
+        if breakage == "echo":
+            row["command"] = "echo " + row["command"]
+        elif breakage == "echo_executable":
+            row["command"] = "echo " + row["command"].split(" ", 1)[1]
+        elif breakage == "extra_case":
+            row["command"] += " tests/unrelated.py::test_other"
+        elif breakage == "case_prefix":
+            row["command"] += "_unrelated"
+        else:
+            row["command"] = row["command"].replace("-m pytest", "-m unrelated")
+
+    change_json(evidence, "recheck/mutations/mutation-replay.json", update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: mutations:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 def test_missing_or_malformed_receipts_fail_without_crashing(evidence: Path) -> None:
     (evidence / "recheck/ci-run.json").write_text("{")
     (evidence / "recheck/mutations/mutation-replay.json").unlink()

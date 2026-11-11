@@ -428,5 +428,56 @@
       "remote_update": "Rejected: MCP tool call requires approval, but approval policy is never",
       "blocker_comment_and_label": "Both rejected: MCP tool call requires approval, but approval policy is never; not published."
     }
+  },
+  "mutation_terminal_followup": {
+    "checked_at": "2026-11-11",
+    "change": "Require exact named single-case pytest commands and final red/green terminal results; reject progress fragments and contradictory terminal evidence.",
+    "baseline_tests": "145 passed, 13 warnings in 10.17s",
+    "regression_command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k 'mutation_proof_requires_final_single_case_result or mutation_command_must_execute_exactly_the_named_case'",
+    "regression_before_fix": "14 failed, 145 deselected, 13 warnings in 3.34s; exit 1. One additional echo-executable regression added afterward.",
+    "pytest_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+    "pytest_exit_code": 0,
+    "pytest_result": "177 passed, 15 warnings in 12.55s",
+    "verifier_coverage": {
+      "statements": 194,
+      "missing": 4,
+      "cover_percent": 98
+    },
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit_code": 0,
+    "acceptance_result": "Six PASS results; OVERALL PASS. Original eight mutation proofs unchanged; coverage attribution 73 units; ranking provenance explicitly UNKNOWN under the permitted disclosure path.",
+    "source_reads": {
+      "issue": "https://github.com/stranske/Portable-Alpha-Extension-Model/issues/2360",
+      "pull_requests": [
+        2372,
+        2467,
+        2497
+      ],
+      "changed_files_match": true,
+      "ci_jobs": "https://api.github.com/repos/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529/jobs",
+      "gh_reads": "issue view 2360; pr view 2372; pr view 2467; run list --commit a2f4ef50403a0a90e8535e4daef5e6c691037bd2; run view 41661022529: each exited 1 because api.github.com is unavailable to shell; connector reads succeeded."
+    },
+    "black": {
+      "format_commands": [
+        "black --line-length 100 scripts/verify_issue_2360_evidence.py",
+        "black --line-length 100 tests/test_issue_2360_evidence.py"
+      ],
+      "command": "PYTHONPATH=/tmp/issue2360-mutation-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "result": "538 files would be left unchanged",
+      "runtime_note": "Default multiprocessing rejected by sandbox socket restrictions. Plain single-worker full check exited 124. Successful full check used a temporary standard asyncio SelectorEventLoop with a 50 ms wake-up timer and one worker; same Black CLI, formatting rules, and file selection."
+    },
+    "ruff_command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+    "ruff_exit_code": 0,
+    "diff_check_exit_code": 0,
+    "pr_body_reconciliation": "22 current verified tasks checked in proposed body; connector write rejected: MCP tool call requires approval, but approval policy is never. Remote checkboxes unchanged. Proposed body: /tmp/issue2360-mutation-reconciled-pr-body.md.",
+    "pr_readiness": {
+      "number": 2497,
+      "state": "open",
+      "draft": false,
+      "head_sha": "02e218433710290b2ab261520892c3b0f590ffe3"
+    },
+    "commit_limitation": "Main checkout git add exited 128: .git/index.lock is read-only. Source commit in /tmp/issue2360-mutation-delivery and importable patch /tmp/issue2360-mutation-terminal.patch; main branch not advanced.",
+    "blocker_publication": "Blocker comment and needs-human label both rejected: MCP tool call requires approval, but approval policy is never. Neither action was published."
   }
 }

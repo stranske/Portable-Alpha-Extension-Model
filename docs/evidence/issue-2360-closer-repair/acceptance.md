@@ -1,5 +1,68 @@
 # Issue #2360 acceptance recheck
 
+## Per-case mutation terminal contract (2026-11-11 UTC)
+
+Recorded before source/test edits. Reviewed `bc3dd452` and `02e21843`, then
+re-read #2360 and merged #2372/#2467 using the GitHub connector. Exact revision
+identities and changed files match [revisions.json](./recheck/revisions.json).
+The requested `gh issue view`, both `gh pr view` calls, `gh run list` and
+`gh run view 41661022529` cannot reach api.github.com (exit 1 each).
+Live connector job records confirm successful executed pytest in that run.
+Baseline: 145 evidence tests pass; the acceptance command prints six PASS results
+and OVERALL PASS. Existing receipts already provide eight original mutation
+proofs and nine separate later cases; no wizard tests need rewriting.
+
+Reconciled all 22 current PR #2497 checklist entries from verified evidence;
+remote publication was rejected: `MCP tool call requires approval, but approval
+policy is never`. Remote checkboxes remain unchanged. The proposed body is saved
+at `/tmp/issue2360-mutation-reconciled-pr-body.md`. PR #2497 is open,
+`draft=false`, at `02e218433710290b2ab261520892c3b0f590ffe3`.
+
+The remaining per-case evidence gap is substring validation: a progress message
+or contradictory terminal result can count as red/green proof. Require the final
+pytest summary to record exactly one failure for red and exactly one pass for
+green, allowing warnings only. Bind the runnable command to precisely the named
+case and retained pytest options; an echo, deselection or extra case cannot
+establish that proof. Keep [mutations.json](./mutations.json), historical receipts,
+coverage and ranking UNKNOWN findings separate.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: six requirement PASS results and OVERALL PASS for unchanged
+receipts; mutations FAIL, OVERALL FAIL and exit 1 for contradictory terminal or
+command receipts. Stop after two retrieval attempts per unavailable receipt or
+45 minutes total. Reuse original immutable receipts; no historical full-suite
+replay, workflow changes or production changes.
+
+Verified result: all 14 initial contradictory transcript/command regressions
+incorrectly produced OVERALL PASS before the fix. After the fix and one further
+executable check, **177 targeted tests pass**, including 15 new regressions.
+Targeted verifier coverage is **98%** (194 statements, four missing). The recorded
+acceptance command prints six PASS results and OVERALL PASS, exit 0. All original
+mutation receipts remain unchanged, with named failures, restored passes,
+commands and restoration hashes in
+[mutation-replay.json](./recheck/mutations/mutation-replay.json).
+
+Ruff and `git diff --check` pass. Both changed Python files were individually
+formatted with Black. The full repository formatting check passes with
+**538 files unchanged**, using one worker and the previously documented temporary
+standard asyncio loop with a 50 ms wake-up timer after the plain check timed out.
+Formatting rules and checked file selection are unchanged. Commands and results
+are in `mutation_terminal_followup` in
+[validation.json](./recheck/validation.json).
+
+- [x] Inspect all eight original named red/green receipts at #2372's exact merge,
+  separate nine later cases, and verify terminal counts and exact case commands.
+- [x] Verify that contradictory per-case mutation evidence prevents OVERALL PASS.
+
+The main checkout's `git add` exited 128 because `.git/index.lock` is on a
+read-only filesystem. Prepare the meaningful source commit in
+`/tmp/issue2360-mutation-delivery` and its importable patch at
+`/tmp/issue2360-mutation-terminal.patch`. This cannot advance the checkout's
+branch. Remote checklist publication remains rejected by connector policy;
+local verification is not claimed as a published PR update. Attempts to publish
+a blocker comment and add `needs-human` were also rejected by the same connector
+approval policy; neither action is claimed as published.
+
 ## Exact-head CI execution binding (2026-11-11 UTC)
 
 Recorded before source/test edits. Reviewed `bc3dd452` and the earlier merged
