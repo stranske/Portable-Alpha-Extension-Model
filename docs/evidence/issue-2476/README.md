@@ -168,6 +168,10 @@ coverage measurements remain attributed to `54219bd7`; coverage was not remeasur
 
 Later commits added tests and strengthened existing cases, so these historical
 measurements do not establish coverage for the delivered code and test revision.
+The [calibration CLI continuation](calibration-20261111/README.md) adds seven
+ranked-target-2 cases and records twelve production mutations. Its matched
+focused measurements cover 15 statements and 4 branches; it does not establish
+a fresh whole-suite Gate reduction or completion of the round.
 Full-suite coverage for the delivered head remains unverified. The scoped
 [2026-11-11 review](review-20261111.md) records a revision-bound focused branch
 supplement, which cannot substitute for the full Gate measurement. The thread

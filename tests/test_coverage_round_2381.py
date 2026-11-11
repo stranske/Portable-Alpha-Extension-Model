@@ -18,6 +18,7 @@ import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
+from unittest.mock import create_autospec
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -537,6 +538,134 @@ def test_pa_calibrate_returns_path_and_input_requires_index_id(
 
     with pytest.raises(ValueError, match="index-id is required"):
         pa_entry.main(["calibrate", "--input", str(returns_csv), "--output", str(out_yaml)])
+
+
+@pytest.mark.parametrize(
+    ("mapping_text", "cli_options", "expected_settings"),
+    [
+        pytest.param(None, [], ("none", "single", 12), id="defaults"),
+        pytest.param(
+            "covariance_shrinkage: ledoit_wolf\nvol_regime: two_state\nvol_regime_window: '5'\n",
+            [],
+            ("ledoit_wolf", "two_state", 5),
+            id="flat-template",
+        ),
+        pytest.param(
+            "vol_regime: single\ncalibration:\n  covariance_shrinkage: ledoit_wolf\n"
+            "  vol_regime: two_state\n  vol_regime_window: '9'\n",
+            [],
+            ("ledoit_wolf", "two_state", 9),
+            id="nested-template",
+        ),
+        pytest.param(
+            "calibration:\n  covariance_shrinkage: ledoit_wolf\n"
+            "  vol_regime: two_state\n  vol_regime_window: 9\n",
+            ["--cov-shrinkage", "none", "--vol-regime", "single", "--vol-regime-window", "3"],
+            ("none", "single", 3),
+            id="cli-overrides-template",
+        ),
+        pytest.param(
+            "calibration:\n  covariance_shrinkage: ledoit_wolf\n",
+            [],
+            ("ledoit_wolf", "single", 12),
+            id="partial-template",
+        ),
+    ],
+)
+def test_pa_calibrate_input_forwards_settings_and_exports(
+    monkeypatch, tmp_path, capsys, mapping_text, cli_options, expected_settings
+) -> None:
+    from pa_core import data
+
+    importer_class = create_autospec(data.DataImportAgent)
+    calibrator_class = create_autospec(data.CalibrationAgent)
+    importer = (
+        importer_class.return_value
+        if mapping_text is None
+        else importer_class.from_template.return_value
+    )
+    importer.min_obs = 7 if mapping_text is None else 19
+    importer.allow_below_min_obs = False
+    frame = pd.DataFrame({"id": ["IDX"], "return": [0.01]})
+    importer.load.return_value = frame
+    monkeypatch.setattr(data, "DataImportAgent", importer_class)
+    monkeypatch.setattr(data, "CalibrationAgent", calibrator_class)
+    input_path = tmp_path / "returns.csv"
+    output_path = tmp_path / "assets.yaml"
+    args = [
+        "calibrate",
+        "--input",
+        str(input_path),
+        "--index-id",
+        "IDX",
+        "--output",
+        str(output_path),
+        "--min-obs",
+        "7",
+    ]
+    if mapping_text is not None:
+        mapping_path = tmp_path / "mapping.yaml"
+        mapping_path.write_text(mapping_text)
+        args.extend(["--mapping", str(mapping_path)])
+    pa_entry.main([*args, *cli_options])
+
+    if mapping_text is None:
+        importer_class.assert_called_once_with(min_obs=7, allow_below_min_obs=True)
+        importer_class.from_template.assert_not_called()
+    else:
+        importer_class.assert_not_called()
+        importer_class.from_template.assert_called_once_with(str(mapping_path))
+        assert importer.allow_below_min_obs is True
+    importer.load.assert_called_once_with(str(input_path))
+    covariance_shrinkage, vol_regime, window = expected_settings
+    calibrator_class.assert_called_once_with(
+        min_obs=importer.min_obs,
+        covariance_shrinkage=covariance_shrinkage,
+        vol_regime=vol_regime,
+        vol_regime_window=window,
+    )
+    calibrator = calibrator_class.return_value
+    calibrator.calibrate.assert_called_once()
+    assert calibrator.calibrate.call_args.args[0] is frame
+    assert calibrator.calibrate.call_args.kwargs == {"index_id": "IDX"}
+    calibrator.to_yaml.assert_called_once_with(calibrator.calibrate.return_value, str(output_path))
+    assert capsys.readouterr().out == f"✓ Wrote asset library to {output_path}\n"
+
+
+@pytest.mark.parametrize(
+    ("setting", "bad_value", "allowed"),
+    [
+        ("covariance_shrinkage", "unsupported", "['ledoit_wolf', 'none']"),
+        ("vol_regime", "unsupported", "['single', 'two_state']"),
+    ],
+    ids=["invalid-covariance", "invalid-regime"],
+)
+def test_pa_calibrate_rejects_invalid_template_before_loading_data(
+    monkeypatch, tmp_path, setting, bad_value, allowed
+) -> None:
+    from pa_core import data
+
+    importer_class = create_autospec(data.DataImportAgent)
+    calibrator_class = create_autospec(data.CalibrationAgent)
+    monkeypatch.setattr(data, "DataImportAgent", importer_class)
+    monkeypatch.setattr(data, "CalibrationAgent", calibrator_class)
+    mapping_path = tmp_path / "mapping.yaml"
+    mapping_path.write_text(f"calibration:\n  {setting}: {bad_value}\n")
+    with pytest.raises(ValueError) as exc_info:
+        pa_entry.main(
+            [
+                "calibrate",
+                "--input",
+                str(tmp_path / "missing.csv"),
+                "--index-id",
+                "IDX",
+                "--mapping",
+                str(mapping_path),
+            ]
+        )
+    assert str(exc_info.value) == f"{setting} must be one of {allowed}"
+    importer_class.from_template.return_value.load.assert_not_called()
+    calibrator_class.assert_not_called()
 
 
 def test_pa_convert_command_emits_deprecation_and_writes_yaml(tmp_path, capsys) -> None:

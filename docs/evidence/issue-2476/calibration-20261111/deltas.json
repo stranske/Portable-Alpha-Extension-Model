@@ -1,0 +1,37 @@
+{
+  "baseline_revision": "496cf6c7884ada74bc1e0586075af28d91a3d486",
+  "head_revision": "7e3e46965c3713d1acdb95cca59f704b6b5c3dbc",
+  "scope": "Focused ranked modules only; not the full Gate suite",
+  "per_target": {
+    "pa_core/llm/result_explain.py": {
+      "statement_reduction": 0,
+      "branch_reduction": 0
+    },
+    "pa_core/pa.py": {
+      "statement_reduction": 15,
+      "branch_reduction": 4
+    },
+    "pa_core/facade.py": {
+      "statement_reduction": 0,
+      "branch_reduction": 0
+    },
+    "pa_core/units.py": {
+      "statement_reduction": 0,
+      "branch_reduction": 0
+    },
+    "pa_core/sim/internal_pa_financing.py": {
+      "statement_reduction": 0,
+      "branch_reduction": 0
+    },
+    "pa_core/manifest.py": {
+      "statement_reduction": 0,
+      "branch_reduction": 0
+    },
+    "dashboard/pages/4_Results.py": {
+      "statement_reduction": 0,
+      "branch_reduction": 0
+    }
+  },
+  "statement_reduction": 15,
+  "branch_reduction": 4
+}
