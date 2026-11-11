@@ -9,6 +9,8 @@ lines, must carry a ``Site:`` line identifying the exact mutation site.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from pathlib import Path
 
@@ -18,6 +20,15 @@ TEST_FILES = [
     ROOT / "tests" / "test_coverage_round_2381.py",
     ROOT / "tests" / "test_coverage_round_2476_facade.py",
 ]
+
+
+def _measured_source(path: str) -> str:
+    snapshot = json.loads(
+        (TRANSCRIPTS.parent / "mutation-source-snapshot.json").read_text(encoding="utf-8")
+    )
+    revision = re.search(r"code revision `([0-9a-f]{40})`", TRANSCRIPTS.read_text())
+    assert revision and snapshot["revision"] == revision.group(1)
+    return snapshot["sources"][path]
 
 
 def _records() -> list[tuple[str, str]]:
@@ -58,7 +69,9 @@ def test_mutation_transcripts_have_41_complete_records() -> None:
         assert "- Red exit: 1" in body, heading
         assert "- Green exit: 0" in body, heading
         file_match = re.search(r"- File: `([^`]+)`", body)
-        assert file_match and (ROOT / file_match.group(1)).is_file(), heading
+        assert file_match, heading
+        source = _measured_source(file_match.group(1))
+        assert hashlib.sha256(source.encode("utf-8")).hexdigest() == before.group(1), heading
         assert _base_test_name(heading) in body.split("Command:", 1)[-1], heading
 
 
@@ -75,8 +88,7 @@ def test_mutation_transcripts_removed_lines_exist_in_production_file() -> None:
         file_match = re.search(r"- File: `([^`]+)`", body)
         assert file_match, heading
         production_lines = {
-            line.strip()
-            for line in (ROOT / file_match.group(1)).read_text(encoding="utf-8").splitlines()
+            line.strip() for line in _measured_source(file_match.group(1)).splitlines()
         }
         removed, _added = _diff_lines(body)
         for line in removed:
@@ -91,7 +103,7 @@ def test_mutation_transcripts_site_references_point_at_changed_lines() -> None:
         file_match = re.search(r"- File: `([^`]+)`", body)
         assert file_match, heading
         assert site_match.group(1) == file_match.group(1), heading
-        production = (ROOT / file_match.group(1)).read_text(encoding="utf-8").splitlines()
+        production = _measured_source(file_match.group(1)).splitlines()
         line_number = int(site_match.group(2))
         assert 1 <= line_number <= len(production), heading
         removed, added = _diff_lines(body)
@@ -105,7 +117,7 @@ def test_mutation_transcripts_disambiguate_non_unique_mutations() -> None:
     for heading, body in _records():
         file_match = re.search(r"- File: `([^`]+)`", body)
         assert file_match, heading
-        raw_lines = (ROOT / file_match.group(1)).read_text(encoding="utf-8").splitlines()
+        raw_lines = _measured_source(file_match.group(1)).splitlines()
         stripped_lines = [line.strip() for line in raw_lines]
         diff_match = re.search(r"```diff\n(.*?)```", body, re.S)
         assert diff_match, heading
@@ -116,3 +128,22 @@ def test_mutation_transcripts_disambiguate_non_unique_mutations() -> None:
         )
         if ambiguous:
             assert "- Site: `" in body, heading
+
+
+def test_historical_source_checks_ignore_current_checkout(monkeypatch) -> None:
+    original_read = Path.read_text
+
+    def reject_current_source(path, *args, **kwargs):
+        if path.relative_to(ROOT).as_posix() in {
+            "pa_core/facade.py",
+            "pa_core/pa.py",
+            "pa_core/llm/result_explain.py",
+            "dashboard/pages/4_Results.py",
+        }:
+            raise AssertionError("historical evidence must not read current source")
+        return original_read(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", reject_current_source)
+    test_mutation_transcripts_removed_lines_exist_in_production_file()
+    test_mutation_transcripts_site_references_point_at_changed_lines()
+    test_mutation_transcripts_disambiguate_non_unique_mutations()

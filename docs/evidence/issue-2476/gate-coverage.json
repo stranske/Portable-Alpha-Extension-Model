@@ -2281,7 +2281,7 @@
     },
     "delivered": {
       "revision": "54219bd739793fa754c3fec319bb2c6b8f8dd898",
-      "role": "exact measured code revision: restored #2476 tests, tests/test_coverage_round_2476_facade.py and the mixed Series/dict fix in pa_core/facade.py; later commits on the branch change only docs/evidence/issue-2476/",
+      "role": "exact measured code revision: restored #2476 tests, tests/test_coverage_round_2476_facade.py and the mixed Series/dict fix in pa_core/facade.py; later commits changed evidence files and added test cases; coverage was not remeasured",
       "statements": {
         "targets": {
           "pa_core/llm/result_explain.py": {
