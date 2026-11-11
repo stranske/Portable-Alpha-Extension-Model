@@ -8,7 +8,61 @@ recorded **52 cases**). This round adds
 `tests/test_coverage_round_2476_facade.py` for the remaining facade
 branches below, without changing the restored file's 52-case count.
 
-## Acceptance records (2026-11-10)
+## Current receipts (revision-bound, 2026-11-11)
+
+These hosted receipts measure the delivered code. Sections headed
+**historical snapshot** below record earlier revisions under the earlier test
+policy. They are kept for attribution and do not describe the current head.
+
+Hosted [run 43122605282](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/43122605282)
+ran the Gate command
+`python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'`
+and, separately, the same command with `--cov-branch`. It measured current
+main `5be77e15c925f5354ab67e2a1749fe6187d2038c` and the prospective merge
+`ab96b5b495547fcad317da7c135d9b082aa0e150`, which is candidate `4b1f5e4c`
+merged with that main. Each of the four jobs passed on one attempt within
+180 seconds. Receipts are in
+[continuation-20261111/hosted-main/](continuation-20261111/hosted-main/seven-targets.json).
+Details are in the [continuation evidence](continuation-20261111/README.md).
+
+Per-target deltas, main → prospective merge:
+
+| Target | Statements | Branches |
+|--------|-----------:|---------:|
+| `pa_core/llm/result_explain.py` | 0 | −4 |
+| `pa_core/pa.py` | 0 | −1 |
+| `pa_core/facade.py` | 0 | −6 |
+| `pa_core/units.py` | 0 | 0 |
+| `pa_core/sim/internal_pa_financing.py` | 0 | 0 |
+| `pa_core/manifest.py` | 0 | 0 |
+| `dashboard/pages/4_Results.py` | −18 | −15 |
+| **Total (this PR)** | **−18 (20 → 2)** | **−26 (30 → 4)** |
+
+Round attribution:
+
+| Step | Statements | Branches | Source |
+|------|-----------:|---------:|--------|
+| round baseline → after merged PR #2384 | 58 | 14 | historical test policy |
+| after #2384 → before this work (intervening changes) | 131 | 79 | historical test policy |
+| main → prospective merge (this PR) | 18 | 26 | current hosted receipts |
+
+Hosted main matches the historical `before_this_work` snapshot exactly, at 20
+statements and 30 branches per target. The current PR step therefore
+reconciles with the historical 18/26. The round baseline (209 statements,
+123 branches), the #2384 step and the intervening step still come from the
+historical test policy. The PR alone removes 44 units. The ~180-unit round
+objective is reached only when those historical steps are counted. The one
+matched-policy attempt to measure the round baseline `bf424ec6` failed at
+dependency installation, before any test ran. Its coverage pin, 7.16.2,
+conflicts with the matched 7.17.2 (run 43123043013). The matched round
+baseline therefore remains unmeasured.
+
+Residual exceptions at the prospective merge: `pa_core/facade.py` statements
+751 and 757 with arcs 750→751 and 756→757, `pa_core/pa.py` arc 349→exit, and
+`dashboard/pages/4_Results.py` arc 178→180. The historical sections give the
+same gaps as facade lines 750 and 756, from before the four-line fix.
+
+## Acceptance records (2026-11-10) — historical snapshot
 
 Measured code revision: `54219bd739793fa754c3fec319bb2c6b8f8dd898`. The next
 commit on `codex/issue-2476` changes only files in `docs/evidence/issue-2476/`.
@@ -56,7 +110,7 @@ or materially strengthened test node. Each record gives the red and green exits,
 signals printed, and the sha256 of the production file before mutation, while mutated
 and after restoration. The audit of the earlier 39 records is at the top of that file.
 
-## Seven-target round baseline and reduction
+## Seven-target round baseline and reduction — historical snapshot
 
 The seven ranked targets, in dispatch order (from
 `docs/evidence/issue-2381-closer-repair/ranking-provenance.json`), are:
@@ -99,7 +153,7 @@ Per-target deltas, round baseline → delivered:
 | `pa_core/manifest.py` | 2 | 0 |
 | `dashboard/pages/4_Results.py` | 136 | 55 |
 
-## Remaining exceptions (measured)
+## Remaining exceptions (measured at `54219bd7`) — historical snapshot
 
 These were the only seven-target gaps at the measured revision:
 
@@ -172,11 +226,10 @@ The [calibration CLI continuation](calibration-20261111/README.md) adds seven
 ranked-target-2 cases and records twelve production mutations. Its matched
 focused measurements cover 15 statements and 4 branches; it does not establish
 a fresh whole-suite Gate reduction or completion of the round.
-Full-suite coverage for the delivered head remains unverified. The scoped
-[2026-11-11 review](review-20261111.md) records a revision-bound focused branch
-supplement, which cannot substitute for the full Gate measurement. The thread
-request for a fresh full Gate run remains outstanding: this repair is restricted
-to the touched tests and their modules and must not run the full suite.
+The scoped [2026-11-11 review](review-20261111.md) records a revision-bound
+focused branch supplement, which cannot substitute for the full Gate
+measurement. The hosted whole-suite receipts in **Current receipts** above
+superseded the request for a fresh full Gate run.
 
 
 Explicit CI run [42924499448](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42924499448)

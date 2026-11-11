@@ -17,6 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs" / "evidence" / "issue-2476"
 MEASURED_REVISION = "54219bd739793fa754c3fec319bb2c6b8f8dd898"
+MAIN_REVISION = "5be77e15c925f5354ab67e2a1749fe6187d2038c"
+MERGE_REVISION = "ab96b5b495547fcad317da7c135d9b082aa0e150"
 
 
 def _measurements() -> dict:
@@ -142,26 +144,100 @@ def test_remaining_gaps_match_readme_and_covering_tests() -> None:
     assert "arc 178→180" in readme
 
 
-def test_current_production_lines_match_documented_remaining_gaps() -> None:
-    facade_source = (ROOT / "pa_core" / "facade.py").read_text(encoding="utf-8")
-    export_source = facade_source.split("\ndef export(", 1)[1]
-    assert (
-        "if isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty:\n"
-        "            serialized_agent_semantics = _records_to_builtin(" in export_source
-    )
-    assert (
-        "if isinstance(serialized_agent_semantics, tuple):\n"
-        "                serialized_agent_semantics = list(" in export_source
-    )
+def _hosted_main_receipts() -> dict:
+    path = EVIDENCE / "continuation-20261111" / "hosted-main" / "seven-targets.json"
+    return json.loads(path.read_text(encoding="utf-8"))
 
-    pa_lines = (ROOT / "pa_core" / "pa.py").read_text(encoding="utf-8").splitlines()
-    assert pa_lines[348].strip() == 'elif args.registry_cmd == "get":'
 
-    results_path = ROOT / "dashboard" / "pages" / "4_Results.py"
-    results_lines = results_path.read_text(encoding="utf-8").splitlines()
-    assert results_lines[177].strip() == "elif availability.message:"
-    assert results_lines[178].strip() == "st.info(availability.message)"
-    assert results_lines[179].strip() == "return availability"
+def test_current_receipts_bind_remaining_gaps_to_measured_revisions() -> None:
+    receipts = _hosted_main_receipts()
+    assert set(receipts) == {"main-gate", "main-branch", "merge-gate", "merge-branch"}
+    for label, receipt in receipts.items():
+        expected = MAIN_REVISION if label.startswith("main-") else MERGE_REVISION
+        assert receipt["revision"] == expected
+        assert receipt["exit_code"] == 0
+        assert receipt["branch_coverage"] is label.endswith("-branch")
+        revision_file = EVIDENCE / "continuation-20261111" / "hosted-main" / label / "revision.txt"
+        assert revision_file.read_text(encoding="utf-8").strip() == expected
+
+    merge = receipts["merge-branch"]["targets"]
+    gaps = {
+        target: (entry["uncovered_statement_lines"], entry["uncovered_branch_arcs"])
+        for target, entry in merge.items()
+        if entry["uncovered_statement_count"] or entry["uncovered_branch_count"]
+    }
+    assert gaps == {
+        "pa_core/facade.py": ([751, 757], [[750, 751], [756, 757]]),
+        "pa_core/pa.py": ([], [[349, -120]]),
+        "dashboard/pages/4_Results.py": ([], [[178, 180]]),
+    }
+    assert receipts["merge-gate"]["targets"]["pa_core/facade.py"]["uncovered_statement_lines"] == [
+        751,
+        757,
+    ]
+    readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
+    assert "statements\n751 and 757 with arcs 750→751 and 756→757" in readme
+
+
+def _signed(value: int) -> str:
+    return f"−{-value}" if value < 0 else str(value)
+
+
+def test_readme_per_target_deltas_match_current_receipts() -> None:
+    receipts = _hosted_main_receipts()
+    readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
+    current = readme.split("## Current receipts", 1)[1].split("\n## ", 1)[0]
+    statement_total = branch_total = 0
+    for target in _measurements()["seven_targets_in_dispatch_order"]:
+        statements = (
+            receipts["merge-gate"]["targets"][target]["uncovered_statement_count"]
+            - receipts["main-gate"]["targets"][target]["uncovered_statement_count"]
+        )
+        branches = (
+            receipts["merge-branch"]["targets"][target]["uncovered_branch_count"]
+            - receipts["main-branch"]["targets"][target]["uncovered_branch_count"]
+        )
+        statement_total += statements
+        branch_total += branches
+        assert f"| `{target}` | {_signed(statements)} | {_signed(branches)} |" in current
+    assert (statement_total, branch_total) == (-18, -26)
+    assert "| **Total (this PR)** | **−18 (20 → 2)** | **−26 (30 → 4)** |" in current
+
+
+def test_current_main_reconciles_with_historical_before_this_work_snapshot() -> None:
+    receipts = _hosted_main_receipts()
+    coverage = json.loads((EVIDENCE / "gate-coverage.json").read_text(encoding="utf-8"))
+    historical = coverage["snapshots"]["before_this_work"]
+    for target, entry in historical["statements"]["targets"].items():
+        main_gate = receipts["main-gate"]["targets"][target]
+        assert main_gate["uncovered_statement_count"] == entry["missing_statements"], target
+    for target, entry in historical["branches"]["targets"].items():
+        main_branch = receipts["main-branch"]["targets"][target]
+        assert main_branch["uncovered_branch_count"] == entry["missing_branches"], target
+    # The PR step reconciles; the earlier steps remain historical-policy figures.
+    assert coverage["statement_reductions"]["this_work"] == 18
+    assert coverage["branch_reductions"]["this_work"] == 26
+    readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
+    assert "| round baseline → after merged PR #2384 | 58 | 14 | historical test policy |" in readme
+    assert (
+        "| after #2384 → before this work (intervening changes) | 131 | 79 | "
+        "historical test policy |" in readme
+    )
+    assert "| main → prospective merge (this PR) | 18 | 26 | current hosted receipts |" in readme
+    assert "matched round\nbaseline therefore remains unmeasured" in readme
+    anchor = (
+        EVIDENCE / "continuation-20261111" / "hosted-anchor" / "failed-install.txt"
+    ).read_text(encoding="utf-8")
+    assert "bf424ec6ff58bb88b6431acf7809d42b2c59f95d" in anchor
+    assert anchor.count("coverage==7.17.2 and coverage==7.16.2") == 2
+
+
+def test_calibration_copy_mutation_is_labelled_identity_only() -> None:
+    calibration = EVIDENCE / "calibration-20261111"
+    assert "is **identity-only**" in (calibration / "README.md").read_text(encoding="utf-8")
+    transcripts = (calibration / "mutation-transcripts.md").read_text(encoding="utf-8")
+    record = transcripts.split("## calibration-frame\n", 1)[1]
+    assert record.lstrip().startswith("Scope: **identity-only**.")
 
 
 def test_facade_mixed_series_dict_fix_and_its_test_are_present() -> None:
@@ -215,7 +291,14 @@ def test_historical_coverage_role_acknowledges_later_test_changes() -> None:
     assert "added test cases" in role
     assert "coverage was not remeasured" in role
     readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
-    assert "Full-suite coverage for the delivered head remains unverified" in readme
+    assert "Full-suite coverage for the delivered head remains unverified" not in readme
+    current, historical = readme.split(
+        "## Acceptance records (2026-11-10) — historical snapshot", 1
+    )
+    assert "## Current receipts (revision-bound, 2026-11-11)" in current
+    assert MAIN_REVISION in current and MERGE_REVISION in current
+    assert MEASURED_REVISION not in current
+    assert MEASURED_REVISION in historical
 
 
 def test_baseline_timeout_summary_preserves_reported_failure_and_unknowns() -> None:

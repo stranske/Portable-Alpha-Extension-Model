@@ -1036,6 +1036,8 @@ Restored green output:
 
 ## calibration-frame
 
+Scope: **identity-only**. `df.copy()` has equal contents; only the `is frame` assertion detects it.
+
 Named test: `tests/test_coverage_round_2381.py::test_pa_calibrate_input_forwards_settings_and_exports[defaults]`.
 
 Command: `python -m pytest 'tests/test_coverage_round_2381.py::test_pa_calibrate_input_forwards_settings_and_exports[defaults]' -m 'not slow and not live_llm' -q`

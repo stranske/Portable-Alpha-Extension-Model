@@ -118,3 +118,88 @@ before targets 1–6. Its reason for that selection remains unknown.
 The explicit format-enabled [CI run 43113578331](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/43113578331)
 on the measured candidate executed and passed both the pytest and lint-format
 jobs. The evidence commit receives its own exact-head CI dispatch.
+
+## Current-main PR delta (2026-11-11, second hosted run)
+
+The baseline above, `def0eec0`, is a commit on this PR branch, not main. To
+measure the PR's own delta, [run 43122605282](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/43122605282)
+used the same [runner definition](hosted-main/workflow.yml.txt). Only the
+matrix revisions changed. It measured current main
+`5be77e15c925f5354ab67e2a1749fe6187d2038c` and the prospective merge. Main's
+two commits since the merge base add tests (`tests/test_issue_2360_evidence.py`,
+`tests/test_ci_python_standard.py`), so the merge changes the candidate's
+coverage inputs. The prospective merge tree is
+`ab96b5b495547fcad317da7c135d9b082aa0e150` (tree `c9713981`, parents `4b1f5e4c`
+and `5be77e15`). It is a measurement-only commit and was not pushed to this
+branch. Later commits on this branch change only `docs/evidence/` and
+`tests/test_coverage_round_2476_evidence.py`, which reads evidence text and
+executes no target module.
+
+The command, Python 3.14.10, two-worker image, input hashes and resolved
+packages matched run 43113742075. Each job had one attempt with the
+180-second limit. The receipts are in [hosted-main/](hosted-main/), including
+the [seven-target extracts](hosted-main/seven-targets.json).
+
+| Revision | Configuration | Pytest result |
+| --- | --- | --- |
+| Main `5be77e15` | Gate | 2,120 passed, 1 skipped in 117.49s |
+| Main `5be77e15` | Branch supplement | 2,120 passed, 1 skipped in 114.54s |
+| Merge `ab96b5b4` | Gate | 2,182 passed, 1 skipped in 80.02s |
+| Merge `ab96b5b4` | Branch supplement | 2,182 passed, 1 skipped in 119.14s |
+
+| Target | Gate uncovered / total statements, main → merge | Δ | Diagnostic uncovered / total branches, main → merge | Δ |
+| --- | ---: | ---: | ---: | ---: |
+| `pa_core/llm/result_explain.py` | 0/227 → 0/227 | 0 | 4/102 → 0/102 | −4 |
+| `pa_core/pa.py` | 0/222 → 0/222 | 0 | 2/68 → 1/68 | −1 |
+| `pa_core/facade.py` | 2/332 → 2/337 | 0 | 8/120 → 2/124 | −6 |
+| `pa_core/units.py` | 0/81 → 0/81 | 0 | 0/30 → 0/30 | 0 |
+| `pa_core/sim/internal_pa_financing.py` | 0/35 → 0/35 | 0 | 0/18 → 0/18 | 0 |
+| `pa_core/manifest.py` | 0/61 → 0/61 | 0 | 0/4 → 0/4 | 0 |
+| `dashboard/pages/4_Results.py` | 18/210 → 0/210 | −18 | 16/70 → 1/70 | −15 |
+| **Total** | **20/1,168 → 2/1,173** | **−18** | **30/412 → 4/416** | **−26** |
+
+The merge's seven-target counts, lines and arcs equal the candidate receipts
+above, so main's added tests do not change the delivered coverage.
+
+### Reconciliation with the historical round totals
+
+Hosted main reproduces the historical `before_this_work` snapshot at
+`cb7143b4` target by target: 20 statements and 30 branches. The measured PR
+delta of 18 statements and 26 branches therefore equals the historical
+"earlier #2476 work" step under the matched policy.
+
+| Step | Statements | Branches | Policy of the source |
+| --- | ---: | ---: | --- |
+| `bf424ec6` → `1b7f97a1` (#2384) | 58 | 14 | Historical snapshots only |
+| `1b7f97a1` → `cb7143b4` (intervening changes) | 131 | 79 | Historical snapshots only |
+| Main `5be77e15` → merge `ab96b5b4` (this PR) | 18 | 26 | Hosted Gate and branch receipts (current) |
+| **Round total** | **207 (209 → 2)** | **119 (123 → 4)** | Endpoints: historical start, hosted finish |
+
+The PR alone removes 44 uncovered units, well short of the ~180-unit round
+objective. The objective is met only with the 189 statements and 93 branches
+that #2384 and the intervening changes removed. Those amounts, and the round
+baseline of 209 statements and 123 branches, still come from the historical
+test policy: slow tests included, environment-related failures, and a
+different worker setting for the #2384 run.
+
+To anchor the round baseline under the matched policy,
+[run 43123043013](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/43123043013)
+made one attempt per configuration at `bf424ec6ff58bb88b6431acf7809d42b2c59f95d`
+([runner definition](hosted-anchor/workflow.yml.txt)). That revision predates
+`ci-python-versions.env`, so the runner fixed the matched tool versions
+explicitly. Both jobs failed at **Install the repository test environment**:
+`Because you require coverage==7.17.2 and coverage==7.16.2, we can conclude
+that your requirements are unsatisfiable`. The anchor's `requirements.lock`
+pins `coverage==7.16.2`
+([log excerpt](hosted-anchor/failed-install.txt)). No tests ran. Per the
+one-attempt rule the anchor was not retried, so the matched-policy round
+baseline remains **unmeasured**. A matched anchor would need either the
+anchor's own coverage pin, which is no longer the matched policy, or an
+overridden lock.
+
+The measured residual exceptions at the merge are unchanged from the candidate:
+facade statements 751 and 757 with arcs 750→751 and 756→757, `pa.py` arc
+349→exit, and `4_Results.py` arc 178→180.
+
+After these evidence and test updates, the focused command printed
+[90 passed and four warnings](focused-final.txt) under the 120-second limit.

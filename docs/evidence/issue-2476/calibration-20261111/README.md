@@ -82,6 +82,10 @@ restored passing reruns. Twelve checks additionally verify frame forwarding,
 export destination, template observation thresholds and rejection before I/O.
 See [complete transcripts](mutation-transcripts.md) and
 [commands, exact mutations, exit codes, timings and hashes](mutations.json).
+The `calibration-frame` mutation (`df` → `df.copy()`) is **identity-only**. The copy
+has equal contents, and only the test's `is frame` identity assertion detects it.
+It shows that the parsed frame object is forwarded. It does not show that any
+frame content is checked.
 Production was restored in finally after each red run; hashes for all seven
 target files match the baseline. No demonstrated production fix was needed.
 
