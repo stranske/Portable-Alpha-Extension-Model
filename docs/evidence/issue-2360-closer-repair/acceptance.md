@@ -1,5 +1,64 @@
 # Issue #2360 acceptance recheck
 
+## Exact-head CI execution binding (2026-11-11 UTC)
+
+Recorded before source/test edits. Reviewed `bc3dd452` and the earlier merged
+repair `3dd4bcf2`, then re-read #2360, #2372 and #2467 through the GitHub
+connector. Revision identities and changed files match `recheck/revisions.json`.
+The requested shell `gh issue view`, `gh pr view`, `gh run list` and
+`gh run view 41661022529` calls exited 1 because shell network access is
+unavailable. Connector reads of the completed CI run's jobs and Python job logs
+confirm the retained SHA, command and terminal result: **1969 passed, 1 skipped**.
+The separate Gate run 41661029334 skips Python CI and is insufficient by itself.
+Baseline: 135 evidence tests pass; the acceptance verifier prints six PASS
+results and OVERALL PASS. Existing mutation and paired-coverage receipts already
+establish the original eight cases and isolated 73-unit reduction; ranking
+provenance remains explicitly UNKNOWN without a compliance claim.
+
+Reconciled the verified current checklist in PR #2497's proposed body before
+continuing. Publication was rejected: `MCP tool call requires approval, but
+approval policy is never`. Remote checkboxes are unchanged; the proposed body
+is saved at `/tmp/issue2360-ci-reconciled-pr-body.md`. PR #2497 was read open,
+`draft=false`, at `bc3dd4522f09e53f614bef5bb24de5353495afd8`.
+
+The remaining CI validation gap is that the assessed SHA can appear anywhere
+in the log, and a successful pytest summary can precede its command. Bind PASS
+to the recorded CI workflow and Python job, an exact checkout SHA output, and
+a terminal summary following the executed pytest command. Contradictory or
+duplicate job/pytest-step receipts must fail closed.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: six requirement PASS results and OVERALL PASS for unchanged
+receipts; CI FAIL, OVERALL FAIL and exit 1 for contradictory execution evidence.
+Stop after two retrieval attempts per unavailable remote receipt or 45 minutes
+total. Reuse completed CI and historical measurements; no workflow or production
+changes and no historical full-suite replay are needed.
+
+Verified outcome: all ten contradictory-receipt regressions produced false
+PASS before implementation. After implementation, **162 targeted tests pass**;
+the verifier has **98%** statement coverage (190 statements, four missing).
+The acceptance command prints six PASS results and OVERALL PASS, exit 0.
+Ruff and `git diff --check` pass. Black formatted both changed Python files
+individually; the required full repository check passed with **538 files
+unchanged**. Default multiprocessing hit the sandbox socket restriction and
+the plain one-worker check timed out. The successful check used one worker
+and a temporary standard asyncio loop with a 50 ms wake-up timer, preserving
+Black's CLI, file selection and formatting rules. Commands and live CI source
+identities are recorded under `ci_execution_binding_followup` in
+[validation.json](./recheck/validation.json).
+
+- [x] Verify exact-head CI with successful executed pytest evidence, its immutable
+  run/job URLs, SHA, command and result; reject the docs-only Gate skip.
+- [x] Reconcile previously verified acceptance tasks in a proposed PR body;
+  remote publication remains blocked by connector approval policy.
+
+The main checkout's `git add` exited 128 because `.git/index.lock` is read-only.
+Prepare the source commit in `/tmp/issue2360-ci-execution-delivery` and the
+importable patch `/tmp/issue2360-ci-execution.patch`. This does not advance the
+checkout's branch. No workflow or production files changed.
+Attempts to publish a blocker comment and add `needs-human` were also rejected
+by the connector's approval policy; neither action is claimed as published.
+
 ## Acceptance contract validation (2026-11-11 UTC)
 
 Recorded before source/test changes. Re-read issue #2360 and merged PRs #2372

@@ -201,6 +201,86 @@ def test_missing_raw_ci_job_prevents_overall_pass(evidence: Path, capsys) -> Non
 
 
 @pytest.mark.parametrize(
+    "breakage",
+    [
+        "other_workflow_name",
+        "other_workflow_path",
+        "other_job_name",
+        "mentioned_sha_only",
+        "stale_checkout",
+        "summary_before_command",
+        "echoed_command",
+        "duplicate_job",
+        "duplicate_raw_pytest_step",
+        "duplicate_listed_pytest_step",
+    ],
+)
+def test_ci_binds_success_to_checkout_and_execution(evidence: Path, breakage: str, capsys) -> None:
+    if breakage.startswith("other_workflow"):
+        field, value = (
+            ("name", "Gate")
+            if breakage == "other_workflow_name"
+            else ("path", ".github/workflows/pr-00-gate.yml")
+        )
+        change_json(evidence, "recheck/ci-run.json", lambda run: run.update({field: value}))
+    elif breakage == "other_job_name":
+        change_json(
+            evidence,
+            "recheck/ci-pytest-job.json",
+            lambda record: record["job"].update(name="gate-summary"),
+        )
+        change_json(
+            evidence,
+            "recheck/ci-jobs.json",
+            lambda record: next(job for job in record["jobs"] if job["id"] == 126004180807).update(
+                name="gate-summary"
+            ),
+        )
+    elif breakage == "duplicate_job":
+
+        def duplicate_job(record):
+            job = next(job for job in record["jobs"] if job["id"] == 126004180807)
+            record["jobs"].append(dict(job, conclusion="skipped"))
+
+        change_json(evidence, "recheck/ci-jobs.json", duplicate_job)
+    elif breakage.startswith("duplicate_"):
+
+        def duplicate_step(record):
+            job = (
+                record["job"]
+                if breakage == "duplicate_raw_pytest_step"
+                else next(job for job in record["jobs"] if job["id"] == 126004180807)
+            )
+            step = next(s for s in job["steps"] if s["name"] == "Pytest (unit tests with coverage)")
+            job["steps"].append(dict(step, conclusion="skipped"))
+
+        name = "ci-pytest-job.json" if breakage == "duplicate_raw_pytest_step" else "ci-jobs.json"
+        change_json(evidence, f"recheck/{name}", duplicate_step)
+    else:
+        path = evidence / "recheck/ci-pytest-excerpt.txt"
+        lines = path.read_text().splitlines()
+        if breakage in {"mentioned_sha_only", "stale_checkout"}:
+            replacement = "0" * 40 if breakage == "stale_checkout" else "checkout output missing"
+            lines = [line.replace(verifier.ASSESSED, replacement) for line in lines]
+            lines.append(f"Requested assessment: {verifier.ASSESSED}")
+        elif breakage == "summary_before_command":
+            summary = next(line for line in lines if "1969 passed" in line)
+            lines.remove(summary)
+            lines.insert(0, summary)
+        else:
+            lines = [
+                line.replace("pytest -p ci_test_growth", "echo pytest -p ci_test_growth")
+                for line in lines
+            ]
+        path.write_text("\n".join(lines) + "\n")
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: CI:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize(
     "summary",
     [
         "========== 0 passed in 0.01s ==========",

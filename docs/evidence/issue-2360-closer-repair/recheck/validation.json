@@ -357,5 +357,76 @@
     "ruff_exit_code": 0,
     "diff_check_exit_code": 0,
     "commit_limitation": "git add exited 128 because .git/index.lock is read-only; commit in /tmp/issue2360-contract-delivery and patch /tmp/issue2360-contract-validation.patch. No remote checkbox update claimed."
+  },
+  "ci_execution_binding_followup": {
+    "checked_at": "2026-11-11",
+    "assessed_sha": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+    "baseline_commit": "bc3dd4522f09e53f614bef5bb24de5353495afd8",
+    "baseline_tests": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow'",
+      "exit_code": 0,
+      "passed": 135
+    },
+    "regression_before": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k binds_success_to_checkout_and_execution",
+      "exit_code": 1,
+      "failed": 10,
+      "reason": "Contradictory CI receipts incorrectly produced OVERALL PASS."
+    },
+    "targeted_tests": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 162,
+      "coverage_module": "scripts/verify_issue_2360_evidence.py",
+      "statements": 190,
+      "missing": 4,
+      "coverage_percent": 98
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "requirement_passes": 6,
+      "overall": "PASS",
+      "ranking_provenance": "UNKNOWN; permitted disclosure without compliance claim"
+    },
+    "black": {
+      "command": "PYTHONPATH=/tmp/issue2360-ci-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "unchanged_files": 538,
+      "runtime_note": "Default multiprocessing was denied by sandbox socket restrictions; plain single-worker run exited 124. A temporary standard asyncio loop with a 50 ms wake-up timer completed the unchanged Black CLI and formatting rules."
+    },
+    "lint": {
+      "command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "whitespace": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "live_ci_recheck": {
+      "source": "GitHub connector fetch_workflow_run_jobs and fetch_workflow_job_logs; shell gh commands exited 1 (network unavailable).",
+      "run_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529",
+      "workflow": "CI",
+      "job_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529/job/126004180807",
+      "job_name": "Python CI / python 3.14",
+      "step_name": "Pytest (unit tests with coverage)",
+      "job_status": "completed",
+      "job_conclusion": "success",
+      "step_conclusion": "success",
+      "command": "pytest -p ci_test_growth \"${args[@]}\"",
+      "terminal_result": "1969 passed, 1 skipped, 994 warnings in 132.84s (0:02:12)",
+      "checkout_sha_outputs_match_assessed": true,
+      "insufficient_gate_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661029334",
+      "gate_python_ci_conclusion": "skipped"
+    },
+    "delivery": {
+      "main_checkout_git_add_exit": 128,
+      "reason": "Read-only .git/index.lock",
+      "commit_checkout": "/tmp/issue2360-ci-execution-delivery",
+      "patch": "/tmp/issue2360-ci-execution.patch",
+      "proposed_pr_body": "/tmp/issue2360-ci-reconciled-pr-body.md",
+      "remote_update": "Rejected: MCP tool call requires approval, but approval policy is never",
+      "blocker_comment_and_label": "Both rejected: MCP tool call requires approval, but approval policy is never; not published."
+    }
   }
 }

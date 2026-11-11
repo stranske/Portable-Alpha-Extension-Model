@@ -84,15 +84,36 @@ def check_ci(directory: Path) -> tuple[str, str]:
     run_url = f"https://github.com/{REPOSITORY}/actions/runs/{run['id']}"
     api_run_url = f"https://api.github.com/repos/{REPOSITORY}/actions/runs/{run['id']}"
     excerpt = (directory / "recheck/ci-pytest-excerpt.txt").read_text(encoding="utf-8")
+    log = re.sub(r"^\d{4}-\d\d-\d\dT[\d:.]+Z ", "", excerpt, flags=re.MULTILINE)
+    checkouts = list(re.finditer(r"^[a-f0-9]{40}$", log, re.MULTILINE))
+    commands = list(re.finditer(r'^pytest -p ci_test_growth "\$\{args\[@\]\}"$', log, re.MULTILINE))
+    listed_jobs = [job for job in jobs if job.get("id") == pytest_job["id"]]
+
+    def executed_pytest(job: dict) -> bool:
+        steps = [
+            step
+            for step in job.get("steps") or []
+            if step["name"] == "Pytest (unit tests with coverage)"
+        ]
+        return (
+            len(steps) == 1
+            and steps[0]["status"] == "completed"
+            and steps[0]["conclusion"] == "success"
+        )
+
     # A progress message or mixed passing/failing result is not successful pytest.
-    summaries = re.findall(
-        r"=+[ \t]+([^\r\n]*\bin \d+(?:\.\d+)?s(?: \([^\r\n)]+\))?)[ \t]+=+[ \t]*$",
-        excerpt,
-        re.MULTILINE,
+    summaries = list(
+        re.finditer(
+            r"=+[ \t]+([^\r\n]*\bin \d+(?:\.\d+)?s(?: \([^\r\n)]+\))?)[ \t]+=+[ \t]*$",
+            log,
+            re.MULTILINE,
+        )
     )
-    summary = summaries[-1] if summaries else ""
+    summary = summaries[-1].group(1) if summaries else ""
     valid = (
-        run["head_sha"] == ASSESSED
+        run["name"] == "CI"
+        and run["path"] == ".github/workflows/ci.yml"
+        and run["head_sha"] == ASSESSED
         and run["status"] == "completed"
         and run["conclusion"] == "success"
         and run["html_url"] == run_url
@@ -104,29 +125,24 @@ def check_ci(directory: Path) -> tuple[str, str]:
         and pytest_job["html_url"] == f"{run_url}/job/{pytest_job['id']}"
         and pytest_job["status"] == "completed"
         and pytest_job["conclusion"] == "success"
-        and any(
-            step["name"] == "Pytest (unit tests with coverage)"
-            and step["status"] == "completed"
-            and step["conclusion"] == "success"
-            for step in pytest_job.get("steps") or []
-        )
-        and ASSESSED in excerpt
-        and 'pytest -p ci_test_growth "${args[@]}"' in excerpt
+        and pytest_job["name"] == "Python CI / python 3.14"
+        and executed_pytest(pytest_job)
+        and bool(checkouts)
+        and all(checkout.group() == ASSESSED for checkout in checkouts)
+        and len(commands) == 1
+        and checkouts[-1].end() < commands[0].start()
+        and bool(summaries)
+        and commands[0].end() < summaries[-1].start()
         and re.search(r"\b[1-9]\d* passed\b", summary) is not None
         and re.search(r"\b\d+ (?:failed|errors?)\b", summary) is None
-        and any(
-            job.get("id") == pytest_job["id"]
-            and job["name"] == pytest_job["name"]
+        and len(listed_jobs) == 1
+        and all(
+            job["name"] == pytest_job["name"]
             and job["run_id"] == run["id"]
             and job["status"] == "completed"
             and job["conclusion"] == "success"
-            and any(
-                step["name"] == "Pytest (unit tests with coverage)"
-                and step["status"] == "completed"
-                and step["conclusion"] == "success"
-                for step in job.get("steps") or []
-            )
-            for job in jobs
+            and executed_pytest(job)
+            for job in listed_jobs
         )
     )
     return ("PASS" if valid else "FAIL", "exact-head executed pytest; Gate skip is insufficient")
