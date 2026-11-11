@@ -7,6 +7,7 @@ import hashlib
 import json
 import re
 import shlex
+import tempfile
 import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -664,7 +665,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.reconcile_pr_body is not None:
         try:
             body = reconcile_pr_body(args.reconcile_pr_body.read_text(encoding="utf-8"), results)
-            args.output.write_text(body, encoding="utf-8")
+            # Replace the directory entry so an external hard link cannot overwrite
+            # the saved input or the evidence that has just passed verification.
+            with tempfile.TemporaryDirectory(
+                prefix=".issue2360-reconcile-", dir=args.output.parent
+            ) as temporary:
+                proposal = Path(temporary) / "body.md"
+                proposal.write_text(body, encoding="utf-8")
+                proposal.replace(args.output)
             print(f"PASS: checklist reconciliation: prepared {args.output}; publication pending")
         except (OSError, ValueError) as error:
             print(f"FAIL: checklist reconciliation: {error}")

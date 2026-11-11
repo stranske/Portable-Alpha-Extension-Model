@@ -890,5 +890,44 @@
       "delivery_checkout": "/tmp/issue2360-output-preservation-delivery",
       "patch": "/tmp/issue2360-output-preservation.patch"
     }
+  },
+  "hard_link_preservation": {
+    "checked_at": "2026-11-11",
+    "change": "Publish the reconciliation proposal by replacing its directory entry after a temporary write; preserve hard-linked input/evidence and previous proposals after write errors.",
+    "baseline_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py -q -m 'not slow'",
+    "baseline_exit_code": 0,
+    "baseline_result": "242 passed, 13 warnings in 9.36s",
+    "regression_command": "python -m pytest tests/test_issue_2360_reconciliation.py -q -m 'not slow' -k hard_linked",
+    "regression_exit_code": 1,
+    "regression_result": "2 failed, 31 deselected, 13 warnings in 1.49s; input and CI receipt bytes overwritten despite OVERALL PASS before the fix.",
+    "regression_output": "/tmp/issue2360-hardlink-red.txt",
+    "pytest_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py tests/test_wizard_render_coverage.py tests/test_cli_mutation_replay_isolation.py -q -m 'not slow and not live_llm' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+    "pytest_exit_code": 0,
+    "pytest_result": "275 passed, 15 warnings in 12.92s",
+    "pytest_output": "/tmp/issue2360-hardlink-tests.txt",
+    "verifier_coverage": {
+      "statements": 252,
+      "missing": 4,
+      "cover_percent": 98
+    },
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit_code": 0,
+    "acceptance_result": "Six requirement PASS results; OVERALL PASS. Ranking provenance remains UNKNOWN; its PASS validates permitted disclosure only.",
+    "acceptance_output": "/tmp/issue2360-hardlink-verification.txt",
+    "formatter_command": "PYTHONPATH=/tmp/issue2360-hardlink-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "formatter_exit_code": 0,
+    "formatter_result": "539 files would be left unchanged",
+    "formatter_runtime_note": "Plain single-worker check timed out (exit 124). Temporary standard asyncio event-loop factory with 50 ms wake-ups completed the same Black CLI/options without modifying installed packages or repository configuration.",
+    "formatter_output": "/tmp/issue2360-hardlink-black-retry.txt",
+    "ruff_exit_code": 0,
+    "diff_check_exit_code": 0,
+    "live_reads": "Requested gh issue/pr/run commands cannot reach api.github.com (exit 1). Connector fetch recovered #2360; fetch_pr and list_pr_changed_filenames match both revision records; live run/jobs/log reads confirm 41661022529 completed successfully at a2f4ef50403a0a90e8535e4daef5e6c691037bd2, pytest 1969 passed and 1 skipped.",
+    "historical_receipts": "Reused; no new attribution, historical replay, production change or ranking compliance claim.",
+    "reconciled_body": "/tmp/issue2360-hardlink-reconciled-body.md",
+    "remote_publication": "PR body update rejected: MCP tool call requires approval, but approval policy is never. Remote checkboxes remain unchanged.",
+    "commit_limitation": "Main checkout git add exited 128: .git/index.lock is read-only. Source commit delivered in a writable clone; main checkout branch remains unchanged.",
+    "delivery_clone": "/tmp/issue2360-hardlink-delivery",
+    "delivery_patch": "/tmp/issue2360-hardlink-preservation.patch",
+    "blocker_publication": "Blocker comment and needs-human label rejected: MCP tool call requires approval, but approval policy is never."
   }
 }

@@ -1,5 +1,49 @@
 # Issue #2360 acceptance recheck
 
+## Reconciliation hard-link preservation check (2026-11-11 UTC)
+
+Recorded before this round's source/test edits. The requested shell
+`gh issue view 2360`, `gh pr view 2372`, and `gh pr view 2467` failed because
+api.github.com is unreachable. Connector reads recovered the original issue,
+both merged PRs, and their changed filenames; revisions agree with
+[revisions.json](./recheck/revisions.json). Live connector jobs for
+[run 41661022529](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529)
+confirm that the pytest step completed successfully. PR #2497 is open and ready.
+
+Verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory
+proof prevents OVERALL PASS. Check whether a reconciliation output hard-linked
+to a receipt or saved input can overwrite that file after verification. Any
+reproduced failure must be fixed and tested before claiming preservation.
+Stop after two attempts per unavailable receipt or 45 minutes total. Reuse
+historical mutation and coverage receipts; ranking provenance remains UNKNOWN.
+
+Verified result: both new hard-link regressions failed before the fix. Proposal
+publication now replaces its directory entry after writing a temporary file in
+the same parent directory. Hard-linked receipts and saved inputs retain their
+bytes; partial writes and replacement errors preserve the previous proposal
+and return OVERALL FAIL. **275 targeted tests pass**, including four new cases;
+the verifier coverage row is **98%** (252 statements, four missing). The recorded
+command prints six PASS results and OVERALL PASS. Black formatted both changed
+Python files; the required full check passes with **539 files unchanged** using
+one worker and the temporary standard-asyncio wake-up workaround after a plain
+single-worker check timed out. Ruff and `git diff --check` pass. Commands and
+exits are in `hard_link_preservation` in [validation.json](./recheck/validation.json).
+
+- [x] Re-read the original requirements, exact revisions and changed files;
+  record the dated acceptance command, outcome and finite stop rule before edits.
+- [x] Reproduce and fix reconciliation overwriting a hard-linked receipt or
+  input while reporting success; verify preservation and write-failure handling.
+
+PR checklist publication was rejected: `MCP tool call requires approval, but
+approval policy is never`. No remote checkbox change is claimed. The reviewable
+body is `/tmp/issue2360-hardlink-reconciled-body.md`.
+Blocker-comment and `needs-human` label publication were rejected by the same
+approval policy. Main-checkout staging exited 128 because `.git/index.lock` is
+read-only. The source commit is delivered in `/tmp/issue2360-hardlink-delivery`
+with its importable patch `/tmp/issue2360-hardlink-preservation.patch`; this
+does not advance the main checkout's branch.
+
 ## Reconciliation output preservation contract (2026-11-11 UTC)
 
 Recorded before this round's source/test edits. Reviewed the recent keepalive

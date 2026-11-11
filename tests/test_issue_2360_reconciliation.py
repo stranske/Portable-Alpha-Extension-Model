@@ -1,6 +1,7 @@
 """Prepare current acceptance checkboxes only when the retained receipts verify."""
 
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -160,3 +161,68 @@ def test_cli_preserves_verified_evidence_when_output_points_into_it(
     report = capsys.readouterr()
     assert "output must be outside the evidence directory" in report.err
     assert "OVERALL PASS" not in report.out
+
+
+@pytest.mark.parametrize("linked_file", ["input", "receipt"])
+def test_cli_preserves_hard_linked_input_and_receipts(tmp_path, body, linked_file, capsys):
+    evidence = tmp_path / "evidence"
+    shutil.copytree(verifier.DEFAULT, evidence)
+    source = tmp_path / "input.md"
+    source.write_text(body)
+    original = source if linked_file == "input" else evidence / "recheck/ci-run.json"
+    before = original.read_bytes()
+    output = tmp_path / "proposal.md"
+    output.hardlink_to(original)
+
+    assert (
+        verifier.main(
+            [
+                "--evidence-dir",
+                str(evidence),
+                "--reconcile-pr-body",
+                str(source),
+                "--output",
+                str(output),
+            ]
+        )
+        == 0
+    )
+
+    assert original.read_bytes() == before
+    assert source.read_text() == body
+    assert output.read_text() == verifier.reconcile_pr_body(body, verifier.verify(evidence))
+    assert not output.samefile(original)
+    assert "OVERALL PASS" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("failure", ["write", "replace"])
+def test_cli_preserves_previous_proposal_and_cleans_up_after_write_errors(
+    tmp_path, body, monkeypatch, failure, capsys
+):
+    source = tmp_path / "input.md"
+    source.write_text(body)
+    output = tmp_path / "proposal.md"
+    output.write_text("Previous reviewable proposal")
+    write_text = Path.write_text
+
+    def partial_write(path, content, **kwargs):
+        write_text(path, "Partial output", **kwargs)
+        raise OSError("output storage unavailable")
+
+    def failed_replace(path, target):
+        raise OSError("output storage unavailable")
+
+    monkeypatch.setattr(
+        Path,
+        "write_text" if failure == "write" else "replace",
+        partial_write if failure == "write" else failed_replace,
+    )
+
+    assert verifier.main(["--reconcile-pr-body", str(source), "--output", str(output)]) == 1
+    assert source.read_text() == body
+    assert output.read_text() == "Previous reviewable proposal"
+    assert sorted(path.name for path in tmp_path.iterdir()) == ["input.md", "proposal.md"]
+    report = capsys.readouterr().out
+    assert "FAIL: checklist reconciliation: output storage unavailable" in report
+    assert "OVERALL FAIL" in report
+    assert "OVERALL PASS" not in report
