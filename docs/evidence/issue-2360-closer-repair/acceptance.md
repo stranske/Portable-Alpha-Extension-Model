@@ -1,5 +1,56 @@
 # Issue #2360 acceptance recheck
 
+## CI execution interval contract (2026-11-11 UTC)
+
+Recorded before source/test edits. Reviewed the six latest keepalive commits;
+re-read #2360 and merged #2372/#2467 through the GitHub connector. Their exact
+revisions and changed files agree with [revisions.json](./recheck/revisions.json).
+Requested shell `gh issue view`, `gh pr view`, `gh run list` and `gh run view`
+cannot reach api.github.com (exit 1). Connector jobs and decoded logs for
+[run 41661022529](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529)
+confirm the successful executed pytest step at the assessed head: 1969 passed,
+1 skipped. Baseline: 194 evidence tests pass; the acceptance command prints six
+PASS results and OVERALL PASS. All 22 current checklist entries are supported
+by the retained receipts. Publishing their verified reconciliation was rejected:
+`MCP tool call requires approval, but approval policy is never`. No remote task
+update is claimed. PR #2497 is open and ready for review.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: requirement-by-requirement PASS/FAIL/UNKNOWN; OVERALL PASS
+only with complete mandatory evidence. A logged invocation or terminal result
+outside the recorded successful pytest step must produce CI FAIL, OVERALL FAIL
+and exit 1. GitHub step times have whole-second precision, so the terminal
+second includes fractional log timestamps within that second. Stop after two
+attempts per unavailable receipt or 45 minutes total. Reuse existing historical
+mutation, coverage and ranking receipts; do not repeat historical suites or
+change workflows or wizard tests. Receipt links remain in the CI section below.
+
+Verified result: all ten new regressions returned false OVERALL PASS before the
+fix. After implementation, **216 verifier/replay tests pass** and the acceptance
+command prints six requirement PASS results and OVERALL PASS (exit 0). The
+original eight mutation proofs, nine later cases, configured-suite 73-unit
+measurement and ranking UNKNOWN disclosure are unchanged. See
+`ci_execution_interval_followup` in [validation.json](./recheck/validation.json)
+for commands, exits and output locations. Black formatted both changed Python
+files; the required full repository check passes with **538 files unchanged**.
+Its default process pool cannot bind a forkserver socket; a plain single-worker
+check timed out (exit 124). A temporary standard asyncio loop with 50 ms wakeups
+and one worker completed the same Black CLI and formatting rules. Ruff and
+`git diff --check` pass.
+
+- [x] Re-read the original requirements, exact PR revisions and changed files;
+  record the dated command, outcome and finite stop rule before source edits.
+- [x] Verify the successful exact-head CI receipt and reject execution events
+  outside its recorded pytest step interval.
+
+The main checkout's `git add` failed with exit 128 because `.git/index.lock` is
+read-only. Deliver the source commit in `/tmp/issue2360-ci-interval-delivery`
+and its importable patch at `/tmp/issue2360-ci-interval.patch`; this does not
+advance the main checkout's branch. The verified 22-entry PR reconciliation is
+saved at `/tmp/issue2360-ci-interval-pr-body.md`. PR-body, blocker-comment and
+`needs-human` label publication were all rejected by the connector's approval
+policy; no remote update is claimed.
+
 ## Durable record binding contract (2026-11-11 UTC)
 
 Recorded before source/test edits. Reviewed the five recent keepalive commits,

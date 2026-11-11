@@ -694,5 +694,54 @@
         "head_sha": "6fb7aebe4e8661c19ad8bdc1c5cc094a188e6a91"
       }
     }
+  },
+  "ci_execution_interval_followup": {
+    "checked_at": "2026-11-11",
+    "assessed_head": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+    "live_ci_run_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529",
+    "live_ci_job_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529/job/126004180807",
+    "live_result": "completed success; 1969 passed, 1 skipped; exact checkout SHA confirmed in decoded logs",
+    "baseline": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -o addopts=",
+      "exit": 0,
+      "passed": 194
+    },
+    "red": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -o addopts= -k execution_must_fall",
+      "exit": 1,
+      "failed": 10,
+      "output": "/tmp/issue2360-ci-interval-red.txt"
+    },
+    "green": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_cli_mutation_replay_isolation.py -q -m 'not slow' -o addopts=",
+      "exit": 0,
+      "passed": 216,
+      "output": "/tmp/issue2360-ci-interval-green.txt"
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit": 0,
+      "result": "six requirement PASS results; OVERALL PASS; ranking provenance explicitly UNKNOWN"
+    },
+    "black": {
+      "command": "PYTHONPATH=/tmp/issue2360-ci-interval-black-runtime BLACK_NUM_WORKERS=1 timeout -k 5s 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit": 0,
+      "unchanged_files": 538,
+      "output": "/tmp/issue2360-ci-interval-black-final.txt",
+      "runtime_note": "Default process pool denied by sandbox socket restrictions; plain one-worker check exited 124. Standard asyncio loop with 50 ms wakeups completed unchanged CLI rules and file selection."
+    },
+    "ruff": {
+      "command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit": 0
+    },
+    "publication": {
+      "reconciled_current_entries": 22,
+      "body_file": "/tmp/issue2360-ci-interval-pr-body.md",
+      "result": "PR body, blocker comment and needs-human label all rejected: approval policy is never",
+      "git_add_exit": 128,
+      "git_add_error": ".git/index.lock: Read-only file system",
+      "delivery_directory": "/tmp/issue2360-ci-interval-delivery",
+      "patch": "/tmp/issue2360-ci-interval.patch"
+    }
   }
 }

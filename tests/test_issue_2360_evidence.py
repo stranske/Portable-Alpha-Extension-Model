@@ -305,6 +305,60 @@ def test_ci_requires_successful_terminal_pytest_result(
     assert "OVERALL PASS" not in output
 
 
+@pytest.mark.parametrize(
+    "breakage",
+    [
+        "command_before_step",
+        "command_after_step",
+        "summary_before_step",
+        "summary_after_step",
+        "summary_before_invocation",
+        "missing_start",
+        "missing_end",
+        "invalid_start",
+        "naive_end",
+        "reversed_interval",
+    ],
+)
+def test_ci_execution_must_fall_within_successful_pytest_step(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    if breakage.startswith(("command_", "summary_")):
+        path = evidence / "recheck/ci-pytest-excerpt.txt"
+        lines = path.read_text().splitlines()
+        marker = "pytest -p ci_test_growth" if breakage.startswith("command_") else "1969 passed"
+        timestamp = {
+            "command_before_step": "2026-11-03T15:11:22.999999Z",
+            "command_after_step": "2026-11-03T15:13:40.000000Z",
+            "summary_before_step": "2026-11-03T15:11:22.999999Z",
+            "summary_after_step": "2026-11-03T15:13:40.000000Z",
+            "summary_before_invocation": "2026-11-03T15:11:23.000001Z",
+        }[breakage]
+        lines = [
+            timestamp + " " + line.partition(" ")[2] if marker in line else line for line in lines
+        ]
+        path.write_text("\n".join(lines) + "\n")
+    else:
+
+        def update(record):
+            step = record["job"]["steps"][0]
+            if breakage.startswith("missing_"):
+                step.pop("started_at" if breakage == "missing_start" else "completed_at")
+            elif breakage == "invalid_start":
+                step["started_at"] = "unknown"
+            elif breakage == "naive_end":
+                step["completed_at"] = "2026-11-03T15:13:39"
+            else:
+                step["started_at"], step["completed_at"] = step["completed_at"], step["started_at"]
+
+        change_json(evidence, "recheck/ci-pytest-job.json", update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: CI:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 @pytest.mark.parametrize("breakage", ["missing", "duplicate", "wrong_failure", "not_restored"])
 def test_mutations_require_each_original_named_failure_and_restoration(
     evidence: Path, breakage: str

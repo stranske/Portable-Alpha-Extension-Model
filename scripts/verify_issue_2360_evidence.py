@@ -8,7 +8,7 @@ import json
 import re
 import shlex
 import xml.etree.ElementTree as ET
-from datetime import date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -161,6 +161,26 @@ def check_ci(directory: Path) -> tuple[str, str]:
             for job in listed_jobs
         )
     )
+    if valid:
+        step = next(
+            step
+            for step in pytest_job["steps"]
+            if step["name"] == "Pytest (unit tests with coverage)"
+        )
+        started = datetime.fromisoformat(step["started_at"])
+        completed = datetime.fromisoformat(step["completed_at"])
+
+        def logged_at(event: re.Match) -> datetime:
+            line_number = log.count("\n", 0, event.start())
+            timestamp = excerpt.splitlines()[line_number].partition(" ")[0]
+            return datetime.fromisoformat(timestamp)
+
+        invoked = logged_at(commands[0])
+        finished = logged_at(summaries[-1])
+        # REST step times have second precision; logs retain fractional seconds.
+        valid = started <= completed and started <= invoked <= finished < completed + timedelta(
+            seconds=1
+        )
     return ("PASS" if valid else "FAIL", "exact-head executed pytest; Gate skip is insufficient")
 
 
