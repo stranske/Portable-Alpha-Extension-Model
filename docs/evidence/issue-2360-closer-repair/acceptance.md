@@ -1,5 +1,59 @@
 # Issue #2360 acceptance recheck
 
+## Durable record binding contract (2026-11-11 UTC)
+
+Recorded before source/test edits. Reviewed the five recent keepalive commits,
+re-read #2360 and merged #2372/#2467 with the GitHub connector, and confirmed
+their exact revisions and changed files against
+[revisions.json](./recheck/revisions.json). Requested shell `gh issue view`,
+`gh pr view`, `gh run list` and `gh run view 41661022529` failed with exit 1
+because api.github.com is unreachable. Live connector jobs/logs confirm the
+successful executed pytest job at the assessed head: 1969 passed, 1 skipped.
+Baseline: 177 evidence tests pass; acceptance verification prints six PASS
+results and OVERALL PASS. The verified 22-entry checklist reconciliation is
+saved at `/tmp/issue2360-reconciled-pr-body.md`; publication was rejected because
+the connector requires approval and this run's approval policy is `never`.
+PR #2497 remains open and ready for review.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: requirement-by-requirement PASS/FAIL/UNKNOWN, with OVERALL PASS
+only while the durable record retains its check date, exact historical revisions,
+verification command and links to the inspected receipts. Replacing it with
+unrelated text or dropping any required link must print acceptance contract FAIL,
+OVERALL FAIL and exit 1. Stop after two attempts per unavailable receipt or
+45 minutes total. Reuse historical receipts; no workflow or production changes,
+historical full-suite rerun or replacement wizard tests.
+
+Verified result: all 16 incomplete-record regressions returned false OVERALL PASS
+before implementation. After the fix, **206 verifier/replay tests pass**,
+including 17 new cases. The targeted verifier coverage row reports **98%**
+(208 statements, four missing). The recorded verification command prints six
+requirement PASS results and OVERALL PASS, exit 0; ranking provenance remains
+explicitly UNKNOWN under the permitted disclosure path. Original mutation and
+paired coverage receipts are unchanged. Commands, exits and output locations
+are recorded in `durable_record_followup` in
+[validation.json](./recheck/validation.json).
+
+Black formatted both changed Python files; the full required repository check
+passes with **538 files unchanged**. Its default pool cannot bind a forkserver
+socket in this sandbox, and the plain single-worker check timed out (exit 124).
+The successful check uses one worker and a temporary standard asyncio loop with
+50 ms wakeups, preserving Black's CLI, rules and file selection. Ruff and
+`git diff --check` pass.
+
+- [x] Reconcile the existing evidence and record the dated contract before edits.
+- [x] Verify that the durable record retains the date, revisions, command and
+  inspectable receipt links; incomplete records prevent OVERALL PASS.
+
+The main checkout's `git add` failed with exit 128 because `.git/index.lock` is
+read-only. The meaningful source commit is prepared in
+`/tmp/issue2360-durable-record-delivery`, with its importable patch at
+`/tmp/issue2360-durable-record.patch`; this cannot advance the checkout's branch.
+PR checklist, blocker-comment and `needs-human` label publication were all
+rejected by the connector's approval policy. No remote update is claimed.
+Final live read confirms PR #2497 is open and ready for review at
+`6fb7aebe4e8661c19ad8bdc1c5cc094a188e6a91`.
+
 ## Receipt failure reporting contract (2026-11-11 UTC)
 
 Recorded before source/test edits. Re-read #2360 and merged #2372/#2467

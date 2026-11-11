@@ -24,6 +24,18 @@ WIZARD_SHA256 = "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea65
 EXPECTED_OUTCOME = (
     "Requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory proof prevents OVERALL PASS"
 )
+RECORD_RECEIPTS = {
+    "mutation-transcripts.md",
+    "mutations.json",
+    "recheck/revisions.json",
+    "recheck/mutations/mutation-replay.json",
+    "recheck/ci-run.json",
+    "recheck/ci-pytest-job.json",
+    "recheck/ci-pytest-excerpt.txt",
+    "recheck/coverage-comparison.json",
+    "ranking-provenance.json",
+    "recheck/ranking-search.json",
+}
 ORIGINAL_CASES = (
     "test_progress_bar_marks_completed_current_and_future_steps",
     "test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]",
@@ -463,6 +475,15 @@ def check_contract(directory: Path) -> tuple[str, str]:
     date.fromisoformat(record["checked_at"])
     attempts = record["stop_rule"]["attempts_per_step"]
     minutes = record["stop_rule"]["minutes"]
+    narrative = (directory / "acceptance.md").read_text(encoding="utf-8")
+    links = set(re.findall(r"\[[^\]\n]+\]\((?:\./)?([^\s)]+)\)", narrative))
+    # The machine-readable contract cannot replace the durable, inspectable record.
+    # Nonempty unrelated prose must not satisfy its date, revisions or receipt links.
+    linked_record = (
+        all(value in narrative for value in (record["checked_at"], BASE, MERGED, ASSESSED))
+        and record["verification_command"] in narrative
+        and RECORD_RECEIPTS <= links
+    )
     valid = (
         record["verification_command"] == "python scripts/verify_issue_2360_evidence.py"
         and record["expected_outcome"] == EXPECTED_OUTCOME
@@ -471,11 +492,12 @@ def check_contract(directory: Path) -> tuple[str, str]:
         and 0 < attempts <= 2
         and type(minutes) in (int, float)
         and 0 < minutes <= 45
-        and bool((directory / "acceptance.md").read_text(encoding="utf-8").strip())
+        and linked_record
     )
     return (
         "PASS" if valid else "FAIL",
-        "dated contract, runnable command, fail-closed outcome, finite stop rule",
+        "dated contract, runnable command, fail-closed outcome, finite stop rule; "
+        "durable record binds revisions and receipt links",
     )
 
 

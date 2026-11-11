@@ -629,5 +629,70 @@
         "head_sha": "25716853ec440dd093386ad1888b9cf88b82b32a"
       }
     }
+  },
+  "durable_record_followup": {
+    "checked_at": "2026-11-11",
+    "baseline": {
+      "tests_passed": 177,
+      "verification_exit": 0
+    },
+    "red": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k 'acceptance_record_requires'",
+      "exit": 1,
+      "failed": 16,
+      "reason": "Missing links, dates, revisions, command or unrelated narrative incorrectly produced OVERALL PASS.",
+      "output": "/tmp/issue2360-durable-record-red.txt"
+    },
+    "green": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_cli_mutation_replay_isolation.py --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing -q -m 'not slow'",
+      "exit": 0,
+      "passed": 206,
+      "new_cases": 17,
+      "coverage_row": "scripts/verify_issue_2360_evidence.py 208 4 98%",
+      "output": "/tmp/issue2360-durable-record-coverage.txt"
+    },
+    "verification": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit": 0,
+      "result": "Six requirement PASS results; OVERALL PASS. Ranking provenance explicitly UNKNOWN; disclosure only.",
+      "output": "recheck/verification-output.txt"
+    },
+    "black": {
+      "formatted": [
+        "scripts/verify_issue_2360_evidence.py",
+        "tests/test_issue_2360_evidence.py"
+      ],
+      "command": "PYTHONPATH=/tmp/issue2360-durable-black-runtime BLACK_NUM_WORKERS=1 timeout -k 5s 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit": 0,
+      "files_unchanged": 538,
+      "output": "/tmp/issue2360-durable-record-black-fixed.txt",
+      "runtime_note": "Default pool cannot bind forkserver socket; plain single worker exited 124. Standard asyncio loop with 50 ms wakeups passes unchanged CLI rules and file selection."
+    },
+    "lint": {
+      "command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit": 0
+    },
+    "patch_check": {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    "publication": {
+      "pr": 2497,
+      "current_checkboxes": 22,
+      "proposed_body": "/tmp/issue2360-reconciled-pr-body.md",
+      "quoted_original_issue_unchanged": true,
+      "body_update": "Rejected: MCP tool call requires approval, but approval policy is never",
+      "blocker_comment": "Rejected by same approval policy",
+      "needs_human_label": "Rejected by same approval policy",
+      "git_add_exit": 128,
+      "git_add_reason": ".git/index.lock is read-only",
+      "delivery_checkout": "/tmp/issue2360-durable-record-delivery",
+      "delivery_patch": "/tmp/issue2360-durable-record.patch",
+      "last_live_pr": {
+        "state": "open",
+        "isDraft": false,
+        "head_sha": "6fb7aebe4e8661c19ad8bdc1c5cc094a188e6a91"
+      }
+    }
   }
 }

@@ -424,6 +424,67 @@ def test_empty_acceptance_record_prevents_overall_pass(
     assert "OVERALL PASS" not in output
 
 
+@pytest.mark.parametrize(
+    "receipt",
+    [
+        "mutation-transcripts.md",
+        "mutations.json",
+        "recheck/revisions.json",
+        "recheck/mutations/mutation-replay.json",
+        "recheck/ci-run.json",
+        "recheck/ci-pytest-job.json",
+        "recheck/ci-pytest-excerpt.txt",
+        "recheck/coverage-comparison.json",
+        "ranking-provenance.json",
+        "recheck/ranking-search.json",
+    ],
+)
+def test_acceptance_record_requires_inspectable_receipt_links(
+    evidence: Path, receipt: str, capsys
+) -> None:
+    path = evidence / "acceptance.md"
+    # Keep the filename in the prose: a mention alone is not an inspectable link.
+    text = path.read_text().replace(f"](./{receipt})", f"] {receipt}")
+    path.write_text(text.replace(f"]({receipt})", f"] {receipt}"))
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: acceptance contract:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize(
+    "missing",
+    [
+        "check_date",
+        "python scripts/verify_issue_2360_evidence.py",
+        verifier.BASE,
+        verifier.MERGED,
+        verifier.ASSESSED,
+        None,
+    ],
+)
+def test_acceptance_record_requires_its_recorded_contract(
+    evidence: Path, missing: str | None, capsys
+) -> None:
+    path = evidence / "acceptance.md"
+    text = path.read_text()
+    if missing == "check_date":
+        missing = verifier.read_json(evidence, "recheck/contract.json")["checked_at"]
+    path.write_text(text.replace(missing, "omitted") if missing else "Unrelated nonempty text.")
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: acceptance contract:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+def test_acceptance_record_accepts_links_without_dot_prefix(evidence: Path) -> None:
+    path = evidence / "acceptance.md"
+    path.write_text(path.read_text().replace("](./", "]("))
+    assert verifier.check_contract(evidence)[0] == "PASS"
+
+
 @pytest.mark.parametrize("requirement", ["CI", "mutations"])
 def test_missing_mandatory_proof_prevents_overall_pass(
     evidence: Path, requirement: str, monkeypatch: pytest.MonkeyPatch, capsys
