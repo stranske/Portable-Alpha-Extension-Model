@@ -24,6 +24,13 @@ def change_json(directory: Path, name: str, update) -> None:
     path.write_text(json.dumps(record))
 
 
+def replace_visible_contract(directory: Path, content: str) -> None:
+    path = directory / "acceptance.md"
+    prefix, block = path.read_text().split("```json\n", 1)
+    _, suffix = block.split("\n```", 1)
+    path.write_text(prefix + "```json\n" + content + "\n```" + suffix)
+
+
 def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_revisions(verifier.DEFAULT)[0] == "PASS"
     assert verifier.check_ci(verifier.DEFAULT)[0] == "PASS"
@@ -77,7 +84,40 @@ def test_contract_accepts_bounded_numeric_limits(
         "recheck/contract.json",
         lambda record: record.update(stop_rule={"attempts_per_step": attempts, "minutes": minutes}),
     )
+    replace_visible_contract(
+        evidence, json.dumps(verifier.read_json(evidence, "recheck/contract.json"))
+    )
     assert verifier.check_contract(evidence)[0] == "PASS"
+
+
+@pytest.mark.parametrize(
+    "breakage",
+    ["missing_outcome", "missing_stop", "outcome", "attempts", "minutes", "malformed", "absent"],
+)
+def test_durable_contract_requires_visible_outcome_and_finite_stop(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    record = verifier.read_json(evidence, "recheck/contract.json")
+    if breakage == "missing_outcome":
+        record.pop("expected_outcome")
+    elif breakage == "missing_stop":
+        record.pop("stop_rule")
+    elif breakage == "outcome":
+        record["expected_outcome"] = "PASS even when proof is missing"
+    elif breakage == "attempts":
+        record["stop_rule"]["attempts_per_step"] = 3
+    elif breakage == "minutes":
+        record["stop_rule"]["minutes"] = 90
+    replace_visible_contract(evidence, "{" if breakage == "malformed" else json.dumps(record))
+    if breakage == "absent":
+        path = evidence / "acceptance.md"
+        # Keep all required dates, revisions, commands and links in the older prose.
+        path.write_text(path.read_text().replace("## Current verification contract", "## History"))
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: acceptance contract:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
 
 
 @pytest.mark.parametrize("number", [2372, 2467])

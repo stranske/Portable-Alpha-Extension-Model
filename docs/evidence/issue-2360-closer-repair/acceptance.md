@@ -1,5 +1,58 @@
 # Issue #2360 acceptance recheck
 
+## Current verification contract
+
+```json
+{
+  "checked_at": "2026-11-11",
+  "verification_command": "python scripts/verify_issue_2360_evidence.py",
+  "stop_rule": {"attempts_per_step": 2, "minutes": 45},
+  "expected_outcome": "Requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory proof prevents OVERALL PASS"
+}
+```
+
+Recorded 2026-11-11 UTC before this round's source/test edits. Re-read #2360
+and merged #2372/#2467, including exact revisions and changed files, through
+the GitHub connector; they match [revisions.json](./recheck/revisions.json).
+The requested shell `gh issue view`, both `gh pr view` calls, `gh run list`
+and `gh run view 41661022529` exit 1 (api.github.com unavailable). Live
+connector job/step/log reads confirm successful executed pytest at the assessed
+head in [run 41661022529](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529).
+Baseline: 204 evidence tests pass and verification prints six PASS results,
+OVERALL PASS. No historical suite replay or wizard test changes are needed.
+
+The visible contract above must agree with [contract.json](./recheck/contract.json).
+The recorded command must print acceptance contract FAIL, OVERALL FAIL and
+exit 1 if this block omits or contradicts its outcome or finite stop rule.
+Stop after two retrieval attempts per unavailable receipt or 45 minutes total.
+Ranking provenance remains UNKNOWN; its PASS verifies disclosure only.
+
+Verified result: all seven new incomplete/contradictory visible-contract cases
+returned false OVERALL PASS before the fix. After implementation, **223 evidence
+and replay tests pass**, and the recorded verification command prints six PASS
+results and OVERALL PASS, exit 0. Black formatted both changed Python files;
+the full repository check passes with **538 files unchanged** using one worker
+and the temporary standard-asyncio wake-up workaround after the default pool
+was blocked by the sandbox. Ruff and `git diff --check` pass. Historical
+mutation, coverage and ranking receipts are unchanged. Commands, exits and
+output locations are in `visible_contract_followup` in
+[validation.json](./recheck/validation.json).
+
+- [x] Re-read original issue/PR requirements, merged state, exact revisions and
+  changed files; record and verify the visible dated command, outcome and stop
+  rule before source edits.
+
+Main-checkout `git add` exited 128 because `.git/index.lock` is read-only.
+Prepare the source commit in `/tmp/issue2360-visible-contract-delivery` and its
+importable patch at `/tmp/issue2360-visible-contract.patch`; this cannot advance
+the main checkout's branch.
+
+The verified current PR checklist reconciliation was rejected by the connector:
+`MCP tool call requires approval, but approval policy is never`. Remote boxes
+remain unchanged; the proposed body is at
+`/tmp/issue2360-visible-contract-pr-body.md`. PR #2497 was read open and ready
+for review; no workflow or production file changed.
+
 ## CI execution interval contract (2026-11-11 UTC)
 
 Recorded before source/test edits. Reviewed the six latest keepalive commits;

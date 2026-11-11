@@ -743,5 +743,46 @@
       "delivery_directory": "/tmp/issue2360-ci-interval-delivery",
       "patch": "/tmp/issue2360-ci-interval.patch"
     }
+  },
+  "visible_contract_followup": {
+    "checked_at": "2026-11-11",
+    "change": "Require the durable acceptance record to contain the visible current verification contract matching contract.json, including expected outcome and finite stop rule.",
+    "baseline": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -o addopts= -m 'not slow'",
+      "exit_code": 0,
+      "passed": 204
+    },
+    "regression_before_fix": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -o addopts= -m 'not slow' -k durable_contract_requires_visible",
+      "exit_code": 1,
+      "failed": 7,
+      "output": "/tmp/issue2360-visible-contract-red.txt"
+    },
+    "validation": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_cli_mutation_replay_isolation.py -q -o addopts= -m 'not slow'",
+      "exit_code": 0,
+      "passed": 223,
+      "output": "/tmp/issue2360-visible-contract-green.txt"
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "result": "six PASS results; OVERALL PASS; ranking UNKNOWN disclosure only",
+      "output": "/tmp/issue2360-visible-contract-verification.txt"
+    },
+    "formatter": {
+      "command": "PYTHONPATH=/tmp/issue2360-visible-contract-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "result": "538 files would be left unchanged",
+      "output": "/tmp/issue2360-visible-contract-black.txt",
+      "note": "Both changed Python files formatted individually. Default full check exited 1: sandbox blocks forkserver socket. Temporary standard asyncio event-loop factory with 50 ms wakeups and one worker completed the same check without changing formatting rules, file selection or installed packages."
+    },
+    "ruff": {
+      "command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "remote_reads": "Requested shell gh issue/pr/run reads exit 1: api.github.com unavailable. Connector re-read original issue #2360, merged PR #2372/#2467 identities and changed files; successful CI job 126004180807 and its logs confirm exact assessed head and terminal 1969 passed, 1 skipped result.",
+    "pr_body_reconciliation": "Nine current unchecked task/acceptance boxes verified. Publication rejected: MCP tool call requires approval, but approval policy is never. Remote checklist unchanged; proposed body saved at /tmp/issue2360-visible-contract-pr-body.md.",
+    "commit_limitation": "Main checkout git add exited 128: .git/index.lock is read-only. Prepare source commit in /tmp/issue2360-visible-contract-delivery and importable patch /tmp/issue2360-visible-contract.patch. Main branch cannot advance."
   }
 }

@@ -496,6 +496,12 @@ def check_contract(directory: Path) -> tuple[str, str]:
     attempts = record["stop_rule"]["attempts_per_step"]
     minutes = record["stop_rule"]["minutes"]
     narrative = (directory / "acceptance.md").read_text(encoding="utf-8")
+    contracts = re.findall(
+        r"^## Current verification contract\n\n```json\n(.*?)\n```$",
+        narrative,
+        re.MULTILINE | re.DOTALL,
+    )
+    visible_contract = json.loads(contracts[0]) if len(contracts) == 1 else None
     links = set(re.findall(r"\[[^\]\n]+\]\((?:\./)?([^\s)]+)\)", narrative))
     # The machine-readable contract cannot replace the durable, inspectable record.
     # Nonempty unrelated prose must not satisfy its date, revisions or receipt links.
@@ -512,6 +518,8 @@ def check_contract(directory: Path) -> tuple[str, str]:
         and 0 < attempts <= 2
         and type(minutes) in (int, float)
         and 0 < minutes <= 45
+        # Bind the visible outcome and stop rule too, even when older prose remains.
+        and visible_contract == record
         and linked_record
     )
     return (
