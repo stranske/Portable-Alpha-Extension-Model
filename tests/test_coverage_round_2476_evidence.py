@@ -150,6 +150,23 @@ def test_remaining_gaps_match_readme_and_covering_tests() -> None:
     } <= gap_tests
 
 
+def test_current_production_lines_match_documented_remaining_gaps() -> None:
+    facade_lines = (ROOT / "pa_core" / "facade.py").read_text(encoding="utf-8").splitlines()
+    assert facade_lines[748].strip().startswith("if isinstance(agent_semantics_val, pd.DataFrame)")
+    assert facade_lines[749].strip() == "serialized_agent_semantics = _records_to_builtin("
+    assert facade_lines[754].strip() == "if isinstance(serialized_agent_semantics, tuple):"
+    assert facade_lines[755].strip().startswith("serialized_agent_semantics = list(")
+
+    pa_lines = (ROOT / "pa_core" / "pa.py").read_text(encoding="utf-8").splitlines()
+    assert pa_lines[348].strip() == 'elif args.registry_cmd == "get":'
+
+    results_path = ROOT / "dashboard" / "pages" / "4_Results.py"
+    results_lines = results_path.read_text(encoding="utf-8").splitlines()
+    assert results_lines[177].strip() == "elif availability.message:"
+    assert results_lines[178].strip() == "st.info(availability.message)"
+    assert results_lines[179].strip() == "return availability"
+
+
 def test_facade_mixed_series_dict_fix_and_its_test_are_present() -> None:
     facade_source = (ROOT / "pa_core" / "facade.py").read_text(encoding="utf-8")
     assert "item.to_dict() if isinstance(item, pd.Series) else item" in facade_source

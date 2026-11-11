@@ -62,6 +62,45 @@ def test_mutation_transcripts_have_41_complete_records() -> None:
         assert _base_test_name(heading) in body.split("Command:", 1)[-1], heading
 
 
+def _diff_lines(body: str) -> tuple[list[str], list[str]]:
+    diff_match = re.search(r"```diff\n(.*?)```", body, re.S)
+    assert diff_match
+    removed = [line[1:] for line in diff_match.group(1).splitlines() if line.startswith("-")]
+    added = [line[1:] for line in diff_match.group(1).splitlines() if line.startswith("+")]
+    return removed, added
+
+
+def test_mutation_transcripts_removed_lines_exist_in_production_file() -> None:
+    for heading, body in _records():
+        file_match = re.search(r"- File: `([^`]+)`", body)
+        assert file_match, heading
+        production_lines = {
+            line.strip()
+            for line in (ROOT / file_match.group(1)).read_text(encoding="utf-8").splitlines()
+        }
+        removed, _added = _diff_lines(body)
+        for line in removed:
+            assert line.strip() in production_lines, (heading, line)
+
+
+def test_mutation_transcripts_site_references_point_at_changed_lines() -> None:
+    for heading, body in _records():
+        site_match = re.search(r"- Site: `([^`:]+):(\d+)`", body)
+        if site_match is None:
+            continue
+        file_match = re.search(r"- File: `([^`]+)`", body)
+        assert file_match, heading
+        assert site_match.group(1) == file_match.group(1), heading
+        production = (ROOT / file_match.group(1)).read_text(encoding="utf-8").splitlines()
+        line_number = int(site_match.group(2))
+        assert 1 <= line_number <= len(production), heading
+        removed, added = _diff_lines(body)
+        if not removed:
+            continue
+        changed = {line.strip() for line in removed + added}
+        assert production[line_number - 1].strip() in changed, heading
+
+
 def test_mutation_transcripts_disambiguate_non_unique_mutations() -> None:
     for heading, body in _records():
         file_match = re.search(r"- File: `([^`]+)`", body)
