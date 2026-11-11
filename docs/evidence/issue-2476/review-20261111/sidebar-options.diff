@@ -1,0 +1,5 @@
+--- dashboard/pages/4_Results.py
++++ dashboard/pages/4_Results.py
+@@ -258 +258 @@
+-            agent_options = summary.index.tolist()
++            agent_options = list(summary.columns)

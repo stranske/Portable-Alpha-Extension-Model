@@ -1,0 +1,44 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_results_main_multiselect_uses_index_when_config_missing _________
+tests/test_coverage_round_2381.py:658: in test_results_main_multiselect_uses_index_when_config_missing
+    module["main"]()
+dashboard/pages/4_Results.py:261: in main
+    agents = st.sidebar.multiselect("Agents", agent_options, agent_options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_coverage_round_2381.py:636: in multiselect
+    assert options == ["AgentA", "AgentB"]
+E   AssertionError: assert ['monthly_TE'] == ['AgentA', 'AgentB']
+E
+E     At index 0 diff: 'monthly_TE' != 'AgentA'
+E     Right contains one more item: 'AgentB'
+E
+E     Full diff: (-: missing in left side, +: extra in left side)
+E       [
+E     +     'monthly_TE',
+E     -     'AgentA',
+E     -     'AgentB',
+E       ]
+----------------------------- Captured stderr call -----------------------------
+2026-11-11 19:44:13.319 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+------------------------------ Captured log call -------------------------------
+WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:445 No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_results_main_multiselect_uses_index_when_config_missing - AssertionError: assert ['monthly_TE'] == ['AgentA', 'AgentB']
+
+  At index 0 diff: 'monthly_TE' != 'AgentA'
+  Right contains one more item: 'AgentB'
+
+  Full diff: (-: missing in left side, +: extra in left side)
+    [
+  +     'monthly_TE',
+  -     'AgentA',
+  -     'AgentB',
+    ]
+1 failed, 13 warnings in 1.36s

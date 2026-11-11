@@ -1,0 +1,33 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_results_main_multiselect_uses_index_when_config_missing _________
+tests/test_coverage_round_2381.py:662: in test_results_main_multiselect_uses_index_when_config_missing
+    pd.testing.assert_frame_equal(fake_st.charts[1], paths[["AgentB"]])
+pandas/_libs/testing.pyx:64: in pandas._libs.testing.assert_almost_equal
+    ???
+pandas/_libs/testing.pyx:227: in pandas._libs.testing.assert_almost_equal
+    ???
+E   AssertionError: DataFrame.columns are different
+E
+E   DataFrame.columns values are different (100.0 %)
+E   [left]:  Index(['AgentA'], dtype='str')
+E   [right]: Index(['AgentB'], dtype='str')
+E   At positional index 0, first diff: 'AgentA' != 'AgentB'
+----------------------------- Captured stderr call -----------------------------
+2026-11-11 19:44:19.502 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+------------------------------ Captured log call -------------------------------
+WARNING  streamlit.runtime.caching.cache_data_api:cache_data_api.py:445 No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_results_main_multiselect_uses_index_when_config_missing - AssertionError: DataFrame.columns are different
+
+DataFrame.columns values are different (100.0 %)
+[left]:  Index(['AgentA'], dtype='str')
+[right]: Index(['AgentB'], dtype='str')
+At positional index 0, first diff: 'AgentA' != 'AgentB'
+1 failed, 13 warnings in 1.49s

@@ -629,16 +629,27 @@ def test_results_main_png_non_kaleido_runtime_error_uses_error(tmp_path) -> None
 
 def test_results_main_multiselect_uses_index_when_config_missing(tmp_path) -> None:
     module = _load_results_module()
-    fake_st = _ResultsStreamlit()
+
+    class _SelectingStreamlit(_ResultsStreamlit):
+        def multiselect(self, label: str, options: list[str], default: list[str]) -> list[str]:
+            assert label == "Agents"
+            assert options == ["AgentA", "AgentB"]
+            assert default == options
+            return ["AgentB"]
+
+    fake_st = _SelectingStreamlit()
     workbook = tmp_path / "results.xlsx"
     workbook.write_bytes(b"workbook")
-    summary = pd.DataFrame({"monthly_TE": [0.02]}, index=pd.Index(["AgentA"], name="Agent"))
+    summary = pd.DataFrame(
+        {"monthly_TE": [0.02, 0.03]}, index=pd.Index(["AgentA", "AgentB"], name="Agent")
+    )
+    paths = pd.DataFrame({"AgentA": [0.01, 0.02], "AgentB": [-0.03, 0.04]})
     _patch_results_globals(
         module,
         fake_st=fake_st,
         workbook=workbook,
         summary=summary,
-        paths=pd.DataFrame([[0.01]], columns=["AgentA"]),
+        paths=paths,
         render_explain=_CallRecorder("explain"),
         render_comparison=_CallRecorder("comparison"),
         render_png=_CallRecorder("png"),
@@ -646,6 +657,9 @@ def test_results_main_multiselect_uses_index_when_config_missing(tmp_path) -> No
     )
     module["main"]()
     assert fake_st.titles == ["Results"]
+    assert len(fake_st.charts) == 2
+    assert fake_st.charts[0] is summary
+    pd.testing.assert_frame_equal(fake_st.charts[1], paths[["AgentB"]])
 
 
 def test_results_main_committee_packet_ready_callback(tmp_path, monkeypatch) -> None:
