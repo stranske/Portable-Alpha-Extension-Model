@@ -964,5 +964,50 @@
     "publication_result": "PR-body, blocker-comment and needs-human label writes rejected: MCP tool call requires approval, but approval policy is never",
     "main_checkout_staging_exit": 128,
     "main_checkout_staging_reason": ".git/index.lock is read-only"
+  },
+  "original_requirements_receipt": {
+    "checked_at": "2026-11-11",
+    "reviewed_head": "6082ad605c027402b67e01bc4dbd766c689c7942",
+    "source": "Live GitHub connector fetch_issue, fetch_pr and list_pr_changed_filenames; requested gh commands each exit 1 because api.github.com is unreachable",
+    "source_receipt": "recheck/requirements.json",
+    "baseline_tests": 282,
+    "regression_command": "python -m pytest tests/test_issue_2360_evidence.py -q -k inspectable_original_requirements -m 'not slow'",
+    "before_implementation": {
+      "exit": 1,
+      "failed": 7,
+      "reason": "All seven missing or altered original-requirements receipts falsely reported OVERALL PASS"
+    },
+    "validation_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py -q --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing -m 'not slow'",
+    "validation_exit": 0,
+    "validation_passed": 289,
+    "validation_output": "/tmp/issue2360-requirements-tests.txt",
+    "coverage_module": "scripts/verify_issue_2360_evidence.py",
+    "coverage_statements": 255,
+    "coverage_missing": 4,
+    "coverage_percent": 98,
+    "coverage_boundary": "Verifier coverage only; historical wizard attribution remains the retained 73 measured units",
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit": 0,
+    "acceptance_result": "six requirement PASS results; OVERALL PASS; ranking provenance disclosed UNKNOWN",
+    "ci_job_live_recheck": {
+      "run_id": 41661022529,
+      "job_id": 126004180807,
+      "name": "Python CI / python 3.14",
+      "step": "Pytest (unit tests with coverage)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "formatter_command": "PYTHONPATH=/tmp/issue2360-requirements-black-runtime BLACK_NUM_WORKERS=1 timeout -k 5s 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "formatter_exit": 0,
+    "formatter_result": "539 files would be left unchanged",
+    "formatter_output": "/tmp/issue2360-requirements-black.txt",
+    "formatter_note": "Default multiprocessing cannot bind its forkserver socket. Plain one-worker execution exits 124. Temporary standard asyncio factory with 50 ms wakeups and one worker passes the same Black CLI rules and selection.",
+    "reconciliation_command": "python scripts/verify_issue_2360_evidence.py --reconcile-pr-body /tmp/issue2360-requirements-current-pr-body.md --output /tmp/issue2360-requirements-reconciled-pr-body.md",
+    "reconciliation_exit": 0,
+    "publication_result": "PR-body, blocker-comment and needs-human label writes rejected: MCP tool call requires approval, but approval policy is never",
+    "main_checkout_staging_exit": 128,
+    "main_checkout_staging_reason": ".git/index.lock is read-only",
+    "delivery_checkout": "/tmp/issue2360-requirements-delivery",
+    "delivery_patch": "/tmp/issue2360-requirements.patch"
   }
 }

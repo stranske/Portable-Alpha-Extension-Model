@@ -120,6 +120,36 @@ def test_durable_contract_requires_visible_outcome_and_finite_stop(
     assert "OVERALL PASS" not in output
 
 
+@pytest.mark.parametrize(
+    "breakage", ["missing", "malformed", "body", "body_type", "source", "title", "date"]
+)
+def test_revision_acceptance_requires_inspectable_original_requirements(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    path = evidence / "recheck/requirements.json"
+    if breakage == "missing":
+        path.unlink()
+    elif breakage == "malformed":
+        path.write_text("{", encoding="utf-8")
+    else:
+        updates = {
+            "body": {"body": "Tests added; everything passes."},
+            "body_type": {"body": None},
+            "source": {"source_url": "https://github.com/unrelated/repository/issues/2360"},
+            "title": {"title": "Unrelated task"},
+            "date": {"checked_at": "2026-11-40"},
+        }
+        change_json(
+            evidence, "recheck/requirements.json", lambda record: record.update(updates[breakage])
+        )
+
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: revisions:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 @pytest.mark.parametrize("number", [2372, 2467])
 @pytest.mark.parametrize(
     ("field", "value"),

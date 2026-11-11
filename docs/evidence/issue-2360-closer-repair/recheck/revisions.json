@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-07",
+  "checked_at": "2026-11-11",
   "source": "GitHub connector fetch_issue, fetch_pr, list_pr_changed_filenames; gh network unavailable",
   "issue": {
     "number": 2360,

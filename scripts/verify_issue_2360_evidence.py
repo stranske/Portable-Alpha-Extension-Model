@@ -18,6 +18,7 @@ BASE = "10ac6839518576d4dc5199a24392eadfc388c713"
 MERGED = "e8967edb2aa1bdbc1a68ea58ed241cf205915d03"
 ASSESSED = "a2f4ef50403a0a90e8535e4daef5e6c691037bd2"
 REPOSITORY = "stranske/Portable-Alpha-Extension-Model"
+ISSUE_BODY_SHA256 = "bba436dda98ad8e08c5e3005d5bfd74655b886cd33cccb9d7925735af5a24878"
 CONFIG_SHA256 = "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4"
 PRODUCT_FILES_SHA256 = "acecd017d2b5bb4dd598d5bf791da0a526e936c01d16a6bd12ac6da445932499"
 TARGET = "dashboard/pages/3_Scenario_Wizard.py"
@@ -29,6 +30,7 @@ RECORD_RECEIPTS = {
     "mutation-transcripts.md",
     "mutations.json",
     "recheck/revisions.json",
+    "recheck/requirements.json",
     "recheck/mutations/mutation-replay.json",
     "recheck/ci-run.json",
     "recheck/ci-pytest-job.json",
@@ -134,6 +136,8 @@ def read_json(directory: Path, name: str):
 
 def check_revisions(directory: Path) -> tuple[str, str]:
     record = read_json(directory, "recheck/revisions.json")
+    requirements = read_json(directory, "recheck/requirements.json")
+    date.fromisoformat(requirements["checked_at"])
     # Pin API base revisions separately from the squash parent used for coverage.
     expected = {
         2372: {
@@ -156,6 +160,14 @@ def check_revisions(directory: Path) -> tuple[str, str]:
     valid = (
         record["issue"]["number"] == 2360
         and record["issue"]["url"] == f"https://github.com/{REPOSITORY}/issues/2360"
+        and requirements["source_url"] == record["issue"]["url"]
+        and requirements["checked_at"] == record["checked_at"]
+        and requirements["title"]
+        == "Raise test coverage toward 90% (autopilot round 1, lane B, low blast radius only)"
+        # Pin the requirements read from the source issue, not a later summary of them.
+        # This checks snapshot integrity; it does not authenticate GitHub provenance.
+        and isinstance(requirements["body"], str)
+        and hashlib.sha256(requirements["body"].encode("utf-8")).hexdigest() == ISSUE_BODY_SHA256
         and len(record["pull_requests"]) == len(prs) == len(expected)
         and prs.keys() == expected.keys()
         and all(
@@ -167,7 +179,10 @@ def check_revisions(directory: Path) -> tuple[str, str]:
             for number, fields in expected.items()
         )
     )
-    return ("PASS" if valid else "FAIL", "original delivery and assessed repair revisions")
+    return (
+        "PASS" if valid else "FAIL",
+        "original issue requirements, delivery and assessed repair revisions",
+    )
 
 
 def check_ci(directory: Path) -> tuple[str, str]:

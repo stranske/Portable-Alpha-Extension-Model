@@ -1,5 +1,56 @@
 # Issue #2360 acceptance recheck
 
+## Original-requirements receipt check (2026-11-11 UTC)
+
+Recorded before this round's source/test edits. Requested `gh issue view 2360`,
+`gh pr view 2372`, and `gh pr view 2467`; each exited 1 because
+api.github.com is unreachable. GitHub connector reads recovered the original
+issue requirements, both merged PRs' base/head/merge SHAs, bodies and changed
+filenames. Their identities match [revisions.json](./recheck/revisions.json).
+The complete issue title and body are retained in
+[requirements.json](./recheck/requirements.json), with its source URL and check
+date; the verifier pins the body digest to the inspected source.
+
+Verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory
+proof prevents OVERALL PASS. Retain the original issue requirements alongside
+the revision receipt and require that inspectable snapshot for revisions PASS.
+Verify missing, malformed or altered requirements fail before reconciling any
+checkbox. Stop after two retrieval/publication attempts per unavailable receipt
+or 45 minutes total. Reuse historical coverage and mutation receipts; ranking
+provenance remains explicitly UNKNOWN.
+
+Verified outcome: all seven new requirements-receipt regressions reproduced
+false OVERALL PASS before implementation. After the fix, **289 targeted tests
+pass**; the verifier coverage row is **98%** (255 statements, four missing).
+The recorded command prints six requirement PASS results and OVERALL PASS,
+exit 0. Live connector job reads confirm the successful pytest step in
+[run 41661022529](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529);
+the requested `gh run list` and `gh run view` calls still exit 1 because the
+shell cannot reach api.github.com. Historical attribution remains 73 measured
+statement-plus-branch units, separate from verifier coverage and cumulative
+later gains. Black formatted the changed Python files; its required full check
+passes with **539 files unchanged**, using one worker and the documented
+temporary standard-asyncio wake-up workaround after the default pool failed
+and plain single-worker execution timed out. Ruff and `git diff --check` pass.
+Commands and results are in `original_requirements_receipt` in
+[validation.json](./recheck/validation.json).
+
+- [x] Re-read original issue requirements, exact merged PR revisions and changed
+  files; record the dated command, expected outcome and finite stop rule before
+  source edits, and retain inspectable original requirements.
+- [x] Verify that missing, malformed or altered original requirements prevent
+  revisions PASS and overall acceptance PASS.
+
+The reconciled 22-entry PR checklist is saved at
+`/tmp/issue2360-requirements-reconciled-pr-body.md`. PR-body, blocker-comment and
+`needs-human` label publication were rejected: `MCP tool call requires approval,
+but approval policy is never`. Remote boxes remain unchanged; PR #2497 was
+read open with `draft=false`. Main-checkout staging exited 128 because
+`.git/index.lock` is read-only. Deliver the source commit through
+`/tmp/issue2360-requirements-delivery`, with its importable patch at
+`/tmp/issue2360-requirements.patch`; this does not advance the checkout branch.
+
 ## Mandatory-receipt reconciliation check (2026-11-11 UTC)
 
 Recorded before this round's source/test edits. Reviewed the latest eight

@@ -1,4 +1,4 @@
-PASS: revisions: original delivery and assessed repair revisions
+PASS: revisions: original issue requirements, delivery and assessed repair revisions
 PASS: CI: exact-head executed pytest; Gate skip is insufficient
 PASS: mutations: eight original red/green proofs; nine later cases separate
 PASS: coverage attribution: configured suite: 73 fewer statement-plus-branch units (463 to 390 uncovered; 1050 statements + 284 branches; branch diagnostic)
