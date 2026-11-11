@@ -1,5 +1,60 @@
 # Issue #2360 acceptance recheck
 
+## Mandatory-receipt reconciliation check (2026-11-11 UTC)
+
+Recorded before this round's source/test edits. Reviewed the latest eight
+keepalive commits, the original #2360 requirements, merged #2372 and #2467,
+and their changed filenames. The GitHub connector confirms the exact identities
+in [revisions.json](./recheck/revisions.json), and completed successful pytest
+step in [run 41661022529](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529).
+Requested shell `gh issue view 2360`, `gh pr view 2372`, `gh pr view 2467`,
+`gh run list --commit a2f4ef50403a0a90e8535e4daef5e6c691037bd2 --limit 5`,
+and `gh run view 41661022529` exit 1 because api.github.com is unavailable.
+Baseline: 246 evidence/reconciliation tests pass; acceptance prints six PASS
+results and OVERALL PASS. The 22-checkbox proposal was verified and saved at
+`/tmp/issue2360-reconciled-body.md` before continuing. Publication was rejected:
+`MCP tool call requires approval, but approval policy is never`. Remote boxes
+remain unchanged. PR #2497 was read open with `draft=false`.
+
+Verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory
+proof prevents OVERALL PASS. Verify the complete reconciliation CLI with real
+copied receipts: missing or damaged CI evidence and individual original-case
+red/green outputs must prevent publication and preserve the saved input and
+previous proposal. Use subprocess execution without replacing verifier checks.
+Stop after two retrieval/publication attempts per unavailable receipt or
+45 minutes total. Reuse historical proofs; do not replay historical suites.
+Ranking provenance remains explicitly UNKNOWN, separately from its permitted
+disclosure check.
+
+
+Verified outcome: **311 targeted tests pass**, including 36 new subprocess
+cases covering missing and empty CI receipts plus every original-case red and
+green output. The verifier coverage row reports **98%** (252 statements, four
+missing); this is verifier-test coverage, separate from historical wizard
+attribution. A deliberate CI-check bypass in an isolated `/tmp` clone makes the
+missing-CI-run subprocess test fail (exit 1); restoring the verifier makes it
+pass (exit 0). The original verifier bytes were restored before delivery.
+Acceptance prints six PASS results and OVERALL PASS, exit 0. Ruff and
+`git diff --check` pass. Black formatted the changed test file; its full
+repository check passes with **539 files unchanged**, using one worker and a
+temporary standard asyncio loop with 50 ms wakeups after the sandbox rejected
+the default forkserver socket. See `mandatory_receipt_cli` in
+[validation.json](./recheck/validation.json).
+
+- [x] Re-read the original requirements, exact merged PR revisions and changed
+  files; record the acceptance command, outcome and finite stop rule before edits.
+- [x] Verify the complete reconciliation CLI refuses missing or empty mandatory
+  CI and each original-case red/green receipt, preserving input and proposal.
+
+PR-body, blocker-comment and `needs-human` label publication were rejected:
+`MCP tool call requires approval, but approval policy is never`. Remote boxes
+remain unchanged. Main-checkout staging exited 128 because `.git/index.lock`
+is read-only. The source commit is delivered in
+`/tmp/issue2360-mandatory-receipts-delivery`, with an importable patch at
+`/tmp/issue2360-mandatory-receipts.patch`; this does not advance the checkout's
+branch. No workflow, production code or historical receipt changed.
+
 ## Reconciliation hard-link preservation check (2026-11-11 UTC)
 
 Recorded before this round's source/test edits. The requested shell

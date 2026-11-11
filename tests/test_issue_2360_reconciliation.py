@@ -1,6 +1,8 @@
 """Prepare current acceptance checkboxes only when the retained receipts verify."""
 
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -84,6 +86,69 @@ def test_cli_does_not_overwrite_proposal_when_evidence_fails(tmp_path, body, mon
     assert verifier.main(["--reconcile-pr-body", str(source), "--output", str(output)]) == 1
     assert output.read_text() == "Previous reviewable proposal"
     assert "OVERALL FAIL" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize(
+    ("requirement", "receipt"),
+    [
+        ("CI", "recheck/ci-run.json"),
+        ("CI", "recheck/ci-pytest-excerpt.txt"),
+        *[
+            ("mutations", f"recheck/mutations/{case:02d}-{phase}.txt")
+            for case in range(1, 9)
+            for phase in ("red", "green")
+        ],
+    ],
+)
+@pytest.mark.parametrize("damage", ["missing", "empty"])
+def test_reconciliation_subprocess_requires_each_mandatory_receipt(
+    tmp_path, body, requirement, receipt, damage
+):
+    evidence = tmp_path / "evidence"
+    shutil.copytree(verifier.DEFAULT, evidence)
+    source = tmp_path / "input.md"
+    source.write_text(body, encoding="utf-8")
+    output = tmp_path / "proposal.md"
+    previous_proposal = "Previous reviewable proposal"
+    output.write_text(previous_proposal, encoding="utf-8")
+    path = evidence / receipt
+    if damage == "missing":
+        path.unlink()
+    else:
+        path.write_text("", encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(Path(verifier.__file__).resolve()),
+            "--evidence-dir",
+            str(evidence),
+            "--reconcile-pr-body",
+            str(source),
+            "--output",
+            str(output),
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert f"FAIL: {requirement}:" in result.stdout
+    assert "FAIL: checklist reconciliation:" in result.stdout
+    assert "OVERALL FAIL" in result.stdout
+    assert "OVERALL PASS" not in result.stdout
+    assert "publication pending" not in result.stdout
+    assert result.stderr == ""
+    assert source.read_text(encoding="utf-8") == body
+    assert output.read_text(encoding="utf-8") == previous_proposal
+    assert sorted(path.name for path in tmp_path.iterdir()) == [
+        "evidence",
+        "input.md",
+        "proposal.md",
+    ]
 
 
 @pytest.mark.parametrize("breakage", ["missing_input", "unknown_checklist", "output_directory"])

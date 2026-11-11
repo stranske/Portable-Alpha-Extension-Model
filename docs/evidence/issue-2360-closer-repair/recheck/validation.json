@@ -929,5 +929,40 @@
     "delivery_clone": "/tmp/issue2360-hardlink-delivery",
     "delivery_patch": "/tmp/issue2360-hardlink-preservation.patch",
     "blocker_publication": "Blocker comment and needs-human label rejected: MCP tool call requires approval, but approval policy is never."
+  },
+  "mandatory_receipt_cli": {
+    "checked_at": "2026-11-11",
+    "reviewed_head": "361302e243eef148b7423f083082c19aeb9da7e2",
+    "baseline_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py -q -m 'not slow'",
+    "baseline_exit": 0,
+    "baseline_passed": 246,
+    "new_cases": 36,
+    "validation_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py tests/test_wizard_render_coverage.py tests/test_cli_mutation_replay_isolation.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+    "validation_exit": 0,
+    "validation_passed": 311,
+    "coverage_module": "scripts/verify_issue_2360_evidence.py",
+    "coverage_statements": 252,
+    "coverage_missing": 4,
+    "coverage_percent": 98,
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit": 0,
+    "acceptance_result": "six PASS results; OVERALL PASS; ranking provenance disclosed UNKNOWN",
+    "negative_control": {
+      "isolated_checkout": "/tmp/issue2360-mandatory-receipts-delivery",
+      "mutation": "temporarily return PASS from check_ci before reading receipts",
+      "command": "python -m pytest tests/test_issue_2360_reconciliation.py -q -m 'not slow' -k 'subprocess and missing and ci-run'",
+      "red_exit": 1,
+      "red_output": "/tmp/issue2360-mandatory-receipt-red.txt",
+      "green_exit": 0,
+      "green_output": "/tmp/issue2360-mandatory-receipt-green.txt",
+      "verifier_restored": true
+    },
+    "formatter_command": "PYTHONPATH=/tmp/issue2360-black-runtime BLACK_NUM_WORKERS=1 timeout -k 5s 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "formatter_exit": 0,
+    "formatter_result": "539 files would be left unchanged",
+    "formatter_note": "Temporary standard asyncio factory with 50 ms wakeups and one worker; default forkserver socket is restricted. Formatting rules and selection unchanged.",
+    "publication_result": "PR-body, blocker-comment and needs-human label writes rejected: MCP tool call requires approval, but approval policy is never",
+    "main_checkout_staging_exit": 128,
+    "main_checkout_staging_reason": ".git/index.lock is read-only"
   }
 }
