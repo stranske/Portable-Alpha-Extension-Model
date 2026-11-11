@@ -53,6 +53,60 @@ remain unchanged; the proposed body is at
 `/tmp/issue2360-visible-contract-pr-body.md`. PR #2497 was read open and ready
 for review; no workflow or production file changed.
 
+## Checklist reconciliation contract (2026-11-11 UTC)
+
+Recorded before source/test edits after reviewing the six latest commits and
+re-reading #2360 and merged #2372/#2467 through the GitHub connector, including
+changed files. Their identities match [revisions.json](./recheck/revisions.json).
+Requested shell `gh issue view`, `gh pr view`, `gh run list` and `gh run view`
+exit 1 because api.github.com is unavailable. Live connector jobs for run
+41661022529 confirm successful executed pytest; retained receipt verification
+prints six PASS results and OVERALL PASS. Baseline: 211 evidence tests pass.
+The verified 22-checkbox PR #2497 update was rejected: `MCP tool call requires
+approval, but approval policy is never`. No remote task update is claimed.
+
+Verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected result: requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory
+evidence prevents OVERALL PASS. Add an offline reconciliation option that emits
+only verified current checklist changes, preserves the embedded historical
+issue, and refuses incomplete evidence or an unrecognized checklist. Stop after
+two retrieval/publication attempts per unavailable receipt or 45 minutes total.
+Reuse historical coverage/mutation receipts; no historical suite reruns.
+
+Verified result: **249 targeted tests pass**, including 26 new reconciliation
+cases; the verifier row reports **98%** (246 statements, four missing). The
+recorded command still prints six PASS results and OVERALL PASS. Prepare the
+reviewable checklist with:
+
+```sh
+python scripts/verify_issue_2360_evidence.py \
+  --reconcile-pr-body /tmp/issue2360-current-pr-body.md \
+  --output /tmp/issue2360-reconciled-pr-body.md
+```
+
+This command prints reconciliation PASS with publication pending, checks all
+22 current entries (20 newly checked), and preserves embedded historical text.
+It rejects missing mandatory proof, changed task text, incomplete checklists,
+and overwriting the saved input. Black formatted both changed Python files;
+the full required check passes with **539 files unchanged** using one worker
+and a temporary standard asyncio wake-up factory after the sandbox rejected
+the default forkserver socket. Ruff and `git diff --check` pass. Commands,
+outputs and proposal hashes are in `checklist_reconciliation_followup` in
+[validation.json](./recheck/validation.json). Historical measurements remain
+unchanged; ranking provenance remains explicitly UNKNOWN.
+
+- [x] Re-read original requirements/revisions/files, record the dated acceptance
+  contract before source edits, and verify a reproducible current reconciliation.
+
+Remote publication remains rejected by approval policy `never`; no remote
+checkbox change is claimed. The main checkout cannot stage (`.git/index.lock`
+is read-only). Prepare the meaningful source commit in
+`/tmp/issue2360-reconciliation-delivery` and the importable patch at
+`/tmp/issue2360-reconciliation.patch`. Neither advances this checkout's branch.
+Blocker-comment and `needs-human` label publication were also rejected by the
+same approval policy. Final live read confirms PR #2497 is open and ready for
+review at `544228f302bc1d933569ededccf0156540c684d6`.
+
 ## CI execution interval contract (2026-11-11 UTC)
 
 Recorded before source/test edits. Reviewed the six latest keepalive commits;

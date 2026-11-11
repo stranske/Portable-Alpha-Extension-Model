@@ -784,5 +784,41 @@
     "remote_reads": "Requested shell gh issue/pr/run reads exit 1: api.github.com unavailable. Connector re-read original issue #2360, merged PR #2372/#2467 identities and changed files; successful CI job 126004180807 and its logs confirm exact assessed head and terminal 1969 passed, 1 skipped result.",
     "pr_body_reconciliation": "Nine current unchecked task/acceptance boxes verified. Publication rejected: MCP tool call requires approval, but approval policy is never. Remote checklist unchanged; proposed body saved at /tmp/issue2360-visible-contract-pr-body.md.",
     "commit_limitation": "Main checkout git add exited 128: .git/index.lock is read-only. Prepare source commit in /tmp/issue2360-visible-contract-delivery and importable patch /tmp/issue2360-visible-contract.patch. Main branch cannot advance."
+  },
+  "checklist_reconciliation_followup": {
+    "checked_at": "2026-11-11",
+    "baseline": "211 evidence tests pass; six requirement PASS results; OVERALL PASS",
+    "test_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py tests/test_cli_mutation_replay_isolation.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+    "test_exit": 0,
+    "test_result": "249 passed; verifier 98% (246 statements, four missing); 26 new reconciliation cases",
+    "test_output": "/tmp/issue2360-reconciliation-tests.txt",
+    "verification_command": "python scripts/verify_issue_2360_evidence.py --reconcile-pr-body /tmp/issue2360-current-pr-body.md --output /tmp/issue2360-reconciled-pr-body.md",
+    "verification_exit": 0,
+    "verification_output": "/tmp/issue2360-reconciliation-verification.txt",
+    "current_checked": 22,
+    "newly_checked": 20,
+    "historical_text_unchanged": true,
+    "input_sha256": "802ceaf29729dc36505eda27561ef82d8a5550c1f4a9ad081654993823b77d00",
+    "proposal_sha256": "1811c130964ec4185474cdd33cb76a5d05dca16e6112c610d40911210d3d11fc",
+    "black_command": "BLACK_NUM_WORKERS=1 PYTHONPATH=/tmp/issue2360-reconciliation-black-runtime black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "black_exit": 0,
+    "black_result": "539 files would be left unchanged",
+    "black_output": "/tmp/issue2360-reconciliation-black-final.txt",
+    "black_runtime_note": "Default pool rejected by forkserver socket restriction. Temporary standard asyncio factory with 50ms wakeups and one worker passed the unchanged Black CLI rules and file selection. First helper imported unavailable uvloop; corrected helper makes that import optional.",
+    "lint_command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py",
+    "lint_exit": 0,
+    "diff_check_exit": 0,
+    "publication": "PR #2497 body update rejected: MCP tool call requires approval, but approval policy is never. Remote checkboxes unchanged.",
+    "commit_delivery": "/tmp/issue2360-reconciliation-delivery",
+    "patch_delivery": "/tmp/issue2360-reconciliation.patch",
+    "main_checkout_staging": "git add exited 128: .git/index.lock read-only; temporary clone does not advance main checkout branch",
+    "blocker_comment": "Rejected: MCP tool call requires approval, but approval policy is never",
+    "needs_human_label": "Rejected: MCP tool call requires approval, but approval policy is never",
+    "final_pr": {
+      "number": 2497,
+      "state": "open",
+      "isDraft": false,
+      "head_sha": "544228f302bc1d933569ededccf0156540c684d6"
+    }
   }
 }

@@ -48,6 +48,85 @@ ORIGINAL_CASES = (
 )
 
 
+CHECKLIST_ITEMS = (
+    (
+        "Use `gh issue view 2360`, `gh pr view 2372`, and `gh pr view 2467` to read the "
+        "original requirements, merged state, head SHA, merge SHA, and changed files. "
+        "Before modifying files, record the check date, the acceptance outcome to print, "
+        "its runnable verification command, and a finite attempt/time stop rule in the "
+        "acceptance record associated with `mutation-transcripts.md`."
+    ),
+    (
+        "Use `gh run list` and `gh run view` to retrieve completed CI runs for #2467's "
+        "exact assessed head. Record immutable run URLs, workflow/job names, tested SHA, "
+        "commands, and conclusions; distinguish an executed successful pytest job from a "
+        "docs-only Gate skip. If no qualifying run exists, use the repository's existing CI "
+        "mechanism to obtain one and read its terminal result; do not infer success from a "
+        "merge."
+    ),
+    (
+        "Locate `mutation-transcripts.md` and `mutations.json` with `rg --files`; map the "
+        "eight original parameterized cases from #2372 to named deliberate-break failures "
+        "and restored passes. Keep the nine later cases separate. Recover inspectable "
+        "receipts or reproduce missing proofs in an isolated checkout, restoring every "
+        "temporary mutation and recording commands, case identifiers, exit codes, and "
+        "output locations."
+    ),
+    (
+        "Inspect the repository's configured `pytest` and coverage commands, then use `git "
+        "show` and isolated checkouts of #2372's base and merged revision to obtain "
+        "comparable statement-plus-branch coverage records with the same selection and "
+        "settings. Record revisions, commands, denominators, uncovered-unit counts, and "
+        "measured reduction; exclude later tests. If historical records or comparable "
+        "execution cannot be recovered, record the exact limitation and explain the target "
+        "coverage boundary under #2360's alternative acceptance path."
+    ),
+    (
+        "Use `gh issue view 2360`, `gh pr view 2372`, their linked workflow records, and "
+        "`rg` over repository evidence to seek the original dispatch ranking receipt and "
+        "incident mapping. Record matching identifiers and source locations, or mark the "
+        "provenance unrecoverable/UNKNOWN; do not substitute an older ranking archive "
+        "without a matching causal binding."
+    ),
+    (
+        "Update the durable acceptance record associated with `mutation-transcripts.md`, "
+        "linking `mutations.json`, coverage records, CI receipts, and ranking evidence. Run "
+        "the recorded verification command and print a requirement-by-requirement "
+        "PASS/FAIL/UNKNOWN result; unresolved mandatory evidence must prevent an overall "
+        "PASS."
+    ),
+    (
+        "`gh run view <recorded-run-id>` shows a completed successful pytest job for the "
+        "recorded exact assessed head; the acceptance record includes its immutable URL, "
+        "SHA, job name, command, and explicit result. A docs-only skip does not satisfy "
+        "this criterion."
+    ),
+    (
+        "Each of the eight original cases has inspectable named deliberate-break failure "
+        "and restored-pass evidence, including runnable commands and exit codes; the nine "
+        "later cases are listed separately."
+    ),
+    (
+        "The recorded repository-configured `pytest`/coverage command is runnable for both "
+        "assessed revisions. Attribution reports isolated measured statement-plus-branch "
+        "reduction against #2360's roughly 60-unit target, or supplies the concrete "
+        "coverage-boundary explanation required by the original alternative acceptance "
+        "path. A projection or cumulative later gain is not reported as #2372's measured "
+        "gain."
+    ),
+    (
+        "Ranking provenance has a matching dispatch receipt and incident mapping, or the "
+        "record explicitly states unrecoverable/UNKNOWN without claiming compliance."
+    ),
+    (
+        "The durable record contains the check date, exact revisions, runnable verification "
+        "command, finite stop rule, source links, and separate measured/historical/UNKNOWN "
+        "findings. Its verification output cannot report overall PASS while mandatory CI or "
+        "per-case mutation evidence remains unresolved."
+    ),
+)
+
+
 def read_json(directory: Path, name: str):
     return json.loads((directory / name).read_text(encoding="utf-8"))
 
@@ -549,14 +628,43 @@ def verify(directory: Path) -> dict[str, tuple[str, str]]:
     return results
 
 
+def reconcile_pr_body(body: str, results: dict[str, tuple[str, str]]) -> str:
+    """Prepare #2474's verified checklist without changing embedded historical tasks."""
+    if results.keys() != CHECKS.keys() or any(status != "PASS" for status, _ in results.values()):
+        raise ValueError("all acceptance requirements must pass before reconciliation")
+    current, boundary, historical = body.partition("\n## Implementation Notes\n")
+    matches = list(re.finditer(r"^- \[[ x]\] (.+)$", current, re.MULTILINE))
+    items = [match[1] for match in matches]
+    # Both the automated summary and full current issue contain the same 11 tasks.
+    # Refuse unexpected, missing or duplicated tasks rather than checking arbitrary prose.
+    if not boundary or len(items) != 22 or any(items.count(item) != 2 for item in CHECKLIST_ITEMS):
+        raise ValueError("unrecognized current #2474 checklist; body left unchanged")
+    current = re.sub(r"^- \[ \] ", "- [x] ", current, flags=re.MULTILINE)
+    return current + boundary + historical
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-dir", type=Path, default=DEFAULT)
+    parser.add_argument("--reconcile-pr-body", type=Path, help="Saved #2497 PR body to reconcile")
+    parser.add_argument("--output", type=Path, help="Write the reviewable reconciled body here")
     args = parser.parse_args(argv)
+    if (args.reconcile_pr_body is None) != (args.output is None):
+        parser.error("--reconcile-pr-body and --output must be supplied together")
+    if args.output is not None and args.output.resolve() == args.reconcile_pr_body.resolve():
+        parser.error("reconciliation output must differ from the saved input")
     results = verify(args.evidence_dir)
     for name, (status, detail) in results.items():
         print(f"{status}: {name}: {detail}")
     passed = all(status == "PASS" for status, _detail in results.values())
+    if args.reconcile_pr_body is not None:
+        try:
+            body = reconcile_pr_body(args.reconcile_pr_body.read_text(encoding="utf-8"), results)
+            args.output.write_text(body, encoding="utf-8")
+            print(f"PASS: checklist reconciliation: prepared {args.output}; publication pending")
+        except (OSError, ValueError) as error:
+            print(f"FAIL: checklist reconciliation: {error}")
+            passed = False
     print("OVERALL PASS" if passed else "OVERALL FAIL")
     return 0 if passed else 1
 
