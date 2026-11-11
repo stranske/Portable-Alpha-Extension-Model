@@ -36,6 +36,50 @@ def test_recovered_original_receipts_are_valid() -> None:
     assert verifier.check_contract(verifier.DEFAULT)[0] == "PASS"
 
 
+@pytest.mark.parametrize("outcome", [None, "", "OVERALL PASS", "PASS even if CI is missing"])
+def test_contract_requires_recorded_fail_closed_outcome(evidence: Path, outcome, capsys) -> None:
+    def update(record):
+        if outcome is None:
+            record.pop("expected_outcome")
+        else:
+            record["expected_outcome"] = outcome
+
+    change_json(evidence, "recheck/contract.json", update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: acceptance contract:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize(
+    ("field", "value"), [("attempts_per_step", True), ("attempts_per_step", 1.5), ("minutes", True)]
+)
+def test_contract_requires_numeric_time_and_integer_attempts(
+    evidence: Path, field: str, value, capsys
+) -> None:
+    change_json(
+        evidence, "recheck/contract.json", lambda record: record["stop_rule"].update({field: value})
+    )
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: acceptance contract:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize(("attempts", "minutes"), [(1, 1), (2, 45), (2, 1.5)])
+def test_contract_accepts_bounded_numeric_limits(
+    evidence: Path, attempts: int, minutes: int | float
+) -> None:
+    change_json(
+        evidence,
+        "recheck/contract.json",
+        lambda record: record.update(stop_rule={"attempts_per_step": attempts, "minutes": minutes}),
+    )
+    assert verifier.check_contract(evidence)[0] == "PASS"
+
+
 @pytest.mark.parametrize("number", [2372, 2467])
 @pytest.mark.parametrize(
     ("field", "value"),

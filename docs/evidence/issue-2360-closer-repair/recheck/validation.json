@@ -327,5 +327,35 @@
       "clone": "/tmp/issue2360-terminal-delivery",
       "patch": "/tmp/issue2360-terminal.patch"
     }
+  },
+  "contract_validation_followup": {
+    "checked_at": "2026-11-11",
+    "change": "Require the recorded fail-closed expected outcome and finite numeric time/discrete attempt limits; reject Boolean bounds and fractional attempt counts.",
+    "baseline_revision": "e1185ea5",
+    "baseline_tests": "125 passed; acceptance command prints six PASS results and OVERALL PASS",
+    "remote_reads": "gh issue view 2360, gh pr view 2372, gh pr view 2467, gh run list and gh run view 41661022529 exited 1 (shell network unavailable). GitHub connector issue/PR/file reads match revisions.json; live run jobs confirm completed successful Python CI / python 3.14 and Pytest (unit tests with coverage).",
+    "regression_command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k 'contract_requires or contract_accepts'",
+    "regression_checkout": "/tmp/issue2360-contract-delivery at e1185ea5 with new tests only",
+    "regression_before_fix": "7 failed, 3 passed, 125 deselected; exit 1",
+    "regression_after_fix": "10 passed, 125 deselected; exit 0",
+    "pytest_command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow and not live_llm' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+    "pytest_exit_code": 0,
+    "pytest_result": "152 passed, 15 warnings in 7.24s",
+    "verifier_coverage": {
+      "statements": 183,
+      "missing": 4,
+      "cover_percent": 98
+    },
+    "acceptance_command": "python scripts/verify_issue_2360_evidence.py",
+    "acceptance_exit_code": 0,
+    "acceptance_result": "Six PASS results; OVERALL PASS. Ranking provenance remains explicitly UNKNOWN under the permitted disclosure path.",
+    "formatter_command": "PYTHONPATH=/tmp/issue2360-contract-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+    "formatter_exit_code": 0,
+    "formatter_result": "538 files would be left unchanged",
+    "formatter_runtime_note": "Formatted both changed files individually. Default multiprocessing rejected by sandbox socket permissions; plain single-worker check timed out. Successful full check used a temporary standard asyncio SelectorEventLoop with 50 ms wake-up timer and one Black worker. Formatting rules and file selection unchanged.",
+    "ruff_command": "ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+    "ruff_exit_code": 0,
+    "diff_check_exit_code": 0,
+    "commit_limitation": "git add exited 128 because .git/index.lock is read-only; commit in /tmp/issue2360-contract-delivery and patch /tmp/issue2360-contract-validation.patch. No remote checkbox update claimed."
   }
 }

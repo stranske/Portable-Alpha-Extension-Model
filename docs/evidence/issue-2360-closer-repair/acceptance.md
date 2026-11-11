@@ -1,5 +1,55 @@
 # Issue #2360 acceptance recheck
 
+## Acceptance contract validation (2026-11-11 UTC)
+
+Recorded before source/test changes. Re-read issue #2360 and merged PRs #2372
+and #2467 with the GitHub connector, including base/head/merge SHAs and changed
+files. All match [revisions.json](./recheck/revisions.json). The requested
+`gh issue view 2360`, `gh pr view 2372`, and `gh pr view 2467` commands each
+exited 1 because shell network access is unavailable. The linked source issue
+and PRs remain the requirements and revision sources; this is a new contract
+validation check, not a new historical coverage measurement.
+
+The existing verifier prints six PASS results and OVERALL PASS, but does not
+validate `expected_outcome` in [contract.json](./recheck/contract.json), and
+accepts Boolean stop limits and fractional attempt counts. This
+allows an incomplete contract to pass the first task's evidence check.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: one PASS/FAIL/UNKNOWN per requirement, then OVERALL PASS only
+when all mandatory proof is valid. Missing or contradictory contract fields
+must produce acceptance-contract FAIL, OVERALL FAIL and exit 1. Valid retained
+receipts should still produce six PASS results and exit 0; ranking provenance
+remains explicitly UNKNOWN under the permitted disclosure path.
+
+Finite stop rule: two retrieval attempts per unavailable remote receipt and
+45 minutes total. Reuse the retained historical receipts; no historical full
+suite replay is needed for this contract fix. Mark completion only after the
+new regression cases and existing targeted tests pass.
+
+Verified result: seven invalid-contract regressions fail against the original
+verifier in an isolated checkout of `e1185ea5`; the three valid-bound cases
+pass. After the fix, **152 targeted tests pass**, with **98%** verifier statement
+coverage (183 statements, 4 missing). The recorded acceptance command prints
+six PASS results and OVERALL PASS, exit 0. Ruff and `git diff --check` pass.
+Black formatted the changed Python files, and its full repository check passed
+with **538 files unchanged**. Default multiprocessing failed on a sandbox
+socket restriction; a plain single-worker check timed out. The successful
+check used the previously documented standard asyncio loop/wake-up timer and
+one worker, with unchanged formatting rules and file selection.
+
+- [x] Re-read #2360, #2372 and #2467, confirm exact revision/file receipts, record
+  a dated acceptance contract before source changes, and verify its expected
+  outcome and bounded stop rule through executable regression tests.
+
+Commands and results are in `contract_validation_followup` in
+[validation.json](./recheck/validation.json). Historical coverage and mutation
+receipts remain separate from this verifier change. The checkout's `git add`
+exited 128 because `.git/index.lock` is read-only; prepare the source commit in
+`/tmp/issue2360-contract-delivery` and an importable patch at
+`/tmp/issue2360-contract-validation.patch`. This does not advance the checkout's
+branch or update remote task checkboxes.
+
 ## Terminal receipt consistency contract (2026-11-10 UTC)
 
 Before code/test changes, reviewed `9c896ff3`, `bd531f3d`, `efc96609` and

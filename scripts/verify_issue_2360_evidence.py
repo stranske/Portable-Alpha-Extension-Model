@@ -19,6 +19,9 @@ REPOSITORY = "stranske/Portable-Alpha-Extension-Model"
 CONFIG_SHA256 = "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4"
 TARGET = "dashboard/pages/3_Scenario_Wizard.py"
 WIZARD_SHA256 = "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
+EXPECTED_OUTCOME = (
+    "Requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory proof prevents OVERALL PASS"
+)
 ORIGINAL_CASES = (
     "test_progress_bar_marks_completed_current_and_future_steps",
     "test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]",
@@ -409,13 +412,22 @@ def check_ranking(directory: Path) -> tuple[str, str]:
 def check_contract(directory: Path) -> tuple[str, str]:
     record = read_json(directory, "recheck/contract.json")
     date.fromisoformat(record["checked_at"])
+    attempts = record["stop_rule"]["attempts_per_step"]
+    minutes = record["stop_rule"]["minutes"]
     valid = (
         record["verification_command"] == "python scripts/verify_issue_2360_evidence.py"
-        and 0 < record["stop_rule"]["attempts_per_step"] <= 2
-        and 0 < record["stop_rule"]["minutes"] <= 45
+        and record["expected_outcome"] == EXPECTED_OUTCOME
+        # JSON booleans compare as integers in Python, but are not retry/time limits.
+        and type(attempts) is int
+        and 0 < attempts <= 2
+        and type(minutes) in (int, float)
+        and 0 < minutes <= 45
         and (directory / "acceptance.md").is_file()
     )
-    return ("PASS" if valid else "FAIL", "dated contract, runnable command, finite stop rule")
+    return (
+        "PASS" if valid else "FAIL",
+        "dated contract, runnable command, fail-closed outcome, finite stop rule",
+    )
 
 
 CHECKS = {
