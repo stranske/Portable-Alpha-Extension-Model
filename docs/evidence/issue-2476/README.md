@@ -101,7 +101,17 @@ Per-target deltas, round baseline → delivered:
 
 ## Remaining exceptions (measured)
 
-These are the only seven-target gaps at the measured revision:
+Follow-up (after the measured revision): the three gaps below are now
+covered by `tests/test_coverage_round_2476_remaining_gaps.py`, which drives
+each branch through its public function with the collaborator that makes
+it unreachable on the production path replaced (`export()` with the
+serializer stubbed, `pa.main()` with an argparse result argparse cannot
+produce, and `_render_comparison_panel` with a message-less unavailable
+result). The measured figures above remain those of `54219bd7`; the new
+tests protect the branches against regressions if those collaborators
+change.
+
+These were the only seven-target gaps at the measured revision:
 
 - `pa_core/facade.py` statements 750 and 756, arcs 749→750 and 755→756: dead
   post-serialization branches in `export()`. `_serialize_agent_semantics_input` has
