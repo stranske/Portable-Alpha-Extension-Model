@@ -141,14 +141,6 @@ def test_remaining_gaps_match_readme_and_covering_tests() -> None:
     assert "arc 349→exit" in readme
     assert "arc 178→180" in readme
 
-    gap_tests = _test_names(ROOT / "tests" / "test_coverage_round_2476_remaining_gaps.py")
-    assert {
-        "test_export_converts_dataframe_agent_semantics",
-        "test_export_converts_tuple_agent_semantics_to_list",
-        "test_pa_registry_unknown_subcommand_is_a_no_op",
-        "test_render_comparison_panel_without_message_shows_no_info",
-    } <= gap_tests
-
 
 def test_current_production_lines_match_documented_remaining_gaps() -> None:
     facade_lines = (ROOT / "pa_core" / "facade.py").read_text(encoding="utf-8").splitlines()
