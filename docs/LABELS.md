@@ -13,7 +13,6 @@ This document describes all labels that trigger automated workflows or affect CI
 | `agent:cursor` | Issue or PR labeled | Routes consumer Gate-followup keepalive to the Cursor runner
 | `agent:muse` | Issue or PR labeled | Routes consumer Gate-followup keepalive and autofix to the Muse runner (subscription login key)
 | `agent:gemini` | Issue or PR labeled | Routes consumer Gate-followup keepalive to the Gemini runner
-| `agent:aider` | Issue or PR labeled | Routes the issue or PR to the Aider agent for cheap, low-complexity tasks — runner lands in a follow-up phase
 | `agent:auto` | Issue or PR labeled | Delegates routing to the auto-delegation policy; may sit alongside one concrete `agent:<name>` label, which keepalive routing overrides
 | `agent:retry` | PR labeled | Consolidated consumers require a manual Gate-followups dispatch; the root/non-consolidated keepalive workflow forces a retry and clears recovery labels
 | `agent:rate-limited` | Auto-applied | Marks a PR as backing off from a rate-limit failure
@@ -185,20 +184,9 @@ This document describes all labels that trigger automated workflows or affect CI
 3. Branch prefix `gemini/issue-<number>` is reserved for Gemini work
 
 **Prerequisites:**
-- Repository has a valid `GEMINI_API_KEY` secret (per `.github/agents/registry.yml`)
+- Repository has a valid `GEMINI_OAUTH_CREDS` secret, the owner's Gemini subscription login (per `.github/agents/registry.yml`); hosted gemini never uses an API key
 
 **Workflow:** On PRs, `agents-81-gate-followups.yml` dispatches `reusable-gemini-run.yml` after registry-backed routing and secret preflight succeed.
-
----
-
-### `agent:aider`
-
-**Applies to:** Issues and Pull Requests
-
-Registered ahead of its runner (lands in a follow-up phase). `agent:aider` is reserved for cheap,
-low-complexity tasks via Aider with a configurable backend model. Until its `reusable-aider-run.yml`
-runner and registry entry ship, applying this label will not dispatch a runner. See
-`docs/guides/ADD_NEW_AGENT.md` and the rollout plan for sequencing.
 
 ---
 
