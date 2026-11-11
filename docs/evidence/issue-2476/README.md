@@ -166,6 +166,15 @@ This continuation's final commit changes only `docs/evidence/issue-2476/`.
 Production and test bytes remain those of the checked head above. The original
 coverage measurements remain attributed to `54219bd7`; coverage was not remeasured.
 
+Later commits added tests and strengthened existing cases, so these historical
+measurements do not establish coverage for the delivered code and test revision.
+Full-suite coverage for the delivered head remains unverified. The scoped
+[2026-11-11 review](review-20261111.md) records a revision-bound focused branch
+supplement, which cannot substitute for the full Gate measurement. The thread
+request for a fresh full Gate run remains outstanding: this repair is restricted
+to the touched tests and their modules and must not run the full suite.
+
+
 Explicit CI run [42924499448](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/42924499448)
 on `24b5f415e2399322b5e8c03359edf8c3ae9b3cf5` ran **lint-format: SUCCESS**
 (job `130207525801`), **lint-ruff: SUCCESS**, and **typecheck-mypy: SUCCESS**.

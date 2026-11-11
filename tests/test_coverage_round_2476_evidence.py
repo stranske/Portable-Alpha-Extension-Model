@@ -202,3 +202,21 @@ def test_mutation_transcripts_each_record_restores_production_sha256() -> None:
     assert text.count("- Record: replaced:") == 3
     assert "test_serialize_agent_semantics_from_column_mapping" in text
     assert "pa_core/facade.py:143" in text
+
+
+def test_historical_coverage_role_acknowledges_later_test_changes() -> None:
+    coverage = json.loads((EVIDENCE / "gate-coverage.json").read_text(encoding="utf-8"))
+    role = coverage["snapshots"]["delivered"]["role"]
+    assert "added test cases" in role
+    assert "coverage was not remeasured" in role
+    readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
+    assert "Full-suite coverage for the delivered head remains unverified" in readme
+
+
+def test_baseline_timeout_summary_preserves_reported_failure_and_unknowns() -> None:
+    transcript = (EVIDENCE / "review-20261111/full-baseline-timeout.txt").read_text()
+    assert any("F" in line and "[ 38%]" in line for line in transcript.splitlines())
+    summary = (EVIDENCE / "review-20261111.md").read_text()
+    assert "at least one test failure at 38%" in summary
+    assert "failed test's identity and the timeout cause remain **unknown**" in summary
+    assert "98% progress without a reported" not in summary
