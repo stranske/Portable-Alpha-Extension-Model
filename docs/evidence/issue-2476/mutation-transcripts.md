@@ -86,6 +86,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_extract_response_text_skips_items_that_are_not_text_or_mappings`
 
 - File: `pa_core/llm/result_explain.py`
+- Site: `pa_core/llm/result_explain.py:285`, inserted as a new `elif` after
+  the `Mapping` branch in the `_extract_response_text` content loop (lines
+  279-285); this is an addition-only mutation with no removed line
 - Record: recorded (diff whitespace normalized)
 - sha256 before: `7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841`
 - sha256 mutated: `a8ae3ff3881ecedbaae64b438e5391ee66d7ed183ec93803e8817091e5c57f86`
@@ -294,6 +297,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_export_sweep_without_manifest_passes_no_metadata`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:784`, the `SweepArtifacts` branch (second of two
+  `if artifacts.manifest is not None:` occurrences; the first, at line 767, is
+  the `RunArtifacts` branch and is not mutated)
 - Record: recorded (diff whitespace normalized)
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `41c2264ff64dfa2993d9dc2ffb49cde925e1ad7ede3192a66dc53b7c4b0ba02a`
@@ -372,6 +378,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_results_main_drops_manifest_when_json_cannot_be_parsed`
 
 - File: `dashboard/pages/4_Results.py`
+- Site: `dashboard/pages/4_Results.py:214`, the `except Exception:` guarding
+  the top-level manifest load in `main()` (not the occurrences at lines 160
+  or 360)
 - Record: recorded
 - sha256 before: `868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9`
 - sha256 mutated: `be3d34b746fc29cda526860ed0aa09b25d8a6cc70cf4375a3def10d54a1aa7bc`
@@ -530,6 +539,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_results_packet_ignores_missing_previous_manifest_path`
 
 - File: `dashboard/pages/4_Results.py`
+- Site: `dashboard/pages/4_Results.py:348`, inserted as the `else:` of
+  `if candidate.exists():` in `_packet_args` (lines 347-349); this is an
+  addition-only mutation with no removed line
 - Record: recorded (diff whitespace normalized)
 - sha256 before: `868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9`
 - sha256 mutated: `cd058d31bd2ce503be28b1b2f1a02916f515dd5ccc50e0eb5f8198737e01c3c0`
@@ -582,6 +594,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2381
 ## `test_results_packet_clears_previous_manifest_when_json_is_invalid`
 
 - File: `dashboard/pages/4_Results.py`
+- Site: `dashboard/pages/4_Results.py:360`, the `except Exception:` guarding
+  the previous-run manifest load in `_packet_args` (not the occurrences at
+  lines 160 or 214)
 - Record: recorded
 - sha256 before: `868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9`
 - sha256 mutated: `8ab85fc6580a2884d57565b703722e976b9cb6573a283f7c3fd70fecde639335`
@@ -907,6 +922,8 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_from_scalar_tuple_and_list (tuple branch)`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:133`, the `tuple` branch assignment (the identical
+  text at line 135 is the fall-through list assignment and is not mutated)
 - Record: replaced: recorded mutation did not fail the original test
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `ef78e1ff66d815864163f14759dd7ec809a63fc7a5750be454d4d5c216b5cfac`
@@ -933,6 +950,8 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_from_scalar_tuple_and_list (list branch)`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:135`, the fall-through list assignment (the
+  identical text at line 133 is the `tuple` branch and is not mutated)
 - Record: replaced: recorded mutation did not fail the original test
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `26084457e7c91ebb9223d556f94f772dae80387aad27198963fdc1c4df41899b`
@@ -985,6 +1004,9 @@ python -m pytest -q --tb=line -p no:cacheprovider tests/test_coverage_round_2476
 ## `test_serialize_agent_semantics_from_column_mapping`
 
 - File: `pa_core/facade.py`
+- Site: `pa_core/facade.py:143`, the `_records_to_builtin(records)` assignment
+  in the `dict` branch `try:` block (the other five occurrences of that
+  assignment, at lines 93, 97, 108, 118 and 130, are not mutated)
 - Record: replaced: recorded mutation targeted the row branch, which this input bypasses
 - sha256 before: `a99e74b13405f332e689342ac718926527cf2ecdbdc064ee474ebae67fe4ea8a`
 - sha256 mutated: `8a761db42246a7d2e429ba728297285e4c762997ebd1d12f03b51e457227ac43`
