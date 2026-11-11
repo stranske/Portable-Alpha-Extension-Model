@@ -42,6 +42,18 @@ def test_serialize_agent_semantics_from_series_and_dict_list() -> None:
     assert from_tuple == [{"Agent": "A", "w": None}, {"Agent": "B", "w": 0.5}]
 
 
+def test_serialize_agent_semantics_all_series_retains_duplicate_label_error() -> None:
+    rows = [pd.Series(["A", "B"], index=["Agent", "Agent"]), pd.Series({"Agent": "C"})]
+    with pytest.raises(pd.errors.InvalidIndexError, match="uniquely valued Index"):
+        _serialize(rows)
+
+
+def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels() -> None:
+    rows = ({"Agent": "C"}, pd.Series(["A", "B"], index=["Agent", "Agent"]))
+    with pytest.raises(ValueError, match="Series rows must have unique labels"):
+        _serialize(rows)
+
+
 def test_serialize_agent_semantics_from_mixed_frame_and_series_list() -> None:
     result = _serialize([pd.DataFrame([{"Agent": "A"}]), pd.Series({"Agent": "B"})])
     assert result == [{"Agent": "A"}, {"Agent": "B"}]

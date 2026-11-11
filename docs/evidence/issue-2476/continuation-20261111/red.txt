@@ -1,0 +1,24 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___ test_serialize_agent_semantics_all_series_retains_duplicate_label_error ____
+
+    def test_serialize_agent_semantics_all_series_retains_duplicate_label_error() -> None:
+        rows = [pd.Series(["A", "B"], index=["Agent", "Agent"]), pd.Series({"Agent": "C"})]
+>       with pytest.raises(pd.errors.InvalidIndexError, match="uniquely valued Index"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE InvalidIndexError
+
+tests/test_coverage_round_2476_facade.py:47: Failed
+_____ test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels _____
+
+    def test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels() -> None:
+        rows = ({"Agent": "C"}, pd.Series(["A", "B"], index=["Agent", "Agent"]))
+>       with pytest.raises(ValueError, match="Series rows must have unique labels"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_coverage_round_2476_facade.py:53: Failed
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_all_series_retains_duplicate_label_error
+FAILED tests/test_coverage_round_2476_facade.py::test_serialize_agent_semantics_mixed_series_rejects_duplicate_labels
+2 failed, 11 deselected in 1.06s

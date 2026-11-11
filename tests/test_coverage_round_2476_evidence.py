@@ -143,11 +143,16 @@ def test_remaining_gaps_match_readme_and_covering_tests() -> None:
 
 
 def test_current_production_lines_match_documented_remaining_gaps() -> None:
-    facade_lines = (ROOT / "pa_core" / "facade.py").read_text(encoding="utf-8").splitlines()
-    assert facade_lines[748].strip().startswith("if isinstance(agent_semantics_val, pd.DataFrame)")
-    assert facade_lines[749].strip() == "serialized_agent_semantics = _records_to_builtin("
-    assert facade_lines[754].strip() == "if isinstance(serialized_agent_semantics, tuple):"
-    assert facade_lines[755].strip().startswith("serialized_agent_semantics = list(")
+    facade_source = (ROOT / "pa_core" / "facade.py").read_text(encoding="utf-8")
+    export_source = facade_source.split("\ndef export(", 1)[1]
+    assert (
+        "if isinstance(agent_semantics_val, pd.DataFrame) and not agent_semantics_val.empty:\n"
+        "            serialized_agent_semantics = _records_to_builtin(" in export_source
+    )
+    assert (
+        "if isinstance(serialized_agent_semantics, tuple):\n"
+        "                serialized_agent_semantics = list(" in export_source
+    )
 
     pa_lines = (ROOT / "pa_core" / "pa.py").read_text(encoding="utf-8").splitlines()
     assert pa_lines[348].strip() == 'elif args.registry_cmd == "get":'
