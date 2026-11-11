@@ -56,6 +56,73 @@ def test_seven_target_reduction_arithmetic_is_consistent() -> None:
     assert sum(v["branches"] for v in chronological.values()) == 119
 
 
+def test_gate_coverage_delivered_snapshot_matches_measurements() -> None:
+    coverage = json.loads((EVIDENCE / "gate-coverage.json").read_text(encoding="utf-8"))
+    measurements = _measurements()
+    delivered = coverage["snapshots"]["delivered"]
+    assert delivered["revision"] == MEASURED_REVISION
+    assert coverage["ranking"]["dispatch_total"] == 209
+
+    statements = delivered["statements"]
+    assert statements["selected_missing_statements"] == 2
+    assert sum(t["missing_statements"] for t in statements["targets"].values()) == 2
+    assert statements["targets"]["pa_core/facade.py"]["missing_statement_lines"] == [750, 756]
+
+    branches = delivered["branches"]
+    assert branches["selected_missing_statements"] == 2
+    assert branches["selected_missing_branches"] == 4
+    assert sum(t["missing_branches"] for t in branches["targets"].values()) == 4
+    exceptions = measurements["remaining_exceptions"]
+    for target, entry in exceptions.items():
+        if not isinstance(entry, dict):
+            continue
+        snapshot = branches["targets"][target]
+        assert snapshot["missing_statement_lines"] == entry["missing_statements"]
+        assert snapshot["missing_branch_arcs"] == entry["missing_branch_arcs"]
+
+    per_target = measurements["statement_attribution"]["per_target_round_baseline_to_delivered"]
+    assert coverage["statement_reductions"]["round_baseline_to_delivered"] == 207
+    assert coverage["statement_reductions"]["per_target_round_baseline_to_delivered"] == {
+        target: values["statements"] for target, values in per_target.items()
+    }
+    assert coverage["branch_reductions"]["round_baseline_to_delivered"] == 119
+    assert coverage["branch_reductions"]["per_target_round_baseline_to_delivered"] == {
+        target: values["branches"] for target, values in per_target.items()
+    }
+
+
+def test_chronological_reductions_sum_to_the_delivered_totals() -> None:
+    coverage = json.loads((EVIDENCE / "gate-coverage.json").read_text(encoding="utf-8"))
+    measurements = _measurements()
+    chronological = measurements["statement_attribution"]["chronological"]
+    assert len(chronological) == 3
+
+    statement_steps = coverage["statement_reductions"]
+    assert (
+        statement_steps["round_baseline_to_after_2384"]
+        + statement_steps["after_2384_to_before_this_work"]
+        + statement_steps["this_work"]
+        == statement_steps["round_baseline_to_delivered"]
+        == sum(values["statements"] for values in chronological.values())
+    )
+    branch_steps = coverage["branch_reductions"]
+    assert (
+        branch_steps["round_baseline_to_after_2384"]
+        + branch_steps["after_2384_to_before_this_work"]
+        + branch_steps["this_work"]
+        == branch_steps["round_baseline_to_delivered"]
+        == sum(values["branches"] for values in chronological.values())
+    )
+
+    readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
+    for row in (
+        "| round baseline → after merged PR #2384 | 58 | 14 |",
+        "| after #2384 → before this work (main up to the #2476 bootstrap) | 131 | 79 |",
+        "| before this work → delivered (this PR) | 18 | 26 |",
+    ):
+        assert row in readme
+
+
 def test_remaining_gaps_match_readme_and_covering_tests() -> None:
     exceptions = _measurements()["remaining_exceptions"]
     assert exceptions["pa_core/facade.py"]["missing_statements"] == [750, 756]
