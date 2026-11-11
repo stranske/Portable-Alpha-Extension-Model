@@ -144,6 +144,7 @@ def test_historical_source_checks_ignore_current_checkout(monkeypatch) -> None:
         return original_read(path, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", reject_current_source)
+    test_mutation_transcripts_have_41_complete_records()
     test_mutation_transcripts_removed_lines_exist_in_production_file()
     test_mutation_transcripts_site_references_point_at_changed_lines()
     test_mutation_transcripts_disambiguate_non_unique_mutations()
