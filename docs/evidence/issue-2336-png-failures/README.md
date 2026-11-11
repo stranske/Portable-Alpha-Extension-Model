@@ -138,6 +138,21 @@ second attempt changes only the environment, not the commands, code or tests: a 
 repository and is not installed; `pa_core/sleeve_suggestor.py` treats it as optional.
 Same commands, same 600 s timeout, one attempt, output in `current-main-20261111/provisioned/`.
 
+### Attempt 3 declared in keepalive round 2 (recorded before execution)
+
+Attempt 2 stopped on the declaration gap described under Results: `requirements-dev.txt` does not
+install `baseline_kit`. Attempt 3 changes only the environment again. It uses the same
+`/tmp/pae-2495-venv` (3.13.13), which `uv pip install -e '.[dev]'` has also provisioned,
+adding `app-baseline-kit==0.2.0` from `stranske/Workflows@49a88b3776e7cc60d13c670d52c81b8303dfec0a`
+(`packages/app-baseline-kit`), plus `pytest-regressions` 2.11.0 and `pytest-datadir` 1.9.0. It
+runs the same two commands, the same `run_baseline.py` and the same 600 s timeout, with one
+attempt. `origin/main` is still `5be77e15`, and `git diff 5be77e15 HEAD -- pa_core dashboard tests
+pyproject.toml requirements*.txt` is empty. Output goes to `current-main-20261111/dev-extra/`.
+The stdout/stderr logs are force-added because `*.log` is gitignored, which is why attempts 1 and
+2 committed no logs. Operational outcome for this attempt: the full run finishes without a
+collection interruption and writes `dev-extra/coverage.json`. If it does not, the first failure
+is recorded and no fourth attempt is made in this round.
+
 ### Results (raw files: `current-main-20261111/run.json` and `current-main-20261111/provisioned/run.json`)
 
 Production code under test is byte-identical to `5be77e15` in both attempts. Attempt 2's
