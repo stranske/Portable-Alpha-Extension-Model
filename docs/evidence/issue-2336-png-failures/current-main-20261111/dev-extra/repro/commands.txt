@@ -1,0 +1,7 @@
+schema exit=1 elapsed=1s py=/tmp/pae-2495-venv/bin/python node=tests/test_schema_export.py::test_parameter_dictionary_matches_schema
+main_with_png exit=0 elapsed=6s py=/tmp/pae-2495-venv/bin/python node=tests/test_cli.py::test_main_with_png
+wheel_samples exit=0 elapsed=33s py=/tmp/pae-2495-venv/bin/python node=tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples
+entrypoints exit=0 elapsed=6s py=/tmp/pae-2495-venv/bin/python node=tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv
+sleeve_venv exit=0 elapsed=1s py=/tmp/pae-2495-venv/bin/python node=tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best
+sleeve_bare_scipy exit=0 elapsed=3s py=/opt/homebrew/bin/python3.13 node=tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best
+bare scipy 1.18.1 numpy 2.5.4

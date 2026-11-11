@@ -1,0 +1,22 @@
+[
+  {
+    "path": "timeout-path",
+    "raised": "TimeoutExpired: Command '['/private/tmp/pae-2495-venv/bin/python', '-B', '-m', 'pytest', 'tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[renderer]', '-q', '--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/timeout-path/renderer-red.xml']' timed out after 180 seconds",
+    "private_cli_sha256_after_finally": [
+      "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    ],
+    "restored_equals_baseline": true,
+    "worktree_cli_sha256_before": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+    "worktree_cli_sha256_after": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  },
+  {
+    "path": "failure-path",
+    "raised": "RuntimeError: injected failure while the first mutant is in place",
+    "private_cli_sha256_after_finally": [
+      "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    ],
+    "restored_equals_baseline": true,
+    "worktree_cli_sha256_before": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+    "worktree_cli_sha256_after": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  }
+]

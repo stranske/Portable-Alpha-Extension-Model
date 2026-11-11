@@ -193,3 +193,116 @@ Status against #2495 acceptance:
 - Closure eligibility: **false**. The next attempt needs an environment provisioned with
   `-e '.[dev]'` (or with `app-baseline-kit` added to `requirements-dev.txt`), then the same
   full coverage command under the same stop rule.
+
+### Attempt 3 results (raw files: `current-main-20261111/dev-extra/`)
+
+This section supersedes the attempt-2 status and closure statement above, which are kept as
+they were recorded.
+
+`dev-extra/run.json` records commit `7595bbc0`, the commit that added the attempt-3
+plan. It changes only this README, so `pa_core`, `dashboard` and `tests` are byte-identical
+to `5be77e15`, and the porcelain for those paths was empty. `pa_core/cli.py` SHA-256 was
+`f3ffec1a…40e26` before and after. Versions: pytest 9.2.0, pytest-cov 7.1.0, coverage 7.17.2,
+numpy 2.5.4, pandas 3.1.1, openpyxl 3.1.5, kaleido 1.5.0, plotly 6.9.0, SciPy absent.
+
+| Command | Completed / timed out | Exit | Elapsed | Result |
+| --- | --- | ---: | ---: | --- |
+| full coverage | completed | 1 | 164.1 s | **1 failed, 2116 passed, 5 skipped, 3 deselected**; `dev-extra/coverage.json` written |
+| focused PNG/PDF/sweep | completed | 0 | 3.7 s | **23 passed** (`dev-extra/focused-junit.xml`, `focused-stdout.log`) |
+
+The named-node JUnit is `dev-extra/full-junit.xml` (2,122 testcases). stdout/stderr are in
+`dev-extra/*-stdout.log` and `*-stderr.log`, and argv, exit, elapsed time and the timeout flag
+are in `dev-extra/run.json`.
+
+#### Coverage totals from the committed `dev-extra/coverage.json`
+
+| Scope | Covered | Statements | Percent |
+| --- | ---: | ---: | ---: |
+| Total (`totals`) | 13,532 | 14,670 | 92.24267211997274% |
+| `pa_core/` files | 10,910 | 11,759 | |
+| `dashboard/` files | 2,622 | 2,911 | |
+
+The total is 1,138 missing lines and 192 excluded lines. It is at least 90%, so the
+below-90% module increment (T6) does not apply and no tests were added.
+
+#### Reconciling the historical claims
+
+- **92% (PR #2475):** consistent with this run. The fresh total is 92.24% over the same
+  14,670-statement denominator that PR #2475 states. The two runs are different measurements,
+  though: different trees, and an unrecorded environment for #2475.
+- **13,441 vs 13,537 (PR #2475):** 13,537 / 14,670 = 92.28%, which matches the percentage the PR
+  printed. 13,441 / 14,670 = 91.62%, which matches nothing printed. Arithmetic therefore
+  supports 13,537 as the numerator behind the 92.28% claim and 13,441 as a transcription error,
+  as the PR's own review comment says. PR #2475 committed no `coverage.json`, and its file list
+  has only README, commands, comparison, manifest, archive, focused JUnit and replay files.
+  That means neither number can be checked against raw data, so this stays **unresolved
+  (raw record unavailable)**. Neither number matches current main (13,532).
+- **83.76% / 12,191 of 14,554** (earlier sections): this measured the older `f9853be5`
+  snapshot, which has a smaller statement scope. It is superseded for current main, not
+  contradicted.
+
+#### Failure dispositions (one `python -m pytest <node>` reproduction each; logs and JUnit in `dev-extra/repro/`, commands in `dev-extra/repro/commands.txt`)
+
+| Node | Source | Observed now | Supported cause |
+| --- | --- | --- | --- |
+| `tests/test_schema_export.py::test_parameter_dictionary_matches_schema` | fresh full run and PR #2475 | **fails** on 3.13.13 in the full run and alone (exit 1) | Interpreter-dependent type repr. On 3.13, `typing.Optional[Dict[str, int]]` renders `Optional[Dict[...]]`; on 3.14 (CI) it renders `Dict[...] \| None`, which is what the committed `docs/guides/PARAMETER_DICTIONARY.md` contains (both checked directly). This is not a code-under-test regression, but it is a real portability defect under the declared `requires-python >=3.13` floor. It is not fixed here. |
+| `tests/test_cli.py::test_main_with_png` | earlier strengthened run (Kaleido timeout) | **passes**: 8.6 s in the full run, 5.6 s alone (kaleido 1.5.0) | The historical Kaleido timeout does not reproduce. Its raw log and Kaleido version are not in the repository, so the original cause stays **unresolved (record unavailable)**. |
+| `tests/test_dashboard_sample_data.py::test_wheel_install_exposes_bundled_dashboard_samples` | PR #2475 | **passes** (35.0 s full, 32.6 s alone) | PR #2475 kept no failure output. Cause **unresolved (record unavailable)**. Not reproducible on current main. |
+| `tests/test_entrypoints.py::test_console_scripts_work_in_clean_venv` | PR #2475 | **passes** (4.4 s full, 5.3 s alone) | Same as above: **unresolved (record unavailable)**, not reproducible. |
+| `tests/test_sleeve_suggestor.py::test_suggest_sleeve_sizes_optimize_prefers_best` | PR #2475 and the earlier anaconda runs | **skipped** in the venv (SciPy absent), **passes** under bare 3.13.13 with scipy 1.18.1 and numpy 2.5.4 | The archived failure in `current-validation.tar.gz` (`final-candidate.xml`) is `AttributeError: module 'numpy' has no attribute 'long'` from `/opt/anaconda3` (scipy 1.11.4 built against a NumPy that has `numpy.long`, run with numpy 1.26.4). That is an environment ABI mismatch, not a code failure. The repository does not declare SciPy, so the test is skipped wherever SciPy is missing. |
+
+The four PR #2475 node IDs come from the failure list in the PR body. No PR #2475 node ID is
+unavailable. The historical node IDs behind the 1,654 / 1,662 / 1,674-pass snapshots above
+are in their archives.
+
+#### Eight PNG mutation pairs on the current `pa_core/cli.py` bytes
+
+`current-main-20261111/replay_current.py` loads the unchanged `replay.py` recipe and rebinds
+only its pinned revision to `5be77e15` and its digest to `f3ffec1a…40e26`. It uses the same
+eight `CASES` anchors (each occurs exactly once in the current file), the same
+`logger.error` to `logger.debug` mutation, the same strict JUnit validator and the same
+private `git archive` snapshot. Raw output is in `mutation/pairs/`: per case, the mutant
+source, RED/GREEN console and JUnit, plus `results.json` with argv, exits and hashes. The run
+took 31 s and exited 0.
+
+| Case | RED exit (AssertionError) | GREEN exit | Mutant SHA-256 | Restored SHA-256 |
+| --- | ---: | ---: | --- | --- |
+| `renderer` | 1 | 0 | `eb581cf34b53…` | `f3ffec1a90fe…` |
+| `module` | 1 | 0 | `3936b6e32967…` | `f3ffec1a90fe…` |
+| `io` | 1 | 0 | `1401639d6020…` | `f3ffec1a90fe…` |
+| `permission` | 1 | 0 | `1401639d6020…` | `f3ffec1a90fe…` |
+| `value` | 1 | 0 | `0da4b4648ead…` | `f3ffec1a90fe…` |
+| `type` | 1 | 0 | `0da4b4648ead…` | `f3ffec1a90fe…` |
+| `runtime-renderer` | 1 | 0 | `d4a5dd1ec33e…` | `f3ffec1a90fe…` |
+| `runtime-other` | 1 | 0 | `d4a5dd1ec33e…` | `f3ffec1a90fe…` |
+
+As in the original proof, these are eight named executions over six distinct mutations.
+Every RED console contains `AssertionError`, and every GREEN run was hashed at
+`f3ffec1a…40e26`. The CLI test input was `fef801ac24c7…`.
+
+The wrapper also checked restoration on the failure and timeout paths
+(`mutation/restoration-paths.json`). It injected a `subprocess.TimeoutExpired` on the first RED
+pytest call, and separately a `RuntimeError`, both while the first mutant was in place. In each
+case the private snapshot's `pa_core/cli.py` was hashed after `replay.py`'s `finally` had run and
+before deletion: `f3ffec1a…40e26` both times. The worktree's `pa_core/cli.py` was
+`f3ffec1a…40e26` before and after. The timeout was injected, not waited out.
+
+#### Production and existing evidence compared with the baseline
+
+`git diff origin/main` (`5be77e15`) is empty for `pa_core/`, `dashboard/`,
+`docs/evidence/issue-2336-pdf-failures/`, `docs/evidence/issue-2336-next-boundaries/`, and this
+directory's `replay.py`, `*.json` and `*.tar.gz`. The worktree's `pa_core/cli.py` is
+`f3ffec1a…40e26`. All mutations ran in private `git archive` snapshots, so no deliberate
+mutation remains.
+
+#### Closure eligibility
+
+For #2495, **eligible**: there is a completed full run with committed `coverage.json` at
+92.24% (≥ 90%), the focused suite passes, eight RED/GREEN pairs restore to the recorded hash, and
+production and existing evidence are unchanged. Every full-run failure has a supported
+disposition. The only fresh failure, the parameter-dictionary drift, has an evidenced
+interpreter-version cause and is still a live defect under the 3.13 floor. It needs either a
+version-independent type renderer or a 3.14 floor, and that belongs in its own issue. Three
+historical PR #2475 failures and the historical Kaleido timeout no longer reproduce, and their
+original causes remain unresolved because the raw records were never committed. This is local
+evidence on 3.13.13. Hosted CI on 3.14 is not claimed here.
