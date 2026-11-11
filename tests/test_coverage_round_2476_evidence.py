@@ -171,3 +171,25 @@ def test_mutation_transcripts_still_record_41_red_green_pairs() -> None:
     assert text.count("- Green exit: 0") == 41
     assert "facade.py:143" in text
     assert "AttributeError: 'dict' object has no attribute 'dtype'" in text
+
+
+def test_mutation_transcripts_each_record_restores_production_sha256() -> None:
+    text = (EVIDENCE / "mutation-transcripts.md").read_text(encoding="utf-8")
+    records = [section for section in text.split("\n## `") if "- Red exit: 1" in section]
+    assert len(records) == 41
+    for record in records:
+        title = record.split("`", 1)[0]
+        hashes = dict(
+            re.findall(r"- sha256 (before|mutated|restored): `([0-9a-f]{64})`", record),
+        )
+        assert set(hashes) == {"before", "mutated", "restored"}, title
+        assert hashes["restored"] == hashes["before"], title
+        assert hashes["mutated"] != hashes["before"], title
+        assert "(matches)" in record, title
+        assert "- File: `" in record, title
+        assert "- Green exit: 0" in record, title
+        assert "python -m pytest" in record, title
+    # The two ineffective earlier records were replaced, not kept alongside.
+    assert text.count("- Record: replaced:") == 3
+    assert "test_serialize_agent_semantics_from_column_mapping" in text
+    assert "pa_core/facade.py:143" in text
