@@ -1,0 +1,6 @@
+{
+  "checked_at": "2026-11-07",
+  "verification_command": "python scripts/verify_issue_2360_evidence.py",
+  "stop_rule": {"attempts_per_step": 2, "minutes": 45},
+  "expected_outcome": "Requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory proof prevents OVERALL PASS"
+}

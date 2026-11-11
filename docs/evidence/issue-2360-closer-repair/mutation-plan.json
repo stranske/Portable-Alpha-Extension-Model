@@ -1,0 +1,50 @@
+[
+  {
+    "node": "test_progress_bar_marks_completed_current_and_future_steps",
+    "name": "current step uses wrong status",
+    "before": "st.info(f\"📍 {i + 1}. {step_name}\")",
+    "after": "st.write(f\"📍 {i + 1}. {step_name}\")"
+  },
+  {
+    "node": "test_capital_step_reports_allocation_status_and_balanced_chart[50.0-error]",
+    "name": "mismatched allocation uses warning instead of error",
+    "before": "st.error(\n            f\"❌ Capital allocation mismatch!",
+    "after": "st.warning(\n            f\"❌ Capital allocation mismatch!"
+  },
+  {
+    "node": "test_capital_step_reports_allocation_status_and_balanced_chart[60.0-success]",
+    "name": "balanced allocation chart suppressed",
+    "before": "if total_allocated > 0:\n            allocation_data = {",
+    "after": "if total_allocated < 0:\n            allocation_data = {"
+  },
+  {
+    "node": "test_capital_step_handles_uploaded_and_persisted_margin_schedules[True]",
+    "name": "uploaded schedule loses validation success",
+    "before": "st.success(\"Schedule validated ✓\")",
+    "after": "st.info(\"Schedule validated ✓\")"
+  },
+  {
+    "node": "test_capital_step_handles_uploaded_and_persisted_margin_schedules[False]",
+    "name": "persisted schedule loses info",
+    "before": "st.info(f\"Using schedule at {schedule_path}\")",
+    "after": "st.write(f\"Using schedule at {schedule_path}\")"
+  },
+  {
+    "node": "test_sleeve_suggestor_explains_missing_or_empty_results[None]",
+    "name": "missing suggestions raises spurious warning",
+    "before": "if suggestions is None:\n        return",
+    "after": "if suggestions is None:\n        st.warning(\"Unexpected missing suggestions\")\n        return"
+  },
+  {
+    "node": "test_sleeve_suggestor_explains_missing_or_empty_results[empty]",
+    "name": "empty suggestions loses warning",
+    "before": "st.warning(\"No feasible sleeve allocations found.\")",
+    "after": "st.info(\"No feasible sleeve allocations found.\")"
+  },
+  {
+    "node": "test_margin_schedule_loader_hides_invalid_schedule_errors",
+    "name": "loader returns invalid schedule instead of hiding error",
+    "before": "return load_margin_schedule(path), path\n    except Exception:\n        return None, None",
+    "after": "return load_margin_schedule(path), path\n    except Exception:\n        return pd.DataFrame(), path"
+  }
+]

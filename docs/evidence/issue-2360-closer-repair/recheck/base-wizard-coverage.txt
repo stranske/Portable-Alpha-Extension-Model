@@ -1,0 +1,214 @@
+........................................................................ [ 66%]
+....................................                                     [100%]
+=============================== warnings summary ===============================
+../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+tests/test_config_chat_preview_apply_revert.py: 1 warning
+tests/test_dashboard_advanced_settings.py: 1 warning
+tests/test_wizard_config_chat_acceptance.py: 4 warnings
+tests/test_wizard_config_chat_flow.py: 2 warnings
+tests/test_wizard_config_wiring.py: 5 warnings
+tests/test_wizard_helpers.py: 2 warnings
+tests/test_wizard_regime_wiring.py: 2 warnings
+  /tmp/issue2360-base/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.10-final-0 _______________
+
+Name                                       Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------
+dashboard/__init__.py                          0      0      0      0   100%
+dashboard/app.py                             154    116     30      2    22%   48-53, 61-64, 69, 74-80, 85-89, 93-95, 109-137, 142-145, 150-155, 164->171, 166-168, 173-193, 208-222, 236-287
+dashboard/browser_exports.py                  59     50     20      0    11%   17-19, 32-56, 68-95
+dashboard/cli.py                              23     15      8      0    26%   22-36, 41-53
+dashboard/components/__init__.py               0      0      0      0   100%
+dashboard/components/comparison_llm.py       129     94     28      0    22%   56-60, 66, 80-90, 100-259, 270
+dashboard/components/config_chat.py          121    102     40      0    12%   31-81, 91-112, 122-142, 146-165, 169-171, 175-212
+dashboard/components/explain_results.py       88     66     18      0    21%   34-38, 42-44, 55-65, 76, 93-217
+dashboard/components/llm_settings.py         101     53     36      5    39%   75-78, 83, 88, 93, 98, 121-129, 147-148, 154, 175-182, 206, 211->217, 214, 267-315
+dashboard/glossary.py                          4      0      0      0   100%
+dashboard/pages/1_Asset_Library.py           160    160     40      0     0%   3-325
+dashboard/pages/2_Portfolio_Builder.py        85     85     28      0     0%   3-160
+dashboard/pages/3_Scenario_Wizard.py        1050    338    284     47    65%   122-123, 154->157, 200, 204, 214, 218, 295, 300->304, 329-346, 385->387, 393, 413, 415, 451, 478, 482, 492, 496, 501-502, 510->514, 535, 596, 607->611, 643, 844-866, 896, 941, 1068, 1070, 1079-1092, 1113, 1164-1235, 1318->1320, 1321, 1359-1399, 1414-1492, 1718, 1742-1744, 1747->1752, 1765->1770, 1780-1781, 1783-1784, 1788-1790, 1794-1796, 1799-1801, 1826-1922, 1947->1949, 2002-2010, 2014-2070, 2081-2084, 2089, 2109-2114, 2126-2144, 2165-2166, 2201-2365
+dashboard/pages/4_Results.py                 210    179     70      1    11%   49-58, 66-143, 156-161, 173-180, 189-193, 197-418, 422
+dashboard/pages/5_Scenario_Grid.py           262    262     84      0     0%   7-486
+dashboard/pages/6_Stress_Lab.py              119    119     26      0     0%   9-263
+dashboard/pages/7_Run_Logs.py                 46     46     10      0     0%   1-66
+dashboard/pages/__init__.py                    0      0      0      0   100%
+dashboard/theme.py                            20      6      6      2    62%   18->28, 19->21, 30-35, 40
+dashboard/utils.py                           132     86     38      2    28%   51-74, 88-92, 97-98, 105, 108, 113-116, 121-128, 146-148, 159-161, 170-171, 176, 181, 186-187, 192-198, 205-211, 224-237, 242-248, 258-274, 291, 319
+dashboard/validation_ui.py                   119    107     54      0     7%   18-24, 36-69, 78-95, 114-190, 199-231, 248-284, 296-307
+design-system/ds_streamlit.py                106     69     32      0    27%   62, 68-70, 100-115, 121-127, 138, 144-163, 171, 177-180, 189-192, 197-205, 209-220, 224-230, 234-236
+pa_core/__init__.py                           15      5      2      1    65%   45-46, 50-52
+pa_core/__main__.py                           36     25      2      0    29%   17-105
+pa_core/agents/__init__.py                     8      0      0      0   100%
+pa_core/agents/active_ext.py                  16     11      2      0    28%   9-23
+pa_core/agents/base.py                         6      2      0      0    67%   8-9
+pa_core/agents/external_pa.py                 16     11      2      0    28%   9-21
+pa_core/agents/internal_beta.py                6      2      0      0    67%   14-15
+pa_core/agents/internal_pa.py                  6      2      0      0    67%   23-24
+pa_core/agents/registry.py                    52     34     18      1    27%   26-28, 34, 43-49, 54-118
+pa_core/agents/risk_metrics.py                26      8      0      0    69%   42-43, 48-53
+pa_core/agents/types.py                       23      7      4      0    59%   25-26, 35-38, 46
+pa_core/backend.py                            22     11      6      0    39%   28-30, 35, 54-62
+pa_core/calibration.py                       232    181     84      0    16%   52-66, 78-105, 111-116, 120-122, 128-133, 137-145, 156-165, 175-188, 197-205, 209, 213, 226-334, 352-390, 396-408
+pa_core/cli.py                              1107   1067    298      0     3%   32-38, 67-74, 79-80, 83, 86-87, 106-109, 112-169, 172-182, 185, 189-194, 198-203, 219-221, 227-281, 291-306, 334-371, 380-401, 412-2209
+pa_core/config.py                            637    161    262     72    68%   51, 62, 99-115, 156-168, 183-196, 549, 574, 578, 582-596, 605, 628-630, 638-639, 648, 709-718, 735-754, 760-793, 800, 821, 826-832, 839, 843, 849, 854, 859->861, 871, 873, 880->882, 892, 913, 922, 924, 928, 932, 935, 938, 940, 959, 961, 977, 995-996, 1008, 1016, 1020, 1028, 1034, 1053-1054, 1062, 1064, 1068, 1072, 1074, 1079, 1084, 1086, 1089, 1096, 1101, 1109, 1111, 1117, 1125, 1131-1134, 1137-1146, 1153, 1157, 1161, 1165, 1171->1182, 1176, 1183, 1197, 1204, 1211-1212, 1246-1247, 1268, 1270, 1292-1304, 1310
+pa_core/contracts.py                         158     45     30      0    60%   234-235, 244-245, 254, 258-271, 275, 279-289, 293, 297-310
+pa_core/data/__init__.py                       4      0      0      0   100%
+pa_core/data/calibration.py                  131    101     34      0    18%   22-27, 55-79, 91-94, 97-200, 209-216
+pa_core/data/convert.py                       19     10      0      0    47%   17-21, 25-30
+pa_core/data/importer.py                     120    109     46      0     7%   37-53, 56-197, 211-227, 232-268
+pa_core/data/index_financing_curves.py        16      9      4      0    35%   43, 52, 68-74
+pa_core/data/loaders.py                      181    116     94     19    31%   48, 54, 59, 62, 65, 68, 70-82, 84->90, 87, 89, 94-98, 105-108, 134-152, 176-193, 203-245, 269, 272-273, 279-291, 297->302, 298->297, 312, 315-317, 319-321, 328-334, 337
+pa_core/facade.py                            332    273    120      0    13%   48-64, 68, 72-144, 233-258, 328-566, 616-677, 724-825
+pa_core/fees.py                               34     17      8      0    40%   71, 85-98, 108-110
+pa_core/llm/__init__.py                       13      1      2      0    93%   74
+pa_core/llm/compare_runs.py                  193    103     70      3    44%   82-96, 111-127, 194->191, 206, 214, 221-234, 244-252, 272-293, 297-303, 319-422, 428-434
+pa_core/llm/config_chat.py                    59      7     20      5    85%   48, 50, 85, 88, 97-99
+pa_core/llm/config_patch.py                  368    163    208     43    47%   57, 65, 83, 96-97, 211-212, 218, 248, 257, 261, 268, 276-301, 307, 316-328, 346, 354-358, 368, 374-376, 382-386, 391-393, 396-400, 403-405, 408-410, 413-415, 418-420, 423-427, 430-438, 441-450, 453-466, 471, 483, 486, 488, 514-515, 523-529, 544, 550-551, 557-569, 575-586, 645, 677, 679, 685, 687-693, 695, 703-721, 727-737, 746-748, 759, 771-773
+pa_core/llm/config_patch_chain.py            201    158     86      0    15%   86-93, 106-135, 158-239, 243-258, 262-274, 278-290, 294, 298-314, 318-335, 339-361
+pa_core/llm/langsmith_fleet.py                91     46     20      0    41%   47-48, 54-62, 66-68, 72-103, 129-145, 149, 153, 157-163, 167-173
+pa_core/llm/prompts.py                        38     21     14      0    40%   22-32, 42-49, 59-61
+pa_core/llm/provider.py                       46     30     16      0    26%   27-28, 44-53, 59-103
+pa_core/llm/result_explain.py                226    187    102      0    12%   36-41, 78-90, 94, 98-105, 109-121, 125-149, 153-157, 161-165, 169-172, 176-198, 202-218, 222-256, 260-264, 268-270, 274-289, 315-439, 443-457, 461-464
+pa_core/llm/scenario_fleet.py                 54     38     16      0    23%   42-50, 61-79, 85-94, 119-137
+pa_core/llm/tracing.py                        84     69     34      0    13%   18, 25-37, 58-96, 102-136
+pa_core/logging_utils.py                      67     57     26      0    11%   22-87, 97-118, 142-171
+pa_core/manifest.py                           61     26      4      0    54%   45, 49-52, 56, 83-125
+pa_core/multi_objective.py                    44     19     10      0    46%   34-35, 44-53, 66-77
+pa_core/orchestrator.py                       17      6      0      0    65%   22-23, 34-35, 43-49
+pa_core/pa.py                                222    209     68      0     4%   19-25, 32-85, 91-98, 102-108, 112-117, 121-474
+pa_core/portfolio/__init__.py                 10      0      2      0   100%
+pa_core/portfolio/aggregator.py               64     53     20      0    13%   23-48, 56-59, 63-70, 79-100
+pa_core/portfolio/constraints.py              78     52     40      1    23%   18, 33-82, 117-188
+pa_core/portfolio/core.py                     58     42     18      0    21%   38-45, 49-70, 80-87, 93-102
+pa_core/presets.py                            91     57     28      0    29%   32-35, 46-48, 51, 54-56, 66-68, 73-78, 82-91, 95, 99-100, 103, 107-108, 112, 115, 118-134, 137-154, 158
+pa_core/random.py                             62     45     16      0    22%   25-28, 39-40, 47, 54-55, 61-80, 84-91, 95, 99-101, 105-106, 110-111, 115
+pa_core/regime_presets.py                     33     22      8      0    27%   18-36, 40-58, 68-78, 82-84
+pa_core/reporting/__init__.py                  3      0      0      0   100%
+pa_core/reporting/agent_semantics.py         107     96     48      0     7%   18-96, 100-116, 133-198
+pa_core/reporting/attribution.py             185    168     70      0     7%   32-45, 50-57, 76-162, 176-200, 214-251, 268-411
+pa_core/reporting/console.py                  67     56     36      0    11%   20-40, 44-52, 56-72, 82-95, 100-109
+pa_core/reporting/constraints.py              73     58     38      0    14%   26-35, 48-87, 98-138
+pa_core/reporting/disclaimers.py               5      1      0      0    80%   37
+pa_core/reporting/excel.py                   301    267    158      0     7%   62-70, 109-237, 245-246, 250-290, 294-306, 310, 314-350, 354-356, 363-475, 482-518, 533-534
+pa_core/reporting/export_packet.py           220    198     72      0     8%   30-33, 38-51, 55-87, 94, 98-130, 148-301, 310-337, 354-360
+pa_core/reporting/run_diff.py                 98     90     42      0     6%   44-176
+pa_core/reporting/stress_delta.py             61     52     34      0     9%   26-59, 64-72, 77-87, 99-112
+pa_core/reporting/sweep_excel.py              89     69     30      0    17%   43-134, 143-159, 166-168
+pa_core/run_artifact_bundle.py               114     86     38      0    18%   31-32, 35-74, 78-97, 100-143, 147-152, 156-159
+pa_core/run_flags.py                          13      0      0      0   100%
+pa_core/scenario_registry.py                 120     78     22      0    30%   42, 46-48, 52-56, 60, 64-69, 73-93, 97-106, 115-121, 130, 140-145, 150-177, 182-186, 191-209
+pa_core/schema.py                            390    296    158      0    17%   47-51, 60-63, 74-76, 87-91, 94-104, 123, 127-136, 165-183, 187-209, 213-227, 231-235, 244-245, 249, 253-255, 259-260, 264-269, 273-300, 304-333, 337-341, 350-358, 362-421, 432-433, 437-445, 450-493, 498-516, 520-526, 530, 534-546, 551-583, 587-649
+pa_core/sensitivity.py                        15     11      6      0    19%   27-49
+pa_core/share_utils.py                        14      4      4      2    67%   17, 20-21, 24
+pa_core/sim/__init__.py                        7      0      0      0   100%
+pa_core/sim/covariance.py                    132    115     48      0     9%   26-31, 43-60, 66-67, 79-95, 119-154, 162-176, 193-235, 261-312
+pa_core/sim/financing.py                      66     53     28      0    14%   40-46, 66-77, 99-174
+pa_core/sim/internal_pa_financing.py          35     26     18      0    17%   54-91
+pa_core/sim/metrics.py                       288    244    118      1    11%   57-60, 69, 87-92, 111-122, 132-137, 151-155, 163-164, 173-183, 197-213, 222-229, 256-270, 291-309, 319-324, 340-347, 352-357, 374-381, 389, 400-407, 418-423, 427-434, 462-474, 492-497, 515-554, 565-576, 581-586, 596-597, 602-607, 646-744, 884-890
+pa_core/sim/params.py                         32     19      4      0    36%   21-23, 53, 84-99, 106, 127-132, 143
+pa_core/sim/paths.py                         436    396    194      0     6%   39-47, 53-68, 74-78, 91-97, 101-113, 117-187, 191-192, 196-208, 212-287, 296-299, 319-329, 343-361, 365-367, 387-434, 446-482, 498-603, 628-687, 691-704, 718-729, 734, 761-812, 831-872
+pa_core/sim/regimes.py                        79     64     26      0    14%   16-19, 30-89, 93-98, 114-145, 149-150
+pa_core/sim/sensitivity.py                    29     29      4      0     0%   1-67
+pa_core/sim/simulation_initialization.py      37     15      2      0    56%   35-37, 47-57, 72-80
+pa_core/simulations.py                        53     29     10      0    38%   52, 57-58, 63-64, 69-70, 75-77, 82-83, 111-128, 137
+pa_core/sleeve_suggestor.py                  635    589    320      0     5%   31-35, 38-44, 65-67, 71-75, 85-111, 115-125, 129-142, 146-162, 166-178, 191-261, 281-314, 339-481, 485-489, 493-497, 507-552, 563-581, 604-728, 795-859, 883-884, 888-891, 895-899, 906-919, 929-958, 984-1160
+pa_core/stress.py                             26     15      8      0    32%   69-79, 92-95
+pa_core/sweep.py                             369    307    170      0    12%   61-63, 67-68, 72-133, 137-147, 151-166, 170-179, 183-188, 193-279, 297, 300-316, 352, 357-360, 372, 398-766, 777-780, 785-789, 804-829, 834, 843-853, 862-893
+pa_core/tool_descriptor.py                     6      1      0      0    83%   83
+pa_core/types.py                              12      0      0      0   100%
+pa_core/units.py                              81     50     30      3    31%   146-148, 153, 159, 173, 176-178, 183-189, 194-200, 211-219, 224-231, 236-238, 243, 248-249, 261, 273-275
+pa_core/validate.py                           21      9      2      0    52%   21-53
+pa_core/validators.py                        194     89    104     25    48%   83-97, 132, 145, 170-217, 230, 232-236, 238-244, 248, 255-258, 260, 265, 271, 273, 275, 277, 281, 292, 316, 320, 370, 386, 467, 476, 485, 495->522, 498, 509, 537-566
+pa_core/viz/__init__.py                        3      0      0      0   100%
+pa_core/viz/animation.py                      16     10      0      0    38%   12-43
+pa_core/viz/beta_heatmap.py                    8      3      0      0    62%   11-16
+pa_core/viz/beta_scatter.py                   22     17      6      0    18%   17-47
+pa_core/viz/beta_te_scatter.py                 7      1      0      0    86%   21
+pa_core/viz/bookmark.py                        8      3      0      0    62%   10, 15-16
+pa_core/viz/boxplot.py                        16      9      4      0    35%   22-31
+pa_core/viz/breach_calendar.py                24     17      2      0    27%   13-42
+pa_core/viz/capital_treemap.py                12      7      2      0    36%   11-21
+pa_core/viz/category_pie.py                   15     10      2      0    29%   12-23
+pa_core/viz/compare_scenarios.py             203    176     98      0     9%   35-90, 94-101, 105-114, 118-131, 135-153, 157-167, 171-177, 181-187, 191-194, 198-239, 243-263, 267-282, 286-295, 299-314, 318-321
+pa_core/viz/corr_heatmap.py                   14      8      0      0    43%   12-23
+pa_core/viz/corr_network.py                   21     15      6      0    22%   12-36
+pa_core/viz/crossfilter.py                    16      9      6      0    32%   18-27
+pa_core/viz/dashboard_templates.py             4      1      0      0    75%   8
+pa_core/viz/data_quality.py                    9      4      0      0    56%   11-17
+pa_core/viz/data_table.py                     12      6      0      0    50%   17-31
+pa_core/viz/delta_heatmap.py                  10      5      0      0    50%   11-21
+pa_core/viz/export_backend.py                111     81     28      0    22%   24, 28-34, 39-43, 47-52, 63, 67, 71-89, 99-107, 112-123, 137-141, 146-157, 167-196, 200-203, 207-218, 222-224
+pa_core/viz/export_bundle.py                  27     18      4      0    29%   20-37, 46-47
+pa_core/viz/exposure_timeline.py              11      6      2      0    38%   11-24
+pa_core/viz/factor_bar.py                     18     13      6      0    21%   11-30
+pa_core/viz/factor_matrix.py                   8      3      0      0    62%   11-16
+pa_core/viz/factor_timeline.py                11      6      2      0    38%   11-16
+pa_core/viz/fan.py                            21     15      2      0    26%   15-47
+pa_core/viz/frontier.py                       46     39     22      0    10%   12-15, 27-161
+pa_core/viz/funnel.py                         19     12      0      0    37%   17-28
+pa_core/viz/gauge.py                          12      7      0      0    42%   11-31
+pa_core/viz/geo_exposure.py                    9      3      0      0    67%   12-20
+pa_core/viz/grid_heatmap.py                   21     14      8      0    24%   30-52
+pa_core/viz/grid_panel.py                     19     13      6      0    24%   13-25
+pa_core/viz/horizon_slicer.py                 14      8      0      0    43%   12-23
+pa_core/viz/hover_sync.py                      6      2      2      0    50%   10-11
+pa_core/viz/html_export.py                     9      4      2      0    45%   15-20
+pa_core/viz/inset.py                          20     13      2      0    32%   22-34
+pa_core/viz/live.py                           21     11      6      0    37%   31-42
+pa_core/viz/metric_selector.py                10      4      0      0    60%   13-16
+pa_core/viz/milestone_timeline.py             10      5      2      0    42%   12-16
+pa_core/viz/moments_panel.py                  18     11      0      0    39%   13-23
+pa_core/viz/mosaic.py                         16     10      0      0    38%   12-21
+pa_core/viz/multi_fan.py                      24     17      2      0    27%   17-53
+pa_core/viz/overlay.py                        32     24     10      0    19%   19-57
+pa_core/viz/overlay_weighted.py               28     21      6      0    21%   14-52
+pa_core/viz/panel.py                          15      9      4      0    32%   12-20
+pa_core/viz/parallel_coords.py                 8      3      0      0    62%   11-13
+pa_core/viz/path_dist.py                      14      8      0      0    43%   12-57
+pa_core/viz/pdf_export.py                     12      6      2      0    43%   12-16, 20
+pa_core/viz/pdf_report.py                     54     40     12      0    21%   21-23, 28-78, 82-83
+pa_core/viz/pptx_export.py                    41     23      8      0    37%   26, 39-44, 68-84, 112-116, 131-132
+pa_core/viz/quantile_band.py                  24     13      0      0    46%   41-53
+pa_core/viz/quantile_fan.py                   19     12      0      0    37%   17-37
+pa_core/viz/radar.py                          13      8      2      0    33%   11-25
+pa_core/viz/rank_table.py                      4      1      0      0    75%   8
+pa_core/viz/regime_timeline.py                50     39     22      0    15%   16-36, 40-51, 55-62, 66-68, 72-79
+pa_core/viz/risk_return.py                    89     74     20      0    14%   47-145, 149-151, 155-158, 162-163, 167-173, 177-184, 188-192
+pa_core/viz/risk_return_bubble.py             20     15      6      0    19%   11-39
+pa_core/viz/rolling_corr_heatmap.py           23     16      6      0    24%   22-43
+pa_core/viz/rolling_panel.py                  42     29      0      0    31%   17-23, 28-31, 35-43, 48-63
+pa_core/viz/rolling_var.py                    18     12      2      0    30%   14-25
+pa_core/viz/scatter_matrix.py                 10      4      0      0    60%   12-15
+pa_core/viz/scenario_play.py                  16     10      0      0    38%   12-37
+pa_core/viz/scenario_slider.py                13      8      4      0    29%   12-36
+pa_core/viz/scenario_viewer.py                23     15      6      0    28%   16-45
+pa_core/viz/seasonality_heatmap.py            11      5      0      0    55%   12-16
+pa_core/viz/sharpe_ladder.py                  12      7      0      0    42%   11-17
+pa_core/viz/spark_matrix.py                   15      9      4      0    32%   12-24
+pa_core/viz/sunburst.py                       23     18      8      0    16%   11-34
+pa_core/viz/surface.py                         9      4      0      0    56%   17-29
+pa_core/viz/surface_animation.py              15     10      2      0    29%   11-32
+pa_core/viz/surface_slice.py                  11      6      0      0    45%   11-21
+pa_core/viz/te_cvar_scatter.py                24     19      6      0    17%   19-51
+pa_core/viz/theme.py                          34     12      4      2    63%   16-17, 24-36, 85-86, 92-93
+pa_core/viz/tornado.py                        42     34     16      0    14%   20-37, 53-98
+pa_core/viz/triple_scatter.py                 10      5      0      0    50%   11-25
+pa_core/viz/utils.py                          18     12      2      0    30%   30-44
+pa_core/viz/violin.py                         14      8      4      0    33%   20-44
+pa_core/viz/waterfall.py                      15      9      2      0    35%   13-22
+pa_core/viz/weighted_stack.py                 14      8      2      0    38%   16-30
+pa_core/viz/widgets.py                        14      7      0      0    50%   32-39
+pa_core/wizard/__init__.py                     2      0      0      0   100%
+pa_core/wizard/session_state.py               23      2     12      3    86%   26, 28, 36->32
+pa_core/wizard_schema.py                      57      2     20      6    90%   322->324, 324->326, 326->351, 332, 334, 336->351
+--------------------------------------------------------------------------------------
+TOTAL                                      14616  10334   4952    246    24%
+Coverage JSON written to file /tmp/issue2360-base-wizard-coverage.json
+108 passed, 1612 deselected, 30 warnings in 10.72s

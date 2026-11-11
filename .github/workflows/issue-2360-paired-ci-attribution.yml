@@ -1,0 +1,250 @@
+# Issue #2360 paired CI attribution workflow
+# Runs the historical configured test suite at two exact commits with branch coverage enabled
+# to establish comparable statement-plus-branch coverage boundaries for issue #2360.
+#
+# This workflow:
+# 1. Creates isolated checkouts at the two historical SHAs
+# 2. Verifies checkout SHAs and pyproject.toml configuration hashes
+# 3. Installs dependencies with the historical CI mechanism (uv pip install --system
+#    -r requirements.lock -e .[app,dev] plus the checkout's autofix-versions.env test pins),
+#    forced to the resolved set the historical parent job recorded, and verifies the result
+# 4. Executes pytest (bounded) with --cov-branch and JSON output; keeps logs and exit codes
+# 5. Uploads raw coverage JSON and receipts even when execution fails
+#
+# Historical SHAs:
+#   Parent (squash parent): 10ac6839518576d4dc5199a24392eadfc388c713
+#   Merge (PR #2372):       e8967edb2aa1bdbc1a68ea58ed241cf205915d03
+#
+# Expected test counts: 1716 passed, 2 skipped (parent); 1724 passed, 2 skipped (merge)
+
+name: 'Issue #2360 Paired CI Attribution'
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/issue-2474]
+    paths:
+      - '.github/workflows/issue-2360-paired-ci-attribution.yml'
+      - 'docs/evidence/issue-2360-closer-repair/recheck/paired-ci-input/**'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  EXPECTED_CONFIG_HASH: b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4
+  OVERRIDES: docs/evidence/issue-2360-closer-repair/recheck/paired-ci-input/resolved-overrides.txt
+  UV_VERSION: '0.13.1'
+
+jobs:
+  paired-ci-attribution:
+    name: Paired CI (${{ matrix.revision.label }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        revision:
+          - sha: 10ac6839518576d4dc5199a24392eadfc388c713
+            label: configured-parent
+            expected_tests: 1718
+            expected_skipped: 2
+          - sha: e8967edb2aa1bdbc1a68ea58ed241cf205915d03
+            label: configured-merge
+            expected_tests: 1726
+            expected_skipped: 2
+    env:
+      CHECKOUT: /tmp/issue2360-${{ matrix.revision.label }}
+      RECEIPTS: /tmp/receipts-${{ matrix.revision.label }}
+
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.15'
+
+      - name: Create isolated checkout at ${{ matrix.revision.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RECEIPTS"
+          git clone --no-local --no-tags . "$CHECKOUT"
+          git -C "$CHECKOUT" checkout --detach "${{ matrix.revision.sha }}"
+          actual_sha=$(git -C "$CHECKOUT" rev-parse HEAD)
+          config_hash=$(sha256sum "$CHECKOUT/pyproject.toml" | cut -d' ' -f1)
+          lock_hash=$(sha256sum "$CHECKOUT/requirements.lock" | cut -d' ' -f1)
+          overrides_hash=$(sha256sum "$OVERRIDES" | cut -d' ' -f1)
+          printf '%s\n' "$actual_sha" > "$RECEIPTS/checkout-sha.txt"
+          printf 'pyproject.toml %s\nrequirements.lock %s\nresolved-overrides.txt %s\n' \
+            "$config_hash" "$lock_hash" "$overrides_hash" > "$RECEIPTS/hashes.txt"
+          cp "$OVERRIDES" "$RECEIPTS/resolved-overrides.txt"
+          test "$actual_sha" = "${{ matrix.revision.sha }}" || { echo "SHA mismatch: $actual_sha"; exit 1; }
+          test "$config_hash" = "$EXPECTED_CONFIG_HASH" || { echo "Config hash mismatch: $config_hash"; exit 1; }
+
+      - name: Install historical dependencies
+        working-directory: ${{ env.CHECKOUT }}
+        run: |
+          set -euo pipefail
+          python -m pip install "uv==${UV_VERSION}"
+          # Same mechanism as the historical reusable CI install step: lock file, editable
+          # project with extras, and exact test-tool pins from the checkout's own env file.
+          # shellcheck source=/dev/null
+          source .github/workflows/autofix-versions.env
+          specs=(-r requirements.lock -e '.[app,dev]'
+            "pytest==${PYTEST_VERSION}" "pytest-cov==${PYTEST_COV_VERSION}"
+            "coverage==${COVERAGE_VERSION}" "pytest-xdist==${PYTEST_XDIST_VERSION}"
+            -r "$GITHUB_WORKSPACE/$OVERRIDES")
+          printf '%q ' uv pip install --system "${specs[@]}" --override "$GITHUB_WORKSPACE/$OVERRIDES" > "$RECEIPTS/install-command.txt"
+          uv pip install --system "${specs[@]}" --override "$GITHUB_WORKSPACE/$OVERRIDES" 2>&1 | tee "$RECEIPTS/install-output.txt"
+
+      - name: Record and verify actual environment
+        working-directory: ${{ env.CHECKOUT }}
+        run: |
+          set -euo pipefail
+          uv pip freeze --system > "$RECEIPTS/environment-freeze.txt"
+          {
+            python -VV
+            uv --version
+            uname -srm
+            echo "nproc $(nproc)"
+            echo "runner_image ${ImageOS:-unknown} ${ImageVersion:-unknown}"
+          } > "$RECEIPTS/environment-platform.txt"
+          python - "$GITHUB_WORKSPACE/$OVERRIDES" "$RECEIPTS/environment-freeze.txt" "$RECEIPTS/environment-check.json" <<'PY'
+          import json, re, sys
+          def norm(name):
+              return re.sub(r"[-_.]+", "-", name).lower()
+          def parse(path):
+              out = {}
+              for line in open(path, encoding="utf-8"):
+                  line = line.strip()
+                  if not line or line.startswith(("#", "-e ")):
+                      continue
+                  name = re.split(r"==| @ ", line, maxsplit=1)[0].strip()
+                  out[norm(name)] = line
+              return out
+          expected, actual = parse(sys.argv[1]), parse(sys.argv[2])
+          actual.pop("portable-alpha-extension-model", None)
+          # Installer bootstrap tools sit outside the historical resolved set; record, not compare.
+          bootstrap = {name: actual.pop(name, None) for name in ("pip", "uv")}
+          def canon(spec):
+              # uv freeze writes git URLs with the resolved commit; compare name and pin/commit.
+              m = re.search(r"@([0-9a-f]{40})", spec)
+              return m.group(1) if m else spec.split("==", 1)[-1]
+          mismatches = sorted(
+              name for name in expected.keys() | actual.keys()
+              if name not in expected or name not in actual or canon(expected[name]) != canon(actual[name])
+          )
+          result = {"expected_packages": len(expected), "actual_packages": len(actual),
+                    "mismatches": mismatches, "identical": not mismatches,
+                    "bootstrap_excluded": bootstrap}
+          json.dump(result, open(sys.argv[3], "w"), indent=2)
+          print(json.dumps(result, indent=2))
+          sys.exit(0 if not mismatches else 1)
+          PY
+
+      - name: Execute historical configured test suite (bounded)
+        id: test
+        working-directory: ${{ env.CHECKOUT }}
+        env:
+          PYTHONPATH: ${{ env.CHECKOUT }}
+        run: |
+          set -uo pipefail
+          args=(tests/ -m "not live_llm" --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml
+            --cov-branch --cov-report=json:coverage.json --cov-report=term-missing -n auto --dist=loadgroup)
+          printf '%q ' pytest "${args[@]}" > "$RECEIPTS/command.txt"
+          echo "Executing: $(cat "$RECEIPTS/command.txt")"
+          date -u +%Y-%m-%dT%H:%M:%SZ > "$RECEIPTS/start-time.txt"
+          timeout --kill-after=60s 25m pytest "${args[@]}" > "$RECEIPTS/terminal-output.txt" 2>&1
+          exit_code=$?
+          cat "$RECEIPTS/terminal-output.txt"
+          date -u +%Y-%m-%dT%H:%M:%SZ > "$RECEIPTS/end-time.txt"
+          echo "$exit_code" > "$RECEIPTS/exit-code.txt"
+          cp coverage.json pytest-junit.xml "$RECEIPTS/" 2>/dev/null || true
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+          echo "pytest exit code: $exit_code"
+
+      - name: Upload receipts artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-2360-${{ matrix.revision.label }}-receipts
+          path: ${{ env.RECEIPTS }}
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Enforce complete successful suite
+        working-directory: ${{ env.RECEIPTS }}
+        run: |
+          set -euo pipefail
+          test "$(cat exit-code.txt)" = "0" || { echo "pytest exit code $(cat exit-code.txt)"; exit 1; }
+          python - "${{ matrix.revision.expected_tests }}" "${{ matrix.revision.expected_skipped }}" <<'PY'
+          import json, sys
+          import xml.etree.ElementTree as ET
+          root = ET.parse("pytest-junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          counts = {k: int(suite.get(k, 0)) for k in ("tests", "failures", "errors", "skipped")}
+          print(counts)
+          assert counts["tests"] == int(sys.argv[1]), "partial or different suite"
+          assert counts["skipped"] == int(sys.argv[2]), "unexpected skips"
+          assert counts["failures"] == counts["errors"] == 0, "failing suite"
+          data = json.load(open("coverage.json"))
+          assert data["meta"]["branch_coverage"] is True, "branch coverage missing"
+          assert data["files"], "empty coverage"
+          PY
+
+  summarize:
+    name: Summarize Paired CI Results
+    needs: paired-ci-attribution
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Download all receipts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/artifacts
+
+      - name: Compare receipts
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/artifacts
+          find /tmp/artifacts -type f | sort
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("/tmp/artifacts")
+          sides = {}
+          for label in ("configured-parent", "configured-merge"):
+              d = root / f"issue-2360-{label}-receipts"
+              cov = d / "coverage.json"
+              exit_file = d / "exit-code.txt"
+              sides[label] = {
+                  "exit_code": exit_file.read_text().strip() if exit_file.exists() else None,
+                  "freeze": (d / "environment-freeze.txt").read_text() if (d / "environment-freeze.txt").exists() else None,
+                  "totals": json.loads(cov.read_text())["totals"] if cov.exists() else None,
+              }
+          p, m = sides["configured-parent"], sides["configured-merge"]
+          def strip(freeze):
+              return None if freeze is None else [l for l in freeze.splitlines() if "portable-alpha-extension-model" not in l]
+          print("exit codes:", p["exit_code"], m["exit_code"])
+          print("identical environments:", strip(p["freeze"]) == strip(m["freeze"]) and p["freeze"] is not None)
+          for label, side in sides.items():
+              t = side["totals"]
+              if t:
+                  print(label, "missing_lines", t["missing_lines"], "missing_branches", t.get("missing_branches"))
+          if p["totals"] and m["totals"]:
+              before = p["totals"]["missing_lines"] + p["totals"].get("missing_branches", 0)
+              after = m["totals"]["missing_lines"] + m["totals"].get("missing_branches", 0)
+              print("combined uncovered statement-plus-branch units:", before, "->", after, "reduction", before - after)
+          else:
+              print("combined reduction UNKNOWN: coverage receipts missing")
+          PY
+
+      - name: Fail when either side failed
+        if: needs.paired-ci-attribution.result != 'success'
+        run: |
+          echo "paired-ci-attribution result: ${{ needs.paired-ci-attribution.result }}"
+          exit 1

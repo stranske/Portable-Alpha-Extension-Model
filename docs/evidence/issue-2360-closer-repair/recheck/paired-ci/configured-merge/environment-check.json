@@ -1,0 +1,10 @@
+{
+  "expected_packages": 253,
+  "actual_packages": 253,
+  "mismatches": [],
+  "identical": true,
+  "bootstrap_excluded": {
+    "pip": "pip==26.3",
+    "uv": "uv==0.13.1"
+  }
+}

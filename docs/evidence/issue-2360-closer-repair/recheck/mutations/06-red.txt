@@ -1,0 +1,37 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________ test_sleeve_suggestor_explains_missing_or_empty_results[None] _________
+
+wizard_module = {'__name__': '<run_path>', '__doc__': '5-Step Wizard for guided scenario creation with validation.', '__package__': '', '__loader__': None, ...}
+suggestions = None
+
+    @pytest.mark.parametrize("suggestions", [None, "empty"])
+    def test_sleeve_suggestor_explains_missing_or_empty_results(
+        wizard_module: dict[str, Any], suggestions: str | None
+    ) -> None:
+        fake_st = _FakeStreamlit()
+        if suggestions == "empty":
+            fake_st.session_state["sleeve_suggestions"] = wizard_module["pd"].DataFrame()
+        func_globals = wizard_module["_render_sleeve_suggestor"].__globals__
+        func_globals["st"] = fake_st
+
+        wizard_module["_render_sleeve_suggestor"](get_default_config(AnalysisMode.RETURNS))
+
+        if suggestions is None:
+>           assert not any(kind == "warning" for kind, _value in fake_st.calls)
+E           assert not True
+E            +  where True = any(<generator object test_sleeve_suggestor_explains_missing_or_empty_results.<locals>.<genexpr> at 0x7b97d12e0820>)
+
+tests/test_wizard_render_coverage.py:233: AssertionError
+---------------------------- Captured stderr setup -----------------------------
+2026-11-07 04:33:56.405 WARNING streamlit.runtime.caching.cache_data_api: No runtime found, using MemoryCacheStorageManager
+=============================== warnings summary ===============================
+../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_wizard_render_coverage.py::test_sleeve_suggestor_explains_missing_or_empty_results[None] - assert not True
+ +  where True = any(<generator object test_sleeve_suggestor_explains_missing_or_empty_results.<locals>.<genexpr> at 0x7b97d12e0820>)
+1 failed, 13 warnings in 5.38s

@@ -1,0 +1,1 @@
+pytest tests/ -m not\ live_llm --junitxml=pytest-junit.xml --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:coverage.json --cov-report=term-missing -n auto --dist=loadgroup 
