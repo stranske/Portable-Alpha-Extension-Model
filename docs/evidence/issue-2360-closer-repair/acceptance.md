@@ -1,5 +1,73 @@
 # Issue #2360 acceptance recheck
 
+## Product coverage boundary contract (2026-11-11 UTC)
+
+Recorded before source/test changes. Reviewed recent commits `bc3dd452`,
+`02e21843` and `e012315a`, re-read #2360 and merged #2372/#2467 with the
+GitHub connector, and confirmed their revision/file receipts. Shell `gh issue
+view`, `gh pr view`, `gh run list` and `gh run view 41661022529` cannot reach
+api.github.com (exit 1). Live connector jobs/logs confirm the executed successful
+pytest job in run 41661022529 at the assessed head, including its command and
+terminal result (1969 passed, 1 skipped). PR #2497 is open and ready for review.
+
+Baseline: 160 verifier tests pass; the acceptance command prints six PASS results
+and OVERALL PASS. The original eight mutation proofs, nine separate later cases,
+and paired-CI 73-unit measurement are retained. Inspected both historical
+`pyproject.toml` files with `git show`: configured product sources are `pa_core`,
+`dashboard` and `design-system`, with branch coverage enabled by the paired
+command. Both exact revision trees contain the same 187 Python product files;
+both raw paired reports contain that inventory. The verifier currently checks
+only that the two reports agree with each other: omitting the same product file
+from both reports can silently narrow the measured coverage boundary.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: six requirement PASS results and OVERALL PASS for retained
+receipts; coverage attribution FAIL, OVERALL FAIL and exit 1 when either report
+omits a product file, or when both contain the same narrower/replaced inventory.
+Bind the full product file inventory to the exact historical Git trees without
+requiring live Git/network access during verification. Stop after two retrieval
+attempts per unavailable receipt or 45 minutes total. No historical full-suite
+rerun, workflow edits, production changes or replacement wizard tests.
+
+Reconciled all 22 current task/acceptance checkboxes from verified receipts before
+continuing. Publication was rejected: `MCP tool call requires approval, but
+approval policy is never`. Remote checkboxes remain unchanged; retain a local
+reviewable proposed body. Ranking provenance remains explicitly UNKNOWN under
+the permitted disclosure path, without a selection compliance claim.
+
+Verified result: all four narrowed-inventory regressions produced false
+OVERALL PASS before implementation. After the fix, **168 targeted tests pass**,
+including eight new regression cases. Targeted verifier coverage is **98%**
+(199 statements, four missing). The acceptance command prints six PASS results
+and OVERALL PASS, exit 0. Raw paired-CI coverage and mutation receipts are
+unchanged. The historical inventory and runnable `git ls-tree` commands are in
+[source-inventory.json](./recheck/source-inventory.json); its 187 path/blob entries
+are identical at both pinned revisions and match both retained raw reports.
+
+Ruff and `git diff --check` pass. Black formatted each changed Python file;
+the required full-repository check passes with **538 files unchanged**. Default
+multiprocessing was denied by sandbox socket permissions; a plain single-worker
+check timed out (exit 124). The successful full check used one worker and a
+temporary standard asyncio loop with a 50 ms wake-up timer, preserving Black's
+CLI, formatting rules and complete file selection. The initial slash-form
+`--cov=scripts/verify_issue_2360_evidence` command collected no data; the corrected
+module-form targeted command produced the 98% measurement. Commands and results
+are in `product_boundary_followup` in [validation.json](./recheck/validation.json).
+
+- [x] Verify configured-suite attribution against all 187 product files at both
+  historical revisions, excluding the nine later tests.
+- [x] Verify that equally narrowed or replaced coverage inventories cannot
+  produce OVERALL PASS; retain the original measured 73-unit reduction.
+
+The main checkout's `git add` exited 128 because `.git/index.lock` is read-only.
+Prepare the meaningful source commit in `/tmp/issue2360-product-boundary-delivery`
+and an importable patch at `/tmp/issue2360-product-boundary.patch`. The reconciled
+22-entry PR body is `/tmp/issue2360-product-boundary-pr-body.md`. This does not
+advance the checkout's branch or publish remote checkboxes. Attempts to publish
+a blocker comment and add `needs-human` were rejected by the connector's same
+approval policy; neither action is claimed as published. No workflow or
+production files changed.
+
 ## Per-case mutation terminal contract (2026-11-11 UTC)
 
 Recorded before source/test edits. Reviewed `bc3dd452` and `02e21843`, then

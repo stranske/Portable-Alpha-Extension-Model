@@ -479,5 +479,87 @@
     },
     "commit_limitation": "Main checkout git add exited 128: .git/index.lock is read-only. Source commit in /tmp/issue2360-mutation-delivery and importable patch /tmp/issue2360-mutation-terminal.patch; main branch not advanced.",
     "blocker_publication": "Blocker comment and needs-human label both rejected: MCP tool call requires approval, but approval policy is never. Neither action was published."
+  },
+  "product_boundary_followup": {
+    "checked_at": "2026-11-11",
+    "baseline": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow'",
+      "exit_code": 0,
+      "passed": 160
+    },
+    "regression_before_fix": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k matching_reports_must_cover",
+      "exit_code": 1,
+      "failed": 4,
+      "false_overall_pass_cases": [
+        "omit",
+        "target_only",
+        "replace",
+        "extra"
+      ]
+    },
+    "targeted_tests": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 168,
+      "statements": 199,
+      "missing_statements": 4,
+      "coverage_percent": 98
+    },
+    "coverage_command_correction": "Initial --cov=scripts/verify_issue_2360_evidence produced module-not-imported/no-data warnings; module-form source above produced the measured coverage table.",
+    "source_inventory": {
+      "record": "recheck/source-inventory.json",
+      "python_product_files": 187,
+      "identical_at_both_revisions": true,
+      "canonical_files_sha256": "acecd017d2b5bb4dd598d5bf791da0a526e936c01d16a6bd12ac6da445932499",
+      "generation": "git ls-tree -r with exact revisions and pa_core dashboard design-system sources; retain .py files and Git blob IDs"
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit_code": 0,
+      "requirement_passes": 6,
+      "overall": "PASS",
+      "ranking_provenance": "UNKNOWN; permitted explicit disclosure without a compliance claim"
+    },
+    "black": {
+      "individual_commands": [
+        "black --line-length 100 scripts/verify_issue_2360_evidence.py",
+        "black --line-length 100 tests/test_issue_2360_evidence.py"
+      ],
+      "command": "PYTHONPATH=/tmp/issue2360-inventory-black-runtime BLACK_NUM_WORKERS=1 timeout 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "files_unchanged": 538,
+      "runtime_note": "Default process pool denied by sandbox socket restrictions. Plain single worker exited 124. A temporary standard asyncio loop with a 50ms wake-up timer completed the full check, preserving file selection and formatting rules."
+    },
+    "ruff": {
+      "command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit_code": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "live_ci_read": {
+      "run_id": 41661022529,
+      "job_id": 126004180807,
+      "job_name": "Python CI / python 3.14",
+      "pytest_step": "Pytest (unit tests with coverage)",
+      "conclusion": "success",
+      "tested_sha": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+      "terminal_result": "1969 passed, 1 skipped, 994 warnings in 132.84s (0:02:12)",
+      "source": "GitHub connector workflow jobs and decoded job logs; shell gh commands exited 1 due to network restriction"
+    },
+    "publication": {
+      "pr": 2497,
+      "state": "open",
+      "draft": false,
+      "head_at_check": "e012315a8ee82ee9f108bf129d8f5dd26cf3725d",
+      "body_update": "rejected: MCP tool call requires approval, but approval policy is never",
+      "proposed_body": "/tmp/issue2360-product-boundary-pr-body.md",
+      "comment": "rejected by the same approval policy",
+      "needs_human_label": "rejected by the same approval policy",
+      "main_git_add_exit": 128,
+      "main_git_add_error": ".git/index.lock: Read-only file system"
+    }
   }
 }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import shlex
@@ -17,6 +18,7 @@ MERGED = "e8967edb2aa1bdbc1a68ea58ed241cf205915d03"
 ASSESSED = "a2f4ef50403a0a90e8535e4daef5e6c691037bd2"
 REPOSITORY = "stranske/Portable-Alpha-Extension-Model"
 CONFIG_SHA256 = "b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4"
+PRODUCT_FILES_SHA256 = "acecd017d2b5bb4dd598d5bf791da0a526e936c01d16a6bd12ac6da445932499"
 TARGET = "dashboard/pages/3_Scenario_Wizard.py"
 WIZARD_SHA256 = "6a768b6a8bc41089b32cbf7eb32cd3d005e3db1934d5791cf3daee2710cea654"
 EXPECTED_OUTCOME = (
@@ -399,6 +401,17 @@ def check_coverage(directory: Path) -> tuple[str, str]:
         if entry["target_units"] != recorded_counts:
             return "FAIL", "recorded target counts differ from raw coverage"
     first, last = measurements
+    inventory = read_json(directory, "recheck/source-inventory.json")
+    # Pin the complete product boundary from both historical Git trees. Two
+    # reports can agree with each other while both omit the same untested file.
+    if not (
+        inventory["revisions"] == [BASE, MERGED]
+        and inventory["sources"] == ["pa_core", "dashboard", "design-system"]
+        and hashlib.sha256(json.dumps(inventory["files"], sort_keys=True).encode()).hexdigest()
+        == PRODUCT_FILES_SHA256
+        and all(report["files"].keys() == inventory["files"].keys() for report in reports)
+    ):
+        return "FAIL", "coverage inventory differs from the complete historical product boundary"
     # Raw unit boundaries must match for every measured file, not only the target.
     valid = (
         valid

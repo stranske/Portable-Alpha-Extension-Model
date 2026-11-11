@@ -809,3 +809,54 @@ def test_configured_attribution_requires_exact_executed_case_delta(
     assert "FAIL: coverage attribution:" in output
     assert "OVERALL FAIL" in output
     assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize("breakage", ["omit", "target_only", "replace", "extra"])
+def test_matching_reports_must_cover_entire_historical_product_inventory(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    # Agreement between two narrowed reports does not prove the configured boundary.
+    for report in (PARENT_COVERAGE, MERGE_COVERAGE):
+
+        def update(data):
+            files = data["files"]
+            if breakage == "omit":
+                del files["pa_core/cli.py"]
+            elif breakage == "target_only":
+                data["files"] = {verifier.TARGET: files[verifier.TARGET]}
+            elif breakage == "replace":
+                files["pa_core/unrelated.py"] = files.pop("pa_core/cli.py")
+            else:
+                files["pa_core/unrelated.py"] = files["pa_core/cli.py"]
+
+        change_json(evidence, report, update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize("breakage", ["missing", "revision", "blob", "narrowed"])
+def test_product_inventory_requires_retained_historical_tree_receipt(
+    evidence: Path, breakage: str, capsys
+) -> None:
+    receipt = "recheck/source-inventory.json"
+    if breakage == "missing":
+        (evidence / receipt).unlink()
+    else:
+
+        def update(record):
+            if breakage == "revision":
+                record["revisions"][0] = verifier.MERGED
+            elif breakage == "blob":
+                record["files"]["pa_core/cli.py"] = "0" * 40
+            else:
+                del record["files"]["pa_core/cli.py"]
+
+        change_json(evidence, receipt, update)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
