@@ -1,0 +1,5 @@
+--- a/pa_core/pa.py
++++ b/pa_core/pa.py
+@@ -347 +347 @@
+-                        f"seed={seed}\tcode={summary.code_version}"
++                        f"seed={seed}"

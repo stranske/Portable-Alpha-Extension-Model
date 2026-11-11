@@ -1,0 +1,5 @@
+--- a/pa_core/pa.py
++++ b/pa_core/pa.py
+@@ -350 +350 @@
+-            scenario = get_scenario(args.scenario_id)
++            scenario = get_scenario("wrong-id")

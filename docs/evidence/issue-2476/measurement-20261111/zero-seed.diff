@@ -1,0 +1,5 @@
+--- a/pa_core/pa.py
++++ b/pa_core/pa.py
+@@ -344 +344 @@
+-                    seed = "none" if summary.seed is None else summary.seed
++                    seed = "none" if not summary.seed else summary.seed

@@ -444,19 +444,34 @@ def test_pa_registry_list_and_get(monkeypatch, capsys) -> None:
     pa_entry.main(["registry", "list"])
     assert "No registered scenarios" in capsys.readouterr().out
 
-    summary = _ScenarioSummary("abc", "2026-01-01", 7, "v1")
-    monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary])
+    summary = _ScenarioSummary("abc", "2026-01-01", 0, "v1")
+    unseeded = _ScenarioSummary("def", "2026-01-02", None, "v2")
+    monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary, unseeded])
     capsys.readouterr()
     pa_entry.main(["registry", "list"])
-    out = capsys.readouterr().out
-    assert "abc" in out
-    assert "seed=7" in out
+    assert capsys.readouterr().out.splitlines() == [
+        "abc\t2026-01-01\tseed=0\tcode=v1",
+        "def\t2026-01-02\tseed=none\tcode=v2",
+    ]
 
-    record = _ScenarioRecord("abc", "2026-01-01", 7, "v1")
-    monkeypatch.setattr("pa_core.scenario_registry.get", lambda _id: record)
+    record = _ScenarioRecord("abc", "2026-01-01", 0, "v1")
+    requested_ids: list[str] = []
+
+    def get_scenario(scenario_id: str) -> _ScenarioRecord:
+        requested_ids.append(scenario_id)
+        return record
+
+    monkeypatch.setattr("pa_core.scenario_registry.get", get_scenario)
     capsys.readouterr()
     pa_entry.main(["registry", "get", "abc"])
-    assert '"scenario_id": "abc"' in capsys.readouterr().out
+    assert requested_ids == ["abc"]
+    assert json.loads(capsys.readouterr().out) == {
+        "scenario_id": "abc",
+        "created_at": "2026-01-01",
+        "seed": 0,
+        "code_version": "v1",
+        "index_hash": "hash",
+    }
 
 
 def test_pa_calibrate_returns_path_and_input_requires_index_id(
