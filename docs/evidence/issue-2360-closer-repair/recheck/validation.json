@@ -820,5 +820,75 @@
       "isDraft": false,
       "head_sha": "544228f302bc1d933569ededccf0156540c684d6"
     }
+  },
+  "reconciliation_output_preservation": {
+    "checked_at": "2026-11-11",
+    "starting_pr_head": "237824cd6f62a75d6b1308cce8e50fe1fd5256a5",
+    "change": "Refuse reconciliation output resolving inside the evidence directory before verification or writing, including file and directory symlinks.",
+    "baseline": {
+      "passed": 249,
+      "exit_code": 0
+    },
+    "red": {
+      "command": "python -m pytest tests/test_issue_2360_reconciliation.py -q -m 'not slow' -k preserves_verified_evidence",
+      "exit_code": 1,
+      "failed": 5,
+      "finding": "Every new destination case wrote into evidence and printed false OVERALL PASS before the fix.",
+      "output": "/tmp/issue2360-output-preservation-red.txt"
+    },
+    "green": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py tests/test_cli_mutation_replay_isolation.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit_code": 0,
+      "passed": 254,
+      "coverage_row": "scripts/verify_issue_2360_evidence.py 248 4 98%",
+      "output": "/tmp/issue2360-output-preservation-green.txt"
+    },
+    "acceptance": {
+      "command": "python scripts/verify_issue_2360_evidence.py --reconcile-pr-body /tmp/issue2360-current-pr-body.md --output /tmp/issue2360-reconciled-pr-body.md",
+      "exit_code": 0,
+      "result": "Six requirement PASS results and reconciliation PASS; OVERALL PASS. Ranking provenance remains UNKNOWN; only its disclosure passes.",
+      "output": "/tmp/issue2360-output-preservation-verification.txt"
+    },
+    "black": {
+      "formatted": [
+        "scripts/verify_issue_2360_evidence.py",
+        "tests/test_issue_2360_reconciliation.py"
+      ],
+      "command": "PYTHONPATH=/tmp/issue2360-output-preservation-black-runtime BLACK_NUM_WORKERS=1 timeout -k 5s 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit_code": 0,
+      "result": "539 files would be left unchanged",
+      "output": "/tmp/issue2360-output-preservation-black.txt",
+      "runtime_note": "Default full check exits 1 because the sandbox blocks the forkserver socket. One worker and a temporary standard asyncio loop with 50 ms wakeups pass the same CLI, rules and file selection."
+    },
+    "ruff": {
+      "command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_reconciliation.py",
+      "exit_code": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit_code": 0
+    },
+    "live_ci": {
+      "run_url": "https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/41661022529",
+      "job_id": 126004180807,
+      "job_name": "Python CI / python 3.14",
+      "tested_sha": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+      "result": "completed success; 1969 passed, 1 skipped, 994 warnings in 132.84s",
+      "source": "Live GitHub connector job and decoded log reads; requested shell gh issue/pr/run commands exit 1 because api.github.com is unreachable."
+    },
+    "publication": {
+      "current_checked_entries": 22,
+      "historical_text_unchanged": true,
+      "proposal": "/tmp/issue2360-reconciled-pr-body.md",
+      "proposal_sha256": "1811c130964ec4185474cdd33cb76a5d05dca16e6112c610d40911210d3d11fc",
+      "result": "PR-body, blocker-comment and needs-human label updates rejected: MCP tool call requires approval, but approval policy is never. Remote checklist unchanged.",
+      "pr": 2497,
+      "state": "open",
+      "isDraft": false,
+      "main_git_add_exit_code": 128,
+      "main_git_add_reason": ".git/index.lock is read-only",
+      "delivery_checkout": "/tmp/issue2360-output-preservation-delivery",
+      "patch": "/tmp/issue2360-output-preservation.patch"
+    }
   }
 }

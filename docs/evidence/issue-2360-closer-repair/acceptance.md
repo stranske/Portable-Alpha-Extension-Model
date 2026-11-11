@@ -1,5 +1,51 @@
 # Issue #2360 acceptance recheck
 
+## Reconciliation output preservation contract (2026-11-11 UTC)
+
+Recorded before this round's source/test edits. Reviewed the recent keepalive
+commits and re-read #2360 and merged #2372/#2467 through the GitHub connector;
+their exact revisions and changed files match [revisions.json](./recheck/revisions.json).
+Requested shell `gh issue view 2360`, `gh pr view 2372`, `gh pr view 2467`,
+`gh run list` and `gh run view 41661022529` exit 1 because api.github.com is
+unreachable. Live connector job/log reads confirm successful executed pytest
+at the assessed head in run 41661022529 (1969 passed, 1 skipped). Existing
+acceptance verification prints six PASS results and OVERALL PASS. The verified
+22-entry current PR checklist reconciliation was rejected: `MCP tool call
+requires approval, but approval policy is never`. Remote boxes remain unchanged.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected outcome: requirement-by-requirement PASS/FAIL/UNKNOWN; missing mandatory
+proof prevents OVERALL PASS. Reconciliation must refuse output inside the
+evidence directory, including paths through symlinks, before writing or printing
+success. A proposal must not destroy the receipts just verified. Stop after
+two attempts per unavailable receipt or 45 minutes total. Reuse historical
+coverage and mutation proofs; ranking provenance remains UNKNOWN.
+
+Verified result: all five new destination cases reproduced false OVERALL PASS
+before the fix. After implementation, **254 targeted tests pass**; the verifier
+coverage row reports **98%** (248 statements, four missing). The recorded command
+still prints six requirement PASS results and OVERALL PASS. Reconciliation
+rejects evidence destinations before verification or writing, preserving the
+saved input and existing receipts. Both changed Python files were formatted;
+the full Black check passes with **539 files unchanged**, using one worker and
+the recorded temporary standard-asyncio wake-up workaround after the default
+process pool was blocked by the sandbox. Ruff and `git diff --check` pass.
+Commands, exits and output locations are in `reconciliation_output_preservation`
+in [validation.json](./recheck/validation.json). Historical receipts are unchanged.
+
+- [x] Re-read the original requirements, exact revisions and changed files;
+  record the dated acceptance command, outcome and finite stop rule before edits.
+- [x] Verify that reconciliation cannot overwrite its verified evidence through
+  direct paths or file/directory symlinks and then report acceptance success.
+
+PR-body, blocker-comment and `needs-human` label publication were rejected:
+`MCP tool call requires approval, but approval policy is never`. No remote update
+is claimed. PR #2497 remains open and ready for review. The reviewable body is
+`/tmp/issue2360-reconciled-pr-body.md`. Main-checkout staging exits 128 because
+`.git/index.lock` is read-only. Deliver the meaningful source commit through
+`/tmp/issue2360-output-preservation-delivery` and its importable patch
+`/tmp/issue2360-output-preservation.patch`; this cannot advance the main branch.
+
 ## Current verification contract
 
 ```json

@@ -1,5 +1,7 @@
 """Prepare current acceptance checkboxes only when the retained receipts verify."""
 
+import shutil
+
 import pytest
 
 from scripts import verify_issue_2360_evidence as verifier
@@ -113,3 +115,48 @@ def test_cli_refuses_to_overwrite_input(tmp_path, body):
         verifier.main(["--reconcile-pr-body", str(source), "--output", str(source)])
     assert error.value.code == 2
     assert source.read_text() == body
+
+
+@pytest.mark.parametrize(
+    "destination", ["acceptance", "ci_receipt", "new_file", "file_symlink", "directory_symlink"]
+)
+def test_cli_preserves_verified_evidence_when_output_points_into_it(
+    tmp_path, body, destination, capsys
+):
+    evidence = tmp_path / "evidence"
+    shutil.copytree(verifier.DEFAULT, evidence)
+    source = tmp_path / "input.md"
+    source.write_text(body)
+    receipt = evidence / "recheck/ci-run.json"
+    if destination == "acceptance":
+        receipt = evidence / "acceptance.md"
+    elif destination == "new_file":
+        receipt = evidence / "proposal.md"
+    output = receipt
+    if destination == "file_symlink":
+        output = tmp_path / "proposal.md"
+        output.symlink_to(receipt)
+    elif destination == "directory_symlink":
+        alias = tmp_path / "receipt-alias"
+        alias.symlink_to(receipt.parent, target_is_directory=True)
+        output = alias / receipt.name
+    original = receipt.read_bytes() if receipt.exists() else None
+
+    with pytest.raises(SystemExit) as error:
+        verifier.main(
+            [
+                "--evidence-dir",
+                str(evidence),
+                "--reconcile-pr-body",
+                str(source),
+                "--output",
+                str(output),
+            ]
+        )
+
+    assert error.value.code == 2
+    assert source.read_text() == body
+    assert (receipt.read_bytes() if receipt.exists() else None) == original
+    report = capsys.readouterr()
+    assert "output must be outside the evidence directory" in report.err
+    assert "OVERALL PASS" not in report.out

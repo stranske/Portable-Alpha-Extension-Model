@@ -653,6 +653,10 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--reconcile-pr-body and --output must be supplied together")
     if args.output is not None and args.output.resolve() == args.reconcile_pr_body.resolve():
         parser.error("reconciliation output must differ from the saved input")
+    if args.output is not None and args.output.resolve().is_relative_to(
+        args.evidence_dir.resolve()
+    ):
+        parser.error("reconciliation output must be outside the evidence directory")
     results = verify(args.evidence_dir)
     for name, (status, detail) in results.items():
         print(f"{status}: {name}: {detail}")
