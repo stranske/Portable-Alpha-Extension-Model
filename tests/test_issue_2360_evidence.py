@@ -388,6 +388,42 @@ def test_missing_or_malformed_receipts_fail_without_crashing(evidence: Path) -> 
     assert results["CI"][0] == results["mutations"][0] == "FAIL"
 
 
+@pytest.mark.parametrize("jobs", ["unavailable", {}, [None], ["missing job"], [False]])
+def test_invalid_ci_job_collection_reports_all_requirements(evidence: Path, jobs, capsys) -> None:
+    change_json(evidence, "recheck/ci-jobs.json", lambda record: record.update(jobs=jobs))
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: CI:" in output
+    assert "PASS: acceptance contract:" in output
+    assert sum(line.startswith(("PASS:", "FAIL:", "UNKNOWN:")) for line in output.splitlines()) == 6
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize("side", ["configured-parent", "configured-merge"])
+def test_missing_python_context_reports_all_requirements(evidence: Path, side: str, capsys) -> None:
+    (evidence / "recheck/paired-ci" / side / "environment-platform.txt").write_text("")
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: coverage attribution:" in output
+    assert "PASS: acceptance contract:" in output
+    assert sum(line.startswith(("PASS:", "FAIL:", "UNKNOWN:")) for line in output.splitlines()) == 6
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
+@pytest.mark.parametrize("content", ["", " \n\t"])
+def test_empty_acceptance_record_prevents_overall_pass(
+    evidence: Path, content: str, capsys
+) -> None:
+    (evidence / "acceptance.md").write_text(content)
+    assert verifier.main(["--evidence-dir", str(evidence)]) == 1
+    output = capsys.readouterr().out
+    assert "FAIL: acceptance contract:" in output
+    assert "OVERALL FAIL" in output
+    assert "OVERALL PASS" not in output
+
+
 @pytest.mark.parametrize("requirement", ["CI", "mutations"])
 def test_missing_mandatory_proof_prevents_overall_pass(
     evidence: Path, requirement: str, monkeypatch: pytest.MonkeyPatch, capsys

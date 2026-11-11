@@ -561,5 +561,73 @@
       "main_git_add_exit": 128,
       "main_git_add_error": ".git/index.lock: Read-only file system"
     }
+  },
+  "receipt_reporting_followup": {
+    "checked_at": "2026-11-11",
+    "assessed_pr_2467_head": "a2f4ef50403a0a90e8535e4daef5e6c691037bd2",
+    "starting_pr_2497_head": "25716853ec440dd093386ad1888b9cf88b82b32a",
+    "baseline": {
+      "tests_passed": 168,
+      "verification_exit": 0
+    },
+    "red": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py -q -m 'not slow' -k 'invalid_ci_job_collection or missing_python_context or empty_acceptance_record'",
+      "exit": 1,
+      "failed": 8,
+      "passed": 1,
+      "output": "/tmp/issue2360-receipt-reporting-red.txt",
+      "finding": "Six malformed receipt crashes and two empty-record false PASS results; empty dict job collection was already rejected."
+    },
+    "green": {
+      "command": "python -m pytest tests/test_issue_2360_evidence.py tests/test_wizard_render_coverage.py -q -m 'not slow' --cov=scripts.verify_issue_2360_evidence --cov-report=term-missing",
+      "exit": 0,
+      "passed": 194,
+      "verifier_statements": 204,
+      "missing_statements": 4,
+      "cover_percent": 98,
+      "output": "/tmp/issue2360-receipt-reporting-green.txt"
+    },
+    "verification": {
+      "command": "python scripts/verify_issue_2360_evidence.py",
+      "exit": 0,
+      "result": "six PASS results; OVERALL PASS",
+      "output": "/tmp/issue2360-receipt-verification.txt"
+    },
+    "black": {
+      "individual_commands": [
+        "black --line-length 100 scripts/verify_issue_2360_evidence.py",
+        "black --line-length 100 tests/test_issue_2360_evidence.py"
+      ],
+      "command": "PYTHONPATH=/tmp/issue2360-receipt-black-runtime BLACK_NUM_WORKERS=1 timeout -k 5s 45s black --check --line-length 100 --exclude '(\\.workflows-lib|node_modules)' .",
+      "exit": 0,
+      "unchanged_files": 538,
+      "output": "/tmp/issue2360-receipt-black-final-retry.txt",
+      "runtime_note": "Default multiprocessing cannot bind its forkserver socket; plain one-worker execution exited 124. Standard asyncio loop with 50 ms wakeups completed the same full check; no formatter rules or file selection changed."
+    },
+    "lint": {
+      "command": "python -m ruff check scripts/verify_issue_2360_evidence.py tests/test_issue_2360_evidence.py",
+      "exit": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit": 0
+    },
+    "publication": {
+      "pr": 2497,
+      "state": "open",
+      "isDraft": false,
+      "body_update": "rejected: MCP tool call requires approval, but approval policy is never",
+      "proposed_body": "/tmp/issue2360-reconciled-pr-body.md",
+      "main_checkout_staging": "git add exited 128: .git/index.lock is read-only",
+      "delivery_checkout": "/tmp/issue2360-receipt-reporting-delivery",
+      "patch": "/tmp/issue2360-receipt-reporting.patch",
+      "blocker_comment": "rejected: MCP tool call requires approval, but approval policy is never",
+      "needs_human_label": "rejected: MCP tool call requires approval, but approval policy is never",
+      "final_pr_read": {
+        "state": "open",
+        "isDraft": false,
+        "head_sha": "25716853ec440dd093386ad1888b9cf88b82b32a"
+      }
+    }
   }
 }

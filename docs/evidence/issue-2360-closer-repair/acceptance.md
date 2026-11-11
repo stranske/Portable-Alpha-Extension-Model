@@ -1,5 +1,72 @@
 # Issue #2360 acceptance recheck
 
+## Receipt failure reporting contract (2026-11-11 UTC)
+
+Recorded before source/test edits. Re-read #2360 and merged #2372/#2467
+through the GitHub connector, including changed-file lists; identities match
+[revisions.json](./recheck/revisions.json). Requested `gh issue view 2360`,
+`gh pr view 2372`, `gh pr view 2467`, `gh run list --commit a2f4ef50403a0a90e8535e4daef5e6c691037bd2` and `gh run view 41661022529`
+all exit 1 because shell network access is unavailable. Live connector jobs/logs
+confirm run 41661022529's successful executed Python pytest job, exact checkout
+SHA, command and terminal result (1969 passed, 1 skipped). PR #2497 is open,
+ready for review, at `25716853ec440dd093386ad1888b9cf88b82b32a`.
+
+Baseline: 168 evidence tests pass; the recorded verification command prints
+six PASS results and OVERALL PASS. Existing receipts establish eight original
+mutation proofs, nine separate later cases and the paired configured-suite
+73-unit reduction. The bounded ranking search remains unrecoverable/UNKNOWN;
+the older archive does not establish dispatch compliance. Current remote task
+checkboxes are stale; a verified reconciliation is prepared at
+`/tmp/issue2360-reconciled-pr-body.md`.
+
+Runnable verification command: `python scripts/verify_issue_2360_evidence.py`.
+Expected output: requirement-by-requirement PASS/FAIL/UNKNOWN and OVERALL PASS
+for retained evidence; FAIL for the affected requirement, OVERALL FAIL and exit 1
+for malformed mandatory receipts or an empty durable acceptance record. The
+command must finish reporting the other requirements even when a CI job list
+has the wrong JSON structure or a paired receipt lacks its Python context.
+Stop after two retrieval attempts per unavailable receipt or 45 minutes total.
+Reuse historical receipts; no new historical full-suite runs, workflow edits,
+production changes or wizard test rewrites.
+
+Verified result: the new regressions initially produced six crashes and two
+false OVERALL PASS results (eight failed, one existing rejection passed). After
+the fix, **194 targeted tests pass**, including nine new cases. Targeted verifier
+coverage is **98%** (204 statements, four missing). The recorded acceptance
+command prints six requirement PASS results and OVERALL PASS, exit 0. Ranking
+provenance remains explicitly UNKNOWN; that PASS validates disclosure only.
+Original mutation receipts and paired historical coverage records are unchanged.
+Commands, exits and output locations are in `receipt_reporting_followup` in
+[validation.json](./recheck/validation.json).
+
+Ruff and `git diff --check` pass. Black formatted both changed files, and its
+required full repository check passes with **538 files unchanged**. Default
+multiprocessing hit the restricted forkserver socket; a plain one-worker run
+exited 124. The successful full check used one worker and a temporary standard
+asyncio loop with 50 ms wakeups, preserving all Black rules and file selection.
+
+- [x] Re-read original issue and PR requirements, exact revisions and changed
+  files; record the dated outcome, verification command and finite stop rule
+  before source/test edits.
+- [x] Verify the retained exact-head executed pytest CI receipt and original
+  eight mutation proofs; keep the nine later cases separate.
+- [x] Verify paired configured-suite attribution (463 to 390 uncovered units;
+  1050 statements plus 284 branches) and the UNKNOWN provenance disclosure.
+- [x] Run requirement-by-requirement acceptance verification, including regression
+  checks that malformed receipts and an empty durable record prevent PASS.
+
+Publication remains blocked. Updating PR #2497's reconciled current checklist
+was rejected: `MCP tool call requires approval, but approval policy is never`.
+Remote checkboxes remain unchanged; the proposed body is
+`/tmp/issue2360-reconciled-pr-body.md`. Main-checkout `git add` exited 128 because
+`.git/index.lock` is read-only. The meaningful source commit is prepared in
+`/tmp/issue2360-receipt-reporting-delivery`, with its importable patch at
+`/tmp/issue2360-receipt-reporting.patch`; this does not advance the checkout's
+branch. Blocker-comment and `needs-human` label attempts were also rejected by
+the same connector policy; neither is claimed as published. Final live read
+confirms PR #2497 remains open and ready for review at the starting SHA.
+No workflow or production file changed.
+
 ## Product coverage boundary contract (2026-11-11 UTC)
 
 Recorded before source/test changes. Reviewed recent commits `bc3dd452`,

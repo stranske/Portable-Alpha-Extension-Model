@@ -81,6 +81,8 @@ def check_revisions(directory: Path) -> tuple[str, str]:
 def check_ci(directory: Path) -> tuple[str, str]:
     run = read_json(directory, "recheck/ci-run.json")
     jobs = read_json(directory, "recheck/ci-jobs.json")["jobs"]
+    if not isinstance(jobs, list) or any(not isinstance(job, dict) for job in jobs):
+        raise ValueError("CI jobs receipt requires a list of job objects")
     receipt = read_json(directory, "recheck/ci-pytest-job.json")
     pytest_job = receipt["job"]
     run_url = f"https://github.com/{REPOSITORY}/actions/runs/{run['id']}"
@@ -296,6 +298,9 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> tuple[dict, di
     if not valid:
         raise ValueError(f"paired-CI receipt does not bind {revision}")
     freeze = (receipt / "environment-freeze.txt").read_text().splitlines()
+    platform = (receipt / "environment-platform.txt").read_text().splitlines()
+    if not platform or not platform[0].strip():
+        raise ValueError("paired-CI receipt is missing its Python execution context")
     return {
         "run_id": job.group(1),
         "command": command,
@@ -304,7 +309,7 @@ def check_receipt(directory: Path, entry: dict, revision: str) -> tuple[dict, di
         "environment": [
             line for line in freeze if not line.startswith("-e file:///tmp/issue2360-")
         ],
-        "python": (receipt / "environment-platform.txt").read_text().splitlines()[0],
+        "python": platform[0],
     }, cases
 
 
@@ -466,7 +471,7 @@ def check_contract(directory: Path) -> tuple[str, str]:
         and 0 < attempts <= 2
         and type(minutes) in (int, float)
         and 0 < minutes <= 45
-        and (directory / "acceptance.md").is_file()
+        and bool((directory / "acceptance.md").read_text(encoding="utf-8").strip())
     )
     return (
         "PASS" if valid else "FAIL",
