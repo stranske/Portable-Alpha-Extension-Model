@@ -101,3 +101,28 @@ Against the original baseline there are 20 new PASS nodes (eight CLI cases and
 scope and zero covered-line regressions. Production coverage remains
 12,191 / 14,554 statements (83.76391370070084%). The current archive has 49 members
 and four current input bindings. Focused validator/CLI validation reports **20 passed**.
+
+## Current-main baseline for #2495 (recorded before execution)
+
+Narrowed scope from the #2495 park triage: one bounded current-main baseline, the full
+coverage run and the focused PNG/PDF run, then report completed versus timed-out runs and
+the first concrete failure. Mutation pairs and coverage improvements are out of this pass.
+
+| Field | Value |
+| --- | --- |
+| Check date | 2026-11-11 |
+| Tested main commit | `5be77e15c925f5354ab67e2a1749fe6187d2038c` (`origin/main` at start) |
+| Working tree before execution | clean (`git status --porcelain` empty) |
+| `pa_core/cli.py` SHA-256 | `f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26` |
+| Interpreter | `/opt/homebrew/bin/python3.13` (3.13.13). `pyproject.toml` declares `requires-python = ">=3.13"`; CI uses 3.14, which is not installed locally. Earlier evidence in this directory ran on 3.12, below the declared floor. |
+| Runner | `current-main-20261111/run_baseline.py` (records argv, exit, elapsed, timeout flag, interpreter and dependency versions, production hashes) |
+| Operational outcome | Both commands reach a terminal exit inside the stop rule with artifacts committed; the focused run exits 0. |
+| Maximum attempts | 1 per command (no reruns to obtain a green result) |
+| Timeout / elapsed-time stop rule | 600 s per command; on expiry the process is killed, the run is recorded as `timeout: true` and is not a completed run. The last measured full run took 182 s. |
+
+Commands (run from the repository root, serial because the issue names the exact command):
+
+```sh
+python -m pytest --cov=pa_core --cov=dashboard --cov-report=json:coverage.json tests/ --junitxml=<evidence>/full-junit.xml
+python -m pytest tests/test_cli_png_failures.py tests/test_cli_pdf_failures.py tests/test_cli_sweep_png_export.py -q --junitxml=<evidence>/focused-junit.xml
+```
