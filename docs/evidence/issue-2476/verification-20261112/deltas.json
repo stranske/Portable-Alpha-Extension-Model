@@ -1,0 +1,48 @@
+{
+  "baseline_revision": "6c919c92c99049c6672256a7e1aa7ee3fb1189b1",
+  "head_revision": "bda7804e12971463fe8d28a2186759ee3f8e6411",
+  "configuration_identical": true,
+  "file_scope_identical": true,
+  "this_continuation_fewer_missing_statements": 0,
+  "this_continuation_fewer_missing_branches": 0,
+  "targets": {
+    "pa_core/llm/result_explain.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    },
+    "pa_core/pa.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    },
+    "pa_core/facade.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    },
+    "pa_core/units.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    },
+    "pa_core/sim/internal_pa_financing.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    },
+    "pa_core/manifest.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    },
+    "dashboard/pages/4_Results.py": {
+      "fewer_missing_statements": 0,
+      "fewer_missing_branches": 0
+    }
+  },
+  "historical_round_accounting": {
+    "fewer_missing_statements": 207,
+    "fewer_missing_branches": 119,
+    "source": "../gate-coverage.json; historical test policy, not remeasured here"
+  },
+  "prior_pr_accounting": {
+    "fewer_missing_statements": 18,
+    "fewer_missing_branches": 26,
+    "source": "../continuation-20261111/hosted-main/seven-targets.json; prior hosted main/merge comparison, not this continuation"
+  }
+}

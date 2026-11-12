@@ -1,0 +1,15 @@
+....................................................                     [100%]
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+tests/test_coverage_round_2381.py::test_facade_run_single_and_sweep_reject_non_series_index
+tests/test_coverage_round_2381.py::test_facade_run_sweep_rejects_scalar_index
+tests/test_coverage_round_2381.py::test_export_sweep_artifacts_with_visualizations
+tests/test_coverage_round_2381.py::test_run_single_and_sweep_accept_single_column_index_frame
+  /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+52 passed, 17 warnings in 2.54s

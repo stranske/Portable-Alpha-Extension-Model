@@ -1,0 +1,57 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________________ test_pa_registry_list_and_get _________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x72abf5b9e650>
+capsys = <_pytest.capture.CaptureFixture object at 0x72abf5c09940>
+
+    def test_pa_registry_list_and_get(monkeypatch, capsys) -> None:
+        monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [])
+        pa_entry.main(["registry", "list"])
+        assert "No registered scenarios" in capsys.readouterr().out
+
+        summary = _ScenarioSummary("abc", "2026-01-01", 0, "v1")
+        unseeded = _ScenarioSummary("def", "2026-01-02", None, "v2")
+        monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary, unseeded])
+        capsys.readouterr()
+        pa_entry.main(["registry", "list"])
+>       assert capsys.readouterr().out.splitlines() == [
+            "abc\t2026-01-01\tseed=0\tcode=v1",
+            "def\t2026-01-02\tseed=none\tcode=v2",
+        ]
+E       AssertionError: assert ['abc\t2026-0...2\tseed=none'] == ['abc\t2026-0...one\tcode=v2']
+E
+E         At index 0 diff: 'abc\t2026-01-01\tseed=0' != 'abc\t2026-01-01\tseed=0\tcode=v1'
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E           [
+E         -     'abc\t2026-01-01\tseed=0\tcode=v1',
+E         ?                             ---------
+E         +     'abc\t2026-01-01\tseed=0',
+E         -     'def\t2026-01-02\tseed=none\tcode=v2',
+E         ?                                ---------
+E         +     'def\t2026-01-02\tseed=none',
+E           ]
+
+tests/test_coverage_round_2381.py:452: AssertionError
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_pa_registry_list_and_get - AssertionError: assert ['abc\t2026-0...2\tseed=none'] == ['abc\t2026-0...one\tcode=v2']
+
+  At index 0 diff: 'abc\t2026-01-01\tseed=0' != 'abc\t2026-01-01\tseed=0\tcode=v1'
+
+  Full diff: (-: missing in left side, +: extra in left side)
+    [
+  -     'abc\t2026-01-01\tseed=0\tcode=v1',
+  ?                             ---------
+  +     'abc\t2026-01-01\tseed=0',
+  -     'def\t2026-01-02\tseed=none\tcode=v2',
+  ?                                ---------
+  +     'def\t2026-01-02\tseed=none',
+    ]
+1 failed, 13 warnings in 1.69s

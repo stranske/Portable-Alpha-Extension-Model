@@ -1,0 +1,30 @@
+{
+  "pa_core/llm/result_explain.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  },
+  "pa_core/pa.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  },
+  "pa_core/facade.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  },
+  "pa_core/units.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  },
+  "pa_core/sim/internal_pa_financing.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  },
+  "pa_core/manifest.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  },
+  "dashboard/pages/4_Results.py": {
+    "uncovered_statement_change": 0,
+    "uncovered_branch_change": 0
+  }
+}

@@ -110,7 +110,12 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
         if agent_semantics_val and all(
             isinstance(item, (pd.Series, dict)) for item in agent_semantics_val
         ):
-            records = pd.DataFrame(agent_semantics_val).to_dict(orient="records")
+            rows = agent_semantics_val
+            if any(isinstance(item, dict) for item in rows):
+                if any(isinstance(item, pd.Series) and not item.index.is_unique for item in rows):
+                    raise ValueError("Series rows must have unique labels")
+                rows = [item.to_dict() if isinstance(item, pd.Series) else item for item in rows]
+            records = pd.DataFrame(rows).to_dict(orient="records")
             inputs["_agent_semantics_df"] = _records_to_builtin(records)
             return
         if agent_semantics_val and all(

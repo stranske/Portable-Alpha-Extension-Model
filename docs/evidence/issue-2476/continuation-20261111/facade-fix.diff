@@ -1,0 +1,14 @@
+diff --git a/pa_core/facade.py b/pa_core/facade.py
+index 43a23e3d..4596cb8e 100644
+--- a/pa_core/facade.py
++++ b/pa_core/facade.py
+@@ -113,4 +113,5 @@ def _serialize_agent_semantics_input(inputs: dict[str, Any]) -> None:
+-            rows = [
+-                item.to_dict() if isinstance(item, pd.Series) else item
+-                for item in agent_semantics_val
+-            ]
++            rows = agent_semantics_val
++            if any(isinstance(item, dict) for item in rows):
++                if any(isinstance(item, pd.Series) and not item.index.is_unique for item in rows):
++                    raise ValueError("Series rows must have unique labels")
++                rows = [item.to_dict() if isinstance(item, pd.Series) else item for item in rows]

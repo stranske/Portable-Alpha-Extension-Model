@@ -1,0 +1,2 @@
+timeout -k 5s 180s python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m not\ slow\ and\ not\ live_llm --cov-branch 
+PYTEST_ADDOPTS=-vv

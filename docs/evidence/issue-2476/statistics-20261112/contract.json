@@ -1,0 +1,30 @@
+{
+  "checked": "2026-11-12",
+  "baseline_revision": "5e3add596fb618367aa7aa4457773e17384f4199",
+  "available_main_revision": "9d083d69796126c41d3a05aa3499cb4fe8cc11eb",
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "ranking_source": "docs/evidence/issue-2381-closer-repair/ranking-provenance.json",
+  "test_scope": [
+    "tests/test_coverage_round_2381.py",
+    "tests/test_coverage_round_2417.py",
+    "tests/test_coverage_round_2421.py",
+    "tests/test_coverage_round_2476_facade.py",
+    "tests/test_result_explain.py",
+    "tests/test_dashboard_results_previous_run.py"
+  ],
+  "interpreter": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+  "python": "3.14.10",
+  "configuration_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "gate_command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+  "stop_rule": "Focused runs and mutations limited to 120s, at most three attempts per failing step. No repeat of the unchanged full Gate configuration that timed out in the preceding two continuations; no full-suite reduction inferred from focused measurements.",
+  "pre_edit_intent": "Replace output-shape assertions for ranked target 1 with exact statistics, quantiles, last-three-row content and input preservation. The recorded 227/227 statements and 102/102 branches are already saturated; expect zero new units.",
+  "pr_reconciliation": "94 existing focused cases pass in 4.46s. PR open, draft=false at 5e3add59. Body update rejected: MCP tool call requires approval, but approval policy is never. Completed task statuses retained; proposed duplicate checkbox reconciliation saved locally."
+}

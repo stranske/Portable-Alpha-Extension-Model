@@ -1,0 +1,74 @@
+[
+  {
+    "mutation": "head-instead-of-tail",
+    "node": "tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable -m 'not slow and not live_llm' -q",
+    "before_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "mutated_sha256": "7b4d5e26b102fa0d64c760c4ad2aa2d98e96f74ddafd64b1bc7688da06827f46",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "red_seconds": 4.291,
+    "green_exit": 0,
+    "green_seconds": 4.036
+  },
+  {
+    "mutation": "two-tail-rows",
+    "node": "tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable -m 'not slow and not live_llm' -q",
+    "before_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "mutated_sha256": "346b3cf2e649e695c05d3a852c64c3694ef5868f6816d5824d7c0829ac907c78",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "red_seconds": 4.195,
+    "green_exit": 0,
+    "green_seconds": 4.024
+  },
+  {
+    "mutation": "missing-standard-deviation",
+    "node": "tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable -m 'not slow and not live_llm' -q",
+    "before_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "mutated_sha256": "06790d657b29024b5dfd8f02df0fe1d7a784326359abb25c75014069454ba165",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "red_seconds": 4.2,
+    "green_exit": 0,
+    "green_seconds": 4.041
+  },
+  {
+    "mutation": "quartiles-instead-of-tails",
+    "node": "tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable -m 'not slow and not live_llm' -q",
+    "before_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "mutated_sha256": "939481423e39b3de8617d1251243954434ad7727335c90ee43b309a641512d3e",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "red_seconds": 4.219,
+    "green_exit": 0,
+    "green_seconds": 4.043
+  },
+  {
+    "mutation": "zero-quantile-values",
+    "node": "tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable -m 'not slow and not live_llm' -q",
+    "before_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "mutated_sha256": "27644be40963f18f21a5bc50a4722837b43c3fb31f5f545c21bf6659a747db00",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "red_seconds": 4.229,
+    "green_exit": 0,
+    "green_seconds": 4.057
+  },
+  {
+    "mutation": "modify-caller-after-payload",
+    "node": "tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable",
+    "command": "timeout -k 5s 120s /opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_result_explain.py::test_analysis_output_contains_required_sections_and_is_json_serializable -m 'not slow and not live_llm' -q",
+    "before_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "mutated_sha256": "a8f7176107bc75ff8c46fe12802468fcf74327e0adcbf93e69d38056f21953c3",
+    "restored_sha256": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "red_exit": 1,
+    "red_seconds": 4.229,
+    "green_exit": 0,
+    "green_seconds": 4.028
+  }
+]

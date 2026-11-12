@@ -1,0 +1,46 @@
+[
+  {
+    "name": "sidebar-options",
+    "file": "dashboard/pages/4_Results.py",
+    "test": "tests/test_coverage_round_2381.py::test_results_main_multiselect_uses_index_when_config_missing",
+    "command": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/test_coverage_round_2381.py::test_results_main_multiselect_uses_index_when_config_missing",
+      "-m",
+      "not slow and not live_llm",
+      "--tb=short"
+    ],
+    "removed": "if summary.index.name:\n            agent_options = summary.index.tolist()",
+    "added": "if summary.index.name:\n            agent_options = list(summary.columns)",
+    "sha256_before": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "sha256_mutated": "7cd365f05eff8562daf41df811b8630bb2c16e9cabce530b498c86cfb3a1d3e1",
+    "red_exit": 1,
+    "sha256_restored": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "green_exit": 0
+  },
+  {
+    "name": "selected-data",
+    "file": "dashboard/pages/4_Results.py",
+    "test": "tests/test_coverage_round_2381.py::test_results_main_multiselect_uses_index_when_config_missing",
+    "command": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "tests/test_coverage_round_2381.py::test_results_main_multiselect_uses_index_when_config_missing",
+      "-m",
+      "not slow and not live_llm",
+      "--tb=short"
+    ],
+    "removed": "sub_paths = paths[agents].iloc[:, :months]",
+    "added": "sub_paths = paths.iloc[:, :months]",
+    "sha256_before": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "sha256_mutated": "a1e7e866737e928be6a499c248465bb7771f8160d011bf57c8739fcc54c4cc69",
+    "red_exit": 1,
+    "sha256_restored": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "green_exit": 0
+  }
+]

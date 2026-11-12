@@ -1,0 +1,69 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________________ test_pa_registry_list_and_get _________________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x71c1f74a2650>
+capsys = <_pytest.capture.CaptureFixture object at 0x71c1f750d940>
+
+    def test_pa_registry_list_and_get(monkeypatch, capsys) -> None:
+        monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [])
+        pa_entry.main(["registry", "list"])
+        assert "No registered scenarios" in capsys.readouterr().out
+
+        summary = _ScenarioSummary("abc", "2026-01-01", 0, "v1")
+        unseeded = _ScenarioSummary("def", "2026-01-02", None, "v2")
+        monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary, unseeded])
+        capsys.readouterr()
+        pa_entry.main(["registry", "list"])
+        assert capsys.readouterr().out.splitlines() == [
+            "abc\t2026-01-01\tseed=0\tcode=v1",
+            "def\t2026-01-02\tseed=none\tcode=v2",
+        ]
+
+        record = _ScenarioRecord("abc", "2026-01-01", 0, "v1")
+        requested_ids: list[str] = []
+
+        def get_scenario(scenario_id: str) -> _ScenarioRecord:
+            requested_ids.append(scenario_id)
+            return record
+
+        monkeypatch.setattr("pa_core.scenario_registry.get", get_scenario)
+        capsys.readouterr()
+        pa_entry.main(["registry", "get", "abc"])
+>       assert requested_ids == ["abc"]
+E       AssertionError: assert ['wrong-id'] == ['abc']
+E
+E         At index 0 diff: 'wrong-id' != 'abc'
+E
+E         Full diff: (-: missing in left side, +: extra in left side)
+E           [
+E         -     'abc',
+E         +     'wrong-id',
+E           ]
+
+tests/test_coverage_round_2381.py:467: AssertionError
+----------------------------- Captured stdout call -----------------------------
+{
+  "scenario_id": "abc",
+  "created_at": "2026-01-01",
+  "seed": 0,
+  "code_version": "v1",
+  "index_hash": "hash"
+}
+=============================== warnings summary ===============================
+../../../../../opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: 13 warnings
+  /opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/langsmith/_internal/_beta_decorator.py:92: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+    if asyncio.iscoroutinefunction(func):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_coverage_round_2381.py::test_pa_registry_list_and_get - AssertionError: assert ['wrong-id'] == ['abc']
+
+  At index 0 diff: 'wrong-id' != 'abc'
+
+  Full diff: (-: missing in left side, +: extra in left side)
+    [
+  -     'abc',
+  +     'wrong-id',
+    ]
+1 failed, 13 warnings in 1.70s

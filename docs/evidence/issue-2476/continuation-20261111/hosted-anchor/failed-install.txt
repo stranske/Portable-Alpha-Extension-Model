@@ -1,0 +1,25 @@
+Run 43123043013, workflow hosted-anchor/workflow.yml.txt at eead60828471856ff085c41551291a39ab76de2e,
+revision bf424ec6ff58bb88b6431acf7809d42b2c59f95d. One attempt per configuration.
+
+== Measure anchor (gate) ==
+2026-11-11T23:52:09.4803601Z sha256sum pyproject.toml requirements.lock .github/workflows/*versions.env || true > "$RECEIPTS/input-hashes.txt"
+2026-11-11T23:52:09.4806065Z uv pip install --system -r requirements.lock -e '.[app,dev]' \
+2026-11-11T23:52:09.5171013Z b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4  pyproject.toml
+2026-11-11T23:52:09.5171999Z 2b2c5fdf3f6b805210f87716a23817f86f5af5da3295caa7de93f42acc7498ed  requirements.lock
+2026-11-11T23:52:09.5173249Z f6af4d79e2771675c2736b01f5dbf2afc478e8d840c56babbf9020e3fc8a3802  .github/workflows/autofix-versions.env
+2026-11-11T23:52:21.5402351Z     Updated https://github.com/stranske/Workflows.git (f9cdef980286fe4080dc9427196378ea66bc2a0a)
+2026-11-11T23:52:22.2253980Z error: No solution found when resolving dependencies
+2026-11-11T23:52:22.2255410Z   cause: Because you require coverage==7.17.2 and coverage==7.16.2, we can conclude that your requirements are unsatisfiable.
+2026-11-11T23:52:22.2383034Z ##[error]Process completed with exit code 1.
+== Measure anchor (branch) ==
+2026-11-11T23:52:09.1982741Z sha256sum pyproject.toml requirements.lock .github/workflows/*versions.env || true > "$RECEIPTS/input-hashes.txt"
+2026-11-11T23:52:09.1984363Z uv pip install --system -r requirements.lock -e '.[app,dev]' \
+2026-11-11T23:52:09.2221828Z b442a73dc1a9c83e895e6613a07f56d2604799da127ce14edee20adaf55d06d4  pyproject.toml
+2026-11-11T23:52:09.2222606Z 2b2c5fdf3f6b805210f87716a23817f86f5af5da3295caa7de93f42acc7498ed  requirements.lock
+2026-11-11T23:52:09.2223085Z f6af4d79e2771675c2736b01f5dbf2afc478e8d840c56babbf9020e3fc8a3802  .github/workflows/autofix-versions.env
+2026-11-11T23:52:15.5693339Z     Updated https://github.com/stranske/Workflows.git (f9cdef980286fe4080dc9427196378ea66bc2a0a)
+2026-11-11T23:52:15.9391085Z error: No solution found when resolving dependencies
+2026-11-11T23:52:15.9392334Z   cause: Because you require coverage==7.17.2 and coverage==7.16.2, we can conclude that your requirements are unsatisfiable.
+2026-11-11T23:52:15.9526107Z ##[error]Process completed with exit code 1.
+Measure anchor (gate)	failure	130868084537
+Measure anchor (branch)	failure	130868084969

@@ -1,0 +1,90 @@
+name: Issue 2476 hosted Gate measurement
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  measure:
+    name: Measure ${{ matrix.revision.label }} (${{ matrix.coverage }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        coverage: [gate, branch]
+        revision:
+          - label: baseline
+            sha: def0eec035bdccfdebce62c0116aa468ed6fdd2f
+          - label: candidate
+            sha: 4b1f5e4c4b5b1135fecf84adb04b44b8d15d7fe3
+    env:
+      RECEIPTS: /tmp/issue-2476-coverage
+      PYTEST_ADDOPTS: -vv
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Check out measured revision
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.revision.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.14.10'
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '24'
+      - name: Install the repository test environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RECEIPTS"
+          git rev-parse HEAD > "$RECEIPTS/revision.txt"
+          test "$(cat "$RECEIPTS/revision.txt")" = "${{ matrix.revision.sha }}"
+          sha256sum pyproject.toml requirements.lock .github/workflows/*versions.env > "$RECEIPTS/input-hashes.txt"
+          python -m pip install uv==0.13.1
+          source .github/workflows/ci-python-versions.env
+          source .github/workflows/autofix-versions.env
+          uv pip install --system -r requirements.lock -e '.[app,dev]' \
+            "pytest==$PYTEST_VERSION" "pytest-xdist==$PYTEST_XDIST_VERSION" \
+            "pytest-cov==$PYTEST_COV_VERSION" "coverage==$COVERAGE_VERSION" defusedxml==0.7.1
+          uv pip freeze --system > "$RECEIPTS/environment.txt"
+          { python -VV; uv --version; node --version; uname -srm; nproc; echo "$ImageOS $ImageVersion"; } > "$RECEIPTS/platform.txt"
+      - name: Execute the whole-suite command once
+        shell: bash
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          MEASUREMENT: ${{ matrix.coverage }}
+        run: |
+          set -euo pipefail
+          args=(python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml
+            --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup
+            -m 'not slow and not live_llm')
+          if [ "$MEASUREMENT" = branch ]; then
+            args+=(--cov-branch)
+          fi
+          printf '%q ' timeout -k 5s 180s "${args[@]}" > "$RECEIPTS/command.txt"
+          printf '\nPYTEST_ADDOPTS=%s\n' "$PYTEST_ADDOPTS" >> "$RECEIPTS/command.txt"
+          date -u +%FT%TZ > "$RECEIPTS/started.txt"
+          set +e
+          timeout -k 5s 180s "${args[@]}" 2>&1 | tee "$RECEIPTS/pytest.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          date -u +%FT%TZ > "$RECEIPTS/finished.txt"
+          printf '%s\n' "$status" > "$RECEIPTS/exit.txt"
+          for report in coverage.json coverage.xml; do
+            if [ -f "$report" ]; then
+              cp "$report" "$RECEIPTS/"
+            fi
+          done
+          exit "$status"
+      - name: Preserve measurement receipts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-2476-${{ matrix.revision.label }}-${{ matrix.coverage }}
+          path: ${{ env.RECEIPTS }}
+          if-no-files-found: error
+          retention-days: 14

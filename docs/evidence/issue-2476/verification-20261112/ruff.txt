@@ -1,0 +1,3 @@
+Command: ruff check --output-format github --extend-exclude .workflows-lib .
+Exit: 0
+The command emitted no output.

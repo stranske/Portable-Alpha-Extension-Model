@@ -1,19 +1,24 @@
 """Focused coverage for issue #2381 ranked targets (remainder after PR #2384).
 
-Evidence: docs/evidence/issue-2381-closer-repair/
+Restored for issue #2476 after closed PR #2484.
+Evidence: docs/evidence/issue-2476/
 """
 
 from __future__ import annotations
 
+import asyncio
 import builtins
+import inspect
 import json
 import runpy
 import sys
+import time
 import types
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
+from unittest.mock import create_autospec
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -21,7 +26,15 @@ import pytest
 
 import pa_core.pa as pa_entry
 from pa_core.config import ModelConfig, load_config
-from pa_core.facade import ExportOptions, RunOptions, export, run_single, run_sweep
+from pa_core.facade import (
+    ExportOptions,
+    RunOptions,
+    SweepArtifacts,
+    export,
+    run_single,
+    run_sweep,
+)
+from pa_core.llm import result_explain
 
 
 class _Container:
@@ -219,11 +232,36 @@ def test_results_main_renders_metrics_plots_and_download_for_available_workbook(
         ("Overlay Total", "4.00%"),
     ]
     assert len(render_explain.calls) == 1
-    assert render_explain.calls[0][1]["summary"] is summary
+    explain_kwargs = render_explain.calls[0][1]
+    assert explain_kwargs["summary"] is summary
+    assert explain_kwargs["manifest_data"] is None
+    assert explain_kwargs["xlsx"] == str(workbook)
     assert len(render_comparison.calls) == 1
-    assert render_comparison.calls[0][1]["xlsx"] == str(workbook)
-    assert len(render_png.calls) >= 1
-    assert len(render_async.calls) >= 1
+    comparison_kwargs = render_comparison.calls[0][1]
+    assert comparison_kwargs["summary"] is summary
+    assert comparison_kwargs["manifest_data"] is None
+    assert comparison_kwargs["xlsx"] == str(workbook)
+    assert len(render_png.calls) == 1
+    png_args, png_kwargs = render_png.calls[0]
+    assert png_args == (fake_st,)
+    assert png_kwargs["key"] == "results_headline_png"
+    assert png_kwargs["label"] == "Download PNG"
+    assert png_kwargs["file_name"] == "risk_return.png"
+    assert png_kwargs["fig"] is summary
+    assert len(render_async.calls) == 1
+    async_args, async_kwargs = render_async.calls[0]
+    assert async_args == (fake_st,)
+    assert async_kwargs["key"] == "results_committee_packet"
+    assert async_kwargs["label"] == "📦 Export Committee Packet"
+    assert async_kwargs["pending_message"] == "Creating export packet..."
+    assert inspect.iscoroutinefunction(async_kwargs["factory"])
+    packet_pptx = workbook.with_name("packet.pptx")
+    packet_xlsx = workbook.with_name("packet.xlsx")
+    packet_pptx.write_bytes(b"pptx")
+    packet_xlsx.write_bytes(b"xlsx")
+    async_kwargs["on_ready"]((str(packet_pptx), str(packet_xlsx)))
+    assert ("📋 Download PowerPoint", "packet.pptx") in fake_st.downloads
+    assert ("📊 Download Enhanced Excel", "packet.xlsx") in fake_st.downloads
 
 
 def test_overlay_total_return_computes_from_summary_with_agent_total() -> None:
@@ -353,14 +391,25 @@ def test_render_comparison_panel_shows_info_when_previous_run_unavailable() -> N
     fake_st = _ResultsStreamlit()
     render_comparison = module["_render_comparison_panel"]
     render_comparison.__globals__["st"] = fake_st
+    render_panel = _CallRecorder("comparison")
     availability = render_comparison(
         summary=pd.DataFrame({"monthly_TE": [0.01]}),
         manifest_data={"seed": 1},
         xlsx="current.xlsx",
+        render_panel=render_panel,
     )
     assert availability.available is False
-    assert fake_st.infos
+    assert availability.prior_manifest_path is None
+    expected_message = (
+        "Comparison unavailable: missing artifact `manifest_data['previous_run']`. "
+        "Expected file path to prior `manifest.json` in the current manifest."
+    )
+    assert availability.message == expected_message
+    assert fake_st.infos == [expected_message]
     assert fake_st.subheaders == ["LLM Comparison"]
+    assert render_panel.calls == []
+    assert fake_st.errors == []
+    assert fake_st.warnings == []
 
 
 def _exit_code(call: Callable[[], None]) -> int:
@@ -407,19 +456,34 @@ def test_pa_registry_list_and_get(monkeypatch, capsys) -> None:
     pa_entry.main(["registry", "list"])
     assert "No registered scenarios" in capsys.readouterr().out
 
-    summary = _ScenarioSummary("abc", "2026-01-01", 7, "v1")
-    monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary])
+    summary = _ScenarioSummary("abc", "2026-01-01", 0, "v1")
+    unseeded = _ScenarioSummary("def", "2026-01-02", None, "v2")
+    monkeypatch.setattr("pa_core.scenario_registry.list", lambda: [summary, unseeded])
     capsys.readouterr()
     pa_entry.main(["registry", "list"])
-    out = capsys.readouterr().out
-    assert "abc" in out
-    assert "seed=7" in out
+    assert capsys.readouterr().out.splitlines() == [
+        "abc\t2026-01-01\tseed=0\tcode=v1",
+        "def\t2026-01-02\tseed=none\tcode=v2",
+    ]
 
-    record = _ScenarioRecord("abc", "2026-01-01", 7, "v1")
-    monkeypatch.setattr("pa_core.scenario_registry.get", lambda _id: record)
+    record = _ScenarioRecord("abc", "2026-01-01", 0, "v1")
+    requested_ids: list[str] = []
+
+    def get_scenario(scenario_id: str) -> _ScenarioRecord:
+        requested_ids.append(scenario_id)
+        return record
+
+    monkeypatch.setattr("pa_core.scenario_registry.get", get_scenario)
     capsys.readouterr()
     pa_entry.main(["registry", "get", "abc"])
-    assert '"scenario_id": "abc"' in capsys.readouterr().out
+    assert requested_ids == ["abc"]
+    assert json.loads(capsys.readouterr().out) == {
+        "scenario_id": "abc",
+        "created_at": "2026-01-01",
+        "seed": 0,
+        "code_version": "v1",
+        "index_hash": "hash",
+    }
 
 
 def test_pa_calibrate_returns_path_and_input_requires_index_id(
@@ -487,6 +551,134 @@ def test_pa_calibrate_returns_path_and_input_requires_index_id(
         pa_entry.main(["calibrate", "--input", str(returns_csv), "--output", str(out_yaml)])
 
 
+@pytest.mark.parametrize(
+    ("mapping_text", "cli_options", "expected_settings"),
+    [
+        pytest.param(None, [], ("none", "single", 12), id="defaults"),
+        pytest.param(
+            "covariance_shrinkage: ledoit_wolf\nvol_regime: two_state\nvol_regime_window: '5'\n",
+            [],
+            ("ledoit_wolf", "two_state", 5),
+            id="flat-template",
+        ),
+        pytest.param(
+            "vol_regime: single\ncalibration:\n  covariance_shrinkage: ledoit_wolf\n"
+            "  vol_regime: two_state\n  vol_regime_window: '9'\n",
+            [],
+            ("ledoit_wolf", "two_state", 9),
+            id="nested-template",
+        ),
+        pytest.param(
+            "calibration:\n  covariance_shrinkage: ledoit_wolf\n"
+            "  vol_regime: two_state\n  vol_regime_window: 9\n",
+            ["--cov-shrinkage", "none", "--vol-regime", "single", "--vol-regime-window", "3"],
+            ("none", "single", 3),
+            id="cli-overrides-template",
+        ),
+        pytest.param(
+            "calibration:\n  covariance_shrinkage: ledoit_wolf\n",
+            [],
+            ("ledoit_wolf", "single", 12),
+            id="partial-template",
+        ),
+    ],
+)
+def test_pa_calibrate_input_forwards_settings_and_exports(
+    monkeypatch, tmp_path, capsys, mapping_text, cli_options, expected_settings
+) -> None:
+    from pa_core import data
+
+    importer_class = create_autospec(data.DataImportAgent)
+    calibrator_class = create_autospec(data.CalibrationAgent)
+    importer = (
+        importer_class.return_value
+        if mapping_text is None
+        else importer_class.from_template.return_value
+    )
+    importer.min_obs = 7 if mapping_text is None else 19
+    importer.allow_below_min_obs = False
+    frame = pd.DataFrame({"id": ["IDX"], "return": [0.01]})
+    importer.load.return_value = frame
+    monkeypatch.setattr(data, "DataImportAgent", importer_class)
+    monkeypatch.setattr(data, "CalibrationAgent", calibrator_class)
+    input_path = tmp_path / "returns.csv"
+    output_path = tmp_path / "assets.yaml"
+    args = [
+        "calibrate",
+        "--input",
+        str(input_path),
+        "--index-id",
+        "IDX",
+        "--output",
+        str(output_path),
+        "--min-obs",
+        "7",
+    ]
+    if mapping_text is not None:
+        mapping_path = tmp_path / "mapping.yaml"
+        mapping_path.write_text(mapping_text)
+        args.extend(["--mapping", str(mapping_path)])
+    pa_entry.main([*args, *cli_options])
+
+    if mapping_text is None:
+        importer_class.assert_called_once_with(min_obs=7, allow_below_min_obs=True)
+        importer_class.from_template.assert_not_called()
+    else:
+        importer_class.assert_not_called()
+        importer_class.from_template.assert_called_once_with(str(mapping_path))
+        assert importer.allow_below_min_obs is True
+    importer.load.assert_called_once_with(str(input_path))
+    covariance_shrinkage, vol_regime, window = expected_settings
+    calibrator_class.assert_called_once_with(
+        min_obs=importer.min_obs,
+        covariance_shrinkage=covariance_shrinkage,
+        vol_regime=vol_regime,
+        vol_regime_window=window,
+    )
+    calibrator = calibrator_class.return_value
+    calibrator.calibrate.assert_called_once()
+    assert calibrator.calibrate.call_args.args[0] is frame
+    assert calibrator.calibrate.call_args.kwargs == {"index_id": "IDX"}
+    calibrator.to_yaml.assert_called_once_with(calibrator.calibrate.return_value, str(output_path))
+    assert capsys.readouterr().out == f"✓ Wrote asset library to {output_path}\n"
+
+
+@pytest.mark.parametrize(
+    ("setting", "bad_value", "allowed"),
+    [
+        ("covariance_shrinkage", "unsupported", "['ledoit_wolf', 'none']"),
+        ("vol_regime", "unsupported", "['single', 'two_state']"),
+    ],
+    ids=["invalid-covariance", "invalid-regime"],
+)
+def test_pa_calibrate_rejects_invalid_template_before_loading_data(
+    monkeypatch, tmp_path, setting, bad_value, allowed
+) -> None:
+    from pa_core import data
+
+    importer_class = create_autospec(data.DataImportAgent)
+    calibrator_class = create_autospec(data.CalibrationAgent)
+    monkeypatch.setattr(data, "DataImportAgent", importer_class)
+    monkeypatch.setattr(data, "CalibrationAgent", calibrator_class)
+    mapping_path = tmp_path / "mapping.yaml"
+    mapping_path.write_text(f"calibration:\n  {setting}: {bad_value}\n")
+    with pytest.raises(ValueError) as exc_info:
+        pa_entry.main(
+            [
+                "calibrate",
+                "--input",
+                str(tmp_path / "missing.csv"),
+                "--index-id",
+                "IDX",
+                "--mapping",
+                str(mapping_path),
+            ]
+        )
+    assert str(exc_info.value) == f"{setting} must be one of {allowed}"
+    importer_class.from_template.return_value.load.assert_not_called()
+    calibrator_class.assert_not_called()
+
+
 def test_pa_convert_command_emits_deprecation_and_writes_yaml(tmp_path, capsys) -> None:
     csv_path = tmp_path / "params.csv"
     csv_path.write_text("Parameter,Value\nNumber of simulations,5\n")
@@ -527,26 +719,23 @@ def test_facade_run_single_and_sweep_reject_non_series_index() -> None:
         run_single(cfg, [[1, 2, 3]], RunOptions(seed=1))  # type: ignore[arg-type]
 
 
-def test_render_explain_results_handles_panel_failures() -> None:
+@pytest.mark.parametrize(
+    "exception_type", [ModuleNotFoundError, RuntimeError], ids=["missing-llm", "panel-error"]
+)
+def test_render_explain_results_handles_panel_failures(exception_type: type[Exception]) -> None:
     module = _load_results_module()
     render_explain = module["_render_explain_results"]
     fake_st = _ResultsStreamlit()
     render_explain.__globals__["st"] = fake_st
 
-    def _missing_module(**_: object) -> None:
-        raise ModuleNotFoundError("langchain")
-
-    render_explain.__globals__["render_explain_results_panel"] = _missing_module
-    render_explain(summary=pd.DataFrame({"monthly_TE": [0.01]}), manifest_data=None, xlsx="x.xlsx")
-    assert fake_st.infos
-
     def _boom(**_: object) -> None:
-        raise RuntimeError("panel failed")
+        raise exception_type("panel failed")
 
-    fake_st.infos.clear()
     render_explain.__globals__["render_explain_results_panel"] = _boom
     render_explain(summary=pd.DataFrame({"monthly_TE": [0.01]}), manifest_data=None, xlsx="x.xlsx")
-    assert fake_st.infos
+    assert fake_st.infos == ["LLM features unavailable. Install .[llm] to enable Explain Results."]
+    assert fake_st.errors == []
+    assert fake_st.warnings == []
 
 
 def test_check_previous_run_availability_rejects_non_mapping_manifest() -> None:
@@ -592,16 +781,27 @@ def test_results_main_png_non_kaleido_runtime_error_uses_error(tmp_path) -> None
 
 def test_results_main_multiselect_uses_index_when_config_missing(tmp_path) -> None:
     module = _load_results_module()
-    fake_st = _ResultsStreamlit()
+
+    class _SelectingStreamlit(_ResultsStreamlit):
+        def multiselect(self, label: str, options: list[str], default: list[str]) -> list[str]:
+            assert label == "Agents"
+            assert options == ["AgentA", "AgentB"]
+            assert default == options
+            return ["AgentB"]
+
+    fake_st = _SelectingStreamlit()
     workbook = tmp_path / "results.xlsx"
     workbook.write_bytes(b"workbook")
-    summary = pd.DataFrame({"monthly_TE": [0.02]}, index=pd.Index(["AgentA"], name="Agent"))
+    summary = pd.DataFrame(
+        {"monthly_TE": [0.02, 0.03]}, index=pd.Index(["AgentA", "AgentB"], name="Agent")
+    )
+    paths = pd.DataFrame({"AgentA": [0.01, 0.02], "AgentB": [-0.03, 0.04]})
     _patch_results_globals(
         module,
         fake_st=fake_st,
         workbook=workbook,
         summary=summary,
-        paths=pd.DataFrame([[0.01]], columns=["AgentA"]),
+        paths=paths,
         render_explain=_CallRecorder("explain"),
         render_comparison=_CallRecorder("comparison"),
         render_png=_CallRecorder("png"),
@@ -609,6 +809,9 @@ def test_results_main_multiselect_uses_index_when_config_missing(tmp_path) -> No
     )
     module["main"]()
     assert fake_st.titles == ["Results"]
+    assert len(fake_st.charts) == 2
+    assert fake_st.charts[0] is summary
+    pd.testing.assert_frame_equal(fake_st.charts[1], paths[["AgentB"]])
 
 
 def test_results_main_committee_packet_ready_callback(tmp_path, monkeypatch) -> None:
@@ -730,7 +933,9 @@ def test_facade_run_single_requires_regime_transition_when_regimes_set() -> None
 def test_facade_run_sweep_rejects_scalar_index() -> None:
     cfg = ModelConfig(N_SIMULATIONS=1, N_MONTHS=1, financing_mode="broadcast")
     with pytest.raises(ValueError, match="must be a pandas Series"):
-        run_sweep(cfg, [0.01, 0.02], {"analysis_mode": "vol_mult"}, RunOptions(seed=1))  # type: ignore[arg-type]
+        run_sweep(
+            cfg, [0.01, 0.02], {"analysis_mode": "vol_mult"}, RunOptions(seed=1)
+        )  # type: ignore[arg-type]
 
 
 def test_export_run_artifacts_with_show_visualizations(
@@ -800,3 +1005,579 @@ def test_export_sweep_artifacts_with_visualizations(tmp_path) -> None:
     )
     assert output_file.exists()
     assert any(viz_dir.glob("*.html"))
+
+
+def _tiny_config(**updates: object) -> ModelConfig:
+    payload: dict[str, object] = {"N_SIMULATIONS": 2, "N_MONTHS": 3}
+    payload.update(updates)
+    return load_config("examples/scenarios/my_first_scenario.yml").model_copy(update=payload)
+
+
+def _index_values() -> pd.Series:
+    return pd.Series([0.01, -0.02, 0.015])
+
+
+def test_redact_sensitive_ignores_blank_and_non_string_secrets() -> None:
+    redacted = result_explain._redact_sensitive(
+        "prefix abc suffix",
+        secrets=["", 5, "abc"],  # type: ignore[list-item]
+    )
+    assert redacted == "prefix [REDACTED] suffix"
+
+
+def test_extract_response_text_uses_response_string_when_content_is_not_text() -> None:
+    response = types.SimpleNamespace(content=None)
+    assert result_explain._extract_response_text(response) == str(response).strip()
+
+
+def test_extract_response_text_skips_items_that_are_not_text_or_mappings() -> None:
+    response = types.SimpleNamespace(content=["keep", 5, {"text": "tail"}])
+    assert result_explain._extract_response_text(response) == "keep tail"
+
+
+def test_extract_metric_delta_ignores_non_mapping_summary_values() -> None:
+    delta = result_explain._extract_metric_delta(
+        {"stress_delta_summary": {"summary": {"note": "skip", "a": {"mean": 0.2}}}}
+    )
+    assert delta == pytest.approx(0.2)
+
+
+def test_pa_sweep_omits_substream_metadata_when_runner_has_none(
+    monkeypatch, tmp_path, capsys
+) -> None:
+    config = tmp_path / "sweep.yml"
+    config.write_text("index: data.csv\n")
+    captured: dict[str, object] = {}
+
+    class _Runner:
+        substream_ids: list[str] = []
+
+        def __init__(self, *_args: object, **_kwargs: object) -> None:
+            return None
+
+        def run(self) -> list[dict[str, bool]]:
+            return [{"ok": True}]
+
+    monkeypatch.setattr("pa_core.config.load_config", lambda _path: object())
+    monkeypatch.setattr("pa_core.facade.apply_run_options", lambda cfg, _opts: cfg)
+    monkeypatch.setattr("pa_core.backend.resolve_and_set_backend", lambda *_a, **_k: None)
+    monkeypatch.setattr("pa_core.backend.get_backend", lambda: "numpy")
+    monkeypatch.setattr("pa_core.data.load_index_returns", lambda _path: _index_values())
+    monkeypatch.setattr("pa_core.units.get_index_series_unit", lambda: "decimal")
+    monkeypatch.setattr("pa_core.units.normalize_index_series", lambda series, _unit: series)
+    monkeypatch.setattr("pa_core.sweep.SweepRunner", _Runner)
+
+    def _export(results: object, *, filename: str, metadata: dict[str, object]) -> None:
+        captured["results"] = results
+        captured["filename"] = filename
+        captured["metadata"] = metadata
+
+    monkeypatch.setattr("pa_core.reporting.sweep_excel.export_sweep_results", _export)
+    pa_entry.main(["sweep", "--config", str(config)])
+    assert captured["metadata"] == {"rng_seed": None}
+    assert captured["results"] == [{"ok": True}]
+    assert captured["filename"] == "Sweep.xlsx"
+    assert "[BACKEND] Using backend: numpy" in capsys.readouterr().out
+
+
+def test_run_single_and_sweep_accept_single_column_index_frame() -> None:
+    cfg = _tiny_config()
+    frame = pd.DataFrame({"IDX": [0.01, -0.02, 0.015]})
+    single = run_single(cfg, frame, RunOptions(seed=7))
+    assert not single.summary.empty
+    sweep = run_sweep(
+        cfg,
+        frame,
+        {
+            "analysis_mode": "vol_mult",
+            "sd_multiple_min": 1.0,
+            "sd_multiple_max": 1.0,
+            "sd_multiple_step": 1.0,
+        },
+        RunOptions(seed=7),
+    )
+    assert not sweep.summary.empty
+
+
+def test_run_single_continues_when_sleeve_validation_reports_no_violations(monkeypatch) -> None:
+    seen: list[pd.DataFrame] = []
+
+    def _validate(summary: pd.DataFrame, _cfg: object) -> list[str]:
+        seen.append(summary)
+        return []
+
+    monkeypatch.setattr("pa_core.reporting.constraints.validate_sleeve_constraints", _validate)
+    artifacts = run_single(
+        _tiny_config(sleeve_validate_on_run=True),
+        _index_values(),
+        RunOptions(seed=11),
+    )
+    assert seen
+    assert not artifacts.summary.empty
+
+
+def _inject_correlation_repair(monkeypatch: pytest.MonkeyPatch, info: dict[str, object]) -> None:
+    import pa_core.sim as sim_mod
+
+    real = sim_mod.draw_joint_returns
+
+    def _wrapped(*args: object, **kwargs: object) -> object:
+        result = real(*args, **kwargs)
+        params = kwargs.get("params")
+        if isinstance(params, dict):
+            params["_correlation_repair_info"] = dict(info)
+        return result
+
+    monkeypatch.setattr(sim_mod, "draw_joint_returns", _wrapped)
+
+
+def test_run_single_records_repair_info_when_correlation_matrices_absent(monkeypatch) -> None:
+    _inject_correlation_repair(
+        monkeypatch,
+        {
+            "corr_before": None,
+            "corr_after": None,
+            "repair_mode": "absent",
+            "method": "none",
+            "shrinkage": None,
+            "min_eigenvalue_before": None,
+            "min_eigenvalue_after": None,
+            "max_abs_delta": None,
+            "repair_applied": False,
+        },
+    )
+    artifacts = run_single(_tiny_config(), _index_values(), RunOptions(seed=13))
+    assert "_corr_before_df" not in artifacts.inputs
+    info = artifacts.inputs["_corr_repair_info_df"]
+    assert info.loc[0, "mode"] == "absent"
+
+
+def test_run_single_skips_correlation_frames_when_matrix_shapes_differ(monkeypatch) -> None:
+    _inject_correlation_repair(
+        monkeypatch,
+        {
+            "corr_before": [[1.0, 0.0], [0.0, 1.0]],
+            "corr_after": [[1.0]],
+            "corr_delta": None,
+            "repair_mode": "mismatch",
+            "method": "none",
+            "shrinkage": 0.0,
+            "min_eigenvalue_before": 1.0,
+            "min_eigenvalue_after": 1.0,
+            "max_abs_delta": 0.0,
+            "repair_applied": False,
+        },
+    )
+    artifacts = run_single(_tiny_config(), _index_values(), RunOptions(seed=17))
+    assert "_corr_before_df" not in artifacts.inputs
+    assert "_corr_delta_df" not in artifacts.inputs
+    info = artifacts.inputs["_corr_repair_info_df"]
+    assert info.loc[0, "mode"] == "mismatch"
+
+
+def test_export_sweep_without_manifest_passes_no_metadata(monkeypatch, tmp_path) -> None:
+    captured: dict[str, object] = {}
+
+    def _export(results: object, *, filename: str, metadata: object) -> None:
+        captured["results"] = results
+        captured["filename"] = filename
+        captured["metadata"] = metadata
+
+    monkeypatch.setattr("pa_core.reporting.sweep_excel.export_sweep_results", _export)
+    cfg = _tiny_config(N_SIMULATIONS=1, N_MONTHS=1)
+    artifacts = SweepArtifacts(
+        config=cfg,
+        index_series=_index_values(),
+        results=[],
+        summary=pd.DataFrame({"Config": ["Base"]}),
+        inputs={},
+        manifest=None,
+    )
+    output = tmp_path / "sweep.xlsx"
+    export(artifacts, output)
+    assert captured["metadata"] is None
+    assert captured["filename"] == str(output)
+    assert captured["results"] == []
+
+
+def test_export_normalizes_tuple_agent_semantics_to_a_list(run_artifacts_fixture, tmp_path) -> None:
+    import numpy as np
+
+    run_artifacts_fixture.inputs["_agent_semantics_df"] = ({"Agent": "Base", "n": np.int64(3)},)
+    export(run_artifacts_fixture, tmp_path / "tuple.xlsx")
+    stored = run_artifacts_fixture.inputs["_agent_semantics_df"]
+    assert isinstance(stored, list)
+    assert stored[0]["Agent"] == "Base"
+    assert type(stored[0]["n"]) is int
+    assert stored[0]["n"] == 3
+
+
+def test_render_explain_results_forwards_summary_manifest_and_workbook() -> None:
+    module = _load_results_module()
+    render_explain = module["_render_explain_results"]
+    summary = pd.DataFrame({"monthly_TE": [0.02]})
+    manifest = {"seed": 3}
+    captured: dict[str, object] = {}
+
+    def _panel(*, summary_df: pd.DataFrame, manifest: dict[str, object], xlsx_path: str) -> None:
+        captured["summary_df"] = summary_df
+        captured["manifest"] = manifest
+        captured["xlsx_path"] = xlsx_path
+
+    render_explain.__globals__["render_explain_results_panel"] = _panel
+    render_explain(summary=summary, manifest_data=manifest, xlsx="results.xlsx")
+    assert captured["summary_df"] is summary
+    assert captured["manifest"] == {"seed": 3}
+    assert captured["xlsx_path"] == "results.xlsx"
+
+
+def test_results_main_drops_manifest_when_json_cannot_be_parsed(tmp_path) -> None:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    manifest = tmp_path / "results.json"
+    manifest.write_text("{")
+    summary = pd.DataFrame(
+        {
+            "Config": ["Base"],
+            "monthly_TE": [0.02],
+            "monthly_CVaR": [-0.01],
+            "monthly_BreachProb": [0.03],
+            "Agent": ["Total"],
+            "terminal_AnnReturn": [0.04],
+        }
+    )
+    render_explain = _CallRecorder("explain")
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=pd.DataFrame([[0.01]], columns=["Base"]),
+        render_explain=render_explain,
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_CallRecorder("async"),
+        manifest_path=manifest,
+    )
+    module["main"]()
+    assert fake_st.captions == []
+    assert render_explain.calls[0][1]["manifest_data"] is None
+
+
+def test_results_main_omits_seed_caption_when_manifest_seed_is_absent(tmp_path) -> None:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    manifest = tmp_path / "results.json"
+    manifest.write_text(json.dumps({"previous_run": None}))
+    summary = pd.DataFrame({"monthly_TE": [0.02], "Config": ["Base"]})
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=None,
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_CallRecorder("async"),
+        manifest_path=manifest,
+    )
+    module["main"]()
+    assert fake_st.captions == []
+
+
+def test_results_main_omits_tracking_error_when_neither_column_is_present(tmp_path) -> None:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    summary = pd.DataFrame({"monthly_CVaR": [-0.02], "Config": ["Base"]})
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=pd.DataFrame([[0.01]], columns=["Base"]),
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_CallRecorder("async"),
+    )
+    module["main"]()
+    metrics = [pair for col in fake_st.column_containers[0] for pair in col.metrics]
+    assert ("monthly_CVaR", "-2.00%") in metrics
+    assert all(label != "Tracking Error" for label, _value in metrics)
+
+
+def test_results_main_skips_non_headline_charts_when_paths_are_missing(tmp_path) -> None:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    summary = pd.DataFrame({"monthly_TE": [0.02], "Config": ["Base"]})
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=None,
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_CallRecorder("async"),
+    )
+    module["main"]()
+    assert fake_st.charts == [summary]
+
+
+def _packet_arguments(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    manifest_text: str | None,
+    stress: pd.DataFrame,
+) -> dict[str, object]:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    summary = pd.DataFrame(
+        {
+            "Config": ["Base"],
+            "monthly_TE": [0.02],
+            "monthly_CVaR": [-0.01],
+            "monthly_BreachProb": [0.03],
+            "Agent": ["Total"],
+            "terminal_AnnReturn": [0.04],
+        }
+    )
+    with pd.ExcelWriter(workbook) as writer:
+        summary.to_excel(writer, sheet_name="Summary", index=False)
+        stress.to_excel(writer, sheet_name="StressDelta", index=False)
+    manifest = tmp_path / "results.json"
+    if manifest_text is None:
+        manifest_path = tmp_path / "missing-manifest.json"
+    else:
+        manifest.write_text(manifest_text)
+        manifest_path = manifest
+    captured: dict[str, object] = {}
+
+    async def _create(**kwargs: object) -> tuple[str, str]:
+        captured["packet"] = kwargs
+        return "packet.pptx", "packet.xlsx"
+
+    def _render_async(*_args: object, **kwargs: object) -> None:
+        captured["factory"] = kwargs["factory"]
+
+    monkeypatch.setattr("pa_core.reporting.export_packet.create_export_packet_async", _create)
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=pd.DataFrame([[0.01]], columns=["Base"]),
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_render_async,
+        manifest_path=manifest_path,
+    )
+    module["main"]()
+    asyncio.run(captured["factory"]())  # type: ignore[arg-type]
+    packet = captured["packet"]
+    assert isinstance(packet, dict)
+    return packet
+
+
+def test_results_packet_keeps_nonempty_stress_without_a_manifest(tmp_path, monkeypatch) -> None:
+    packet = _packet_arguments(
+        tmp_path,
+        monkeypatch,
+        manifest_text=None,
+        stress=pd.DataFrame({"delta": [0.5]}),
+    )
+    stress = packet["stress_delta_df"]
+    assert isinstance(stress, pd.DataFrame)
+    assert stress.loc[0, "delta"] == pytest.approx(0.5)
+    assert packet["prev_manifest"] is None
+    assert packet["prev_summary_df"] is None
+
+
+def test_results_packet_drops_empty_stress_and_non_string_previous_run(
+    tmp_path, monkeypatch
+) -> None:
+    packet = _packet_arguments(
+        tmp_path,
+        monkeypatch,
+        manifest_text=json.dumps({"previous_run": 5}),
+        stress=pd.DataFrame(),
+    )
+    assert packet["stress_delta_df"] is None
+    assert packet["prev_manifest"] is None
+    assert packet["prev_summary_df"] is None
+
+
+def test_results_packet_ignores_missing_previous_manifest_path(tmp_path, monkeypatch) -> None:
+    missing = tmp_path / "absent-prior.json"
+    packet = _packet_arguments(
+        tmp_path,
+        monkeypatch,
+        manifest_text=json.dumps({"previous_run": str(missing)}),
+        stress=pd.DataFrame({"delta": [0.1]}),
+    )
+    assert packet["prev_manifest"] is None
+    assert isinstance(packet["stress_delta_df"], pd.DataFrame)
+
+
+def test_results_packet_skips_missing_previous_workbook(tmp_path, monkeypatch) -> None:
+    prior_manifest = tmp_path / "prior.json"
+    missing_output = tmp_path / "missing-prior.xlsx"
+    prior_manifest.write_text(json.dumps({"cli_args": {"output": str(missing_output)}, "seed": 4}))
+    packet = _packet_arguments(
+        tmp_path,
+        monkeypatch,
+        manifest_text=json.dumps({"previous_run": str(prior_manifest)}),
+        stress=pd.DataFrame({"delta": [0.1]}),
+    )
+    assert packet["prev_manifest"]["seed"] == 4
+    assert packet["prev_summary_df"] is None
+
+
+def test_results_packet_clears_previous_manifest_when_json_is_invalid(
+    tmp_path, monkeypatch
+) -> None:
+    prior_manifest = tmp_path / "prior.json"
+    prior_manifest.write_text("{")
+    packet = _packet_arguments(
+        tmp_path,
+        monkeypatch,
+        manifest_text=json.dumps({"previous_run": str(prior_manifest)}),
+        stress=pd.DataFrame({"delta": [0.1]}),
+    )
+    assert packet["prev_manifest"] is None
+    assert packet["prev_summary_df"] is None
+
+
+@pytest.mark.parametrize(
+    ("exc", "error_text", "info_text"),
+    [
+        (
+            RuntimeError("kaleido is not installed"),
+            "Export packet requires Kaleido or Chrome/Chromium",
+            "pip install kaleido",
+        ),
+        (
+            RuntimeError("chrome is unavailable"),
+            "Export packet requires Kaleido or Chrome/Chromium",
+            "pip install kaleido",
+        ),
+        (RuntimeError("disk full"), "Export packet failed: disk full", None),
+        (
+            ValueError("bad packet"),
+            "Unexpected error creating export packet: bad packet",
+            "individual exports",
+        ),
+    ],
+)
+def test_results_main_reports_packet_export_failures(
+    tmp_path, exc: Exception, error_text: str, info_text: str | None
+) -> None:
+    module = _load_results_module()
+    fake_st = _ResultsStreamlit()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    summary = pd.DataFrame(
+        {
+            "Config": ["Base"],
+            "monthly_TE": [0.02],
+            "monthly_CVaR": [-0.01],
+            "monthly_BreachProb": [0.03],
+            "Agent": ["Total"],
+            "terminal_AnnReturn": [0.04],
+        }
+    )
+
+    def _raise(*_args: object, **_kwargs: object) -> None:
+        raise exc
+
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=pd.DataFrame([[0.01]], columns=["Base"]),
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_raise,
+    )
+    module["main"]()
+    assert any(error_text in message for message in fake_st.errors)
+    if info_text is not None:
+        assert any(info_text in message for message in fake_st.infos)
+
+
+def test_results_main_auto_refresh_sleeps_then_reruns(tmp_path, monkeypatch) -> None:
+    module = _load_results_module()
+
+    class _Refreshing(_ResultsStreamlit):
+        def __init__(self) -> None:
+            super().__init__()
+            self.reruns = 0
+
+        def checkbox(self, label: str) -> bool:
+            return label == "Auto-refresh"
+
+        def number_input(self, label: str, *args: object, **kwargs: object) -> float:
+            if args:
+                return float(args[-1])  # type: ignore[arg-type]
+            return float(kwargs.get("value", 0.0))  # type: ignore[arg-type]
+
+        def rerun(self) -> None:
+            self.reruns += 1
+
+    fake_st = _Refreshing()
+    workbook = tmp_path / "results.xlsx"
+    workbook.write_bytes(b"workbook")
+    summary = pd.DataFrame({"monthly_TE": [0.02], "Config": ["Base"]})
+    slept: list[float] = []
+    monkeypatch.setattr(time, "sleep", lambda seconds: slept.append(seconds))
+    _patch_results_globals(
+        module,
+        fake_st=fake_st,
+        workbook=workbook,
+        summary=summary,
+        paths=None,
+        render_explain=_CallRecorder("explain"),
+        render_comparison=_CallRecorder("comparison"),
+        render_png=_CallRecorder("png"),
+        render_async=_CallRecorder("async"),
+    )
+    module["main"]()
+    assert slept == [60.0]
+    assert fake_st.reruns == 1
+
+
+def test_results_script_entrypoint_invokes_main(monkeypatch) -> None:
+    import streamlit as st
+
+    seen: list[str] = []
+
+    def _title(text: str) -> None:
+        seen.append(text)
+        raise RuntimeError("entrypoint-stop")
+
+    monkeypatch.setattr(st, "title", _title)
+    previous_main = sys.modules.get("__main__")
+    try:
+        with pytest.raises(RuntimeError, match="entrypoint-stop"):
+            runpy.run_path("dashboard/pages/4_Results.py", run_name="__main__")
+    finally:
+        if previous_main is not None:
+            sys.modules["__main__"] = previous_main
+        else:
+            sys.modules.pop("__main__", None)
+    assert seen == ["Results"]

@@ -1,0 +1,20 @@
+{
+  "checked": "2026-11-12",
+  "baseline_revision": "6d4d137aa10ec0b4b8153d8b2141c92723058a59",
+  "available_main_revision": "9d083d69796126c41d3a05aa3499cb4fe8cc11eb",
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "interpreter": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+  "configuration_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "gate_command": "python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:coverage.xml --cov-report=term-missing --cov-report=json:coverage.json -n auto --dist=loadgroup -m 'not slow and not live_llm'",
+  "stop_rule": "No unchanged whole-suite timeout rerun. One 35s PNG faulthandler diagnostic. After renderer isolation, one full Gate run capped at 180s, one diagnostic only if the failure changes. Focused acceptance and each mutation capped at 120s; no more than three attempts per failing step.",
+  "intent_before_test_edits": "Replace the CLI PNG test real-renderer dependency with an autospecced export-boundary mock; assert exactly one call, destination and a populated Plotly figure, preserving real CLI simulation and XLSX output. No production edits retained. This removes an identified execution blocker; no ranked coverage reduction is assumed.",
+  "previous_reduction": "Hosted main 5be77e15 to merge ab96b5b: 18 statements and 26 branches. Historical round objective attribution remains unchanged and explicitly policy-qualified."
+}

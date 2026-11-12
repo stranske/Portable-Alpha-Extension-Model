@@ -330,24 +330,29 @@ def test_langsmith_tracing_disabled_skips_trace_resolution(monkeypatch) -> None:
 
 
 def test_analysis_output_contains_required_sections_and_is_json_serializable() -> None:
-    _text, _trace_url, payload = result_explain.explain_results_details(
-        _toy_df(),
+    details = pd.DataFrame(
+        {"Agent": ["A", "B", "C", "D", "Total"], "monthly_TE": [0, 10, 20, 30, 40]},
+        index=[7, 2, 9, 1, 5],
     )
+    original = details.copy(deep=True)
+    _text, _trace_url, payload = result_explain.explain_results_details(details)
 
     analysis_output = payload["analysis_output"]
-    assert isinstance(analysis_output, dict)
-    assert analysis_output
-    assert isinstance(analysis_output["columns"], list) and analysis_output["columns"]
-    assert (
-        isinstance(analysis_output["basic_statistics"], dict)
-        and analysis_output["basic_statistics"]
-    )
-    assert (
-        isinstance(analysis_output["tail_sample_rows"], list)
-        and analysis_output["tail_sample_rows"]
-    )
-    assert isinstance(analysis_output["key_quantiles"], dict) and analysis_output["key_quantiles"]
-    json.dumps(analysis_output, sort_keys=True)
+    assert analysis_output["rows"] == 5
+    assert analysis_output["columns"] == ["Agent", "monthly_TE"]
+    assert analysis_output["basic_statistics"] == {
+        "monthly_TE": pytest.approx({"count": 5, "mean": 20, "std": 250**0.5, "min": 0, "max": 40})
+    }
+    assert analysis_output["tail_sample_rows"] == [
+        {"Agent": "C", "monthly_TE": 20},
+        {"Agent": "D", "monthly_TE": 30},
+        {"Agent": "Total", "monthly_TE": 40},
+    ]
+    assert analysis_output["key_quantiles"] == {
+        "monthly_TE": pytest.approx({"0.05": 2, "0.5": 20, "0.95": 38})
+    }
+    assert json.loads(json.dumps(analysis_output, sort_keys=True)) == analysis_output
+    pd.testing.assert_frame_equal(details, original)
 
 
 def test_analysis_output_manifest_highlights_include_sentinel_value() -> None:

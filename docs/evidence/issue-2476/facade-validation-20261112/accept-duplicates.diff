@@ -1,0 +1,5 @@
+--- pa_core/facade.py
++++ pa_core/facade.py
+@@ -115,2 +114,0 @@
+-                if any(isinstance(item, pd.Series) and not item.index.is_unique for item in rows):
+-                    raise ValueError("Series rows must have unique labels")

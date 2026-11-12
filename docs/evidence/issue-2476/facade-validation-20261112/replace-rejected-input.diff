@@ -1,0 +1,4 @@
+--- pa_core/facade.py
++++ pa_core/facade.py
+@@ -115,0 +116 @@
++                    inputs["_agent_semantics_df"] = []

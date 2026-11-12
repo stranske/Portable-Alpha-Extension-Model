@@ -1,0 +1,227 @@
+{
+  "checked": "2026-11-12",
+  "baseline_revision": "6d4d137aa10ec0b4b8153d8b2141c92723058a59",
+  "source_revision": "6053f77ee4fecb4ee4659f57f1bb4b021331fc42",
+  "available_main_revision": "9d083d69796126c41d3a05aa3499cb4fe8cc11eb",
+  "python": "3.14.10 (main, Oct 26 2026, 14:17:03) [GCC 15.2.0]",
+  "interpreter": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+  "configuration_sha256": "58c569923b38388bdfc409901ce8dab00564b72fa2e10d102874cddc54eeabe7",
+  "ranked_targets": [
+    "pa_core/llm/result_explain.py",
+    "pa_core/pa.py",
+    "pa_core/facade.py",
+    "pa_core/units.py",
+    "pa_core/sim/internal_pa_financing.py",
+    "pa_core/manifest.py",
+    "dashboard/pages/4_Results.py"
+  ],
+  "input_sha256": {
+    "pa_core/llm/result_explain.py": "7aa78795d0cbdcf65de0a218f0f890f1f0aac3398c732d452e159dc25bca9841",
+    "pa_core/pa.py": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "pa_core/facade.py": "a08e6e6638f0b3f669bd756d32ee40525d0d291c9433e3e1cd477f23951e7e6f",
+    "pa_core/units.py": "4dac096784e2f79f663e0daf42a7ad037ee19a4bae55a5c43d02d573ff1810b5",
+    "pa_core/sim/internal_pa_financing.py": "40d4cad40f4ae20195787d9e0ea64ecf057c8a640dfbd2bfb0e02e3fa8a667ba",
+    "pa_core/manifest.py": "a70912cdff0423b49827f77798a16f0b878eaa9eb2b4fbd5ccb22dd0f11a484d",
+    "dashboard/pages/4_Results.py": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "tests/test_cli.py": "226ffa339d2f71676a2c46c528a0bac11f5efadc24c05a01eadd9d626e385f96"
+  },
+  "offline_environment": {
+    "PIP_NO_INDEX": "1",
+    "PIP_FIND_LINKS": "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/virtualenv/seed/wheels/embed"
+  },
+  "bundled_wheel_sha256": {
+    "setuptools-82.0.1-py3-none-any.whl": "a59e362652f08dcd477c78bb6e7bd9d80a7995bc73ce773050228a348ce2e5bb",
+    "setuptools-84.2.1-py3-none-any.whl": "ca140b45d5325a9478f880e351484f62fef15f336462e449ca0c03c873d589c2"
+  },
+  "scope": "Entire default tests/ collection, markers not slow and not live_llm. Gate coverage configuration and xdist scheduler; not a hosted run, and the generated ci_test_growth observer and JUnit option are not loaded.",
+  "pre_edit_focused": {
+    "command": "COVERAGE_FILE=/tmp/issue-2476-delegation/baseline.coverage timeout -k 5s 120s python -m pytest tests/test_coverage_round_2381.py tests/test_coverage_round_2417.py tests/test_coverage_round_2421.py tests/test_coverage_round_2476_facade.py tests/test_result_explain.py tests/test_dashboard_results_previous_run.py --cov --cov-config=pyproject.toml --cov-branch --cov-report=json:/tmp/issue-2476-delegation/baseline.json --cov-report=term-missing -m 'not slow and not live_llm' -q",
+    "outcome": "156 passed, 22 warnings in 8.00s",
+    "scope_note": "Focused pre-edit verification only; not a full-suite baseline for the new head reports."
+  },
+  "baseline_full_gate": "Previously timed out in tests/test_cli.py::test_main_with_png. No complete new baseline report exists; no baseline/head delta is inferred for this continuation.",
+  "runs": {
+    "gate": {
+      "revision": "6053f77ee4fecb4ee4659f57f1bb4b021331fc42",
+      "command": "PIP_NO_INDEX=1 PIP_FIND_LINKS=/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/virtualenv/seed/wheels/embed COVERAGE_FILE=/tmp/issue-2476-delegation/offline-gate.coverage timeout -k 5s 180s python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml:/tmp/issue-2476-delegation/offline-gate.xml --cov-report=term-missing --cov-report=json:/tmp/issue-2476-delegation/offline-gate.json -n auto --dist=loadgroup -m 'not slow and not live_llm' -q",
+      "exit_code": 0,
+      "pytest_summary": "2062 passed, 3 skipped, 1205 warnings in 65.47s (0:01:05)",
+      "report": "head-gate.coverage.json.gz",
+      "uncompressed_report_sha256": "989dbe05ef334aab64aea11a3b4452f22abc300610b388693b48b41478b5ef5a",
+      "coverage_metadata": {
+        "format": 3,
+        "version": "7.17.2",
+        "timestamp": "2026-11-12T04:30:08.532657",
+        "branch_coverage": false,
+        "show_contexts": false
+      },
+      "targets": {
+        "pa_core/llm/result_explain.py": {
+          "statements": 227,
+          "missing_statements": 0,
+          "missing_statement_lines": []
+        },
+        "pa_core/pa.py": {
+          "statements": 222,
+          "missing_statements": 0,
+          "missing_statement_lines": []
+        },
+        "pa_core/facade.py": {
+          "statements": 337,
+          "missing_statements": 2,
+          "missing_statement_lines": [
+            751,
+            757
+          ]
+        },
+        "pa_core/units.py": {
+          "statements": 81,
+          "missing_statements": 0,
+          "missing_statement_lines": []
+        },
+        "pa_core/sim/internal_pa_financing.py": {
+          "statements": 35,
+          "missing_statements": 0,
+          "missing_statement_lines": []
+        },
+        "pa_core/manifest.py": {
+          "statements": 61,
+          "missing_statements": 0,
+          "missing_statement_lines": []
+        },
+        "dashboard/pages/4_Results.py": {
+          "statements": 210,
+          "missing_statements": 0,
+          "missing_statement_lines": []
+        }
+      },
+      "totals": {
+        "covered_lines": 13571,
+        "num_statements": 14737,
+        "percent_covered": 92.08794191490806,
+        "percent_covered_display": "92",
+        "missing_lines": 1166,
+        "excluded_lines": 193,
+        "percent_statements_covered": 92.08794191490806,
+        "percent_statements_covered_display": "92"
+      }
+    },
+    "branch": {
+      "revision": "6053f77ee4fecb4ee4659f57f1bb4b021331fc42",
+      "command": "PIP_NO_INDEX=1 PIP_FIND_LINKS=/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/virtualenv/seed/wheels/embed COVERAGE_FILE=/tmp/issue-2476-delegation/offline-branch.coverage timeout -k 5s 180s python -m pytest --cov --cov-config=pyproject.toml --cov-branch --cov-report=xml:/tmp/issue-2476-delegation/offline-branch.xml --cov-report=term-missing --cov-report=json:/tmp/issue-2476-delegation/offline-branch.json -n auto --dist=loadgroup -m 'not slow and not live_llm' -q",
+      "exit_code": 0,
+      "pytest_summary": "2062 passed, 3 skipped, 1205 warnings in 71.55s (0:01:11)",
+      "report": "head-branch.coverage.json.gz",
+      "uncompressed_report_sha256": "0f333e750dab554cb38f7f3719d28bcae512ce4ee589ad119fd30e053e016f80",
+      "coverage_metadata": {
+        "format": 3,
+        "version": "7.17.2",
+        "timestamp": "2026-11-12T04:31:30.694608",
+        "branch_coverage": true,
+        "show_contexts": false
+      },
+      "targets": {
+        "pa_core/llm/result_explain.py": {
+          "statements": 227,
+          "missing_statements": 0,
+          "missing_statement_lines": [],
+          "branches": 102,
+          "missing_branches": 0,
+          "missing_branch_arcs": []
+        },
+        "pa_core/pa.py": {
+          "statements": 222,
+          "missing_statements": 0,
+          "missing_statement_lines": [],
+          "branches": 68,
+          "missing_branches": 1,
+          "missing_branch_arcs": [
+            [
+              349,
+              -120
+            ]
+          ]
+        },
+        "pa_core/facade.py": {
+          "statements": 337,
+          "missing_statements": 2,
+          "missing_statement_lines": [
+            751,
+            757
+          ],
+          "branches": 124,
+          "missing_branches": 2,
+          "missing_branch_arcs": [
+            [
+              750,
+              751
+            ],
+            [
+              756,
+              757
+            ]
+          ]
+        },
+        "pa_core/units.py": {
+          "statements": 81,
+          "missing_statements": 0,
+          "missing_statement_lines": [],
+          "branches": 30,
+          "missing_branches": 0,
+          "missing_branch_arcs": []
+        },
+        "pa_core/sim/internal_pa_financing.py": {
+          "statements": 35,
+          "missing_statements": 0,
+          "missing_statement_lines": [],
+          "branches": 18,
+          "missing_branches": 0,
+          "missing_branch_arcs": []
+        },
+        "pa_core/manifest.py": {
+          "statements": 61,
+          "missing_statements": 0,
+          "missing_statement_lines": [],
+          "branches": 4,
+          "missing_branches": 0,
+          "missing_branch_arcs": []
+        },
+        "dashboard/pages/4_Results.py": {
+          "statements": 210,
+          "missing_statements": 0,
+          "missing_statement_lines": [],
+          "branches": 70,
+          "missing_branches": 1,
+          "missing_branch_arcs": [
+            [
+              178,
+              180
+            ]
+          ]
+        }
+      },
+      "totals": {
+        "covered_lines": 13572,
+        "num_statements": 14737,
+        "percent_covered": 89.86873447873904,
+        "percent_covered_display": "90",
+        "missing_lines": 1165,
+        "excluded_lines": 193,
+        "percent_statements_covered": 92.09472755649047,
+        "percent_statements_covered_display": "92",
+        "num_branches": 4994,
+        "num_partial_branches": 660,
+        "covered_branches": 4160,
+        "missing_branches": 834,
+        "percent_branches_covered": 83.29995995194233,
+        "percent_branches_covered_display": "83"
+      }
+    }
+  },
+  "new_ranked_unit_reduction": 0,
+  "prior_hosted_pr_reduction": {
+    "statements": 18,
+    "branches": 26,
+    "receipt": "../continuation-20261111/hosted-main/seven-targets.json"
+  }
+}

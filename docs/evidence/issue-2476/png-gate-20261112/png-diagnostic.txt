@@ -1,0 +1,124 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.10, pytest-9.2.0, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.14.10/x64/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'ci' -> database=None, deadline=None, print_blob=True, derandomize=True, suppress_health_check=(HealthCheck.too_slow,)
+rootdir: /home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model
+configfile: pyproject.toml
+plugins: cov-7.1.0, regressions-2.11.0, platformdirs-4.14.5, datadir-1.9.0, langsmith-0.14.17, xdist-3.8.0, anyio-4.16.0, hypothesis-6.170.15
+collecting ... collected 1 item
+
+tests/test_cli.py::test_main_with_png [BACKEND] Using backend: numpy
+sweep:   0%|          | 0/81 [00:00<?, ?it/s]sweep:  53%|█████▎    | 43/81 [00:00<00:00, 424.22it/s]sweep: 100%|██████████| 81/81 [00:00<00:00, 435.77it/s]
+Timeout (0:00:10)!
+Thread 0x000075d54effe6c0 [browser_procThr] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/logistro/_api.py", line 221 in read_pipe
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d54ffff6c0 [readwrite_threa] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 369 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/queue.py", line 199 in get
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/choreographer/utils/_manual_thread_pool.py", line 60 in _worker
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d55dffd6c0 [readwrite_threa] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 369 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/queue.py", line 199 in get
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/choreographer/utils/_manual_thread_pool.py", line 60 in _worker
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d55effe6c0 [checking_close-] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 369 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/queue.py", line 199 in get
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/choreographer/utils/_manual_thread_pool.py", line 60 in _worker
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d55ffff6c0 [checking_close-] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 369 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/queue.py", line 199 in get
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/choreographer/utils/_manual_thread_pool.py", line 60 in _worker
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d56dbfd6c0 [checking_close-] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 369 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/queue.py", line 199 in get
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/choreographer/utils/_manual_thread_pool.py", line 60 in _worker
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d56ebfe6c0 [Thread-1 (run)] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/selectors.py", line 452 in select
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/base_events.py", line 2026 in _run_once
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/base_events.py", line 678 in run_forever
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/base_events.py", line 707 in run_until_complete
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/runners.py", line 128 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/asyncio/runners.py", line 205 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/kaleido/_sync_server.py", line 152 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1025 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d5709ff6c0 [tqdm_monitor] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 376 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 671 in wait
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/tqdm/_monitor.py", line 69 in run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1083 in _bootstrap_inner
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1045 in _bootstrap
+
+Thread 0x000075d59ca1dbc0 [python] (most recent call first):
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/threading.py", line 1134 in join
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/kaleido/_sync_server.py", line 158 in oneshot_async_run
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/kaleido/__init__.py", line 170 in calc_fig_sync
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/plotly/io/_kaleido.py", line 400 in to_image
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/plotly/io/_kaleido.py", line 530 in write_image
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/plotly/basedatatypes.py", line 3895 in write_image
+  File "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/viz/export_backend.py", line 104 in write_figure_image
+  File "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py", line 1389 in <lambda>
+  File "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py", line 1376 in _attempt_sweep_export
+  File "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py", line 1388 in _main
+  File "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/pa_core/cli.py", line 399 in main
+  File "/home/runner/work/Portable-Alpha-Extension-Model/Portable-Alpha-Extension-Model/tests/test_cli.py", line 35 in test_main_with_png
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/python.py", line 187 in pytest_pyfunc_call
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/python.py", line 1798 in runtest
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/runner.py", line 184 in pytest_runtest_call
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/runner.py", line 250 in <lambda>
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/runner.py", line 361 in from_call
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/runner.py", line 249 in call_and_report
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/runner.py", line 139 in runtestprotocol
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/runner.py", line 118 in pytest_runtest_protocol
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/main.py", line 411 in pytest_runtestloop
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/main.py", line 387 in _main
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/main.py", line 333 in wrap_session
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/main.py", line 380 in pytest_cmdline_main
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_execution.py", line 147 in _multicall
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_manager.py", line 183 in _hookexec
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pluggy/_caller.py", line 197 in __call__
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/config/__init__.py", line 262 in _main
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/_pytest/config/__init__.py", line 286 in _console_main
+  File "/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/site-packages/pytest/__main__.py", line 9 in <module>
+  File "<frozen runpy>", line 88 in _run_code
+  File "<frozen runpy>", line 203 in _run_module_as_main
+/opt/hostedtoolcache/Python/3.14.10/x64/lib/python3.14/multiprocessing/resource_tracker.py:475: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown: {'/mp-3dz9mzvu'}
+  warnings.warn(

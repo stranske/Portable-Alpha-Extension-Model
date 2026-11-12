@@ -1,0 +1,94 @@
+[
+  {
+    "name": "zero-seed",
+    "node": "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+    "command": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+      "-q",
+      "-m",
+      "not slow and not live_llm"
+    ],
+    "file": "pa_core/pa.py",
+    "removed": "seed = \"none\" if summary.seed is None else summary.seed",
+    "added": "seed = \"none\" if not summary.seed else summary.seed",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 3.5494337750000113,
+    "green_seconds": 3.384303208999995,
+    "before_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "mutated_sha256": "fc0db2cea50c0c21958ecc1858fa923932827ab1128f4903cf7814858f39f2ec",
+    "restored_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9"
+  },
+  {
+    "name": "list-fields",
+    "node": "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+    "command": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+      "-q",
+      "-m",
+      "not slow and not live_llm"
+    ],
+    "file": "pa_core/pa.py",
+    "removed": "f\"seed={seed}\\tcode={summary.code_version}\"",
+    "added": "f\"seed={seed}\"",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 3.513470511000037,
+    "green_seconds": 3.3743639550000353,
+    "before_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "mutated_sha256": "9d05dab05df134bc1344af0157f5c2e790d27f9d9bb19d11664a0cf313c9c235",
+    "restored_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9"
+  },
+  {
+    "name": "get-id",
+    "node": "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+    "command": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+      "-q",
+      "-m",
+      "not slow and not live_llm"
+    ],
+    "file": "pa_core/pa.py",
+    "removed": "get_scenario(args.scenario_id)",
+    "added": "get_scenario(\"wrong-id\")",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 3.536895307000009,
+    "green_seconds": 3.4127281009999706,
+    "before_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "mutated_sha256": "6ae353639e5da043b5b4a066f804a4b219481088044ee2f81558a851100a5759",
+    "restored_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9"
+  },
+  {
+    "name": "get-fields",
+    "node": "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+    "command": [
+      "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+      "-m",
+      "pytest",
+      "tests/test_coverage_round_2381.py::test_pa_registry_list_and_get",
+      "-q",
+      "-m",
+      "not slow and not live_llm"
+    ],
+    "file": "pa_core/pa.py",
+    "removed": "json.dumps(scenario.__dict__, indent=2)",
+    "added": "json.dumps({\"scenario_id\": scenario.scenario_id}, indent=2)",
+    "red_exit": 1,
+    "green_exit": 0,
+    "red_seconds": 3.565348929000038,
+    "green_seconds": 3.3732901519999814,
+    "before_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9",
+    "mutated_sha256": "e37f253d6cd84373fab1f1bee95a97b7d605542fea92fd4719ff15f2f6aef979",
+    "restored_sha256": "5e038fb6a878c8d482f7ca1856ca74a4e7fd1b71099a7517025dba2fd153ddb9"
+  }
+]

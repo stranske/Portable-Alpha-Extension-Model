@@ -1,0 +1,5 @@
+--- a/pa_core/pa.py
++++ b/pa_core/pa.py
+@@ -351 +351 @@
+-            print(json.dumps(scenario.__dict__, indent=2))
++            print(json.dumps({"scenario_id": scenario.scenario_id}, indent=2))

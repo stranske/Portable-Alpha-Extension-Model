@@ -1,0 +1,12 @@
+........................................................................ [ 82%]
+...............                                                          [100%]
+=============================== warnings summary ===============================
+tests/test_coverage_round_2381.py::test_facade_run_single_and_sweep_reject_non_series_index
+tests/test_coverage_round_2381.py::test_facade_run_sweep_rejects_scalar_index
+tests/test_coverage_round_2381.py::test_export_sweep_artifacts_with_visualizations
+tests/test_coverage_round_2381.py::test_run_single_and_sweep_accept_single_column_index_frame
+  /Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2498__closer/pa_core/config.py:916: DeprecationWarning: Ambiguous return inputs detected for legacy fields: mu_E, mu_H, mu_M, sigma_E, sigma_H, sigma_M. Use explicit keys like mu_H_annual or mu_H_monthly. Legacy field names will be deprecated.
+    data = transform(data)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+87 passed, 4 warnings in 1.92s
