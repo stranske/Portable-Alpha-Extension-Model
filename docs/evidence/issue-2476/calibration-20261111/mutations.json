@@ -1,6 +1,7 @@
 [
   {
     "mutation": "default-window",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "vol_regime_window = 12",
     "after": "vol_regime_window = 6",
@@ -23,6 +24,7 @@
   },
   {
     "mutation": "template-short-samples",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "importer.allow_below_min_obs = True",
     "after": "importer.allow_below_min_obs = False",
@@ -45,6 +47,7 @@
   },
   {
     "mutation": "nested-overrides",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "        return calib\n",
     "after": "        return data\n",
@@ -67,6 +70,7 @@
   },
   {
     "mutation": "cli-window-precedence",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "            args.vol_regime_window\n            if args.vol_regime_window is not None",
     "after": "            calibration_overrides.get(\"vol_regime_window\")\n            if args.vol_regime_window is not None",
@@ -89,6 +93,7 @@
   },
   {
     "mutation": "partial-default-regime",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "vol_regime if vol_regime is not None else \"single\"",
     "after": "vol_regime if vol_regime is not None else \"two_state\"",
@@ -111,6 +116,7 @@
   },
   {
     "mutation": "invalid-covariance",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "if value_str not in allowed:",
     "after": "if value_str not in allowed and value_str != \"unsupported\":",
@@ -133,6 +139,7 @@
   },
   {
     "mutation": "invalid-regime",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "if value_str not in allowed:",
     "after": "if value_str not in allowed and value_str != \"unsupported\":",
@@ -155,6 +162,9 @@
   },
   {
     "mutation": "calibration-frame",
+    "scope": "identity-only",
+    "equivalent_for_calibration_behavior": true,
+    "note": "Equivalent for CalibrationAgent.calibrate output (pa_core/data/calibration.py rebinds df to a filtered copy); detected only by the input-identity forwarding assertion assert calibrator.calibrate.call_args.args[0] is frame, separate from behavioral mutations.",
     "file": "pa_core/pa.py",
     "before": "calib.calibrate(df, index_id=args.index_id)",
     "after": "calib.calibrate(df.copy(), index_id=args.index_id)",
@@ -177,6 +187,7 @@
   },
   {
     "mutation": "export-destination",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "calib.to_yaml(data_result, args.output)",
     "after": "calib.to_yaml(data_result, \"wrong.yaml\")",
@@ -199,6 +210,7 @@
   },
   {
     "mutation": "template-observations",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "min_obs=importer.min_obs,",
     "after": "min_obs=args.min_obs,",
@@ -221,6 +233,7 @@
   },
   {
     "mutation": "invalid-covariance-early-io",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "        cov_shrinkage = cast(",
     "after": "        importer.load(args.input)\n        cov_shrinkage = cast(",
@@ -243,6 +256,7 @@
   },
   {
     "mutation": "invalid-regime-early-io",
+    "scope": "behavioral",
     "file": "pa_core/pa.py",
     "before": "        cov_shrinkage = cast(",
     "after": "        importer.load(args.input)\n        cov_shrinkage = cast(",

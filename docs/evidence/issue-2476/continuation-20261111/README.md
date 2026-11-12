@@ -192,10 +192,21 @@ explicitly. Both jobs failed at **Install the repository test environment**:
 that your requirements are unsatisfiable`. The anchor's `requirements.lock`
 pins `coverage==7.16.2`
 ([log excerpt](hosted-anchor/failed-install.txt)). No tests ran. Per the
-one-attempt rule the anchor was not retried, so the matched-policy round
-baseline remains **unmeasured**. A matched anchor would need either the
-anchor's own coverage pin, which is no longer the matched policy, or an
-overridden lock.
+one-attempt rule the anchor was not retried under that forced `7.17.2` pin, so
+that forced-pin round baseline remains **unmeasured**. A matched anchor would
+need either the anchor's own coverage pin, which is no longer the matched
+policy, or an overridden lock.
+
+Subsequently, [run 43154194839](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/43154194839)
+used `.github/workflows/issue-2360-paired-ci-attribution.yml` with runner-local
+dependency resolution (`source .github/workflows/autofix-versions.env` plus
+`requirements.lock` from each checked-out revision on `ubuntu-latest` Python
+`3.14.10`) to execute the exact Gate command and `--cov-branch` supplement on
+baseline `bf424ec6ff58bb88b6431acf7809d42b2c59f95d`, PR `#2384` merge
+`1b7f97a1c640ef69efe6a6750cf93f23a105000e`, and prospective delivered merge
+`d0e8f8058a0c8f32babf4460390bd2073ed5389a`. All six jobs completed on the first
+attempt within 180 seconds; receipts and per-step target reconciliations are in
+[hosted-main/seven-targets.json](hosted-main/seven-targets.json).
 
 The measured residual exceptions at the merge are unchanged from the candidate:
 facade statements 751 and 757 with arcs 750→751 and 756→757, `pa.py` arc

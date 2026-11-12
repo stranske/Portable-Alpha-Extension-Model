@@ -1,0 +1,6 @@
+[gw1] [ 42%] PASSED tests/test_issue_2360_evidence.py::test_ci_requires_successful_terminal_pytest_result[========== 1 passed, 1 failed in 0.01s ==========] 
+tests/test_issue_2360_evidence.py::test_ci_requires_successful_terminal_pytest_result[========== 1 passed, 2 errors in 0.01s ==========] 
+[gw0] [ 42%] PASSED tests/test_issue_2360_evidence.py::test_ci_requires_successful_terminal_pytest_result[========== 1 passed, 1 error in 0.01s ==========] 
+[gw1] [ 42%] PASSED tests/test_issue_2360_evidence.py::test_ci_requires_successful_terminal_pytest_result[========== 1 passed, 2 errors in 0.01s ==========] 
+tests/test_cli.py::test_main_with_png
+========== 2192 passed, 1 skipped, 1014 warnings in 89.28s (0:01:29) ===========

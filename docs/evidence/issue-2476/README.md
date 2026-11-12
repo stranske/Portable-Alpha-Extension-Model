@@ -52,6 +52,18 @@ merged with that main. Each of the four jobs passed on one attempt within
 [continuation-20261111/hosted-main/](continuation-20261111/hosted-main/seven-targets.json).
 Details are in the [continuation evidence](continuation-20261111/README.md).
 
+Hosted [run 43154194839](https://github.com/stranske/Portable-Alpha-Extension-Model/actions/runs/43154194839)
+subsequently ran the exact same Gate command and `--cov-branch` supplement via
+`.github/workflows/issue-2360-paired-ci-attribution.yml` with runner-local
+dependency resolution (sourcing each checkout's `.github/workflows/autofix-versions.env`
+and `requirements.lock` on `ubuntu-latest` Python `3.14.10`) on round baseline
+`bf424ec6ff58bb88b6431acf7809d42b2c59f95d`, PR `#2384` merge
+`1b7f97a1c640ef69efe6a6750cf93f23a105000e`, and prospective delivered merge
+`d0e8f8058a0c8f32babf4460390bd2073ed5389a` (merging `6d4d137a` with `main`
+`9d083d69`). All six jobs completed on the first attempt within 180 seconds and
+recorded their receipts in
+[continuation-20261111/hosted-main/seven-targets.json](continuation-20261111/hosted-main/seven-targets.json).
+
 Per-target deltas, main → prospective merge:
 
 | Target | Statements | Branches |
@@ -65,6 +77,32 @@ Per-target deltas, main → prospective merge:
 | `dashboard/pages/4_Results.py` | −18 | −15 |
 | **Total (this PR)** | **−18 (20 → 2)** | **−26 (30 → 4)** |
 
+Complete statement and branch counts (uncovered / total) across baseline `bf424ec6`, PR `#2384` merge `1b7f97a1`, main `5be77e15`, and delivered merge `d0e8f805` (`ab96b5b4`):
+
+| Target | Baseline `bf424ec6` (stmts / br) | PR `#2384` `1b7f97a1` (stmts / br) | Main `5be77e15` (stmts / br) | Delivered merge `d0e8f805` (stmts / br) |
+|--------|---------------------------------:|-----------------------------------:|-----------------------------:|----------------------------------------:|
+| `pa_core/llm/result_explain.py` | 4/226 / 7/102 | 4/226 / 7/102 | 0/227 / 4/102 | 0/227 / 0/102 |
+| `pa_core/pa.py` | 27/222 / 24/68 | 27/222 / 24/68 | 0/222 / 2/68 | 0/222 / 1/68 |
+| `pa_core/facade.py` | 23/332 / 22/120 | 23/332 / 22/120 | 2/332 / 8/120 | 2/337 / 2/124 |
+| `pa_core/units.py` | 13/81 / 10/30 | 13/81 / 10/30 | 0/81 / 0/30 | 0/81 / 0/30 |
+| `pa_core/sim/internal_pa_financing.py` | 4/35 / 4/18 | 4/35 / 4/18 | 0/35 / 0/18 | 0/35 / 0/18 |
+| `pa_core/manifest.py` | 2/61 / 0/4 | 2/61 / 0/4 | 0/61 / 0/4 | 0/61 / 0/4 |
+| `dashboard/pages/4_Results.py` | 136/210 / 56/70 | 78/210 / 42/70 | 18/210 / 16/70 | 0/210 / 1/70 |
+| **Total** | **209/1,167 / 123/412** | **151/1,167 / 109/412** | **20/1,168 / 30/412** | **2/1,173 / 4/416** |
+
+Per-step statement and branch reductions for all seven ranked targets reconciling the ~180-unit round objective:
+
+| Target | `bf424ec6 → 1b7f97a1` (#2384) stmts / br | `1b7f97a1 → 5be77e15` (intervening) stmts / br | `5be77e15 → d0e8f805` (this PR) stmts / br | Round total (`bf424ec6 → d0e8f805`) stmts / br (units) |
+|--------|-----------------------------------------:|-----------------------------------------------:|-------------------------------------------:|-------------------------------------------------------:|
+| `pa_core/llm/result_explain.py` | 0 / 0 | −4 / −3 | 0 / −4 | −4 / −7 (−11) |
+| `pa_core/pa.py` | 0 / 0 | −27 / −22 | 0 / −1 | −27 / −23 (−50) |
+| `pa_core/facade.py` | 0 / 0 | −21 / −14 | 0 / −6 | −21 / −20 (−41) |
+| `pa_core/units.py` | 0 / 0 | −13 / −10 | 0 / 0 | −13 / −10 (−23) |
+| `pa_core/sim/internal_pa_financing.py` | 0 / 0 | −4 / −4 | 0 / 0 | −4 / −4 (−8) |
+| `pa_core/manifest.py` | 0 / 0 | −2 / 0 | 0 / 0 | −2 / 0 (−2) |
+| `dashboard/pages/4_Results.py` | −58 / −14 | −60 / −26 | −18 / −15 | −136 / −55 (−191) |
+| **Total** | **−58 / −14 (−72)** | **−131 / −79 (−210)** | **−18 / −26 (−44)** | **−207 / −119 (−326)** |
+
 Round attribution:
 
 | Step | Statements | Branches | Source |
@@ -74,15 +112,21 @@ Round attribution:
 | main → prospective merge (this PR) | 18 | 26 | current hosted receipts |
 
 Hosted main matches the historical `before_this_work` snapshot exactly, at 20
-statements and 30 branches per target. The current PR step therefore
-reconciles with the historical 18/26. The round baseline (209 statements,
-123 branches), the #2384 step and the intervening step still come from the
-historical test policy. The PR alone removes 44 units. The ~180-unit round
-objective is reached only when those historical steps are counted. The one
-matched-policy attempt to measure the round baseline `bf424ec6` failed at
-dependency installation, before any test ran. Its coverage pin, 7.16.2,
-conflicts with the matched 7.17.2 (run 43123043013). The matched round
-baseline therefore remains unmeasured.
+statements and 30 branches per target, and hosted run 43154194839 with
+runner-local dependency resolution independently reproduces the exact
+`bf424ec6` (209 statements, 123 branches), `1b7f97a1` (151 statements, 109
+branches), and `d0e8f805` (2 statements, 4 branches) counts under `-m 'not slow
+and not live_llm'`. The current PR step therefore reconciles with the
+historical 18/26. The PR alone removes 44 units; the ~180-unit round objective
+is reached across the full round (326 units removed: 72 in #2384, 210 in
+intervening changes, and 44 in this PR). The earlier fixed-pin attempt to
+measure the round baseline `bf424ec6` with a forced `coverage==7.17.2` CLI pin
+failed at dependency installation, before any test ran. Its coverage pin,
+7.16.2, conflicts with the matched 7.17.2 (run 43123043013). Under that forced
+7.17.2 pin without lock override, the matched round
+baseline therefore remains unmeasured; runner-local dependency resolution in
+run 43154194839 resolves each checkout's native `.github/workflows/autofix-versions.env`
+and `requirements.lock` and confirms all three steps above.
 
 Residual exceptions at the prospective merge: `pa_core/facade.py` statements
 751 and 757 with arcs 750→751 and 756→757, `pa_core/pa.py` arc 349→exit, and
