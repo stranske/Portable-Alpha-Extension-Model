@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="23" failures="0" skipped="1" tests="24" time="5.624" timestamp="2026-11-11T15:15:51.927922-06:00" hostname="server.trs.private"><testcase classname="" name="tests.baseline.test_coverage_manifest" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_coverage_manifest.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_coverage_manifest.py:10: in &lt;module&gt;
+    from baseline_kit import CoverageManifest, evaluate_direction, load_catalog
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.baseline.test_directional" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_directional.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_directional.py:7: in &lt;module&gt;
+    from baseline_kit import evaluate_direction, load_catalog
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.baseline.test_golden" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_golden.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_golden.py:10: in &lt;module&gt;
+    from baseline_kit import check_metrics
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.baseline.test_invariants" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_invariants.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_invariants.py:5: in &lt;module&gt;
+    from baseline_kit import assert_invariants
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.test_attribution_reporting" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_attribution_reporting.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_attribution_reporting.py:8: in &lt;module&gt;
+    from pa_core.reporting.attribution import (
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_console" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_console.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_console.py:3: in &lt;module&gt;
+    from pa_core.reporting import print_summary
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_coverage_round_2415" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_coverage_round_2415.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_coverage_round_2415.py:9: in &lt;module&gt;
+    from pa_core.reporting.excel import (
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_dashboard_provider_widget_lifecycle" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_dashboard_provider_widget_lifecycle.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_dashboard_provider_widget_lifecycle.py:4: in &lt;module&gt;
+    from streamlit.testing.v1 import AppTest
+E   ModuleNotFoundError: No module named 'streamlit.testing'; 'streamlit' is not a package</error></testcase><testcase classname="" name="tests.test_export_packet" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_export_packet.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_export_packet.py:10: in &lt;module&gt;
+    from pa_core.reporting.export_packet import create_export_packet
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_integration_regressions" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_integration_regressions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_integration_regressions.py:12: in &lt;module&gt;
+    from pa_core.reporting.attribution import (
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_internal_pa_financing" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_internal_pa_financing.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_internal_pa_financing.py:25: in &lt;module&gt;
+    from pa_core.reporting.attribution import compute_sleeve_return_attribution
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_model_limitations_1923" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_model_limitations_1923.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_model_limitations_1923.py:13: in &lt;module&gt;
+    from pa_core.reporting.disclaimers import (
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_outputs" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_outputs.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_outputs.py:7: in &lt;module&gt;
+    from pa_core.reporting import export_to_excel
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_pptx_export_consolidation_1906" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_pptx_export_consolidation_1906.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_pptx_export_consolidation_1906.py:18: in &lt;module&gt;
+    from pa_core.reporting import export_packet
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_property" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_property.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_property.py:2: in &lt;module&gt;
+    from hypothesis import given
+E   ModuleNotFoundError: No module named 'hypothesis'</error></testcase><testcase classname="" name="tests.test_reporting" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_reporting.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_reporting.py:11: in &lt;module&gt;
+    from pa_core.reporting import export_to_excel
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_reporting_agent_semantics" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_reporting_agent_semantics.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_reporting_agent_semantics.py:9: in &lt;module&gt;
+    from pa_core.reporting import export_to_excel
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_reporting_console" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_reporting_console.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_reporting_console.py:7: in &lt;module&gt;
+    from pa_core.reporting import console as reporting_console
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_reporting_constraints" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_reporting_constraints.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_reporting_constraints.py:3: in &lt;module&gt;
+    from pa_core.reporting.constraints import build_constraint_report
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_reporting_exports" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_reporting_exports.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_reporting_exports.py:10: in &lt;module&gt;
+    from pa_core.reporting.sweep_excel import export_sweep_results
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_reporting_run_diff" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_reporting_run_diff.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_reporting_run_diff.py:6: in &lt;module&gt;
+    from pa_core.reporting.run_diff import build_run_diff
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_sleeve_constraint_validation" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_sleeve_constraint_validation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_sleeve_constraint_validation.py:6: in &lt;module&gt;
+    from pa_core.reporting.constraints import validate_sleeve_constraints
+pa_core/reporting/__init__.py:2: in &lt;module&gt;
+    from .excel import export_to_excel
+pa_core/reporting/excel.py:13: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_stress_delta" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_stress_delta.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_stress_delta.py:3: in &lt;module&gt;
+    import openpyxl
+E   ModuleNotFoundError: No module named 'openpyxl'</error></testcase><testcase classname="" name="tests.test_widgets" time="0.000"><skipped message="collection skipped">('/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/test_widgets.py', 6, "Skipped: could not import 'ipywidgets': No module named 'ipywidgets'")</skipped></testcase></testsuite></testsuites>

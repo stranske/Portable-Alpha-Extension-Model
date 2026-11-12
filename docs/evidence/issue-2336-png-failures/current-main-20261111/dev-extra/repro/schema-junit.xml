@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.861" timestamp="2026-11-11T15:47:55.314341-06:00" hostname="server.trs.private"><testcase classname="tests.test_schema_export" name="test_parameter_dictionary_matches_schema" time="0.714"><failure message="AssertionError: Parameter dictionary drift detected; re-run `python -m pa_core.schema --generate-parameter-dictionary`.&#10;assert '# Parameter ...hen true. |\n' == '# Parameter ...hen true. |\n'&#10;  &#10;  Skipping 2753 identical leading characters in diff, use -v to show&#10;[+5 more lines; full report in element text]">tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-25/test_parameter_dictionary_matc0')
+
+    def test_parameter_dictionary_matches_schema(tmp_path: Path) -&gt; None:
+        output_path = tmp_path / "PARAMETER_DICTIONARY.md"
+        generate_parameter_dictionary(output_path, schema="config")
+        committed = Path("docs/guides/PARAMETER_DICTIONARY.md").read_text()
+        generated = output_path.read_text()
+&gt;       assert generated == committed, (
+            "Parameter dictionary drift detected; re-run "
+            "`python -m pa_core.schema --generate-parameter-dictionary`."
+        )
+E       AssertionError: Parameter dictionary drift detected; re-run `python -m pa_core.schema --generate-parameter-dictionary`.
+E       assert '# Parameter ...hen true. |\n' == '# Parameter ...hen true. |\n'
+E         
+E         Skipping 2753 identical leading characters in diff, use -v to show
+E         - edule` | `Dict[str, pa_core.fees.FeeSchedule] \| None` | no | `None` | Optional per-sleeve management/performance fee schedule keyed by agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's returns are reported net of fees (issue #1904). None or empty keeps the historical gross-of-fee behaviour. |
+E         ?                                              ^^^^       --------------
+E         + edule` | `Optional[Dict[str, pa_core.fees.FeeSchedule]]` | no | `None` | Optional per-sleeve management/performance fee s...
+E         
+E         ...Full output truncated, use '-vv' to show
+
+tests/test_schema_export.py:51: AssertionError</failure></testcase></testsuite></testsuites>

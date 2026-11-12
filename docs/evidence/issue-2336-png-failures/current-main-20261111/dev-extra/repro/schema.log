@@ -1,0 +1,29 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_parameter_dictionary_matches_schema ___________________
+
+tmp_path = PosixPath('/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pytest-of-teacher/pytest-25/test_parameter_dictionary_matc0')
+
+    def test_parameter_dictionary_matches_schema(tmp_path: Path) -> None:
+        output_path = tmp_path / "PARAMETER_DICTIONARY.md"
+        generate_parameter_dictionary(output_path, schema="config")
+        committed = Path("docs/guides/PARAMETER_DICTIONARY.md").read_text()
+        generated = output_path.read_text()
+>       assert generated == committed, (
+            "Parameter dictionary drift detected; re-run "
+            "`python -m pa_core.schema --generate-parameter-dictionary`."
+        )
+E       AssertionError: Parameter dictionary drift detected; re-run `python -m pa_core.schema --generate-parameter-dictionary`.
+E       assert '# Parameter ...hen true. |\n' == '# Parameter ...hen true. |\n'
+E         
+E         Skipping 2753 identical leading characters in diff, use -v to show
+E         - edule` | `Dict[str, pa_core.fees.FeeSchedule] \| None` | no | `None` | Optional per-sleeve management/performance fee schedule keyed by agent name (e.g. 'ExternalPA', 'ActiveExt'). When set, that sleeve's returns are reported net of fees (issue #1904). None or empty keeps the historical gross-of-fee behaviour. |
+E         ?                                              ^^^^       --------------
+E         + edule` | `Optional[Dict[str, pa_core.fees.FeeSchedule]]` | no | `None` | Optional per-sleeve management/performance fee s...
+E         
+E         ...Full output truncated, use '-vv' to show
+
+tests/test_schema_export.py:51: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_schema_export.py::test_parameter_dictionary_matches_schema
+1 failed in 0.96s

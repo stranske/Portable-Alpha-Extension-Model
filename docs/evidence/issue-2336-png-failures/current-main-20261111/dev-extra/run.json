@@ -1,0 +1,63 @@
+{
+  "commit": "7595bbc02b89cdcce6827ad1a84309e02e02ed45",
+  "working_tree_porcelain": "",
+  "interpreter": "/private/tmp/pae-2495-venv/bin/python",
+  "python_version": "3.13.13 (main, Apr  7 2026, 18:19:01) [Clang 21.0.0 (clang-2100.0.123.102)]",
+  "dependency_versions": {
+    "pytest": "9.2.0",
+    "pytest-cov": "7.1.0",
+    "coverage": "7.17.2",
+    "numpy": "2.5.4",
+    "pandas": "3.1.1",
+    "scipy": null,
+    "openpyxl": "3.1.5",
+    "kaleido": "1.5.0",
+    "plotly": "6.9.0"
+  },
+  "production_sha256_before": {
+    "pa_core/cli.py": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  },
+  "runs": [
+    {
+      "name": "full",
+      "argv": [
+        "/private/tmp/pae-2495-venv/bin/python",
+        "-m",
+        "pytest",
+        "--cov=pa_core",
+        "--cov=dashboard",
+        "--cov-report=json:coverage.json",
+        "tests/",
+        "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/dev-extra/full-junit.xml"
+      ],
+      "exit": 1,
+      "timeout": false,
+      "completed": true,
+      "timeout_seconds": 600,
+      "elapsed_seconds": 164.147,
+      "max_attempts": 1
+    },
+    {
+      "name": "focused",
+      "argv": [
+        "/private/tmp/pae-2495-venv/bin/python",
+        "-m",
+        "pytest",
+        "tests/test_cli_png_failures.py",
+        "tests/test_cli_pdf_failures.py",
+        "tests/test_cli_sweep_png_export.py",
+        "-q",
+        "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/dev-extra/focused-junit.xml"
+      ],
+      "exit": 0,
+      "timeout": false,
+      "completed": true,
+      "timeout_seconds": 600,
+      "elapsed_seconds": 3.714,
+      "max_attempts": 1
+    }
+  ],
+  "production_sha256_after": {
+    "pa_core/cli.py": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+  }
+}

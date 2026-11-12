@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="4" failures="0" skipped="0" tests="4" time="21.348" timestamp="2026-11-11T15:16:51.326426-06:00" hostname="server.trs.private"><testcase classname="" name="tests.baseline.test_coverage_manifest" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_coverage_manifest.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_coverage_manifest.py:10: in &lt;module&gt;
+    from baseline_kit import CoverageManifest, evaluate_direction, load_catalog
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.baseline.test_directional" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_directional.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_directional.py:7: in &lt;module&gt;
+    from baseline_kit import evaluate_direction, load_catalog
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.baseline.test_golden" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_golden.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_golden.py:10: in &lt;module&gt;
+    from baseline_kit import check_metrics
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase><testcase classname="" name="tests.baseline.test_invariants" time="0.000"><error message="collection failure">ImportError while importing test module '/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2495__opener/tests/baseline/test_invariants.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/baseline/test_invariants.py:5: in &lt;module&gt;
+    from baseline_kit import assert_invariants
+E   ModuleNotFoundError: No module named 'baseline_kit'</error></testcase></testsuite></testsuites>

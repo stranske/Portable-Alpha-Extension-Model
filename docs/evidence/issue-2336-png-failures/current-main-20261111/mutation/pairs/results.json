@@ -1,0 +1,298 @@
+{
+  "revision": "5be77e15c925f5354ab67e2a1749fe6187d2038c",
+  "caller_unchanged": true,
+  "inputs": {
+    "pa_core/cli.py": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+    "tests/test_cli_png_failures.py": "fef801ac24c71a8a928f958959861ad372f7663982d338ee7a096da11a061dab"
+  },
+  "results": [
+    {
+      "case": "renderer",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[renderer]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "eb581cf34b532ba828f077c8ca9a6d6fb72d518ca44f42497011937981461c03",
+      "target": "logger.error(f\"PNG export failed due to missing dependency: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[renderer]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/renderer-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "eb581cf34b532ba828f077c8ca9a6d6fb72d518ca44f42497011937981461c03",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[renderer]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/renderer-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "module",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[module]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "3936b6e32967c1a314e43f5c80d19754ab7f1beccb4089b902de450249309ca7",
+      "target": "logger.error(f\"PNG export failed due to missing module: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[module]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/module-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "3936b6e32967c1a314e43f5c80d19754ab7f1beccb4089b902de450249309ca7",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[module]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/module-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "io",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[io]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "1401639d6020bc1783e4d1293be02ef9da60e16e740efd10269eeef1ffe478fe",
+      "target": "logger.error(f\"PNG export failed due to file system issue: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[io]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/io-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "1401639d6020bc1783e4d1293be02ef9da60e16e740efd10269eeef1ffe478fe",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[io]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/io-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "permission",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "1401639d6020bc1783e4d1293be02ef9da60e16e740efd10269eeef1ffe478fe",
+      "target": "logger.error(f\"PNG export failed due to file system issue: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/permission-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "1401639d6020bc1783e4d1293be02ef9da60e16e740efd10269eeef1ffe478fe",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[permission]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/permission-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "value",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[value]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "0da4b4648ead436611de9c2c776e1818155a8c2cfed275eddce9fbb93cf8f316",
+      "target": "logger.error(f\"PNG export failed due to data issue: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[value]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/value-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "0da4b4648ead436611de9c2c776e1818155a8c2cfed275eddce9fbb93cf8f316",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[value]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/value-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "type",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[type]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "0da4b4648ead436611de9c2c776e1818155a8c2cfed275eddce9fbb93cf8f316",
+      "target": "logger.error(f\"PNG export failed due to data issue: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[type]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/type-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "0da4b4648ead436611de9c2c776e1818155a8c2cfed275eddce9fbb93cf8f316",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[type]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/type-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "runtime-renderer",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[runtime-renderer]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "d4a5dd1ec33e4be72d9fbe15557e69f3902d33521156b04547928008097fa5d0",
+      "target": "logger.error(f\"PNG export failed: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[runtime-renderer]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/runtime-renderer-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "d4a5dd1ec33e4be72d9fbe15557e69f3902d33521156b04547928008097fa5d0",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[runtime-renderer]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/runtime-renderer-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    },
+    {
+      "case": "runtime-other",
+      "node": "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[runtime-other]",
+      "original_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+      "mutant_sha256": "d4a5dd1ec33e4be72d9fbe15557e69f3902d33521156b04547928008097fa5d0",
+      "target": "logger.error(f\"PNG export failed: {e}\")",
+      "red": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[runtime-other]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/runtime-other-red.xml"
+        ],
+        "exit": 1,
+        "source_sha256": "d4a5dd1ec33e4be72d9fbe15557e69f3902d33521156b04547928008097fa5d0",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "green": {
+        "argv": [
+          "/private/tmp/pae-2495-venv/bin/python",
+          "-B",
+          "-m",
+          "pytest",
+          "tests/test_cli_png_failures.py::test_single_run_png_failure_preserves_results[runtime-other]",
+          "-q",
+          "--junitxml=/Users/teacher/.codex/orchestrator/worktrees/stranske__Portable-Alpha-Extension-Model__2500__closer/docs/evidence/issue-2336-png-failures/current-main-20261111/mutation/pairs/runtime-other-green.xml"
+        ],
+        "exit": 0,
+        "source_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26",
+        "cwd": "/Users/teacher/.codex/orchestrator/agent-runtime/claude/tmp/pa-png-proof-phsuc2j8"
+      },
+      "restored_sha256": "f3ffec1a90fe5888ca5ba357507e7542f4dc436117acea430348c87ab0b40e26"
+    }
+  ]
+}
