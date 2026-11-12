@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 
 import pytest
@@ -53,7 +54,9 @@ def test_reference_requires_created_run_identity():
     from pa_core.llm.tracing import resolve_trace_reference
 
     assert resolve_trace_reference("local-request-uuid") == (None, None)
-    assert resolve_trace_reference(SimpleNamespace(url="https://example.test/fabricated")) == (
+    assert resolve_trace_reference(
+        SimpleNamespace(url="https://example.test/fabricated")
+    ) == (
         None,
         None,
     )
@@ -71,6 +74,23 @@ def test_reference_resolution_failure_is_nonfatal():
     assert resolve_trace_reference(BrokenRun()) == (None, None)
 
 
+async def _retrieve_captured_run(client, captured):
+    """Retrieve only the captured invocation using its actual project identity."""
+    project_id = captured.get("project_id")
+    if not project_id:
+        project_name = captured.get("project_name")
+        if not project_name:
+            raise ValueError("captured run has no project identity")
+        project = await client.aread_project(project_name=project_name)
+        project_id = str(project.id)
+    return await client.runs.retrieve(
+        run_id=captured["id"],
+        project_id=str(project_id),
+        start_time=captured["start_time"],
+        selects=["ID"],
+    )
+
+
 @pytest.mark.live_llm
 def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
     """Opt-in only: create a synthetic invocation and retrieve that exact SDK run."""
@@ -81,12 +101,16 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
     from types import SimpleNamespace
 
     evidence = Path(
-        os.getenv("PAEM_LIVE_TRACE_EVIDENCE", str(tmp_path / "trace-live-acceptance.json"))
+        os.getenv(
+            "PAEM_LIVE_TRACE_EVIDENCE", str(tmp_path / "trace-live-acceptance.json")
+        )
     )
 
     def unknown(reason):
         evidence.parent.mkdir(parents=True, exist_ok=True)
-        evidence.write_text(json.dumps({"verdict": "UNKNOWN", "reason": reason}, indent=2))
+        evidence.write_text(
+            json.dumps({"verdict": "UNKNOWN", "reason": reason}, indent=2)
+        )
         pytest.skip("UNKNOWN: " + reason)
 
     if os.getenv("PAEM_LIVE_TRACE_ACCEPTANCE") != "1":
@@ -113,9 +137,17 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
         def invoke(self, prompt):
             run = run_helpers.get_current_run_tree()
             captured["id"] = str(run.id) if run is not None else None
-            return SimpleNamespace(content="Synthetic trace correlation acceptance probe.")
+            if run is not None:
+                captured["project_id"] = str(run.session_id) if run.session_id else None
+                captured["project_name"] = run.session_name
+                captured["start_time"] = run.start_time.isoformat()
+            return SimpleNamespace(
+                content="Synthetic trace correlation acceptance probe."
+            )
 
-    monkeypatch.setattr(result_explain, "create_llm", lambda config: SyntheticInvocation())
+    monkeypatch.setattr(
+        result_explain, "create_llm", lambda config: SyntheticInvocation()
+    )
     monkeypatch.setattr(result_explain, "record_fleet_event", events.append)
     _, url, payload = result_explain.explain_results_details(
         pd.DataFrame({"monthly_TE": [0.01]}),
@@ -125,12 +157,14 @@ def test_authorized_synthetic_trace_live_retrieval(monkeypatch, tmp_path):
         tracing_enabled=True,
     )
     if not captured.get("id") or not events or not url:
-        unknown("the same synthetic invocation did not produce a usable SDK trace reference")
+        unknown(
+            "the same synthetic invocation did not produce a usable SDK trace reference"
+        )
     assert events[0].trace_id == captured["id"]
     assert payload["trace_url"] == events[0].trace_url == url
     try:
         # One authenticated retrieval; no polling or unrelated existing run can pass.
-        remote = Client().read_run(captured["id"])
+        remote = asyncio.run(_retrieve_captured_run(Client(), captured))
     except Exception as exc:
         unknown("same-invocation retrieval unavailable: " + type(exc).__name__)
     assert str(remote.id) == captured["id"]
@@ -159,3 +193,60 @@ def test_telemetry_exit_failure_preserves_original_operation_error(fake_langsmit
     with pytest.raises(ValueError, match="original operation"):
         with langsmith_tracing_context(name="synthetic"):
             raise ValueError("original operation")
+
+
+def test_smithdb_retrieval_uses_captured_project_id():
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    expected = SimpleNamespace(id="same-run")
+    client = SimpleNamespace(
+        aread_project=AsyncMock(),
+        runs=SimpleNamespace(retrieve=AsyncMock(return_value=expected)),
+    )
+    captured = {
+        "id": "same-run",
+        "project_id": "actual-project-id",
+        "project_name": "not-the-environment-default",
+        "start_time": "2026-11-12T00:00:00+00:00",
+    }
+    assert asyncio.run(_retrieve_captured_run(client, captured)) is expected
+    client.aread_project.assert_not_awaited()
+    client.runs.retrieve.assert_awaited_once_with(
+        run_id="same-run",
+        project_id="actual-project-id",
+        start_time=captured["start_time"],
+        selects=["ID"],
+    )
+
+
+def test_smithdb_retrieval_resolves_captured_project_name():
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    client = SimpleNamespace(
+        aread_project=AsyncMock(return_value=SimpleNamespace(id="resolved-id")),
+        runs=SimpleNamespace(retrieve=AsyncMock()),
+    )
+    captured = {
+        "id": "same-run",
+        "project_name": "actual-project",
+        "start_time": "2026-11-12T00:00:00+00:00",
+    }
+    asyncio.run(_retrieve_captured_run(client, captured))
+    client.aread_project.assert_awaited_once_with(project_name="actual-project")
+    assert client.runs.retrieve.await_args.kwargs["project_id"] == "resolved-id"
+    assert client.runs.retrieve.await_args.kwargs["run_id"] == "same-run"
+
+
+def test_smithdb_retrieval_does_not_guess_project():
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock
+
+    client = SimpleNamespace(
+        aread_project=AsyncMock(), runs=SimpleNamespace(retrieve=AsyncMock())
+    )
+    with pytest.raises(ValueError, match="no project identity"):
+        asyncio.run(_retrieve_captured_run(client, {"id": "same-run"}))
+    client.aread_project.assert_not_awaited()
+    client.runs.retrieve.assert_not_awaited()
