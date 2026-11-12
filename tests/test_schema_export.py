@@ -1,10 +1,13 @@
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import pytest
 
+from pa_core.fees import FeeSchedule
 from pa_core.schema import (
     _dump_payload,
     _escape_markdown,
+    _stringify_type,
     main,
     export_schema_definitions,
     generate_parameter_dictionary,
@@ -123,3 +126,33 @@ def test_format_default_for_markdown_handles_collections() -> None:
         )
         == "default_factory: list"
     )
+
+
+@pytest.mark.parametrize(
+    ("annotation", "expected"),
+    [
+        (
+            Optional[Dict[str, FeeSchedule]],  # noqa: UP045
+            "Dict[str, pa_core.fees.FeeSchedule] | None",
+        ),
+        (Dict[str, FeeSchedule] | None, "Dict[str, pa_core.fees.FeeSchedule] | None"),
+        (Optional[List[List[float]]], "List[List[float]] | None"),  # noqa: UP007, UP045
+        (List[List[float]] | None, "List[List[float]] | None"),
+        (Optional[str], "str | None"),  # noqa: UP007, UP045
+        (str | None, "str | None"),
+        (Union[int, str, None], "int | str | None"),  # noqa: UP007, UP045
+        (int | str | None, "int | str | None"),
+        (Optional[Path], "pathlib.Path | None"),  # noqa: UP007, UP045
+        (Path | None, "pathlib.Path | None"),
+    ],
+)
+def test_stringify_type_renders_unions_independent_of_spelling(
+    annotation: object, expected: str
+) -> None:
+    assert _stringify_type(annotation) == expected
+
+
+def test_stringify_type_preserves_non_union_spelling() -> None:
+    assert _stringify_type(None) == "Any"
+    assert _stringify_type(Dict[str, FeeSchedule]) == "Dict[str, pa_core.fees.FeeSchedule]"
+    assert _stringify_type(float) == "<class 'float'>"
