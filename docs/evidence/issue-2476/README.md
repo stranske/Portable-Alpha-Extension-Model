@@ -10,6 +10,12 @@ branches below, without changing the restored file's 52-case count.
 
 ## Current receipts (revision-bound, 2026-11-11)
 
+The [2026-11-12 helper verification](verification-20261112/README.md) strengthens
+the comparison and explanation diagnostics with four production mutations and
+records a fresh focused baseline/head diagnostic. It adds zero coverage units;
+its full-suite local baseline timed out. The hosted receipts below remain
+attributed to their original revisions.
+
 These hosted receipts measure the delivered code. Sections headed
 **historical snapshot** below record earlier revisions under the earlier test
 policy. They are kept for attribution and do not describe the current head.

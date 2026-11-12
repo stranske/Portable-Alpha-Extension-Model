@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python",
+    "-m",
+    "pytest",
+    "tests/test_coverage_round_2381.py",
+    "-m",
+    "not slow and not live_llm",
+    "-q"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 4.696,
+  "under_120_seconds": true
+}

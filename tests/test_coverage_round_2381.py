@@ -391,14 +391,25 @@ def test_render_comparison_panel_shows_info_when_previous_run_unavailable() -> N
     fake_st = _ResultsStreamlit()
     render_comparison = module["_render_comparison_panel"]
     render_comparison.__globals__["st"] = fake_st
+    render_panel = _CallRecorder("comparison")
     availability = render_comparison(
         summary=pd.DataFrame({"monthly_TE": [0.01]}),
         manifest_data={"seed": 1},
         xlsx="current.xlsx",
+        render_panel=render_panel,
     )
     assert availability.available is False
-    assert fake_st.infos
+    assert availability.prior_manifest_path is None
+    expected_message = (
+        "Comparison unavailable: missing artifact `manifest_data['previous_run']`. "
+        "Expected file path to prior `manifest.json` in the current manifest."
+    )
+    assert availability.message == expected_message
+    assert fake_st.infos == [expected_message]
     assert fake_st.subheaders == ["LLM Comparison"]
+    assert render_panel.calls == []
+    assert fake_st.errors == []
+    assert fake_st.warnings == []
 
 
 def _exit_code(call: Callable[[], None]) -> int:
@@ -708,26 +719,23 @@ def test_facade_run_single_and_sweep_reject_non_series_index() -> None:
         run_single(cfg, [[1, 2, 3]], RunOptions(seed=1))  # type: ignore[arg-type]
 
 
-def test_render_explain_results_handles_panel_failures() -> None:
+@pytest.mark.parametrize(
+    "exception_type", [ModuleNotFoundError, RuntimeError], ids=["missing-llm", "panel-error"]
+)
+def test_render_explain_results_handles_panel_failures(exception_type: type[Exception]) -> None:
     module = _load_results_module()
     render_explain = module["_render_explain_results"]
     fake_st = _ResultsStreamlit()
     render_explain.__globals__["st"] = fake_st
 
-    def _missing_module(**_: object) -> None:
-        raise ModuleNotFoundError("langchain")
-
-    render_explain.__globals__["render_explain_results_panel"] = _missing_module
-    render_explain(summary=pd.DataFrame({"monthly_TE": [0.01]}), manifest_data=None, xlsx="x.xlsx")
-    assert fake_st.infos
-
     def _boom(**_: object) -> None:
-        raise RuntimeError("panel failed")
+        raise exception_type("panel failed")
 
-    fake_st.infos.clear()
     render_explain.__globals__["render_explain_results_panel"] = _boom
     render_explain(summary=pd.DataFrame({"monthly_TE": [0.01]}), manifest_data=None, xlsx="x.xlsx")
-    assert fake_st.infos
+    assert fake_st.infos == ["LLM features unavailable. Install .[llm] to enable Explain Results."]
+    assert fake_st.errors == []
+    assert fake_st.warnings == []
 
 
 def test_check_previous_run_availability_rejects_non_mapping_manifest() -> None:

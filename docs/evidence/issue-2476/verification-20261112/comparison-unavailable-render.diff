@@ -1,0 +1,4 @@
+--- dashboard/pages/4_Results.py
++++ dashboard/pages/4_Results.py
+@@ -178,0 +179 @@
++        render_panel(summary_df=summary, manifest_data=manifest_data, run_key="unavailable")

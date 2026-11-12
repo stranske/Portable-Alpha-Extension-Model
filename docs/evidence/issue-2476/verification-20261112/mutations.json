@@ -1,0 +1,82 @@
+[
+  {
+    "name": "comparison-message",
+    "test": "tests/test_coverage_round_2381.py::test_render_comparison_panel_shows_info_when_previous_run_unavailable",
+    "source": "dashboard/pages/4_Results.py",
+    "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_coverage_round_2381.py::test_render_comparison_panel_shows_info_when_previous_run_unavailable -m 'not slow and not live_llm' -q",
+    "mutation_diff": "comparison-message.diff",
+    "before_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "mutated_sha256": "2e116467741780add96a52ba42889c183a22aff91be044a4bf2765ae7c1661ea",
+    "restored_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "red": {
+      "exit_code": 1,
+      "wall_seconds": 3.615,
+      "output": "comparison-message-red.txt"
+    },
+    "green": {
+      "exit_code": 0,
+      "wall_seconds": 3.469,
+      "output": "comparison-message-green.txt"
+    }
+  },
+  {
+    "name": "comparison-unavailable-render",
+    "test": "tests/test_coverage_round_2381.py::test_render_comparison_panel_shows_info_when_previous_run_unavailable",
+    "source": "dashboard/pages/4_Results.py",
+    "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest tests/test_coverage_round_2381.py::test_render_comparison_panel_shows_info_when_previous_run_unavailable -m 'not slow and not live_llm' -q",
+    "mutation_diff": "comparison-unavailable-render.diff",
+    "before_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "mutated_sha256": "f78491764e309c5fd8b119cb77d851f40a2a0cd576e8b7e7a99ae3a7232c48fd",
+    "restored_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "red": {
+      "exit_code": 1,
+      "wall_seconds": 3.595,
+      "output": "comparison-unavailable-render-red.txt"
+    },
+    "green": {
+      "exit_code": 0,
+      "wall_seconds": 3.484,
+      "output": "comparison-unavailable-render-green.txt"
+    }
+  },
+  {
+    "name": "explain-missing-message",
+    "test": "tests/test_coverage_round_2381.py::test_render_explain_results_handles_panel_failures[missing-llm]",
+    "source": "dashboard/pages/4_Results.py",
+    "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest 'tests/test_coverage_round_2381.py::test_render_explain_results_handles_panel_failures[missing-llm]' -m 'not slow and not live_llm' -q",
+    "mutation_diff": "explain-missing-message.diff",
+    "before_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "mutated_sha256": "0fa88d11cf8a571bd50481064d8bf4486eab2bd63d4a51f8d4ee38bd5f5a723c",
+    "restored_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "red": {
+      "exit_code": 1,
+      "wall_seconds": 3.617,
+      "output": "explain-missing-message-red.txt"
+    },
+    "green": {
+      "exit_code": 0,
+      "wall_seconds": 3.484,
+      "output": "explain-missing-message-green.txt"
+    }
+  },
+  {
+    "name": "explain-error-message",
+    "test": "tests/test_coverage_round_2381.py::test_render_explain_results_handles_panel_failures[panel-error]",
+    "source": "dashboard/pages/4_Results.py",
+    "command": "/opt/hostedtoolcache/Python/3.14.10/x64/bin/python -m pytest 'tests/test_coverage_round_2381.py::test_render_explain_results_handles_panel_failures[panel-error]' -m 'not slow and not live_llm' -q",
+    "mutation_diff": "explain-error-message.diff",
+    "before_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "mutated_sha256": "42fa10e39b5b6520ef2e016dedeb696a23d7a222391134fbb82b12dbb4c309fe",
+    "restored_sha256": "868b7ae750bd4a5e1832849f310729ea5a0a753c0609a45eee9fef5c1f9618d9",
+    "red": {
+      "exit_code": 1,
+      "wall_seconds": 3.628,
+      "output": "explain-error-message-red.txt"
+    },
+    "green": {
+      "exit_code": 0,
+      "wall_seconds": 3.437,
+      "output": "explain-error-message-green.txt"
+    }
+  }
+]
