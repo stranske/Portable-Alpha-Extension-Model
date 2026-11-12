@@ -17,8 +17,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "docs" / "evidence" / "issue-2476"
 MEASURED_REVISION = "54219bd739793fa754c3fec319bb2c6b8f8dd898"
+BASELINE_REVISION = "bf424ec6ff58bb88b6431acf7809d42b2c59f95d"
+AFTER_2384_REVISION = "1b7f97a1c640ef69efe6a6750cf93f23a105000e"
 MAIN_REVISION = "5be77e15c925f5354ab67e2a1749fe6187d2038c"
 MERGE_REVISION = "ab96b5b495547fcad317da7c135d9b082aa0e150"
+DELIVERED_MERGE_REVISION = "d0e8f8058a0c8f32babf4460390bd2073ed5389a"
 
 
 def _measurements() -> dict:
@@ -151,30 +154,45 @@ def _hosted_main_receipts() -> dict:
 
 def test_current_receipts_bind_remaining_gaps_to_measured_revisions() -> None:
     receipts = _hosted_main_receipts()
-    assert set(receipts) == {"main-gate", "main-branch", "merge-gate", "merge-branch"}
-    for label, receipt in receipts.items():
-        expected = MAIN_REVISION if label.startswith("main-") else MERGE_REVISION
+    expected_revisions = {
+        "baseline-gate": BASELINE_REVISION,
+        "baseline-branch": BASELINE_REVISION,
+        "after-2384-gate": AFTER_2384_REVISION,
+        "after-2384-branch": AFTER_2384_REVISION,
+        "main-gate": MAIN_REVISION,
+        "main-branch": MAIN_REVISION,
+        "merge-gate": MERGE_REVISION,
+        "merge-branch": MERGE_REVISION,
+        "delivered-merge-gate": DELIVERED_MERGE_REVISION,
+        "delivered-merge-branch": DELIVERED_MERGE_REVISION,
+    }
+    assert set(receipts) == {*expected_revisions, "round-reconciliation"}
+    for label, expected in expected_revisions.items():
+        receipt = receipts[label]
         assert receipt["revision"] == expected
-        assert receipt["exit_code"] == 0
+        expected_exit = 1 if label.startswith(("baseline-", "after-2384-")) else 0
+        assert receipt["exit_code"] == expected_exit
         assert receipt["branch_coverage"] is label.endswith("-branch")
         revision_file = EVIDENCE / "continuation-20261111" / "hosted-main" / label / "revision.txt"
         assert revision_file.read_text(encoding="utf-8").strip() == expected
 
-    merge = receipts["merge-branch"]["targets"]
-    gaps = {
-        target: (entry["uncovered_statement_lines"], entry["uncovered_branch_arcs"])
-        for target, entry in merge.items()
-        if entry["uncovered_statement_count"] or entry["uncovered_branch_count"]
-    }
-    assert gaps == {
-        "pa_core/facade.py": ([751, 757], [[750, 751], [756, 757]]),
-        "pa_core/pa.py": ([], [[349, -120]]),
-        "dashboard/pages/4_Results.py": ([], [[178, 180]]),
-    }
-    assert receipts["merge-gate"]["targets"]["pa_core/facade.py"]["uncovered_statement_lines"] == [
-        751,
-        757,
-    ]
+    for merge_key in ("merge-branch", "delivered-merge-branch"):
+        merge = receipts[merge_key]["targets"]
+        gaps = {
+            target: (entry["uncovered_statement_lines"], entry["uncovered_branch_arcs"])
+            for target, entry in merge.items()
+            if entry["uncovered_statement_count"] or entry["uncovered_branch_count"]
+        }
+        assert gaps == {
+            "pa_core/facade.py": ([751, 757], [[750, 751], [756, 757]]),
+            "pa_core/pa.py": ([], [[349, -120]]),
+            "dashboard/pages/4_Results.py": ([], [[178, 180]]),
+        }
+    for gate_key in ("merge-gate", "delivered-merge-gate"):
+        assert receipts[gate_key]["targets"]["pa_core/facade.py"]["uncovered_statement_lines"] == [
+            751,
+            757,
+        ]
     readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
     assert "statements\n751 and 757 with arcs 750→751 and 756→757" in readme
 
@@ -207,14 +225,49 @@ def test_readme_per_target_deltas_match_current_receipts() -> None:
 def test_current_main_reconciles_with_historical_before_this_work_snapshot() -> None:
     receipts = _hosted_main_receipts()
     coverage = json.loads((EVIDENCE / "gate-coverage.json").read_text(encoding="utf-8"))
-    historical = coverage["snapshots"]["before_this_work"]
-    for target, entry in historical["statements"]["targets"].items():
-        main_gate = receipts["main-gate"]["targets"][target]
-        assert main_gate["uncovered_statement_count"] == entry["missing_statements"], target
-    for target, entry in historical["branches"]["targets"].items():
-        main_branch = receipts["main-branch"]["targets"][target]
-        assert main_branch["uncovered_branch_count"] == entry["missing_branches"], target
-    # The PR step reconciles; the earlier steps remain historical-policy figures.
+    for snap_key, gate_key, branch_key in (
+        ("round_baseline", "baseline-gate", "baseline-branch"),
+        ("after_2384", "after-2384-gate", "after-2384-branch"),
+        ("before_this_work", "main-gate", "main-branch"),
+        ("delivered", "delivered-merge-gate", "delivered-merge-branch"),
+    ):
+        historical = coverage["snapshots"][snap_key]
+        for target, entry in historical["statements"]["targets"].items():
+            gate_entry = receipts[gate_key]["targets"][target]
+            assert gate_entry["uncovered_statement_count"] == entry["missing_statements"], (
+                snap_key,
+                target,
+            )
+        for target, entry in historical["branches"]["targets"].items():
+            branch_entry = receipts[branch_key]["targets"][target]
+            assert branch_entry["uncovered_branch_count"] == entry["missing_branches"], (
+                snap_key,
+                target,
+            )
+
+    reconciliation = receipts["round-reconciliation"]
+    assert reconciliation["step_totals"] == {
+        "baseline_bf424ec6_to_after_2384_1b7f97a1": {
+            "statements": 58,
+            "branches": 14,
+            "combined_units": 72,
+        },
+        "after_2384_1b7f97a1_to_main_5be77e15": {
+            "statements": 131,
+            "branches": 79,
+            "combined_units": 210,
+        },
+        "main_5be77e15_to_delivered_merge_d0e8f805": {
+            "statements": 18,
+            "branches": 26,
+            "combined_units": 44,
+        },
+        "round_total_bf424ec6_to_delivered_merge_d0e8f805": {
+            "statements": 207,
+            "branches": 119,
+            "combined_units": 326,
+        },
+    }
     assert coverage["statement_reductions"]["this_work"] == 18
     assert coverage["branch_reductions"]["this_work"] == 26
     readme = (EVIDENCE / "README.md").read_text(encoding="utf-8")
@@ -225,6 +278,14 @@ def test_current_main_reconciles_with_historical_before_this_work_snapshot() -> 
     )
     assert "| main → prospective merge (this PR) | 18 | 26 | current hosted receipts |" in readme
     assert "matched round\nbaseline therefore remains unmeasured" in readme
+    assert (
+        "| **Total** | **209/1,167 / 123/412** | **151/1,167 / 109/412** | "
+        "**20/1,168 / 30/412** | **2/1,173 / 4/416** |" in readme
+    )
+    assert (
+        "| **Total** | **−58 / −14 (−72)** | **−131 / −79 (−210)** | "
+        "**−18 / −26 (−44)** | **−207 / −119 (−326)** |" in readme
+    )
     anchor = (
         EVIDENCE / "continuation-20261111" / "hosted-anchor" / "failed-install.txt"
     ).read_text(encoding="utf-8")
@@ -238,6 +299,15 @@ def test_calibration_copy_mutation_is_labelled_identity_only() -> None:
     transcripts = (calibration / "mutation-transcripts.md").read_text(encoding="utf-8")
     record = transcripts.split("## calibration-frame\n", 1)[1]
     assert record.lstrip().startswith("Scope: **identity-only**.")
+    mutations = json.loads((calibration / "mutations.json").read_text(encoding="utf-8"))
+    by_name = {entry["mutation"]: entry for entry in mutations}
+    assert by_name["calibration-frame"]["scope"] == "identity-only"
+    assert by_name["calibration-frame"]["equivalent_for_calibration_behavior"] is True
+    assert all(
+        entry["scope"] == "behavioral"
+        for name, entry in by_name.items()
+        if name != "calibration-frame"
+    )
 
 
 def test_facade_mixed_series_dict_fix_and_its_test_are_present() -> None:

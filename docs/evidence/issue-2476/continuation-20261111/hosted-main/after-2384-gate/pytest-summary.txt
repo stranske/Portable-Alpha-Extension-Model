@@ -1,0 +1,5 @@
+tests/test_cli.py::test_main_with_png 
+[gw0] [ 19%] PASSED tests/test_cli.py::test_main_with_png 
+tests/test_cli.py::test_main_with_png
+FAILED tests/test_schema_export.py::test_parameter_dictionary_matches_schema - AssertionError: Parameter dictionary drift detected; re-run `python -m pa_core.schema --generate-parameter-dictionary`.
+====== 1 failed, 1775 passed, 2 skipped, 932 warnings in 98.05s (0:01:38) ======

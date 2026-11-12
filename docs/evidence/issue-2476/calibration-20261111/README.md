@@ -78,11 +78,14 @@ tests separately exercise the real importer and calibrator implementations.
 The new collaborator mocks are not evidence for their implementation coverage.
 
 All seven new cases have actual production mutations with named failures and
-restored passing reruns. Twelve checks additionally verify frame forwarding,
+restored passing reruns. Eleven behavioral mutations and one separate
+input-identity forwarding check (`calibration-frame`) verify frame forwarding,
 export destination, template observation thresholds and rejection before I/O.
 See [complete transcripts](mutation-transcripts.md) and
 [commands, exact mutations, exit codes, timings and hashes](mutations.json).
-The `calibration-frame` mutation (`df` → `df.copy()`) is **identity-only**. The copy
+The `calibration-frame` mutation (`df` → `df.copy()`) is **identity-only** and
+marked `"scope": "identity-only"` and `"equivalent_for_calibration_behavior": true`
+in `mutations.json` (separate from the 11 `"scope": "behavioral"` entries). The copy
 has equal contents, and only the test's `is frame` identity assertion detects it.
 It shows that the parsed frame object is forwarded. It does not show that any
 frame content is checked.
